@@ -918,6 +918,15 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
   }
   state->pop();
 
+  // FBO finalization binds/unbinds a texture outside the image element. An
+  // unchanged inherited image is not restored by pop(), which compares image
+  // identities, so a consumer on another unit can silently lose unit zero.
+  int lastEnabled = -1;
+  const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, lastEnabled);
+  for (int unit = 0; unit <= lastEnabled; ++unit) {
+    if (enabled[unit]) SoGLMultiTextureImageElement::restore(state, unit);
+  }
+
   SoGLLazyElement::getInstance(state)->reset(state,
                                              SoLazyElement::LIGHT_MODEL_MASK|
                                              SoLazyElement::TWOSIDE_MASK|
@@ -1007,8 +1016,8 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
   if (!this->buffervalid) {
     assert(this->glaction != NULL);
     assert(this->glcontext != NULL);
-    this->glaction->setTransparencyType((SoGLRenderAction::TransparencyType)
-                                        SoShapeStyleElement::getTransparencyType(state));
+    // Match FBO and the initial pbuffer setup: keep an explicit producer policy.
+    this->glaction->setTransparencyType(this->getTransparencyType(state));
 
     cc_glglue_context_make_current(this->glcontext);
     glEnable(GL_DEPTH_TEST);

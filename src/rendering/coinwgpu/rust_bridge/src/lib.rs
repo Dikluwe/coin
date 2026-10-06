@@ -29,7 +29,7 @@ mod shader_profile;
 mod depth_transfer;
 mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 48;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 49;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -907,6 +907,7 @@ struct PipelineKey {
     front_face: wgpu::FrontFace,
     blend: bool,
     additive: bool,
+    legacy_blend_alpha: bool,
     peel: bool,
     depth_write: bool,
     depth_compare: wgpu::CompareFunction,
@@ -1380,7 +1381,7 @@ mod camera_scene_tests {
         let mut material: CoinWgpuMaterial = unsafe { std::mem::zeroed() };
         material.diffuse[3] = 1.0;
         let order = [composition::CompositionItem { draw_index: 0, blend: false,
-            additive: false, screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
+            additive: false, legacy_blend_alpha: false, screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
         let mut state = phong_state();
         let base = camera_scene(7, &frame, &vertices, &[0,1,2], &[draw], &[material],
             &[state], &order, &[], &[], &[], &[], None).expect("validated opaque PHONG snapshot");
@@ -2782,6 +2783,7 @@ fn get_or_create_pipeline<'a>(
     front_face: wgpu::FrontFace,
     blend: bool,
     additive: bool,
+    legacy_blend_alpha: bool,
     peel: bool,
     depth_write: bool,
     depth_compare: wgpu::CompareFunction,
@@ -2812,6 +2814,7 @@ fn get_or_create_pipeline<'a>(
         front_face,
         blend,
         additive,
+        legacy_blend_alpha,
         peel,
         depth_write,
         depth_compare,
@@ -2888,7 +2891,7 @@ fn get_or_create_pipeline<'a>(
                     operation: wgpu::BlendOperation::Add,
                 },
                 alpha: wgpu::BlendComponent {
-                    src_factor: if additive {
+                    src_factor: if additive || legacy_blend_alpha {
                         wgpu::BlendFactor::SrcAlpha
                     } else {
                         wgpu::BlendFactor::One
@@ -3336,7 +3339,7 @@ fn encode_frame(
                 format!("Texture {} has stale or unknown RTT token", t_idx),
             ))?;
             if entry.width != t.width || entry.height != t.height
-                || t.reserved != u32::from(entry.opaque)
+                || (t.reserved != 0 && (t.reserved != 1 || !entry.opaque))
                 || !t.pixels.is_null() || t.pixel_bytes_len != 0 {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     format!("Texture {} RTT token metadata mismatch", t_idx)));
@@ -4169,6 +4172,7 @@ fn encode_frame(
                     front_face,
                     item.blend && !is_peel && !is_weighted,
                     item.additive,
+                    item.legacy_blend_alpha,
                     is_peel,
                     is_peel || (st.depth_test != 0 && st.depth_write != 0),
                     if is_peel {
@@ -6911,7 +6915,10 @@ fn coin_wgpu_submit_internal(
             });
             ctx.rtt_textures.lock().unwrap().active.insert(token, RttTexture {
                 texture: color_texture,
-                opaque: f.clear_color[3] >= 1.0,
+                // An opaque clear does not prove all later writes opaque:
+                // legacy blend and NONE can both reduce destination alpha.
+                // Captured Coin producers conservatively make no opaque claim.
+                opaque: false,
                 view: color_view,
                 width,
                 height,
@@ -7265,6 +7272,18 @@ fn coin_wgpu_submit_internal(
                 }
                 if trace_phases {
                     let profile_done = std::time::Instant::now();
+                    let info = ctx.adapter.get_info();
+                    let renderer = match info.backend {
+                        wgpu::Backend::Vulkan => "vulkan",
+                        wgpu::Backend::Gl => "opengl",
+                        wgpu::Backend::Metal => "metal",
+                        wgpu::Backend::Dx12 => "dx12",
+                        _ => "other",
+                    };
+                    // Emit only after checked GPU completion and publication.
+                    eprintln!("COIN_RENDER_PHASE wgpu_offscreen renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} serial={} size={}x{}",
+                        renderer, info.vendor, info.device, info.device_type,
+                        sub_serial, width, height);
                     trace_owned_resources(ctx, "offscreen", width, height, staging_size,
                         if depth_requested { depth_staging_size } else { 0 });
                     eprintln!("COIN_RENDER_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={} attachments_reused={} camera_bindings_created={} camera_bindings_reused={}",

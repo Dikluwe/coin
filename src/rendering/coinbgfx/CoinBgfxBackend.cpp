@@ -370,7 +370,9 @@ uint64_t drawState(const CoinBgfxDraw & draw)
     }
   }
   if (draw.depthTest && draw.depthWrite) state |= BGFX_STATE_WRITE_Z;
-  if (draw.blend && draw.additive) {
+  if (draw.blend && draw.legacyBlendAlpha && !draw.additive) {
+    state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_INV_SRC_ALPHA);
+  } else if (draw.blend && draw.additive) {
     state |= BGFX_STATE_BLEND_FUNC(BGFX_STATE_BLEND_SRC_ALPHA, BGFX_STATE_BLEND_ONE);
   } else if (draw.blend) {
     state |= BGFX_STATE_BLEND_FUNC_SEPARATE(BGFX_STATE_BLEND_SRC_ALPHA,

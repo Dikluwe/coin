@@ -152,6 +152,7 @@ public:
   std::vector<DelayedAnnotation> delayedOverlays;
   bool replayingAnnotations = false;
   bool planOnly = false;
+  bool inheritedTransparencyOverride = false;
   bool hasLastValidPlan;
   mutable bool recordingLogValid;
   bool isApplying;

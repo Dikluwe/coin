@@ -4,9 +4,30 @@ import os
 import sys
 from types import SimpleNamespace
 from unittest.mock import patch
-from run import classify, execute, window_manager_available, parse_lock_state, select_variants, session_locked
+from run import classify, execute, window_manager_available, parse_lock_state, select_variants, session_locked, device_evidence
 
 class ResultGate(unittest.TestCase):
+    def test_offscreen_proof_is_scoped_and_requires_publication_serial(self):
+        trace = ('COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x1002 '
+                 'device_id=0x1638 device_type=IntegratedGpu serial=3 size=256x256\n')
+        result = 'RESULT {"status":"PASS"}'
+        self.assertEqual(classify(0, trace + result, backend='wgpu')['status'], 'FAIL')
+        self.assertEqual(classify(0, trace + result, backend='wgpu', offscreen=True)['status'], 'PASS')
+        self.assertEqual(classify(0, trace.replace('serial=3', 'serial=0') + result,
+                                  backend='wgpu', offscreen=True)['status'], 'FAIL')
+        self.assertEqual(device_evidence(trace, 'wgpu'), [])
+        self.assertEqual(device_evidence(trace, 'wgpu', True)[0], ('vulkan','0x1002','0x1638'))
+
+    def test_renderer_names_keep_exact_identity(self):
+        def trace(renderer):
+            return ('COIN_RENDER_PHASE bgfx_device renderer=' + renderer +
+                    ' vendor_id=0x0000 device_id=0x0000 homogeneous_depth=1')
+        self.assertEqual(device_evidence(trace('OpenGL 4.3'), 'bgfx'),
+                         [('opengl', '0x0000', '0x0000')])
+        self.assertEqual(device_evidence(trace('Vulkan'), 'bgfx')[0][0], 'vulkan')
+        self.assertEqual(device_evidence(trace('Unknown API'), 'bgfx')[0][0], 'Unknown API')
+        self.assertEqual(device_evidence(trace('OpenGL 4.3'), 'wgpu'), [])
+
     def test_targeted_retry_preserves_default_matrix(self):
         variants = [(m, 'opaque', s) for m in ('object', 'weighted_oit') for s in (1, 2)]
         self.assertEqual(select_variants(variants), variants)

@@ -339,14 +339,15 @@ void visual(const QString & test) {
     const char * labels[]={"FRONT","REAR","TOP","BOTTOM","RIGHT","LEFT"};
     std::vector<QImage> labelImages;
     for(int face=0;face<6;++face) {
-      QImage label(128,64,QImage::Format_RGBA8888); label.fill(Qt::transparent);
+      QImage label(qEnvironmentVariableIntValue("COIN_TEST_NPOT_LABELS") ? 127 : 128,
+                   qEnvironmentVariableIntValue("COIN_TEST_NPOT_LABELS") ? 61 : 64,QImage::Format_RGBA8888); label.fill(Qt::transparent);
       QPainter painter(&label); painter.setPen(Qt::white);
       QFont font("DejaVu Sans",18); font.setBold(true); painter.setFont(font);
       painter.drawText(label.rect(),Qt::AlignCenter,labels[face]); painter.end();
       labelImages.push_back(label);
     }
     auto installLabels=[&] { for(int face=0;face<6;++face)
-      cube->setLabelImage(ids[face],SbVec2s(128,64),4,labelImages[face].constBits()); };
+      cube->setLabelImage(ids[face],SbVec2s(labelImages[face].width(),labelImages[face].height()),4,labelImages[face].constBits()); };
     const SbRotation orientations[]={
       SbRotation(SbVec3f(0,0,1),SbVec3f(0,0,1)),
       SbRotation(SbVec3f(0,0,1),SbVec3f(0,0,-1)),

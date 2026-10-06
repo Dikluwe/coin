@@ -34,3 +34,10 @@ add_test(NAME QtQuarterMatrix COMMAND "${Python3_EXECUTABLE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.py" --harness "$<TARGET_FILE:QtQuarterRegression>"
   --artifacts "${CMAKE_BINARY_DIR}/artifacts")
 set_tests_properties(QtQuarterMatrix PROPERTIES TIMEOUT 900 SKIP_RETURN_CODE 77)
+
+add_executable(FreeCADGeneratedImageTest FreeCADGeneratedImageTest.cpp)
+target_include_directories(FreeCADGeneratedImageTest PRIVATE
+  "${COIN_SOURCE_DIR}/include" "${COIN_BUILD_DIR}/include"
+  "${FREECAD_SOURCE_DIR}/src/Gui")
+target_link_libraries(FreeCADGeneratedImageTest PRIVATE Qt6::Gui ${COIN_LIBRARY})
+add_test(NAME FreeCADGeneratedImageTest COMMAND FreeCADGeneratedImageTest)

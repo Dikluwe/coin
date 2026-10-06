@@ -1,0 +1,59 @@
+Test project /tmp/coin-render-first-frame-bgfx
+      Start 108: CoinRenderRttProfileStaged_vulkan
+ 1/27 Test #108: CoinRenderRttProfileStaged_vulkan ............   Passed    1.36 sec
+      Start 109: CoinRenderRttProfileDirect_vulkan
+ 2/27 Test #109: CoinRenderRttProfileDirect_vulkan ............   Passed    1.09 sec
+      Start 110: CoinRenderRttProfileStaged_opengl
+ 3/27 Test #110: CoinRenderRttProfileStaged_opengl ............   Passed    1.29 sec
+      Start 111: CoinRenderRttProfileDirect_opengl
+ 4/27 Test #111: CoinRenderRttProfileDirect_opengl ............   Passed    1.11 sec
+      Start 112: CoinRenderRttMatrixCaptureTest
+ 5/27 Test #112: CoinRenderRttMatrixCaptureTest ...............   Passed    2.16 sec
+      Start 116: CoinRenderRttMatrixGpuTest
+ 6/27 Test #116: CoinRenderRttMatrixGpuTest ...................   Passed    3.44 sec
+      Start 117: CoinRenderRttMatrixDirectTest
+ 7/27 Test #117: CoinRenderRttMatrixDirectTest ................   Passed    1.55 sec
+      Start 120: CoinRenderRttMatrixFboTest
+ 8/27 Test #120: CoinRenderRttMatrixFboTest ...................   Passed    0.20 sec
+      Start 121: CoinRenderRttMatrixPbufferTest
+ 9/27 Test #121: CoinRenderRttMatrixPbufferTest ...............   Passed    0.28 sec
+      Start 128: CoinRenderLightingTest
+10/27 Test #128: CoinRenderLightingTest .......................   Passed    8.11 sec
+      Start 161: CoinRenderNodeInventoryDiscoveryTest
+11/27 Test #161: CoinRenderNodeInventoryDiscoveryTest .........   Passed    0.08 sec
+      Start 162: CoinRenderNodeInventoryTest
+12/27 Test #162: CoinRenderNodeInventoryTest ..................   Passed    0.04 sec
+      Start 181: CoinRenderShadowReferenceTest
+13/27 Test #181: CoinRenderShadowReferenceTest ................   Passed   16.05 sec
+      Start 226: CoinRenderPublicationTest
+14/27 Test #226: CoinRenderPublicationTest ....................   Passed    0.03 sec
+      Start 227: CoinRenderRttOwnershipTest
+15/27 Test #227: CoinRenderRttOwnershipTest ...................   Passed    0.23 sec
+      Start 228: CoinRenderRttOwnership_vulkan
+16/27 Test #228: CoinRenderRttOwnership_vulkan ................   Passed    0.23 sec
+      Start 229: CoinRenderRttOwnership_opengl
+17/27 Test #229: CoinRenderRttOwnership_opengl ................   Passed    0.19 sec
+      Start 230: CoinRenderSceneTextureTest
+18/27 Test #230: CoinRenderSceneTextureTest ...................   Passed    1.00 sec
+      Start 231: CoinRenderSceneTextureBudgetTest
+19/27 Test #231: CoinRenderSceneTextureBudgetTest .............   Passed    0.61 sec
+      Start 232: CoinRenderSceneTexture_vulkan_staged
+20/27 Test #232: CoinRenderSceneTexture_vulkan_staged .........   Passed    0.97 sec
+      Start 233: CoinRenderSceneTextureBudget_vulkan_staged
+21/27 Test #233: CoinRenderSceneTextureBudget_vulkan_staged ...   Passed    0.62 sec
+      Start 234: CoinRenderSceneTexture_vulkan_direct
+22/27 Test #234: CoinRenderSceneTexture_vulkan_direct .........   Passed    0.94 sec
+      Start 235: CoinRenderSceneTextureBudget_vulkan_direct
+23/27 Test #235: CoinRenderSceneTextureBudget_vulkan_direct ...   Passed    0.24 sec
+      Start 236: CoinRenderSceneTexture_opengl_staged
+24/27 Test #236: CoinRenderSceneTexture_opengl_staged .........   Passed    0.62 sec
+      Start 237: CoinRenderSceneTextureBudget_opengl_staged
+25/27 Test #237: CoinRenderSceneTextureBudget_opengl_staged ...   Passed    0.57 sec
+      Start 238: CoinRenderSceneTexture_opengl_direct
+26/27 Test #238: CoinRenderSceneTexture_opengl_direct .........   Passed    0.75 sec
+      Start 239: CoinRenderSceneTextureBudget_opengl_direct
+27/27 Test #239: CoinRenderSceneTextureBudget_opengl_direct ...   Passed    0.19 sec
+
+100% tests passed, 0 tests failed out of 27
+
+Total Test time (real) =  43.99 sec

@@ -1,6 +1,7 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-06, após a rodada P02/P04/P05/P06 `b8fba0e530` e o fechamento do primeiro perfil P07, na branch
+Atualizada em 2026-10-06, com a entrega P03/P15/P16/P24/P28 após o fechamento
+P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
 precisam de ampliação ou qualificação apenas nos escopos indicados.
 O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
@@ -23,7 +24,7 @@ O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
   a herança FBO e o filtro pbuffer na fronteira 0,5; RTT permanece linear/base.
 
 Próximo perfil: NPOT/rescaling, anisotropia/limites configuráveis, SRGB/HDR/
-compressão, mipmaps/formatos/unidades/modelos adicionais de RTT e qualificação
+compressão, mipmaps/formatos adicionais de RTT e qualificação
 Windows/FreeCAD. Esses escopos não reabrem os itens do primeiro perfil.
 
 Fechamento: expectativas numéricas e cenas mínimas comuns, CPU/BGFX/wgpu,
@@ -79,20 +80,39 @@ rejeição e diferenças nativas delimitadas no estudo, sem promessa universal.
 
 ## 3. Nós, FreeCAD e recursos além do perfil — P03/P15/P16/P24/P28
 
-- [ ] Qualificar texto, imagens, marcadores, alpha test, UV projetivo e caixas
-  de Complexity recentes no Windows e no viewport real FreeCAD.
-- [ ] Adaptar subclasses e nós GL-only conhecidos no host; verificar conteúdo
-  visível, callbacks, picking e seleção por workbench.
-- [ ] Ampliar RTT além de RGBA8/unidade 0: formatos, estados, transparência,
-  dimensões e rota direta de janela, com orçamento e publicação transacional.
-- [ ] Definir o contrato portátil de shaders próprios antes de implementar
+Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md).
+
+- [ ] Ampliar a qualificação recente para Windows e consumidores reais de cada
+  workbench; manter a célula Linux do viewport separada.
+- [ ] Adaptar os nós GL-only restantes: StringLabel/DatumLabel, bbox, control
+  points, Polygon/MeshGrid, kits/draggers e preparo de viewport por consumidor.
+- [x] Disponibilizar delegação comum para subclasses SoText2/SoImage, preservando
+  callbacks/observadores e falha sem publicação; adaptar SoColorBarLabel e
+  SoFrameLabel com preparo frio no host.
+- [x] Qualificar oito controles de conteúdo no viewport FreeCAD Linux:
+  BGFX Vulkan e wgpu em object/weighted OIT e DPR 1/2; BGFX OpenGL em DPR 1.
+  Adaptar imagens RGBA NPOT geradas pelo GUI e validar os 12 controles de
+  NaviCube nas três rotas, com sete orientações, máscaras e picking.
+- [ ] Concluir a qualificação física BGFX OpenGL DPR 2: timeout AMD antes da
+  captura; tentativa de offload concluiu conteúdo, mas sem prova de GPU física.
+  Manter os diagnósticos separados das células aprovadas.
+- [x] Ampliar RTT RGBA8 a unidades 0..7, quatro modelos e política explícita da
+  subcena; definir/executar alpha convencional do produtor no Core e executores.
+  Corrigir restauração FBO e sobrescrita de política pbuffer na referência.
+- [ ] Ampliar formatos/mipmaps/dimensões e RTT direto de janela, mantendo
+  orçamento, propriedade de recursos e publicação transacional.
+- [x] Definir o contrato portátil de shaders próprios antes de implementar
   tradução e recursos em BGFX/wgpu.
-- [ ] Definir planos comuns para texturas 3D, cube maps e RTT de cubo.
-- [ ] Definir MSAA/resolve e multipass na action/target, com memória e
+- [x] Definir planos comuns para texturas 3D, cube maps e RTT de cubo.
+- [x] Definir MSAA/resolve e multipass na action/target, com memória e
   comportamento de resize/readback explícitos.
 
-Fechamento: cenário real no host quando pertinente; ausência de omissões
-silenciosas nos tipos adaptados; rejeição explícita fora do perfil publicado.
+Os três últimos itens fecham definição de contrato, não execução. Shaders,
+volume/cubo e MSAA continuam sem executor no perfil publicado. Referência:
+[contratos dos recursos](coin-render-portable-resources-contract.md).
+
+Fechamento por perfil: cenário real no host quando pertinente; ausência de
+omissões silenciosas nos tipos adaptados; rejeição explícita fora do perfil.
 
 ## 4. Desempenho — continuação de P17/P18/P19
 

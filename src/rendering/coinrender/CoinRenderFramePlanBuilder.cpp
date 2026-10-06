@@ -863,6 +863,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 
   if(!isSceneTexture && (!CoinRenderTextureSamplingCore::powerOfTwo(w) || !CoinRenderTextureSamplingCore::powerOfTwo(h))) {
     this->isUnsupported=true;this->builderError="P07 stored texture images require power-of-two dimensions; implicit CoinGL NPOT rescaling is outside this profile";
+    this->builderError += " (" + std::to_string(w) + "x" + std::to_string(h) + ", unit " + std::to_string(unit) + ", path";
+    for (int i = 0; i < action->getCurPath()->getLength(); ++i)
+      this->builderError += " /" + std::string(action->getCurPath()->getNode(i)->getTypeId().getName().getString());
+    this->builderError += ")";
     if(outError)*outError=this->builderError;return false;
   }
   std::vector<uint8_t> rgba;
@@ -1470,8 +1474,8 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
   };
   if (!this->inFrame || !action || !node)
     return fail("Invalid screen-content capture scope");
-  const bool isImage = node->getTypeId() == SoImage::getClassTypeId();
-  if (!isImage && node->getTypeId() != SoText2::getClassTypeId())
+  const bool isImage = node->isOfType(SoImage::getClassTypeId());
+  if (!isImage && !node->isOfType(SoText2::getClassTypeId()))
     return fail("Invalid native screen-content node");
   if (isImage) {
     SbVec2s size; int components;

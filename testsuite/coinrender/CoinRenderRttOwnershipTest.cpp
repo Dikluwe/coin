@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 #include "rendering/coinrender/CoinRenderRttCore.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -152,6 +153,36 @@ int main() {
   auto unrelated = producer(99);
   ok &= check(graph.append(unrelated, id, diagnostic) && id == 4,
               "distinct source must not alias identical payload");
+
+  auto alphaProducer = first;
+  alphaProducer.plan.legacyBlendAlpha = true;
+  ok &= check(!alphaProducer.plan.hasSamePayload(first.plan) &&
+              graph.append(alphaProducer, id, diagnostic) && id == 5,
+              "producer alpha equation participates in payload identity and dedup");
+
+  // Independent numeric control of the producer alpha equation in the CPU
+  // executor; consumer RGB comparisons alone cannot prove framebuffer alpha.
+  auto alphaFrame = triangle(true);
+  alphaFrame.clearColor = SbColor4f(.1f,.2f,.7f,.5f);
+  alphaFrame.materials[0].diffuse[0] = .8f;
+  alphaFrame.materials[0].diffuse[1] = alphaFrame.materials[0].diffuse[2] = 0;
+  alphaFrame.renderStates[0].transparencyType = SoGLRenderAction::BLEND;
+  std::unique_ptr<CoinRenderTarget> alphaTarget(CoinRenderTarget::createOffscreen(SbVec2i32(4,4)));
+  alphaTarget->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
+  alphaFrame.legacyBlendAlpha = true;
+  const auto alphaResult = alphaTarget->getPimpl()->executeFrame(alphaFrame);
+  std::vector<uint8_t> alphaPixels; alphaTarget->readbackRGBA(alphaPixels);
+  const size_t alphaOffset = (1*4+2)*4;
+  ok &= check(alphaResult.status == CoinRenderBackendStatus::SUCCESS && alphaPixels.size()==64 &&
+              alphaPixels[alphaOffset] > 100 && alphaPixels[alphaOffset+3] >= 127 &&
+              alphaPixels[alphaOffset+3] <= 129,
+              "CPU producer computes alpha sa*sa + da*(1-sa)");
+  alphaFrame.legacyBlendAlpha = false;
+  const auto ordinaryResult = alphaTarget->getPimpl()->executeFrame(alphaFrame);
+  alphaTarget->readbackRGBA(alphaPixels);
+  ok &= check(ordinaryResult.status == CoinRenderBackendStatus::SUCCESS && alphaPixels.size()==64 &&
+              alphaPixels[alphaOffset+3] >= 190 && alphaPixels[alphaOffset+3] <= 192,
+              "ordinary target keeps separate alpha accumulation");
 
   CoinRenderRttPlan stack;
   ok &= check(stack.enter(1, SbVec2i32(1, 1), diagnostic), "source stack entry");

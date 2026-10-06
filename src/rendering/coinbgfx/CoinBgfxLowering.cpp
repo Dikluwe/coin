@@ -773,6 +773,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       lowered.polygonOffsetSlopeBias = state.polygonOffsetSlopeBias;
     }
     lowered.blend = item.blend;
+    lowered.legacyBlendAlpha = frame.legacyBlendAlpha;
     lowered.sourceNodeId = draw.sourceNodeId;
     lowered.sortTriangles = item.sortTriangles;
     lowered.deferred = item.deferred;

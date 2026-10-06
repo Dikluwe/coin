@@ -199,6 +199,8 @@ Vulkan não encerram a matriz física nem qualificam outras plataformas.
 ## 8. Recursos modernos após a base
 
 - [ ] **P24 — Qualidade (F21):** MSAA/multipass configurável e linear/sRGB/HDR.
+  [Contrato de action/target, resolve, passes e orçamento](coin-render-portable-resources-contract.md)
+  definido; implementação e qualificação ainda pendentes.
 - [ ] **P25 — Efeitos (F20):** sombras, SSAO e texturas 3D/cube maps;
   compatibilidade Coin separada das extensões novas. A
   [checagem de efeitos](coin-render-p25-effects.md) rejeita cenas ativas ainda

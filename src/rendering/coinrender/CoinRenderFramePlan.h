@@ -356,6 +356,8 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
  */
 struct CoinRenderFramePlan {
   uint64_t revision = 0;
+  // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.
+  bool legacyBlendAlpha = false;
   CoinRenderTransparencyOptions transparency;
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<CoinRenderVertexSnapshot> vertices;

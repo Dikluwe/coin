@@ -1,0 +1,849 @@
+Start testing: Oct 06 18:36 -03
+----------------------------------------------------------
+108/276 Testing: CoinRenderRttProfileStaged_vulkan
+108/276 Test: CoinRenderRttProfileStaged_vulkan
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttProfileTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttProfileStaged_vulkan" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT extended staged: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+<end of output>
+Test time =   1.36 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttProfileStaged_vulkan" end time: Oct 06 18:36 -03
+"CoinRenderRttProfileStaged_vulkan" time elapsed: 00:00:01
+----------------------------------------------------------
+
+109/276 Testing: CoinRenderRttProfileDirect_vulkan
+109/276 Test: CoinRenderRttProfileDirect_vulkan
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttProfileTest" "--direct"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttProfileDirect_vulkan" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT extended direct: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+<end of output>
+Test time =   1.09 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttProfileDirect_vulkan" end time: Oct 06 18:36 -03
+"CoinRenderRttProfileDirect_vulkan" time elapsed: 00:00:01
+----------------------------------------------------------
+
+110/276 Testing: CoinRenderRttProfileStaged_opengl
+110/276 Test: CoinRenderRttProfileStaged_opengl
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttProfileTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttProfileStaged_opengl" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT extended staged: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+<end of output>
+Test time =   1.29 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttProfileStaged_opengl" end time: Oct 06 18:36 -03
+"CoinRenderRttProfileStaged_opengl" time elapsed: 00:00:01
+----------------------------------------------------------
+
+111/276 Testing: CoinRenderRttProfileDirect_opengl
+111/276 Test: CoinRenderRttProfileDirect_opengl
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttProfileTest" "--direct"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttProfileDirect_opengl" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT extended direct: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+<end of output>
+Test time =   1.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttProfileDirect_opengl" end time: Oct 06 18:36 -03
+"CoinRenderRttProfileDirect_opengl" time elapsed: 00:00:01
+----------------------------------------------------------
+
+112/276 Testing: CoinRenderRttMatrixCaptureTest
+112/276 Test: CoinRenderRttMatrixCaptureTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttMatrixCaptureTest" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   2.16 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttMatrixCaptureTest" end time: Oct 06 18:36 -03
+"CoinRenderRttMatrixCaptureTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+116/276 Testing: CoinRenderRttMatrixGpuTest
+116/276 Test: CoinRenderRttMatrixGpuTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest" "--gpu"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttMatrixGpuTest" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+<end of output>
+Test time =   3.44 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttMatrixGpuTest" end time: Oct 06 18:36 -03
+"CoinRenderRttMatrixGpuTest" time elapsed: 00:00:03
+----------------------------------------------------------
+
+117/276 Testing: CoinRenderRttMatrixDirectTest
+117/276 Test: CoinRenderRttMatrixDirectTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest" "--direct"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttMatrixDirectTest" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+<end of output>
+Test time =   1.55 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttMatrixDirectTest" end time: Oct 06 18:36 -03
+"CoinRenderRttMatrixDirectTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+120/276 Testing: CoinRenderRttMatrixFboTest
+120/276 Test: CoinRenderRttMatrixFboTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest" "--gl"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttMatrixFboTest" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+<end of output>
+Test time =   0.20 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttMatrixFboTest" end time: Oct 06 18:36 -03
+"CoinRenderRttMatrixFboTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+121/276 Testing: CoinRenderRttMatrixPbufferTest
+121/276 Test: CoinRenderRttMatrixPbufferTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest" "--gl"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttMatrixPbufferTest" start time: Oct 06 18:36 -03
+Output:
+----------------------------------------------------------
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+<end of output>
+Test time =   0.28 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttMatrixPbufferTest" end time: Oct 06 18:37 -03
+"CoinRenderRttMatrixPbufferTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+128/276 Testing: CoinRenderLightingTest
+128/276 Test: CoinRenderLightingTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderLightingTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderLightingTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+Coin/GL reference active; directional CPU=71 GL=71; two lights CPU=142 GL=143
+Gouraud oracle PASS: curved normals: specular before interpolation
+Gouraud oracle PASS: broad point-light face: vertex distance
+Gouraud oracle PASS: spot cone misses vertices: no fragment relighting
+Gouraud oracle PASS: spot drop-off: vertex cone factor
+Gouraud oracle PASS: negative N.H: no artificial specular floor
+Curved sphere Gouraud PASS: light=0
+Curved sphere Gouraud PASS: light=1
+Curved sphere Gouraud PASS: light=2
+Ambient CPU=[25,51,12] GL=[25,51,13]
+Point constant CPU=133 GL=133; linear CPU=54 GL=54
+Spot inside CPU=161 GL=162; outside CPU=0 GL=0
+Spot dropoff hard CPU=162 GL=162; soft CPU=84 GL=84
+Nonuniform normal CPU=69 GL=69
+CoinRenderLightingTest passed
+<end of output>
+Test time =   8.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderLightingTest" end time: Oct 06 18:37 -03
+"CoinRenderLightingTest" time elapsed: 00:00:08
+----------------------------------------------------------
+
+161/276 Testing: CoinRenderNodeInventoryDiscoveryTest
+161/276 Test: CoinRenderNodeInventoryDiscoveryTest
+Command: "/home/dikluwe/.local/bin/python3.11" "/tmp/coin-render-first-frame/testsuite/coinrender/test_node_inventory.py"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderNodeInventoryDiscoveryTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+...
+----------------------------------------------------------------------
+Ran 3 tests in 0.004s
+
+OK
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderNodeInventoryDiscoveryTest" end time: Oct 06 18:37 -03
+"CoinRenderNodeInventoryDiscoveryTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+162/276 Testing: CoinRenderNodeInventoryTest
+162/276 Test: CoinRenderNodeInventoryTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderNodeInventoryTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderNodeInventoryTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+P15/P25: GL-only characterization, native raster, delegation, effect gates and subclass callbacks characterized
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderNodeInventoryTest" end time: Oct 06 18:37 -03
+"CoinRenderNodeInventoryTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+181/276 Testing: CoinRenderShadowReferenceTest
+181/276 Test: CoinRenderShadowReferenceTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowReferenceTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderShadowReferenceTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+smoothBorder Coin/GL/GPU unchanged=1
+low-quality spot Coin/GL/GPU delta=480/480
+clipped caster Coin/GL/GPU delta=531/531
+active/inactive sibling Coin/GL/GPU delta=486/474
+sibling groups Coin/GL/GPU delta=486/474
+distinct sibling VSM Coin/GL/GPU delta=138/165
+staged RTT distinct VSM Coin/GL/GPU delta=108/132
+direct RTT distinct VSM Coin/GL/GPU delta=108/132
+inherited directional with shadow group Coin/GL/GPU delta=152/152
+ordinary light inside active group GL/GPU unchanged=1
+inherited point with shadow group Coin/GL/GPU delta=594/594
+ordinary point inside active group GL/GPU unchanged=1
+opaque textured shadow receiver Coin/GL/GPU delta=485/485
+five lights textured receiver Coin/GL/GPU delta=81/81
+three lights Coin/GL/BGFX delta=666/666
+four lights Coin/GL/BGFX delta=228/228
+five lights Coin/GL/BGFX delta=291/291
+eight lights Coin/GL/BGFX delta=117/174
+eight lights staged RTT Coin/GL/BGFX delta=225/225
+eight lights direct RTT Coin/GL/BGFX delta=225/225
+fifth spot Coin/GL/BGFX delta=162/162
+sixth spot Coin/GL/BGFX delta=174/174
+seventh spot Coin/GL/BGFX delta=138/138
+eighth spot BGFX delta=114
+Coin/GL two-light contribution delta=402
+low-quality directional Coin/GL/GPU delta=666/666
+direct shadowMapScene Coin/GL/GPU delta=420/420
+subtree shadowMapScene Coin/GL/GPU delta=426/426
+styled subtree shadowMapScene Coin/GL/GPU delta=108/108
+clipped subtree shadowMapScene Coin/GL/GPU delta=588/588
+staged shadow RTT GPU delta=306
+staged shadow RTT Coin/GL/GPU delta=306/306
+staged shadow RTT resized GPU delta=306
+direct shadow RTT Coin/GL/GPU delta=306/306
+direct shadow RTT resized GPU delta=306
+staged RTT shadow receiver Coin/GL/GPU delta=225/216
+direct RTT shadow receiver Coin/GL/GPU delta=225/216
+inherited shadowMapScene Coin/GL/GPU delta=441/429
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=171/171 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=171/171 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=0 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=0 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=1 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=1 qualified=1
+empty shadow maps=1 Coin/GL/GPU incremental delta=0/0 qualified=1
+empty shadow maps=2 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=3 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=4 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=5 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=6 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=7 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=8 Coin/GL/GPU incremental delta=0/63 qualified=1
+independent shadow scenes directional=0 variant=0 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=0 variant=1 GL/GPU delta=279/273 qualified=1
+independent shadow scenes directional=0 variant=2 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=0 variant=3 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=0 variant=4 GL/GPU delta=555/543 qualified=1
+independent shadow scenes directional=0 variant=5 GL/GPU delta=546/534 qualified=1
+independent shadow scenes directional=0 variant=6 GL/GPU delta=273/267 qualified=1
+independent shadow scenes directional=1 variant=0 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=1 variant=1 GL/GPU delta=333/333 qualified=1
+independent shadow scenes directional=1 variant=2 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=1 variant=3 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=1 variant=4 GL/GPU delta=666/666 qualified=1
+independent shadow scenes directional=1 variant=5 GL/GPU delta=666/666 qualified=1
+independent shadow scenes directional=1 variant=6 GL/GPU delta=333/333 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=1 GL/GPU delta=282/282 mean delta error=4.27544 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=2 GL/GPU delta=282/471 mean delta error=7.21371 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=3 GL/GPU delta=270/324 mean delta error=10.7464 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=4 GL/GPU delta=270/276 mean delta error=7.59762 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=0 maps=1 mode=1 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=1 GL/GPU delta=225/225 mean delta error=3.42136 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=2 GL/GPU delta=225/378 mean delta error=5.77066 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=3 GL/GPU delta=216/261 mean delta error=8.59827 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=4 GL/GPU delta=216/222 mean delta error=6.08006 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=0 maps=1 mode=2 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=1 GL/GPU delta=225/225 mean delta error=3.42136 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=2 GL/GPU delta=225/378 mean delta error=5.77066 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=3 GL/GPU delta=216/261 mean delta error=8.59827 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=4 GL/GPU delta=216/222 mean delta error=6.08006 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=1 mode=0 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=0 variant=1 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=0 variant=2 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=1 mode=1 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=1 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=1 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=1 mode=2 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=2 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=2 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=5 mode=0 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=0 variant=1 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=0 variant=2 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=5 mode=1 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=1 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=1 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=5 mode=2 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=2 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=2 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+Coin/GL shadow sample inactive=600 active=126 late_light=30 no_receive=600 restored=126 no_caster=654 center_delta=1
+ directional_style_delta=666 late_directional_style_delta=0 mixed_directional_style_delta=666 spot_late_style_delta=0 spot_mixed_style_delta=474 at=0,0 values=0,0,0
+<end of output>
+Test time =  16.05 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowReferenceTest" end time: Oct 06 18:37 -03
+"CoinRenderShadowReferenceTest" time elapsed: 00:00:16
+----------------------------------------------------------
+
+226/276 Testing: CoinRenderPublicationTest
+226/276 Test: CoinRenderPublicationTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderPublicationTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderPublicationTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderPublicationTest passed
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderPublicationTest" end time: Oct 06 18:37 -03
+"CoinRenderPublicationTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+227/276 Testing: CoinRenderRttOwnershipTest
+227/276 Test: CoinRenderRttOwnershipTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttOwnershipTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderRttOwnershipTest passed
+<end of output>
+Test time =   0.23 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttOwnershipTest" end time: Oct 06 18:37 -03
+"CoinRenderRttOwnershipTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+228/276 Testing: CoinRenderRttOwnership_vulkan
+228/276 Test: CoinRenderRttOwnership_vulkan
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttOwnership_vulkan" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderRttOwnershipTest passed
+<end of output>
+Test time =   0.23 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttOwnership_vulkan" end time: Oct 06 18:37 -03
+"CoinRenderRttOwnership_vulkan" time elapsed: 00:00:00
+----------------------------------------------------------
+
+229/276 Testing: CoinRenderRttOwnership_opengl
+229/276 Test: CoinRenderRttOwnership_opengl
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttOwnership_opengl" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderRttOwnershipTest passed
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttOwnership_opengl" end time: Oct 06 18:37 -03
+"CoinRenderRttOwnership_opengl" time elapsed: 00:00:00
+----------------------------------------------------------
+
+230/276 Testing: CoinRenderSceneTextureTest
+230/276 Test: CoinRenderSceneTextureTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTextureTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =   1.00 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureTest" end time: Oct 06 18:37 -03
+"CoinRenderSceneTextureTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+231/276 Testing: CoinRenderSceneTextureBudgetTest
+231/276 Test: CoinRenderSceneTextureBudgetTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureBudgetTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTextureBudgetTest" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   0.61 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudgetTest" end time: Oct 06 18:37 -03
+"CoinRenderSceneTextureBudgetTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+232/276 Testing: CoinRenderSceneTexture_vulkan_staged
+232/276 Test: CoinRenderSceneTexture_vulkan_staged
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTexture_vulkan_staged" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =   0.97 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTexture_vulkan_staged" end time: Oct 06 18:37 -03
+"CoinRenderSceneTexture_vulkan_staged" time elapsed: 00:00:00
+----------------------------------------------------------
+
+233/276 Testing: CoinRenderSceneTextureBudget_vulkan_staged
+233/276 Test: CoinRenderSceneTextureBudget_vulkan_staged
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureBudgetTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTextureBudget_vulkan_staged" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   0.62 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudget_vulkan_staged" end time: Oct 06 18:37 -03
+"CoinRenderSceneTextureBudget_vulkan_staged" time elapsed: 00:00:00
+----------------------------------------------------------
+
+234/276 Testing: CoinRenderSceneTexture_vulkan_direct
+234/276 Test: CoinRenderSceneTexture_vulkan_direct
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTexture_vulkan_direct" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =   0.94 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTexture_vulkan_direct" end time: Oct 06 18:37 -03
+"CoinRenderSceneTexture_vulkan_direct" time elapsed: 00:00:00
+----------------------------------------------------------
+
+235/276 Testing: CoinRenderSceneTextureBudget_vulkan_direct
+235/276 Test: CoinRenderSceneTextureBudget_vulkan_direct
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureBudgetTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTextureBudget_vulkan_direct" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   0.24 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudget_vulkan_direct" end time: Oct 06 18:37 -03
+"CoinRenderSceneTextureBudget_vulkan_direct" time elapsed: 00:00:00
+----------------------------------------------------------
+
+236/276 Testing: CoinRenderSceneTexture_opengl_staged
+236/276 Test: CoinRenderSceneTexture_opengl_staged
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTexture_opengl_staged" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =   0.62 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTexture_opengl_staged" end time: Oct 06 18:37 -03
+"CoinRenderSceneTexture_opengl_staged" time elapsed: 00:00:00
+----------------------------------------------------------
+
+237/276 Testing: CoinRenderSceneTextureBudget_opengl_staged
+237/276 Test: CoinRenderSceneTextureBudget_opengl_staged
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureBudgetTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTextureBudget_opengl_staged" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   0.57 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudget_opengl_staged" end time: Oct 06 18:37 -03
+"CoinRenderSceneTextureBudget_opengl_staged" time elapsed: 00:00:00
+----------------------------------------------------------
+
+238/276 Testing: CoinRenderSceneTexture_opengl_direct
+238/276 Test: CoinRenderSceneTexture_opengl_direct
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTexture_opengl_direct" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =   0.75 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTexture_opengl_direct" end time: Oct 06 18:37 -03
+"CoinRenderSceneTexture_opengl_direct" time elapsed: 00:00:00
+----------------------------------------------------------
+
+239/276 Testing: CoinRenderSceneTextureBudget_opengl_direct
+239/276 Test: CoinRenderSceneTextureBudget_opengl_direct
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderSceneTextureBudgetTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderSceneTextureBudget_opengl_direct" start time: Oct 06 18:37 -03
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   0.19 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudget_opengl_direct" end time: Oct 06 18:37 -03
+"CoinRenderSceneTextureBudget_opengl_direct" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 06 18:37 -03

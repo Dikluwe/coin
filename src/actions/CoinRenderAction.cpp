@@ -14,6 +14,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoTransparencyType.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoTextureCombine.h>
@@ -268,6 +269,41 @@ CoinRenderAction::getRecordingLog(void) const
   return this->pimpl->lastRecordingLog;
 }
 
+SbBool
+CoinRenderAction::captureScreenContent(SoNode * node)
+{
+  if (!this->pimpl->isApplying || this->hasTerminated()) return FALSE;
+  if (!node || this->getCurPathTail() != node ||
+      (!node->isOfType(SoText2::getClassTypeId()) && !node->isOfType(SoImage::getClassTypeId()))) {
+    this->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+      UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("Screen-content delegation requires the current SoText2/SoImage callback node")));
+    this->setTerminated(TRUE);
+    return FALSE;
+  }
+  const bool success = this->pimpl->boundingBoxObservers ||
+    this->pimpl->builder.captureScreenContent(this, node);
+  if (!success) {
+    this->setTerminated(TRUE);
+    return FALSE;
+  }
+  if (!this->hasSingleShapeCallbacks(node->getTypeId())) {
+    // Observe inherited primitives once without reentering the host callback
+    // or capturing its image quad a second time. Keep observer state local.
+    SoState * state = this->getState();
+    state->push();
+    struct ObserverScope {
+      CoinRenderActionP & owner;
+      SoState * state;
+      bool previous;
+      ~ObserverScope() { state->pop(); owner.boundingBoxObservers = previous; }
+    } scope{this->pimpl.get(), state, this->pimpl->boundingBoxObservers};
+    this->pimpl->boundingBoxObservers = true;
+    static_cast<SoShape *>(node)->SoShape::callback(this);
+  }
+  return TRUE;
+}
+
 void
 CoinRenderAction::beginForegroundPass()
 {
@@ -358,7 +394,8 @@ CoinRenderAction::beginTraversal(SoNode * root)
       state, static_cast<int32_t>(this->pimpl->transparencyType));
     SoLazyElement::setTransparencyType(
       state, static_cast<int32_t>(this->pimpl->transparencyType));
-    if (this->pimpl->transparencyType == SORTED_LAYERS_BLEND && root) {
+    if (root && ((!this->pimpl->planOnly && this->pimpl->transparencyType == SORTED_LAYERS_BLEND) ||
+                 this->pimpl->inheritedTransparencyOverride)) {
       SoOverrideElement::setTransparencyTypeOverride(state, root, TRUE);
     }
     if (root) {
@@ -1948,33 +1985,38 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   if (SoTextureOverrideElement::getImageOverride(state)) {
     return SoCallbackAction::CONTINUE;
   }
-  if (SoTextureUnitElement::get(state) != 0 || texture->type.getValue() != SoSceneTexture2::RGBA8 ||
-      texture->model.getValue() != SoSceneTexture2::MODULATE ||
+  const int unit = SoTextureUnitElement::get(state);
+  const int model = texture->model.getValue();
+  const SoNode * transparency = texture->sceneTransparencyType.getValue();
+  if (unit < 0 || unit >= static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS) ||
+      texture->type.getValue() != SoSceneTexture2::RGBA8 ||
+      (model != SoSceneTexture2::MODULATE && model != SoSceneTexture2::REPLACE &&
+       model != SoSceneTexture2::DECAL && model != SoSceneTexture2::BLEND) ||
       (texture->wrapS.getValue() != SoSceneTexture2::REPEAT &&
        texture->wrapS.getValue() != SoSceneTexture2::CLAMP) ||
       (texture->wrapT.getValue() != SoSceneTexture2::REPEAT &&
        texture->wrapT.getValue() != SoSceneTexture2::CLAMP) ||
       !coin_render_scene_texture_policy_supported(texture->transparencyFunction.getValue()) ||
-      texture->sceneTransparencyType.getValue() != NULL) {
+      (transparency && !transparency->isOfType(SoTransparencyType::getClassTypeId()))) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("SoSceneTexture2 supports only unit 0, RGBA8, MODULATE, REPEAT/CLAMP, "
-                 "NONE/ALPHA_BLEND/ALPHA_TEST transparency function and no sceneTransparencyType")));
+        SbString("SoSceneTexture2 supports units 0..7, RGBA8, MODULATE/REPLACE/DECAL/BLEND, "
+                 "REPEAT/CLAMP, NONE/ALPHA_BLEND/ALPHA_TEST and SoTransparencyType scene policy")));
     return SoCallbackAction::ABORT;
   }
 
   if (SoTextureQualityElement::get(state) <= 0.0f) {
     p->sceneTexturePixels.emplace_back(4, 0);
-    SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0,
+    SoMultiTextureImageElement::set(state, const_cast<SoSceneTexture2 *>(texture), unit,
       SbVec2s(1, 1), 4, p->sceneTexturePixels.back().data(),
       SoMultiTextureImageElement::REPEAT, SoMultiTextureImageElement::REPEAT,
-      SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
+      static_cast<SoMultiTextureImageElement::Model>(model), texture->blendColor.getValue());
     SbVec2s markerSize;
     int components;
-    const auto * marker = SoMultiTextureImageElement::getImage(state, 0, markerSize, components);
+    const auto * marker = SoMultiTextureImageElement::getImage(state, unit, markerSize, components);
     p->builder.registerSceneTexture(marker, 0, 1, 1, false,
                                     texture->transparencyFunction.getValue());
-    SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, FALSE);
+    SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), unit, FALSE);
     return SoCallbackAction::CONTINUE;
   }
 
@@ -1999,8 +2041,14 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   CoinRenderAction childAction(SbViewportRegion(size[0], size[1]));
   childAction.pimpl->sceneTexturePlan = p->sceneTexturePlan;
   childAction.pimpl->planOnly = true;
+  childAction.pimpl->inheritedTransparencyOverride = SoOverrideElement::getTransparencyTypeOverride(state);
   childAction.pimpl->executionOptions = p->executionOptions;
-  childAction.setTransparencyType(p->transparencyType);
+  // The producer inherits the traversal policy, including preceding Coin nodes.
+  // Its explicit SoTransparencyType overrides this policy exactly as in CoinGL.
+  const int producerTransparency = transparency
+    ? static_cast<const SoTransparencyType *>(transparency)->value.getValue()
+    : SoShapeStyleElement::getTransparencyType(state);
+  childAction.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(producerTransparency));
   childAction.setSortedLayersNumPasses(static_cast<int>(p->transparencyOptions.layers));
   childAction.setTransparencyBufferBudget(p->transparencyOptions.bufferBudget);
   childAction.setBackgroundColor(
@@ -2014,6 +2062,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   }
   CoinRenderRttProducer producer;
   producer.plan = std::move(childAction.pimpl->lastValidPlan);
+  producer.plan.legacyBlendAlpha = true;
   producer.size = passSize;
   producer.sourceRevision = sourceRevision;
   uint64_t producerId = 0;
@@ -2028,17 +2077,17 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   for (unsigned int i = 0; i < 4; ++i)
     marker[i] = static_cast<uint8_t>(producerId >> (i * 8));
   SoMultiTextureImageElement::set(
-      state, const_cast<SoSceneTexture2*>(texture), 0, SbVec2s(1, 1), 4, marker.data(),
+      state, const_cast<SoSceneTexture2*>(texture), unit, SbVec2s(1, 1), 4, marker.data(),
       static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapS.getValue()),
       static_cast<SoMultiTextureImageElement::Wrap>(texture->wrapT.getValue()),
-      SoMultiTextureImageElement::MODULATE, texture->blendColor.getValue());
+      static_cast<SoMultiTextureImageElement::Model>(model), texture->blendColor.getValue());
   SbVec2s markerSize;
   int markerComponents = 0;
   SoMultiTextureImageElement::Wrap ws, wt;
-  SoMultiTextureImageElement::Model model;
+  SoMultiTextureImageElement::Model retainedModel;
   SbColor blend;
   const unsigned char* image =
-      SoMultiTextureImageElement::get(state, 0, markerSize, markerComponents, ws, wt, model, blend);
+      SoMultiTextureImageElement::get(state, unit, markerSize, markerComponents, ws, wt, retainedModel, blend);
   if (!image || markerSize != SbVec2s(1, 1) || markerComponents != 4) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::BACKEND_ERROR, CoinRenderDiagnosticDomain::ACTION,
@@ -2046,8 +2095,8 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
   p->builder.registerSceneTexture(image, producerId, uint32_t(size[0]), uint32_t(size[1]),
-                                  background[3] >= 1.0f, texture->transparencyFunction.getValue());
-  SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), 0, TRUE);
+                                  false, texture->transparencyFunction.getValue());
+  SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), unit, TRUE);
   return SoCallbackAction::CONTINUE;
 }
 

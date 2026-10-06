@@ -82,6 +82,7 @@ struct CoinBgfxDraw {
   CoinRenderAlphaTestFunction alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
   float alphaTestReference = 0.5f;
   bool blend = false;
+  bool legacyBlendAlpha = false;
   SbUniqueId sourceNodeId = 0;
   bool sortTriangles = false;
   bool deferred = false;

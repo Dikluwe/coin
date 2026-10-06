@@ -201,7 +201,7 @@ inline bool depthPass(float z, float stored, const CoinRenderRenderStateSnapshot
 }
 
 inline void writePixel(std::vector<uint8_t> & color, size_t offset,
-                       float red, float green, float blue, float alpha, bool blend) {
+                       float red, float green, float blue, float alpha, bool blend, bool legacyBlendAlpha = false) {
   if (offset + 3 >= color.size()) return;
   auto clamp01 = [](float value) { return std::max(0.0f, std::min(1.0f, value)); };
   red = clamp01(red); green = clamp01(green); blue = clamp01(blue); alpha = clamp01(alpha);
@@ -210,7 +210,7 @@ inline void writePixel(std::vector<uint8_t> & color, size_t offset,
     red = red * alpha + (color[offset] / 255.0f) * inverse;
     green = green * alpha + (color[offset + 1] / 255.0f) * inverse;
     blue = blue * alpha + (color[offset + 2] / 255.0f) * inverse;
-    alpha += (color[offset + 3] / 255.0f) * inverse;
+    alpha = (legacyBlendAlpha ? alpha * alpha : alpha) + (color[offset + 3] / 255.0f) * inverse;
   }
   color[offset] = static_cast<uint8_t>(std::lround(clamp01(red) * 255.0f));
   color[offset + 1] = static_cast<uint8_t>(std::lround(clamp01(green) * 255.0f));
@@ -428,7 +428,7 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
           finalB = std::max(0.0f, std::min(1.0f, finalB)) * sourceAlpha + dstB * invAlpha;
           colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::max(
               0.0f,
-              std::min(255.0f, ((composition.additive ? sourceAlpha * sourceAlpha : sourceAlpha) +
+              std::min(255.0f, (((composition.additive || frame.legacyBlendAlpha) ? sourceAlpha * sourceAlpha : sourceAlpha) +
                                 dstA * invAlpha) *
                                    255.0f)));
         } else
@@ -787,7 +787,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
                 if (rs.depthTest && rs.depthWrite) target.depthBuffer[pIdx] = z;
                 r = rgba[0]; g = rgba[1]; b = rgba[2];
                 applyFog(rs, -((1.0f - t) * view0[2] + t * view1[2]), r, g, b);
-                writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend);
+                writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend, frame.legacyBlendAlpha);
               }
             }
           }
@@ -831,7 +831,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
               if (rs.depthTest && rs.depthWrite) target.depthBuffer[pIdx] = z;
               r = rgba[0]; g = rgba[1]; b = rgba[2];
               applyFog(rs, -view0[2], r, g, b);
-              writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend);
+              writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend, frame.legacyBlendAlpha);
             }
           }
         }

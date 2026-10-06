@@ -105,6 +105,8 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
       << formatFloat(frame.clearColor[2]) << " "
       << formatFloat(frame.clearColor[3]) << "\n";
 
+  if (frame.legacyBlendAlpha) out << "alphaBlend: legacySourceAlpha\n";
+
   out << "materials count: " << frame.materials.size() << "\n";
   for (size_t i = 0; i < frame.materials.size(); ++i) {
     const auto & m = frame.materials[i];

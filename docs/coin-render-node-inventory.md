@@ -132,7 +132,10 @@ uma adaptação explícita no host. Não deve ser reinterpretada em CoinBgfx e C
 - **SoText2:** `src/shapenodes/SoText2.cpp`, generatePrimitives, é vazio por projeto;
   texto GL é rasterizado por outro caminho. A caracterização inicial P15 retornava
   SUCCESS sem draws. O ensaio atual exige draws e texturas da captura explícita
-  dos tipos nativos exatos; subclasses sem adaptação seguem pelo callback virtual.
+  dos tipos nativos exatos; subclasses sem adaptação seguem pelo callback virtual. O
+  [perfil ampliado](coin-render-p03-p24-p28-profile.md) acrescenta delegação
+  explícita pelo callback para SoText2/SoImage derivados, incluindo
+  SoColorBarLabel e SoFrameLabel do host.
 - **SoShaderProgram/SoFragmentShader:** o GL instala/executa um programa próprio;
   o plano CoinRender não captura esse programa. P25 passou a rejeitar programas
   ativos antes da publicação; o contrato de shader portátil segue aberto.
@@ -150,7 +153,7 @@ uma adaptação explícita no host. Não deve ser reinterpretada em CoinBgfx e C
 **Parcial**: geometria/estado parcial, preparação ou semântica GL pendente.
 **Bloqueado**: o caminho visual identificado não chega ao callback equivalente.
 **Host**: integração Qt/estado de host, sem geometria a portar. Totais: 12
-candidatos, 14 parciais, 6 bloqueados e 1 host. Nenhuma destas marcas certifica
+candidatos, 15 parciais, 5 bloqueados e 1 host. Nenhuma destas marcas certifica
 uma comparação visual FreeCAD/BGFX/wgpu. Fonte/linha referem-se ao checkout auditado.
 
 | Classe | Estado | Fonte principal | Próximo fechamento |
@@ -179,13 +182,13 @@ uma comparação visual FreeCAD/BGFX/wgpu. Fonte/linha referem-se ao checkout au
 | `SoFCSeparator` | Candidato | `src/Gui/Selection/SoFCUnifiedSelection.cpp:1321` | P16 |
 | `SoFCTransform` | Candidato | `src/Gui/Inventor/SoFCTransform.cpp:49` | P16 |
 | `SoFCUnifiedSelection` | Parcial | `src/Gui/Selection/SoFCUnifiedSelection.cpp:1052` | P16 |
-| `SoFrameLabel` | Bloqueado | `src/Gui/SoLabelNodes.cpp:502` | F20/P03 |
+| `SoFrameLabel` | Parcial | `src/Gui/SoLabelNodes.cpp:517` | P03/P16; delegação raster fria no perfil Linux ampliado |
 | `SoGLWidgetNode` | Host | `src/Gui/SoFCInteractiveElement.cpp:205` | P16 |
-| `SoNaviCube` | Candidato | `src/Gui/Inventor/SoNaviCube.cpp:1439` | P16 |
+| `SoNaviCube` | Candidato | `src/Gui/Inventor/SoNaviCube.cpp:1440` | P16 |
 | `SoPolygon` | Bloqueado | `src/Mod/Mesh/Gui/SoPolygon.cpp:71` | F19/P16 |
 | `SoScreenSpaceScale` | Candidato | `src/Mod/Measure/Gui/SoScreenSpaceScale.cpp:81` | P16 |
 | `SoShapeScale` | Parcial | `src/Gui/Inventor/SoAxisCrossKit.cpp:83` | P16 |
-| `SoStringLabel` | Bloqueado | `src/Gui/SoLabelNodes.cpp:171` | F20/P03 |
+| `SoStringLabel` | Bloqueado | `src/Gui/SoLabelNodes.cpp:186` | F20/P03 |
 | `SoTransformDragger` | Parcial | `src/Gui/Inventor/Draggers/SoTransformDragger.cpp:527` | P16 |
 | `SoZoomTranslation` | Candidato | `src/Mod/Sketcher/Gui/SoZoomTranslation.cpp:83` | P16 |
 
@@ -202,8 +205,8 @@ uma comparação visual FreeCAD/BGFX/wgpu. Fonte/linha referem-se ao checkout au
   Neste Coin ele encaminha CoinRender; o nome da flag não prova exclusividade
   wgpu. Conferir a definição e o pacote efetivamente ligado em cada build P16;
   não criar uma segunda interpretação de camadas para BGFX.
-- SoStringLabel percorre textRoot privado só no GLRender; SoFrameLabel prepara
-  imagem ali. SoDatumLabel possui primitivas dependentes de imgWidth/imgHeight e
+- SoStringLabel percorre textRoot privado só no GLRender; SoFrameLabel agora prepara
+  imagem no callback e delega explicitamente à captura comum sob o guard experimental. SoDatumLabel possui primitivas dependentes de imgWidth/imgHeight e
   preparação raster/cena GL. Um frame aquecido pelo GL pode esconder lacunas.
 - SoFCBoundingBox/SoFCControlPoints/SoPolygon têm primitivas vazias; o GL prepara
   geometria ou percorre raiz privada. SoFCMeshGridNode usa glBegin(GL_LINES).
@@ -225,8 +228,8 @@ uma comparação visual FreeCAD/BGFX/wgpu. Fonte/linha referem-se ao checkout au
 | GUI/Part | Faces/edges/points BRep, selection root, hover/clarificação | Captura parcial existente; qualificar seleção, paths, depth e resize. Primeiro caso P16. |
 | Mesh | Objeto/segmentos/boundary e SoFCIndexedFaceSet; grid Mesh | Geometria candidata; seleção parcial e grid GL-only. Testar abaixo/acima do renderTriangleLimit. |
 | Sketcher | EditModeConstraintCoinManager cria 7 SoImage; EditModeCoinManager e InformationOverlayCoinConverter criam SoText2; SoDatumLabel/SoZoomTranslation | Ícones, texto e rótulos bloqueiam equivalência de edição; transformação candidata. |
-| Draft | view_text/view_label/view_dimension: 4 criações Pivy SoText2 | Texto ausente; fechar P03 antes de certificar estes casos. |
-| BIM | ArchSite: 2 criações Pivy SoText2 | Texto ausente; SoShadowGroup comentado não é criação ativa. |
+| Draft | view_text/view_label/view_dimension: 4 criações Pivy SoText2 | Tipo nativo implementado; consumidores reais ainda precisam qualificação P16. |
+| BIM | ArchSite: 2 criações Pivy SoText2 | Tipo nativo implementado; consumidor P16 pendente. SoShadowGroup comentado não é criação ativa. |
 | Fem | CreateLabels: SoText2 e SoImage; color bar GUI compartilhada | Texto/imagem e atualização de viewport pendentes. |
 | Measure | MassPropertiesResult: SoImage; SoScreenSpaceScale; labels compartilhados | Escala candidata, ícone/rótulo sem qualificação. |
 | PartDesign | ViewProviderDatumCS: 3 SoText2 | Eixos geométricos podem capturar; legendas precisam P03. |

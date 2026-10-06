@@ -144,10 +144,10 @@
     "reason": "Descendentes e contexto podem atravessar; GLBelowPath altera bounding-box global e cursor QOpenGLWidget. Side effects de GUI exigem adaptação do host, não shaders."
   },
   "SoFrameLabel": {
-    "status": "BLOCKED",
+    "status": "PARTIAL",
     "owner": "Wiring captura + Core imagem/layout",
-    "next": "F20/P03",
-    "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+    "next": "P03/P16 — perfil raster e consumidores",
+    "reason": "Callback prepara imagem a frio e delega explicitamente para CoinRenderAction::captureScreenContent sob o guard experimental. Pixels, glyphs, mutação, remoção e resize qualificados no viewport Linux; consumidores completos e Windows continuam abertos."
   },
   "SoGLWidgetNode": {
     "status": "HOST_ONLY",

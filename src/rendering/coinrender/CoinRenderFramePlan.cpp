@@ -91,7 +91,8 @@ sameCameras(const std::vector<CoinRenderCameraSnapshot> & a,
 bool
 CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
 {
-  if (!coin_render_same_transparency_options(this->transparency, other.transparency))
+  if (this->legacyBlendAlpha != other.legacyBlendAlpha ||
+      !coin_render_same_transparency_options(this->transparency, other.transparency))
     return false;
   for (int i = 0; i < 4; ++i) {
     if (this->clearColor[i] != other.clearColor[i]) return false;

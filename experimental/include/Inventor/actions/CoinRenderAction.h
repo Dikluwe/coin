@@ -91,6 +91,14 @@ public:
   static void initClass(void);
   static SbBool isGpuBackendAvailable(void);
 
+  /** Explicit host delegation from a SoText2/SoImage subclass callback.
+   * Prepare fields using callback state first, then call this instead of the
+   * inherited primitive callback. Observes its primitives once in a local state
+   * scope; does not invoke GL or reenter the subclass callback.
+   * FALSE outside apply; failure during capture rejects the candidate frame.
+   */
+  SbBool captureScreenContent(SoNode * node);
+
   /**
    * Defer the current callback path to the shared depth-tested annotation pass.
    * Returns FALSE during replay (or outside apply); callers then traverse normally.

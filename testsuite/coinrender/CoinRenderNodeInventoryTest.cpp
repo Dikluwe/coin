@@ -54,6 +54,40 @@ protected:
   }
 };
 SO_NODE_SOURCE(InventoryFaces);
+// Host subclasses opt in from their own callback after cold preparation.
+class InventoryText : public SoText2 {
+  SO_NODE_HEADER(InventoryText);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryText, SoText2, "Text2"); }
+  InventoryText() { SO_NODE_CONSTRUCTOR(InventoryText); }
+  unsigned callbacks = 0;
+  bool invalidDelegation = false;
+protected:
+  ~InventoryText() override {}
+  void callback(SoCallbackAction * action) override {
+    ++callbacks;
+    if (action->isOfType(CoinRenderAction::getClassTypeId()))
+      static_cast<CoinRenderAction *>(action)->captureScreenContent(invalidDelegation ? nullptr : this);
+    else SoText2::callback(action);
+  }
+};
+SO_NODE_SOURCE(InventoryText);
+class InventoryImage : public SoImage {
+  SO_NODE_HEADER(InventoryImage);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryImage, SoImage, "Image"); }
+  InventoryImage() { SO_NODE_CONSTRUCTOR(InventoryImage); }
+  unsigned callbacks = 0;
+protected:
+  ~InventoryImage() override {}
+  void callback(SoCallbackAction * action) override {
+    ++callbacks;
+    if (action->isOfType(CoinRenderAction::getClassTypeId()))
+      static_cast<CoinRenderAction *>(action)->captureScreenContent(this);
+    else SoImage::callback(action);
+  }
+};
+SO_NODE_SOURCE(InventoryImage);
 struct Witness {
   CoinRenderFramePlan frame;
   unsigned submits = 0;
@@ -87,6 +121,8 @@ int main() {
   CoinRenderAction::initClass();
   InventoryGlOnlyNode::initClass();
   InventoryFaces::initClass();
+  InventoryText::initClass();
+  InventoryImage::initClass();
   Witness witness;
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
   target->getPimpl().get().backend.reset(new CaptureBackend(witness));
@@ -118,6 +154,43 @@ int main() {
   ok &=
       check(capture(image) && !witness.frame.draws.empty() && !witness.frame.textures.empty(),
             "standalone SoImage captures its pixel payload as a screen raster");
+  const auto imageFrame = witness.frame;
+  auto * hostImage = new InventoryImage; hostImage->ref();
+  hostImage->image.setValue(SbVec2s(4,4),4,bytes.data());
+  unsigned imageObserverCalls = 0;
+  action.addTriangleCallback(InventoryImage::getClassTypeId(),
+    [](void * data, SoCallbackAction *, const SoPrimitiveVertex *,
+       const SoPrimitiveVertex *, const SoPrimitiveVertex *) { ++*static_cast<unsigned *>(data); },
+    &imageObserverCalls);
+  ok &= check(!action.captureScreenContent(hostImage), "delegation outside apply is inert");
+  ok &= check(capture(hostImage) && hostImage->callbacks == 1 && imageObserverCalls == 2 &&
+              witness.frame.vertices.size() == imageFrame.vertices.size() &&
+              witness.frame.indices == imageFrame.indices &&
+              witness.frame.textures.size() == imageFrame.textures.size() &&
+              witness.frame.textures.back().pixelsRgba == imageFrame.textures.back().pixelsRgba,
+              "host image delegates the same native raster without duplicate quad");
+  hostImage->width = 8;
+  ok &= check(capture(hostImage) && hostImage->callbacks == 2 && imageObserverCalls == 4 &&
+              witness.frame.vertices.size() == imageFrame.vertices.size() &&
+              witness.frame.vertices[1].position[0] != imageFrame.vertices[1].position[0],
+              "host image mutation recaptures");
+  hostImage->unref();
+  auto * hostText = new InventoryText; hostText->ref(); hostText->string = "P15";
+  ok &= check(capture(hostText) && hostText->callbacks == 1 &&
+              !witness.frame.draws.empty() && !witness.frame.textures.empty(),
+              "host text explicitly delegates after its callback");
+  hostText->string = "";
+  ok &= check(capture(hostText) && hostText->callbacks == 2 && witness.frame.draws.empty(),
+              "host empty text removes its raster");
+  const unsigned beforeInvalidDelegation = witness.submits;
+  hostText->invalidDelegation = true;
+  ok &= check(!capture(hostText) && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeInvalidDelegation,
+              "invalid host delegation rejects before publication");
+  hostText->invalidDelegation = false; hostText->string = "Recovered P15";
+  ok &= check(capture(hostText) && !witness.frame.draws.empty(),
+              "host delegation recovers on the same action");
+  hostText->unref();
   auto* coords = new SoCoordinate3;
   const SbVec3f points[] = {SbVec3f(-1, -1, 0), SbVec3f(1, -1, 0), SbVec3f(0, 1, 0)};
   coords->point.setValues(0, 3, points);
@@ -189,7 +262,7 @@ int main() {
   root->unref();
   if (!ok)
     return 1;
-  std::cout << "P15/P25: GL-only/Text2 omission, SoImage texture gap, effect gates and subclass "
+  std::cout << "P15/P25: GL-only characterization, native raster, delegation, effect gates and subclass "
                "callbacks characterized\n";
   return 0;
 }

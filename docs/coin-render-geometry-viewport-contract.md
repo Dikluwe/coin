@@ -147,7 +147,8 @@ A ampliação substitui os limites históricos acima somente nas células descri
 - Cada endpoint finito de `SoDepthBuffer.range` é limitado a [0,1], inclusive
   ranges reversos e colapsados. NaN/Inf são rejeitados sem publicação; o pedido
   válido seguinte recupera a mesma action. Isso não introduz GL_DEPTH_CLAMP
-  geométrico. O protocolo privado Rust atual é **48**, sem mudança de layout.
+  geométrico. Esta entrega usou protocolo privado Rust **48**; a ampliação
+  [RTT posterior](coin-render-p03-p24-p28-profile.md) usa **49**, sem mudar layout.
 - `CoinRenderDepthCore` resolve slope/maximum da face triangular original em
   coordenadas de janela, antes da execução. Ranges reversos usam módulo do
   gradiente; units recebem o quantum do formato no executor. A expansão de

@@ -1,5 +1,8 @@
 # CoinRender — P12: plano e ownership de RTT
 
+O [perfil P03/P24/P28](coin-render-p03-p24-p28-profile.md) amplia a captura e
+as políticas RTT; os limites e as evidências abaixo descrevem a entrega P12.
+
 A execução e publicação deste contrato foram qualificadas em
 [P13](coin-render-rtt-publication-contract.md), incluindo correção da política
 Coin NONE e suporte a ALPHA_BLEND. A evidência abaixo registra a entrega P12.

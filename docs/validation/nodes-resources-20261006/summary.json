@@ -1,0 +1,328 @@
+{
+  "protocol_revision": 49,
+  "host": {
+    "bgfx-vulkan-native": [
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 2,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 2,
+        "hardware_gpu": true,
+        "reason": null
+      }
+    ],
+    "wgpu-vulkan-native": [
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 2,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 2,
+        "hardware_gpu": true,
+        "reason": null
+      }
+    ],
+    "bgfx-opengl-native-dpr1": [
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      }
+    ],
+    "bgfx-vulkan-navicube": [
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      }
+    ],
+    "bgfx-opengl-navicube": [
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      }
+    ],
+    "wgpu-vulkan-navicube": [
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      },
+      {
+        "status": "PASS",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": true,
+        "reason": null
+      }
+    ],
+    "coingl-reference": [
+      {
+        "status": "REFERENCE_PASS",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": false,
+        "reason": null
+      },
+      {
+        "status": "REFERENCE_PASS",
+        "mode": "object",
+        "scale": 2,
+        "hardware_gpu": false,
+        "reason": null
+      }
+    ],
+    "diagnostic-amd-opengl-dpr2": [
+      {
+        "status": "FAIL",
+        "mode": "object",
+        "scale": 1,
+        "hardware_gpu": false,
+        "reason": "requested renderer was not proven; fallback is forbidden"
+      },
+      {
+        "status": "FAIL",
+        "mode": "object",
+        "scale": 2,
+        "hardware_gpu": false,
+        "reason": "timeout 120s; possible infinite frame loop"
+      },
+      {
+        "status": "FAIL",
+        "mode": "weighted_oit",
+        "scale": 1,
+        "hardware_gpu": false,
+        "reason": "requested renderer was not proven; fallback is forbidden"
+      },
+      {
+        "status": "FAIL",
+        "mode": "weighted_oit",
+        "scale": 2,
+        "hardware_gpu": false,
+        "reason": "requested renderer was not proven; fallback is forbidden"
+      }
+    ],
+    "diagnostic-nvidia-offload-dpr2": [
+      {
+        "status": "FAIL",
+        "mode": "object",
+        "scale": 2,
+        "hardware_gpu": false,
+        "reason": "physical GPU execution was not proven"
+      },
+      {
+        "status": "FAIL",
+        "mode": "weighted_oit",
+        "scale": 2,
+        "hardware_gpu": false,
+        "reason": "physical GPU execution was not proven"
+      }
+    ]
+  },
+  "gates": {
+    "wgpu-regression": [
+      "19/19 Test #163: CoinWgpuFfiFrameTest .....................   Passed    0.53 sec",
+      "",
+      "100% tests passed, 0 tests failed out of 19",
+      "",
+      "Total Test time (real) =  22.25 sec"
+    ],
+    "bgfx-regression": [
+      "27/27 Test #239: CoinRenderSceneTextureBudget_opengl_direct ...   Passed    0.19 sec",
+      "",
+      "100% tests passed, 0 tests failed out of 27",
+      "",
+      "Total Test time (real) =  43.99 sec"
+    ],
+    "recording": [
+      "4/4 Test #137: CoinRenderRttOwnershipTest .............   Passed    0.01 sec",
+      "",
+      "100% tests passed, 0 tests failed out of 4",
+      "",
+      "Total Test time (real) =   0.18 sec"
+    ],
+    "rust_serial": {
+      "passed": 40,
+      "parallel_qualification": false
+    }
+  },
+  "sha256": {
+    "/tmp/coin-render-first-frame/experimental/include/Inventor/actions/CoinRenderAction.h": "bbeaf57bda47fcdda857a403980c4de358539de1564e1c3963c661ade8810fec",
+    "/tmp/coin-render-first-frame/src/actions/CoinRenderAction.cpp": "9a9e387deca6a7f78249f3b4095fdf4ab3b54cb6efa87c72d95aeeb6212c4907",
+    "/tmp/coin-render-first-frame/src/actions/CoinRenderActionP.h": "cd1c8adc396dc0d4d93f782d3dc3e85b73ed9c563018e211561cb1229e2ac2c1",
+    "/tmp/coin-render-first-frame/src/nodes/SoSceneTexture2.cpp": "5fc8eb3443538fd5e9c6cb95fbe84013647ddf3654dcd5c9a238839e552299a3",
+    "/tmp/coin-render-first-frame/src/rendering/coinbgfx/CoinBgfxBackend.cpp": "0c9a840ab26d1ac42f435cb333707f7e29396a6bd88c11008a8449c1d1212c71",
+    "/tmp/coin-render-first-frame/src/rendering/coinbgfx/CoinBgfxLowering.cpp": "28c3c71424c1a55c6f6fa46b5643ba05fee8276369d41b0e7a7903c4c012eda9",
+    "/tmp/coin-render-first-frame/src/rendering/coinbgfx/CoinBgfxLowering.h": "8605104d1181a2b55a463dee4ccbc50dd0c2cfcde3b62acbe0fefc03b243c638",
+    "/tmp/coin-render-first-frame/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp": "8042a453463717b1c0b2cfb407e6605ad02204de2c24ac955b4f81ee7f22b956",
+    "/tmp/coin-render-first-frame/src/rendering/coinrender/CoinRenderFramePlan.cpp": "aa07039a7681cfc65ea202bec9f248ac2e647d931f509c61803e434696872b67",
+    "/tmp/coin-render-first-frame/src/rendering/coinrender/CoinRenderFramePlan.h": "aa2a71160290ee3c18dfd5eddf50bd8feb381bb2ad250105bd212c68e11d51ea",
+    "/tmp/coin-render-first-frame/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp": "780a70da684b9cb77c1e1b52b9cf729a00d3db1ef5ef3e1f54a7d0f7db710cd2",
+    "/tmp/coin-render-first-frame/src/rendering/coinrender/CoinRenderRecordingBackend.cpp": "771a7c65c7e0b7748e5b3650d34ccaff13555ffa45bed9f617c5c099a6fc23dd",
+    "/tmp/coin-render-first-frame/src/rendering/coinwgpu/CoinWgpuFfi.h": "6b4eb97159633769030d5c452f58f3f721392113b72a747bb8c1a149a907c903",
+    "/tmp/coin-render-first-frame/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp": "4f930444a2e3bd2b9fc9f0ed420f585d640e472a8c1751b4a319211b3d029b94",
+    "/tmp/coin-render-first-frame/src/rendering/coinwgpu/rust_bridge/src/composition.rs": "910a89493b84a5dc3488ad743000e40e0b10b05be04310ef19fdba286f1f6405",
+    "/tmp/coin-render-first-frame/src/rendering/coinwgpu/rust_bridge/src/instancing.rs": "a5d72a32caf239c2ea456058d8d71864a828934f06b305b2bb6dcafed8e12c61",
+    "/tmp/coin-render-first-frame/src/rendering/coinwgpu/rust_bridge/src/lib.rs": "8c82342fe15fce873a6f66dc4c67bdc771c7a98b3f142df5f16817a2e9e7671b",
+    "/tmp/coin-render-first-frame/testsuite/CMakeLists.txt": "6ea38c6ea8fdbbb62c17fec0e467fc48425f2458f306d75e287f082ba945e988",
+    "/tmp/coin-render-first-frame/testsuite/coinrender/CoinRenderLightingTest.cpp": "a870e1fab5530c80d712fe2ac18e77550d34feacf6e82fe87a92c507f9f21f38",
+    "/tmp/coin-render-first-frame/testsuite/coinrender/CoinRenderNodeInventoryTest.cpp": "74b5ebb13f6f4ce9cc09b022d36898f006c95844e243fb764fb30e84098ae8a8",
+    "/tmp/coin-render-first-frame/testsuite/coinrender/CoinRenderRttOwnershipTest.cpp": "f3e9c92a6afec84f08b0c40447cc440f7a13de1d7756f39074d96923d8c484de",
+    "/tmp/coin-render-first-frame/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp": "550ec13602fdb58e62d05b2d1ed5060f18d10479e89a08cb01ba95a3d948941b",
+    "/tmp/coin-render-first-frame/testsuite/qt-quarter/CMakeLists.txt": "ed1280a878428b79d511262e7af5b8f930d3d6c3b00b37ba8dfee31b005e5ad2",
+    "/tmp/coin-render-first-frame/testsuite/qt-quarter/harness.cpp": "92d2d01429300aa5df998e4cd4693f6780db342bf08950ee501811f83b9102d4",
+    "/tmp/coin-render-first-frame/testsuite/qt-quarter/run.py": "a7ddb606e55b79f679e2cb3d5ec2e3af3e1e0476a788e274057c61d5921cbe86",
+    "/tmp/coin-render-first-frame/testsuite/qt-quarter/test_runner.py": "4c6a2d13c71b7c85198502fb718cd4a058d6abf3d3cd0a5a30e52789664bc60f",
+    "/tmp/coin-render-first-frame/testsuite/coinrender/CoinRenderRttProfileTest.cpp": "b11d80f9919c7793590480fbd3800d252e844c49765df566e408acfe93a43634",
+    "/tmp/coin-render-first-frame/testsuite/qt-quarter/freecad_screen_content.FCMacro": "4fb6ee52572859a9b86b7fe990d31668ea6bd2284c8d3605a886d76095b17e64",
+    "/tmp/coin-render-first-frame/testsuite/qt-quarter/FreeCADGeneratedImageTest.cpp": "4d929489226327cecad38ebb98afd1c695f77817688195870d45a6112ae7fcc1",
+    "/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoLabelNodes.h": "a2b685db58f763372a759231e849fe8e49e3fca8a0d21fcc5049fa96d71af75b",
+    "/mnt/Laranja/Git/externos/freecad-source/src/Gui/SoLabelNodes.cpp": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
+    "/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/SoNaviCube.cpp": "0d943744eb84b25517088cfb6a9567f5d0dc8f8a61a8f4ec700b3619eef3d961",
+    "/mnt/Laranja/Git/externos/freecad-source/src/Gui/View3DInventorViewer.cpp": "8f6e65ef85c70503d2360a1d3cd3e86d2f39d5f7b59e64ddf4048340a30acc95",
+    "/mnt/Laranja/Git/externos/freecad-source/src/Gui/Inventor/CoinRenderGeneratedImage.h": "026312240d8fca3c1d3a4044b79df17e36ddfa174567162f9a3af0caa123753d",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "a794d25cec4bd193b1f7eb1c9969c9ae7961f67be63a65cdd91be3170b3bb73c",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "e81794fdd7aeb7678305a268b9d4faf56fbd7ce0bba8edf478295a47a3b61aba",
+    "/tmp/coin-front3-qt/QtQuarterRegression": "6d58dec931b840a4a495843b4746d5da71706ea0bb93cfaf8d7b5da60cf9dc45",
+    "/tmp/freecad-p16-build/lib/libFreeCADGui.so": "3f4cdee97defcf68a7019f93564388ab84fab4de7337f766b425fd6ed359b924",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so": "5ae1c02774fbdb1a87bbd3c9b590a32e41cb0580165f29c6435a355247f1cdb5",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so": "5ae1c02774fbdb1a87bbd3c9b590a32e41cb0580165f29c6435a355247f1cdb5",
+    "/tmp/coin-render-first-frame/examples/coinrender/freecad_p03_raster_delegation.patch": "98143c4e915c6a90a3650b7a664c6399cf3bc0e52d8cb4736e26211b9bfd3c9d",
+    "/tmp/coin-render-first-frame/examples/coinrender/freecad_p16_label_textures.patch": "662b56ea3a688cd0885903f0da2a9740c36fb9aa04b1ef99861a9cbc6affdbd2"
+  },
+  "limits": [
+    "Windows and complete workbench consumers not qualified",
+    "GL-only remaining nodes not adapted",
+    "Own shaders, 3D/cube textures, MSAA/multipass contracts defined, execution pending",
+    "BGFX OpenGL DPR 2 hardware qualification remains open",
+    "Rust concurrent tests not qualified"
+  ],
+  "base_commit": "6f58e5dffb",
+  "counts": {
+    "wgpu_ctests": 19,
+    "bgfx_ctests": 27,
+    "recording_ctests": 3,
+    "rtt_profile_executions": 7,
+    "rtt_profile_controls": 2016,
+    "native_coin_gl_rtt_references": 1008,
+    "scalar_higher_unit_rtt_expectations": 1008,
+    "host_hardware_cells": 10,
+    "host_coin_gl_reference_cells": 2,
+    "navicube_hardware_cells": 12,
+    "qt_runner_unit_tests": 79,
+    "inventory_unit_tests": 3,
+    "rust_serial_tests": 40
+  },
+  "patch_reverse_check": "Passed against LF-normalized copies of the integrated FreeCAD host files"
+}

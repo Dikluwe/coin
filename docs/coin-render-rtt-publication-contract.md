@@ -1,5 +1,9 @@
 # CoinRender — P13: execução RTT e publicação
 
+Ampliação posterior: o [perfil P03/P24/P28](coin-render-p03-p24-p28-profile.md)
+acrescenta unidades 0..7, os quatro modelos e política explícita de produtor,
+incluindo a equação de alpha legado. As evidências abaixo registram P13.
+
 P13 qualifica o grafo de P12 no perfil RGBA8 existente, corrige a política de
 alpha do Coin e protege a publicação de resultados. O fechamento é deste perfil;
 F14/F15 completos e outros formatos continuam no plano. Recuperação entre alvos

@@ -12,9 +12,11 @@ import sys
 
 CASES = ('first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
-         'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'navicube', 'depth', 'polygon-offset', 'annotation',
+         'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'navicube', 'depth', 'polygon-offset', 'annotation',
          'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
 EXIT = {'PASS': 0, 'REFERENCE_PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
+OFFSCREEN_CASES = ('navicube', 'depth', 'polygon-offset', 'annotation',
+                   'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
 
 def execute(command, env, timeout):
     # FreeCAD may launch helper processes which otherwise retain stdout and
@@ -29,7 +31,7 @@ def execute(command, env, timeout):
             output, _ = proc.communicate()
             return -signal.SIGKILL, output + '\nHARNESS_TIMEOUT\n'
 
-def classify(code, output, require_bgfx=True, backend="bgfx"):
+def classify(code, output, require_bgfx=True, backend="bgfx", offscreen=False):
     """Exit and structured result must agree; initialization is not submission."""
     matches = re.findall(r'^RESULT (.+)$', output, re.MULTILINE)
     try:
@@ -43,12 +45,16 @@ def classify(code, output, require_bgfx=True, backend="bgfx"):
     if require_bgfx and result['status'] == 'PASS':
         if 'switching viewport to Coin/GL' in output:
             return dict(status='FAIL', reason='native viewport fell back to Coin/GL')
-        if not submission_evidence(output, backend):
+        if not submission_evidence(output, backend, offscreen):
             return dict(status='FAIL', reason=f'no {backend} submission evidence (GL fallback is not a pass)')
     return result
 
-def submission_evidence(output, backend):
+def submission_evidence(output, backend, offscreen=False):
     if backend == 'wgpu':
+        if offscreen:
+            return bool(re.search(r'COIN_RENDER_PHASE wgpu_offscreen renderer=\w+ '
+                                  r'vendor_id=0x[0-9a-f]+ device_id=0x[0-9a-f]+ '
+                                  r'device_type=\w+ serial=[1-9][0-9]* size=[1-9][0-9]*x[1-9][0-9]*', output))
         return bool(re.search(r'COIN_RENDER_PHASE wgpu_surface renderer=\w+ '
                               r'vendor_id=0x[0-9a-f]+ device_id=0x[0-9a-f]+ '
                               r'device_type=\w+ surface=[1-9][0-9]* serial=[1-9][0-9]* '
@@ -56,10 +62,14 @@ def submission_evidence(output, backend):
     return 'COIN_RENDER_PHASE bgfx lower_ms=' in output
 
 
-def device_evidence(output, backend):
-    phase = 'wgpu_surface' if backend == 'wgpu' else 'bgfx_device'
-    return re.findall(r'COIN_RENDER_PHASE ' + phase +
-                      r' renderer=(\w+) vendor_id=(0x[0-9a-f]+) device_id=(0x[0-9a-f]+)', output)
+def device_evidence(output, backend, offscreen=False):
+    phase = ('wgpu_offscreen' if offscreen else 'wgpu_surface') if backend == 'wgpu' else 'bgfx_device'
+    devices = re.findall(r'COIN_RENDER_PHASE ' + phase +
+                         r' renderer=([^\n]+?) vendor_id=(0x[0-9a-f]+) device_id=(0x[0-9a-f]+)', output)
+    names = {'OpenGL 4.3': 'opengl', 'OpenGL 2.1': 'opengl',
+             'OpenGL': 'opengl', 'Vulkan': 'vulkan'}
+    return [(names.get(renderer, renderer), vendor, device)
+            for renderer, vendor, device in devices]
 
 
 def window_manager_available(output):
@@ -149,7 +159,7 @@ def main():
     args = parser.parse_args()
     if args.backend == 'wgpu' and (args.reference_gl or args.renderer not in (None, ['vulkan'])):
         parser.error('the current wgpu native profile requires --renderer vulkan and no --reference-gl')
-    if args.reference_gl and (args.case not in (['freecad-mouse-links'], ['freecad-mouse-link-topology'], ['freecad-viewport'], ['freecad-multi'], ['freecad-grid'], ['freecad-path-selection'], ['freecad-mouse-elements']) or
+    if args.reference_gl and (args.case not in (['freecad-mouse-links'], ['freecad-mouse-link-topology'], ['freecad-viewport'], ['freecad-multi'], ['freecad-grid'], ['freecad-path-selection'], ['freecad-mouse-elements'], ['freecad-screen-content']) or
                               args.renderer != ['opengl'] or args.require_hardware or
                               args.mode not in (None, ['object'])):
         parser.error('--reference-gl requires one reference-capable FreeCAD case, --renderer opengl, and no --require-hardware')
@@ -186,7 +196,7 @@ def main():
                         for alpha in ('opaque', 'translucent') for scale in (1,)] if case == 'navicube' else [('object', 'opaque', s) for s in ((1, 2) if case == 'dpr' else (1,))]
             if case in ('two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-legacy-polyline', 'freecad-delayed-overlays'):
                 variants = [(mode, 'opaque', 1) for mode in ('object', 'weighted_oit')]
-            if case in ('freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
+            if case in ('freecad-screen-content', 'freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
             if case == 'freecad-viewport':
@@ -211,13 +221,13 @@ def main():
                 if not env.get('DISPLAY'):
                     result = dict(status='SKIP', reason='no DISPLAY; native X11 surface cannot execute')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and session_locked() is True:
+                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and session_locked() is True:
                     result = dict(status='SKIP', reason='desktop session locked; screen capture unavailable')
                     output = ''
                 elif case == 'maximize' and not window_manager:
                     result = dict(status='SKIP', reason='no EWMH window manager; maximize/restore cannot be verified')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
+                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
                     result = dict(status='UNSUPPORTED', reason='--freecad required for real FreeCAD viewport tests')
                     output = ''
                 elif case in ('freecad-delayed-overlays', 'freecad-selection-menu') and not Path(env.get('COIN_TEST_DELAYED_HELPER', '')).is_file():
@@ -228,9 +238,10 @@ def main():
                     output = ''
                 else:
                     command = [str(args.harness.resolve()), case]
-                    if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays'):
+                    if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays'):
                         macro = {'freecad-viewport': 'freecad_viewport.FCMacro', 'hover': 'freecad_hover.FCMacro', 'freecad-multi': 'freecad_multi.FCMacro',
                                  'freecad-overlays': 'freecad_overlays.FCMacro',
+                                 'freecad-screen-content': 'freecad_screen_content.FCMacro',
                                  'freecad-legacy-polyline': 'freecad_legacy_polyline.FCMacro',
                                  'freecad-flags': 'freecad_flags.FCMacro',
                                  'freecad-delayed-overlays': 'freecad_delayed_overlays.FCMacro',
@@ -253,13 +264,14 @@ def main():
                         env.update(FREECAD_COIN_WGPU='0', QT_QPA_PLATFORM='offscreen')
                     try:
                         code, output = execute(command, env, args.timeout)
-                        result = classify(code, output, require_bgfx=not args.reference_gl, backend=args.backend)
+                        result = classify(code, output, require_bgfx=not args.reference_gl,
+                                          backend=args.backend, offscreen=case in OFFSCREEN_CASES)
                         if args.reference_gl and result['status'] == 'PASS':
                             if result.get('reference_gl') is True:
                                 result['status'] = 'REFERENCE_PASS'
                             else:
                                 result.update(status='FAIL', reason='reference macro did not identify Coin/GL')
-                        if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
+                        if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
                             result = dict(status='SKIP', reason='session locked during screen capture',
                                           captured_result=result)
                         if 'HARNESS_TIMEOUT' in output:
@@ -268,7 +280,8 @@ def main():
                         output = str(error)
                         result = dict(status='FAIL', reason='test executable could not start')
                 (directory / 'process.log').write_text(output)
-                devices = device_evidence(output, args.backend)
+                offscreen = case in OFFSCREEN_CASES
+                devices = device_evidence(output, args.backend, offscreen)
                 if result['status'] == 'PASS' and (not devices or any(d[0] != renderer for d in devices)):
                     result.update(status='FAIL', reason='requested renderer was not proven; fallback is forbidden')
                 if devices and not result.get('adapter'):
@@ -280,9 +293,10 @@ def main():
                 hardware = not actual_software and bool(devices) and (known_vendor or
                             (renderer == 'opengl' and 'accelerated: yes' in description))
                 if args.backend == 'wgpu':
-                    types = re.findall(r'COIN_RENDER_PHASE wgpu_surface .*?device_type=(\w+)', output)
+                    phase = 'wgpu_offscreen' if offscreen else 'wgpu_surface'
+                    types = re.findall(r'COIN_RENDER_PHASE ' + phase + r' .*?device_type=(\w+)', output)
                     hardware = bool(types) and all(t in ('IntegratedGpu', 'DiscreteGpu') for t in types)
-                submitted = submission_evidence(output, args.backend)
+                submitted = submission_evidence(output, args.backend, offscreen)
                 result.update(test=case, backend=args.backend, renderer=renderer, mode=mode, alpha=alpha,
                               scale=scale, hardware_gpu=hardware and submitted,
                               gpu_submitted=submitted,

@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "freecad_revision": "228c679d78845c3fb6f5eb3d1a27f48aceab68b5",
-  "source_digest": "9c8b84d4f8afdc65a944b984c2a3b833a5e9d620c8c9c166b8006e1583d67ee6",
+  "source_digest": "3de48c96e0a5f1653a622f242f075ee4899acee25f3dd36197ea9ae79f1071f4",
   "scope": [
     "src/Gui",
     "src/Mod"
@@ -18,7 +18,7 @@
     "SoFragmentShader",
     "SoGeometryShader"
   ],
-  "scanned_files": 5123,
+  "scanned_files": 5124,
   "gl_nodes": {
     "SmSwitchboard": {
       "methods": [
@@ -839,17 +839,27 @@
         {
           "method": "GLRender",
           "source": "src/Gui/SoLabelNodes.cpp",
-          "line": 502,
+          "line": 517,
           "empty_body": false,
-          "sha256": "cd149d244acd27e33152a6a5594c08314e6f2cff0c32c3c7f9cc37cd554db765",
+          "sha256": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
           "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/SoLabelNodes.cpp",
+          "line": 523,
+          "empty_body": false,
+          "sha256": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
+          "action_types": [
+            "CoinRenderAction"
+          ]
         }
       ],
       "review": {
-        "status": "BLOCKED",
+        "status": "PARTIAL",
         "owner": "Wiring captura + Core imagem/layout",
-        "next": "F20/P03",
-        "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+        "next": "P03/P16 — perfil raster e consumidores",
+        "reason": "Callback prepara imagem a frio e delega explicitamente para CoinRenderAction::captureScreenContent sob o guard experimental. Pixels, glyphs, mutação, remoção e resize qualificados no viewport Linux; consumidores completos e Windows continuam abertos."
       }
     },
     "SoGLWidgetNode": {
@@ -883,25 +893,25 @@
         {
           "method": "callback",
           "source": "src/Gui/Inventor/SoNaviCube.cpp",
-          "line": 1434,
+          "line": 1435,
           "empty_body": false,
-          "sha256": "cbd0ca0c9b11bd281404f5d56d61df97d41533d0287c4a342844c266b7b66bde",
+          "sha256": "0d943744eb84b25517088cfb6a9567f5d0dc8f8a61a8f4ec700b3619eef3d961",
           "action_types": []
         },
         {
           "method": "GLRender",
           "source": "src/Gui/Inventor/SoNaviCube.cpp",
-          "line": 1439,
+          "line": 1440,
           "empty_body": false,
-          "sha256": "cbd0ca0c9b11bd281404f5d56d61df97d41533d0287c4a342844c266b7b66bde",
+          "sha256": "0d943744eb84b25517088cfb6a9567f5d0dc8f8a61a8f4ec700b3619eef3d961",
           "action_types": []
         },
         {
           "method": "generatePrimitives",
           "source": "src/Gui/Inventor/SoNaviCube.cpp",
-          "line": 1573,
+          "line": 1574,
           "empty_body": false,
-          "sha256": "cbd0ca0c9b11bd281404f5d56d61df97d41533d0287c4a342844c266b7b66bde",
+          "sha256": "0d943744eb84b25517088cfb6a9567f5d0dc8f8a61a8f4ec700b3619eef3d961",
           "action_types": []
         }
       ],
@@ -1003,9 +1013,9 @@
         {
           "method": "GLRender",
           "source": "src/Gui/SoLabelNodes.cpp",
-          "line": 171,
+          "line": 186,
           "empty_body": false,
-          "sha256": "cd149d244acd27e33152a6a5594c08314e6f2cff0c32c3c7f9cc37cd554db765",
+          "sha256": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
           "action_types": []
         }
       ],
@@ -1368,7 +1378,7 @@
       "mechanisms": [
         "QOpenGLWidget"
       ],
-      "first_line": 109
+      "first_line": 110
     },
     {
       "source": "src/Gui/View3DInventorViewer.h",

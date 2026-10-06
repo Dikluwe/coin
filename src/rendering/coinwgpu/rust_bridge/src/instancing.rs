@@ -237,7 +237,7 @@ mod tests {
     #[test]
     fn homogeneous_coordinates_are_part_of_owned_geometry_and_admission() {
         let (frame, mut vertices, draws, materials, states, instances, ranges) = fixture();
-        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false,
+        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false, legacy_blend_alpha: false,
             screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
         let base = camera_scene(7, &frame, &vertices, &[0, 1, 2], &draws, &materials,
             &states, &order, &[], &[], &instances, &ranges, None).unwrap();
@@ -289,7 +289,7 @@ mod tests {
     fn bounded_owned_scene_compares_full_bytes_and_camera_reuses_its_arc() {
         let (mut frame, mut vertices, draws, materials, mut states, mut instances, ranges) = fixture();
         instances[0].model_view[12] = 2.0;
-        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false,
+        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false, legacy_blend_alpha: false,
             screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
         let base = camera_scene(7, &frame, &vertices, &[0,1,2], &draws, &materials,
             &states, &order, &[], &[], &instances, &ranges, None).unwrap();
@@ -326,7 +326,7 @@ mod tests {
     #[test]
     fn material_and_instance_resources_compare_independent_owned_bytes() {
         let (mut frame, vertices, draws, materials, states, instances, ranges) = fixture();
-        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false,
+        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false, legacy_blend_alpha: false,
             screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
         let base = camera_scene(7, &frame, &vertices, &[0, 1, 2], &draws, &materials,
             &states, &order, &[], &[], &instances, &ranges, None).unwrap();

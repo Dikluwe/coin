@@ -1604,6 +1604,9 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
              ? 8u
              : 0u) |
         (item.blend && item.deferred && item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT ? 16u : 0u) |
+        (frame.legacyBlendAlpha && item.blend && !item.additive &&
+          item.transparencyStrategy != CoinRenderCompositionItem::SORTED_LAYERS &&
+          item.transparencyStrategy != CoinRenderCompositionItem::WEIGHTED_OIT ? 32u : 0u) |
         (item.screenDoorLevel << 8);
     dst.source_revision = src.sourceRevision;
     dst.render_layer = src.renderLayer;

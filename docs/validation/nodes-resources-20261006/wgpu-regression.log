@@ -1,0 +1,43 @@
+Test project /tmp/coin-render-first-frame-wgpu
+      Start  73: CoinRenderRttProfileStagedTest
+ 1/19 Test  #73: CoinRenderRttProfileStagedTest ...........   Passed    1.57 sec
+      Start  74: CoinRenderRttProfileDirectTest
+ 2/19 Test  #74: CoinRenderRttProfileDirectTest ...........   Passed    1.20 sec
+      Start  75: CoinRenderRttProfilePbufferTest
+ 3/19 Test  #75: CoinRenderRttProfilePbufferTest ..........   Passed    3.32 sec
+      Start  76: CoinRenderRttMatrixCaptureTest
+ 4/19 Test  #76: CoinRenderRttMatrixCaptureTest ...........   Passed    0.37 sec
+      Start  80: CoinRenderRttMatrixGpuTest
+ 5/19 Test  #80: CoinRenderRttMatrixGpuTest ...............   Passed    0.38 sec
+      Start  81: CoinRenderRttMatrixDirectTest
+ 6/19 Test  #81: CoinRenderRttMatrixDirectTest ............   Passed    0.38 sec
+      Start  84: CoinRenderRttMatrixFboTest
+ 7/19 Test  #84: CoinRenderRttMatrixFboTest ...............   Passed    0.21 sec
+      Start  85: CoinRenderRttMatrixPbufferTest
+ 8/19 Test  #85: CoinRenderRttMatrixPbufferTest ...........   Passed    0.28 sec
+      Start  90: CoinRenderLightingTest
+ 9/19 Test  #90: CoinRenderLightingTest ...................   Passed    0.73 sec
+      Start 101: CoinRenderNodeInventoryDiscoveryTest
+10/19 Test #101: CoinRenderNodeInventoryDiscoveryTest .....   Passed    0.08 sec
+      Start 102: CoinRenderNodeInventoryTest
+11/19 Test #102: CoinRenderNodeInventoryTest ..............   Passed    0.03 sec
+      Start 115: CoinRenderShadowReferenceTest
+12/19 Test #115: CoinRenderShadowReferenceTest ............   Passed    9.66 sec
+      Start 157: CoinRenderPublicationTest
+13/19 Test #157: CoinRenderPublicationTest ................   Passed    0.13 sec
+      Start 158: CoinRenderRttOwnershipTest
+14/19 Test #158: CoinRenderRttOwnershipTest ...............   Passed    0.37 sec
+      Start 159: CoinRenderSceneTextureTest
+15/19 Test #159: CoinRenderSceneTextureTest ...............   Passed    0.39 sec
+      Start 160: CoinRenderSceneTextureBudgetTest
+16/19 Test #160: CoinRenderSceneTextureBudgetTest .........   Passed    0.72 sec
+      Start 161: CoinRenderSceneTextureDirectTest
+17/19 Test #161: CoinRenderSceneTextureDirectTest .........   Passed    1.52 sec
+      Start 162: CoinRenderSceneTextureBudgetDirectTest
+18/19 Test #162: CoinRenderSceneTextureBudgetDirectTest ...   Passed    0.37 sec
+      Start 163: CoinWgpuFfiFrameTest
+19/19 Test #163: CoinWgpuFfiFrameTest .....................   Passed    0.53 sec
+
+100% tests passed, 0 tests failed out of 19
+
+Total Test time (real) =  22.25 sec

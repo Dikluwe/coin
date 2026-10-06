@@ -1,0 +1,93 @@
+--- a/src/Gui/Inventor/SoNaviCube.cpp
++++ b/src/Gui/Inventor/SoNaviCube.cpp
+@@ -33,6 +33,7 @@
+ #include <limits>
+ #include <memory>
+ #include <numbers>
++#include "CoinRenderGeneratedImage.h"
+
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/actions/SoCallbackAction.h>
+@@ -470,7 +471,7 @@
+         slot.texture->model = SoTexture2::MODULATE;
+     }
+
+-    slot.texture->image.setValue(size, numComponents, pixels, SoSFImage::COPY);
++    Gui::setGeneratedTextureImage(slot.texture->image, size, numComponents, pixels);
+     sceneDirty = true;
+ }
+
+--- a/src/Gui/View3DInventorViewer.cpp
++++ b/src/Gui/View3DInventorViewer.cpp
+@@ -92,6 +92,7 @@
+ #include <Inventor/nodes/SoDepthBuffer.h>
+ #include <Inventor/nodes/SoFaceSet.h>
+ #include <Inventor/nodes/SoTexture2.h>
++#include "Inventor/CoinRenderGeneratedImage.h"
+ #include <Inventor/nodes/SoTextureCoordinate2.h>
+ #include <Inventor/nodes/SoVertexProperty.h>
+ #include <QBitmap>
+@@ -442,8 +443,8 @@
+
+     QImage rgba = image.convertToFormat(QImage::Format_RGBA8888);
+     overlay.pixelStorage.assign(rgba.constBits(), rgba.constBits() + qImageByteCount(rgba));
+-    overlay.texture->image
+-        .setValue(SbVec2s(rgba.width(), rgba.height()), 4, overlay.pixelStorage.data());
++    Gui::setGeneratedTextureImage(overlay.texture->image,
++        SbVec2s(rgba.width(), rgba.height()), 4, overlay.pixelStorage.data());
+
+     const float baseX = -0.5f * static_cast<float>(viewportWidth);
+     const float baseY = -0.5f * static_cast<float>(viewportHeight);
+@@ -5498,9 +5499,9 @@
+     placeLetter(overlay.yLetter, yLetterProjected);
+     placeLetter(overlay.zLetter, zLetterProjected);
+
+-    overlay.xLetter.texture->image.setValue(SbVec2s(XPM_WIDTH, XPM_HEIGHT), 4, XPM_pixel_data);
+-    overlay.yLetter.texture->image.setValue(SbVec2s(YPM_WIDTH, YPM_HEIGHT), 4, YPM_pixel_data);
+-    overlay.zLetter.texture->image.setValue(SbVec2s(ZPM_WIDTH, ZPM_HEIGHT), 4, ZPM_pixel_data);
++    Gui::setGeneratedTextureImage(overlay.xLetter.texture->image, SbVec2s(XPM_WIDTH, XPM_HEIGHT), 4, XPM_pixel_data);
++    Gui::setGeneratedTextureImage(overlay.yLetter.texture->image, SbVec2s(YPM_WIDTH, YPM_HEIGHT), 4, YPM_pixel_data);
++    Gui::setGeneratedTextureImage(overlay.zLetter.texture->image, SbVec2s(ZPM_WIDTH, ZPM_HEIGHT), 4, ZPM_pixel_data);
+
+     SbViewportRegion vp = this->getSoRenderManager()->getViewportRegion();
+     vp.setViewportPixels(origin[0], origin[1], pixelarea, pixelarea);
+--- /dev/null
++++ b/src/Gui/Inventor/CoinRenderGeneratedImage.h
+@@ -0,0 +1,37 @@
++// Generated GUI RGBA images have an explicit portable texture payload.
++// The logical drawing quad is unchanged; GL and CoinRender see identical bytes.
++#ifndef FREECAD_COIN_RENDER_GENERATED_IMAGE_H
++#define FREECAD_COIN_RENDER_GENERATED_IMAGE_H
++#include <Inventor/fields/SoSFImage.h>
++#include <QImage>
++#include <cstddef>
++namespace Gui {
++inline void setGeneratedTextureImage(SoSFImage& output, const SbVec2s& size,
++                                     int components, const unsigned char* pixels)
++{
++    SbVec2s textureSize = size;
++    QImage resampled;
++    auto nextPowerOfTwo = [](int value) {
++        int result = 1;
++        while (result < value) result *= 2;
++        return result;
++    };
++    const int width = nextPowerOfTwo(size[0]);
++    const int height = nextPowerOfTwo(size[1]);
++    if (pixels && size[0] > 0 && size[1] > 0 && components == 4
++        && width <= 8192 && height <= 8192
++        && static_cast<size_t>(width) * height * 4 <= 16 * 1024 * 1024
++        && (width != size[0] || height != size[1])) {
++        QImage source(pixels, size[0], size[1], size[0]*4, QImage::Format_RGBA8888);
++        resampled = source.convertToFormat(QImage::Format_RGBA8888_Premultiplied)
++                        .scaled(width,height,Qt::IgnoreAspectRatio,Qt::SmoothTransformation)
++                        .convertToFormat(QImage::Format_RGBA8888);
++        if (!resampled.isNull()) {
++            textureSize.setValue(width,height);
++            pixels = resampled.constBits();
++        }
++    }
++    output.setValue(textureSize,components,pixels,SoSFImage::COPY);
++}
++}
++#endif
