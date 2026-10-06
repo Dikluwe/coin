@@ -12,6 +12,7 @@ namespace {
 enum Failure { NONE, SAVE, GENERATE, ZERO_NAME, BIND, UPLOAD, LENGTH, ZERO_LENGTH, RESTORE };
 void (*warningCallback)() = NULL;
 const char * programErrorString = "injected upload failure";
+char reportedProgramError[512] = {};
 struct MockGL {
   MockGL() : failure(NONE), failupload(1), error(GL_NO_ERROR), list(0), next(100),
              generated(0), uploads(0), deleted(0), warnings(0) { }
@@ -83,6 +84,12 @@ void testDeletePrograms(const cc_glglue *, GLsizei n, const GLuint * ids) {
   }
 }
 struct TestDebugError {
+  static void postWarning(const char *, const char *, const char *, const char *,
+                          unsigned int, int, const char * message) {
+    std::strncpy(reportedProgramError, message, sizeof(reportedProgramError) - 1);
+    reportedProgramError[sizeof(reportedProgramError) - 1] = '\0';
+    postWarning(0);
+  }
   template<class... Args> static void postWarning(Args...) {
     { std::lock_guard<std::mutex> lock(mock.mutex); ++mock.warnings; }
     if (warningCallback) warningCallback();
@@ -180,8 +187,9 @@ void shared_program_cases() {
     Renderer::spec_programidx pa, pb;
     CHECK(!a.ensurePrograms(glue, NULL, pa));
     CHECK(mock.warnings == 1 && Cache::sharedPrograms().entries.empty());
-    CHECK(std::strcmp(a.programcache->contexts[1].specerror.message,
+    CHECK(std::strcmp(reportedProgramError,
                       "injected upload failure") == 0);
+    CHECK(a.programcache->contexts[1].specerror.messageText()[0] == '\0');
     mock.failure = NONE;
     CHECK(b.ensurePrograms(glue, NULL, pb));
     CHECK(!a.ensurePrograms(glue, NULL, pa));
