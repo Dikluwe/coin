@@ -411,3 +411,13 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
   add_test(NAME FontBackendMetricsAndFallback COMMAND CoinFontBackendTest)
   set_tests_properties(FontBackendMetricsAndFallback PROPERTIES SKIP_RETURN_CODE 77)
 endif()
+
+if(HAVE_THREADS)
+  find_package(Threads REQUIRED)
+  add_executable(CoinFontCacheThreadTest FontCacheThreadTest.cpp)
+  target_compile_definitions(CoinFontCacheThreadTest PRIVATE COIN_INTERNAL)
+  target_include_directories(CoinFontCacheThreadTest PRIVATE ${PROJECT_SOURCE_DIR}/src)
+  target_link_libraries(CoinFontCacheThreadTest PRIVATE Coin Threads::Threads)
+  add_test(NAME FontCacheConcurrentLifetime COMMAND CoinFontCacheThreadTest)
+  set_tests_properties(FontCacheConcurrentLifetime PROPERTIES TIMEOUT 60)
+endif()

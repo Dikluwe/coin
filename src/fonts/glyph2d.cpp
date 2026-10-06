@@ -137,8 +137,7 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
 
   /* because this function is the entry point for glyph2d, the mutex
      is initialized here. */
-  if (glyph2d_fonthash_lock == NULL) 
-    cc_glyph2d_initialize();
+  cc_glyph2d_initialize();
   
   assert(spec);
 
@@ -150,8 +149,8 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
     for (i = 0; i < cc_list_get_length(glyphlist); ++i) {
       glyph = (cc_glyph2d *) cc_list_get(glyphlist, i);
       if (glyph2d_specmatch(spec, glyph->c.fontspec)) {
-        GLYPH2D_MUTEX_UNLOCK(glyph2d_fonthash_lock);
         glyph->c.refcount++;
+        GLYPH2D_MUTEX_UNLOCK(glyph2d_fonthash_lock);
         return glyph;
       }
     }    
@@ -240,7 +239,9 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
 void
 cc_glyph2d_unref(cc_glyph2d * glyph)
 {
+  GLYPH2D_MUTEX_LOCK(glyph2d_fonthash_lock);
   cc_glyph_unref(glyph2d_fonthash, &(glyph->c), NULL);
+  GLYPH2D_MUTEX_UNLOCK(glyph2d_fonthash_lock);
 }
 
 static SbBool 
