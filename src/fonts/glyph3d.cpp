@@ -31,6 +31,7 @@
 \**************************************************************************/
 
 #include "fonts/glyph3d.h"
+#include "fonts/fontutils.h"
 
 #include <cfloat> /* FLT_MIN */
 #include <cstring>
@@ -224,7 +225,8 @@ cc_glyph3d_ref(uint32_t character, const cc_font_specification * spec)
     glyph->vectorglyph = (struct cc_font_vector_glyph *) malloc(sizeof(struct cc_font_vector_glyph));
     glyph->didallocvectorglyph = TRUE;
 
-    if (character <= 32 || character >= 127) {
+    const unsigned int fallback = coin_font_default_character(character, 126);
+    if (fallback <= 32) {
 
       /* FIXME: Characters other than space, should be replaced with
          squares. (20030910 handegar) */
@@ -235,9 +237,9 @@ cc_glyph3d_ref(uint32_t character, const cc_font_specification * spec)
       glyph->vectorglyph->edgeindices = (int *) glyph3d_spaceglyphindices;
     }
     else {
-      glyph->vectorglyph->vertices = (float *) coin_default3dfont_get_coords()[character-33];
-      glyph->vectorglyph->faceindices = (int *) coin_default3dfont_get_faceidx()[character-33];
-      glyph->vectorglyph->edgeindices = (int *) coin_default3dfont_get_edgeidx()[character-33];
+      glyph->vectorglyph->vertices = (float *) coin_default3dfont_get_coords()[fallback-33];
+      glyph->vectorglyph->faceindices = (int *) coin_default3dfont_get_faceidx()[fallback-33];
+      glyph->vectorglyph->edgeindices = (int *) coin_default3dfont_get_edgeidx()[fallback-33];
     }
   }
   
