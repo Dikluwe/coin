@@ -314,6 +314,7 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t linePattern = 0xffffu;
   int32_t linePatternScaleFactor = 1;
   bool polygonLinePattern = false; // One stipple counter for this original polygon.
+  bool preservePolygonEdgeDirection = false; // Native bounding-box endpoint ownership.
   bool rasterForceBlend = false; // Gray Text2 forces blending independently of traversal.
   SbMatrix textureMatrix = SbMatrix::identity();
   bool hasTexture = false;

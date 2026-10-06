@@ -16,36 +16,39 @@
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
+#include <Inventor/SbColor.h>
+#include <Inventor/actions/SoCallbackAction.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
-#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
-#include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoOrthographicCamera.h>
-#include <Inventor/nodes/SoPerspectiveCamera.h>
-#include <Inventor/nodes/SoCube.h>
-#include <Inventor/nodes/SoTranslation.h>
-#include <Inventor/nodes/SoRotation.h>
-#include <Inventor/nodes/SoScale.h>
-#include <Inventor/nodes/SoTransform.h>
-#include <Inventor/nodes/SoDirectionalLight.h>
-#include <Inventor/nodes/SoLight.h>
-#include <Inventor/nodes/SoPointLight.h>
-#include <Inventor/nodes/SoMaterial.h>
-#include <Inventor/nodes/SoTransparencyType.h>
-#include <Inventor/nodes/SoClipPlane.h>
-#include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/elements/SoViewportRegionElement.h>
 #include <Inventor/nodes/SoAnnotation.h>
-#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoComplexity.h>
-#include <Inventor/nodes/SoLightModel.h>
-#include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoNormal.h>
-#include <Inventor/nodes/SoNormalBinding.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoEnvironment.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
-#include <Inventor/SbColor.h>
+#include <Inventor/nodes/SoLight.h>
+#include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoNormal.h>
+#include <Inventor/nodes/SoNormalBinding.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoPerspectiveCamera.h>
+#include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoRotation.h>
+#include <Inventor/nodes/SoScale.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoSubNode.h>
+#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoTransform.h>
+#include <Inventor/nodes/SoTranslation.h>
+#include <Inventor/nodes/SoTransparencyType.h>
 
 #include <cstdlib>
 #include <cmath>
@@ -53,6 +56,25 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+
+class ShadowViewportFixture : public SoNode {
+  SO_NODE_HEADER(ShadowViewportFixture);
+
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(ShadowViewportFixture, SoNode, "Node"); }
+  ShadowViewportFixture() { SO_NODE_CONSTRUCTOR(ShadowViewportFixture); }
+  SbViewportRegion viewport;
+  void callback(SoCallbackAction *a) override {
+    SoViewportRegionElement::set(a->getState(), viewport);
+  }
+  void GLRender(SoGLRenderAction *a) override {
+    SoViewportRegionElement::set(a->getState(), viewport);
+  }
+
+protected:
+  ~ShadowViewportFixture() override = default;
+};
+SO_NODE_SOURCE(ShadowViewportFixture);
 
 namespace {
 static const int side = 128;
@@ -1306,6 +1328,79 @@ bool bgfxLightDelta(SoNode * root, SoLight * switched, int & difference)
 #endif
 }
 
+bool shadowViewportCrop(SoSeparator *root, SoShadowGroup *group) {
+  ShadowViewportFixture::initClass();
+  auto *vp = new ShadowViewportFixture;
+  root->insertChild(vp, 1);
+  group->quality = 0;
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(128, 128)));
+  target->setDepthReadbackEnabled(FALSE);
+  CoinRenderAction action(SbViewportRegion(128, 128));
+  action.setRenderTarget(target.get());
+  std::vector<uint8_t> shadowControl, plainControl;
+  for (bool active : {false, true}) {
+    group->isActive = active ? TRUE : FALSE;
+    vp->viewport = SbViewportRegion(128, 128);
+    vp->touch();
+    target->resize(SbVec2i32(128, 128));
+    action.setViewportRegion(SbViewportRegion(128, 128));
+    action.apply(root);
+    if (action.getLastStatus() != CoinRenderAction::SUCCESS) {
+      std::cerr << action.getLastError().getString() << '\n';
+      return false;
+    }
+    std::vector<uint8_t> full, cropped;
+    target->readbackRGBA(full);
+    if (active)
+      shadowControl = full;
+    else
+      plainControl = full;
+    target->resize(SbVec2i32(96, 96));
+    action.setViewportRegion(SbViewportRegion(96, 96));
+    vp->viewport.setViewportPixels(-16, -8, 128, 128);
+    vp->touch();
+    action.apply(root);
+    if (action.getLastStatus() != CoinRenderAction::SUCCESS)
+      return false;
+    target->readbackRGBA(cropped);
+    size_t samples = 0;
+    int maximum = 0;
+    for (int y = 1; y < 95; ++y)
+      for (int x = 1; x < 95; ++x) {
+        // Fixed raster-boundary exclusion, before running the fixture. Smooth
+        // interiors and clear pixels are both checked against the larger control.
+        const int rx = x + 16, ry = y + 24;
+        const auto base = (ry * 128 + rx) * 4;
+        const bool covered = full[base] || full[base + 1] || full[base + 2];
+        bool stable = true;
+        for (int dy = -1; dy <= 1; ++dy)
+          for (int dx = -1; dx <= 1; ++dx) {
+            const auto i = ((ry + dy) * 128 + rx + dx) * 4;
+            stable &= covered == bool(full[i] || full[i + 1] || full[i + 2]);
+          }
+        if (!stable)
+          continue;
+        ++samples;
+        for (int c = 0; c < 3; ++c)
+          maximum =
+              std::max(maximum, std::abs(int(cropped[(y * 96 + x) * 4 + c]) - int(full[base + c])));
+      }
+    std::cout << "shadow external viewport active=" << active << " samples=" << samples
+              << " max=" << maximum << '\n';
+    if (samples < 500 || maximum > 2)
+      return false;
+  }
+  size_t changed = 0;
+  for (size_t i = 0; i < shadowControl.size(); i += 4)
+    if (std::abs(int(shadowControl[i]) - int(plainControl[i])) +
+            std::abs(int(shadowControl[i + 1]) - int(plainControl[i + 1])) >
+        10)
+      ++changed;
+  std::cout << "shadow control changed pixels=" << changed << '\n';
+  action.setRenderTarget(nullptr);
+  return changed > 20;
+}
+
 int main(int argc, char ** argv)
 {
   SoDB::init();
@@ -1357,6 +1452,16 @@ int main(int argc, char ** argv)
   floor->depth = 0.05f;
   ground->addChild(floor);
 
+  if (argc == 2 && std::string(argv[1]) == "--viewport") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+        !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+      root->unref();
+      return 77;
+    }
+    const bool ok = shadowViewportCrop(root, group);
+    root->unref();
+    return ok ? 0 : 1;
+  }
   if (argc == 3 && std::string(argv[1]) == "--quality") {
     if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") && !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) { root->unref(); return 77; }
     const int maps=std::atoi(argv[2]);

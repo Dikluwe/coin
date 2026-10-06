@@ -140,3 +140,14 @@ contrato substitui as pendências e a faixa off/linear descritas acima: inclui
 POT, qualidade ≤ 0,85, limites/rejeições explícitos e protocolo privado 47.
 Os gates procedurais ampliados em P02 e suas pendências de raster continuam
 registrados no perfil de geometria/viewport.
+
+## Ampliação junto de P02/P04/P05/P06 — 2026-10-06
+
+O gate procedural passa a 311 cenas CPU/GPU e 69 referências CoinGL no perfil
+válido: DEFAULT/Plane/função autoral, unidade 0/multitextura, LINES/POINTS,
+clipping e alpha em faces, Cube, Sphere, Cone e Cylinder. As junções específicas
+do CoinGL ficam no [estudo futuro](coin-render-raster-junctions-study.md), com
+reproduceres que conservam sua falha observável. O esperado portátil e as
+referências nativas qualificadas mantêm seus limites MAE 1/máximo RGB 3.
+Esta ampliação não modifica os limites de qualidade/formatos do primeiro P07
+nem qualifica NPOT, formatos RTT adicionais ou todos os cruzamentos de bindings.

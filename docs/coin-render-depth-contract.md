@@ -134,3 +134,35 @@ Veja o [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md):
 viewport externo/vazio no Core, correção de bindings de normais e fixtures
 compartilhadas com resize, alpha, luzes/fog e estilos com UV procedural.
 Os limites de depth/offset e a matriz completa por shape continuam abertos.
+
+## Perfil capturado ampliado — 2026-10-06
+
+Esta seção atualiza os limites históricos de range/offset e execução Rust das
+rodadas anteriores. O [perfil portátil de geometria/viewport](coin-render-geometry-viewport-contract.md#ampliação-portátil-de-fechamento--2026-10-06)
+define as células qualificadas. Cada endpoint finito de range sofre clamp
+independente; intervalos reversos e colapsados são válidos. NaN/Inf são rejeitados
+antes de publicar imagem/serial. Não há novo contrato de depth clamp geométrico.
+
+O Core resolve o gradiente de janela e o máximo do triângulo capturado em
+FILLED; nos estilos de polígono, usa o contorno original antes da expansão
+de strokes. Em FILLED, divide o draw em faixas por triângulo, preserva ordem
+e clear de annotation, e descarta primitivos fora do volume de clipping original. A resolução é idempotente.
+A referência CPU aplica units pelo quantum D32Float, inclusive um passo
+representável nos valores subnormais; o controle subnormal é numérico CPU e
+não qualifica preservação de subnormais em todos os shaders/formatos físicos. os executores GPU usam seu
+formato. Controles coplanares verificam os dois sinais, units isolado e fator,
+nos ranges normal/reverso, em CPU e GPU.
+
+O wgpu mapeia range reverso em profundidade de fragmento com viewport [0,1],
+como já faz para offsets resolvidos, mantendo clipping anterior ao bias. Revisão
+privada **48**, layouts preservados. Planos privados brutos com offset não
+resolvido e range reverso devem ser preparados pelo Core; não constituem o
+perfil capturado. Precisão em outros formatos/drivers e custo de early-Z continuam
+exigindo campanhas próprias.
+
+O shader BGFX usa a forma explícita `near + (far-near)*fragmentDepth`, mantendo
+intervalos constantes sem recombinação de duas parcelas, e só avalia derivadas
+com factor não zero. Ranges coplanares de strokes com teste/escrita ativos podem
+ser resolvidos pelo Core para um intervalo colapsado equivalente; posições e
+clipping originais em Z permanecem. O deslocamento subpixel trata cobertura,
+não altera o bias de profundidade nem as expectativas de W/UV/cor/fog.

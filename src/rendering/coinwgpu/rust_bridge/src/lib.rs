@@ -29,7 +29,7 @@ mod shader_profile;
 mod depth_transfer;
 mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 47;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 48;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -4125,18 +4125,22 @@ fn encode_frame(
                         _ => wgpu::CompareFunction::Less,
                     }
                 };
-                let resolved_depth_bias = st.polygon_offset_enabled != 0
+                let resolved_offset = st.polygon_offset_enabled != 0
                     && st.polygon_offset_styles & st.polygon_offset_primitive_style != 0
                     && (st.polygon_offset_slope_bias != 0.0
                         || (st.polygon_offset_max_depth_bits != 0
                             && st.polygon_offset_units != 0.0));
+                // WebGPU viewport intervals must be ascending. The existing
+                // fragment-depth path maps a reversed Coin interval without
+                // changing clipping or projection.
+                let resolved_depth_bias = resolved_offset || st.depth_range[0] > st.depth_range[1];
                 let native_depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e| {
                     (
                         CoinWgpuStatus::InvalidArgument,
                         format!("Draw {}: {}", item.draw_index, e),
                     )
                 })?;
-                let window_bias = if resolved_depth_bias {
+                let window_bias = if resolved_offset {
                     resolved_polygon_bias(st, draw, vertices_slice, indices_slice).map_err(|e| {
                         (
                             CoinWgpuStatus::InvalidArgument,
@@ -4571,8 +4575,9 @@ fn encode_frame(
                 if !st.depth_range[0].is_finite()
                     || !st.depth_range[1].is_finite()
                     || st.depth_range[0] < 0.0
+                    || st.depth_range[0] > 1.0
+                    || st.depth_range[1] < 0.0
                     || st.depth_range[1] > 1.0
-                    || st.depth_range[0] > st.depth_range[1]
                 {
                     return Err((
                         CoinWgpuStatus::InvalidArgument,

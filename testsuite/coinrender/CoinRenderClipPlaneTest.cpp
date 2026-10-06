@@ -248,7 +248,10 @@ bool strokes() {
     const auto & s=p.renderStates[d.renderStateSlot];
     ok=check(s.clipPlanesWorld.empty(),"expanded strokes already clipped")&&ok;
     if(s.polygonOffsetPrimitiveStyle==2) {++lineDraws;
-      for(uint32_t i=0;i<d.geometry.vertexCount;++i)ok=check(p.vertices[d.geometry.firstVertex+i].position[0]>=-1e-5f,"line clipped before width expansion")&&ok;
+      const float coverageBias = 2.0f / (256.0f * p.viewports[s.viewportSlot].width);
+      for(uint32_t i=0;i<d.geometry.vertexCount;++i)
+        ok=check(p.vertices[d.geometry.firstVertex+i].position[0]+coverageBias>=-1e-5f,
+          "centreline clipped before width expansion and top/left coverage bias")&&ok;
     }
     if(s.polygonOffsetPrimitiveStyle==4) {++pointDraws;ok=check(d.geometry.vertexCount==4,"negative point removed as whole primitive")&&ok;}
   }

@@ -1,0 +1,224 @@
+Start testing: Oct 06 16:29 -03
+----------------------------------------------------------
+43/176 Testing: CoinRenderActionTest
+43/176 Test: CoinRenderActionTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderActionTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderActionTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+<end of output>
+Test time =   0.94 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderActionTest" end time: Oct 06 16:29 -03
+"CoinRenderActionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+46/176 Testing: CoinRenderPlanAssemblyCoreTest
+46/176 Test: CoinRenderPlanAssemblyCoreTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderPlanAssemblyCoreTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderPlanAssemblyCoreTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+Captured values, image conversion, deduplication and bounded cube ranges passed
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderPlanAssemblyCoreTest" end time: Oct 06 16:29 -03
+"CoinRenderPlanAssemblyCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+47/176 Testing: CoinRenderTransformCoreTest
+47/176 Test: CoinRenderTransformCoreTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderTransformCoreTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderTransformCoreTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+Shared depth, normal, viewport and scissor transforms passed
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderTransformCoreTest" end time: Oct 06 16:29 -03
+"CoinRenderTransformCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+57/176 Testing: CoinRenderDepthContractTest
+57/176 Test: CoinRenderDepthContractTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderDepthContractTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderDepthContractTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.15 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractTest" end time: Oct 06 16:29 -03
+"CoinRenderDepthContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+60/176 Testing: CoinRenderIndexedGeometryCoreTest
+60/176 Test: CoinRenderIndexedGeometryCoreTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderIndexedGeometryCoreTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderIndexedGeometryCoreTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+CoinRenderIndexedGeometryCoreTest passed
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderIndexedGeometryCoreTest" end time: Oct 06 16:29 -03
+"CoinRenderIndexedGeometryCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+71/176 Testing: CoinRenderRttViewportCaptureTest
+71/176 Test: CoinRenderRttViewportCaptureTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderRttMatrixTest" "" "--external"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderRttViewportCaptureTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.05 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttViewportCaptureTest" end time: Oct 06 16:29 -03
+"CoinRenderRttViewportCaptureTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+76/176 Testing: CoinRenderGeometryViewportCaptureTest
+76/176 Test: CoinRenderGeometryViewportCaptureTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderGeometryViewportTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderGeometryViewportCaptureTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+Geometry/viewport cases=1290 GPU=0
+<end of output>
+Test time =   0.54 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGeometryViewportCaptureTest" end time: Oct 06 16:29 -03
+"CoinRenderGeometryViewportCaptureTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+77/176 Testing: CoinRenderProceduralTextureCaptureTest
+77/176 Test: CoinRenderProceduralTextureCaptureTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderProceduralTextureTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderProceduralTextureCaptureTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+P07 passed cases=311 CoinGL_references=0
+<end of output>
+Test time =   0.71 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderProceduralTextureCaptureTest" end time: Oct 06 16:29 -03
+"CoinRenderProceduralTextureCaptureTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+81/176 Testing: CoinRenderClipPlaneTest
+81/176 Test: CoinRenderClipPlaneTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderClipPlaneTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderClipPlaneTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+Coin/GL reference passed
+[SKIP] GPU adapter unavailable
+<end of output>
+Test time =   0.43 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderClipPlaneTest" end time: Oct 06 16:29 -03
+"CoinRenderClipPlaneTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+82/176 Testing: CoinRenderDrawStyleTest
+82/176 Test: CoinRenderDrawStyleTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderDrawStyleTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderDrawStyleTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement -12
+Coin/GL clip 7 edge 1 phase displacement -37
+Coin/GL clip 7 edge 2 phase displacement 65
+Coin/GL clipped geometry and retained-edge stipple reference passed
+Coin/GL polygon stipple reference passed
+Coin/GL polygon attributes reference passed
+[SKIP] GPU adapter unavailable
+<end of output>
+Test time =   4.53 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDrawStyleTest" end time: Oct 06 16:29 -03
+"CoinRenderDrawStyleTest" time elapsed: 00:00:04
+----------------------------------------------------------
+
+86/176 Testing: CoinRenderCompositionTest
+86/176 Test: CoinRenderCompositionTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderCompositionTest"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderCompositionTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+CoinRenderCompositionTest passed
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderCompositionTest" end time: Oct 06 16:29 -03
+"CoinRenderCompositionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+93/176 Testing: CoinRenderBoundingBoxCaptureTest
+93/176 Test: CoinRenderBoundingBoxCaptureTest
+Command: "/tmp/coin-render-isolation-recording/bin/CoinRenderBoundingBoxTest" "--capture"
+Directory: /tmp/coin-render-isolation-recording/testsuite
+"CoinRenderBoundingBoxCaptureTest" start time: Oct 06 16:29 -03
+Output:
+----------------------------------------------------------
+shadow-map/original-caster-profile requires actual GPU; not certified by CPU capture mode
+CoinRenderBoundingBoxTest capture/CPU passed native_gl_comparisons=0
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderBoundingBoxCaptureTest" end time: Oct 06 16:29 -03
+"CoinRenderBoundingBoxCaptureTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 06 16:29 -03

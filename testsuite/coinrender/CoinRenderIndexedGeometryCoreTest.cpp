@@ -180,6 +180,52 @@ main()
               lines.indices.size() == 4,
               "polyline was not expanded into line-list segments");
 
+  const int32_t reversedLine[] = {2, 0, 1, -1};
+  const int32_t lineNormalIndices[] = {3, 2, 1, -1};
+  auto lineView = makeView(linePositions, 3, reversedLine, 4);
+  lineView.normals = CoinRenderSpan<SbVec3f>(authoredNormals, 4);
+  lineView.normalIndex = CoinRenderSpan<int32_t>(lineNormalIndices, 4);
+  const int occurrences[] = {0, 1, 1, 2};
+  for (auto binding : {SoNormalBindingElement::OVERALL, SoNormalBindingElement::PER_PART,
+                       SoNormalBindingElement::PER_PART_INDEXED, SoNormalBindingElement::PER_FACE,
+                       SoNormalBindingElement::PER_FACE_INDEXED, SoNormalBindingElement::PER_VERTEX,
+                       SoNormalBindingElement::PER_VERTEX_INDEXED}) {
+    lineView.normalBinding = binding;
+    const auto result = CoinRenderIndexedGeometryCore::buildLines(lineView, baseColor);
+    ok &= check(result.status == CoinRenderFastPathResult::SUCCESS_PRUNE &&
+                    result.indices.size() == 4,
+                "line authored normal bindings");
+    for (size_t i = 0; i < result.indices.size(); ++i) {
+      size_t expected = 0;
+      if (binding == SoNormalBindingElement::PER_PART)
+        expected = i / 2;
+      if (binding == SoNormalBindingElement::PER_PART_INDEXED)
+        expected = lineNormalIndices[i / 2];
+      if (binding == SoNormalBindingElement::PER_FACE_INDEXED)
+        expected = 3;
+      if (binding == SoNormalBindingElement::PER_VERTEX)
+        expected = occurrences[i];
+      if (binding == SoNormalBindingElement::PER_VERTEX_INDEXED)
+        expected = lineNormalIndices[occurrences[i]];
+      ok &= check(SbVec3f(result.vertices[result.indices[i]].vertex.normal) ==
+                      authoredNormals[expected],
+                  "line normal occurrence/index vector");
+    }
+  }
+  lineView.normalBinding = SoNormalBindingElement::OVERALL;
+  lineView.materialBinding = SoMaterialBindingElement::PER_VERTEX;
+  const auto materialLine = CoinRenderIndexedGeometryCore::buildLines(lineView, baseColor);
+  for (size_t i = 0; i < materialLine.indices.size(); ++i)
+    ok &= check(materialLine.vertices[materialLine.indices[i]].materialIndex == occurrences[i],
+                "shared polyline endpoint does not consume another material occurrence");
+  lineView.normalBinding = SoNormalBindingElement::PER_FACE_INDEXED;
+  const int32_t invalidLineNormal[] = {8};
+  lineView.normalIndex = CoinRenderSpan<int32_t>(invalidLineNormal, 1);
+  const auto normalFallback = CoinRenderIndexedGeometryCore::buildLines(lineView, baseColor);
+  ok &= check(normalFallback.status == CoinRenderFastPathResult::FALLBACK_CONTINUE &&
+                  normalFallback.vertices.empty() && normalFallback.indices.empty(),
+              "invalid line normal index falls back atomically");
+
   std::vector<CoinRenderIndexedVertex> digestVertices = quadResult.vertices;
   const uint64_t digest =
     CoinRenderIndexedGeometryCore::payloadDigest(

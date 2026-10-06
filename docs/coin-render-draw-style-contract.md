@@ -458,3 +458,19 @@ Veja o [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md):
 viewport externo/vazio no Core, correção de bindings de normais e fixtures
 compartilhadas com resize, alpha, luzes/fog e estilos com UV procedural.
 Os limites de depth/offset e a matriz completa por shape continuam abertos.
+
+## Ampliação portátil de geometria/viewport
+
+O [perfil de 2026-10-06](coin-render-geometry-viewport-contract.md#ampliação-portátil-de-fechamento--2026-10-06)
+amplia LINES/POINTS com bindings, alpha, UV procedural, clipping e viewport
+externo. Para LineSet/IndexedLineSet em POINTS, segmentos independentes emitem
+os dois endpoints; strips emitem o ponto compartilhado uma vez por ocorrência.
+A referência CPU usa cobertura com 1/256 de pixel. Strokes com cache estável
+recebem digest dos atributos após expansão, incluindo fog e posições, e não
+reutilizam o identificador de conteúdo indexado anterior.
+
+As junções nativas curvas/coincidentes e os endpoints compartilhados transparentes
+são [estudo de melhoria futura](coin-render-raster-junctions-study.md). Os gates
+portáteis não relaxam tolerâncias; referências CoinGL permanecem nas matrizes
+independentes qualificadas. A escolha não encerra concavidade, offset não planar,
+subclasses adicionais ou a matriz de todos os cruzamentos de bindings.

@@ -2489,6 +2489,12 @@ CoinRenderActionP::indexedLineSetPreCB(void * userdata,
   if (ils->coordIndex.getNum() > 0) {
     view.coordIndex = CoinRenderSpan<int32_t>(ils->coordIndex.getValues(0), static_cast<size_t>(ils->coordIndex.getNum()));
   }
+  const auto* normals=SoNormalElement::getInstance(state);
+  if(normals && normals->getNum()>0)
+    view.normals=CoinRenderSpan<SbVec3f>(normals->getArrayPtr(),static_cast<size_t>(normals->getNum()));
+  if(ils->normalIndex.getNum()>0 && !(ils->normalIndex.getNum()==1 && ils->normalIndex[0]==-1))
+    view.normalIndex=CoinRenderSpan<int32_t>(ils->normalIndex.getValues(0),static_cast<size_t>(ils->normalIndex.getNum()));
+  view.normalBinding=SoNormalBindingElement::get(state);
   if (ils->materialIndex.getNum() > 0 && !(ils->materialIndex.getNum() == 1 && ils->materialIndex[0] == -1)) {
     view.materialIndex = CoinRenderSpan<int32_t>(ils->materialIndex.getValues(0), static_cast<size_t>(ils->materialIndex.getNum()));
   }

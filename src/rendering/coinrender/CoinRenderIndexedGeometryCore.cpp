@@ -452,6 +452,15 @@ CoinRenderIndexedGeometryCore::buildLines(
   size_t validLineIndex = 0;
   size_t totalSegmentIndex = 0;
   size_t materialLineVertexCounter = 0;
+  size_t normalLineVertexCounter = 0;
+  size_t lineVertexBase = 0;
+  bool invalidNormal = false;
+  const bool normalsUsed = !options.baseColorLighting && !view.normals.empty();
+  const bool independent =
+      view.materialBinding == SoMaterialBindingElement::PER_PART ||
+      view.materialBinding == SoMaterialBindingElement::PER_PART_INDEXED ||
+      (normalsUsed && (view.normalBinding == SoNormalBindingElement::PER_PART ||
+                       view.normalBinding == SoNormalBindingElement::PER_PART_INDEXED));
 
   for (size_t lineIndex = 0; lineIndex < polylines.size(); ++lineIndex) {
     const size_t count = polylines[lineIndex].count;
@@ -494,8 +503,8 @@ CoinRenderIndexedGeometryCore::buildLines(
             materialIndex = 0;
           }
           else if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
-            materialIndex =
-              static_cast<int32_t>(materialLineVertexCounter++);
+            materialIndex = static_cast<int32_t>(independent ? materialLineVertexCounter++
+                                                             : lineVertexBase + vertexOffsetInLine);
           }
           else if (view.materialBinding ==
                    SoMaterialBindingElement::PER_VERTEX_INDEXED) {
@@ -506,12 +515,54 @@ CoinRenderIndexedGeometryCore::buildLines(
               if (value >= 0) materialIndex = value;
             }
           }
-          return getOrAddVertex(
-            uniqueVertices, output,
-            coordinateIndex, 0, 0, materialIndex,
-            view.positions[coordinateIndex],
-            SbVec3f(0.0f, 0.0f, 1.0f),
-            SbVec2f(0.0f, 0.0f));
+          SbVec3f normal(0, 0, 1);
+          int32_t normalKey = 0;
+          if (!view.normals.empty()) {
+            size_t normalSlot = 0, indexSlot = 0;
+            bool indexed = false;
+            switch (view.normalBinding) {
+            case SoNormalBindingElement::PER_PART:
+              normalSlot = totalSegmentIndex;
+              break;
+            case SoNormalBindingElement::PER_PART_INDEXED:
+              normalSlot = indexSlot = totalSegmentIndex;
+              indexed = true;
+              break;
+            case SoNormalBindingElement::PER_FACE:
+              normalSlot = validLineIndex;
+              break;
+            case SoNormalBindingElement::PER_FACE_INDEXED:
+              normalSlot = indexSlot = validLineIndex;
+              indexed = true;
+              break;
+            case SoNormalBindingElement::PER_VERTEX:
+              normalSlot =
+                  independent ? normalLineVertexCounter++ : lineVertexBase + vertexOffsetInLine;
+              break;
+            case SoNormalBindingElement::PER_VERTEX_INDEXED:
+              normalSlot = coordinateIndex;
+              indexSlot = indexPosition;
+              indexed = true;
+              break;
+            default:
+              break;
+            }
+            if (indexed && !view.normalIndex.empty()) {
+              if (indexSlot >= view.normalIndex.size || view.normalIndex[indexSlot] < 0)
+                invalidNormal = true;
+              else
+                normalSlot = static_cast<size_t>(view.normalIndex[indexSlot]);
+            }
+            if (normalSlot >= view.normals.size)
+              invalidNormal = true;
+            else {
+              normal = view.normals[normalSlot];
+              normalKey = static_cast<int32_t>(normalSlot);
+            }
+          }
+          return getOrAddVertex(uniqueVertices, output, coordinateIndex, normalKey, 0,
+                                materialIndex, view.positions[coordinateIndex], normal,
+                                SbVec2f(0.0f, 0.0f));
         };
 
       output.indices.push_back(resolveVertex(segment));
@@ -519,7 +570,10 @@ CoinRenderIndexedGeometryCore::buildLines(
       ++totalSegmentIndex;
     }
     ++validLineIndex;
+    lineVertexBase += count;
   }
+  if (invalidNormal)
+    return finish(CoinRenderFastPathResult::FALLBACK_CONTINUE);
   return output;
 }
 

@@ -49,6 +49,7 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.pointSize == b.pointSize && a.linePattern == b.linePattern &&
     a.linePatternScaleFactor == b.linePatternScaleFactor &&
     a.polygonLinePattern == b.polygonLinePattern &&
+    a.preservePolygonEdgeDirection == b.preservePolygonEdgeDirection &&
     a.textureMatrix == b.textureMatrix &&
     coin_render_same_texture_units(a.extraTextures, b.extraTextures) &&
     std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) == 0 &&

@@ -1,0 +1,60 @@
+Start testing: Oct 06 16:33 -03
+----------------------------------------------------------
+114/272 Testing: CoinRenderRttViewportGpuTest
+114/272 Test: CoinRenderRttViewportGpuTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest" "--gpu" "--external"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttViewportGpuTest" start time: Oct 06 16:33 -03
+Output:
+----------------------------------------------------------
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+<end of output>
+Test time =   5.42 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttViewportGpuTest" end time: Oct 06 16:33 -03
+"CoinRenderRttViewportGpuTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+115/272 Testing: CoinRenderRttViewportDirectTest
+115/272 Test: CoinRenderRttViewportDirectTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttMatrixTest" "--direct" "--external"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderRttViewportDirectTest" start time: Oct 06 16:33 -03
+Output:
+----------------------------------------------------------
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+<end of output>
+Test time =   2.46 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttViewportDirectTest" end time: Oct 06 16:33 -03
+"CoinRenderRttViewportDirectTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+End testing: Oct 06 16:33 -03

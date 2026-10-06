@@ -1778,7 +1778,7 @@ main()
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 47 && sizeof(CoinWgpuVertex) == 164 &&
+  if (!check(first.abi_version == 48 && sizeof(CoinWgpuVertex) == 164 &&
              sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
              "projective private protocol and vertex stride")) return 1;
   for (size_t unit = 0; unit < 8; ++unit) {

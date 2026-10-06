@@ -1,0 +1,12 @@
+--probe-style-line CPU/GPU covered=594 max=1
+--probe-style-line CPU/CoinGL covered=500 max=18
+worst=19,56 source=43,111,56, reference=48,93,56,
+--probe-style-line CPU/CoinGL: pixel parity
+--probe-style-line-depthless CPU/GPU covered=594 max=1
+--probe-style-line-depthless CPU/CoinGL covered=500 max=24
+worst=56,56 source=68,70,66, reference=48,46,46,
+--probe-style-line-depthless CPU/CoinGL: pixel parity
+--probe-style-line-width1 CPU/GPU covered=200 max=1
+--probe-style-line-width1 CPU/CoinGL covered=104 max=18
+worst=19,57 source=43,111,56, reference=48,93,56,
+--probe-style-line-width1 CPU/CoinGL: pixel parity

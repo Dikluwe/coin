@@ -4,30 +4,32 @@
 #include "src/config.h"
 #endif
 
-#include <Inventor/SoDB.h>
-#include <Inventor/actions/SoCallbackAction.h>
-#include <Inventor/actions/CoinRenderAction.h>
-#include <Inventor/nodes/SoSeparator.h>
-#include <Inventor/nodes/SoPolygonOffset.h>
-#include <Inventor/nodes/SoDepthBuffer.h>
-#include <Inventor/nodes/SoCube.h>
-#include <Inventor/nodes/SoCoordinate3.h>
-#include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/nodes/SoPointSet.h>
-#include <Inventor/nodes/SoShape.h>
-#include <Inventor/nodes/SoTranslation.h>
-#include <Inventor/nodes/SoMaterial.h>
+#include "CoinRenderTestEnvironment.h"
+#include "rendering/coinbgfx/CoinBgfxLowering.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+#include "rendering/coinrender/CoinRenderDepthCore.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
-#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
-#include "rendering/coinbgfx/CoinBgfxLowering.h"
-#include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
-#include "CoinRenderTestEnvironment.h"
+#include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include <Inventor/SoDB.h>
+#include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/actions/SoCallbackAction.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoDepthBuffer.h>
+#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoPointSet.h>
+#include <Inventor/nodes/SoPolygonOffset.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoTranslation.h>
 #include <cmath>
 #include <cstring>
-#include <limits>
 #include <iostream>
+#include <limits>
 #include <string>
 #include <utility>
 
@@ -512,6 +514,115 @@ CoinRenderFramePlan fixture() {
   return frame;
 }
 
+bool triangleDepthMetric() {
+  bool ok = true;
+  std::string diagnostic;
+  for (bool reversed : {false, true}) {
+    auto frame = fixture();
+    for (auto &v : frame.vertices)
+      v.position[2] = .2f * v.position[0];
+    auto &state = frame.renderStates[1];
+    state.polygonOffsetEnabled = true;
+    state.polygonOffsetFactor = 2;
+    state.polygonOffsetUnits = 16;
+    state.depthRange[0] = reversed ? .8f : .2f;
+    state.depthRange[1] = reversed ? .2f : .8f;
+    ok &= check(coin_render_resolve_triangle_depth(frame, diagnostic), "triangle depth resolution");
+    unsigned resolved = 0;
+    for (const auto &draw : frame.draws) {
+      const auto &rs = frame.renderStates[draw.renderStateSlot];
+      if (!rs.polygonOffsetEnabled)
+        continue;
+      ++resolved;
+      ok &= check(rs.polygonOffsetFactor == 0 &&
+                      std::abs(rs.polygonOffsetSlopeBias - .0075f) < 1e-6f &&
+                      rs.polygonOffsetMaxDepth >= .451f && rs.polygonOffsetMaxDepth <= .549f,
+                  "original triangle slope = abs(.2/2 * .6 /16), independent of range order");
+    }
+    ok &= check(resolved == 2, "each filled triangle preserves its original depth metric");
+    const auto before = frame;
+    ok &=
+        check(coin_render_resolve_triangle_depth(frame, diagnostic) && frame.hasSamePayload(before),
+              "resolved depth pass is idempotent");
+  }
+  return ok;
+}
+
+bool resolvedDepthPixels(bool gpu) {
+  CoinRenderTargetP target(SbVec2i32(32, 32));
+  target.depthReadbackEnabled = false;
+  if (!gpu)
+    target.backend.reset(new CoinRenderCpuReferenceBackend);
+  for (bool reversed : {false, true})
+    for (float factor : {-2.f, 2.f})
+      for (float units : {-16.f, 16.f}) {
+        auto frame = fixture();
+        for (auto &v : frame.vertices)
+          v.position[2] = .2f * v.position[0];
+        for (auto &state : frame.renderStates) {
+          state.depthRange[0] = reversed ? .8f : .2f;
+          state.depthRange[1] = reversed ? .2f : .8f;
+        }
+        auto &state = frame.renderStates[1];
+        state.polygonOffsetEnabled = true;
+        state.polygonOffsetFactor = factor;
+        state.polygonOffsetUnits = units;
+        std::string diagnostic;
+        if (!coin_render_resolve_triangle_depth(frame, diagnostic))
+          return false;
+        const auto result = target.executeFrame(frame);
+        if (result.status != CoinRenderBackendStatus::SUCCESS)
+          return false;
+        const auto pixel = (16 * 32 + 20) * 4;
+        const bool green = factor < 0;
+        if (!check(target.colorBuffer[pixel + (green ? 1 : 0)] > 240 &&
+                       target.colorBuffer[pixel + (green ? 0 : 1)] < 10,
+                   "resolved slope controls coplanar occlusion for either range order and opposing "
+                   "units"))
+          return false;
+      }
+  for (bool reversed : {false, true})
+    for (float units : {-16.f, 16.f}) {
+      auto frame = fixture();
+      for (auto &state : frame.renderStates) {
+        state.depthRange[0] = reversed ? .8f : .2f;
+        state.depthRange[1] = reversed ? .2f : .8f;
+      }
+      frame.renderStates[1].polygonOffsetEnabled = true;
+      frame.renderStates[1].polygonOffsetUnits = units;
+      std::string diagnostic;
+      if (!coin_render_resolve_triangle_depth(frame, diagnostic))
+        return false;
+      if (target.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS)
+        return false;
+      const auto pixel = (16 * 32 + 20) * 4;
+      const bool green = units < 0;
+      if (!check(target.colorBuffer[pixel + (green ? 1 : 0)] > 240,
+                 "resolved depth units keep their sign with a reversed range"))
+        return false;
+    }
+  return true;
+}
+
+bool subnormalCpuDepthQuantum() {
+  CoinRenderTargetP target(SbVec2i32(32, 32));
+  target.backend.reset(new CoinRenderCpuReferenceBackend);
+  auto frame = fixture();
+  for (auto &state : frame.renderStates) {
+    state.depthRange[0] = 0;
+    state.depthRange[1] = 2e-40f;
+  }
+  frame.renderStates[1].polygonOffsetEnabled = true;
+  frame.renderStates[1].polygonOffsetUnits = -16;
+  std::string diagnostic;
+  if (!coin_render_resolve_triangle_depth(frame, diagnostic) ||
+      target.executeFrame(frame).status != CoinRenderBackendStatus::SUCCESS)
+    return false;
+  const auto pixel = (16 * 32 + 20) * 4;
+  return check(target.colorBuffer[pixel + 1] > 240 && target.colorBuffer[pixel] < 10,
+               "D32 CPU subnormal quantum remains one representable step, not zero");
+}
+
 bool annotationTransport() {
   CoinRenderFramePlan frame = fixture();
   frame.revision = 101;
@@ -661,7 +772,7 @@ int gpu() {
   ok &= render(frame, false, "NEVER depth function");
   frame.renderStates[1].depthFunction = CoinRenderDepthFunction::ALWAYS;
   ok &= render(frame, true, "ALWAYS depth function");
-  return ok ? 0 : 1;
+  return ok && resolvedDepthPixels(true) ? 0 : 1;
 }
 }
 
@@ -669,5 +780,9 @@ int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
   if (argc == 2 && std::string(argv[1]) == "--gpu") return gpu();
-  return materialInterning() && cubeTemplateLifecycle() && stateInterning() && capture() && lowerAndCache() && annotationTransport() ? 0 : 1;
+  return materialInterning() && cubeTemplateLifecycle() && stateInterning() && capture() &&
+                 lowerAndCache() && annotationTransport() && triangleDepthMetric() &&
+                 resolvedDepthPixels(false) && subnormalCpuDepthQuantum()
+             ? 0
+             : 1;
 }

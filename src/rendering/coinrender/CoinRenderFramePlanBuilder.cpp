@@ -3,44 +3,48 @@
 #else
 #include "src/config.h"
 #endif
-#include <iostream>
+#include "rendering/coinrender/CoinRenderBoundingBoxCore.h"
+#include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderDepthCore.h"
+#include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
-#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
+#include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
+#include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
-#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
-#include "rendering/coinrender/CoinRenderBoundingBoxCore.h"
-#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
-#include "rendering/coinrender/CoinRenderText2Capture.h"
+#include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
 #include "rendering/coinrender/CoinRenderScreenRasterCore.h"
-#include <Inventor/nodes/SoImage.h>
-#include <Inventor/nodes/SoText2.h>
-#include <Inventor/nodes/SoMarkerSet.h>
-#include <Inventor/nodes/SoIndexedMarkerSet.h>
-#include <Inventor/nodes/SoVertexProperty.h>
+#include "rendering/coinrender/CoinRenderStrokeCore.h"
+#include "rendering/coinrender/CoinRenderText2Capture.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
+#include "rendering/coinrender/CoinRenderTextureCombineCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "shapenodes/CoinRenderMarkerBridge.h"
-#include <Inventor/nodes/SoShape.h>
-#include <Inventor/nodes/SoCube.h>
-#include <Inventor/nodes/SoCone.h>
-#include <Inventor/nodes/SoCylinder.h>
-#include <Inventor/nodes/SoSphere.h>
-#include <Inventor/nodes/SoLineSet.h>
-#include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/details/SoCylinderDetail.h>
+#include <Inventor/elements/SoClipPlaneElement.h>
+#include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
 #include <Inventor/elements/SoNormalElement.h>
-#include <Inventor/details/SoCylinderDetail.h>
-#include <Inventor/elements/SoDrawStyleElement.h>
-#include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
-#include "rendering/coinrender/CoinRenderStrokeCore.h"
-#include "rendering/coinrender/CoinRenderTextureCombineCore.h"
-#include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
-#include "rendering/coinrender/CoinRenderComposition.h"
-#include "rendering/coinrender/CoinRenderClipCore.h"
-#include <Inventor/elements/SoClipPlaneElement.h>
-#include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
-#include "rendering/coinrender/CoinRenderPhaseTimer.h"
-#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+#include <Inventor/nodes/SoCone.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoCylinder.h>
+#include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoIndexedLineSet.h>
+#include <Inventor/nodes/SoIndexedMarkerSet.h>
+#include <Inventor/nodes/SoIndexedTriangleStripSet.h>
+#include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoMarkerSet.h>
+#include <Inventor/nodes/SoQuadMesh.h>
+#include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoSphere.h>
+#include <Inventor/nodes/SoText2.h>
+#include <Inventor/nodes/SoTriangleStripSet.h>
+#include <Inventor/nodes/SoVertexProperty.h>
+#include <iostream>
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
@@ -1059,8 +1063,11 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.screenDoorTransparency = SoLazyElement::getTransparency(state, 0);
   if (state->isElementEnabled(CoinRenderDepthPolicyElement::getClassStackIndex()))
     rs.explicitDepthMask = CoinRenderDepthPolicyElement::get(state);
-  rs.depthRange[0] = depthRange[0];
-  rs.depthRange[1] = depthRange[1];
+  // glDepthRange clamps each finite endpoint independently; reversed and
+  // collapsed intervals are legal. Keep nonfinite inputs for atomic rejection.
+  for (int i = 0; i < 2; ++i)
+    rs.depthRange[i] = std::isfinite(depthRange[i]) ? std::max(0.0f, std::min(1.0f, depthRange[i]))
+                                                    : depthRange[i];
   SoPolygonOffsetElement::Style offsetStyles;
   SbBool offsetEnabled;
   SoPolygonOffsetElement::get(state, rs.polygonOffsetFactor,
@@ -1068,6 +1075,13 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.polygonOffsetStyles = static_cast<uint32_t>(offsetStyles);
   rs.polygonOffsetEnabled = offsetEnabled != FALSE;
   rs.lightModel = lm;
+  rs.preservePolygonEdgeDirection = boundingBox;
+  const auto shapeType = action->getCurPathTail()->getTypeId();
+  if ((shapeType == SoLineSet::getClassTypeId() ||
+       shapeType == SoIndexedLineSet::getClassTypeId() ||
+       shapeType == SoPointSet::getClassTypeId()) &&
+      SoNormalElement::getInstance(state)->getNum() == 0)
+    rs.lightModel = CoinRenderLightModel::BASE_COLOR;
   rs.transparencyType = SoShapeStyleElement::getTransparencyType(state);
   // Native bounding-box dispatch precedes the primitive-cache triangle sort.
   if (boundingBox && rs.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD)
@@ -1857,6 +1871,121 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
     this->addStyledTriangle(action, v0, v1, v2);
     return;
   }
+  if (action->getCurPathTail()->getTypeId() == SoTriangleStripSet::getClassTypeId() ||
+      action->getCurPathTail()->getTypeId() == SoIndexedTriangleStripSet::getClassTypeId()) {
+    const auto mb = SoMaterialBindingElement::get(action->getState());
+    const auto nb = SoNormalBindingElement::get(action->getState());
+    const bool faceMaterial = mb == SoMaterialBindingElement::PER_FACE ||
+                              mb == SoMaterialBindingElement::PER_FACE_INDEXED;
+    const bool faceNormal =
+        nb == SoNormalBindingElement::PER_FACE || nb == SoNormalBindingElement::PER_FACE_INDEXED;
+    const bool vertexMaterial = mb == SoMaterialBindingElement::PER_VERTEX ||
+                                mb == SoMaterialBindingElement::PER_VERTEX_INDEXED;
+    const bool vertexNormal = nb == SoNormalBindingElement::PER_VERTEX ||
+                              nb == SoNormalBindingElement::PER_VERTEX_INDEXED;
+    if ((faceNormal && !vertexMaterial) || (faceMaterial && !vertexNormal)) {
+      uint32_t rsSlot = this->captureRenderState(action, v2->getMaterialIndex());
+      auto rs = this->currentPlan.renderStates[rsSlot];
+      const uint32_t sourceMaterial = rs.materialSlot;
+      CoinRenderVertexSnapshot provoking;
+      for (int c = 0; c < 3; ++c) {
+        provoking.position[c] = v2->getPoint()[c];
+        provoking.normal[c] = v2->getNormal()[c];
+      }
+      const uint32_t material = this->internMaterial(
+          coin_render_bake_vertex_material(provoking, this->currentPlan.materials[sourceMaterial],
+                                           rs, this->currentPlan.lightingStates[rs.lightingSlot]));
+      rs.lightModel = CoinRenderLightModel::BASE_COLOR;
+      rs.materialSlot = material;
+      rsSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
+      this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot,
+                             action->getCurPathTail());
+      this->captureSortingCenter(action);
+      for (const auto *source : {v0, v1, v2}) {
+        const uint32_t captured = this->addVertex(action, source, material);
+        this->currentPlan.indices.push_back(captured);
+      }
+      auto &draw = this->currentPlan.draws[this->currentDrawIndex];
+      draw.geometry.vertexCount =
+          static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
+      draw.geometry.indexCount += 3;
+      return;
+    }
+  }
+  if (action->getCurPathTail()->getTypeId() == SoQuadMesh::getClassTypeId()) {
+    const auto mb = SoMaterialBindingElement::get(action->getState());
+    const auto nb = SoNormalBindingElement::get(action->getState());
+    const bool faceMaterial = mb == SoMaterialBindingElement::PER_FACE ||
+                              mb == SoMaterialBindingElement::PER_FACE_INDEXED;
+    const bool faceNormal =
+        nb == SoNormalBindingElement::PER_FACE || nb == SoNormalBindingElement::PER_FACE_INDEXED;
+    if (faceMaterial || faceNormal) {
+      // SoQuadMesh's GL_QUAD_STRIP uses flat primary color for these bindings.
+      // Its callback shares vertices between quads; normalize the face's
+      // attributes and retain the original quad provoking point for both triangles.
+      const auto *detail = static_cast<const SoFaceDetail *>(v0->getDetail());
+      if (!detail || detail->getNumPoints() != 4) {
+        this->hasError = true;
+        this->builderError = "Invalid QuadMesh face detail";
+        return;
+      }
+      const auto *coordinates = SoCoordinateElement::getInstance(action->getState());
+      const int index = detail->getPoint(2)->getCoordinateIndex();
+      if (index < 0 || index >= coordinates->getNum()) {
+        this->hasError = true;
+        this->builderError = "Invalid QuadMesh provoking coordinate";
+        return;
+      }
+      const SoPrimitiveVertex *pv = nullptr;
+      for (const auto *vertex : {v0, v1, v2})
+        if (vertex->getPoint() == coordinates->get3(index))
+          pv = vertex;
+      if (!pv) {
+        this->hasError = true;
+        this->builderError = "Missing QuadMesh provoking vertex";
+        return;
+      }
+      uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
+      auto rs = this->currentPlan.renderStates[rsSlot];
+      const uint32_t sourceMaterial = this->captureMaterial(
+          action, faceMaterial ? v0->getMaterialIndex() : pv->getMaterialIndex());
+      SoPrimitiveVertex provoking = *pv;
+      SbVec3f faceNormalValue = v0->getNormal();
+      if (faceNormal) {
+        const auto &right = coordinates->get3(detail->getPoint(2)->getCoordinateIndex());
+        for (const auto *source : {v0, v1, v2})
+          if (source->getPoint() == right)
+            faceNormalValue = source->getNormal();
+        provoking.setNormal(faceNormalValue);
+      }
+      CoinRenderVertexSnapshot vertex;
+      for (int c = 0; c < 3; ++c) {
+        vertex.position[c] = provoking.getPoint()[c];
+        vertex.normal[c] = provoking.getNormal()[c];
+      }
+      const uint32_t material = this->internMaterial(
+          coin_render_bake_vertex_material(vertex, this->currentPlan.materials[sourceMaterial], rs,
+                                           this->currentPlan.lightingStates[rs.lightingSlot]));
+      rs.lightModel = CoinRenderLightModel::BASE_COLOR;
+      rs.materialSlot = material;
+      rsSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
+      this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot,
+                             action->getCurPathTail());
+      this->captureSortingCenter(action);
+      for (const auto *source : {v0, v1, v2}) {
+        SoPrimitiveVertex copy = *source;
+        if (faceNormal)
+          copy.setNormal(faceNormalValue);
+        const uint32_t captured = this->addVertex(action, &copy, material);
+        this->currentPlan.indices.push_back(captured);
+      }
+      auto &draw = this->currentPlan.draws[this->currentDrawIndex];
+      draw.geometry.vertexCount =
+          static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
+      draw.geometry.indexCount += 3;
+      return;
+    }
+  }
   uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
   this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot, action->getCurPathTail());
   this->captureSortingCenter(action);
@@ -1905,6 +2034,16 @@ void CoinRenderFramePlanBuilder::addLine(SoCallbackAction* action, const SoPrimi
       materialBinding == SoMaterialBindingElement::PER_PART_INDEXED ||
       (normalsUsed && (normalBinding == SoNormalBindingElement::PER_PART ||
                        normalBinding == SoNormalBindingElement::PER_PART_INDEXED));
+  if (line && polygonDrawStyle(action) == SoDrawStyleElement::POINTS &&
+      (node->getTypeId() == SoLineSet::getClassTypeId() ||
+       node->getTypeId() == SoIndexedLineSet::getClassTypeId())) {
+    // Native GL_POINTS repeats both endpoints of independent segments, while
+    // the line-strip path emits a shared point once per coordinate occurrence.
+    if (independent || line->getPartIndex() == 0)
+      this->addPoint(action, v0);
+    this->addPoint(action, v1);
+    return;
+  }
   const bool knownStrip = line && !independent &&
                           this->currentPlan.renderStates[rsSlot].linePattern != 0xffffu &&
                           (node->getTypeId() == SoLineSet::getClassTypeId() ||
@@ -2123,7 +2262,32 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
 }
 
 void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action, bool preserveDegenerateContour) {
-  const auto sourceState = this->currentPlan.renderStates[this->polygonState];
+  auto sourceState = this->currentPlan.renderStates[this->polygonState];
+  const auto type = this->polygonNode->getTypeId();
+  const auto mb = SoMaterialBindingElement::get(action->getState());
+  const auto nb = SoNormalBindingElement::get(action->getState());
+  const bool faceMaterial =
+      mb == SoMaterialBindingElement::PER_FACE || mb == SoMaterialBindingElement::PER_FACE_INDEXED;
+  const bool faceNormal =
+      nb == SoNormalBindingElement::PER_FACE || nb == SoNormalBindingElement::PER_FACE_INDEXED;
+  const bool vertexMaterial = mb == SoMaterialBindingElement::PER_VERTEX ||
+                              mb == SoMaterialBindingElement::PER_VERTEX_INDEXED;
+  const bool vertexNormal =
+      nb == SoNormalBindingElement::PER_VERTEX || nb == SoNormalBindingElement::PER_VERTEX_INDEXED;
+  const bool flatQuad = type == SoQuadMesh::getClassTypeId() && (faceMaterial || faceNormal);
+  const bool flatStrip = (type == SoTriangleStripSet::getClassTypeId() ||
+                          type == SoIndexedTriangleStripSet::getClassTypeId()) &&
+                         ((faceNormal && !vertexMaterial) || (faceMaterial && !vertexNormal));
+  if ((flatQuad || flatStrip) && this->polygonVertices.size() > 2) {
+    const auto &provoking = this->polygonVertices[2];
+    const uint32_t material = this->internMaterial(coin_render_bake_vertex_material(
+        provoking, this->currentPlan.materials[provoking.materialSlot], sourceState,
+        this->currentPlan.lightingStates[sourceState.lightingSlot]));
+    for (auto &vertex : this->polygonVertices)
+      vertex.materialSlot = material;
+    sourceState.lightModel = CoinRenderLightModel::BASE_COLOR;
+    sourceState.materialSlot = material;
+  }
   CoinRenderPolygonStyleResult resolved;
   const auto style = this->polygonStyle == SoDrawStyleElement::LINES
                          ? CoinRenderPolygonStyle::LINES
@@ -2185,6 +2349,11 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   }
   timer.mark("expand_styles");
   if (!this->currentPlan.isValid(outError)) {
+    return false;
+  }
+  if (!coin_render_resolve_triangle_depth(this->currentPlan, this->builderError)) {
+    if (outError)
+      *outError = this->builderError;
     return false;
   }
   timer.mark("validation");
@@ -2386,6 +2555,8 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
   int lastTextureUnit = -1;
   SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
   if (lastTextureUnit >= 0) return CoinRenderFastPathResult::FALLBACK_CONTINUE;
+  if (polygonDrawStyle(action) == SoDrawStyleElement::POINTS)
+    return CoinRenderFastPathResult::FALLBACK_CONTINUE;
   if (view.positions.empty() || view.coordIndex.empty()) {
     return CoinRenderFastPathResult::SUCCESS_PRUNE;
   }

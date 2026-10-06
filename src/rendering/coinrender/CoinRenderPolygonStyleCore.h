@@ -13,6 +13,29 @@ struct CoinRenderPolygonStyleVertex {
   bool boundaryEdge = true; // Boundary flag of the outgoing edge.
 };
 
+// Shade a captured vertex before clipping, for flat primary color or Gouraud
+// stroke endpoints. Texture coordinates and fog keep their own interpolation.
+inline CoinRenderMaterialSnapshot coin_render_bake_vertex_material(
+    const CoinRenderVertexSnapshot &provoking, const CoinRenderMaterialSnapshot &material,
+    const CoinRenderRenderStateSnapshot &state, const CoinRenderLightingSnapshot &lighting) {
+  const SbMatrix modelView = state.model * state.view;
+  auto baked = material;
+  SbVec3f eye(0, 0, 0), normal(0, 0, 1);
+  if (state.lightModel == CoinRenderLightModel::PHONG &&
+      (!std::isfinite(modelView.det4()) || std::abs(modelView.det4()) <= 1e-12f)) {
+    baked.diffuse[0] = std::numeric_limits<float>::quiet_NaN();
+    return baked; // Frame validation rejects the source before publication.
+  }
+  modelView.multVecMatrix(SbVec3f(provoking.position), eye);
+  if (state.lightModel == CoinRenderLightModel::PHONG)
+    modelView.inverse().transpose().multDirMatrix(SbVec3f(provoking.normal), normal);
+  normal.normalize();
+  const SbVec4f color = coin_render_shade_vertex(material, eye, normal, lighting, state);
+  for (int c = 0; c < 4; ++c)
+    baked.diffuse[c] = color[c];
+  return baked;
+}
+
 // Original convex polygon ring; no scene traversal, Coin elements or GPU calls.
 // Outputs a clipped, culled ring with Gouraud colors baked before interpolation.
 inline bool coin_render_resolve_polygon_style(

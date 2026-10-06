@@ -211,6 +211,7 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
         existing.linePattern == rs.linePattern &&
         existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
         existing.polygonLinePattern == rs.polygonLinePattern &&
+        existing.preservePolygonEdgeDirection == rs.preservePolygonEdgeDirection &&
         (!rs.hasTexture || (
           existing.textureImageSlot == rs.textureImageSlot &&
           existing.samplerSlot == rs.samplerSlot &&

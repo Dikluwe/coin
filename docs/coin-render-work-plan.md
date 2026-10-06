@@ -31,8 +31,11 @@ escopos próprios de validação.
   INVISIBLE e LINES/POINTS de contornos convexos implementados no perfil
   documentado, incluindo offset da face plana original e units D32Float;
   padrão contínuo, recortes/cantos e matriz explícita de contornos já verificados.
-  DEFAULT/Plane e multitextura ampliados no perfil P02/P07 de 2026-10-06;
-  junções curvas/coincidentes continuam abertas. Combinações de offset fora desse perfil e
+  O primeiro perfil portátil amplia estilos, alpha, funções autorais e
+  multitextura na matriz de 1.290 cenas e no gate procedural de 311 cenas;
+  junções curvas/coincidentes CoinGL ficam como
+  [estudo de melhoria futura](coin-render-raster-junctions-study.md), conforme o
+  critério portátil CPU/BGFX/wgpu escolhido. Combinações de offset fora desse perfil e
   qualificação completa permanecem no [contrato de estilo](coin-render-draw-style-contract.md).
 - [ ] **P03 — SoText2 (F05):** fontes, âncora, tamanho, clipping e composição;
   captura/layout comum de tipos nativos exatos implementados em Linux em
@@ -40,9 +43,10 @@ escopos próprios de validação.
   Windows/FreeCAD ampliada continua aberta no [inventário](coin-render-node-inventory.md).
 - [ ] **P04 — Viewport/scissor e depth (F13/F12):** retângulos parcialmente externos,
   projeção, múltiplas regiões, resize, range/clamp/offset e bordas.
-  Viewport externo/vazio wgpu implementado no Core e comparado com BGFX/CoinGL;
-  clamp/offset e combinações ampliadas permanecem no
-  [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md).
+  O primeiro perfil portátil inclui viewport externo/vazio, múltiplas regiões,
+  resize, annotations, RTT, sombras, range normal/reverso/colapsado e clamp de
+  entrada. Depth clamp geométrico e formatos/drivers adicionais seguem as
+  ampliações do [perfil P02/P04/P05/P06](coin-render-geometry-viewport-contract.md).
 
 Fechamento: cenas reproduzíveis, expectativas comuns, execução GPU e referência
 Coin/GL quando aplicável. Aplicar A02/A05 às funções alteradas: Wiring captura,
@@ -52,16 +56,22 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
 
 - [ ] **P05 — Bindings/materiais (F09):** matriz por shape e índices, múltiplos
   materiais, cores/alpha heterogêneo, normais fornecidas e geradas.
-  FaceSet/IndexedFaceSet ampliados em 80 cenas; corrigidos índices de normais
-  do fast path. Demais shapes continuam abertos.
+  A matriz anterior de faces e os sete pares em dez tipos adicionais integram
+  o primeiro perfil portátil. Corrigidos índices/ocorrências de linhas, bindings
+  de QuadMesh/strips e vetores esperados independentes. Os 49 cruzamentos entre
+  bindings distintos, subclasses e outros shapes seguem a ampliação.
 - [ ] **P06 — Iluminação/fog (F10):** fórmulas e matriz numérica comuns para luzes
   direcionais/pontuais/spot, componentes do material e limites. Preservar o modelo
   Coin: PHONG no GL normal usa iluminação por vértice/Gouraud; iluminação por
-  fragmento deve ser distinguida como extensão.
+  fragmento deve ser distinguida como extensão. O primeiro perfil inclui luzes
+  assimétricas, quatro modos de fog e normais fornecidas/geradas por shape;
+  flat com sombras/per-fragmento continua fora da qualificação.
 - [ ] **P07 — UV/texturas (F06/F11):** procedural/default, matriz, modelos
   MODULATE/REPLACE/DECAL/BLEND, wrap, filtros, qualidade e formatos.
   [Primeiro perfil de DEFAULT/FUNCTION entregue](coin-render-p07-procedural-textures.md);
-  filtros/formatos gerais, RTT e qualificação ampliada continuam abertos.
+  [primeiro perfil de sampling/RTT fechado](coin-render-p07-sampling-rtt-contract.md).
+  NPOT, SRGB/HDR/compressão, RTT além do perfil e plataformas adicionais
+  continuam nas campanhas próprias.
 - [x] **P08 — Multitextura/strokes (F07/F08):** oito unidades, SoTextureCombine,
   UVs/matrizes independentes e execução comum em CPU/BGFX/wgpu; raster aliased,
   largura/tamanho arredondados, padrão, cor/alpha, perspectiva, clipping,

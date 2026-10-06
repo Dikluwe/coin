@@ -1146,8 +1146,12 @@ SoQuadMesh::generatePrimitives(SoAction *action)
         vertex.setNormal(*currnormal);
       }
       else if (nbind == PER_FACE) {
-        pointDetail.setNormalIndex(normnr);
-        currnormal = &normals[normnr++];
+        // The first quad consumes two column pairs; advance once per quad,
+        // matching GLRender and the primitive assembler's last-pair binding.
+        if (j != 1) {
+          pointDetail.setNormalIndex(normnr);
+          currnormal = &normals[normnr++];
+        }
         vertex.setNormal(*currnormal);
       }
       if (mbind == PER_VERTEX) {
@@ -1155,8 +1159,10 @@ SoQuadMesh::generatePrimitives(SoAction *action)
         vertex.setMaterialIndex(curridx);
       }
       else if (mbind == PER_FACE) {
-        pointDetail.setMaterialIndex(midx);
-        vertex.setMaterialIndex(midx++);
+        if (j != 1) {
+          pointDetail.setMaterialIndex(midx);
+          vertex.setMaterialIndex(midx++);
+        }
       }
       if (doTextures) {
         if (tb.isFunction()) {

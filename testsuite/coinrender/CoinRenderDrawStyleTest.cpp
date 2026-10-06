@@ -353,9 +353,10 @@ bool polygonCaptureContract() {
     SoLineSet * lines=new SoLineSet;lines->numVertices=2;root->addChild(lines);
     SoPointSet * points=new SoPointSet;points->numPoints=1;root->addChild(points);
     ok=check(capture(root,frame) && frame.draws.size()==2 &&
-      frame.renderStates[frame.draws[0].renderStateSlot].polygonOffsetPrimitiveStyle==2 &&
+      frame.renderStates[frame.draws[0].renderStateSlot].polygonOffsetPrimitiveStyle==
+        (mode==SoDrawStyle::POINTS ? 4u : 2u) &&
       frame.renderStates[frame.draws[1].renderStateSlot].polygonOffsetPrimitiveStyle==4,
-      "polygon mode leaves native line and point topologies intact") && ok;
+      "line POINTS uses endpoint points; point shapes preserve their topology") && ok;
     root->unref();
   }
   return ok;
@@ -660,15 +661,18 @@ bool polygonStippleCapCoreContract() {
   bool capFound = false, bodyFound = false;
   for (uint32_t i = 0; i < expanded.geometry.vertexCount; ++i) {
     const auto& vertex = plan.vertices[expanded.geometry.firstVertex + i];
-    if (vertex.position[0] < -.796875f) {
+    // Attribute expectations refer to the original projected centreline;
+    // the portable coverage policy shifts only raster positions one subpixel.
+    const double pathX = vertex.position[0] + 2.0 / (256.0 * plan.viewports[0].width);
+    if (pathX < -.796875f) {
       capFound = true;
       ok = check(vertex.screenSpaceW == 1.25f && vertex.fogEyeDepth == .5f &&
                      vertex.texcoord[0] == .25f && vertex.materialSlot == 0 &&
                      vertex.position[2] == -.4f,
                  "cap retains exact endpoint W, UV, color, alpha, fog and unbiased depth") && ok;
-    } else if (vertex.position[0] < -.203125f) {
+    } else if (pathX < -.203125f) {
       bodyFound = true;
-      const double screenT = (vertex.position[0] + .796875) / (.796875 - .203125);
+      const double screenT = (pathX + .796875) / (.796875 - .203125);
       const double inverseW = (1 - screenT) / 1.25 + screenT / 1.75;
       const double t = (screenT / 1.75) / inverseW;
       const auto& material = plan.materials[vertex.materialSlot];

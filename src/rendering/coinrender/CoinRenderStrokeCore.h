@@ -1,5 +1,7 @@
 #ifndef COIN_RENDER_STROKE_CORE_H
 #define COIN_RENDER_STROKE_CORE_H
+#include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
+#include "rendering/coinrender/CoinRenderPolygonStyleCore.h"
 #include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 
 #include "rendering/coinrender/CoinRenderClipCore.h"
@@ -76,6 +78,14 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
       return fail("Styled primitive references invalid render state");
     }
     const CoinRenderRenderStateSnapshot sourceState = plan.renderStates[original.renderStateSlot];
+    auto shadeMaterial = [&](const CoinRenderVertexSnapshot &vertex) {
+      if (sourceState.lightModel == CoinRenderLightModel::BASE_COLOR)
+        return vertex.materialSlot;
+      return CoinRenderPlanAssemblyCore::material(
+          plan,
+          coin_render_bake_vertex_material(vertex, plan.materials[vertex.materialSlot], sourceState,
+                                           plan.lightingStates[sourceState.lightingSlot]));
+    };
     if (sourceState.viewportSlot >= plan.viewports.size()) {
       return fail("Styled primitive references invalid viewport");
     }
@@ -106,6 +116,8 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
     plan.renderStates.push_back(state);
 
     CoinRenderDrawPacket expanded = original;
+    // Stable draws receive a digest of the resolved payload below. The raw
+    // indexed digest cannot identify expanded positions, fog or clipped UVs.
     expanded.topology = CoinRenderPrimitiveTopology::TRIANGLE_LIST;
     expanded.renderStateSlot = stateSlot;
     expanded.geometry.firstVertex = static_cast<uint32_t>(plan.vertices.size());
@@ -159,6 +171,21 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
     if (original.topology == CoinRenderPrimitiveTopology::LINE_LIST) {
       const float width = std::max(sourceState.lineWidth, 1.0f);
       const uint32_t pattern = sourceState.linePattern & 0xffffu;
+      bool polygonArea = false;
+      if (sourceState.polygonLinePattern && !sourceState.preservePolygonEdgeDirection &&
+          pattern == 0xffffu && original.geometry.indexCount) {
+        const auto first = plan.indices[original.geometry.firstIndex];
+        if (first >= plan.vertices.size()) return fail("Styled polygon references invalid vertex");
+        const SbVec3f origin(plan.vertices[first].position);
+        SbVec3f direction(0, 0, 0);
+        for (uint32_t i = 1; i < original.geometry.indexCount; ++i) {
+          const auto index = plan.indices[original.geometry.firstIndex + i];
+          if (index >= plan.vertices.size()) return fail("Styled polygon references invalid vertex");
+          const SbVec3f delta = SbVec3f(plan.vertices[index].position) - origin;
+          if (direction.sqrLength() == 0) direction = delta;
+          else if (direction.cross(delta).sqrLength() > 0) { polygonArea = true; break; }
+        }
+      }
       uint32_t polygonPhase = 0;
       uint32_t& phase = original.lineStripId ? stripPhases[original.lineStripId] : polygonPhase;
       for (size_t offset = 0; offset + 1 < original.geometry.indexCount; offset += 2) {
@@ -169,10 +196,20 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         }
         CoinRenderVertexSnapshot firstVertex = plan.vertices[firstIndex];
         CoinRenderVertexSnapshot secondVertex = plan.vertices[secondIndex];
+        // Use identical arithmetic for coincident solid polygon boundaries.
+        // Distinct side/cap UVs retain their authored draw order under LEQUAL.
+        // Patterned edges retain stipple phase; collapsed contours keep their
+        // authored direction for endpoint coverage.
+        if (polygonArea &&
+            std::lexicographical_compare(secondVertex.position, secondVertex.position + 3,
+                                         firstVertex.position, firstVertex.position + 3))
+          std::swap(firstVertex, secondVertex);
         if (firstVertex.materialSlot >= plan.materials.size() ||
             secondVertex.materialSlot >= plan.materials.size()) {
           return fail("Styled line references invalid material");
         }
+        firstVertex.materialSlot = shadeMaterial(firstVertex);
+        secondVertex.materialSlot = shadeMaterial(secondVertex);
         float clipFirst, clipLast;
         if (!coin_render_clip_segment(sourceState, firstVertex, secondVertex, clipFirst, clipLast))
           continue;
@@ -278,10 +315,11 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
           ndc[axis] = center * 2 / dimension - 1;
         }
         CoinRenderVertexSnapshot attributes = vertex;
+        attributes.materialSlot = shadeMaterial(vertex);
         attributes.screenSpaceW = clipW;
         attributes.fogEyeDepth =
             sourceState.fogMode == CoinRenderFogMode::NONE ? -1.0f : eyeDepth(vertex);
-        const uint32_t materialSlot = vertex.materialSlot;
+        const uint32_t materialSlot = attributes.materialSlot;
         const uint32_t base = static_cast<uint32_t>(plan.vertices.size());
         appendVertex(ndc[0] - offsetX, ndc[1] - offsetY, ndc[2], materialSlot, attributes);
         appendVertex(ndc[0] + offsetX, ndc[1] - offsetY, ndc[2], materialSlot, attributes);
@@ -296,6 +334,63 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         static_cast<uint32_t>(plan.vertices.size()) - expanded.geometry.firstVertex;
     expanded.geometry.indexCount =
         static_cast<uint32_t>(plan.indices.size()) - expanded.geometry.firstIndex;
+    // Resolve samples exactly on a quad boundary with the reference's top/left
+    // ownership. One subpixel step makes that choice unambiguous across APIs;
+    // native bounding-box contours retain their separately qualified ownership.
+    if (!sourceState.preservePolygonEdgeDirection) {
+      const float dx = 2.0f / (256.0f * viewport.width);
+      const float dy = 2.0f / (256.0f * viewport.height);
+      for (uint32_t i = 0; i < expanded.geometry.vertexCount; ++i) {
+        auto &vertex = plan.vertices[expanded.geometry.firstVertex + i];
+        vertex.position[0] -= dx;
+        vertex.position[1] += dy;
+      }
+    }
+    // A coplanar line/point range has exactly constant mapped depth. Express
+    // that constant as a collapsed interval rather than relying on hardware
+    // interpolation/format rounding to retain equality between shared endpoints.
+    // Original polygon lines and native bounding-box ownership keep their profile.
+    if (expanded.geometry.vertexCount && sourceState.depthTest && sourceState.depthWrite &&
+        !sourceState.polygonLinePattern && !sourceState.preservePolygonEdgeDirection) {
+      const float z = plan.vertices[expanded.geometry.firstVertex].position[2];
+      bool constant = true;
+      for (uint32_t i = 1; i < expanded.geometry.vertexCount; ++i)
+        constant &= plan.vertices[expanded.geometry.firstVertex + i].position[2] == z;
+      if (constant) {
+        const float depth = sourceState.depthRange[0] + (z * .5f + .5f) *
+                            (sourceState.depthRange[1] - sourceState.depthRange[0]);
+        plan.renderStates[stateSlot].depthRange[0] = std::max(0.0f, std::min(1.0f, depth));
+        plan.renderStates[stateSlot].depthRange[1] = plan.renderStates[stateSlot].depthRange[0];
+      }
+    }
+    if (expanded.stableNodeId && expanded.geometry.indexCount) {
+      uint64_t digest = 14695981039346656037ULL;
+      auto hashBytes = [&](const void *data, size_t size) {
+        const auto *bytes = static_cast<const uint8_t *>(data);
+        for (size_t i = 0; i < size; ++i) {
+          digest ^= bytes[i];
+          digest *= 1099511628211ULL;
+        }
+      };
+      for (uint32_t i = 0; i < expanded.geometry.vertexCount; ++i) {
+        const auto &vertex = plan.vertices[expanded.geometry.firstVertex + i];
+        hashBytes(vertex.position, sizeof(vertex.position));
+        hashBytes(vertex.normal, sizeof(vertex.normal));
+        hashBytes(vertex.texcoord, sizeof(vertex.texcoord));
+        hashBytes(&vertex.materialSlot, sizeof(vertex.materialSlot));
+        hashBytes(vertex.extraTexcoords, sizeof(vertex.extraTexcoords));
+        hashBytes(&vertex.screenSpaceW, sizeof(vertex.screenSpaceW));
+        hashBytes(&vertex.fogEyeDepth, sizeof(vertex.fogEyeDepth));
+        hashBytes(vertex.textureR, sizeof(vertex.textureR));
+        hashBytes(vertex.textureQ, sizeof(vertex.textureQ));
+      }
+      for (uint32_t i = 0; i < expanded.geometry.indexCount; ++i) {
+        const uint32_t local = plan.indices[expanded.geometry.firstIndex + i] -
+                               expanded.geometry.firstVertex;
+        hashBytes(&local, sizeof(local));
+      }
+      expanded.sourceRevision = digest ? digest : 1;
+    }
     if (expanded.geometry.indexCount != 0)
       expandedDraws.push_back(expanded);
   }

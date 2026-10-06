@@ -9,6 +9,7 @@
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/elements/SoMultiTextureMatrixElement.h>
+#include <Inventor/elements/SoViewportRegionElement.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
@@ -28,6 +29,30 @@
 #include <memory>
 #include <string>
 #include <vector>
+class RttViewport : public SoNode {
+  SO_NODE_HEADER(RttViewport);
+
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(RttViewport, SoNode, "Node"); }
+  RttViewport() { SO_NODE_CONSTRUCTOR(RttViewport); }
+  SbViewportRegion viewport;
+  void callback(SoCallbackAction *a) override {
+    SoViewportRegionElement::set(a->getState(), viewport);
+  }
+  void GLRender(SoGLRenderAction *a) override {
+    SoViewportRegionElement::set(a->getState(), viewport);
+  }
+
+protected:
+  ~RttViewport() override = default;
+};
+SO_NODE_SOURCE(RttViewport);
+void externalViewport(SoSeparator *r, int target, int extent) {
+  auto *v = new RttViewport;
+  v->viewport = SbViewportRegion(target, target);
+  v->viewport.setViewportPixels(-8, -8, extent, extent);
+  r->addChild(v);
+}
 class MatrixWitness : public SoNode {
   SO_NODE_HEADER(MatrixWitness);
 
@@ -102,9 +127,11 @@ SoSeparator *base() {
   r->addChild(q);
   return r;
 }
-int runCase(int local, float quality, const std::string &mode) {
+int runCase(int local, float quality, const std::string &mode, bool external) {
   const bool filterProbe = mode == "--filter-probe";
   auto *child = base();
+  if (external)
+    externalViewport(child, 32, 40);
   SbMatrix childTransform = SbMatrix::identity();
   childTransform[3][0] = (local ? .25f : 0.f);
   auto *localMatrix = new SoTextureMatrixTransform;
@@ -135,6 +162,8 @@ int runCase(int local, float quality, const std::string &mode) {
     quad(producer, .125f);
   }
   auto *root = base();
+  if (external)
+    externalViewport(root, 64, 80);
   root->ref();
   static_cast<SoComplexity *>(root->getChild(2))->textureQuality =
       filterProbe ? .5f : quality;
@@ -161,7 +190,7 @@ int runCase(int local, float quality, const std::string &mode) {
   root->addChild(rtt);
   auto *parentWitness = new MatrixWitness;
   root->addChild(parentWitness);
-  quad(root, .125f);
+  quad(root, external ? 0.f : .125f);
   auto *filterWitness = new TextureWitness;
   root->addChild(filterWitness);
 
@@ -247,12 +276,13 @@ int main(int argc, char **argv) {
   CoinRenderAction::initClass();
   MatrixWitness::initClass();
   TextureWitness::initClass();
+  RttViewport::initClass();
   const std::string mode = argc > 1 ? argv[1] : "";
   if (mode == "--gl" && !std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE"))
     return 77;
   for (float quality : {.1f, .3f, .5f})
     for (int local : {0, 1, 2})
-      if (runCase(local, quality, mode))
+      if (runCase(local, quality, mode, argc > 2 && std::string(argv[2]) == "--external"))
         return 1;
   return 0;
 }

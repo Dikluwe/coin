@@ -1,0 +1,65 @@
+Start testing: Oct 06 15:05 -03
+----------------------------------------------------------
+57/206 Testing: CoinRenderDepthContractTest
+57/206 Test: CoinRenderDepthContractTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderDepthContractTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderDepthContractTest" start time: Oct 06 15:05 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.23 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractTest" end time: Oct 06 15:05 -03
+"CoinRenderDepthContractTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+58/206 Testing: CoinRenderDepthContractGpuTest
+58/206 Test: CoinRenderDepthContractGpuTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderDepthContractTest" "--gpu"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderDepthContractGpuTest" start time: Oct 06 15:05 -03
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.63 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderDepthContractGpuTest" end time: Oct 06 15:05 -03
+"CoinRenderDepthContractGpuTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+83/206 Testing: CoinRenderGeometryViewportCaptureTest
+83/206 Test: CoinRenderGeometryViewportCaptureTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderGeometryViewportTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderGeometryViewportCaptureTest" start time: Oct 06 15:05 -03
+Output:
+----------------------------------------------------------
+Geometry/viewport cases=1290 GPU=0
+<end of output>
+Test time =   1.27 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderGeometryViewportCaptureTest" end time: Oct 06 15:05 -03
+"CoinRenderGeometryViewportCaptureTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+85/206 Testing: CoinRenderProceduralTextureCaptureTest
+85/206 Test: CoinRenderProceduralTextureCaptureTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderProceduralTextureTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderProceduralTextureCaptureTest" start time: Oct 06 15:05 -03
+Output:
+----------------------------------------------------------
+P07 passed cases=311 CoinGL_references=0
+<end of output>
+Test time =   1.52 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderProceduralTextureCaptureTest" end time: Oct 06 15:05 -03
+"CoinRenderProceduralTextureCaptureTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+End testing: Oct 06 15:05 -03

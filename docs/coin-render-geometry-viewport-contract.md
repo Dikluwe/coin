@@ -1,8 +1,8 @@
 # CoinRender: geometria e viewport — P02/P04/P05/P06
 
 Rodada de 2026-10-06 em `codex/coin-render`, após P07 (`1158dd7c1f`).
-Este documento registra o perfil ampliado; P02/P04/P05/P06 continuam abertos
-para a matriz completa por shape, estado, plataforma e driver.
+Este documento conserva a rodada inicial e a ampliação portátil abaixo.
+A matriz universal por shape, estado, plataforma e driver permanece aberta.
 
 ## Viewport externo no Core — P04
 
@@ -120,3 +120,81 @@ CTests BGFX distintos (254 agendados, dois skips conhecidos). O primeiro run
 BGFX teve um timeout de fog durante a execução concorrente; a repetição isolada
 passou em 6,23 s com o mesmo limite de 30 s, sem mudança de fonte/tolerância.
 Os 39 testes Rust/shaders passaram. O log da falha inicial permanece na evidência.
+
+## Ampliação portátil de fechamento — 2026-10-06
+
+O critério selecionado é CPU/BGFX/wgpu, com as diferenças de raster CoinGL
+registradas como [estudo futuro](coin-render-raster-junctions-study.md).
+A ampliação substitui os limites históricos acima somente nas células descritas:
+
+- Conserva a matriz anterior de cinco bindings FaceSet/IndexedFaceSet e amplia
+  dez tipos exatos: Cube, Sphere, Cone, Cylinder, QuadMesh, TriangleStripSet,
+  IndexedTriangleStripSet, LineSet, IndexedLineSet e PointSet. Nesses dez tipos,
+  verifica sete bindings **pareados** de material/normal, normais fornecidas/
+  geradas, alpha heterogêneo e fast path ligado/desligado. A matriz adicional
+  de estilos também inclui IndexedFaceSet com os sete pares. Os 49 cruzamentos
+  entre bindings diferentes não estão todos qualificados.
+- Gouraud clássico com luzes directional/point/spot assimétricas, quatro modos
+  de fog e viewport interno/externo. Linhas/pontos sem normais fornecidas usam
+  BASE_COLOR, como os nós nativos. Endpoints com normais recebem iluminação
+  antes do clipping/expansão. QuadMesh e strips com bindings de face preservam
+  a cor primária flat do vértice provocador do primitivo original.
+- LINES/POINTS com bindings, alpha e viewport externo usam o oráculo portátil
+  nas junções. As matrizes independentes de bindings/luzes mantêm CoinGL.
+  Texturas DEFAULT/Plane/função autoral, unidade 0/multitextura, clipping e alpha
+  são verificadas em faces e Cube/Sphere/Cone/Cylinder; contornos convexos
+  conservam seus limites de concavidade e offset planar.
+- Cada endpoint finito de `SoDepthBuffer.range` é limitado a [0,1], inclusive
+  ranges reversos e colapsados. NaN/Inf são rejeitados sem publicação; o pedido
+  válido seguinte recupera a mesma action. Isso não introduz GL_DEPTH_CLAMP
+  geométrico. O protocolo privado Rust atual é **48**, sem mudança de layout.
+- `CoinRenderDepthCore` resolve slope/maximum da face triangular original em
+  coordenadas de janela, antes da execução. Ranges reversos usam módulo do
+  gradiente; units recebem o quantum do formato no executor. A expansão de
+  strokes conserva slope/maximum da face original, não da faixa expandida.
+- A referência CPU usa oito bits fracionários em coordenadas de janela
+  (1/256 de pixel), evitando ownership diferente nas faixas coincidentes.
+  Contornos colapsados e bounding boxes conservam a direção autoral dos
+  endpoints, inclusive após clipping. A propriedade é capturada no estado
+  privado e resolvida no Core; não há campo novo no transporte Rust.
+  A expansão comum desloca faixas um passo subpixel para cima/esquerda, dando
+  ownership top/left às amostras de borda; bounding boxes mantêm seu perfil
+  nativo. Ranges coplanares de linhas/pontos com teste/escrita de depth ativos
+  recebem um intervalo colapsado equivalente, sem alterar o clipping original.
+  Essa escolha é qualificada na GPU/API da campanha; não declara igualdade
+  com todos os rasterizadores físicos. Os limites RGB dos gates permanecem.
+- Strokes indexados com cache estável recalculam o digest do payload após
+  expansão (índices locais, posições e atributos). Mantêm reuso em cena estática
+  e invalidam o payload quando iluminação/fog/viewport/clipping o alteram.
+- Composição em múltiplas regiões externas, sombras com controle crop,
+  annotations e RTT capture/FBO/pbuffer/staged/direto usam fixtures próprias.
+  O controle de sombras exige mudança visível entre ativo/inativo; a expectativa
+  crop vem do quadro maior com a mesma câmera, sem ajustá-la ao resultado.
+
+Corrigidos também dois desalinhamentos de bindings nativos: o callback de
+QuadMesh avançava PER_FACE na segunda coluna do primeiro quad, e o GLRender de
+TriangleStripSet avançava o binding da primeira face novamente no terceiro
+vértice. A rota nativa IndexedLineSet sem índices explícitos de linha/segmento
+agora usa a ordem de ocorrência, sem tratar separadores de coordenadas como
+índices de atributo. Vetores de slots esperados e pixels verificam essas correções.
+
+Não se qualificam aqui todos os pares de bindings, shapes/subclasses adicionais,
+flat com sombras/iluminação por fragmento, `COIN_QUADMESH_PRECISE_LIGHTING`
+não padrão, formatos adicionais RTT ou Windows/FreeCAD/outros drivers.
+Planos privados construídos à mão com offset não resolvido e range reverso
+não fazem parte do perfil capturado: devem passar pela resolução Core antes
+que o transporte/executor receba slope/maximum.
+
+A [campanha integrada final](validation/geometry-viewport-closure-20261006/summary.json)
+qualifica 204 CTests wgpu (206 agendados) e 270 BGFX (272 agendados), com os
+mesmos dois skips conhecidos. Em wgpu, duas verificações estruturais foram
+adaptadas para recuperar posições antes do passo raster; os dois retestes passam
+com as tolerâncias de atributos preservadas. Um timeout BGFX de sombras a 60 s
+passou isolado em 18,74 s, sem mudar fonte/limite. Rust: 40 passes. Recording:
+dez passes e dois skips de GPU, depois dos controles CPU executados.
+
+Cada execução GPU de geometria aprova **1.290 cenas**, inclusive OpenGL sem
+exclusões. O procedural aprova **311 cenas e 69 referências CoinGL** em cada
+rota qualificada. O controle OpenGL de 84 células curvas, antes com 42 falhas,
+passa após a política comum de ownership. O reproducer nativo da esfera ainda
+mede máximo 9 (CPU/GPU máximo 1), preservando o estudo futuro.

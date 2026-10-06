@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <cmath>
+#include <limits>
 #include <algorithm>
 #include <sstream>
 #include <new>
@@ -144,8 +145,15 @@ inline void applyFog(const CoinRenderRenderStateSnapshot & rs, float eyeDepth,
 
 inline float mappedDepth(float z, const CoinRenderRenderStateSnapshot & state) {
   float depth = state.depthRange[0] + z * (state.depthRange[1] - state.depthRange[0]);
-  if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle))
+  if (state.polygonOffsetEnabled && (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle)) {
     depth += state.polygonOffsetSlopeBias;
+    if (state.polygonOffsetMaxDepth >= 0) {
+      const float maximum=state.polygonOffsetMaxDepth;
+      const float quantum=maximum<std::numeric_limits<float>::min() ? std::numeric_limits<float>::denorm_min()
+        : std::ldexp(1.0f,std::ilogb(maximum)-23);
+      depth += state.polygonOffsetUnits * quantum;
+    }
+  }
   return std::max(0.0f, std::min(1.0f, depth));
 }
 
@@ -244,6 +252,14 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
     ndcZ[k] = sv[k]->clipPos[2] * invW[k];
     scrPos[k].setValue(viewport.x + (nx + 1.0f) * 0.5f * viewport.width,
                        viewportTop + (1.0f - (ny + 1.0f) * 0.5f) * viewport.height);
+  }
+
+  // Reference coverage uses eight fractional window-coordinate bits. Keeping
+  // arbitrary float positions makes shared/coincident stroke triangles choose
+  // different samples and depth owners from the qualified GPU rasterizers.
+  for (auto & position : scrPos) {
+    for (int axis = 0; axis < 2; ++axis)
+      position[axis] = std::round(position[axis] * 256.0f) / 256.0f;
   }
 
   float area = edgeFunction(scrPos[0], scrPos[1], scrPos[2]);

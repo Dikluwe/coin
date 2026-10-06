@@ -1,0 +1,266 @@
+{
+  "date": "2026-10-06",
+  "branch": "codex/coin-render",
+  "implementation_base_commit": "50ac49e02a",
+  "study_commit": "ec97ceaa1c",
+  "protocol_revision": 48,
+  "ffi_layouts_changed": false,
+  "public_abi_changed": false,
+  "platform": "Linux x86_64",
+  "build_type": "Release",
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "driver": "610.57.04",
+  "environment": {
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+    "DISPLAY": ":0"
+  },
+  "required_shadow_flags": {
+    "wgpu": "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU=1",
+    "bgfx": "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1"
+  },
+  "qualification": {
+    "wgpu": {
+      "passed": 204,
+      "skipped": 2,
+      "failed": 0,
+      "skips": [
+        "BumpProgramGLX",
+        "CoinRenderCameraReuseReferenceTest"
+      ]
+    },
+    "bgfx": {
+      "passed": 270,
+      "skipped": 2,
+      "failed": 0,
+      "skips": [
+        "BumpProgramGLX",
+        "CoinRenderCameraReuseReferenceTest"
+      ]
+    },
+    "recording": {
+      "passed": 10,
+      "skipped": 2,
+      "failed": 0,
+      "skips": [
+        "CoinRenderClipPlaneTest",
+        "CoinRenderDrawStyleTest"
+      ]
+    }
+  },
+  "runs": {
+    "wgpu_full": {
+      "scheduled": 206,
+      "passed": 202,
+      "skipped": 2,
+      "failures": {
+        "CoinRenderClipPlaneTest": "Failed",
+        "CoinRenderDrawStyleTest": "Failed"
+      }
+    },
+    "wgpu_structural_retest": {
+      "scheduled": 2,
+      "passed": 2,
+      "skipped": 0,
+      "failures": {}
+    },
+    "bgfx_full": {
+      "scheduled": 272,
+      "passed": 269,
+      "skipped": 2,
+      "failures": {
+        "CoinRenderShadowReferenceTest": "Timeout"
+      }
+    },
+    "bgfx_shadow_retest": {
+      "scheduled": 1,
+      "passed": 1,
+      "skipped": 0,
+      "failures": {}
+    },
+    "recording": {
+      "scheduled": 12,
+      "passed": 10,
+      "skipped": 2,
+      "failures": {}
+    }
+  },
+  "rust": {
+    "library": 35,
+    "gouraud": 2,
+    "shader": 3,
+    "passed": 40,
+    "failed": 0
+  },
+  "scene_matrices": {
+    "geometry_viewport_per_gpu": 1290,
+    "geometry_apis": [
+      "wgpu Vulkan",
+      "BGFX Vulkan",
+      "BGFX OpenGL"
+    ],
+    "procedural_textures_per_gpu": 311,
+    "procedural_native_references_per_gpu": 69,
+    "curved_alpha_opengl_control": {
+      "attempted": 84,
+      "failures": 0
+    },
+    "rtt_external_routes": [
+      "capture",
+      "FBO",
+      "pbuffer",
+      "staged",
+      "direct"
+    ]
+  },
+  "source_hashes": "source-sha256.json",
+  "binary_sha256": {
+    "wgpu/lib/libCoin.so": "3b483be396d73ca9f0866da488ffcec25472ea448f0100ef4d1c22dad8034282",
+    "wgpu/lib/libCoinRender.so": "3232e72a7bd910c60317e60c0f57861ef7a5b70f89bcb3199eaf2a14a1269d3b",
+    "wgpu/bin/CoinRenderGeometryViewportTest": "3a601f31e1b479478628a46baead27c206a30528d0303f1b5065621dbbb063eb",
+    "wgpu/bin/CoinRenderDepthContractTest": "131bb88f97626681b8abffcddc0becf0475e0f13aea072522ad15a3b356f9286",
+    "wgpu/bin/CoinRenderProceduralTextureTest": "072a7a52a880874cc125ab3b247c561f681e00edd5fc047d2ed12441718c7c39",
+    "bgfx/lib/libCoin.so": "3b483be396d73ca9f0866da488ffcec25472ea448f0100ef4d1c22dad8034282",
+    "bgfx/lib/libCoinRender.so": "3b6ef64029f3af17218b4dc46f9ab9d4567fae3b11bf313d1dda257185013f75",
+    "bgfx/bin/CoinRenderGeometryViewportTest": "423306f33423a500ac0d86cdf0ce154394ef3085d5d9d7813d2030bd0a6790ce",
+    "bgfx/bin/CoinRenderDepthContractTest": "1544893b2afdda76ec3adb5523ebd89da862484663e35f896acfa06d8d118de5",
+    "bgfx/bin/CoinRenderProceduralTextureTest": "39886fd920646a2102587ba2c5389ad6ffa8b97213676066b314088906f9d6ac",
+    "recording/lib/libCoin.so": "3b483be396d73ca9f0866da488ffcec25472ea448f0100ef4d1c22dad8034282",
+    "recording/lib/libCoinRender.so": "203c5683baa5568417f9b57deb9e586f50edd38fe489fbba0202dd25191efcbe",
+    "recording/bin/CoinRenderGeometryViewportTest": "cb3db94c3422dca4a08527578b288753f8ffad3deac76d18f2cdb3e0b9e263e0",
+    "recording/bin/CoinRenderDepthContractTest": "11177be32273d8d0709d12d3224d31e60a466659cbd01fb7324edfdd1f51e14a",
+    "recording/bin/CoinRenderProceduralTextureTest": "c65b5d67e69939248688a1a10668db9e9e4fef6b2ac97f5001c5cb8879fc2e71"
+  },
+  "commands": [
+    {
+      "build_directory": "/tmp/coin-render-first-frame-wgpu",
+      "argv": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-wgpu",
+        "-j",
+        "4"
+      ]
+    },
+    {
+      "build_directory": "/tmp/coin-render-first-frame-bgfx",
+      "argv": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-first-frame-bgfx",
+        "-j",
+        "4"
+      ]
+    },
+    {
+      "build_directory": "/tmp/coin-render-isolation-recording",
+      "argv": [
+        "cmake",
+        "--build",
+        "/tmp/coin-render-isolation-recording",
+        "-j",
+        "4"
+      ]
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--output-on-failure",
+        "-j",
+        "1"
+      ],
+      "renderer_environment": null
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--output-on-failure",
+        "-j",
+        "1"
+      ],
+      "renderer_environment": "vulkan; test-specific opengl"
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-wgpu",
+        "--output-on-failure",
+        "-j",
+        "1",
+        "-R",
+        "^(CoinRenderClipPlaneTest|CoinRenderDrawStyleTest)$"
+      ]
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--output-on-failure",
+        "-j",
+        "1",
+        "-R",
+        "^CoinRenderShadowReferenceTest$"
+      ]
+    },
+    {
+      "argv": [
+        "/home/dikluwe/.cargo/bin/cargo",
+        "test",
+        "--manifest-path",
+        "src/rendering/coinwgpu/rust_bridge/Cargo.toml",
+        "--offline",
+        "--locked"
+      ],
+      "target_directory": "/tmp/coin-render-first-frame-wgpu/rust_target"
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-first-frame-bgfx",
+        "--output-on-failure",
+        "-j",
+        "1",
+        "-R",
+        "^CoinRenderRttViewport(Gpu|Direct)Test$"
+      ],
+      "renderer_environment": "COIN_BGFX_RENDERER=opengl"
+    },
+    {
+      "argv": [
+        "ctest",
+        "--test-dir",
+        "/tmp/coin-render-isolation-recording",
+        "--output-on-failure",
+        "-j",
+        "1",
+        "-R",
+        "^(CoinRenderActionTest|CoinRenderIndexedGeometryCoreTest|CoinRenderDepthContractTest|CoinRenderGeometryViewportCaptureTest|CoinRenderProceduralTextureCaptureTest|CoinRenderCompositionTest|CoinRenderDrawStyleTest|CoinRenderClipPlaneTest|CoinRenderRttViewportCaptureTest|CoinRenderBoundingBoxCaptureTest|CoinRenderTransformCoreTest|CoinRenderPlanAssemblyCoreTest)$"
+      ]
+    }
+  ],
+  "notes": [
+    "All GPU campaigns execute sequentially; CTest times are not benchmarks.",
+    "Wgpu structural assertions were corrected for the documented subpixel coverage step; attribute tolerances did not change.",
+    "The BGFX shadow timeout is retained; its isolated retest uses unchanged source and timeout.",
+    "The experimental OpenGL profile exclusion and D32F format change were discarded; both full 1290-cell GPU gates are required.",
+    "Raster compatibility with native CoinGL remains a documented future study.",
+    "This profile does not qualify all 49 mixed bindings, other drivers/platforms, concave/nonplanar styles or flat shadow/per-fragment combinations."
+  ],
+  "additional_qualification": {
+    "bgfx_opengl_external_rtt": {
+      "passed": 2,
+      "failed": 0,
+      "log": "bgfx-opengl-rtt-final.log"
+    }
+  }
+}

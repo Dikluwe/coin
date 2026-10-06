@@ -31,35 +31,51 @@ referência CoinGL no domínio válido e capacidades/documentação atualizadas.
 
 ## 2. Paridade de geometria e viewport — P02/P04/P05/P06
 
-- [x] Resolver viewport externo no wgpu com projeção/interseção no Core;
-  comparar CPU/BGFX/wgpu/CoinGL, bordas/cantos, interseção vazia, resize e
-  clear de depth das annotations em CPU/wgpu no [perfil ampliado](coin-render-geometry-viewport-contract.md).
-- [x] Corrigir normais indexadas de face/part e a ordem não indexada no fast
-  path; verificar fallback atômico e vetores esperados independentes.
-- [x] Ampliar FaceSet/IndexedFaceSet: cinco bindings, alpha heterogêneo,
-  normais fornecidas/geradas e fast path ligado/desligado (80 cenas).
-- [x] Ampliar luzes directional/point/spot simultâneas com quatro modos de fog,
-  range [.2,.8] e viewport externo (16 cenas); conservar Gouraud clássico.
-- [x] Ampliar estilos com DEFAULT/Plane e multitextura: IndexedFaceSet/Cube
-  CPU/GPU/CoinGL; Sphere CPU/GPU; Cone/Cylinder na captura CPU.
-- [ ] **Estudo de melhoria futura:** investigar cobertura, interpolação, UV/LOD e
-  seleção de profundidade nas junções curvas/coincidentes do CoinGL, conforme
-  o [estudo de raster](coin-render-raster-junctions-study.md). Comparar abordagens
-  e custos antes de escolher uma implementação; a reprodução do raster nativo
-  não bloqueia o contrato portátil CPU/BGFX/wgpu escolhido para esta entrega.
-- [ ] Concluir a qualificação portátil de Cone/Cylinder e dos estilos ampliados;
-  divergências entre CPU e os executores GPU continuam bloqueando essas células
-  e não são dispensadas pelo estudo de compatibilidade CoinGL.
-- [ ] Completar estilos por shape com clipping, offset, materiais e todas as
-  combinações UV; os contornos convexos continuam delimitados por contrato.
-- [ ] Ampliar depth clamp/range/offset fora do perfil atual, múltiplas regiões,
-  transparência/sombras/RTT com viewport externo e demais bordas de raster.
-- [ ] Completar bindings/índices de materiais e normais nos demais shapes.
-- [ ] Completar a matriz numérica de luzes/fog por shape e estado; manter
-  iluminação por fragmento identificada como extensão.
+Primeiro perfil portátil fechado: 204 CTests wgpu e 270 CTests BGFX
+qualificados, com os dois skips conhecidos em cada perfil. Rust: 40 passes.
+Recording: dez passes e dois skips das partes GPU, após executar seus controles CPU.
+O [contrato ampliado](coin-render-geometry-viewport-contract.md) define o alcance.
 
-Fechamento: fixtures compartilhadas, restauração de estado, recuperação após
-rejeição e diferenças de raster diagnosticadas sem relaxar o esperado.
+- [x] Resolver viewport externo/vazio no Core, resize, múltiplas regiões,
+  composição, annotations e preservação da projeção original.
+- [x] Capturar/validar ranges normais, reversos, colapsados e clamp de entrada;
+  rejeitar NaN/Inf sem publicação e recuperar a mesma action. Resolver slope e
+  units sobre os primitivos originais do perfil, com controle numérico CPU/GPU.
+- [x] Ampliar a matriz a 1.290 cenas: cinco bindings anteriores em faces,
+  sete pares nos dez tipos adicionais, normais fornecidas/geradas, alpha,
+  fast path, directional/point/spot e quatro modos de fog.
+- [x] Corrigir bindings de QuadMesh/strips e normais/ocorrências de linhas
+  indexadas; preservar fallback atômico e expectativas numéricas independentes.
+- [x] Ampliar LINES/POINTS com UV DEFAULT/Plane/função autoral, unidade 0/
+  multitextura, clipping e alpha: 311 cenas e 69 referências CoinGL por GPU.
+- [x] Definir cobertura portátil top/left em passos de 1/256 de pixel;
+  preservar ownership de bounding boxes, atributos de perspectiva, stipple e
+  cache estático com digest do payload após expansão. Conservar os limites RGB.
+- [x] Ampliar RTT com viewport externo em capture/FBO/pbuffer/staged/direto e
+  sombras com controle crop ativo/inativo; fixtures sem expectativas circulares.
+- [x] Concluir a qualificação integrada BGFX Vulkan/OpenGL e Recording;
+  guardar [contagens, hashes e logs finais](validation/geometry-viewport-closure-20261006/summary.json).
+  Dois asserts wgpu foram ajustados ao deslocamento raster; o timeout BGFX
+  de sombras passou isolado com fonte/limite inalterados. Os eventos ficam nos logs.
+
+Melhoria futura, fora deste primeiro perfil:
+
+- [ ] **Estudo:** reprodução das junções curvas/coincidentes e endpoints
+  transparentes do CoinGL, conforme o [roteiro e evidências](coin-render-raster-junctions-study.md).
+  Comparar abordagens e custos antes de escolher a melhoria. Isso não dispensa
+  diferenças CPU/BGFX/wgpu: as divergências portáteis encontradas nesta rodada
+  recebem correção e gates completos, sem exclusão OpenGL ou tolerância ampliada.
+- [ ] Ampliar os 49 cruzamentos de bindings, subclasses/shapes adicionais,
+  contornos côncavos, offset não planar e combinações de UV/estado além da matriz.
+- [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
+  mais combinações de transparência/sombras/RTT; clamp de range já implementado
+  não equivale a GL_DEPTH_CLAMP.
+- [ ] Qualificar flat com sombras/iluminação por fragmento e o modo não padrão
+  `COIN_QUADMESH_PRECISE_LIGHTING`; manter extensões identificadas.
+- [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
+
+Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após
+rejeição e diferenças nativas delimitadas no estudo, sem promessa universal.
 
 ## 3. Nós, FreeCAD e recursos além do perfil — P03/P15/P16/P24/P28
 

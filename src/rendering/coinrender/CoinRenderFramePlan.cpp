@@ -413,8 +413,8 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       return false;
     }
     if (!isFiniteF(state.depthRange[0]) || !isFiniteF(state.depthRange[1]) ||
-        state.depthRange[0] < 0.0f || state.depthRange[1] > 1.0f ||
-        state.depthRange[0] > state.depthRange[1]) {
+        state.depthRange[0] < 0.0f || state.depthRange[0] > 1.0f ||
+        state.depthRange[1] < 0.0f || state.depthRange[1] > 1.0f) {
       if (outDiagnostic) *outDiagnostic = "Invalid depth range";
       return false;
     }

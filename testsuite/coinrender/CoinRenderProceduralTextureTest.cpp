@@ -29,6 +29,8 @@
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoDrawStyle.h>
+#include <Inventor/nodes/SoClipPlane.h>
+#include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoTextureCoordinatePlane.h>
@@ -41,10 +43,30 @@
 #include <algorithm>
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include <limits>
 #include <memory>
 #include <string>
 #include <vector>
+
+#if COIN_HAVE_LEGACY_GL_RENDERER
+class JunctionDepthWitness : public SoNode {
+  SO_NODE_HEADER(JunctionDepthWitness);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(JunctionDepthWitness, SoNode, "Node"); }
+  JunctionDepthWitness() { SO_NODE_CONSTRUCTOR(JunctionDepthWitness); }
+  void GLRender(SoGLRenderAction *) override {
+    GLint bits=0;glGetIntegerv(GL_DEPTH_BITS,&bits);
+    for (auto p : {SbVec2s(33,20),SbVec2s(26,21),SbVec2s(26,23)}) {
+      float depth=0;glReadPixels(p[0],79-p[1],1,1,GL_DEPTH_COMPONENT,GL_FLOAT,&depth);
+      std::cerr<<"native junction depth x="<<p[0]<<" y="<<p[1]<<" depth="<<std::setprecision(10)<<depth<<" bits="<<bits<<'\n';
+    }
+  }
+protected:
+  ~JunctionDepthWitness() override=default;
+};
+SO_NODE_SOURCE(JunctionDepthWitness);
+#endif
 
 // An authored coordinate function with independent R/Q and a normal term.
 // Both action paths use the public element; no executor interprets the node.
@@ -204,6 +226,7 @@ struct Harness {
     capture = new CaptureBackend; cpu->getPimpl()->backend.reset(capture); action.setRenderTarget(cpu.get());
     if (gpu) { native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
     action.setBackgroundColor(SbColor4f(0,0,0,1)); gpuAction.setBackgroundColor(SbColor4f(0,0,0,1));
+    action.setTransparencyType(CoinRenderAction::BLEND);gpuAction.setTransparencyType(CoinRenderAction::BLEND);
   }
   ~Harness() { action.setRenderTarget(nullptr); gpuAction.setRenderTarget(nullptr); }
   bool render(Scene & scene, const std::string & label, bool fast) {
@@ -239,7 +262,13 @@ struct Harness {
       ++count;
       for (int c=0;c<3;++c) {
         const int d=std::abs(int(a[(y*size+x)*4+c])-int(b[(y*size+x)*channels+c]));
-        sum+=d; maximum=std::max(maximum,d);
+        sum+=d;
+        if (d > maximum && d > 3 && channels == 3) {
+          std::cerr << "junction x=" << x << " y=" << y << " channel=" << c
+                    << " CPU=" << int(a[(y*size+x)*4+c]) << " GL=" << int(b[(y*size+x)*channels+c])
+                    << " depth=" << cpu->getPimpl()->depthBuffer[y*size+x] << '\n';
+        }
+        maximum=std::max(maximum,d);
       }
     }
     if (!check(count>=minimum,label+": no nonempty interior reference")) return false;
@@ -250,6 +279,7 @@ struct Harness {
 #if COIN_HAVE_LEGACY_GL_RENDERER
     SoOffscreenRenderer renderer(SbViewportRegion(size,size));
     renderer.setComponents(SoOffscreenRenderer::RGB); renderer.setBackgroundColor(SbColor(0,0,0));
+    renderer.getGLRenderAction()->setTransparencyType(SoGLRenderAction::BLEND);
     if (!check(renderer.render(scene.root),label+": mandatory CoinGL unavailable")) return false;
     const uint8_t * source=renderer.getBuffer(); std::vector<uint8_t> gl(size*size*3);
     for (int y=0;y<size;++y)
@@ -305,9 +335,9 @@ bool run(bool gpu) {
   // P02/P07 interaction: native polygon contours/vertices retain procedural
   // coordinates on canonical primitives and indexed faces, also across units.
   h.radius=0; h.minimum=4;
-  for (int shape=0;shape<(gpu ? 3 : 5);++shape)
+  for (int shape=0;shape<5;++shape)
     for (int style : {SoDrawStyle::LINES,SoDrawStyle::POINTS})
-      for (int mode : {0,1}) for (bool multi : {false,true}) {
+      for (int mode : {0,1,3}) for (bool multi : {false,true}) {
         Scene scene(shape); scene.style->style=style; scene.stage(0,mode);
         if (multi) scene.stage(1,1);
         for (bool fast : {false,true}) {
@@ -315,9 +345,22 @@ bool run(bool gpu) {
             "/UV-"+std::to_string(mode)+"/multi-"+std::to_string(multi),fast)) return false;
           // Curved overlapping contours keep CPU/GPU qualification; their
           // textured CoinGL raster junctions need a dedicated sampling oracle.
-          if (gpu && shape<2 && !h.gl(scene,"polygon-style-native")) return false;
+          if (gpu && shape<2 && (mode!=3 || shape==0) && !h.gl(scene,"polygon-style-native")) return false;
         }
       }
+  // Style interaction with clipped contours and heterogeneous alpha. Curved
+  // junctions use the portable Core raster; their CoinGL alternative is a study.
+  for(int shape=0;shape<5;++shape)for(int style:{SoDrawStyle::LINES,SoDrawStyle::POINTS})
+    for(int mode:{0,1,3})for(bool multi:{false,true}) {
+      Scene clipped(shape);clipped.style->style=style;clipped.stage(0,mode);
+      if(multi)clipped.stage(1,1);
+      auto* material=new SoMaterial;material->diffuseColor.setValue(.6f,.7f,.8f);material->transparency=.25f;
+      clipped.root->insertChild(material,clipped.root->getNumChildren()-1);
+      auto* plane=new SoClipPlane;plane->plane=SbPlane(SbVec3f(1,0,0),-.15f);
+      clipped.root->insertChild(plane,clipped.root->getNumChildren()-1);
+      for(bool fast:{false,true})if(!h.render(clipped,"clipped-alpha-style/shape-"+std::to_string(shape)+
+        "/style-"+std::to_string(style)+"/UV-"+std::to_string(mode)+"/multi-"+std::to_string(multi),fast))return false;
+    }
   h.radius=1; h.minimum=100;
   // Per-unit functions, mixed modes, and a primary unit above zero.
   for (int mixed=0;mixed<9;++mixed) {
@@ -408,10 +451,19 @@ int main(int argc,char ** argv) {
   // Opt-in reproducers for the open textured contour junctions. These are
   // intentionally outside the qualified CTest profile; thresholds stay intact.
   if (argc>1 && (std::string(argv[1])=="--probe-sphere" || std::string(argv[1])=="--probe-cone")) {
+#if COIN_HAVE_LEGACY_GL_RENDERER
+    JunctionDepthWitness::initClass();
+#endif
     const bool sphere=std::string(argv[1])=="--probe-sphere";
     Harness h(true);h.radius=0;h.minimum=4;Scene scene(sphere?2:3);
-    scene.style->style=SoDrawStyle::LINES;scene.stage(0,0);
+    scene.style->style=std::getenv("COIN_PROBE_FILLED") ? SoDrawStyle::FILLED : SoDrawStyle::LINES;scene.stage(0,0);
+#if COIN_HAVE_LEGACY_GL_RENDERER
+    scene.root->addChild(new JunctionDepthWitness);
+#endif
+    if(std::getenv("COIN_PROBE_FILLED"))h.radius=1;
     if (!h.render(scene,"open-coincident-contour",true)) return 1;
+    for(auto p : {SbVec2s(33,20),SbVec2s(26,21),SbVec2s(26,23)})
+      std::cerr<<"CPU junction depth x="<<p[0]<<" y="<<p[1]<<" depth="<<std::setprecision(10)<<h.cpu->getPimpl()->depthBuffer[p[1]*80+p[0]]<<'\n';
     return sphere && !h.gl(scene,"open-curved-CoinGL") ? 1 : 0;
   }
   return run(argc>1 && std::string(argv[1])=="--gpu") ? 0 : 1;

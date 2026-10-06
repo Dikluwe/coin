@@ -913,10 +913,16 @@ bool testMultipleViewports() {
   }
 
   const bool gpuAvailable = CoinRenderAction::isGpuBackendAvailable();
+  for(bool external:{false,true}) {
+    auto candidate=plan;
+    if(external) {
+      candidate.viewports[0].x=-8;candidate.viewports[0].y=-8;candidate.viewports[0].width=40;candidate.viewports[0].height=48;
+      candidate.viewports[1].y=-8;candidate.viewports[1].width=40;candidate.viewports[1].height=48;
+    }
   for (int backend = 0; backend < (gpuAvailable ? 2 : 1); ++backend) {
     CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(64, 32));
     configureTarget(target, backend == 0);
-    const CoinRenderFrameExecutionResult result = target->getPimpl()->executeFrame(plan);
+    const CoinRenderFrameExecutionResult result = target->getPimpl()->executeFrame(candidate);
     std::vector<uint8_t> rgba;
     target->readbackRGBA(rgba);
     const size_t left = static_cast<size_t>(16 * 64 + 16) * 4;
@@ -930,6 +936,7 @@ bool testMultipleViewports() {
             "right viewport must remain green");
     delete target;
     if (!ok) return false;
+  }
   }
   return true;
 }
@@ -1275,7 +1282,7 @@ int main(int argc, char ** argv) {
   if (argc == 2 && std::string(argv[1]) == "--annotations") {
     if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
     if (!testAnnotationDepthClearViewport()) return 1;
-    std::cout << "Wgpu annotation GPU regressions passed\n";
+    std::cout << "Annotation GPU regressions passed\n";
     return 0;
   }
   if (!testCompositionBorrow() || !testCompositionRangeMemoization() || !testProjectiveDepth() || !testMaterialBlend() || !testStableDepthTie() ||

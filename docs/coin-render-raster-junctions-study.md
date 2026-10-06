@@ -34,6 +34,31 @@ junções e introduziram outras diferenças. Esses experimentos **não fazem par
 implementação mantida na branch**. O perfil conserva a expansão comum validada e
 não amplia tolerâncias para fazer o oráculo nativo passar.
 
+O controle `CoinRenderGeometryViewportTest --probe-style-line` amplia o
+estudo aos endpoints compartilhados de LineSet com PER_PART, alpha e viewport
+externo. CPU/wgpu diferem no máximo 1; CPU/CoinGL chega a 18 no pixel (19,56),
+próximo à junção em (20,58). Desligar depth ainda produz máximo 24, e largura 1
+produz máximo 18: a seleção de cobertura na junção também participa, além da
+profundidade. A semântica dos bindings conserva seus gates independentes com
+referência CoinGL; as células ampliadas de estilos/junções usam o esperado
+portátil. A origem precisa da diferença nativa permanece pergunta do estudo.
+
+A ampliação expôs ainda diferenças CPU/BGFX OpenGL em 42 das 84 células
+Sphere/Cone/Cylinder com iluminação, alpha e viewport externo. A troca de D24
+por D32F e o desligamento do caminho compacto não as eliminaram; esses testes
+isoladamente não demonstram a causa. O pior pixel da esfera, (22,30), tinha
+centro x=22,5, na borda da faixa expandida. A política comum de ownership
+**top/left**, com um passo de 1/256 de pixel para evitar amostras exatamente
+na borda, fez as 84 células passarem. Bounding boxes conservam sua direção e
+ownership previamente qualificados. O perfil OpenGL provisoriamente delimitado
+foi descartado: o gate completo de 1.290 células permanece obrigatório.
+
+O shader BGFX também conserva intervalos constantes explicitamente por
+`near + (far-near)*depth` e só calcula o gradiente quando factor é diferente
+de zero. O estudo físico futuro deve separar essas correções comuns da
+reprodução específica do CoinGL. Os logs anteriores de falha são históricos,
+não uma dispensa de falhas portáteis na qualificação final.
+
 ## Perguntas e próximos experimentos
 
 - Identificar a borda e o polígono que fornecem cor, UV e profundidade em cada
@@ -61,6 +86,10 @@ oráculo nativo ultrapassa MAE 1/máximo 3, para manter a diferença observável
 CoinRenderProceduralTextureTest --probe-sphere
 CoinRenderProceduralTextureTest --probe-cone
 COIN_PROBE_FILLED=1 CoinRenderProceduralTextureTest --probe-sphere
+CoinRenderGeometryViewportTest --probe-style-line
+CoinRenderGeometryViewportTest --probe-style-line-depthless
+CoinRenderGeometryViewportTest --probe-style-line-width1
+COIN_BGFX_RENDERER=opengl CoinRenderGeometryViewportTest --study-curved-styles
 ```
 
 Os gates de estilos verificam CPU/BGFX/wgpu. Referências CoinGL brutas são

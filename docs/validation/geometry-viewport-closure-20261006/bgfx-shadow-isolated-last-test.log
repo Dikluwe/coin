@@ -1,0 +1,375 @@
+Start testing: Oct 06 16:27 -03
+----------------------------------------------------------
+177/272 Testing: CoinRenderShadowReferenceTest
+177/272 Test: CoinRenderShadowReferenceTest
+Command: "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowReferenceTest"
+Directory: /tmp/coin-render-first-frame-bgfx/testsuite
+"CoinRenderShadowReferenceTest" start time: Oct 06 16:27 -03
+Output:
+----------------------------------------------------------
+smoothBorder Coin/GL/GPU unchanged=1
+low-quality spot Coin/GL/GPU delta=480/480
+clipped caster Coin/GL/GPU delta=531/531
+active/inactive sibling Coin/GL/GPU delta=486/474
+sibling groups Coin/GL/GPU delta=486/474
+distinct sibling VSM Coin/GL/GPU delta=138/165
+staged RTT distinct VSM Coin/GL/GPU delta=108/132
+direct RTT distinct VSM Coin/GL/GPU delta=108/132
+inherited directional with shadow group Coin/GL/GPU delta=152/152
+ordinary light inside active group GL/GPU unchanged=1
+inherited point with shadow group Coin/GL/GPU delta=594/594
+ordinary point inside active group GL/GPU unchanged=1
+opaque textured shadow receiver Coin/GL/GPU delta=485/485
+five lights textured receiver Coin/GL/GPU delta=81/81
+three lights Coin/GL/BGFX delta=666/666
+four lights Coin/GL/BGFX delta=228/228
+five lights Coin/GL/BGFX delta=291/291
+eight lights Coin/GL/BGFX delta=117/174
+eight lights staged RTT Coin/GL/BGFX delta=225/225
+eight lights direct RTT Coin/GL/BGFX delta=225/225
+fifth spot Coin/GL/BGFX delta=162/162
+sixth spot Coin/GL/BGFX delta=174/174
+seventh spot Coin/GL/BGFX delta=138/138
+eighth spot BGFX delta=114
+Coin/GL two-light contribution delta=402
+low-quality directional Coin/GL/GPU delta=666/666
+direct shadowMapScene Coin/GL/GPU delta=420/420
+subtree shadowMapScene Coin/GL/GPU delta=426/426
+styled subtree shadowMapScene Coin/GL/GPU delta=108/108
+clipped subtree shadowMapScene Coin/GL/GPU delta=588/588
+staged shadow RTT GPU delta=306
+staged shadow RTT Coin/GL/GPU delta=306/306
+staged shadow RTT resized GPU delta=306
+direct shadow RTT Coin/GL/GPU delta=306/306
+direct shadow RTT resized GPU delta=306
+staged RTT shadow receiver Coin/GL/GPU delta=225/216
+direct RTT shadow receiver Coin/GL/GPU delta=225/216
+inherited shadowMapScene Coin/GL/GPU delta=441/429
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=171/171 qualified=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/99 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=174/174 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=171/171 qualified=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=0 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=0 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=1 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=1 qualified=1
+empty shadow maps=1 Coin/GL/GPU incremental delta=0/0 qualified=1
+empty shadow maps=2 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=3 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=4 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=5 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=6 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=7 Coin/GL/GPU incremental delta=63/63 qualified=1
+empty shadow maps=8 Coin/GL/GPU incremental delta=0/63 qualified=1
+independent shadow scenes directional=0 variant=0 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=0 variant=1 GL/GPU delta=279/273 qualified=1
+independent shadow scenes directional=0 variant=2 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=0 variant=3 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=0 variant=4 GL/GPU delta=555/543 qualified=1
+independent shadow scenes directional=0 variant=5 GL/GPU delta=546/534 qualified=1
+independent shadow scenes directional=0 variant=6 GL/GPU delta=273/267 qualified=1
+independent shadow scenes directional=1 variant=0 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=1 variant=1 GL/GPU delta=333/333 qualified=1
+independent shadow scenes directional=1 variant=2 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=1 variant=3 GL/GPU delta=0/0 qualified=1
+independent shadow scenes directional=1 variant=4 GL/GPU delta=666/666 qualified=1
+independent shadow scenes directional=1 variant=5 GL/GPU delta=666/666 qualified=1
+independent shadow scenes directional=1 variant=6 GL/GPU delta=333/333 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=1 GL/GPU delta=282/282 mean delta error=4.27544 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=2 GL/GPU delta=282/471 mean delta error=7.21371 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=3 GL/GPU delta=270/324 mean delta error=10.7464 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=0 variant=4 GL/GPU delta=270/276 mean delta error=7.59762 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=0 maps=1 mode=1 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=1 GL/GPU delta=225/225 mean delta error=3.42136 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=2 GL/GPU delta=225/378 mean delta error=5.77066 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=3 GL/GPU delta=216/261 mean delta error=8.59827 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=1 variant=4 GL/GPU delta=216/222 mean delta error=6.08006 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=0 maps=1 mode=2 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=1 GL/GPU delta=225/225 mean delta error=3.42136 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=2 GL/GPU delta=225/378 mean delta error=5.77066 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=3 GL/GPU delta=216/261 mean delta error=8.59827 isolated=1 qualified=1
+shadow composition annotation=0 maps=1 mode=2 variant=4 GL/GPU delta=216/222 mean delta error=6.08006 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=1 mode=0 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=0 variant=1 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=0 variant=2 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=1 mode=1 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=1 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=1 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=1 mode=2 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=2 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=1 mode=2 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=5 mode=0 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=0 variant=1 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=0 variant=2 GL/GPU delta=477/477 mean delta error=0.037061 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=5 mode=1 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=1 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=1 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+shadow composition annotation=1 maps=5 mode=2 variant=0 GL/GPU delta=0/0 mean delta error=0 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=2 variant=1 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+shadow composition annotation=1 maps=5 mode=2 variant=2 GL/GPU delta=384/384 mean delta error=0.0295713 isolated=1 qualified=1
+composition fault status=5 serial=1 pixels=1
+composition recovery status=0 pixels=1 error=
+Coin/GL shadow sample inactive=600 active=126 late_light=30 no_receive=600 restored=126 no_caster=654 center_delta=1
+ directional_style_delta=666 late_directional_style_delta=0 mixed_directional_style_delta=666 spot_late_style_delta=0 spot_mixed_style_delta=474 at=0,0 values=0,0,0
+<end of output>
+Test time =  18.74 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowReferenceTest" end time: Oct 06 16:27 -03
+"CoinRenderShadowReferenceTest" time elapsed: 00:00:18
+----------------------------------------------------------
+
+End testing: Oct 06 16:27 -03
