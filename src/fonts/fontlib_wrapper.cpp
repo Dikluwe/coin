@@ -35,6 +35,7 @@
 #include "coindefs.h"
 #include "fonts/fontlib_wrapper.h"
 #include "fonts/bitmap.h"
+#include "fonts/fontutils.h"
 
 #include <cstdio>
 #include <cstring>
@@ -769,7 +770,7 @@ cc_flw_get_vector_advance(int font, unsigned int glyph, float * x, float * y)
   }
 
   if (gs->fromdefaultfont) {
-    *x = coin_default3dfont_get_advance(gs->character);
+    *x = coin_default3dfont_get_advance(coin_font_default_character(gs->character, 126));
   }
   else {
     if (using_win32api()) {
@@ -935,9 +936,8 @@ cc_flw_get_bitmap(int font, unsigned int glyph)
       bm = NULL;
     }
     if (!bm) {
-      /* glyph handle == char value in default font. &255 to avoid
-         index out of range. */
-      bm = get_default_bitmap(gs->nativeglyphidx & 0xff, (float)fs->sizey);
+      // Use the requested character, never a truncated native glyph index.
+      bm = get_default_bitmap(coin_font_default_character(gs->character, 255), float(fs->sizey));
       gs->fromdefaultfont = TRUE;
     }
 
