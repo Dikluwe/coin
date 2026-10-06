@@ -55,6 +55,7 @@
 #include <cmath>
 #include <cstdint>
 #include <new>
+#include "primep.h"
 
 #include <Inventor/lists/SbList.h>
 #include <Inventor/C/base/memalloc.h>
@@ -208,6 +209,10 @@ class SbHash {
     iterator() : master(NULL), index(0), elem(NULL) {}
 
     inline void setNextUsedBucket() {
+      if (this->master->buckets == NULL) {
+        this->elem = NULL;
+        return;
+      }
       for (; this->index < this->master->size; ++this->index) {
         if (this->master->buckets[this->index]) {
           this->elem = this->master->buckets[this->index];
@@ -276,6 +281,10 @@ class SbHash {
     const_iterator() : master(NULL), index(0), elem(NULL) {}
 
     inline void setNextUsedBucket() {
+      if (this->master->buckets == NULL) {
+        this->elem = NULL;
+        return;
+      }
       for (; this->index < this->master->size; ++this->index) {
         if (this->master->buckets[this->index]) {
           this->elem = this->master->buckets[this->index];
@@ -309,13 +318,20 @@ class SbHash {
   SbHash(const SbHash & from)
   {
     this->commonConstructor(from.size, from.loadfactor);
-    this->operator=(from);
+    try { this->operator=(from); }
+    catch (...) {
+      this->releaseStorage();
+      throw;
+    }
   }
 
+  /* Assignment has the basic guarantee if a key/value copy throws: the
+     destination remains valid but may contain only part of the source. */
   SbHash & operator=(const SbHash & from)
   {
     if (this == &from) return *this;
     this->clear();
+    if (from.buckets == NULL) return *this;
     unsigned int i;
     SbHashEntry * elem;
     for (i = 0; i < from.size; ++i) {
@@ -330,13 +346,15 @@ class SbHash {
 
   ~SbHash()
   {
-    this->clear();
-    cc_memalloc_destruct(this->memhandler);
-    delete [] this->buckets;
+    this->releaseStorage();
   }
 
   void clear(void)
   {
+    if (this->buckets == NULL) {
+      this->elements = 0;
+      return;
+    }
     unsigned int i;
     for (i = 0; i < this->size; i++) {
       while (this->buckets[i]) {
@@ -347,6 +365,19 @@ class SbHash {
     }
     memset(this->buckets, 0, this->size * sizeof(SbHashEntry *));
     this->elements = 0;
+  }
+
+  /* Clear the table and return its bucket and entry-pool allocations. The
+     normal clear() deliberately retains them for inexpensive reuse. */
+  void releaseStorage(void)
+  {
+    this->clear();
+    if (this->memhandler != NULL) {
+      cc_memalloc_destruct(this->memhandler);
+      this->memhandler = NULL;
+    }
+    delete [] this->buckets;
+    this->buckets = NULL;
   }
 
   iterator begin() {
@@ -385,6 +416,7 @@ class SbHash {
   
   size_t erase(const Key & key)
   {
+    if (this->elements == 0) return 0;
     unsigned int i = this->getIndex(key);
     SbHashEntry * entry = this->buckets[i], * next, * prev = NULL;
     while (entry) {
@@ -408,6 +440,7 @@ class SbHash {
 
   void makeKeyList(SbList<Key> & l) const
   {
+    if (this->buckets == NULL) return;
     unsigned int i;
     SbHashEntry * elem;
     for (i = 0; i < this->size; ++i) {
@@ -423,6 +456,7 @@ class SbHash {
 
   const_iterator find(const Key & key) const
   {
+    if (this->elements == 0) return const_end();
     const_iterator iter(this);
     iter.index = this->getIndex(key);
     
@@ -438,6 +472,10 @@ class SbHash {
 
 
 protected:
+  SbBool hasAllocatedStorage(void) const {
+    return this->buckets != NULL ? TRUE : FALSE;
+  }
+
   unsigned int getIndex(const Key & key) const noexcept {
     return this->getIndex(key, this->size);
   }
@@ -486,6 +524,7 @@ protected:
 public:
   SbBool put(const Key & key, const Type & obj)
   {
+    this->ensureStorage();
     unsigned int i = this->getIndex(key);
     SbHashEntry * entry = this->buckets[i];
     while (entry) {
@@ -505,14 +544,19 @@ public:
     entry->next = this->buckets[i];
     this->buckets[i] = entry;
 
+    /* Growth is optional: bucket allocation failure retains this successful
+       insertion. Relinking preserves entry addresses, but invalidates traversal
+       state; obtain fresh iterators after insertion. */
     if (this->elements++ >= this->threshold && this->size < UINT_MAX) {
-      this->resize(static_cast<unsigned int>( coin_geq_prime_number(this->size + 1)));
+      const unsigned long next = coin_growth_prime_at_least(this->size + 1UL);
+      if (next != 0) this->resize(static_cast<unsigned int>(next));
     }
     return TRUE;
   }
 
   SbBool get(const Key & key, Type & obj) const
   {
+    if (this->elements == 0) return FALSE;
     SbHashEntry * entry;
     unsigned int i = this->getIndex(key);
     entry = this->buckets[i];
@@ -536,6 +580,7 @@ public:
 
   SbBool getP(const Key & key, Type *& obj) const
   {
+    if (this->elements == 0) return FALSE;
     SbHashEntry * entry;
     unsigned int i = this->getIndex(key);
     entry = this->buckets[i];
@@ -554,21 +599,33 @@ public:
   {
     if (!std::isfinite(loadfactorarg) || loadfactorarg <= 0.0f)
       loadfactorarg = 0.75f;
-    unsigned int s = coin_geq_prime_number(sizearg);
-    this->memhandler = cc_memalloc_construct_aligned(
-      sizeof(SbHashEntry), alignof(SbHashEntry));
-    if (this->memhandler == NULL) coin_oom_abort("SbHash allocator");
+    unsigned int s = static_cast<unsigned int>(coin_exact_prime_at_least(sizearg));
+    if (s == 0) coin_oom_abort("SbHash capacity");
+    this->memhandler = NULL;
     this->size = s;
     this->elements = 0;
     const double scaled = static_cast<double>(s) * loadfactorarg;
     this->threshold = scaled >= UINT_MAX ? UINT_MAX :
       static_cast<unsigned int>(scaled);
     this->loadfactor = loadfactorarg;
+    this->buckets = NULL;
+  }
+
+  void ensureStorage(void)
+  {
+    if (this->buckets != NULL) return;
+    assert(this->memhandler == NULL);
     if (static_cast<size_t>(this->size) > SIZE_MAX / sizeof(SbHashEntry *))
       coin_oom_abort("SbHash bucket size");
-    this->buckets = new (std::nothrow) SbHashEntry * [this->size];
-    if (this->buckets == NULL) coin_oom_abort("SbHash buckets");
-    memset(this->buckets, 0, this->size * sizeof(SbHashEntry *));
+    SbHashEntry ** newbuckets = new (std::nothrow) SbHashEntry * [this->size];
+    if (newbuckets == NULL) coin_oom_abort("SbHash buckets");
+    memset(newbuckets, 0, this->size * sizeof(SbHashEntry *));
+    cc_memalloc * newmemhandler = cc_memalloc_construct_aligned(
+      sizeof(SbHashEntry), alignof(SbHashEntry));
+    if (newmemhandler == NULL) coin_oom_abort("SbHash allocator");
+
+    this->buckets = newbuckets;
+    this->memhandler = newmemhandler;
   }
 
  protected:
@@ -576,7 +633,7 @@ public:
   {
     unsigned int i;
     buckets_used = 0, chain_length_max = 0;
-    for (i = 0; i < this->size; i++) {
+    for (i = 0; this->buckets != NULL && i < this->size; i++) {
       if (this->buckets[i]) {
         int chain_l = 0;
         SbHashEntry * entry = this->buckets[i];

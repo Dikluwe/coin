@@ -72,6 +72,11 @@ public:
   {
     return this->getIndex(key);
   }
+
+  SbBool storageIsAllocated(void) const
+  {
+    return this->hasAllocatedStorage();
+  }
 };
 
 class SbHashCopyCounter {
@@ -263,7 +268,7 @@ BOOST_AUTO_TEST_CASE(SbHash_const_begin_end_are_read_only)
 
 BOOST_AUTO_TEST_CASE(SbHash_statistics_are_fractional_and_empty_safe)
 {
-  SbHashStatsProbe hash(3);
+  SbHashStatsProbe hash(5);
   int bucketsUsed = -1;
   int buckets = -1;
   int elements = -1;
@@ -360,7 +365,7 @@ BOOST_AUTO_TEST_CASE(SbHash_hashes_c_strings_without_an_SbString_temporary)
 
 BOOST_AUTO_TEST_CASE(SbHash_resize_relinks_entries_at_the_real_threshold)
 {
-  SbHashRelinkProbe hash(3);
+  SbHashRelinkProbe hash(5);
   SbHashCopyCounter one(1);
   SbHashCopyCounter two(2);
   SbHashCopyCounter three(3);
@@ -391,4 +396,29 @@ BOOST_AUTO_TEST_CASE(SbHash_resize_relinks_entries_at_the_real_threshold)
   BOOST_CHECK_EQUAL(&after->obj, address);
   BOOST_CHECK_EQUAL(after->obj.value, 1);
   BOOST_CHECK_EQUAL(hash.getNumElements(), 4U);
+}
+
+BOOST_AUTO_TEST_CASE(SbHash_allocates_lazily_and_can_release_storage)
+{
+  SbHashIndexProbe hash(257);
+  BOOST_CHECK(!hash.storageIsAllocated());
+
+  int value = -1;
+  BOOST_CHECK(!hash.get(1U, value));
+  BOOST_CHECK_EQUAL(hash.erase(1U), static_cast<size_t>(0));
+  BOOST_CHECK(hash.begin() == hash.end());
+  BOOST_CHECK(hash.const_begin() == hash.const_end());
+  BOOST_CHECK(!hash.storageIsAllocated());
+
+  BOOST_REQUIRE(hash.put(1U, 10));
+  BOOST_CHECK(hash.storageIsAllocated());
+  hash.clear();
+  BOOST_CHECK(hash.storageIsAllocated());
+  BOOST_CHECK_EQUAL(hash.getNumElements(), 0U);
+
+  hash.releaseStorage();
+  BOOST_CHECK(!hash.storageIsAllocated());
+  BOOST_REQUIRE(hash.put(2U, 20));
+  BOOST_REQUIRE(hash.get(2U, value));
+  BOOST_CHECK_EQUAL(value, 20);
 }
