@@ -95,10 +95,8 @@ This change does not widen public short-based APIs such as SbViewportRegion or
 SoGlyph::getBitmap. It does not remove FreeCAD's workaround; removal still needs
 a separate FreeCAD change tied to the minimum supported Coin version.
 
-The wider SoFonts study contains independent cache lifetime/concurrency, font
-name parsing, angle keys, Unicode fallback mapping, bitmap/vector fallback
-ownership, Fontconfig cleanup and GLU tessellation findings. Those are separate
-from these two #417 follow-ups. The Win32 bitmap producer, CoreText, and native
+The independent SoFonts findings have now been implemented on this branch;
+the proposed split below keeps them outside PR #774. The Win32 bitmap producer, CoreText, and native
 Windows/macOS execution were not changed or tested here. Allocation handling
 covered here is bitmap allocation/copy, not every allocation in font discovery
 and glyph-cache construction.
@@ -115,3 +113,122 @@ production units against repaired #774 reports **0 removed, 0 changed, 0 added
 functions/symbols; abidiff exit 0** with the installed public headers. This
 comparison isolates the follow-up changes using the same remaining library
 objects and compiler flags, rather than comparing unrelated configurations.
+
+
+## Additional SoFonts corrections and proposed PR split
+
+All work is local on `codex/text-font-followup`. PR #774 remains unchanged.
+The baseline includes its ABI repair; the commits below do not replace it.
+
+| Proposed PR | Content | Commits / preparation |
+| --- | --- | --- |
+| UTF-8 picking | Decoded character indices, alignment and multiline hit positions | Extract the SoText2 portion and picking test of 26501c33e7, preserving the repaired extended storage |
+| Bitmap backend limits | Signed pitch, checked storage, 32-bit private metrics, backend failure cleanup | Extract the font/bitmap portion and fixtures of 26501c33e7 |
+| Font cache lifetime and keys | Serialized 2D/3D ref/unref, atomic font lookup/create/ref, normalized rotation key | 886925714e, 1f0413bc84, 79df06cefd |
+| Fallback and representation ownership | Explicit Unicode replacement, separate bitmap/vector failure state, shared glyph references, correct per-representation FreeType size | baf8d41c45, 1efb95cc01, 5d2d0949a9 |
+| Font names and discovery cleanup | Bounded family/style parsing, explicit Fontconfig patterns, cleanup on every discovery exit | 18a810ecde, 7b8c928a29 |
+| 3D tessellation limits and recovery | Finite complexity, 1..16 steps, required GLU entry points, decomposition/GLU failures, checked owned allocations and rollback | dcb64a0fd6 and the subsequent native coordinate-lifetime test |
+
+This is a review plan, not six independent cherry-picks ready for publication.
+Tests and CMake entries must follow their respective code. The registry commit
+introduces the private owned-acquisition helper used by the representation
+fixtures; that group should land before those fixtures. `fontutils.h` is shared
+by angle, Unicode and complexity fixes and must retain only each group's helpers
+when preparing individual PRs. Changes to the same wrapper/backend file will
+need rebasing in the order above. The first two groups need splitting because
+the original follow-up commit contains both. No new PRs were opened or pushed.
+
+### Implementation and verification
+
+- Cache references are incremented before releasing the cache lock. Final
+  release, cache removal and backend release occur under the same lock.
+  Initializers use the constructor lock rather than racing on a mutex pointer.
+  The old cache library crashes under the new concurrent lifetime fixture.
+- Font lookup, creation and reference acquisition share one registry lock.
+  `cc_flw_get_font_id_and_ref` is a new private helper; the existing exported
+  borrowed-ID function remains available. Callers must retain an owning font or
+  glyph reference while reading returned internal bitmap/vector pointers.
+- Rotation is finite and canonicalized modulo one turn, at ten-microradian
+  precision. Distinct rotations no longer share a 2D glyph. Equivalent full-turn
+  representations do share the cache.
+- Unsupported builtin Unicode maps to `?`, rather than its low byte. Latin-1
+  remains available in the 2D builtin font; the vector builtin repertoire ends
+  at ASCII 126. This remains a limited fallback font, not Unicode shaping.
+- Native character availability, bitmap fallback and vector failure have separate
+  state. Failed vectors are memoized. Two consumers of one wrapper glyph now
+  hold two references; the first release cannot free the second's data. The
+  legacy SoGlyph path balances its wrapper acquisition on final release.
+- Native FreeType bitmap reads select the requested pixel size. Vector advances
+  and kerning select the normalized 40-pixel vector size independently of prior
+  bitmap operations. A native reproduction previously changed a 7x9 bitmap to
+  22x29 after requesting a vector; it now retains dimensions, pixels and advance.
+- Name parsing is bounded for null/empty strings and whitespace around `:`.
+  Explicit Fontconfig property patterns and Windows drive paths are retained.
+  Legacy `family:Bold Italic` produces the same fields with Fontconfig on/off.
+  Fontconfig patterns have cleanup guards on success and every failure exit.
+- Nonfinite complexity becomes 0.5, finite values clamp to [0,1], and curves use
+  at least one and at most sixteen steps. Failed outline decomposition or GLU
+  tessellation discards partial geometry, deletes the tessellator and releases
+  the temporary FreeType glyph. Unsupported glyph formats return failure.
+  The next request starts clean. The adapter checks its point/index/array
+  allocations and size products; generic cc_list allocation failure remains a
+  separate library-wide limitation.
+
+Integrated Linux Release validation: **95 CTest tests passed, none failed or
+skipped**. Added focused evidence includes:
+
+- 8 threads, 160000 cache lifetime iterations per dimension (2D and 3D);
+- 32 simultaneous font-creation rounds and 40000 acquisition/release cycles;
+- 5 rotation cases and 9 Unicode fallback cases;
+- 1037 parser cases each with Fontconfig enabled and forced off;
+- bitmap failure then vector success, vector failure then bitmap success, and
+  two-consumer lifetime (the old wrapper reports five failures);
+- 6 Fontconfig success/failure stages with all created patterns destroyed;
+- 36 tessellation checks, including conic/cubic outlines, pathological complexity,
+  null tessellator, missing entry point, partial decomposition failure, GLU
+  failure and recovery;
+- 2 native FreeType size-isolation checks;
+- native GLU coordinate reuse with stable vertex data.
+
+Seven changed production units (SoText2, glyph2d, glyph3d, fontspec,
+fontlib_wrapper, freetype and SoGlyph) passed targeted ASan/UBSan and
+float-cast-overflow runs through the relevant fixtures. Assertions were enabled;
+other library units stayed Release and leak detection was disabled. Targeted
+TSan cache and registry fixtures passed with ASLR disabled **only for their
+processes**; the first ordinary-ASLR run failed before main with an unexpected
+memory mapping. This is not whole-library sanitizer coverage.
+
+FreeCAD analysis was repeated using LD_PRELOAD: **44 checks passed**, with 434
+bright text pixels in the corrected original/distant/control captures. FreeCAD
+sources and installed libraries were not changed. Local outputs:
+`/tmp/coin-text-font-freecad`, `/tmp/coin-text-font-asan-tests.log`,
+`/tmp/coin-text-font-tsan-noaslr.log`, `/tmp/coin-text-font-tsan-registry.log`.
+
+### ABI result for the additional work
+
+A RelWithDebInfo library was relinked from the seven changed production units
+and unchanged repaired-#774 objects using identical compiler flags. Public
+headers are unchanged. `abidiff` against repaired #774 reports **0 removed,
+0 changed, 1 added function**, with no removed/changed variables. Exit 4 reflects
+only the added private `cc_flw_get_font_id_and_ref`; it is not an incompatible
+change. No ABI suppressions or checker changes were introduced. The opaque
+wrapper glyph acquired private fields, while SoText2P keeps the repaired ABI
+prefix and old exported signatures. Evidence: `/tmp/coin-text-font-abi/abidiff.txt`.
+
+### Correction to the original GLU lifetime hypothesis
+
+The original SoFonts report claimed the local coordinate array had to survive
+until EndPolygon. That conclusion was not established and is withdrawn. The
+native GLU fixture submits a triangle through a single reused local array,
+overwrites it with NaNs after each submission, and still receives exactly three
+valid vertex-data indices at EndPolygon. The callback data must remain alive;
+the existing allocated counters already do so. No persistent-coordinate
+allocation was added to production code. This result covers the installed GLU;
+other native backends and Windows/macOS execution are not claimed.
+
+GLU reference: https://registry.khronos.org/OpenGL-Refpages/gl2.1/xhtml/gluTessVertex.xml
+
+Remaining independent study items include generic cc_list/cache-construction
+allocation failures, extractfont maintenance tooling, cross-platform native
+backend checks and broader shaping/fallback policy. They are not presented as
+fixed or required to close issue #417.
