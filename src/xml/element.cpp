@@ -1130,7 +1130,7 @@ cc_xml_elt_calculate_size(const cc_xml_elt * elt, int indent, int indentincremen
   do { bytes += strlen(str); } while (0)
 
   // duplicate block - see cc_xml_elt_write_to_buffer()
-  if (elt->type && strcmp(elt->type, COIN_XML_CDATA_TYPE) == 0) {
+  if (elt->type && strcmp(elt->type, COIN_XML_CDATA_TYPE) == 0 && elt->cdata) {
     // this is a leaf element character data container
     ADVANCE_NUM_BYTES(cc_xml_escape_calculate_size(elt->cdata,
                                                     CC_XML_ESCAPE_TEXT));
@@ -1150,7 +1150,8 @@ cc_xml_elt_calculate_size(const cc_xml_elt * elt, int indent, int indentincremen
     if (numchildren == 0) { // close element directly
       ADVANCE_STRING_LITERAL("/>\n");
     } else if ((numchildren == 1) &&
-               (strcmp(cc_xml_elt_get_type(elt->children[0]), COIN_XML_CDATA_TYPE) == 0)) {
+               (strcmp(cc_xml_elt_get_type(elt->children[0]), COIN_XML_CDATA_TYPE) == 0) &&
+               cc_xml_elt_get_cdata(elt->children[0])) {
       ADVANCE_STRING_LITERAL(">");
       ADVANCE_NUM_BYTES(cc_xml_escape_calculate_size(
         cc_xml_elt_get_cdata(elt->children[0]), CC_XML_ESCAPE_TEXT));
@@ -1223,7 +1224,7 @@ cc_xml_elt_write_to_buffer(const cc_xml_elt * elt, char * buffer, size_t bufsize
 
   // ***********************************************************************
   // almost duplicate block - see cc_xml_elt_calculate_size()
-  if (elt->type && strcmp(elt->type, COIN_XML_CDATA_TYPE) == 0) {
+  if (elt->type && strcmp(elt->type, COIN_XML_CDATA_TYPE) == 0 && elt->cdata) {
     // this is a leaf element character data container
     ADVANCE_ESCAPED_TEXT(elt->cdata);
   } else {
@@ -1242,7 +1243,8 @@ cc_xml_elt_write_to_buffer(const cc_xml_elt * elt, char * buffer, size_t bufsize
     if (numchildren == 0) { // close element directly
       ADVANCE_STRING_LITERAL("/>\n");
     } else if ((numchildren == 1) &&
-               (strcmp(cc_xml_elt_get_type(elt->children[0]), COIN_XML_CDATA_TYPE) == 0)) {
+               (strcmp(cc_xml_elt_get_type(elt->children[0]), COIN_XML_CDATA_TYPE) == 0) &&
+               cc_xml_elt_get_cdata(elt->children[0])) {
       ADVANCE_STRING_LITERAL(">");
       ADVANCE_ESCAPED_TEXT(cc_xml_elt_get_cdata(elt->children[0]));
       ADVANCE_STRING_LITERAL("</");
