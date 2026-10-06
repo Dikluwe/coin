@@ -8,8 +8,8 @@ e câmera. Uma imagem equivalente dessa cidade não certifica outros nós.
 Atualização posterior em Linux: a captura comum de `SoText2` e `SoImage`
 independente foi implementada e qualificada nos executores wgpu/Vulkan e
 BGFX/Vulkan/OpenGL. Consulte o [perfil, limites e evidência](coin-render-node-inventory.md#texto-e-imagem-implementados-em-linux).
-As duas primeiras linhas abaixo preservam o resultado desta auditoria Windows
-anterior à implementação; a nova versão ainda exige qualificação Windows.
+A tabela abaixo incorpora a implementação Linux; a nova versão ainda exige
+qualificação Windows.
 
 Outra atualização Linux implementa `SoAlphaTest`, preserva o alpha anterior em
 texturas RGB/L com `REPLACE` e impede escrita de profundidade com o teste
@@ -51,8 +51,8 @@ igualdade com o legado não é suficiente para certificar correção.
 
 | Prioridade | Recurso Coin | Comportamento atual verificado | Dono e próximo fechamento |
 | --- | --- | --- | --- |
-| 1 | `SoText2` | `generatePrimitives` não produz texto; a action pode retornar SUCCESS sem draws. Falta o texto visível, incluindo fonte, âncora e composição. | Captura/layout comum; atlas e recursos por executor. P03/F05. |
-| 1 | `SoImage` independente | O callback produz um quad, mas a imagem não é capturada como textura habilitada. Não há paridade de conteúdo, alpha e alinhamento. | Captura e contrato de imagem comuns antes dos executores. F20/I02. |
+| 1 | `SoText2` | Captura explícita dos tipos nativos exatos implementada e qualificada em Linux. O callback genérico continua sem primitivas para subclasses sem adaptação. | Qualificação Windows/FreeCAD ampliada e subclasses. P03/F05. |
+| 1 | `SoImage` independente | Captura explícita dos pixels dos tipos nativos exatos implementada e qualificada em Linux. Subclasses continuam pelo callback virtual. | Qualificação Windows/FreeCAD ampliada e subclasses. F20/I02. |
 | 1 | Nós customizados com semântica somente em `GLRender` | CoinRender deriva de `SoCallbackAction`; não executa o override GL para obter sua semântica. Um nó pode passar sem produzir sua parte visual. Não há introspecção genérica segura de overrides C++. | Adaptação explícita no nó/host. Inventário FreeCAD P15 e fechamento por workbench P16. |
 | 2 | UV procedural/default | `captureTextureUnit` rejeita DEFAULT/FUNCTION em uma unidade de textura habilitada com imagem, inclusive unidade 0. O fast path também tem restrições próprias; falta matriz completa por shape/função. | Captura de coordenadas e interpretação comum P07/F06. |
 | 2 | Qualidade/filtros de texturas | O builder aceita textura desligada (`quality <= 0`) ou qualidade próxima de 0,5, com filtro LINEAR. Outros valores são rejeitados. REPEAT/CLAMP e quatro modelos legados têm caminho; isso não cobre qualidade/filtros/mipmaps gerais do GL. | Contrato de sampler/formato e recursos dos executores. P07/F11. |
@@ -62,7 +62,8 @@ igualdade com o legado não é suficiente para certificar correção.
 | 2 | Viewport parcialmente fora do alvo no wgpu | `resolved_viewport` rejeita origem negativa ou extensão além do alvo. BGFX tem clipping de viewport; a equivalência entre os dois não é geral nesse caso. | Projeção/scissor no Core e adaptação do executor. P04/F13. |
 | 3 | Antialiasing/MSAA e multipass do Coin | Não há opção equivalente completa na action/target experimental; os attachments/pipelines Rust examinados usam uma amostra. Capability de MSAA do hardware não implementa a política da action. | Contrato de qualidade e resolve por executor. F21/P24. |
 
-As três primeiras lacunas podem omitir conteúdo com status SUCCESS. As
+No estado atual, os tipos nativos exatos de texto/imagem têm captura comum;
+a omissão silenciosa ainda se aplica aos nós customizados GL-only. As
 rejeições explícitas nas demais linhas são diagnóstico de ausência de suporte,
 não uma aproximação visual aprovada. Limites de oito luzes/planos/unidades,
 oito camadas de peeling e os orçamentos de RTT também delimitam o perfil.

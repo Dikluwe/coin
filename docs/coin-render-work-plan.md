@@ -31,7 +31,9 @@ escopos próprios de validação.
   Combinações de offset fora desse perfil, multitextura/UV procedural e
   qualificação completa permanecem no [contrato de estilo](coin-render-draw-style-contract.md).
 - [ ] **P03 — SoText2 (F05):** fontes, âncora, tamanho, clipping e composição;
-  layout comum, atlas e recursos próprios de cada Infra.
+  captura/layout comum de tipos nativos exatos implementados em Linux em
+  2026-10-05, com glifos do Coin e transporte comum de raster. Qualificação
+  Windows/FreeCAD ampliada continua aberta no [inventário](coin-render-node-inventory.md).
 - [ ] **P04 — Viewport/scissor e depth (F13/F12):** retângulos parcialmente externos,
   projeção, múltiplas regiões, resize, range/clamp/offset e bordas.
 
@@ -72,7 +74,7 @@ escopos delimitados.
 - [x] **P10 — OIT/peeling (F16):** peeling comum de 1..8 camadas, orçamento de
   attachments, alpha zero/precisão, luz/textura, interseções, oclusão e depth
   qualificados no [contrato P10](coin-render-peeling-contract.md). Weighted OIT
-  é extensão explícita BGFX; wgpu oferece peeling. Overrides de depth fora do
+  é extensão explícita BGFX/wgpu; consulte também o contrato P11 e P27. Overrides de depth fora do
   mecanismo BGFX são rejeitados com preservação. Outros drivers, MSAA e a rota
   direta BGFX de textura de cena seguem as campanhas próprias.
 - [x] **P11 — Seleção/capacidades (A07/A08):** opções tipadas por alvo para

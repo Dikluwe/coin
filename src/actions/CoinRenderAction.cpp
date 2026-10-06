@@ -2348,21 +2348,6 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
     return SoCallbackAction::CONTINUE;
   }
 
-  SoTextureCoordinateBundle tb(action, FALSE, FALSE);
-  if (tb.needCoordinates()) {
-    const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
-    if (tcElem) {
-      auto ct = tcElem->getType(0);
-      if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
-        if (vp) state->pop();
-        p->setDiagnostic(CoinRenderDiagnosticShell::action(
-          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-          SbString("Procedural/DEFAULT texture coordinates are not supported in Subwave 3B")));
-        return SoCallbackAction::ABORT;
-      }
-    }
-  }
-
   CoinRenderDirectGeometryView view;
   view.positions = CoinRenderSpan<SbVec3f>(coordArray, static_cast<size_t>(numCoords));
 

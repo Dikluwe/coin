@@ -725,18 +725,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     return true;
   }
 
-  // Check for procedural/DEFAULT texture coordinates
-  const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
-  if (tcElem) {
-    auto ct = tcElem->getType(unit);
-    if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
-      if (outError) *outError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
-      this->isUnsupported = true;
-      this->builderError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
-      return false;
-    }
-  }
-
   // 3. Texture quality
   float quality = SoTextureQualityElement::get(state);
   if (quality <= 0.0f) {
@@ -750,6 +738,18 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     rs.samplerSlot = 0;
     return true;
   }
+  // Check for procedural/DEFAULT texture coordinates
+  const SoMultiTextureCoordinateElement * tcElem = SoMultiTextureCoordinateElement::getInstance(state);
+  if (tcElem) {
+    auto ct = tcElem->getType(unit);
+    if (ct == SoMultiTextureCoordinateElement::DEFAULT || ct == SoMultiTextureCoordinateElement::FUNCTION) {
+      if (outError) *outError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
+      this->isUnsupported = true;
+      this->builderError = "Procedural/DEFAULT texture coordinates are unsupported for texture unit " + std::to_string(unit);
+      return false;
+    }
+  }
+
   if (std::abs(quality - 0.5f) > 0.05f) {
     if (outError) *outError = "Unsupported texture quality, only 0.0 (off) and 0.5 (linear) are supported in Subwave 3B";
     this->isUnsupported = true;
@@ -2203,7 +2203,8 @@ captureIndexedGeometryOptions(SoCallbackAction * action, SoNode * node)
   const unsigned char * textureBytes =
     SoMultiTextureImageElement::getImage(
       state, 0, textureSize, textureComponents);
-  options.hasTexture = textureBytes != NULL &&
+  options.hasTexture = SoTextureQualityElement::get(state) > 0.0f &&
+    SoMultiTextureEnabledElement::get(state, 0) && textureBytes != NULL &&
     textureSize[0] > 0 && textureSize[1] > 0 &&
     textureComponents > 0;
   if (options.hasTexture) {

@@ -11,6 +11,7 @@
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoTextureCoordinatePlane.h>
 #include <Inventor/nodes/SoTexture2Transform.h>
 #include <Inventor/nodes/SoTransparencyType.h>
 #include <Inventor/nodes/SoLightModel.h>
@@ -689,6 +690,46 @@ static bool testQualityZeroDisablesTexture() {
   action.apply(root);
 
   ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS, "Render must succeed");
+
+  // A disabled texture must not demand coordinates from the renderer.
+  // Exercise both indexed capture paths and authored coordinate functions.
+  SoSeparator * quad = createTexturedQuad(tex, false);
+  root->removeChild(root->getNumChildren() - 1);
+  root->addChild(quad);
+  for (bool fast : {false, true}) {
+    action.setFastPathEnabled(fast);
+    for (bool procedural : {false, true}) {
+      SoTextureCoordinatePlane * plane = nullptr;
+      if (procedural) {
+        plane = new SoTextureCoordinatePlane;
+        quad->insertChild(plane, 1);
+      }
+      comp->textureQuality = 0.0f;
+      action.apply(root);
+      if (action.getLastStatus() != CoinRenderAction::SUCCESS)
+        std::cerr << "Disabled texture fast=" << fast << " procedural=" << procedural
+                  << ": " << action.getLastError().getString() << std::endl;
+      ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                  "Disabled default/function texture must render without UV support");
+      std::vector<uint8_t> disabled;
+      target->readbackRGBA(disabled);
+      ASSERT_TRUE(disabled.size() == 32 * 32 * 4,
+                  "Disabled texture must publish color");
+      comp->textureQuality = 0.5f;
+      action.apply(root);
+      ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
+                  "Enabled default/function texture remains outside the UV profile");
+      std::vector<uint8_t> preserved;
+      target->readbackRGBA(preserved);
+      ASSERT_TRUE(preserved == disabled,
+                  "Rejected UV must preserve the previous pixels");
+      comp->textureQuality = 0.0f;
+      action.apply(root);
+      ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::SUCCESS,
+                  "Disabling texture must recover after rejected UV");
+      if (plane) quad->removeChild(plane);
+    }
+  }
 
   delete target;
   root->unref();

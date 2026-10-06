@@ -510,6 +510,7 @@ int main() {
               "Subsequent apply on TARGET_ERROR must report BACKEND_ERROR");
 
   // Re-create target for subsequent tests
+  action.setRenderTarget(NULL);
   delete target;
   target = CoinRenderTarget::createOffscreen(SbVec2i32(128, 128));
   action.setRenderTarget(target);
@@ -546,6 +547,7 @@ int main() {
   TEST_ASSERT(action.getLastStatus() == CoinRenderAction::BACKEND_ERROR, "Step 2b: apply on TARGET_ERROR must report BACKEND_ERROR");
 
   // Re-create target for DEVICE_LOST step
+  action.setRenderTarget(NULL);
   delete target;
   target = CoinRenderTarget::createOffscreen(SbVec2i32(128, 128));
   action.setRenderTarget(target);
@@ -595,6 +597,7 @@ int main() {
   TEST_ASSERT(ffiStatus == COIN_WGPU_INVALID_ARGUMENT, "Invalid ABI version must return INVALID_ARGUMENT");
 #endif
 
+  action.setRenderTarget(NULL);
   delete target;
   root->unref();
 
