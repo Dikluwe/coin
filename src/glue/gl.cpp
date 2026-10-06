@@ -2211,7 +2211,7 @@ cc_glglue_instance(int contextid)
     coin_atexit((coin_atexit_f *)glglue_cleanup, CC_ATEXIT_NORMAL);
   }
 
-  found = cc_dict_get(gldict, (uintptr_t)contextid, &ptr);
+  found = cc_dict_get(gldict, (uintptr_t)(uint32_t)contextid, &ptr);
 
   if (!found) {
     GLenum glerr;
@@ -2248,7 +2248,7 @@ cc_glglue_instance(int contextid)
     if (gi->glextdict == NULL) coin_oom_abort("cc_glglue_instance extensions");
 
     ptr = gi;
-    if (cc_dict_try_put(gldict, (uintptr_t)contextid, ptr) !=
+    if (cc_dict_try_put(gldict, (uintptr_t)(uint32_t)contextid, ptr) !=
         CC_DICT_PUT_INSERTED)
       coin_oom_abort("cc_glglue_instance cache insertion");
 
@@ -2503,7 +2503,7 @@ coin_glglue_destruct(uint32_t contextid)
   void * ptr;
   CC_SYNC_BEGIN(cc_glglue_instance);
   if (gldict) { // might happen if a context is destructed without using the cc_glglue interface
-    found = cc_dict_get(gldict, (uintptr_t)contextid, &ptr);
+    found = cc_dict_get(gldict, (uintptr_t)(uint32_t)contextid, &ptr);
     if (found) {
       cc_glglue * glue = (cc_glglue*) ptr;
       if (glue->normalizationcubemap) {
