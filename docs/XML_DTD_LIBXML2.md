@@ -1,0 +1,21 @@
+# Leitura DTD validada (experimental)
+
+`COIN_XML_DTD_LIBXML2=ON` habilita uma API opt-in para documentos XML com DTD. Ela requer libxml2 >= 2.14, com `LIBXML_VALID_ENABLED`, e não muda as funções Expat existentes. O Coin não incorpora nem instala libxml2. O padrão da opção é `OFF`; a função C continua disponível nesse caso, mas retorna `FALSE` sem alterar o documento.
+
+`cc_xml_doc_read_buffer_dtd_x()` valida a estrutura e os atributos declarados pelo DTD, expande entidades gerais e parâmetros e aplica atributos padrão. Uma resolução de recurso externo é encaminhada exclusivamente ao callback do aplicativo. O callback recebe o URL resolvido pela libxml2 e devolve um ponteiro/quantidade de bytes; esses bytes são copiados antes de ele retornar. Sem callback, ou se o callback recusar, nenhum arquivo ou URL é aberto por Coin. A implementação nega tipos de recurso que não sejam DTD ou entidade XML e desativa o catálogo global do sistema. Ela não usa o carregador global de libxml2, que seria inseguro para outras threads do processo.
+
+Depois de validar, a implementação remove o nó DTD do documento expandido, serializa em UTF-8 e entrega o resultado ao parser transacional Expat. Portanto, a API depende da correção transacional e só substitui o DOM público após as duas etapas terem êxito. É uma API de buffer de uma só vez, não altera a API de leitura parcial nem de arquivo. O DOM Coin não conserva declarações DTD; elas são apenas uma condição de leitura.
+
+Esta branch **não está pronta para PR nem para XML não confiável**. Restam os limites de bytes de entrada/recursos externos, amplificação, nós, atributos e profundidade; a política dessas quantidades deve ser estudada antes de fixar valores. Também faltam uma revisão de equivalência das duas etapas libxml2/Expat, testes de falha de alocação, matriz com Expat atualizado e os gates de lab/master/Windows. O ASan/UBSan dirigido abaixo não substitui esses gates. Não definir limites arbitrários nesta branch.
+
+No Linux de estudo, a libxml2 oficial 2.15.4 foi extraída em `/tmp`, compilada/testada em `/dev/shm`, sem `cmake --install` ou alteração de `/usr/lib`. O tarball tem SHA-256 `98087fd181d9070724f3fbc65c7377db03038eb92bd882374daff44940138821`; oito testes oficiais passaram. O Mint 22.3 continua com a libxml2 2.9.14 da distribuição. Um módulo `FindLibXml2.cmake` temporário fora desta branch aponta o Coin para esse build em RAM; não integra a contribuição de PR. Sem o módulo temporário, a configuração com `COIN_XML_DTD_LIBXML2=ON` recusa corretamente a versão 2.9.14 do sistema.
+
+Build Coin em RAM, sobre `codex/pr/cc-xml-parser-transactional`:
+
+- `cmake -S <worktree> -B /dev/shm/coin-xml-dtd-work -DCOIN_BUILD_TESTS=ON -DCOIN_BUILD_DOCUMENTATION=OFF -DCMAKE_BUILD_TYPE=Debug -DCOIN_XML_DTD_LIBXML2=ON -DCMAKE_MODULE_PATH=<módulo temporário>`; `cmake --build <build> --parallel 4`; `xvfb-run -a -s '-screen 0 1280x1024x24 +extension GLX' env LIBGL_ALWAYS_SOFTWARE=1 COIN_GLX_PIXMAP_DIRECT_RENDERING=1 ctest --test-dir <build> --output-on-failure --parallel 4`: **80/80**.
+- Mesmos comandos em `/dev/shm/coin-xml-dtd-off` com `-DCOIN_XML_DTD_LIBXML2=OFF`, sem módulo temporário: **80/80**; a regressão C confirma que a função indisponível retorna `FALSE` e preserva o DOM.
+- O teste habilitado cobre DTD interna, `ELEMENT`/`ATTLIST`, entidade geral e parâmetro externos pelo callback, atributo padrão, negação de arquivo externo e preservação da raiz depois de DTD inválido. O último caso dirigido também aceita um URL `https://` exclusivamente com bytes entregues pelo callback, sem rede.
+
+Clang/ASan/UBSan/LeakSanitizer: configuração em `/dev/shm/coin-xml-dtd-asan` com `-DUSE_EXTERNAL_EXPAT=ON`, `-DCOIN_THREADSAFE=OFF` e flags `-fsanitize=address,undefined`; build do alvo `CoinXmlDtdLibxml2Test`; `env ASAN_OPTIONS=detect_leaks=1:halt_on_error=1 UBSAN_OPTIONS=halt_on_error=1 ctest --test-dir /dev/shm/coin-xml-dtd-asan -R '^CoinXmlDtdLibxml2$' --output-on-failure`: **1/1**, sem diagnóstico. O alvo C usa o driver de link C++ porque a biblioteca Coin instrumentada contém o runtime C++ do UBSan.
+
+Os dois builds Coin normais em RAM foram removidos depois dos resultados acima para liberar espaço. Não houve teste no lab fixo nem criação de branch de PR nesta fase experimental.

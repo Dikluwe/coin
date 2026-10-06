@@ -280,6 +280,23 @@ set_target_properties(CoinXmlTransactionalReadTest PROPERTIES
 add_test(NAME CoinXmlTransactionalRead COMMAND CoinXmlTransactionalReadTest)
 set_tests_properties(CoinXmlTransactionalRead PROPERTIES TIMEOUT 10)
 
+if(COIN_XML_DTD_LIBXML2)
+  add_executable(CoinXmlDtdLibxml2Test xml/XmlDtdLibxml2Test.c)
+  target_link_libraries(CoinXmlDtdLibxml2Test Coin ${COIN_TARGET_LINK_LIBRARIES})
+  target_include_directories(CoinXmlDtdLibxml2Test PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+  set_target_properties(CoinXmlDtdLibxml2Test PROPERTIES LINKER_LANGUAGE CXX)
+  add_test(NAME CoinXmlDtdLibxml2 COMMAND CoinXmlDtdLibxml2Test)
+  set_tests_properties(CoinXmlDtdLibxml2 PROPERTIES TIMEOUT 10)
+else()
+  add_executable(CoinXmlDtdUnavailableTest xml/XmlDtdUnavailableTest.c)
+  target_link_libraries(CoinXmlDtdUnavailableTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+  target_include_directories(CoinXmlDtdUnavailableTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+  set_target_properties(CoinXmlDtdUnavailableTest PROPERTIES LINKER_LANGUAGE CXX)
+  add_test(NAME CoinXmlDtdUnavailable COMMAND CoinXmlDtdUnavailableTest)
+endif()
+
 add_test(NAME CoinConfigCompatibility
   COMMAND ${CMAKE_COMMAND}
     -DCOIN_CONFIG_TEMPLATE=${PROJECT_SOURCE_DIR}/src/coin-config.cmake.in

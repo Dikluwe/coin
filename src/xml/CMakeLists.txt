@@ -10,6 +10,7 @@ set(COIN_XML_FILES
 	entity.cpp
 	utils.cpp
 	path.cpp
+	dtd-libxml2.cpp
 )
 
 # Files excluded from public API documentation, included in complete documentation.

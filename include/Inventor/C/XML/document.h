@@ -53,6 +53,19 @@ COIN_DLL_API void cc_xml_doc_get_filter_cb(const cc_xml_doc * doc, cc_xml_filter
 COIN_DLL_API SbBool cc_xml_doc_read_file_x(cc_xml_doc * doc, const char * path);
 COIN_DLL_API SbBool cc_xml_doc_read_buffer_x(cc_xml_doc * doc, const char * buffer, size_t buflen);
 
+/* Optional, explicit DTD-validating read. The resolver may provide bytes for
+   an external DTD or entity; Coin copies them before the callback returns.
+   No file or network resource is opened automatically. Without a libxml2-enabled
+   Coin build this function returns FALSE and leaves the document unchanged. */
+typedef SbBool cc_xml_resource_resolver_cb(void * userdata, const char * url,
+                                            const char * publicid,
+                                            const char ** content, size_t * bytes);
+COIN_DLL_API SbBool cc_xml_doc_read_buffer_dtd_x(cc_xml_doc * doc,
+                                                  const char * buffer, size_t buflen,
+                                                  const char * base_url,
+                                                  cc_xml_resource_resolver_cb * resolver,
+                                                  void * userdata);
+
 COIN_DLL_API SbBool cc_xml_doc_parse_buffer_partial_x(cc_xml_doc * doc, const char * buffer, size_t buflen);
 COIN_DLL_API SbBool cc_xml_doc_parse_buffer_partial_done_x(cc_xml_doc * doc, const char * buffer, size_t buflen);
 
