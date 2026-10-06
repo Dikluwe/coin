@@ -351,7 +351,10 @@ inline bool coin_render_composition_order(const CoinRenderFramePlan& frame,
     item.drawIndex = i;
     item.firstIndex = draw.geometry.firstIndex;
     item.indexCount = draw.geometry.indexCount;
-    item.blend = materialAlpha;
+    // Native Bitmap/DrawPixels traversal classifies before raster shading.
+    // The same flag governs blending and deferral; gray Text2's explicit
+    // rasterForceBlend remains a separate non-additive override below.
+    item.blend = rs.rasterPixels ? rs.rasterTransparent : materialAlpha;
     const bool traversalTransparent = rs.rasterPixels ? rs.rasterTransparent : item.blend;
     item.eyeDepth = count ? (minDepth + maxDepth) * 0.5f : 0.0f;
     if (draw.hasSortingCenter) {

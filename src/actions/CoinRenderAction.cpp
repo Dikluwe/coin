@@ -54,6 +54,8 @@
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoImage.h>
 #include <Inventor/nodes/SoText2.h>
+#include <Inventor/nodes/SoMarkerSet.h>
+#include <Inventor/nodes/SoIndexedMarkerSet.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
@@ -111,6 +113,8 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
   SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
   SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
+  SO_ACTION_ADD_METHOD(SoMarkerSet, CoinRenderActionP::markerContentMethod);
+  SO_ACTION_ADD_METHOD(SoIndexedMarkerSet, CoinRenderActionP::markerContentMethod);
   SO_ACTION_ADD_METHOD(SoAlphaTest, CoinRenderActionP::alphaTestMethod);
 }
 
@@ -1542,7 +1546,9 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
   if (node->getTypeId() == SoImage::getClassTypeId() ||
-      node->getTypeId() == SoText2::getClassTypeId()) {
+      node->getTypeId() == SoText2::getClassTypeId() ||
+      node->getTypeId() == SoMarkerSet::getClassTypeId() ||
+      node->getTypeId() == SoIndexedMarkerSet::getClassTypeId()) {
     p->builder.endShape();
     return SoCallbackAction::CONTINUE; // The action method captures after all pre callbacks.
   }
@@ -1577,6 +1583,36 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
     }
   }
   return SoCallbackAction::CONTINUE;
+}
+
+void
+CoinRenderActionP::markerContentMethod(SoAction * action, SoNode * node)
+{
+  // Custom subclasses retain their own virtual callback contract.
+  if (node->getTypeId() != SoMarkerSet::getClassTypeId() &&
+      node->getTypeId() != SoIndexedMarkerSet::getClassTypeId()) {
+    SoNode::callbackS(action, node);
+    return;
+  }
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    const bool observers = !render->hasSingleShapeCallbacks(node->getTypeId());
+    if (render->pimpl->builder.captureMarkerContent(render, node, observers) && observers) {
+      // Native marker rendering disables texture-coordinate functions and
+      // lighting. Retain inherited point observers in the same safe scope;
+      // our point callback suppresses their legacy one-pixel geometry.
+      SoState * state = render->getState();
+      state->push();
+      SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+      SoMultiTextureEnabledElement::disableAll(state);
+      node->callback(render);
+      state->pop();
+    }
+  }
+  render->invokePostCallbacks(node);
 }
 
 void
@@ -1760,6 +1796,8 @@ CoinRenderActionP::pointCB(void * userdata,
                             const SoPrimitiveVertex * vertex)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
+  const auto type = action->getCurPathTail()->getTypeId();
+  if (type == SoMarkerSet::getClassTypeId() || type == SoIndexedMarkerSet::getClassTypeId()) return;
   p->builder.addPoint(action, vertex);
 }
 

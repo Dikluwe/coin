@@ -64,6 +64,22 @@ O restante deste inventário registra a descoberta histórica P15. As referênci
 a texto/imagem ausentes abaixo descrevem aquela base; os workbenches ainda
 precisam de fixtures no host, mesmo com os dois nós implementados.
 
+## Marcadores implementados na camada comum
+
+`SoMarkerSet` e `SoIndexedMarkerSet` nativos passam a capturar os bitmaps do
+registro Coin, incluindo os 90 desenhos internos, `NONE` e registros
+personalizados. Os pixels acesos produzem runs de cobertura em triângulos de
+tela; não há bitmap ou decisão Coin específica nos executores BGFX/wgpu.
+A ponte privada informa também o stride real, ausente da API `getMarker`.
+
+O [contrato de marcadores](coin-render-marker-contract.md) descreve índices,
+bindings, escopo de `vertexProperty`, callbacks, clipping e recaptura após
+mutações globais. Documenta também os limites do GL legado de
+`SoIndexedMarkerSet`: lista curta em Release e inferência de alinhamento após
+substituir/remover registros. A ABI C wgpu permanece na revisão 44.
+O gate `CoinRenderMarkerSetTest` verifica captura e pixels contra Coin/OpenGL;
+a qualificação está em [validation/marker-linux](validation/marker-linux).
+
 ## Fontes e reprodução
 
 FreeCAD base `228c679d78845c3fb6f5eb3d1a27f48aceab68b5`, com patches locais;

@@ -29,6 +29,8 @@ public:
   void endShape();
   bool replayNativeCube(SoCallbackAction * action, SoNode * node);
   bool captureScreenContent(SoCallbackAction * action, const SoNode * node);
+  bool captureMarkerContent(SoCallbackAction * action, const SoNode * node,
+                            bool primitiveObservers);
   bool hasScreenContent() const { return this->screenContentCaptured; }
   // Wiring reads the effective Coin state, including ignored fields and overrides.
   static bool isShapeInvisible(SoCallbackAction * action);

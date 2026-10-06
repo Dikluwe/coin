@@ -34,6 +34,7 @@ public:
 
   void initCallbacks();
   static void screenContentMethod(SoAction *, SoNode *);
+  static void markerContentMethod(SoAction *, SoNode *);
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
   void rememberFrameRoot(SoNode * root, bool qualifyCamera);

@@ -9,8 +9,13 @@
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include "rendering/coinrender/CoinRenderText2Capture.h"
+#include "rendering/coinrender/CoinRenderScreenRasterCore.h"
 #include <Inventor/nodes/SoImage.h>
 #include <Inventor/nodes/SoText2.h>
+#include <Inventor/nodes/SoMarkerSet.h>
+#include <Inventor/nodes/SoIndexedMarkerSet.h>
+#include <Inventor/nodes/SoVertexProperty.h>
+#include "shapenodes/CoinRenderMarkerBridge.h"
 #include <Inventor/nodes/SoShape.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCone.h>
@@ -912,6 +917,393 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     this->currentPlan, this->renderStatesByModel, rs);
   if (stable) this->shapeRenderStates.emplace_back(materialIndex, rsSlot);
   return rsSlot;
+}
+
+bool
+CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, const SoNode * node,
+                                                bool primitiveObservers)
+{
+  // Registration changes do not notify the shape. Every marker-containing
+  // scene, including NONE/empty captures, must read the registry on each apply.
+  this->screenContentCaptured = true;
+  this->endShape();
+  auto fail = [&](const std::string & message, bool unsupported = false) {
+    this->hasError = true;
+    this->isUnsupported = this->isUnsupported || unsupported;
+    this->builderError = message;
+    return false;
+  };
+  if (!this->inFrame || !action || !node)
+    return fail("Invalid marker capture scope");
+  const bool indexed = node->getTypeId() == SoIndexedMarkerSet::getClassTypeId();
+  if (!indexed && node->getTypeId() != SoMarkerSet::getClassTypeId())
+    return fail("UNSUPPORTED: custom marker node requires its own capture contract", true);
+  try {
+  const auto * markerNode = indexed ? nullptr : static_cast<const SoMarkerSet *>(node);
+  const auto * indexedNode = indexed ? static_cast<const SoIndexedMarkerSet *>(node) : nullptr;
+  if (indexed && indexedNode->coordIndex.getNum() == 0) return true;
+  SoNode * property = indexed ? indexedNode->vertexProperty.getValue() : markerNode->vertexProperty.getValue();
+  if (property && property->getTypeId() != SoVertexProperty::getClassTypeId())
+    return fail("UNSUPPORTED: custom marker vertexProperty requires its own capture contract", true);
+
+  SoState * state = action->getState();
+  struct StateScope {
+    SoState * state;
+    explicit StateScope(SoState * value) : state(value) { state->push(); }
+    ~StateScope() { state->pop(); }
+  } scope(state);
+  bool inheritedTextureAlpha = false;
+  {
+    // GLImage sets TRANSP_TEXTURE from every stored image, independently of
+    // enabled/quality. The generic callback image element never sets that
+    // style flag, and disableAll only clears TEXENABLED. Snapshot the same
+    // source classification before disabling marker sampling; do not capture
+    // UV functions, sampler state, or upload a texture for these bitmaps.
+    class ImageUnitAccess : public SoMultiTextureImageElement {
+    public:
+      static int count(const SoMultiTextureImageElement * element) {
+        // A protected member pointer is formed in derived-class scope and
+        // invoked on the actual Base instance. No downcast or fake derived
+        // object is involved; no public Coin element API is changed.
+        const auto getter = &ImageUnitAccess::getNumUnits;
+        return (element->*getter)();
+      }
+    };
+    const int imageStack = SoMultiTextureImageElement::getClassStackIndex();
+    if (!state->isElementEnabled(imageStack))
+      return fail("Marker capture has no inherited image element");
+    const auto * images = static_cast<const SoMultiTextureImageElement *>(state->getConstElement(imageStack));
+    const int units = ImageUnitAccess::count(images);
+    if (units < 0 || units > static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS))
+      return fail("UNSUPPORTED: marker transparency classification supports at most eight inherited image units", true);
+    size_t classifiedBytes = 0;
+    for (int unit = 0; unit < units; ++unit) {
+      SbVec3s size;
+      int components = 0;
+      const unsigned char * bytes = SoMultiTextureImageElement::getImage(state, unit, size, components);
+      const auto producer = this->sceneTextures.find(bytes);
+      if (producer != this->sceneTextures.end()) {
+        const int32_t policy = producer->second.transparencyFunction;
+        if (!coin_render_scene_texture_policy_supported(policy))
+          return fail("UNSUPPORTED: inherited marker scene texture has an unknown transparency policy", true);
+        if (!producer->second.producerId && coin_render_scene_texture_forces_transparency(policy))
+          return fail("UNSUPPORTED: marker transparency from an inactive scene texture depends on native GL image history", true);
+        inheritedTextureAlpha = inheritedTextureAlpha || coin_render_scene_texture_forces_transparency(policy);
+        continue; // Native FORCE flags precede pixel-alpha inspection.
+      }
+      if (size[0] < 0 || size[1] < 0 || size[2] < 0 || components < 0 || components > 4)
+        return fail("Inherited marker image has invalid dimensions or component count");
+      if (!size[0] || !size[1]) continue; // Default/cleared image: native GLImage is absent.
+      if (components < 1)
+        return fail("Inherited marker image has no components for a nonempty image");
+      if (components != 2 && components != 4) continue;
+      // Native images without CPU bytes conservatively classify their alpha
+      // base format as transparent. Ordinary callback images have owned bytes;
+      // unresolved scene producers were handled by their force policy above.
+      if (!bytes) { inheritedTextureAlpha = true; continue; }
+      const size_t remaining = 128 * 1024 * 1024 - classifiedBytes;
+      size_t pixels = 1;
+      const size_t dimensions[] = {size_t(size[0]), size_t(size[1]), size_t(size[2] ? size[2] : 1)};
+      for (size_t dimension : dimensions) {
+        if (dimension > remaining / pixels)
+          return fail("UNSUPPORTED: marker transparency classification exceeds 128 MiB of inherited alpha images", true);
+        pixels *= dimension;
+      }
+      if (pixels > remaining / size_t(components))
+        return fail("UNSUPPORTED: marker transparency classification exceeds 128 MiB of inherited alpha images", true);
+      const size_t scanBytes = pixels * size_t(components);
+      classifiedBytes += scanBytes;
+      // SoGLImage::checkTransparency treats zero alpha as transparent too,
+      // even when it could select alpha testing for an ordinary textured shape.
+      inheritedTextureAlpha = inheritedTextureAlpha ||
+        coin_render_image_has_transparency(bytes, pixels, components);
+    }
+  }
+  // MarkerSet disables texture state before shouldGLRender; IndexedMarkerSet
+  // classifies transparency first. Neither disable clears the native stored
+  // image transparency flag, so both retain the source classification above.
+  if (!indexed) {
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoMultiTextureEnabledElement::disableAll(state);
+  }
+  if (property) property->doAction(action);
+  if (isShapeInvisible(action)) return true;
+  if (this->hasActiveShadowGroup())
+    return fail("UNSUPPORTED: marker raster inside an active shadow group", true);
+  const uint32_t shapeFlags = SoShapeStyleElement::get(state)->getFlags();
+  if (shapeFlags & SoShapeStyleElement::BBOXCMPLX)
+    return fail("UNSUPPORTED: marker bounding-box complexity requires bounding-box capture", true);
+  const bool traversalAlpha = inheritedTextureAlpha || (shapeFlags &
+    (SoShapeStyleElement::TRANSP_MATERIAL | SoShapeStyleElement::TRANSP_TEXTURE)) != 0;
+  const int transparencyType = SoShapeStyleElement::getTransparencyType(state);
+  const bool needsSortingCenter = traversalAlpha &&
+    (transparencyType == SoGLRenderAction::SORTED_OBJECT_ADD ||
+     transparencyType == SoGLRenderAction::SORTED_OBJECT_BLEND ||
+     transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
+     transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
+  if (traversalAlpha && (transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
+                         transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND))
+    return fail("UNSUPPORTED: transparent markers with sorted-triangle traversal require Coin's primitive-cache policy", true);
+  if (indexed) {
+    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+    SoMultiTextureEnabledElement::disableAll(state);
+  }
+
+  const auto * coordinates = SoCoordinateElement::getInstance(state);
+  const int coordinateCount = coordinates->getNum();
+  const int start = indexed ? 0 : markerNode->startIndex.getValue();
+  const int requested = indexed ? indexedNode->coordIndex.getNum() : markerNode->numPoints.getValue();
+  if (!indexed && (start < 0 || start > coordinateCount ||
+                   (requested >= 0 && requested > coordinateCount - start)))
+    return fail("Marker coordinate start/count is outside the captured array");
+  const int count = indexed ? requested : (requested < 0 ? coordinateCount - start : requested);
+  if (!count) return true;
+  if (count > 1048576)
+    return fail("UNSUPPORTED: marker capture exceeds 1048576 coordinate occurrences", true);
+  const SoMFInt32 & markerIndices = indexed ? indexedNode->markerIndex : markerNode->markerIndex;
+  if (markerIndices.getNum() == 0)
+    return fail("Marker index array is empty for a nonempty marker set");
+  const auto binding = SoMaterialBindingElement::get(state);
+  const bool materialPerVertex = binding != SoMaterialBindingElement::OVERALL;
+  const bool materialIndexed = indexed &&
+    (binding == SoMaterialBindingElement::PER_PART_INDEXED ||
+     binding == SoMaterialBindingElement::PER_FACE_INDEXED ||
+     binding == SoMaterialBindingElement::PER_VERTEX_INDEXED);
+  const bool explicitMaterials = indexed && indexedNode->materialIndex.getNum() > 0 &&
+    indexedNode->materialIndex[0] >= 0;
+  const int materialCount = SoLazyElement::getInstance(state)->getNumDiffuse();
+  const auto * normals = SoNormalElement::getInstance(state);
+  const int normalCount = normals->getNum();
+  const auto normalBinding = SoNormalBindingElement::get(state);
+  const bool normalPerVertex = normalBinding != SoNormalBindingElement::OVERALL;
+  const bool normalIndexed = indexed &&
+    (normalBinding == SoNormalBindingElement::PER_PART_INDEXED ||
+     normalBinding == SoNormalBindingElement::PER_FACE_INDEXED ||
+     normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED);
+  const bool explicitNormals = indexed && indexedNode->normalIndex.getNum() > 0 &&
+    indexedNode->normalIndex[0] >= 0;
+  auto coordinateIndex = [&](int occurrence) {
+    return indexed ? indexedNode->coordIndex[occurrence] : start + occurrence;
+  };
+  auto markerIndex = [&](int occurrence) {
+    // Native debug IndexedMarkerSet repeats the tail. Release's unchecked
+    // short-array read is undefined; use the safe policy in every build.
+    return markerIndices[std::min(occurrence, markerIndices.getNum() - 1)];
+  };
+  auto materialIndex = [&](int occurrence, int coordinate, int & material) {
+    material = materialPerVertex ? occurrence : 0;
+    if (materialIndexed) {
+      if (explicitMaterials) {
+        if (occurrence >= indexedNode->materialIndex.getNum()) return false;
+        material = indexedNode->materialIndex[occurrence];
+      } else material = coordinate;
+    }
+    return material >= 0 && material < materialCount;
+  };
+  struct Bitmap {
+    int width = 0, height = 0;
+    size_t stride = 0;
+    std::vector<unsigned char> bytes;
+  };
+  std::unordered_map<int, Bitmap> bitmaps;
+  size_t bitmapBytes = 0;
+  auto bitmap = [&](int marker, const Bitmap *& output) {
+    output = nullptr;
+    const auto found = bitmaps.find(marker);
+    if (found != bitmaps.end()) { output = &found->second; return true; }
+    coin_render_marker_bitmap_view view = {};
+    const int status = coin_render_marker_bitmap(marker, &view);
+    if (status < 0) return fail("Registered marker has malformed bitmap storage");
+    if (!status || !view.width || !view.height) return true;
+    const size_t rowBytes = (size_t(view.width) + 7) / 8;
+    const size_t inferredAlignment = marker < SoMarkerSet::NUM_MARKERS ? 4 : 1;
+    const size_t inferredStride = (rowBytes + inferredAlignment - 1) & ~(inferredAlignment - 1);
+    if (indexed && inferredStride != view.row_stride)
+      return fail("UNSUPPORTED: IndexedMarkerSet inferred bitmap alignment differs from registered storage", true);
+    if (view.byte_count > 16 * 1024 * 1024 - bitmapBytes || bitmaps.size() >= 4096)
+      return fail("UNSUPPORTED: marker bitmap capture exceeds 16 MiB or 4096 registered bitmaps", true);
+    Bitmap captured;
+    captured.width = view.width; captured.height = view.height; captured.stride = view.row_stride;
+    // Registry pointers are not retained through primitive observers or later
+    // frames. A subsequent add/remove operation can free every borrowed byte.
+    captured.bytes.assign(view.bytes, view.bytes + view.byte_count);
+    bitmapBytes += view.byte_count;
+    output = &bitmaps.emplace(marker, std::move(captured)).first->second;
+    return true;
+  };
+
+  // Validate every coordinate/material which native capture or inherited point
+  // observers will read, including observer-visible NONE occurrences, before
+  // invoking any observer. Negative IndexedPointSet separators are skipped by
+  // observers, but a defined marker at a negative coordinate is malformed.
+  // SoPointSet/SoIndexedShape computeBBox return the arithmetic center of
+  // coordinate occurrences, not the midpoint of the min/max bounds. Include
+  // NONE and culled occurrences exactly as the native sorted-object path.
+  SbVec3f sortingCenter(0,0,0);
+  int sortingOccurrences = 0;
+  for (int i = 0; i < count; ++i) {
+    const int marker = markerIndex(i);
+    if (marker < SoMarkerSet::NONE) return fail("Marker identifier is below NONE");
+    const Bitmap * image = nullptr;
+    if (marker != SoMarkerSet::NONE && !bitmap(marker, image)) return false;
+    const int coordinate = coordinateIndex(i);
+    const bool nativeRead = !indexed || image != nullptr;
+    const bool callbackOrBBoxRead = (primitiveObservers || needsSortingCenter) && coordinate >= 0;
+    if ((nativeRead || callbackOrBBoxRead) &&
+        (coordinate < 0 || coordinate >= coordinateCount))
+      return fail("Marker coordinate index is outside the captured array");
+    if (!nativeRead && !callbackOrBBoxRead) continue;
+    const SbVec3f point = coordinates->get3(coordinate);
+    // MarkerSet fetches the coordinate before NONE, but does not project or
+    // cull that unused position. Observers and sorted bbox capture do use it.
+    if (image || callbackOrBBoxRead)
+      for (int axis = 0; axis < 3; ++axis)
+        if (!std::isfinite(point[axis])) return fail("Marker coordinate is not finite");
+    if (needsSortingCenter) { sortingCenter += point; ++sortingOccurrences; }
+    int material;
+    if ((!indexed || image || primitiveObservers) && !materialIndex(i, coordinate, material))
+      return fail("Marker material index is outside the captured array");
+    if (primitiveObservers && normalCount > 0 && normalPerVertex) {
+      int normal = i;
+      if (normalIndexed) {
+        if (explicitNormals) {
+          if (i >= indexedNode->normalIndex.getNum())
+            return fail("Marker observer normal index array is too short");
+          normal = indexedNode->normalIndex[i];
+        } else normal = coordinate;
+      }
+      if (normal < 0 || normal >= normalCount)
+        return fail("Marker observer normal index is outside the captured array");
+    }
+  }
+
+  if (sortingOccurrences) {
+    sortingCenter /= float(sortingOccurrences);
+    for (int axis = 0; axis < 3; ++axis)
+      if (!std::isfinite(sortingCenter[axis])) return fail("Marker sorting center is not finite");
+  }
+  const auto source = this->currentPlan.renderStates[this->captureRenderState(action, 0, false)];
+  if (this->hasError || this->isUnsupported) return false;
+  const auto viewport = this->currentPlan.viewports[source.viewportSlot];
+  const SbMatrix mvp = source.model * source.view * source.projectionCoin;
+  if (!CoinRenderTransformCore::finiteMatrix(mvp)) return fail("Marker projection matrix is not finite");
+  const auto & volume = action->getViewVolume();
+  const float volumeDimensions[] = {volume.getWidth(), volume.getHeight(), volume.getDepth()};
+  for (float dimension : volumeDimensions) {
+    if (!std::isfinite(dimension)) return fail("Marker view-volume dimensions are not finite");
+    if (dimension == 0.0f)
+      return fail("UNSUPPORTED: marker raster with a degenerate camera view volume", true);
+  }
+  SbPlane viewPlanes[6];
+  volume.getViewVolumePlanes(viewPlanes);
+  for (const auto & plane : viewPlanes) {
+    const auto & normal = plane.getNormal();
+    const float lengthSquared = normal.sqrLength();
+    if (!std::isfinite(normal[0]) || !std::isfinite(normal[1]) ||
+        !std::isfinite(normal[2]) || !std::isfinite(plane.getDistanceFromOrigin()) ||
+        !std::isfinite(lengthSquared) || lengthSquared <= 0.0f)
+      return fail("UNSUPPORTED: marker raster with degenerate camera clipping planes", true);
+  }
+  auto rasterState = source;
+  rasterState.rasterPixels = true;
+  rasterState.rasterTransparent = traversalAlpha;
+  rasterState.model = rasterState.view = rasterState.projectionCoin = SbMatrix::identity();
+  rasterState.lightModel = CoinRenderLightModel::BASE_COLOR;
+  rasterState.cullMode = CoinRenderCullMode::NONE;
+  rasterState.frontFace = CoinRenderFrontFace::CCW;
+  rasterState.polygonOffsetEnabled = false;
+  rasterState.polygonLinePattern = false;
+  rasterState.clipPlanesWorld.clear(); // Native bitmap raster temporarily disables user planes.
+  rasterState.hasTexture = false;
+  rasterState.transparentTexture = false;
+  if (rasterState.transparencyType == SoGLRenderAction::SCREEN_DOOR)
+    rasterState.transparencyType = SoGLRenderAction::NONE; // glBitmap ignores polygon stipple.
+  if (!rasterState.depthTest) { rasterState.depthWrite = false; rasterState.explicitDepthMask |= 2; }
+  const float uv[] = {0,0,0,0};
+  std::string diagnostic;
+  size_t coveredRuns = 0;
+  std::unordered_map<int, uint32_t> rasterMaterials;
+  for (int i = 0; i < count; ++i) {
+    const int marker = markerIndex(i);
+    const auto found = bitmaps.find(marker);
+    if (found == bitmaps.end()) continue;
+    const Bitmap & image = found->second;
+    const SbVec3f point = coordinates->get3(coordinateIndex(i));
+    SbVec3f world;
+    source.model.multVecMatrix(point, world);
+    for (int axis = 0; axis < 3; ++axis)
+      if (!std::isfinite(world[axis])) return fail("Marker world position is not finite");
+    bool culled = false;
+    for (const auto & plane : viewPlanes) if (!plane.isInHalfSpace(world)) culled = true;
+    for (const auto & plane : source.clipPlanesWorld) if (!plane.isInHalfSpace(world)) culled = true;
+    if (culled) continue;
+    SbVec3f projected;
+    mvp.multVecMatrix(point, projected);
+    const float rasterX = (projected[0] + 1.0f) * 0.5f * viewport.width - (image.width - 1) / 2;
+    const float rasterY = (projected[1] + 1.0f) * 0.5f * viewport.height - (image.height - 1) / 2;
+    bool visible;
+    if (!CoinRenderScreenRasterCore::rasterVisible(rasterState, viewport, rasterX, rasterY,
+                                                  projected[2], visible, diagnostic, false))
+      return fail(diagnostic);
+    if (!visible) continue;
+    float xOrigin, yOrigin;
+    if (!CoinRenderScreenRasterCore::markerBitmapOrigin(viewport, rasterX, rasterY,
+                                                        xOrigin, yOrigin, diagnostic)) return fail(diagnostic);
+    int material;
+    if (!materialIndex(i, coordinateIndex(i), material)) return fail("Marker material index changed during capture");
+    auto cachedMaterial = rasterMaterials.find(material);
+    uint32_t materialSlot;
+    if (cachedMaterial != rasterMaterials.end()) materialSlot = cachedMaterial->second;
+    else {
+      if (rasterMaterials.size() >= 65536)
+        return fail("UNSUPPORTED: marker raster exceeds 65536 primary material variants per node", true);
+      auto captured = this->currentPlan.materials[this->captureMaterial(action, material)];
+      if (!std::isfinite(captured.transparency) || captured.transparency < 0 || captured.transparency > 1)
+        return fail("Marker primary transparency is outside finite [0,1]");
+      for (int channel = 0; channel < 4; ++channel) {
+        if (!std::isfinite(captured.diffuse[channel]) || captured.diffuse[channel] < 0 || captured.diffuse[channel] > 1)
+          return fail("Marker primary color is outside finite [0,1]");
+        captured.diffuse[channel] = std::floor(captured.diffuse[channel] * 255.0f + 0.5f) / 255.0f;
+      }
+      if (source.transparencyType == SoGLRenderAction::SCREEN_DOOR) captured.diffuse[3] = 1.0f;
+      captured.transparency = 1.0f - captured.diffuse[3];
+      materialSlot = this->internMaterial(captured);
+      rasterMaterials.emplace(material, materialSlot);
+    }
+    rasterState.materialSlot = materialSlot;
+    const uint32_t stateSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
+    for (int y = 0; y < image.height; ++y) {
+      auto covered = [&](int x) { return (image.bytes[size_t(y) * image.stride + size_t(x / 8)] & (0x80u >> (x & 7))) != 0; };
+      for (int x = 0; x < image.width;) {
+        if (!covered(x)) { ++x; continue; }
+        const int begin = x;
+        while (x < image.width && covered(x)) ++x;
+        if (++coveredRuns > 65536)
+          return fail("UNSUPPORTED: marker raster exceeds 65536 covered runs per node", true);
+        if (this->currentPlan.vertices.size() > UINT32_MAX - 4 || this->currentPlan.indices.size() > UINT32_MAX - 6)
+          return fail("UNSUPPORTED: marker raster geometry exceeds index capacity", true);
+        CoinRenderScreenRasterQuad quad;
+        if (!CoinRenderScreenRasterCore::pixelQuad(viewport, xOrigin + begin, yOrigin + y,
+              float(x - begin), 1.0f, projected[2], uv, materialSlot, quad, diagnostic)) return fail(diagnostic);
+        if (!quad.visible) continue;
+        this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot, const_cast<SoNode *>(node));
+        auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+        if (draw.geometry.indexCount == 0 && needsSortingCenter && sortingOccurrences)
+          CoinRenderPlanAssemblyCore::sortingCenter(draw, source.model, sortingCenter);
+        const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
+        for (auto vertex : quad.vertices) {
+          vertex.fogEyeDepth = CoinRenderScreenRasterCore::planarRasterFogDepth(projected[2]);
+          this->currentPlan.vertices.push_back(vertex);
+        }
+        for (uint32_t index : {0u,1u,2u,0u,2u,3u}) this->currentPlan.indices.push_back(first + index);
+        draw.geometry.vertexCount += 4; draw.geometry.indexCount += 6;
+      }
+    }
+  }
+  return true;
+  } catch (const std::bad_alloc &) {
+    return fail("UNSUPPORTED: marker raster capture could not allocate bounded storage", true);
+  }
 }
 
 bool

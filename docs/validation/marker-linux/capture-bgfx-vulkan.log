@@ -1,0 +1,10 @@
+indexed/short-list-safe-extension complete-list-equivalence passed (no unsafe CoinGL execution)
+markers/subclass-user-callback passed (callback semantics; no native bitmap parity claim)
+markers/degenerate-perspective-volume explicit transactional rejection passed
+markers/start-outside-coordinates explicit transactional rejection passed
+markers/count-outside-coordinates explicit transactional rejection passed
+markers/invalid-negative-marker explicit transactional rejection passed
+markers/nonfinite-coordinate explicit transactional rejection passed
+indexed/invalid-coordinate-index explicit transactional rejection passed
+indexed/builtin-native-stride-incompatibility explicit transactional rejection passed
+CoinRenderMarkerSetTest capture/CPU passed reference_pairs=0 safe_extension_checks=1

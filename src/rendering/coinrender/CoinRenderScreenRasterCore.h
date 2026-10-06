@@ -146,6 +146,36 @@ public:
     return true;
   }
 
+  // Qualified marker Bitmap origin profile: the NVIDIA CoinGL runtime keeps
+  // its raster window position on an absolute 1/2048-pixel grid (11 fractional
+  // bits), then Bitmap floors that position. This reproduces measured origins
+  // near integer boundaries and at fractional positions; it is not a claim
+  // about every GL driver's raster precision or their stored fractional ties.
+  // Other CoinGL runtimes require independent qualification of this profile.
+  // The caller first tests the ORIGINAL, unclamped marker raster position for
+  // visibility. Quantization must never admit a negative/outside anchor.
+  static bool markerBitmapOrigin(const CoinRenderViewportSnapshot & viewport,
+                                 float rasterX, float rasterY,
+                                 float & originX, float & originY,
+                                 std::string & diagnostic) {
+    diagnostic.clear();
+    if (!validViewport(viewport, diagnostic)) return false;
+    if (!std::isfinite(rasterX) || !std::isfinite(rasterY) || rasterX < 0.0f || rasterY < 0.0f ||
+        rasterX > float(viewport.width) || rasterY > float(viewport.height))
+      return fail("Marker Bitmap origin requires a finite admitted raster position", diagnostic);
+    // Power-of-two scaling and the half step are exact in double throughout
+    // signed-int viewport bounds, including every source float mantissa. No
+    // nearbyint/process rounding mode or integer-boundary epsilon is used.
+    // Half-up and nearest-even yield the same final integer origin: every
+    // integral-pixel tick is an even multiple of the 2048 subpixel ticks.
+    const double scale = 2048.0;
+    const float x = float(std::floor(std::floor(double(rasterX) * scale + 0.5) / scale));
+    const float y = float(std::floor(std::floor(double(rasterY) * scale + 0.5) / scale));
+    originX = x;
+    originY = y;
+    return true;
+  }
+
   // A clipped/empty rectangle is a successful no-op. Output changes only on
   // success; invalid inputs keep it intact. Pixel dimensions are independent
   // of model rotation/scaling and camera distance, like GL raster operations.
