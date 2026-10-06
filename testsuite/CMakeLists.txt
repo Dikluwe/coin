@@ -482,3 +482,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
   target_link_libraries(CoinFontTessellationTest PRIVATE Coin)
   add_test(NAME FontTessellationFailureRecovery COMMAND CoinFontTessellationTest)
 endif()
+
+if(NOT WIN32 OR NOT COIN_BUILD_SHARED_LIBS)
+  add_executable(CoinFontRepresentationSizeTest FontRepresentationSizeTest.cpp)
+  target_compile_definitions(CoinFontRepresentationSizeTest PRIVATE COIN_INTERNAL)
+  target_include_directories(CoinFontRepresentationSizeTest PRIVATE ${PROJECT_SOURCE_DIR}/src)
+  target_link_libraries(CoinFontRepresentationSizeTest PRIVATE Coin)
+  add_test(NAME FontRepresentationSizeIsolation COMMAND CoinFontRepresentationSizeTest)
+  set_tests_properties(FontRepresentationSizeIsolation PROPERTIES SKIP_RETURN_CODE 77)
+endif()

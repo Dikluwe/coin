@@ -731,6 +731,7 @@ flw_get_bitmap_locked(cc_flw_font * fs, cc_flw_glyph * gs)
         bm = cc_flww32_get_bitmap(fs->nativefonthandle, gs->nativeglyphidx);
       }
       else if (using_freetype()) {
+        cc_flwft_set_char_size(fs->nativefonthandle, fs->sizey);
         bm = cc_flwft_get_bitmap(fs->nativefonthandle, gs->nativeglyphidx);
       }
     }
@@ -836,12 +837,17 @@ cc_flw_get_bitmap_kerning(int font, unsigned int glyph1, unsigned int glyph2,
     if (!gs1 || !gs2) {
       cc_debugerror_post("cc_flw_get_bitmap_kerning", "unknown glyph -- returning 0.");
     }
+    else if (gs1->fromdefaultfont || gs2->fromdefaultfont ||
+             gs1->bitmapfromdefaultfont || gs2->bitmapfromdefaultfont) {
+      // Builtin fallback glyphs have no native kerning pair.
+    }
     else if (using_win32api()) {
       cc_flww32_get_bitmap_kerning(fs->nativefonthandle,
                                    gs1->nativeglyphidx,
                                    gs2->nativeglyphidx, x, y);
     }
     else if (using_freetype()) {
+      cc_flwft_set_char_size(fs->nativefonthandle, fs->sizey);
       cc_flwft_get_bitmap_kerning(fs->nativefonthandle,
                                   gs1->nativeglyphidx,
                                   gs2->nativeglyphidx, x, y);
