@@ -450,3 +450,13 @@ target_link_libraries(CoinFontSpecTest PRIVATE Coin)
 add_test(NAME FontSpecificationParsing COMMAND CoinFontSpecTest)
 add_test(NAME FontSpecificationWithoutFontconfig COMMAND CoinFontSpecTest)
 set_tests_properties(FontSpecificationWithoutFontconfig PROPERTIES ENVIRONMENT "COIN_FORCE_FONTCONFIG_OFF=1")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
+   (HAVE_FREETYPE OR FREETYPE_RUNTIME_LINKING))
+  add_executable(CoinFontRepresentationTest FontRepresentationTest.cpp)
+  target_compile_definitions(CoinFontRepresentationTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_include_directories(CoinFontRepresentationTest PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  target_link_libraries(CoinFontRepresentationTest PRIVATE Coin)
+  add_test(NAME FontRepresentationOwnership COMMAND CoinFontRepresentationTest)
+  set_tests_properties(FontRepresentationOwnership PROPERTIES SKIP_RETURN_CODE 77)
+endif()

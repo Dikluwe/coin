@@ -13,7 +13,7 @@ int main() {
  int size[2],offset[2],failures=0,cases=0;
  const auto *ap=cc_glyph2d_getbitmap(a,size,offset);
  const auto *qp=cc_glyph2d_getbitmap(q,size,offset);
- for (uint32_t value:{0x141u,0x1041u,0x1f641u,0xffffffffu}) {
+ for (uint32_t value:{0x141u,0x1041u,0x1f641u,0x10ffffu}) {
   auto *glyph=cc_glyph2d_ref(value,&spec,0);
   auto *glyph3=cc_glyph3d_ref(value,&spec);
   const auto *pixels=cc_glyph2d_getbitmap(glyph,size,offset);
