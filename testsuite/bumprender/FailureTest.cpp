@@ -86,8 +86,11 @@ void testDeletePrograms(const cc_glglue *, GLsizei n, const GLuint * ids) {
 struct TestDebugError {
   static void postWarning(const char *, const char *, const char *, const char *,
                           unsigned int, int, const char * message) {
-    std::strncpy(reportedProgramError, message, sizeof(reportedProgramError) - 1);
-    reportedProgramError[sizeof(reportedProgramError) - 1] = '\0';
+    {
+      std::lock_guard<std::mutex> lock(mock.mutex);
+      std::strncpy(reportedProgramError, message, sizeof(reportedProgramError) - 1);
+      reportedProgramError[sizeof(reportedProgramError) - 1] = '\0';
+    }
     postWarning(0);
   }
   template<class... Args> static void postWarning(Args...) {
