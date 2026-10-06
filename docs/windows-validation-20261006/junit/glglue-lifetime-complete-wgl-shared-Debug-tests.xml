@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="2"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="1"
+	timestamp="2026-10-06T16:11:21"
+	>
+	<testcase name="GLGlueLifetimeWGL" classname="GLGlueLifetimeWGL" time="0.822511" status="run">
+		<properties/>
+		<system-out>WGL vendor=NVIDIA Corporation renderer=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 version=4.6.0 NVIDIA 581.08
+WGL vendor=NVIDIA Corporation renderer=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 version=4.6.0 NVIDIA 581.08
+Glue: callbacks, owned allocations, 72 generations, two threads and shutdown passed.
+</system-out>
+	</testcase>
+	<testcase name="GLGlueLifetimeWGLNoCallbacks" classname="GLGlueLifetimeWGLNoCallbacks" time="0.340617" status="run">
+		<properties/>
+		<system-out>WGL vendor=NVIDIA Corporation renderer=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 version=4.6.0 NVIDIA 581.08
+Glue released without registered callbacks.
+</system-out>
+	</testcase>
+</testsuite>

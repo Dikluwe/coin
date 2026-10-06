@@ -1,0 +1,374 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="70"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="4"
+	timestamp="2026-10-06T16:06:42"
+	>
+	<testcase name="BumpProgramFailuresAndLifetime" classname="BumpProgramFailuresAndLifetime" time="0.186442" status="run">
+		<properties/>
+		<system-out>Running cold_registry_allocation_case
+Running failure_cases
+Running deferred_cases
+Running stale_initializer_case
+Running lifetime_cases
+Running diffuse_and_context_cases
+Running error_handler_cases
+Running redraw_lifetime_cases
+Running multiple_root_redraw_case
+Running queue_changed_lifetime_cases
+Running concurrent_cases
+Running allocation_failure_cases
+Running owned_allocation_cases
+Running dependency_failure_boundary_cases
+Running registry_cleanup_allocation_case
+Running token_exhaustion_cases
+Bump program failure, allocation, cache, deferred initialization and lifetime tests passed.
+</system-out>
+	</testcase>
+	<testcase name="CoinTests" classname="CoinTests" time="1.78784" status="run">
+		<properties/>
+		<system-out>Coin warning in SoVRMLScript::initialize(): No script language evaluation engine available.
+[OK] 397 tests, 307561 checks
+</system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_valid_sentinel" classname="SoTempPathReplaceTail_valid_sentinel" time="0.0745117" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_valid_replacement" classname="SoTempPathReplaceTail_valid_replacement" time="0.0770336" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_empty_noop" classname="SoTempPathReplaceTail_empty_noop" time="0.113081" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathRange" classname="SoPathRange" time="0.17734" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_node" classname="SoPathLegacyAccessorBounds_node" time="0.130794" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_node-tail" classname="SoPathLegacyAccessorBounds_node-tail" time="0.0779317" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_index" classname="SoPathLegacyAccessorBounds_index" time="0.0741603" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_index-tail" classname="SoPathLegacyAccessorBounds_index-tail" time="0.0789141" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_valid" classname="SoPathLegacyAccessorBounds_valid" time="0.0912174" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_visibility" classname="SoPathLegacyAccessorBounds_visibility" time="0.0794457" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_reassign" classname="SoPathAssignmentAuditor_reassign" time="0.124989" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_self-assign" classname="SoPathAssignmentAuditor_self-assign" time="0.0755129" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_copy-construct" classname="SoPathAssignmentAuditor_copy-construct" time="0.0746629" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_empty" classname="SoPathAuditorCallback_empty" time="0.0810418" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_foreign-parent" classname="SoPathAuditorCallback_foreign-parent" time="0.104029" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_negative-index" classname="SoPathAuditorCallback_negative-index" time="0.0912656" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_null-replacement" classname="SoPathAuditorCallback_null-replacement" time="0.0772049" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_valid-callbacks" classname="SoPathAuditorCallback_valid-callbacks" time="0.0764741" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathChildAppend" classname="SoPathChildAppend" time="0.183254" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinConfigCompatibility" classname="CoinConfigCompatibility" time="1.37285" status="run">
+		<properties/>
+		<system-out>-- Coin config compatibility matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterExact" classname="CoinTestsFilterExact" time="0.0818373" status="run">
+		<properties/>
+		<system-out>[OK] 1 tests, 103 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterWildcard" classname="CoinTestsFilterWildcard" time="0.0827821" status="run">
+		<properties/>
+		<system-out>[OK] 1 tests, 103 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterSuite" classname="CoinTestsFilterSuite" time="0.0978704" status="run">
+		<properties/>
+		<system-out>[OK] 5 tests, 151 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterCombined" classname="CoinTestsFilterCombined" time="0.0805912" status="run">
+		<properties/>
+		<system-out>[OK] 3 tests, 111 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterRepeated" classname="CoinTestsFilterRepeated" time="0.0783485" status="run">
+		<properties/>
+		<system-out>[OK] 2 tests, 107 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterNoMatch" classname="CoinTestsFilterNoMatch" time="0.0761002" status="run">
+		<properties/>
+		<system-out>[FAIL] no tests matched the requested filters
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterMissingValue" classname="CoinTestsFilterMissingValue" time="0.0839361" status="run">
+		<properties/>
+		<system-out>[FAIL] --run_test requires a non-empty filter
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterEmptyValue" classname="CoinTestsFilterEmptyValue" time="0.0939808" status="run">
+		<properties/>
+		<system-out>[FAIL] --run_test requires a non-empty filter
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_unset" classname="ProfilerInit_unset" time="0.140714" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_off" classname="ProfilerInit_off" time="0.108605" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_0" classname="ProfilerInit_0" time="0.108923" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_on" classname="ProfilerInit_on" time="0.113538" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_1" classname="ProfilerInit_1" time="0.110688" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_syncgl" classname="ProfilerInit_syncgl" time="0.111426" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_invalid" classname="ProfilerInit_invalid" time="0.110116" status="run">
+		<properties/>
+		<system-out>Coin warning in SoProfilerP::parseCoinProfilerVariable(): invalid token 'pr717_invalid_token'
+enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_alarm_cancel" classname="SensorScheduling_alarm_cancel" time="0.108755" status="run">
+		<properties/>
+		<system-out>alarm_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_recurring_cancel" classname="SensorScheduling_recurring_cancel" time="0.0913653" status="run">
+		<properties/>
+		<system-out>recurring_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_alarm_reschedule" classname="SensorScheduling_alarm_reschedule" time="0.082729" status="run">
+		<properties/>
+		<system-out>alarm_reschedule: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timeout_change_cancel" classname="SensorScheduling_timeout_change_cancel" time="0.0932061" status="run">
+		<properties/>
+		<system-out>timeout_change_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_zero_repeat" classname="SensorScheduling_zero_repeat" time="0.0756124" status="run">
+		<properties/>
+		<system-out>zero_repeat: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_zero_nonidle" classname="SensorScheduling_zero_nonidle" time="0.0849378" status="run">
+		<properties/>
+		<system-out>zero_nonidle: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_nonzero_timeout" classname="SensorScheduling_nonzero_timeout" time="0.0782098" status="run">
+		<properties/>
+		<system-out>nonzero_timeout: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_node_detach" classname="SensorScheduling_node_detach" time="0.0903479" status="run">
+		<properties/>
+		<system-out>node_detach: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_reentry" classname="SensorScheduling_delay_reentry" time="0.0864753" status="run">
+		<properties/>
+		<system-out>delay_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_timeout_reentry" classname="SensorScheduling_delay_timeout_reentry" time="0.0815367" status="run">
+		<properties/>
+		<system-out>delay_timeout_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_reentry" classname="SensorScheduling_timer_reentry" time="0.07731" status="run">
+		<properties/>
+		<system-out>timer_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_changed_exception" classname="SensorScheduling_delay_changed_exception" time="0.0902422" status="run">
+		<properties/>
+		<system-out>delay_changed_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_changed_exception" classname="SensorScheduling_timer_changed_exception" time="0.0770338" status="run">
+		<properties/>
+		<system-out>timer_changed_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_remove_reentry" classname="SensorScheduling_delay_remove_reentry" time="0.0836305" status="run">
+		<properties/>
+		<system-out>delay_remove_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_remove_reentry" classname="SensorScheduling_timer_remove_reentry" time="0.0846735" status="run">
+		<properties/>
+		<system-out>timer_remove_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_exception" classname="SensorScheduling_timer_exception" time="0.0770903" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_exception" classname="SensorScheduling_delay_exception" time="0.0980584" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_cancel_exception" classname="SensorScheduling_timer_cancel_exception" time="0.0763184" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_cancel_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_deferred_exception" classname="SensorScheduling_delay_deferred_exception" time="0.0721152" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_deferred_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_absolute_deadline" classname="SensorScheduling_absolute_deadline" time="0.0834254" status="run">
+		<properties/>
+		<system-out>absolute_deadline: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_changed_during_dispatch" classname="SensorScheduling_changed_during_dispatch" time="0.0993822" status="run">
+		<properties/>
+		<system-out>changed_during_dispatch: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_immediate_notification" classname="SensorScheduling_immediate_notification" time="0.0876145" status="run">
+		<properties/>
+		<system-out>immediate_notification: passed
+</system-out>
+	</testcase>
+	<testcase name="XmlCHeaderAttributeTest" classname="XmlCHeaderAttributeTest" time="0.0371879" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderDocumentTest" classname="XmlCHeaderDocumentTest" time="0.0514832" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderElementTest" classname="XmlCHeaderElementTest" time="0.0551527" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderEntityTest" classname="XmlCHeaderEntityTest" time="0.0627229" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderParserTest" classname="XmlCHeaderParserTest" time="0.0697877" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderPathTest" classname="XmlCHeaderPathTest" time="0.0627987" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderTypesTest" classname="XmlCHeaderTypesTest" time="0.0592446" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderWorldTest" classname="XmlCHeaderWorldTest" time="0.0845932" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeadersAggregateTest" classname="XmlCHeadersAggregateTest" time="0.0697209" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCApiTest" classname="XmlCApiTest" time="0.07132" status="run">
+		<properties/>
+		<system-out>root[0]
+</system-out>
+	</testcase>
+	<testcase name="XmlLegacyPathDocumentCxxAbiTest" classname="XmlLegacyPathDocumentCxxAbiTest" time="0.0882199" status="run">
+		<properties/>
+		<system-out>legacy
+</system-out>
+	</testcase>
+</testsuite>
