@@ -288,6 +288,7 @@
 #include <Inventor/elements/SoGLCacheContextElement.h>
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoGLMultiTextureImageElement.h>
+#include <Inventor/elements/SoMultiTextureMatrixElement.h>
 #include <Inventor/elements/SoGLMultiTextureEnabledElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoGLDisplayList.h>
@@ -839,6 +840,10 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
 
   // disable all active textures
   SoMultiTextureEnabledElement::disableAll(state);
+  // A producer is an independent texture space, matching the pbuffer action.
+  // Otherwise the FBO path multiplies the consumer matrix into producer UVs.
+  for (int unit=0;unit<cc_glglue_max_texture_units(glue);++unit)
+    SoMultiTextureMatrixElement::makeIdentity(state,PUBLIC(this),unit);
   // The producer starts on unit zero even when visited while a shadow map
   // is being bound on another unit. Inheriting that unit breaks ordinary
   // fixed-function textures on drivers with fewer fixed than shader units.
@@ -1060,6 +1065,13 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
                                 translateWrap((SoSceneTexture2::Wrap)PUBLIC(this)->wrapS.getValue()),
                                 translateWrap((SoSceneTexture2::Wrap)PUBLIC(this)->wrapT.getValue()),
                                 quality);
+    }
+    // The FBO path uses linear/base-level filtering through quality 0.5.
+    // Avoid the SoGLImage stored-image >=0.5 mip threshold on readback-backed
+    // pbuffers; otherwise the RTT result depends on which mechanism was used.
+    if (quality<=0.5f) {
+      flags &= ~SoGLImage::USE_QUALITY_VALUE;
+      flags |= SoGLImage::NO_MIPMAP | SoGLImage::LINEAR_MIN_FILTER | SoGLImage::LINEAR_MAG_FILTER;
     }
     this->glimage->setFlags(flags);
   }

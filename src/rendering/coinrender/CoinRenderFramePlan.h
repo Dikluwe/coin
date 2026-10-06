@@ -211,7 +211,9 @@ enum class CoinRenderTextureWrap : uint32_t {
 
 enum class CoinRenderTextureFilter : uint32_t {
   NEAREST = 0,
-  LINEAR = 1
+  LINEAR = 1,
+  NEAREST_MIPMAP_LINEAR = 2, // linear magnification, nearest texels + linear LOD
+  LINEAR_MIPMAP_LINEAR = 3
 };
 
 enum class CoinRenderTextureModel : uint32_t {
@@ -230,6 +232,8 @@ struct CoinRenderTextureImageSnapshot {
   uint64_t gpuToken = 0;   // Execution-only connector handle; capture never sets it.
   int32_t sceneTransparencyFunction = -1; // -1: image alpha; otherwise captured Coin enum.
   bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
+  bool mipmapped = false;
+  std::vector<uint8_t> mipmapsRgba; // complete lower levels, largest first
   std::vector<uint8_t> pixelsRgba;
 };
 

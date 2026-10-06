@@ -377,7 +377,7 @@ bool run(bool gpu) {
   if (!h.render(scene,"recovery-after",true)) return false;
   const unsigned beforeQuality=h.capture->submissions;
   h.cpu->readbackRGBA(previous);
-  scene.quality->textureQuality=.8f; h.action.apply(scene.root);
+  scene.quality->textureQuality=.95f; h.action.apply(scene.root);
   h.cpu->readbackRGBA(preserved);
   if (!check(h.action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
       h.capture->submissions==beforeQuality && preserved==previous,"unsupported quality publication")) return false;

@@ -29,7 +29,7 @@ mod shader_profile;
 mod depth_transfer;
 mod instancing;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 46;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 47;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -2993,6 +2993,24 @@ fn get_or_create_pipeline<'a>(
     Ok(pipeline)
 }
 
+// Transport validation only: chain generation belongs to Coin/Core.
+fn texture_levels(width:u32,height:u32,format:u32)->Result<Vec<(u32,u32,u64)>,(CoinWgpuStatus,String)> {
+    if width==0 || height==0 || width>8192 || height>8192 || (format!=0 && format!=2) {
+        return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 texture layout".into()));
+    }
+    if format==2 && (!width.is_power_of_two() || !height.is_power_of_two()) {
+        return Err((CoinWgpuStatus::Unsupported,"P07 mipmaps require power-of-two dimensions".into()));
+    }
+    let(mut w,mut h,mut offset)=(width,height,0u64);let mut levels=Vec::new();
+    loop {levels.push((w,h,offset));offset+=u64::from(w)*u64::from(h)*4;
+        if format==0 || (w==1 && h==1){break;}w=(w/2).max(1);h=(h/2).max(1);
+    }
+    if format==2 && offset>128*1024*1024 {
+        return Err((CoinWgpuStatus::Unsupported,"P07 mip chain exceeds 128 MiB".into()));
+    }
+    Ok(levels)
+}
+
 fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
     -> Result<[i32; 4], (CoinWgpuStatus, String)> {
     let viewport = if state.viewport[2] == 0 && state.viewport[3] == 0 {
@@ -3013,6 +3031,16 @@ fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
 #[cfg(test)]
 mod viewport_tests {
     use super::*;
+    #[test]
+    fn mip_payload_layout_limits() {
+        assert_eq!(texture_levels(4,2,2).unwrap(),vec![(4,2,0),(2,1,32),(1,1,40)]);
+        assert_eq!(texture_levels(1,1,2).unwrap(),vec![(1,1,0)]);
+        assert_eq!(texture_levels(3,5,0).unwrap(),vec![(3,5,0)]);
+        for &(w,h,f) in &[(3,5,2),(8192,8192,2),(0,8,2),(8193,1,0),(4,4,3)] {
+            assert!(texture_levels(w,h,f).is_err());
+        }
+    }
+
     #[test]
     fn viewport_defaults_empty_and_bounds() {
         let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
@@ -3222,6 +3250,16 @@ fn encode_frame(
     // Preflight the entire lighting payload before cache mutation or command encoding.
     for (state_index, state) in states_slice.iter().enumerate() {
         resolved_viewport(state, target_width, target_height)?;
+        for unit in 0..8 {
+            let (enabled,image,sampler)=if unit==0 {(state.has_texture,state.texture_slot,state.sampler_slot)}
+                else {let t=&state.extra_textures[unit-1];(t.enabled,t.texture_slot,t.sampler_slot)};
+            if enabled==0 {continue;}
+            let image=textures_slice.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 image slot out of bounds".into()))?;
+            let sampler=samplers_slice.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 sampler slot out of bounds".into()))?;
+            if sampler.filter>=2 && image.format!=2 {
+                return Err((CoinWgpuStatus::Unsupported,"P07 mip sampler requires complete stored-image chain".into()));
+            }
+        }
         if state.light_count > 8 {
             return Err((CoinWgpuStatus::Unsupported,
                 format!("State {} has more than eight active lights", state_index)));
@@ -3305,19 +3343,9 @@ fn encode_frame(
             }
             continue;
         }
-        if t.format != 0 {
-            return Err((CoinWgpuStatus::Unsupported,
-                format!("Texture {} format is unsupported", t_idx)));
-        }
-        let expected_bytes = match (t.width as u64).checked_mul(t.height as u64).and_then(|x| x.checked_mul(4)) {
-            Some(sz) => sz,
-            None => {
-                return Err((
-                    CoinWgpuStatus::InvalidArgument,
-                    format!("Texture {} dimensions cause overflow", t_idx),
-                ));
-            }
-        };
+        let levels = texture_levels(t.width,t.height,t.format)?;
+        let &(last_width,last_height,last_offset)=levels.last().unwrap();
+        let expected_bytes=last_offset+u64::from(last_width)*u64::from(last_height)*4;
         if t.pixel_bytes_len != expected_bytes || t.pixels.is_null() {
             return Err((
                 CoinWgpuStatus::InvalidArgument,
@@ -3348,7 +3376,7 @@ fn encode_frame(
                 height: t.height,
                 depth_or_array_layers: 1,
             },
-            mip_level_count: 1,
+            mip_level_count: levels.len() as u32,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
             format: wgpu::TextureFormat::Rgba8Unorm,
@@ -3356,26 +3384,28 @@ fn encode_frame(
             view_formats: &[],
         });
 
+        for (level,&(level_width,level_height,offset)) in levels.iter().enumerate() {
         ctx.queue.write_texture(
             wgpu::ImageCopyTexture {
                 texture: &wgpu_tex,
-                mip_level: 0,
+                mip_level: level as u32,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
-            pixel_bytes,
+            &pixel_bytes[offset as usize..(offset+u64::from(level_width)*u64::from(level_height)*4) as usize],
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(t.width * 4),
-                rows_per_image: Some(t.height),
+                bytes_per_row: Some(level_width * 4),
+                rows_per_image: Some(level_height),
             },
             wgpu::Extent3d {
-                width: t.width,
-                height: t.height,
+                width: level_width,
+                height: level_height,
                 depth_or_array_layers: 1,
             },
         );
 
+        }
         let view = wgpu_tex.create_view(&wgpu::TextureViewDescriptor::default());
         tex_cache.uploads += 1;
         tex_cache.uploaded_bytes += pixel_bytes.len() as u64;
@@ -3421,6 +3451,9 @@ fn encode_frame(
 
     // Upload and cache frame samplers
     for s in samplers_slice {
+        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || s.reserved!=0 {
+            return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 sampler".into()));
+        }
         let key = SamplerKey {
             wrap_s: s.wrap_s,
             wrap_t: s.wrap_t,
@@ -3447,9 +3480,9 @@ fn encode_frame(
                 address_mode_u: addr_u,
                 address_mode_v: addr_v,
                 address_mode_w: wgpu::AddressMode::Repeat,
-                mag_filter: filter_mode,
-                min_filter: filter_mode,
-                mipmap_filter: wgpu::FilterMode::Nearest,
+                mag_filter: if s.filter>=2 {wgpu::FilterMode::Linear} else {filter_mode},
+                min_filter: if s.filter==2 {wgpu::FilterMode::Nearest} else {filter_mode},
+                mipmap_filter: if s.filter>=2 {wgpu::FilterMode::Linear} else {wgpu::FilterMode::Nearest},
                 ..Default::default()
             });
             samp_cache.entries.insert(key, samp);

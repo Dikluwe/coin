@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoSceneTexture2.h>
@@ -126,7 +127,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
     if (x.width != y.width || x.height != y.height || x.components != y.components ||
         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
         x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
-        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba)
+        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
       return false;
   }
   return true;
@@ -238,6 +239,9 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
         *outDiagnostic = "Unsupported scene texture transparency function";
       return false;
     }
+    if(!CoinRenderTextureSamplingCore::validMipImage(tex)) {
+      if(outDiagnostic)*outDiagnostic="Invalid P07 mipmap chain or image limits";return false;
+    }
     if (tex.width == 0 || tex.height == 0) {
       if (outDiagnostic) *outDiagnostic = "Texture contains zero width or height";
       return false;
@@ -263,6 +267,11 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
     }
   }
 
+  for(const auto & sampler:this->samplers) {
+    if(static_cast<uint32_t>(sampler.filter)>3 || static_cast<uint32_t>(sampler.wrapS)>1 || static_cast<uint32_t>(sampler.wrapT)>1) {
+      if(outDiagnostic)*outDiagnostic="Invalid P07 sampler filter or wrap";return false;
+    }
+  }
   for (size_t i = 0; i < this->lightingStates.size(); ++i) {
     const CoinRenderLightingSnapshot & ls = this->lightingStates[i];
     if (ls.lights.size() > COIN_RENDER_MAX_LIGHTS) {
@@ -469,6 +478,9 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       if (tex.samplerSlot >= this->samplers.size()) {
         if (outDiagnostic) *outDiagnostic = "RenderState references out-of-bounds sampler slot";
         return false;
+      }
+      if(CoinRenderTextureSamplingCore::mipFilter(this->samplers[tex.samplerSlot].filter) && !this->textures[tex.imageSlot].mipmapped) {
+        if(outDiagnostic)*outDiagnostic="P07 mip sampler requires a complete stored-image chain";return false;
       }
     }
   }

@@ -125,6 +125,7 @@ struct CoinBgfxDraw {
 };
 
 struct CoinBgfxTexture {
+  bool mipmapped = false;
   uint32_t width = 0;
   uint32_t height = 0;
   uint64_t gpuToken = 0;

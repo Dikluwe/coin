@@ -6,6 +6,7 @@
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "../coinrender/CoinRenderTestEnvironment.h"
@@ -69,6 +70,22 @@ CoinRenderFramePlan opaqueFrame(bool shared)
     }
   }
   return frame;
+}
+
+bool mipPayloadPacking() {
+  CoinRenderFramePlan frame;frame.revision=991;
+  CoinRenderTextureImageSnapshot image;image.width=image.height=2;
+  image.pixelsRgba={0,10,20,255,1,11,21,255,2,12,22,255,3,13,23,255};
+  if(!CoinRenderTextureSamplingCore::generate(image))return false;frame.textures.push_back(image);
+  frame.samplers.resize(1);frame.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+  CoinWgpuFfiFrame packed;std::string error;
+  if(!check(packed.prepare(frame,64,64,error),"mipmap packing"))return false;
+  const auto & first=packed.getView();
+  if(!check(first.textures[0].format==2 && first.textures[0].pixel_bytes_len==20 &&
+            first.textures[0].pixels[16]==2 && first.samplers[0].filter==2,"owned complete mip payload/private filter"))return false;
+  ++frame.revision;frame.textures[0].mipmapsRgba[0]=7;
+  return check(packed.prepare(frame,64,64,error)&&packed.getView().textures[0].pixels[16]==7,
+               "lower-level mutation cannot reuse stale base-digest payload");
 }
 
 bool externalViewportPacking() {
@@ -1718,7 +1735,7 @@ main()
 {
   InstancingSwitch instancing;
   instancing.disable(true); // These controls specifically exercise baked storage.
-  if (!externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
+  if (!mipPayloadPacking() || !externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
       !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true) ||
       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
       !boundedIncrementalBatch()) return 1;
@@ -1761,7 +1778,7 @@ main()
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 46 && sizeof(CoinWgpuVertex) == 164 &&
+  if (!check(first.abi_version == 47 && sizeof(CoinWgpuVertex) == 164 &&
              sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
              "projective private protocol and vertex stride")) return 1;
   for (size_t unit = 0; unit < 8; ++unit) {

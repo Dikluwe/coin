@@ -1,0 +1,539 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+        Start 170: CoinRenderShadowReferenceTest
+        Start 137: CoinRenderDrawStyle_opengl
+  1/263 Test #137: CoinRenderDrawStyle_opengl .....................   Passed   14.47 sec
+        Start 136: CoinRenderDrawStyle_vulkan
+  2/263 Test #170: CoinRenderShadowReferenceTest ..................   Passed   17.91 sec
+        Start 174: CoinRenderShadowTransparency7Test
+  3/263 Test #174: CoinRenderShadowTransparency7Test ..............   Passed    7.33 sec
+        Start 175: CoinRenderShadowTransparency8Test
+  4/263 Test #136: CoinRenderDrawStyle_vulkan .....................   Passed   15.37 sec
+        Start 173: CoinRenderShadowTransparency6Test
+  5/263 Test #175: CoinRenderShadowTransparency8Test ..............   Passed    9.10 sec
+        Start 191: CoinRenderShadowAlphaTest8_0Test
+  6/263 Test #173: CoinRenderShadowTransparency6Test ..............   Passed    6.86 sec
+        Start 172: CoinRenderShadowTransparency5Test
+  7/263 Test #191: CoinRenderShadowAlphaTest8_0Test ...............   Passed    5.29 sec
+        Start  61: CoinBgfxSurface_vulkan_sorted_layers
+  8/263 Test #172: CoinRenderShadowTransparency5Test ..............   Passed    8.89 sec
+        Start  59: CoinBgfxSurface_vulkan_object
+  9/263 Test  #61: CoinBgfxSurface_vulkan_sorted_layers ...........   Passed    9.71 sec
+        Start 188: CoinRenderShadowAlphaTest7_0Test
+ 10/263 Test  #59: CoinBgfxSurface_vulkan_object ..................   Passed    9.65 sec
+        Start 168: CoinRenderMarkerSet_vulkan
+ 11/263 Test #188: CoinRenderShadowAlphaTest7_0Test ...............   Passed    8.65 sec
+        Start  60: CoinBgfxSurface_vulkan_weighted_oit
+ 12/263 Test #168: CoinRenderMarkerSet_vulkan .....................   Passed    9.26 sec
+        Start 162: CoinRenderProjectiveUv_vulkan
+ 13/263 Test  #60: CoinBgfxSurface_vulkan_weighted_oit ............   Passed   10.78 sec
+        Start  64: CoinBgfxSurface_opengl_sorted_layers
+ 14/263 Test #162: CoinRenderProjectiveUv_vulkan ..................   Passed    8.00 sec
+        Start 163: CoinRenderProjectiveUv_opengl
+ 15/263 Test  #64: CoinBgfxSurface_opengl_sorted_layers ...........   Passed    7.30 sec
+        Start  63: CoinBgfxSurface_opengl_weighted_oit
+ 16/263 Test #163: CoinRenderProjectiveUv_opengl ..................   Passed    7.16 sec
+        Start 169: CoinRenderMarkerSet_opengl
+ 17/263 Test  #63: CoinBgfxSurface_opengl_weighted_oit ............   Passed    7.19 sec
+        Start  90: CoinBgfxMultiWindow_weighted_oit_vulkanTest
+ 18/263 Test  #90: CoinBgfxMultiWindow_weighted_oit_vulkanTest ....   Passed    1.93 sec
+        Start  92: CoinBgfxMultiWindow_sorted_layers_vulkanTest
+ 19/263 Test #169: CoinRenderMarkerSet_opengl .....................   Passed    6.44 sec
+        Start 159: CoinRenderFragmentPolicy_opengl
+ 20/263 Test  #92: CoinBgfxMultiWindow_sorted_layers_vulkanTest ...   Passed    2.03 sec
+        Start 147: CoinRenderTransparency_vulkan
+ 21/263 Test #147: CoinRenderTransparency_vulkan ..................   Passed    6.68 sec
+        Start  62: CoinBgfxSurface_opengl_object
+ 22/263 Test #159: CoinRenderFragmentPolicy_opengl ................   Passed    9.05 sec
+        Start 165: CoinRenderBoundingBox_vulkan
+ 23/263 Test #165: CoinRenderBoundingBox_vulkan ...................   Passed    6.15 sec
+        Start 153: CoinRenderScreenContent_vulkan
+ 24/263 Test  #62: CoinBgfxSurface_opengl_object ..................   Passed    7.43 sec
+        Start 148: CoinRenderTransparency_opengl
+ 25/263 Test #148: CoinRenderTransparency_opengl ..................   Passed    3.38 sec
+        Start  86: CoinBgfxMultiWindowTest
+ 26/263 Test #153: CoinRenderScreenContent_vulkan .................   Passed    4.12 sec
+        Start  88: CoinBgfxMultiWindowOffscreenFirstTest
+ 27/263 Test  #86: CoinBgfxMultiWindowTest ........................   Passed    1.67 sec
+        Start 157: CoinRenderFragmentPolicy_vulkan
+ 28/263 Test  #88: CoinBgfxMultiWindowOffscreenFirstTest ..........   Passed    1.79 sec
+        Start 185: CoinRenderShadowAlphaTest6_0Test
+ 29/263 Test #157: CoinRenderFragmentPolicy_vulkan ................   Passed    6.16 sec
+        Start 166: CoinRenderBoundingBox_opengl
+ 30/263 Test #185: CoinRenderShadowAlphaTest6_0Test ...............   Passed    6.13 sec
+        Start 182: CoinRenderShadowAlphaTest5_0Test
+ 31/263 Test #166: CoinRenderBoundingBox_opengl ...................   Passed    4.40 sec
+        Start 114: CoinRenderGeometryViewport_vulkan
+ 32/263 Test #182: CoinRenderShadowAlphaTest5_0Test ...............   Passed    4.87 sec
+        Start 119: CoinRenderLightingTest
+ 33/263 Test #114: CoinRenderGeometryViewport_vulkan ..............   Passed    4.33 sec
+        Start 115: CoinRenderGeometryViewport_opengl
+ 34/263 Test #115: CoinRenderGeometryViewport_opengl ..............   Passed    4.55 sec
+        Start 179: CoinRenderShadowAlphaTest4_0Test
+ 35/263 Test #119: CoinRenderLightingTest .........................   Passed   10.64 sec
+        Start 207: CoinRenderShadowOit8_2Test
+ 36/263 Test #179: CoinRenderShadowAlphaTest4_0Test ...............   Passed    4.46 sec
+        Start 154: CoinRenderScreenContent_opengl
+ 37/263 Test #207: CoinRenderShadowOit8_2Test .....................   Passed    2.23 sec
+        Start  50: CoinRenderSelection_vulkan
+ 38/263 Test  #50: CoinRenderSelection_vulkan .....................   Passed    2.51 sec
+        Start  49: CoinRenderSelectionTest
+ 39/263 Test #154: CoinRenderScreenContent_opengl .................   Passed    3.88 sec
+        Start  80: CoinBgfxWeightedOitTest
+ 40/263 Test  #49: CoinRenderSelectionTest ........................   Passed    2.87 sec
+        Start 205: CoinRenderShadowOit8_1Test
+ 41/263 Test  #80: CoinBgfxWeightedOitTest ........................   Passed    3.32 sec
+        Start 176: CoinRenderShadowAlphaTest1_0Test
+ 42/263 Test #205: CoinRenderShadowOit8_1Test .....................   Passed    2.61 sec
+        Start 140: CoinRenderMultitexture_opengl
+ 43/263 Test #176: CoinRenderShadowAlphaTest1_0Test ...............   Passed    2.43 sec
+        Start  81: CoinBgfxWeightedOitOpenGLTest
+ 44/263 Test #140: CoinRenderMultitexture_opengl ..................   Passed    1.85 sec
+        Start  82: CoinBgfxWindowTest
+ 45/263 Test  #81: CoinBgfxWeightedOitOpenGLTest ..................   Passed    1.95 sec
+        Start 139: CoinRenderMultitexture_vulkan
+ 46/263 Test  #82: CoinBgfxWindowTest .............................   Passed    0.99 sec
+        Start  51: CoinRenderSelection_opengl
+ 47/263 Test  #51: CoinRenderSelection_opengl .....................   Passed    2.33 sec
+        Start 193: CoinRenderShadowAlphaTest8_2Test
+ 48/263 Test #139: CoinRenderMultitexture_vulkan ..................   Passed    2.77 sec
+        Start 127: CoinRenderFogTest
+ 49/263 Test #193: CoinRenderShadowAlphaTest8_2Test ...............   Passed    2.05 sec
+        Start 200: CoinRenderShadowOit4_1Test
+ 50/263 Test #200: CoinRenderShadowOit4_1Test .....................   Passed    2.82 sec
+        Start  58: CoinBgfxReadbackModes_opengl
+ 51/263 Test  #58: CoinBgfxReadbackModes_opengl ...................   Passed    1.40 sec
+        Start 190: CoinRenderShadowAlphaTest7_2Test
+ 52/263 Test #190: CoinRenderShadowAlphaTest7_2Test ...............   Passed    2.16 sec
+        Start 202: CoinRenderShadowOit4_2Test
+ 53/263 Test #127: CoinRenderFogTest ..............................   Passed    8.80 sec
+        Start  71: CoinBgfxOffscreenTest
+ 54/263 Test #202: CoinRenderShadowOit4_2Test .....................   Passed    2.38 sec
+        Start 189: CoinRenderShadowAlphaTest7_1Test
+ 55/263 Test  #71: CoinBgfxOffscreenTest ..........................   Passed    2.24 sec
+        Start 195: CoinRenderShadowOit1_1Test
+ 56/263 Test #189: CoinRenderShadowAlphaTest7_1Test ...............   Passed    1.80 sec
+        Start 197: CoinRenderShadowOit1_2Test
+ 57/263 Test #195: CoinRenderShadowOit1_1Test .....................   Passed    2.01 sec
+        Start  93: CoinBgfxMultiWindow_sorted_layers_openglTest
+ 58/263 Test #197: CoinRenderShadowOit1_2Test .....................   Passed    1.69 sec
+        Start  76: CoinBgfxTransparencyTest
+ 59/263 Test  #93: CoinBgfxMultiWindow_sorted_layers_openglTest ...   Passed    1.60 sec
+        Start  72: CoinBgfxOpenGLTest
+ 60/263 Test  #76: CoinBgfxTransparencyTest .......................   Passed    1.58 sec
+        Start 192: CoinRenderShadowAlphaTest8_1Test
+ 61/263 Test  #72: CoinBgfxOpenGLTest .............................   Passed    1.88 sec
+        Start 204: CoinRenderShadowQuality8Test
+ 62/263 Test #192: CoinRenderShadowAlphaTest8_1Test ...............   Passed    1.77 sec
+        Start  91: CoinBgfxMultiWindow_weighted_oit_openglTest
+ 63/263 Test #204: CoinRenderShadowQuality8Test ...................   Passed    1.52 sec
+        Start 149: CoinRenderCompositionTest
+ 64/263 Test  #91: CoinBgfxMultiWindow_weighted_oit_openglTest ....   Passed    1.49 sec
+        Start 187: CoinRenderShadowAlphaTest6_2Test
+ 65/263 Test #187: CoinRenderShadowAlphaTest6_2Test ...............   Passed    1.82 sec
+        Start 199: CoinRenderShadowQuality4Test
+ 66/263 Test #199: CoinRenderShadowQuality4Test ...................   Passed    1.92 sec
+        Start  57: CoinBgfxReadbackModes_vulkan
+ 67/263 Test #149: CoinRenderCompositionTest ......................   Passed    4.95 sec
+        Start  77: CoinBgfxTransparencyOpenGLTest
+ 68/263 Test  #57: CoinBgfxReadbackModes_vulkan ...................   Passed    1.70 sec
+        Start  87: CoinBgfxMultiWindowOpenGLTest
+ 69/263 Test  #77: CoinBgfxTransparencyOpenGLTest .................   Passed    1.48 sec
+        Start 194: CoinRenderShadowQuality1Test
+ 70/263 Test #194: CoinRenderShadowQuality1Test ...................   Passed    1.03 sec
+        Start 183: CoinRenderShadowAlphaTest5_1Test
+ 71/263 Test  #87: CoinBgfxMultiWindowOpenGLTest ..................   Passed    1.38 sec
+        Start 219: CoinRenderSceneTexture_vulkan_staged
+ 72/263 Test #219: CoinRenderSceneTexture_vulkan_staged ...........   Passed    1.37 sec
+        Start 146: CoinRenderTransparencyTest
+ 73/263 Test #183: CoinRenderShadowAlphaTest5_1Test ...............   Passed    1.68 sec
+        Start  89: CoinBgfxMultiWindowOffscreenFirstOpenGLTest
+ 74/263 Test  #89: CoinBgfxMultiWindowOffscreenFirstOpenGLTest ....   Passed    1.27 sec
+        Start 221: CoinRenderSceneTexture_vulkan_direct
+ 75/263 Test #221: CoinRenderSceneTexture_vulkan_direct ...........   Passed    1.43 sec
+        Start 109: CoinRenderRttMatrixGpuTest
+ 76/263 Test #146: CoinRenderTransparencyTest .....................   Passed    4.09 sec
+        Start 180: CoinRenderShadowAlphaTest4_1Test
+ 77/263 Test #180: CoinRenderShadowAlphaTest4_1Test ...............   Passed    1.59 sec
+        Start 186: CoinRenderShadowAlphaTest6_1Test
+ 78/263 Test #186: CoinRenderShadowAlphaTest6_1Test ...............   Passed    1.77 sec
+        Start 144: CoinRenderPeeling_opengl
+ 79/263 Test #109: CoinRenderRttMatrixGpuTest .....................   Passed    4.97 sec
+        Start  78: CoinBgfxSortedLayersTest
+ 80/263 Test #144: CoinRenderPeeling_opengl .......................   Passed    1.15 sec
+        Start  52: CoinRenderProductTest
+ 81/263 Test  #78: CoinBgfxSortedLayersTest .......................   Passed    1.38 sec
+        Start  79: CoinBgfxSortedLayersOpenGLTest
+ 82/263 Test  #52: CoinRenderProductTest ..........................   Passed    1.19 sec
+        Start 184: CoinRenderShadowAlphaTest5_2Test
+ 83/263 Test  #79: CoinBgfxSortedLayersOpenGLTest .................   Passed    0.99 sec
+        Start 223: CoinRenderSceneTexture_opengl_staged
+ 84/263 Test #184: CoinRenderShadowAlphaTest5_2Test ...............   Passed    1.30 sec
+        Start 210: CoinRenderMultiTargetDirectTest
+ 85/263 Test #223: CoinRenderSceneTexture_opengl_staged ...........   Passed    0.95 sec
+        Start 128: CoinRenderClipPlaneTest
+ 86/263 Test #128: CoinRenderClipPlaneTest ........................   Passed    0.88 sec
+        Start 181: CoinRenderShadowAlphaTest4_2Test
+ 87/263 Test #210: CoinRenderMultiTargetDirectTest ................   Passed    1.10 sec
+        Start 142: CoinRenderPeeling_vulkan
+ 88/263 Test #142: CoinRenderPeeling_vulkan .......................   Passed    1.02 sec
+        Start 130: CoinRenderClipPlane_vulkan_weighted_oit
+ 89/263 Test #181: CoinRenderShadowAlphaTest4_2Test ...............   Passed    1.21 sec
+        Start   3: CoinTests
+ 90/263 Test #130: CoinRenderClipPlane_vulkan_weighted_oit ........   Passed    0.78 sec
+        Start 178: CoinRenderShadowAlphaTest1_2Test
+ 91/263 Test   #3: CoinTests ......................................   Passed    1.02 sec
+        Start  83: CoinBgfxWindowOpenGLTest
+ 92/263 Test #178: CoinRenderShadowAlphaTest1_2Test ...............   Passed    0.93 sec
+        Start  97: CoinRenderGateG1Test
+ 93/263 Test  #83: CoinBgfxWindowOpenGLTest .......................   Passed    0.88 sec
+        Start  98: CoinRenderGateG2Test
+ 94/263 Test  #97: CoinRenderGateG1Test ...........................   Passed    1.02 sec
+        Start 177: CoinRenderShadowAlphaTest1_1Test
+ 95/263 Test  #98: CoinRenderGateG2Test ...........................   Passed    1.06 sec
+        Start 134: CoinRenderClipPlane_opengl_sorted_layers
+ 96/263 Test #134: CoinRenderClipPlane_opengl_sorted_layers .......   Passed    0.70 sec
+        Start 131: CoinRenderClipPlane_vulkan_sorted_layers
+ 97/263 Test #177: CoinRenderShadowAlphaTest1_1Test ...............   Passed    1.15 sec
+        Start 133: CoinRenderClipPlane_opengl_weighted_oit
+ 98/263 Test #131: CoinRenderClipPlane_vulkan_sorted_layers .......   Passed    0.98 sec
+        Start 206: CoinRenderShadowLayers8_1Test
+ 99/263 Test #133: CoinRenderClipPlane_opengl_weighted_oit ........   Passed    0.91 sec
+        Start 123: CoinRenderGouraud_vulkan_sorted_layers
+100/263 Test #123: CoinRenderGouraud_vulkan_sorted_layers .........   Passed    0.87 sec
+        Start 201: CoinRenderShadowLayers4_1Test
+101/263 Test #206: CoinRenderShadowLayers8_1Test ..................   Passed    0.93 sec
+        Start  70: CoinRenderProductOpenGLTest
+102/263 Test #201: CoinRenderShadowLayers4_1Test ..................   Passed    0.67 sec
+        Start  84: CoinBgfxRenderManagerAdapterTest
+103/263 Test  #70: CoinRenderProductOpenGLTest ....................   Passed    0.90 sec
+        Start 126: CoinRenderGouraud_opengl_sorted_layers
+104/263 Test  #84: CoinBgfxRenderManagerAdapterTest ...............   Passed    0.72 sec
+        Start 129: CoinRenderClipPlane_vulkan_object
+105/263 Test #126: CoinRenderGouraud_opengl_sorted_layers .........   Passed    0.63 sec
+        Start  99: CoinRenderIndexedFastPathTest
+106/263 Test #129: CoinRenderClipPlane_vulkan_object ..............   Passed    1.07 sec
+        Start 120: CoinRenderGouraudInterpolationTest
+107/263 Test  #99: CoinRenderIndexedFastPathTest ..................   Passed    1.71 sec
+        Start 209: CoinRenderMultiTargetTest
+108/263 Test #120: CoinRenderGouraudInterpolationTest .............   Passed    0.88 sec
+        Start 135: CoinRenderDrawStyleTest
+109/263 Test #209: CoinRenderMultiTargetTest ......................   Passed    0.74 sec
+        Start 225: CoinRenderSceneTexture_opengl_direct
+110/263 Test #225: CoinRenderSceneTexture_opengl_direct ...........   Passed    0.74 sec
+        Start 122: CoinRenderGouraud_vulkan_weighted_oit
+111/263 Test #122: CoinRenderGouraud_vulkan_weighted_oit ..........   Passed    0.61 sec
+        Start 121: CoinRenderGouraud_vulkan_object
+112/263 Test #121: CoinRenderGouraud_vulkan_object ................   Passed    0.60 sec
+        Start 218: CoinRenderSceneTextureBudgetTest
+113/263 Test #218: CoinRenderSceneTextureBudgetTest ...............   Passed    0.69 sec
+        Start 208: CoinRenderShadowLayers8_2Test
+114/263 Test #208: CoinRenderShadowLayers8_2Test ..................   Passed    0.60 sec
+        Start 158: CoinRenderDepthDisabled_vulkan
+115/263 Test #158: CoinRenderDepthDisabled_vulkan .................   Passed    0.57 sec
+        Start 224: CoinRenderSceneTextureBudget_opengl_staged
+116/263 Test #224: CoinRenderSceneTextureBudget_opengl_staged .....   Passed    0.68 sec
+        Start 138: CoinRenderMultitextureTest
+117/263 Test #138: CoinRenderMultitextureTest .....................   Passed    2.30 sec
+        Start 198: CoinRenderShadowLayers1_2Test
+118/263 Test #198: CoinRenderShadowLayers1_2Test ..................   Passed    0.49 sec
+        Start 220: CoinRenderSceneTextureBudget_vulkan_staged
+119/263 Test #220: CoinRenderSceneTextureBudget_vulkan_staged .....   Passed    0.74 sec
+        Start 108: CoinRenderRttMatrixCaptureTest
+120/263 Test #108: CoinRenderRttMatrixCaptureTest .................   Passed    2.58 sec
+        Start 196: CoinRenderShadowLayers1_1Test
+121/263 Test #196: CoinRenderShadowLayers1_1Test ..................   Passed    0.52 sec
+        Start 125: CoinRenderGouraud_opengl_weighted_oit
+122/263 Test #125: CoinRenderGouraud_opengl_weighted_oit ..........   Passed    0.52 sec
+        Start 143: CoinRenderOit_vulkan
+123/263 Test #143: CoinRenderOit_vulkan ...........................   Passed    0.52 sec
+        Start 160: CoinRenderDepthDisabled_opengl
+124/263 Test #160: CoinRenderDepthDisabled_opengl .................   Passed    0.59 sec
+        Start 203: CoinRenderShadowLayers4_2Test
+125/263 Test #203: CoinRenderShadowLayers4_2Test ..................   Passed    0.51 sec
+        Start 211: CoinRenderMultiTargetStagedOpenGLTest
+126/263 Test #211: CoinRenderMultiTargetStagedOpenGLTest ..........   Passed    0.52 sec
+        Start 132: CoinRenderClipPlane_opengl_object
+127/263 Test #132: CoinRenderClipPlane_opengl_object ..............   Passed    0.62 sec
+        Start 212: CoinRenderMultiTargetOpenGLTest
+128/263 Test #212: CoinRenderMultiTargetOpenGLTest ................   Passed    0.46 sec
+        Start 145: CoinRenderOit_opengl
+129/263 Test #145: CoinRenderOit_opengl ...........................   Passed    0.59 sec
+        Start 171: CoinRenderShadowWiringTest
+130/263 Test #171: CoinRenderShadowWiringTest .....................   Passed    0.41 sec
+        Start  53: CoinRenderBackendContractTest
+131/263 Test  #53: CoinRenderBackendContractTest ..................   Passed    0.63 sec
+        Start 110: CoinRenderRttMatrixDirectTest
+132/263 Test #135: CoinRenderDrawStyleTest ........................   Passed   18.54 sec
+        Start  85: CoinBgfxRenderManagerAdapterOpenGLTest
+133/263 Test  #85: CoinBgfxRenderManagerAdapterOpenGLTest .........   Passed    0.64 sec
+        Start 124: CoinRenderGouraud_opengl_object
+134/263 Test #110: CoinRenderRttMatrixDirectTest ..................   Passed    2.26 sec
+        Start  75: CoinRenderBackendContractOpenGLTest
+135/263 Test #124: CoinRenderGouraud_opengl_object ................   Passed    0.63 sec
+        Start 118: CoinRenderProceduralTexture_opengl
+136/263 Test  #75: CoinRenderBackendContractOpenGLTest ............   Passed    0.41 sec
+        Start 117: CoinRenderProceduralTexture_vulkan
+137/263 Test #117: CoinRenderProceduralTexture_vulkan .............   Passed    1.59 sec
+        Start  69: CoinRenderDepthContractOpenGLTest
+138/263 Test #118: CoinRenderProceduralTexture_opengl .............   Passed    1.69 sec
+        Start  25: CoinConfigCompatibility
+139/263 Test  #69: CoinRenderDepthContractOpenGLTest ..............   Passed    0.24 sec
+        Start 141: CoinRenderPeelingTest
+140/263 Test  #25: CoinConfigCompatibility ........................   Passed    0.39 sec
+        Start 103: CoinRenderTextureTest
+141/263 Test #141: CoinRenderPeelingTest ..........................   Passed    1.28 sec
+        Start 222: CoinRenderSceneTextureBudget_vulkan_direct
+142/263 Test #222: CoinRenderSceneTextureBudget_vulkan_direct .....   Passed    0.38 sec
+        Start 226: CoinRenderSceneTextureBudget_opengl_direct
+143/263 Test #226: CoinRenderSceneTextureBudget_opengl_direct .....   Passed    0.31 sec
+        Start  68: CoinRenderDepthContractVulkanTest
+144/263 Test  #68: CoinRenderDepthContractVulkanTest ..............   Passed    0.42 sec
+        Start 107: CoinRenderTextureSampling_opengl
+145/263 Test #107: CoinRenderTextureSampling_opengl ...............   Passed    1.02 sec
+        Start 106: CoinRenderTextureSampling_vulkan
+146/263 Test #103: CoinRenderTextureTest ..........................   Passed    4.23 sec
+        Start  73: CoinBgfxInstancingTest
+147/263 Test #106: CoinRenderTextureSampling_vulkan ...............   Passed    1.08 sec
+        Start  74: CoinBgfxInstancingOpenGLTest
+148/263 Test  #73: CoinBgfxInstancingTest .........................   Passed    0.37 sec
+        Start 161: CoinRenderProjectiveUvCaptureTest
+149/263 Test  #74: CoinBgfxInstancingOpenGLTest ...................   Passed    0.31 sec
+        Start 215: CoinRenderRttOwnership_vulkan
+150/263 Test #161: CoinRenderProjectiveUvCaptureTest ..............   Passed    0.23 sec
+        Start   2: BumpProgramGLX
+151/263 Test #215: CoinRenderRttOwnership_vulkan ..................   Passed    0.23 sec
+        Start 150: CoinRenderNodeInventoryDiscoveryTest
+152/263 Test   #2: BumpProgramGLX .................................***Skipped   0.03 sec
+        Start  43: CoinRenderActionTest
+153/263 Test #150: CoinRenderNodeInventoryDiscoveryTest ...........   Passed    0.20 sec
+        Start  94: CoinRenderFrameReuseCoreTest
+154/263 Test  #43: CoinRenderActionTest ...........................   Passed    0.77 sec
+        Start  65: CoinBgfxCoreTest
+155/263 Test  #94: CoinRenderFrameReuseCoreTest ...................   Passed    0.62 sec
+        Start 112: CoinRenderRttMatrixPbufferTest
+156/263 Test #112: CoinRenderRttMatrixPbufferTest .................   Passed    0.34 sec
+        Start 216: CoinRenderRttOwnership_opengl
+157/263 Test  #65: CoinBgfxCoreTest ...............................   Passed    0.47 sec
+        Start 217: CoinRenderSceneTextureTest
+158/263 Test #216: CoinRenderRttOwnership_opengl ..................   Passed    0.20 sec
+        Start  48: CoinRenderCameraReuseReferenceTest
+159/263 Test  #48: CoinRenderCameraReuseReferenceTest .............***Skipped   0.03 sec
+        Start 214: CoinRenderRttOwnershipTest
+160/263 Test #214: CoinRenderRttOwnershipTest .....................   Passed    0.32 sec
+        Start 167: CoinRenderMarkerSetCaptureTest
+161/263 Test #167: CoinRenderMarkerSetCaptureTest .................   Passed    0.09 sec
+        Start 113: CoinRenderGeometryViewportCaptureTest
+162/263 Test #113: CoinRenderGeometryViewportCaptureTest ..........   Passed    0.06 sec
+        Start 111: CoinRenderRttMatrixFboTest
+163/263 Test #111: CoinRenderRttMatrixFboTest .....................   Passed    0.34 sec
+        Start 164: CoinRenderBoundingBoxCaptureTest
+164/263 Test #164: CoinRenderBoundingBoxCaptureTest ...............   Passed    0.06 sec
+        Start 116: CoinRenderProceduralTextureCaptureTest
+165/263 Test #217: CoinRenderSceneTextureTest .....................   Passed    1.15 sec
+        Start 104: CoinRenderTextureSamplingCaptureTest
+166/263 Test #116: CoinRenderProceduralTextureCaptureTest .........   Passed    0.26 sec
+        Start 155: CoinRenderFragmentPolicyCaptureTest
+167/263 Test #104: CoinRenderTextureSamplingCaptureTest ...........   Passed    0.18 sec
+        Start  41: ProfilerInit_invalid
+168/263 Test #155: CoinRenderFragmentPolicyCaptureTest ............   Passed    0.10 sec
+        Start 102: CoinRenderBenchmarkAnimationTest
+169/263 Test  #41: ProfilerInit_invalid ...........................   Passed    0.03 sec
+        Start  54: CoinRenderOffscreenTest
+170/263 Test #102: CoinRenderBenchmarkAnimationTest ...............   Passed    0.04 sec
+        Start 152: CoinRenderScreenContentCaptureTest
+171/263 Test  #54: CoinRenderOffscreenTest ........................   Passed    0.04 sec
+        Start  37: ProfilerInit_0
+172/263 Test  #37: ProfilerInit_0 .................................   Passed    0.04 sec
+        Start  40: ProfilerInit_syncgl
+173/263 Test  #40: ProfilerInit_syncgl ............................   Passed    0.04 sec
+        Start  38: ProfilerInit_on
+174/263 Test #152: CoinRenderScreenContentCaptureTest .............   Passed    0.11 sec
+        Start  35: ProfilerInit_unset
+175/263 Test  #38: ProfilerInit_on ................................   Passed    0.04 sec
+        Start  39: ProfilerInit_1
+176/263 Test  #35: ProfilerInit_unset .............................   Passed    0.04 sec
+        Start  36: ProfilerInit_off
+177/263 Test  #39: ProfilerInit_1 .................................   Passed    0.04 sec
+        Start  55: CoinRenderGateG0Test
+178/263 Test  #36: ProfilerInit_off ...............................   Passed    0.04 sec
+        Start   1: BumpProgramFailuresAndLifetime
+179/263 Test  #55: CoinRenderGateG0Test ...........................   Passed    0.03 sec
+        Start 156: CoinRenderDepthDisabledCaptureTest
+180/263 Test   #1: BumpProgramFailuresAndLifetime .................   Passed    0.03 sec
+        Start  67: CoinRenderDepthContractTest
+181/263 Test #156: CoinRenderDepthDisabledCaptureTest .............   Passed    0.04 sec
+        Start  33: CoinTestsFilterEmptyValue
+182/263 Test  #33: CoinTestsFilterEmptyValue ......................   Passed    0.03 sec
+        Start 251: SensorQueueAllocation_timer
+183/263 Test #251: SensorQueueAllocation_timer ....................   Passed    0.03 sec
+        Start  17: SoPathAuditorCallback_empty
+184/263 Test  #67: CoinRenderDepthContractTest ....................   Passed    0.11 sec
+        Start 238: SensorScheduling_delay_changed_exception
+185/263 Test  #17: SoPathAuditorCallback_empty ....................   Passed    0.03 sec
+        Start 241: SensorScheduling_timer_remove_reentry
+186/263 Test #238: SensorScheduling_delay_changed_exception .......   Passed    0.03 sec
+        Start  10: SoPathLegacyAccessorBounds_index
+187/263 Test #241: SensorScheduling_timer_remove_reentry ..........   Passed    0.03 sec
+        Start  26: CoinTestsFilterExact
+188/263 Test  #10: SoPathLegacyAccessorBounds_index ...............   Passed    0.03 sec
+        Start 100: CoinWgpuCacheTest
+189/263 Test  #26: CoinTestsFilterExact ...........................   Passed    0.03 sec
+        Start 101: CoinRenderStabilizationTest
+190/263 Test #100: CoinWgpuCacheTest ..............................   Passed    0.03 sec
+        Start  16: SoPathAssignmentAuditor_copy-construct
+191/263 Test #101: CoinRenderStabilizationTest ....................   Passed    0.03 sec
+        Start 227: SensorScheduling_alarm_cancel
+192/263 Test  #16: SoPathAssignmentAuditor_copy-construct .........   Passed    0.03 sec
+        Start 233: SensorScheduling_nonzero_timeout
+193/263 Test #227: SensorScheduling_alarm_cancel ..................   Passed    0.03 sec
+        Start 242: SensorScheduling_timer_exception
+194/263 Test #233: SensorScheduling_nonzero_timeout ...............   Passed    0.03 sec
+        Start 213: CoinRenderPublicationTest
+195/263 Test #242: SensorScheduling_timer_exception ...............   Passed    0.03 sec
+        Start 234: SensorScheduling_node_detach
+196/263 Test #213: CoinRenderPublicationTest ......................   Passed    0.03 sec
+        Start  21: SoPathAuditorCallback_valid-callbacks
+197/263 Test #234: SensorScheduling_node_detach ...................   Passed    0.03 sec
+        Start  34: CoinTestsFilterDirectSuite
+198/263 Test  #21: SoPathAuditorCallback_valid-callbacks ..........   Passed    0.03 sec
+        Start  23: SoPathAssignmentAllocationFailure
+199/263 Test  #23: SoPathAssignmentAllocationFailure ..............   Passed    0.02 sec
+        Start 246: SensorScheduling_absolute_deadline
+200/263 Test  #34: CoinTestsFilterDirectSuite .....................   Passed    0.03 sec
+        Start 239: SensorScheduling_timer_changed_exception
+201/263 Test #246: SensorScheduling_absolute_deadline .............   Passed    0.03 sec
+        Start 232: SensorScheduling_zero_nonidle
+202/263 Test #239: SensorScheduling_timer_changed_exception .......   Passed    0.03 sec
+        Start  30: CoinTestsFilterRepeated
+203/263 Test #232: SensorScheduling_zero_nonidle ..................   Passed    0.03 sec
+        Start   7: SoPathRange
+204/263 Test  #30: CoinTestsFilterRepeated ........................   Passed    0.03 sec
+        Start  31: CoinTestsFilterNoMatch
+205/263 Test   #7: SoPathRange ....................................   Passed    0.03 sec
+        Start 252: SensorQueueAllocation_recurring
+206/263 Test  #31: CoinTestsFilterNoMatch .........................   Passed    0.03 sec
+        Start   8: SoPathLegacyAccessorBounds_node
+207/263 Test #252: SensorQueueAllocation_recurring ................   Passed    0.03 sec
+        Start   9: SoPathLegacyAccessorBounds_node-tail
+208/263 Test   #8: SoPathLegacyAccessorBounds_node ................   Passed    0.03 sec
+        Start 243: SensorScheduling_delay_exception
+209/263 Test   #9: SoPathLegacyAccessorBounds_node-tail ...........   Passed    0.03 sec
+        Start   6: SoTempPathReplaceTail_empty_noop
+210/263 Test #243: SensorScheduling_delay_exception ...............   Passed    0.03 sec
+        Start 230: SensorScheduling_timeout_change_cancel
+211/263 Test   #6: SoTempPathReplaceTail_empty_noop ...............   Passed    0.03 sec
+        Start  20: SoPathAuditorCallback_null-replacement
+212/263 Test #230: SensorScheduling_timeout_change_cancel .........   Passed    0.03 sec
+        Start  42: RenderManagerFramePreparationTest
+213/263 Test  #20: SoPathAuditorCallback_null-replacement .........   Passed    0.03 sec
+        Start  24: SoPathChildAppend
+214/263 Test  #42: RenderManagerFramePreparationTest ..............   Passed    0.03 sec
+        Start 236: SensorScheduling_delay_timeout_reentry
+215/263 Test  #24: SoPathChildAppend ..............................   Passed    0.03 sec
+        Start  28: CoinTestsFilterSuite
+216/263 Test #236: SensorScheduling_delay_timeout_reentry .........   Passed    0.03 sec
+        Start 249: SensorQueueAllocation_delay
+217/263 Test  #28: CoinTestsFilterSuite ...........................   Passed    0.03 sec
+        Start  27: CoinTestsFilterWildcard
+218/263 Test #249: SensorQueueAllocation_delay ....................   Passed    0.03 sec
+        Start  19: SoPathAuditorCallback_negative-index
+219/263 Test  #27: CoinTestsFilterWildcard ........................   Passed    0.03 sec
+        Start 245: SensorScheduling_delay_deferred_exception
+220/263 Test  #19: SoPathAuditorCallback_negative-index ...........   Passed    0.03 sec
+        Start  18: SoPathAuditorCallback_foreign-parent
+221/263 Test #245: SensorScheduling_delay_deferred_exception ......   Passed    0.03 sec
+        Start  32: CoinTestsFilterMissingValue
+222/263 Test  #18: SoPathAuditorCallback_foreign-parent ...........   Passed    0.03 sec
+        Start  14: SoPathAssignmentAuditor_reassign
+223/263 Test  #32: CoinTestsFilterMissingValue ....................   Passed    0.03 sec
+        Start  11: SoPathLegacyAccessorBounds_index-tail
+224/263 Test  #14: SoPathAssignmentAuditor_reassign ...............   Passed    0.03 sec
+        Start 240: SensorScheduling_delay_remove_reentry
+225/263 Test  #11: SoPathLegacyAccessorBounds_index-tail ..........   Passed    0.03 sec
+        Start 244: SensorScheduling_timer_cancel_exception
+226/263 Test #240: SensorScheduling_delay_remove_reentry ..........   Passed    0.03 sec
+        Start  13: SoPathLegacyAccessorBounds_visibility
+227/263 Test #244: SensorScheduling_timer_cancel_exception ........   Passed    0.03 sec
+        Start 235: SensorScheduling_delay_reentry
+228/263 Test  #13: SoPathLegacyAccessorBounds_visibility ..........   Passed    0.03 sec
+        Start 228: SensorScheduling_recurring_cancel
+229/263 Test #235: SensorScheduling_delay_reentry .................   Passed    0.03 sec
+        Start   4: SoTempPathReplaceTail_valid_sentinel
+230/263 Test #228: SensorScheduling_recurring_cancel ..............   Passed    0.03 sec
+        Start 247: SensorScheduling_changed_during_dispatch
+231/263 Test   #4: SoTempPathReplaceTail_valid_sentinel ...........   Passed    0.03 sec
+        Start 248: SensorScheduling_immediate_notification
+232/263 Test #247: SensorScheduling_changed_during_dispatch .......   Passed    0.03 sec
+        Start   5: SoTempPathReplaceTail_valid_replacement
+233/263 Test #248: SensorScheduling_immediate_notification ........   Passed    0.03 sec
+        Start 231: SensorScheduling_zero_repeat
+234/263 Test   #5: SoTempPathReplaceTail_valid_replacement ........   Passed    0.03 sec
+        Start  15: SoPathAssignmentAuditor_self-assign
+235/263 Test #231: SensorScheduling_zero_repeat ...................   Passed    0.03 sec
+        Start  12: SoPathLegacyAccessorBounds_valid
+236/263 Test  #15: SoPathAssignmentAuditor_self-assign ............   Passed    0.03 sec
+        Start  29: CoinTestsFilterCombined
+237/263 Test  #12: SoPathLegacyAccessorBounds_valid ...............   Passed    0.03 sec
+        Start 229: SensorScheduling_alarm_reschedule
+238/263 Test  #29: CoinTestsFilterCombined ........................   Passed    0.03 sec
+        Start 237: SensorScheduling_timer_reentry
+239/263 Test #229: SensorScheduling_alarm_reschedule ..............   Passed    0.03 sec
+        Start  95: CoinRenderDiagnosticShellTest
+240/263 Test #237: SensorScheduling_timer_reentry .................   Passed    0.03 sec
+        Start 250: SensorQueueAllocation_immediate
+241/263 Test  #95: CoinRenderDiagnosticShellTest ..................   Passed    0.03 sec
+        Start 262: XmlCApiTest
+242/263 Test #250: SensorQueueAllocation_immediate ................   Passed    0.03 sec
+        Start 263: XmlLegacyPathDocumentCxxAbiTest
+243/263 Test #263: XmlLegacyPathDocumentCxxAbiTest ................   Passed    0.02 sec
+        Start  22: SbPListGrowthFailure
+244/263 Test #262: XmlCApiTest ....................................   Passed    0.03 sec
+        Start  44: CoinRenderBackendBoundaryTest
+245/263 Test  #22: SbPListGrowthFailure ...........................   Passed    0.02 sec
+        Start  46: CoinRenderPlanAssemblyCoreTest
+246/263 Test  #44: CoinRenderBackendBoundaryTest ..................   Passed    0.03 sec
+        Start  45: CoinRenderRuntimeBoundaryTest
+247/263 Test  #45: CoinRenderRuntimeBoundaryTest ..................   Passed    0.03 sec
+        Start  47: CoinRenderTransformCoreTest
+248/263 Test  #47: CoinRenderTransformCoreTest ....................   Passed    0.02 sec
+        Start  96: CoinRenderIndexedGeometryCoreTest
+249/263 Test  #46: CoinRenderPlanAssemblyCoreTest .................   Passed    0.06 sec
+        Start 151: CoinRenderNodeInventoryTest
+250/263 Test  #96: CoinRenderIndexedGeometryCoreTest ..............   Passed    0.03 sec
+        Start  56: CoinRenderFrameCoreTest
+251/263 Test #151: CoinRenderNodeInventoryTest ....................   Passed    0.03 sec
+        Start 105: CoinRenderTextureSamplingConfigLimitTest
+252/263 Test #105: CoinRenderTextureSamplingConfigLimitTest .......   Passed    0.03 sec
+        Start 261: XmlCHeadersAggregateTest
+253/263 Test #261: XmlCHeadersAggregateTest .......................   Passed    0.00 sec
+        Start 257: XmlCHeaderParserTest
+254/263 Test #257: XmlCHeaderParserTest ...........................   Passed    0.00 sec
+        Start 259: XmlCHeaderTypesTest
+255/263 Test #259: XmlCHeaderTypesTest ............................   Passed    0.00 sec
+        Start 254: XmlCHeaderDocumentTest
+256/263 Test #254: XmlCHeaderDocumentTest .........................   Passed    0.00 sec
+        Start 260: XmlCHeaderWorldTest
+257/263 Test  #56: CoinRenderFrameCoreTest ........................   Passed    0.04 sec
+        Start 256: XmlCHeaderEntityTest
+258/263 Test #260: XmlCHeaderWorldTest ............................   Passed    0.00 sec
+        Start 253: XmlCHeaderAttributeTest
+259/263 Test #256: XmlCHeaderEntityTest ...........................   Passed    0.00 sec
+        Start 258: XmlCHeaderPathTest
+260/263 Test #253: XmlCHeaderAttributeTest ........................   Passed    0.00 sec
+        Start 255: XmlCHeaderElementTest
+261/263 Test #258: XmlCHeaderPathTest .............................   Passed    0.00 sec
+        Start  66: CoinBgfxProgramSelectionTest
+262/263 Test #255: XmlCHeaderElementTest ..........................   Passed    0.00 sec
+263/263 Test  #66: CoinBgfxProgramSelectionTest ...................   Passed    0.00 sec
+
+100% tests passed, 0 tests failed out of 263
+
+Label Time Summary:
+sopath-legacy-accessor    =   0.17 sec*proc (6 tests)
+
+Total Test time (real) = 224.53 sec
+
+The following tests did not run:
+	  2 - BumpProgramGLX (Skipped)
+	 48 - CoinRenderCameraReuseReferenceTest (Skipped)

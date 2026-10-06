@@ -1,0 +1,208 @@
+{
+  "date": "2026-10-06",
+  "branch": "codex/coin-render",
+  "source_base_commit": "b8fba0e5306d8f18ea8bf0e1a9c60c6ca73161c6",
+  "scope": "P07 first texture profile closure; broader formats/platforms remain outside this qualification",
+  "build_type": "Release",
+  "gpu": "NVIDIA GeForce RTX 3060 Laptop GPU",
+  "driver": "610.57.04",
+  "environment": {
+    "DISPLAY": ":0",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+  },
+  "ctest_campaigns": {
+    "wgpu": {
+      "build_dir": "/tmp/coin-render-first-frame-wgpu",
+      "selection": "all",
+      "backend": "RUST_BRIDGE",
+      "additional_environment": {
+        "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+      },
+      "scheduled": 199,
+      "passed": 197,
+      "skipped": [
+        "BumpProgramGLX",
+        "CoinRenderCameraReuseReferenceTest"
+      ],
+      "failed": 0,
+      "seconds": 98.49,
+      "log": "qualified-wgpu.log"
+    },
+    "bgfx": {
+      "build_dir": "/tmp/coin-render-first-frame-bgfx",
+      "selection": "all, including per-test Vulkan/OpenGL environments",
+      "backend": "BGFX",
+      "additional_environment": {
+        "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+        "COIN_BGFX_RENDERER": "vulkan"
+      },
+      "scheduled": 263,
+      "passed": 261,
+      "skipped": [
+        "BumpProgramGLX",
+        "CoinRenderCameraReuseReferenceTest"
+      ],
+      "failed": 0,
+      "seconds": 224.53,
+      "log": "qualified-bgfx.log"
+    },
+    "recording": {
+      "build_dir": "/tmp/coin-render-isolation-recording",
+      "backend": "RECORDING",
+      "legacy_gl_renderer": true,
+      "selection": [
+        "CoinRenderTransformCoreTest",
+        "CoinRenderFrameCoreTest",
+        "CoinRenderFrameReuseCoreTest",
+        "CoinRenderIndexedGeometryCoreTest",
+        "CoinRenderTextureTest",
+        "CoinRenderTextureSamplingCaptureTest",
+        "CoinRenderTextureSamplingConfigLimitTest",
+        "CoinRenderRttMatrixCaptureTest",
+        "CoinRenderProceduralTextureCaptureTest",
+        "CoinRenderSceneTextureTest"
+      ],
+      "passed": 10,
+      "failed": 0,
+      "seconds": 0.7,
+      "log": "recording.log"
+    }
+  },
+  "reproduction": {
+    "ctest": "Apply recorded environment, then ctest --test-dir <build_dir> --output-on-failure; Recording selects the ten named gates with -R. Full suites have per-test renderer settings in CMake.",
+    "rust": "CARGO_TARGET_DIR=/tmp/coin-render-first-frame-wgpu/rust_target /home/dikluwe/.cargo/bin/cargo test --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml --lib --tests"
+  },
+  "rust": {
+    "unit": 35,
+    "gouraud_shader": 2,
+    "shadow_shader": 3,
+    "failed": 0,
+    "log": "rust.log"
+  },
+  "fixtures": {
+    "sampling_success_scenes_per_process": 231,
+    "sampling_rejections_per_process": 6,
+    "sampling_gpu_reference": "CPU/GPU/CoinGL, fixed interiors MAE <= 1.5 and max <= 4 RGB; independent checker and mip byte expectations",
+    "rtt_combinations_per_route": 9,
+    "rtt_routes": [
+      "capture",
+      "GPU staged",
+      "GPU direct",
+      "CoinGL FBO",
+      "CoinGL pbuffer"
+    ],
+    "selected_detailed_tests": {
+      "wgpu": [
+        "CoinRenderTextureSamplingGpuTest",
+        "CoinRenderRttMatrixDirectTest",
+        "CoinRenderRttMatrixCaptureTest",
+        "CoinRenderRttMatrixGpuTest",
+        "CoinRenderRttMatrixPbufferTest",
+        "CoinRenderTextureSamplingCaptureTest",
+        "CoinRenderRttMatrixFboTest",
+        "CoinRenderTextureSamplingConfigLimitTest",
+        "CoinWgpuFfiFrameTest"
+      ],
+      "bgfx": [
+        "CoinRenderRttMatrixGpuTest",
+        "CoinRenderRttMatrixCaptureTest",
+        "CoinRenderRttMatrixDirectTest",
+        "CoinRenderTextureSampling_opengl",
+        "CoinRenderTextureSampling_vulkan",
+        "CoinRenderRttMatrixPbufferTest",
+        "CoinRenderRttMatrixFboTest",
+        "CoinRenderTextureSamplingCaptureTest",
+        "CoinRenderTextureSamplingConfigLimitTest"
+      ]
+    }
+  },
+  "diagnostics": {
+    "initial_bgfx_full_run": "260 passed, 1 CoinRenderDrawStyleTest timeout at unchanged 60 s, 2 skipped while Recording build also ran; archived separately and not the qualifying result",
+    "isolated_bgfx_style_seconds": 11.01,
+    "isolated_bgfx_gates_passed": 10,
+    "final_bgfx_full_run": "261 passed, 0 failed, 2 skipped; unchanged timeout",
+    "matrix_before": {
+      "fbo": {
+        "state_tx": 0.25,
+        "physical_tx": 0.25,
+        "rgb": [
+          0,
+          204,
+          0
+        ]
+      },
+      "pbuffer": {
+        "state_tx": 0,
+        "physical_tx": 0,
+        "rgb": [
+          204,
+          0,
+          0
+        ]
+      }
+    },
+    "filter_before_at_quality_0_5": {
+      "fbo": {
+        "min_filter": 9729,
+        "mip1_width": 0
+      },
+      "pbuffer": {
+        "min_filter": 9986,
+        "mip1_width": 16
+      }
+    },
+    "after": "Producer entry matrices identity, authored matrices retained, consumer restored; both native routes LINEAR (9729), mip1 width 0 through quality 0.5"
+  },
+  "limits": {
+    "stored_image": "POT 1..8192, L/LA/RGB/RGBA8 expanded to RGBA8Unorm linear, q <= 0.85, default quality thresholds",
+    "chain_bytes_max": 134217728,
+    "decal": "RGB/RGBA only",
+    "rtt_result": "RGBA8/unit 0/MODULATE, linear/base for 0 < q <= 0.5",
+    "excluded": [
+      "stored NPOT implicit rescaling",
+      "anisotropy",
+      "sRGB",
+      "HDR/float",
+      "compressed/3D/cube maps",
+      "RTT result mipmaps",
+      "Windows/FreeCAD qualification"
+    ],
+    "protocol": 47,
+    "ffi_layout_sizes_offsets": "unchanged",
+    "capabilities_versions_sizes": "V1/V2/V3 unchanged; TEXTURE_MIPMAPS bit 12 added"
+  },
+  "timing_note": "Recorded elapsed times are diagnostics, not benchmarks.",
+  "source_sha256": {
+    "experimental/include/Inventor/rendering/CoinRenderCapabilities.h": "b12fd5fc3ec76f5ea9e50b6bec4353823e67653d7d552b15ace0e771870b4190",
+    "src/actions/CoinRenderAction.cpp": "76ec7bd8028122140593b48102e05219a2a2bd657dc7f5ce83d41bfc2e036a48",
+    "src/actions/CoinRenderActionP.h": "b2e9f7f7368cc8e53773509af7c038643a8da4701a5bdeb2f7d6ab0ca6ad8735",
+    "src/nodes/SoSceneTexture2.cpp": "eff0922a439a0b437ed431289ca705c7d330e9e6b51006b1cb049907e6a95026",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "a0f57e3d2b6f352e4a6654fff04de44521f3fc416db351c657f84eb0c829c1a2",
+    "src/rendering/coinbgfx/CoinBgfxLowering.cpp": "7de4dc672c698ef2959f3f778b105ef01ed0dfce8635c697ca7c569e6e327de2",
+    "src/rendering/coinbgfx/CoinBgfxLowering.h": "746a4fce4b484c84d37e3e712b03663833895fa68629bfd0ef44e0f8fe018005",
+    "src/rendering/coinrender/CoinRenderCapabilities.cpp": "63b4805b08eed1a4f9f706833fe1da984f56f0572e75e9f1ad8d519576c10a0f",
+    "src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp": "93a0bfb7fa5822630553890bede5910cfb8721b2a2dd1b36d0a717c7b61b8d2a",
+    "src/rendering/coinrender/CoinRenderFramePlan.cpp": "3e3aa05a5eff5bed3a088a38b9e4f87d42904c939785f33675ed5f4e0fd87e4a",
+    "src/rendering/coinrender/CoinRenderFramePlan.h": "5a44a6b0cb6d0a06c7c2d790692a24aeda8b063a6b295cced33ed3fd59df4dfa",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp": "9d9bb097ab2f9bed8be5da6c9085484ffa52153722437b9e48d33feef4f7b6db",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.h": "46c46417043c073ecc5fa0e051812ebe76535a85a908da8ac2e0f8587926e98e",
+    "src/rendering/coinrender/CoinRenderFrameReuseCore.cpp": "78ca9bf80e5eeb55e3ace87a36e7962e7171e0135115d45b1002e539950415c6",
+    "src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp": "6155bcea4dc071f679938e63ccc198e91fa25a8df7442b9359b268f2ad33c52f",
+    "src/rendering/coinrender/CoinRenderRecordingBackend.cpp": "bc4c5174241656c185ed018a1cf2dc7fd8916a1ee1cb22548f318678da0ed4f3",
+    "src/rendering/coinrender/CoinRenderTextureSamplingCore.h": "ce5278a7cadd504113ae293499519a1debf8a9be136723cf1ab4023df1a4567f",
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": "4f9560bc6478897e914617ed979444282c4f74312d314645407a1dada883b583",
+    "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp": "5bd754506bd0a8deb8729544017cf9d1bad1940460095a46551aec5605c2951d",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "6b4ac27b5ad3873f6864f36daf63d941dd39b38bc14e85858d67d3227398b9b3",
+    "testsuite/CMakeLists.txt": "c08dff367fd78f71bbaacf6e6e661cb34ba0fa011d3ca12b1b859fdcf4602059",
+    "testsuite/coinrender/CoinRenderLightingTest.cpp": "61c5d618ff18a7a774d11afafbe0da99a275ef11514081262ef75d4b00a09d20",
+    "testsuite/coinrender/CoinRenderProceduralTextureTest.cpp": "df1036a856ac513c64b57faa230cb8967d9a8632e505ee8ba845060b34ff0dc1",
+    "testsuite/coinrender/CoinRenderRttMatrixTest.cpp": "b0a1c3087b205b3adaba6a15d079ede523fae6295f0b2f2ccd3912fe817df00f",
+    "testsuite/coinrender/CoinRenderTextureSamplingTest.cpp": "e3197c8246af08fb9061e313a53825da75bf8b776c82cacd3b905e702241edf8",
+    "testsuite/coinrender/CoinRenderTextureTest.cpp": "1c139407184839849dc9f6ffc4c4d90e6882f902d1263429a183fdcbbad03c75",
+    "testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp": "0906a1e0be553d1099b04d2abb534a1d51e8af85bbc9b2b84253794c2ea53177"
+  }
+}

@@ -217,7 +217,7 @@ bool sameTexture(const CoinBgfxTexture & lhs, const CoinBgfxTexture & rhs)
 {
   return lhs.width == rhs.width && lhs.height == rhs.height &&
     lhs.gpuToken == rhs.gpuToken &&
-    lhs.pixelsRgba == rhs.pixelsRgba;
+    lhs.pixelsRgba == rhs.pixelsRgba && lhs.mipmapped == rhs.mipmapped;
 }
 
 bool opaqueDrawCanBeGrouped(const CoinBgfxDraw & draw)
@@ -1027,7 +1027,9 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       return false;
     }
     texture.gpuToken = source.gpuToken;
+    texture.mipmapped = source.mipmapped;
     texture.pixelsRgba = source.pixelsRgba;
+    texture.pixelsRgba.insert(texture.pixelsRgba.end(),source.mipmapsRgba.begin(),source.mipmapsRgba.end());
     candidate.textures.push_back(std::move(texture));
   }
   for (int channel = 0; channel < 4; ++channel) {

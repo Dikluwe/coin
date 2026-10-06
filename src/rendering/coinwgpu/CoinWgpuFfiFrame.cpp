@@ -464,9 +464,10 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     const CoinRenderTextureImageSnapshot & src = frame.textures[i];
     CoinWgpuTexture & dst = this->textures[i];
     this->texturePixels[i] = src.pixelsRgba;
+    this->texturePixels[i].insert(this->texturePixels[i].end(),src.mipmapsRgba.begin(),src.mipmapsRgba.end());
     dst.width = src.width;
     dst.height = src.height;
-    dst.format = src.gpuToken ? 1 : 0;
+    dst.format = src.gpuToken ? 1 : src.mipmapped ? 2 : 0;
     dst.reserved = src.gpuToken && src.gpuOpaque ? 1 : 0;
     dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
     dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();

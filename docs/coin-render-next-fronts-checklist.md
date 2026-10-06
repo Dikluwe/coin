@@ -1,6 +1,6 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-06, após P07 `1158dd7c1f` e a rodada P02/P04/P05/P06, na branch
+Atualizada em 2026-10-06, após a rodada P02/P04/P05/P06 `b8fba0e530` e o fechamento do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
 precisam de ampliação ou qualificação apenas nos escopos indicados.
 O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
@@ -12,11 +12,19 @@ O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
   [contrato P07 inicial](coin-render-p07-procedural-textures.md). Matrizes ampliadas por shape permanecem abertas.
 - [x] Capturar as coordenadas na camada comum e entregar snapshots aos executores;
   qualificar callbacks, fast path e subclasses de faces no perfil P07 inicial.
-- [ ] Ampliar qualidade, filtros, mipmaps e formatos com limites explícitos.
-- [ ] Cobrir unidade 0 e multitextura, modelos legados, textura desligada,
-  reativação, erro sem publicação e recuperação.
-- [ ] Definir o contrato da matriz de textura herdada por produtores RTT:
-  diagnosticar a diferença FBO/pbuffer antes de escolher o esperado.
+- [x] Ampliar qualidade, filtros, mipmaps e formatos no
+  [perfil P07 fechado](coin-render-p07-sampling-rtt-contract.md): nearest/linear,
+  dois filtros de mipmaps, L/LA/RGB/RGBA POT, qualidade ≤ 0,85 e 128 MiB por cadeia.
+- [x] Cobrir unidade 0 e multitextura, modelos legados, textura desligada,
+  reativação, erro sem publicação e recuperação; 231 cenas/seis rejeições por
+  execução GPU, com referência CoinGL. DECAL L/LA tem rejeição explícita.
+- [x] Diagnosticar FBO/pbuffer e definir matrizes identidade na entrada de cada
+  produtor, matrizes próprias/aninhadas e restauração do consumidor. Corrigidos
+  a herança FBO e o filtro pbuffer na fronteira 0,5; RTT permanece linear/base.
+
+Próximo perfil: NPOT/rescaling, anisotropia/limites configuráveis, SRGB/HDR/
+compressão, mipmaps/formatos/unidades/modelos adicionais de RTT e qualificação
+Windows/FreeCAD. Esses escopos não reabrem os itens do primeiro perfil.
 
 Fechamento: expectativas numéricas e cenas mínimas comuns, CPU/BGFX/wgpu,
 referência CoinGL no domínio válido e capacidades/documentação atualizadas.

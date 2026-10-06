@@ -131,3 +131,12 @@ habilitada sem imagem falhou antes da correção e passou na revisão final.
 Comandos/ambiente, hashes dos fontes, resultados e limites estão no
 [manifesto](validation/p07-procedural-20261006/summary.json). Os tempos CTest
 não representam uma campanha de desempenho; as suítes GPU rodaram concorrentes.
+
+## Fechamento posterior do primeiro perfil P07
+
+Qualidade/filtros/mipmaps/formatos e matriz RTT foram ampliados e fechados no
+[contrato de sampling/RTT](coin-render-p07-sampling-rtt-contract.md). Esse
+contrato substitui as pendências e a faixa off/linear descritas acima: inclui
+POT, qualidade ≤ 0,85, limites/rejeições explícitos e protocolo privado 47.
+Os gates procedurais ampliados em P02 e suas pendências de raster continuam
+registrados no perfil de geometria/viewport.

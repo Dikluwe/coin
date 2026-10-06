@@ -92,6 +92,7 @@ public:
                                                      SoCallbackAction * action,
                                                      const SoNode * node);
 
+  static SoCallbackAction::Response textureImagePreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response shapePostCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);

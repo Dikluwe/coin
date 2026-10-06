@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 46
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 47
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -111,7 +111,7 @@ typedef struct CoinWgpuMaterial {
 typedef struct CoinWgpuTexture {
   uint32_t width;
   uint32_t height;
-  uint32_t format; /* 0=RGBA8_UNORM bytes; 1=private GPU RTT token */
+  uint32_t format; /* 0=RGBA8_UNORM base; 1=private GPU RTT token; 2=complete POT RGBA8 mip chain */
   uint32_t reserved;
   uint64_t content_digest;
   const uint8_t * pixels;
@@ -121,7 +121,7 @@ typedef struct CoinWgpuTexture {
 typedef struct CoinWgpuSampler {
   uint32_t wrap_s; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
   uint32_t wrap_t; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
-  uint32_t filter; /* 0=NEAREST, 1=LINEAR */
+  uint32_t filter; /* 0=NEAREST, 1=LINEAR, 2=NEAREST_MIPMAP_LINEAR, 3=LINEAR_MIPMAP_LINEAR */
   uint32_t reserved;
 } CoinWgpuSampler;
 

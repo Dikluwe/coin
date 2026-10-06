@@ -240,7 +240,7 @@ uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRen
     const auto & existing = plan.textures[i];
     if (existing.width == image.width && existing.height == image.height &&
         existing.contentDigest == image.contentDigest && existing.producerId == image.producerId &&
-        existing.sceneTransparencyFunction == image.sceneTransparencyFunction && existing.pixelsRgba == image.pixelsRgba)
+        existing.sceneTransparencyFunction == image.sceneTransparencyFunction && existing.pixelsRgba == image.pixelsRgba && existing.mipmapped == image.mipmapped && existing.mipmapsRgba == image.mipmapsRgba)
       return static_cast<uint32_t>(i);
   }
   const auto slot = static_cast<uint32_t>(plan.textures.size());

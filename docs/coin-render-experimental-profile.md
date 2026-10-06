@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=46` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=47` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -416,3 +416,13 @@ expostos após validar seus metadados completos; erro preserva o último resulta
 e retorna ticket vazio. A consulta escalar de capacidade wgpu é aditiva, mantendo
 protocolo 28 e layouts FFI. Escopo, custos de memória e evidência:
 [contrato P13](coin-render-rtt-publication-contract.md).
+
+## P07 — primeiro contrato de sampling e RTT fechado
+
+O [perfil P07](coin-render-p07-sampling-rtt-contract.md) inclui quatro filtros,
+mipmaps POT preparados no Core, L/LA/RGB/RGBA, oito units no perfil de imagens
+armazenadas e qualidade ≤ 0,85. RTT começa com matrizes identidade, restaura
+o consumidor e usa linear/base até 0,5 nas duas rotas CoinGL. Limites e
+rejeições são parte do contrato; a máscara compilada adiciona mipmaps (bit 12),
+sem mudar V1/V2/V3. Não estende formatos/modelos/unidades de RTT nem certifica
+NPOT/rescaling, anisotropia ou Windows/FreeCAD.

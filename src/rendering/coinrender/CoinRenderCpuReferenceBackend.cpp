@@ -43,8 +43,11 @@ inline ShadedVertex interpolateVertex(const ShadedVertex & a, const ShadedVertex
   return out;
 }
 
-inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex, const CoinRenderSamplerSnapshot & samp, float u, float v) {
-  if (tex.width == 0 || tex.height == 0 || tex.pixelsRgba.empty()) {
+inline SbVec4f sampleTextureLevel(const CoinRenderTextureImageSnapshot & tex, const CoinRenderSamplerSnapshot & samp, float u, float v, unsigned level, bool linear) {
+  uint32_t tw=tex.width,th=tex.height;size_t offset=0;
+  for(unsigned l=0;l<level;++l){if(l)offset+=size_t(tw)*th*4;tw=std::max(1u,tw/2);th=std::max(1u,th/2);}
+  const auto & pixels=level ? tex.mipmapsRgba : tex.pixelsRgba;
+  if (tw == 0 || th == 0 || pixels.empty()) {
     return SbVec4f(1.0f, 1.0f, 1.0f, 1.0f);
   }
 
@@ -64,8 +67,8 @@ inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex, const C
     vCoord = std::max(0.0f, std::min(1.0f, vCoord));
   }
 
-  float fx = uCoord * static_cast<float>(tex.width) - 0.5f;
-  float fy = vCoord * static_cast<float>(tex.height) - 0.5f;
+  float fx = uCoord * static_cast<float>(tw) - 0.5f;
+  float fy = vCoord * static_cast<float>(th) - 0.5f;
   int x0 = static_cast<int>(std::floor(fx));
   int y0 = static_cast<int>(std::floor(fy));
   int x1 = x0 + 1;
@@ -75,27 +78,27 @@ inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex, const C
 
   auto fetchPixel = [&](int x, int y) -> SbVec4f {
     if (samp.wrapS == CoinRenderTextureWrap::REPEAT) {
-      x = ((x % static_cast<int>(tex.width)) + tex.width) % tex.width;
+      x = ((x % static_cast<int>(tw)) + tw) % tw;
     } else {
-      x = std::max(0, std::min(static_cast<int>(tex.width) - 1, x));
+      x = std::max(0, std::min(static_cast<int>(tw) - 1, x));
     }
     if (samp.wrapT == CoinRenderTextureWrap::REPEAT) {
-      y = ((y % static_cast<int>(tex.height)) + tex.height) % tex.height;
+      y = ((y % static_cast<int>(th)) + th) % th;
     } else {
-      y = std::max(0, std::min(static_cast<int>(tex.height) - 1, y));
+      y = std::max(0, std::min(static_cast<int>(th) - 1, y));
     }
-    size_t idx = (static_cast<size_t>(y) * tex.width + static_cast<size_t>(x)) * 4;
+    size_t idx = (static_cast<size_t>(y) * tw + static_cast<size_t>(x)) * 4 + offset;
     return SbVec4f(
-      static_cast<float>(tex.pixelsRgba[idx + 0]) / 255.0f,
-      static_cast<float>(tex.pixelsRgba[idx + 1]) / 255.0f,
-      static_cast<float>(tex.pixelsRgba[idx + 2]) / 255.0f,
-      static_cast<float>(tex.pixelsRgba[idx + 3]) / 255.0f
+      static_cast<float>(pixels[idx + 0]) / 255.0f,
+      static_cast<float>(pixels[idx + 1]) / 255.0f,
+      static_cast<float>(pixels[idx + 2]) / 255.0f,
+      static_cast<float>(pixels[idx + 3]) / 255.0f
     );
   };
 
-  if (samp.filter == CoinRenderTextureFilter::NEAREST) {
-    int nx = static_cast<int>(std::floor(uCoord * static_cast<float>(tex.width)));
-    int ny = static_cast<int>(std::floor(vCoord * static_cast<float>(tex.height)));
+  if (!linear) {
+    int nx = static_cast<int>(std::floor(uCoord * static_cast<float>(tw)));
+    int ny = static_cast<int>(std::floor(vCoord * static_cast<float>(th)));
     return fetchPixel(nx, ny);
   }
 
@@ -108,6 +111,16 @@ inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex, const C
   SbVec4f top = p00 + (p10 - p00) * wx;
   SbVec4f bot = p01 + (p11 - p01) * wx;
   return top + (bot - top) * wy;
+}
+
+inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex,const CoinRenderSamplerSnapshot & samp,float u,float v,float lod=0) {
+  const bool mip=static_cast<uint32_t>(samp.filter)>=2 && tex.mipmapped;
+  if(!mip || lod<=0)return sampleTextureLevel(tex,samp,u,v,0,samp.filter!=CoinRenderTextureFilter::NEAREST);
+  unsigned maximum=0;for(uint32_t w=tex.width,h=tex.height;w>1||h>1;w=std::max(1u,w/2),h=std::max(1u,h/2))++maximum;
+  lod=std::max(0.f,std::min(float(maximum),lod));const unsigned lo=unsigned(std::floor(lod)),hi=std::min(maximum,lo+1);
+  const bool linear=samp.filter==CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+  const auto a=sampleTextureLevel(tex,samp,u,v,lo,linear),b=sampleTextureLevel(tex,samp,u,v,hi,linear);
+  return a+(b-a)*(lod-lo);
 }
 
 inline void applyFog(const CoinRenderRenderStateSnapshot & rs, float eyeDepth,
@@ -319,7 +332,28 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
         const SbVec3f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
         const SbVec2f projected = coin_render_project_texture_coordinate(tc, rs.textureProjection);
-        SbVec4f texCol = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot], projected[0], projected[1]);
+        float lod=0;
+        const auto & image=frame.textures[layer.imageSlot];
+        const auto & sampler=frame.samplers[layer.samplerSlot];
+        if(image.mipmapped && static_cast<uint32_t>(sampler.filter)>=2) {
+          const SbVec3f ts[3]={unit ? sv0.extraTexcoords[unit-1] : sv0.texCoord,
+                              unit ? sv1.extraTexcoords[unit-1] : sv1.texCoord,
+                              unit ? sv2.extraTexcoords[unit-1] : sv2.texCoord};
+          auto uvAt=[&](float x,float y){const SbVec2f at(x,y);
+            const float a=edgeFunction(scrPos[1],scrPos[2],at)*invArea*invW[0],
+                        b=edgeFunction(scrPos[2],scrPos[0],at)*invArea*invW[1],
+                        c=edgeFunction(scrPos[0],scrPos[1],at)*invArea*invW[2];
+            return coin_render_project_texture_coordinate((ts[0]*a+ts[1]*b+ts[2]*c)/(a+b+c),rs.textureProjection);
+          };
+          // Match fragment-quad finite differences, including homogeneous Q.
+          const float x=float(px & ~1)+.5f,y=float(py & ~1)+.5f;
+          const auto dx=uvAt(x+1,float(py)+.5f)-uvAt(x,float(py)+.5f);
+          const auto dy=uvAt(float(px)+.5f,y+1)-uvAt(float(px)+.5f,y);
+          const float rho=std::max(std::hypot(dx[0]*image.width,dx[1]*image.height),
+                                   std::hypot(dy[0]*image.width,dy[1]*image.height));
+          if(rho>0)lod=std::log2(rho);
+        }
+        SbVec4f texCol = sampleTexture(image,sampler,projected[0],projected[1],lod);
         if (rs.textureCombines[unit].instructions[0][0] > .5f) {
           const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
               texCol, SbVec4f(finalR, finalG, finalB, sourceAlpha));

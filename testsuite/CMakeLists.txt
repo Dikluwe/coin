@@ -902,6 +902,48 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderTextureTest COMMAND CoinRenderTextureTest)
 	set_tests_properties(CoinRenderTextureTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderTextureSamplingTest coinrender/CoinRenderTextureSamplingTest.cpp)
+	target_compile_definitions(CoinRenderTextureSamplingTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_link_libraries(CoinRenderTextureSamplingTest CoinRender Coin)
+	target_include_directories(CoinRenderTextureSamplingTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderTextureSamplingCaptureTest COMMAND CoinRenderTextureSamplingTest)
+	add_test(NAME CoinRenderTextureSamplingConfigLimitTest COMMAND CoinRenderTextureSamplingTest --reject-config)
+	set_tests_properties(CoinRenderTextureSamplingConfigLimitTest PROPERTIES TIMEOUT 60 ENVIRONMENT "COIN_TEX2_LINEAR_LIMIT=0.4")
+	set_tests_properties(CoinRenderTextureSamplingCaptureTest PROPERTIES TIMEOUT 120)
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+		add_test(NAME CoinRenderTextureSamplingGpuTest COMMAND CoinRenderTextureSamplingTest --gpu)
+		set_tests_properties(CoinRenderTextureSamplingGpuTest PROPERTIES TIMEOUT 180)
+	elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+		foreach(renderer ${_coin_bgfx_test_renderers})
+			add_test(NAME CoinRenderTextureSampling_${renderer} COMMAND CoinRenderTextureSamplingTest --gpu)
+			set_tests_properties(CoinRenderTextureSampling_${renderer} PROPERTIES TIMEOUT 180
+				ENVIRONMENT "COIN_BGFX_RENDERER=${renderer}")
+		endforeach()
+	endif()
+
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+	add_executable(CoinRenderRttMatrixTest coinrender/CoinRenderRttMatrixTest.cpp)
+	target_compile_definitions(CoinRenderRttMatrixTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+	target_link_libraries(CoinRenderRttMatrixTest CoinRender Coin OpenGL::GL)
+	target_include_directories(CoinRenderRttMatrixTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderRttMatrixCaptureTest COMMAND CoinRenderRttMatrixTest)
+	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" OR COIN_RENDER_BACKEND STREQUAL "BGFX")
+		add_test(NAME CoinRenderRttMatrixGpuTest COMMAND CoinRenderRttMatrixTest --gpu)
+		add_test(NAME CoinRenderRttMatrixDirectTest COMMAND CoinRenderRttMatrixTest --direct)
+		set_tests_properties(CoinRenderRttMatrixGpuTest CoinRenderRttMatrixDirectTest PROPERTIES TIMEOUT 60)
+	endif()
+	add_test(NAME CoinRenderRttMatrixFboTest COMMAND CoinRenderRttMatrixTest --gl)
+	add_test(NAME CoinRenderRttMatrixPbufferTest COMMAND CoinRenderRttMatrixTest --gl)
+	set_tests_properties(CoinRenderRttMatrixCaptureTest
+		CoinRenderRttMatrixFboTest CoinRenderRttMatrixPbufferTest PROPERTIES TIMEOUT 60)
+	set_tests_properties(CoinRenderRttMatrixFboTest PROPERTIES SKIP_RETURN_CODE 77 ENVIRONMENT "COIN_DONT_USE_FBO=0")
+	set_tests_properties(CoinRenderRttMatrixPbufferTest PROPERTIES SKIP_RETURN_CODE 77 ENVIRONMENT "COIN_DONT_USE_FBO=1")
+	endif()
+
 	add_executable(CoinRenderGeometryViewportTest coinrender/CoinRenderGeometryViewportTest.cpp)
 	target_compile_definitions(CoinRenderGeometryViewportTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
 	target_link_libraries(CoinRenderGeometryViewportTest CoinRender Coin)

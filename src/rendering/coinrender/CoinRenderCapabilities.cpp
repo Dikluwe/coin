@@ -236,6 +236,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                     COIN_RENDER_FEATURE_LINES_POINTS |
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
+                    COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
                     COIN_RENDER_FEATURE_CLIP_PLANES |
@@ -261,6 +262,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                     COIN_RENDER_FEATURE_LINES_POINTS |
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
+                    COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
                     COIN_RENDER_FEATURE_CLIP_PLANES |
@@ -278,6 +280,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                     COIN_RENDER_FEATURE_LINES_POINTS |
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
+                    COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
                     COIN_RENDER_FEATURE_SORTED_ALPHA |

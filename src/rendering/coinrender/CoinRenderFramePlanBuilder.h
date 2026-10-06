@@ -6,6 +6,7 @@
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include <Inventor/SbViewportRegion.h>
 #include <unordered_map>
+#include <unordered_set>
 
 class SoCallbackAction;
 class SoPrimitiveVertex;
@@ -51,6 +52,7 @@ public:
   void endForeground();
   void endAnnotation();
 
+  void registerAuthoredTextureImage(const unsigned char * bytes) { if(bytes) authoredTextureImages.insert(bytes); }
   void registerSceneTexture(const unsigned char* image, uint64_t producerId, uint32_t width,
                             uint32_t height, bool opaque, int32_t transparencyFunction);
   void addTriangle(SoCallbackAction * action,
@@ -176,6 +178,7 @@ private:
     int32_t transparencyFunction;
   };
   std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
+  std::unordered_set<const unsigned char*> authoredTextureImages;
 };
 
 #endif // !COIN_RENDER_FRAME_PLAN_BUILDER_H

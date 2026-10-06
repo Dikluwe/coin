@@ -228,7 +228,8 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
     const auto & s = frame.samplers[i];
     const char * wsStr = (s.wrapS == CoinRenderTextureWrap::REPEAT ? "REPEAT" : "CLAMP");
     const char * wtStr = (s.wrapT == CoinRenderTextureWrap::REPEAT ? "REPEAT" : "CLAMP");
-    const char * fStr = (s.filter == CoinRenderTextureFilter::NEAREST ? "NEAREST" : "LINEAR");
+    const char * filters[]={"NEAREST","LINEAR","NEAREST_MIPMAP_LINEAR","LINEAR_MIPMAP_LINEAR"};
+    const char * fStr=static_cast<uint32_t>(s.filter)<4 ? filters[static_cast<uint32_t>(s.filter)] : "INVALID";
     out << "  sampler " << i << ": wrapS=" << wsStr << " wrapT=" << wtStr << " filter=" << fStr << "\n";
   }
 

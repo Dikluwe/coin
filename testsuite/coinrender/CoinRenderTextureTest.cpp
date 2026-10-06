@@ -409,7 +409,7 @@ static bool testUnsupportedRejections() {
     SoSeparator * root = new SoSeparator;
     root->ref();
     SoComplexity * comp = new SoComplexity;
-    comp->textureQuality.setValue(0.8f); // 0.8 is unsupported (only 0.0 and 0.5)
+    comp->textureQuality.setValue(0.95f); // anisotropy lies outside the P07 profile
     root->addChild(comp);
 
     SoTexture2 * tex = new SoTexture2;

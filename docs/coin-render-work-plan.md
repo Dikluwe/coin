@@ -249,3 +249,11 @@ para NVIDIA Vulkan e explicita falhas/skips sem extrapolar esses números. O
 [perfil P16](coin-render-freecad-viewport.md) é a base de interação comprovada.
 Texto, imagem, rótulos e geometria GL-only seguem F19/F20/P15; viewport
 parcialmente externo continua P04; RTT ampliado F14; captura explícita de janela RGBA8 foi fechada em [F15](coin-render-window-readback.md).
+
+## Fechamento do primeiro perfil P07 em 2026-10-06
+
+Os três itens de sampling/formatos, combinações de unidades/modelos/publicação
+e matriz RTT da checklist foram fechados no
+[contrato P07](coin-render-p07-sampling-rtt-contract.md). O identificador P07
+no plano geral conserva a expansão futura para NPOT, anisotropia, formatos
+mais amplos e RTT fora do perfil; a primeira implementação está completa.

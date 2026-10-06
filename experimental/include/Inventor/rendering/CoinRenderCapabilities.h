@@ -39,7 +39,8 @@ enum CoinRenderFeature {
   COIN_RENDER_FEATURE_ASYNC_READBACK = UINT64_C(1) << 8,
   COIN_RENDER_FEATURE_DIRECT_RTT = UINT64_C(1) << 9,
   COIN_RENDER_FEATURE_CLIP_PLANES = UINT64_C(1) << 10, /* up to eight active planes */
-  COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES = UINT64_C(1) << 11 /* bounded P07 native callback profile */
+  COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES = UINT64_C(1) << 11, /* bounded P07 native callback profile */
+  COIN_RENDER_FEATURE_TEXTURE_MIPMAPS = UINT64_C(1) << 12 /* bounded P07 stored POT RGBA8 chain */
 };
 
 enum CoinRenderProbeStatus {

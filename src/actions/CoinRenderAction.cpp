@@ -14,6 +14,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoTexture2.h>
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoTexture3.h>
@@ -1549,6 +1550,20 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 }
 
 SoCallbackAction::Response
+CoinRenderActionP::textureImagePreCB(void * userdata, SoCallbackAction *, const SoNode * node)
+{
+  const auto * texture=static_cast<const SoTexture2 *>(node);
+  SbVec2s size;int components;
+  const auto * bytes=texture->image.getValue(size,components);
+  // Distinguish a genuinely authored white 2x2 luminance image from Coin's
+  // static pending-filename dummy. Reading this field does not traverse/mutate
+  // the node or affect pre-callback PRUNE/override behavior.
+  if(size[0]>0 && size[1]>0 && components>0)
+    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes);
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
 CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   // PRUNE skips this shape only; subsequent state nodes still traverse.
@@ -1856,6 +1871,7 @@ CoinRenderActionP::initCallbacks()
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
   this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoTexture2::getClassTypeId(), textureImagePreCB, this);
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPostCallback(SoShape::getClassTypeId(), shapePostCB, this);
   this->master->addPreCallback(SoTranslation::getClassTypeId(), translationPreCB, this);

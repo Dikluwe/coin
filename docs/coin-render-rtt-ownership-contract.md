@@ -199,3 +199,11 @@ qualificados no [contrato P14](coin-render-multi-target-contract.md). RTT staged
 BGFX agora mantém o consumidor preparado durante os filhos; perda compartilhada
 aposenta conectores e staging de tickets sem bloquear a próxima geração. As
 ressalvas acima descrevem o fechamento original P12 e sua campanha histórica.
+
+## P07: matrizes e filtro na fronteira 0,5
+
+Cada produtor começa com matrizes de textura identidade; escreve suas próprias
+matrizes e restaura as do consumidor ao sair. A correção FBO e o alinhamento
+linear/base do pbuffer foram medidos contra as duas rotas nativas no
+[contrato P07](coin-render-p07-sampling-rtt-contract.md). O resultado RTT fica
+linear/base em 0 < q ≤ 0,5; qualidades maiores e mipmaps de RTT são rejeitados.

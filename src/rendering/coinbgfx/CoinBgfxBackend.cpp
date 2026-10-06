@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -1629,6 +1630,7 @@ CoinBgfxBackend::bindDrawTexture(
     if (layer.wrapT == CoinRenderTextureWrap::CLAMP) flags |= BGFX_SAMPLER_V_CLAMP;
     if (layer.filter == CoinRenderTextureFilter::NEAREST)
       flags |= BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT;
+    if(layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR) flags |= BGFX_SAMPLER_MIN_POINT;
     bool directRenderTarget = false;
     if (layer.enabled) for (const auto & resource : this->directTextures) {
       const auto direct = bgfx::getTexture(resource.frameBuffer, 0);
@@ -2334,7 +2336,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     if (texture.width == 0 || texture.height == 0 ||
         texture.width > UINT16_MAX || texture.height > UINT16_MAX ||
         texture.pixelsRgba.size() !=
-          static_cast<size_t>(texture.width) * texture.height * 4u) {
+          static_cast<size_t>(texture.width) * texture.height * 4u +
+          (texture.mipmapped ? CoinRenderTextureSamplingCore::mipBytes(texture.width,texture.height) : 0)) {
       this->lastError = "BGFX texture dimensions or RGBA payload are invalid";
       for (size_t i = 0; i < textures.size(); ++i)
         if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
@@ -2342,7 +2345,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
     textures[textureIndex] = bgfx::createTexture2D(
       static_cast<uint16_t>(texture.width),
-      static_cast<uint16_t>(texture.height), false, 1,
+      static_cast<uint16_t>(texture.height), texture.mipmapped, 1,
       bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
       bgfx::copy(texture.pixelsRgba.data(),
                  static_cast<uint32_t>(texture.pixelsRgba.size())));
@@ -3114,7 +3117,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       }
     } else {
       textures[i] = bgfx::createTexture2D(static_cast<uint16_t>(source.width),
-        static_cast<uint16_t>(source.height), false, 1, bgfx::TextureFormat::RGBA8,
+        static_cast<uint16_t>(source.height), source.mipmapped, 1, bgfx::TextureFormat::RGBA8,
         BGFX_TEXTURE_NONE, bgfx::copy(source.pixelsRgba.data(),
           static_cast<uint32_t>(source.pixelsRgba.size())));
       owned[i] = true;

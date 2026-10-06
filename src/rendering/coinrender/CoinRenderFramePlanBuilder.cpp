@@ -6,6 +6,7 @@
 #include <iostream>
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include "rendering/coinrender/CoinRenderBoundingBoxCore.h"
@@ -195,6 +196,7 @@ CoinRenderFramePlanBuilder::reset()
   this->annotationDepthClearPending = false;
   this->builderError.clear();
   this->sceneTextures.clear();
+  this->authoredTextureImages.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
   this->lightCaptureScratch.clear();
@@ -728,7 +730,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 
   // 3. Texture quality
   float quality = SoTextureQualityElement::get(state);
-  if (quality <= 0.0f) {
+  if (quality == 0.0f) {
     // The moments shader ignores textures, but Coin still classifies an
     // image's alpha for shouldGLRender(SHADOWMAP).
     rs.transparentTexture = coin_render_image_has_transparency(
@@ -742,15 +744,26 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   if (SoMultiTextureCoordinateElement::getType(state, unit) == SoMultiTextureCoordinateElement::FUNCTION)
     this->coordinateFunctionsCaptured = true;
 
-  if (std::abs(quality - 0.5f) > 0.05f) {
-    if (outError) *outError = "Unsupported texture quality, only 0.0 (off) and 0.5 (linear) are supported in Subwave 3B";
+  const char * names[]={"COIN_TEX2_LINEAR_LIMIT","COIN_TEX2_MIPMAP_LIMIT","COIN_TEX2_LINEAR_MIPMAP_LIMIT","COIN_TEX2_ANISOTROPIC_LIMIT"};
+  const float defaults[]={.2f,.5f,.8f,.85f};
+  for(unsigned i=0;i<4;++i)if(const char * value=std::getenv(names[i])) {
+    const float limit=std::atof(value);
+    if(!std::isfinite(limit) || limit!=defaults[i]) {
+      this->isUnsupported=true;this->builderError="P07 requires default Coin texture-quality thresholds";
+      if(outError)*outError=this->builderError;return false;
+    }
+  }
+  CoinRenderTextureFilter filter;
+  if (!CoinRenderTextureSamplingCore::quality(quality,filter)) {
+    if (outError) *outError = "P07 texture quality must be finite in [0,0.85]; anisotropy is outside the profile";
     this->isUnsupported = true;
-    this->builderError = (outError ? *outError : "Unsupported texture quality in Subwave 3B");
+    this->builderError = outError ? *outError : "Unsupported P07 texture quality";
     return false;
   }
 
   // 4. Check for Coin dummy texture injected for missing/pending filenames (2x2, 1 component, all 0xff)
-  if (imgSize[0] == 2 && imgSize[1] == 2 && numComponents == 1 &&
+  if (!this->authoredTextureImages.count(rawBytes) &&
+      imgSize[0] == 2 && imgSize[1] == 2 && numComponents == 1 &&
       rawBytes[0] == 0xff && rawBytes[1] == 0xff && rawBytes[2] == 0xff && rawBytes[3] == 0xff) {
     if (outError) *outError = "Pending or missing texture file detected (dummy texture rejected in Subwave 3B)";
     this->isUnsupported = true;
@@ -819,6 +832,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   rs.textureBlendColor[2] = blendColor[2];
   rs.textureBlendColor[3] = 1.0f;
 
+  if(model==SoMultiTextureImageElement::DECAL && numComponents<3) {
+    this->isUnsupported=true;this->builderError="P07 DECAL requires RGB/RGBA; luminance DECAL has no portable legacy contract";
+    if(outError)*outError=this->builderError;return false;
+  }
   // 7. Canonical RGBA8 conversion and strict opacity validation
   const auto sceneTexture = this->sceneTextures.find(rawBytes);
   bool isSceneTexture = sceneTexture != this->sceneTextures.end() && imgSize[0] == 1 &&
@@ -840,6 +857,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     return false;
   }
 
+  if(!isSceneTexture && (!CoinRenderTextureSamplingCore::powerOfTwo(w) || !CoinRenderTextureSamplingCore::powerOfTwo(h))) {
+    this->isUnsupported=true;this->builderError="P07 stored texture images require power-of-two dimensions; implicit CoinGL NPOT rescaling is outside this profile";
+    if(outError)*outError=this->builderError;return false;
+  }
   std::vector<uint8_t> rgba;
   if (!isSceneTexture) {
     if (!CoinRenderImageCore::convertToRgba8(rawBytes, size_t(w) * h, numComponents, rgba)) {
@@ -860,13 +881,25 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   tSnap.contentDigest = digest;
   tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
   tSnap.pixelsRgba = std::move(rgba);
+  if (isSceneTexture) {
+    if (quality>.5f) {
+      this->isUnsupported=true; this->builderError="P07 RTT sampling requires linear quality (0,0.5]; RTT mipmaps/nearest are outside this profile";
+      if(outError)*outError=this->builderError; return false;
+    }
+    filter=CoinRenderTextureFilter::LINEAR;
+  } else if (CoinRenderTextureSamplingCore::mipFilter(filter) &&
+             !CoinRenderTextureSamplingCore::generate(tSnap)) {
+    this->isUnsupported=true;this->builderError="P07 mipmaps require power-of-two 2D RGBA8 images and at most 128 MiB including all levels";
+    if(outError)*outError=this->builderError;return false;
+  }
+
   const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
 
   // 9. Sampler deduplication
   CoinRenderSamplerSnapshot sampSnap;
   sampSnap.wrapS = snapWrapS;
   sampSnap.wrapT = snapWrapT;
-  sampSnap.filter = CoinRenderTextureFilter::LINEAR;
+  sampSnap.filter = filter;
 
   const uint32_t sampSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampSnap);
 
