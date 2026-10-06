@@ -12,11 +12,22 @@ import sys
 
 CASES = ('first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
-         'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'navicube', 'depth', 'polygon-offset', 'annotation',
+         'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
          'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
 EXIT = {'PASS': 0, 'REFERENCE_PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
-OFFSCREEN_CASES = ('navicube', 'depth', 'polygon-offset', 'annotation',
+OFFSCREEN_CASES = ('retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
                    'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
+
+def bgfx_gl_adapter_evidence(output):
+    adapters = re.findall(r'^COIN_RENDER_PHASE bgfx_gl_adapter vendor=(.*?) renderer=(.*?) version=(.*)$',
+                          output, re.MULTILINE)
+    hardware = bool(adapters)
+    for vendor, renderer, version in adapters:
+        text = (vendor + ' ' + renderer).lower()
+        hardware = hardware and bool(version) and not any(
+            word in text for word in ('llvmpipe','lavapipe','softpipe','software','virgl','cpu')) and any(
+            word in text for word in ('nvidia geforce','nvidia quadro','nvidia rtx','amd radeon','mesa intel','intel(r)'))
+    return adapters, hardware
 
 def execute(command, env, timeout):
     # FreeCAD may launch helper processes which otherwise retain stdout and
@@ -182,7 +193,9 @@ def main():
                      'EGL_PLATFORM', '__EGL_VENDOR_LIBRARY_FILENAMES', '__GLX_VENDOR_LIBRARY_NAME',
                      'DRI_PRIME', 'LIBGL_ALWAYS_SOFTWARE',
                      'MESA_LOADER_DRIVER_OVERRIDE', 'QT_QPA_PLATFORM',
-                     'QT_OPENGL', 'QT_SCALE_FACTOR')}}
+                     'QT_OPENGL', 'QT_SCALE_FACTOR', '__EGL_VENDOR_LIBRARY_FILENAMES',
+                     'COIN_TEST_RETAINED_NODES', 'COIN_TEST_RETAINED_FILTER',
+                     'COIN_TEST_SPLINE_CONSUMER', 'COIN_BGFX_DISABLE_PROGRAM_CACHE')}}
     (args.artifacts / 'provenance.json').write_text(json.dumps(provenance, indent=2))
     window_manager = window_manager_available(inventory['window_manager'])
     results = []
@@ -218,6 +231,8 @@ def main():
                            COIN_BGFX_TRANSPARENCY=mode, COIN_RENDER_TRANSPARENCY=mode, COIN_TEST_ALPHA=alpha,
                            QT_SCALE_FACTOR=str(scale), COIN_TEST_ARTIFACTS=str(directory),
                            COIN_TEST_MACRO_DIR=str(Path(__file__).resolve().parent))
+                if args.backend == 'bgfx' and renderer == 'opengl' and sys.platform.startswith('linux'):
+                    env['COIN_BGFX_TRACE_GL_ADAPTER'] = '1'
                 if not env.get('DISPLAY'):
                     result = dict(status='SKIP', reason='no DISPLAY; native X11 surface cannot execute')
                     output = ''
@@ -292,6 +307,12 @@ def main():
                 known_vendor = bool(devices) and all(d[1] in ('0x1002', '0x10de', '0x8086', '0x13b5', '0x5143') for d in devices)
                 hardware = not actual_software and bool(devices) and (known_vendor or
                             (renderer == 'opengl' and 'accelerated: yes' in description))
+                if args.backend == 'bgfx' and renderer == 'opengl' and sys.platform.startswith('linux'):
+                    gl_adapters, physical = bgfx_gl_adapter_evidence(output)
+                    # The backend render context, rather than Qt GLX or process
+                    # residency, identifies the selected device/provider.
+                    hardware = bool(devices) and physical
+                    result['backend_gl_contexts'] = gl_adapters
                 if args.backend == 'wgpu':
                     phase = 'wgpu_offscreen' if offscreen else 'wgpu_surface'
                     types = re.findall(r'COIN_RENDER_PHASE ' + phase + r' .*?device_type=(\w+)', output)

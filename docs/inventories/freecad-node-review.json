@@ -38,8 +38,8 @@
   "SoDatumLabel": {
     "status": "PARTIAL",
     "owner": "Wiring preparação de rótulo + Core layout",
-    "next": "P03/F20 antes do P16 Sketcher/Measure",
-    "reason": "generatePrimitives depende de imgWidth/imgHeight preparados; GLRender prepara cena/raster e altera culling/transparência. Primitivas de picking não certificam rótulo completo em frame frio."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara cena/textura fria, normaliza RGBA NPOT sem alterar a imagem lógica usada por picking e percorre m_Root. Perfil Linux de rótulo e mutação; Sketcher/Measure completos e Windows seguem abertos."
   },
   "SoDrawingGrid": {
     "status": "PARTIAL",
@@ -48,22 +48,22 @@
     "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
   },
   "SoFCBoundingBox": {
-    "status": "BLOCKED",
+    "status": "PARTIAL",
     "owner": "Wiring host + Core geometria",
-    "next": "F19/P16",
-    "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara caixa/rótulos e explicita depth/culling. Perfil dentro do volume de profundidade; bbox que depende de geometric depth clamp é recusada antes da publicação. Windows e consumidores completos seguem abertos."
   },
   "SoFCColorBar": {
     "status": "PARTIAL",
     "owner": "Wiring viewport + Core layout/texto",
-    "next": "P03/P16",
-    "reason": "Separator retido contém geometria e SoText2; prepareViewport roda em GLBelowPath. Qualificar atualização no callback e substituir texto ausente."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara viewport antes de atravessar geometria/rótulos. Comparação fria CoinGL e glifos em três ranges usa câmera de foreground com height 10; consumidores FEM/Mesh completos e Windows seguem separados."
   },
   "SoFCControlPoints": {
-    "status": "BLOCKED",
+    "status": "PARTIAL",
     "owner": "Wiring host + Core geometria",
-    "next": "F19/P16",
-    "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback sincroniza renderRoot com produtos/soma em 64 bits, eixos zero pareados e orçamento de 65536 pontos. Rejeição mantém publicação e recupera. Perfil Linux 2x2/1x4 e consumidor Bezier Part::Spline; OpenGL desse consumidor requer cache de programas desativado no binding GLX NVIDIA/EGL Mesa. BSpline/superfícies completos e Windows seguem separados."
   },
   "SoFCIndexedFaceSet": {
     "status": "PARTIAL",
@@ -72,10 +72,10 @@
     "reason": "Faces herdadas são capturáveis; GLRender e doAction de ações especializadas têm seleção própria. Presença de doAction não prova sua execução no callback CoinRender."
   },
   "SoFCMeshGridNode": {
-    "status": "BLOCKED",
+    "status": "PARTIAL",
     "owner": "Wiring host + Core linhas",
-    "next": "F19/P16 Mesh",
-    "reason": "SoNode desenha grid diretamente com glBegin(GL_LINES), sem callback equivalente ou primitivas; publicar geometria lógica antes da Infra."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback gera linhas verdes retidas para dimensões 1..128 por eixo; (0,0,0) é inerte. Dimensão fora do orçamento rejeita e recupera. Perfil Linux 2x2x2/3x3x3; consumidores Mesh e Windows seguem separados."
   },
   "SoFCMeshObjectBoundary": {
     "status": "CAPTURE_CANDIDATE",
@@ -162,10 +162,10 @@
     "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
   },
   "SoPolygon": {
-    "status": "BLOCKED",
+    "status": "PARTIAL",
     "owner": "Wiring host + Core geometria",
-    "next": "F19/P16",
-    "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback captura contorno fechado via SoLineSet retido; valida faixa e orçamento de 65536 pontos sem omissão e sem publicação na falha. generatePrimitives também emite linhas para picking. Perfil Linux 4/3 pontos; interação de Mesh completa e Windows seguem separados."
   },
   "SoScreenSpaceScale": {
     "status": "CAPTURE_CANDIDATE",
@@ -176,20 +176,20 @@
   "SoShapeScale": {
     "status": "PARTIAL",
     "owner": "Wiring câmera/manipulação + Core transformações",
-    "next": "P16",
-    "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback chama updateScale antes de atravessar o kit. Perfil Linux inclui shape explícito, campos active/scaleFactor e resize; kit com shape nulo é vazio. Manipulação de workbench e Windows seguem separados."
   },
   "SoStringLabel": {
-    "status": "BLOCKED",
+    "status": "PARTIAL",
     "owner": "Wiring captura + Core imagem/layout",
-    "next": "F20/P03",
-    "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara textRoot frio e normaliza RGBA NPOT gerado. Perfil Linux ensaia glifos, mutação, remoção, câmera e resize; consumidores completos e Windows ainda requerem qualificação."
   },
   "SoTransformDragger": {
     "status": "PARTIAL",
     "owner": "Wiring câmera/manipulação + Core transformações",
-    "next": "P16",
-    "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara cache e escala dos eixos antes da travessia retida. Perfil Linux verifica pixels, campo translation, resize e caminhos lógicos de picking nas hastes; arraste por input e Windows seguem separados."
   },
   "SoZoomTranslation": {
     "status": "CAPTURE_CANDIDATE",

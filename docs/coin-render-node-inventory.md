@@ -80,10 +80,19 @@ substituir/remover registros. A ABI C wgpu permanece na revisão 44.
 O gate `CoinRenderMarkerSetTest` verifica captura e pixels contra Coin/OpenGL;
 a qualificação está em [validation/marker-linux](validation/marker-linux).
 
+## Adaptadores retidos Linux
+
+O [perfil retido](coin-render-retained-linux-profile.md) implementa callbacks
+para StringLabel, DatumLabel, bbox, control points, Polygon/MeshGrid,
+ShapeScale/TransformDragger e preparo frio de ColorBar. O inventário atual
+registra captura e limites por tipo; consumidores completos e Windows seguem
+separados. As classificações históricas abaixo não substituem esse perfil nem
+as razões atuais no JSON de revisão.
+
 ## Fontes e reprodução
 
 FreeCAD base `228c679d78845c3fb6f5eb3d1a27f48aceab68b5`, com patches locais;
-CoinRender base P14 `9b474f4639`. Foram examinados **5.123 arquivos** C++/headers/Python
+CoinRender base P14 `9b474f4639`. Foram examinados **5.124 arquivos** C++/headers/Python
 em `src/Gui` e `src/Mod`: **33 classes, 47 overrides GL**, **33 criações especiais**
 (19 SoText2, 13 SoImage, 1 SoTexture3) e 25 candidatos de mecanismos Qt/GL externos.
 O hash do conteúdo auditado, incluindo patches locais, está no inventário; o SHA

@@ -99,6 +99,11 @@ public:
    */
   SbBool captureScreenContent(SoNode * node);
 
+  /** Reject the candidate from a host callback when its semantics exceed the
+   * portable profile. Inert outside apply; preserves the previous publication.
+   */
+  SbBool rejectUnsupported(const SbString & reason);
+
   /**
    * Defer the current callback path to the shared depth-tested annotation pass.
    * Returns FALSE during replay (or outside apply); callers then traverse normally.

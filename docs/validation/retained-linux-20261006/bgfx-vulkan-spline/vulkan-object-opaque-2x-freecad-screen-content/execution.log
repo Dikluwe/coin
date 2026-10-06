@@ -1,0 +1,6 @@
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x1002 device_id=0x1638 homogeneous_depth=0
+SPLINE_PHASE setup_begin
+SPLINE_PHASE setup_ready
+SPLINE_PHASE hidden_capture
+SPLINE_PHASE controls_capture
+RESULT {"test": "freecad-screen-content", "native": true, "reference_gl": false, "status": "PASS", "nodes": {}, "profile": "part-spline-consumer", "consumer": {"type": "Part::Spline", "control_nodes": 1, "visible_changes": 100, "regenerated_changes": 100, "mutation_changes": 2492, "remaining_changes": 0}, "idle_start": 69, "idle_end": 69}

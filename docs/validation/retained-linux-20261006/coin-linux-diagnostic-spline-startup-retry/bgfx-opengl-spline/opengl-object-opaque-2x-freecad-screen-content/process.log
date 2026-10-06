@@ -1,0 +1,7 @@
+COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+COIN_RENDER_PHASE bgfx_device renderer=OpenGL 4.3 vendor_id=0x0000 device_id=0x0000 homogeneous_depth=1
+SPLINE_PHASE setup_begin
+SPLINE_PHASE setup_ready
+SPLINE_PHASE hidden_capture
+SPLINE_PHASE controls_capture
+RESULT {"test": "freecad-screen-content", "native": true, "reference_gl": false, "status": "PASS", "nodes": {}, "profile": "part-spline-consumer", "consumer": {"type": "Part::Spline", "control_nodes": 1, "visible_changes": 100, "regenerated_changes": 100, "mutation_changes": 2488, "remaining_changes": 0}, "idle_start": 68, "idle_end": 68}

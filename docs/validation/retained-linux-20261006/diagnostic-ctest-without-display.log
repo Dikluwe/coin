@@ -1,0 +1,172 @@
+Internal ctest changing into directory: /tmp/coin-front3-qt
+Test project /tmp/coin-front3-qt
+    Start 1: QtQuarterResultGate
+1/3 Test #1: QtQuarterResultGate ..............   Passed    0.28 sec
+    Start 2: QtQuarterMatrix
+2/3 Test #2: QtQuarterMatrix ..................***Failed   23.60 sec
+FAIL        vulkan-object-opaque-1x-first-expose: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-frame-coalescing: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-idle: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-resize: missing/inconsistent RESULT; process exit -6
+SKIP        vulkan-object-opaque-1x-maximize: no EWMH window manager; maximize/restore cannot be verified
+FAIL        vulkan-object-opaque-1x-minimize: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-panel: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-dpr: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-2x-dpr: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-recreate: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-wheel-rotation: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-two-viewports: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-weighted_oit-opaque-1x-two-viewports: missing/inconsistent RESULT; process exit -6
+UNSUPPORTED vulkan-object-opaque-1x-freecad-multi: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-multi: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-legacy-polyline: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-legacy-polyline: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-delayed-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-delayed-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-1x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-object-opaque-2x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-1x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED vulkan-weighted_oit-opaque-2x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+FAIL        vulkan-object-opaque-1x-retained-rejection: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-colorbar: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-translucent-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-weighted_oit-opaque-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-weighted_oit-translucent-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-depth: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-polygon-offset: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-annotation: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-foregroundroot: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-decorationroot: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-axis-cross: missing/inconsistent RESULT; process exit -6
+FAIL        vulkan-object-opaque-1x-rubber-band: missing/inconsistent RESULT; process exit -6
+UNSUPPORTED vulkan-object-opaque-1x-hover: --freecad required for real FreeCAD viewport tests
+FAIL        opengl-object-opaque-1x-first-expose: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-frame-coalescing: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-idle: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-resize: missing/inconsistent RESULT; process exit -6
+SKIP        opengl-object-opaque-1x-maximize: no EWMH window manager; maximize/restore cannot be verified
+FAIL        opengl-object-opaque-1x-minimize: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-panel: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-dpr: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-2x-dpr: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-recreate: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-wheel-rotation: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-two-viewports: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-weighted_oit-opaque-1x-two-viewports: missing/inconsistent RESULT; process exit -6
+UNSUPPORTED opengl-object-opaque-1x-freecad-multi: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-multi: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-viewport: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-screen-content: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-legacy-polyline: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-legacy-polyline: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-flags: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-delayed-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-delayed-overlays: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-grid: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-path-selection: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-mouse-picking: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-mouse-elements: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-mouse-links: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-mouse-link-topology: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-1x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-object-opaque-2x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-1x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+UNSUPPORTED opengl-weighted_oit-opaque-2x-freecad-selection-menu: --freecad required for real FreeCAD viewport tests
+FAIL        opengl-object-opaque-1x-retained-rejection: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-colorbar: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-translucent-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-weighted_oit-opaque-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-weighted_oit-translucent-1x-navicube: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-depth: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-polygon-offset: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-annotation: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-foregroundroot: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-decorationroot: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-axis-cross: missing/inconsistent RESULT; process exit -6
+FAIL        opengl-object-opaque-1x-rubber-band: missing/inconsistent RESULT; process exit -6
+UNSUPPORTED opengl-object-opaque-1x-hover: --freecad required for real FreeCAD viewport tests
+{"PASS": 0, "REFERENCE_PASS": 0, "SKIP": 2, "UNSUPPORTED": 102, "FAIL": 50}
+
+    Start 3: FreeCADGeneratedImageTest
+3/3 Test #3: FreeCADGeneratedImageTest ........   Passed    0.13 sec
+
+67% tests passed, 1 tests failed out of 3
+
+Total Test time (real) =  24.01 sec
+
+The following tests FAILED:
+	  2 - QtQuarterMatrix (Failed)
+Errors while running CTest

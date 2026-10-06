@@ -1,0 +1,35 @@
+[
+  {
+    "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+    "gpu_available": 1,
+    "ranges": [
+      {
+        "glyph_pixels": 245,
+        "range_case": 0,
+        "rgb_mae": 0.0004170735677083333
+      },
+      {
+        "glyph_pixels": 563,
+        "range_case": 1,
+        "rgb_mae": 0.0006612141927083334
+      },
+      {
+        "glyph_pixels": 581,
+        "range_case": 2,
+        "rgb_mae": 0.0008392333984375
+      }
+    ],
+    "renderer": "vulkan",
+    "rgb_mae_max": 0.0008392333984375,
+    "status": "PASS",
+    "test": "colorbar",
+    "backend": "wgpu",
+    "mode": "object",
+    "alpha": "opaque",
+    "scale": 1,
+    "hardware_gpu": true,
+    "gpu_submitted": true,
+    "gpu_execution": "hardware",
+    "artifacts": "/tmp/coin-linux-final-matrix/wgpu-vulkan-colorbar/vulkan-object-opaque-1x-colorbar"
+  }
+]

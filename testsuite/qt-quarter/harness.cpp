@@ -1,5 +1,7 @@
 // Tests the production QuarterWidget/SoNaviCube from the supplied FreeCAD build.
 // No presenter, request queue, traversal or backend implementation is duplicated.
+#include <FCConfig.h>
+#include <Base/Type.h>
 #include <Quarter/Quarter.h>
 #include <Quarter/QuarterWidget.h>
 #include <Inventor/SoDB.h>
@@ -21,6 +23,12 @@
 #include <Inventor/nodes/SoPolygonOffset.h>
 #include <Inventor/SoType.h>
 #include <Gui/Inventor/SoNaviCube.h>
+#include <Gui/SoFCColorBar.h>
+#include <Gui/SoLabelNodes.h>
+#include <Mod/Part/Gui/SoFCShapeObject.h>
+#include <Mod/Mesh/Gui/SoFCMeshObject.h>
+#include <Mod/Mesh/Gui/SoPolygon.h>
+#include <Inventor/nodes/SoCoordinate3.h>
 #include <QApplication>
 #include <QDir>
 #include <QElapsedTimer>
@@ -78,7 +86,7 @@ public:
         return child;
     return nullptr;
   }
-  void dprNotify(qreal ratio) { emit devicePixelRatioChanged(ratio); }
+  void dprNotify(qreal ratio) { Q_EMIT devicePixelRatioChanged(ratio); }
 };
 QImage capture(QWidget * widget, const QString & name, bool save=true) {
   const QPoint p = widget->mapToGlobal(QPoint(0,0));
@@ -325,7 +333,58 @@ void visual(const QString & test) {
     report["reason"]="legacy GL viewer overlay lacks an exported WGPU scene node; requires full FreeCAD viewer probe";
     return;
   }
-  if(test=="navicube") {
+  if(test=="retained-rejection") {
+    MeshGui::SoFCMeshGridNode::initClass(); MeshGui::SoPolygon::initClass(); PartGui::SoFCControlPoints::initClass();
+    auto* root=scene(); root->ref();
+    auto* coordinates=new SoCoordinate3;
+    const SbVec3f points[]={{-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}};
+    coordinates->point.setValues(0,4,points); root->addChild(coordinates);
+    auto* grid=new MeshGui::SoFCMeshGridNode; grid->maxGrid=SbVec3f(1,1,1); grid->lenGrid=SbVec3s(2,2,2); root->addChild(grid);
+    auto* polygon=new MeshGui::SoPolygon; polygon->numVertices=4; root->addChild(polygon);
+    auto* control=new PartGui::SoFCControlPoints; control->numPolesU=2; control->numPolesV=2; root->addChild(control);
+    CoinRenderSceneManager manager(SbVec2i32(256,256)); manager.setSceneGraph(root);
+    require(manager.render()==CoinRenderAction::SUCCESS,"retained valid setup failed");
+    for(int testCase=0;testCase<5;++testCase) {
+      std::vector<uint8_t> previous, after; manager.getRenderTarget()->readbackRGBA(previous);
+      if(testCase==0) grid->lenGrid=SbVec3s(129,2,2);
+      if(testCase==1) polygon->startIndex=5;
+      if(testCase==2) control->numPolesU=5;
+      if(testCase==3) { control->numPolesU=65536; control->numPolesV=65536; }
+      if(testCase==4) { control->numPolesU=0; control->numPolesV=65536; }
+      require(manager.render()==CoinRenderAction::UNSUPPORTED,"retained invalid fields did not reject");
+      manager.getRenderTarget()->readbackRGBA(after);
+      require(previous==after,"retained rejection changed publication");
+      grid->lenGrid=SbVec3s(2,2,2); polygon->startIndex=0; control->numPolesU=2; control->numPolesV=2;
+      require(manager.render()==CoinRenderAction::SUCCESS,"retained recovery failed");
+    }
+    report["rejections"]=5; report["recoveries"]=5; root->unref();
+  } else if(test=="colorbar") {
+    Gui::SoColorBarLabel::initClass(); Gui::SoFCColorBar::initClass();
+    SoOrthographicCamera* camera=nullptr; auto* root=scene(nullptr,nullptr,&camera); root->ref();
+    camera->height=10; camera->nearDistance=0; camera->farDistance=10;
+    auto* bar=new Gui::SoFCColorBar; root->addChild(bar);
+    QJsonArray states; double worst=0;
+    QImage previous;
+    for(int i=0;i<3;++i) {
+      if(i==1) bar->setRange(-100.0f,100.0f,2);
+      if(i==2) bar->setRange(1.0f,1000.0f,1);
+      // GPU callback must prepare cold state before the independent GL render.
+      const QImage actual=readWgpu(root), reference=readGl(root);
+      const double mae=difference(reference,actual); worst=std::max(worst,mae);
+      actual.save(artifacts+QString("/colorbar-%1-actual.png").arg(i));
+      reference.save(artifacts+QString("/colorbar-%1-reference.png").arg(i));
+      require(mae<6.0,"ColorBar cold callback differs from GL");
+      int glyphs=0;
+      for(int y=0;y<actual.height();++y) for(int x=0;x<actual.width();++x) {
+        const auto pixel=actual.pixelColor(x,y);
+        if(pixel.red()>220 && pixel.green()>220 && pixel.blue()>220) ++glyphs;
+      }
+      require(glyphs>20,"ColorBar labels missing (gradient does not count)");
+      if(!previous.isNull()) require(difference(previous,actual)>0.001,"ColorBar setRange did not update pixels");
+      states.append(QJsonObject{{"range_case",i},{"rgb_mae",mae},{"glyph_pixels",glyphs}}); previous=actual;
+    }
+    report["ranges"]=states; report["rgb_mae_max"]=worst; root->unref();
+  } else if(test=="navicube") {
     Gui::SoNaviCube::initClass();
     auto * root=new SoSeparator; root->ref();
     auto * cube=new Gui::SoNaviCube; root->addChild(cube);
@@ -462,7 +521,7 @@ int main(int argc,char **argv) {
     report["gpu_available"]=int(caps.gpu_available);
     // Some BGFX builds intentionally report zero for a side-effect-free query.
     // Only an actual frame proves availability; never skip on this query alone.
-    if(QStringList{"navicube","depth","polygon-offset","annotation","foregroundroot","decorationroot","axis-cross","rubber-band"}.contains(test)) {
+    if(QStringList{"retained-rejection","colorbar","navicube","depth","polygon-offset","annotation","foregroundroot","decorationroot","axis-cross","rubber-band"}.contains(test)) {
       visual(test);
     } else {
       lifecycle(test);

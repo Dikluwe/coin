@@ -1,0 +1,28 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {},
+  "profile": "part-spline-consumer",
+  "consumer": {
+    "type": "Part::Spline",
+    "control_nodes": 1,
+    "visible_changes": 100,
+    "regenerated_changes": 100,
+    "mutation_changes": 2492,
+    "remaining_changes": 0
+  },
+  "idle_start": 67,
+  "idle_end": 67,
+  "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+  "backend": "wgpu",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 2,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-linux-final-matrix/wgpu-vulkan-spline/vulkan-object-opaque-2x-freecad-screen-content"
+}

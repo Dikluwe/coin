@@ -10,6 +10,7 @@
 #include <Inventor/nodes/SoImage.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoCallback.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoShaderProgram.h>
@@ -191,6 +192,18 @@ int main() {
   ok &= check(capture(hostText) && !witness.frame.draws.empty(),
               "host delegation recovers on the same action");
   hostText->unref();
+  ok &= check(!action.rejectUnsupported("outside apply"), "host rejection outside apply is inert");
+  auto * unsupportedHost = new SoCallback; unsupportedHost->ref();
+  unsupportedHost->setCallback([](void *, SoAction * current) {
+    static_cast<CoinRenderAction *>(current)->rejectUnsupported("Host test: profile limit");
+  }, nullptr);
+  const unsigned beforeHostRejection = witness.submits;
+  const auto previousHostFrame = witness.frame;
+  ok &= check(!capture(unsupportedHost) && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeHostRejection && witness.frame.hasSamePayload(previousHostFrame),
+              "explicit host rejection preserves the previous publication");
+  unsupportedHost->unref();
+  ok &= check(capture(new SoCube), "same action recovers after host rejection");
   auto* coords = new SoCoordinate3;
   const SbVec3f points[] = {SbVec3f(-1, -1, 0), SbVec3f(1, -1, 0), SbVec3f(0, 1, 0)};
   coords->point.setValues(0, 3, points);

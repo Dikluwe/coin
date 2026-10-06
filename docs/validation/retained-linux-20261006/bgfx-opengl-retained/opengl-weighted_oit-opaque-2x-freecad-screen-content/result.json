@@ -1,0 +1,212 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {
+    "string-label": [
+      {
+        "visible_changes": 1899,
+        "resized": false,
+        "glyph_pixels": 829,
+        "document_pick": true,
+        "mutation_changes": 4919,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 3042,
+        "resized": true,
+        "glyph_pixels": 1185,
+        "document_pick": true,
+        "mutation_changes": 6152,
+        "remaining_changes": 0
+      }
+    ],
+    "datum-label": [
+      {
+        "visible_changes": 266,
+        "resized": false,
+        "glyph_pixels": 154,
+        "document_pick": true,
+        "mutation_changes": 526,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 264,
+        "resized": true,
+        "glyph_pixels": 152,
+        "document_pick": true,
+        "mutation_changes": 524,
+        "remaining_changes": 0
+      }
+    ],
+    "control-points": [
+      {
+        "visible_changes": 456,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 546,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 100,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 200,
+        "remaining_changes": 0
+      }
+    ],
+    "bbox": [
+      {
+        "visible_changes": 2471,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 4668,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 2555,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 4953,
+        "remaining_changes": 0
+      }
+    ],
+    "shape-scale": [
+      {
+        "visible_changes": 20425,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 38298,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 17689,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 35430,
+        "remaining_changes": 0
+      }
+    ],
+    "dragger": [
+      {
+        "visible_changes": 106634,
+        "resized": false,
+        "document_pick": false,
+        "dragger_pick_pixel": [
+          1061,
+          0
+        ],
+        "dragger_pick": true,
+        "mutation_changes": 201453,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 95781,
+        "resized": true,
+        "document_pick": true,
+        "dragger_pick_pixel": [
+          1159,
+          0
+        ],
+        "dragger_pick": true,
+        "mutation_changes": 164052,
+        "remaining_changes": 0
+      }
+    ],
+    "polygon": [
+      {
+        "visible_changes": 1423,
+        "resized": false,
+        "primitive_lines": 4,
+        "primitive_points": [
+          [
+            -1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            1.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "document_pick": true,
+        "mutation_changes": 2283,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 822,
+        "resized": true,
+        "primitive_lines": 3,
+        "primitive_points": [
+          [
+            -1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "document_pick": true,
+        "mutation_changes": 1640,
+        "remaining_changes": 0
+      }
+    ],
+    "mesh-grid": [
+      {
+        "visible_changes": 1954,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 4409,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 2653,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 5306,
+        "remaining_changes": 0
+      }
+    ]
+  },
+  "profile": "retained-linux",
+  "resize_retested": true,
+  "idle_start": 148,
+  "idle_end": 148,
+  "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+  "backend_gl_contexts": [
+    [
+      "AMD",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+    ]
+  ],
+  "backend": "bgfx",
+  "renderer": "opengl",
+  "mode": "weighted_oit",
+  "alpha": "opaque",
+  "scale": 2,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-linux-final-matrix/bgfx-opengl-retained/opengl-weighted_oit-opaque-2x-freecad-screen-content"
+}

@@ -1,0 +1,14 @@
+{
+  "qt_glx": "NVIDIA",
+  "bgfx_egl": "AMD Radeon (verified current render context)",
+  "vulkan_icd": "/usr/share/vulkan/icd.d/radeon_icd.json",
+  "binding_env": {
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+  },
+  "LD_LIBRARY_PATH": "PySide6 Qt + matching Coin backend build + FreeCAD Part/Mesh/Material + FreeCAD lib",
+  "server": "private Weston headless GL + Xwayland",
+  "timeout_seconds": 180
+}

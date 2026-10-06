@@ -270,6 +270,16 @@ CoinRenderAction::getRecordingLog(void) const
 }
 
 SbBool
+CoinRenderAction::rejectUnsupported(const SbString & reason)
+{
+  if (!this->pimpl->isApplying || this->hasTerminated()) return FALSE;
+  this->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+    UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, reason));
+  this->setTerminated(TRUE);
+  return TRUE;
+}
+
+SbBool
 CoinRenderAction::captureScreenContent(SoNode * node)
 {
   if (!this->pimpl->isApplying || this->hasTerminated()) return FALSE;

@@ -173,6 +173,7 @@ target_include_directories(CoinRender PRIVATE
 target_link_libraries(CoinRender PRIVATE Coin)
 if(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	target_link_libraries(CoinRender PUBLIC ${COIN_RENDER_LINK_LIBRARIES})
+	target_link_libraries(CoinRender PRIVATE ${CMAKE_DL_LIBS})
 else()
 	target_link_libraries(CoinRender PRIVATE ${COIN_RENDER_LINK_LIBRARIES})
 endif()

@@ -84,8 +84,21 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md).
 
 - [ ] Ampliar a qualificação recente para Windows e consumidores reais de cada
   workbench; manter a célula Linux do viewport separada.
-- [ ] Adaptar os nós GL-only restantes: StringLabel/DatumLabel, bbox, control
-  points, Polygon/MeshGrid, kits/draggers e preparo de viewport por consumidor.
+- [x] Adaptar StringLabel/DatumLabel, bbox, control points, Polygon/MeshGrid,
+  ShapeScale/TransformDragger e preparo frio de ColorBar no perfil
+  [Linux retido](coin-render-retained-linux-profile.md), com limites e rejeição.
+- [ ] Qualificar consumidores completos de workbenches e arraste por input;
+  repetir os adaptadores no [Windows](coin-render-retained-windows-checklist.md).
+  Tipos reais no viewport não fecham todos
+  os consumidores.
+- [x] Ensaiar o consumidor Bezier Part::Spline: ControlPoints, Shape regenerada
+  e remoção em DPR 1/2 nas três rotas; OpenGL no perfil explícito com cache de
+  programas desativado. BSpline/superfícies e consumidores completos seguem abertos.
+- [ ] Estudar os timeouts de Part::Spline/OpenGL DPR 1 com cache ativo;
+  preservar a configuração qualificada e as duas tentativas sem captura.
+- [ ] Estudar bbox com geometric depth clamp e o registro tardio de subclasses
+  em SoCallbackAction (observado no primeiro caminho primitivo do Polygon);
+  o perfil publicado usa bbox no volume de profundidade e contorno retido.
 - [x] Disponibilizar delegação comum para subclasses SoText2/SoImage, preservando
   callbacks/observadores e falha sem publicação; adaptar SoColorBarLabel e
   SoFrameLabel com preparo frio no host.
@@ -93,9 +106,9 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md).
   BGFX Vulkan e wgpu em object/weighted OIT e DPR 1/2; BGFX OpenGL em DPR 1.
   Adaptar imagens RGBA NPOT geradas pelo GUI e validar os 12 controles de
   NaviCube nas três rotas, com sete orientações, máscaras e picking.
-- [ ] Concluir a qualificação física BGFX OpenGL DPR 2: timeout AMD antes da
-  captura; tentativa de offload concluiu conteúdo, mas sem prova de GPU física.
-  Manter os diagnósticos separados das células aprovadas.
+- [x] Concluir BGFX OpenGL DPR 2 no perfil Linux com GLX NVIDIA/EGL Mesa,
+  identificando AMD no contexto atual do backend. A prova GLX da janela não
+  identifica a GPU EGL; combinações com timeout/falha de surface seguem estudo.
 - [x] Ampliar RTT RGBA8 a unidades 0..7, quatro modelos e política explícita da
   subcena; definir/executar alpha convencional do produtor no Core e executores.
   Corrigir restauração FBO e sobrescrita de política pbuffer na referência.

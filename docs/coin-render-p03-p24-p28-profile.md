@@ -1,5 +1,7 @@
 # P03/P15/P16/P24/P28 — entrega do perfil de nós e recursos
 
+Continuação Linux: [adaptadores retidos, prova EGL e qualificação de nós no host](coin-render-retained-linux-profile.md). A evidência abaixo conserva a campanha anterior; a continuação registra seus próprios resultados.
+
 A frente amplia o perfil Linux de nós e RTT e define a arquitetura dos recursos
 seguintes. Os [contratos de shaders, texturas espaciais e MSAA/multipass](coin-render-portable-resources-contract.md)
 estão definidos; sua execução continua aberta. Isso não fecha Windows nem todas

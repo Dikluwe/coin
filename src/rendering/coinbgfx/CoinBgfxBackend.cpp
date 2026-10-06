@@ -69,6 +69,7 @@
 #include <new>
 #ifndef _WIN32
 #include <X11/Xlib.h>
+#include <dlfcn.h>
 #endif
 #ifdef _WIN32
 #include "coin_bgfx_fs_depth_readback_dx11.h"
@@ -163,6 +164,8 @@ class CoinBgfxCallback : public bgfx::CallbackI {
 public:
   explicit CoinBgfxCallback(bool openGl) : fatalCode(-1) {
     this->fatalMessage[0] = 0;
+    this->glAdapterDiagnostics = openGl && CoinRenderDiagnosticShell::phaseTracingEnabled() &&
+      std::getenv("COIN_BGFX_TRACE_GL_ADAPTER");
     const char * disabled = std::getenv("COIN_BGFX_DISABLE_PROGRAM_CACHE");
     this->programCacheEnabled = openGl && !(disabled && std::strcmp(disabled, "1") == 0);
   }
@@ -191,7 +194,34 @@ public:
   void profilerBegin(const char *, uint32_t, const char *, uint16_t) override {}
   void profilerBeginLiteral(const char *, uint32_t, const char *, uint16_t) override {}
   void profilerEnd() override {}
+  void traceGlAdapterOnce() {
+#ifndef _WIN32
+    if (!this->glAdapterDiagnostics || this->glAdapterPrinted.exchange(true)) return;
+    // Program-cache callbacks run inside renderer_gl program creation with its
+    // context current, including surfaceless/offscreen EGL. Qt GLX inventory
+    // may describe another provider. This diagnostic only reads driver strings.
+    void* library = dlopen("libOpenGL.so.0", RTLD_LAZY | RTLD_LOCAL);
+    bool printed = false;
+    if (library) {
+      using GetString = const unsigned char* (*)(unsigned int);
+      const auto getString = reinterpret_cast<GetString>(dlsym(library, "glGetString"));
+      if (getString) {
+        const auto* vendor = getString(0x1f00);
+        const auto* renderer = getString(0x1f01);
+        const auto* version = getString(0x1f02);
+        if (vendor && renderer && version) {
+          std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_gl_adapter vendor=%s renderer=%s version=%s\n",
+                       vendor, renderer, version);
+          printed = true;
+        }
+      }
+      dlclose(library);
+    }
+    if (!printed) this->glAdapterPrinted.store(false);
+#endif
+  }
   uint32_t cacheReadSize(uint64_t key) override {
+    this->traceGlAdapterOnce();
     auto * cache = this->programCacheEnabled ? programCache() : nullptr;
     return cache ? cache->size(key) : 0;
   }
@@ -202,6 +232,7 @@ public:
     return true;
   }
   void cacheWrite(uint64_t key, const void * data, uint32_t bytes) override {
+    this->traceGlAdapterOnce();
     auto * cache = this->programCacheEnabled ? programCache() : nullptr;
     if (cache && cache->write(key, data, bytes)) ++this->programCacheWrites;
   }
@@ -317,6 +348,8 @@ private:
   uint32_t screenshotWidth = 0;
   uint32_t screenshotHeight = 0;
   bool screenshotPending = false;
+  bool glAdapterDiagnostics = false;
+  std::atomic<bool> glAdapterPrinted{false};
   bool screenshotReady = false;
   uint64_t screenshotSerial = 0;
   std::string screenshotName;

@@ -4,9 +4,19 @@ import os
 import sys
 from types import SimpleNamespace
 from unittest.mock import patch
-from run import classify, execute, window_manager_available, parse_lock_state, select_variants, session_locked, device_evidence
+from run import classify, execute, window_manager_available, parse_lock_state, select_variants, session_locked, device_evidence, bgfx_gl_adapter_evidence
 
 class ResultGate(unittest.TestCase):
+    def test_backend_context_proof_rejects_cpu_unknown_and_absent(self):
+        def trace(renderer):
+            return 'COIN_RENDER_PHASE bgfx_gl_adapter vendor=Mesa renderer='+renderer+' version=4.6\n'
+        self.assertTrue(bgfx_gl_adapter_evidence(trace('AMD Radeon Graphics'))[1])
+        self.assertTrue(bgfx_gl_adapter_evidence(trace('NVIDIA GeForce RTX 3060'))[1])
+        self.assertFalse(bgfx_gl_adapter_evidence(trace('llvmpipe'))[1])
+        self.assertFalse(bgfx_gl_adapter_evidence(trace('Unknown'))[1])
+        self.assertFalse(bgfx_gl_adapter_evidence('')[1])
+        self.assertFalse(bgfx_gl_adapter_evidence(trace('AMD Radeon Graphics')+trace('llvmpipe'))[1])
+
     def test_offscreen_proof_is_scoped_and_requires_publication_serial(self):
         trace = ('COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x1002 '
                  'device_id=0x1638 device_type=IntegratedGpu serial=3 size=256x256\n')

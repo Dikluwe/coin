@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "freecad_revision": "228c679d78845c3fb6f5eb3d1a27f48aceab68b5",
-  "source_digest": "3de48c96e0a5f1653a622f242f075ee4899acee25f3dd36197ea9ae79f1071f4",
+  "source_digest": "dca7c7fa0fcde90465da9a85ac28397c76130b427dfb064379d6dbb69146cf7e",
   "scope": [
     "src/Gui",
     "src/Mod"
@@ -279,25 +279,33 @@
         {
           "method": "generatePrimitives",
           "source": "src/Gui/SoDatumLabel.cpp",
-          "line": 1204,
+          "line": 1207,
           "empty_body": false,
-          "sha256": "bc4ee268f5d5aa433973a56a1dce9e18b48fdbed23b40a8352d99e0fe9f3686c",
+          "sha256": "15781c962c99f4eeea9e6d508d5c8fbfca08f3e1cb062f20b3bab6d245ba5cf6",
+          "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Gui/SoDatumLabel.cpp",
+          "line": 1668,
+          "empty_body": false,
+          "sha256": "15781c962c99f4eeea9e6d508d5c8fbfca08f3e1cb062f20b3bab6d245ba5cf6",
           "action_types": []
         },
         {
           "method": "GLRender",
           "source": "src/Gui/SoDatumLabel.cpp",
-          "line": 1661,
+          "line": 1683,
           "empty_body": false,
-          "sha256": "bc4ee268f5d5aa433973a56a1dce9e18b48fdbed23b40a8352d99e0fe9f3686c",
+          "sha256": "15781c962c99f4eeea9e6d508d5c8fbfca08f3e1cb062f20b3bab6d245ba5cf6",
           "action_types": []
         }
       ],
       "review": {
         "status": "PARTIAL",
         "owner": "Wiring preparação de rótulo + Core layout",
-        "next": "P03/F20 antes do P16 Sketcher/Measure",
-        "reason": "generatePrimitives depende de imgWidth/imgHeight preparados; GLRender prepara cena/raster e altera culling/transparência. Primitivas de picking não certificam rótulo completo em frame frio."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback prepara cena/textura fria, normaliza RGBA NPOT sem alterar a imagem lógica usada por picking e percorre m_Root. Perfil Linux de rótulo e mutação; Sketcher/Measure completos e Windows seguem abertos."
       }
     },
     "SoDrawingGrid": {
@@ -339,71 +347,99 @@
     "SoFCBoundingBox": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
+          "line": 138,
+          "empty_body": false,
+          "sha256": "c89dd4e8361f87a45eb8d82523401d767173478f4274dc3d2ac61a65ee58ff62",
+          "action_types": [
+            "CoinRenderAction"
+          ]
+        },
+        {
           "method": "GLRender",
           "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
-          "line": 129,
+          "line": 174,
           "empty_body": false,
-          "sha256": "f2a3eec643bf831fd1958dbc642fce8a0390a5b80e169295c1bf15047a3a4a2e",
+          "sha256": "c89dd4e8361f87a45eb8d82523401d767173478f4274dc3d2ac61a65ee58ff62",
           "action_types": []
         },
         {
           "method": "generatePrimitives",
           "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
-          "line": 261,
+          "line": 306,
           "empty_body": true,
-          "sha256": "f2a3eec643bf831fd1958dbc642fce8a0390a5b80e169295c1bf15047a3a4a2e",
+          "sha256": "c89dd4e8361f87a45eb8d82523401d767173478f4274dc3d2ac61a65ee58ff62",
           "action_types": []
         }
       ],
       "review": {
-        "status": "BLOCKED",
+        "status": "PARTIAL",
         "owner": "Wiring host + Core geometria",
-        "next": "F19/P16",
-        "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback prepara caixa/rótulos e explicita depth/culling. Perfil dentro do volume de profundidade; bbox que depende de geometric depth clamp é recusada antes da publicação. Windows e consumidores completos seguem abertos."
       }
     },
     "SoFCColorBar": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Gui/SoFCColorBar.cpp",
+          "line": 524,
+          "empty_body": false,
+          "sha256": "53060eda9ed289cab3f90d5bac1d2613477986f2bb0fcc38cff090ae3008aa84",
+          "action_types": []
+        },
+        {
           "method": "GLRenderBelowPath",
           "source": "src/Gui/SoFCColorBar.cpp",
-          "line": 522,
+          "line": 530,
           "empty_body": false,
-          "sha256": "c6cb964c1d38043dad00a376f298a9419f93f8cb31e4d58950ed465785dfc291",
+          "sha256": "53060eda9ed289cab3f90d5bac1d2613477986f2bb0fcc38cff090ae3008aa84",
           "action_types": []
         }
       ],
       "review": {
         "status": "PARTIAL",
         "owner": "Wiring viewport + Core layout/texto",
-        "next": "P03/P16",
-        "reason": "Separator retido contém geometria e SoText2; prepareViewport roda em GLBelowPath. Qualificar atualização no callback e substituir texto ausente."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback prepara viewport antes de atravessar geometria/rótulos. Comparação fria CoinGL e glifos em três ranges usa câmera de foreground com height 10; consumidores FEM/Mesh completos e Windows seguem separados."
       }
     },
     "SoFCControlPoints": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Mod/Part/Gui/SoFCShapeObject.cpp",
+          "line": 245,
+          "empty_body": false,
+          "sha256": "f0f90d661774c56f5d62baa275f5490d44e4166ad7bf014d122fa033afb1c294",
+          "action_types": [
+            "CoinRenderAction"
+          ]
+        },
+        {
           "method": "GLRender",
           "source": "src/Mod/Part/Gui/SoFCShapeObject.cpp",
-          "line": 241,
+          "line": 273,
           "empty_body": false,
-          "sha256": "93bf544c1b19ea3570a5a9586b1afa1eed724303df6fb1e47e14a03e9b985727",
+          "sha256": "f0f90d661774c56f5d62baa275f5490d44e4166ad7bf014d122fa033afb1c294",
           "action_types": []
         },
         {
           "method": "generatePrimitives",
           "source": "src/Mod/Part/Gui/SoFCShapeObject.cpp",
-          "line": 287,
+          "line": 319,
           "empty_body": true,
-          "sha256": "93bf544c1b19ea3570a5a9586b1afa1eed724303df6fb1e47e14a03e9b985727",
+          "sha256": "f0f90d661774c56f5d62baa275f5490d44e4166ad7bf014d122fa033afb1c294",
           "action_types": []
         }
       ],
       "review": {
-        "status": "BLOCKED",
+        "status": "PARTIAL",
         "owner": "Wiring host + Core geometria",
-        "next": "F19/P16",
-        "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback sincroniza renderRoot com produtos/soma em 64 bits, eixos zero pareados e orçamento de 65536 pontos. Rejeição mantém publicação e recupera. Perfil Linux 2x2/1x4 e consumidor Bezier Part::Spline; OpenGL desse consumidor requer cache de programas desativado no binding GLX NVIDIA/EGL Mesa. BSpline/superfícies completos e Windows seguem separados."
       }
     },
     "SoFCIndexedFaceSet": {
@@ -435,19 +471,29 @@
     "SoFCMeshGridNode": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
+          "line": 453,
+          "empty_body": false,
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
+          "action_types": [
+            "CoinRenderAction"
+          ]
+        },
+        {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 445,
+          "line": 490,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         }
       ],
       "review": {
-        "status": "BLOCKED",
+        "status": "PARTIAL",
         "owner": "Wiring host + Core linhas",
-        "next": "F19/P16 Mesh",
-        "reason": "SoNode desenha grid diretamente com glBegin(GL_LINES), sem callback equivalente ou primitivas; publicar geometria lógica antes da Infra."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback gera linhas verdes retidas para dimensões 1..128 por eixo; (0,0,0) é inerte. Dimensão fora do orçamento rejeita e recupera. Perfil Linux 2x2x2/3x3x3; consumidores Mesh e Windows seguem separados."
       }
     },
     "SoFCMeshObjectBoundary": {
@@ -455,17 +501,17 @@
         {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 1665,
+          "line": 1710,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         },
         {
           "method": "generatePrimitives",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 1711,
+          "line": 1756,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         }
       ],
@@ -481,25 +527,25 @@
         {
           "method": "doAction",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 538,
+          "line": 583,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         },
         {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 544,
+          "line": 589,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         },
         {
           "method": "callback",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 550,
+          "line": 595,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         }
       ],
@@ -515,25 +561,25 @@
         {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 632,
+          "line": 677,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         },
         {
           "method": "doAction",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 954,
+          "line": 999,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         },
         {
           "method": "generatePrimitives",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 1091,
+          "line": 1136,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         }
       ],
@@ -549,17 +595,17 @@
         {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 1256,
+          "line": 1301,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         },
         {
           "method": "generatePrimitives",
           "source": "src/Mod/Mesh/Gui/SoFCMeshObject.cpp",
-          "line": 1512,
+          "line": 1557,
           "empty_body": false,
-          "sha256": "e68d0973c965db9a0015c10b6b0562683008c625916038db804dda2810417c27",
+          "sha256": "7dbe39482b9cbd6b2c4b767ec78a5079df3efc2bad054672d9efdafd378be1f0",
           "action_types": []
         }
       ],
@@ -839,17 +885,17 @@
         {
           "method": "GLRender",
           "source": "src/Gui/SoLabelNodes.cpp",
-          "line": 517,
+          "line": 534,
           "empty_body": false,
-          "sha256": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
+          "sha256": "489275b1eb23321c99c24c62f1a1f58b3ac0dd9966f8734cec68b1be035b3440",
           "action_types": []
         },
         {
           "method": "callback",
           "source": "src/Gui/SoLabelNodes.cpp",
-          "line": 523,
+          "line": 540,
           "empty_body": false,
-          "sha256": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
+          "sha256": "489275b1eb23321c99c24c62f1a1f58b3ac0dd9966f8734cec68b1be035b3440",
           "action_types": [
             "CoinRenderAction"
           ]
@@ -927,25 +973,37 @@
         {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
-          "line": 71,
+          "line": 82,
           "empty_body": false,
-          "sha256": "770d35f50370f821ed7ff72e06ce954a4b9df7b05e921ac62f5a7696be69c429",
+          "sha256": "476e350288ebdbf94bbbd97538affe301e63c8ba0264ad0963643e5343a163ea",
           "action_types": []
+        },
+        {
+          "method": "callback",
+          "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
+          "line": 144,
+          "empty_body": false,
+          "sha256": "476e350288ebdbf94bbbd97538affe301e63c8ba0264ad0963643e5343a163ea",
+          "action_types": [
+            "CoinRenderAction"
+          ]
         },
         {
           "method": "generatePrimitives",
           "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
-          "line": 133,
-          "empty_body": true,
-          "sha256": "770d35f50370f821ed7ff72e06ce954a4b9df7b05e921ac62f5a7696be69c429",
-          "action_types": []
+          "line": 175,
+          "empty_body": false,
+          "sha256": "476e350288ebdbf94bbbd97538affe301e63c8ba0264ad0963643e5343a163ea",
+          "action_types": [
+            "CoinRenderAction"
+          ]
         }
       ],
       "review": {
-        "status": "BLOCKED",
+        "status": "PARTIAL",
         "owner": "Wiring host + Core geometria",
-        "next": "F19/P16",
-        "reason": "generatePrimitives vazio; GLRender produz caixa/polos/polígono ou atravessa raiz privada. Não assumir primitivas de picking ou ancestral como substituto visual."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback captura contorno fechado via SoLineSet retido; valida faixa e orçamento de 65536 pontos sem omissão e sem publicação na falha. generatePrimitives também emite linhas para picking. Perfil Linux 4/3 pontos; interação de Mesh completa e Windows seguem separados."
       }
     },
     "SoScreenSpaceScale": {
@@ -985,63 +1043,87 @@
     "SoShapeScale": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
+          "line": 84,
+          "empty_body": false,
+          "sha256": "71688aec287550b06136b992b3ee5a9c46749116c2a7ad86bfb8e3c1b6481a5a",
+          "action_types": []
+        },
+        {
           "method": "GLRender",
           "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
-          "line": 83,
+          "line": 90,
           "empty_body": false,
-          "sha256": "bae43dfa4f406dac12f9c0d92428ca22d531a861452c023ae93048c981e0a287",
+          "sha256": "71688aec287550b06136b992b3ee5a9c46749116c2a7ad86bfb8e3c1b6481a5a",
           "action_types": []
         },
         {
           "method": "doAction",
           "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
-          "line": 89,
+          "line": 96,
           "empty_body": false,
-          "sha256": "bae43dfa4f406dac12f9c0d92428ca22d531a861452c023ae93048c981e0a287",
+          "sha256": "71688aec287550b06136b992b3ee5a9c46749116c2a7ad86bfb8e3c1b6481a5a",
           "action_types": []
         }
       ],
       "review": {
         "status": "PARTIAL",
         "owner": "Wiring câmera/manipulação + Core transformações",
-        "next": "P16",
-        "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback chama updateScale antes de atravessar o kit. Perfil Linux inclui shape explícito, campos active/scaleFactor e resize; kit com shape nulo é vazio. Manipulação de workbench e Windows seguem separados."
       }
     },
     "SoStringLabel": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Gui/SoLabelNodes.cpp",
+          "line": 187,
+          "empty_body": false,
+          "sha256": "489275b1eb23321c99c24c62f1a1f58b3ac0dd9966f8734cec68b1be035b3440",
+          "action_types": []
+        },
+        {
           "method": "GLRender",
           "source": "src/Gui/SoLabelNodes.cpp",
-          "line": 186,
+          "line": 201,
           "empty_body": false,
-          "sha256": "52e1ba488fc934852ce6edc6aa6ce16cb2b52706adf6803d9c8172aedd73d82e",
+          "sha256": "489275b1eb23321c99c24c62f1a1f58b3ac0dd9966f8734cec68b1be035b3440",
           "action_types": []
         }
       ],
       "review": {
-        "status": "BLOCKED",
+        "status": "PARTIAL",
         "owner": "Wiring captura + Core imagem/layout",
-        "next": "F20/P03",
-        "reason": "StringLabel é SoNode com GLRender percorrendo textRoot privado; não tem callback. FrameLabel herda SoImage mas prepara imagem só no GLRender, além da lacuna de textura do SoImage isolado."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback prepara textRoot frio e normaliza RGBA NPOT gerado. Perfil Linux ensaia glifos, mutação, remoção, câmera e resize; consumidores completos e Windows ainda requerem qualificação."
       }
     },
     "SoTransformDragger": {
       "methods": [
         {
+          "method": "callback",
+          "source": "src/Gui/Inventor/Draggers/SoTransformDragger.cpp",
+          "line": 528,
+          "empty_body": false,
+          "sha256": "1cee37846c117a1accd479b29a203c21ea3f723cafcfdac19deec86f5846928b",
+          "action_types": []
+        },
+        {
           "method": "GLRender",
           "source": "src/Gui/Inventor/Draggers/SoTransformDragger.cpp",
-          "line": 527,
+          "line": 538,
           "empty_body": false,
-          "sha256": "01e90f20a62f3851b5de7499c5883c1172cabb8364df997a8824527944c07b3b",
+          "sha256": "1cee37846c117a1accd479b29a203c21ea3f723cafcfdac19deec86f5846928b",
           "action_types": []
         }
       ],
       "review": {
         "status": "PARTIAL",
         "owner": "Wiring câmera/manipulação + Core transformações",
-        "next": "P16",
-        "reason": "Geometria do kit/dragger é herdada, mas escala/cache é atualizado no GLRender; doAction existente no ShapeScale não garante callback invocando-o. Qualificar callback e interação sem aquecer GL antes."
+        "next": "P16 consumidores / Windows",
+        "reason": "Callback prepara cache e escala dos eixos antes da travessia retida. Perfil Linux verifica pixels, campo translation, resize e caminhos lógicos de picking nas hastes; arraste por input e Windows seguem separados."
       }
     },
     "SoZoomTranslation": {
@@ -1088,17 +1170,17 @@
     {
       "node": "SoText2",
       "source": "src/Gui/Inventor/SoAxisCrossKit.cpp",
-      "line": 365
+      "line": 372
     },
     {
       "node": "SoText2",
       "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
-      "line": 102
+      "line": 111
     },
     {
       "node": "SoText2",
       "source": "src/Gui/Inventor/SoFCBoundingBox.cpp",
-      "line": 115
+      "line": 124
     },
     {
       "node": "SoImage",
@@ -1113,12 +1195,12 @@
     {
       "node": "SoText2",
       "source": "src/Gui/SoFCColorBar.cpp",
-      "line": 375
+      "line": 377
     },
     {
       "node": "SoText2",
       "source": "src/Gui/SoFCColorBar.cpp",
-      "line": 397
+      "line": 399
     },
     {
       "node": "SoText2",
