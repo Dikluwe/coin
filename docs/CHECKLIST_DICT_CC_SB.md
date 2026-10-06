@@ -43,43 +43,64 @@ O fechamento Linux abaixo vale para a contribuição de cada linha. Os PRs #769�
 - [x] `fix/sbhash-06-lazy-storage` · `7fa9bae533` — revisão Linux encerrada no fechamento SbHash; permanece como PR existente e pré-requisito.
 - [x] `codex/maps/use/gl-contexts-small` · `900f11a157` — revisão Linux #758 concluída, complemento em `codex/pre-pr/gl-contexts-small-complete`. Head publicado preservado; não contém ainda as correções adicionais. Windows/transporte pendentes.
 
-## Candidatos centrais que ainda precisam de fechamento
+## Candidatos centrais auditados
 
-- [ ] `codex/work/cc-hash-api` · `ebae1bd653` — candidato preliminar substituído pelo fechamento. Preservar e transportar as mudanças próprias de SbDict antes de encerrar. [Validação anterior](VALIDACAO_CC_HASH.md).
-- [ ] `codex/cc-hash-hardening-followup` · `a60f2bea89` — fonte anterior; 12 CTests na conferência isolada. Conferir conteúdo remanescente e encerrar depois da consolidação.
-- [ ] `codex/sbdict-ccdict-migration` · `77ca5b22eb` — fonte anterior, consolidada na pré-PR final; conferir conteúdo residual antes de encerrar a branch substituída.
-- [ ] `codex/sbdict-hash-hardening` · `2ecc31d7cf` — versão inicial; conferir e transportar testes úteis antes de encerrar.
+- [x] `codex/work/cc-hash-api` · `ebae1bd653` — candidato preliminar substituído pelos fechamentos cc_hash e SbDict; conservar a referência até publicação. [Auditoria](FECHAMENTO_CANDIDATOS_CENTRAIS.md).
+- [x] `codex/cc-hash-hardening-followup` · `a60f2bea89` — fonte anterior reconciliada com os PRs existentes e os fechamentos; conservar referência até publicação. [Auditoria](FECHAMENTO_CANDIDATOS_CENTRAIS.md).
+- [x] `codex/sbdict-ccdict-migration` · `77ca5b22eb` — migração substituída pelo fechamento SbDict; o fixture próprio coincide com a branch independente. [Auditoria](FECHAMENTO_CANDIDATOS_CENTRAIS.md).
+- [x] `codex/sbdict-hash-hardening` · `2ecc31d7cf` — versão inicial e testes reconciliados com cc_hash/SbDict finais; nenhuma contribuição restante para PR. [Auditoria](FECHAMENTO_CANDIDATOS_CENTRAIS.md).
 - [x] `codex/work/sbhash-insert-allocation-failure` · `5c9bc244ea` — auditoria do delta SbHash encerrada: premissa de exceção substituída pela política opcional de #772; testes úteis reconciliados na pré-PR. Conservar referência até publicação.
-- [ ] `codex/coin-prime-boundary` · `1d087a752d` — política de primos e limite de capacidade. Deltas de cc_dict, cc_hash e SbHash já aproveitados; concluir o destino do helper antigo antes de encerrar.
+- [x] `codex/coin-prime-boundary` · `1d087a752d` — primos e limites incorporados nos três fechamentos; helper legado preservado com semântica histórica. Arquivo comum entra uma vez na publicação. [Auditoria](FECHAMENTO_CANDIDATOS_CENTRAIS.md).
 
 ## Mapas e consumidores em estudo
 
-- [ ] `codex/maps/core/adaptive-map` · `3957f93c76` — revisar promoções, exceções, propriedade e benefício medido.
-- [ ] `codex/maps/use/coinresources-adaptive` · `241764d557` — medir e validar o consumidor sobre o tipo revisado.
-- [ ] `codex/maps/use/scxml-attributes-adaptive` · `8b77560293` — conferir contrato, lifetime e perfil de atributos.
-- [ ] `codex/maps/use/scxml-document-ids-adaptive` · `aab125aa41` — conferir substituição, lifetime de IDs e promoção.
-- [ ] `codex/maps/use/scxml-evaluator-temporaries-adaptive` · `82b9f29c78` — conferir limpeza, propriedade dos temporários e falhas.
-- [ ] `codex/maps/core/sequential-map` · `3ba09c803a` — revisar chaves densas/esparsas, limites, ordem observável e memória.
-- [ ] `codex/maps/integration/profiler-containers` · `ba0ed99669` — separar o experimento agregado em contribuições justificadas.
-- [ ] `codex/maps/use/profiler-action-timings-sequential` · `edaaec9b5c` — medir o perfil real e conferir a ordem de travessia.
-- [ ] `codex/maps/use/fieldcontainer-mfield-sizes-hash` · `339a1d6b49` — conferir diff exclusivo, resultados e lifetime das chaves.
-- [ ] `codex/maps/use/scxml-type-registry-hash-name` · `eb1d50e0d2` — conferir hash, identidade e lifetime dos nomes.
-- [ ] `codex/sbname/experiment/compact-entry-pool` · `7b439fb7c2` — auditar internamento, identidade e lifetime antes de decidir a contribuição.
+- [x] `codex/maps/core/adaptive-map` · `3957f93c76` — auditoria encerrada: experimento não aprovado para PR por perda reproduzida de entradas sob exceção, outros caminhos de promoção sem rollback e benefício insuficientemente demonstrado. Preservar a fonte; [registro](FECHAMENTO_ADAPTIVE_MAP.md).
+- [x] `codex/maps/use/coinresources-adaptive` · `241764d557` — troca de mapa sem correção exclusiva; depende de AdaptiveMap reprovado. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/use/scxml-attributes-adaptive` · `8b77560293` — migração descartada; correção de alias já isolada e validada. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/pre-pr/scxml-attribute-alias` · `6ab2915cb7` — correção funcional de alias extraída sem migração de mapa; master 78/78, lab 105/105 e regressão ASan/UBSan/LSan. [Registro](FECHAMENTO_ADAPTIVE_MAP.md).
+- [x] `codex/maps/use/scxml-document-ids-adaptive` · `aab125aa41` — promoção pode ocultar IDs anteriores se falhar; migração descartada. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/use/scxml-evaluator-temporaries-adaptive` · `82b9f29c78` — migração descartada; alias/ownership extraído abaixo. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/pre-pr/scxml-temporary-alias` · `b4204f9859` — correção isolada sobre master; lab 105/105, master 78/78. Windows/publicação pendentes. [Registro](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/core/sequential-map` · `3ba09c803a` — chave negativa invisível em Release e benchmark sem ganho consistente; não aprovado. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/integration/profiler-containers` · `ba0ed99669` — agregado experimental substituído por correção isolada de lifetime. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/use/profiler-action-timings-sequential` · `edaaec9b5c` — migração descartada; liberação de dados extraída abaixo. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/pre-pr/profiler-stats-lifetime` · `bb32da5fc2` — correção isolada sobre master; lab 105/105, master 78/78. Windows/publicação pendentes. [Registro](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/use/fieldcontainer-mfield-sizes-hash` · `339a1d6b49` — sem correção exclusiva; tabela global nova não justificada por medição. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/maps/use/scxml-type-registry-hash-name` · `eb1d50e0d2` — migração sem correção exclusiva ou ganho demonstrado; preservada como fonte. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
+- [x] `codex/sbname/experiment/compact-entry-pool` · `7b439fb7c2` — identidade normal validada; falhas/limites de alocação e ganho pendentes antes de PR. [Auditoria](FECHAMENTO_MAPAS_CONSUMIDORES.md).
 
 ## Apoio e consumidores associados
 
-Estas branches têm ações registradas na organização do grupo; não são declaradas prontas por terem servido de base para um experimento.
+O `[x]` encerra a auditoria da fonte; apenas as contribuições pré-PR indicadas no registro foram validadas para transporte ao Windows. As fontes antigas ficam preservadas até publicação.
 
-- [ ] `codex/cc-list-hardening` · `42815f7385` — conferir o conteúdo já absorvido pela sequência de OOM e o delta restante.
-- [ ] `codex/improve-sblist` · `e506a1c4fe` — conferir bounds e falhas de valores contra #756 integrado; aproveitar somente o que ainda faltar aos mapas.
-- [ ] `codex/cc-test-audit` · `95458242d7` — conferir poda de regressões e cobertura de dict/hash antes de consolidar.
-- [ ] `codex/work/bump-cache-ready-path` · `bb6158a01e` — medir o caminho pronto e validar o retorno sem inicializar diagnóstico.
-- [ ] `codex/work/bump-cache-diagnostics-memory` · `c098efdfb6` — validar redução de memória, mensagens longas e OOM.
-- [ ] `codex/work/bump-shared-program-pool` · `191a685710` — isolar e validar compartilhamento, contexto, propriedade e concorrência.
+- [x] `codex/cc-list-hardening` · `42815f7385` — OOM já integrado no lab; limites isolados em `codex/pre-pr/cc-list-bounds` `ea8e905436`, 78/78 master e 105/105 lab. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/improve-sblist` · `e506a1c4fe` — crescimento prévio já no master; `SbList`, `SbPList` e regressão de cópia de callback isolados em contribuições independentes. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/pre-pr/sblist-value-bounds` · `af3ae60643` — contrato de valor/índice e testes revisados; 78/78 master, 105/105 lab. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/pre-pr/sbplist-bounds` · `969a37276e` — contrato de índice e regressões; 78/78 master, 105/105 lab. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/pre-pr/callback-list-copy-stress` · `23ccce4b84` — regressão de propriedade após cópia/destruição de `SoCallbackList`; 78/78 master, 105/105 lab. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/cc-test-audit` · `95458242d7` — poda antiga sem delta útil para dict/hash fechado; mudanças de worker/scheduler ficam no estudo de threads. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/work/bump-cache-ready-path` · `bb6158a01e` — delta isolado em `codex/pre-pr/bump-cache-ready-path` `9d9c16f53a`; medição e 78/78 master, 105/105 lab. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/work/bump-cache-diagnostics-memory` · `c098efdfb6` — delta isolado em `codex/pre-pr/bump-cache-diagnostics-memory` `1a373951dd`; 78/78 master, 105/105 lab e falhas testadas. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `codex/work/bump-shared-program-pool` · `191a685710` — pré-requisito já integrado; pool isolado em `codex/pre-pr/bump-shared-programs` `9b772453d4`; 78/78 master, 105/105 lab e sanitizadores. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
 - [x] `codex/work/glglue-lifetime-audit` · `5d28cf8e95` — estudo encerrado no Linux: política de empréstimo explicitada, borrowers validados e correção em `codex/pre-pr/glglue-lifetime-complete`. Conservar a fonte experimental até publicação.
-- [ ] `codex/work/sbheap-cancel-documentation` · `83925a4743` — conferir contrato do cancelamento e preparar contribuição de documentação.
+- [x] `codex/work/sbheap-cancel-documentation` · `83925a4743` — contrato confirmado e documentado em `codex/pre-pr/sbheap-cancel-contract` `6436c4d193`; 78/78 master, 105/105 lab. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
 
 ## Labs e benchmarks
+
+- [x] `lab/teste/cc-list-bounds` · `820e8bb99f` — somente limites cc_list sobre lab fixo; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/sblist-value-bounds` · `d3f033ed24` — somente contrato SbList; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/sbplist-bounds` · `a63d490810` — somente contrato SbPList; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/callback-list-copy-stress` · `8fff68f221` — somente regressão de cópia de callback sobre lab fixo; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/bump-cache-ready-path` · `7e6271af68` — somente caminho pronto; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/bump-cache-diagnostics-memory` · `c6fc301116` — somente diagnóstico bump; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/bump-shared-programs` · `623d9daf2f` — somente pool bump, pré-requisito já integrado; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+- [x] `lab/teste/sbheap-cancel-contract` · `0a599812df` — somente documentação de cancelamento; 105/105. [Registro](FECHAMENTO_APOIO_CONSUMIDORES.md).
+
+- [x] `lab/teste/scxml-attribute-alias` · `5b1b44b1a8` — somente a correção de alias de atributos sobre o lab fixo; 105 testes aprovados em Linux com threads. Conservar até Windows/publicação.
+
+- [x] `lab/teste/gl-render-exceptions` · `06bcd67d50` — pré-requisito SoAction seguido somente do delta GL; 107 testes aprovados em GLX com threads, base fixa preservada.
+
+- [x] `lab/teste/action-apply-exceptions` · `c1aae576bf` — somente a correção de `SoAction::apply` sobre o lab fixo; 106 testes com threads aprovados no Linux. Conservar até Windows/publicação.
 
 - [x] `lab/teste/glglue-lifetime-complete` · `c71f71965c` — 107 testes com threads; somente delta do glue, base fixa preservada.
 
@@ -96,7 +117,7 @@ As marcas nesta seção se referem à validação do snapshot. Esses labs não s
 - [x] `lab/teste/cc-hash-complete` · `0505c1caed` — 106 testes aprovados; conservar até terminar Windows/publicação.
 - [x] `lab/teste/sbdict-complete` · `e464ab0cb4` — 112 testes com o pré-requisito cc_dict identificado; conservar até terminar Windows/publicação.
 - [x] `lab/teste/bump-fixture-static` · `f780ab9a44` — 105 testes aprovados; conservar até terminar Windows/publicação.
-- [x] `lab/teste/cc-hash-api` · `2dcf47b703` — 106 testes aprovados; fechamento do candidato cc_hash ainda pendente.
+- [x] `lab/teste/cc-hash-api` · `2dcf47b703` — snapshot preliminar com 106 testes aprovados; contribuição substituída pelo fechamento cc_hash. Preservar até Windows/publicação.
 - [ ] `bench/sbhash-relink-local` · `26a41d7e26` — reusar as ferramentas e conferir medições contra os heads finais.
 - [ ] `lab/map-instrumentation` · `63ab43b305` — consolidar instrumentação aplicável e encerrar o lab auxiliar.
 - [ ] `lab/gl-bump-smallmap-evaluation` · `9cc9dea628` — conferir medições de mapas e consumidores bump e encerrar o lab auxiliar.
@@ -124,8 +145,9 @@ As linhas abertas abaixo são propostas para as branches finais, ainda não cria
 - [x] Revisão Linux de #758 — nova branch pré-PR reconciliada; caches, falhas, cinco contextos e limpeza validados. Head publicado aguarda transporte após Windows.
 - [ ] Decidir os experimentos adaptive/sequential — aprovar com medições e revisão, corrigir ou encerrar com justificativa.
 - [ ] Definir contribuição de cc_namemap/SbName depois da auditoria do internamento e do pool candidato.
-- [ ] `codex/pre-pr/action-apply-exceptions` — planejada, ainda não criada: corrigir referência da raiz, desbloqueio/restauração sob exceção em SoAction::apply; reprodutor mínimo confirmou refs 1→2. [Evidência](FECHAMENTO_GL_CONTEXT_MAPS.md).
-- [ ] Consolidar o helper de primos depois de distribuir os deltas dos três hashes; evitar duplicação entre branches.
+- [x] `codex/pre-pr/action-apply-exceptions` · `b6afd3f1d7` — criada diretamente sobre master; referências, lock, estado, lista compacta e profiler restaurados sob exceção. [Fechamento Linux](FECHAMENTO_SOACTION_APPLY.md). Windows pendente.
+- [x] `codex/pre-pr/gl-render-exceptions` · `2f47f7fcf3` — branch empilhada em SoAction; restaura estado de renderização, caminhos e vínculo WBOIT sob exceção. GLX e conjuntos Linux aprovados; [registro](FECHAMENTO_GL_RENDER_EXCEPTIONS.md). Windows pendente.
+- [x] Decisão do helper de primos: `primep.h` idêntico nas três branches será integrado uma vez; manter `coin_geq_prime_number()` legado sem mudar semântica. Conferir o transporte na publicação. [Auditoria](FECHAMENTO_CANDIDATOS_CENTRAIS.md).
 - [ ] Conferir testes úteis das branches substituídas e eliminar redundâncias somente depois da transferência.
 - [ ] Levar os heads pré-PR concluídos ao Windows, registrar resultados e corrigir o que falhar.
 - [ ] Antes de publicar, validar cada branch sobre seu master de destino com diff exclusivo da contribuição.
@@ -134,11 +156,11 @@ As linhas abertas abaixo são propostas para as branches finais, ainda não cria
 ## Sequência de fechamento
 
 1. `cc_dict`, `cc_hash`, `SbDict` e fixture: concluídos no Linux; próximos passos Windows e publicação.
-2. `cc_hash` anterior: transportar o material próprio de SbDict e encerrar as branches substituídas quando seguro.
-3. `SbDict` anterior: conferir conteúdo residual e encerrar as branches substituídas quando seguro.
+2. `cc_hash` anterior: conteúdo reconciliado com os fechamentos; preservar referências antigas até publicação.
+3. `SbDict` anterior: conteúdo residual e fixture conferidos; preservar referências antigas até publicação.
 4. `SbHash`: concluído no Linux; Windows/publicação pendentes.
 5. `SbSmallMap` e quatro consumidores GL do #758: concluídos no Linux; Windows/transporte pendentes.
-6. Lifetime do glue: concluído no Linux; Windows pendente. Próximo: epílogo de SoAction::apply sob exceção.
+6. Lifetime do glue, epílogo de `SoAction::apply` e estado de `SoGLRenderActionP::render`: concluídos nos conjuntos Linux; Windows pendente.
 7. Experimentos, benchmarks e branches históricas: decidir e consolidar.
 
 O [inventário de contratos](DICT_CC_SB.md) e o [controle de branches](CONTROLE_BRANCHES.md) complementam esta checklist com a composição da base e os registros de validação.

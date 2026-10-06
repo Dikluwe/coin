@@ -37,7 +37,7 @@ O pré-requisito local aplica sobre #772/fixture somente a resolução de lazy s
 | Listas | makeKeyList acrescenta após o prefixo existente, sem promessa de ordem; nenhuma nova garantia de rollback de listas introduzida |
 | Desempenho | Mantém relink, lazy storage, hash sem cache por entrada e módulo por primos; não foram repetidos benchmarks nem reivindicado novo ganho medido |
 
-O helper privado antigo coin_geq_prime_number ainda tem consumidores nas branches de pré-requisito cc_dict/cc_hash. A remoção/consolidação final de tidbits fica na ação conjunta registrada na checklist, depois da distribuição dos três deltas. primep.h tem conteúdo idêntico nas três contribuições; integrar uma vez e eliminar a adição duplicada ao preparar o diff final de publicação.
+O helper privado antigo coin_geq_prime_number ainda tem consumidores nas branches de pré-requisito cc_dict/cc_hash. A [auditoria conjunta](FECHAMENTO_CANDIDATOS_CENTRAIS.md) decidiu preservar esse símbolo com a semântica histórica; os três fechamentos passam a usar primep.h diretamente. O arquivo tem conteúdo idêntico nas três contribuições: integrar uma vez e eliminar a adição duplicada ao preparar o diff final de publicação.
 
 ## Validação
 
