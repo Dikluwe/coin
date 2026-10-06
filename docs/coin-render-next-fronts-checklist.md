@@ -42,8 +42,14 @@ referência CoinGL no domínio válido e capacidades/documentação atualizadas.
   range [.2,.8] e viewport externo (16 cenas); conservar Gouraud clássico.
 - [x] Ampliar estilos com DEFAULT/Plane e multitextura: IndexedFaceSet/Cube
   CPU/GPU/CoinGL; Sphere CPU/GPU; Cone/Cylinder na captura CPU.
-- [ ] Resolver UV nas junções texturizadas curvas/coincidentes: Sphere/CoinGL
-  (`--probe-sphere`) e Cone CPU/GPU (`--probe-cone`); qualificar Cylinder GPU.
+- [ ] **Estudo de melhoria futura:** investigar cobertura, interpolação, UV/LOD e
+  seleção de profundidade nas junções curvas/coincidentes do CoinGL, conforme
+  o [estudo de raster](coin-render-raster-junctions-study.md). Comparar abordagens
+  e custos antes de escolher uma implementação; a reprodução do raster nativo
+  não bloqueia o contrato portátil CPU/BGFX/wgpu escolhido para esta entrega.
+- [ ] Concluir a qualificação portátil de Cone/Cylinder e dos estilos ampliados;
+  divergências entre CPU e os executores GPU continuam bloqueando essas células
+  e não são dispensadas pelo estudo de compatibilidade CoinGL.
 - [ ] Completar estilos por shape com clipping, offset, materiais e todas as
   combinações UV; os contornos convexos continuam delimitados por contrato.
 - [ ] Ampliar depth clamp/range/offset fora do perfil atual, múltiplas regiões,
