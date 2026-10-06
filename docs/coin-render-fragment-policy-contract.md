@@ -15,6 +15,15 @@ próximo com teste desligado/escrita ligada e verde intermediário com teste e
 escrita ligados. O resultado do Coin/OpenGL é verde. Comparar apenas os dois
 primeiros desenhos não detecta a escrita indevida.
 
+A qualificação de 2026-10-06 acrescenta o modo `--depth-only` ao gate e os
+CTest `CoinRenderDepthDisabled*`. São seis frames: OFF/write ON, repetição,
+OFF/write OFF, OFF com função NEVER, controle ON/write ON e restauração OFF.
+A captura conserva os campos explícitos originais. Com teste OFF, os controles
+produzem cor e profundidade idênticas; o controle ON armazena o quad próximo.
+A leitura de profundidade da GPU é obrigatória, completa e finita nesse modo.
+A restauração OFF/ON/OFF exige igualdade exata dos buffers de cada executor.
+A comparação com CoinGL usa RGB; não há leitura do depth buffer nativo GL.
+
 ## SoAlphaTest
 
 A adaptação na action atualiza o estado nativo de `SoLazyElement`, conservando
@@ -130,3 +139,11 @@ divergência de ordem antes da correção. Passaram **348 comparações GPU RGB*
 texto/imagem, 363 de marcadores e 49 gates CTest. Não houve skip nas execuções
 finais. O perfil continua restrito a Linux/NVIDIA; não houve alteração de ABI,
 Rust ou shaders nesta correção.
+
+A campanha focada de profundidade em
+[validation/depth-disabled-linux](validation/depth-disabled-linux) passou
+**18 comparações GPU/CoinGL** (seis por executor) e as respectivas comparações
+CPU/CoinGL, com erro RGB zero. Os dois builds passaram captura/CPU. O gate
+completo wgpu/Vulkan passou **119 comparações GPU/CoinGL**, com erro máximo
+1/255. Não houve skip. O comportamento já estava implementado; esta entrega
+acrescenta testes e documentação, sem alterar produção, shaders, Rust ou ABI.

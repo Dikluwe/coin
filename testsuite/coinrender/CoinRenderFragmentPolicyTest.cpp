@@ -56,19 +56,22 @@ bool check(bool condition, const std::string & message) {
   return condition;
 }
 struct AlphaRecord { uint32_t function; float reference; };
+struct DepthRecord { bool test; bool write; uint32_t explicitMask; };
 class CaptureBackend : public CoinRenderCpuReferenceBackend {
 public:
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target) override {
-    ++submissions; revision = frame.revision; draws = frame.draws.size(); alpha.clear();
+    ++submissions; revision = frame.revision; draws = frame.draws.size(); alpha.clear(); depth.clear();
     for (const auto & draw : frame.draws) {
       const auto & state = frame.renderStates[draw.renderStateSlot];
       alpha.push_back({static_cast<uint32_t>(state.alphaTestFunction), state.alphaTestReference});
+      depth.push_back({state.depthTest, state.depthWrite, state.explicitDepthMask});
     }
     return CoinRenderCpuReferenceBackend::submit(frame, target);
   }
   size_t submissions = 0, draws = 0;
   uint64_t revision = 0;
   std::vector<AlphaRecord> alpha;
+  std::vector<DepthRecord> depth;
 };
 
 struct Scene {
@@ -302,17 +305,61 @@ bool depthDisabled(bool gpu) {
   scene.root->addChild(far.group); scene.root->addChild(near.group); scene.root->addChild(middle.group);
   if (!test.render(scene.root, "depth/off-write-on-three-quads") ||
       !test.sample(53, 37, {{0, 255, 0}}, "depth/off-write-on")) return false;
-  std::vector<float> cpuDepth; test.cpu->readbackDepth(cpuDepth);
-  if (!check(cpuDepth.size() == width * height, "depth: CPU depth readback missing")) return false;
-  const auto preserved = cpuDepth;
+  const auto originalCpu = test.lastCpu, originalNative = test.lastNative, originalGl = test.reference;
+  std::vector<float> cpuDepth, gpuDepth;
+  auto readDepth = [&]() {
+    test.cpu->readbackDepth(cpuDepth);
+    if (!check(cpuDepth.size() == width * height &&
+        std::all_of(cpuDepth.begin(), cpuDepth.end(), [](float value) {
+          return std::isfinite(value) && value >= 0 && value <= 1;
+        }), "depth: CPU depth readback missing or invalid")) return false;
+    if (gpu) {
+      test.native->readbackDepth(gpuDepth);
+      if (!check(gpuDepth.size() == width * height &&
+          std::all_of(gpuDepth.begin(), gpuDepth.end(), [](float value) {
+            return std::isfinite(value) && value >= 0 && value <= 1;
+          }), "depth: actual GPU depth readback missing or invalid")) return false;
+    }
+    return true;
+  };
+  if (!readDepth()) return false;
+  const auto preservedCpuDepth = cpuDepth, preservedGpuDepth = gpuDepth;
+  const size_t sample = size_t(37 * width + 53);
+  if (!check(cpuDepth[sample] < 1 && (!gpu || gpuDepth[sample] < 1),
+      "depth: stored middle quad must differ from clear depth")) return false;
+  auto unchanged = [&](const std::string & label, bool write) {
+    if (!readDepth()) return false;
+    if (!check(test.lastCpu == originalCpu && cpuDepth == preservedCpuDepth &&
+        (!gpu || (test.lastNative == originalNative && test.reference == originalGl &&
+                  gpuDepth == preservedGpuDepth)), label + ": color/depth changed with testing disabled")) return false;
+    const auto & records = test.observer->depth;
+    return check(records.size() == 3 && !records[1].test && records[1].write == write &&
+                 (records[1].explicitMask & 3u) == 3u,
+                 label + ": capture must preserve the authored OFF/write mask");
+  };
+  if (!unchanged("depth/off-write-on", true) ||
+      !test.render(scene.root, "depth/off-write-on-unchanged-reuse") ||
+      !unchanged("depth/reuse", true)) return false;
   near.depth->write = FALSE;
   if (!test.render(scene.root, "depth/off-write-off-control") ||
-      !test.sample(53, 37, {{0, 255, 0}}, "depth/off-write-off")) return false;
-  test.cpu->readbackDepth(cpuDepth);
-  if (!check(cpuDepth == preserved, "disabled depth test must make both write masks equivalent")) return false;
+      !test.sample(53, 37, {{0, 255, 0}}, "depth/off-write-off") ||
+      !unchanged("depth/write-off-control", false)) return false;
+  near.depth->write = TRUE; near.depth->function = SoDepthBuffer::NEVER;
+  if (!test.render(scene.root, "depth/off-write-on-never-ignored") ||
+      !unchanged("depth/never-ignored", true)) return false;
+  near.depth->function = SoDepthBuffer::LEQUAL;
   near.depth->test = TRUE; near.depth->write = TRUE;
-  return test.render(scene.root, "depth/on-write-on-control") &&
-         test.sample(53, 37, {{255, 0, 0}}, "depth/on-write-on");
+  if (!test.render(scene.root, "depth/on-write-on-control") ||
+      !test.sample(53, 37, {{255, 0, 0}}, "depth/on-write-on") || !readDepth() ||
+      !check(cpuDepth[sample] < preservedCpuDepth[sample] &&
+             (!gpu || gpuDepth[sample] < preservedGpuDepth[sample]),
+             "depth: enabled writing must store the nearer quad")) return false;
+  near.depth->test = FALSE;
+  if (!test.render(scene.root, "depth/off-write-on-restored") ||
+      !unchanged("depth/OFF-ON-OFF-restoration", true)) return false;
+  std::cout << "depth/off-write-on color/depth restoration passed; GPU depth readback="
+            << (gpu ? "required" : "not requested") << '\n';
+  return true;
 }
 
 bool alphaFunctions(bool gpu) {
@@ -824,13 +871,14 @@ bool shadowAlphaRejection(bool gpu) {
 } // namespace
 
 int main(int argc, char ** argv) {
-  bool gpu = false; const char * font = "DejaVu Sans";
+  bool gpu = false, depthOnly = false; const char * font = "DejaVu Sans";
   for (int i = 1; i < argc; ++i) {
     const std::string argument = argv[i];
     if (argument == "--gpu") gpu = true;
     else if (argument == "--capture") gpu = false;
+    else if (argument == "--depth-only") depthOnly = true;
     else if (argument == "--font" && i + 1 < argc) font = argv[++i];
-    else { std::cerr << "Usage: CoinRenderFragmentPolicyTest --capture|--gpu [--font NAME]\n"; return 2; }
+    else { std::cerr << "Usage: CoinRenderFragmentPolicyTest --capture|--gpu [--depth-only] [--font NAME]\n"; return 2; }
   }
   SoDB::init(); CoinRenderAction::initClass();
   if (gpu && !CoinRenderAction::isGpuBackendAvailable()) {
@@ -841,7 +889,13 @@ int main(int argc, char ** argv) {
     std::cerr << "CoinRenderFragmentPolicyTest mandatory CoinGL oracle was not compiled\n"; return 1;
   }
 #endif
-  if (!depthDisabled(gpu) || !alphaFunctions(gpu) || !alphaTextureDepth(gpu) ||
+  if (!depthDisabled(gpu)) return 1;
+  if (depthOnly) {
+    std::cout << "CoinRenderFragmentPolicyTest depth-only " << (gpu ? "GPU/CoinGL" : "capture/CPU")
+              << " passed\n";
+    return 0;
+  }
+  if (!alphaFunctions(gpu) || !alphaTextureDepth(gpu) ||
       !screenDoorAlpha(gpu) || !tinyTransparencyDepth(gpu) ||
       !inheritanceAndMutation(gpu) || !replaceComponents(gpu) || !replaceUnusedMaterialTransparency(gpu) ||
       !multipleUnitsAndCombine(gpu) || !alphaCallbacks(gpu) ||
