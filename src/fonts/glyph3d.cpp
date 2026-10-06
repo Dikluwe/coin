@@ -197,7 +197,7 @@ cc_glyph3d_ref(uint32_t character, const cc_font_specification * spec)
     cc_string_append_string(fonttoload, &spec->style);
   }
   
-  fontidx = cc_flw_get_font_id(cc_string_get_text(fonttoload), 
+  fontidx = cc_flw_get_font_id_and_ref(cc_string_get_text(fonttoload), 
                                glyph3d_standardfontsize,
                                0.0f,
                                newspec->complexity);
@@ -205,7 +205,6 @@ cc_glyph3d_ref(uint32_t character, const cc_font_specification * spec)
   cc_string_destruct(fonttoload);
   assert(fontidx >= 0);
 
-  cc_flw_ref_font(fontidx);
 
   glyphidx = cc_flw_get_glyph(fontidx, character);
 

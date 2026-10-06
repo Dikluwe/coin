@@ -187,7 +187,7 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
   
   /* FIXME: get rid of angle -- not used. 20050516 mortene. */
   fontidx =
-    cc_flw_get_font_id(cc_string_get_text(fonttoload),
+    cc_flw_get_font_id_and_ref(cc_string_get_text(fonttoload),
                        (unsigned int)(newspec->size), angle,
                        /* FIXME: passing in -1 for complexity below is
                           necessary because the Win32 API code in
@@ -207,7 +207,6 @@ cc_glyph2d_ref(uint32_t character, const cc_font_specification * spec, float ang
   cc_string_destruct(fonttoload);
   assert(fontidx >= 0);
 
-  cc_flw_ref_font(fontidx);
 
   /* Should _always_ be able to get hold of a glyph -- if no glyph is
      available for a specific character, a default empty rectangle
