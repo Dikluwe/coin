@@ -460,3 +460,12 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
   add_test(NAME FontRepresentationOwnership COMMAND CoinFontRepresentationTest)
   set_tests_properties(FontRepresentationOwnership PROPERTIES SKIP_RETURN_CODE 77)
 endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND COIN_BUILD_SHARED_LIBS AND
+   (HAVE_FREETYPE OR FREETYPE_RUNTIME_LINKING))
+  add_executable(CoinFontconfigCleanupTest FontconfigCleanupTest.cpp)
+  target_compile_definitions(CoinFontconfigCleanupTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_include_directories(CoinFontconfigCleanupTest PRIVATE ${PROJECT_SOURCE_DIR}/src ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  target_link_libraries(CoinFontconfigCleanupTest PRIVATE Coin)
+  add_test(NAME FontconfigFailureCleanup COMMAND CoinFontconfigCleanupTest)
+endif()
