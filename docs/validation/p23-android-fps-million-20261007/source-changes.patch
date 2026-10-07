@@ -1,0 +1,616 @@
+diff --git a/.github/scripts/build-coin-render-android-apk.py b/.github/scripts/build-coin-render-android-apk.py
+index fa7a51e80b..9a526907f4 100644
+--- a/.github/scripts/build-coin-render-android-apk.py
++++ b/.github/scripts/build-coin-render-android-apk.py
+@@ -23,6 +23,7 @@ def main():
+     parser.add_argument('--target-sdk', type=int, default=37)
+     parser.add_argument('--java-home', type=Path)
+     parser.add_argument('--jobs', type=int, default=4)
++    parser.add_argument('--include-million-city', action='store_true')
+     args = parser.parse_args()
+     repo = Path(__file__).resolve().parents[2]
+     sdk, ndk = args.sdk.resolve(), args.ndk.resolve()
+@@ -77,6 +78,11 @@ def main():
+     run('generate-city', ['python3', repo / 'examples/coinrender/generate_large_scene.py',
+         city, '--grid', '200', '--seed', '136'])
+     hashes[str(city)] = hashlib.sha256(city.read_bytes()).hexdigest()
++    million = output / 'city-1000000.iv' if args.include_million_city else None
++    if million:
++        run('generate-million-city', ['python3', repo / 'examples/coinrender/generate_large_scene.py',
++            million, '--grid', '1000', '--seed', '136'])
++        hashes[str(million)] = hashlib.sha256(million.read_bytes()).hexdigest()
+     raw, aligned = output / 'unsigned.apk', output / 'aligned.apk'
+     apk = output / ('coin-render-p23-' + args.abi + '.apk')
+     run('aapt2', [tools / 'aapt2', 'link', '-o', raw, '--manifest',
+@@ -86,6 +92,8 @@ def main():
+         '--version-code', '1', '--version-name', '0.1-p23'])
+     with zipfile.ZipFile(raw, 'a', compression=zipfile.ZIP_STORED) as archive:
+         archive.write(city, 'assets/city-40000.iv', compress_type=zipfile.ZIP_DEFLATED)
++        if million:
++            archive.write(million, 'assets/city-1000000.iv', compress_type=zipfile.ZIP_DEFLATED)
+         for library in sorted(staging.glob('*.so')):
+             archive.write(library, 'lib/' + args.abi + '/' + library.name)
+     run('zipalign', [tools / 'zipalign', '-P', '16', '-f', '4', raw, aligned])
+diff --git a/examples/coinrender/AndroidManifest-p23.xml b/examples/coinrender/AndroidManifest-p23.xml
+index b276df5c99..d4357e59bc 100644
+--- a/examples/coinrender/AndroidManifest-p23.xml
++++ b/examples/coinrender/AndroidManifest-p23.xml
+@@ -1,7 +1,7 @@
+ <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+     package="org.coin3d.coinrender.p23">
+     <uses-sdk android:minSdkVersion="26" />
+-    <application android:hasCode="false" android:label="CoinRender P23">
++    <application android:hasCode="false" android:debuggable="true" android:label="CoinRender P23">
+         <activity android:name="android.app.NativeActivity"
+             android:exported="true"
+             android:launchMode="singleTask"
+diff --git a/examples/coinrender/coin_render_android_smoke.cpp b/examples/coinrender/coin_render_android_smoke.cpp
+index 481308155f..a9cb4b484e 100644
+--- a/examples/coinrender/coin_render_android_smoke.cpp
++++ b/examples/coinrender/coin_render_android_smoke.cpp
+@@ -11,7 +11,7 @@
+ 
+ #include <Inventor/SoDB.h>
+ #include <Inventor/SoInput.h>
+-#include <Inventor/actions/SoSearchAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/nodes/SoPerspectiveCamera.h>
+ #include <Inventor/actions/CoinRenderAction.h>
+ #include <Inventor/rendering/CoinRenderCapabilities.h>
+@@ -28,6 +28,8 @@
+ #include <cmath>
+ #include <cstdint>
+ #include <cstdlib>
++#include <cstdio>
++#include <string>
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/SoOffscreenRenderer.h>
+ #include <Inventor/system/gl-headers.h>
+@@ -40,7 +42,7 @@ const char * const tag = "CoinRenderP23";
+ // Goldfish reports no Vulkan conformance version. This opt-in is exclusively
+ // for emulator diagnostics, never enabled for normal APK launches/hardware.
+ bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
+-                       bool & city, bool & continuous) {
++                       bool & city, bool & continuous, bool & trace, bool & million) {
+   char qemu[PROP_VALUE_MAX] = {};
+   __system_property_get("ro.kernel.qemu", qemu);
+   const bool isEmulator = std::strcmp(qemu, "1") == 0;
+@@ -71,6 +73,12 @@ bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
+       name = env->NewStringUTF("coinrender_continuous");
+       continuous = env->CallBooleanMethod(intent, getBool, name, continuous ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
+       env->DeleteLocalRef(name);
++      name = env->NewStringUTF("coinrender_trace");
++      trace = env->CallBooleanMethod(intent, getBool, name, JNI_FALSE) == JNI_TRUE;
++      env->DeleteLocalRef(name);
++      name = env->NewStringUTF("coinrender_million_city");
++      million = env->CallBooleanMethod(intent, getBool, name, million ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
++      env->DeleteLocalRef(name);
+     }
+     env->DeleteLocalRef(type);
+   }
+@@ -102,6 +110,8 @@ struct Host {
+   CoinRenderRenderer renderer = COIN_ANDROID_SMOKE_RENDERER;
+   SoPerspectiveCamera * cityCamera = nullptr;
+   bool city = false;
++  bool million = false;
++  bool selectionSaved = false;
+   bool continuous = false;
+   float touchX = 0, touchY = 0;
+   bool dragging = false;
+@@ -114,6 +124,7 @@ struct Host {
+   void releaseSurface() {
+     if (action) action->setRenderTarget(nullptr);
+     target.reset();
++    if (million) action.reset(new CoinRenderAction);
+   }
+ 
+   void render(bool qualify = true) {
+@@ -129,7 +140,14 @@ struct Host {
+       __android_log_print(ANDROID_LOG_ERROR, tag, "resize failed: %s", target->getLastError());
+       return;
+     }
+-    action->setViewportRegion(SbViewportRegion(size[0], size[1]));
++    const SbViewportRegion viewport(size[0], size[1]);
++    if (million && qualify) {
++      // Requalification cannot reuse the old plan. Drop it before recapture
++      // so resize/resume also avoid retaining two multi-GB CPU plans.
++      action->setRenderTarget(nullptr);
++      action.reset(new CoinRenderAction(viewport));
++      action->setRenderTarget(target.get());
++    } else if (!(action->getViewportRegion() == viewport)) action->setViewportRegion(viewport);
+     const auto renderStart = std::chrono::steady_clock::now();
+     if (!qualify) {
+       action->apply(scene);
+@@ -177,14 +195,28 @@ struct Host {
+       // GLES surfaces may lack COPY_SRC. Qualify presentation separately and
+       // capture the same scene offscreen; never call this window equivalence.
+       captureSize = SbVec2i32(64, 64);
++      if (million) {
++        // Keep only one large CPU plan alive while qualifying both targets.
++        // The persistent offscreen target still guards the runtime lifetime.
++        action->setRenderTarget(nullptr);
++        action.reset();
++      }
+       if (!captureTarget) {
+         CoinRenderOptions options;
+         options.renderer = renderer;
+         captureTarget.reset(CoinRenderTarget::createOffscreen(captureSize, options));
++      }
++      if (!captureAction) {
+         captureAction.reset(new CoinRenderAction(SbViewportRegion(64, 64)));
+         captureAction->setRenderTarget(captureTarget.get());
+       }
+       captureAction->apply(scene);
++      if (million) {
++        // Restore a usable window action even if offscreen submission failed.
++        // This empty action holds no captured plan until the normal apply.
++        action.reset(new CoinRenderAction(viewport));
++        action->setRenderTarget(target.get());
++      }
+       if (captureAction->getLastStatus() != CoinRenderAction::SUCCESS) {
+         failed = true;
+         __android_log_print(ANDROID_LOG_ERROR, tag, "offscreen capture failed: %s",
+@@ -192,6 +224,10 @@ struct Host {
+         return;
+       }
+       captureTarget->readbackRGBA(rgba);
++      if (million) {
++        captureAction->setRenderTarget(nullptr);
++        captureAction.reset();
++      }
+     }
+     if (rgba.size() != size_t(captureSize[0]) * size_t(captureSize[1]) * 4u) {
+       failed = true;
+@@ -256,6 +292,14 @@ struct Host {
+     if (cityCamera) cityCamera->viewAll(scene, SbViewportRegion(size[0], size[1]), 1.15f);
+     render();
+     if (target->getLastSubmissionSerial() != 0) {
++      if (city && !failed && !selectionSaved) {
++        const std::string path = std::string(app->activity->internalDataPath) + "/coinrender-city-selection.txt";
++        if (FILE * file = std::fopen(path.c_str(), "w")) {
++          std::fprintf(file, "%d\n", million ? 1000 : 200);
++          std::fclose(file);
++          selectionSaved = true;
++        }
++      }
+       CoinRenderCapabilities caps{};
+       if (coin_render_query_capabilities_for_renderer(COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW,
+           renderer, &caps, sizeof(caps)) == 0) {
+@@ -298,11 +342,11 @@ int32_t onInput(android_app * app, AInputEvent * event) {
+     const float step = (y - host.touchY) / height;
+     const float scale = std::exp(step < -.2f ? -.4f : step > .2f ? .4f : step * 2.0f);
+     const float focal = camera.focalDistance.getValue();
+-    const float nextFocal = std::max(5.0f, std::min(5000.0f, focal * scale));
++    const float nextFocal = std::max(5.0f, std::min(host.million ? 50000.0f : 5000.0f, focal * scale));
+     camera.position = center + offset * (nextFocal / focal);
+     camera.focalDistance = nextFocal;
+     camera.nearDistance = .1f;
+-    camera.farDistance = std::max(2000.0f, nextFocal * 4.0f);
++    camera.farDistance = std::max(host.million ? 20000.0f : 2000.0f, nextFocal * 4.0f);
+     camera.pointAt(center);
+     __android_log_print(ANDROID_LOG_INFO, tag, "camera_touch x=%.1f y=%.1f focal=%.3f", x, y,
+                         camera.focalDistance.getValue());
+@@ -346,7 +390,11 @@ void onCommand(android_app * app, int32_t command) {
+         __android_log_print(ANDROID_LOG_ERROR, tag, "native resize geometry failed");
+         break;
+       }
+-      host.render();
++      // A layout can repeat unchanged dimensions. Recapture the million-city
++      // diagnostic once per actual resize, preserving normal cached frames.
++      host.render(!host.million || !host.target || !app->window ||
++        host.target->getSize() != SbVec2i32(ANativeWindow_getWidth(app->window),
++                                           ANativeWindow_getHeight(app->window)));
+       break;
+     default:
+       break;
+@@ -357,8 +405,22 @@ void onCommand(android_app * app, int32_t command) {
+ extern "C" void android_main(android_app * app) {
+   setenv("COIN_WGPU_LOG", "debug", 0);
+   CoinRenderRenderer requestedRenderer = COIN_ANDROID_SMOKE_RENDERER;
+-  bool city = true, continuous = true;
+-  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous);
++  bool city = true, continuous = true, trace = false, million = false;
++  const std::string selectionPath = std::string(app->activity->internalDataPath) + "/coinrender-city-selection.txt";
++  if (FILE * file = std::fopen(selectionPath.c_str(), "r")) {
++    int grid = 0;
++    if (std::fscanf(file, "%d", &grid) == 1) million = grid == 1000;
++    std::fclose(file);
++  }
++  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous, trace, million);
++  if (trace) {
++    const std::string file = std::string(app->activity->internalDataPath) + "/coinrender-phases.log";
++    if (!std::freopen(file.c_str(), "w", stderr)) {
++      ANativeActivity_finish(app->activity);
++      return;
++    }
++    setenv("COIN_RENDER_TRACE_PHASES", "1", 1);
++  } else unsetenv("COIN_RENDER_TRACE_PHASES");
+   setenv("WGPU_ALLOW_UNDERLYING_NONCOMPLIANT_ADAPTER", emulatedVulkan ? "1" : "0", 1);
+   __android_log_print(ANDROID_LOG_INFO, tag,
+                       "emulator_noncompliant_vulkan_opt_in=%d", emulatedVulkan ? 1 : 0);
+@@ -369,13 +431,14 @@ extern "C" void android_main(android_app * app) {
+   host.app = app;
+   host.renderer = requestedRenderer;
+   host.city = city;
++  host.million = million;
+   host.continuous = continuous;
+   __android_log_print(ANDROID_LOG_INFO, tag, "requested_renderer=%u", unsigned(host.renderer));
+   host.action.reset(new CoinRenderAction);
+   host.scene = new SoSeparator;
+   host.scene->ref();
+   if (city) {
+-    AAsset * asset = AAssetManager_open(app->activity->assetManager, "city-40000.iv", AASSET_MODE_BUFFER);
++    AAsset * asset = AAssetManager_open(app->activity->assetManager, million ? "city-1000000.iv" : "city-40000.iv", AASSET_MODE_BUFFER);
+     if (!asset) {
+       __android_log_print(ANDROID_LOG_ERROR, tag, "city asset unavailable");
+       host.scene->unref();
+@@ -396,16 +459,20 @@ extern "C" void android_main(android_app * app) {
+     host.cityCamera->orientation.setValue(SbRotation(SbVec3f(0, 0, -1), SbVec3f(-.5f, -.35f, -1)));
+     host.scene->addChild(host.cityCamera);
+     host.scene->addChild(imported);
+-    SoSearchAction count;
+-    count.setType(SoCube::getClassTypeId());
+-    count.setInterest(SoSearchAction::ALL);
+-    count.setSearchingAll(TRUE);
++    // Count occurrences without retaining a million paths to the shared cube.
++    // Detaching those path auditors otherwise makes startup quadratic.
++    int cubes = 0;
++    SoCallbackAction count;
++    count.addPreCallback(SoCube::getClassTypeId(),
++      [](void * data, SoCallbackAction *, const SoNode *) {
++        ++*static_cast<int *>(data);
++        return SoCallbackAction::CONTINUE;
++      }, &cubes);
+     count.apply(imported);
+-    const int cubes = count.getPaths().getLength();
+     __android_log_print(ANDROID_LOG_INFO, tag,
+-                        "scene=city-40000 buildings=%d ground=1 triangles=%d continuous=%d",
+-                        cubes - 1, cubes * 12, continuous ? 1 : 0);
+-    if (cubes != 40001) {
++                        "scene=city-%d buildings=%d ground=1 triangles=%d continuous=%d",
++                        million ? 1000000 : 40000, cubes - 1, cubes * 12, continuous ? 1 : 0);
++    if (cubes != (million ? 1000001 : 40001)) {
+       __android_log_print(ANDROID_LOG_ERROR, tag, "unexpected city occurrence count=%d", cubes);
+       host.scene->unref();
+       ANativeActivity_finish(app->activity);
+diff --git a/examples/coinrender/generate_large_scene.py b/examples/coinrender/generate_large_scene.py
+index 1bf4725b29..bc5c52c4b7 100644
+--- a/examples/coinrender/generate_large_scene.py
++++ b/examples/coinrender/generate_large_scene.py
+@@ -11,8 +11,8 @@ def main():
+     parser.add_argument("--grid", type=int, default=200)
+     parser.add_argument("--seed", type=int, default=136)
+     args = parser.parse_args()
+-    if not 1 <= args.grid <= 500:
+-        parser.error("grid must be between 1 and 500")
++    if not 1 <= args.grid <= 1000:
++        parser.error("grid must be between 1 and 1000")
+     rng = random.Random(args.seed)
+     palette = [(0.72, 0.78, 0.85), (0.36, 0.52, 0.67), (0.82, 0.65, 0.43),
+                (0.53, 0.65, 0.59), (0.70, 0.45, 0.34), (0.53, 0.48, 0.65),
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfi.h b/src/rendering/coinwgpu/CoinWgpuFfi.h
+index 3531c2606e..43b25d876c 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfi.h
++++ b/src/rendering/coinwgpu/CoinWgpuFfi.h
+@@ -89,7 +89,7 @@ typedef struct CoinWgpuInstance {
+   float model_view[16];
+   float normal_matrix[16];
+   uint32_t material_slot;
+-  uint32_t reserved[3]; /* must be zero; storage stride is 144 bytes */
++  uint32_t reserved[3]; /* must be zero; CPU transport stride is 144 bytes */
+ } CoinWgpuInstance;
+ 
+ typedef struct CoinWgpuInstanceRange {
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+index de85397ea8..f87ddb0dd9 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
++++ b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+@@ -610,7 +610,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
+     const char * value = std::getenv(option);
+     if (value && std::strcmp(value, "1") == 0) return false;
+   }
+-  if (frame.draws.size() < 256 || frame.draws.size() > (32u * 1024u * 1024u) / sizeof(CoinWgpuInstance) ||
++  if (frame.draws.size() < 256 || frame.draws.size() > 1048576u ||
+       frame.renderStates.empty() ||
+       frame.materials.empty() || frame.materials.size() > (32u * 1024u * 1024u) / sizeof(CoinWgpuMaterial) ||
+       !frame.shadowGroups.empty() || !frame.shadowLights.empty() ||
+@@ -669,7 +669,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
+   // budget. Bound their admission separately, including allocator/bucket
+   // overhead conservatively. Existing per-state bake storage is unchanged.
+   const size_t maxSourceSpans = 65536;
+-  const uint64_t maxMetadataBytes = 8u * 1024u * 1024u;
++  const uint64_t maxMetadataBytes = 64u * 1024u * 1024u;
+   const auto metadataFits = [&](size_t spans, size_t meshes, size_t groupCount) {
+     return uint64_t(order.size()) * sizeof(Occurrence) + uint64_t(spans) * 128u +
+       uint64_t(meshes) * (sizeof(CanonicalMesh) + 128u) + uint64_t(groupCount) * sizeof(Group)
+@@ -717,13 +717,15 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
+           frame.indices[b.source.firstIndex + j] - b.source.firstVertex) return false;
+     return true;
+   };
++  // A zero screen-door level discards no pixels. Fully opaque materials and
++  // all state checks below still qualify the candidate; positive levels fall back.
+   // Each source range is checked/hashed once even when referenced 40,001 times.
+   // Different material bindings may canonicalize to the same local geometry.
+   for (const auto & item : order) {
+     const auto & draw = frame.draws[item.drawIndex];
+     const auto & range = draw.geometry;
+     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.stableNodeId ||
+-        item.blend || item.screenDoor || item.screenDoorLevel || draw.renderLayer || draw.clearDepthBefore ||
++        item.blend || item.screenDoorLevel || draw.renderLayer || draw.clearDepthBefore ||
+         !range.vertexCount || !range.indexCount || range.indexCount % 3 ||
+         draw.renderStateSlot >= frame.renderStates.size() ||
+         item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
+@@ -1124,12 +1126,17 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
+     const auto & draw = frame.draws[item.drawIndex];
+     const auto & range = draw.geometry;
+     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
+-        draw.stableNodeId || item.blend || item.screenDoor || item.screenDoorLevel ||
++        draw.stableNodeId || item.blend || item.screenDoorLevel ||
+         draw.renderLayer || draw.clearDepthBefore || !range.vertexCount ||
+         !range.indexCount || range.indexCount % 3 ||
+         draw.renderStateSlot >= frame.renderStates.size() ||
+         item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
+     const auto & state = frame.renderStates[draw.renderStateSlot];
++    // SCREEN_DOOR forces primary alpha to one even when its quantized mask is
++    // zero. Removing that flag is equivalent only for truly opaque materials.
++    if (item.screenDoor && (state.materialSlot >= frame.materials.size() ||
++        frame.materials[state.materialSlot].diffuse[3] != 1.0f ||
++        frame.materials[state.materialSlot].transparency != 0.0f)) return false;
+     if (item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
+         item.depthFunction != state.depthFunction ||
+         item.depthRange[0] != state.depthRange[0] || item.depthRange[1] != state.depthRange[1]) return false;
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/instancing.rs b/src/rendering/coinwgpu/rust_bridge/src/instancing.rs
+index a83f0abf25..55cea50f2e 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/instancing.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/instancing.rs
+@@ -2,7 +2,40 @@
+ use super::*;
+ 
+ pub(super) const MAX_GEOMETRY_BYTES: u64 = 8 * 1024 * 1024;
+-pub(super) const MAX_INSTANCE_BYTES: u64 = 32 * 1024 * 1024;
++pub(super) const MAX_INSTANCE_COUNT: u64 = 1_048_576;
++pub(super) const MAX_INSTANCE_BYTES: u64 = 160 * 1024 * 1024;
++pub(super) const MAX_MATERIAL_BYTES: u64 = 32 * 1024 * 1024;
++
++// The public/private CPU transport remains 144 bytes (ABI 49). Only affine
++// rows needed by the vertex shader are uploaded, without quantizing floats.
++#[repr(C)]
++#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
++pub(super) struct GpuInstance {
++    model_rows: [[f32; 4]; 3],
++    normal_row0: [f32; 3],
++    material_slot: u32,
++    normal_row1: [f32; 4],
++    normal_row2: [f32; 4],
++}
++const _: () = {
++    assert!(std::mem::size_of::<GpuInstance>() == 96);
++    assert!(std::mem::offset_of!(GpuInstance, material_slot) == 60);
++};
++pub(super) fn gpu_bytes(count: usize) -> u64 {
++    count as u64 * std::mem::size_of::<GpuInstance>() as u64
++}
++pub(super) fn pack_gpu(instances: &[CoinWgpuInstance]) -> Vec<GpuInstance> {
++    instances.iter().map(|instance| {
++        let row = |matrix: &[f32; 16], r: usize| [matrix[r], matrix[4+r], matrix[8+r], matrix[12+r]];
++        GpuInstance {
++            model_rows: std::array::from_fn(|r| row(&instance.model_view, r)),
++            normal_row0: [instance.normal_matrix[0], instance.normal_matrix[4], instance.normal_matrix[8]],
++            material_slot: instance.material_slot,
++            normal_row1: [instance.normal_matrix[1], instance.normal_matrix[5], instance.normal_matrix[9], 0.0],
++            normal_row2: [instance.normal_matrix[2], instance.normal_matrix[6], instance.normal_matrix[10], 0.0],
++        }
++    }).collect()
++}
+ 
+ fn profile_transport_supported(f: &CoinWgpuFrameView) -> bool {
+     f.texture_count == 0 && f.sampler_count == 0 && f.transparency_reserved == 0
+@@ -39,8 +72,8 @@ pub(super) fn validate_counts(f: &CoinWgpuFrameView) -> Result<(), (CoinWgpuStat
+     let material_bytes = f.material_count.checked_mul(std::mem::size_of::<CoinWgpuMaterial>() as u64);
+     if !geometry.is_some_and(|bytes| bytes != 0 && bytes <= MAX_GEOMETRY_BYTES)
+         || !instance_bytes.is_some_and(|bytes| bytes <= MAX_INSTANCE_BYTES)
+-        || !material_bytes.is_some_and(|bytes| bytes <= MAX_INSTANCE_BYTES)
+-        || f.instance_count > u64::from(u32::MAX) {
++        || !material_bytes.is_some_and(|bytes| bytes <= MAX_MATERIAL_BYTES)
++        || f.instance_count > MAX_INSTANCE_COUNT {
+         return Err((CoinWgpuStatus::Unsupported,
+             "Instancing exceeds bounded canonical geometry, instance or material payload limits".into()));
+     }
+@@ -192,10 +225,10 @@ pub(super) fn owned_payload_matches(previous: &ValidatedGeometry, f: &CoinWgpuFr
+ // instance positions when a camera overlay is used.
+ pub(super) fn shader_source() -> String {
+     let mut source = shader_profile::without_shadows(WGSL_SHADER);
+-    source.insert_str(0, "struct CoinInstance {\n    model_view: mat4x4<f32>,\n    normal_matrix: mat4x4<f32>,\n    material_slot: u32,\n    reserved0: u32,\n    reserved1: u32,\n    reserved2: u32,\n};\n@group(0) @binding(24) var<storage, read> instances: array<CoinInstance>;\n");
++    source.insert_str(0, "struct CoinInstance {\n    model_rows: array<vec4<f32>, 3>,\n    normal_row0: vec3<f32>,\n    material_slot: u32,\n    normal_row1: vec4<f32>,\n    normal_row2: vec4<f32>,\n};\n@group(0) @binding(24) var<storage, read> instances: array<CoinInstance>;\n");
+     let old = "fn vs_main(input: VertexInput) -> VertexOutput {";
+     assert_eq!(source.matches(old).count(), 1);
+-    source = source.replace(old, "fn vs_main(input: VertexInput, @builtin(instance_index) instance_index: u32) -> VertexOutput {\n    let instance = instances[instance_index];\n    let instance_position = instance.model_view * vec4<f32>(input.position, 1.0);\n    let instance_normal = instance.normal_matrix * vec4<f32>(input.normal, 0.0);");
++    source = source.replace(old, "fn vs_main(input: VertexInput, @builtin(instance_index) instance_index: u32) -> VertexOutput {\n    let instance = instances[instance_index];\n    let a = instance.model_rows[0]; let b = instance.model_rows[1]; let c = instance.model_rows[2];\n    let model = mat4x4<f32>(vec4<f32>(a.x,b.x,c.x,0.0),vec4<f32>(a.y,b.y,c.y,0.0),vec4<f32>(a.z,b.z,c.z,0.0),vec4<f32>(a.w,b.w,c.w,1.0));\n    let n0 = instance.normal_row0; let n1 = instance.normal_row1.xyz; let n2 = instance.normal_row2.xyz;\n    let normal = mat4x4<f32>(vec4<f32>(n0.x,n1.x,n2.x,0.0),vec4<f32>(n0.y,n1.y,n2.y,0.0),vec4<f32>(n0.z,n1.z,n2.z,0.0),vec4<f32>(0.0,0.0,0.0,1.0));\n    let instance_position = model * vec4<f32>(input.position, 1.0);\n    let instance_normal = normal * vec4<f32>(input.normal, 0.0);");
+     let start = source.find("fn vs_main(").unwrap();
+     let end = start + source[start..].find("\n}").unwrap() + 2;
+     let vertex = source[start..end].replace("u.model_view * vec4<f32>(input.position, 1.0)", "u.model_view * instance_position")
+@@ -234,6 +267,28 @@ mod tests {
+             [CoinWgpuInstanceRange { draw_index: 0, first_instance: 0, instance_count: 2, reserved: 0 }])
+     }
+ 
++    #[test]
++    fn gpu_rows_preserve_affine_transforms_normal_and_integer_material() {
++        let mut source = CoinWgpuInstance::zeroed();
++        source.model_view = [2.0,3.0,4.0,0.0, 5.0,6.0,7.0,0.0, 8.0,9.0,10.0,0.0, 11.0,12.0,13.0,1.0];
++        source.normal_matrix = [0.25,0.5,0.75,0.0, 1.0,1.25,1.5,0.0, 1.75,2.0,2.25,0.0, 0.0,0.0,0.0,1.0];
++        source.material_slot = 0xff00_1234;
++        let gpu = pack_gpu(&[source]);
++        assert_eq!(gpu[0].model_rows[0], [2.0,5.0,8.0,11.0]);
++        assert_eq!(gpu[0].model_rows[1], [3.0,6.0,9.0,12.0]);
++        assert_eq!(gpu[0].model_rows[2], [4.0,7.0,10.0,13.0]);
++        assert_eq!(gpu[0].normal_row0, [0.25,1.0,1.75]);
++        assert_eq!(gpu[0].normal_row1, [0.5,1.25,2.0,0.0]);
++        assert_eq!(gpu[0].normal_row2, [0.75,1.5,2.25,0.0]);
++        assert_eq!(gpu[0].material_slot, source.material_slot);
++        assert_eq!(gpu_bytes(1_000_001), 96_000_096);
++        let (mut frame, ..) = fixture();
++        frame.instance_count = MAX_INSTANCE_COUNT;
++        assert!(validate_counts(&frame).is_ok());
++        frame.instance_count += 1;
++        assert!(validate_counts(&frame).is_err());
++    }
++
+     #[test]
+     fn homogeneous_coordinates_are_part_of_owned_geometry_and_admission() {
+         let (frame, mut vertices, draws, materials, states, instances, ranges) = fixture();
+@@ -387,9 +442,9 @@ mod tests {
+             let instance = module.types.iter().find(|(_, t)| t.name.as_deref() == Some("CoinInstance")).unwrap().1;
+             match &instance.inner {
+                 naga::TypeInner::Struct { members, span } => {
+-                    assert_eq!(*span, 144);
+-                    assert_eq!(members[2].offset, 128);
+-                    assert_eq!(members[5].offset, 140);
++                    assert_eq!(*span, 96);
++                    assert_eq!(members[2].offset, 60);
++                    assert_eq!(members[4].offset, 80);
+                 }
+                 _ => panic!("instance must be a WGSL struct"),
+             }
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 1624c49c5f..0b3427a4a3 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -3181,7 +3181,7 @@ fn encode_frame(
+     }
+     let instanced = !instances_slice.is_empty();
+     if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
+-        || std::mem::size_of_val(instances_slice) as u64
++        || instancing::gpu_bytes(instances_slice.len())
+             > u64::from(ctx.device.limits().max_storage_buffer_binding_size)) {
+         return Err((CoinWgpuStatus::Unsupported,
+             "Instancing exceeds enabled vertex storage buffer limits".into()));
+@@ -3664,8 +3664,9 @@ fn encode_frame(
+     let instances_buffer = if !instanced { None } else if instance_hit {
+         Some(previous_instances.as_ref().unwrap().instances_buffer.clone())
+     } else {
++        let gpu_instances = instancing::pack_gpu(instances_slice);
+         Some(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+-            label: Some("Coin opaque instance storage"), contents: bytemuck::cast_slice(instances_slice),
++            label: Some("Coin compact affine instance storage"), contents: bytemuck::cast_slice(&gpu_instances),
+             usage: wgpu::BufferUsages::STORAGE,
+         }))
+     };
+@@ -3699,7 +3700,7 @@ fn encode_frame(
+             payload_compare_ms.unwrap(), material_pack_ms.unwrap(), start.elapsed().as_secs_f64() * 1000.0,
+             instance_hit as u32, material_hit as u32, material_buffer_hit as u32,
+             (instanced && !instance_hit) as u32, (!material_buffer_hit) as u32,
+-            if instanced && !instance_hit { std::mem::size_of_val(instances_slice) } else { 0 },
++            if instanced && !instance_hit { instancing::gpu_bytes(instances_slice.len()) } else { 0 },
+             if material_buffer_hit { 0 } else { material_byte_len }, reuse_materials as u32);
+     }
+ 
+@@ -3768,7 +3769,7 @@ fn encode_frame(
+     let pending_instances = if instanced {
+         let geometry = camera_geometry.ok_or_else(|| (CoinWgpuStatus::OutOfMemory,
+             "Cannot retain bounded validated instance payload".to_string()))?;
+-        let instance_bytes = std::mem::size_of_val(instances_slice) as u64;
++        let instance_bytes = instancing::gpu_bytes(instances_slice.len());
+         let uploaded_instances = if instance_hit { 0 } else { instance_bytes };
+         let uploaded_materials = if material_buffer_hit { 0 } else { material_byte_len as u64 };
+         let uploaded = (if geometry_hit { 0 } else { geometry_bytes }) + uploaded_instances + uploaded_materials;
+diff --git a/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp b/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
+index 8ff31adf25..012afc379b 100644
+--- a/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
++++ b/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
+@@ -1708,7 +1708,7 @@ bool boundedInstancingMetadata()
+   std::string diagnostic;
+   if (!check(packed.prepare(frame,64,64,diagnostic) && !packed.getView().instance_count &&
+       packed.getView().vertex_count == count*3 && packed.getView().draw_count == 1,
+-      "source spans beyond the independent 64k/8MiB metadata bound must preserve the full-bake fallback")) return false;
++      "source spans beyond the independent 64k/64MiB metadata bound must preserve the full-bake fallback")) return false;
+   return true;
+ }
+ 
+@@ -1730,6 +1730,78 @@ bool boundedIncrementalBatch()
+ }
+ }
+ 
++// A zero screen-door mask is opaque only if its primary alpha is one.
++// Compare geometry against the independently baked NONE profile, and compare
++// fractional/active masks byte-for-byte with the ordinary SCREEN_DOOR path.
++bool zeroScreenDoorOpaqueProfiles()
++{
++  InstancingSwitch instancing;
++  EarlyBatchSwitch early;
++  auto frame = diagonalBoxFrame();
++  for (auto & state : frame.renderStates) {
++    state.transparencyType = SoGLRenderAction::SCREEN_DOOR;
++    state.screenDoorTransparency = 0;
++  }
++  CoinWgpuFfiFrame fast, ordinary;
++  std::string a, b;
++  instancing.disable(false); early.disable(false);
++  if (!check(fast.prepare(frame,64,64,a) && fast.getView().instance_count == 256,
++             "fully opaque SCREEN_DOOR must license bounded instancing")) return false;
++  auto none = frame;
++  for (auto & state : none.renderStates) state.transparencyType = SoGLRenderAction::NONE;
++  instancing.disable(true);
++  if (!check(ordinary.prepare(none,64,64,b), "independent opaque NONE bake") ||
++      !instancedMatchesBake(fast.getView(),ordinary.getView())) return false;
++  CoinWgpuFfiFrame screenBake, noneBake;
++  if (!check(screenBake.prepare(frame,64,64,a) && noneBake.prepare(none,64,64,b) &&
++             screenBake.getView().draw_count == 1 && samePacked(screenBake.getView(),noneBake.getView()),
++             "zero-mask early batch must match opaque NONE bytes")) return false;
++
++  const auto fallback = [&]() {
++    instancing.disable(false); early.disable(false);
++    const bool okA = fast.prepare(frame,64,64,a);
++    instancing.disable(true); early.disable(true);
++    const bool okB = ordinary.prepare(frame,64,64,b);
++    instancing.disable(false); early.disable(false);
++    return check(okA && okB && !fast.getView().instance_count &&
++        fast.getView().draw_count == 256 && samePacked(fast.getView(),ordinary.getView()),
++        "fractional SCREEN_DOOR must retain original alpha, masks and draws");
++  };
++  // Small transparency quantizes to a zero mask but still forces alpha one;
++  // accepting it as an opaque batch would silently publish fractional alpha.
++  ++frame.revision;
++  frame.materials[0].transparency = 1.0f / 128.0f;
++  frame.materials[0].diffuse[3] = 1.0f - frame.materials[0].transparency;
++  for (auto & state : frame.renderStates)
++    state.screenDoorTransparency = state.materialSlot == 0 ? 1.0f / 128.0f : 0;
++  if (!fallback()) return false;
++  ++frame.revision;
++  frame.materials[0].transparency = .5f;
++  frame.materials[0].diffuse[3] = .5f;
++  for (auto & state : frame.renderStates)
++    state.screenDoorTransparency = state.materialSlot == 0 ? .5f : 0;
++  if (!fallback()) return false;
++  ++frame.revision;
++  frame.materials[0].transparency = 0;
++  frame.materials[0].diffuse[3] = 1;
++  for (auto & state : frame.renderStates) state.screenDoorTransparency = 0;
++  if (!check(fast.prepare(frame,64,64,a) && fast.getView().instance_count == 256,
++             "opaque recovery must rebuild valid instances")) return false;
++  ++frame.revision;
++  frame.renderStates.push_back(frame.renderStates.back());
++  frame.lightingStates.resize(2);
++  frame.lightingStates[1].lights.resize(COIN_WGPU_FFI_MAX_LIGHTS + 1);
++  frame.renderStates.back().lightingSlot = 1;
++  instancing.disable(false); const bool okA = fast.prepare(frame,64,64,a);
++  instancing.disable(true); early.disable(true); const bool okB = ordinary.prepare(frame,64,64,b);
++  instancing.disable(false); early.disable(false);
++  if (!check(!okA && !okB && a == b, "late unused invalid state must still fail identically")) return false;
++  frame.renderStates.pop_back();
++  frame.lightingStates.resize(1);
++  return check(fast.prepare(frame,64,64,a) && !fast.reusedLastPrepare() &&
++      fast.getView().instance_count == 256, "same-revision repair must recover without stale proofs");
++}
++
+ int
+ main()
+ {
+@@ -1740,7 +1812,7 @@ main()
+       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
+       !boundedIncrementalBatch()) return 1;
+   instancing.disable(false);
+-  if (!compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
++  if (!zeroScreenDoorOpaqueProfiles() || !compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
+       !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
+       !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata() ||
+       !instanceCommonStateEquivalence() || !instanceMatrixCacheEquivalence()) return 1;

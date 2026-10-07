@@ -1708,7 +1708,7 @@ bool boundedInstancingMetadata()
   std::string diagnostic;
   if (!check(packed.prepare(frame,64,64,diagnostic) && !packed.getView().instance_count &&
       packed.getView().vertex_count == count*3 && packed.getView().draw_count == 1,
-      "source spans beyond the independent 64k/8MiB metadata bound must preserve the full-bake fallback")) return false;
+      "source spans beyond the independent 64k/64MiB metadata bound must preserve the full-bake fallback")) return false;
   return true;
 }
 
@@ -1730,6 +1730,78 @@ bool boundedIncrementalBatch()
 }
 }
 
+// A zero screen-door mask is opaque only if its primary alpha is one.
+// Compare geometry against the independently baked NONE profile, and compare
+// fractional/active masks byte-for-byte with the ordinary SCREEN_DOOR path.
+bool zeroScreenDoorOpaqueProfiles()
+{
+  InstancingSwitch instancing;
+  EarlyBatchSwitch early;
+  auto frame = diagonalBoxFrame();
+  for (auto & state : frame.renderStates) {
+    state.transparencyType = SoGLRenderAction::SCREEN_DOOR;
+    state.screenDoorTransparency = 0;
+  }
+  CoinWgpuFfiFrame fast, ordinary;
+  std::string a, b;
+  instancing.disable(false); early.disable(false);
+  if (!check(fast.prepare(frame,64,64,a) && fast.getView().instance_count == 256,
+             "fully opaque SCREEN_DOOR must license bounded instancing")) return false;
+  auto none = frame;
+  for (auto & state : none.renderStates) state.transparencyType = SoGLRenderAction::NONE;
+  instancing.disable(true);
+  if (!check(ordinary.prepare(none,64,64,b), "independent opaque NONE bake") ||
+      !instancedMatchesBake(fast.getView(),ordinary.getView())) return false;
+  CoinWgpuFfiFrame screenBake, noneBake;
+  if (!check(screenBake.prepare(frame,64,64,a) && noneBake.prepare(none,64,64,b) &&
+             screenBake.getView().draw_count == 1 && samePacked(screenBake.getView(),noneBake.getView()),
+             "zero-mask early batch must match opaque NONE bytes")) return false;
+
+  const auto fallback = [&]() {
+    instancing.disable(false); early.disable(false);
+    const bool okA = fast.prepare(frame,64,64,a);
+    instancing.disable(true); early.disable(true);
+    const bool okB = ordinary.prepare(frame,64,64,b);
+    instancing.disable(false); early.disable(false);
+    return check(okA && okB && !fast.getView().instance_count &&
+        fast.getView().draw_count == 256 && samePacked(fast.getView(),ordinary.getView()),
+        "fractional SCREEN_DOOR must retain original alpha, masks and draws");
+  };
+  // Small transparency quantizes to a zero mask but still forces alpha one;
+  // accepting it as an opaque batch would silently publish fractional alpha.
+  ++frame.revision;
+  frame.materials[0].transparency = 1.0f / 128.0f;
+  frame.materials[0].diffuse[3] = 1.0f - frame.materials[0].transparency;
+  for (auto & state : frame.renderStates)
+    state.screenDoorTransparency = state.materialSlot == 0 ? 1.0f / 128.0f : 0;
+  if (!fallback()) return false;
+  ++frame.revision;
+  frame.materials[0].transparency = .5f;
+  frame.materials[0].diffuse[3] = .5f;
+  for (auto & state : frame.renderStates)
+    state.screenDoorTransparency = state.materialSlot == 0 ? .5f : 0;
+  if (!fallback()) return false;
+  ++frame.revision;
+  frame.materials[0].transparency = 0;
+  frame.materials[0].diffuse[3] = 1;
+  for (auto & state : frame.renderStates) state.screenDoorTransparency = 0;
+  if (!check(fast.prepare(frame,64,64,a) && fast.getView().instance_count == 256,
+             "opaque recovery must rebuild valid instances")) return false;
+  ++frame.revision;
+  frame.renderStates.push_back(frame.renderStates.back());
+  frame.lightingStates.resize(2);
+  frame.lightingStates[1].lights.resize(COIN_WGPU_FFI_MAX_LIGHTS + 1);
+  frame.renderStates.back().lightingSlot = 1;
+  instancing.disable(false); const bool okA = fast.prepare(frame,64,64,a);
+  instancing.disable(true); early.disable(true); const bool okB = ordinary.prepare(frame,64,64,b);
+  instancing.disable(false); early.disable(false);
+  if (!check(!okA && !okB && a == b, "late unused invalid state must still fail identically")) return false;
+  frame.renderStates.pop_back();
+  frame.lightingStates.resize(1);
+  return check(fast.prepare(frame,64,64,a) && !fast.reusedLastPrepare() &&
+      fast.getView().instance_count == 256, "same-revision repair must recover without stale proofs");
+}
+
 int
 main()
 {
@@ -1740,7 +1812,7 @@ main()
       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
       !boundedIncrementalBatch()) return 1;
   instancing.disable(false);
-  if (!compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
+  if (!zeroScreenDoorOpaqueProfiles() || !compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
       !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
       !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata() ||
       !instanceCommonStateEquivalence() || !instanceMatrixCacheEquivalence()) return 1;

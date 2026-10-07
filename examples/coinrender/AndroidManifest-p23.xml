@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="org.coin3d.coinrender.p23">
     <uses-sdk android:minSdkVersion="26" />
-    <application android:hasCode="false" android:label="CoinRender P23">
+    <application android:hasCode="false" android:debuggable="true" android:label="CoinRender P23">
         <activity android:name="android.app.NativeActivity"
             android:exported="true"
             android:launchMode="singleTask"

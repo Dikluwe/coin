@@ -237,13 +237,23 @@ nem encerra uma campanha completa de desempenho Windows.
   epochs avançam e alvos/recursos externos vivos impedem esse teardown.
 - [ ] Ampliar Android para duas janelas, API automática, tickets/RTT entre threads
   de Activities e demais fixtures/formatos; preservar o zoom entre recriações.
-- [ ] Estudo: perfilar 40.000 prédios em Android/GLES/gfxstream; a amostra
-  funcional observou cerca de 1 FPS, sem qualificar desempenho físico.
+- [x] Perfilar e otimizar os 40.000 no AVD/GLES: duas rodadas A/B sem input,
+  cerca de 1,1 → 60 FPS, cache de viewport/plano e SCREEN_DOOR realmente opaco.
+- [x] Apresentar 1.000.000 prédios reais + chão no AVD com 8 GiB temporários:
+  um draw instanciado, buffer GPU de 96 bytes por ocorrência, contagem real,
+  giro/zoom, seleção persistente e captura com um plano CPU grande por vez;
+  HOME com TERM_WINDOW real e retorno no mesmo PID, geração 1 → 2.
+- [ ] Estudo: reduzir estados CPU, abertura e custo durante arrastes do milhão;
+  ampliar memória/caudas de latência e retomada. A cena parada chegou perto de
+  30 FPS; interação varia e o AVD de 2 GiB não está qualificado.
+- [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
+  a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 
 [Primeiro APK e validação emulada](coin-render-p23-apk-validation-20261007.md).
 [Cidade interativa e continuação Android](coin-render-p23-android-city-20261007.md).
+[FPS e milhão: evidência, exclusões e estudos](coin-render-p23-fps-million-20261007.md).
 
 [Evidência e limites desta rodada](coin-render-hardware-surfaces-linux.md).
 Fechamento por backend/API/driver/plataforma/alvo; manter skips, diferenças

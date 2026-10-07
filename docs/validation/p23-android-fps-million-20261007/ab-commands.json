@@ -1,0 +1,1614 @@
+[
+  {
+    "name": "ab-clean-0-baseline-install",
+    "args": [
+      "install",
+      "--no-incremental",
+      "-r",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/apk-profile-baseline/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-selection",
+    "args": [
+      "shell",
+      "run-as",
+      "org.coin3d.coinrender.p23",
+      "tee",
+      "files/coinrender-city-selection.txt"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-rotation",
+    "args": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "1"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-clear",
+    "args": [
+      "logcat",
+      "-c"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-start",
+    "args": [
+      "shell",
+      "am force-stop org.coin3d.coinrender.p23; sleep 0.2; am start -W -n org.coin3d.coinrender.p23/android.app.NativeActivity --ez coinrender_million_city false --ez coinrender_trace false"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-baseline-memory",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-install",
+    "args": [
+      "install",
+      "--no-incremental",
+      "-r",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/apk-million-final/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-selection",
+    "args": [
+      "shell",
+      "run-as",
+      "org.coin3d.coinrender.p23",
+      "tee",
+      "files/coinrender-city-selection.txt"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-rotation",
+    "args": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "1"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-clear",
+    "args": [
+      "logcat",
+      "-c"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-start",
+    "args": [
+      "shell",
+      "am force-stop org.coin3d.coinrender.p23; sleep 0.2; am start -W -n org.coin3d.coinrender.p23/android.app.NativeActivity --ez coinrender_million_city false --ez coinrender_trace false"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-0-final-memory",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-install",
+    "args": [
+      "install",
+      "--no-incremental",
+      "-r",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/apk-profile-baseline/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-selection",
+    "args": [
+      "shell",
+      "run-as",
+      "org.coin3d.coinrender.p23",
+      "tee",
+      "files/coinrender-city-selection.txt"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-rotation",
+    "args": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "1"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-clear",
+    "args": [
+      "logcat",
+      "-c"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-start",
+    "args": [
+      "shell",
+      "am force-stop org.coin3d.coinrender.p23; sleep 0.2; am start -W -n org.coin3d.coinrender.p23/android.app.NativeActivity --ez coinrender_million_city false --ez coinrender_trace false"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-baseline-memory",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-install",
+    "args": [
+      "install",
+      "--no-incremental",
+      "-r",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/apk-million-final/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-selection",
+    "args": [
+      "shell",
+      "run-as",
+      "org.coin3d.coinrender.p23",
+      "tee",
+      "files/coinrender-city-selection.txt"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-rotation",
+    "args": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "1"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-clear",
+    "args": [
+      "logcat",
+      "-c"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-start",
+    "args": [
+      "shell",
+      "am force-stop org.coin3d.coinrender.p23; sleep 0.2; am start -W -n org.coin3d.coinrender.p23/android.app.NativeActivity --ez coinrender_million_city false --ez coinrender_trace false"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-log",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:W",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "ab-clean-1-final-memory",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  }
+]

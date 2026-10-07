@@ -11,8 +11,8 @@ def main():
     parser.add_argument("--grid", type=int, default=200)
     parser.add_argument("--seed", type=int, default=136)
     args = parser.parse_args()
-    if not 1 <= args.grid <= 500:
-        parser.error("grid must be between 1 and 500")
+    if not 1 <= args.grid <= 1000:
+        parser.error("grid must be between 1 and 1000")
     rng = random.Random(args.seed)
     palette = [(0.72, 0.78, 0.85), (0.36, 0.52, 0.67), (0.82, 0.65, 0.43),
                (0.53, 0.65, 0.59), (0.70, 0.45, 0.34), (0.53, 0.48, 0.65),

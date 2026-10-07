@@ -2,7 +2,40 @@
 use super::*;
 
 pub(super) const MAX_GEOMETRY_BYTES: u64 = 8 * 1024 * 1024;
-pub(super) const MAX_INSTANCE_BYTES: u64 = 32 * 1024 * 1024;
+pub(super) const MAX_INSTANCE_COUNT: u64 = 1_048_576;
+pub(super) const MAX_INSTANCE_BYTES: u64 = 160 * 1024 * 1024;
+pub(super) const MAX_MATERIAL_BYTES: u64 = 32 * 1024 * 1024;
+
+// The public/private CPU transport remains 144 bytes (ABI 49). Only affine
+// rows needed by the vertex shader are uploaded, without quantizing floats.
+#[repr(C)]
+#[derive(Clone, Copy, bytemuck::Pod, bytemuck::Zeroable)]
+pub(super) struct GpuInstance {
+    model_rows: [[f32; 4]; 3],
+    normal_row0: [f32; 3],
+    material_slot: u32,
+    normal_row1: [f32; 4],
+    normal_row2: [f32; 4],
+}
+const _: () = {
+    assert!(std::mem::size_of::<GpuInstance>() == 96);
+    assert!(std::mem::offset_of!(GpuInstance, material_slot) == 60);
+};
+pub(super) fn gpu_bytes(count: usize) -> u64 {
+    count as u64 * std::mem::size_of::<GpuInstance>() as u64
+}
+pub(super) fn pack_gpu(instances: &[CoinWgpuInstance]) -> Vec<GpuInstance> {
+    instances.iter().map(|instance| {
+        let row = |matrix: &[f32; 16], r: usize| [matrix[r], matrix[4+r], matrix[8+r], matrix[12+r]];
+        GpuInstance {
+            model_rows: std::array::from_fn(|r| row(&instance.model_view, r)),
+            normal_row0: [instance.normal_matrix[0], instance.normal_matrix[4], instance.normal_matrix[8]],
+            material_slot: instance.material_slot,
+            normal_row1: [instance.normal_matrix[1], instance.normal_matrix[5], instance.normal_matrix[9], 0.0],
+            normal_row2: [instance.normal_matrix[2], instance.normal_matrix[6], instance.normal_matrix[10], 0.0],
+        }
+    }).collect()
+}
 
 fn profile_transport_supported(f: &CoinWgpuFrameView) -> bool {
     f.texture_count == 0 && f.sampler_count == 0 && f.transparency_reserved == 0
@@ -39,8 +72,8 @@ pub(super) fn validate_counts(f: &CoinWgpuFrameView) -> Result<(), (CoinWgpuStat
     let material_bytes = f.material_count.checked_mul(std::mem::size_of::<CoinWgpuMaterial>() as u64);
     if !geometry.is_some_and(|bytes| bytes != 0 && bytes <= MAX_GEOMETRY_BYTES)
         || !instance_bytes.is_some_and(|bytes| bytes <= MAX_INSTANCE_BYTES)
-        || !material_bytes.is_some_and(|bytes| bytes <= MAX_INSTANCE_BYTES)
-        || f.instance_count > u64::from(u32::MAX) {
+        || !material_bytes.is_some_and(|bytes| bytes <= MAX_MATERIAL_BYTES)
+        || f.instance_count > MAX_INSTANCE_COUNT {
         return Err((CoinWgpuStatus::Unsupported,
             "Instancing exceeds bounded canonical geometry, instance or material payload limits".into()));
     }
@@ -192,10 +225,10 @@ pub(super) fn owned_payload_matches(previous: &ValidatedGeometry, f: &CoinWgpuFr
 // instance positions when a camera overlay is used.
 pub(super) fn shader_source() -> String {
     let mut source = shader_profile::without_shadows(WGSL_SHADER);
-    source.insert_str(0, "struct CoinInstance {\n    model_view: mat4x4<f32>,\n    normal_matrix: mat4x4<f32>,\n    material_slot: u32,\n    reserved0: u32,\n    reserved1: u32,\n    reserved2: u32,\n};\n@group(0) @binding(24) var<storage, read> instances: array<CoinInstance>;\n");
+    source.insert_str(0, "struct CoinInstance {\n    model_rows: array<vec4<f32>, 3>,\n    normal_row0: vec3<f32>,\n    material_slot: u32,\n    normal_row1: vec4<f32>,\n    normal_row2: vec4<f32>,\n};\n@group(0) @binding(24) var<storage, read> instances: array<CoinInstance>;\n");
     let old = "fn vs_main(input: VertexInput) -> VertexOutput {";
     assert_eq!(source.matches(old).count(), 1);
-    source = source.replace(old, "fn vs_main(input: VertexInput, @builtin(instance_index) instance_index: u32) -> VertexOutput {\n    let instance = instances[instance_index];\n    let instance_position = instance.model_view * vec4<f32>(input.position, 1.0);\n    let instance_normal = instance.normal_matrix * vec4<f32>(input.normal, 0.0);");
+    source = source.replace(old, "fn vs_main(input: VertexInput, @builtin(instance_index) instance_index: u32) -> VertexOutput {\n    let instance = instances[instance_index];\n    let a = instance.model_rows[0]; let b = instance.model_rows[1]; let c = instance.model_rows[2];\n    let model = mat4x4<f32>(vec4<f32>(a.x,b.x,c.x,0.0),vec4<f32>(a.y,b.y,c.y,0.0),vec4<f32>(a.z,b.z,c.z,0.0),vec4<f32>(a.w,b.w,c.w,1.0));\n    let n0 = instance.normal_row0; let n1 = instance.normal_row1.xyz; let n2 = instance.normal_row2.xyz;\n    let normal = mat4x4<f32>(vec4<f32>(n0.x,n1.x,n2.x,0.0),vec4<f32>(n0.y,n1.y,n2.y,0.0),vec4<f32>(n0.z,n1.z,n2.z,0.0),vec4<f32>(0.0,0.0,0.0,1.0));\n    let instance_position = model * vec4<f32>(input.position, 1.0);\n    let instance_normal = normal * vec4<f32>(input.normal, 0.0);");
     let start = source.find("fn vs_main(").unwrap();
     let end = start + source[start..].find("\n}").unwrap() + 2;
     let vertex = source[start..end].replace("u.model_view * vec4<f32>(input.position, 1.0)", "u.model_view * instance_position")
@@ -232,6 +265,28 @@ mod tests {
         }
         (frame, vertices, [draw], [material], [state], [instance; 2],
             [CoinWgpuInstanceRange { draw_index: 0, first_instance: 0, instance_count: 2, reserved: 0 }])
+    }
+
+    #[test]
+    fn gpu_rows_preserve_affine_transforms_normal_and_integer_material() {
+        let mut source = CoinWgpuInstance::zeroed();
+        source.model_view = [2.0,3.0,4.0,0.0, 5.0,6.0,7.0,0.0, 8.0,9.0,10.0,0.0, 11.0,12.0,13.0,1.0];
+        source.normal_matrix = [0.25,0.5,0.75,0.0, 1.0,1.25,1.5,0.0, 1.75,2.0,2.25,0.0, 0.0,0.0,0.0,1.0];
+        source.material_slot = 0xff00_1234;
+        let gpu = pack_gpu(&[source]);
+        assert_eq!(gpu[0].model_rows[0], [2.0,5.0,8.0,11.0]);
+        assert_eq!(gpu[0].model_rows[1], [3.0,6.0,9.0,12.0]);
+        assert_eq!(gpu[0].model_rows[2], [4.0,7.0,10.0,13.0]);
+        assert_eq!(gpu[0].normal_row0, [0.25,1.0,1.75]);
+        assert_eq!(gpu[0].normal_row1, [0.5,1.25,2.0,0.0]);
+        assert_eq!(gpu[0].normal_row2, [0.75,1.5,2.25,0.0]);
+        assert_eq!(gpu[0].material_slot, source.material_slot);
+        assert_eq!(gpu_bytes(1_000_001), 96_000_096);
+        let (mut frame, ..) = fixture();
+        frame.instance_count = MAX_INSTANCE_COUNT;
+        assert!(validate_counts(&frame).is_ok());
+        frame.instance_count += 1;
+        assert!(validate_counts(&frame).is_err());
     }
 
     #[test]
@@ -387,9 +442,9 @@ mod tests {
             let instance = module.types.iter().find(|(_, t)| t.name.as_deref() == Some("CoinInstance")).unwrap().1;
             match &instance.inner {
                 naga::TypeInner::Struct { members, span } => {
-                    assert_eq!(*span, 144);
-                    assert_eq!(members[2].offset, 128);
-                    assert_eq!(members[5].offset, 140);
+                    assert_eq!(*span, 96);
+                    assert_eq!(members[2].offset, 60);
+                    assert_eq!(members[4].offset, 80);
                 }
                 _ => panic!("instance must be a WGSL struct"),
             }

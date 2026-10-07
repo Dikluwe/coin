@@ -1,0 +1,475 @@
+[
+  {
+    "name": "clear",
+    "args": [
+      "logcat",
+      "-c"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "trace-remove",
+    "args": [
+      "shell",
+      "run-as",
+      "org.coin3d.coinrender.p23",
+      "rm",
+      "-f",
+      "files/coinrender-phases.log"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "start",
+    "args": [
+      "shell",
+      "am start -S -W -n org.coin3d.coinrender.p23/android.app.NativeActivity --ez coinrender_million_city true --ez coinrender_trace false --ez coinrender_continuous true"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "native",
+    "args": [
+      "logcat",
+      "-d",
+      "--pid=9462",
+      "-v",
+      "threadtime"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "memory",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  }
+]

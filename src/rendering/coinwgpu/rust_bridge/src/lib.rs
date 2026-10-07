@@ -3181,7 +3181,7 @@ fn encode_frame(
     }
     let instanced = !instances_slice.is_empty();
     if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
-        || std::mem::size_of_val(instances_slice) as u64
+        || instancing::gpu_bytes(instances_slice.len())
             > u64::from(ctx.device.limits().max_storage_buffer_binding_size)) {
         return Err((CoinWgpuStatus::Unsupported,
             "Instancing exceeds enabled vertex storage buffer limits".into()));
@@ -3664,8 +3664,9 @@ fn encode_frame(
     let instances_buffer = if !instanced { None } else if instance_hit {
         Some(previous_instances.as_ref().unwrap().instances_buffer.clone())
     } else {
+        let gpu_instances = instancing::pack_gpu(instances_slice);
         Some(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
-            label: Some("Coin opaque instance storage"), contents: bytemuck::cast_slice(instances_slice),
+            label: Some("Coin compact affine instance storage"), contents: bytemuck::cast_slice(&gpu_instances),
             usage: wgpu::BufferUsages::STORAGE,
         }))
     };
@@ -3699,7 +3700,7 @@ fn encode_frame(
             payload_compare_ms.unwrap(), material_pack_ms.unwrap(), start.elapsed().as_secs_f64() * 1000.0,
             instance_hit as u32, material_hit as u32, material_buffer_hit as u32,
             (instanced && !instance_hit) as u32, (!material_buffer_hit) as u32,
-            if instanced && !instance_hit { std::mem::size_of_val(instances_slice) } else { 0 },
+            if instanced && !instance_hit { instancing::gpu_bytes(instances_slice.len()) } else { 0 },
             if material_buffer_hit { 0 } else { material_byte_len }, reuse_materials as u32);
     }
 
@@ -3768,7 +3769,7 @@ fn encode_frame(
     let pending_instances = if instanced {
         let geometry = camera_geometry.ok_or_else(|| (CoinWgpuStatus::OutOfMemory,
             "Cannot retain bounded validated instance payload".to_string()))?;
-        let instance_bytes = std::mem::size_of_val(instances_slice) as u64;
+        let instance_bytes = instancing::gpu_bytes(instances_slice.len());
         let uploaded_instances = if instance_hit { 0 } else { instance_bytes };
         let uploaded_materials = if material_buffer_hit { 0 } else { material_byte_len as u64 };
         let uploaded = (if geometry_hit { 0 } else { geometry_bytes }) + uploaded_instances + uploaded_materials;

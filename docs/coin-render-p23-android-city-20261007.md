@@ -1,5 +1,7 @@
 # P23 — cidade Android interativa de 40.000 prédios
 
+Continuação em 2026-10-07: [FPS Android e um milhão de prédios](coin-render-p23-fps-million-20261007.md). Os números e limites abaixo descrevem a campanha histórica.
+
 Em 2026-10-07, o APK x86_64 passou no AVD API 37 deste Linux, por
 **wgpu/OpenGL ES**. A janela gráfica do emulador foi aberta e permaneceu na
 cidade ao concluir. O launcher abre a cidade por padrão, sem Intent extra;

@@ -1,0 +1,22 @@
+{
+  "base_commit": "eb902c09ba6e63f46855f269eb21dc75811effdd",
+  "branch": "codex/coin-render",
+  "source_sha256": {
+    ".github/scripts/build-coin-render-android-apk.py": "223aae410f7b0c418854638f0868d7f837e759127bb5a0ec8094ef7394096bd5",
+    "examples/coinrender/AndroidManifest-p23.xml": "42480319450967155d07f64fb9c804c0627c2d717d7c713778e48590c68e7b4f",
+    "examples/coinrender/coin_render_android_smoke.cpp": "9bd62a960d04f3f6f8e26168b372434e5562d721d9319481513de718e2c23c5e",
+    "examples/coinrender/generate_large_scene.py": "11ea976710851914342436ebbc86f2c352fd12abfda469b36cb639bea87a527c",
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": "b44d2631636fa331be7509d5412bdab65d41a44d423862ec142628536267896e",
+    "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp": "cd5dced4b2dc16eb055a0fd6a6728e90fa28a97624432ca4ed447aa1c0a8c9f7",
+    "src/rendering/coinwgpu/rust_bridge/src/instancing.rs": "f5b86e557c042603a1d53ee674a1e88f0ec469427dfdc2753da7a0617bd608ef",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "1d1186af98eab6a007c2df77635ea09cc86a843826933e14ea422bc8fd8c6a5a",
+    "testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp": "559e7a8b5120e1c76819c82e268e51ead580d389cd281a277576c64399e73e8f"
+  },
+  "baseline": "HEAD render core with opt-in host trace/debuggable instrumentation; exact baseline host source snapshot unavailable; APK/native hashes preserved; trace off in A/B.",
+  "comparison": "Two interleaved pairs, 2400x1080, no input/trace; APK hashes in ab-results. Later host changes treat million qualification/memory.",
+  "million": "Input-free pilot uses apk-memory-final; final runs with manual input are functional evidence only.",
+  "home": "Final APK, PID 3208/thread 3226, real TERM_WINDOW, generation 1 to 2, ~5GB PSS including ~1GB swap.",
+  "tests": "Rust 36/36, CPU 5/5, FFI pass, required AMD/OpenGL camera/CoinGL reference pass. AMD/Vulkan MAE gate fails identically with old Rust shader; excluded from passes.",
+  "artifacts_root": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007",
+  "excluded": "See report: warm Intent, stale trace, manual input timing, PID 7313 LMK, short HOME without new surface, AVD exit/ADB interruption, post-launch log clear losing count."
+}

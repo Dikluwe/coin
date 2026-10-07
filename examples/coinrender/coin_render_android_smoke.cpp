@@ -11,7 +11,7 @@
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
-#include <Inventor/actions/SoSearchAction.h>
+#include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -28,6 +28,8 @@
 #include <cmath>
 #include <cstdint>
 #include <cstdlib>
+#include <cstdio>
+#include <string>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/system/gl-headers.h>
@@ -40,7 +42,7 @@ const char * const tag = "CoinRenderP23";
 // Goldfish reports no Vulkan conformance version. This opt-in is exclusively
 // for emulator diagnostics, never enabled for normal APK launches/hardware.
 bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
-                       bool & city, bool & continuous) {
+                       bool & city, bool & continuous, bool & trace, bool & million) {
   char qemu[PROP_VALUE_MAX] = {};
   __system_property_get("ro.kernel.qemu", qemu);
   const bool isEmulator = std::strcmp(qemu, "1") == 0;
@@ -70,6 +72,12 @@ bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
       env->DeleteLocalRef(name);
       name = env->NewStringUTF("coinrender_continuous");
       continuous = env->CallBooleanMethod(intent, getBool, name, continuous ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
+      env->DeleteLocalRef(name);
+      name = env->NewStringUTF("coinrender_trace");
+      trace = env->CallBooleanMethod(intent, getBool, name, JNI_FALSE) == JNI_TRUE;
+      env->DeleteLocalRef(name);
+      name = env->NewStringUTF("coinrender_million_city");
+      million = env->CallBooleanMethod(intent, getBool, name, million ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
       env->DeleteLocalRef(name);
     }
     env->DeleteLocalRef(type);
@@ -102,6 +110,8 @@ struct Host {
   CoinRenderRenderer renderer = COIN_ANDROID_SMOKE_RENDERER;
   SoPerspectiveCamera * cityCamera = nullptr;
   bool city = false;
+  bool million = false;
+  bool selectionSaved = false;
   bool continuous = false;
   float touchX = 0, touchY = 0;
   bool dragging = false;
@@ -114,6 +124,7 @@ struct Host {
   void releaseSurface() {
     if (action) action->setRenderTarget(nullptr);
     target.reset();
+    if (million) action.reset(new CoinRenderAction);
   }
 
   void render(bool qualify = true) {
@@ -129,7 +140,14 @@ struct Host {
       __android_log_print(ANDROID_LOG_ERROR, tag, "resize failed: %s", target->getLastError());
       return;
     }
-    action->setViewportRegion(SbViewportRegion(size[0], size[1]));
+    const SbViewportRegion viewport(size[0], size[1]);
+    if (million && qualify) {
+      // Requalification cannot reuse the old plan. Drop it before recapture
+      // so resize/resume also avoid retaining two multi-GB CPU plans.
+      action->setRenderTarget(nullptr);
+      action.reset(new CoinRenderAction(viewport));
+      action->setRenderTarget(target.get());
+    } else if (!(action->getViewportRegion() == viewport)) action->setViewportRegion(viewport);
     const auto renderStart = std::chrono::steady_clock::now();
     if (!qualify) {
       action->apply(scene);
@@ -177,14 +195,28 @@ struct Host {
       // GLES surfaces may lack COPY_SRC. Qualify presentation separately and
       // capture the same scene offscreen; never call this window equivalence.
       captureSize = SbVec2i32(64, 64);
+      if (million) {
+        // Keep only one large CPU plan alive while qualifying both targets.
+        // The persistent offscreen target still guards the runtime lifetime.
+        action->setRenderTarget(nullptr);
+        action.reset();
+      }
       if (!captureTarget) {
         CoinRenderOptions options;
         options.renderer = renderer;
         captureTarget.reset(CoinRenderTarget::createOffscreen(captureSize, options));
+      }
+      if (!captureAction) {
         captureAction.reset(new CoinRenderAction(SbViewportRegion(64, 64)));
         captureAction->setRenderTarget(captureTarget.get());
       }
       captureAction->apply(scene);
+      if (million) {
+        // Restore a usable window action even if offscreen submission failed.
+        // This empty action holds no captured plan until the normal apply.
+        action.reset(new CoinRenderAction(viewport));
+        action->setRenderTarget(target.get());
+      }
       if (captureAction->getLastStatus() != CoinRenderAction::SUCCESS) {
         failed = true;
         __android_log_print(ANDROID_LOG_ERROR, tag, "offscreen capture failed: %s",
@@ -192,6 +224,10 @@ struct Host {
         return;
       }
       captureTarget->readbackRGBA(rgba);
+      if (million) {
+        captureAction->setRenderTarget(nullptr);
+        captureAction.reset();
+      }
     }
     if (rgba.size() != size_t(captureSize[0]) * size_t(captureSize[1]) * 4u) {
       failed = true;
@@ -256,6 +292,14 @@ struct Host {
     if (cityCamera) cityCamera->viewAll(scene, SbViewportRegion(size[0], size[1]), 1.15f);
     render();
     if (target->getLastSubmissionSerial() != 0) {
+      if (city && !failed && !selectionSaved) {
+        const std::string path = std::string(app->activity->internalDataPath) + "/coinrender-city-selection.txt";
+        if (FILE * file = std::fopen(path.c_str(), "w")) {
+          std::fprintf(file, "%d\n", million ? 1000 : 200);
+          std::fclose(file);
+          selectionSaved = true;
+        }
+      }
       CoinRenderCapabilities caps{};
       if (coin_render_query_capabilities_for_renderer(COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW,
           renderer, &caps, sizeof(caps)) == 0) {
@@ -298,11 +342,11 @@ int32_t onInput(android_app * app, AInputEvent * event) {
     const float step = (y - host.touchY) / height;
     const float scale = std::exp(step < -.2f ? -.4f : step > .2f ? .4f : step * 2.0f);
     const float focal = camera.focalDistance.getValue();
-    const float nextFocal = std::max(5.0f, std::min(5000.0f, focal * scale));
+    const float nextFocal = std::max(5.0f, std::min(host.million ? 50000.0f : 5000.0f, focal * scale));
     camera.position = center + offset * (nextFocal / focal);
     camera.focalDistance = nextFocal;
     camera.nearDistance = .1f;
-    camera.farDistance = std::max(2000.0f, nextFocal * 4.0f);
+    camera.farDistance = std::max(host.million ? 20000.0f : 2000.0f, nextFocal * 4.0f);
     camera.pointAt(center);
     __android_log_print(ANDROID_LOG_INFO, tag, "camera_touch x=%.1f y=%.1f focal=%.3f", x, y,
                         camera.focalDistance.getValue());
@@ -346,7 +390,11 @@ void onCommand(android_app * app, int32_t command) {
         __android_log_print(ANDROID_LOG_ERROR, tag, "native resize geometry failed");
         break;
       }
-      host.render();
+      // A layout can repeat unchanged dimensions. Recapture the million-city
+      // diagnostic once per actual resize, preserving normal cached frames.
+      host.render(!host.million || !host.target || !app->window ||
+        host.target->getSize() != SbVec2i32(ANativeWindow_getWidth(app->window),
+                                           ANativeWindow_getHeight(app->window)));
       break;
     default:
       break;
@@ -357,8 +405,22 @@ void onCommand(android_app * app, int32_t command) {
 extern "C" void android_main(android_app * app) {
   setenv("COIN_WGPU_LOG", "debug", 0);
   CoinRenderRenderer requestedRenderer = COIN_ANDROID_SMOKE_RENDERER;
-  bool city = true, continuous = true;
-  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous);
+  bool city = true, continuous = true, trace = false, million = false;
+  const std::string selectionPath = std::string(app->activity->internalDataPath) + "/coinrender-city-selection.txt";
+  if (FILE * file = std::fopen(selectionPath.c_str(), "r")) {
+    int grid = 0;
+    if (std::fscanf(file, "%d", &grid) == 1) million = grid == 1000;
+    std::fclose(file);
+  }
+  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous, trace, million);
+  if (trace) {
+    const std::string file = std::string(app->activity->internalDataPath) + "/coinrender-phases.log";
+    if (!std::freopen(file.c_str(), "w", stderr)) {
+      ANativeActivity_finish(app->activity);
+      return;
+    }
+    setenv("COIN_RENDER_TRACE_PHASES", "1", 1);
+  } else unsetenv("COIN_RENDER_TRACE_PHASES");
   setenv("WGPU_ALLOW_UNDERLYING_NONCOMPLIANT_ADAPTER", emulatedVulkan ? "1" : "0", 1);
   __android_log_print(ANDROID_LOG_INFO, tag,
                       "emulator_noncompliant_vulkan_opt_in=%d", emulatedVulkan ? 1 : 0);
@@ -369,13 +431,14 @@ extern "C" void android_main(android_app * app) {
   host.app = app;
   host.renderer = requestedRenderer;
   host.city = city;
+  host.million = million;
   host.continuous = continuous;
   __android_log_print(ANDROID_LOG_INFO, tag, "requested_renderer=%u", unsigned(host.renderer));
   host.action.reset(new CoinRenderAction);
   host.scene = new SoSeparator;
   host.scene->ref();
   if (city) {
-    AAsset * asset = AAssetManager_open(app->activity->assetManager, "city-40000.iv", AASSET_MODE_BUFFER);
+    AAsset * asset = AAssetManager_open(app->activity->assetManager, million ? "city-1000000.iv" : "city-40000.iv", AASSET_MODE_BUFFER);
     if (!asset) {
       __android_log_print(ANDROID_LOG_ERROR, tag, "city asset unavailable");
       host.scene->unref();
@@ -396,16 +459,20 @@ extern "C" void android_main(android_app * app) {
     host.cityCamera->orientation.setValue(SbRotation(SbVec3f(0, 0, -1), SbVec3f(-.5f, -.35f, -1)));
     host.scene->addChild(host.cityCamera);
     host.scene->addChild(imported);
-    SoSearchAction count;
-    count.setType(SoCube::getClassTypeId());
-    count.setInterest(SoSearchAction::ALL);
-    count.setSearchingAll(TRUE);
+    // Count occurrences without retaining a million paths to the shared cube.
+    // Detaching those path auditors otherwise makes startup quadratic.
+    int cubes = 0;
+    SoCallbackAction count;
+    count.addPreCallback(SoCube::getClassTypeId(),
+      [](void * data, SoCallbackAction *, const SoNode *) {
+        ++*static_cast<int *>(data);
+        return SoCallbackAction::CONTINUE;
+      }, &cubes);
     count.apply(imported);
-    const int cubes = count.getPaths().getLength();
     __android_log_print(ANDROID_LOG_INFO, tag,
-                        "scene=city-40000 buildings=%d ground=1 triangles=%d continuous=%d",
-                        cubes - 1, cubes * 12, continuous ? 1 : 0);
-    if (cubes != 40001) {
+                        "scene=city-%d buildings=%d ground=1 triangles=%d continuous=%d",
+                        million ? 1000000 : 40000, cubes - 1, cubes * 12, continuous ? 1 : 0);
+    if (cubes != (million ? 1000001 : 40001)) {
       __android_log_print(ANDROID_LOG_ERROR, tag, "unexpected city occurrence count=%d", cubes);
       host.scene->unref();
       ANativeActivity_finish(app->activity);

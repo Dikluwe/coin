@@ -1,0 +1,421 @@
+[
+  {
+    "name": "pid-before",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "before",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "selection",
+    "args": [
+      "shell",
+      "run-as",
+      "org.coin3d.coinrender.p23",
+      "cat",
+      "files/coinrender-city-selection.txt"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "home",
+    "args": [
+      "shell",
+      "input",
+      "keyevent",
+      "KEYCODE_HOME"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "paused",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "paused",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "return",
+    "args": [
+      "shell",
+      "am",
+      "start",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "returned",
+    "args": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "pid-after",
+    "args": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "memory",
+    "args": [
+      "shell",
+      "dumpsys",
+      "meminfo",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "display",
+    "args": [
+      "shell",
+      "dumpsys",
+      "display"
+    ],
+    "exit": 0
+  }
+]

@@ -610,7 +610,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
     const char * value = std::getenv(option);
     if (value && std::strcmp(value, "1") == 0) return false;
   }
-  if (frame.draws.size() < 256 || frame.draws.size() > (32u * 1024u * 1024u) / sizeof(CoinWgpuInstance) ||
+  if (frame.draws.size() < 256 || frame.draws.size() > 1048576u ||
       frame.renderStates.empty() ||
       frame.materials.empty() || frame.materials.size() > (32u * 1024u * 1024u) / sizeof(CoinWgpuMaterial) ||
       !frame.shadowGroups.empty() || !frame.shadowLights.empty() ||
@@ -669,7 +669,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   // budget. Bound their admission separately, including allocator/bucket
   // overhead conservatively. Existing per-state bake storage is unchanged.
   const size_t maxSourceSpans = 65536;
-  const uint64_t maxMetadataBytes = 8u * 1024u * 1024u;
+  const uint64_t maxMetadataBytes = 64u * 1024u * 1024u;
   const auto metadataFits = [&](size_t spans, size_t meshes, size_t groupCount) {
     return uint64_t(order.size()) * sizeof(Occurrence) + uint64_t(spans) * 128u +
       uint64_t(meshes) * (sizeof(CanonicalMesh) + 128u) + uint64_t(groupCount) * sizeof(Group)
@@ -717,13 +717,15 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
           frame.indices[b.source.firstIndex + j] - b.source.firstVertex) return false;
     return true;
   };
+  // A zero screen-door level discards no pixels. Fully opaque materials and
+  // all state checks below still qualify the candidate; positive levels fall back.
   // Each source range is checked/hashed once even when referenced 40,001 times.
   // Different material bindings may canonicalize to the same local geometry.
   for (const auto & item : order) {
     const auto & draw = frame.draws[item.drawIndex];
     const auto & range = draw.geometry;
     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.stableNodeId ||
-        item.blend || item.screenDoor || item.screenDoorLevel || draw.renderLayer || draw.clearDepthBefore ||
+        item.blend || item.screenDoorLevel || draw.renderLayer || draw.clearDepthBefore ||
         !range.vertexCount || !range.indexCount || range.indexCount % 3 ||
         draw.renderStateSlot >= frame.renderStates.size() ||
         item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
@@ -1124,12 +1126,17 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
     const auto & draw = frame.draws[item.drawIndex];
     const auto & range = draw.geometry;
     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
-        draw.stableNodeId || item.blend || item.screenDoor || item.screenDoorLevel ||
+        draw.stableNodeId || item.blend || item.screenDoorLevel ||
         draw.renderLayer || draw.clearDepthBefore || !range.vertexCount ||
         !range.indexCount || range.indexCount % 3 ||
         draw.renderStateSlot >= frame.renderStates.size() ||
         item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
     const auto & state = frame.renderStates[draw.renderStateSlot];
+    // SCREEN_DOOR forces primary alpha to one even when its quantized mask is
+    // zero. Removing that flag is equivalent only for truly opaque materials.
+    if (item.screenDoor && (state.materialSlot >= frame.materials.size() ||
+        frame.materials[state.materialSlot].diffuse[3] != 1.0f ||
+        frame.materials[state.materialSlot].transparency != 0.0f)) return false;
     if (item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
         item.depthFunction != state.depthFunction ||
         item.depthRange[0] != state.depthRange[0] || item.depthRange[1] != state.depthRange[1]) return false;

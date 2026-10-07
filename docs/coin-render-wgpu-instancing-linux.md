@@ -1,5 +1,7 @@
 # Instâncias e translação no wgpu — Linux, 2026-10-04
 
+Continuação em 2026-10-07: [FPS Android e um milhão de prédios](coin-render-p23-fps-million-20261007.md). Os números e limites abaixo descrevem a campanha histórica.
+
 Etapa seguinte: [materiais e geometria no Common, BGFX e wgpu](coin-render-material-geometry-linux.md).
 
 Common: `64b909b00b`. wgpu/ABI e testes: `b02aa54783`.

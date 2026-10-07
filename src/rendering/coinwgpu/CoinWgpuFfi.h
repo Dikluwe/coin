@@ -89,7 +89,7 @@ typedef struct CoinWgpuInstance {
   float model_view[16];
   float normal_matrix[16];
   uint32_t material_slot;
-  uint32_t reserved[3]; /* must be zero; storage stride is 144 bytes */
+  uint32_t reserved[3]; /* must be zero; CPU transport stride is 144 bytes */
 } CoinWgpuInstance;
 
 typedef struct CoinWgpuInstanceRange {

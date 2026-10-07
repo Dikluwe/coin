@@ -23,6 +23,7 @@ def main():
     parser.add_argument('--target-sdk', type=int, default=37)
     parser.add_argument('--java-home', type=Path)
     parser.add_argument('--jobs', type=int, default=4)
+    parser.add_argument('--include-million-city', action='store_true')
     args = parser.parse_args()
     repo = Path(__file__).resolve().parents[2]
     sdk, ndk = args.sdk.resolve(), args.ndk.resolve()
@@ -77,6 +78,11 @@ def main():
     run('generate-city', ['python3', repo / 'examples/coinrender/generate_large_scene.py',
         city, '--grid', '200', '--seed', '136'])
     hashes[str(city)] = hashlib.sha256(city.read_bytes()).hexdigest()
+    million = output / 'city-1000000.iv' if args.include_million_city else None
+    if million:
+        run('generate-million-city', ['python3', repo / 'examples/coinrender/generate_large_scene.py',
+            million, '--grid', '1000', '--seed', '136'])
+        hashes[str(million)] = hashlib.sha256(million.read_bytes()).hexdigest()
     raw, aligned = output / 'unsigned.apk', output / 'aligned.apk'
     apk = output / ('coin-render-p23-' + args.abi + '.apk')
     run('aapt2', [tools / 'aapt2', 'link', '-o', raw, '--manifest',
@@ -86,6 +92,8 @@ def main():
         '--version-code', '1', '--version-name', '0.1-p23'])
     with zipfile.ZipFile(raw, 'a', compression=zipfile.ZIP_STORED) as archive:
         archive.write(city, 'assets/city-40000.iv', compress_type=zipfile.ZIP_DEFLATED)
+        if million:
+            archive.write(million, 'assets/city-1000000.iv', compress_type=zipfile.ZIP_DEFLATED)
         for library in sorted(staging.glob('*.so')):
             archive.write(library, 'lib/' + args.abi + '/' + library.name)
     run('zipalign', [tools / 'zipalign', '-P', '16', '-f', '4', raw, aligned])
