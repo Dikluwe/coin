@@ -225,6 +225,19 @@ os dois monitores físicos disponíveis têm DPI observado 96.
 O [roteiro Windows de 2026-10-07](coin-render-windows-continuation-20261007.md)
 detalha pré-requisitos, APIs, gates e prioridades para a continuação no outro PC.
 
+- [x] Integrar por fast-forward a entrega Windows na branch única
+  `codex/coin-render` e revalidar captura/reúso, RTT FBO/pbuffer/mipmaps,
+  publicação/ownership e MultiDevice nas células Linux selecionadas.
+- [x] Ampliar Linux com SDKs relocados BGFX/wgpu e consumidor público portátil:
+  sete células offscreen com RGB igual ao CoinGL, seleção explícita de API,
+  rejeição sem fallback e sem dependência BGFX no cliente instalado.
+- [ ] Recompilar os SDKs Windows após o ajuste do export compartilhado e
+  executar o novo consumidor portátil; a campanha Windows anterior continua
+  preservada e não qualifica esse ajuste CMake posterior.
+
+[Integração e evidência Linux própria](coin-render-windows-integration-linux-20261007.md).
+Os estudos e limites acima permanecem abertos.
+
 ## 6. Critérios para cada entrega
 
 - [ ] Documentar entrada, semântica esperada, limites e dono da decisão:

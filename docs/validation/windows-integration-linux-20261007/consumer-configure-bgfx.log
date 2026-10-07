@@ -1,0 +1,23 @@
+-- The CXX compiler identification is GNU 13.3.0
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /usr/bin/c++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+CMake Error at /usr/share/cmake-3.28/Modules/CMakeFindDependencyMacro.cmake:76 (find_package):
+  Could not find a package configuration file provided by "bgfx" with any of
+  the following names:
+
+    bgfxConfig.cmake
+    bgfx-config.cmake
+
+  Add the installation prefix of "bgfx" to CMAKE_PREFIX_PATH or set
+  "bgfx_DIR" to a directory containing one of the above files.  If "bgfx"
+  provides a separate development package or SDK, be sure it has been
+  installed.
+Call Stack (most recent call first):
+  /tmp/coin-windows-integration-linux-20261007/sdk-bgfx/lib/cmake/CoinRender/CoinRenderConfig.cmake:28 (find_dependency)
+  CMakeLists.txt:4 (find_package)
+
+
+-- Configuring incomplete, errors occurred!

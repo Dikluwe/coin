@@ -1,0 +1,124 @@
+[
+  {
+    "key": "amd-bgfx-vulkan-rtt",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/tmp/coin-render-first-frame-bgfx",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "-R",
+      "^(CoinRenderRttProfileStaged_vulkan|CoinRenderRttProfileDirect_vulkan|CoinRenderRttProfileMips_vulkan|CoinRenderRttProfileMipsPbuffer_vulkan|CoinRenderSceneTexture_vulkan_staged|CoinRenderSceneTexture_vulkan_direct|CoinRenderSceneTextureBudget_vulkan_staged|CoinRenderSceneTextureBudget_vulkan_direct)$",
+      "--output-junit",
+      "/tmp/coin-windows-integration-linux-20261007/amd-bgfx-vulkan-rtt/tests.xml"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    },
+    "exit": 0
+  },
+  {
+    "key": "amd-bgfx-opengl-rtt",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/tmp/coin-render-first-frame-bgfx",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "-R",
+      "^(CoinRenderRttProfileStaged_opengl|CoinRenderRttProfileDirect_opengl|CoinRenderRttProfileMips_opengl|CoinRenderRttProfileMipsPbuffer_opengl|CoinRenderSceneTexture_opengl_staged|CoinRenderSceneTexture_opengl_direct|CoinRenderSceneTextureBudget_opengl_staged|CoinRenderSceneTextureBudget_opengl_direct)$",
+      "--output-junit",
+      "/tmp/coin-windows-integration-linux-20261007/amd-bgfx-opengl-rtt/tests.xml"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    },
+    "exit": 0
+  },
+  {
+    "key": "nvidia-bgfx-vulkan-rtt",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/tmp/coin-render-first-frame-bgfx",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "-R",
+      "^(CoinRenderRttProfileStaged_vulkan|CoinRenderRttProfileDirect_vulkan|CoinRenderRttProfileMips_vulkan|CoinRenderRttProfileMipsPbuffer_vulkan|CoinRenderSceneTexture_vulkan_staged|CoinRenderSceneTexture_vulkan_direct|CoinRenderSceneTextureBudget_vulkan_staged|CoinRenderSceneTextureBudget_vulkan_direct)$",
+      "--output-junit",
+      "/tmp/coin-windows-integration-linux-20261007/nvidia-bgfx-vulkan-rtt/tests.xml"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    },
+    "exit": 0
+  },
+  {
+    "key": "nvidia-bgfx-opengl-rtt",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/tmp/coin-render-first-frame-bgfx",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "-R",
+      "^(CoinRenderRttProfileStaged_opengl|CoinRenderRttProfileDirect_opengl|CoinRenderRttProfileMips_opengl|CoinRenderRttProfileMipsPbuffer_opengl|CoinRenderSceneTexture_opengl_staged|CoinRenderSceneTexture_opengl_direct|CoinRenderSceneTextureBudget_opengl_staged|CoinRenderSceneTextureBudget_opengl_direct)$",
+      "--output-junit",
+      "/tmp/coin-windows-integration-linux-20261007/nvidia-bgfx-opengl-rtt/tests.xml"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    },
+    "exit": 0
+  }
+]

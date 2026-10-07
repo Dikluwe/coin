@@ -1,0 +1,22 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+    Start 108: CoinRenderRttProfileStaged_vulkan
+1/8 Test #108: CoinRenderRttProfileStaged_vulkan ............   Passed    2.55 sec
+    Start 109: CoinRenderRttProfileDirect_vulkan
+2/8 Test #109: CoinRenderRttProfileDirect_vulkan ............   Passed    1.62 sec
+    Start 110: CoinRenderRttProfileMips_vulkan
+3/8 Test #110: CoinRenderRttProfileMips_vulkan ..............   Passed    0.45 sec
+    Start 111: CoinRenderRttProfileMipsPbuffer_vulkan
+4/8 Test #111: CoinRenderRttProfileMipsPbuffer_vulkan .......   Passed    0.47 sec
+    Start 237: CoinRenderSceneTexture_vulkan_staged
+5/8 Test #237: CoinRenderSceneTexture_vulkan_staged .........   Passed    1.22 sec
+    Start 238: CoinRenderSceneTextureBudget_vulkan_staged
+6/8 Test #238: CoinRenderSceneTextureBudget_vulkan_staged ...   Passed    0.81 sec
+    Start 239: CoinRenderSceneTexture_vulkan_direct
+7/8 Test #239: CoinRenderSceneTexture_vulkan_direct .........   Passed    1.30 sec
+    Start 240: CoinRenderSceneTextureBudget_vulkan_direct
+8/8 Test #240: CoinRenderSceneTextureBudget_vulkan_direct ...   Passed    0.35 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) =   8.79 sec

@@ -1,0 +1,38 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+      Start  43: CoinRenderActionTest
+ 1/16 Test  #43: CoinRenderActionTest ...............   Passed    1.08 sec
+      Start  56: CoinRenderFrameCoreTest
+ 2/16 Test  #56: CoinRenderFrameCoreTest ............   Passed    0.04 sec
+      Start  57: CoinBgfxReadbackModes_vulkan
+ 3/16 Test  #57: CoinBgfxReadbackModes_vulkan .......   Passed    1.32 sec
+      Start  94: CoinRenderFrameReuseCoreTest
+ 4/16 Test  #94: CoinRenderFrameReuseCoreTest .......   Passed    0.48 sec
+      Start 124: CoinRenderRttMatrixFboTest
+ 5/16 Test #124: CoinRenderRttMatrixFboTest .........   Passed    0.22 sec
+      Start 125: CoinRenderRttMatrixPbufferTest
+ 6/16 Test #125: CoinRenderRttMatrixPbufferTest .....   Passed    0.32 sec
+      Start 166: CoinRenderNodeInventoryTest
+ 7/16 Test #166: CoinRenderNodeInventoryTest ........   Passed    0.06 sec
+      Start 185: CoinRenderShadowEightMapTest
+ 8/16 Test #185: CoinRenderShadowEightMapTest .......   Passed    0.31 sec
+      Start 186: CoinRenderShadowReferenceTest
+ 9/16 Test #186: CoinRenderShadowReferenceTest ......   Passed   16.87 sec
+      Start 222: CoinRenderShadowQuality8Test
+10/16 Test #222: CoinRenderShadowQuality8Test .......   Passed    1.42 sec
+      Start 227: CoinRenderMultiTargetTest
+11/16 Test #227: CoinRenderMultiTargetTest ..........   Passed    0.74 sec
+      Start 228: CoinRenderMultiTargetDirectTest
+12/16 Test #228: CoinRenderMultiTargetDirectTest ....   Passed    0.61 sec
+      Start 231: CoinRenderPublicationTest
+13/16 Test #231: CoinRenderPublicationTest ..........   Passed    0.10 sec
+      Start 232: CoinRenderRttOwnershipTest
+14/16 Test #232: CoinRenderRttOwnershipTest .........   Passed    0.36 sec
+      Start 235: CoinRenderSceneTextureTest
+15/16 Test #235: CoinRenderSceneTextureTest .........   Passed    1.02 sec
+      Start 236: CoinRenderSceneTextureBudgetTest
+16/16 Test #236: CoinRenderSceneTextureBudgetTest ...   Passed    0.80 sec
+
+100% tests passed, 0 tests failed out of 16
+
+Total Test time (real) =  25.77 sec

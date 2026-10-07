@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="8"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="7"
+	timestamp="2026-10-07T12:09:24"
+	>
+	<testcase name="CoinRenderRttProfileStaged_vulkan" classname="CoinRenderRttProfileStaged_vulkan" time="2.487" status="run">
+		<properties/>
+		<system-out>RTT extended staged: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileDirect_vulkan" classname="CoinRenderRttProfileDirect_vulkan" time="1.75433" status="run">
+		<properties/>
+		<system-out>RTT extended direct: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMips_vulkan" classname="CoinRenderRttProfileMips_vulkan" time="0.345029" status="run">
+		<properties/>
+		<system-out>RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsPbuffer_vulkan" classname="CoinRenderRttProfileMipsPbuffer_vulkan" time="0.339877" status="run">
+		<properties/>
+		<system-out>RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_vulkan_staged" classname="CoinRenderSceneTexture_vulkan_staged" time="0.729628" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_vulkan_staged" classname="CoinRenderSceneTextureBudget_vulkan_staged" time="0.749605" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_vulkan_direct" classname="CoinRenderSceneTexture_vulkan_direct" time="0.474441" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_vulkan_direct" classname="CoinRenderSceneTextureBudget_vulkan_direct" time="0.20167" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+</testsuite>

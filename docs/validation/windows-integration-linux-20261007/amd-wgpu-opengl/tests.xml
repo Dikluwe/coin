@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="11"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="12"
+	timestamp="2026-10-07T12:11:38"
+	>
+	<testcase name="CoinRenderRttProfileStagedTest" classname="CoinRenderRttProfileStagedTest" time="3.68067" status="run">
+		<properties/>
+		<system-out>RTT extended staged: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileDirectTest" classname="CoinRenderRttProfileDirectTest" time="1.85153" status="run">
+		<properties/>
+		<system-out>RTT extended direct: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfilePbufferTest" classname="CoinRenderRttProfilePbufferTest" time="2.74174" status="run">
+		<properties/>
+		<system-out>RTT extended staged: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsTest" classname="CoinRenderRttProfileMipsTest" time="0.195365" status="run">
+		<properties/>
+		<system-out>RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsPbufferTest" classname="CoinRenderRttProfileMipsPbufferTest" time="0.205556" status="run">
+		<properties/>
+		<system-out>RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPublicationTest" classname="CoinRenderPublicationTest" time="0.0361446" status="run">
+		<properties/>
+		<system-out>CoinRenderPublicationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnershipTest" classname="CoinRenderRttOwnershipTest" time="0.0957332" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuFfiFrameTest" classname="CoinWgpuFfiFrameTest" time="0.599679" status="run">
+		<properties/>
+		<system-out>CoinWgpuFfiFrameTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAsyncReadbackTest" classname="CoinRenderAsyncReadbackTest" time="0.134925" status="run">
+		<properties/>
+		<system-out>CoinRenderAsyncReadbackTest passed; adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl); two 64x64 RGBA8+Depth32 staging requests=65536 bytes; test roundtrip=34164 us (not an SLA)
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuMultiDeviceTest" classname="CoinWgpuMultiDeviceTest" time="1.30721" status="run">
+		<properties/>
+		<system-out>CoinWgpuMultiDeviceTest passed
+</system-out>
+	</testcase>
+	<testcase name="WgpuMultiDeviceStressTest" classname="WgpuMultiDeviceStressTest" time="1.23604" status="run">
+		<properties/>
+		<system-out>CoinWgpuMultiDeviceTest passed (stress)
+</system-out>
+	</testcase>
+</testsuite>

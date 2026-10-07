@@ -1,0 +1,42 @@
+diff --git a/examples/coinrender/CMakeLists.txt b/examples/coinrender/CMakeLists.txt
+index 826ce4e979..5c6ef950ef 100644
+--- a/examples/coinrender/CMakeLists.txt
++++ b/examples/coinrender/CMakeLists.txt
+@@ -143,6 +143,9 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
+ endif()
+ 
+ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
++    install(DIRECTORY sdk-consumer
++        DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender
++        COMPONENT development)
+     if(TARGET coin_render_android_smoke)
+         install(TARGETS coin_render_android_smoke
+             LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT runtime)
+diff --git a/src/rendering/coinrender/CMakeLists.txt b/src/rendering/coinrender/CMakeLists.txt
+index cc8a3e68f4..012c0a463b 100644
+--- a/src/rendering/coinrender/CMakeLists.txt
++++ b/src/rendering/coinrender/CMakeLists.txt
+@@ -173,8 +173,10 @@ target_include_directories(CoinRender PRIVATE
+ 
+ target_link_libraries(CoinRender PRIVATE Coin)
+ if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+-	target_link_libraries(CoinRender PUBLIC ${COIN_RENDER_LINK_LIBRARIES})
+-	target_link_libraries(CoinRender PRIVATE ${CMAKE_DL_LIBS})
++	# BGFX is an implementation dependency of the shared module. In-tree
++	# backend tests use its headers/symbols, but installed public consumers do not.
++	target_link_libraries(CoinRender PRIVATE ${COIN_RENDER_LINK_LIBRARIES} ${CMAKE_DL_LIBS})
++	target_link_libraries(CoinRender INTERFACE "$<BUILD_INTERFACE:${COIN_RENDER_LINK_LIBRARIES}>")
+ else()
+ 	target_link_libraries(CoinRender PRIVATE ${COIN_RENDER_LINK_LIBRARIES})
+ endif()
+@@ -182,10 +184,6 @@ endif()
+ 
+ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
+ 	set(COIN_RENDER_CONFIG_FIND_DEPENDENCIES "")
+-	if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+-		set(COIN_RENDER_CONFIG_FIND_DEPENDENCIES
+-			"find_dependency(bgfx CONFIG)")
+-	endif()
+ 	include(CMakePackageConfigHelpers)
+ 	set(_coin_render_package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/CoinRender")
+ 	configure_package_config_file(

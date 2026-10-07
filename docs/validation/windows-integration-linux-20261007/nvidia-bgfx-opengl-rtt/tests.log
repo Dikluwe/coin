@@ -1,0 +1,22 @@
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+    Start 112: CoinRenderRttProfileStaged_opengl
+1/8 Test #112: CoinRenderRttProfileStaged_opengl ............   Passed    2.40 sec
+    Start 113: CoinRenderRttProfileDirect_opengl
+2/8 Test #113: CoinRenderRttProfileDirect_opengl ............   Passed    1.71 sec
+    Start 114: CoinRenderRttProfileMips_opengl
+3/8 Test #114: CoinRenderRttProfileMips_opengl ..............   Passed    0.36 sec
+    Start 115: CoinRenderRttProfileMipsPbuffer_opengl
+4/8 Test #115: CoinRenderRttProfileMipsPbuffer_opengl .......   Passed    0.38 sec
+    Start 241: CoinRenderSceneTexture_opengl_staged
+5/8 Test #241: CoinRenderSceneTexture_opengl_staged .........   Passed    0.70 sec
+    Start 242: CoinRenderSceneTextureBudget_opengl_staged
+6/8 Test #242: CoinRenderSceneTextureBudget_opengl_staged ...   Passed    0.74 sec
+    Start 243: CoinRenderSceneTexture_opengl_direct
+7/8 Test #243: CoinRenderSceneTexture_opengl_direct .........   Passed    0.67 sec
+    Start 244: CoinRenderSceneTextureBudget_opengl_direct
+8/8 Test #244: CoinRenderSceneTextureBudget_opengl_direct ...   Passed    0.20 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) =   7.16 sec

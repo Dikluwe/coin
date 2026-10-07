@@ -1,0 +1,24 @@
+CoinGL renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) texture_coords=8 fragment_samplers=32
+sdk_CoinGL_rgb_max=0 reference_ready=1
+installed_sdk renderer=2 vendor_id=0x1002 device_id=0x0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) pixels_ok=1
+COIN_RENDER_PHASE combine_validation_memo enabled=1 programs_checked=8 cache_hits=0 validated=8
+COIN_RENDER_PHASE validation_detail materials_ms=0.001032 vertices_ms=0.000410 indices_ms=0.000080 scene_state_ms=0.000331 render_states_ms=0.001433 draws_ms=0.000110 finish_ms=0.007384
+COIN_RENDER_PHASE composition_range_memo enabled=1 entries=0 admissions=0 hits=0 depth_skipped=0 bound_fallbacks=0
+COIN_RENDER_PHASE composition_identity consumer=common copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=1 qualify_ms=0.004688 copy_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.004949 sort_ms=0.000030 finish_ms=0.004308
+COIN_RENDER_PHASE plan_storage vertices=24 indices=36 render_states=1 draws=1 vertex_stride=164 vertex_bytes=3936 vertex_capacity_bytes=5248 index_bytes=144 index_capacity_bytes=256 render_state_bytes=1648 render_state_capacity_bytes=1648 draw_capacity_bytes=96 capture_reserve_estimate=5 transfer_ownership=1 cube_replay_hits=0 cube_template_entries=1 cube_range_entries=1 cube_template_evictions=0 cube_range_evictions=0 cube_range_reuse_hits=0
+COIN_RENDER_PHASE builder_detail expand_styles_ms=0.005330 validation_ms=0.024876 composition_ms=0.014016 storage_report_ms=0.004538 publish_plan_ms=0.000862 finish_ms=0.000040
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=72 material_copied_bytes=72 instance_copied_bytes=0 geometry_reused=0 snapshot_ms=0.002244 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=1 source_bytes=72 gpu_bytes=80 packed_count=1 packed_bytes=80 payload_compare_ms=0.00008999999999999999 pack_ms=0.00008999999999999999 resource_ms=0.027691999999999998 instance_hit=0 material_hit=0 material_buffer_hit=0 instance_allocations=0 material_allocations=1 instance_uploaded_bytes=0 material_uploaded_bytes=80 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE wgpu_offscreen renderer=opengl vendor_id=0x1002 device_id=0x0 device_type=Other serial=1 size=32x32
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=8192 staging_frame_color_bytes=8192 staging_frame_depth_bytes=8192 staging_pool_free_bytes=16384 staging_pool_free_buffers=2 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=4080 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.005801 prepare_encode_ms=5.571063 submit_ms=4.673499 gpu_wait_ms=0.258499 readback_publish_ms=0.024526 staging_color_reused=0 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=11.297435 validation_ms=0.005801 gpu_probe_setup_ms=0.000451 attachments_ms=0.152232 draw_encode_ms=5.418350 scene_snapshot_ms=0.000030 staging_prepare_ms=0.759779 submit_ms=4.673499 map_request_ms=0.003917 gpu_wait_ms=0.258499 post_wait_checks_ms=0.000291 gpu_probe_read_ms=0.000060 map_receive_ms=0.001333 color_copy_ms=0.008265 depth_copy_ms=0.000912 output_commit_ms=0.000641 recycle_ms=0.013375
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=0.014707 pack_cache_hit=0 ffi_ms=11.422 pack_mode=full_rebuild
+COIN_RENDER_PHASE target validation_ms=0.002014 prepare_ms=0.005540 submit_ms=11.507004
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=1 copied_bytes=56 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000401 copy_ms=0.000140
+COIN_RENDER_PHASE action traversal_ms=0.466245 frame_plan_ms=0.058388 backend_ms=11.5302 vertices=24 indices=36 draws=1 plan_cache_hit=0 plan_reuse=full_rebuild
+COIN_RENDER_PHASE object_qualification finish_ms=0.000110
+COIN_RENDER_PHASE capture_camera_basis calls=1 prepares=0 reuse=0 prepare_ms=0.000000

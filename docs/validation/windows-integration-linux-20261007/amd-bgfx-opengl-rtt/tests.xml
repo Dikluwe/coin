@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="8"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="7"
+	timestamp="2026-10-07T12:09:32"
+	>
+	<testcase name="CoinRenderRttProfileStaged_opengl" classname="CoinRenderRttProfileStaged_opengl" time="2.30342" status="run">
+		<properties/>
+		<system-out>RTT extended staged: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileDirect_opengl" classname="CoinRenderRttProfileDirect_opengl" time="1.72372" status="run">
+		<properties/>
+		<system-out>RTT extended direct: 288 controls (288 native CoinGL, 0 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMips_opengl" classname="CoinRenderRttProfileMips_opengl" time="0.360334" status="run">
+		<properties/>
+		<system-out>RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsPbuffer_opengl" classname="CoinRenderRttProfileMipsPbuffer_opengl" time="0.367728" status="run">
+		<properties/>
+		<system-out>RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_staged" classname="CoinRenderSceneTexture_opengl_staged" time="0.925816" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_staged" classname="CoinRenderSceneTextureBudget_opengl_staged" time="0.908521" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_direct" classname="CoinRenderSceneTexture_opengl_direct" time="0.951165" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_direct" classname="CoinRenderSceneTextureBudget_opengl_direct" time="0.297856" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+</testsuite>

@@ -2,7 +2,7 @@
 
 A base publicada `0d7ba61b7cc78318cb3ec7fdaa1efabe01cdeb23` foi baixada e
 compilada em um checkout isolado. Esta campanha testa as correções Windows da
-branch `codex/coin-render-windows-20261007`; não reutiliza resultados de builds
+branch comum `codex/coin-render`; não reutiliza resultados de builds
 anteriores. O checkout principal e suas alterações locais foram preservados.
 
 ## Ambiente e revisão

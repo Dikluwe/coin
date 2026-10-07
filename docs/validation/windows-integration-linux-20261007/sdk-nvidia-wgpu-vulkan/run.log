@@ -1,0 +1,24 @@
+CoinGL renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 texture_coords=8 fragment_samplers=32
+sdk_CoinGL_rgb_max=0 reference_ready=1
+installed_sdk renderer=1 vendor_id=0x10de device_id=0x2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) pixels_ok=1
+COIN_RENDER_PHASE combine_validation_memo enabled=1 programs_checked=8 cache_hits=0 validated=8
+COIN_RENDER_PHASE validation_detail materials_ms=0.001132 vertices_ms=0.000340 indices_ms=0.000060 scene_state_ms=0.000371 render_states_ms=0.001132 draws_ms=0.000531 finish_ms=0.008486
+COIN_RENDER_PHASE composition_range_memo enabled=1 entries=0 admissions=0 hits=0 depth_skipped=0 bound_fallbacks=0
+COIN_RENDER_PHASE composition_identity consumer=common copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=1 qualify_ms=0.008586 copy_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.008896 sort_ms=0.000030 finish_ms=0.004839
+COIN_RENDER_PHASE plan_storage vertices=24 indices=36 render_states=1 draws=1 vertex_stride=164 vertex_bytes=3936 vertex_capacity_bytes=5248 index_bytes=144 index_capacity_bytes=256 render_state_bytes=1648 render_state_capacity_bytes=1648 draw_capacity_bytes=96 capture_reserve_estimate=5 transfer_ownership=1 cube_replay_hits=0 cube_template_entries=1 cube_range_entries=1 cube_template_evictions=0 cube_range_evictions=0 cube_range_reuse_hits=0
+COIN_RENDER_PHASE builder_detail expand_styles_ms=0.005841 validation_ms=0.026068 composition_ms=0.018865 storage_report_ms=0.005761 publish_plan_ms=0.000851 finish_ms=0.000040
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=72 material_copied_bytes=72 instance_copied_bytes=0 geometry_reused=0 snapshot_ms=0.003046 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=1 source_bytes=72 gpu_bytes=80 packed_count=1 packed_bytes=80 payload_compare_ms=0.000029999999999999997 pack_ms=0.000281 resource_ms=0.025075999999999998 instance_hit=0 material_hit=0 material_buffer_hit=0 instance_allocations=0 material_allocations=1 instance_uploaded_bytes=0 material_uploaded_bytes=80 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=1 size=32x32
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=8192 staging_frame_color_bytes=8192 staging_frame_depth_bytes=8192 staging_pool_free_bytes=16384 staging_pool_free_buffers=2 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=4080 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.004979 prepare_encode_ms=57.175279 submit_ms=0.070531 gpu_wait_ms=0.134089 readback_publish_ms=0.008706 staging_color_reused=0 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=59.460497 validation_ms=0.004979 gpu_probe_setup_ms=0.000421 attachments_ms=0.093974 draw_encode_ms=57.080864 scene_snapshot_ms=0.000020 staging_prepare_ms=2.062645 submit_ms=0.070531 map_request_ms=0.003847 gpu_wait_ms=0.134089 post_wait_checks_ms=0.000321 gpu_probe_read_ms=0.000100 map_receive_ms=0.001513 color_copy_ms=0.002915 depth_copy_ms=0.000952 output_commit_ms=0.001442 recycle_ms=0.001884
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=0.015389 pack_cache_hit=0 ffi_ms=59.6563 pack_mode=full_rebuild
+COIN_RENDER_PHASE target validation_ms=0.002214 prepare_ms=0.007514 submit_ms=59.751277
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=1 copied_bytes=56 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000301 copy_ms=0.000220
+COIN_RENDER_PHASE action traversal_ms=0.482405 frame_plan_ms=0.065141 backend_ms=59.7767 vertices=24 indices=36 draws=1 plan_cache_hit=0 plan_reuse=full_rebuild
+COIN_RENDER_PHASE object_qualification finish_ms=0.000551
+COIN_RENDER_PHASE capture_camera_basis calls=1 prepares=0 reuse=0 prepare_ms=0.000000
