@@ -1,0 +1,3998 @@
+[
+  {
+    "scope": "offscreen",
+    "case": "static",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-static-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002455,
+        "vertices_ms": 0.002925,
+        "indices_ms": 0.000281,
+        "scene_state_ms": 0.000541,
+        "render_states_ms": 6.56803,
+        "draws_ms": 4.457871,
+        "finish_ms": 0.008596
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.109336,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.908814,
+        "sort_ms": 0.19958,
+        "finish_ms": 0.009248
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.388903,
+        "validation_ms": 11.344333,
+        "composition_ms": 7.132178,
+        "storage_report_ms": 0.008676,
+        "publish_plan_ms": 1.469329,
+        "finish_ms": 0.000121
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000501,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 0.003346,
+        "upload_ms": 0.0001305,
+        "encode_ms": 0.0033115,
+        "draw_encode_ms": 0.0028205,
+        "blit_encode_ms": 0.000496,
+        "submit_frame_ms": 0.0038025,
+        "read_request_ms": 0.0001155,
+        "read_wait_ms": 0.9303275,
+        "frame_wait_ms": 0.9303025,
+        "row_flip_ms": 6.5e-05,
+        "gpu_query_drain_ms": 4e-05
+      },
+      "target": {
+        "validation_ms": 0.000511,
+        "prepare_ms": 0.00012,
+        "submit_ms": 0.9631635000000001
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0002655,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.0007515,
+        "frame_plan_ms": 5.5e-05,
+        "backend_ms": 0.9682189999999999
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.056173,
+        "frame_profile_ms": 2.22362,
+        "ownership_ms": 11.036992,
+        "payload_ms": 3.883865,
+        "finish_ms": 0.001633
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.876844
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "static",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-static-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002484,
+        "vertices_ms": 0.003266,
+        "indices_ms": 0.000411,
+        "scene_state_ms": 0.000541,
+        "render_states_ms": 6.72914,
+        "draws_ms": 4.363195,
+        "finish_ms": 0.008275
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.035559,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.813366,
+        "sort_ms": 0.222023,
+        "finish_ms": 0.012152
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.388812,
+        "validation_ms": 11.340746,
+        "composition_ms": 7.066146,
+        "storage_report_ms": 0.007524,
+        "publish_plan_ms": 0.78626,
+        "finish_ms": 0.00013
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000501,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 0.0033715,
+        "upload_ms": 0.0001505,
+        "encode_ms": 0.0042325,
+        "draw_encode_ms": 0.003712,
+        "blit_encode_ms": 0.0005205,
+        "submit_frame_ms": 0.0041425,
+        "read_request_ms": 0.0001305,
+        "read_wait_ms": 0.953271,
+        "frame_wait_ms": 0.953246,
+        "row_flip_ms": 0.068898,
+        "gpu_query_drain_ms": 2.5e-05
+      },
+      "target": {
+        "validation_ms": 0.000526,
+        "prepare_ms": 0.0001105,
+        "submit_ms": 1.0551445
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00029049999999999996,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.000807,
+        "frame_plan_ms": 0.0001655,
+        "backend_ms": 1.059675
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.338497,
+        "frame_profile_ms": 2.073602,
+        "ownership_ms": 11.145524,
+        "payload_ms": 3.688982,
+        "finish_ms": 0.001333
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.697631
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "static",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-static-wgpu-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002514,
+        "vertices_ms": 0.002976,
+        "indices_ms": 0.000571,
+        "scene_state_ms": 0.000811,
+        "render_states_ms": 7.764594,
+        "draws_ms": 4.860969,
+        "finish_ms": 0.014567
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.596872,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 7.381702,
+        "sort_ms": 0.214979,
+        "finish_ms": 0.011612
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.460135,
+        "validation_ms": 12.915311,
+        "composition_ms": 7.615175,
+        "storage_report_ms": 0.007605,
+        "publish_plan_ms": 0.932161,
+        "finish_ms": 0.00021
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00015,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.0009865
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 3.5e-05,
+        "pack_ms": 4e-05,
+        "resource_ms": 0.00017499999999999997
+      },
+      "rust_instances": {},
+      "wgpu_offscreen": {},
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "rust": {
+        "validation_ms": 0.4226005,
+        "prepare_encode_ms": 0.287083,
+        "submit_ms": 0.036608,
+        "gpu_wait_ms": 0.5739455,
+        "readback_publish_ms": 0.095998
+      },
+      "rust_cpu_detail": {
+        "total_ms": 1.4296105,
+        "validation_ms": 0.4226005,
+        "gpu_probe_setup_ms": 0.000531,
+        "attachments_ms": 0.12574849999999999,
+        "draw_encode_ms": 0.160478,
+        "scene_snapshot_ms": 2.5e-05,
+        "staging_prepare_ms": 0.010304500000000001,
+        "submit_ms": 0.036608,
+        "map_request_ms": 0.0023395,
+        "gpu_wait_ms": 0.5739455,
+        "post_wait_checks_ms": 0.000211,
+        "gpu_probe_read_ms": 7.55e-05,
+        "map_receive_ms": 0.0007559999999999999,
+        "color_copy_ms": 0.0936035,
+        "depth_copy_ms": 8.549999999999999e-05,
+        "output_commit_ms": 6.55e-05,
+        "recycle_ms": 0.0014225000000000002
+      },
+      "rust_gpu": {},
+      "bridge": {
+        "pack_ms": 0.001658,
+        "ffi_ms": 1.6208200000000001
+      },
+      "target": {
+        "validation_ms": 0.0006765,
+        "prepare_ms": 0.0002155,
+        "submit_ms": 1.643488
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0003905,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.0027255,
+        "frame_plan_ms": 0.00025,
+        "backend_ms": 1.651835
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 15.887613,
+        "frame_profile_ms": 2.291547,
+        "ownership_ms": 11.742522,
+        "payload_ms": 4.30691,
+        "finish_ms": 0.001684
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.814698
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "camera",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-camera-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002886,
+        "vertices_ms": 0.003486,
+        "indices_ms": 0.000401,
+        "scene_state_ms": 0.000451,
+        "render_states_ms": 6.93942,
+        "draws_ms": 4.318001,
+        "finish_ms": 0.007444
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.014029,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.836339,
+        "sort_ms": 0.177109,
+        "finish_ms": 0.011752
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.438043,
+        "validation_ms": 11.48783,
+        "composition_ms": 7.043824,
+        "storage_report_ms": 0.006633,
+        "publish_plan_ms": 0.726179,
+        "finish_ms": 0.000621
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000571,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 0.014051,
+        "upload_ms": 0.000626,
+        "encode_ms": 0.0152935,
+        "draw_encode_ms": 0.013395500000000001,
+        "blit_encode_ms": 0.0018930000000000002,
+        "submit_frame_ms": 0.0092875,
+        "read_request_ms": 0.0005815,
+        "read_wait_ms": 1.0761485,
+        "frame_wait_ms": 1.0761284999999998,
+        "row_flip_ms": 9.1e-05,
+        "gpu_query_drain_ms": 2e-05
+      },
+      "target": {
+        "validation_ms": 0.0018535000000000001,
+        "prepare_ms": 0.000851,
+        "submit_ms": 1.1504575
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0004505,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.002018,
+        "frame_plan_ms": 6.02294,
+        "backend_ms": 1.1593499999999999
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.329751,
+        "frame_profile_ms": 2.163729,
+        "ownership_ms": 11.153699,
+        "payload_ms": 3.49944,
+        "finish_ms": 0.001343
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.854903
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "camera",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-camera-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002515,
+        "vertices_ms": 0.003296,
+        "indices_ms": 0.000491,
+        "scene_state_ms": 0.000431,
+        "render_states_ms": 7.187281,
+        "draws_ms": 4.474862,
+        "finish_ms": 0.008185
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.299119,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 7.07885,
+        "sort_ms": 0.219928,
+        "finish_ms": 0.012844
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.449094,
+        "validation_ms": 11.974093,
+        "composition_ms": 7.327992,
+        "storage_report_ms": 0.007654,
+        "publish_plan_ms": 0.676006,
+        "finish_ms": 0.00023
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000882,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 0.016806,
+        "upload_ms": 0.0006865,
+        "encode_ms": 0.015178500000000001,
+        "draw_encode_ms": 0.013415,
+        "blit_encode_ms": 0.0019334999999999999,
+        "submit_frame_ms": 0.010759999999999999,
+        "read_request_ms": 0.00044050000000000003,
+        "read_wait_ms": 1.090551,
+        "frame_wait_ms": 1.090526,
+        "row_flip_ms": 0.0875225,
+        "gpu_query_drain_ms": 3.5000000000000004e-05
+      },
+      "target": {
+        "validation_ms": 0.0023695,
+        "prepare_ms": 0.0007565,
+        "submit_ms": 1.2556875
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000701,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.0015934999999999999,
+        "frame_plan_ms": 5.78277,
+        "backend_ms": 1.26489
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.302701,
+        "frame_profile_ms": 2.170953,
+        "ownership_ms": 11.293088,
+        "payload_ms": 3.33819,
+        "finish_ms": 0.000932
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.743506
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "camera",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-camera-wgpu-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002214,
+        "vertices_ms": 0.003106,
+        "indices_ms": 0.00045,
+        "scene_state_ms": 0.000501,
+        "render_states_ms": 6.426298,
+        "draws_ms": 4.584867,
+        "finish_ms": 0.010509
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.38045,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 7.19758,
+        "sort_ms": 0.181838,
+        "finish_ms": 0.012964
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.406716,
+        "validation_ms": 11.273031,
+        "composition_ms": 7.399054,
+        "storage_report_ms": 0.007544,
+        "publish_plan_ms": 0.738231,
+        "finish_ms": 0.000121
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00023,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.0014775
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 2.9999999999999997e-05,
+        "pack_ms": 9.5e-05,
+        "resource_ms": 0.00011499999999999999
+      },
+      "rust_instances": {},
+      "wgpu_offscreen": {},
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "rust": {
+        "validation_ms": 0.009027,
+        "prepare_encode_ms": 0.3765045,
+        "submit_ms": 0.0428245,
+        "gpu_wait_ms": 0.5971895,
+        "readback_publish_ms": 0.1113915
+      },
+      "rust_cpu_detail": {
+        "total_ms": 1.156283,
+        "validation_ms": 0.009027,
+        "gpu_probe_setup_ms": 0.000491,
+        "attachments_ms": 0.17511,
+        "draw_encode_ms": 0.2028065,
+        "scene_snapshot_ms": 3e-05,
+        "staging_prepare_ms": 0.0131045,
+        "submit_ms": 0.0428245,
+        "map_request_ms": 0.0029855,
+        "gpu_wait_ms": 0.5971895,
+        "post_wait_checks_ms": 0.0002005,
+        "gpu_probe_read_ms": 0.00011,
+        "map_receive_ms": 0.0011975,
+        "color_copy_ms": 0.108306,
+        "depth_copy_ms": 0.000201,
+        "output_commit_ms": 4.5e-05,
+        "recycle_ms": 0.0015730000000000002
+      },
+      "rust_gpu": {},
+      "bridge": {
+        "pack_ms": 1.58622,
+        "ffi_ms": 1.345585
+      },
+      "target": {
+        "validation_ms": 0.0019140000000000001,
+        "prepare_ms": 0.000596,
+        "submit_ms": 2.964341
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00045549999999999996,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.002219,
+        "frame_plan_ms": 5.872165,
+        "backend_ms": 2.9764749999999998
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 15.494192,
+        "frame_profile_ms": 2.118876,
+        "ownership_ms": 11.232756,
+        "payload_ms": 4.396818,
+        "finish_ms": 0.001152
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.74519
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "materials-10",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "materials",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-materials-10-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0083855,
+        "vertices_ms": 1.1393965000000001,
+        "indices_ms": 0.081216,
+        "scene_state_ms": 0.0010119999999999999,
+        "render_states_ms": 7.924045,
+        "draws_ms": 5.016954500000001,
+        "finish_ms": 0.00785
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 10.7359535,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 10.4558435,
+        "sort_ms": 0.228379,
+        "finish_ms": 0.0815965
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.456078,
+        "validation_ms": 14.298681,
+        "composition_ms": 9.514995,
+        "storage_report_ms": 0.011651,
+        "publish_plan_ms": 1.223623,
+        "finish_ms": 0.000391
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000496,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 24.2504125,
+        "upload_ms": 1.114971,
+        "encode_ms": 0.0212995,
+        "draw_encode_ms": 0.0169715,
+        "blit_encode_ms": 0.004477999999999999,
+        "submit_frame_ms": 0.0151835,
+        "read_request_ms": 0.0009364999999999999,
+        "read_wait_ms": 2.4130925,
+        "frame_wait_ms": 2.4130225000000003,
+        "row_flip_ms": 0.0003055,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 25.1731015,
+        "prepare_ms": 0.001132,
+        "submit_ms": 28.1678445
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001455,
+        "copy_ms": 0.00023
+      },
+      "action": {
+        "traversal_ms": 0.0046485,
+        "frame_plan_ms": 2.822985,
+        "backend_ms": 53.434250000000006
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 16.525407,
+        "frame_profile_ms": 2.683165,
+        "ownership_ms": 11.614455,
+        "payload_ms": 8.211493,
+        "finish_ms": 0.098754
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.914815
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "materials-10",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "materials",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-materials-10-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.006883,
+        "vertices_ms": 0.9450305,
+        "indices_ms": 0.0751545,
+        "scene_state_ms": 0.0010170000000000001,
+        "render_states_ms": 6.577173,
+        "draws_ms": 4.436707500000001,
+        "finish_ms": 0.006687
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 8.6755455,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 8.476521,
+        "sort_ms": 0.1880345,
+        "finish_ms": 0.066714
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.385636,
+        "validation_ms": 12.469374,
+        "composition_ms": 8.049232,
+        "storage_report_ms": 0.007504,
+        "publish_plan_ms": 1.108449,
+        "finish_ms": 0.00012
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0003955,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 20.6052065,
+        "upload_ms": 0.661589,
+        "encode_ms": 0.01612,
+        "draw_encode_ms": 0.012919,
+        "blit_encode_ms": 0.0030004999999999997,
+        "submit_frame_ms": 0.0120825,
+        "read_request_ms": 0.000531,
+        "read_wait_ms": 2.7240855,
+        "frame_wait_ms": 2.7240555,
+        "row_flip_ms": 0.098388,
+        "gpu_query_drain_ms": 4.5e-05
+      },
+      "target": {
+        "validation_ms": 21.166594,
+        "prepare_ms": 0.0006765,
+        "submit_ms": 24.243415
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00015050000000000003,
+        "copy_ms": 0.00014
+      },
+      "action": {
+        "traversal_ms": 0.0028955,
+        "frame_plan_ms": 2.53084,
+        "backend_ms": 45.2793
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 14.662518,
+        "frame_profile_ms": 2.081747,
+        "ownership_ms": 11.181771,
+        "payload_ms": 7.743144,
+        "finish_ms": 0.055774
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.621069
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "materials-10",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "materials",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-materials-10-wgpu-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.006813,
+        "vertices_ms": 1.0280645000000002,
+        "indices_ms": 0.0767025,
+        "scene_state_ms": 0.001197,
+        "render_states_ms": 6.6080205,
+        "draws_ms": 4.5055745,
+        "finish_ms": 0.006883
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 8.587923,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 8.3997585,
+        "sort_ms": 0.187328,
+        "finish_ms": 0.0724095
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.383994,
+        "validation_ms": 12.521971,
+        "composition_ms": 7.925182,
+        "storage_report_ms": 0.006873,
+        "publish_plan_ms": 1.079555,
+        "finish_ms": 0.00011
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0002155,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.6732905
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.38234999999999997,
+        "pack_ms": 0.028403,
+        "resource_ms": 0.060793
+      },
+      "rust_instances": {},
+      "wgpu_offscreen": {},
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "rust": {
+        "validation_ms": 1.5092535,
+        "prepare_encode_ms": 1.69847,
+        "submit_ms": 0.050238000000000005,
+        "gpu_wait_ms": 0.6596150000000001,
+        "readback_publish_ms": 0.114202
+      },
+      "rust_cpu_detail": {
+        "total_ms": 4.07255,
+        "validation_ms": 1.5092535,
+        "gpu_probe_setup_ms": 0.0008465,
+        "attachments_ms": 0.2624875,
+        "draw_encode_ms": 1.351506,
+        "scene_snapshot_ms": 2e-05,
+        "staging_prepare_ms": 0.014527,
+        "submit_ms": 0.050238000000000005,
+        "map_request_ms": 0.0034365,
+        "gpu_wait_ms": 0.6596150000000001,
+        "post_wait_checks_ms": 0.00025100000000000003,
+        "gpu_probe_read_ms": 0.00018,
+        "map_receive_ms": 0.001117,
+        "color_copy_ms": 0.10784550000000001,
+        "depth_copy_ms": 0.000185,
+        "output_commit_ms": 4.55e-05,
+        "recycle_ms": 0.0045035000000000006
+      },
+      "rust_gpu": {},
+      "bridge": {
+        "pack_ms": 14.0336,
+        "ffi_ms": 4.322405
+      },
+      "target": {
+        "validation_ms": 21.3530405,
+        "prepare_ms": 0.000586,
+        "submit_ms": 18.5100795
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000145,
+        "copy_ms": 0.00016
+      },
+      "action": {
+        "traversal_ms": 0.0021384999999999998,
+        "frame_plan_ms": 2.5441599999999998,
+        "backend_ms": 39.77455
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 17.421052,
+        "frame_profile_ms": 2.177976,
+        "ownership_ms": 11.339264,
+        "payload_ms": 9.100305,
+        "finish_ms": 0.094535
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.763684
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "transforms-10",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-transforms-10-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.000887,
+        "vertices_ms": 0.0024745,
+        "indices_ms": 0.00043599999999999997,
+        "scene_state_ms": 0.0008964999999999999,
+        "render_states_ms": 7.152592,
+        "draws_ms": 4.480518,
+        "finish_ms": 0.0060515
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.288329,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 7.0907675,
+        "sort_ms": 0.189131,
+        "finish_ms": 0.0119925
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.388662,
+        "validation_ms": 11.036842,
+        "composition_ms": 7.074121,
+        "storage_report_ms": 0.007053,
+        "publish_plan_ms": 1.288804,
+        "finish_ms": 0.000101
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0004355,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 16.4737375,
+        "upload_ms": 0.637845,
+        "encode_ms": 0.0174875,
+        "draw_encode_ms": 0.014211,
+        "blit_encode_ms": 0.003367,
+        "submit_frame_ms": 0.013695,
+        "read_request_ms": 0.0006915,
+        "read_wait_ms": 2.2654635,
+        "frame_wait_ms": 2.2654185,
+        "row_flip_ms": 0.000185,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 19.413077,
+        "prepare_ms": 0.000746,
+        "submit_ms": 19.463992
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00013499999999999997,
+        "copy_ms": 0.000145
+      },
+      "action": {
+        "traversal_ms": 0.0029100000000000003,
+        "frame_plan_ms": 2.144775,
+        "backend_ms": 38.863749999999996
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.368093,
+        "frame_profile_ms": 2.119317,
+        "ownership_ms": 11.310691,
+        "payload_ms": 3.742202,
+        "finish_ms": 0.001252
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.546841
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "transforms-10",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-transforms-10-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0014375,
+        "vertices_ms": 0.003166,
+        "indices_ms": 0.000521,
+        "scene_state_ms": 0.001072,
+        "render_states_ms": 6.306559999999999,
+        "draws_ms": 4.2017454999999995,
+        "finish_ms": 0.006978
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.1082145,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.8792539999999995,
+        "sort_ms": 0.218511,
+        "finish_ms": 0.013746
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.407056,
+        "validation_ms": 11.065034,
+        "composition_ms": 7.10542,
+        "storage_report_ms": 0.007133,
+        "publish_plan_ms": 0.725848,
+        "finish_ms": 0.000131
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000456,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 16.4331565,
+        "upload_ms": 0.6013475,
+        "encode_ms": 0.0164155,
+        "draw_encode_ms": 0.0131945,
+        "blit_encode_ms": 0.0030805,
+        "submit_frame_ms": 0.011276,
+        "read_request_ms": 0.0004805,
+        "read_wait_ms": 2.750334,
+        "frame_wait_ms": 2.750304,
+        "row_flip_ms": 0.111592,
+        "gpu_query_drain_ms": 5.5e-05
+      },
+      "target": {
+        "validation_ms": 18.1178465,
+        "prepare_ms": 0.0007515,
+        "submit_ms": 20.032653
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000141,
+        "copy_ms": 0.00014
+      },
+      "action": {
+        "traversal_ms": 0.003196,
+        "frame_plan_ms": 2.14093,
+        "backend_ms": 38.1096
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.661288,
+        "frame_profile_ms": 2.026965,
+        "ownership_ms": 11.088408,
+        "payload_ms": 3.263072,
+        "finish_ms": 0.001293
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.543064
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "transforms-10",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-transforms-10-wgpu-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0009765,
+        "vertices_ms": 0.0025605000000000003,
+        "indices_ms": 0.0003905,
+        "scene_state_ms": 0.001017,
+        "render_states_ms": 6.4983315,
+        "draws_ms": 4.478344,
+        "finish_ms": 0.006898
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.260467,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 7.053758500000001,
+        "sort_ms": 0.202797,
+        "finish_ms": 0.015123
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.411985,
+        "validation_ms": 12.168355,
+        "composition_ms": 7.024569,
+        "storage_report_ms": 0.007183,
+        "publish_plan_ms": 0.748861,
+        "finish_ms": 0.000121
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00016,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.6749985000000001
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.000526,
+        "pack_ms": 4e-05,
+        "resource_ms": 0.383066
+      },
+      "rust_instances": {},
+      "wgpu_offscreen": {},
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "rust": {
+        "validation_ms": 1.459251,
+        "prepare_encode_ms": 1.453896,
+        "submit_ms": 0.053013500000000005,
+        "gpu_wait_ms": 1.471403,
+        "readback_publish_ms": 0.130733
+      },
+      "rust_cpu_detail": {
+        "total_ms": 4.607905000000001,
+        "validation_ms": 1.459251,
+        "gpu_probe_setup_ms": 0.000987,
+        "attachments_ms": 0.18033,
+        "draw_encode_ms": 1.272203,
+        "scene_snapshot_ms": 2.5e-05,
+        "staging_prepare_ms": 0.014181,
+        "submit_ms": 0.053013500000000005,
+        "map_request_ms": 0.0035965,
+        "gpu_wait_ms": 1.471403,
+        "post_wait_checks_ms": 0.0002455,
+        "gpu_probe_read_ms": 0.000225,
+        "map_receive_ms": 0.0012125,
+        "color_copy_ms": 0.1225425,
+        "depth_copy_ms": 0.000165,
+        "output_commit_ms": 6.5e-05,
+        "recycle_ms": 0.006888
+      },
+      "rust_gpu": {},
+      "bridge": {
+        "pack_ms": 11.61065,
+        "ffi_ms": 4.846925
+      },
+      "target": {
+        "validation_ms": 18.799462499999997,
+        "prepare_ms": 0.000616,
+        "submit_ms": 16.485754
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00013,
+        "copy_ms": 0.0001505
+      },
+      "action": {
+        "traversal_ms": 0.0030210000000000002,
+        "frame_plan_ms": 2.07299,
+        "backend_ms": 35.194649999999996
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 15.036142,
+        "frame_profile_ms": 2.19652,
+        "ownership_ms": 11.36385,
+        "payload_ms": 4.44089,
+        "finish_ms": 0.001563
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.633652
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "geometry-10",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-geometry-10-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001337,
+        "vertices_ms": 0.987379,
+        "indices_ms": 0.0756555,
+        "scene_state_ms": 0.0009265,
+        "render_states_ms": 6.916848999999999,
+        "draws_ms": 4.457034999999999,
+        "finish_ms": 0.007083000000000001
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 8.6356675,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 8.431673,
+        "sort_ms": 0.2035635,
+        "finish_ms": 0.0634625
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.460104,
+        "validation_ms": 13.339951,
+        "composition_ms": 7.969455,
+        "storage_report_ms": 0.009057,
+        "publish_plan_ms": 1.068635,
+        "finish_ms": 0.00013
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00043599999999999997,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 21.079429,
+        "upload_ms": 0.7528185000000001,
+        "encode_ms": 0.017687500000000002,
+        "draw_encode_ms": 0.014617,
+        "blit_encode_ms": 0.0030705,
+        "submit_frame_ms": 0.014526999999999998,
+        "read_request_ms": 0.000696,
+        "read_wait_ms": 2.3228545,
+        "frame_wait_ms": 2.3228245,
+        "row_flip_ms": 0.0002655,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 21.5436005,
+        "prepare_ms": 0.000947,
+        "submit_ms": 24.293639
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001505,
+        "copy_ms": 0.000145
+      },
+      "action": {
+        "traversal_ms": 0.004138,
+        "frame_plan_ms": 6.72711,
+        "backend_ms": 45.76475000000001
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 14.014484,
+        "frame_profile_ms": 2.088049,
+        "ownership_ms": 11.115158,
+        "payload_ms": 6.376355,
+        "finish_ms": 0.0321
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.655312
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 2.043496
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "geometry-10",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-geometry-10-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001167,
+        "vertices_ms": 1.0552245,
+        "indices_ms": 0.076372,
+        "scene_state_ms": 0.0010969999999999999,
+        "render_states_ms": 6.696921,
+        "draws_ms": 4.427765,
+        "finish_ms": 0.005565499999999999
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 8.908659499999999,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 8.6977475,
+        "sort_ms": 0.22014899999999998,
+        "finish_ms": 0.060838
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.391227,
+        "validation_ms": 12.534815,
+        "composition_ms": 8.879185,
+        "storage_report_ms": 0.007774,
+        "publish_plan_ms": 1.376097,
+        "finish_ms": 0.00011
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000406,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 20.959059500000002,
+        "upload_ms": 2.060057,
+        "encode_ms": 0.016821,
+        "draw_encode_ms": 0.0135855,
+        "blit_encode_ms": 0.003326,
+        "submit_frame_ms": 0.0113205,
+        "read_request_ms": 0.0005059999999999999,
+        "read_wait_ms": 2.8078615,
+        "frame_wait_ms": 2.8078165000000004,
+        "row_flip_ms": 0.08407600000000001,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 21.583419499999998,
+        "prepare_ms": 0.0008315,
+        "submit_ms": 25.849304500000002
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00014,
+        "copy_ms": 0.0001305
+      },
+      "action": {
+        "traversal_ms": 0.003947,
+        "frame_plan_ms": 6.480295,
+        "backend_ms": 48.2575
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 14.153482,
+        "frame_profile_ms": 2.21748,
+        "ownership_ms": 11.074252,
+        "payload_ms": 7.868267,
+        "finish_ms": 0.037379
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 3.195766
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 1.8901165
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "geometry-10",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-geometry-10-wgpu-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001332,
+        "vertices_ms": 1.0409485,
+        "indices_ms": 0.077058,
+        "scene_state_ms": 0.0016235,
+        "render_states_ms": 6.7200735,
+        "draws_ms": 4.605255,
+        "finish_ms": 0.0057859999999999995
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 8.9140495,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 8.613391,
+        "sort_ms": 0.271644,
+        "finish_ms": 0.0830545
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.41991,
+        "validation_ms": 12.546237,
+        "composition_ms": 8.251699,
+        "storage_report_ms": 0.008004,
+        "publish_plan_ms": 1.319061,
+        "finish_ms": 0.00012
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000165,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.886166
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.0007515,
+        "pack_ms": 0.00013499999999999997,
+        "resource_ms": 0.41934899999999997
+      },
+      "rust_instances": {},
+      "wgpu_offscreen": {},
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "rust": {
+        "validation_ms": 1.5123395,
+        "prepare_encode_ms": 1.897099,
+        "submit_ms": 0.0553675,
+        "gpu_wait_ms": 1.4801894999999998,
+        "readback_publish_ms": 0.1323605
+      },
+      "rust_cpu_detail": {
+        "total_ms": 5.1501920000000005,
+        "validation_ms": 1.5123395,
+        "gpu_probe_setup_ms": 0.0007565,
+        "attachments_ms": 0.299582,
+        "draw_encode_ms": 1.5514169999999998,
+        "scene_snapshot_ms": 2.5e-05,
+        "staging_prepare_ms": 0.0160895,
+        "submit_ms": 0.0553675,
+        "map_request_ms": 0.0034815000000000002,
+        "gpu_wait_ms": 1.4801894999999998,
+        "post_wait_checks_ms": 0.00040050000000000003,
+        "gpu_probe_read_ms": 0.000316,
+        "map_receive_ms": 0.001287,
+        "color_copy_ms": 0.1244865,
+        "depth_copy_ms": 0.00015999999999999999,
+        "output_commit_ms": 7.500000000000001e-05,
+        "recycle_ms": 0.006883
+      },
+      "rust_gpu": {},
+      "bridge": {
+        "pack_ms": 14.77045,
+        "ffi_ms": 5.412850000000001
+      },
+      "target": {
+        "validation_ms": 21.8215675,
+        "prepare_ms": 0.0006464999999999999,
+        "submit_ms": 20.218965500000003
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00014,
+        "copy_ms": 0.0001655
+      },
+      "action": {
+        "traversal_ms": 0.0034915,
+        "frame_plan_ms": 6.338865,
+        "backend_ms": 42.251
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 16.690295,
+        "frame_profile_ms": 2.163269,
+        "ownership_ms": 11.263574,
+        "payload_ms": 8.855029,
+        "finish_ms": 0.001483
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.970408
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 1.8848515
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "geometry-100",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "100",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-geometry-100-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001358,
+        "vertices_ms": 9.694574,
+        "indices_ms": 0.8088074999999999,
+        "scene_state_ms": 0.0016380000000000001,
+        "render_states_ms": 6.8232205,
+        "draws_ms": 4.5417570000000005,
+        "finish_ms": 0.005666
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 17.641177,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 17.4402935,
+        "sort_ms": 0.199741,
+        "finish_ms": 0.057853
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.443043,
+        "validation_ms": 22.972416,
+        "composition_ms": 16.284692,
+        "storage_report_ms": 0.007524,
+        "publish_plan_ms": 1.191253,
+        "finish_ms": 0.00018
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000401,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 50.423377,
+        "upload_ms": 0.7935595,
+        "encode_ms": 0.0190455,
+        "draw_encode_ms": 0.015904500000000002,
+        "blit_encode_ms": 0.003256,
+        "submit_frame_ms": 0.0134345,
+        "read_request_ms": 0.000571,
+        "read_wait_ms": 2.353041,
+        "frame_wait_ms": 2.353011,
+        "row_flip_ms": 0.0002205,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 39.984139,
+        "prepare_ms": 0.0008420000000000001,
+        "submit_ms": 53.68465500000001
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00014,
+        "copy_ms": 0.0001405
+      },
+      "action": {
+        "traversal_ms": 0.004994500000000001,
+        "frame_plan_ms": 66.76805,
+        "backend_ms": 93.38655
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 19.719262,
+        "frame_profile_ms": 2.332263,
+        "ownership_ms": 12.261979,
+        "payload_ms": 26.234796,
+        "finish_ms": 0.045765
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.306721
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 22.698963
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "geometry-100",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "100",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-geometry-100-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0014325000000000002,
+        "vertices_ms": 9.517200500000001,
+        "indices_ms": 0.8264104999999999,
+        "scene_state_ms": 0.0013425,
+        "render_states_ms": 6.8413094999999995,
+        "draws_ms": 4.498367,
+        "finish_ms": 0.0052995
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 17.432354500000002,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 17.2494895,
+        "sort_ms": 0.1843125,
+        "finish_ms": 0.0539605
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.436792,
+        "validation_ms": 23.048337,
+        "composition_ms": 16.453085,
+        "storage_report_ms": 0.007864,
+        "publish_plan_ms": 0.995259,
+        "finish_ms": 0.000121
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00046100000000000004,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 49.8234435,
+        "upload_ms": 0.8463215,
+        "encode_ms": 0.017447499999999998,
+        "draw_encode_ms": 0.014472,
+        "blit_encode_ms": 0.0029059999999999997,
+        "submit_frame_ms": 0.0122025,
+        "read_request_ms": 0.000576,
+        "read_wait_ms": 2.8313800000000002,
+        "frame_wait_ms": 2.83135,
+        "row_flip_ms": 0.08584449999999999,
+        "gpu_query_drain_ms": 6e-05
+      },
+      "target": {
+        "validation_ms": 39.703949,
+        "prepare_ms": 0.0008910000000000001,
+        "submit_ms": 53.6852375
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001605,
+        "copy_ms": 0.0001505
+      },
+      "action": {
+        "traversal_ms": 0.004313,
+        "frame_plan_ms": 63.32115,
+        "backend_ms": 93.4339
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 19.427421,
+        "frame_profile_ms": 2.225764,
+        "ownership_ms": 12.729178,
+        "payload_ms": 27.023552,
+        "finish_ms": 0.05412
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.203479
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 20.198507499999998
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "geometry-100",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_gl_benchmark",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "100",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/offscreen-geometry-100-wgpu-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001407,
+        "vertices_ms": 9.412115499999999,
+        "indices_ms": 0.77537,
+        "scene_state_ms": 0.001263,
+        "render_states_ms": 6.860745,
+        "draws_ms": 4.533993000000001,
+        "finish_ms": 0.005901
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 17.629541500000002,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 17.428753,
+        "sort_ms": 0.197963,
+        "finish_ms": 0.0606375
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.406966,
+        "validation_ms": 23.04961,
+        "composition_ms": 16.271238,
+        "storage_report_ms": 0.008205,
+        "publish_plan_ms": 1.58795,
+        "finish_ms": 0.000181
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00023549999999999998,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.6983524999999999
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.0003155,
+        "pack_ms": 4.4999999999999996e-05,
+        "resource_ms": 0.40847900000000004
+      },
+      "rust_instances": {},
+      "wgpu_offscreen": {},
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "rust": {
+        "validation_ms": 1.5311895,
+        "prepare_encode_ms": 1.5879755,
+        "submit_ms": 0.050404000000000004,
+        "gpu_wait_ms": 1.4821985,
+        "readback_publish_ms": 0.1346095
+      },
+      "rust_cpu_detail": {
+        "total_ms": 4.799927,
+        "validation_ms": 1.5311895,
+        "gpu_probe_setup_ms": 0.0008420000000000001,
+        "attachments_ms": 0.28070649999999997,
+        "draw_encode_ms": 1.306377,
+        "scene_snapshot_ms": 3e-05,
+        "staging_prepare_ms": 0.0143465,
+        "submit_ms": 0.050404000000000004,
+        "map_request_ms": 0.0033615,
+        "gpu_wait_ms": 1.4821985,
+        "post_wait_checks_ms": 0.0002405,
+        "gpu_probe_read_ms": 0.000306,
+        "map_receive_ms": 0.0010114999999999998,
+        "color_copy_ms": 0.1256085,
+        "depth_copy_ms": 0.000216,
+        "output_commit_ms": 4.5e-05,
+        "recycle_ms": 0.006637499999999999
+      },
+      "rust_gpu": {},
+      "bridge": {
+        "pack_ms": 41.63655,
+        "ffi_ms": 5.02717
+      },
+      "target": {
+        "validation_ms": 39.661726,
+        "prepare_ms": 0.0006215,
+        "submit_ms": 46.6888005
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000145,
+        "copy_ms": 0.00014
+      },
+      "action": {
+        "traversal_ms": 0.0041475,
+        "frame_plan_ms": 65.1796,
+        "backend_ms": 86.31035
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 26.122428,
+        "frame_profile_ms": 2.150976,
+        "ownership_ms": 12.707097,
+        "payload_ms": 32.568704,
+        "finish_ms": 0.039944
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 3.305891
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 21.5828005
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "static",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-static-bgfx-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002915,
+        "vertices_ms": 0.002996,
+        "indices_ms": 0.000521,
+        "scene_state_ms": 0.000651,
+        "render_states_ms": 7.010403,
+        "draws_ms": 4.30044,
+        "finish_ms": 0.008365
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.184687,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.972263,
+        "sort_ms": 0.211423,
+        "finish_ms": 0.012062
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.386929,
+        "validation_ms": 11.526123,
+        "composition_ms": 7.213831,
+        "storage_report_ms": 0.007364,
+        "publish_plan_ms": 0.780059,
+        "finish_ms": 0.00012
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000531,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 0.003948,
+        "upload_ms": 0.0001655,
+        "encode_ms": 0.003902,
+        "draw_encode_ms": 0.003902,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.518994,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 4e-05
+      },
+      "target": {
+        "validation_ms": 0.0007465,
+        "prepare_ms": 0.000145,
+        "submit_ms": 0.5492105
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00044050000000000003,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.0011819999999999999,
+        "frame_plan_ms": 0.000151,
+        "backend_ms": 0.5548055
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.509808,
+        "frame_profile_ms": 2.103929,
+        "ownership_ms": 11.802636,
+        "payload_ms": 4.717013,
+        "finish_ms": 0.002094
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.751822
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "static",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-opengl",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-static-bgfx-opengl.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.004538,
+        "vertices_ms": 0.003276,
+        "indices_ms": 0.000481,
+        "scene_state_ms": 0.001333,
+        "render_states_ms": 7.115719,
+        "draws_ms": 4.560202,
+        "finish_ms": 0.007043
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.01889,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.842371,
+        "sort_ms": 0.175927,
+        "finish_ms": 0.009007
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.422395,
+        "validation_ms": 11.956943,
+        "composition_ms": 7.043656,
+        "storage_report_ms": 0.006852,
+        "publish_plan_ms": 1.303662,
+        "finish_ms": 0.00011
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000711,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 0.003562,
+        "upload_ms": 0.00019500000000000002,
+        "encode_ms": 0.004228,
+        "draw_encode_ms": 0.004228,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.804825,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 3e-05
+      },
+      "target": {
+        "validation_ms": 0.0006615,
+        "prepare_ms": 0.00014,
+        "submit_ms": 0.834631
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00043099999999999996,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.001448,
+        "frame_plan_ms": 0.00011999999999999999,
+        "backend_ms": 0.8400655
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.554361,
+        "frame_profile_ms": 2.108497,
+        "ownership_ms": 11.103527,
+        "payload_ms": 4.947612,
+        "finish_ms": 0.001823
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.737686
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "static",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-static-wgpu-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002394,
+        "vertices_ms": 0.002966,
+        "indices_ms": 0.000371,
+        "scene_state_ms": 0.00052,
+        "render_states_ms": 6.594942,
+        "draws_ms": 4.411045,
+        "finish_ms": 0.015208
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 6.896913,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.70699,
+        "sort_ms": 0.189382,
+        "finish_ms": 0.012643
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.385256,
+        "validation_ms": 11.220515,
+        "composition_ms": 6.915627,
+        "storage_report_ms": 0.007214,
+        "publish_plan_ms": 0.736598,
+        "finish_ms": 0.00011
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000821,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.001067
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 2.9999999999999997e-05,
+        "pack_ms": 4e-05,
+        "resource_ms": 4e-05
+      },
+      "rust_instances": {},
+      "rust_surface_cpu": {
+        "total_ms": 0.540339,
+        "validation_ms": 0.29446249999999996,
+        "acquire_ms": 0.0072335,
+        "encode_ms": 0.13326749999999998,
+        "submit_present_ms": 0.10558100000000001,
+        "queue_submit_ms": 0.026860000000000002,
+        "completion_registration_ms": 0.000265,
+        "capture_readback_ms": 7e-05,
+        "present_ms": 0.077314
+      },
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "wgpu_surface": {},
+      "target": {
+        "validation_ms": 0.0007719999999999999,
+        "prepare_ms": 0.000216,
+        "submit_ms": 0.6148825
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0005614999999999999,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.0020989999999999997,
+        "frame_plan_ms": 0.000261,
+        "backend_ms": 0.6242194999999999
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 15.281941,
+        "frame_profile_ms": 2.081406,
+        "ownership_ms": 11.769816,
+        "payload_ms": 4.099286,
+        "finish_ms": 0.001002
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.603226
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "camera",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-camera-bgfx-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002965,
+        "vertices_ms": 0.002685,
+        "indices_ms": 0.000561,
+        "scene_state_ms": 0.000491,
+        "render_states_ms": 6.867158,
+        "draws_ms": 4.465536,
+        "finish_ms": 0.008927
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.10008,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.887315,
+        "sort_ms": 0.212415,
+        "finish_ms": 0.012263
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.386418,
+        "validation_ms": 11.574363,
+        "composition_ms": 7.130126,
+        "storage_report_ms": 0.007083,
+        "publish_plan_ms": 0.718736,
+        "finish_ms": 0.00012
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000451,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 0.016696500000000003,
+        "upload_ms": 0.000997,
+        "encode_ms": 0.0143865,
+        "draw_encode_ms": 0.0143865,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.011857,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 3e-05
+      },
+      "target": {
+        "validation_ms": 0.0027295,
+        "prepare_ms": 0.001072,
+        "submit_ms": 0.0736315
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0008565000000000001,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.002149,
+        "frame_plan_ms": 6.154484999999999,
+        "backend_ms": 0.0832745
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.556064,
+        "frame_profile_ms": 2.116081,
+        "ownership_ms": 11.057823,
+        "payload_ms": 4.646181,
+        "finish_ms": 0.001062
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.783832
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "camera",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-opengl",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-camera-bgfx-opengl.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002906,
+        "vertices_ms": 0.003186,
+        "indices_ms": 0.000651,
+        "scene_state_ms": 0.000591,
+        "render_states_ms": 6.65859,
+        "draws_ms": 4.417277,
+        "finish_ms": 0.008525
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 7.759716,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 7.527404,
+        "sort_ms": 0.231861,
+        "finish_ms": 0.011601
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.368875,
+        "validation_ms": 11.324959,
+        "composition_ms": 7.789522,
+        "storage_report_ms": 0.008425,
+        "publish_plan_ms": 0.780089,
+        "finish_ms": 0.000211
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000481,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 0.019291,
+        "upload_ms": 0.000957,
+        "encode_ms": 0.014557,
+        "draw_encode_ms": 0.014557,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.011505999999999999,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 3e-05
+      },
+      "target": {
+        "validation_ms": 0.0023245,
+        "prepare_ms": 0.000876,
+        "submit_ms": 0.080069
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0007160000000000001,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.0017835,
+        "frame_plan_ms": 6.33254,
+        "backend_ms": 0.090864
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.700723,
+        "frame_profile_ms": 2.165253,
+        "ownership_ms": 11.746672,
+        "payload_ms": 5.155538,
+        "finish_ms": 0.002054
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.934101
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "camera",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "camera",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-camera-wgpu-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002875,
+        "vertices_ms": 0.002515,
+        "indices_ms": 0.00031,
+        "scene_state_ms": 0.000802,
+        "render_states_ms": 6.469449,
+        "draws_ms": 4.431713,
+        "finish_ms": 0.017082
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 6.80907,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 6.617394,
+        "sort_ms": 0.191586,
+        "finish_ms": 0.008866
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.379525,
+        "validation_ms": 11.168849,
+        "composition_ms": 6.823988,
+        "storage_report_ms": 0.007113,
+        "publish_plan_ms": 1.276852,
+        "finish_ms": 0.00023
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000331,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 0.0012530000000000002
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 3.05e-05,
+        "pack_ms": 4e-05,
+        "resource_ms": 7.999999999999999e-05
+      },
+      "rust_instances": {},
+      "rust_surface_cpu": {
+        "total_ms": 0.45456949999999996,
+        "validation_ms": 0.024426,
+        "acquire_ms": 0.022717,
+        "encode_ms": 0.230503,
+        "submit_present_ms": 0.16839749999999998,
+        "queue_submit_ms": 0.041416999999999995,
+        "completion_registration_ms": 0.000656,
+        "capture_readback_ms": 0.00014,
+        "present_ms": 0.125378
+      },
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "wgpu_surface": {},
+      "target": {
+        "validation_ms": 0.002324,
+        "prepare_ms": 0.0009515,
+        "submit_ms": 2.170508
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0006915000000000001,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.003216,
+        "frame_plan_ms": 5.592795,
+        "backend_ms": 2.1861550000000003
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 15.949131,
+        "frame_profile_ms": 2.170041,
+        "ownership_ms": 11.500115,
+        "payload_ms": 4.495492,
+        "finish_ms": 0.001272
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 2.624596
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "materials-10",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "materials",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-materials-10-bgfx-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.010875,
+        "vertices_ms": 1.2957325000000002,
+        "indices_ms": 0.09949949999999999,
+        "scene_state_ms": 0.001363,
+        "render_states_ms": 8.179191,
+        "draws_ms": 5.0519405,
+        "finish_ms": 0.007834500000000001
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 11.110867,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 10.8271,
+        "sort_ms": 0.283482,
+        "finish_ms": 0.1101045
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.514816,
+        "validation_ms": 15.543908,
+        "composition_ms": 9.930839,
+        "storage_report_ms": 0.008536,
+        "publish_plan_ms": 1.325302,
+        "finish_ms": 0.000221
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00046049999999999997,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 24.9143265,
+        "upload_ms": 1.052951,
+        "encode_ms": 0.017768,
+        "draw_encode_ms": 0.017768,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.0173175,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 26.291759499999998,
+        "prepare_ms": 0.001057,
+        "submit_ms": 26.4010135
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001555,
+        "copy_ms": 0.0002055
+      },
+      "action": {
+        "traversal_ms": 0.006021,
+        "frame_plan_ms": 3.633525,
+        "backend_ms": 52.43215
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 24.56107,
+        "frame_profile_ms": 2.520232,
+        "ownership_ms": 18.987184,
+        "payload_ms": 15.907824,
+        "finish_ms": 0.229386
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.33825
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "materials-10",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-opengl",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "materials",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-materials-10-bgfx-opengl.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.020943999999999997,
+        "vertices_ms": 1.4761225,
+        "indices_ms": 0.187438,
+        "scene_state_ms": 0.0015885,
+        "render_states_ms": 8.824663999999999,
+        "draws_ms": 5.9673915,
+        "finish_ms": 0.0102445
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 13.3599155,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 13.054563,
+        "sort_ms": 0.3039195,
+        "finish_ms": 0.1149985
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.485152,
+        "validation_ms": 15.297159,
+        "composition_ms": 10.158072,
+        "storage_report_ms": 0.008415,
+        "publish_plan_ms": 2.006138,
+        "finish_ms": 0.00015
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000701,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 34.805758,
+        "upload_ms": 1.2159339999999998,
+        "encode_ms": 0.0238845,
+        "draw_encode_ms": 0.0238845,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.0233235,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 7.05e-05
+      },
+      "target": {
+        "validation_ms": 30.6728545,
+        "prepare_ms": 0.001087,
+        "submit_ms": 36.0707735
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000185,
+        "copy_ms": 0.00017500000000000003
+      },
+      "action": {
+        "traversal_ms": 0.005796,
+        "frame_plan_ms": 5.806665,
+        "backend_ms": 67.0729
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 28.494898,
+        "frame_profile_ms": 3.004873,
+        "ownership_ms": 20.843203,
+        "payload_ms": 15.101356,
+        "finish_ms": 0.374305
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.849159
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "materials-10",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "materials",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-materials-10-wgpu-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.010308999999999999,
+        "vertices_ms": 1.4449589999999999,
+        "indices_ms": 0.131409,
+        "scene_state_ms": 0.0019085,
+        "render_states_ms": 8.503809,
+        "draws_ms": 5.303583,
+        "finish_ms": 0.0098485
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 11.708511999999999,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 11.4229765,
+        "sort_ms": 0.3168435,
+        "finish_ms": 0.1288195
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.632886,
+        "validation_ms": 19.488807,
+        "composition_ms": 14.867622,
+        "storage_report_ms": 0.011181,
+        "publish_plan_ms": 3.060055,
+        "finish_ms": 0.00017
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0003705,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 1.3562595000000002
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.5026835,
+        "pack_ms": 0.038557,
+        "resource_ms": 0.0783455
+      },
+      "rust_instances": {},
+      "rust_surface_cpu": {
+        "total_ms": 4.669344499999999,
+        "validation_ms": 3.3913,
+        "acquire_ms": 0.03837599999999999,
+        "encode_ms": 0.9528405,
+        "submit_present_ms": 0.3032935,
+        "queue_submit_ms": 0.072154,
+        "completion_registration_ms": 0.000952,
+        "capture_readback_ms": 0.00023549999999999998,
+        "present_ms": 0.2334785
+      },
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "wgpu_surface": {},
+      "target": {
+        "validation_ms": 27.719548500000002,
+        "prepare_ms": 0.0008370000000000001,
+        "submit_ms": 23.268409
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001605,
+        "copy_ms": 0.000155
+      },
+      "action": {
+        "traversal_ms": 0.0057915,
+        "frame_plan_ms": 3.81322,
+        "backend_ms": 51.3106
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 28.472418,
+        "frame_profile_ms": 2.864321,
+        "ownership_ms": 18.917185,
+        "payload_ms": 16.269997,
+        "finish_ms": 0.221051
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.539022
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "transforms-10",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-transforms-10-bgfx-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002059,
+        "vertices_ms": 0.004032,
+        "indices_ms": 0.000792,
+        "scene_state_ms": 0.0015279999999999998,
+        "render_states_ms": 9.233489500000001,
+        "draws_ms": 6.0767045,
+        "finish_ms": 0.010404
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 10.221024499999999,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 9.904461000000001,
+        "sort_ms": 0.311654,
+        "finish_ms": 0.0248215
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.482757,
+        "validation_ms": 13.537781,
+        "composition_ms": 8.465738,
+        "storage_report_ms": 0.009337,
+        "publish_plan_ms": 1.665505,
+        "finish_ms": 0.00028
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000857,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 31.297431500000002,
+        "upload_ms": 0.803498,
+        "encode_ms": 0.024335500000000003,
+        "draw_encode_ms": 0.024335500000000003,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.0226425,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 5.5e-05
+      },
+      "target": {
+        "validation_ms": 26.3203045,
+        "prepare_ms": 0.0011675,
+        "submit_ms": 32.202913
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000165,
+        "copy_ms": 0.000175
+      },
+      "action": {
+        "traversal_ms": 0.0066324999999999995,
+        "frame_plan_ms": 3.926015,
+        "backend_ms": 58.2452
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 23.121025,
+        "frame_profile_ms": 2.798319,
+        "ownership_ms": 18.706033,
+        "payload_ms": 7.493853,
+        "finish_ms": 0.001993
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.986906
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "transforms-10",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-opengl",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-transforms-10-bgfx-opengl.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0021939999999999998,
+        "vertices_ms": 0.003827,
+        "indices_ms": 0.0011524999999999999,
+        "scene_state_ms": 0.001287,
+        "render_states_ms": 9.234236,
+        "draws_ms": 6.337655,
+        "finish_ms": 0.0114465
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 11.102893,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 10.7813555,
+        "sort_ms": 0.32028500000000004,
+        "finish_ms": 0.024656
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.537789,
+        "validation_ms": 16.089122,
+        "composition_ms": 11.025293,
+        "storage_report_ms": 0.011872,
+        "publish_plan_ms": 2.451735,
+        "finish_ms": 0.000491
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0007559999999999999,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 28.1444885,
+        "upload_ms": 5.1002054999999995,
+        "encode_ms": 0.022761999999999998,
+        "draw_encode_ms": 0.022761999999999998,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.0226925,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 5.5e-05
+      },
+      "target": {
+        "validation_ms": 27.5182355,
+        "prepare_ms": 0.000997,
+        "submit_ms": 31.639793
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00020600000000000002,
+        "copy_ms": 0.000205
+      },
+      "action": {
+        "traversal_ms": 0.0064115000000000005,
+        "frame_plan_ms": 4.386485,
+        "backend_ms": 59.07155
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 24.249944,
+        "frame_profile_ms": 2.921107,
+        "ownership_ms": 21.394949,
+        "payload_ms": 7.160573,
+        "finish_ms": 0.002405
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.963441
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "transforms-10",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "transforms",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-transforms-10-wgpu-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001768,
+        "vertices_ms": 0.0037264999999999998,
+        "indices_ms": 0.000641,
+        "scene_state_ms": 0.001262,
+        "render_states_ms": 8.3445985,
+        "draws_ms": 5.378773000000001,
+        "finish_ms": 0.010374000000000001
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 9.838423500000001,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 9.3598295,
+        "sort_ms": 0.411239,
+        "finish_ms": 0.0197665
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.514135,
+        "validation_ms": 14.161581,
+        "composition_ms": 9.857013,
+        "storage_report_ms": 0.008726,
+        "publish_plan_ms": 1.640698,
+        "finish_ms": 0.000131
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00028050000000000004,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 1.1111445
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.0008715,
+        "pack_ms": 4.9999999999999996e-05,
+        "resource_ms": 0.6697545
+      },
+      "rust_instances": {},
+      "rust_surface_cpu": {
+        "total_ms": 4.344511499999999,
+        "validation_ms": 3.0100119999999997,
+        "acquire_ms": 0.0389125,
+        "encode_ms": 0.9829015000000001,
+        "submit_present_ms": 0.31560600000000005,
+        "queue_submit_ms": 0.0575565,
+        "completion_registration_ms": 0.001177,
+        "capture_readback_ms": 0.000155,
+        "present_ms": 0.251407
+      },
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "wgpu_surface": {},
+      "target": {
+        "validation_ms": 24.1756155,
+        "prepare_ms": 0.0011020000000000001,
+        "submit_ms": 22.53893
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000165,
+        "copy_ms": 0.0001455
+      },
+      "action": {
+        "traversal_ms": 0.0044585,
+        "frame_plan_ms": 2.66512,
+        "backend_ms": 47.369249999999994
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 24.682978,
+        "frame_profile_ms": 2.496669,
+        "ownership_ms": 20.917522,
+        "payload_ms": 8.90782,
+        "finish_ms": 0.004919
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.685044
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "geometry-10",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-geometry-10-bgfx-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0021745000000000002,
+        "vertices_ms": 1.308511,
+        "indices_ms": 0.0922165,
+        "scene_state_ms": 0.001668,
+        "render_states_ms": 7.8166174999999996,
+        "draws_ms": 5.301399,
+        "finish_ms": 0.008346
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 11.090961,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 10.8168165,
+        "sort_ms": 0.28275,
+        "finish_ms": 0.1019545
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.467919,
+        "validation_ms": 14.386699,
+        "composition_ms": 10.823519,
+        "storage_report_ms": 0.012203,
+        "publish_plan_ms": 1.692514,
+        "finish_ms": 0.000141
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000551,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 24.5265475,
+        "upload_ms": 1.1152425,
+        "encode_ms": 0.018344,
+        "draw_encode_ms": 0.018344,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.017973000000000003,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 5.05e-05
+      },
+      "target": {
+        "validation_ms": 26.234631,
+        "prepare_ms": 0.001177,
+        "submit_ms": 25.764929000000002
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000165,
+        "copy_ms": 0.00015
+      },
+      "action": {
+        "traversal_ms": 0.0060964999999999995,
+        "frame_plan_ms": 8.60284,
+        "backend_ms": 51.789649999999995
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 26.57272,
+        "frame_profile_ms": 2.616781,
+        "ownership_ms": 20.675163,
+        "payload_ms": 15.128988,
+        "finish_ms": 0.149938
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 4.34899
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 2.357029
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "geometry-10",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-opengl",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-geometry-10-bgfx-opengl.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001753,
+        "vertices_ms": 1.2995595,
+        "indices_ms": 0.0943055,
+        "scene_state_ms": 0.001087,
+        "render_states_ms": 8.1748935,
+        "draws_ms": 5.109503,
+        "finish_ms": 0.0073384999999999995
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 10.219487,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 9.927855000000001,
+        "sort_ms": 0.2770995,
+        "finish_ms": 0.0883745
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.493287,
+        "validation_ms": 15.112007,
+        "composition_ms": 9.923627,
+        "storage_report_ms": 0.009858,
+        "publish_plan_ms": 1.849857,
+        "finish_ms": 0.00012
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000691,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 24.799841,
+        "upload_ms": 1.1213785,
+        "encode_ms": 0.017301999999999998,
+        "draw_encode_ms": 0.017301999999999998,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.016891,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 4.55e-05
+      },
+      "target": {
+        "validation_ms": 25.630885,
+        "prepare_ms": 0.001167,
+        "submit_ms": 26.002155000000002
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00017500000000000003,
+        "copy_ms": 0.0002455
+      },
+      "action": {
+        "traversal_ms": 0.0061165,
+        "frame_plan_ms": 8.788725,
+        "backend_ms": 51.58645
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 17.434362,
+        "frame_profile_ms": 2.563583,
+        "ownership_ms": 13.622629,
+        "payload_ms": 11.574094,
+        "finish_ms": 0.095017
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 3.556227
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 2.455663
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "geometry-10",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-geometry-10-wgpu-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.002179,
+        "vertices_ms": 1.160015,
+        "indices_ms": 0.093439,
+        "scene_state_ms": 0.001302,
+        "render_states_ms": 7.675571,
+        "draws_ms": 4.9637725,
+        "finish_ms": 0.0078695
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 10.014662,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 9.7472445,
+        "sort_ms": 0.26629,
+        "finish_ms": 0.1127245
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.485873,
+        "validation_ms": 14.366091,
+        "composition_ms": 9.081362,
+        "storage_report_ms": 0.008737,
+        "publish_plan_ms": 1.595103,
+        "finish_ms": 0.000681
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.00032050000000000004,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 1.3811215
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.0005915,
+        "pack_ms": 4.9999999999999996e-05,
+        "resource_ms": 0.6579025000000001
+      },
+      "rust_instances": {},
+      "rust_surface_cpu": {
+        "total_ms": 4.6103955,
+        "validation_ms": 3.295728,
+        "acquire_ms": 0.0341235,
+        "encode_ms": 0.9823855,
+        "submit_present_ms": 0.3106065,
+        "queue_submit_ms": 0.0622355,
+        "completion_registration_ms": 0.0008815,
+        "capture_readback_ms": 0.0003005,
+        "present_ms": 0.2485915
+      },
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "wgpu_surface": {},
+      "target": {
+        "validation_ms": 24.8738985,
+        "prepare_ms": 0.0008114999999999999,
+        "submit_ms": 22.991687
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001655,
+        "copy_ms": 0.000155
+      },
+      "action": {
+        "traversal_ms": 0.004804,
+        "frame_plan_ms": 8.594265,
+        "backend_ms": 47.5696
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 18.379318,
+        "frame_profile_ms": 2.533307,
+        "ownership_ms": 13.401989,
+        "payload_ms": 10.401165,
+        "finish_ms": 0.051336
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 3.477311
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 2.4807395000000003
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "geometry-100",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "100",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-geometry-100-bgfx-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0020035,
+        "vertices_ms": 13.360072500000001,
+        "indices_ms": 0.9996970000000001,
+        "scene_state_ms": 0.0018735000000000002,
+        "render_states_ms": 8.6158225,
+        "draws_ms": 6.0122705,
+        "finish_ms": 0.010725499999999999
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 24.2085075,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 23.932630500000002,
+        "sort_ms": 0.2783625,
+        "finish_ms": 0.09244150000000001
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.725648,
+        "validation_ms": 27.289232,
+        "composition_ms": 23.444829,
+        "storage_report_ms": 0.012694,
+        "publish_plan_ms": 1.660826,
+        "finish_ms": 0.00018
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0005610000000000001,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 67.3460305,
+        "upload_ms": 1.0914175,
+        "encode_ms": 0.018885,
+        "draw_encode_ms": 0.018885,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.0219865,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 5.5e-05
+      },
+      "target": {
+        "validation_ms": 53.650625500000004,
+        "prepare_ms": 0.0013275000000000001,
+        "submit_ms": 68.53528
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00016150000000000002,
+        "copy_ms": 0.00017500000000000003
+      },
+      "action": {
+        "traversal_ms": 0.0067025,
+        "frame_plan_ms": 86.9938,
+        "backend_ms": 121.629
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 51.217369,
+        "frame_profile_ms": 2.542183,
+        "ownership_ms": 22.171634,
+        "payload_ms": 53.061145,
+        "finish_ms": 0.184472
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 6.677617
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 29.321308000000002
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "geometry-100",
+    "variant": "bgfx-opengl",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_window_benchmark",
+      "--backend",
+      "bgfx-opengl",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "100",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-geometry-100-bgfx-opengl.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.001758,
+        "vertices_ms": 12.111648,
+        "indices_ms": 0.9768,
+        "scene_state_ms": 0.0014425,
+        "render_states_ms": 8.07083,
+        "draws_ms": 5.338178,
+        "finish_ms": 0.008445999999999999
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 21.3506545,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 21.0941925,
+        "sort_ms": 0.2487975,
+        "finish_ms": 0.0710015
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.529163,
+        "validation_ms": 25.575228,
+        "composition_ms": 19.592823,
+        "storage_report_ms": 0.009939,
+        "publish_plan_ms": 2.160003,
+        "finish_ms": 0.000271
+      },
+      "bgfx_xlib": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.0005005,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx": {
+        "lower_ms": 57.90917949999999,
+        "upload_ms": 0.9114435000000001,
+        "encode_ms": 0.0194815,
+        "draw_encode_ms": 0.0194815,
+        "blit_encode_ms": 0.0,
+        "submit_frame_ms": 0.0202425,
+        "read_request_ms": 0.0,
+        "read_wait_ms": 0.0,
+        "frame_wait_ms": 0.0,
+        "row_flip_ms": 0.0,
+        "gpu_query_drain_ms": 5e-05
+      },
+      "target": {
+        "validation_ms": 48.6165185,
+        "prepare_ms": 0.001152,
+        "submit_ms": 58.93227
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.00016600000000000002,
+        "copy_ms": 0.0001655
+      },
+      "action": {
+        "traversal_ms": 0.0056305,
+        "frame_plan_ms": 78.46615,
+        "backend_ms": 107.4675
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 32.440093,
+        "frame_profile_ms": 3.05151,
+        "ownership_ms": 15.570399,
+        "payload_ms": 34.84983,
+        "finish_ms": 0.071022
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 5.249834
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 26.6147345
+      }
+    }
+  },
+  {
+    "scope": "window",
+    "case": "geometry-100",
+    "variant": "wgpu-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_window_benchmark",
+      "--backend",
+      "wgpu-vulkan",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "100",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile-desktop/window-geometry-100-wgpu-vulkan.csv",
+      "--width",
+      "512",
+      "--height",
+      "512"
+    ],
+    "phases": {
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.0023945,
+        "vertices_ms": 11.7289225,
+        "indices_ms": 0.9695715,
+        "scene_state_ms": 0.0017885,
+        "render_states_ms": 8.231213499999999,
+        "draws_ms": 5.291692,
+        "finish_ms": 0.008921499999999999
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 23.128557999999998,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 22.8410695,
+        "sort_ms": 0.2610095,
+        "finish_ms": 0.09300800000000001
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.470955,
+        "validation_ms": 27.527135,
+        "composition_ms": 21.212233,
+        "storage_report_ms": 0.009347,
+        "publish_plan_ms": 2.109409,
+        "finish_ms": 0.000281
+      },
+      "wgpu_opaque_instancing": {},
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000757,
+        "copy_ms": 0.0
+      },
+      "wgpu_opaque_camera": {},
+      "rust_material_snapshot": {
+        "snapshot_ms": 1.383225
+      },
+      "rust_material_resources": {
+        "payload_compare_ms": 0.0005660000000000001,
+        "pack_ms": 4.9999999999999996e-05,
+        "resource_ms": 0.635491
+      },
+      "rust_instances": {},
+      "rust_surface_cpu": {
+        "total_ms": 4.899889,
+        "validation_ms": 3.6056039999999996,
+        "acquire_ms": 0.038607,
+        "encode_ms": 0.9604895,
+        "submit_present_ms": 0.315952,
+        "queue_submit_ms": 0.0618895,
+        "completion_registration_ms": 0.000972,
+        "capture_readback_ms": 0.00021,
+        "present_ms": 0.254563
+      },
+      "rust_instance_resources": {},
+      "rust_resources": {},
+      "rust_draw_resources": {},
+      "wgpu_surface": {},
+      "target": {
+        "validation_ms": 50.025863,
+        "prepare_ms": 0.0010525,
+        "submit_ms": 62.987361
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.0001655,
+        "copy_ms": 0.0002055
+      },
+      "action": {
+        "traversal_ms": 0.005305000000000001,
+        "frame_plan_ms": 81.7755,
+        "backend_ms": 113.3765
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 39.372334,
+        "frame_profile_ms": 2.606633,
+        "ownership_ms": 15.130864,
+        "payload_ms": 47.320722,
+        "finish_ms": 0.088454
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 3.626669
+      },
+      "geometry_overlay_validation": {
+        "validation_ms": 26.524152
+      }
+    }
+  }
+]

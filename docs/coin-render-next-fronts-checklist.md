@@ -138,19 +138,30 @@ omissões silenciosas nos tipos adaptados; rejeição explícita fora do perfil.
 
 ## 4. Desempenho — continuação de P17/P18/P19
 
-- [ ] Congelar controles CoinGL/CoinRender e medir sem builds ou testes GPU
+- [x] Congelar controles CoinGL/CoinRender e medir sem builds ou testes GPU
   concorrentes, separando janela sem readback e offscreen.
-- [ ] Medir primeiro quadro e regime aquecido: estático, câmera, materiais,
+- [x] Medir primeiro quadro e regime aquecido: estático, câmera, materiais,
   transformações e geometria parcial/total, com mediana e p95.
-- [ ] Identificar o custo dominante entre captura, validação/composição,
+- [x] Identificar o custo dominante entre captura, validação/composição,
   lowering/FFI, preparação GPU, submissão e publicação.
-- [ ] Implementar uma otimização delimitada com mecanismo de comparação A/B,
+- [x] Implementar uma otimização delimitada com mecanismo de comparação A/B,
   preservando conteúdo, rejeições e caminhos de recuperação.
-- [ ] Revalidar reuso, caches, instancing, readback, memória e caudas de latência;
+- [x] Revalidar reuso, caches, instancing, readback, memória e caudas de latência;
   registrar regressões e limites junto dos ganhos.
 
 Fechamento: execuções repetidas/intercaladas, hashes dos controles, mesma
 cena/resolução/driver e evidência visual. Tempos CTest não são benchmark.
+
+Fechado localmente no Linux/RTX 3060 Laptop/NVIDIA 610.57.04: [relatório e
+limites](coin-render-performance-continuation-linux.md), 252 processos
+qualificados, 126 pares PPM idênticos e 36 pares auxiliares de digest de janela.
+Tentativa de janela com monitor desligado ficou excluída e arquivada; a
+repetição ativa auditou DPMS entre processos e restaurou o estado original.
+A reserva temporária mantém os limites existentes. O p95 BGFX/Vulkan offscreen
+piorou nesta amostra e permanece registrado junto dos ganhos de mediana.
+Validação incremental, reuso de lowering, timestamps de janela wgpu e ampliação
+de hardware seguem como estudos futuros; Windows e outras GPUs não são
+qualificados por este fechamento.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 

@@ -1,0 +1,2303 @@
+{
+  "scope": "intrusive original baseline diagnosis, not latency qualification",
+  "alignment": "action delimiter; post-commit capture_camera_basis excluded and preserved separately",
+  "nested_spans": "do not add phase medians to reconstruct frame total",
+  "rows": [
+    {
+      "log": "offscreen-camera-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 1.26489,
+          "frame_plan_ms": 5.78277,
+          "traversal_ms": 0.0015934999999999999
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0019334999999999999,
+          "draw_encode_ms": 0.013415,
+          "encode_ms": 0.015178500000000001,
+          "frame_wait_ms": 1.090526,
+          "gpu_query_drain_ms": 3.5000000000000004e-05,
+          "lower_ms": 0.016806,
+          "read_request_ms": 0.00044050000000000003,
+          "read_wait_ms": 1.090551,
+          "row_flip_ms": 0.0875225,
+          "submit_frame_ms": 0.010759999999999999,
+          "upload_ms": 0.0006865
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "target": {
+          "prepare_ms": 0.0007565,
+          "submit_ms": 1.2556875,
+          "validation_ms": 0.0023695
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000701
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.743506
+        }
+      ]
+    },
+    {
+      "log": "offscreen-camera-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 1.1593499999999999,
+          "frame_plan_ms": 6.02294,
+          "traversal_ms": 0.002018
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0018930000000000002,
+          "draw_encode_ms": 0.013395500000000001,
+          "encode_ms": 0.0152935,
+          "frame_wait_ms": 1.0761284999999998,
+          "gpu_query_drain_ms": 2e-05,
+          "lower_ms": 0.014051,
+          "read_request_ms": 0.0005815,
+          "read_wait_ms": 1.0761485,
+          "row_flip_ms": 9.1e-05,
+          "submit_frame_ms": 0.0092875,
+          "upload_ms": 0.000626
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "target": {
+          "prepare_ms": 0.000851,
+          "submit_ms": 1.1504575,
+          "validation_ms": 0.0018535000000000001
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0004505
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.854903
+        }
+      ]
+    },
+    {
+      "log": "offscreen-camera-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 2.9764749999999998,
+          "frame_plan_ms": 5.872165,
+          "traversal_ms": 0.002219
+        },
+        "bridge": {
+          "ffi_ms": 1.345585,
+          "pack_ms": 1.58622
+        },
+        "rust": {
+          "gpu_wait_ms": 0.5971895,
+          "prepare_encode_ms": 0.3765045,
+          "readback_publish_ms": 0.1113915,
+          "submit_ms": 0.0428245,
+          "validation_ms": 0.009027
+        },
+        "rust_cpu_detail": {
+          "attachments_ms": 0.17511,
+          "color_copy_ms": 0.108306,
+          "depth_copy_ms": 0.000201,
+          "draw_encode_ms": 0.2028065,
+          "gpu_probe_read_ms": 0.00011,
+          "gpu_probe_setup_ms": 0.000491,
+          "gpu_wait_ms": 0.5971895,
+          "map_receive_ms": 0.0011975,
+          "map_request_ms": 0.0029855,
+          "output_commit_ms": 4.5e-05,
+          "post_wait_checks_ms": 0.0002005,
+          "recycle_ms": 0.0015730000000000002,
+          "scene_snapshot_ms": 3e-05,
+          "staging_prepare_ms": 0.0131045,
+          "submit_ms": 0.0428245,
+          "total_ms": 1.156283,
+          "validation_ms": 0.009027
+        },
+        "rust_draw_resources": {},
+        "rust_gpu": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 9.5e-05,
+          "payload_compare_ms": 2.9999999999999997e-05,
+          "resource_ms": 0.00011499999999999999
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.0014775
+        },
+        "rust_resources": {},
+        "target": {
+          "prepare_ms": 0.000596,
+          "submit_ms": 2.964341,
+          "validation_ms": 0.0019140000000000001
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00045549999999999996
+        },
+        "wgpu_offscreen": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.74519
+        }
+      ]
+    },
+    {
+      "log": "offscreen-geometry-10-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 48.2575,
+          "frame_plan_ms": 6.480295,
+          "traversal_ms": 0.003947
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.003326,
+          "draw_encode_ms": 0.0135855,
+          "encode_ms": 0.016821,
+          "frame_wait_ms": 2.8078165000000004,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 20.959059500000002,
+          "read_request_ms": 0.0005059999999999999,
+          "read_wait_ms": 2.8078615,
+          "row_flip_ms": 0.08407600000000001,
+          "submit_frame_ms": 0.0113205,
+          "upload_ms": 2.060057
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 8.6977475,
+          "finish_ms": 0.060838,
+          "sort_ms": 0.22014899999999998
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 8.908659499999999
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000406
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 1.8901165
+        },
+        "target": {
+          "prepare_ms": 0.0008315,
+          "submit_ms": 25.849304500000002,
+          "validation_ms": 21.583419499999998
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001305,
+          "qualify_ms": 0.00014
+        },
+        "validation_detail": {
+          "draws_ms": 4.427765,
+          "finish_ms": 0.005565499999999999,
+          "indices_ms": 0.076372,
+          "materials_ms": 0.001167,
+          "render_states_ms": 6.696921,
+          "scene_state_ms": 0.0010969999999999999,
+          "vertices_ms": 1.0552245
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 3.195766
+        }
+      ]
+    },
+    {
+      "log": "offscreen-geometry-10-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 45.76475000000001,
+          "frame_plan_ms": 6.72711,
+          "traversal_ms": 0.004138
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0030705,
+          "draw_encode_ms": 0.014617,
+          "encode_ms": 0.017687500000000002,
+          "frame_wait_ms": 2.3228245,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 21.079429,
+          "read_request_ms": 0.000696,
+          "read_wait_ms": 2.3228545,
+          "row_flip_ms": 0.0002655,
+          "submit_frame_ms": 0.014526999999999998,
+          "upload_ms": 0.7528185000000001
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 8.431673,
+          "finish_ms": 0.0634625,
+          "sort_ms": 0.2035635
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 8.6356675
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00043599999999999997
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 2.043496
+        },
+        "target": {
+          "prepare_ms": 0.000947,
+          "submit_ms": 24.293639,
+          "validation_ms": 21.5436005
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.000145,
+          "qualify_ms": 0.0001505
+        },
+        "validation_detail": {
+          "draws_ms": 4.457034999999999,
+          "finish_ms": 0.007083000000000001,
+          "indices_ms": 0.0756555,
+          "materials_ms": 0.001337,
+          "render_states_ms": 6.916848999999999,
+          "scene_state_ms": 0.0009265,
+          "vertices_ms": 0.987379
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.655312
+        }
+      ]
+    },
+    {
+      "log": "offscreen-geometry-10-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 42.251,
+          "frame_plan_ms": 6.338865,
+          "traversal_ms": 0.0034915
+        },
+        "bridge": {
+          "ffi_ms": 5.412850000000001,
+          "pack_ms": 14.77045
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 8.613391,
+          "finish_ms": 0.0830545,
+          "sort_ms": 0.271644
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 8.9140495
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000165
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 1.8848515
+        },
+        "rust": {
+          "gpu_wait_ms": 1.4801894999999998,
+          "prepare_encode_ms": 1.897099,
+          "readback_publish_ms": 0.1323605,
+          "submit_ms": 0.0553675,
+          "validation_ms": 1.5123395
+        },
+        "rust_cpu_detail": {
+          "attachments_ms": 0.299582,
+          "color_copy_ms": 0.1244865,
+          "depth_copy_ms": 0.00015999999999999999,
+          "draw_encode_ms": 1.5514169999999998,
+          "gpu_probe_read_ms": 0.000316,
+          "gpu_probe_setup_ms": 0.0007565,
+          "gpu_wait_ms": 1.4801894999999998,
+          "map_receive_ms": 0.001287,
+          "map_request_ms": 0.0034815000000000002,
+          "output_commit_ms": 7.500000000000001e-05,
+          "post_wait_checks_ms": 0.00040050000000000003,
+          "recycle_ms": 0.006883,
+          "scene_snapshot_ms": 2.5e-05,
+          "staging_prepare_ms": 0.0160895,
+          "submit_ms": 0.0553675,
+          "total_ms": 5.1501920000000005,
+          "validation_ms": 1.5123395
+        },
+        "rust_draw_resources": {},
+        "rust_gpu": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 0.00013499999999999997,
+          "payload_compare_ms": 0.0007515,
+          "resource_ms": 0.41934899999999997
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.886166
+        },
+        "rust_resources": {},
+        "target": {
+          "prepare_ms": 0.0006464999999999999,
+          "submit_ms": 20.218965500000003,
+          "validation_ms": 21.8215675
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001655,
+          "qualify_ms": 0.00014
+        },
+        "validation_detail": {
+          "draws_ms": 4.605255,
+          "finish_ms": 0.0057859999999999995,
+          "indices_ms": 0.077058,
+          "materials_ms": 0.001332,
+          "render_states_ms": 6.7200735,
+          "scene_state_ms": 0.0016235,
+          "vertices_ms": 1.0409485
+        },
+        "wgpu_offscreen": {},
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.970408
+        }
+      ]
+    },
+    {
+      "log": "offscreen-geometry-100-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 93.4339,
+          "frame_plan_ms": 63.32115,
+          "traversal_ms": 0.004313
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0029059999999999997,
+          "draw_encode_ms": 0.014472,
+          "encode_ms": 0.017447499999999998,
+          "frame_wait_ms": 2.83135,
+          "gpu_query_drain_ms": 6e-05,
+          "lower_ms": 49.8234435,
+          "read_request_ms": 0.000576,
+          "read_wait_ms": 2.8313800000000002,
+          "row_flip_ms": 0.08584449999999999,
+          "submit_frame_ms": 0.0122025,
+          "upload_ms": 0.8463215
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 17.2494895,
+          "finish_ms": 0.0539605,
+          "sort_ms": 0.1843125
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 17.432354500000002
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00046100000000000004
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 20.198507499999998
+        },
+        "target": {
+          "prepare_ms": 0.0008910000000000001,
+          "submit_ms": 53.6852375,
+          "validation_ms": 39.703949
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001505,
+          "qualify_ms": 0.0001605
+        },
+        "validation_detail": {
+          "draws_ms": 4.498367,
+          "finish_ms": 0.0052995,
+          "indices_ms": 0.8264104999999999,
+          "materials_ms": 0.0014325000000000002,
+          "render_states_ms": 6.8413094999999995,
+          "scene_state_ms": 0.0013425,
+          "vertices_ms": 9.517200500000001
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.203479
+        }
+      ]
+    },
+    {
+      "log": "offscreen-geometry-100-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 93.38655,
+          "frame_plan_ms": 66.76805,
+          "traversal_ms": 0.004994500000000001
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.003256,
+          "draw_encode_ms": 0.015904500000000002,
+          "encode_ms": 0.0190455,
+          "frame_wait_ms": 2.353011,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 50.423377,
+          "read_request_ms": 0.000571,
+          "read_wait_ms": 2.353041,
+          "row_flip_ms": 0.0002205,
+          "submit_frame_ms": 0.0134345,
+          "upload_ms": 0.7935595
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 17.4402935,
+          "finish_ms": 0.057853,
+          "sort_ms": 0.199741
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 17.641177
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000401
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 22.698963
+        },
+        "target": {
+          "prepare_ms": 0.0008420000000000001,
+          "submit_ms": 53.68465500000001,
+          "validation_ms": 39.984139
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001405,
+          "qualify_ms": 0.00014
+        },
+        "validation_detail": {
+          "draws_ms": 4.5417570000000005,
+          "finish_ms": 0.005666,
+          "indices_ms": 0.8088074999999999,
+          "materials_ms": 0.001358,
+          "render_states_ms": 6.8232205,
+          "scene_state_ms": 0.0016380000000000001,
+          "vertices_ms": 9.694574
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.306721
+        }
+      ]
+    },
+    {
+      "log": "offscreen-geometry-100-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 86.31035,
+          "frame_plan_ms": 65.1796,
+          "traversal_ms": 0.0041475
+        },
+        "bridge": {
+          "ffi_ms": 5.02717,
+          "pack_ms": 41.63655
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 17.428753,
+          "finish_ms": 0.0606375,
+          "sort_ms": 0.197963
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 17.629541500000002
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00023549999999999998
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 21.5828005
+        },
+        "rust": {
+          "gpu_wait_ms": 1.4821985,
+          "prepare_encode_ms": 1.5879755,
+          "readback_publish_ms": 0.1346095,
+          "submit_ms": 0.050404000000000004,
+          "validation_ms": 1.5311895
+        },
+        "rust_cpu_detail": {
+          "attachments_ms": 0.28070649999999997,
+          "color_copy_ms": 0.1256085,
+          "depth_copy_ms": 0.000216,
+          "draw_encode_ms": 1.306377,
+          "gpu_probe_read_ms": 0.000306,
+          "gpu_probe_setup_ms": 0.0008420000000000001,
+          "gpu_wait_ms": 1.4821985,
+          "map_receive_ms": 0.0010114999999999998,
+          "map_request_ms": 0.0033615,
+          "output_commit_ms": 4.5e-05,
+          "post_wait_checks_ms": 0.0002405,
+          "recycle_ms": 0.006637499999999999,
+          "scene_snapshot_ms": 3e-05,
+          "staging_prepare_ms": 0.0143465,
+          "submit_ms": 0.050404000000000004,
+          "total_ms": 4.799927,
+          "validation_ms": 1.5311895
+        },
+        "rust_draw_resources": {},
+        "rust_gpu": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4.4999999999999996e-05,
+          "payload_compare_ms": 0.0003155,
+          "resource_ms": 0.40847900000000004
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.6983524999999999
+        },
+        "rust_resources": {},
+        "target": {
+          "prepare_ms": 0.0006215,
+          "submit_ms": 46.6888005,
+          "validation_ms": 39.661726
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00014,
+          "qualify_ms": 0.000145
+        },
+        "validation_detail": {
+          "draws_ms": 4.533993000000001,
+          "finish_ms": 0.005901,
+          "indices_ms": 0.77537,
+          "materials_ms": 0.001407,
+          "render_states_ms": 6.860745,
+          "scene_state_ms": 0.001263,
+          "vertices_ms": 9.412115499999999
+        },
+        "wgpu_offscreen": {},
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 3.305891
+        }
+      ]
+    },
+    {
+      "log": "offscreen-materials-10-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 45.2793,
+          "frame_plan_ms": 2.53084,
+          "traversal_ms": 0.0028955
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0030004999999999997,
+          "draw_encode_ms": 0.012919,
+          "encode_ms": 0.01612,
+          "frame_wait_ms": 2.7240555,
+          "gpu_query_drain_ms": 4.5e-05,
+          "lower_ms": 20.6052065,
+          "read_request_ms": 0.000531,
+          "read_wait_ms": 2.7240855,
+          "row_flip_ms": 0.098388,
+          "submit_frame_ms": 0.0120825,
+          "upload_ms": 0.661589
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 8.476521,
+          "finish_ms": 0.066714,
+          "sort_ms": 0.1880345
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 8.6755455
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0003955
+        },
+        "target": {
+          "prepare_ms": 0.0006765,
+          "submit_ms": 24.243415,
+          "validation_ms": 21.166594
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00014,
+          "qualify_ms": 0.00015050000000000003
+        },
+        "validation_detail": {
+          "draws_ms": 4.436707500000001,
+          "finish_ms": 0.006687,
+          "indices_ms": 0.0751545,
+          "materials_ms": 0.006883,
+          "render_states_ms": 6.577173,
+          "scene_state_ms": 0.0010170000000000001,
+          "vertices_ms": 0.9450305
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.621069
+        }
+      ]
+    },
+    {
+      "log": "offscreen-materials-10-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 53.434250000000006,
+          "frame_plan_ms": 2.822985,
+          "traversal_ms": 0.0046485
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.004477999999999999,
+          "draw_encode_ms": 0.0169715,
+          "encode_ms": 0.0212995,
+          "frame_wait_ms": 2.4130225000000003,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 24.2504125,
+          "read_request_ms": 0.0009364999999999999,
+          "read_wait_ms": 2.4130925,
+          "row_flip_ms": 0.0003055,
+          "submit_frame_ms": 0.0151835,
+          "upload_ms": 1.114971
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 10.4558435,
+          "finish_ms": 0.0815965,
+          "sort_ms": 0.228379
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 10.7359535
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000496
+        },
+        "target": {
+          "prepare_ms": 0.001132,
+          "submit_ms": 28.1678445,
+          "validation_ms": 25.1731015
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00023,
+          "qualify_ms": 0.0001455
+        },
+        "validation_detail": {
+          "draws_ms": 5.016954500000001,
+          "finish_ms": 0.00785,
+          "indices_ms": 0.081216,
+          "materials_ms": 0.0083855,
+          "render_states_ms": 7.924045,
+          "scene_state_ms": 0.0010119999999999999,
+          "vertices_ms": 1.1393965000000001
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.914815
+        }
+      ]
+    },
+    {
+      "log": "offscreen-materials-10-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 39.77455,
+          "frame_plan_ms": 2.5441599999999998,
+          "traversal_ms": 0.0021384999999999998
+        },
+        "bridge": {
+          "ffi_ms": 4.322405,
+          "pack_ms": 14.0336
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 8.3997585,
+          "finish_ms": 0.0724095,
+          "sort_ms": 0.187328
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 8.587923
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0002155
+        },
+        "rust": {
+          "gpu_wait_ms": 0.6596150000000001,
+          "prepare_encode_ms": 1.69847,
+          "readback_publish_ms": 0.114202,
+          "submit_ms": 0.050238000000000005,
+          "validation_ms": 1.5092535
+        },
+        "rust_cpu_detail": {
+          "attachments_ms": 0.2624875,
+          "color_copy_ms": 0.10784550000000001,
+          "depth_copy_ms": 0.000185,
+          "draw_encode_ms": 1.351506,
+          "gpu_probe_read_ms": 0.00018,
+          "gpu_probe_setup_ms": 0.0008465,
+          "gpu_wait_ms": 0.6596150000000001,
+          "map_receive_ms": 0.001117,
+          "map_request_ms": 0.0034365,
+          "output_commit_ms": 4.55e-05,
+          "post_wait_checks_ms": 0.00025100000000000003,
+          "recycle_ms": 0.0045035000000000006,
+          "scene_snapshot_ms": 2e-05,
+          "staging_prepare_ms": 0.014527,
+          "submit_ms": 0.050238000000000005,
+          "total_ms": 4.07255,
+          "validation_ms": 1.5092535
+        },
+        "rust_draw_resources": {},
+        "rust_gpu": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 0.028403,
+          "payload_compare_ms": 0.38234999999999997,
+          "resource_ms": 0.060793
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.6732905
+        },
+        "rust_resources": {},
+        "target": {
+          "prepare_ms": 0.000586,
+          "submit_ms": 18.5100795,
+          "validation_ms": 21.3530405
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00016,
+          "qualify_ms": 0.000145
+        },
+        "validation_detail": {
+          "draws_ms": 4.5055745,
+          "finish_ms": 0.006883,
+          "indices_ms": 0.0767025,
+          "materials_ms": 0.006813,
+          "render_states_ms": 6.6080205,
+          "scene_state_ms": 0.001197,
+          "vertices_ms": 1.0280645000000002
+        },
+        "wgpu_offscreen": {},
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.763684
+        }
+      ]
+    },
+    {
+      "log": "offscreen-static-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 1.059675,
+          "frame_plan_ms": 0.0001655,
+          "traversal_ms": 0.000807
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0005205,
+          "draw_encode_ms": 0.003712,
+          "encode_ms": 0.0042325,
+          "frame_wait_ms": 0.953246,
+          "gpu_query_drain_ms": 2.5e-05,
+          "lower_ms": 0.0033715,
+          "read_request_ms": 0.0001305,
+          "read_wait_ms": 0.953271,
+          "row_flip_ms": 0.068898,
+          "submit_frame_ms": 0.0041425,
+          "upload_ms": 0.0001505
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "target": {
+          "prepare_ms": 0.0001105,
+          "submit_ms": 1.0551445,
+          "validation_ms": 0.000526
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00029049999999999996
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.697631
+        }
+      ]
+    },
+    {
+      "log": "offscreen-static-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 0.9682189999999999,
+          "frame_plan_ms": 5.5e-05,
+          "traversal_ms": 0.0007515
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.000496,
+          "draw_encode_ms": 0.0028205,
+          "encode_ms": 0.0033115,
+          "frame_wait_ms": 0.9303025,
+          "gpu_query_drain_ms": 4e-05,
+          "lower_ms": 0.003346,
+          "read_request_ms": 0.0001155,
+          "read_wait_ms": 0.9303275,
+          "row_flip_ms": 6.5e-05,
+          "submit_frame_ms": 0.0038025,
+          "upload_ms": 0.0001305
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "target": {
+          "prepare_ms": 0.00012,
+          "submit_ms": 0.9631635000000001,
+          "validation_ms": 0.000511
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0002655
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.876844
+        }
+      ]
+    },
+    {
+      "log": "offscreen-static-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 1.651835,
+          "frame_plan_ms": 0.00025,
+          "traversal_ms": 0.0027255
+        },
+        "bridge": {
+          "ffi_ms": 1.6208200000000001,
+          "pack_ms": 0.001658
+        },
+        "rust": {
+          "gpu_wait_ms": 0.5739455,
+          "prepare_encode_ms": 0.287083,
+          "readback_publish_ms": 0.095998,
+          "submit_ms": 0.036608,
+          "validation_ms": 0.4226005
+        },
+        "rust_cpu_detail": {
+          "attachments_ms": 0.12574849999999999,
+          "color_copy_ms": 0.0936035,
+          "depth_copy_ms": 8.549999999999999e-05,
+          "draw_encode_ms": 0.160478,
+          "gpu_probe_read_ms": 7.55e-05,
+          "gpu_probe_setup_ms": 0.000531,
+          "gpu_wait_ms": 0.5739455,
+          "map_receive_ms": 0.0007559999999999999,
+          "map_request_ms": 0.0023395,
+          "output_commit_ms": 6.55e-05,
+          "post_wait_checks_ms": 0.000211,
+          "recycle_ms": 0.0014225000000000002,
+          "scene_snapshot_ms": 2.5e-05,
+          "staging_prepare_ms": 0.010304500000000001,
+          "submit_ms": 0.036608,
+          "total_ms": 1.4296105,
+          "validation_ms": 0.4226005
+        },
+        "rust_draw_resources": {},
+        "rust_gpu": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4e-05,
+          "payload_compare_ms": 3.5e-05,
+          "resource_ms": 0.00017499999999999997
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.0009865
+        },
+        "rust_resources": {},
+        "target": {
+          "prepare_ms": 0.0002155,
+          "submit_ms": 1.643488,
+          "validation_ms": 0.0006765
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0003905
+        },
+        "wgpu_offscreen": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.814698
+        }
+      ]
+    },
+    {
+      "log": "offscreen-transforms-10-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 38.1096,
+          "frame_plan_ms": 2.14093,
+          "traversal_ms": 0.003196
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0030805,
+          "draw_encode_ms": 0.0131945,
+          "encode_ms": 0.0164155,
+          "frame_wait_ms": 2.750304,
+          "gpu_query_drain_ms": 5.5e-05,
+          "lower_ms": 16.4331565,
+          "read_request_ms": 0.0004805,
+          "read_wait_ms": 2.750334,
+          "row_flip_ms": 0.111592,
+          "submit_frame_ms": 0.011276,
+          "upload_ms": 0.6013475
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 6.8792539999999995,
+          "finish_ms": 0.013746,
+          "sort_ms": 0.218511
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 7.1082145
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000456
+        },
+        "target": {
+          "prepare_ms": 0.0007515,
+          "submit_ms": 20.032653,
+          "validation_ms": 18.1178465
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00014,
+          "qualify_ms": 0.000141
+        },
+        "validation_detail": {
+          "draws_ms": 4.2017454999999995,
+          "finish_ms": 0.006978,
+          "indices_ms": 0.000521,
+          "materials_ms": 0.0014375,
+          "render_states_ms": 6.306559999999999,
+          "scene_state_ms": 0.001072,
+          "vertices_ms": 0.003166
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.543064
+        }
+      ]
+    },
+    {
+      "log": "offscreen-transforms-10-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 38.863749999999996,
+          "frame_plan_ms": 2.144775,
+          "traversal_ms": 0.0029100000000000003
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.003367,
+          "draw_encode_ms": 0.014211,
+          "encode_ms": 0.0174875,
+          "frame_wait_ms": 2.2654185,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 16.4737375,
+          "read_request_ms": 0.0006915,
+          "read_wait_ms": 2.2654635,
+          "row_flip_ms": 0.000185,
+          "submit_frame_ms": 0.013695,
+          "upload_ms": 0.637845
+        },
+        "bgfx_base_program": {},
+        "bgfx_geometry": {},
+        "bgfx_program_cache": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 7.0907675,
+          "finish_ms": 0.0119925,
+          "sort_ms": 0.189131
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 7.288329
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0004355
+        },
+        "target": {
+          "prepare_ms": 0.000746,
+          "submit_ms": 19.463992,
+          "validation_ms": 19.413077
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.000145,
+          "qualify_ms": 0.00013499999999999997
+        },
+        "validation_detail": {
+          "draws_ms": 4.480518,
+          "finish_ms": 0.0060515,
+          "indices_ms": 0.00043599999999999997,
+          "materials_ms": 0.000887,
+          "render_states_ms": 7.152592,
+          "scene_state_ms": 0.0008964999999999999,
+          "vertices_ms": 0.0024745
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.546841
+        }
+      ]
+    },
+    {
+      "log": "offscreen-transforms-10-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 35.194649999999996,
+          "frame_plan_ms": 2.07299,
+          "traversal_ms": 0.0030210000000000002
+        },
+        "bridge": {
+          "ffi_ms": 4.846925,
+          "pack_ms": 11.61065
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 7.053758500000001,
+          "finish_ms": 0.015123,
+          "sort_ms": 0.202797
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 7.260467
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00016
+        },
+        "rust": {
+          "gpu_wait_ms": 1.471403,
+          "prepare_encode_ms": 1.453896,
+          "readback_publish_ms": 0.130733,
+          "submit_ms": 0.053013500000000005,
+          "validation_ms": 1.459251
+        },
+        "rust_cpu_detail": {
+          "attachments_ms": 0.18033,
+          "color_copy_ms": 0.1225425,
+          "depth_copy_ms": 0.000165,
+          "draw_encode_ms": 1.272203,
+          "gpu_probe_read_ms": 0.000225,
+          "gpu_probe_setup_ms": 0.000987,
+          "gpu_wait_ms": 1.471403,
+          "map_receive_ms": 0.0012125,
+          "map_request_ms": 0.0035965,
+          "output_commit_ms": 6.5e-05,
+          "post_wait_checks_ms": 0.0002455,
+          "recycle_ms": 0.006888,
+          "scene_snapshot_ms": 2.5e-05,
+          "staging_prepare_ms": 0.014181,
+          "submit_ms": 0.053013500000000005,
+          "total_ms": 4.607905000000001,
+          "validation_ms": 1.459251
+        },
+        "rust_draw_resources": {},
+        "rust_gpu": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4e-05,
+          "payload_compare_ms": 0.000526,
+          "resource_ms": 0.383066
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.6749985000000001
+        },
+        "rust_resources": {},
+        "target": {
+          "prepare_ms": 0.000616,
+          "submit_ms": 16.485754,
+          "validation_ms": 18.799462499999997
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001505,
+          "qualify_ms": 0.00013
+        },
+        "validation_detail": {
+          "draws_ms": 4.478344,
+          "finish_ms": 0.006898,
+          "indices_ms": 0.0003905,
+          "materials_ms": 0.0009765,
+          "render_states_ms": 6.4983315,
+          "scene_state_ms": 0.001017,
+          "vertices_ms": 0.0025605000000000003
+        },
+        "wgpu_offscreen": {},
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.633652
+        }
+      ]
+    },
+    {
+      "log": "window-camera-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 0.090864,
+          "frame_plan_ms": 6.33254,
+          "traversal_ms": 0.0017835
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.014557,
+          "encode_ms": 0.014557,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 3e-05,
+          "lower_ms": 0.019291,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.011505999999999999,
+          "upload_ms": 0.000957
+        },
+        "bgfx_base_program": {},
+        "target": {
+          "prepare_ms": 0.000876,
+          "submit_ms": 0.080069,
+          "validation_ms": 0.0023245
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0007160000000000001
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.934101
+        }
+      ]
+    },
+    {
+      "log": "window-camera-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 0.0832745,
+          "frame_plan_ms": 6.154484999999999,
+          "traversal_ms": 0.002149
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.0143865,
+          "encode_ms": 0.0143865,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 3e-05,
+          "lower_ms": 0.016696500000000003,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.011857,
+          "upload_ms": 0.000997
+        },
+        "bgfx_base_program": {},
+        "target": {
+          "prepare_ms": 0.001072,
+          "submit_ms": 0.0736315,
+          "validation_ms": 0.0027295
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0008565000000000001
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.783832
+        }
+      ]
+    },
+    {
+      "log": "window-camera-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 2.1861550000000003,
+          "frame_plan_ms": 5.592795,
+          "traversal_ms": 0.003216
+        },
+        "rust_draw_resources": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4e-05,
+          "payload_compare_ms": 3.05e-05,
+          "resource_ms": 7.999999999999999e-05
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.0012530000000000002
+        },
+        "rust_resources": {},
+        "rust_surface_cpu": {
+          "acquire_ms": 0.022717,
+          "capture_readback_ms": 0.00014,
+          "completion_registration_ms": 0.000656,
+          "encode_ms": 0.230503,
+          "present_ms": 0.125378,
+          "queue_submit_ms": 0.041416999999999995,
+          "submit_present_ms": 0.16839749999999998,
+          "total_ms": 0.45456949999999996,
+          "validation_ms": 0.024426
+        },
+        "target": {
+          "prepare_ms": 0.0009515,
+          "submit_ms": 2.170508,
+          "validation_ms": 0.002324
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0006915000000000001
+        },
+        "wgpu_surface": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.624596
+        }
+      ]
+    },
+    {
+      "log": "window-geometry-10-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 51.58645,
+          "frame_plan_ms": 8.788725,
+          "traversal_ms": 0.0061165
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.017301999999999998,
+          "encode_ms": 0.017301999999999998,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 4.55e-05,
+          "lower_ms": 24.799841,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.016891,
+          "upload_ms": 1.1213785
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 9.927855000000001,
+          "finish_ms": 0.0883745,
+          "sort_ms": 0.2770995
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 10.219487
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000691
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 2.455663
+        },
+        "target": {
+          "prepare_ms": 0.001167,
+          "submit_ms": 26.002155000000002,
+          "validation_ms": 25.630885
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0002455,
+          "qualify_ms": 0.00017500000000000003
+        },
+        "validation_detail": {
+          "draws_ms": 5.109503,
+          "finish_ms": 0.0073384999999999995,
+          "indices_ms": 0.0943055,
+          "materials_ms": 0.001753,
+          "render_states_ms": 8.1748935,
+          "scene_state_ms": 0.001087,
+          "vertices_ms": 1.2995595
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 3.556227
+        }
+      ]
+    },
+    {
+      "log": "window-geometry-10-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 51.789649999999995,
+          "frame_plan_ms": 8.60284,
+          "traversal_ms": 0.0060964999999999995
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.018344,
+          "encode_ms": 0.018344,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 5.05e-05,
+          "lower_ms": 24.5265475,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.017973000000000003,
+          "upload_ms": 1.1152425
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 10.8168165,
+          "finish_ms": 0.1019545,
+          "sort_ms": 0.28275
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 11.090961
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000551
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 2.357029
+        },
+        "target": {
+          "prepare_ms": 0.001177,
+          "submit_ms": 25.764929000000002,
+          "validation_ms": 26.234631
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00015,
+          "qualify_ms": 0.000165
+        },
+        "validation_detail": {
+          "draws_ms": 5.301399,
+          "finish_ms": 0.008346,
+          "indices_ms": 0.0922165,
+          "materials_ms": 0.0021745000000000002,
+          "render_states_ms": 7.8166174999999996,
+          "scene_state_ms": 0.001668,
+          "vertices_ms": 1.308511
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.34899
+        }
+      ]
+    },
+    {
+      "log": "window-geometry-10-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 47.5696,
+          "frame_plan_ms": 8.594265,
+          "traversal_ms": 0.004804
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 9.7472445,
+          "finish_ms": 0.1127245,
+          "sort_ms": 0.26629
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 10.014662
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00032050000000000004
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 2.4807395000000003
+        },
+        "rust_draw_resources": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4.9999999999999996e-05,
+          "payload_compare_ms": 0.0005915,
+          "resource_ms": 0.6579025000000001
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 1.3811215
+        },
+        "rust_resources": {},
+        "rust_surface_cpu": {
+          "acquire_ms": 0.0341235,
+          "capture_readback_ms": 0.0003005,
+          "completion_registration_ms": 0.0008815,
+          "encode_ms": 0.9823855,
+          "present_ms": 0.2485915,
+          "queue_submit_ms": 0.0622355,
+          "submit_present_ms": 0.3106065,
+          "total_ms": 4.6103955,
+          "validation_ms": 3.295728
+        },
+        "target": {
+          "prepare_ms": 0.0008114999999999999,
+          "submit_ms": 22.991687,
+          "validation_ms": 24.8738985
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.000155,
+          "qualify_ms": 0.0001655
+        },
+        "validation_detail": {
+          "draws_ms": 4.9637725,
+          "finish_ms": 0.0078695,
+          "indices_ms": 0.093439,
+          "materials_ms": 0.002179,
+          "render_states_ms": 7.675571,
+          "scene_state_ms": 0.001302,
+          "vertices_ms": 1.160015
+        },
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {},
+        "wgpu_surface": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 3.477311
+        }
+      ]
+    },
+    {
+      "log": "window-geometry-100-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 107.4675,
+          "frame_plan_ms": 78.46615,
+          "traversal_ms": 0.0056305
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.0194815,
+          "encode_ms": 0.0194815,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 57.90917949999999,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.0202425,
+          "upload_ms": 0.9114435000000001
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 21.0941925,
+          "finish_ms": 0.0710015,
+          "sort_ms": 0.2487975
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 21.3506545
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0005005
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 26.6147345
+        },
+        "target": {
+          "prepare_ms": 0.001152,
+          "submit_ms": 58.93227,
+          "validation_ms": 48.6165185
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001655,
+          "qualify_ms": 0.00016600000000000002
+        },
+        "validation_detail": {
+          "draws_ms": 5.338178,
+          "finish_ms": 0.008445999999999999,
+          "indices_ms": 0.9768,
+          "materials_ms": 0.001758,
+          "render_states_ms": 8.07083,
+          "scene_state_ms": 0.0014425,
+          "vertices_ms": 12.111648
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 5.249834
+        }
+      ]
+    },
+    {
+      "log": "window-geometry-100-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 121.629,
+          "frame_plan_ms": 86.9938,
+          "traversal_ms": 0.0067025
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.018885,
+          "encode_ms": 0.018885,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 5.5e-05,
+          "lower_ms": 67.3460305,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.0219865,
+          "upload_ms": 1.0914175
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 23.932630500000002,
+          "finish_ms": 0.09244150000000001,
+          "sort_ms": 0.2783625
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 24.2085075
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0005610000000000001
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 29.321308000000002
+        },
+        "target": {
+          "prepare_ms": 0.0013275000000000001,
+          "submit_ms": 68.53528,
+          "validation_ms": 53.650625500000004
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00017500000000000003,
+          "qualify_ms": 0.00016150000000000002
+        },
+        "validation_detail": {
+          "draws_ms": 6.0122705,
+          "finish_ms": 0.010725499999999999,
+          "indices_ms": 0.9996970000000001,
+          "materials_ms": 0.0020035,
+          "render_states_ms": 8.6158225,
+          "scene_state_ms": 0.0018735000000000002,
+          "vertices_ms": 13.360072500000001
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 6.677617
+        }
+      ]
+    },
+    {
+      "log": "window-geometry-100-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 113.3765,
+          "frame_plan_ms": 81.7755,
+          "traversal_ms": 0.005305000000000001
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 22.8410695,
+          "finish_ms": 0.09300800000000001,
+          "sort_ms": 0.2610095
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 23.128557999999998
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000757
+        },
+        "geometry_overlay_validation": {
+          "validation_ms": 26.524152
+        },
+        "rust_draw_resources": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4.9999999999999996e-05,
+          "payload_compare_ms": 0.0005660000000000001,
+          "resource_ms": 0.635491
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 1.383225
+        },
+        "rust_resources": {},
+        "rust_surface_cpu": {
+          "acquire_ms": 0.038607,
+          "capture_readback_ms": 0.00021,
+          "completion_registration_ms": 0.000972,
+          "encode_ms": 0.9604895,
+          "present_ms": 0.254563,
+          "queue_submit_ms": 0.0618895,
+          "submit_present_ms": 0.315952,
+          "total_ms": 4.899889,
+          "validation_ms": 3.6056039999999996
+        },
+        "target": {
+          "prepare_ms": 0.0010525,
+          "submit_ms": 62.987361,
+          "validation_ms": 50.025863
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0002055,
+          "qualify_ms": 0.0001655
+        },
+        "validation_detail": {
+          "draws_ms": 5.291692,
+          "finish_ms": 0.008921499999999999,
+          "indices_ms": 0.9695715,
+          "materials_ms": 0.0023945,
+          "render_states_ms": 8.231213499999999,
+          "scene_state_ms": 0.0017885,
+          "vertices_ms": 11.7289225
+        },
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {},
+        "wgpu_surface": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 3.626669
+        }
+      ]
+    },
+    {
+      "log": "window-materials-10-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 67.0729,
+          "frame_plan_ms": 5.806665,
+          "traversal_ms": 0.005796
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.0238845,
+          "encode_ms": 0.0238845,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 7.05e-05,
+          "lower_ms": 34.805758,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.0233235,
+          "upload_ms": 1.2159339999999998
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 13.054563,
+          "finish_ms": 0.1149985,
+          "sort_ms": 0.3039195
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 13.3599155
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000701
+        },
+        "target": {
+          "prepare_ms": 0.001087,
+          "submit_ms": 36.0707735,
+          "validation_ms": 30.6728545
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.00017500000000000003,
+          "qualify_ms": 0.000185
+        },
+        "validation_detail": {
+          "draws_ms": 5.9673915,
+          "finish_ms": 0.0102445,
+          "indices_ms": 0.187438,
+          "materials_ms": 0.020943999999999997,
+          "render_states_ms": 8.824663999999999,
+          "scene_state_ms": 0.0015885,
+          "vertices_ms": 1.4761225
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.849159
+        }
+      ]
+    },
+    {
+      "log": "window-materials-10-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 52.43215,
+          "frame_plan_ms": 3.633525,
+          "traversal_ms": 0.006021
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.017768,
+          "encode_ms": 0.017768,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 5e-05,
+          "lower_ms": 24.9143265,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.0173175,
+          "upload_ms": 1.052951
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 10.8271,
+          "finish_ms": 0.1101045,
+          "sort_ms": 0.283482
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 11.110867
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00046049999999999997
+        },
+        "target": {
+          "prepare_ms": 0.001057,
+          "submit_ms": 26.4010135,
+          "validation_ms": 26.291759499999998
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0002055,
+          "qualify_ms": 0.0001555
+        },
+        "validation_detail": {
+          "draws_ms": 5.0519405,
+          "finish_ms": 0.007834500000000001,
+          "indices_ms": 0.09949949999999999,
+          "materials_ms": 0.010875,
+          "render_states_ms": 8.179191,
+          "scene_state_ms": 0.001363,
+          "vertices_ms": 1.2957325000000002
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.33825
+        }
+      ]
+    },
+    {
+      "log": "window-materials-10-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 51.3106,
+          "frame_plan_ms": 3.81322,
+          "traversal_ms": 0.0057915
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 11.4229765,
+          "finish_ms": 0.1288195,
+          "sort_ms": 0.3168435
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 11.708511999999999
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0003705
+        },
+        "rust_draw_resources": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 0.038557,
+          "payload_compare_ms": 0.5026835,
+          "resource_ms": 0.0783455
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 1.3562595000000002
+        },
+        "rust_resources": {},
+        "rust_surface_cpu": {
+          "acquire_ms": 0.03837599999999999,
+          "capture_readback_ms": 0.00023549999999999998,
+          "completion_registration_ms": 0.000952,
+          "encode_ms": 0.9528405,
+          "present_ms": 0.2334785,
+          "queue_submit_ms": 0.072154,
+          "submit_present_ms": 0.3032935,
+          "total_ms": 4.669344499999999,
+          "validation_ms": 3.3913
+        },
+        "target": {
+          "prepare_ms": 0.0008370000000000001,
+          "submit_ms": 23.268409,
+          "validation_ms": 27.719548500000002
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.000155,
+          "qualify_ms": 0.0001605
+        },
+        "validation_detail": {
+          "draws_ms": 5.303583,
+          "finish_ms": 0.0098485,
+          "indices_ms": 0.131409,
+          "materials_ms": 0.010308999999999999,
+          "render_states_ms": 8.503809,
+          "scene_state_ms": 0.0019085,
+          "vertices_ms": 1.4449589999999999
+        },
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {},
+        "wgpu_surface": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.539022
+        }
+      ]
+    },
+    {
+      "log": "window-static-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 0.8400655,
+          "frame_plan_ms": 0.00011999999999999999,
+          "traversal_ms": 0.001448
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.004228,
+          "encode_ms": 0.004228,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 3e-05,
+          "lower_ms": 0.003562,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.804825,
+          "upload_ms": 0.00019500000000000002
+        },
+        "bgfx_base_program": {},
+        "target": {
+          "prepare_ms": 0.00014,
+          "submit_ms": 0.834631,
+          "validation_ms": 0.0006615
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00043099999999999996
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.737686
+        }
+      ]
+    },
+    {
+      "log": "window-static-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 0.5548055,
+          "frame_plan_ms": 0.000151,
+          "traversal_ms": 0.0011819999999999999
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.003902,
+          "encode_ms": 0.003902,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 4e-05,
+          "lower_ms": 0.003948,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.518994,
+          "upload_ms": 0.0001655
+        },
+        "bgfx_base_program": {},
+        "target": {
+          "prepare_ms": 0.000145,
+          "submit_ms": 0.5492105,
+          "validation_ms": 0.0007465
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00044050000000000003
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.751822
+        }
+      ]
+    },
+    {
+      "log": "window-static-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 0.6242194999999999,
+          "frame_plan_ms": 0.000261,
+          "traversal_ms": 0.0020989999999999997
+        },
+        "rust_draw_resources": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4e-05,
+          "payload_compare_ms": 2.9999999999999997e-05,
+          "resource_ms": 4e-05
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 0.001067
+        },
+        "rust_resources": {},
+        "rust_surface_cpu": {
+          "acquire_ms": 0.0072335,
+          "capture_readback_ms": 7e-05,
+          "completion_registration_ms": 0.000265,
+          "encode_ms": 0.13326749999999998,
+          "present_ms": 0.077314,
+          "queue_submit_ms": 0.026860000000000002,
+          "submit_present_ms": 0.10558100000000001,
+          "total_ms": 0.540339,
+          "validation_ms": 0.29446249999999996
+        },
+        "target": {
+          "prepare_ms": 0.000216,
+          "submit_ms": 0.6148825,
+          "validation_ms": 0.0007719999999999999
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0005614999999999999
+        },
+        "wgpu_surface": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 2.603226
+        }
+      ]
+    },
+    {
+      "log": "window-transforms-10-bgfx-opengl.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 59.07155,
+          "frame_plan_ms": 4.386485,
+          "traversal_ms": 0.0064115000000000005
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.022761999999999998,
+          "encode_ms": 0.022761999999999998,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 5.5e-05,
+          "lower_ms": 28.1444885,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.0226925,
+          "upload_ms": 5.1002054999999995
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 10.7813555,
+          "finish_ms": 0.024656,
+          "sort_ms": 0.32028500000000004
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 11.102893
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.0007559999999999999
+        },
+        "target": {
+          "prepare_ms": 0.000997,
+          "submit_ms": 31.639793,
+          "validation_ms": 27.5182355
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.000205,
+          "qualify_ms": 0.00020600000000000002
+        },
+        "validation_detail": {
+          "draws_ms": 6.337655,
+          "finish_ms": 0.0114465,
+          "indices_ms": 0.0011524999999999999,
+          "materials_ms": 0.0021939999999999998,
+          "render_states_ms": 9.234236,
+          "scene_state_ms": 0.001287,
+          "vertices_ms": 0.003827
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.963441
+        }
+      ]
+    },
+    {
+      "log": "window-transforms-10-bgfx-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 58.2452,
+          "frame_plan_ms": 3.926015,
+          "traversal_ms": 0.0066324999999999995
+        },
+        "bgfx": {
+          "blit_encode_ms": 0.0,
+          "draw_encode_ms": 0.024335500000000003,
+          "encode_ms": 0.024335500000000003,
+          "frame_wait_ms": 0.0,
+          "gpu_query_drain_ms": 5.5e-05,
+          "lower_ms": 31.297431500000002,
+          "read_request_ms": 0.0,
+          "read_wait_ms": 0.0,
+          "row_flip_ms": 0.0,
+          "submit_frame_ms": 0.0226425,
+          "upload_ms": 0.803498
+        },
+        "bgfx_base_program": {},
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 9.904461000000001,
+          "finish_ms": 0.0248215,
+          "sort_ms": 0.311654
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 10.221024499999999
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.000857
+        },
+        "target": {
+          "prepare_ms": 0.0011675,
+          "submit_ms": 32.202913,
+          "validation_ms": 26.3203045
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.000175,
+          "qualify_ms": 0.000165
+        },
+        "validation_detail": {
+          "draws_ms": 6.0767045,
+          "finish_ms": 0.010404,
+          "indices_ms": 0.000792,
+          "materials_ms": 0.002059,
+          "render_states_ms": 9.233489500000001,
+          "scene_state_ms": 0.0015279999999999998,
+          "vertices_ms": 0.004032
+        }
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.986906
+        }
+      ]
+    },
+    {
+      "log": "window-transforms-10-wgpu-vulkan.log",
+      "warm_frames": 4,
+      "phase_medians_ms": {
+        "action": {
+          "backend_ms": 47.369249999999994,
+          "frame_plan_ms": 2.66512,
+          "traversal_ms": 0.0044585
+        },
+        "combine_validation_memo": {},
+        "composition_detail": {
+          "classify_ms": 9.3598295,
+          "finish_ms": 0.0197665,
+          "sort_ms": 0.411239
+        },
+        "composition_identity": {
+          "copy_ms": 0.0,
+          "qualify_ms": 9.838423500000001
+        },
+        "composition_range_memo": {},
+        "composition_schedule_copy": {
+          "copy_ms": 0.0,
+          "qualify_ms": 0.00028050000000000004
+        },
+        "rust_draw_resources": {},
+        "rust_instance_resources": {},
+        "rust_instances": {},
+        "rust_material_resources": {
+          "pack_ms": 4.9999999999999996e-05,
+          "payload_compare_ms": 0.0008715,
+          "resource_ms": 0.6697545
+        },
+        "rust_material_snapshot": {
+          "snapshot_ms": 1.1111445
+        },
+        "rust_resources": {},
+        "rust_surface_cpu": {
+          "acquire_ms": 0.0389125,
+          "capture_readback_ms": 0.000155,
+          "completion_registration_ms": 0.001177,
+          "encode_ms": 0.9829015000000001,
+          "present_ms": 0.251407,
+          "queue_submit_ms": 0.0575565,
+          "submit_present_ms": 0.31560600000000005,
+          "total_ms": 4.344511499999999,
+          "validation_ms": 3.0100119999999997
+        },
+        "target": {
+          "prepare_ms": 0.0011020000000000001,
+          "submit_ms": 22.53893,
+          "validation_ms": 24.1756155
+        },
+        "target_composition_copy": {
+          "copy_ms": 0.0001455,
+          "qualify_ms": 0.000165
+        },
+        "validation_detail": {
+          "draws_ms": 5.378773000000001,
+          "finish_ms": 0.010374000000000001,
+          "indices_ms": 0.000641,
+          "materials_ms": 0.001768,
+          "render_states_ms": 8.3445985,
+          "scene_state_ms": 0.001262,
+          "vertices_ms": 0.0037264999999999998
+        },
+        "wgpu_opaque_camera": {},
+        "wgpu_opaque_instancing": {},
+        "wgpu_surface": {}
+      },
+      "postcommit_camera_qualification": [
+        {
+          "prepare_ms": 4.685044
+        }
+      ]
+    }
+  ]
+}

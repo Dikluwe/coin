@@ -1,0 +1,29 @@
+startup_detail arguments_ms=0.0267 coin_init_ms=1.90096 capability_probe_ms=122.528
+scene_detail parse_ms=297.691 wrapper_ms=0.018214 camera_fit_ms=70.6361
+scene_load_ms=368.406
+animation_detail mode=static animated_percent=10 eligible=40000 selected=0 prepared_clones=0 prepare_ms=23.366 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.091781 target_setup_ms=0.310359
+BGFX-OpenGL_first_detail render_ms=384.091 publication_copy_ms=0.095758 update_ms=0.00017 total_with_update_ms=384.187 before_frame_since_main_ms=516.691 result_since_main_ms=900.878
+BGFX-OpenGL_first_frame_ms=384.187
+capture backend=BGFX-OpenGL frame_index=0 logical_frame=0 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000000.ppm
+capture backend=BGFX-OpenGL frame_index=1 logical_frame=100 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000001.ppm
+capture backend=BGFX-OpenGL frame_index=2 logical_frame=200 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000002.ppm
+capture backend=BGFX-OpenGL frame_index=3 logical_frame=300 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000003.ppm
+capture backend=BGFX-OpenGL frame_index=4 logical_frame=400 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000004.ppm
+capture backend=BGFX-OpenGL frame_index=5 logical_frame=500 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000005.ppm
+capture backend=BGFX-OpenGL frame_index=6 logical_frame=600 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/static-bgfx-opengl-reserve-1-BGFX-OpenGL-000006.ppm
+BGFX-OpenGL_animation_final logical_frame=600 state_fnv64=0x65cec46a260273f5
+samples_output=/tmp/coin-perf-verify/samples/static-bgfx-opengl-reserve-1.csv rows=7
+rgba_fnv64=0x37ca7243cb2b4002
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=512x512 warmup=0 scene=/tmp/coin-perf-final/city.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..6 warmup_indices=-0..-1 frame_step=100 captures=7 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-OpenGL frames=7 median_ms=1.08196 p95_ms=384.187 min_ms=1.02709 max_ms=384.187
+BGFX_render_and_readback frames=7 median_ms=1.05867 p95_ms=384.091 min_ms=1.00409 max_ms=384.091
+BGFX_publication_copy frames=7 median_ms=0.024064 p95_ms=0.095758 min_ms=0.022743 max_ms=0.095758
+BGFX-OpenGL_timing_total frames=7 median_ms=1.081987 p95_ms=384.187082 p99_ms=384.187082 max_ms=384.187082 over_16_67=1 over_33_33=1
+BGFX-OpenGL_timing_update frames=7 median_ms=7e-05 p95_ms=0.00024 p99_ms=0.00024 max_ms=0.00024 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_render frames=7 median_ms=1.058673 p95_ms=384.091154 p99_ms=384.091154 max_ms=384.091154 over_16_67=1 over_33_33=1
+BGFX-OpenGL_throughput frames=7 total_ms=410.124 fps=17.068
+backend_cleanup_begin
+backend_cleanup_ms=27.1146
+benchmark_peak_rss_kib=281680

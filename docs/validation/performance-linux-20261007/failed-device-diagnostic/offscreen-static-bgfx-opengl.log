@@ -1,0 +1,27 @@
+startup_detail arguments_ms=0.015318 coin_init_ms=2.53608 capability_probe_ms=2103.2
+scene_detail parse_ms=376.561 wrapper_ms=0.022462 camera_fit_ms=94.0444
+scene_load_ms=470.706
+animation_detail mode=static animated_percent=10 eligible=40000 selected=0 prepared_clones=0 prepare_ms=33.7631 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.112909 target_setup_ms=0.397028
+libEGL warning: pci id for fd 4: 10de:2560, driver (null)
+
+pci id for fd 5: 10de:2560, driver (null)
+pci id for fd 6: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+pci id for fd 5: 10de:2560, driver (null)
+pci id for fd 6: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+COIN_RENDER_PHASE bgfx_gl_adapter vendor=Mesa renderer=llvmpipe (LLVM 20.1.2, 256 bits) version=4.5 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+COIN_RENDER_PHASE bgfx_device renderer=OpenGL 4.3 vendor_id=0x0000 device_id=0x0000 homogeneous_depth=1
+COIN_RENDER_PHASE bgfx_formats rgba8=0xfcdb d24s8=0x7041 d32f=0xf041 readback=1
+COIN_RENDER_PHASE combine_validation_memo enabled=1 programs_checked=320008 cache_hits=320000 validated=8
+COIN_RENDER_PHASE validation_detail materials_ms=0.005481 vertices_ms=0.004869 indices_ms=0.001092 scene_state_ms=0.001743 render_states_ms=8.865135 draws_ms=5.312858 finish_ms=0.009237
+COIN_RENDER_PHASE composition_range_memo enabled=1 entries=9 admissions=9 hits=39992 depth_skipped=1440036 bound_fallbacks=0
+COIN_RENDER_PHASE composition_identity consumer=common copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=40001 qualify_ms=9.607915 copy_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=9.348153 sort_ms=0.259361 finish_ms=0.018695
+COIN_RENDER_PHASE plan_storage vertices=216 indices=324 render_states=40001 draws=40001 vertex_stride=164 vertex_bytes=35424 vertex_capacity_bytes=62976 index_bytes=1296 index_capacity_bytes=2048 render_state_bytes=65921648 render_state_capacity_bytes=65926592 draw_capacity_bytes=3840096 capture_reserve_estimate=40004 transfer_ownership=1 cube_replay_hits=39999 cube_template_entries=2 cube_range_entries=9 cube_template_evictions=0 cube_range_evictions=0 cube_range_reuse_hits=39992
+COIN_RENDER_PHASE builder_detail expand_styles_ms=0.592591 validation_ms=14.551437 composition_ms=9.645394 storage_report_ms=0.010470 publish_plan_ms=1.677105 finish_ms=0.000210
+COIN_RENDER_PHASE bgfx_device renderer=OpenGL 4.3 vendor_id=0x0000 device_id=0x0000 homogeneous_depth=1
+COIN_RENDER_PHASE bgfx_formats rgba8=0x8cdb d24s8=0x8041 d32f=0x8041 readback=1
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=40001 borrowed_bytes=2240056 computed_items=0 qualify_ms=0.001803 copy_ms=0.000000
+WebGPU frame failed: BGFX renderer lacks the required window/offscreen capabilities

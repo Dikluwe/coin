@@ -1,0 +1,29 @@
+startup_detail arguments_ms=0.026048 coin_init_ms=1.9594 capability_probe_ms=124.211
+scene_detail parse_ms=301.356 wrapper_ms=0.017673 camera_fit_ms=71.1712
+scene_load_ms=372.61
+animation_detail mode=camera animated_percent=10 eligible=40000 selected=0 prepared_clones=0 prepare_ms=23.4695 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.092222 target_setup_ms=0.330245
+BGFX-OpenGL_first_detail render_ms=385.325 publication_copy_ms=0.10713 update_ms=0.005521 total_with_update_ms=385.437 before_frame_since_main_ms=522.774 result_since_main_ms=908.206
+BGFX-OpenGL_first_frame_ms=385.432
+capture backend=BGFX-OpenGL frame_index=0 logical_frame=0 rgba_fnv64=0x37ca7243cb2b4002 rgb_fnv64=0xc86d5bff301f0c80 state_fnv64=0x65cec46a260273f5 image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000000.ppm
+capture backend=BGFX-OpenGL frame_index=1 logical_frame=100 rgba_fnv64=0xed2cd1459246dbd4 rgb_fnv64=0xda572973ec0c3460 state_fnv64=0x395fe6b6ba3473ce image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000001.ppm
+capture backend=BGFX-OpenGL frame_index=2 logical_frame=200 rgba_fnv64=0xfaf820c6d30b6fb2 rgb_fnv64=0xb47dd60a49c909ca state_fnv64=0xccc75e292e43c375 image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000002.ppm
+capture backend=BGFX-OpenGL frame_index=3 logical_frame=300 rgba_fnv64=0x611fb69d51daa492 rgb_fnv64=0x49be52e7d3cd7f98 state_fnv64=0xd98d32a4aa34653d image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000003.ppm
+capture backend=BGFX-OpenGL frame_index=4 logical_frame=400 rgba_fnv64=0xed556d34c802332b rgb_fnv64=0x2da078cad03e967d state_fnv64=0x72e67a1b9b2ac5b0 image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000004.ppm
+capture backend=BGFX-OpenGL frame_index=5 logical_frame=500 rgba_fnv64=0xf4ff820847c1f938 rgb_fnv64=0x71c4ea02d583ce2e state_fnv64=0x6b7e03422c1d9e7c image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000005.ppm
+capture backend=BGFX-OpenGL frame_index=6 logical_frame=600 rgba_fnv64=0x5fc1a0415795eb43 rgb_fnv64=0x5fd46aa314c3efd state_fnv64=0x4e7271163e04a44a image=/tmp/coin-perf-verify/images/camera-bgfx-opengl-reserve-1-BGFX-OpenGL-000006.ppm
+BGFX-OpenGL_animation_final logical_frame=600 state_fnv64=0x4e7271163e04a44a
+samples_output=/tmp/coin-perf-verify/samples/camera-bgfx-opengl-reserve-1.csv rows=7
+rgba_fnv64=0x5fc1a0415795eb43
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) vendor_id=0x10de device_id=0x0 backend=bgfx size=512x512 warmup=0 scene=/tmp/coin-perf-final/city.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=camera
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..6 warmup_indices=-0..-1 frame_step=100 captures=7 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-OpenGL frames=7 median_ms=7.38623 p95_ms=385.432 min_ms=6.59279 max_ms=385.432
+BGFX_render_and_readback frames=7 median_ms=7.29294 p95_ms=385.325 min_ms=6.49571 max_ms=385.325
+BGFX_publication_copy frames=7 median_ms=0.094526 p95_ms=0.110086 min_ms=0.076472 max_ms=0.110086
+BGFX-OpenGL_timing_total frames=7 median_ms=7.442034 p95_ms=385.437224 p99_ms=385.437224 max_ms=385.437224 over_16_67=1 over_33_33=1
+BGFX-OpenGL_timing_update frames=7 median_ms=0.017803 p95_ms=0.055804 p99_ms=0.055804 max_ms=0.055804 over_16_67=0 over_33_33=0
+BGFX-OpenGL_timing_render frames=7 median_ms=7.292936 p95_ms=385.324573 p99_ms=385.324573 max_ms=385.324573 over_16_67=1 over_33_33=1
+BGFX-OpenGL_throughput frames=7 total_ms=451.851 fps=15.4918
+backend_cleanup_begin
+backend_cleanup_ms=26.2917
+benchmark_peak_rss_kib=284416

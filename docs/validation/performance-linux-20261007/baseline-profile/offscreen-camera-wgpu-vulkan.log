@@ -1,0 +1,119 @@
+startup_detail arguments_ms=0.013124 coin_init_ms=2.02389 capability_probe_ms=174.327
+scene_detail parse_ms=311.006 wrapper_ms=0.021069 camera_fit_ms=71.982
+scene_load_ms=383.082
+animation_detail mode=camera animated_percent=10 eligible=40000 selected=0 prepared_clones=0 prepare_ms=22.6336 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x9ff61e351311c0b1
+startup_detail material_search_ms=0.099895 target_setup_ms=0.356192
+WebGPU_first_detail render_ms=305.95 publication_copy_ms=0.114844 update_ms=0.006262 total_with_update_ms=306.072 before_frame_since_main_ms=582.612 result_since_main_ms=888.677
+WebGPU_first_frame_ms=306.065
+WebGPU_animation_final logical_frame=3 state_fnv64=0xba0a605cf626ada
+samples_output=/tmp/coin-perf-profile-desktop/offscreen-camera-wgpu-vulkan.csv rows=6
+rgba_fnv64=0xdfcf6fffb1f6e11a
+adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=512x512 warmup=2 scene=/tmp/coin-render-city-40000.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=camera
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..3 warmup_indices=-2..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=4 median_ms=9.24996 p95_ms=9.41475 min_ms=8.69384 max_ms=9.41475
+WebGPU_render frames=4 median_ms=9.17316 p95_ms=9.34457 min_ms=8.59339 max_ms=9.34457
+WebGPU_copy frames=4 median_ms=0.094114 p95_ms=0.100447 min_ms=0.070181 max_ms=0.100447
+WebGPU_timing_total frames=4 median_ms=9.135495 p95_ms=9.435167 p99_ms=9.435167 max_ms=9.435167 over_16_67=0 over_33_33=0
+WebGPU_timing_update frames=4 median_ms=0.0196365 p95_ms=0.020418 p99_ms=0.020418 max_ms=0.020418 over_16_67=0 over_33_33=0
+WebGPU_timing_render frames=4 median_ms=9.0304 p95_ms=9.344568 p99_ms=9.344568 max_ms=9.344568 over_16_67=0 over_33_33=0
+WebGPU_throughput frames=4 total_ms=36.4244 fps=109.816
+WebGPU_cache last_frame_uploads=0 last_frame_uploaded_bytes=0 last_frame_hits=1 cumulative_uploads=1 cumulative_uploaded_bytes=5764944 cumulative_hits=5
+backend_cleanup_begin
+backend_cleanup_ms=6.56707
+COIN_RENDER_PHASE combine_validation_memo enabled=1 programs_checked=320008 cache_hits=320000 validated=8
+COIN_RENDER_PHASE validation_detail materials_ms=0.002214 vertices_ms=0.003106 indices_ms=0.000450 scene_state_ms=0.000501 render_states_ms=6.426298 draws_ms=4.584867 finish_ms=0.010509
+COIN_RENDER_PHASE composition_range_memo enabled=1 entries=9 admissions=9 hits=39992 depth_skipped=1440036 bound_fallbacks=0
+COIN_RENDER_PHASE composition_identity consumer=common copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=40001 qualify_ms=7.380450 copy_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=7.197580 sort_ms=0.181838 finish_ms=0.012964
+COIN_RENDER_PHASE plan_storage vertices=216 indices=324 render_states=40001 draws=40001 vertex_stride=164 vertex_bytes=35424 vertex_capacity_bytes=62976 index_bytes=1296 index_capacity_bytes=2048 render_state_bytes=65921648 render_state_capacity_bytes=65926592 draw_capacity_bytes=3840096 capture_reserve_estimate=40004 transfer_ownership=1 cube_replay_hits=39999 cube_template_entries=2 cube_range_entries=9 cube_template_evictions=0 cube_range_evictions=0 cube_range_reuse_hits=39992
+COIN_RENDER_PHASE builder_detail expand_styles_ms=0.406716 validation_ms=11.273031 composition_ms=7.399054 storage_report_ms=0.007544 publish_plan_ms=0.738231 finish_ms=0.000121
+COIN_RENDER_PHASE wgpu_opaque_instancing source_draws=40001 source_ranges=9 diagonal_ranges=9 hashed_ranges=1 canonical_meshes=1 groups=1 compact_vertices=24 compact_indices=36 instances=40001 instance_bytes=5760144 common_state_fast=1 states_packed=1 matrix_cache_hits=0 matrix_calculated=40001 matrix_cache_bytes=7840548 matrix_cache_allocations=1 matrix_cache_bypass=0
+COIN_RENDER_PHASE composition_schedule_copy consumer=wgpu_instancing copied_items=0 copied_bytes=0 borrowed_items=40001 borrowed_bytes=2240056 computed_items=0 qualify_ms=0.000230 copy_ms=0.000000
+COIN_RENDER_PHASE wgpu_opaque_camera authored_proofs_reused=40001
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=648 material_copied_bytes=648 instance_copied_bytes=5760144 geometry_reused=0 snapshot_ms=2.912821 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=9 source_bytes=648 gpu_bytes=720 packed_count=9 packed_bytes=720 payload_compare_ms=0.000029999999999999997 pack_ms=0.00048100000000000004 resource_ms=1.164303 instance_hit=0 material_hit=0 material_buffer_hit=0 instance_allocations=1 material_allocations=1 instance_uploaded_bytes=5760144 material_uploaded_bytes=720 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE rust_instances count=40001 ranges=1 geometry_bytes=4080 instance_bytes=5760144 material_bytes=720 geometry_hit=0 payload_hit=0 instance_hit=0 material_hit=0 instance_uploaded_bytes=5760144 material_uploaded_bytes=720 uploaded_bytes=5764944
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=1 size=512x512
+COIN_RENDER_PHASE rust_instance_resources geometry_bytes=4080 instance_bytes=5760144 material_bytes=720
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=2097152 staging_frame_color_bytes=1048576 staging_frame_depth_bytes=0 staging_pool_free_bytes=1048576 staging_pool_free_buffers=1 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=0 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=1.463759 prepare_encode_ms=6.319769 submit_ms=0.065912 gpu_wait_ms=1.558375 readback_publish_ms=0.149307 staging_color_reused=0 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=10.821191 validation_ms=1.463759 gpu_probe_setup_ms=0.000731 attachments_ms=0.205803 draw_encode_ms=6.113215 scene_snapshot_ms=0.000020 staging_prepare_ms=1.259891 submit_ms=0.065912 map_request_ms=0.003827 gpu_wait_ms=1.558375 post_wait_checks_ms=0.000241 gpu_probe_read_ms=0.000110 map_receive_ms=0.001082 color_copy_ms=0.145470 depth_copy_ms=0.000261 output_commit_ms=0.000070 recycle_ms=0.002424
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=26.9881 pack_cache_hit=0 ffi_ms=11.1332 pack_mode=full_rebuild
+COIN_RENDER_PHASE target validation_ms=0.384945 prepare_ms=0.770422 submit_ms=38.196844
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=40001 borrowed_bytes=2240056 computed_items=0 qualify_ms=0.000761 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=196.988 frame_plan_ms=19.8367 backend_ms=39.3802 vertices=216 indices=324 draws=40001 plan_cache_hit=0 plan_reuse=full_rebuild
+COIN_RENDER_PHASE object_proof_cache memo_enabled=1 material_checks=8 material_hits=39992 index_checks=9 index_hits=39992 dimensions_checks=1 dimensions_hits=39999 vertex_checks=8 vertex_hits=39992 cached_index_spans=9 cached_sources=1 cached_vertex_spans=8
+COIN_RENDER_PHASE object_qualification scene_profile_ms=15.494192 frame_profile_ms=2.118876 ownership_ms=11.232756 payload_ms=4.396818 finish_ms=0.001152
+COIN_RENDER_PHASE capture_camera_basis calls=1 prepares=1 reuse=1 prepare_ms=2.745190
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=648 material_copied_bytes=0 instance_copied_bytes=0 geometry_reused=1 snapshot_ms=0.000882 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=9 source_bytes=648 gpu_bytes=720 packed_count=0 packed_bytes=0 payload_compare_ms=0.000029999999999999997 pack_ms=0.000059999999999999995 resource_ms=0.000111 instance_hit=1 material_hit=1 material_buffer_hit=1 instance_allocations=0 material_allocations=0 instance_uploaded_bytes=0 material_uploaded_bytes=0 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE rust_instances count=40001 ranges=1 geometry_bytes=4080 instance_bytes=5760144 material_bytes=720 geometry_hit=1 payload_hit=1 instance_hit=1 material_hit=1 instance_uploaded_bytes=0 material_uploaded_bytes=0 uploaded_bytes=0
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=2 size=512x512
+COIN_RENDER_PHASE rust_instance_resources geometry_bytes=4080 instance_bytes=5760144 material_bytes=720
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=2097152 staging_frame_color_bytes=1048576 staging_frame_depth_bytes=0 staging_pool_free_bytes=1048576 staging_pool_free_buffers=1 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=0 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.009147 prepare_encode_ms=0.439016 submit_ms=0.047137 gpu_wait_ms=0.583614 readback_publish_ms=0.131364 staging_color_reused=1 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=1.226519 validation_ms=0.009147 gpu_probe_setup_ms=0.000461 attachments_ms=0.182780 draw_encode_ms=0.255745 scene_snapshot_ms=0.000030 staging_prepare_ms=0.013034 submit_ms=0.047137 map_request_ms=0.002836 gpu_wait_ms=0.583614 post_wait_checks_ms=0.000250 gpu_probe_read_ms=0.000121 map_receive_ms=0.003326 color_copy_ms=0.126124 depth_copy_ms=0.000250 output_commit_ms=0.000041 recycle_ms=0.001623
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=1.69407 pack_cache_hit=0 ffi_ms=1.43218 pack_mode=camera_patch
+COIN_RENDER_PHASE target validation_ms=0.002635 prepare_ms=0.000591 submit_ms=3.149991
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000581 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.002495 frame_plan_ms=8.38651 backend_ms=3.16262 vertices=216 indices=324 draws=40001 plan_cache_hit=1 plan_reuse=camera_patch
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=648 material_copied_bytes=0 instance_copied_bytes=0 geometry_reused=1 snapshot_ms=0.001503 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=9 source_bytes=648 gpu_bytes=720 packed_count=0 packed_bytes=0 payload_compare_ms=0.000029999999999999997 pack_ms=0.000059999999999999995 resource_ms=0.00009999999999999999 instance_hit=1 material_hit=1 material_buffer_hit=1 instance_allocations=0 material_allocations=0 instance_uploaded_bytes=0 material_uploaded_bytes=0 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE rust_instances count=40001 ranges=1 geometry_bytes=4080 instance_bytes=5760144 material_bytes=720 geometry_hit=1 payload_hit=1 instance_hit=1 material_hit=1 instance_uploaded_bytes=0 material_uploaded_bytes=0 uploaded_bytes=0
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=3 size=512x512
+COIN_RENDER_PHASE rust_instance_resources geometry_bytes=4080 instance_bytes=5760144 material_bytes=720
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=2097152 staging_frame_color_bytes=1048576 staging_frame_depth_bytes=0 staging_pool_free_bytes=1048576 staging_pool_free_buffers=1 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=0 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.009057 prepare_encode_ms=0.377902 submit_ms=0.043230 gpu_wait_ms=0.607398 readback_publish_ms=0.114523 staging_color_reused=1 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=1.169162 validation_ms=0.009057 gpu_probe_setup_ms=0.000471 attachments_ms=0.176578 draw_encode_ms=0.200823 scene_snapshot_ms=0.000030 staging_prepare_ms=0.013595 submit_ms=0.043230 map_request_ms=0.003116 gpu_wait_ms=0.607398 post_wait_checks_ms=0.000231 gpu_probe_read_ms=0.000110 map_receive_ms=0.001373 color_copy_ms=0.110695 depth_copy_ms=0.000241 output_commit_ms=0.000050 recycle_ms=0.002164
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=1.51164 pack_cache_hit=0 ffi_ms=1.3748 pack_mode=camera_patch
+COIN_RENDER_PHASE target validation_ms=0.002004 prepare_ms=0.000541 submit_ms=2.918621
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000831 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.002675 frame_plan_ms=5.80143 backend_ms=2.931 vertices=216 indices=324 draws=40001 plan_cache_hit=1 plan_reuse=camera_patch
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=648 material_copied_bytes=0 instance_copied_bytes=0 geometry_reused=1 snapshot_ms=0.001062 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=9 source_bytes=648 gpu_bytes=720 packed_count=0 packed_bytes=0 payload_compare_ms=0.000029999999999999997 pack_ms=0.00011 resource_ms=0.00013 instance_hit=1 material_hit=1 material_buffer_hit=1 instance_allocations=0 material_allocations=0 instance_uploaded_bytes=0 material_uploaded_bytes=0 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE rust_instances count=40001 ranges=1 geometry_bytes=4080 instance_bytes=5760144 material_bytes=720 geometry_hit=1 payload_hit=1 instance_hit=1 material_hit=1 instance_uploaded_bytes=0 material_uploaded_bytes=0 uploaded_bytes=0
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=4 size=512x512
+COIN_RENDER_PHASE rust_instance_resources geometry_bytes=4080 instance_bytes=5760144 material_bytes=720
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=2097152 staging_frame_color_bytes=1048576 staging_frame_depth_bytes=0 staging_pool_free_bytes=1048576 staging_pool_free_buffers=1 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=0 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.008476 prepare_encode_ms=0.391557 submit_ms=0.042389 gpu_wait_ms=0.596248 readback_publish_ms=0.101188 staging_color_reused=1 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=1.156799 validation_ms=0.008476 gpu_probe_setup_ms=0.000451 attachments_ms=0.185464 draw_encode_ms=0.205612 scene_snapshot_ms=0.000030 staging_prepare_ms=0.013555 submit_ms=0.042389 map_request_ms=0.003106 gpu_wait_ms=0.596248 post_wait_checks_ms=0.000170 gpu_probe_read_ms=0.000110 map_receive_ms=0.000982 color_copy_ms=0.098593 depth_copy_ms=0.000040 output_commit_ms=0.000040 recycle_ms=0.001533
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=1.87407 pack_cache_hit=0 ffi_ms=1.34185 pack_mode=camera_patch
+COIN_RENDER_PHASE target validation_ms=0.002255 prepare_ms=0.000631 submit_ms=3.238095
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000450 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.002244 frame_plan_ms=5.9429 backend_ms=3.25046 vertices=216 indices=324 draws=40001 plan_cache_hit=1 plan_reuse=camera_patch
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=648 material_copied_bytes=0 instance_copied_bytes=0 geometry_reused=1 snapshot_ms=0.001452 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=9 source_bytes=648 gpu_bytes=720 packed_count=0 packed_bytes=0 payload_compare_ms=0.000029999999999999997 pack_ms=0.00008 resource_ms=0.00004 instance_hit=1 material_hit=1 material_buffer_hit=1 instance_allocations=0 material_allocations=0 instance_uploaded_bytes=0 material_uploaded_bytes=0 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE rust_instances count=40001 ranges=1 geometry_bytes=4080 instance_bytes=5760144 material_bytes=720 geometry_hit=1 payload_hit=1 instance_hit=1 material_hit=1 instance_uploaded_bytes=0 material_uploaded_bytes=0 uploaded_bytes=0
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=5 size=512x512
+COIN_RENDER_PHASE rust_instance_resources geometry_bytes=4080 instance_bytes=5760144 material_bytes=720
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=2097152 staging_frame_color_bytes=1048576 staging_frame_depth_bytes=0 staging_pool_free_bytes=1048576 staging_pool_free_buffers=1 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=0 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.008997 prepare_encode_ms=0.373463 submit_ms=0.042419 gpu_wait_ms=0.594885 readback_publish_ms=0.109713 staging_color_reused=1 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=1.144736 validation_ms=0.008997 gpu_probe_setup_ms=0.000511 attachments_ms=0.173642 draw_encode_ms=0.199280 scene_snapshot_ms=0.000030 staging_prepare_ms=0.012093 submit_ms=0.042419 map_request_ms=0.002865 gpu_wait_ms=0.594885 post_wait_checks_ms=0.000150 gpu_probe_read_ms=0.000151 map_receive_ms=0.001582 color_copy_ms=0.106448 depth_copy_ms=0.000171 output_commit_ms=0.000050 recycle_ms=0.001462
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=1.6608 pack_cache_hit=0 ffi_ms=1.32585 pack_mode=camera_patch
+COIN_RENDER_PHASE target validation_ms=0.001824 prepare_ms=0.000591 submit_ms=3.010061
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000461 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.001823 frame_plan_ms=6.00439 backend_ms=3.02195 vertices=216 indices=324 draws=40001 plan_cache_hit=1 plan_reuse=camera_patch
+COIN_RENDER_PHASE rust_material_snapshot source_bytes=648 material_copied_bytes=0 instance_copied_bytes=0 geometry_reused=1 snapshot_ms=0.001603 attempt=1
+COIN_RENDER_PHASE rust_material_resources count=9 source_bytes=648 gpu_bytes=720 packed_count=0 packed_bytes=0 payload_compare_ms=0.000029999999999999997 pack_ms=0.00013 resource_ms=0.00013099999999999999 instance_hit=1 material_hit=1 material_buffer_hit=1 instance_allocations=0 material_allocations=0 instance_uploaded_bytes=0 material_uploaded_bytes=0 reuse_enabled=1 attempt=1
+COIN_RENDER_PHASE rust_instances count=40001 ranges=1 geometry_bytes=4080 instance_bytes=5760144 material_bytes=720 geometry_hit=1 payload_hit=1 instance_hit=1 material_hit=1 instance_uploaded_bytes=0 material_uploaded_bytes=0 uploaded_bytes=0
+COIN_RENDER_PHASE wgpu_offscreen renderer=vulkan vendor_id=0x10de device_id=0x2560 device_type=DiscreteGpu serial=6 size=512x512
+COIN_RENDER_PHASE rust_instance_resources geometry_bytes=4080 instance_bytes=5760144 material_bytes=720
+COIN_RENDER_PHASE rust_resources target=offscreen geometry_active_bytes=4080 geometry_retired_bytes=0 vertex_buffers=1 index_buffers=1 texture_cache_count=0 texture_payload_bytes=0 rtt_texture_count=0 rtt_color_nominal_bytes=0 attachment_textures=2 attachment_nominal_bytes=2097152 staging_frame_color_bytes=1048576 staging_frame_depth_bytes=0 staging_pool_free_bytes=1048576 staging_pool_free_buffers=1 gpu_memory_used_bytes=unavailable framebuffer_count=unavailable
+COIN_RENDER_PHASE rust_draw_resources frame_geometry_bytes=0 uniform_chunks=1 draw_bind_groups=1
+COIN_RENDER_PHASE rust validation_ms=0.009417 prepare_encode_ms=0.375107 submit_ms=0.044252 gpu_wait_ms=0.598131 readback_publish_ms=0.113070 staging_color_reused=1 attachments_reused=0 camera_bindings_created=0 camera_bindings_reused=0
+COIN_RENDER_PHASE rust_cpu_detail total_ms=1.155767 validation_ms=0.009417 gpu_probe_setup_ms=0.000982 attachments_ms=0.169315 draw_encode_ms=0.204790 scene_snapshot_ms=0.000020 staging_prepare_ms=0.012654 submit_ms=0.044252 map_request_ms=0.002815 gpu_wait_ms=0.598131 post_wait_checks_ms=0.000231 gpu_probe_read_ms=0.000090 map_receive_ms=0.001022 color_copy_ms=0.110164 depth_copy_ms=0.000231 output_commit_ms=0.000040 recycle_ms=0.001613
+COIN_RENDER_PHASE rust_gpu status=disabled
+COIN_RENDER_PHASE bridge pack_ms=1.33573 pack_cache_hit=0 ffi_ms=1.34932 pack_mode=camera_patch
+COIN_RENDER_PHASE target validation_ms=0.001523 prepare_ms=0.000601 submit_ms=2.708943
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000341 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.002194 frame_plan_ms=5.7228 backend_ms=2.71942 vertices=216 indices=324 draws=40001 plan_cache_hit=1 plan_reuse=camera_patch

@@ -1,0 +1,168 @@
+[
+  {
+    "scope": "offscreen",
+    "case": "static",
+    "variant": "bgfx-vulkan",
+    "returncode": 0,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile/offscreen-static-bgfx-vulkan.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.004939,
+        "vertices_ms": 0.003968,
+        "indices_ms": 0.00042,
+        "scene_state_ms": 0.001153,
+        "render_states_ms": 7.805918,
+        "draws_ms": 4.807509,
+        "finish_ms": 0.007834
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 8.799724,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 8.549189,
+        "sort_ms": 0.249473,
+        "finish_ms": 0.019106
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.525206,
+        "validation_ms": 12.958267,
+        "composition_ms": 8.83524,
+        "storage_report_ms": 0.009337,
+        "publish_plan_ms": 1.589793,
+        "finish_ms": 0.00017
+      },
+      "composition_schedule_copy": {
+        "qualify_ms": 0.000571,
+        "copy_ms": 0.0
+      },
+      "bgfx_base_program": {},
+      "bgfx_program_cache": {},
+      "bgfx_geometry": {},
+      "bgfx": {
+        "lower_ms": 0.0049345,
+        "upload_ms": 0.0003555,
+        "encode_ms": 0.009999000000000001,
+        "draw_encode_ms": 0.0087765,
+        "blit_encode_ms": 0.0012225,
+        "submit_frame_ms": 0.006547,
+        "read_request_ms": 0.00031099999999999997,
+        "read_wait_ms": 1.0329185,
+        "frame_wait_ms": 1.0328935000000001,
+        "row_flip_ms": 0.000165,
+        "gpu_query_drain_ms": 4e-05
+      },
+      "target": {
+        "validation_ms": 0.0008615,
+        "prepare_ms": 0.000361,
+        "submit_ms": 1.0958505
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.000441,
+        "copy_ms": 0.0
+      },
+      "action": {
+        "traversal_ms": 0.002234,
+        "frame_plan_ms": 0.000126,
+        "backend_ms": 1.1044
+      },
+      "object_proof_cache": {},
+      "object_qualification": {
+        "scene_profile_ms": 13.58429,
+        "frame_profile_ms": 2.228349,
+        "ownership_ms": 11.624991,
+        "payload_ms": 4.776993,
+        "finish_ms": 0.002194
+      },
+      "capture_camera_basis": {
+        "prepare_ms": 3.232594
+      }
+    }
+  },
+  {
+    "scope": "offscreen",
+    "case": "static",
+    "variant": "bgfx-opengl",
+    "returncode": 1,
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/coin_render_gl_benchmark",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "/tmp/coin-render-city-40000.iv",
+      "--animation",
+      "static",
+      "--animated-percent",
+      "10",
+      "--warmup",
+      "2",
+      "--frames",
+      "4",
+      "--samples-output",
+      "/tmp/coin-perf-profile/offscreen-static-bgfx-opengl.csv",
+      "--size",
+      "512"
+    ],
+    "phases": {
+      "bgfx_gl_adapter": {},
+      "bgfx_device": {},
+      "bgfx_formats": {},
+      "combine_validation_memo": {},
+      "validation_detail": {
+        "materials_ms": 0.005481,
+        "vertices_ms": 0.004869,
+        "indices_ms": 0.001092,
+        "scene_state_ms": 0.001743,
+        "render_states_ms": 8.865135,
+        "draws_ms": 5.312858,
+        "finish_ms": 0.009237
+      },
+      "composition_range_memo": {},
+      "composition_identity": {
+        "qualify_ms": 9.607915,
+        "copy_ms": 0.0
+      },
+      "composition_detail": {
+        "classify_ms": 9.348153,
+        "sort_ms": 0.259361,
+        "finish_ms": 0.018695
+      },
+      "plan_storage": {},
+      "builder_detail": {
+        "expand_styles_ms": 0.592591,
+        "validation_ms": 14.551437,
+        "composition_ms": 9.645394,
+        "storage_report_ms": 0.01047,
+        "publish_plan_ms": 1.677105,
+        "finish_ms": 0.00021
+      },
+      "target_composition_copy": {
+        "qualify_ms": 0.001803,
+        "copy_ms": 0.0
+      }
+    }
+  }
+]

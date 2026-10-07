@@ -1,0 +1,54 @@
+Date: 2026-10-07 -03
+[00:00:10.193] weston 13.0.0
+               https://wayland.freedesktop.org
+               Bug reports to: https://gitlab.freedesktop.org/wayland/weston/issues/
+               Build: 13.0.0
+[00:00:10.193] Command line: /tmp/coin-p16-weston/usr/bin/weston --backend=headless --renderer=gl --shell=kiosk-shell.so --socket=coin-isolated --width=2400 --height=1600 --idle-time=0 --no-config --log=/tmp/coin-perf-profile-session/weston.log
+[00:00:10.193] OS: Linux, 6.17.0-42-generic, #42-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul 23 19:56:28 UTC 2026, x86_64
+[00:00:10.193] Flight recorder: enabled
+[00:00:10.193] Starting with no config file.
+[00:00:10.193] Output repaint window is 7 ms maximum.
+[00:00:10.193] Loading module '/tmp/coin-p16-weston/usr/lib/x86_64-linux-gnu/libweston-13/headless-backend.so'
+[00:00:10.197] Loading module '/tmp/coin-p16-weston/usr/lib/x86_64-linux-gnu/libweston-13/gl-renderer.so'
+[00:00:10.254] Using rendering device: /dev/dri/renderD129
+[00:00:10.254] EGL version: 1.5
+[00:00:10.254] EGL vendor: NVIDIA
+[00:00:10.254] EGL client APIs: OpenGL_ES OpenGL
+[00:00:10.254] EGL features:
+               EGL Wayland extension: yes
+               context priority: yes
+               buffer age: yes
+               partial update: yes
+               swap buffers with damage: yes
+               configless context: yes
+               surfaceless context: yes
+               dmabuf support: modifiers
+[00:00:10.333] GL version: OpenGL ES 3.2 NVIDIA 610.57.04
+[00:00:10.333] GLSL version: OpenGL ES GLSL ES 3.20
+[00:00:10.333] GL vendor: NVIDIA Corporation
+[00:00:10.333] GL renderer: NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2
+[00:00:10.339] GL ES 3.2 - renderer features:
+               read-back format: ARGB8888
+               glReadPixels supports y-flip: no
+               wl_shm 10 bpc formats: yes
+               wl_shm 16 bpc formats: yes
+               wl_shm half-float formats: no
+               internal R and RG formats: yes
+               OES_EGL_image_external: yes
+[00:00:10.339] Using GL renderer
+[00:00:10.339] Registered plugin API 'weston_windowed_output_api_v2' of size 16
+[00:00:10.339] Color manager: no-op
+[00:00:10.339] Output 'headless' attempts EOTF mode: SDR
+[00:00:10.339] Output 'headless' using color profile: stock sRGB color profile
+[00:00:10.340] Output 'headless' enabled with head(s) headless
+[00:00:10.340] Compositor capabilities:
+               arbitrary surface rotation: yes
+               screen capture uses y-flip: yes
+               cursor planes: no
+               arbitrary resolutions: no
+               view mask clipping: yes
+               explicit sync: yes
+               color operations: no
+               presentation clock: CLOCK_MONOTONIC_RAW, id 4
+               presentation clock resolution: 0.000000001 s
+[00:00:10.340] Loading module '/tmp/coin-p16-weston/usr/lib/x86_64-linux-gnu/weston/kiosk-shell.so'

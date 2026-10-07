@@ -1,0 +1,76 @@
+CoinGL NVIDIA proof confirmed
+START offscreen/static-coingl-1
+DONE static-coingl-1: total median=13.097 p95=15.124 p99=15.423 update=0.000 ms
+START offscreen/static-bgfx-vulkan-literal-1
+DONE static-bgfx-vulkan-literal-1: total median=0.911 p95=0.970 p99=0.985 update=0.000 ms
+START offscreen/static-bgfx-vulkan-reserve-1
+DONE static-bgfx-vulkan-reserve-1: total median=0.960 p95=1.028 p99=1.162 update=0.000 ms
+START offscreen/static-bgfx-opengl-literal-1
+DONE static-bgfx-opengl-literal-1: total median=0.996 p95=1.100 p99=1.198 update=0.000 ms
+START offscreen/static-bgfx-opengl-reserve-1
+DONE static-bgfx-opengl-reserve-1: total median=1.001 p95=1.253 p99=1.398 update=0.000 ms
+START offscreen/static-wgpu-vulkan-literal-1
+DONE static-wgpu-vulkan-literal-1: total median=1.380 p95=1.573 p99=1.817 update=0.000 ms
+START offscreen/static-wgpu-vulkan-reserve-1
+DONE static-wgpu-vulkan-reserve-1: total median=1.476 p95=1.776 p99=1.858 update=0.000 ms
+START offscreen/camera-bgfx-vulkan-literal-1
+DONE camera-bgfx-vulkan-literal-1: total median=7.931 p95=8.580 p99=8.868 update=0.021 ms
+START offscreen/camera-bgfx-vulkan-reserve-1
+DONE camera-bgfx-vulkan-reserve-1: total median=7.825 p95=8.424 p99=8.786 update=0.021 ms
+START offscreen/camera-bgfx-opengl-literal-1
+DONE camera-bgfx-opengl-literal-1: total median=8.081 p95=8.609 p99=8.745 update=0.021 ms
+START offscreen/camera-bgfx-opengl-reserve-1
+DONE camera-bgfx-opengl-reserve-1: total median=7.796 p95=8.298 p99=8.541 update=0.020 ms
+START offscreen/camera-wgpu-vulkan-literal-1
+DONE camera-wgpu-vulkan-literal-1: total median=9.639 p95=10.213 p99=10.450 update=0.022 ms
+START offscreen/camera-wgpu-vulkan-reserve-1
+DONE camera-wgpu-vulkan-reserve-1: total median=9.735 p95=10.362 p99=10.575 update=0.021 ms
+START offscreen/camera-coingl-1
+DONE camera-coingl-1: total median=75.656 p95=82.401 p99=102.076 update=0.013 ms
+START offscreen/materials-10-bgfx-vulkan-reserve-1
+DONE materials-10-bgfx-vulkan-reserve-1: total median=64.690 p95=67.907 p99=71.063 update=3.934 ms
+START offscreen/materials-10-bgfx-opengl-literal-1
+DONE materials-10-bgfx-opengl-literal-1: total median=64.453 p95=65.785 p99=66.924 update=4.316 ms
+START offscreen/materials-10-bgfx-opengl-reserve-1
+DONE materials-10-bgfx-opengl-reserve-1: total median=64.818 p95=68.791 p99=70.130 update=4.438 ms
+START offscreen/materials-10-wgpu-vulkan-literal-1
+DONE materials-10-wgpu-vulkan-literal-1: total median=56.959 p95=60.927 p99=62.739 update=4.804 ms
+START offscreen/materials-10-wgpu-vulkan-reserve-1
+Traceback (most recent call last):
+  File "/tmp/coin-render-first-frame/scripts/coinrender/run_performance_continuation.py", line 48, in <module>
+    main()
+  File "/tmp/coin-render-first-frame/scripts/coinrender/run_performance_continuation.py", line 44, in main
+    animation.main()
+  File "/tmp/coin-render-first-frame/scripts/coinrender/run_animation_benchmark.py", line 210, in main
+    process = subprocess.run(["/usr/bin/time", "-f", "benchmark_peak_rss_kib=%M", *command],
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 550, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1209, in communicate
+    stdout, stderr = self._communicate(input, endtime, timeout)
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2115, in _communicate
+    ready = selector.select(timeout)
+            ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/selectors.py", line 415, in select
+    fd_event_list = self._selector.poll(timeout)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "/tmp/coin-perf-main-campaign.py", line 13, in <module>
+    code=subprocess.call(cmd,cwd=repo,env=env)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 391, in call
+    return p.wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 1264, in wait
+    return self._wait(timeout=timeout)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2053, in _wait
+    (pid, sts) = self._try_wait(0)
+                 ^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/subprocess.py", line 2011, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

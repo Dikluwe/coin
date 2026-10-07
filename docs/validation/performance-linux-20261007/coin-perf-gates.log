@@ -1,0 +1,61 @@
+BUILD bgfx ['CoinBgfxCoreTest', 'CoinBgfxReadbackModesTest', 'CoinRenderPublicationTest', 'CoinRenderMultiTargetTest']
+[1/6] Linking CXX executable bin/CoinRenderPublicationTest
+[2/6] Linking CXX executable bin/CoinBgfxCoreTest
+[3/6] Building CXX object testsuite/CMakeFiles/CoinRenderMultiTargetTest.dir/coinrender/CoinRenderMultiTargetTest.cpp.o
+[4/6] Linking CXX executable bin/CoinRenderMultiTargetTest
+[5/6] Building CXX object testsuite/CMakeFiles/CoinBgfxReadbackModesTest.dir/coinbgfx/CoinBgfxReadbackModesTest.cpp.o
+[6/6] Linking CXX executable bin/CoinBgfxReadbackModesTest
+GATES bgfx ^(CoinBgfxCoreTest|CoinBgfxReadbackModes_(vulkan|opengl)|CoinRenderPublicationTest|CoinRenderMultiTarget(Direct|StagedOpenGL|OpenGL)?Test)$
+Internal ctest changing into directory: /tmp/coin-render-first-frame-bgfx
+Test project /tmp/coin-render-first-frame-bgfx
+    Start  57: CoinBgfxReadbackModes_vulkan
+1/8 Test  #57: CoinBgfxReadbackModes_vulkan ............   Passed    1.28 sec
+    Start  58: CoinBgfxReadbackModes_opengl
+2/8 Test  #58: CoinBgfxReadbackModes_opengl ............   Passed    0.69 sec
+    Start  65: CoinBgfxCoreTest
+3/8 Test  #65: CoinBgfxCoreTest ........................   Passed    0.40 sec
+    Start 226: CoinRenderMultiTargetTest
+4/8 Test #226: CoinRenderMultiTargetTest ...............   Passed    0.64 sec
+    Start 227: CoinRenderMultiTargetDirectTest
+5/8 Test #227: CoinRenderMultiTargetDirectTest .........   Passed    0.61 sec
+    Start 228: CoinRenderMultiTargetStagedOpenGLTest
+6/8 Test #228: CoinRenderMultiTargetStagedOpenGLTest ...   Passed    0.35 sec
+    Start 229: CoinRenderMultiTargetOpenGLTest
+7/8 Test #229: CoinRenderMultiTargetOpenGLTest .........   Passed    0.34 sec
+    Start 230: CoinRenderPublicationTest
+8/8 Test #230: CoinRenderPublicationTest ...............   Passed    0.03 sec
+
+100% tests passed, 0 tests failed out of 8
+
+Total Test time (real) =   4.35 sec
+BUILD wgpu ['CoinWgpuCacheTest', 'CoinRenderAsyncActionTest', 'CoinRenderAsyncReadbackTest', 'CoinRenderPublicationTest', 'CoinRenderMultiTargetTest']
+[1/9] Linking CXX executable bin/CoinRenderPublicationTest
+[2/9] Building CXX object testsuite/CMakeFiles/CoinRenderAsyncReadbackTest.dir/coinrender/CoinRenderAsyncReadbackTest.cpp.o
+[3/9] Building CXX object testsuite/CMakeFiles/CoinWgpuCacheTest.dir/coinwgpu/CoinWgpuCacheTest.cpp.o
+[4/9] Linking CXX executable bin/CoinRenderAsyncReadbackTest
+[5/9] Building CXX object testsuite/CMakeFiles/CoinRenderMultiTargetTest.dir/coinrender/CoinRenderMultiTargetTest.cpp.o
+[6/9] Linking CXX executable bin/CoinWgpuCacheTest
+[7/9] Building CXX object testsuite/CMakeFiles/CoinRenderAsyncActionTest.dir/coinrender/CoinRenderAsyncActionTest.cpp.o
+[8/9] Linking CXX executable bin/CoinRenderMultiTargetTest
+[9/9] Linking CXX executable bin/CoinRenderAsyncActionTest
+GATES wgpu ^(CoinWgpuCacheTest|CoinRenderAsyncAction(Direct)?Test|CoinRenderAsyncReadbackTest|CoinRenderPublicationTest|CoinRenderMultiTarget(Direct)?Test)$
+Internal ctest changing into directory: /tmp/coin-render-first-frame-wgpu
+Test project /tmp/coin-render-first-frame-wgpu
+    Start  65: CoinWgpuCacheTest
+1/7 Test  #65: CoinWgpuCacheTest .................   Passed    0.48 sec
+    Start 157: CoinRenderMultiTargetTest
+2/7 Test #157: CoinRenderMultiTargetTest .........   Passed    0.48 sec
+    Start 158: CoinRenderMultiTargetDirectTest
+3/7 Test #158: CoinRenderMultiTargetDirectTest ...   Passed    0.47 sec
+    Start 159: CoinRenderPublicationTest
+4/7 Test #159: CoinRenderPublicationTest .........   Passed    0.03 sec
+    Start 168: CoinRenderAsyncReadbackTest
+5/7 Test #168: CoinRenderAsyncReadbackTest .......   Passed    0.46 sec
+    Start 171: CoinRenderAsyncActionTest
+6/7 Test #171: CoinRenderAsyncActionTest .........   Passed    0.28 sec
+    Start 172: CoinRenderAsyncActionDirectTest
+7/7 Test #172: CoinRenderAsyncActionDirectTest ...   Passed    0.66 sec
+
+100% tests passed, 0 tests failed out of 7
+
+Total Test time (real) =   2.86 sec
