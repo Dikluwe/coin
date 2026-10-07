@@ -271,11 +271,16 @@ bool rttOwnership() {
   texture.width = kSide;
   texture.height = kSide;
   texture.format = 1;
-  texture.reserved = 1; // Opaque clear in producer.
+  texture.reserved = 0; // The producer does not advertise a proven opaque token.
   texture.content_digest = token;
   CoinWgpuFrameView consumer = clearFrame(4, 5, 6);
   consumer.textures = &texture;
   consumer.texture_count = 1;
+  // Clear alpha alone does not establish the producer's general opacity
+  // contract. Reject an unproven claim without changing pixels or serial.
+  texture.reserved = 1;
+  if (!rejectedWithoutWrite(owner, consumer, COIN_WGPU_INVALID_ARGUMENT)) return false;
+  texture.reserved = 0;
   if (!rejectedWithoutWrite(foreign, consumer, COIN_WGPU_INVALID_ARGUMENT) ||
       !rejectedWithoutWrite(0, consumer, COIN_WGPU_INVALID_ARGUMENT) ||
       !submitClear(foreign, 30, 40, 50)) return false;
