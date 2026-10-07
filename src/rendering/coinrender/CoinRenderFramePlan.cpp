@@ -98,7 +98,8 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
   for (int i = 0; i < 4; ++i) {
     if (this->clearColor[i] != other.clearColor[i]) return false;
   }
-  if (!samePlainSnapshots(this->vertices, other.vertices) ||
+  if (this->outputColorFormat!=other.outputColorFormat || this->outputMipmaps!=other.outputMipmaps ||
+      !samePlainSnapshots(this->vertices, other.vertices) ||
       this->indices != other.indices ||
       !samePlainSnapshots(this->materials, other.materials) ||
       !samePlainSnapshots(this->shadowGroups, other.shadowGroups) ||
@@ -129,7 +130,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
     if (x.width != y.width || x.height != y.height || x.components != y.components ||
         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
         x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
-        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
+        x.format != y.format || x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
       return false;
   }
   return true;
@@ -138,6 +139,10 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
 bool
 CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 {
+  if(outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR && outputColorFormat!=CoinRenderTextureFormat::RGBA16_FLOAT) {
+    if(outDiagnostic)*outDiagnostic="Unsupported output texture format";return false;
+  }
+
   CoinRenderPhaseTimer timer("validation_detail");
   CombineValidationMemo combineMemo;
   auto isFiniteF = [](float v) { return coin_render_is_finite(v); };
@@ -153,7 +158,8 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   };
 
   for (int i = 0; i < 4; ++i) {
-    if (!isFiniteF(this->clearColor[i])) {
+    if (!isFiniteF(this->clearColor[i]) ||
+        (outputColorFormat==CoinRenderTextureFormat::RGBA16_FLOAT && std::abs(this->clearColor[i])>65504.f)) {
       if (outDiagnostic) *outDiagnostic = "Invalid clearColor (NaN or inf)";
       return false;
     }
@@ -252,8 +258,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "Texture dimensions exceed 8192 limit";
       return false;
     }
-    const uint64_t expectedBytes = static_cast<uint64_t>(tex.width) *
-      static_cast<uint64_t>(tex.height) * 4ULL;
+    const uint64_t expectedBytes = CoinRenderTextureFormatCore::levelBytes(tex.width,tex.height,tex.format);
     if (tex.producerId && tex.gpuToken) {
       if (outDiagnostic)
         *outDiagnostic = "Texture cannot be both planned and resolved";
@@ -270,7 +275,8 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   }
 
   for(const auto & sampler:this->samplers) {
-    if(static_cast<uint32_t>(sampler.filter)>3 || static_cast<uint32_t>(sampler.wrapS)>1 || static_cast<uint32_t>(sampler.wrapT)>1) {
+    if(static_cast<uint32_t>(sampler.filter)>3 || static_cast<uint32_t>(sampler.wrapS)>1 || static_cast<uint32_t>(sampler.wrapT)>1 || !CoinRenderTextureSamplingCore::powerOfTwo(sampler.maxAnisotropy) || sampler.maxAnisotropy>16 ||
+       (sampler.maxAnisotropy>1 && sampler.filter!=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR)) {
       if(outDiagnostic)*outDiagnostic="Invalid P07 sampler filter or wrap";return false;
     }
   }

@@ -196,6 +196,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareValue(lhs.wrapS, rhs.wrapS);
   if (result == 0) result = compareValue(lhs.wrapT, rhs.wrapT);
   if (result == 0) result = compareValue(lhs.filter, rhs.filter);
+  if(result==0)result=compareValue(lhs.maxAnisotropy,rhs.maxAnisotropy);
   if (result == 0) result = compareBytes(lhs.textureBlendColor,
     rhs.textureBlendColor, sizeof(lhs.textureBlendColor));
   if (result == 0) result = compareBytes(lhs.ambientLight,
@@ -215,7 +216,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
 
 bool sameTexture(const CoinBgfxTexture & lhs, const CoinBgfxTexture & rhs)
 {
-  return lhs.width == rhs.width && lhs.height == rhs.height &&
+  return lhs.format == rhs.format && lhs.width == rhs.width && lhs.height == rhs.height &&
     lhs.gpuToken == rhs.gpuToken &&
     lhs.pixelsRgba == rhs.pixelsRgba && lhs.mipmapped == rhs.mipmapped;
 }
@@ -675,7 +676,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         return false;
       }
       const CoinRenderTextureImageSnapshot & texture = frame.textures[state.textureImageSlot];
-      const uint64_t expected = static_cast<uint64_t>(texture.width) * texture.height * 4u;
+      const uint64_t expected = CoinRenderTextureFormatCore::levelBytes(texture.width,texture.height,texture.format);
       if (texture.width == 0 || texture.height == 0 ||
           (texture.gpuToken == 0 && texture.pixelsRgba.size() != expected) ||
           (texture.gpuToken != 0 && !texture.pixelsRgba.empty())) {
@@ -808,7 +809,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       const CoinRenderSamplerSnapshot & sampler = frame.samplers[state.samplerSlot];
       lowered.wrapS = sampler.wrapS;
       lowered.wrapT = sampler.wrapT;
-      lowered.filter = sampler.filter;
+      lowered.filter = sampler.filter; lowered.maxAnisotropy = sampler.maxAnisotropy;
     }
     for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
       const auto & source = state.extraTextures[unit - 1];
@@ -818,7 +819,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       layer.slot = source.imageSlot; layer.model = source.model;
       std::memcpy(layer.blendColor, source.blendColor, sizeof(layer.blendColor));
       const auto & sampler = frame.samplers[source.samplerSlot];
-      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter;
+      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter; layer.maxAnisotropy = sampler.maxAnisotropy;
     }
     std::memcpy(lowered.fogColorMode, state.fogColor, sizeof(state.fogColor));
     lowered.fogColorMode[3] = static_cast<float>(state.fogMode);
@@ -1021,7 +1022,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
   candidate.textures.reserve(frame.textures.size());
   for (const CoinRenderTextureImageSnapshot & source : frame.textures) {
     CoinBgfxTexture texture;
-    texture.width = source.width;
+    texture.format = source.format; texture.width = source.width;
     texture.height = source.height;
     if (source.producerId) {
       diagnostic = "Unresolved scene texture producer at BGFX execution boundary";

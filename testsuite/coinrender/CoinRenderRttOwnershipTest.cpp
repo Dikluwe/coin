@@ -284,11 +284,11 @@ int main() {
                 chain.textures[0].mipmapsRgba[0]==128 && chain.textures[0].mipmapsRgba.back()==255,
                 "Core resolves deterministic box mips after rendering without changing the capture");
     requested.textures[0].width=3;
-    ok &= check(!staged.validate(requested,diagnostic),"non-POT mip producer fails admission");
+    ok &= check(!staged.validate(requested,diagnostic),"consumer extent mismatch rejects even when NPOT is supported");
     requested.textures[0].width=4;
     CoinRenderRttPlan gpuOnly(COIN_RENDER_SCENE_TEXTURE_DIRECT);
     gpuOnly.append(producer(91,4),id,diagnostic);
-    ok &= check(!gpuOnly.validate(requested,diagnostic),"direct mip request rejects before GPU work");
+    ok &= check(gpuOnly.validate(requested,diagnostic),"direct mip request is admitted before GPU work");
     CoinRenderRttPlan full(COIN_RENDER_SCENE_TEXTURE_STAGED);
     for(unsigned source=1;source<=4;++source) full.append(producer(source,2048),id,diagnostic);
     auto extra=consumer(4,2048); extra.textures[0].mipmapped=true;
@@ -297,6 +297,20 @@ int main() {
     full.producers.resize(1); extra.textures[0].producerId=1;
     full.chargedBytes=CoinRenderRttPlan::budget();
     ok &= check(!full.validate(extra,diagnostic),"conservative repeated producer charge also includes mips");
+  }
+
+  {
+    CoinRenderRttPlan hdr(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    auto source=producer(94,2048);source.format=CoinRenderTextureFormat::RGBA16_FLOAT;
+    ok &=check(hdr.append(source,id,diagnostic),"HDR base attachments fit 64 MiB");
+    auto requested=consumer(1,2048);requested.textures[0].format=CoinRenderTextureFormat::RGBA16_FLOAT;
+    ok &=check(hdr.validate(requested,diagnostic),"typed HDR dependency fits budget");
+    requested.textures[0].mipmapped=true;
+    requested.samplers.push_back(CoinRenderSamplerSnapshot());requested.samplers[0].filter=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+    ok &=check(!hdr.validate(requested,diagnostic),"HDR mips plus GPU scratch exceed graph budget before allocation");
+    hdr.mode=COIN_RENDER_SCENE_TEXTURE_STAGED;requested.textures[0].mipmapped=false;
+    requested.samplers[0].filter=CoinRenderTextureFilter::LINEAR;
+    ok &=check(!hdr.validate(requested,diagnostic),"staged HDR is rejected without lossy fallback");
   }
 
   CoinRenderOptions options;

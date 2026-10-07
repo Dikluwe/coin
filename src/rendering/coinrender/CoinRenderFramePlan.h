@@ -223,17 +223,26 @@ enum class CoinRenderTextureModel : uint32_t {
   BLEND = 3
 };
 
+enum class CoinRenderTextureFormat : uint32_t {
+  RGBA8_LINEAR = 0,
+  RGBA8_SRGB = 1,
+  RGBA16_FLOAT = 2,
+  BC3_LINEAR = 3,
+  BC3_SRGB = 4
+};
+
 struct CoinRenderTextureImageSnapshot {
+  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
   uint32_t width = 0;
   uint32_t height = 0;
-  uint32_t components = 4; // Canonical RGBA8Unorm
+  uint32_t components = 4; // Four channels; format defines byte layout and RGB interpretation.
   uint64_t contentDigest = 0;
   uint64_t producerId = 0; // Logical RTT dependency, scoped to one captured graph.
   uint64_t gpuToken = 0;   // Execution-only connector handle; capture never sets it.
   int32_t sceneTransparencyFunction = -1; // -1: image alpha; otherwise captured Coin enum.
   bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
   bool mipmapped = false;
-  std::vector<uint8_t> mipmapsRgba; // complete lower levels, largest first
+  std::vector<uint8_t> mipmapsRgba; // Encoded complete lower levels, largest first.
   std::vector<uint8_t> pixelsRgba;
 };
 
@@ -241,6 +250,7 @@ struct CoinRenderSamplerSnapshot {
   CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT;
   CoinRenderTextureWrap wrapT = CoinRenderTextureWrap::REPEAT;
   CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
+  uint32_t maxAnisotropy = 1; // Explicit power of two, 1..16; all filters linear when >1.
 };
 
 enum class CoinRenderFogMode : uint32_t {
@@ -356,6 +366,8 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
  */
 struct CoinRenderFramePlan {
   uint64_t revision = 0;
+  CoinRenderTextureFormat outputColorFormat = CoinRenderTextureFormat::RGBA8_LINEAR;
+  bool outputMipmaps = false; // Execution-owned RTT request, never an implicit root fallback.
   // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.
   bool legacyBlendAlpha = false;
   CoinRenderTransparencyOptions transparency;

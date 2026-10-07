@@ -11,6 +11,7 @@ struct CoinRenderRttProducer {
   CoinRenderFramePlan plan;
   SbVec2i32 size;
   uint64_t sourceRevision = 0; // Coin node revision, copied by Wiring.
+  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
 };
 
 struct CoinRenderResourceStamp {
@@ -62,14 +63,19 @@ public:
       return false;
     for (size_t i = 0; i < producers.size(); ++i) {
       const auto& previous = producers[i];
-      if (previous.sourceRevision == producer.sourceRevision && previous.size == producer.size &&
+      if (previous.format == producer.format && previous.sourceRevision == producer.sourceRevision && previous.size == producer.size &&
           previous.plan.hasSamePayload(producer.plan)) {
         id = i + 1;
         return true;
       }
     }
-    if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT && !charge(producer.size, diagnostic))
-      return false;
+    if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+      const size_t previousCharge=chargedBytes;
+      if(!charge(producer.size,diagnostic))return false;
+      const size_t extra=producer.format==CoinRenderTextureFormat::RGBA16_FLOAT?size_t(producer.size[0])*producer.size[1]*4:0;
+      if(extra>budget()-chargedBytes){chargedBytes=previousCharge;diagnostic="HDR RTT exceeds the 64 MiB graph budget";return false;}
+      chargedBytes+=extra;
+    }
     producers.push_back(std::move(producer));
     id = producers.size();
     return true;
@@ -88,8 +94,18 @@ public:
         diagnostic = "Invalid scene texture producer descriptor";
         return false;
       }
+      if(producer.format!=CoinRenderTextureFormat::RGBA8_LINEAR && producer.format!=CoinRenderTextureFormat::RGBA16_FLOAT) {
+        diagnostic="RTT output supports RGBA8 linear or RGBA16F";return false;
+      }
+      if(producer.format==CoinRenderTextureFormat::RGBA16_FLOAT)
+        for(int channel=0;channel<4;++channel)if(std::abs(producer.plan.clearColor[channel])>65504.f) {
+          diagnostic="HDR RTT clear exceeds the finite binary16 range";return false;
+        }
+      if(producer.format==CoinRenderTextureFormat::RGBA16_FLOAT && mode!=COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+        diagnostic="RGBA16F RTT requires an explicit direct GPU route";return false;
+      }
       const size_t bytes = size_t(producer.size[0]) * producer.size[1] *
-                           (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT ? 8 : 4);
+                           (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT ? (producer.format==CoinRenderTextureFormat::RGBA16_FLOAT?12:8) : 4);
       if (bytes > budget() - distinctBytes) {
         diagnostic = "SoSceneTexture2 graph exceeds 64 MiB per apply";
         return false;
@@ -99,16 +115,17 @@ public:
         return false;
     }
     if (!root.isValid(&diagnostic) || !dependencies(root, producers.size(), diagnostic)) return false;
-    // Count a chain per captured image use, conservatively including nested
-    // consumers. Reject direct chains before submitting any GPU producer.
+    // Count requested lower levels before any producer is submitted.
     distinctBytes = std::max(distinctBytes, chargedBytes);
     const auto chargeMips = [&](const CoinRenderFramePlan & frame) {
       for (const auto & image : frame.textures) {
         if (!image.producerId || !image.mipmapped) continue;
-        if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
-          diagnostic="Direct RTT mip generation is outside this profile"; return false;
-        }
-        const size_t bytes=CoinRenderTextureSamplingCore::mipBytes(image.width,image.height);
+        // Direct execution reserves one GPU-only scratch source per reduction
+        // level, including the base for GL view isolation. Native-view APIs
+        // may use less; the common graph never depends on that optimization.
+        const size_t lower=CoinRenderTextureSamplingCore::mipBytes(image.width,image.height,image.format);
+        const size_t bytes=mode==COIN_RENDER_SCENE_TEXTURE_DIRECT?
+          lower*2+CoinRenderTextureFormatCore::levelBytes(image.width,image.height,image.format):lower;
         if (bytes>budget()-distinctBytes) {
           diagnostic="SoSceneTexture2 base images and mip chains exceed 64 MiB per apply"; return false;
         }
@@ -120,6 +137,15 @@ public:
     return chargeMips(root);
   }
 
+  bool requestsMips(uint64_t id,const CoinRenderFramePlan& root) const {
+    auto requests=[&](const CoinRenderFramePlan& p) {
+      for(const auto& t:p.textures)if(t.producerId==id && t.mipmapped)return true;
+      return false;
+    };
+    if(requests(root))return true;
+    for(const auto& producer:producers)if(requests(producer.plan))return true;
+    return false;
+  }
 private:
   bool charge(const SbVec2i32& size, std::string& diagnostic) {
     if (size[0] <= 0 || size[1] <= 0 || size[0] > 2048 || size[1] > 2048) {
@@ -152,7 +178,7 @@ private:
       }
       const auto& producer = producers[size_t(texture.producerId - 1)];
       if (texture.width != uint32_t(producer.size[0]) ||
-          texture.height != uint32_t(producer.size[1])) {
+          texture.height != uint32_t(producer.size[1]) || texture.format!=producer.format) {
         diagnostic = "SoSceneTexture2 consumer dimensions differ from its producer";
         return false;
       }
@@ -202,7 +228,7 @@ public:
       }
       const Entry& entry = entries[size_t(texture.producerId - 1)];
       if (!(entry.stamp == current) || entry.id != texture.producerId ||
-          texture.width != entry.texture.width || texture.height != entry.texture.height) {
+          texture.width != entry.texture.width || texture.height != entry.texture.height || texture.format!=entry.texture.format) {
         diagnostic = "Scene texture resource belongs to another owner, device or generation";
         return false;
       }
@@ -212,7 +238,10 @@ public:
       texture = entry.texture;
       texture.gpuOpaque = opaque;
       texture.sceneTransparencyFunction = transparencyFunction;
-      if (requestedMips && !CoinRenderTextureSamplingCore::generate(texture)) {
+      if(requestedMips && texture.gpuToken && !texture.mipmapped) {
+        diagnostic="GPU RTT token lacks the requested mip chain";return false;
+      }
+      if (requestedMips && !texture.gpuToken && !CoinRenderTextureSamplingCore::generate(texture)) {
         diagnostic="Cannot resolve the staged RTT mip chain"; return false;
       }
     }

@@ -52,8 +52,8 @@ static void quad(SoSeparator * root) {
 int main(int argc, char ** argv) {
   if (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) return 77;
   SoDB::init(); CoinRenderAction::initClass();
-  const bool mipOnly = argc>1 && std::string(argv[1])=="--mips";
-  const bool direct = argc > 1 && std::string(argv[1]) == "--direct";
+  const bool mipOnly = argc>1 && (std::string(argv[1])=="--mips" || std::string(argv[1])=="--mips-direct");
+  const bool direct = argc > 1 && (std::string(argv[1]) == "--direct" || std::string(argv[1])=="--mips-direct");
   std::string optionError;
   CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionError);
   if (!optionError.empty()) { std::cerr<<optionError<<'\n'; return 1; }
@@ -142,7 +142,7 @@ int main(int argc, char ** argv) {
                 << " error=" << action.getLastError().getString() << '\n'; return 1;
     }
     // A nonportable format must preserve the successful frame and then recover.
-    texture->type = SoSceneTexture2::RGBA16F; action.apply(root);
+    texture->type = SoSceneTexture2::RGBA32F; action.apply(root);
     std::vector<uint8_t> retained; target->readbackRGBA(retained);
     if (action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || retained!=pixels) return 1;
     texture->type = SoSceneTexture2::RGBA8; action.apply(root); target->readbackRGBA(retained);
@@ -183,7 +183,20 @@ int main(int argc, char ** argv) {
       }
       const auto previous=pixels;
       texture->size=SbVec2s(64,48); quality->textureQuality=.7f; action.apply(root); target->readbackRGBA(pixels);
-      if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || pixels!=previous) { std::cerr<<"RTT mip NPOT rejection/publication failed at "<<q<<'\n'; return 1; }
+#ifdef HAVE_COIN_BGFX
+      const bool npotDirectMipUnavailable=direct;
+#else
+      const bool npotDirectMipUnavailable=false;
+#endif
+      if(npotDirectMipUnavailable) {
+        std::vector<uint8_t> retained;target->readbackRGBA(retained);
+        if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || retained!=previous || pixels!=previous) return 1;
+      } else if(action.getLastStatus()!=CoinRenderAction::SUCCESS) { std::cerr<<"RTT mip NPOT capture failed at "<<q<<'\n'; return 1; }
+      texture->size=SbVec2s(0,48);action.apply(root);
+      std::vector<uint8_t> preserved;target->readbackRGBA(preserved);
+      if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || preserved!=pixels) {
+        std::cerr<<"invalid RTT dimension published a frame\n";return 1;
+      }
       texture->size=SbVec2s(64,64); quality->textureQuality=q; action.apply(root); target->readbackRGBA(pixels);
       if(action.getLastStatus()!=CoinRenderAction::SUCCESS || pixels!=previous) { std::cerr<<"RTT mip recovery failed at "<<q<<": "<<action.getLastError().getString()<<'\n'; return 1; }
       ++passed;
@@ -192,7 +205,7 @@ int main(int argc, char ** argv) {
     if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
     quality->textureQuality=.7f; action.apply(root);
     if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
-    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae<<"; NPOT rejection/publication and recovery passed\n";
+    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae<<"; NPOT admission/explicit limits, invalid-size rejection/publication and recovery passed\n";
   }
   action.setRenderTarget(nullptr);
   if (!mipOnly) std::cout << "RTT extended " << (direct ? "direct" : "staged") << ": " << passed

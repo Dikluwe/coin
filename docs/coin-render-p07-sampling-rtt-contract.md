@@ -1,5 +1,10 @@
 # P07: fechamento do primeiro contrato comum de texturas
 
+**Registro do primeiro perfil (2026-10-06).** A extensão atual para NPOT,
+SRGB/BC3, anisotropia, RGBA16F e mipmaps diretos está no
+[contrato avançado de 2026-10-07](coin-render-advanced-textures-profile.md).
+As rejeições e contagens abaixo descrevem a campanha anterior.
+
 Rodada de 2026-10-06 em `codex/coin-render`, após `b8fba0e530`. Fecha os três
 itens restantes do **primeiro perfil P07**, com os limites abaixo. Não declara
 suporte geral a todos os formatos, filtros, produtores ou plataformas.

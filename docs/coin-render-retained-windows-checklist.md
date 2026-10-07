@@ -4,7 +4,7 @@ Esta lista acompanha o [perfil Linux](coin-render-retained-linux-profile.md).
 Não reutilizar os passes Windows anteriores como prova deste código novo.
 
 - [x] Atualizar Coin e CoinRender na mesma revisão e reinstalar o header
-  experimental; compilar MSVC BGFX e wgpu com protocolo 49, incluindo o novo
+  experimental; compilar MSVC BGFX e wgpu com protocolo 50, incluindo o novo
   export privado `coin_wgpu_surface_submission_serial`.
 - [ ] Aplicar os patches FreeCAD anteriores e o incremental
   `examples/coinrender/freecad_linux_retained_callbacks.patch`, depois
@@ -24,7 +24,10 @@ Não reutilizar os passes Windows anteriores como prova deste código novo.
   imagem anterior preservada e recuperação sem fallback. Adaptar `rtt-window`
   para Win32; verificar serial por surface e resize sem mudança de tamanho.
 - [x] Repetir os gates RTT Mips/MipsPbuffer e Publication: limiar estrito >0,5,
-  cadeia POT staged, orçamento, NPOT recusado e recuperação.
+  cadeia POT staged, orçamento, NPOT recusado e recuperação no perfil anterior.
+- [ ] Qualificar em Windows NPOT armazenado/staged, SRGB, BC3, anisotropia,
+  HDR16 direto e mips diretos do [perfil avançado](coin-render-advanced-textures-profile.md);
+  mip NPOT direto BGFX continua recusado explicitamente.
 - [ ] Repetir ColorBar frio em três ranges/precisões, com câmera foreground
   height 10, glifos presentes e comparação CoinGL.
 - [ ] Repetir cinco entradas inválidas dos tipos Part/Mesh no mesmo target,

@@ -200,7 +200,7 @@ CoinRenderFramePlanBuilder::reset()
   this->annotationDepthClearPending = false;
   this->builderError.clear();
   this->sceneTextures.clear();
-  this->authoredTextureImages.clear();
+  this->authoredTextureImages.clear(); this->compressedTextureImages.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
   this->lightCaptureScratch.clear();
@@ -479,9 +479,9 @@ CoinRenderFramePlanBuilder::endAnnotation()
 void CoinRenderFramePlanBuilder::registerSceneTexture(const unsigned char* image,
                                                       uint64_t producerId, uint32_t width,
                                                       uint32_t height, bool opaque,
-                                                      int32_t transparencyFunction) {
+                                                      int32_t transparencyFunction,CoinRenderTextureFormat format) {
   this->sceneTextures[image] =
-      SceneTexture{producerId, width, height, opaque, transparencyFunction};
+      SceneTexture{producerId, width, height, opaque, transparencyFunction,format};
 }
 
 void
@@ -759,7 +759,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   }
   CoinRenderTextureFilter filter;
   if (!CoinRenderTextureSamplingCore::quality(quality,filter)) {
-    if (outError) *outError = "P07 texture quality must be finite in [0,0.85]; anisotropy is outside the profile";
+    if (outError) *outError = "Texture quality must be finite in [0,1]";
     this->isUnsupported = true;
     this->builderError = outError ? *outError : "Unsupported P07 texture quality";
     return false;
@@ -861,14 +861,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     return false;
   }
 
-  if(!isSceneTexture && (!CoinRenderTextureSamplingCore::powerOfTwo(w) || !CoinRenderTextureSamplingCore::powerOfTwo(h))) {
-    this->isUnsupported=true;this->builderError="P07 stored texture images require power-of-two dimensions; implicit CoinGL NPOT rescaling is outside this profile";
-    this->builderError += " (" + std::to_string(w) + "x" + std::to_string(h) + ", unit " + std::to_string(unit) + ", path";
-    for (int i = 0; i < action->getCurPath()->getLength(); ++i)
-      this->builderError += " /" + std::string(action->getCurPath()->getNode(i)->getTypeId().getName().getString());
-    this->builderError += ")";
-    if(outError)*outError=this->builderError;return false;
-  }
   std::vector<uint8_t> rgba;
   if (!isSceneTexture) {
     if (!CoinRenderImageCore::convertToRgba8(rawBytes, size_t(w) * h, numComponents, rgba)) {
@@ -884,6 +876,9 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       isSceneTexture ? sceneTexture->second.producerId : CoinRenderImageCore::rgba8Digest(rgba);
   CoinRenderTextureImageSnapshot tSnap;
   tSnap.width = w; tSnap.height = h; tSnap.components = 4;
+  tSnap.format=!isSceneTexture && this->storedTextureColorSpace==COIN_RENDER_TEXTURE_SRGB?
+    CoinRenderTextureFormat::RGBA8_SRGB:CoinRenderTextureFormat::RGBA8_LINEAR;
+  if(isSceneTexture)tSnap.format=sceneTexture->second.format;
   tSnap.sceneTransparencyFunction = isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
   tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
   tSnap.contentDigest = digest;
@@ -896,15 +891,19 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
                            : CoinRenderTextureFilter::LINEAR;
     tSnap.mipmapped = quality > .5f;
     if (!CoinRenderTextureSamplingCore::validMipImage(tSnap)) {
-      this->isUnsupported=true; this->builderError="RTT mipmaps require power-of-two RGBA8 extents";
+      this->isUnsupported=true; this->builderError="RTT mipmaps exceed the format or memory limits";
       if(outError)*outError=this->builderError; return false;
     }
   } else if (CoinRenderTextureSamplingCore::mipFilter(filter) &&
              !CoinRenderTextureSamplingCore::generate(tSnap)) {
-    this->isUnsupported=true;this->builderError="P07 mipmaps require power-of-two 2D RGBA8 images and at most 128 MiB including all levels";
+    this->isUnsupported=true;this->builderError="Texture mipmaps require supported 2D images and at most 128 MiB including all levels";
     if(outError)*outError=this->builderError;return false;
   }
 
+  if(!isSceneTexture && this->compressedTextureImages.count(rawBytes) && !CoinRenderTextureSamplingCore::compress(tSnap)) {
+    this->isUnsupported=true;this->builderError="BC3 stored textures require block-aligned base dimensions and RGBA8 input";
+    if(outError)*outError=this->builderError;return false;
+  }
   const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
 
   // 9. Sampler deduplication
@@ -912,6 +911,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   sampSnap.wrapS = snapWrapS;
   sampSnap.wrapT = snapWrapT;
   sampSnap.filter = filter;
+  if(quality>.85f) { sampSnap.filter=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR; sampSnap.maxAnisotropy=this->maxTextureAnisotropy; }
 
   const uint32_t sampSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampSnap);
 

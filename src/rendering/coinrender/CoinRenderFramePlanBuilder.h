@@ -13,6 +13,8 @@ class SoPrimitiveVertex;
 class SoNode;
 class CoinRenderFramePreflight;
 
+#include <Inventor/rendering/CoinRenderOptions.h>
+
 class CoinRenderFramePlanBuilder {
 public:
   CoinRenderFramePlanBuilder();
@@ -52,9 +54,13 @@ public:
   void endForeground();
   void endAnnotation();
 
-  void registerAuthoredTextureImage(const unsigned char * bytes) { if(bytes) authoredTextureImages.insert(bytes); }
+  void configureTextures(const CoinRenderOptions& options) { storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
+  void registerAuthoredTextureImage(const unsigned char * bytes,bool compressed=false) {
+    if(bytes) { authoredTextureImages.insert(bytes); if(compressed) compressedTextureImages.insert(bytes); else compressedTextureImages.erase(bytes); }
+  }
   void registerSceneTexture(const unsigned char* image, uint64_t producerId, uint32_t width,
-                            uint32_t height, bool opaque, int32_t transparencyFunction);
+                            uint32_t height, bool opaque, int32_t transparencyFunction,
+                            CoinRenderTextureFormat format=CoinRenderTextureFormat::RGBA8_LINEAR);
   void addTriangle(SoCallbackAction * action,
                    const SoPrimitiveVertex * v0,
                    const SoPrimitiveVertex * v1,
@@ -176,9 +182,12 @@ private:
     uint32_t height;
     bool opaque;
     int32_t transparencyFunction;
+    CoinRenderTextureFormat format;
   };
   std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
-  std::unordered_set<const unsigned char*> authoredTextureImages;
+  std::unordered_set<const unsigned char*> authoredTextureImages,compressedTextureImages;
+  CoinRenderStoredTextureColorSpace storedTextureColorSpace=COIN_RENDER_TEXTURE_LINEAR;
+  uint32_t maxTextureAnisotropy=16;
 };
 
 #endif // !COIN_RENDER_FRAME_PLAN_BUILDER_H

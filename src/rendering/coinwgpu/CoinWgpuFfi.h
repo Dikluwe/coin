@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 49
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 50
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -33,6 +33,7 @@ typedef enum CoinWgpuStatus {
 #define COIN_WGPU_FAULT_RTT_DEPTH_ALLOC 303
 #define COIN_WGPU_FAULT_RTT_BIND_GROUP 304
 #define COIN_WGPU_FAULT_SHADOW_MAP_ALLOC 305
+#define COIN_WGPU_FAULT_RTT_MIP_ENCODING 306
 
 typedef enum CoinWgpuNativeSurfaceType {
   COIN_WGPU_NATIVE_XLIB = 1,
@@ -111,8 +112,8 @@ typedef struct CoinWgpuMaterial {
 typedef struct CoinWgpuTexture {
   uint32_t width;
   uint32_t height;
-  uint32_t format; /* 0=RGBA8_UNORM base; 1=private GPU RTT token; 2=complete POT RGBA8 mip chain */
-  uint32_t reserved;
+  uint32_t format; /* 0=RGBA8 linear base; 1=GPU RTT token; 2=RGBA8 linear mips; 3/4=SRGB base/mips; 5/6=RGBA16F; 7/8=BC3 linear; 9/10=BC3 SRGB */
+  uint32_t reserved; /* RTT only: opaque bit0, mips bit1, Coin format in bits2..4 */
   uint64_t content_digest;
   const uint8_t * pixels;
   uint64_t pixel_bytes_len;
@@ -122,7 +123,7 @@ typedef struct CoinWgpuSampler {
   uint32_t wrap_s; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
   uint32_t wrap_t; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
   uint32_t filter; /* 0=NEAREST, 1=LINEAR, 2=NEAREST_MIPMAP_LINEAR, 3=LINEAR_MIPMAP_LINEAR */
-  uint32_t reserved;
+  uint32_t reserved; /* max anisotropy minus one, 0/1/3/7/15 */
 } CoinWgpuSampler;
 
 
@@ -293,6 +294,8 @@ typedef struct CoinWgpuFrameView {
   uint64_t instance_count;
   const CoinWgpuInstanceRange * instance_ranges;
   uint64_t instance_range_count;
+  uint32_t texture_output_flags; /* bit 0=RGBA16F direct RTT; bit 1=generate full RTT mip chain */
+  uint32_t texture_output_reserved; /* zero */
 } CoinWgpuFrameView;
 
 typedef struct CoinWgpuTarget {
@@ -367,6 +370,9 @@ struct CoinWgpuRuntimeCapabilities {
 };
 CoinWgpuStatus coin_wgpu_query_runtime_capabilities(CoinWgpuRuntimeCapabilities* output,
                                                     size_t output_size);
+
+// Hardware admission only; no allocation or submission. Formats use Core enum bits.
+CoinWgpuStatus coin_wgpu_preflight_texture_profile(uint32_t formats, uint32_t outputs, uint32_t anisotropy);
 
 CoinWgpuStatus coin_wgpu_submit(
   CoinWgpuTarget * target,

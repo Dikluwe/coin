@@ -237,6 +237,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
                     COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
+                    COIN_RENDER_FEATURE_TEXTURE_NPOT |
+                    COIN_RENDER_FEATURE_TEXTURE_SRGB |
+                    COIN_RENDER_FEATURE_TEXTURE_BC3 |
+                    COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
                     COIN_RENDER_FEATURE_CLIP_PLANES |
@@ -246,7 +250,9 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
   result.max_texture_units = 8;
   if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN) {
     result.features |= COIN_RENDER_FEATURE_ASYNC_READBACK |
-                       COIN_RENDER_FEATURE_DIRECT_RTT;
+                       COIN_RENDER_FEATURE_DIRECT_RTT |
+                       COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F |
+                       COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
     result.max_scene_texture_depth = 8;
     result.max_scene_texture_bytes_per_apply = UINT64_C(64) * 1024 * 1024;
   }
@@ -263,6 +269,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
                     COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
+                    COIN_RENDER_FEATURE_TEXTURE_NPOT |
+                    COIN_RENDER_FEATURE_TEXTURE_SRGB |
+                    COIN_RENDER_FEATURE_TEXTURE_BC3 |
+                    COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
                     COIN_RENDER_FEATURE_CLIP_PLANES |
@@ -270,7 +280,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
   result.max_lights_per_draw = 8;
   result.max_texture_units = COIN_RENDER_MAX_TEXTURE_UNITS;
   if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN)
-    result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK;
+    result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK |
+                       COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F | COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
   probeBgfx(target, renderer, result);
 #else
   result.backend = COIN_RENDER_EXPERIMENTAL_RECORDING;
@@ -281,6 +292,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                     COIN_RENDER_FEATURE_TEXTURE_2D |
                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
                     COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
+                    COIN_RENDER_FEATURE_TEXTURE_NPOT |
+                    COIN_RENDER_FEATURE_TEXTURE_SRGB |
+                    COIN_RENDER_FEATURE_TEXTURE_BC3 |
+                    COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY |
                     COIN_RENDER_FEATURE_LIGHTS |
                     COIN_RENDER_FEATURE_FOG |
                     COIN_RENDER_FEATURE_SORTED_ALPHA |

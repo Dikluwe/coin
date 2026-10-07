@@ -5,6 +5,11 @@
 #include <string>
 
 inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
+  if(uint32_t(options.storedTextureColorSpace)>1 || !options.maxTextureAnisotropy ||
+     options.maxTextureAnisotropy>16 || (options.maxTextureAnisotropy&(options.maxTextureAnisotropy-1))) {
+    diagnostic="Stored texture color space must be LINEAR/SRGB and anisotropy a power of two in 1..16";return false;
+  }
+
   if (options.renderer != COIN_RENDER_RENDERER_UNKNOWN &&
       options.renderer != COIN_RENDER_RENDERER_VULKAN &&
       options.renderer != COIN_RENDER_RENDERER_OPENGL &&

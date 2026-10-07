@@ -95,6 +95,15 @@
 #include <utility>
 
 namespace {
+bgfx::TextureFormat::Enum coinBgfxTextureFormat(CoinRenderTextureFormat f) {
+  if(f==CoinRenderTextureFormat::RGBA16_FLOAT)return bgfx::TextureFormat::RGBA16F;
+  if(CoinRenderTextureFormatCore::compressed(f))return bgfx::TextureFormat::BC3;
+  return bgfx::TextureFormat::RGBA8;
+}
+uint64_t coinBgfxTextureFlags(CoinRenderTextureFormat f) {
+  return CoinRenderTextureFormatCore::srgb(f)?BGFX_TEXTURE_SRGB:BGFX_TEXTURE_NONE;
+}
+
 // Isolated view blocks prevent per-window state from aliasing. API calls stay
 // on one thread; BGFX owns its render worker.
 constexpr bgfx::ViewId targetViewCount = 16;
@@ -449,7 +458,7 @@ bool sameTextureState(const CoinBgfxDraw & lhs,
     std::memcmp(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures)) == 0 &&
     lhs.hasTexture == rhs.hasTexture &&
     lhs.textureSlot == rhs.textureSlot && lhs.textureModel == rhs.textureModel &&
-    lhs.wrapS == rhs.wrapS && lhs.wrapT == rhs.wrapT && lhs.filter == rhs.filter &&
+    lhs.wrapS == rhs.wrapS && lhs.wrapT == rhs.wrapT && lhs.filter == rhs.filter && lhs.maxAnisotropy == rhs.maxAnisotropy &&
     std::memcmp(lhs.textureBlendColor, rhs.textureBlendColor,
                 sizeof(lhs.textureBlendColor)) == 0;
 }
@@ -1104,6 +1113,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   if (runtime.references == 0) {
     bgfx::Init init;
     init.type = renderer;
+    init.reset |= BGFX_RESET_MAXANISOTROPY;
     runtime.callback = std::make_shared<CoinBgfxCallback>(renderer == bgfx::RendererType::OpenGL);
     init.callback = runtime.callback.get();
     // No visible window owns the primary swapchain. Closing the first target
@@ -1654,7 +1664,7 @@ CoinBgfxBackend::bindDrawTexture(
     if (unit == 0) {
       layer.enabled = draw.hasTexture; layer.slot = draw.textureSlot;
       layer.model = draw.textureModel; layer.wrapS = draw.wrapS; layer.wrapT = draw.wrapT;
-      layer.filter = draw.filter;
+      layer.filter = draw.filter; layer.maxAnisotropy = draw.maxAnisotropy;
       std::memcpy(layer.blendColor, draw.textureBlendColor, sizeof(layer.blendColor));
     } else layer = draw.extraTextures[unit - 1];
     bgfx::TextureHandle texture = this->defaultTexture;
@@ -1666,6 +1676,7 @@ CoinBgfxBackend::bindDrawTexture(
     if (layer.filter == CoinRenderTextureFilter::NEAREST)
       flags |= BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT;
     if(layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR) flags |= BGFX_SAMPLER_MIN_POINT;
+    if(layer.maxAnisotropy>1)flags|=BGFX_SAMPLER_MIN_ANISOTROPIC|BGFX_SAMPLER_MAG_ANISOTROPIC;
     bool directRenderTarget = false;
     if (layer.enabled) for (const auto & resource : this->directTextures) {
       const auto direct = bgfx::getTexture(resource.frameBuffer, 0);
@@ -1677,7 +1688,8 @@ CoinBgfxBackend::bindDrawTexture(
     params[unit][3] = static_cast<float>(draw.textureProjection);
     std::memcpy(blend[unit], layer.blendColor, sizeof(layer.blendColor));
     bgfx::setTexture(static_cast<uint8_t>(unit + 2),
-      unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, flags);
+      unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, 0, 1, 0,
+      CoinRenderTextureSamplingCore::mipFilter(layer.filter) ? UINT8_MAX : 1, flags);
   }
   bgfx::setUniform(this->textureParamsUniform, params, COIN_RENDER_MAX_TEXTURE_UNITS);
   bgfx::setUniform(this->textureBlendUniform, blend, COIN_RENDER_MAX_TEXTURE_UNITS);
@@ -2056,6 +2068,37 @@ CoinBgfxBackend::bindShadowReceiver(
   this->bindDrawLighting(shaded, targetHeight);
 }
 
+// Admission precedes allocation, cache changes and producer submission.
+static CoinRenderSubmitResult bgfxTextureProfile(const CoinRenderFramePlan & frame) {
+  const auto * caps = sharedRuntime().references ? bgfx::getCaps() : nullptr;
+  for (const auto & sampler : frame.samplers)
+    if (sampler.maxAnisotropy != 1 && sampler.maxAnisotropy != 16)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX exposes native maximum anisotropy only (option 16); factors 2/4/8 are unavailable"};
+  if (!caps) return {}; // Selected-adapter admission follows prepare.
+  if(caps->rendererType==bgfx::RendererType::OpenGL && !frame.textures.empty()) {
+    // This GL connector changes the object's mip range; simultaneous base
+    // and mip views of one object contaminate each other's LOD. Admit neither
+    // an incorrect image nor a silent sampler change.
+    std::vector<uint8_t> usage(frame.textures.size(),0);
+    for(const auto & state:frame.renderStates)for(size_t unit=0;unit<COIN_RENDER_MAX_TEXTURE_UNITS;++unit) {
+      const auto layer=coin_render_texture_unit(state,unit);
+      if(!layer.enabled || layer.imageSlot>=usage.size() || layer.samplerSlot>=frame.samplers.size())continue;
+      usage[layer.imageSlot]|=CoinRenderTextureSamplingCore::mipFilter(frame.samplers[layer.samplerSlot].filter)?2:1;
+      if(usage[layer.imageSlot]==3)
+        return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX OpenGL cannot mix base-only and mip samplers on one texture image"};
+    }
+  }
+  for (const auto & image : frame.textures) {
+    const auto format = coinBgfxTextureFormat(image.format);
+    if (!CoinRenderTextureFormatCore::valid(image.format) ||
+        !(caps->formats[format] & (CoinRenderTextureFormatCore::srgb(image.format) ? BGFX_CAPS_FORMAT_TEXTURE_2D_SRGB : BGFX_CAPS_FORMAT_TEXTURE_2D)) ||
+        image.width > caps->limits.maxTextureSize || image.height > caps->limits.maxTextureSize ||
+        !bgfx::isTextureValid(1, false, 1, format, coinBgfxTextureFlags(image.format)))
+      return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX texture format or extent unavailable"};
+  }
+  return {};
+}
+
 CoinRenderSubmitResult
 CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
   const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * outTicket)
@@ -2072,6 +2115,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX supports native window presentation or offscreen readback";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  const auto textureAdmission = bgfxTextureProfile(frame);
+  if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
   const bool hasShadows = !frame.shadowGroups.empty();
   CoinRenderShadowPlan shadowPlan;
   if (hasShadows) {
@@ -2086,7 +2131,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     const bgfx::Caps * caps = bgfx::getCaps();
-    if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10)) {
+    if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10)) {
       this->lastError = "BGFX shadow receiver needs one texture stage per shadow pass";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
@@ -2357,7 +2402,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     const CoinBgfxTexture & texture = plan->textures[textureIndex];
     if (texture.gpuToken != 0) {
       for (const DirectTextureResource & resource : this->directTextures) {
-        if (resource.token == texture.gpuToken) {
+        if (resource.token == texture.gpuToken && resource.format == texture.format &&
+            (!texture.mipmapped || resource.mipmapped) && resource.width == int(texture.width) && resource.height == int(texture.height)) {
           textures[textureIndex] = bgfx::getTexture(resource.frameBuffer, 0);
           break;
         }
@@ -2371,8 +2417,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     if (texture.width == 0 || texture.height == 0 ||
         texture.width > UINT16_MAX || texture.height > UINT16_MAX ||
         texture.pixelsRgba.size() !=
-          static_cast<size_t>(texture.width) * texture.height * 4u +
-          (texture.mipmapped ? CoinRenderTextureSamplingCore::mipBytes(texture.width,texture.height) : 0)) {
+          CoinRenderTextureFormatCore::levelBytes(texture.width,texture.height,texture.format) +
+          (texture.mipmapped ? CoinRenderTextureSamplingCore::mipBytes(texture.width,texture.height,texture.format) : 0)) {
       this->lastError = "BGFX texture dimensions or RGBA payload are invalid";
       for (size_t i = 0; i < textures.size(); ++i)
         if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
@@ -2381,7 +2427,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     textures[textureIndex] = bgfx::createTexture2D(
       static_cast<uint16_t>(texture.width),
       static_cast<uint16_t>(texture.height), texture.mipmapped, 1,
-      bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
+      coinBgfxTextureFormat(texture.format), coinBgfxTextureFlags(texture.format),
       bgfx::copy(texture.pixelsRgba.data(),
                  static_cast<uint32_t>(texture.pixelsRgba.size())));
     if (!bgfx::isValid(textures[textureIndex])) {
@@ -2993,6 +3039,15 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                                        uint64_t & token)
 {
   token = 0;
+  const auto outputFormat=coinBgfxTextureFormat(frame.outputColorFormat);
+  const auto * runtimeCaps=bgfx::getCaps();
+  if(!runtimeCaps) return {CoinRenderBackendStatus::NOT_READY,"BGFX direct RTT runtime unavailable"};
+  if(frame.outputMipmaps && (!CoinRenderTextureSamplingCore::powerOfTwo(size[0]) ||
+                            !CoinRenderTextureSamplingCore::powerOfTwo(size[1])))
+    return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX native RTT mip generation requires POT extents; NPOT exact area reduction unavailable"};
+  if(frame.outputMipmaps && !(runtimeCaps->formats[outputFormat]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))
+    return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX format lacks direct GPU mip generation"};
+
   if (!this->initialized || !this->onApiThread() ||
       producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
       size[0] > 2048 || size[1] > 2048) {
@@ -3002,6 +3057,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
+  const auto textureAdmission = bgfxTextureProfile(frame);
+  if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
   const bool hasShadows = !frame.shadowGroups.empty();
   CoinRenderShadowPlan shadowPlan;
   if (hasShadows) {
@@ -3012,7 +3069,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     const bgfx::Caps * caps = bgfx::getCaps();
-    if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
+    if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
         "BGFX direct RTT shadow receiver has insufficient texture stages");
     for (const auto & pass : shadowPlan.passes)
@@ -3091,7 +3148,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     }
   }
   if (cachedResource &&
-      (cachedResource->width != size[0] || cachedResource->height != size[1])) {
+      (cachedResource->width != size[0] || cachedResource->height != size[1] || cachedResource->format!=frame.outputColorFormat || cachedResource->mipmapped!=frame.outputMipmaps)) {
     if (bgfx::isValid(cachedResource->frameBuffer))
       bgfx::destroy(cachedResource->frameBuffer);
     cachedResource->frameBuffer = BGFX_INVALID_HANDLE;
@@ -3105,8 +3162,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       (caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)
         ? bgfx::TextureFormat::D24S8 : bgfx::TextureFormat::D32F;
     bgfx::TextureHandle color = bgfx::createTexture2D(
-      static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
-      bgfx::TextureFormat::RGBA8, peelTextureFlags);
+      static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), frame.outputMipmaps, 1,
+      coinBgfxTextureFormat(frame.outputColorFormat), peelTextureFlags);
     bgfx::TextureHandle depth = bgfx::createTexture2D(
       static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
       depthFormat, BGFX_TEXTURE_RT_WRITE_ONLY);
@@ -3147,13 +3204,14 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     const CoinBgfxTexture & source = plan.textures[i];
     if (source.gpuToken != 0) {
       for (const DirectTextureResource & resource : this->directTextures) {
-        if (resource.token == source.gpuToken)
+        if (resource.token == source.gpuToken && resource.format == source.format &&
+            (!source.mipmapped || resource.mipmapped) && resource.width == int(source.width) && resource.height == int(source.height))
           textures[i] = bgfx::getTexture(resource.frameBuffer, 0);
       }
     } else {
       textures[i] = bgfx::createTexture2D(static_cast<uint16_t>(source.width),
-        static_cast<uint16_t>(source.height), source.mipmapped, 1, bgfx::TextureFormat::RGBA8,
-        BGFX_TEXTURE_NONE, bgfx::copy(source.pixelsRgba.data(),
+        static_cast<uint16_t>(source.height), source.mipmapped, 1, coinBgfxTextureFormat(source.format),
+        coinBgfxTextureFlags(source.format), bgfx::copy(source.pixelsRgba.data(),
           static_cast<uint32_t>(source.pixelsRgba.size())));
       owned[i] = true;
     }
@@ -3323,6 +3381,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     resource.producerKey = producerKey;
     resource.width = size[0];
     resource.height = size[1];
+    resource.format=frame.outputColorFormat; resource.mipmapped=frame.outputMipmaps;
     resource.frameBuffer = output;
     resource.inUse = true;
     this->directTextures.push_back(resource);
@@ -3330,6 +3389,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   } else {
     cachedResource->width = size[0];
     cachedResource->height = size[1];
+    cachedResource->format=frame.outputColorFormat;cachedResource->mipmapped=frame.outputMipmaps;
     cachedResource->frameBuffer = output;
     cachedResource->inUse = true;
     token = cachedResource->token;
@@ -3464,11 +3524,27 @@ CoinBgfxBackend::poll()
 }
 
 CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& graph,
-                                                     const CoinRenderFramePlan&,
+                                                     const CoinRenderFramePlan& root,
                                                      const SbVec2i32&) const {
+  auto admission = bgfxTextureProfile(root);
+  if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  for (const auto & producer : graph.producers) {
+    admission = bgfxTextureProfile(producer.plan);
+    if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  }
   if (graph.mode != COIN_RENDER_SCENE_TEXTURE_DIRECT)
     return {};
-  for (const auto& producer : graph.producers) {
+  for (size_t producerIndex=0;producerIndex<graph.producers.size();++producerIndex) {
+    const auto& producer=graph.producers[producerIndex];
+    if(graph.requestsMips(producerIndex+1,root) &&
+       (!CoinRenderTextureSamplingCore::powerOfTwo(producer.size[0]) ||
+        !CoinRenderTextureSamplingCore::powerOfTwo(producer.size[1])))
+      return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX native RTT mip generation requires POT extents; NPOT exact area reduction unavailable"};
+    const auto format=coinBgfxTextureFormat(producer.format);
+    const auto * caps=sharedRuntime().references ? bgfx::getCaps() : nullptr;
+    if(caps && (!(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+       (graph.requestsMips(producerIndex+1,root) && !(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))))
+      return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX RTT format/mip generation unavailable"};
     if (!producer.plan.shadowGroups.empty()) {
       CoinRenderShadowPlan shadowPlan;
       std::string diagnostic;
@@ -3478,15 +3554,15 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
         return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
       if (!bgfxShadowBatchSupported(producer.plan, shadowPlan, diagnostic))
         return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
-      const bgfx::Caps * caps = bgfx::getCaps();
-      if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
+      const bgfx::Caps * caps = sharedRuntime().references ? bgfx::getCaps() : nullptr;
+      if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
         return {CoinRenderBackendStatus::UNSUPPORTED,
                 "BGFX direct RTT shadow receiver has insufficient texture stages"};
       for (const auto & pass : shadowPlan.passes)
-        if (pass.mapSize > caps->limits.maxTextureSize ||
+        if (caps && (pass.mapSize > caps->limits.maxTextureSize ||
             !(caps->formats[bgfx::TextureFormat::RGBA32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
             !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-            !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags))
+            !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags)))
           return {CoinRenderBackendStatus::UNSUPPORTED,
                   "BGFX direct RTT cannot render the planned shadow maps"};
     }

@@ -239,7 +239,7 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
 uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRenderTextureImageSnapshot && image) {
   for (size_t i = 0; i < plan.textures.size(); ++i) {
     const auto & existing = plan.textures[i];
-    if (existing.width == image.width && existing.height == image.height &&
+    if (existing.format == image.format && existing.width == image.width && existing.height == image.height &&
         existing.contentDigest == image.contentDigest && existing.producerId == image.producerId &&
         existing.sceneTransparencyFunction == image.sceneTransparencyFunction && existing.pixelsRgba == image.pixelsRgba && existing.mipmapped == image.mipmapped && existing.mipmapsRgba == image.mipmapsRgba)
       return static_cast<uint32_t>(i);
@@ -254,7 +254,7 @@ uint32_t CoinRenderPlanAssemblyCore::sampler(CoinRenderFramePlan & plan, const C
     const auto & s = plan.samplers[i];
     if (s.wrapS == sampSnap.wrapS &&
         s.wrapT == sampSnap.wrapT &&
-        s.filter == sampSnap.filter) {
+        s.filter == sampSnap.filter && s.maxAnisotropy == sampSnap.maxAnisotropy) {
       sampSlot = static_cast<uint32_t>(i);
       break;
     }

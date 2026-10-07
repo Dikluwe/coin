@@ -4,6 +4,8 @@
 #![allow(clippy::if_same_then_else)]
 #![allow(clippy::needless_range_loop)]
 #![allow(clippy::needless_lifetimes)]
+mod texture_profile;
+mod texture_mips;
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
@@ -31,11 +33,11 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 49;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 50;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 448);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 456);
     assert!(std::mem::size_of::<CoinWgpuInstance>() == 144);
     assert!(std::mem::size_of::<CoinWgpuInstanceRange>() == 16);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, instances) == 416);
@@ -735,6 +737,8 @@ pub struct CoinWgpuFrameView {
     pub instance_count: u64,
     pub instance_ranges: *const CoinWgpuInstanceRange,
     pub instance_range_count: u64,
+    pub texture_output_flags: u32,
+    pub texture_output_reserved: u32,
 }
 
 #[repr(C)]
@@ -958,6 +962,8 @@ struct RttTexture {
     width: u32,
     height: u32,
     opaque: bool,
+    format: u32,
+    mip_count: u32,
 }
 struct RetiredRttTexture {
     #[allow(dead_code)] // Retirement keeps the view alive until the submission fence.
@@ -974,6 +980,7 @@ struct RttRegistry {
 
 #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
 struct SamplerKey {
+    max_anisotropy_minus_one: u32,
     wrap_s: u32,
     wrap_t: u32,
     filter: u32,
@@ -2120,8 +2127,11 @@ fn get_or_init_device_impl<'a>(
     let enable_timestamps = std::env::var_os("COIN_RENDER_TRACE_PHASES").or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some()
         && std::env::var("COIN_WGPU_GPU_TIMESTAMPS").as_deref() == Ok("1")
         && adapter.features().contains(timestamp_features);
-    let required_features = if enable_timestamps { timestamp_features }
+    let mut required_features = if enable_timestamps { timestamp_features }
         else { wgpu::Features::empty() };
+    if adapter.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
+        required_features |= wgpu::Features::TEXTURE_COMPRESSION_BC;
+    }
     let (device, queue) = block_on(adapter.request_device(
         &wgpu::DeviceDescriptor {
             label: Some("Coin3D WebGPU Device"),
@@ -3052,20 +3062,7 @@ fn get_or_create_pipeline<'a>(
 
 // Transport validation only: chain generation belongs to Coin/Core.
 fn texture_levels(width:u32,height:u32,format:u32)->Result<Vec<(u32,u32,u64)>,(CoinWgpuStatus,String)> {
-    if width==0 || height==0 || width>8192 || height>8192 || (format!=0 && format!=2) {
-        return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 texture layout".into()));
-    }
-    if format==2 && (!width.is_power_of_two() || !height.is_power_of_two()) {
-        return Err((CoinWgpuStatus::Unsupported,"P07 mipmaps require power-of-two dimensions".into()));
-    }
-    let(mut w,mut h,mut offset)=(width,height,0u64);let mut levels=Vec::new();
-    loop {levels.push((w,h,offset));offset+=u64::from(w)*u64::from(h)*4;
-        if format==0 || (w==1 && h==1){break;}w=(w/2).max(1);h=(h/2).max(1);
-    }
-    if format==2 && offset>128*1024*1024 {
-        return Err((CoinWgpuStatus::Unsupported,"P07 mip chain exceeds 128 MiB".into()));
-    }
-    Ok(levels)
+    texture_profile::levels(width,height,format)
 }
 
 fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
@@ -3093,7 +3090,7 @@ mod viewport_tests {
         assert_eq!(texture_levels(4,2,2).unwrap(),vec![(4,2,0),(2,1,32),(1,1,40)]);
         assert_eq!(texture_levels(1,1,2).unwrap(),vec![(1,1,0)]);
         assert_eq!(texture_levels(3,5,0).unwrap(),vec![(3,5,0)]);
-        for &(w,h,f) in &[(3,5,2),(8192,8192,2),(0,8,2),(8193,1,0),(4,4,3)] {
+        for &(w,h,f) in &[(8192,8192,2),(0,8,2),(8193,1,0),(4,4,11)] {
             assert!(texture_levels(w,h,f).is_err());
         }
     }
@@ -3313,7 +3310,7 @@ fn encode_frame(
             if enabled==0 {continue;}
             let image=textures_slice.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 image slot out of bounds".into()))?;
             let sampler=samplers_slice.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 sampler slot out of bounds".into()))?;
-            if sampler.filter>=2 && image.format!=2 {
+            if sampler.filter>=2 && !(if image.format==1 {image.reserved&2!=0} else {texture_profile::format(image.format)?.1}) {
                 return Err((CoinWgpuStatus::Unsupported,"P07 mip sampler requires complete stored-image chain".into()));
             }
         }
@@ -3350,6 +3347,23 @@ fn encode_frame(
     }
 
 
+    for image in textures_slice {
+        if image.format==1 {continue;}
+        let format=texture_profile::format(image.format)?.0;
+        if format.is_compressed() && !ctx.device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
+            return Err((CoinWgpuStatus::Unsupported,"BC compression unavailable on selected adapter".into()));
+        }
+        let features=ctx.adapter.get_texture_format_features(format);
+        if !features.allowed_usages.contains(wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_DST) {
+            return Err((CoinWgpuStatus::Unsupported,"Texture format unavailable on selected adapter".into()));
+        }
+    }
+    for sampler in samplers_slice {
+        let max=texture_profile::anisotropy(sampler.reserved,sampler.filter)?;
+        if max>1 && !ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::ANISOTROPIC_FILTERING) {
+            return Err((CoinWgpuStatus::Unsupported,"Anisotropic filtering unavailable".into()));
+        }
+    }
     ctx.camera_bindings_reused.store(0, Ordering::Relaxed);
     ctx.camera_bindings_created.store(0, Ordering::Relaxed);
     // 1. Process pending GPU completion events and lock geometry cache
@@ -3393,7 +3407,8 @@ fn encode_frame(
                 format!("Texture {} has stale or unknown RTT token", t_idx),
             ))?;
             if entry.width != t.width || entry.height != t.height
-                || (t.reserved != 0 && (t.reserved != 1 || !entry.opaque))
+                || (t.reserved&!31!=0 || (t.reserved&1!=0 && !entry.opaque) ||
+                    (t.reserved>>2)!=entry.format || (t.reserved&2!=0 && entry.mip_count<=1 && (t.width>1 || t.height>1)))
                 || !t.pixels.is_null() || t.pixel_bytes_len != 0 {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     format!("Texture {} RTT token metadata mismatch", t_idx)));
@@ -3402,7 +3417,8 @@ fn encode_frame(
         }
         let levels = texture_levels(t.width,t.height,t.format)?;
         let &(last_width,last_height,last_offset)=levels.last().unwrap();
-        let expected_bytes=last_offset+u64::from(last_width)*u64::from(last_height)*4;
+        let gpu_format=texture_profile::format(t.format)?.0;
+        let expected_bytes=last_offset+texture_profile::level_bytes(last_width,last_height,gpu_format);
         if t.pixel_bytes_len != expected_bytes || t.pixels.is_null() {
             return Err((
                 CoinWgpuStatus::InvalidArgument,
@@ -3411,6 +3427,9 @@ fn encode_frame(
         }
 
         let pixel_bytes = unsafe { std::slice::from_raw_parts(t.pixels, t.pixel_bytes_len as usize) };
+        if gpu_format==wgpu::TextureFormat::Rgba16Float && pixel_bytes.chunks_exact(2).any(|p| u16::from_le_bytes([p[0],p[1]])&0x7c00==0x7c00) {
+            return Err((CoinWgpuStatus::InvalidArgument,"Non-finite half texture payload".into()));
+        }
         let key = TextureKey {
             width: t.width,
             height: t.height,
@@ -3436,7 +3455,7 @@ fn encode_frame(
             mip_level_count: levels.len() as u32,
             sample_count: 1,
             dimension: wgpu::TextureDimension::D2,
-            format: wgpu::TextureFormat::Rgba8Unorm,
+            format: gpu_format,
             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
             view_formats: &[],
         });
@@ -3449,15 +3468,15 @@ fn encode_frame(
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,
             },
-            &pixel_bytes[offset as usize..(offset+u64::from(level_width)*u64::from(level_height)*4) as usize],
+            &pixel_bytes[offset as usize..(offset+texture_profile::level_bytes(level_width,level_height,gpu_format)) as usize],
             wgpu::ImageDataLayout {
                 offset: 0,
-                bytes_per_row: Some(level_width * 4),
-                rows_per_image: Some(level_height),
+                bytes_per_row: Some(level_width.div_ceil(gpu_format.block_dimensions().0)*gpu_format.block_copy_size(None).unwrap()),
+                rows_per_image: Some(level_height.div_ceil(gpu_format.block_dimensions().1)),
             },
             wgpu::Extent3d {
-                width: level_width,
-                height: level_height,
+                width: level_width.div_ceil(gpu_format.block_dimensions().0)*gpu_format.block_dimensions().0,
+                height: level_height.div_ceil(gpu_format.block_dimensions().1)*gpu_format.block_dimensions().1,
                 depth_or_array_layers: 1,
             },
         );
@@ -3508,13 +3527,14 @@ fn encode_frame(
 
     // Upload and cache frame samplers
     for s in samplers_slice {
-        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || s.reserved!=0 {
+        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || texture_profile::anisotropy(s.reserved,s.filter).is_err() {
             return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 sampler".into()));
         }
         let key = SamplerKey {
             wrap_s: s.wrap_s,
             wrap_t: s.wrap_t,
             filter: s.filter,
+            max_anisotropy_minus_one: s.reserved,
         };
         if !samp_cache.entries.contains_key(&key) {
             let addr_u = match s.wrap_s {
@@ -3534,6 +3554,8 @@ fn encode_frame(
             };
             let samp = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
                 label: Some("Coin Cached Sampler"),
+                anisotropy_clamp: texture_profile::anisotropy(s.reserved,s.filter)?,
+                lod_max_clamp: if s.filter>=2 {32.0} else {0.0},
                 address_mode_u: addr_u,
                 address_mode_v: addr_v,
                 address_mode_w: wgpu::AddressMode::Repeat,
@@ -4291,6 +4313,7 @@ fn encode_frame(
                             wrap_s: s.wrap_s,
                             wrap_t: s.wrap_t,
                             filter: s.filter,
+            max_anisotropy_minus_one: s.reserved,
                         };
                         let view = if t.format == 1 {
                             &rtt_cache
@@ -4862,6 +4885,37 @@ pub extern "C" fn coin_wgpu_default_device_generation() -> u64 {
 }
 
 #[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_texture_profile(formats:u32, outputs:u32, anisotropy:u32)->CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if formats&!31!=0 || outputs&!15!=0 || !anisotropy.is_power_of_two() || anisotropy>16 {
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        if init_runtime_if_needed().is_err() {return CoinWgpuStatus::BackendError;}
+        let mut guard=match RUNTIME_CTX.lock(){Ok(g)=>g,Err(_)=>return CoinWgpuStatus::BackendError};
+        let runtime=match guard.as_mut(){Some(r)=>r,None=>return CoinWgpuStatus::NotReady};
+        let ctx=match get_or_init_device(runtime,None){Ok(d)=>d,Err(_)=>return CoinWgpuStatus::NotReady};
+        if anisotropy>1 && !ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::ANISOTROPIC_FILTERING) {
+            return CoinWgpuStatus::Unsupported;
+        }
+        let kinds=[wgpu::TextureFormat::Rgba8Unorm,wgpu::TextureFormat::Rgba8UnormSrgb,
+            wgpu::TextureFormat::Rgba16Float,wgpu::TextureFormat::Bc3RgbaUnorm,wgpu::TextureFormat::Bc3RgbaUnormSrgb];
+        for (i,format) in kinds.into_iter().enumerate() {
+            if formats&(1<<i)==0 {continue;}
+            if format.is_compressed() && !ctx.device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {return CoinWgpuStatus::Unsupported;}
+            let facts=ctx.adapter.get_texture_format_features(format);
+            if !facts.allowed_usages.contains(wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_DST) {return CoinWgpuStatus::Unsupported;}
+        }
+        for (bit,mipbit,format) in [(1,4,wgpu::TextureFormat::Rgba8Unorm),(2,8,wgpu::TextureFormat::Rgba16Float)] {
+            if outputs&(bit|mipbit)==0 {continue;}
+            let usage=wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|
+                if outputs&mipbit!=0 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()};
+            if !ctx.adapter.get_texture_format_features(format).allowed_usages.contains(usage) {return CoinWgpuStatus::Unsupported;}
+        }
+        CoinWgpuStatus::Ok
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
 pub extern "C" fn coin_wgpu_query_runtime_capabilities(
     output: *mut CoinWgpuRuntimeCapabilities,
     output_size: usize,
@@ -5343,6 +5397,11 @@ fn coin_wgpu_surface_submit_internal(
         }
 
         let f = unsafe { &*frame };
+        if f.texture_output_flags!=0 || f.texture_output_reserved!=0 {
+            set_error(error_buf,error_buf_len,"Surface submits do not accept RTT output flags");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+
 
         // 3. ABI version and struct size validation
         if f.abi_version != COIN_WGPU_ABI_VERSION {
@@ -6876,6 +6935,23 @@ fn coin_wgpu_submit_internal(
             set_error(error_buf, error_buf_len, "Too many active RTT textures");
             return CoinWgpuStatus::OutOfMemory;
         }
+        if f.texture_output_reserved!=0 || f.texture_output_flags&!3!=0 ||
+           (f.texture_output_flags!=0 && out_texture.is_null()) {
+            set_error(error_buf,error_buf_len,"Advanced output flags require a direct RTT destination");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        if f.clear_color.iter().any(|v| !v.is_finite() || (f.texture_output_flags&1!=0 && v.abs()>65504.0)) {
+            set_error(error_buf,error_buf_len,"Invalid RTT clear color or half range");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        let output_format=if f.texture_output_flags&1!=0 {wgpu::TextureFormat::Rgba16Float} else {wgpu::TextureFormat::Rgba8Unorm};
+        let output_mips=if f.texture_output_flags&2!=0 {width.max(height).ilog2()+1} else {1};
+        if !ctx.adapter.get_texture_format_features(output_format).allowed_usages.contains(
+            wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|
+              if output_mips>1 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()}) {
+            set_error(error_buf,error_buf_len,"Direct RTT format/mip storage unavailable");
+            return CoinWgpuStatus::Unsupported;
+        }
         // 8. A completed synchronous frame may lend its attachments to the
         // next synchronous frame on this device. Async and RTT submissions
         // are excluded: their textures can still be in use by the GPU.
@@ -6896,11 +6972,11 @@ fn coin_wgpu_submit_internal(
             let texture_desc = wgpu::TextureDescriptor {
                 label: Some("Offscreen Color Texture"),
                 size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
-                mip_level_count: 1,
+                mip_level_count: output_mips,
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
-                format: wgpu::TextureFormat::Rgba8Unorm,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
+                format: output_format,
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING | if output_mips>1 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()},
                 view_formats: &[],
             };
             if fault == FAULT_RTT_COLOR_ALLOC && !out_texture.is_null() {
@@ -6912,7 +6988,7 @@ fn coin_wgpu_submit_internal(
                 set_error(error_buf, error_buf_len, "Injected RTT color view creation failure");
                 return CoinWgpuStatus::OutOfMemory;
             }
-            let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor::default());
+            let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor{mip_level_count:Some(1),..Default::default()});
 
             let depth_desc = wgpu::TextureDescriptor {
                 label: Some("Offscreen Depth Texture"),
@@ -6963,7 +7039,7 @@ fn coin_wgpu_submit_internal(
             instances_slice, instance_ranges,
             gpu_probe.as_ref().map(|probe| &probe.queries),
             &color_view,
-            wgpu::TextureFormat::Rgba8Unorm,
+            output_format,
             &depth_view,
             &depth_texture,
             f.sorted_layers_passes,
@@ -6981,6 +7057,14 @@ fn coin_wgpu_submit_internal(
         let profile_encoded = std::time::Instant::now();
 
         if !out_texture.is_null() {
+            let mut commands=vec![cmd_buffer];
+            if output_mips>1 {
+                if fault==306 {set_error(error_buf,error_buf_len,"Injected RTT mip encoding failure");return CoinWgpuStatus::OutOfMemory;}
+                match texture_mips::encode(&ctx.device,&color_texture,output_format,output_mips,width,height,ctx.adapter.get_info().backend==wgpu::Backend::Gl) {
+                    Ok(command)=>commands.push(command),
+                    Err((status,message))=>{set_error(error_buf,error_buf_len,&message);return status;}
+                }
+            }
             let token = NEXT_RTT_TOKEN.fetch_add(1, Ordering::SeqCst);
             if token == 0 {
                 set_error(error_buf, error_buf_len, "RTT token space exhausted");
@@ -6989,21 +7073,24 @@ fn coin_wgpu_submit_internal(
             let serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
             LAST_SUBMITTED_SERIAL.store(serial, Ordering::SeqCst);
             let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
-            ctx.queue.submit([cmd_buffer]);
+            ctx.queue.submit(commands);
             let completed = ctx.completed_serial.clone();
             ctx.queue.on_submitted_work_done(move || {
                 completed.fetch_max(local_serial, Ordering::SeqCst);
                 GLOBAL_COMPLETED_SERIAL.fetch_max(serial, Ordering::SeqCst);
             });
+            let sampling_view=color_texture.create_view(&wgpu::TextureViewDescriptor::default());
             ctx.rtt_textures.lock().unwrap().active.insert(token, RttTexture {
                 texture: color_texture,
                 // An opaque clear does not prove all later writes opaque:
                 // legacy blend and NONE can both reduce destination alpha.
                 // Captured Coin producers conservatively make no opaque claim.
                 opaque: false,
-                view: color_view,
+                view: sampling_view,
                 width,
                 height,
+                format: if f.texture_output_flags&1!=0 {2} else {0},
+                mip_count:output_mips,
             });
             tgt.submission_serial = serial;
             unsafe { *out_texture = token; }

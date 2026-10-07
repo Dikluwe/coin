@@ -46,7 +46,7 @@ inline ShadedVertex interpolateVertex(const ShadedVertex & a, const ShadedVertex
 
 inline SbVec4f sampleTextureLevel(const CoinRenderTextureImageSnapshot & tex, const CoinRenderSamplerSnapshot & samp, float u, float v, unsigned level, bool linear) {
   uint32_t tw=tex.width,th=tex.height;size_t offset=0;
-  for(unsigned l=0;l<level;++l){if(l)offset+=size_t(tw)*th*4;tw=std::max(1u,tw/2);th=std::max(1u,th/2);}
+  for(unsigned l=0;l<level;++l){if(l)offset+=CoinRenderTextureFormatCore::levelBytes(tw,th,tex.format);tw=std::max(1u,tw/2);th=std::max(1u,th/2);}
   const auto & pixels=level ? tex.mipmapsRgba : tex.pixelsRgba;
   if (tw == 0 || th == 0 || pixels.empty()) {
     return SbVec4f(1.0f, 1.0f, 1.0f, 1.0f);
@@ -88,13 +88,7 @@ inline SbVec4f sampleTextureLevel(const CoinRenderTextureImageSnapshot & tex, co
     } else {
       y = std::max(0, std::min(static_cast<int>(th) - 1, y));
     }
-    size_t idx = (static_cast<size_t>(y) * tw + static_cast<size_t>(x)) * 4 + offset;
-    return SbVec4f(
-      static_cast<float>(pixels[idx + 0]) / 255.0f,
-      static_cast<float>(pixels[idx + 1]) / 255.0f,
-      static_cast<float>(pixels[idx + 2]) / 255.0f,
-      static_cast<float>(pixels[idx + 3]) / 255.0f
-    );
+    return CoinRenderTextureFormatCore::texel(pixels,offset,tw,tex.format,uint32_t(x),uint32_t(y));
   };
 
   if (!linear) {
@@ -348,7 +342,7 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
         const SbVec3f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
         const SbVec2f projected = coin_render_project_texture_coordinate(tc, rs.textureProjection);
-        float lod=0;
+        float lod=0; SbVec2f majorFootprint(0,0); unsigned anisotropicTaps=1;
         const auto & image=frame.textures[layer.imageSlot];
         const auto & sampler=frame.samplers[layer.samplerSlot];
         if(image.mipmapped && static_cast<uint32_t>(sampler.filter)>=2) {
@@ -365,11 +359,26 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
           const float x=float(px & ~1)+.5f,y=float(py & ~1)+.5f;
           const auto dx=uvAt(x+1,float(py)+.5f)-uvAt(x,float(py)+.5f);
           const auto dy=uvAt(float(px)+.5f,y+1)-uvAt(float(px)+.5f,y);
-          const float rho=std::max(std::hypot(dx[0]*image.width,dx[1]*image.height),
-                                   std::hypot(dy[0]*image.width,dy[1]*image.height));
+          const SbVec2f gx(dx[0]*image.width,dx[1]*image.height),gy(dy[0]*image.width,dy[1]*image.height);
+          const float rho=std::max(std::hypot(gx[0],gx[1]),std::hypot(gy[0],gy[1]));
           if(rho>0)lod=std::log2(rho);
+          if(sampler.maxAnisotropy>1) {
+            const float a=gx[0]*gx[0]+gy[0]*gy[0],b=gx[0]*gx[1]+gy[0]*gy[1],c=gx[1]*gx[1]+gy[1]*gy[1];
+            const float disc=std::hypot(a-c,2*b),large=std::max(0.f,(a+c+disc)*.5f),small=std::max(0.f,(a+c-disc)*.5f);
+            const float major=std::sqrt(large),minor=std::max(1.f,std::max(std::sqrt(small),major/sampler.maxAnisotropy));
+            SbVec2f direction(b,large-a);
+            if(direction.length()<=1e-12f)direction=SbVec2f(a>=c?1.f:0.f,a>=c?0.f:1.f);
+            direction.normalize();
+            majorFootprint=SbVec2f(direction[0]*major/image.width,direction[1]*major/image.height);
+            anisotropicTaps=std::max(1u,std::min(sampler.maxAnisotropy,unsigned(std::ceil(major/minor))));
+            lod=std::log2(minor);
+          }
         }
-        SbVec4f texCol = sampleTexture(image,sampler,projected[0],projected[1],lod);
+        SbVec4f texCol(0,0,0,0);
+        for(unsigned tap=0;tap<anisotropicTaps;++tap) {
+          const auto uv=projected+majorFootprint*((tap+.5f)/anisotropicTaps-.5f);
+          texCol+=sampleTexture(image,sampler,uv[0],uv[1],lod)/float(anisotropicTaps);
+        }
         if (rs.textureCombines[unit].instructions[0][0] > .5f) {
           const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
               texCol, SbVec4f(finalR, finalG, finalB, sourceAlpha));
@@ -475,6 +484,8 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
 CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
+  if(frame.outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR || frame.outputMipmaps)
+    return {CoinRenderBackendStatus::UNSUPPORTED,"CPU output supports RGBA8 base only; HDR/mip RTT requires a direct GPU route"};
   for (const auto & state : frame.renderStates)
     if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference))
       return {CoinRenderBackendStatus::UNSUPPORTED, "Invalid alpha comparison function or reference"};

@@ -409,7 +409,7 @@ static bool testUnsupportedRejections() {
     SoSeparator * root = new SoSeparator;
     root->ref();
     SoComplexity * comp = new SoComplexity;
-    comp->textureQuality.setValue(0.95f); // anisotropy lies outside the P07 profile
+    comp->textureQuality.setValue(1.01f); // Out-of-range quality must preserve publication
     root->addChild(comp);
 
     SoTexture2 * tex = new SoTexture2;
@@ -424,7 +424,7 @@ static bool testUnsupportedRejections() {
     action.apply(root);
 
     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
-                "Texture quality 0.8 must be rejected with UNSUPPORTED");
+                "Texture quality outside [0,1] must be rejected with UNSUPPORTED");
     delete target;
     root->unref();
   }

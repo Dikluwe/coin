@@ -102,6 +102,7 @@ struct CoinBgfxDraw {
   CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT;
   CoinRenderTextureWrap wrapT = CoinRenderTextureWrap::REPEAT;
   CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
+  uint32_t maxAnisotropy = 1;
   struct TextureLayer {
     bool enabled = false;
     uint32_t slot = 0;
@@ -109,6 +110,7 @@ struct CoinBgfxDraw {
     float blendColor[4] = {0, 0, 0, 1};
     CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT, wrapT = CoinRenderTextureWrap::REPEAT;
     CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
+  uint32_t maxAnisotropy = 1;
   };
   TextureLayer extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
   CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
@@ -126,6 +128,7 @@ struct CoinBgfxDraw {
 };
 
 struct CoinBgfxTexture {
+  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
   bool mipmapped = false;
   uint32_t width = 0;
   uint32_t height = 0;

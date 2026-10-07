@@ -71,7 +71,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 448, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 456, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
@@ -427,7 +427,29 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& gr
       return {CoinRenderBackendStatus::UNSUPPORTED,
               "wgpu direct RTT exceeds the capacity of 64 retained textures"};
   }
-  (void)root;
+  if(!coin_wgpu_default_device_generation()) return {}; // Hardware checks follow prepare.
+  uint32_t formats=0, outputs=0, anisotropy=1;
+  const auto scan=[&](const CoinRenderFramePlan & frame) {
+    for(const auto & image:frame.textures) formats|=1u<<uint32_t(image.format);
+    for(const auto & sampler:frame.samplers) anisotropy=std::max(anisotropy,sampler.maxAnisotropy);
+  };
+  scan(root);
+  for(size_t i=0;i<graph.producers.size();++i) {
+    const auto & producer=graph.producers[i]; scan(producer.plan);
+    if(graph.mode==COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+      const bool hdr=producer.format==CoinRenderTextureFormat::RGBA16_FLOAT;
+      outputs|=hdr?2u:1u;
+      if(graph.requestsMips(i+1,root)) outputs|=hdr?8u:4u;
+    }
+  }
+  const auto status=coin_wgpu_preflight_texture_profile(formats,outputs,anisotropy);
+  if(status!=COIN_WGPU_OK) {
+    const auto mapped=status==COIN_WGPU_NOT_READY?CoinRenderBackendStatus::NOT_READY:
+      status==COIN_WGPU_DEVICE_LOST?CoinRenderBackendStatus::DEVICE_LOST:
+      status==COIN_WGPU_OUT_OF_MEMORY?CoinRenderBackendStatus::OUT_OF_MEMORY:
+      status==COIN_WGPU_BACKEND_ERROR?CoinRenderBackendStatus::BACKEND_ERROR:CoinRenderBackendStatus::UNSUPPORTED;
+    return {mapped,"wgpu advanced texture profile unavailable on the prepared adapter"};
+  }
   (void)size;
   // Viewport projection/intersection is resolved by the shared Core during
   // packing for each producer's own extent, including empty intersections.

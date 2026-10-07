@@ -1369,6 +1369,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
       (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+    this->builder.configureTextures(this->executionOptions);
     this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
     traversalFn();
     const uint32_t delayedLayers = (this->delayedOverlays.empty() ? 0 : 1) +
@@ -1637,7 +1638,7 @@ CoinRenderActionP::textureImagePreCB(void * userdata, SoCallbackAction *, const 
   // static pending-filename dummy. Reading this field does not traverse/mutate
   // the node or affect pre-callback PRUNE/override behavior.
   if(size[0]>0 && size[1]>0 && components>0)
-    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes);
+    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes,texture->enableCompressedTexture.getValue());
   return SoCallbackAction::CONTINUE;
 }
 
@@ -2030,7 +2031,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   const int model = texture->model.getValue();
   const SoNode * transparency = texture->sceneTransparencyType.getValue();
   if (unit < 0 || unit >= static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS) ||
-      texture->type.getValue() != SoSceneTexture2::RGBA8 ||
+      (texture->type.getValue() != SoSceneTexture2::RGBA8 && texture->type.getValue()!=SoSceneTexture2::RGBA16F) ||
       (model != SoSceneTexture2::MODULATE && model != SoSceneTexture2::REPLACE &&
        model != SoSceneTexture2::DECAL && model != SoSceneTexture2::BLEND) ||
       (texture->wrapS.getValue() != SoSceneTexture2::REPEAT &&
@@ -2041,7 +2042,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
       (transparency && !transparency->isOfType(SoTransparencyType::getClassTypeId()))) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString("SoSceneTexture2 supports units 0..7, RGBA8, MODULATE/REPLACE/DECAL/BLEND, "
+        SbString("SoSceneTexture2 supports units 0..7, RGBA8/RGBA16F, MODULATE/REPLACE/DECAL/BLEND, "
                  "REPEAT/CLAMP, NONE/ALPHA_BLEND/ALPHA_TEST and SoTransparencyType scene policy")));
     return SoCallbackAction::ABORT;
   }
@@ -2106,6 +2107,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   producer.plan.legacyBlendAlpha = true;
   producer.size = passSize;
   producer.sourceRevision = sourceRevision;
+  producer.format=texture->type.getValue()==SoSceneTexture2::RGBA16F?CoinRenderTextureFormat::RGBA16_FLOAT:CoinRenderTextureFormat::RGBA8_LINEAR;
   uint64_t producerId = 0;
   if (!p->sceneTexturePlan->append(std::move(producer), producerId, diagnostic)) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
@@ -2136,7 +2138,8 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     return SoCallbackAction::ABORT;
   }
   p->builder.registerSceneTexture(image, producerId, uint32_t(size[0]), uint32_t(size[1]),
-                                  false, texture->transparencyFunction.getValue());
+                                  false, texture->transparencyFunction.getValue(),
+                                  texture->type.getValue()==SoSceneTexture2::RGBA16F?CoinRenderTextureFormat::RGBA16_FLOAT:CoinRenderTextureFormat::RGBA8_LINEAR);
   SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), unit, TRUE);
   return SoCallbackAction::CONTINUE;
 }
@@ -2269,6 +2272,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     CoinRenderFramePlanBuilder savedBuilder;
     std::swap(savedBuilder, p->builder);
     p->builder.beginFrame(p->backgroundColor, p->viewport);
+    p->builder.configureTextures(p->executionOptions);
     auto captureGroup = snapshot;
     captureGroup.parentGroupSlot = 0;
     p->builder.beginShadowGroup(captureGroup);

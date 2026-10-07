@@ -1,0 +1,2076 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 2731c37845..1af738470c 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -269,7 +269,7 @@ if(COIN_BUILD_RENDER)
+       OUTPUT "${RUST_LIB_PATH}"
+       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${COIN_RENDER_CARGO_ENV} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
+       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
+-      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/instancing.rs" "${RUST_BRIDGE_DIR}/src/depth_transfer.rs" "${RUST_BRIDGE_DIR}/src/uniform_arena.rs" "${RUST_BRIDGE_DIR}/src/shader_profile.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
++      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/texture_mips.rs" "${RUST_BRIDGE_DIR}/src/texture_profile.rs" "${RUST_BRIDGE_DIR}/src/instancing.rs" "${RUST_BRIDGE_DIR}/src/depth_transfer.rs" "${RUST_BRIDGE_DIR}/src/uniform_arena.rs" "${RUST_BRIDGE_DIR}/src/shader_profile.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
+       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
+       VERBATIM
+     )
+diff --git a/experimental/include/Inventor/rendering/CoinRenderCapabilities.h b/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
+index c57c7d86fa..da3216ac06 100644
+--- a/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
++++ b/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
+@@ -40,7 +40,14 @@ enum CoinRenderFeature {
+   COIN_RENDER_FEATURE_DIRECT_RTT = UINT64_C(1) << 9,
+   COIN_RENDER_FEATURE_CLIP_PLANES = UINT64_C(1) << 10, /* up to eight active planes */
+   COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES = UINT64_C(1) << 11, /* bounded P07 native callback profile */
+-  COIN_RENDER_FEATURE_TEXTURE_MIPMAPS = UINT64_C(1) << 12 /* bounded P07 stored POT RGBA8 chain */
++  COIN_RENDER_FEATURE_TEXTURE_MIPMAPS = UINT64_C(1) << 12,
++  /* Implementation bits; selected-device admission and documented limits still apply. */
++  COIN_RENDER_FEATURE_TEXTURE_NPOT = UINT64_C(1) << 13,
++  COIN_RENDER_FEATURE_TEXTURE_SRGB = UINT64_C(1) << 14,
++  COIN_RENDER_FEATURE_TEXTURE_BC3 = UINT64_C(1) << 15,
++  COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY = UINT64_C(1) << 16,
++  COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F = UINT64_C(1) << 17,
++  COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS = UINT64_C(1) << 18
+ };
+ 
+ enum CoinRenderProbeStatus {
+diff --git a/experimental/include/Inventor/rendering/CoinRenderOptions.h b/experimental/include/Inventor/rendering/CoinRenderOptions.h
+index 9ecbb2e393..1a9d6032d5 100644
+--- a/experimental/include/Inventor/rendering/CoinRenderOptions.h
++++ b/experimental/include/Inventor/rendering/CoinRenderOptions.h
+@@ -8,6 +8,11 @@ enum CoinRenderSceneTextureMode {
+   COIN_RENDER_SCENE_TEXTURE_DIRECT = 1
+ };
+ 
++enum CoinRenderStoredTextureColorSpace {
++  COIN_RENDER_TEXTURE_LINEAR = 0,
++  COIN_RENDER_TEXTURE_SRGB = 1
++};
++
+ /** Immutable target configuration. Explicit options override environment defaults.
+  * UNKNOWN renderer means the compiled connector's default. Extensions require
+  * explicit selection; COIN preserves the captured transparency modality. */
+@@ -15,6 +20,9 @@ struct CoinRenderOptions {
+   CoinRenderRenderer renderer = COIN_RENDER_RENDERER_UNKNOWN;
+   CoinRenderTransparencyMode transparency = COIN_RENDER_TRANSPARENCY_COIN;
+   CoinRenderSceneTextureMode sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
++  // Explicit interpretation of stored SoTexture2 RGB, alpha remains linear.
++  CoinRenderStoredTextureColorSpace storedTextureColorSpace = COIN_RENDER_TEXTURE_LINEAR;
++  uint32_t maxTextureAnisotropy = 16; // q>0.85 requests this limit; no effect below it.
+ };
+ 
+ #endif
+diff --git a/src/actions/CoinRenderAction.cpp b/src/actions/CoinRenderAction.cpp
+index dc47daf97d..26da0ca9a2 100644
+--- a/src/actions/CoinRenderAction.cpp
++++ b/src/actions/CoinRenderAction.cpp
+@@ -1369,6 +1369,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
+     this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
+       (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
+     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
++    this->builder.configureTextures(this->executionOptions);
+     this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
+     traversalFn();
+     const uint32_t delayedLayers = (this->delayedOverlays.empty() ? 0 : 1) +
+@@ -1637,7 +1638,7 @@ CoinRenderActionP::textureImagePreCB(void * userdata, SoCallbackAction *, const
+   // static pending-filename dummy. Reading this field does not traverse/mutate
+   // the node or affect pre-callback PRUNE/override behavior.
+   if(size[0]>0 && size[1]>0 && components>0)
+-    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes);
++    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes,texture->enableCompressedTexture.getValue());
+   return SoCallbackAction::CONTINUE;
+ }
+ 
+@@ -2030,7 +2031,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
+   const int model = texture->model.getValue();
+   const SoNode * transparency = texture->sceneTransparencyType.getValue();
+   if (unit < 0 || unit >= static_cast<int>(COIN_RENDER_MAX_TEXTURE_UNITS) ||
+-      texture->type.getValue() != SoSceneTexture2::RGBA8 ||
++      (texture->type.getValue() != SoSceneTexture2::RGBA8 && texture->type.getValue()!=SoSceneTexture2::RGBA16F) ||
+       (model != SoSceneTexture2::MODULATE && model != SoSceneTexture2::REPLACE &&
+        model != SoSceneTexture2::DECAL && model != SoSceneTexture2::BLEND) ||
+       (texture->wrapS.getValue() != SoSceneTexture2::REPEAT &&
+@@ -2041,7 +2042,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
+       (transparency && !transparency->isOfType(SoTransparencyType::getClassTypeId()))) {
+     p->setDiagnostic(CoinRenderDiagnosticShell::action(
+         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+-        SbString("SoSceneTexture2 supports units 0..7, RGBA8, MODULATE/REPLACE/DECAL/BLEND, "
++        SbString("SoSceneTexture2 supports units 0..7, RGBA8/RGBA16F, MODULATE/REPLACE/DECAL/BLEND, "
+                  "REPEAT/CLAMP, NONE/ALPHA_BLEND/ALPHA_TEST and SoTransparencyType scene policy")));
+     return SoCallbackAction::ABORT;
+   }
+@@ -2106,6 +2107,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
+   producer.plan.legacyBlendAlpha = true;
+   producer.size = passSize;
+   producer.sourceRevision = sourceRevision;
++  producer.format=texture->type.getValue()==SoSceneTexture2::RGBA16F?CoinRenderTextureFormat::RGBA16_FLOAT:CoinRenderTextureFormat::RGBA8_LINEAR;
+   uint64_t producerId = 0;
+   if (!p->sceneTexturePlan->append(std::move(producer), producerId, diagnostic)) {
+     p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+@@ -2136,7 +2138,8 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
+     return SoCallbackAction::ABORT;
+   }
+   p->builder.registerSceneTexture(image, producerId, uint32_t(size[0]), uint32_t(size[1]),
+-                                  false, texture->transparencyFunction.getValue());
++                                  false, texture->transparencyFunction.getValue(),
++                                  texture->type.getValue()==SoSceneTexture2::RGBA16F?CoinRenderTextureFormat::RGBA16_FLOAT:CoinRenderTextureFormat::RGBA8_LINEAR);
+   SoMultiTextureEnabledElement::set(state, const_cast<SoSceneTexture2 *>(texture), unit, TRUE);
+   return SoCallbackAction::CONTINUE;
+ }
+@@ -2269,6 +2272,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action,
+     CoinRenderFramePlanBuilder savedBuilder;
+     std::swap(savedBuilder, p->builder);
+     p->builder.beginFrame(p->backgroundColor, p->viewport);
++    p->builder.configureTextures(p->executionOptions);
+     auto captureGroup = snapshot;
+     captureGroup.parentGroupSlot = 0;
+     p->builder.beginShadowGroup(captureGroup);
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index 9ca853162e..474a64523a 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -95,6 +95,15 @@
+ #include <utility>
+ 
+ namespace {
++bgfx::TextureFormat::Enum coinBgfxTextureFormat(CoinRenderTextureFormat f) {
++  if(f==CoinRenderTextureFormat::RGBA16_FLOAT)return bgfx::TextureFormat::RGBA16F;
++  if(CoinRenderTextureFormatCore::compressed(f))return bgfx::TextureFormat::BC3;
++  return bgfx::TextureFormat::RGBA8;
++}
++uint64_t coinBgfxTextureFlags(CoinRenderTextureFormat f) {
++  return CoinRenderTextureFormatCore::srgb(f)?BGFX_TEXTURE_SRGB:BGFX_TEXTURE_NONE;
++}
++
+ // Isolated view blocks prevent per-window state from aliasing. API calls stay
+ // on one thread; BGFX owns its render worker.
+ constexpr bgfx::ViewId targetViewCount = 16;
+@@ -449,7 +458,7 @@ bool sameTextureState(const CoinBgfxDraw & lhs,
+     std::memcmp(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures)) == 0 &&
+     lhs.hasTexture == rhs.hasTexture &&
+     lhs.textureSlot == rhs.textureSlot && lhs.textureModel == rhs.textureModel &&
+-    lhs.wrapS == rhs.wrapS && lhs.wrapT == rhs.wrapT && lhs.filter == rhs.filter &&
++    lhs.wrapS == rhs.wrapS && lhs.wrapT == rhs.wrapT && lhs.filter == rhs.filter && lhs.maxAnisotropy == rhs.maxAnisotropy &&
+     std::memcmp(lhs.textureBlendColor, rhs.textureBlendColor,
+                 sizeof(lhs.textureBlendColor)) == 0;
+ }
+@@ -1104,6 +1113,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
+   if (runtime.references == 0) {
+     bgfx::Init init;
+     init.type = renderer;
++    init.reset |= BGFX_RESET_MAXANISOTROPY;
+     runtime.callback = std::make_shared<CoinBgfxCallback>(renderer == bgfx::RendererType::OpenGL);
+     init.callback = runtime.callback.get();
+     // No visible window owns the primary swapchain. Closing the first target
+@@ -1654,7 +1664,7 @@ CoinBgfxBackend::bindDrawTexture(
+     if (unit == 0) {
+       layer.enabled = draw.hasTexture; layer.slot = draw.textureSlot;
+       layer.model = draw.textureModel; layer.wrapS = draw.wrapS; layer.wrapT = draw.wrapT;
+-      layer.filter = draw.filter;
++      layer.filter = draw.filter; layer.maxAnisotropy = draw.maxAnisotropy;
+       std::memcpy(layer.blendColor, draw.textureBlendColor, sizeof(layer.blendColor));
+     } else layer = draw.extraTextures[unit - 1];
+     bgfx::TextureHandle texture = this->defaultTexture;
+@@ -1666,6 +1676,7 @@ CoinBgfxBackend::bindDrawTexture(
+     if (layer.filter == CoinRenderTextureFilter::NEAREST)
+       flags |= BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT | BGFX_SAMPLER_MIP_POINT;
+     if(layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR) flags |= BGFX_SAMPLER_MIN_POINT;
++    if(layer.maxAnisotropy>1)flags|=BGFX_SAMPLER_MIN_ANISOTROPIC|BGFX_SAMPLER_MAG_ANISOTROPIC;
+     bool directRenderTarget = false;
+     if (layer.enabled) for (const auto & resource : this->directTextures) {
+       const auto direct = bgfx::getTexture(resource.frameBuffer, 0);
+@@ -1677,7 +1688,8 @@ CoinBgfxBackend::bindDrawTexture(
+     params[unit][3] = static_cast<float>(draw.textureProjection);
+     std::memcpy(blend[unit], layer.blendColor, sizeof(layer.blendColor));
+     bgfx::setTexture(static_cast<uint8_t>(unit + 2),
+-      unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, flags);
++      unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, 0, 1, 0,
++      CoinRenderTextureSamplingCore::mipFilter(layer.filter) ? UINT8_MAX : 1, flags);
+   }
+   bgfx::setUniform(this->textureParamsUniform, params, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureBlendUniform, blend, COIN_RENDER_MAX_TEXTURE_UNITS);
+@@ -2056,6 +2068,37 @@ CoinBgfxBackend::bindShadowReceiver(
+   this->bindDrawLighting(shaded, targetHeight);
+ }
+ 
++// Admission precedes allocation, cache changes and producer submission.
++static CoinRenderSubmitResult bgfxTextureProfile(const CoinRenderFramePlan & frame) {
++  const auto * caps = sharedRuntime().references ? bgfx::getCaps() : nullptr;
++  for (const auto & sampler : frame.samplers)
++    if (sampler.maxAnisotropy != 1 && sampler.maxAnisotropy != 16)
++      return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX exposes native maximum anisotropy only (option 16); factors 2/4/8 are unavailable"};
++  if (!caps) return {}; // Selected-adapter admission follows prepare.
++  if(caps->rendererType==bgfx::RendererType::OpenGL && !frame.textures.empty()) {
++    // This GL connector changes the object's mip range; simultaneous base
++    // and mip views of one object contaminate each other's LOD. Admit neither
++    // an incorrect image nor a silent sampler change.
++    std::vector<uint8_t> usage(frame.textures.size(),0);
++    for(const auto & state:frame.renderStates)for(size_t unit=0;unit<COIN_RENDER_MAX_TEXTURE_UNITS;++unit) {
++      const auto layer=coin_render_texture_unit(state,unit);
++      if(!layer.enabled || layer.imageSlot>=usage.size() || layer.samplerSlot>=frame.samplers.size())continue;
++      usage[layer.imageSlot]|=CoinRenderTextureSamplingCore::mipFilter(frame.samplers[layer.samplerSlot].filter)?2:1;
++      if(usage[layer.imageSlot]==3)
++        return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX OpenGL cannot mix base-only and mip samplers on one texture image"};
++    }
++  }
++  for (const auto & image : frame.textures) {
++    const auto format = coinBgfxTextureFormat(image.format);
++    if (!CoinRenderTextureFormatCore::valid(image.format) ||
++        !(caps->formats[format] & (CoinRenderTextureFormatCore::srgb(image.format) ? BGFX_CAPS_FORMAT_TEXTURE_2D_SRGB : BGFX_CAPS_FORMAT_TEXTURE_2D)) ||
++        image.width > caps->limits.maxTextureSize || image.height > caps->limits.maxTextureSize ||
++        !bgfx::isTextureValid(1, false, 1, format, coinBgfxTextureFlags(image.format)))
++      return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX texture format or extent unavailable"};
++  }
++  return {};
++}
++
+ CoinRenderSubmitResult
+ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
+   const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * outTicket)
+@@ -2072,6 +2115,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+     this->lastError = "BGFX supports native window presentation or offscreen readback";
+     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+   }
++  const auto textureAdmission = bgfxTextureProfile(frame);
++  if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
+   const bool hasShadows = !frame.shadowGroups.empty();
+   CoinRenderShadowPlan shadowPlan;
+   if (hasShadows) {
+@@ -2086,7 +2131,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
+       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+     const bgfx::Caps * caps = bgfx::getCaps();
+-    if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10)) {
++    if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10)) {
+       this->lastError = "BGFX shadow receiver needs one texture stage per shadow pass";
+       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+     }
+@@ -2357,7 +2402,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+     const CoinBgfxTexture & texture = plan->textures[textureIndex];
+     if (texture.gpuToken != 0) {
+       for (const DirectTextureResource & resource : this->directTextures) {
+-        if (resource.token == texture.gpuToken) {
++        if (resource.token == texture.gpuToken && resource.format == texture.format &&
++            (!texture.mipmapped || resource.mipmapped) && resource.width == int(texture.width) && resource.height == int(texture.height)) {
+           textures[textureIndex] = bgfx::getTexture(resource.frameBuffer, 0);
+           break;
+         }
+@@ -2371,8 +2417,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+     if (texture.width == 0 || texture.height == 0 ||
+         texture.width > UINT16_MAX || texture.height > UINT16_MAX ||
+         texture.pixelsRgba.size() !=
+-          static_cast<size_t>(texture.width) * texture.height * 4u +
+-          (texture.mipmapped ? CoinRenderTextureSamplingCore::mipBytes(texture.width,texture.height) : 0)) {
++          CoinRenderTextureFormatCore::levelBytes(texture.width,texture.height,texture.format) +
++          (texture.mipmapped ? CoinRenderTextureSamplingCore::mipBytes(texture.width,texture.height,texture.format) : 0)) {
+       this->lastError = "BGFX texture dimensions or RGBA payload are invalid";
+       for (size_t i = 0; i < textures.size(); ++i)
+         if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+@@ -2381,7 +2427,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+     textures[textureIndex] = bgfx::createTexture2D(
+       static_cast<uint16_t>(texture.width),
+       static_cast<uint16_t>(texture.height), texture.mipmapped, 1,
+-      bgfx::TextureFormat::RGBA8, BGFX_TEXTURE_NONE,
++      coinBgfxTextureFormat(texture.format), coinBgfxTextureFlags(texture.format),
+       bgfx::copy(texture.pixelsRgba.data(),
+                  static_cast<uint32_t>(texture.pixelsRgba.size())));
+     if (!bgfx::isValid(textures[textureIndex])) {
+@@ -2993,6 +3039,15 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+                                        uint64_t & token)
+ {
+   token = 0;
++  const auto outputFormat=coinBgfxTextureFormat(frame.outputColorFormat);
++  const auto * runtimeCaps=bgfx::getCaps();
++  if(!runtimeCaps) return {CoinRenderBackendStatus::NOT_READY,"BGFX direct RTT runtime unavailable"};
++  if(frame.outputMipmaps && (!CoinRenderTextureSamplingCore::powerOfTwo(size[0]) ||
++                            !CoinRenderTextureSamplingCore::powerOfTwo(size[1])))
++    return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX native RTT mip generation requires POT extents; NPOT exact area reduction unavailable"};
++  if(frame.outputMipmaps && !(runtimeCaps->formats[outputFormat]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))
++    return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX format lacks direct GPU mip generation"};
++
+   if (!this->initialized || !this->onApiThread() ||
+       producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
+       size[0] > 2048 || size[1] > 2048) {
+@@ -3002,6 +3057,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
+   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
+     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
++  const auto textureAdmission = bgfxTextureProfile(frame);
++  if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
+   const bool hasShadows = !frame.shadowGroups.empty();
+   CoinRenderShadowPlan shadowPlan;
+   if (hasShadows) {
+@@ -3012,7 +3069,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
+       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+     const bgfx::Caps * caps = bgfx::getCaps();
+-    if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
++    if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
+       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
+         "BGFX direct RTT shadow receiver has insufficient texture stages");
+     for (const auto & pass : shadowPlan.passes)
+@@ -3091,7 +3148,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+     }
+   }
+   if (cachedResource &&
+-      (cachedResource->width != size[0] || cachedResource->height != size[1])) {
++      (cachedResource->width != size[0] || cachedResource->height != size[1] || cachedResource->format!=frame.outputColorFormat || cachedResource->mipmapped!=frame.outputMipmaps)) {
+     if (bgfx::isValid(cachedResource->frameBuffer))
+       bgfx::destroy(cachedResource->frameBuffer);
+     cachedResource->frameBuffer = BGFX_INVALID_HANDLE;
+@@ -3105,8 +3162,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+       (caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)
+         ? bgfx::TextureFormat::D24S8 : bgfx::TextureFormat::D32F;
+     bgfx::TextureHandle color = bgfx::createTexture2D(
+-      static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
+-      bgfx::TextureFormat::RGBA8, peelTextureFlags);
++      static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), frame.outputMipmaps, 1,
++      coinBgfxTextureFormat(frame.outputColorFormat), peelTextureFlags);
+     bgfx::TextureHandle depth = bgfx::createTexture2D(
+       static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
+       depthFormat, BGFX_TEXTURE_RT_WRITE_ONLY);
+@@ -3147,13 +3204,14 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+     const CoinBgfxTexture & source = plan.textures[i];
+     if (source.gpuToken != 0) {
+       for (const DirectTextureResource & resource : this->directTextures) {
+-        if (resource.token == source.gpuToken)
++        if (resource.token == source.gpuToken && resource.format == source.format &&
++            (!source.mipmapped || resource.mipmapped) && resource.width == int(source.width) && resource.height == int(source.height))
+           textures[i] = bgfx::getTexture(resource.frameBuffer, 0);
+       }
+     } else {
+       textures[i] = bgfx::createTexture2D(static_cast<uint16_t>(source.width),
+-        static_cast<uint16_t>(source.height), source.mipmapped, 1, bgfx::TextureFormat::RGBA8,
+-        BGFX_TEXTURE_NONE, bgfx::copy(source.pixelsRgba.data(),
++        static_cast<uint16_t>(source.height), source.mipmapped, 1, coinBgfxTextureFormat(source.format),
++        coinBgfxTextureFlags(source.format), bgfx::copy(source.pixelsRgba.data(),
+           static_cast<uint32_t>(source.pixelsRgba.size())));
+       owned[i] = true;
+     }
+@@ -3323,6 +3381,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+     resource.producerKey = producerKey;
+     resource.width = size[0];
+     resource.height = size[1];
++    resource.format=frame.outputColorFormat; resource.mipmapped=frame.outputMipmaps;
+     resource.frameBuffer = output;
+     resource.inUse = true;
+     this->directTextures.push_back(resource);
+@@ -3330,6 +3389,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+   } else {
+     cachedResource->width = size[0];
+     cachedResource->height = size[1];
++    cachedResource->format=frame.outputColorFormat;cachedResource->mipmapped=frame.outputMipmaps;
+     cachedResource->frameBuffer = output;
+     cachedResource->inUse = true;
+     token = cachedResource->token;
+@@ -3464,11 +3524,27 @@ CoinBgfxBackend::poll()
+ }
+ 
+ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& graph,
+-                                                     const CoinRenderFramePlan&,
++                                                     const CoinRenderFramePlan& root,
+                                                      const SbVec2i32&) const {
++  auto admission = bgfxTextureProfile(root);
++  if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
++  for (const auto & producer : graph.producers) {
++    admission = bgfxTextureProfile(producer.plan);
++    if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
++  }
+   if (graph.mode != COIN_RENDER_SCENE_TEXTURE_DIRECT)
+     return {};
+-  for (const auto& producer : graph.producers) {
++  for (size_t producerIndex=0;producerIndex<graph.producers.size();++producerIndex) {
++    const auto& producer=graph.producers[producerIndex];
++    if(graph.requestsMips(producerIndex+1,root) &&
++       (!CoinRenderTextureSamplingCore::powerOfTwo(producer.size[0]) ||
++        !CoinRenderTextureSamplingCore::powerOfTwo(producer.size[1])))
++      return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX native RTT mip generation requires POT extents; NPOT exact area reduction unavailable"};
++    const auto format=coinBgfxTextureFormat(producer.format);
++    const auto * caps=sharedRuntime().references ? bgfx::getCaps() : nullptr;
++    if(caps && (!(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
++       (graph.requestsMips(producerIndex+1,root) && !(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))))
++      return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX RTT format/mip generation unavailable"};
+     if (!producer.plan.shadowGroups.empty()) {
+       CoinRenderShadowPlan shadowPlan;
+       std::string diagnostic;
+@@ -3478,15 +3554,15 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
+         return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+       if (!bgfxShadowBatchSupported(producer.plan, shadowPlan, diagnostic))
+         return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+-      const bgfx::Caps * caps = bgfx::getCaps();
+-      if (caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
++      const bgfx::Caps * caps = sharedRuntime().references ? bgfx::getCaps() : nullptr;
++      if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10))
+         return {CoinRenderBackendStatus::UNSUPPORTED,
+                 "BGFX direct RTT shadow receiver has insufficient texture stages"};
+       for (const auto & pass : shadowPlan.passes)
+-        if (pass.mapSize > caps->limits.maxTextureSize ||
++        if (caps && (pass.mapSize > caps->limits.maxTextureSize ||
+             !(caps->formats[bgfx::TextureFormat::RGBA32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+             !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+-            !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags))
++            !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags)))
+           return {CoinRenderBackendStatus::UNSUPPORTED,
+                   "BGFX direct RTT cannot render the planned shadow maps"};
+     }
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.h b/src/rendering/coinbgfx/CoinBgfxBackend.h
+index b4c0237157..33787cd7ba 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.h
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.h
+@@ -78,6 +78,8 @@ private:
+     int width = 0;
+     int height = 0;
+     bgfx::FrameBufferHandle frameBuffer = BGFX_INVALID_HANDLE;
++    CoinRenderTextureFormat format=CoinRenderTextureFormat::RGBA8_LINEAR;
++    bool mipmapped=false;
+     bool inUse = false;
+   };
+ 
+diff --git a/src/rendering/coinbgfx/CoinBgfxLowering.cpp b/src/rendering/coinbgfx/CoinBgfxLowering.cpp
+index c27c873419..d8fd9c8e81 100644
+--- a/src/rendering/coinbgfx/CoinBgfxLowering.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxLowering.cpp
+@@ -196,6 +196,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
+   if (result == 0) result = compareValue(lhs.wrapS, rhs.wrapS);
+   if (result == 0) result = compareValue(lhs.wrapT, rhs.wrapT);
+   if (result == 0) result = compareValue(lhs.filter, rhs.filter);
++  if(result==0)result=compareValue(lhs.maxAnisotropy,rhs.maxAnisotropy);
+   if (result == 0) result = compareBytes(lhs.textureBlendColor,
+     rhs.textureBlendColor, sizeof(lhs.textureBlendColor));
+   if (result == 0) result = compareBytes(lhs.ambientLight,
+@@ -215,7 +216,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
+ 
+ bool sameTexture(const CoinBgfxTexture & lhs, const CoinBgfxTexture & rhs)
+ {
+-  return lhs.width == rhs.width && lhs.height == rhs.height &&
++  return lhs.format == rhs.format && lhs.width == rhs.width && lhs.height == rhs.height &&
+     lhs.gpuToken == rhs.gpuToken &&
+     lhs.pixelsRgba == rhs.pixelsRgba && lhs.mipmapped == rhs.mipmapped;
+ }
+@@ -675,7 +676,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+         return false;
+       }
+       const CoinRenderTextureImageSnapshot & texture = frame.textures[state.textureImageSlot];
+-      const uint64_t expected = static_cast<uint64_t>(texture.width) * texture.height * 4u;
++      const uint64_t expected = CoinRenderTextureFormatCore::levelBytes(texture.width,texture.height,texture.format);
+       if (texture.width == 0 || texture.height == 0 ||
+           (texture.gpuToken == 0 && texture.pixelsRgba.size() != expected) ||
+           (texture.gpuToken != 0 && !texture.pixelsRgba.empty())) {
+@@ -808,7 +809,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+       const CoinRenderSamplerSnapshot & sampler = frame.samplers[state.samplerSlot];
+       lowered.wrapS = sampler.wrapS;
+       lowered.wrapT = sampler.wrapT;
+-      lowered.filter = sampler.filter;
++      lowered.filter = sampler.filter; lowered.maxAnisotropy = sampler.maxAnisotropy;
+     }
+     for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+       const auto & source = state.extraTextures[unit - 1];
+@@ -818,7 +819,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+       layer.slot = source.imageSlot; layer.model = source.model;
+       std::memcpy(layer.blendColor, source.blendColor, sizeof(layer.blendColor));
+       const auto & sampler = frame.samplers[source.samplerSlot];
+-      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter;
++      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter; layer.maxAnisotropy = sampler.maxAnisotropy;
+     }
+     std::memcpy(lowered.fogColorMode, state.fogColor, sizeof(state.fogColor));
+     lowered.fogColorMode[3] = static_cast<float>(state.fogMode);
+@@ -1021,7 +1022,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+   candidate.textures.reserve(frame.textures.size());
+   for (const CoinRenderTextureImageSnapshot & source : frame.textures) {
+     CoinBgfxTexture texture;
+-    texture.width = source.width;
++    texture.format = source.format; texture.width = source.width;
+     texture.height = source.height;
+     if (source.producerId) {
+       diagnostic = "Unresolved scene texture producer at BGFX execution boundary";
+diff --git a/src/rendering/coinbgfx/CoinBgfxLowering.h b/src/rendering/coinbgfx/CoinBgfxLowering.h
+index c11ea2ccd1..d1f1f375b4 100644
+--- a/src/rendering/coinbgfx/CoinBgfxLowering.h
++++ b/src/rendering/coinbgfx/CoinBgfxLowering.h
+@@ -102,6 +102,7 @@ struct CoinBgfxDraw {
+   CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT;
+   CoinRenderTextureWrap wrapT = CoinRenderTextureWrap::REPEAT;
+   CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
++  uint32_t maxAnisotropy = 1;
+   struct TextureLayer {
+     bool enabled = false;
+     uint32_t slot = 0;
+@@ -109,6 +110,7 @@ struct CoinBgfxDraw {
+     float blendColor[4] = {0, 0, 0, 1};
+     CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT, wrapT = CoinRenderTextureWrap::REPEAT;
+     CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
++  uint32_t maxAnisotropy = 1;
+   };
+   TextureLayer extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+   CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
+@@ -126,6 +128,7 @@ struct CoinBgfxDraw {
+ };
+ 
+ struct CoinBgfxTexture {
++  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
+   bool mipmapped = false;
+   uint32_t width = 0;
+   uint32_t height = 0;
+diff --git a/src/rendering/coinrender/CoinRenderCapabilities.cpp b/src/rendering/coinrender/CoinRenderCapabilities.cpp
+index 64e8470c2f..19e17788ad 100644
+--- a/src/rendering/coinrender/CoinRenderCapabilities.cpp
++++ b/src/rendering/coinrender/CoinRenderCapabilities.cpp
+@@ -237,6 +237,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+                     COIN_RENDER_FEATURE_TEXTURE_2D |
+                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
+                     COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
++                    COIN_RENDER_FEATURE_TEXTURE_NPOT |
++                    COIN_RENDER_FEATURE_TEXTURE_SRGB |
++                    COIN_RENDER_FEATURE_TEXTURE_BC3 |
++                    COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY |
+                     COIN_RENDER_FEATURE_LIGHTS |
+                     COIN_RENDER_FEATURE_FOG |
+                     COIN_RENDER_FEATURE_CLIP_PLANES |
+@@ -246,7 +250,9 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+   result.max_texture_units = 8;
+   if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN) {
+     result.features |= COIN_RENDER_FEATURE_ASYNC_READBACK |
+-                       COIN_RENDER_FEATURE_DIRECT_RTT;
++                       COIN_RENDER_FEATURE_DIRECT_RTT |
++                       COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F |
++                       COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
+     result.max_scene_texture_depth = 8;
+     result.max_scene_texture_bytes_per_apply = UINT64_C(64) * 1024 * 1024;
+   }
+@@ -263,6 +269,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+                     COIN_RENDER_FEATURE_TEXTURE_2D |
+                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
+                     COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
++                    COIN_RENDER_FEATURE_TEXTURE_NPOT |
++                    COIN_RENDER_FEATURE_TEXTURE_SRGB |
++                    COIN_RENDER_FEATURE_TEXTURE_BC3 |
++                    COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY |
+                     COIN_RENDER_FEATURE_LIGHTS |
+                     COIN_RENDER_FEATURE_FOG |
+                     COIN_RENDER_FEATURE_CLIP_PLANES |
+@@ -270,7 +280,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+   result.max_lights_per_draw = 8;
+   result.max_texture_units = COIN_RENDER_MAX_TEXTURE_UNITS;
+   if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN)
+-    result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK;
++    result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK |
++                       COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F | COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
+   probeBgfx(target, renderer, result);
+ #else
+   result.backend = COIN_RENDER_EXPERIMENTAL_RECORDING;
+@@ -281,6 +292,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+                     COIN_RENDER_FEATURE_TEXTURE_2D |
+                     COIN_RENDER_FEATURE_PROCEDURAL_TEXTURE_COORDINATES |
+                     COIN_RENDER_FEATURE_TEXTURE_MIPMAPS |
++                    COIN_RENDER_FEATURE_TEXTURE_NPOT |
++                    COIN_RENDER_FEATURE_TEXTURE_SRGB |
++                    COIN_RENDER_FEATURE_TEXTURE_BC3 |
++                    COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY |
+                     COIN_RENDER_FEATURE_LIGHTS |
+                     COIN_RENDER_FEATURE_FOG |
+                     COIN_RENDER_FEATURE_SORTED_ALPHA |
+diff --git a/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp b/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
+index 82cb2c22f2..b4103ec844 100644
+--- a/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
++++ b/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
+@@ -46,7 +46,7 @@ inline ShadedVertex interpolateVertex(const ShadedVertex & a, const ShadedVertex
+ 
+ inline SbVec4f sampleTextureLevel(const CoinRenderTextureImageSnapshot & tex, const CoinRenderSamplerSnapshot & samp, float u, float v, unsigned level, bool linear) {
+   uint32_t tw=tex.width,th=tex.height;size_t offset=0;
+-  for(unsigned l=0;l<level;++l){if(l)offset+=size_t(tw)*th*4;tw=std::max(1u,tw/2);th=std::max(1u,th/2);}
++  for(unsigned l=0;l<level;++l){if(l)offset+=CoinRenderTextureFormatCore::levelBytes(tw,th,tex.format);tw=std::max(1u,tw/2);th=std::max(1u,th/2);}
+   const auto & pixels=level ? tex.mipmapsRgba : tex.pixelsRgba;
+   if (tw == 0 || th == 0 || pixels.empty()) {
+     return SbVec4f(1.0f, 1.0f, 1.0f, 1.0f);
+@@ -88,13 +88,7 @@ inline SbVec4f sampleTextureLevel(const CoinRenderTextureImageSnapshot & tex, co
+     } else {
+       y = std::max(0, std::min(static_cast<int>(th) - 1, y));
+     }
+-    size_t idx = (static_cast<size_t>(y) * tw + static_cast<size_t>(x)) * 4 + offset;
+-    return SbVec4f(
+-      static_cast<float>(pixels[idx + 0]) / 255.0f,
+-      static_cast<float>(pixels[idx + 1]) / 255.0f,
+-      static_cast<float>(pixels[idx + 2]) / 255.0f,
+-      static_cast<float>(pixels[idx + 3]) / 255.0f
+-    );
++    return CoinRenderTextureFormatCore::texel(pixels,offset,tw,tex.format,uint32_t(x),uint32_t(y));
+   };
+ 
+   if (!linear) {
+@@ -348,7 +342,7 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
+         const SbVec3f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
+           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
+         const SbVec2f projected = coin_render_project_texture_coordinate(tc, rs.textureProjection);
+-        float lod=0;
++        float lod=0; SbVec2f majorFootprint(0,0); unsigned anisotropicTaps=1;
+         const auto & image=frame.textures[layer.imageSlot];
+         const auto & sampler=frame.samplers[layer.samplerSlot];
+         if(image.mipmapped && static_cast<uint32_t>(sampler.filter)>=2) {
+@@ -365,11 +359,26 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
+           const float x=float(px & ~1)+.5f,y=float(py & ~1)+.5f;
+           const auto dx=uvAt(x+1,float(py)+.5f)-uvAt(x,float(py)+.5f);
+           const auto dy=uvAt(float(px)+.5f,y+1)-uvAt(float(px)+.5f,y);
+-          const float rho=std::max(std::hypot(dx[0]*image.width,dx[1]*image.height),
+-                                   std::hypot(dy[0]*image.width,dy[1]*image.height));
++          const SbVec2f gx(dx[0]*image.width,dx[1]*image.height),gy(dy[0]*image.width,dy[1]*image.height);
++          const float rho=std::max(std::hypot(gx[0],gx[1]),std::hypot(gy[0],gy[1]));
+           if(rho>0)lod=std::log2(rho);
++          if(sampler.maxAnisotropy>1) {
++            const float a=gx[0]*gx[0]+gy[0]*gy[0],b=gx[0]*gx[1]+gy[0]*gy[1],c=gx[1]*gx[1]+gy[1]*gy[1];
++            const float disc=std::hypot(a-c,2*b),large=std::max(0.f,(a+c+disc)*.5f),small=std::max(0.f,(a+c-disc)*.5f);
++            const float major=std::sqrt(large),minor=std::max(1.f,std::max(std::sqrt(small),major/sampler.maxAnisotropy));
++            SbVec2f direction(b,large-a);
++            if(direction.length()<=1e-12f)direction=SbVec2f(a>=c?1.f:0.f,a>=c?0.f:1.f);
++            direction.normalize();
++            majorFootprint=SbVec2f(direction[0]*major/image.width,direction[1]*major/image.height);
++            anisotropicTaps=std::max(1u,std::min(sampler.maxAnisotropy,unsigned(std::ceil(major/minor))));
++            lod=std::log2(minor);
++          }
++        }
++        SbVec4f texCol(0,0,0,0);
++        for(unsigned tap=0;tap<anisotropicTaps;++tap) {
++          const auto uv=projected+majorFootprint*((tap+.5f)/anisotropicTaps-.5f);
++          texCol+=sampleTexture(image,sampler,uv[0],uv[1],lod)/float(anisotropicTaps);
+         }
+-        SbVec4f texCol = sampleTexture(image,sampler,projected[0],projected[1],lod);
+         if (rs.textureCombines[unit].instructions[0][0] > .5f) {
+           const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
+               texCol, SbVec4f(finalR, finalG, finalB, sourceAlpha));
+@@ -475,6 +484,8 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
+ CoinRenderSubmitResult
+ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
+ {
++  if(frame.outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR || frame.outputMipmaps)
++    return {CoinRenderBackendStatus::UNSUPPORTED,"CPU output supports RGBA8 base only; HDR/mip RTT requires a direct GPU route"};
+   for (const auto & state : frame.renderStates)
+     if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference))
+       return {CoinRenderBackendStatus::UNSUPPORTED, "Invalid alpha comparison function or reference"};
+diff --git a/src/rendering/coinrender/CoinRenderFramePlan.cpp b/src/rendering/coinrender/CoinRenderFramePlan.cpp
+index ec35663f84..591a2aff35 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlan.cpp
++++ b/src/rendering/coinrender/CoinRenderFramePlan.cpp
+@@ -98,7 +98,8 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
+   for (int i = 0; i < 4; ++i) {
+     if (this->clearColor[i] != other.clearColor[i]) return false;
+   }
+-  if (!samePlainSnapshots(this->vertices, other.vertices) ||
++  if (this->outputColorFormat!=other.outputColorFormat || this->outputMipmaps!=other.outputMipmaps ||
++      !samePlainSnapshots(this->vertices, other.vertices) ||
+       this->indices != other.indices ||
+       !samePlainSnapshots(this->materials, other.materials) ||
+       !samePlainSnapshots(this->shadowGroups, other.shadowGroups) ||
+@@ -129,7 +130,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
+     if (x.width != y.width || x.height != y.height || x.components != y.components ||
+         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
+         x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
+-        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
++        x.format != y.format || x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
+       return false;
+   }
+   return true;
+@@ -138,6 +139,10 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
+ bool
+ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
+ {
++  if(outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR && outputColorFormat!=CoinRenderTextureFormat::RGBA16_FLOAT) {
++    if(outDiagnostic)*outDiagnostic="Unsupported output texture format";return false;
++  }
++
+   CoinRenderPhaseTimer timer("validation_detail");
+   CombineValidationMemo combineMemo;
+   auto isFiniteF = [](float v) { return coin_render_is_finite(v); };
+@@ -153,7 +158,8 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
+   };
+ 
+   for (int i = 0; i < 4; ++i) {
+-    if (!isFiniteF(this->clearColor[i])) {
++    if (!isFiniteF(this->clearColor[i]) ||
++        (outputColorFormat==CoinRenderTextureFormat::RGBA16_FLOAT && std::abs(this->clearColor[i])>65504.f)) {
+       if (outDiagnostic) *outDiagnostic = "Invalid clearColor (NaN or inf)";
+       return false;
+     }
+@@ -252,8 +258,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
+       if (outDiagnostic) *outDiagnostic = "Texture dimensions exceed 8192 limit";
+       return false;
+     }
+-    const uint64_t expectedBytes = static_cast<uint64_t>(tex.width) *
+-      static_cast<uint64_t>(tex.height) * 4ULL;
++    const uint64_t expectedBytes = CoinRenderTextureFormatCore::levelBytes(tex.width,tex.height,tex.format);
+     if (tex.producerId && tex.gpuToken) {
+       if (outDiagnostic)
+         *outDiagnostic = "Texture cannot be both planned and resolved";
+@@ -270,7 +275,8 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
+   }
+ 
+   for(const auto & sampler:this->samplers) {
+-    if(static_cast<uint32_t>(sampler.filter)>3 || static_cast<uint32_t>(sampler.wrapS)>1 || static_cast<uint32_t>(sampler.wrapT)>1) {
++    if(static_cast<uint32_t>(sampler.filter)>3 || static_cast<uint32_t>(sampler.wrapS)>1 || static_cast<uint32_t>(sampler.wrapT)>1 || !CoinRenderTextureSamplingCore::powerOfTwo(sampler.maxAnisotropy) || sampler.maxAnisotropy>16 ||
++       (sampler.maxAnisotropy>1 && sampler.filter!=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR)) {
+       if(outDiagnostic)*outDiagnostic="Invalid P07 sampler filter or wrap";return false;
+     }
+   }
+diff --git a/src/rendering/coinrender/CoinRenderFramePlan.h b/src/rendering/coinrender/CoinRenderFramePlan.h
+index c2fe672036..43e1441b39 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlan.h
++++ b/src/rendering/coinrender/CoinRenderFramePlan.h
+@@ -223,17 +223,26 @@ enum class CoinRenderTextureModel : uint32_t {
+   BLEND = 3
+ };
+ 
++enum class CoinRenderTextureFormat : uint32_t {
++  RGBA8_LINEAR = 0,
++  RGBA8_SRGB = 1,
++  RGBA16_FLOAT = 2,
++  BC3_LINEAR = 3,
++  BC3_SRGB = 4
++};
++
+ struct CoinRenderTextureImageSnapshot {
++  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
+   uint32_t width = 0;
+   uint32_t height = 0;
+-  uint32_t components = 4; // Canonical RGBA8Unorm
++  uint32_t components = 4; // Four channels; format defines byte layout and RGB interpretation.
+   uint64_t contentDigest = 0;
+   uint64_t producerId = 0; // Logical RTT dependency, scoped to one captured graph.
+   uint64_t gpuToken = 0;   // Execution-only connector handle; capture never sets it.
+   int32_t sceneTransparencyFunction = -1; // -1: image alpha; otherwise captured Coin enum.
+   bool gpuOpaque = false; // Proven by an opaque child clear and alpha-preserving blend.
+   bool mipmapped = false;
+-  std::vector<uint8_t> mipmapsRgba; // complete lower levels, largest first
++  std::vector<uint8_t> mipmapsRgba; // Encoded complete lower levels, largest first.
+   std::vector<uint8_t> pixelsRgba;
+ };
+ 
+@@ -241,6 +250,7 @@ struct CoinRenderSamplerSnapshot {
+   CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT;
+   CoinRenderTextureWrap wrapT = CoinRenderTextureWrap::REPEAT;
+   CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
++  uint32_t maxAnisotropy = 1; // Explicit power of two, 1..16; all filters linear when >1.
+ };
+ 
+ enum class CoinRenderFogMode : uint32_t {
+@@ -356,6 +366,8 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
+  */
+ struct CoinRenderFramePlan {
+   uint64_t revision = 0;
++  CoinRenderTextureFormat outputColorFormat = CoinRenderTextureFormat::RGBA8_LINEAR;
++  bool outputMipmaps = false; // Execution-owned RTT request, never an implicit root fallback.
+   // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.
+   bool legacyBlendAlpha = false;
+   CoinRenderTransparencyOptions transparency;
+diff --git a/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp b/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp
+index 473cfbbf02..cc7716f4d9 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp
++++ b/src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp
+@@ -200,7 +200,7 @@ CoinRenderFramePlanBuilder::reset()
+   this->annotationDepthClearPending = false;
+   this->builderError.clear();
+   this->sceneTextures.clear();
+-  this->authoredTextureImages.clear();
++  this->authoredTextureImages.clear(); this->compressedTextureImages.clear();
+   this->nodeOccurrenceCount.clear();
+   this->lightAttenuationByIndex.clear();
+   this->lightCaptureScratch.clear();
+@@ -479,9 +479,9 @@ CoinRenderFramePlanBuilder::endAnnotation()
+ void CoinRenderFramePlanBuilder::registerSceneTexture(const unsigned char* image,
+                                                       uint64_t producerId, uint32_t width,
+                                                       uint32_t height, bool opaque,
+-                                                      int32_t transparencyFunction) {
++                                                      int32_t transparencyFunction,CoinRenderTextureFormat format) {
+   this->sceneTextures[image] =
+-      SceneTexture{producerId, width, height, opaque, transparencyFunction};
++      SceneTexture{producerId, width, height, opaque, transparencyFunction,format};
+ }
+ 
+ void
+@@ -759,7 +759,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
+   }
+   CoinRenderTextureFilter filter;
+   if (!CoinRenderTextureSamplingCore::quality(quality,filter)) {
+-    if (outError) *outError = "P07 texture quality must be finite in [0,0.85]; anisotropy is outside the profile";
++    if (outError) *outError = "Texture quality must be finite in [0,1]";
+     this->isUnsupported = true;
+     this->builderError = outError ? *outError : "Unsupported P07 texture quality";
+     return false;
+@@ -861,14 +861,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
+     return false;
+   }
+ 
+-  if(!isSceneTexture && (!CoinRenderTextureSamplingCore::powerOfTwo(w) || !CoinRenderTextureSamplingCore::powerOfTwo(h))) {
+-    this->isUnsupported=true;this->builderError="P07 stored texture images require power-of-two dimensions; implicit CoinGL NPOT rescaling is outside this profile";
+-    this->builderError += " (" + std::to_string(w) + "x" + std::to_string(h) + ", unit " + std::to_string(unit) + ", path";
+-    for (int i = 0; i < action->getCurPath()->getLength(); ++i)
+-      this->builderError += " /" + std::string(action->getCurPath()->getNode(i)->getTypeId().getName().getString());
+-    this->builderError += ")";
+-    if(outError)*outError=this->builderError;return false;
+-  }
+   std::vector<uint8_t> rgba;
+   if (!isSceneTexture) {
+     if (!CoinRenderImageCore::convertToRgba8(rawBytes, size_t(w) * h, numComponents, rgba)) {
+@@ -884,6 +876,9 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
+       isSceneTexture ? sceneTexture->second.producerId : CoinRenderImageCore::rgba8Digest(rgba);
+   CoinRenderTextureImageSnapshot tSnap;
+   tSnap.width = w; tSnap.height = h; tSnap.components = 4;
++  tSnap.format=!isSceneTexture && this->storedTextureColorSpace==COIN_RENDER_TEXTURE_SRGB?
++    CoinRenderTextureFormat::RGBA8_SRGB:CoinRenderTextureFormat::RGBA8_LINEAR;
++  if(isSceneTexture)tSnap.format=sceneTexture->second.format;
+   tSnap.sceneTransparencyFunction = isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
+   tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
+   tSnap.contentDigest = digest;
+@@ -896,15 +891,19 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
+                            : CoinRenderTextureFilter::LINEAR;
+     tSnap.mipmapped = quality > .5f;
+     if (!CoinRenderTextureSamplingCore::validMipImage(tSnap)) {
+-      this->isUnsupported=true; this->builderError="RTT mipmaps require power-of-two RGBA8 extents";
++      this->isUnsupported=true; this->builderError="RTT mipmaps exceed the format or memory limits";
+       if(outError)*outError=this->builderError; return false;
+     }
+   } else if (CoinRenderTextureSamplingCore::mipFilter(filter) &&
+              !CoinRenderTextureSamplingCore::generate(tSnap)) {
+-    this->isUnsupported=true;this->builderError="P07 mipmaps require power-of-two 2D RGBA8 images and at most 128 MiB including all levels";
++    this->isUnsupported=true;this->builderError="Texture mipmaps require supported 2D images and at most 128 MiB including all levels";
+     if(outError)*outError=this->builderError;return false;
+   }
+ 
++  if(!isSceneTexture && this->compressedTextureImages.count(rawBytes) && !CoinRenderTextureSamplingCore::compress(tSnap)) {
++    this->isUnsupported=true;this->builderError="BC3 stored textures require block-aligned base dimensions and RGBA8 input";
++    if(outError)*outError=this->builderError;return false;
++  }
+   const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
+ 
+   // 9. Sampler deduplication
+@@ -912,6 +911,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
+   sampSnap.wrapS = snapWrapS;
+   sampSnap.wrapT = snapWrapT;
+   sampSnap.filter = filter;
++  if(quality>.85f) { sampSnap.filter=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR; sampSnap.maxAnisotropy=this->maxTextureAnisotropy; }
+ 
+   const uint32_t sampSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampSnap);
+ 
+diff --git a/src/rendering/coinrender/CoinRenderFramePlanBuilder.h b/src/rendering/coinrender/CoinRenderFramePlanBuilder.h
+index b961615fbc..7852989f75 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlanBuilder.h
++++ b/src/rendering/coinrender/CoinRenderFramePlanBuilder.h
+@@ -13,6 +13,8 @@ class SoPrimitiveVertex;
+ class SoNode;
+ class CoinRenderFramePreflight;
+ 
++#include <Inventor/rendering/CoinRenderOptions.h>
++
+ class CoinRenderFramePlanBuilder {
+ public:
+   CoinRenderFramePlanBuilder();
+@@ -52,9 +54,13 @@ public:
+   void endForeground();
+   void endAnnotation();
+ 
+-  void registerAuthoredTextureImage(const unsigned char * bytes) { if(bytes) authoredTextureImages.insert(bytes); }
++  void configureTextures(const CoinRenderOptions& options) { storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
++  void registerAuthoredTextureImage(const unsigned char * bytes,bool compressed=false) {
++    if(bytes) { authoredTextureImages.insert(bytes); if(compressed) compressedTextureImages.insert(bytes); else compressedTextureImages.erase(bytes); }
++  }
+   void registerSceneTexture(const unsigned char* image, uint64_t producerId, uint32_t width,
+-                            uint32_t height, bool opaque, int32_t transparencyFunction);
++                            uint32_t height, bool opaque, int32_t transparencyFunction,
++                            CoinRenderTextureFormat format=CoinRenderTextureFormat::RGBA8_LINEAR);
+   void addTriangle(SoCallbackAction * action,
+                    const SoPrimitiveVertex * v0,
+                    const SoPrimitiveVertex * v1,
+@@ -176,9 +182,12 @@ private:
+     uint32_t height;
+     bool opaque;
+     int32_t transparencyFunction;
++    CoinRenderTextureFormat format;
+   };
+   std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
+-  std::unordered_set<const unsigned char*> authoredTextureImages;
++  std::unordered_set<const unsigned char*> authoredTextureImages,compressedTextureImages;
++  CoinRenderStoredTextureColorSpace storedTextureColorSpace=COIN_RENDER_TEXTURE_LINEAR;
++  uint32_t maxTextureAnisotropy=16;
+ };
+ 
+ #endif // !COIN_RENDER_FRAME_PLAN_BUILDER_H
+diff --git a/src/rendering/coinrender/CoinRenderFrameReuseCore.cpp b/src/rendering/coinrender/CoinRenderFrameReuseCore.cpp
+index c3265d2523..2944db1b51 100644
+--- a/src/rendering/coinrender/CoinRenderFrameReuseCore.cpp
++++ b/src/rendering/coinrender/CoinRenderFrameReuseCore.cpp
+@@ -44,7 +44,7 @@ sameTextures(const std::vector<CoinRenderTextureImageSnapshot> & a,
+     if (x.width != y.width || x.height != y.height || x.components != y.components ||
+         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
+         x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
+-        x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
++        x.format != y.format || x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
+       return false;
+   }
+   return true;
+@@ -144,6 +144,7 @@ sameCameraIndependentPayload(const CoinRenderFramePlan & previous,
+       !samePlainSnapshots(previous.shadowLights, current.shadowLights) ||
+       !sameLighting(previous.lightingStates, current.lightingStates) ||
+       !samePlainSnapshots(previous.viewports, current.viewports) ||
++      previous.outputColorFormat != current.outputColorFormat || previous.outputMipmaps != current.outputMipmaps ||
+       !sameTextures(previous.textures, current.textures) ||
+       !samePlainSnapshots(previous.samplers, current.samplers) ||
+       !coin_render_same_draws(previous.draws, current.draws) ||
+diff --git a/src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp b/src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp
+index 066d1ee473..87f08e5666 100644
+--- a/src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp
++++ b/src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp
+@@ -239,7 +239,7 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
+ uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRenderTextureImageSnapshot && image) {
+   for (size_t i = 0; i < plan.textures.size(); ++i) {
+     const auto & existing = plan.textures[i];
+-    if (existing.width == image.width && existing.height == image.height &&
++    if (existing.format == image.format && existing.width == image.width && existing.height == image.height &&
+         existing.contentDigest == image.contentDigest && existing.producerId == image.producerId &&
+         existing.sceneTransparencyFunction == image.sceneTransparencyFunction && existing.pixelsRgba == image.pixelsRgba && existing.mipmapped == image.mipmapped && existing.mipmapsRgba == image.mipmapsRgba)
+       return static_cast<uint32_t>(i);
+@@ -254,7 +254,7 @@ uint32_t CoinRenderPlanAssemblyCore::sampler(CoinRenderFramePlan & plan, const C
+     const auto & s = plan.samplers[i];
+     if (s.wrapS == sampSnap.wrapS &&
+         s.wrapT == sampSnap.wrapT &&
+-        s.filter == sampSnap.filter) {
++        s.filter == sampSnap.filter && s.maxAnisotropy == sampSnap.maxAnisotropy) {
+       sampSlot = static_cast<uint32_t>(i);
+       break;
+     }
+diff --git a/src/rendering/coinrender/CoinRenderRttCore.h b/src/rendering/coinrender/CoinRenderRttCore.h
+index 660786b23d..8a813382a9 100644
+--- a/src/rendering/coinrender/CoinRenderRttCore.h
++++ b/src/rendering/coinrender/CoinRenderRttCore.h
+@@ -11,6 +11,7 @@ struct CoinRenderRttProducer {
+   CoinRenderFramePlan plan;
+   SbVec2i32 size;
+   uint64_t sourceRevision = 0; // Coin node revision, copied by Wiring.
++  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
+ };
+ 
+ struct CoinRenderResourceStamp {
+@@ -62,14 +63,19 @@ public:
+       return false;
+     for (size_t i = 0; i < producers.size(); ++i) {
+       const auto& previous = producers[i];
+-      if (previous.sourceRevision == producer.sourceRevision && previous.size == producer.size &&
++      if (previous.format == producer.format && previous.sourceRevision == producer.sourceRevision && previous.size == producer.size &&
+           previous.plan.hasSamePayload(producer.plan)) {
+         id = i + 1;
+         return true;
+       }
+     }
+-    if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT && !charge(producer.size, diagnostic))
+-      return false;
++    if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
++      const size_t previousCharge=chargedBytes;
++      if(!charge(producer.size,diagnostic))return false;
++      const size_t extra=producer.format==CoinRenderTextureFormat::RGBA16_FLOAT?size_t(producer.size[0])*producer.size[1]*4:0;
++      if(extra>budget()-chargedBytes){chargedBytes=previousCharge;diagnostic="HDR RTT exceeds the 64 MiB graph budget";return false;}
++      chargedBytes+=extra;
++    }
+     producers.push_back(std::move(producer));
+     id = producers.size();
+     return true;
+@@ -88,8 +94,18 @@ public:
+         diagnostic = "Invalid scene texture producer descriptor";
+         return false;
+       }
++      if(producer.format!=CoinRenderTextureFormat::RGBA8_LINEAR && producer.format!=CoinRenderTextureFormat::RGBA16_FLOAT) {
++        diagnostic="RTT output supports RGBA8 linear or RGBA16F";return false;
++      }
++      if(producer.format==CoinRenderTextureFormat::RGBA16_FLOAT)
++        for(int channel=0;channel<4;++channel)if(std::abs(producer.plan.clearColor[channel])>65504.f) {
++          diagnostic="HDR RTT clear exceeds the finite binary16 range";return false;
++        }
++      if(producer.format==CoinRenderTextureFormat::RGBA16_FLOAT && mode!=COIN_RENDER_SCENE_TEXTURE_DIRECT) {
++        diagnostic="RGBA16F RTT requires an explicit direct GPU route";return false;
++      }
+       const size_t bytes = size_t(producer.size[0]) * producer.size[1] *
+-                           (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT ? 8 : 4);
++                           (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT ? (producer.format==CoinRenderTextureFormat::RGBA16_FLOAT?12:8) : 4);
+       if (bytes > budget() - distinctBytes) {
+         diagnostic = "SoSceneTexture2 graph exceeds 64 MiB per apply";
+         return false;
+@@ -99,16 +115,17 @@ public:
+         return false;
+     }
+     if (!root.isValid(&diagnostic) || !dependencies(root, producers.size(), diagnostic)) return false;
+-    // Count a chain per captured image use, conservatively including nested
+-    // consumers. Reject direct chains before submitting any GPU producer.
++    // Count requested lower levels before any producer is submitted.
+     distinctBytes = std::max(distinctBytes, chargedBytes);
+     const auto chargeMips = [&](const CoinRenderFramePlan & frame) {
+       for (const auto & image : frame.textures) {
+         if (!image.producerId || !image.mipmapped) continue;
+-        if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+-          diagnostic="Direct RTT mip generation is outside this profile"; return false;
+-        }
+-        const size_t bytes=CoinRenderTextureSamplingCore::mipBytes(image.width,image.height);
++        // Direct execution reserves one GPU-only scratch source per reduction
++        // level, including the base for GL view isolation. Native-view APIs
++        // may use less; the common graph never depends on that optimization.
++        const size_t lower=CoinRenderTextureSamplingCore::mipBytes(image.width,image.height,image.format);
++        const size_t bytes=mode==COIN_RENDER_SCENE_TEXTURE_DIRECT?
++          lower*2+CoinRenderTextureFormatCore::levelBytes(image.width,image.height,image.format):lower;
+         if (bytes>budget()-distinctBytes) {
+           diagnostic="SoSceneTexture2 base images and mip chains exceed 64 MiB per apply"; return false;
+         }
+@@ -120,6 +137,15 @@ public:
+     return chargeMips(root);
+   }
+ 
++  bool requestsMips(uint64_t id,const CoinRenderFramePlan& root) const {
++    auto requests=[&](const CoinRenderFramePlan& p) {
++      for(const auto& t:p.textures)if(t.producerId==id && t.mipmapped)return true;
++      return false;
++    };
++    if(requests(root))return true;
++    for(const auto& producer:producers)if(requests(producer.plan))return true;
++    return false;
++  }
+ private:
+   bool charge(const SbVec2i32& size, std::string& diagnostic) {
+     if (size[0] <= 0 || size[1] <= 0 || size[0] > 2048 || size[1] > 2048) {
+@@ -152,7 +178,7 @@ private:
+       }
+       const auto& producer = producers[size_t(texture.producerId - 1)];
+       if (texture.width != uint32_t(producer.size[0]) ||
+-          texture.height != uint32_t(producer.size[1])) {
++          texture.height != uint32_t(producer.size[1]) || texture.format!=producer.format) {
+         diagnostic = "SoSceneTexture2 consumer dimensions differ from its producer";
+         return false;
+       }
+@@ -202,7 +228,7 @@ public:
+       }
+       const Entry& entry = entries[size_t(texture.producerId - 1)];
+       if (!(entry.stamp == current) || entry.id != texture.producerId ||
+-          texture.width != entry.texture.width || texture.height != entry.texture.height) {
++          texture.width != entry.texture.width || texture.height != entry.texture.height || texture.format!=entry.texture.format) {
+         diagnostic = "Scene texture resource belongs to another owner, device or generation";
+         return false;
+       }
+@@ -212,7 +238,10 @@ public:
+       texture = entry.texture;
+       texture.gpuOpaque = opaque;
+       texture.sceneTransparencyFunction = transparencyFunction;
+-      if (requestedMips && !CoinRenderTextureSamplingCore::generate(texture)) {
++      if(requestedMips && texture.gpuToken && !texture.mipmapped) {
++        diagnostic="GPU RTT token lacks the requested mip chain";return false;
++      }
++      if (requestedMips && !texture.gpuToken && !CoinRenderTextureSamplingCore::generate(texture)) {
+         diagnostic="Cannot resolve the staged RTT mip chain"; return false;
+       }
+     }
+diff --git a/src/rendering/coinrender/CoinRenderRttExecution.cpp b/src/rendering/coinrender/CoinRenderRttExecution.cpp
+index c64784471e..f050b4b19c 100644
+--- a/src/rendering/coinrender/CoinRenderRttExecution.cpp
++++ b/src/rendering/coinrender/CoinRenderRttExecution.cpp
+@@ -71,9 +71,12 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan&
+     preflightBackend = CoinRenderTargetP::createBackend();
+     inspector = preflightBackend.get();
+   }
++
++  // Pure/known connector limits must reject before device preparation. A
++  // second inspection after prepare checks selected-adapter format facts.
+   check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
+-  if (check.status != CoinRenderBackendStatus::SUCCESS)
+-    return check;
++  if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
++
+ 
+   if (graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+     if (!target)
+@@ -100,6 +103,11 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan&
+       return {prepared, error};
+     }
+   }
++  if (target && target->backend) inspector = target->backend.get();
++  check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
++  if (check.status != CoinRenderBackendStatus::SUCCESS)
++    return check;
++
+   const CoinRenderResourceStamp capturedStamp = stamp();
+   for (size_t i = 0; i < graph.producers.size(); ++i) {
+     const auto& producer = graph.producers[i];
+@@ -109,7 +117,11 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan&
+     CoinRenderTextureImageSnapshot resultTexture;
+     resultTexture.width = uint32_t(producer.size[0]);
+     resultTexture.height = uint32_t(producer.size[1]);
++    resultTexture.format=producer.format;
+     if (directBackend) {
++      frame.outputColorFormat=producer.format;
++      frame.outputMipmaps=graph.requestsMips(i+1,root);
++      resultTexture.mipmapped=frame.outputMipmaps;
+       uint64_t token = 0;
+       auto result =
+           directBackend->submitRtt(frame, producer.size, producer.sourceRevision, *target, token);
+diff --git a/src/rendering/coinrender/CoinRenderSelectionCore.h b/src/rendering/coinrender/CoinRenderSelectionCore.h
+index 7b2c0b2fdc..43afd4da61 100644
+--- a/src/rendering/coinrender/CoinRenderSelectionCore.h
++++ b/src/rendering/coinrender/CoinRenderSelectionCore.h
+@@ -5,6 +5,11 @@
+ #include <string>
+ 
+ inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
++  if(uint32_t(options.storedTextureColorSpace)>1 || !options.maxTextureAnisotropy ||
++     options.maxTextureAnisotropy>16 || (options.maxTextureAnisotropy&(options.maxTextureAnisotropy-1))) {
++    diagnostic="Stored texture color space must be LINEAR/SRGB and anisotropy a power of two in 1..16";return false;
++  }
++
+   if (options.renderer != COIN_RENDER_RENDERER_UNKNOWN &&
+       options.renderer != COIN_RENDER_RENDERER_VULKAN &&
+       options.renderer != COIN_RENDER_RENDERER_OPENGL &&
+diff --git a/src/rendering/coinrender/CoinRenderTextureAlphaCore.h b/src/rendering/coinrender/CoinRenderTextureAlphaCore.h
+index d87360d615..aed95e9aa3 100644
+--- a/src/rendering/coinrender/CoinRenderTextureAlphaCore.h
++++ b/src/rendering/coinrender/CoinRenderTextureAlphaCore.h
+@@ -1,7 +1,7 @@
+ #ifndef COIN_RENDER_TEXTURE_ALPHA_CORE_H
+ #define COIN_RENDER_TEXTURE_ALPHA_CORE_H
+ 
+-#include "rendering/coinrender/CoinRenderFramePlan.h"
++#include "rendering/coinrender/CoinRenderTextureFormatCore.h"
+ #include <Inventor/nodes/SoSceneTexture2.h>
+ 
+ // Coin image flags decide scheduling/casting independently of sampled alpha.
+@@ -22,8 +22,14 @@ inline bool coin_render_texture_has_transparency(const CoinRenderTextureImageSna
+   if (image.sceneTransparencyFunction == SoSceneTexture2::NONE) return false;
+   if (coin_render_scene_texture_forces_transparency(image.sceneTransparencyFunction)) return true;
+   if ((image.producerId || image.gpuToken) && !image.gpuOpaque) return true;
+-  return coin_render_image_has_transparency(image.pixelsRgba.data(),
+-                                           image.pixelsRgba.size() / 4, 4);
++  if(image.producerId || image.gpuToken)return false;
++  if(image.format==CoinRenderTextureFormat::RGBA8_LINEAR || image.format==CoinRenderTextureFormat::RGBA8_SRGB)
++    return coin_render_image_has_transparency(image.pixelsRgba.data(),image.pixelsRgba.size()/4,4);
++  const size_t bytes=CoinRenderTextureFormatCore::levelBytes(image.width,image.height,image.format);
++  if(!bytes || image.pixelsRgba.size()!=bytes) return true;
++  for(uint32_t y=0;y<image.height;++y)for(uint32_t x=0;x<image.width;++x)
++    if(CoinRenderTextureFormatCore::texel(image.pixelsRgba,0,image.width,image.format,x,y)[3]<1.f)return true;
++  return false;
+ }
+ 
+ #endif
+diff --git a/src/rendering/coinrender/CoinRenderTextureSamplingCore.h b/src/rendering/coinrender/CoinRenderTextureSamplingCore.h
+index f3a91fcd9e..562bdc8500 100644
+--- a/src/rendering/coinrender/CoinRenderTextureSamplingCore.h
++++ b/src/rendering/coinrender/CoinRenderTextureSamplingCore.h
+@@ -1,24 +1,22 @@
+ #ifndef COIN_RENDER_TEXTURE_SAMPLING_CORE_H
+ #define COIN_RENDER_TEXTURE_SAMPLING_CORE_H
+ #include "rendering/coinrender/CoinRenderFramePlan.h"
++#include "rendering/coinrender/CoinRenderTextureFormatCore.h"
+ #include <algorithm>
+ #include <cmath>
+ // Captured quality selects sampler semantics; Core owns the deterministic
+-// RGBA8 box chain. GPU executors only upload the prepared bytes.
++// stored format-aware box chain. GPU executors upload the prepared bytes;
++// direct RTT mipmaps are generated on the GPU after the producer render.
+ class CoinRenderTextureSamplingCore {
+ public:
+   static bool powerOfTwo(uint32_t v) { return v && !(v & (v - 1)); }
+-  static size_t mipBytes(uint32_t w, uint32_t h) {
+-    size_t bytes = 0;
+-    while (w > 1 || h > 1) {
+-      w = std::max(1u, w / 2);
+-      h = std::max(1u, h / 2);
+-      bytes += size_t(w) * h * 4;
+-    }
+-    return bytes;
++  static size_t mipBytes(
++      uint32_t w, uint32_t h,
++      CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR) {
++    return CoinRenderTextureFormatCore::mipBytes(w, h, format);
+   }
+   static bool quality(float q, CoinRenderTextureFilter &filter) {
+-    if (!std::isfinite(q) || q < 0 || q > .85f)
++    if (!std::isfinite(q) || q < 0 || q > 1.f)
+       return false;
+     filter = q < .2f   ? CoinRenderTextureFilter::NEAREST
+              : q < .5f ? CoinRenderTextureFilter::LINEAR
+@@ -30,21 +28,80 @@ public:
+     return static_cast<uint32_t>(filter) >= 2;
+   }
+   static bool validMipImage(const CoinRenderTextureImageSnapshot &image) {
+-    if (!image.mipmapped) return image.mipmapsRgba.empty();
+-    const bool extent = image.width <= 8192 && image.height <= 8192 &&
+-      powerOfTwo(image.width) && powerOfTwo(image.height) &&
+-      size_t(image.width)*image.height*4 + mipBytes(image.width,image.height) <= 128u*1024u*1024u;
+-    if (!extent || image.gpuToken) return false;
+-    // A planned producer requests a chain; bytes exist only after staged render.
+-    return image.producerId ? image.pixelsRgba.empty() && image.mipmapsRgba.empty()
+-                            : image.mipmapsRgba.size()==mipBytes(image.width,image.height);
++    using Format = CoinRenderTextureFormatCore;
++    const size_t base =
++        Format::levelBytes(image.width, image.height, image.format);
++    if (!base || base + mipBytes(image.width, image.height, image.format) >
++                     128u * 1024u * 1024u)
++      return false;
++    // GPU BC upload requires block-aligned base extents; lower mips are padded.
++    if (Format::compressed(image.format) &&
++        ((image.width % 4) || (image.height % 4)))
++      return false;
++    if (image.format == CoinRenderTextureFormat::RGBA16_FLOAT &&
++        (!Format::finiteHalfPayload(image.pixelsRgba) ||
++         !Format::finiteHalfPayload(image.mipmapsRgba)))
++      return false;
++    if (!image.mipmapped)
++      return image.mipmapsRgba.empty();
++    if (image.producerId || image.gpuToken)
++      return image.pixelsRgba.empty() && image.mipmapsRgba.empty();
++    return image.mipmapsRgba.size() ==
++           mipBytes(image.width, image.height, image.format);
++  }
++
++  static bool compress(CoinRenderTextureImageSnapshot &image) {
++    using Format = CoinRenderTextureFormatCore;
++    if (image.format != CoinRenderTextureFormat::RGBA8_LINEAR &&
++        image.format != CoinRenderTextureFormat::RGBA8_SRGB)
++      return false;
++    if (!image.width || !image.height || image.width % 4 || image.height % 4 ||
++        image.producerId || image.gpuToken)
++      return false;
++    std::vector<uint8_t> base, mips;
++    if (!Format::encodeBc3(image.pixelsRgba, image.width, image.height, base))
++      return false;
++    size_t offset = 0;
++    uint32_t w = image.width, h = image.height;
++    if (image.mipmapped)
++      while (w > 1 || h > 1) {
++        w = std::max(1u, w / 2);
++        h = std::max(1u, h / 2);
++        const size_t bytes = size_t(w) * h * 4;
++        if (bytes > image.mipmapsRgba.size() -
++                        std::min(offset, image.mipmapsRgba.size()))
++          return false;
++        const std::vector<uint8_t> source(image.mipmapsRgba.begin() + offset,
++                                          image.mipmapsRgba.begin() + offset +
++                                              bytes);
++        std::vector<uint8_t> encoded;
++        if (!Format::encodeBc3(source, w, h, encoded))
++          return false;
++        mips.insert(mips.end(), encoded.begin(), encoded.end());
++        offset += bytes;
++      }
++    if (offset != image.mipmapsRgba.size())
++      return false;
++    image.format = Format::srgb(image.format)
++                       ? CoinRenderTextureFormat::BC3_SRGB
++                       : CoinRenderTextureFormat::BC3_LINEAR;
++    image.pixelsRgba.swap(base);
++    image.mipmapsRgba.swap(mips);
++    return true;
+   }
+ 
+   static bool generate(CoinRenderTextureImageSnapshot &image) {
+-    if (image.width > 8192 || image.height > 8192 || !powerOfTwo(image.width) ||
+-        !powerOfTwo(image.height) || image.producerId || image.gpuToken ||
+-        image.pixelsRgba.size() != size_t(image.width) * image.height * 4 ||
+-        image.pixelsRgba.size() + mipBytes(image.width, image.height) >
++    if (image.width > 8192 || image.height > 8192 || !image.width ||
++        !image.height || !CoinRenderTextureFormatCore::valid(image.format) ||
++        (image.format == CoinRenderTextureFormat::RGBA16_FLOAT &&
++         !CoinRenderTextureFormatCore::finiteHalfPayload(image.pixelsRgba)) ||
++        CoinRenderTextureFormatCore::compressed(image.format) ||
++        image.producerId || image.gpuToken ||
++        image.pixelsRgba.size() !=
++            CoinRenderTextureFormatCore::levelBytes(image.width, image.height,
++                                                    image.format) ||
++        image.pixelsRgba.size() +
++                mipBytes(image.width, image.height, image.format) >
+             128u * 1024u * 1024u)
+       return false;
+     std::vector<uint8_t> result;
+@@ -52,7 +109,44 @@ public:
+     std::vector<uint8_t> previous = image.pixelsRgba;
+     while (w > 1 || h > 1) {
+       const uint32_t nw = std::max(1u, w / 2), nh = std::max(1u, h / 2);
+-      std::vector<uint8_t> next(size_t(nw) * nh * 4);
++      std::vector<uint8_t> next(
++          CoinRenderTextureFormatCore::levelBytes(nw, nh, image.format));
++      if (image.format != CoinRenderTextureFormat::RGBA8_LINEAR ||
++          !powerOfTwo(w) || !powerOfTwo(h)) {
++        // Exact area footprints include odd NPOT borders. Decode SRGB before
++        // averaging and preserve float range for HDR; alpha is always linear.
++        for (uint32_t y = 0; y < nh; ++y)
++          for (uint32_t x = 0; x < nw; ++x) {
++            double sums[4] = {};
++            const uint32_t x0 = x * w, x1 = (x + 1) * w, y0 = y * h,
++                           y1 = (y + 1) * h;
++            for (uint32_t sy = y0 / nh; sy < (y1 + nh - 1) / nh; ++sy)
++              for (uint32_t sx = x0 / nw; sx < (x1 + nw - 1) / nw; ++sx) {
++                const uint32_t wx =
++                    std::min(x1, (sx + 1) * nw) - std::max(x0, sx * nw);
++                const uint32_t wy =
++                    std::min(y1, (sy + 1) * nh) - std::max(y0, sy * nh);
++                const auto color = CoinRenderTextureFormatCore::texel(
++                    previous, 0, w, image.format, sx, sy);
++                for (int c = 0; c < 4; ++c)
++                  sums[c] += double(color[c]) * wx * wy;
++              }
++            SbVec4f color;
++            for (int c = 0; c < 4; ++c)
++              color[c] = float(sums[c] / (double(w) * h));
++            CoinRenderTextureFormatCore::put(
++                next,
++                (size_t(y) * nw + x) *
++                    (image.format == CoinRenderTextureFormat::RGBA16_FLOAT ? 8
++                                                                           : 4),
++                image.format, color);
++          }
++        result.insert(result.end(), next.begin(), next.end());
++        previous.swap(next);
++        w = nw;
++        h = nh;
++        continue;
++      }
+       const unsigned samples = (w > 1 ? 2 : 1) * (h > 1 ? 2 : 1);
+       for (uint32_t y = 0; y < nh; ++y)
+         for (uint32_t x = 0; x < nw; ++x)
+diff --git a/src/rendering/coinwgpu/CoinWgpuBackend.cpp b/src/rendering/coinwgpu/CoinWgpuBackend.cpp
+index 002c346503..d10bdf0a48 100644
+--- a/src/rendering/coinwgpu/CoinWgpuBackend.cpp
++++ b/src/rendering/coinwgpu/CoinWgpuBackend.cpp
+@@ -71,7 +71,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderSt
+ static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
+ 
+ static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
+-static_assert(sizeof(CoinWgpuFrameView) == 448, "CoinWgpuFrameView size mismatch");
++static_assert(sizeof(CoinWgpuFrameView) == 456, "CoinWgpuFrameView size mismatch");
+ static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
+ static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
+ static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
+@@ -427,7 +427,29 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& gr
+       return {CoinRenderBackendStatus::UNSUPPORTED,
+               "wgpu direct RTT exceeds the capacity of 64 retained textures"};
+   }
+-  (void)root;
++  if(!coin_wgpu_default_device_generation()) return {}; // Hardware checks follow prepare.
++  uint32_t formats=0, outputs=0, anisotropy=1;
++  const auto scan=[&](const CoinRenderFramePlan & frame) {
++    for(const auto & image:frame.textures) formats|=1u<<uint32_t(image.format);
++    for(const auto & sampler:frame.samplers) anisotropy=std::max(anisotropy,sampler.maxAnisotropy);
++  };
++  scan(root);
++  for(size_t i=0;i<graph.producers.size();++i) {
++    const auto & producer=graph.producers[i]; scan(producer.plan);
++    if(graph.mode==COIN_RENDER_SCENE_TEXTURE_DIRECT) {
++      const bool hdr=producer.format==CoinRenderTextureFormat::RGBA16_FLOAT;
++      outputs|=hdr?2u:1u;
++      if(graph.requestsMips(i+1,root)) outputs|=hdr?8u:4u;
++    }
++  }
++  const auto status=coin_wgpu_preflight_texture_profile(formats,outputs,anisotropy);
++  if(status!=COIN_WGPU_OK) {
++    const auto mapped=status==COIN_WGPU_NOT_READY?CoinRenderBackendStatus::NOT_READY:
++      status==COIN_WGPU_DEVICE_LOST?CoinRenderBackendStatus::DEVICE_LOST:
++      status==COIN_WGPU_OUT_OF_MEMORY?CoinRenderBackendStatus::OUT_OF_MEMORY:
++      status==COIN_WGPU_BACKEND_ERROR?CoinRenderBackendStatus::BACKEND_ERROR:CoinRenderBackendStatus::UNSUPPORTED;
++    return {mapped,"wgpu advanced texture profile unavailable on the prepared adapter"};
++  }
+   (void)size;
+   // Viewport projection/intersection is resolved by the shared Core during
+   // packing for each producer's own extent, including empty intersections.
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfi.h b/src/rendering/coinwgpu/CoinWgpuFfi.h
+index 43b25d876c..b9aeb115f9 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfi.h
++++ b/src/rendering/coinwgpu/CoinWgpuFfi.h
+@@ -8,7 +8,7 @@
+ extern "C" {
+ #endif
+ 
+-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 49
++#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 50
+ #define COIN_WGPU_FFI_MAX_LIGHTS 8
+ #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
+ 
+@@ -33,6 +33,7 @@ typedef enum CoinWgpuStatus {
+ #define COIN_WGPU_FAULT_RTT_DEPTH_ALLOC 303
+ #define COIN_WGPU_FAULT_RTT_BIND_GROUP 304
+ #define COIN_WGPU_FAULT_SHADOW_MAP_ALLOC 305
++#define COIN_WGPU_FAULT_RTT_MIP_ENCODING 306
+ 
+ typedef enum CoinWgpuNativeSurfaceType {
+   COIN_WGPU_NATIVE_XLIB = 1,
+@@ -111,8 +112,8 @@ typedef struct CoinWgpuMaterial {
+ typedef struct CoinWgpuTexture {
+   uint32_t width;
+   uint32_t height;
+-  uint32_t format; /* 0=RGBA8_UNORM base; 1=private GPU RTT token; 2=complete POT RGBA8 mip chain */
+-  uint32_t reserved;
++  uint32_t format; /* 0=RGBA8 linear base; 1=GPU RTT token; 2=RGBA8 linear mips; 3/4=SRGB base/mips; 5/6=RGBA16F; 7/8=BC3 linear; 9/10=BC3 SRGB */
++  uint32_t reserved; /* RTT only: opaque bit0, mips bit1, Coin format in bits2..4 */
+   uint64_t content_digest;
+   const uint8_t * pixels;
+   uint64_t pixel_bytes_len;
+@@ -122,7 +123,7 @@ typedef struct CoinWgpuSampler {
+   uint32_t wrap_s; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
+   uint32_t wrap_t; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
+   uint32_t filter; /* 0=NEAREST, 1=LINEAR, 2=NEAREST_MIPMAP_LINEAR, 3=LINEAR_MIPMAP_LINEAR */
+-  uint32_t reserved;
++  uint32_t reserved; /* max anisotropy minus one, 0/1/3/7/15 */
+ } CoinWgpuSampler;
+ 
+ 
+@@ -293,6 +294,8 @@ typedef struct CoinWgpuFrameView {
+   uint64_t instance_count;
+   const CoinWgpuInstanceRange * instance_ranges;
+   uint64_t instance_range_count;
++  uint32_t texture_output_flags; /* bit 0=RGBA16F direct RTT; bit 1=generate full RTT mip chain */
++  uint32_t texture_output_reserved; /* zero */
+ } CoinWgpuFrameView;
+ 
+ typedef struct CoinWgpuTarget {
+@@ -368,6 +371,9 @@ struct CoinWgpuRuntimeCapabilities {
+ CoinWgpuStatus coin_wgpu_query_runtime_capabilities(CoinWgpuRuntimeCapabilities* output,
+                                                     size_t output_size);
+ 
++// Hardware admission only; no allocation or submission. Formats use Core enum bits.
++CoinWgpuStatus coin_wgpu_preflight_texture_profile(uint32_t formats, uint32_t outputs, uint32_t anisotropy);
++
+ CoinWgpuStatus coin_wgpu_submit(
+   CoinWgpuTarget * target,
+   const CoinWgpuFrameView * frame,
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+index f87ddb0dd9..25bc93398b 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
++++ b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+@@ -28,7 +28,7 @@
+ #define COIN_WGPU_MATRIX_CACHE_FP_X86 1
+ #endif
+ 
+-static_assert(sizeof(CoinWgpuFrameView) == 448, "Frame view ABI size changed");
++static_assert(sizeof(CoinWgpuFrameView) == 456, "Frame view ABI size changed");
+ static_assert(sizeof(CoinWgpuInstance) == 144, "Instance ABI size changed");
+ static_assert(sizeof(CoinWgpuInstanceRange) == 16, "Instance range ABI size changed");
+ static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "Instance ABI tail offset changed");
+@@ -467,8 +467,9 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
+     this->texturePixels[i].insert(this->texturePixels[i].end(),src.mipmapsRgba.begin(),src.mipmapsRgba.end());
+     dst.width = src.width;
+     dst.height = src.height;
+-    dst.format = src.gpuToken ? 1 : src.mipmapped ? 2 : 0;
+-    dst.reserved = src.gpuToken && src.gpuOpaque ? 1 : 0;
++    dst.format = src.gpuToken?1:src.format==CoinRenderTextureFormat::RGBA8_LINEAR?(src.mipmapped?2:0):
++      3+(uint32_t(src.format)-1)*2+(src.mipmapped?1:0);
++    dst.reserved = src.gpuToken?((src.gpuOpaque?1:0)|(src.mipmapped?2:0)|(uint32_t(src.format)<<2)):0;
+     dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
+     dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();
+     dst.pixel_bytes_len = static_cast<uint64_t>(this->texturePixels[i].size());
+@@ -479,6 +480,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
+     this->samplers[i].wrap_s = static_cast<uint32_t>(frame.samplers[i].wrapS);
+     this->samplers[i].wrap_t = static_cast<uint32_t>(frame.samplers[i].wrapT);
+     this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
++    this->samplers[i].reserved=frame.samplers[i].maxAnisotropy-1;
+   }
+ 
+   this->batchOpaqueTriangles(frame, width, height);
+@@ -1658,6 +1660,7 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
+   this->view.instance_count = static_cast<uint64_t>(this->instances.size());
+   this->view.instance_ranges = this->instanceRanges.empty() ? NULL : this->instanceRanges.data();
+   this->view.instance_range_count = static_cast<uint64_t>(this->instanceRanges.size());
++  this->view.texture_output_flags=(frame.outputColorFormat==CoinRenderTextureFormat::RGBA16_FLOAT?1u:0u)|(frame.outputMipmaps?2u:0u);
+   this->view.textures = this->textures.empty() ? NULL : this->textures.data();
+   this->view.texture_count = static_cast<uint64_t>(this->textures.size());
+   this->view.samplers = this->samplers.empty() ? NULL : this->samplers.data();
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 0b3427a4a3..191fb65f74 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -4,6 +4,8 @@
+ #![allow(clippy::if_same_then_else)]
+ #![allow(clippy::needless_range_loop)]
+ #![allow(clippy::needless_lifetimes)]
++mod texture_profile;
++mod texture_mips;
+ use bytemuck::{Pod, Zeroable};
+ use pollster::block_on;
+ use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
+@@ -31,11 +33,11 @@ mod instancing;
+ #[cfg(target_os = "android")]
+ mod android_log;
+ 
+-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 49;
++pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 50;
+ pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
+ 
+ const _: () = {
+-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 448);
++    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 456);
+     assert!(std::mem::size_of::<CoinWgpuInstance>() == 144);
+     assert!(std::mem::size_of::<CoinWgpuInstanceRange>() == 16);
+     assert!(std::mem::offset_of!(CoinWgpuFrameView, instances) == 416);
+@@ -735,6 +737,8 @@ pub struct CoinWgpuFrameView {
+     pub instance_count: u64,
+     pub instance_ranges: *const CoinWgpuInstanceRange,
+     pub instance_range_count: u64,
++    pub texture_output_flags: u32,
++    pub texture_output_reserved: u32,
+ }
+ 
+ #[repr(C)]
+@@ -958,6 +962,8 @@ struct RttTexture {
+     width: u32,
+     height: u32,
+     opaque: bool,
++    format: u32,
++    mip_count: u32,
+ }
+ struct RetiredRttTexture {
+     #[allow(dead_code)] // Retirement keeps the view alive until the submission fence.
+@@ -974,6 +980,7 @@ struct RttRegistry {
+ 
+ #[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
+ struct SamplerKey {
++    max_anisotropy_minus_one: u32,
+     wrap_s: u32,
+     wrap_t: u32,
+     filter: u32,
+@@ -2120,8 +2127,11 @@ fn get_or_init_device_impl<'a>(
+     let enable_timestamps = std::env::var_os("COIN_RENDER_TRACE_PHASES").or_else(|| std::env::var_os("COIN_WGPU_TRACE_PHASES")).is_some()
+         && std::env::var("COIN_WGPU_GPU_TIMESTAMPS").as_deref() == Ok("1")
+         && adapter.features().contains(timestamp_features);
+-    let required_features = if enable_timestamps { timestamp_features }
++    let mut required_features = if enable_timestamps { timestamp_features }
+         else { wgpu::Features::empty() };
++    if adapter.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
++        required_features |= wgpu::Features::TEXTURE_COMPRESSION_BC;
++    }
+     let (device, queue) = block_on(adapter.request_device(
+         &wgpu::DeviceDescriptor {
+             label: Some("Coin3D WebGPU Device"),
+@@ -3052,20 +3062,7 @@ fn get_or_create_pipeline<'a>(
+ 
+ // Transport validation only: chain generation belongs to Coin/Core.
+ fn texture_levels(width:u32,height:u32,format:u32)->Result<Vec<(u32,u32,u64)>,(CoinWgpuStatus,String)> {
+-    if width==0 || height==0 || width>8192 || height>8192 || (format!=0 && format!=2) {
+-        return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 texture layout".into()));
+-    }
+-    if format==2 && (!width.is_power_of_two() || !height.is_power_of_two()) {
+-        return Err((CoinWgpuStatus::Unsupported,"P07 mipmaps require power-of-two dimensions".into()));
+-    }
+-    let(mut w,mut h,mut offset)=(width,height,0u64);let mut levels=Vec::new();
+-    loop {levels.push((w,h,offset));offset+=u64::from(w)*u64::from(h)*4;
+-        if format==0 || (w==1 && h==1){break;}w=(w/2).max(1);h=(h/2).max(1);
+-    }
+-    if format==2 && offset>128*1024*1024 {
+-        return Err((CoinWgpuStatus::Unsupported,"P07 mip chain exceeds 128 MiB".into()));
+-    }
+-    Ok(levels)
++    texture_profile::levels(width,height,format)
+ }
+ 
+ fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
+@@ -3093,7 +3090,7 @@ mod viewport_tests {
+         assert_eq!(texture_levels(4,2,2).unwrap(),vec![(4,2,0),(2,1,32),(1,1,40)]);
+         assert_eq!(texture_levels(1,1,2).unwrap(),vec![(1,1,0)]);
+         assert_eq!(texture_levels(3,5,0).unwrap(),vec![(3,5,0)]);
+-        for &(w,h,f) in &[(3,5,2),(8192,8192,2),(0,8,2),(8193,1,0),(4,4,3)] {
++        for &(w,h,f) in &[(8192,8192,2),(0,8,2),(8193,1,0),(4,4,11)] {
+             assert!(texture_levels(w,h,f).is_err());
+         }
+     }
+@@ -3313,7 +3310,7 @@ fn encode_frame(
+             if enabled==0 {continue;}
+             let image=textures_slice.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 image slot out of bounds".into()))?;
+             let sampler=samplers_slice.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 sampler slot out of bounds".into()))?;
+-            if sampler.filter>=2 && image.format!=2 {
++            if sampler.filter>=2 && !(if image.format==1 {image.reserved&2!=0} else {texture_profile::format(image.format)?.1}) {
+                 return Err((CoinWgpuStatus::Unsupported,"P07 mip sampler requires complete stored-image chain".into()));
+             }
+         }
+@@ -3350,6 +3347,23 @@ fn encode_frame(
+     }
+ 
+ 
++    for image in textures_slice {
++        if image.format==1 {continue;}
++        let format=texture_profile::format(image.format)?.0;
++        if format.is_compressed() && !ctx.device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
++            return Err((CoinWgpuStatus::Unsupported,"BC compression unavailable on selected adapter".into()));
++        }
++        let features=ctx.adapter.get_texture_format_features(format);
++        if !features.allowed_usages.contains(wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_DST) {
++            return Err((CoinWgpuStatus::Unsupported,"Texture format unavailable on selected adapter".into()));
++        }
++    }
++    for sampler in samplers_slice {
++        let max=texture_profile::anisotropy(sampler.reserved,sampler.filter)?;
++        if max>1 && !ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::ANISOTROPIC_FILTERING) {
++            return Err((CoinWgpuStatus::Unsupported,"Anisotropic filtering unavailable".into()));
++        }
++    }
+     ctx.camera_bindings_reused.store(0, Ordering::Relaxed);
+     ctx.camera_bindings_created.store(0, Ordering::Relaxed);
+     // 1. Process pending GPU completion events and lock geometry cache
+@@ -3393,7 +3407,8 @@ fn encode_frame(
+                 format!("Texture {} has stale or unknown RTT token", t_idx),
+             ))?;
+             if entry.width != t.width || entry.height != t.height
+-                || (t.reserved != 0 && (t.reserved != 1 || !entry.opaque))
++                || (t.reserved&!31!=0 || (t.reserved&1!=0 && !entry.opaque) ||
++                    (t.reserved>>2)!=entry.format || (t.reserved&2!=0 && entry.mip_count<=1 && (t.width>1 || t.height>1)))
+                 || !t.pixels.is_null() || t.pixel_bytes_len != 0 {
+                 return Err((CoinWgpuStatus::InvalidArgument,
+                     format!("Texture {} RTT token metadata mismatch", t_idx)));
+@@ -3402,7 +3417,8 @@ fn encode_frame(
+         }
+         let levels = texture_levels(t.width,t.height,t.format)?;
+         let &(last_width,last_height,last_offset)=levels.last().unwrap();
+-        let expected_bytes=last_offset+u64::from(last_width)*u64::from(last_height)*4;
++        let gpu_format=texture_profile::format(t.format)?.0;
++        let expected_bytes=last_offset+texture_profile::level_bytes(last_width,last_height,gpu_format);
+         if t.pixel_bytes_len != expected_bytes || t.pixels.is_null() {
+             return Err((
+                 CoinWgpuStatus::InvalidArgument,
+@@ -3411,6 +3427,9 @@ fn encode_frame(
+         }
+ 
+         let pixel_bytes = unsafe { std::slice::from_raw_parts(t.pixels, t.pixel_bytes_len as usize) };
++        if gpu_format==wgpu::TextureFormat::Rgba16Float && pixel_bytes.chunks_exact(2).any(|p| u16::from_le_bytes([p[0],p[1]])&0x7c00==0x7c00) {
++            return Err((CoinWgpuStatus::InvalidArgument,"Non-finite half texture payload".into()));
++        }
+         let key = TextureKey {
+             width: t.width,
+             height: t.height,
+@@ -3436,7 +3455,7 @@ fn encode_frame(
+             mip_level_count: levels.len() as u32,
+             sample_count: 1,
+             dimension: wgpu::TextureDimension::D2,
+-            format: wgpu::TextureFormat::Rgba8Unorm,
++            format: gpu_format,
+             usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+             view_formats: &[],
+         });
+@@ -3449,15 +3468,15 @@ fn encode_frame(
+                 origin: wgpu::Origin3d::ZERO,
+                 aspect: wgpu::TextureAspect::All,
+             },
+-            &pixel_bytes[offset as usize..(offset+u64::from(level_width)*u64::from(level_height)*4) as usize],
++            &pixel_bytes[offset as usize..(offset+texture_profile::level_bytes(level_width,level_height,gpu_format)) as usize],
+             wgpu::ImageDataLayout {
+                 offset: 0,
+-                bytes_per_row: Some(level_width * 4),
+-                rows_per_image: Some(level_height),
++                bytes_per_row: Some(level_width.div_ceil(gpu_format.block_dimensions().0)*gpu_format.block_copy_size(None).unwrap()),
++                rows_per_image: Some(level_height.div_ceil(gpu_format.block_dimensions().1)),
+             },
+             wgpu::Extent3d {
+-                width: level_width,
+-                height: level_height,
++                width: level_width.div_ceil(gpu_format.block_dimensions().0)*gpu_format.block_dimensions().0,
++                height: level_height.div_ceil(gpu_format.block_dimensions().1)*gpu_format.block_dimensions().1,
+                 depth_or_array_layers: 1,
+             },
+         );
+@@ -3508,13 +3527,14 @@ fn encode_frame(
+ 
+     // Upload and cache frame samplers
+     for s in samplers_slice {
+-        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || s.reserved!=0 {
++        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || texture_profile::anisotropy(s.reserved,s.filter).is_err() {
+             return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 sampler".into()));
+         }
+         let key = SamplerKey {
+             wrap_s: s.wrap_s,
+             wrap_t: s.wrap_t,
+             filter: s.filter,
++            max_anisotropy_minus_one: s.reserved,
+         };
+         if !samp_cache.entries.contains_key(&key) {
+             let addr_u = match s.wrap_s {
+@@ -3534,6 +3554,8 @@ fn encode_frame(
+             };
+             let samp = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
+                 label: Some("Coin Cached Sampler"),
++                anisotropy_clamp: texture_profile::anisotropy(s.reserved,s.filter)?,
++                lod_max_clamp: if s.filter>=2 {32.0} else {0.0},
+                 address_mode_u: addr_u,
+                 address_mode_v: addr_v,
+                 address_mode_w: wgpu::AddressMode::Repeat,
+@@ -4291,6 +4313,7 @@ fn encode_frame(
+                             wrap_s: s.wrap_s,
+                             wrap_t: s.wrap_t,
+                             filter: s.filter,
++            max_anisotropy_minus_one: s.reserved,
+                         };
+                         let view = if t.format == 1 {
+                             &rtt_cache
+@@ -4861,6 +4884,37 @@ pub extern "C" fn coin_wgpu_default_device_generation() -> u64 {
+     .unwrap_or(0)
+ }
+ 
++#[no_mangle]
++pub extern "C" fn coin_wgpu_preflight_texture_profile(formats:u32, outputs:u32, anisotropy:u32)->CoinWgpuStatus {
++    std::panic::catch_unwind(|| {
++        if formats&!31!=0 || outputs&!15!=0 || !anisotropy.is_power_of_two() || anisotropy>16 {
++            return CoinWgpuStatus::InvalidArgument;
++        }
++        if init_runtime_if_needed().is_err() {return CoinWgpuStatus::BackendError;}
++        let mut guard=match RUNTIME_CTX.lock(){Ok(g)=>g,Err(_)=>return CoinWgpuStatus::BackendError};
++        let runtime=match guard.as_mut(){Some(r)=>r,None=>return CoinWgpuStatus::NotReady};
++        let ctx=match get_or_init_device(runtime,None){Ok(d)=>d,Err(_)=>return CoinWgpuStatus::NotReady};
++        if anisotropy>1 && !ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::ANISOTROPIC_FILTERING) {
++            return CoinWgpuStatus::Unsupported;
++        }
++        let kinds=[wgpu::TextureFormat::Rgba8Unorm,wgpu::TextureFormat::Rgba8UnormSrgb,
++            wgpu::TextureFormat::Rgba16Float,wgpu::TextureFormat::Bc3RgbaUnorm,wgpu::TextureFormat::Bc3RgbaUnormSrgb];
++        for (i,format) in kinds.into_iter().enumerate() {
++            if formats&(1<<i)==0 {continue;}
++            if format.is_compressed() && !ctx.device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {return CoinWgpuStatus::Unsupported;}
++            let facts=ctx.adapter.get_texture_format_features(format);
++            if !facts.allowed_usages.contains(wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_DST) {return CoinWgpuStatus::Unsupported;}
++        }
++        for (bit,mipbit,format) in [(1,4,wgpu::TextureFormat::Rgba8Unorm),(2,8,wgpu::TextureFormat::Rgba16Float)] {
++            if outputs&(bit|mipbit)==0 {continue;}
++            let usage=wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|
++                if outputs&mipbit!=0 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()};
++            if !ctx.adapter.get_texture_format_features(format).allowed_usages.contains(usage) {return CoinWgpuStatus::Unsupported;}
++        }
++        CoinWgpuStatus::Ok
++    }).unwrap_or(CoinWgpuStatus::BackendError)
++}
++
+ #[no_mangle]
+ pub extern "C" fn coin_wgpu_query_runtime_capabilities(
+     output: *mut CoinWgpuRuntimeCapabilities,
+@@ -5343,6 +5397,11 @@ fn coin_wgpu_surface_submit_internal(
+         }
+ 
+         let f = unsafe { &*frame };
++        if f.texture_output_flags!=0 || f.texture_output_reserved!=0 {
++            set_error(error_buf,error_buf_len,"Surface submits do not accept RTT output flags");
++            return CoinWgpuStatus::InvalidArgument;
++        }
++
+ 
+         // 3. ABI version and struct size validation
+         if f.abi_version != COIN_WGPU_ABI_VERSION {
+@@ -6876,6 +6935,23 @@ fn coin_wgpu_submit_internal(
+             set_error(error_buf, error_buf_len, "Too many active RTT textures");
+             return CoinWgpuStatus::OutOfMemory;
+         }
++        if f.texture_output_reserved!=0 || f.texture_output_flags&!3!=0 ||
++           (f.texture_output_flags!=0 && out_texture.is_null()) {
++            set_error(error_buf,error_buf_len,"Advanced output flags require a direct RTT destination");
++            return CoinWgpuStatus::InvalidArgument;
++        }
++        if f.clear_color.iter().any(|v| !v.is_finite() || (f.texture_output_flags&1!=0 && v.abs()>65504.0)) {
++            set_error(error_buf,error_buf_len,"Invalid RTT clear color or half range");
++            return CoinWgpuStatus::InvalidArgument;
++        }
++        let output_format=if f.texture_output_flags&1!=0 {wgpu::TextureFormat::Rgba16Float} else {wgpu::TextureFormat::Rgba8Unorm};
++        let output_mips=if f.texture_output_flags&2!=0 {width.max(height).ilog2()+1} else {1};
++        if !ctx.adapter.get_texture_format_features(output_format).allowed_usages.contains(
++            wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|
++              if output_mips>1 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()}) {
++            set_error(error_buf,error_buf_len,"Direct RTT format/mip storage unavailable");
++            return CoinWgpuStatus::Unsupported;
++        }
+         // 8. A completed synchronous frame may lend its attachments to the
+         // next synchronous frame on this device. Async and RTT submissions
+         // are excluded: their textures can still be in use by the GPU.
+@@ -6896,11 +6972,11 @@ fn coin_wgpu_submit_internal(
+             let texture_desc = wgpu::TextureDescriptor {
+                 label: Some("Offscreen Color Texture"),
+                 size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+-                mip_level_count: 1,
++                mip_level_count: output_mips,
+                 sample_count: 1,
+                 dimension: wgpu::TextureDimension::D2,
+-                format: wgpu::TextureFormat::Rgba8Unorm,
+-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
++                format: output_format,
++                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING | if output_mips>1 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()},
+                 view_formats: &[],
+             };
+             if fault == FAULT_RTT_COLOR_ALLOC && !out_texture.is_null() {
+@@ -6912,7 +6988,7 @@ fn coin_wgpu_submit_internal(
+                 set_error(error_buf, error_buf_len, "Injected RTT color view creation failure");
+                 return CoinWgpuStatus::OutOfMemory;
+             }
+-            let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor::default());
++            let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor{mip_level_count:Some(1),..Default::default()});
+ 
+             let depth_desc = wgpu::TextureDescriptor {
+                 label: Some("Offscreen Depth Texture"),
+@@ -6963,7 +7039,7 @@ fn coin_wgpu_submit_internal(
+             instances_slice, instance_ranges,
+             gpu_probe.as_ref().map(|probe| &probe.queries),
+             &color_view,
+-            wgpu::TextureFormat::Rgba8Unorm,
++            output_format,
+             &depth_view,
+             &depth_texture,
+             f.sorted_layers_passes,
+@@ -6981,6 +7057,14 @@ fn coin_wgpu_submit_internal(
+         let profile_encoded = std::time::Instant::now();
+ 
+         if !out_texture.is_null() {
++            let mut commands=vec![cmd_buffer];
++            if output_mips>1 {
++                if fault==306 {set_error(error_buf,error_buf_len,"Injected RTT mip encoding failure");return CoinWgpuStatus::OutOfMemory;}
++                match texture_mips::encode(&ctx.device,&color_texture,output_format,output_mips,width,height,ctx.adapter.get_info().backend==wgpu::Backend::Gl) {
++                    Ok(command)=>commands.push(command),
++                    Err((status,message))=>{set_error(error_buf,error_buf_len,&message);return status;}
++                }
++            }
+             let token = NEXT_RTT_TOKEN.fetch_add(1, Ordering::SeqCst);
+             if token == 0 {
+                 set_error(error_buf, error_buf_len, "RTT token space exhausted");
+@@ -6989,21 +7073,24 @@ fn coin_wgpu_submit_internal(
+             let serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
+             LAST_SUBMITTED_SERIAL.store(serial, Ordering::SeqCst);
+             let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
+-            ctx.queue.submit([cmd_buffer]);
++            ctx.queue.submit(commands);
+             let completed = ctx.completed_serial.clone();
+             ctx.queue.on_submitted_work_done(move || {
+                 completed.fetch_max(local_serial, Ordering::SeqCst);
+                 GLOBAL_COMPLETED_SERIAL.fetch_max(serial, Ordering::SeqCst);
+             });
++            let sampling_view=color_texture.create_view(&wgpu::TextureViewDescriptor::default());
+             ctx.rtt_textures.lock().unwrap().active.insert(token, RttTexture {
+                 texture: color_texture,
+                 // An opaque clear does not prove all later writes opaque:
+                 // legacy blend and NONE can both reduce destination alpha.
+                 // Captured Coin producers conservatively make no opaque claim.
+                 opaque: false,
+-                view: color_view,
++                view: sampling_view,
+                 width,
+                 height,
++                format: if f.texture_output_flags&1!=0 {2} else {0},
++                mip_count:output_mips,
+             });
+             tgt.submission_serial = serial;
+             unsafe { *out_texture = token; }
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index 4e0fa842cb..8922aabdf6 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -927,6 +927,22 @@ if(COIN_BUILD_RENDER)
+ 		endforeach()
+ 	endif()
+ 
++	add_executable(CoinRenderAdvancedTextureTest coinrender/CoinRenderAdvancedTextureTest.cpp)
++	target_compile_definitions(CoinRenderAdvancedTextureTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
++	target_link_libraries(CoinRenderAdvancedTextureTest CoinRender Coin)
++	target_include_directories(CoinRenderAdvancedTextureTest PRIVATE
++		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
++		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
++	add_test(NAME CoinRenderAdvancedTextureCoreTest COMMAND CoinRenderAdvancedTextureTest)
++	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
++		add_test(NAME CoinRenderAdvancedTextureGpuTest COMMAND CoinRenderAdvancedTextureTest --gpu)
++	elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
++		foreach(renderer ${_coin_bgfx_test_renderers})
++			add_test(NAME CoinRenderAdvancedTexture_${renderer} COMMAND CoinRenderAdvancedTextureTest --gpu)
++			set_tests_properties(CoinRenderAdvancedTexture_${renderer} PROPERTIES ENVIRONMENT "COIN_BGFX_RENDERER=${renderer}")
++		endforeach()
++	endif()
++
+ 	if(COIN_BUILD_LEGACY_GL_RENDERER)
+ 	add_executable(CoinRenderRttProfileTest coinrender/CoinRenderRttProfileTest.cpp)
+ 	target_compile_definitions(CoinRenderRttProfileTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+@@ -938,6 +954,7 @@ if(COIN_BUILD_RENDER)
+ 		add_test(NAME CoinRenderRttProfileStagedTest COMMAND CoinRenderRttProfileTest)
+ 		add_test(NAME CoinRenderRttProfileDirectTest COMMAND CoinRenderRttProfileTest --direct)
+ 		add_test(NAME CoinRenderRttProfilePbufferTest COMMAND CoinRenderRttProfileTest)
++		add_test(NAME CoinRenderRttProfileMipsDirectTest COMMAND CoinRenderRttProfileTest --mips-direct)
+ 		add_test(NAME CoinRenderRttProfileMipsTest COMMAND CoinRenderRttProfileTest --mips)
+ 		add_test(NAME CoinRenderRttProfileMipsPbufferTest COMMAND CoinRenderRttProfileTest --mips)
+ 		set_tests_properties(CoinRenderRttProfileMipsTest CoinRenderRttProfileMipsPbufferTest PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)
+@@ -947,12 +964,14 @@ if(COIN_BUILD_RENDER)
+ 		set_tests_properties(CoinRenderRttProfilePbufferTest PROPERTIES ENVIRONMENT "COIN_DONT_USE_FBO=1")
+ 	elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+ 		foreach(renderer ${_coin_bgfx_test_renderers})
+-			foreach(route Staged Direct Mips MipsPbuffer)
++			foreach(route Staged Direct Mips MipsDirect MipsPbuffer)
+ 				set(_rtt_profile_args)
+ 				if(route STREQUAL "Direct")
+ 					set(_rtt_profile_args --direct)
+ 				endif()
+-				if(route MATCHES "^Mips")
++				if(route STREQUAL "MipsDirect")
++					set(_rtt_profile_args --mips-direct)
++				elseif(route MATCHES "^Mips")
+ 					set(_rtt_profile_args --mips)
+ 				endif()
+ 				add_test(NAME CoinRenderRttProfile${route}_${renderer} COMMAND CoinRenderRttProfileTest ${_rtt_profile_args})
+diff --git a/testsuite/coinrender/CoinRenderLightingTest.cpp b/testsuite/coinrender/CoinRenderLightingTest.cpp
+index cfb3c770e8..e96158b133 100644
+--- a/testsuite/coinrender/CoinRenderLightingTest.cpp
++++ b/testsuite/coinrender/CoinRenderLightingTest.cpp
+@@ -34,7 +34,7 @@
+ #include <string>
+ #include <vector>
+ 
+-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 49,
++static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 50,
+               "Shadow, opaque-instance, alpha-test and projective-UV bridge protocol");
+ static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
+ static_assert(sizeof(CoinWgpuRenderState) == 2292, "Texture projection policy bridge layout");
+diff --git a/testsuite/coinrender/CoinRenderRttOwnershipTest.cpp b/testsuite/coinrender/CoinRenderRttOwnershipTest.cpp
+index a784104f87..abfa4ba118 100644
+--- a/testsuite/coinrender/CoinRenderRttOwnershipTest.cpp
++++ b/testsuite/coinrender/CoinRenderRttOwnershipTest.cpp
+@@ -284,11 +284,11 @@ int main() {
+                 chain.textures[0].mipmapsRgba[0]==128 && chain.textures[0].mipmapsRgba.back()==255,
+                 "Core resolves deterministic box mips after rendering without changing the capture");
+     requested.textures[0].width=3;
+-    ok &= check(!staged.validate(requested,diagnostic),"non-POT mip producer fails admission");
++    ok &= check(!staged.validate(requested,diagnostic),"consumer extent mismatch rejects even when NPOT is supported");
+     requested.textures[0].width=4;
+     CoinRenderRttPlan gpuOnly(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+     gpuOnly.append(producer(91,4),id,diagnostic);
+-    ok &= check(!gpuOnly.validate(requested,diagnostic),"direct mip request rejects before GPU work");
++    ok &= check(gpuOnly.validate(requested,diagnostic),"direct mip request is admitted before GPU work");
+     CoinRenderRttPlan full(COIN_RENDER_SCENE_TEXTURE_STAGED);
+     for(unsigned source=1;source<=4;++source) full.append(producer(source,2048),id,diagnostic);
+     auto extra=consumer(4,2048); extra.textures[0].mipmapped=true;
+@@ -299,6 +299,20 @@ int main() {
+     ok &= check(!full.validate(extra,diagnostic),"conservative repeated producer charge also includes mips");
+   }
+ 
++  {
++    CoinRenderRttPlan hdr(COIN_RENDER_SCENE_TEXTURE_DIRECT);
++    auto source=producer(94,2048);source.format=CoinRenderTextureFormat::RGBA16_FLOAT;
++    ok &=check(hdr.append(source,id,diagnostic),"HDR base attachments fit 64 MiB");
++    auto requested=consumer(1,2048);requested.textures[0].format=CoinRenderTextureFormat::RGBA16_FLOAT;
++    ok &=check(hdr.validate(requested,diagnostic),"typed HDR dependency fits budget");
++    requested.textures[0].mipmapped=true;
++    requested.samplers.push_back(CoinRenderSamplerSnapshot());requested.samplers[0].filter=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
++    ok &=check(!hdr.validate(requested,diagnostic),"HDR mips plus GPU scratch exceed graph budget before allocation");
++    hdr.mode=COIN_RENDER_SCENE_TEXTURE_STAGED;requested.textures[0].mipmapped=false;
++    requested.samplers[0].filter=CoinRenderTextureFilter::LINEAR;
++    ok &=check(!hdr.validate(requested,diagnostic),"staged HDR is rejected without lossy fallback");
++  }
++
+   CoinRenderOptions options;
+   options.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+   CoinRenderTargetP target(SbVec2i32(4, 4));
+diff --git a/testsuite/coinrender/CoinRenderRttProfileTest.cpp b/testsuite/coinrender/CoinRenderRttProfileTest.cpp
+index 401203b53f..e06947d766 100644
+--- a/testsuite/coinrender/CoinRenderRttProfileTest.cpp
++++ b/testsuite/coinrender/CoinRenderRttProfileTest.cpp
+@@ -52,8 +52,8 @@ static void quad(SoSeparator * root) {
+ int main(int argc, char ** argv) {
+   if (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) return 77;
+   SoDB::init(); CoinRenderAction::initClass();
+-  const bool mipOnly = argc>1 && std::string(argv[1])=="--mips";
+-  const bool direct = argc > 1 && std::string(argv[1]) == "--direct";
++  const bool mipOnly = argc>1 && (std::string(argv[1])=="--mips" || std::string(argv[1])=="--mips-direct");
++  const bool direct = argc > 1 && (std::string(argv[1]) == "--direct" || std::string(argv[1])=="--mips-direct");
+   std::string optionError;
+   CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionError);
+   if (!optionError.empty()) { std::cerr<<optionError<<'\n'; return 1; }
+@@ -142,7 +142,7 @@ int main(int argc, char ** argv) {
+                 << " error=" << action.getLastError().getString() << '\n'; return 1;
+     }
+     // A nonportable format must preserve the successful frame and then recover.
+-    texture->type = SoSceneTexture2::RGBA16F; action.apply(root);
++    texture->type = SoSceneTexture2::RGBA32F; action.apply(root);
+     std::vector<uint8_t> retained; target->readbackRGBA(retained);
+     if (action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || retained!=pixels) return 1;
+     texture->type = SoSceneTexture2::RGBA8; action.apply(root); target->readbackRGBA(retained);
+@@ -183,7 +183,20 @@ int main(int argc, char ** argv) {
+       }
+       const auto previous=pixels;
+       texture->size=SbVec2s(64,48); quality->textureQuality=.7f; action.apply(root); target->readbackRGBA(pixels);
+-      if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || pixels!=previous) { std::cerr<<"RTT mip NPOT rejection/publication failed at "<<q<<'\n'; return 1; }
++#ifdef HAVE_COIN_BGFX
++      const bool npotDirectMipUnavailable=direct;
++#else
++      const bool npotDirectMipUnavailable=false;
++#endif
++      if(npotDirectMipUnavailable) {
++        std::vector<uint8_t> retained;target->readbackRGBA(retained);
++        if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || retained!=previous || pixels!=previous) return 1;
++      } else if(action.getLastStatus()!=CoinRenderAction::SUCCESS) { std::cerr<<"RTT mip NPOT capture failed at "<<q<<'\n'; return 1; }
++      texture->size=SbVec2s(0,48);action.apply(root);
++      std::vector<uint8_t> preserved;target->readbackRGBA(preserved);
++      if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || preserved!=pixels) {
++        std::cerr<<"invalid RTT dimension published a frame\n";return 1;
++      }
+       texture->size=SbVec2s(64,64); quality->textureQuality=q; action.apply(root); target->readbackRGBA(pixels);
+       if(action.getLastStatus()!=CoinRenderAction::SUCCESS || pixels!=previous) { std::cerr<<"RTT mip recovery failed at "<<q<<": "<<action.getLastError().getString()<<'\n'; return 1; }
+       ++passed;
+@@ -192,7 +205,7 @@ int main(int argc, char ** argv) {
+     if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
+     quality->textureQuality=.7f; action.apply(root);
+     if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
+-    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae<<"; NPOT rejection/publication and recovery passed\n";
++    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae<<"; NPOT admission/explicit limits, invalid-size rejection/publication and recovery passed\n";
+   }
+   action.setRenderTarget(nullptr);
+   if (!mipOnly) std::cout << "RTT extended " << (direct ? "direct" : "staged") << ": " << passed
+diff --git a/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp b/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+index 2051b99c7d..ffc9ab5897 100644
+--- a/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
++++ b/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+@@ -234,8 +234,12 @@ bool core() {
+   const auto before = image.mipmapsRgba;
+   if (!check(!CoinRenderTextureSamplingCore::generate(image) &&
+                  image.mipmapsRgba == before,
+-             "NPOT fails atomically"))
++             "invalid payload fails atomically"))
+     return false;
++  CoinRenderTextureImageSnapshot odd;odd.width=3;odd.height=1;
++  odd.pixelsRgba={0,0,0,255,0,0,0,255,255,255,255,255};
++  if(!check(CoinRenderTextureSamplingCore::generate(odd) && odd.mipmapsRgba==std::vector<uint8_t>({85,85,85,255}),
++            "NPOT border participates in the independent area average"))return false;
+   image.width = 8192;
+   image.height = 8192;
+   if (!check(!CoinRenderTextureSamplingCore::validMipImage(image),
+@@ -314,7 +318,9 @@ bool run(bool gpu) {
+   scene.quality->textureQuality = .3f;
+   if (!h.render(scene, "off-on-baseline", false))
+     return false;
+-  for (float bad : {.9f, std::numeric_limits<float>::quiet_NaN()}) {
++  scene.quality->textureQuality=.9f;
++  if(!h.render(scene,"anisotropic constant-color control",false))return false;
++  for (float bad : {1.01f, std::numeric_limits<float>::quiet_NaN()}) {
+     scene.quality->textureQuality = bad;
+     if (!h.rejected(scene, "invalid quality"))
+       return false;
+@@ -338,10 +344,10 @@ bool run(bool gpu) {
+   std::vector<uint8_t> npot(3 * 5 * 4, 192);
+   scene.images[0]->image.setValue(SbVec2s(3, 5), 4, npot.data());
+   scene.quality->textureQuality = .5f;
+-  if (!h.rejected(scene, "NPOT mipmap limit"))
++  if (!h.render(scene, "NPOT mipmaps", false))
+     return false;
+   scene.quality->textureQuality = .3f;
+-  if (!h.rejected(scene, "NPOT implicit-rescale limit"))
++  if (!h.render(scene, "NPOT base preserves native extent", false))
+     return false;
+   std::vector<uint8_t> pot(8 * 8 * 4, 192);
+   scene.images[0]->image.setValue(SbVec2s(8, 8), 4, pot.data());
+diff --git a/testsuite/coinrender/CoinRenderTextureTest.cpp b/testsuite/coinrender/CoinRenderTextureTest.cpp
+index d8d1848d98..3849216fd2 100644
+--- a/testsuite/coinrender/CoinRenderTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderTextureTest.cpp
+@@ -409,7 +409,7 @@ static bool testUnsupportedRejections() {
+     SoSeparator * root = new SoSeparator;
+     root->ref();
+     SoComplexity * comp = new SoComplexity;
+-    comp->textureQuality.setValue(0.95f); // anisotropy lies outside the P07 profile
++    comp->textureQuality.setValue(1.01f); // Out-of-range quality must preserve publication
+     root->addChild(comp);
+ 
+     SoTexture2 * tex = new SoTexture2;
+@@ -424,7 +424,7 @@ static bool testUnsupportedRejections() {
+     action.apply(root);
+ 
+     ASSERT_TRUE(action.getLastStatus() == CoinRenderAction::UNSUPPORTED,
+-                "Texture quality 0.8 must be rejected with UNSUPPORTED");
++                "Texture quality outside [0,1] must be rejected with UNSUPPORTED");
+     delete target;
+     root->unref();
+   }
+diff --git a/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp b/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
+index 012afc379b..0c903daf5f 100644
+--- a/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
++++ b/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
+@@ -1850,7 +1850,7 @@ main()
+       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
+ 
+   const CoinWgpuFrameView & first = packed.getView();
+-  if (!check(first.abi_version == 49 && sizeof(CoinWgpuVertex) == 164 &&
++  if (!check(first.abi_version == 50 && sizeof(CoinWgpuVertex) == 164 &&
+              sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
+              "projective private protocol and vertex stride")) return 1;
+   for (size_t unit = 0; unit < 8; ++unit) {

@@ -33,9 +33,34 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   produtor, matrizes próprias/aninhadas e restauração do consumidor. Corrigidos
   a herança FBO e o filtro pbuffer na fronteira 0,5; RTT permanece linear/base.
 
-Próximo perfil: NPOT/rescaling, anisotropia/limites configuráveis, SRGB/HDR/
-compressão, mipmaps/formatos adicionais de RTT e qualificação
-Windows/FreeCAD. Esses escopos não reabrem os itens do primeiro perfil.
+### Texturas avançadas — extensão P07/P24 de 2026-10-07
+
+- [x] NPOT 2D sem rescaling implícito e mipmaps que incluem bordas ímpares.
+- [x] Anisotropia com limites explícitos: CPU/wgpu 1/2/4/8/16;
+  BGFX 1/máximo nativo, com recusa atômica de fatores 2/4/8.
+- [x] SRGB opt-in do alvo, decode antes do filtro e alpha linear;
+  modelos legados em unidades 0/3, identidade de formatos no cache.
+- [x] Compressão BC3 determinística, base alinhada a 4×4, mips comprimidos,
+  admissão nativa do GPU e referência numérica independente.
+- [x] HDR RGBA16F em produtor RTT direto e consumidor, sem clamp para RGBA8
+  antes da composição; staged/HDR32 recusados, com recuperação.
+- [x] Mipmaps RTT gerados dentro do GPU: wgpu POT/NPOT e BGFX POT.
+  OpenGL/wgpu usa cópias internas GPU para isolar views; orçamento conservador,
+  tokens tipados, falha sem publicação e recuperação.
+- [ ] Views independentes para samplers base/mips da mesma imagem em BGFX/OpenGL;
+  alias de LOD diagnosticado e combinação recusada sem publicação.
+- [ ] Redução por área NPOT direta no BGFX: autogeração nativa divergente
+  diagnosticada e recusada antes dos produtores.
+- [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
+  ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
+- [ ] Estudo de LOD projetivo AMD: gate legado de sampling falha também no
+  commit anterior; manter MAE≤1,5/max≤4 e investigar a footprint nativa.
+- [ ] Reconciliar os gates wgpu LargeBindings/MultiDevice de instancing/uploads;
+  falhas também reproduzidas no commit anterior, sem alterar suas expectativas.
+
+Escopo, controles e resultados estão no [contrato avançado](coin-render-advanced-textures-profile.md)
+e no [relatório desta máquina](coin-render-advanced-textures-validation-20261007.md).
+Esses limites não reabrem os itens históricos do primeiro perfil.
 
 Fechamento: expectativas numéricas e cenas mínimas comuns, CPU/BGFX/wgpu,
 referência CoinGL no domínio válido e capacidades/documentação atualizadas.

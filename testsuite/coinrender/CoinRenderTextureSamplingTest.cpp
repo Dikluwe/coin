@@ -234,8 +234,12 @@ bool core() {
   const auto before = image.mipmapsRgba;
   if (!check(!CoinRenderTextureSamplingCore::generate(image) &&
                  image.mipmapsRgba == before,
-             "NPOT fails atomically"))
+             "invalid payload fails atomically"))
     return false;
+  CoinRenderTextureImageSnapshot odd;odd.width=3;odd.height=1;
+  odd.pixelsRgba={0,0,0,255,0,0,0,255,255,255,255,255};
+  if(!check(CoinRenderTextureSamplingCore::generate(odd) && odd.mipmapsRgba==std::vector<uint8_t>({85,85,85,255}),
+            "NPOT border participates in the independent area average"))return false;
   image.width = 8192;
   image.height = 8192;
   if (!check(!CoinRenderTextureSamplingCore::validMipImage(image),
@@ -314,7 +318,9 @@ bool run(bool gpu) {
   scene.quality->textureQuality = .3f;
   if (!h.render(scene, "off-on-baseline", false))
     return false;
-  for (float bad : {.9f, std::numeric_limits<float>::quiet_NaN()}) {
+  scene.quality->textureQuality=.9f;
+  if(!h.render(scene,"anisotropic constant-color control",false))return false;
+  for (float bad : {1.01f, std::numeric_limits<float>::quiet_NaN()}) {
     scene.quality->textureQuality = bad;
     if (!h.rejected(scene, "invalid quality"))
       return false;
@@ -338,10 +344,10 @@ bool run(bool gpu) {
   std::vector<uint8_t> npot(3 * 5 * 4, 192);
   scene.images[0]->image.setValue(SbVec2s(3, 5), 4, npot.data());
   scene.quality->textureQuality = .5f;
-  if (!h.rejected(scene, "NPOT mipmap limit"))
+  if (!h.render(scene, "NPOT mipmaps", false))
     return false;
   scene.quality->textureQuality = .3f;
-  if (!h.rejected(scene, "NPOT implicit-rescale limit"))
+  if (!h.render(scene, "NPOT base preserves native extent", false))
     return false;
   std::vector<uint8_t> pot(8 * 8 * 4, 192);
   scene.images[0]->image.setValue(SbVec2s(8, 8), 4, pot.data());

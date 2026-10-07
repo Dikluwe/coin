@@ -78,6 +78,8 @@ private:
     int width = 0;
     int height = 0;
     bgfx::FrameBufferHandle frameBuffer = BGFX_INVALID_HANDLE;
+    CoinRenderTextureFormat format=CoinRenderTextureFormat::RGBA8_LINEAR;
+    bool mipmapped=false;
     bool inUse = false;
   };
 

@@ -1,0 +1,267 @@
+{
+  "base_commit": "ae2e64c41f4e75c4255df7399afb2463696c0b30",
+  "protocol": 50,
+  "sources": [
+    {
+      "path": "CMakeLists.txt",
+      "bytes": 48037,
+      "sha256": "170732f51dc58cfb984a22b51a158b8fb0aebaba78745148805708018e518b6c"
+    },
+    {
+      "path": "experimental/include/Inventor/rendering/CoinRenderCapabilities.h",
+      "bytes": 7933,
+      "sha256": "31470626601c2271bb72fd33abb116d7822c3e38d3bf169aa9c5b47a9c12ea75"
+    },
+    {
+      "path": "experimental/include/Inventor/rendering/CoinRenderOptions.h",
+      "bytes": 1093,
+      "sha256": "fb264148e68adec10cc643009d825d441a660988f83f5c6556acf8e1d017deee"
+    },
+    {
+      "path": "src/actions/CoinRenderAction.cpp",
+      "bytes": 123855,
+      "sha256": "c9eb107abc9f394eca69a3f16bd5a53733cc3bd4924704dd230e35704e7cb122"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxBackend.cpp",
+      "bytes": 183633,
+      "sha256": "d8f096e9c89889d79051c54bdf7701dad3a8b8a27feefbb024678be051bd0ff1"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxBackend.h",
+      "bytes": 11953,
+      "sha256": "b8ae14333ad5ea613244a59fa23419dee12a89616c9c6f964b8b61178acb42ba"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.cpp",
+      "bytes": 74144,
+      "sha256": "9c01cd50facb9526f5f42af2bf37dda09ab4d89fb8d3281d0cf9f86c9588004d"
+    },
+    {
+      "path": "src/rendering/coinbgfx/CoinBgfxLowering.h",
+      "bytes": 9423,
+      "sha256": "876034b606762ad7757f349a2f4fefaa8f4353e3041374bbe16d03af38b7b853"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderCapabilities.cpp",
+      "bytes": 19735,
+      "sha256": "4ad268a0429ef4bf33a895b12a05794466a69e5c02172583fa6a0abcdc97229a"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp",
+      "bytes": 42554,
+      "sha256": "1502e9ab564e887373de24aed542c092918185c7ad81d226b51dfa9356b6257c"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlan.cpp",
+      "bytes": 25984,
+      "sha256": "2b205fc20a58a836647d5a51b92242218b8aa324810cbdc587f1cf0a2c9629ed"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlan.h",
+      "bytes": 15091,
+      "sha256": "53430c089dc830b04cafe6bbd1b869e564705cad0d939fc9252787449a21042e"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp",
+      "bytes": 124119,
+      "sha256": "559c2b85de783703090dbcdbca983befacf038c000b33662c79e15db96c970fe"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFramePlanBuilder.h",
+      "bytes": 9636,
+      "sha256": "4612f171aee1833dd72f59f7c4ba58412591f7a018189567b05c4c8459b15c8d"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderFrameReuseCore.cpp",
+      "bytes": 29262,
+      "sha256": "ab798de679848029992a11e51d818ba036aba8b3f30ef638c85e2def4d51060d"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderPlanAssemblyCore.cpp",
+      "bytes": 21829,
+      "sha256": "b5b86c99e4feeb8e6ce6c7624b634a2865cdd97d4ce55400f3c6c05a277744de"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRttCore.h",
+      "bytes": 11409,
+      "sha256": "5003f10482487911e729fef17480beb304de1adce3db1bc41211a9a554bd2c92"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderRttExecution.cpp",
+      "bytes": 7905,
+      "sha256": "7663e127a86fb5e5420e3bb360f9caa5306c84ce3c905d8f0f5e3c9241c3cec1"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderSelectionCore.h",
+      "bytes": 4508,
+      "sha256": "d423b8f25f8cc795677cba4f17d73557ca5ef9aa7a0121bd466fcf06a7d7bdca"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderTextureAlphaCore.h",
+      "bytes": 1862,
+      "sha256": "0ce048c4f1137473b68b2563e0c7cf0fe71bd907f324f0e386d31c866ab6a616"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderTextureFormatCore.h",
+      "bytes": 9008,
+      "sha256": "932731d0938e8388fb487f1de0f93be48d309e78a3bbfde4f351dc5c576a228e"
+    },
+    {
+      "path": "src/rendering/coinrender/CoinRenderTextureSamplingCore.h",
+      "bytes": 7735,
+      "sha256": "0416cbac173c0dd2bdf620e216eda2ed4e2490b5fd27fd344e37103113c516db"
+    },
+    {
+      "path": "src/rendering/coinwgpu/CoinWgpuBackend.cpp",
+      "bytes": 23527,
+      "sha256": "92232862b06e356e7ec6f2ecf9b8de5a41fb08ba3fe67cd4af5162eb7ef0b284"
+    },
+    {
+      "path": "src/rendering/coinwgpu/CoinWgpuFfi.h",
+      "bytes": 16682,
+      "sha256": "45c485706d55c240436d934f566dbc5f89b0e515d6566cb644167736c05e9e90"
+    },
+    {
+      "path": "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp",
+      "bytes": 97887,
+      "sha256": "c67f677fecacd5a959f9d2751275984be8a75e758e4e4586780f9ff511ecc3d8"
+    },
+    {
+      "path": "src/rendering/coinwgpu/rust_bridge/src/lib.rs",
+      "bytes": 365708,
+      "sha256": "cb620e9382806a85221671b5450082ad4427561a2207028a2c2a8c642c39fa9e"
+    },
+    {
+      "path": "src/rendering/coinwgpu/rust_bridge/src/texture_mips.rs",
+      "bytes": 6807,
+      "sha256": "d9e69a44246bcb86ac83b685cd784b54a14d86a91669053eba29fc4b41b69a06"
+    },
+    {
+      "path": "src/rendering/coinwgpu/rust_bridge/src/texture_profile.rs",
+      "bytes": 3507,
+      "sha256": "1a4ac63f0b801e3e6f07bbab1ba5f1cbf0f958bf28bcabe7009d2773e3bd9b52"
+    },
+    {
+      "path": "testsuite/CMakeLists.txt",
+      "bytes": 98800,
+      "sha256": "1d6961defaa802ac8b8435df5408d5a08d966682fd9ad4c5e56ab64cbc63b41e"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp",
+      "bytes": 31096,
+      "sha256": "fa0ebbd37fdbd4adf4c10a2f73b6e2a63a861b8aac7e1373b135bb3ae7b21213"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderLightingTest.cpp",
+      "bytes": 33491,
+      "sha256": "91f8a2bbf3ff07b464fbdfb42c332a977c0c175eef9186cfb14875c115db80d5"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRttOwnershipTest.cpp",
+      "bytes": 24939,
+      "sha256": "dc6d8705d2a08fa3db7c0c973d90315838ea99b482576d991928391f2faf2051"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderRttProfileTest.cpp",
+      "bytes": 12341,
+      "sha256": "a35e61d977fc393d60e0c85631ea80566c64eb2bf743a721045fc0292dc225c8"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderTextureSamplingTest.cpp",
+      "bytes": 15797,
+      "sha256": "7b4d07868d19c939993945135f2ee248be39d739aa91f2193e99e1b834996ec7"
+    },
+    {
+      "path": "testsuite/coinrender/CoinRenderTextureTest.cpp",
+      "bytes": 28941,
+      "sha256": "5141872b2c21cbc99fd4af3d395e3ff3af9499777f9fa324db34ac2be6cba449"
+    },
+    {
+      "path": "testsuite/coinrender/run-advanced-textures.py",
+      "bytes": 3825,
+      "sha256": "67dddd329c95c826ec53394847e3723e6fb541a3b827f6861585cc15bd0fa540"
+    },
+    {
+      "path": "testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp",
+      "bytes": 114524,
+      "sha256": "3d4a92cc4649ee0212d0ea943624d87296ce20e66c28a68a7d8ee98695c81267"
+    }
+  ],
+  "binaries": [
+    {
+      "backend": "wgpu",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderAdvancedTextureTest",
+      "bytes": 145288,
+      "sha256": "7279bd3698c0054821e5f26c00a31e6be63afb3a9a8aa46220e1984ed9467541"
+    },
+    {
+      "backend": "wgpu",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+      "bytes": 42304,
+      "sha256": "0736aa721905877a34f120a6a1d13243448a7b2e7831284cf698f0fb541b94b0"
+    },
+    {
+      "backend": "wgpu",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderTextureSamplingTest",
+      "bytes": 110216,
+      "sha256": "fab89f20dfb0f614a3fc2cfdb8cf94ee393459a6f2a1563f9ce1ea2c6c8c535f"
+    },
+    {
+      "backend": "wgpu",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoinRender.so",
+      "bytes": 15866984,
+      "sha256": "c1861c7a3d7b84d4318d876ebb4521e5a2e7abe4cc70de7713228b129db0e537"
+    },
+    {
+      "backend": "bgfx",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+      "bytes": 141320,
+      "sha256": "db7230a7b771f338e2e59386a3889299ccae91eeb3ed61576f5c649aaca06407"
+    },
+    {
+      "backend": "bgfx",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+      "bytes": 42304,
+      "sha256": "c91dc0bb9e3906943ca733cf26504de5ed7d253a1bce5f86b028fbda36ec002b"
+    },
+    {
+      "backend": "bgfx",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "bytes": 110216,
+      "sha256": "d9bee6aa4cd67eda59df9d867711a453c0b2b67cb530446802b929aee7ccd400"
+    },
+    {
+      "backend": "bgfx",
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib/libCoinRender.so",
+      "bytes": 5545584,
+      "sha256": "321aa9ff605ba04ffecf9ba6cd1d03b5a86cea0bf652a4380250ac9d000b6f57"
+    }
+  ],
+  "integrated": {
+    "wgpu": {
+      "total": 36,
+      "pass": 33,
+      "fail": 3
+    },
+    "bgfx": {
+      "total": 49,
+      "pass": 47,
+      "fail": 2
+    },
+    "recording": {
+      "total": 5,
+      "pass": 4,
+      "skip": 1
+    },
+    "rust": {
+      "unit_pass": 40,
+      "shader_pass": 5
+    }
+  },
+  "baseline_failures": {
+    "sampling": "baseline-head-sampling.log",
+    "large_bindings": "baseline-CoinWgpuLargeBindingsTest.log",
+    "multidevice": "baseline-CoinWgpuMultiDeviceTest.log"
+  }
+}

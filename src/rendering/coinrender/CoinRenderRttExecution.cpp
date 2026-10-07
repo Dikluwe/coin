@@ -71,9 +71,12 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     preflightBackend = CoinRenderTargetP::createBackend();
     inspector = preflightBackend.get();
   }
+
+  // Pure/known connector limits must reject before device preparation. A
+  // second inspection after prepare checks selected-adapter format facts.
   check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
-  if (check.status != CoinRenderBackendStatus::SUCCESS)
-    return check;
+  if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+
 
   if (graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
     if (!target)
@@ -100,6 +103,11 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
       return {prepared, error};
     }
   }
+  if (target && target->backend) inspector = target->backend.get();
+  check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
+  if (check.status != CoinRenderBackendStatus::SUCCESS)
+    return check;
+
   const CoinRenderResourceStamp capturedStamp = stamp();
   for (size_t i = 0; i < graph.producers.size(); ++i) {
     const auto& producer = graph.producers[i];
@@ -109,7 +117,11 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     CoinRenderTextureImageSnapshot resultTexture;
     resultTexture.width = uint32_t(producer.size[0]);
     resultTexture.height = uint32_t(producer.size[1]);
+    resultTexture.format=producer.format;
     if (directBackend) {
+      frame.outputColorFormat=producer.format;
+      frame.outputMipmaps=graph.requestsMips(i+1,root);
+      resultTexture.mipmapped=frame.outputMipmaps;
       uint64_t token = 0;
       auto result =
           directBackend->submitRtt(frame, producer.size, producer.sourceRevision, *target, token);

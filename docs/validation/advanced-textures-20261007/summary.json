@@ -1,0 +1,674 @@
+{
+  "base_commit": "ae2e64c41f4e75c4255df7399afb2463696c0b30",
+  "source_diff_sha256": "a7c888754eb7f0732dcfd700797abc62de4687b132731f8400ed070b49382f11",
+  "runs": [
+    {
+      "profile": "wgpu-amd-vulkan",
+      "case": "advanced",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderAdvancedTextureTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) renderer=1 vendor=4098 device=5688 features=524287",
+      "log": "wgpu-amd-vulkan-advanced.log",
+      "sha256": "0b6685ef6594890f5ae3db6e81e851b01d3e6f87295372e53919a2d2c6be1b54",
+      "controls": [
+        "221"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-amd-vulkan",
+      "case": "sampling",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderTextureSamplingTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 1,
+      "status": "FAIL",
+      "adapter_report": null,
+      "log": "wgpu-amd-vulkan-sampling.log",
+      "sha256": "b9ca11f4468aa62afefc59ab84398b918cd1f8550d90acfb74f3818594c3a672",
+      "controls": [],
+      "failures": [
+        "projective mip footprint/quality-0.500000/CPU-GPU: texture pixels"
+      ]
+    },
+    {
+      "profile": "wgpu-amd-vulkan",
+      "case": "staged-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+        "--mips"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-amd-vulkan-staged-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-amd-vulkan",
+      "case": "direct-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+        "--mips-direct"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-amd-vulkan-direct-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-nvidia-vulkan",
+      "case": "advanced",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderAdvancedTextureTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) renderer=1 vendor=4318 device=9568 features=524287",
+      "log": "wgpu-nvidia-vulkan-advanced.log",
+      "sha256": "a378212beec1c29905720b6b09e198940755d325299f187dba415c7b70c2cb38",
+      "controls": [
+        "221"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-nvidia-vulkan",
+      "case": "sampling",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderTextureSamplingTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-nvidia-vulkan-sampling.log",
+      "sha256": "9425db145151b8ee34806a38ad4c1433a93231d486a98a31b1502d4e11000dea",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-nvidia-vulkan",
+      "case": "staged-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+        "--mips"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-nvidia-vulkan-staged-mips.log",
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-nvidia-vulkan",
+      "case": "direct-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+        "--mips-direct"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-nvidia-vulkan-direct-mips.log",
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-amd-opengl",
+      "case": "advanced",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderAdvancedTextureTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": "adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) renderer=2 vendor=4098 device=0 features=524287",
+      "log": "wgpu-amd-opengl-advanced.log",
+      "sha256": "b408c7423ba60b422cec23d2f9973e0053e5850de59838c9ae40adfb8818c178",
+      "controls": [
+        "221"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-amd-opengl",
+      "case": "sampling",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderTextureSamplingTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 1,
+      "status": "FAIL",
+      "adapter_report": null,
+      "log": "wgpu-amd-opengl-sampling.log",
+      "sha256": "b9ca11f4468aa62afefc59ab84398b918cd1f8550d90acfb74f3818594c3a672",
+      "controls": [],
+      "failures": [
+        "projective mip footprint/quality-0.500000/CPU-GPU: texture pixels"
+      ]
+    },
+    {
+      "profile": "wgpu-amd-opengl",
+      "case": "staged-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+        "--mips"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-amd-opengl-staged-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "wgpu-amd-opengl",
+      "case": "direct-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRttProfileTest",
+        "--mips-direct"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "wgpu-amd-opengl-direct-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-amd-vulkan",
+      "case": "advanced",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) renderer=1 vendor=4098 device=5688 features=523775",
+      "log": "bgfx-amd-vulkan-advanced.log",
+      "sha256": "82a3b881c1096384599824ae02c15d1c075a0dd54a093c3f89134f37f4c53d71",
+      "controls": [
+        "216"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-amd-vulkan",
+      "case": "sampling",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderTextureSamplingTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 1,
+      "status": "FAIL",
+      "adapter_report": null,
+      "log": "bgfx-amd-vulkan-sampling.log",
+      "sha256": "b9ca11f4468aa62afefc59ab84398b918cd1f8550d90acfb74f3818594c3a672",
+      "controls": [],
+      "failures": [
+        "projective mip footprint/quality-0.500000/CPU-GPU: texture pixels"
+      ]
+    },
+    {
+      "profile": "bgfx-amd-vulkan",
+      "case": "staged-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+        "--mips"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-amd-vulkan-staged-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-amd-vulkan",
+      "case": "direct-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+        "--mips-direct"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-amd-vulkan-direct-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-nvidia-vulkan",
+      "case": "advanced",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) renderer=1 vendor=4318 device=9568 features=523775",
+      "log": "bgfx-nvidia-vulkan-advanced.log",
+      "sha256": "f04784f4026d001a0806bbe25bfb80d05fed2b33df468746146f4d360201ddda",
+      "controls": [
+        "216"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-nvidia-vulkan",
+      "case": "sampling",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderTextureSamplingTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-nvidia-vulkan-sampling.log",
+      "sha256": "9425db145151b8ee34806a38ad4c1433a93231d486a98a31b1502d4e11000dea",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-nvidia-vulkan",
+      "case": "staged-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+        "--mips"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-nvidia-vulkan-staged-mips.log",
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-nvidia-vulkan",
+      "case": "direct-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+        "--mips-direct"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "WGPU_BACKEND": "vulkan",
+        "COIN_BGFX_RENDERER": "vulkan",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-nvidia-vulkan-direct-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-opengl",
+      "case": "advanced",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": "adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0 features=523775",
+      "log": "bgfx-opengl-advanced.log",
+      "sha256": "d53a18dcaa0d74a360349e4a47e5ed6722a0867a4785f7aaac67b70f7436c13e",
+      "controls": [
+        "215"
+      ],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-opengl",
+      "case": "sampling",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderTextureSamplingTest",
+        "--gpu"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 1,
+      "status": "FAIL",
+      "adapter_report": null,
+      "log": "bgfx-opengl-sampling.log",
+      "sha256": "6f4632a9c4c933cfeafa3b80f16b5f5f348dc94363391e2666ace24ad2628c4e",
+      "controls": [],
+      "failures": [
+        "projective mip footprint/quality-0.500000/CPU-GPU: texture pixels"
+      ]
+    },
+    {
+      "profile": "bgfx-opengl",
+      "case": "staged-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+        "--mips"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-opengl-staged-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    },
+    {
+      "profile": "bgfx-opengl",
+      "case": "direct-mips",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderRttProfileTest",
+        "--mips-direct"
+      ],
+      "environment": {
+        "DISPLAY": ":0",
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+        "WGPU_BACKEND": "gl",
+        "COIN_BGFX_RENDERER": "opengl",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+      },
+      "exit": 0,
+      "status": "PASS",
+      "adapter_report": null,
+      "log": "bgfx-opengl-direct-mips.log",
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+      "controls": [],
+      "failures": []
+    }
+  ]
+}

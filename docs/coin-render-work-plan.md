@@ -70,7 +70,7 @@ Core transforma snapshots. Não exigir uma refatoração global prévia.
   MODULATE/REPLACE/DECAL/BLEND, wrap, filtros, qualidade e formatos.
   [Primeiro perfil de DEFAULT/FUNCTION entregue](coin-render-p07-procedural-textures.md);
   [primeiro perfil de sampling/RTT fechado](coin-render-p07-sampling-rtt-contract.md).
-  NPOT, SRGB/HDR/compressão, RTT além do perfil e plataformas adicionais
+  rescaling legado, formatos/codec adicionais, HDR de saída, RTT além do perfil e plataformas adicionais
   continuam nas campanhas próprias.
 - [x] **P08 — Multitextura/strokes (F07/F08):** oito unidades, SoTextureCombine,
   UVs/matrizes independentes e execução comum em CPU/BGFX/wgpu; raster aliased,
@@ -269,3 +269,15 @@ e matriz RTT da checklist foram fechados no
 [contrato P07](coin-render-p07-sampling-rtt-contract.md). O identificador P07
 no plano geral conserva a expansão futura para NPOT, anisotropia, formatos
 mais amplos e RTT fora do perfil; a primeira implementação está completa.
+
+
+## Texturas avançadas em 2026-10-07
+
+O [perfil avançado P07/P24](coin-render-advanced-textures-profile.md) implementa
+NPOT nativo, SRGB explícito, anisotropia delimitada, BC3 e produtores RGBA16F
+diretos. Mipmaps RTT são gerados no GPU: wgpu POT/NPOT, BGFX POT.
+A [checklist](coin-render-next-fronts-checklist.md) conserva como pendências
+redução NPOT direta BGFX, rescaling legado, codecs móveis/de maior qualidade,
+saída HDR e qualificação nas plataformas adicionais. O gate projetivo AMD
+continua falhando no commit anterior e nesta extensão; seus limites ficam
+inalterados e a investigação está registrada no relatório da campanha.

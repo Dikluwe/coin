@@ -28,7 +28,7 @@
 #define COIN_WGPU_MATRIX_CACHE_FP_X86 1
 #endif
 
-static_assert(sizeof(CoinWgpuFrameView) == 448, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 456, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuInstance) == 144, "Instance ABI size changed");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "Instance range ABI size changed");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "Instance ABI tail offset changed");
@@ -467,8 +467,9 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->texturePixels[i].insert(this->texturePixels[i].end(),src.mipmapsRgba.begin(),src.mipmapsRgba.end());
     dst.width = src.width;
     dst.height = src.height;
-    dst.format = src.gpuToken ? 1 : src.mipmapped ? 2 : 0;
-    dst.reserved = src.gpuToken && src.gpuOpaque ? 1 : 0;
+    dst.format = src.gpuToken?1:src.format==CoinRenderTextureFormat::RGBA8_LINEAR?(src.mipmapped?2:0):
+      3+(uint32_t(src.format)-1)*2+(src.mipmapped?1:0);
+    dst.reserved = src.gpuToken?((src.gpuOpaque?1:0)|(src.mipmapped?2:0)|(uint32_t(src.format)<<2)):0;
     dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
     dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();
     dst.pixel_bytes_len = static_cast<uint64_t>(this->texturePixels[i].size());
@@ -479,6 +480,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->samplers[i].wrap_s = static_cast<uint32_t>(frame.samplers[i].wrapS);
     this->samplers[i].wrap_t = static_cast<uint32_t>(frame.samplers[i].wrapT);
     this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
+    this->samplers[i].reserved=frame.samplers[i].maxAnisotropy-1;
   }
 
   this->batchOpaqueTriangles(frame, width, height);
@@ -1658,6 +1660,7 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.instance_count = static_cast<uint64_t>(this->instances.size());
   this->view.instance_ranges = this->instanceRanges.empty() ? NULL : this->instanceRanges.data();
   this->view.instance_range_count = static_cast<uint64_t>(this->instanceRanges.size());
+  this->view.texture_output_flags=(frame.outputColorFormat==CoinRenderTextureFormat::RGBA16_FLOAT?1u:0u)|(frame.outputMipmaps?2u:0u);
   this->view.textures = this->textures.empty() ? NULL : this->textures.data();
   this->view.texture_count = static_cast<uint64_t>(this->textures.size());
   this->view.samplers = this->samplers.empty() ? NULL : this->samplers.data();
