@@ -80,7 +80,8 @@ rejeição e diferenças nativas delimitadas no estudo, sem promessa universal.
 
 ## 3. Nós, FreeCAD e recursos além do perfil — P03/P15/P16/P24/P28
 
-Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md).
+Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
+[continuação Linux neste PC](coin-render-linux-nodes-resources-closure.md).
 
 - [ ] Ampliar a qualificação recente para Windows e consumidores reais de cada
   workbench; manter a célula Linux do viewport separada.
@@ -93,12 +94,16 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md).
   os consumidores.
 - [x] Ensaiar o consumidor Bezier Part::Spline: ControlPoints, Shape regenerada
   e remoção em DPR 1/2 nas três rotas; OpenGL no perfil explícito com cache de
-  programas desativado. BSpline/superfícies e consumidores completos seguem abertos.
+  programas desativado.
+- [x] Ensaiar BSpline curva e superfície Part::Spline, com polos 5×1/5×4,
+  regeneração/remoção, object/weighted OIT e DPR 1/2 nas três rotas físicas.
+  Operações completas de edição e consumidores de outros workbenches seguem abertos.
 - [ ] Estudar os timeouts de Part::Spline/OpenGL DPR 1 com cache ativo;
   preservar a configuração qualificada e as duas tentativas sem captura.
-- [ ] Estudar bbox com geometric depth clamp e o registro tardio de subclasses
-  em SoCallbackAction (observado no primeiro caminho primitivo do Polygon);
-  o perfil publicado usa bbox no volume de profundidade e contorno retido.
+- [x] Corrigir registro tardio de subclasses em SoCallbackAction sem duplicar
+  callbacks/observadores; qualificar Polygon pelo generatePrimitives no viewport.
+- [ ] **Estudo:** bbox com geometric depth clamp; o perfil qualificado continua
+  com os cantos no volume de profundidade.
 - [x] Disponibilizar delegação comum para subclasses SoText2/SoImage, preservando
   callbacks/observadores e falha sem publicação; adaptar SoColorBarLabel e
   SoFrameLabel com preparo frio no host.
@@ -112,8 +117,12 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md).
 - [x] Ampliar RTT RGBA8 a unidades 0..7, quatro modelos e política explícita da
   subcena; definir/executar alpha convencional do produtor no Core e executores.
   Corrigir restauração FBO e sobrescrita de política pbuffer na referência.
-- [ ] Ampliar formatos/mipmaps/dimensões e RTT direto de janela, mantendo
-  orçamento, propriedade de recursos e publicação transacional.
+- [x] Implementar RTT direto de janela com ownership do dispositivo consumidor,
+  mutação/resize e rejeição/recuperação na mesma janela nas três rotas.
+- [x] Implementar mips staged RGBA8 POT no Core, orçamento 64 MiB e filtro
+  linear/trilinear RTT; qualificar transições FBO/pbuffer e recuperação.
+- [ ] Implementar mips GPU diretos, formatos adicionais e dimensões maiores,
+  preservando orçamento, propriedade e publicação transacional.
 - [x] Definir o contrato portátil de shaders próprios antes de implementar
   tradução e recursos em BGFX/wgpu.
 - [x] Definir planos comuns para texturas 3D, cube maps e RTT de cubo.

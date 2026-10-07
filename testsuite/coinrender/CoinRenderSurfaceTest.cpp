@@ -135,6 +135,9 @@ static int nativePhongCamera(Display * dpy, bool requireVulkan)
   std::vector<uint8_t> expected(640u*480u*4u,37), basePixels(expected), actual(expected);
   TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,basePixels.data(),basePixels.size(),
                 patchError,sizeof(patchError)),"initial immutable base"), "Native PHONG initial immutable base");
+  const uint64_t firstPublished = coin_wgpu_surface_submission_serial(patchSurface);
+  TEST_ASSERT(firstPublished > 0 && coin_wgpu_surface_submission_serial(0) == 0,
+              "Surface publication serial belongs to the live surface");
   // A new full revision without a camera hint suspends owned snapshots.
   // Capture the reference through this full path, then explicitly readmit
   // the original camera using complete buffers before testing a null-payload patch.
@@ -161,12 +164,19 @@ static int nativePhongCamera(Display * dpy, bool requireVulkan)
   CoinWgpuCacheStats patchStats{}; coin_wgpu_get_cache_stats(&patchStats);
   TEST_ASSERT(patchStats.frame_uploads == 0 && patchStats.frame_uploaded_bytes == 0 && patchStats.frame_hits >= 1,
               "Native PHONG patch must reuse GPU geometry and material payload");
+  const uint64_t publishedBeforeReject = coin_wgpu_surface_submission_serial(patchSurface);
+  TEST_ASSERT(publishedBeforeReject > firstPublished, "Surface publication serial advances on success");
   patchFrame.frame_revision = staleRevision; patchFrame.camera_base_revision = readmittedRevision;
   std::vector<uint8_t> rejected(actual.size(),37);
   TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,rejected.data(),rejected.size(),
                 patchError,sizeof(patchError)),"stale base",COIN_WGPU_INVALID_ARGUMENT) &&
               rejected == std::vector<uint8_t>(rejected.size(),37),
               "Stale native camera base must validate pointers and preserve the output");
+  TEST_ASSERT(coin_wgpu_surface_submission_serial(patchSurface) == publishedBeforeReject,
+              "Rejected surface candidate preserves its publication serial");
+  TEST_ASSERT(coin_wgpu_surface_resize(patchSurface,320,240,patchError,sizeof(patchError)) == COIN_WGPU_OK &&
+              coin_wgpu_surface_submission_serial(patchSurface) == 0,
+              "Resized surface has no published image until the next success");
   TEST_ASSERT(coin_wgpu_surface_destroy(patchSurface,patchError,sizeof(patchError)) == COIN_WGPU_OK,
               "Native camera test surface destruction");
   XDestroyWindow(dpy,patchWin);

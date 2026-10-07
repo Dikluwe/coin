@@ -385,6 +385,7 @@ public:
   int32_t glimagecontext;
   
   SbBool buffervalid;
+  SbBool buffermipmap = FALSE;
 
   SbBool glimagevalid;
   SbBool glrectangle;
@@ -551,9 +552,15 @@ SoSceneTexture2::GLRender(SoGLRenderAction * action)
     }
   }
   LOCK_GLIMAGE(this);
+  const SbBool requestedMipmap = quality > 0.5f;
+  if (root && requestedMipmap != PRIVATE(this)->buffermipmap) {
+    PRIVATE(this)->buffervalid = FALSE;
+    PRIVATE(this)->glimagevalid = FALSE;
+  }
 
   if (root && (!PRIVATE(this)->buffervalid || !PRIVATE(this)->glimagevalid)) {
     PRIVATE(this)->updateBuffer(state, quality);
+    PRIVATE(this)->buffermipmap = requestedMipmap;
 
     // don't cache when we change the glimage
     SoCacheElement::setInvalid(TRUE);
@@ -1075,13 +1082,12 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
                                 translateWrap((SoSceneTexture2::Wrap)PUBLIC(this)->wrapT.getValue()),
                                 quality);
     }
-    // The FBO path uses linear/base-level filtering through quality 0.5.
-    // Avoid the SoGLImage stored-image >=0.5 mip threshold on readback-backed
-    // pbuffers; otherwise the RTT result depends on which mechanism was used.
-    if (quality<=0.5f) {
-      flags &= ~SoGLImage::USE_QUALITY_VALUE;
-      flags |= SoGLImage::NO_MIPMAP | SoGLImage::LINEAR_MIN_FILTER | SoGLImage::LINEAR_MAG_FILTER;
-    }
+    // RTT has a common linear/trilinear sampler independent of its producer
+    // mechanism, rather than the stored-image quality thresholds.
+    flags &= ~(SoGLImage::USE_QUALITY_VALUE | SoGLImage::NO_MIPMAP);
+    flags |= SoGLImage::LINEAR_MIN_FILTER | SoGLImage::LINEAR_MAG_FILTER;
+    if (quality<=0.5f) flags |= SoGLImage::NO_MIPMAP;
+    else flags |= SoGLImage::LINEAR_MIPMAP_FILTER;
     this->glimage->setFlags(flags);
   }
   if (!this->canrendertotexture) {

@@ -1,0 +1,79 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {
+    "polygon": [
+      {
+        "visible_changes": 772,
+        "resized": false,
+        "primitive_lines": 4,
+        "primitive_points": [
+          [
+            -1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            1.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "document_pick": true,
+        "mutation_changes": 1240,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 403,
+        "resized": true,
+        "primitive_lines": 3,
+        "primitive_points": [
+          [
+            -1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "document_pick": true,
+        "mutation_changes": 810,
+        "remaining_changes": 0
+      }
+    ]
+  },
+  "profile": "retained-linux",
+  "resize_retested": true,
+  "idle_start": 102,
+  "idle_end": 102,
+  "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+  "backend": "bgfx",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+}

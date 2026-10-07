@@ -1,0 +1,79 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {
+    "polygon": [
+      {
+        "visible_changes": 1424,
+        "resized": false,
+        "primitive_lines": 4,
+        "primitive_points": [
+          [
+            -1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            1.0,
+            0.0
+          ],
+          [
+            1.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "document_pick": true,
+        "mutation_changes": 2288,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 821,
+        "resized": true,
+        "primitive_lines": 3,
+        "primitive_points": [
+          [
+            -1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            1.0,
+            -1.0,
+            0.0
+          ],
+          [
+            -1.0,
+            1.0,
+            0.0
+          ]
+        ],
+        "document_pick": true,
+        "mutation_changes": 1643,
+        "remaining_changes": 0
+      }
+    ]
+  },
+  "profile": "retained-linux",
+  "resize_retested": true,
+  "idle_start": 106,
+  "idle_end": 106,
+  "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+  "backend": "bgfx",
+  "renderer": "vulkan",
+  "mode": "weighted_oit",
+  "alpha": "opaque",
+  "scale": 2,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+}

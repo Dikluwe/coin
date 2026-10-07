@@ -441,6 +441,9 @@ CoinWgpuStatus coin_wgpu_surface_resize(
   size_t error_buf_len
 );
 
+// Zero before publication and after resize; failed candidates preserve it.
+uint64_t coin_wgpu_surface_submission_serial(CoinWgpuSurfaceId surface);
+
 CoinWgpuStatus coin_wgpu_surface_submit(
   CoinWgpuSurfaceId surface,
   const CoinWgpuFrameView * frame,

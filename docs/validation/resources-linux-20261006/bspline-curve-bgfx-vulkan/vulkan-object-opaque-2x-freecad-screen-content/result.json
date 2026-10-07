@@ -1,0 +1,33 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {},
+  "profile": "part-spline-consumer",
+  "spline_kind": "bspline-curve",
+  "consumer": {
+    "type": "Part::Spline",
+    "control_nodes": 1,
+    "pole_dimensions": [
+      5,
+      1
+    ],
+    "visible_changes": 117,
+    "regenerated_changes": 117,
+    "mutation_changes": 2811,
+    "remaining_changes": 0
+  },
+  "idle_start": 68,
+  "idle_end": 68,
+  "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+  "backend": "bgfx",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 2,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+}

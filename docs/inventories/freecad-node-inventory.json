@@ -1,7 +1,7 @@
 {
   "schema": 1,
   "freecad_revision": "228c679d78845c3fb6f5eb3d1a27f48aceab68b5",
-  "source_digest": "dca7c7fa0fcde90465da9a85ac28397c76130b427dfb064379d6dbb69146cf7e",
+  "source_digest": "9705b93e365970b31a35951a18367c55e513c3eacb09bab0392bbd8626c578bd",
   "scope": [
     "src/Gui",
     "src/Mod"
@@ -439,7 +439,7 @@
         "status": "PARTIAL",
         "owner": "Wiring host + Core geometria",
         "next": "P16 consumidores / Windows",
-        "reason": "Callback sincroniza renderRoot com produtos/soma em 64 bits, eixos zero pareados e orçamento de 65536 pontos. Rejeição mantém publicação e recupera. Perfil Linux 2x2/1x4 e consumidor Bezier Part::Spline; OpenGL desse consumidor requer cache de programas desativado no binding GLX NVIDIA/EGL Mesa. BSpline/superfícies completos e Windows seguem separados."
+        "reason": "Callback sincroniza renderRoot com produtos/soma em 64 bits, eixos zero pareados e orçamento de 65536 pontos. Rejeição mantém publicação e recupera. Perfil Linux 2x2/1x4 e consumidores Part::Spline Bezier, BSpline curva 5x1 e superfície 5x4 com regeneração/remoção, object/weighted OIT e DPR 1/2. BGFX OpenGL desses consumidores requer cache de programas desativado no binding GLX NVIDIA/EGL Mesa; edição completa, arraste e Windows seguem separados."
       }
     },
     "SoFCIndexedFaceSet": {
@@ -973,27 +973,17 @@
         {
           "method": "GLRender",
           "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
-          "line": 82,
+          "line": 77,
           "empty_body": false,
-          "sha256": "476e350288ebdbf94bbbd97538affe301e63c8ba0264ad0963643e5343a163ea",
+          "sha256": "cef99dbeea0ad3beb3c265297b88b2ca969b0271a9e76f1c92236b23a3110e66",
           "action_types": []
-        },
-        {
-          "method": "callback",
-          "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
-          "line": 144,
-          "empty_body": false,
-          "sha256": "476e350288ebdbf94bbbd97538affe301e63c8ba0264ad0963643e5343a163ea",
-          "action_types": [
-            "CoinRenderAction"
-          ]
         },
         {
           "method": "generatePrimitives",
           "source": "src/Mod/Mesh/Gui/SoPolygon.cpp",
-          "line": 175,
+          "line": 139,
           "empty_body": false,
-          "sha256": "476e350288ebdbf94bbbd97538affe301e63c8ba0264ad0963643e5343a163ea",
+          "sha256": "cef99dbeea0ad3beb3c265297b88b2ca969b0271a9e76f1c92236b23a3110e66",
           "action_types": [
             "CoinRenderAction"
           ]
@@ -1003,7 +993,7 @@
         "status": "PARTIAL",
         "owner": "Wiring host + Core geometria",
         "next": "P16 consumidores / Windows",
-        "reason": "Callback captura contorno fechado via SoLineSet retido; valida faixa e orçamento de 65536 pontos sem omissão e sem publicação na falha. generatePrimitives também emite linhas para picking. Perfil Linux 4/3 pontos; interação de Mesh completa e Windows seguem separados."
+        "reason": "SoShape::callback usa generatePrimitives com contorno fechado, largura 3 e BASE_COLOR; faixa válida e orçamento de 65536 pontos. SoCallbackAction acompanha tipos registrados depois da action, sem omitir Polygon nem duplicar observadores. Perfil Linux 4/3 pontos com mutação/resize, recusa e recuperação; operações completas de Mesh e Windows seguem separadas."
       }
     },
     "SoScreenSpaceScale": {

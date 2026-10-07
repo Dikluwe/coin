@@ -1534,6 +1534,7 @@ fn trace_owned_resources(dev: &DeviceState, target: &str, width: u32, height: u3
 }
 
 struct SurfaceRecord {
+    published_serial: u64,
     surface: wgpu::Surface<'static>,
     native_desc: CoinWgpuNativeSurfaceDescriptor,
     config: Option<wgpu::SurfaceConfiguration>,
@@ -2532,6 +2533,7 @@ fn configure_surface_record(
     width: u32,
     height: u32,
 ) -> Result<(), String> {
+    record.published_serial = 0;
     record.framebuffer_size = (width, height);
     if width == 0 || height == 0 {
         record.suspended = true;
@@ -5062,6 +5064,7 @@ pub extern "C" fn coin_wgpu_surface_create(
         }
 
         let mut record = SurfaceRecord {
+            published_serial: 0,
             surface,
             native_desc: inf.native,
             config: None,
@@ -5144,6 +5147,7 @@ pub extern "C" fn coin_wgpu_surface_resize(
             }
         };
 
+        record.published_serial = 0;
         if width == 0 || height == 0 {
             record.framebuffer_size = (width, height);
             record.suspended = true;
@@ -5980,6 +5984,7 @@ fn coin_wgpu_surface_submit_internal(
                 renderer, info.vendor, info.device, info.device_type,
                 surface_id, sub_serial, f.width, f.height);
         }
+        record.published_serial = sub_serial;
         CoinWgpuStatus::Ok
     });
 
@@ -5991,6 +5996,15 @@ fn coin_wgpu_surface_submit_internal(
         );
         CoinWgpuStatus::BackendError
     })
+}
+
+// Per-surface publication, independent of other targets and rejected work.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_surface_submission_serial(surface_id: CoinWgpuSurfaceId) -> u64 {
+    RUNTIME_CTX.lock().ok().and_then(|guard| {
+        guard.as_ref().and_then(|runtime| runtime.surfaces.get(&surface_id))
+            .map(|record| record.published_serial)
+    }).unwrap_or(0)
 }
 
 #[no_mangle]

@@ -1,0 +1,4 @@
+COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+COIN_RENDER_PHASE bgfx_device renderer=OpenGL 4.3 vendor_id=0x0000 device_id=0x0000 homogeneous_depth=1
+QT 1 CoinRender frame rejected; previous image retained: "SoSceneTexture2 supports units 0..7, RGBA8, MODULATE/REPLACE/DECAL/BLEND, REPEAT/CLAMP, NONE/ALPHA_BLEND/ALPHA_TEST and SoTransparencyType scene policy"
+RESULT {"adapter":"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)","direct_rtt_window":true,"gpu_available":1,"renderer":"opengl","status":"PASS","test":"rtt-window"}

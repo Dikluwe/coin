@@ -137,6 +137,15 @@ int main() {
                 target.colorBuffer == recovered && target.colorBuffer.data() == recoveredPointer &&
                 target.borrowedReadbackValid && witness->submits == submits,
             "preflight failure preserves publication without entering backend");
+  CoinRenderTargetP window(SbVec2i32(4,4));
+  window.kind=CoinRenderTargetP::KIND_WINDOW; window.lastSubmissionSerial=19;
+  const auto windowGeneration=window.resourceGeneration;
+  ok &= check(window.resize(SbVec2i32(4,4)) && window.lastSubmissionSerial==19 &&
+              window.resourceGeneration==windowGeneration,
+              "same window extent preserves the live publication and resource generation");
+  ok &= check(window.resize(SbVec2i32(8,4)) && window.lastSubmissionSerial==0 &&
+              window.resourceGeneration>windowGeneration,
+              "changed window extent invalidates the publication until a new render");
   if (!ok)
     return 1;
   std::cout << "CoinRenderPublicationTest passed\n";

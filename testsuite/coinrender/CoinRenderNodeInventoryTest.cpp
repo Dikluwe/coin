@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 #include <Inventor/SoDB.h>
+#include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoSubNode.h>
@@ -89,6 +90,65 @@ protected:
   }
 };
 SO_NODE_SOURCE(InventoryImage);
+// These classes are initialized after both actions and their registrations.
+class InventoryLateShape : public SoShape {
+  SO_NODE_HEADER(InventoryLateShape);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryLateShape, SoShape, "Shape"); }
+  InventoryLateShape() { SO_NODE_CONSTRUCTOR(InventoryLateShape); }
+  unsigned generations = 0;
+protected:
+  ~InventoryLateShape() override {}
+  void computeBBox(SoAction *, SbBox3f & box, SbVec3f & center) override {
+    box.setBounds(SbVec3f(-1,-1,0),SbVec3f(1,1,0)); center=SbVec3f(0,0,0);
+  }
+  void generatePrimitives(SoAction * current) override {
+    ++generations;
+    SoPrimitiveVertex vertex;
+    beginShape(current, SoShape::TRIANGLES);
+    for (const auto & point : {SbVec3f(-1,-1,0),SbVec3f(1,-1,0),SbVec3f(0,1,0)}) {
+      vertex.setPoint(point); shapeVertex(&vertex);
+    }
+    endShape();
+  }
+};
+SO_NODE_SOURCE(InventoryLateShape);
+class InventoryLaterShape : public InventoryLateShape {
+  SO_NODE_HEADER(InventoryLaterShape);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryLaterShape, InventoryLateShape, "InventoryLateShape"); }
+  InventoryLaterShape() { SO_NODE_CONSTRUCTOR(InventoryLaterShape); }
+protected:
+  ~InventoryLaterShape() override {}
+};
+SO_NODE_SOURCE(InventoryLaterShape);
+class InventoryLateShader : public SoShaderProgram {
+  SO_NODE_HEADER(InventoryLateShader);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryLateShader, SoShaderProgram, "ShaderProgram"); }
+  InventoryLateShader() { SO_NODE_CONSTRUCTOR(InventoryLateShader); }
+protected:
+  ~InventoryLateShader() override {}
+};
+SO_NODE_SOURCE(InventoryLateShader);
+struct LateObservers {
+  std::vector<int> order;
+  unsigned triangles=0;
+  bool prune=false, abort=false;
+};
+static SoCallbackAction::Response latePre(void * data, SoCallbackAction *, const SoNode *) {
+  auto & observed=*static_cast<LateObservers *>(data); observed.order.push_back(1);
+  return observed.abort ? SoCallbackAction::ABORT : observed.prune ? SoCallbackAction::PRUNE : SoCallbackAction::CONTINUE;
+}
+static SoCallbackAction::Response lateSecondPre(void * data, SoCallbackAction *, const SoNode *) {
+  static_cast<LateObservers *>(data)->order.push_back(2); return SoCallbackAction::CONTINUE;
+}
+static SoCallbackAction::Response latePost(void * data, SoCallbackAction *, const SoNode *) {
+  static_cast<LateObservers *>(data)->order.push_back(3); return SoCallbackAction::CONTINUE;
+}
+static void lateTriangle(void * data, SoCallbackAction *, const SoPrimitiveVertex *, const SoPrimitiveVertex *, const SoPrimitiveVertex *) {
+  ++static_cast<LateObservers *>(data)->triangles;
+}
 struct Witness {
   CoinRenderFramePlan frame;
   unsigned submits = 0;
@@ -140,9 +200,54 @@ int main() {
     root->removeChild(node);
     return action.getLastStatus() == CoinRenderAction::SUCCESS;
   };
+  bool ok = true;
+  SoCallbackAction ordinary;
+  LateObservers observed;
+  ordinary.addPreCallback(SoShape::getClassTypeId(),latePre,&observed);
+  ordinary.addPreCallback(SoShape::getClassTypeId(),lateSecondPre,&observed);
+  ordinary.addPostCallback(SoShape::getClassTypeId(),latePost,&observed);
+  ordinary.addTriangleCallback(SoShape::getClassTypeId(),lateTriangle,&observed);
+  InventoryLateShape::initClass();
+  auto * late=new InventoryLateShape; late->ref();
+  ordinary.apply(late);
+  ok &= check(observed.order==std::vector<int>({1,2,3}) && observed.triangles==1,
+              "late shape inherits callbacks in registration order");
+  ok &= check(capture(late) && witness.frame.indices.size()==3,
+              "existing render action captures a shape initialized later");
+  InventoryLaterShape::initClass();
+  auto * later=new InventoryLaterShape; later->ref();
+  observed.order.clear(); observed.triangles=0;
+  ordinary.apply(later); ordinary.apply(late);
+  ok &= check(observed.order==std::vector<int>({1,2,3,1,2,3}) && observed.triangles==2,
+              "another late descendant expands without duplicating existing callbacks");
+  ok &= check(capture(later) && witness.frame.indices.size()==3,
+              "existing render action captures a second late generation");
+  observed.order.clear(); observed.triangles=0; observed.prune=true;
+  ordinary.apply(later);
+  ok &= check(observed.order==std::vector<int>({1,2,3}) && !observed.triangles,
+              "late-node PRUNE preserves post callbacks and skips primitives");
+  observed.order.clear(); observed.prune=false; observed.abort=true;
+  ordinary.apply(later);
+  ok &= check(observed.order==std::vector<int>({1,3}) && ordinary.hasTerminated(),
+              "late-node ABORT skips later pre callbacks and preserves native post behavior");
+  observed.abort=false; observed.order.clear();
+  ordinary.apply(later);
+  ok &= check(observed.order==std::vector<int>({1,2,3}) && observed.triangles==1,
+              "same callback action recovers after ABORT");
+  InventoryLateShader::initClass();
+  auto * lateShader=new InventoryLateShader; lateShader->ref();
+  auto * fragment=new SoFragmentShader; fragment->sourceProgram="void main() {}";
+  lateShader->shaderObject.set1Value(0,fragment);
+  const auto latePrevious=witness.frame; const auto lateSubmits=witness.submits;
+  ok &= check(!capture(lateShader) && action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+              witness.submits==lateSubmits && witness.frame.hasSamePayload(latePrevious),
+              "late shader inherits admission callback and preserves publication on rejection");
+  lateShader->unref();
+  ok &= check(capture(late),"same render action recovers after late-node rejection");
+  later->unref(); late->unref();
   auto* glOnly = new InventoryGlOnlyNode;
   glOnly->ref();
-  bool ok = check(capture(glOnly) && !glOnly->glCalls && witness.frame.draws.empty(),
+  ok &= check(capture(glOnly) && !glOnly->glCalls && witness.frame.draws.empty(),
                   "GL-only node currently succeeds with no draws: a blocker, not support");
   glOnly->unref();
   auto* text = new SoText2;

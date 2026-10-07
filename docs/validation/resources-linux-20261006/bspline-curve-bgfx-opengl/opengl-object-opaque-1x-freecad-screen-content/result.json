@@ -1,0 +1,40 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {},
+  "profile": "part-spline-consumer",
+  "spline_kind": "bspline-curve",
+  "consumer": {
+    "type": "Part::Spline",
+    "control_nodes": 1,
+    "pole_dimensions": [
+      5,
+      1
+    ],
+    "visible_changes": 115,
+    "regenerated_changes": 115,
+    "mutation_changes": 1473,
+    "remaining_changes": 0
+  },
+  "idle_start": 65,
+  "idle_end": 65,
+  "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+  "backend_gl_contexts": [
+    [
+      "AMD",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+    ]
+  ],
+  "backend": "bgfx",
+  "renderer": "opengl",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-opengl/opengl-object-opaque-1x-freecad-screen-content"
+}

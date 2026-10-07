@@ -151,3 +151,11 @@ com dois skips conhecidos em cada configuração e nenhuma falha. Também passar
 um timeout de estilos durante outro build; o gate passou isoladamente em 11,01 s
 e a campanha completa final passou com o timeout original de 60 s. Os tempos
 registrados são diagnósticos, não benchmarks.
+
+## Continuação: mipmaps staged de RTT
+
+A [entrega Linux de nós/recursos](coin-render-linux-nodes-resources-closure.md)
+amplia o resultado RTT para trilinear em `0,5 < q ≤ 0,85`, com cadeia RGBA8 POT
+preparada no Core e orçamento do grafo. O limiar estrito RTT continua diferente
+do limiar de imagens armazenadas. Mips diretos GPU permanecem recusados antes
+do submit; a ampliação não modifica o contrato de matriz herdada acima.

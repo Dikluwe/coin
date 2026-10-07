@@ -1,0 +1,33 @@
+{
+  "test": "freecad-screen-content",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {},
+  "profile": "part-spline-consumer",
+  "spline_kind": "bspline-surface",
+  "consumer": {
+    "type": "Part::Spline",
+    "control_nodes": 1,
+    "pole_dimensions": [
+      5,
+      4
+    ],
+    "visible_changes": 1414,
+    "regenerated_changes": 2929,
+    "mutation_changes": 50884,
+    "remaining_changes": 0
+  },
+  "idle_start": 67,
+  "idle_end": 67,
+  "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+  "backend": "wgpu",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/tmp/coin-front4-qualified-bspline-surface-wgpu-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+}

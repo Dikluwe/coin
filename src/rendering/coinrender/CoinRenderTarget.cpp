@@ -143,7 +143,12 @@ CoinRenderTargetP::initWindow(const CoinRenderNativeSurfaceDescriptor & desc, co
 bool
 CoinRenderTargetP::resize(const SbVec2i32 & newSize)
 {
+  // Hosts repeat the current extent before every redraw. Preserve a healthy
+  // window publication and its resource generation on these no-op requests.
+  if (this->kind == KIND_WINDOW && this->status == CoinRenderTarget::TARGET_READY &&
+      !this->suspended && newSize == this->size) return true;
   ++this->resourceGeneration;
+  this->lastSubmissionSerial = 0;
   this->borrowedReadbackValid = false;
   this->windowReadbackRequested = false;
   this->synchronousReadbackValid = false;

@@ -1,0 +1,2278 @@
+{
+  "base_coin_revision": "51920a422d",
+  "branch": "codex/coin-render",
+  "native_counts": {
+    "PASS": 51,
+    "FAIL": 0,
+    "SKIP": 0,
+    "UNSUPPORTED": 0,
+    "REFERENCE_PASS": 0
+  },
+  "main_native_cells": 48,
+  "focused_rejection_cells": 3,
+  "focused_rejection_controls": 15,
+  "native_cells": [
+    {
+      "campaign": "bspline-curve-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 115,
+        "regenerated_changes": 115,
+        "mutation_changes": 1473,
+        "remaining_changes": 0
+      },
+      "idle_start": 65,
+      "idle_end": 65,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-opengl/opengl-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 117,
+        "regenerated_changes": 117,
+        "mutation_changes": 2818,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-opengl/opengl-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 115,
+        "regenerated_changes": 115,
+        "mutation_changes": 1474,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-opengl/opengl-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 113,
+        "regenerated_changes": 113,
+        "mutation_changes": 2841,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-opengl/opengl-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 115,
+        "regenerated_changes": 115,
+        "mutation_changes": 1477,
+        "remaining_changes": 0
+      },
+      "idle_start": 66,
+      "idle_end": 66,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 117,
+        "regenerated_changes": 117,
+        "mutation_changes": 2811,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 115,
+        "regenerated_changes": 115,
+        "mutation_changes": 1462,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-vulkan/vulkan-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 115,
+        "regenerated_changes": 115,
+        "mutation_changes": 2815,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-bgfx-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 115,
+        "regenerated_changes": 115,
+        "mutation_changes": 1469,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-wgpu-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 117,
+        "regenerated_changes": 2773,
+        "mutation_changes": 2820,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-wgpu-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 1579,
+        "regenerated_changes": 115,
+        "mutation_changes": 1473,
+        "remaining_changes": 0
+      },
+      "idle_start": 67,
+      "idle_end": 67,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-wgpu-vulkan/vulkan-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-curve-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-curve",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          1
+        ],
+        "visible_changes": 117,
+        "regenerated_changes": 2773,
+        "mutation_changes": 2813,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-curve-wgpu-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 1406,
+        "regenerated_changes": 1455,
+        "mutation_changes": 49429,
+        "remaining_changes": 0
+      },
+      "idle_start": 65,
+      "idle_end": 65,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-opengl/opengl-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 2362,
+        "regenerated_changes": 2434,
+        "mutation_changes": 163292,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-opengl/opengl-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 1405,
+        "regenerated_changes": 1454,
+        "mutation_changes": 49450,
+        "remaining_changes": 0
+      },
+      "idle_start": 70,
+      "idle_end": 70,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-opengl/opengl-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 2337,
+        "regenerated_changes": 2413,
+        "mutation_changes": 163532,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-opengl/opengl-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 1405,
+        "regenerated_changes": 1456,
+        "mutation_changes": 49449,
+        "remaining_changes": 0
+      },
+      "idle_start": 67,
+      "idle_end": 67,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 2359,
+        "regenerated_changes": 2437,
+        "mutation_changes": 163368,
+        "remaining_changes": 0
+      },
+      "idle_start": 70,
+      "idle_end": 70,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 1400,
+        "regenerated_changes": 1451,
+        "mutation_changes": 49461,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-vulkan/vulkan-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 2362,
+        "regenerated_changes": 2434,
+        "mutation_changes": 163323,
+        "remaining_changes": 0
+      },
+      "idle_start": 70,
+      "idle_end": 70,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-bgfx-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 1414,
+        "regenerated_changes": 2929,
+        "mutation_changes": 50884,
+        "remaining_changes": 0
+      },
+      "idle_start": 67,
+      "idle_end": 67,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-wgpu-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 2362,
+        "regenerated_changes": 5090,
+        "mutation_changes": 163320,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-wgpu-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 1405,
+        "regenerated_changes": 1454,
+        "mutation_changes": 49453,
+        "remaining_changes": 0
+      },
+      "idle_start": 68,
+      "idle_end": 68,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-wgpu-vulkan/vulkan-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "bspline-surface-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {},
+      "profile": "part-spline-consumer",
+      "spline_kind": "bspline-surface",
+      "consumer": {
+        "type": "Part::Spline",
+        "control_nodes": 1,
+        "pole_dimensions": [
+          5,
+          4
+        ],
+        "visible_changes": 2349,
+        "regenerated_changes": 2427,
+        "mutation_changes": 163505,
+        "remaining_changes": 0
+      },
+      "idle_start": 69,
+      "idle_end": 69,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-bspline-surface-wgpu-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 772,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1240,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 403,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 810,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 101,
+      "idle_end": 101,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-opengl/opengl-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 1426,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 2290,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 820,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1640,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 107,
+      "idle_end": 107,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-opengl/opengl-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 773,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1235,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 407,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 811,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 105,
+      "idle_end": 105,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-opengl/opengl-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-opengl",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 1428,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 2288,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 821,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1642,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 105,
+      "idle_end": 105,
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-opengl/opengl-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 772,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1240,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 403,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 810,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 102,
+      "idle_end": 102,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 1423,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 2286,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 820,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1640,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 101,
+      "idle_end": 101,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 772,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1238,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 405,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 809,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 105,
+      "idle_end": 105,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-vulkan/vulkan-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-bgfx-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 1424,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 2288,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 821,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1643,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 106,
+      "idle_end": 106,
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-bgfx-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 774,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1235,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 408,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 812,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 103,
+      "idle_end": 103,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-wgpu-vulkan/vulkan-object-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 1426,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 2290,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 820,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1640,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 105,
+      "idle_end": 105,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-wgpu-vulkan/vulkan-object-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 772,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1234,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 408,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 811,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 105,
+      "idle_end": 105,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-wgpu-vulkan/vulkan-weighted_oit-opaque-1x-freecad-screen-content"
+    },
+    {
+      "campaign": "polygon-wgpu-vulkan",
+      "test": "freecad-screen-content",
+      "native": true,
+      "reference_gl": false,
+      "status": "PASS",
+      "nodes": {
+        "polygon": [
+          {
+            "visible_changes": 1428,
+            "resized": false,
+            "primitive_lines": 4,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ],
+              [
+                1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 2288,
+            "remaining_changes": 0
+          },
+          {
+            "visible_changes": 821,
+            "resized": true,
+            "primitive_lines": 3,
+            "primitive_points": [
+              [
+                -1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                1.0,
+                -1.0,
+                0.0
+              ],
+              [
+                -1.0,
+                1.0,
+                0.0
+              ]
+            ],
+            "document_pick": true,
+            "mutation_changes": 1642,
+            "remaining_changes": 0
+          }
+        ]
+      },
+      "profile": "retained-linux",
+      "resize_retested": true,
+      "idle_start": 103,
+      "idle_end": 103,
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-polygon-wgpu-vulkan/vulkan-weighted_oit-opaque-2x-freecad-screen-content"
+    },
+    {
+      "campaign": "rejection-bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "gpu_available": 1,
+      "recoveries": 5,
+      "rejections": 5,
+      "renderer": "opengl",
+      "status": "PASS",
+      "test": "retained-rejection",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ],
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-rejection-bgfx-opengl/opengl-object-opaque-1x-retained-rejection"
+    },
+    {
+      "campaign": "rejection-bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "gpu_available": 1,
+      "recoveries": 5,
+      "rejections": 5,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "retained-rejection",
+      "backend": "bgfx",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-rejection-bgfx-vulkan/vulkan-object-opaque-1x-retained-rejection"
+    },
+    {
+      "campaign": "rejection-wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "gpu_available": 1,
+      "recoveries": 5,
+      "rejections": 5,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "retained-rejection",
+      "backend": "wgpu",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-rejection-wgpu-vulkan/vulkan-object-opaque-1x-retained-rejection"
+    },
+    {
+      "campaign": "window-bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "opengl",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ],
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-opengl/opengl-object-opaque-1x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "opengl",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ],
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-opengl/opengl-object-opaque-2x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "opengl",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ],
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-opengl/opengl-weighted_oit-opaque-1x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "opengl",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend_gl_contexts": [
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ],
+        [
+          "AMD",
+          "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+          "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+        ]
+      ],
+      "backend": "bgfx",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-opengl/opengl-weighted_oit-opaque-2x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "bgfx",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-vulkan/vulkan-object-opaque-1x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "bgfx",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-vulkan/vulkan-object-opaque-2x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "bgfx",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-vulkan/vulkan-weighted_oit-opaque-1x-rtt-window"
+    },
+    {
+      "campaign": "window-bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "bgfx",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-bgfx-vulkan/vulkan-weighted_oit-opaque-2x-rtt-window"
+    },
+    {
+      "campaign": "window-wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "wgpu",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-wgpu-vulkan/vulkan-object-opaque-1x-rtt-window"
+    },
+    {
+      "campaign": "window-wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "wgpu",
+      "mode": "object",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-wgpu-vulkan/vulkan-object-opaque-2x-rtt-window"
+    },
+    {
+      "campaign": "window-wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "wgpu",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-wgpu-vulkan/vulkan-weighted_oit-opaque-1x-rtt-window"
+    },
+    {
+      "campaign": "window-wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "direct_rtt_window": true,
+      "gpu_available": 1,
+      "renderer": "vulkan",
+      "status": "PASS",
+      "test": "rtt-window",
+      "backend": "wgpu",
+      "mode": "weighted_oit",
+      "alpha": "opaque",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "gpu_execution": "hardware",
+      "artifacts": "/tmp/coin-front4-qualified-window-wgpu-vulkan/vulkan-weighted_oit-opaque-2x-rtt-window"
+    }
+  ],
+  "source_sha256": {
+    "docs/coin-render-next-fronts-checklist.md": "079e98032909d49953efb32ad705ec277be34f49349039c749de85fc9a4a6cd1",
+    "docs/coin-render-p03-p24-p28-profile.md": "1deda4078a2b70d6bfc582ff813c71fc54db930004e456ee963c0dcfacd24670",
+    "docs/coin-render-p07-sampling-rtt-contract.md": "97f183a88aa2830f96f35e594c923125764de3c8dedd3491a5a5ab315ce4352b",
+    "docs/coin-render-retained-linux-profile.md": "9edaba0d8a98173a6b4aee0d8259a6dcce7642c381f05278ae0982272aaaf481",
+    "docs/coin-render-retained-windows-checklist.md": "308524e866dc33a05c4e701f3882ce2ba68e1e6b94172ecb6e15e20f87bcb67a",
+    "docs/coin-render-rtt-ownership-contract.md": "cf799ae299a560b5433a851dad9ac80a95d47e01a1996c32bdd72cc555941c75",
+    "docs/coin-render-rtt-publication-contract.md": "2b06f52cea0544db43370a0ab2f89bb12475798ce9508ee12c2e83ebba6f0a42",
+    "docs/inventories/freecad-node-inventory.json": "1819e5a078390ec722fef44c66c841316cebda5627898542b5c1dae3f66d70dd",
+    "docs/inventories/freecad-node-review.json": "5f36853d014f338b10b9b139c3565802f50535cf69acd44a2d52280fd255adeb",
+    "src/actions/SoCallbackAction.cpp": "a7d1d1202a7803c6ce0b0cdca7fdb67e778d90a737621ecd0ed742242a4b3e15",
+    "src/nodes/SoSceneTexture2.cpp": "2e11a7511758976595b96117d8aad53fe8ceaeb88de8edf5d87146792d1fe2d8",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "9b0b5be1c1a0f2aed17a28874b88ee38a4e8a0ec91febb020f5f77fb7c0fb65f",
+    "src/rendering/coinrender/CoinRenderFramePlanBuilder.cpp": "ae569a9ada79c36f47f77c5679d78ee5a186eed716e75fdfc7b352157f74a572",
+    "src/rendering/coinrender/CoinRenderRttCore.h": "9d826b23ca12816e263b17a06c0a61a98711bb5b9f790ea94d8272807743610e",
+    "src/rendering/coinrender/CoinRenderRttExecution.cpp": "5dca16a5c6136e3bed3f9fe22c8ca39e2d068bad6e6c520c69f381ee31c5dcd7",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "a8102004b09eb2453035780789137742a2a39d01b5a268a5dd842b528eef8594",
+    "src/rendering/coinrender/CoinRenderTextureSamplingCore.h": "88bc3cbe0b2aa12417b8db885ac75a2455cb259d295cff1ee60a1c33f69fcc0c",
+    "src/rendering/coinwgpu/CoinWgpuBackend.cpp": "75f5cf4fa1dbe4037ec0d3753b2aa961e8579df40a8f5748a59fb345142323ca",
+    "src/rendering/coinwgpu/CoinWgpuFfi.def": "60e0b8fd2a9e1b40dee3f4ef196b5dc6501e3b807b1f30eb49baa012ee61875a",
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": "addbff60ac611acb5f9af8dff153ee8fa48a3582f030253979aac0ec5f52d61b",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "76bba06c8604e1bbd333e97067911a8d45dd90a838f28952dadb381c91fa6d67",
+    "testsuite/CMakeLists.txt": "06ec5b44970acc6fe524af898d104d50318367737e90f8f0ab370353655133eb",
+    "testsuite/coinrender/CoinRenderNodeInventoryTest.cpp": "08ca81043b58ab52b29d96309fe62b977b4642291ef611ee21b13f5ff54f399b",
+    "testsuite/coinrender/CoinRenderPublicationTest.cpp": "9e062e0832e735725549d7d39e947af175cacd81612062b2902b04986601dfed",
+    "testsuite/coinrender/CoinRenderRttOwnershipTest.cpp": "9a44dfe853af18e247ed050f3e928393c837aa1d3a45f9f40215ed56c0f77ad9",
+    "testsuite/coinrender/CoinRenderRttProfileTest.cpp": "07a773185fa341a30147a593ad56c98050935122453525345bfdadd22abdf7ae",
+    "testsuite/coinrender/CoinRenderSurfaceTest.cpp": "af53e89b9ead1dc7a58d67e86c39a49aeec458f04b19cb76c6541ac354457975",
+    "testsuite/qt-quarter/freecad_screen_content.FCMacro": "eed44153b7ae695df1793785a90c559714794fb15f1f1f3d3f3963856b4779f6",
+    "testsuite/qt-quarter/harness.cpp": "b7b39469c28175e5cb70bdd1452ca173c0c2e2cf53b247e976419b3a168a1dc6",
+    "testsuite/qt-quarter/run.py": "2ae19014bcfa1aa1212b9c8ab1e1cdb34447e166f808fe9123fbaf7c9c7bdda8",
+    "docs/coin-render-linux-nodes-resources-closure.md": "ccf9d1f9084366f5f962370b43734af8643b46e15966c5715a845ea7e2f87c83",
+    "examples/coinrender/freecad_linux_rtt_recovery.patch": "25a209da6e7e74a118b60412ca1a294ccf38d8688a25ee713aa51cd38b2f26c3"
+  },
+  "binary_sha256": {
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoin.so": "78b1ba38f2157da9fb76d7a9121e904492cf59772ba58d1693e7db98f77f06aa",
+    "/tmp/coin-render-first-frame-bgfx/lib/libCoinRender.so": "9005d2cce4649eb6dbf9e556d268459a6e9c0ef0337e4d9d2f600a64c7a5cdea",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoin.so": "78b1ba38f2157da9fb76d7a9121e904492cf59772ba58d1693e7db98f77f06aa",
+    "/tmp/coin-render-first-frame-wgpu/lib/libCoinRender.so": "b2f58f9718148adc837a7b8afd6dca90659f5308a205707672a23a1bb9da2037",
+    "/tmp/freecad-p16-build/lib/libFreeCADGui.so": "1330d5befcf39e2823a4996feb931a94cdf0386699a4379776ee9c29b522fa64",
+    "/tmp/freecad-p16-build/Mod/Mesh/MeshGui.so": "40ae53612c35ef8bd87ab9426c712e4b5d7de0d9704228b316cef109b3b0ef25",
+    "/tmp/coin-front3-qt/QtQuarterRegression": "21f0b3599b450fb4c9bf4357ac324b98d39a9035ec63b65713767c9aeccf3727",
+    "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttProfileTest": "591e41c5ec707c544bba77a242483b8c4d9b90eeb4c1694e5f19f71c29c5d31d",
+    "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderNodeInventoryTest": "cbe5a0723d7180262f0c70fe71d3478b3655c6c72836511644c104404e7be8bb",
+    "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderRttOwnershipTest": "3b5a10ea6a026f13e59d2dc94df36dbc4994a72d50672fcd21d55e725651df9b",
+    "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderPublicationTest": "dfcfa6a731326c229d44b2f0c6d007cde970e7be540adfbec41f9116380f4806",
+    "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderRttProfileTest": "18ebf4cbe153d3f90b7b5d5d4959088323dbbf841a08ec90af8892fd38c135b1",
+    "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderNodeInventoryTest": "03ae612c0f29f4ffdfeadf58b057278cc118dd7035019ad5e7cfa52a0c832b0f",
+    "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderRttOwnershipTest": "e3dadaf1a1290d494b02c5d3f2c5dedaa9a9f6d1a6e6a9c83cc306042f005162",
+    "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderPublicationTest": "0539cdac4feb8818dea75ae6350c070b300fe998dcc55e7915091967ba34d22f",
+    "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderSurfaceTest": "6e0987946597bfd9f066a3d5fd296f18f26ba2bc0cb57d9f9a4d785d39a6605c"
+  },
+  "ordering": "GPU processes and builds serialized; final native campaign uses final code. Diagnostic failures are excluded from pass counts.",
+  "cpu_tests": {
+    "bgfx": 6,
+    "wgpu": 6,
+    "recording": 5,
+    "qt_focused": 2,
+    "python": 89
+  },
+  "gpu_regression_controls": {
+    "rtt_staged_direct": 1728,
+    "texture_sampling": 693,
+    "screen_content": 279
+  },
+  "mip_quality_controls": 42,
+  "mip_rgb_reference_comparisons": 24,
+  "native_profile": "object/weighted OIT x DPR 1/2; BGFX Vulkan/OpenGL and wgpu Vulkan; AMD backend with NVIDIA GLX oracle. BGFX program cache explicitly disabled.",
+  "mips_profile": "staged RGBA8 POT; 7 quality transitions per route/mechanism, 4 minified RGB comparisons against native CoinGL; NPOT rejection and recovery on each transition; quality off/reactivation; FBO and pbuffer.",
+  "diagnostics": [
+    "Isolated Xwayland session could not create the CoinGL offscreen reference; desktop NVIDIA oracle passes counted separately.",
+    "Initial wgpu window rejection fell back because its surface serial was missing in the C++ wrapper; corrected and final matrix repeated.",
+    "The initial RTT profile test ignored renderer environment because of explicit default options; OpenGL-labelled offscreen RTT was actually Vulkan. Test options now read diagnostics shell configuration, and mip/RTT gates were repeated with actual OpenGL context proof.",
+    "First resize serial reset invalidated same-size redraws; no-op window resize fixed, CPU guard and final matrix repeated."
+  ],
+  "remaining": [
+    "Windows and other devices",
+    "full workbench consumers and drag/input",
+    "bbox geometric depth clamp",
+    "BGFX OpenGL Part::Spline cache-active timeout study",
+    "GPU-direct mip generation",
+    "float/HDR/depth/sRGB RTT and larger extents",
+    "shader/volume/cube/MSAA/multipass executors"
+  ]
+}

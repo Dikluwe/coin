@@ -278,8 +278,18 @@ if os.environ.get('COIN_TEST_SPLINE_CONSUMER') == '1':
         os.write(1,b'SPLINE_PHASE setup_begin\n')
         global spline, curve
         import Part
-        curve=Part.BezierCurve()
-        curve.setPoles([App.Vector(2,2,12),App.Vector(2,9,12),App.Vector(9,2,12),App.Vector(9,9,12)])
+        shape_kind=os.environ.get('COIN_TEST_SPLINE_KIND','bezier')
+        if shape_kind=='bspline-curve':
+            curve=Part.BSplineCurve()
+            curve.buildFromPolesMultsKnots([App.Vector(2,2,12),App.Vector(2,9,12),App.Vector(5,5,13),App.Vector(9,2,12),App.Vector(9,9,12)],[4,1,4],[0,.5,1],False,3)
+        elif shape_kind=='bspline-surface':
+            curve=Part.BSplineSurface()
+            poles=[[App.Vector(2+1.75*u,2+2.333333*v,12+.4*((u+v)%2)) for v in range(4)] for u in range(5)]
+            curve.buildFromPolesMultsKnots(poles,[4,1,4],[4,4],[0,.5,1],[0,1],False,False,3,3)
+        else:
+            curve=Part.BezierCurve()
+            curve.setPoles([App.Vector(2,2,12),App.Vector(2,9,12),App.Vector(9,2,12),App.Vector(9,9,12)])
+        report['spline_kind']=shape_kind
         spline=App.ActiveDocument.addObject('Part::Spline','RetainedSpline')
         spline.Shape=curve.toShape(); spline.ViewObject.ControlPoints=False
         App.ActiveDocument.recompute(); view.viewTop()
@@ -301,9 +311,15 @@ if os.environ.get('COIN_TEST_SPLINE_CONSUMER') == '1':
         search.setInterest(coin.SoSearchAction.ALL); search.apply(spline.ViewObject.RootNode)
         paths=search.getPaths(); size=paths.getLength() if hasattr(paths,'getLength') else len(paths)
         if not size: raise RuntimeError('Part spline did not create actual SoFCControlPoints')
-        report['consumer']={'type':'Part::Spline','control_nodes':size,'visible_changes':count}
+        control=paths[0].getTail()
+        dimensions=[int(control.getField('numPolesU').getValue()),int(control.getField('numPolesV').getValue())]
+        expected={'bezier':[4,1],'bspline-curve':[5,1],'bspline-surface':[5,4]}[report['spline_kind']]
+        if dimensions!=expected: raise RuntimeError('Part consumer control dimensions mismatch')
+        report['consumer']={'type':'Part::Spline','control_nodes':size,'pole_dimensions':dimensions,'visible_changes':count}
         spline_first=image
-        curve.setPole(2,App.Vector(4,9,12)); spline.Shape=curve.toShape()
+        if report['spline_kind']=='bspline-surface': curve.setPole(2,2,App.Vector(4,5,13))
+        else: curve.setPole(2,App.Vector(4,9,12))
+        spline.Shape=curve.toShape()
         spline.ViewObject.ControlPoints=False; App.ActiveDocument.recompute()
         step(spline_mutated_hidden)
     def spline_mutated_hidden():

@@ -10,7 +10,7 @@ import signal
 import subprocess
 import sys
 
-CASES = ('first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
+CASES = ('rtt-window', 'first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
          'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
          'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
@@ -195,7 +195,8 @@ def main():
                      'MESA_LOADER_DRIVER_OVERRIDE', 'QT_QPA_PLATFORM',
                      'QT_OPENGL', 'QT_SCALE_FACTOR', '__EGL_VENDOR_LIBRARY_FILENAMES',
                      'COIN_TEST_RETAINED_NODES', 'COIN_TEST_RETAINED_FILTER',
-                     'COIN_TEST_SPLINE_CONSUMER', 'COIN_BGFX_DISABLE_PROGRAM_CACHE')}}
+                     'COIN_TEST_SPLINE_CONSUMER', 'COIN_TEST_SPLINE_KIND',
+                     'COIN_BGFX_DISABLE_PROGRAM_CACHE', 'COIN_RENDER_RTT_GPU_DIRECT')}}
     (args.artifacts / 'provenance.json').write_text(json.dumps(provenance, indent=2))
     window_manager = window_manager_available(inventory['window_manager'])
     results = []
@@ -212,6 +213,8 @@ def main():
             if case in ('freecad-screen-content', 'freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
+            if case == 'rtt-window':
+                variants=[(mode,'opaque',scale) for mode in ('object','weighted_oit') for scale in (1,2)]
             if case == 'freecad-viewport':
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
@@ -231,6 +234,7 @@ def main():
                            COIN_BGFX_TRANSPARENCY=mode, COIN_RENDER_TRANSPARENCY=mode, COIN_TEST_ALPHA=alpha,
                            QT_SCALE_FACTOR=str(scale), COIN_TEST_ARTIFACTS=str(directory),
                            COIN_TEST_MACRO_DIR=str(Path(__file__).resolve().parent))
+                if case=='rtt-window':env['COIN_RENDER_RTT_GPU_DIRECT']='1'
                 if args.backend == 'bgfx' and renderer == 'opengl' and sys.platform.startswith('linux'):
                     env['COIN_BGFX_TRACE_GL_ADAPTER'] = '1'
                 if not env.get('DISPLAY'):

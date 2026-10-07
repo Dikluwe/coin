@@ -210,3 +210,10 @@ matrizes e restaura as do consumidor ao sair. A correção FBO e o alinhamento
 linear/base do pbuffer foram medidos contra as duas rotas nativas no
 [contrato P07](coin-render-p07-sampling-rtt-contract.md). O resultado RTT fica
 linear/base em 0 < q ≤ 0,5; qualidades maiores e mipmaps de RTT são rejeitados.
+
+## Continuação Linux: janela direta e mips staged
+
+A [entrega de nós/recursos](coin-render-linux-nodes-resources-closure.md) amplia
+o consumidor direto para janela e implementa mips staged RGBA8. Ela substitui
+a rejeição de janela e de toda qualidade RTT acima de 0,5 descritas na entrega
+histórica acima; mips diretos e formatos adicionais continuam recusados.

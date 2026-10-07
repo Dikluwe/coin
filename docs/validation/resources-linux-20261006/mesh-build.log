@@ -1,0 +1,143 @@
+[  0%] Built target libfastsignals_autogen_timestamp_deps
+[  0%] Generating version_file
+[  0%] Built target WildMagic4_autogen_timestamp_deps
+[  0%] Built target libfastsignals_autogen
+[  0%] Built target libfastsignals
+[  0%] Built target WildMagic4_autogen
+[  7%] Built target WildMagic4
+git
+/tmp/freecad-p16-build/src/Build/Version.h.out written
+[  7%] Built target fc_version
+[  7%] Built target FreeCADBase_autogen_timestamp_deps
+[  7%] Built target FreeCADBase_autogen
+[ 23%] Built target FreeCADBase
+[ 23%] Built target FreeCADApp_autogen_timestamp_deps
+[ 23%] Built target FreeCADApp_autogen
+[ 38%] Built target FreeCADApp
+[ 38%] Built target Mesh_autogen_timestamp_deps
+[ 38%] Built target FreeCADGui_autogen_timestamp_deps
+[ 38%] Built target Mesh_autogen
+[ 46%] Built target Mesh
+[ 46%] Built target FreeCADGui_autogen
+[ 92%] Built target FreeCADGui
+[ 92%] Built target MeshGui_autogen_timestamp_deps
+[ 92%] Automatic MOC and UIC for target MeshGui
+[ 92%] Built target MeshGui_autogen
+[ 92%] Building CXX object src/Mod/Mesh/Gui/CMakeFiles/MeshGui.dir/SoPolygon.cpp.o
+[ 92%] Building CXX object src/Mod/Mesh/Gui/CMakeFiles/MeshGui.dir/AppMeshGui.cpp.o
+[ 92%] Building CXX object src/Mod/Mesh/Gui/CMakeFiles/MeshGui.dir/MeshEditor.cpp.o
+In file included from [01m[K/usr/include/c++/13/bits/specfun.h:43[m[K,
+                 from [01m[K/usr/include/c++/13/cmath:3699[m[K,
+                 from [01m[K/usr/include/c++/13/math.h:36[m[K,
+                 from [01m[K/tmp/coin-p16-bgfx-prefix/include/Inventor/C/basic.h:106[m[K,
+                 from [01m[K/tmp/coin-p16-bgfx-prefix/include/Inventor/SbBasic.h:36[m[K,
+                 from [01m[K/tmp/coin-p16-bgfx-prefix/include/Inventor/SoDB.h:36[m[K,
+                 from [01m[K/mnt/Laranja/Git/externos/freecad-source/src/Mod/Mesh/Gui/AppMeshGui.cpp:25[m[K:
+In static member function ‘[01m[Kstatic constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::[01;32m[K__copy_m[m[K(_Tp*, _Tp*, _Up*) [35m[K[with _Tp = unsigned int; _Up = unsigned int; bool _IsMove = false][m[K[m[K’,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a2[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:506:30[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a1[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:533:42[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:540:31[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[Kcopy[m[K(_II, _II, _OI) [35m[K[with _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:633:7[m[K,
+    inlined from ‘[01m[Kstatic _ForwardIterator std::__uninitialized_copy<true>::[01;32m[K__uninit_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:147:27[m[K,
+    inlined from ‘[01m[K_ForwardIterator std::[01;32m[Kuninitialized_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:185:15[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kgrow[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:925:26[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_reserve[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:928:39[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_resize[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:919:16[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kresize[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:897:63[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign[m[K(UInt) [35m[K[with UInt = long unsigned int; typename std::enable_if<(std::is_same<UInt, long unsigned int>::value || std::is_same<_Tp, __int128 unsigned>::value), int>::type <anonymous> = 0][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2792:19[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Koperator=[m[K(Int) [35m[K[with Int = int][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2813:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::[01;32m[Kformat_dragon[m[K(basic_fp<__int128 unsigned>, unsigned int, int, buffer<char>&, int&)[m[K’ at [01m[K/usr/include/fmt/format.h:2990:19[m[K:
+[01m[K/usr/include/c++/13/bits/stl_algobase.h:437:30:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid*[01;32m[K __builtin_memmove[m[K(void*, const void*, long unsigned int)[m[K’ forming offset 4 is out of the bounds [0, 4] [[01;35m[K-Warray-bounds=[m[K]
+  437 |             [01;35m[K__builtin_memmove(__result, __first, sizeof(_Tp) * _Num)[m[K;
+      |             [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In static member function ‘[01m[Kstatic constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::[01;32m[K__copy_m[m[K(_Tp*, _Tp*, _Up*) [35m[K[with _Tp = unsigned int; _Up = unsigned int; bool _IsMove = false][m[K[m[K’,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a2[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:506:30[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a1[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:533:42[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:540:31[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[Kcopy[m[K(_II, _II, _OI) [35m[K[with _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:633:7[m[K,
+    inlined from ‘[01m[Kstatic _ForwardIterator std::__uninitialized_copy<true>::[01;32m[K__uninit_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:147:27[m[K,
+    inlined from ‘[01m[K_ForwardIterator std::[01;32m[Kuninitialized_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:185:15[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kgrow[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:925:26[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_reserve[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:928:39[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_resize[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:919:16[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kresize[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:897:63[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign[m[K(UInt) [35m[K[with UInt = long unsigned int; typename std::enable_if<(std::is_same<UInt, long unsigned int>::value || std::is_same<_Tp, __int128 unsigned>::value), int>::type <anonymous> = 0][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2792:19[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Koperator=[m[K(Int) [35m[K[with Int = int][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2813:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign_pow10[m[K(int)[m[K’ at [01m[K/usr/include/fmt/format.h:2886:32[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::[01;32m[Kformat_dragon[m[K(basic_fp<__int128 unsigned>, unsigned int, int, buffer<char>&, int&)[m[K’ at [01m[K/usr/include/fmt/format.h:2994:29[m[K:
+[01m[K/usr/include/c++/13/bits/stl_algobase.h:437:30:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid*[01;32m[K __builtin_memmove[m[K(void*, const void*, long unsigned int)[m[K’ forming offset 4 is out of the bounds [0, 4] [[01;35m[K-Warray-bounds=[m[K]
+  437 |             [01;35m[K__builtin_memmove(__result, __first, sizeof(_Tp) * _Num)[m[K;
+      |             [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In static member function ‘[01m[Kstatic constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::[01;32m[K__copy_m[m[K(_Tp*, _Tp*, _Up*) [35m[K[with _Tp = unsigned int; _Up = unsigned int; bool _IsMove = false][m[K[m[K’,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a2[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:506:30[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a1[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:533:42[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:540:31[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[Kcopy[m[K(_II, _II, _OI) [35m[K[with _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:633:7[m[K,
+    inlined from ‘[01m[Kstatic _ForwardIterator std::__uninitialized_copy<true>::[01;32m[K__uninit_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:147:27[m[K,
+    inlined from ‘[01m[K_ForwardIterator std::[01;32m[Kuninitialized_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:185:15[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kgrow[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:925:26[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_reserve[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:928:39[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_resize[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:919:16[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kresize[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:897:63[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign[m[K(UInt) [35m[K[with UInt = long unsigned int; typename std::enable_if<(std::is_same<UInt, long unsigned int>::value || std::is_same<_Tp, __int128 unsigned>::value), int>::type <anonymous> = 0][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2792:19[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Koperator=[m[K(Int) [35m[K[with Int = int][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2813:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::[01;32m[Kformat_dragon[m[K(basic_fp<__int128 unsigned>, unsigned int, int, buffer<char>&, int&)[m[K’ at [01m[K/usr/include/fmt/format.h:3006:17[m[K:
+[01m[K/usr/include/c++/13/bits/stl_algobase.h:437:30:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid*[01;32m[K __builtin_memmove[m[K(void*, const void*, long unsigned int)[m[K’ forming offset 4 is out of the bounds [0, 4] [[01;35m[K-Warray-bounds=[m[K]
+  437 |             [01;35m[K__builtin_memmove(__result, __first, sizeof(_Tp) * _Num)[m[K;
+      |             [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In static member function ‘[01m[Kstatic constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::[01;32m[K__copy_m[m[K(_Tp*, _Tp*, _Up*) [35m[K[with _Tp = unsigned int; _Up = unsigned int; bool _IsMove = false][m[K[m[K’,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a2[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:506:30[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a1[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:533:42[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:540:31[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[Kcopy[m[K(_II, _II, _OI) [35m[K[with _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:633:7[m[K,
+    inlined from ‘[01m[Kstatic _ForwardIterator std::__uninitialized_copy<true>::[01;32m[K__uninit_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:147:27[m[K,
+    inlined from ‘[01m[K_ForwardIterator std::[01;32m[Kuninitialized_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:185:15[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kgrow[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:925:26[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_reserve[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:928:39[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_resize[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:919:16[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kresize[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:897:63[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign[m[K(UInt) [35m[K[with UInt = long unsigned int; typename std::enable_if<(std::is_same<UInt, long unsigned int>::value || std::is_same<_Tp, __int128 unsigned>::value), int>::type <anonymous> = 0][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2792:19[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Koperator=[m[K(Int) [35m[K[with Int = int][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2813:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign_pow10[m[K(int)[m[K’ at [01m[K/usr/include/fmt/format.h:2886:32[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::[01;32m[Kformat_dragon[m[K(basic_fp<__int128 unsigned>, unsigned int, int, buffer<char>&, int&)[m[K’ at [01m[K/usr/include/fmt/format.h:3011:29[m[K:
+[01m[K/usr/include/c++/13/bits/stl_algobase.h:437:30:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid*[01;32m[K __builtin_memmove[m[K(void*, const void*, long unsigned int)[m[K’ forming offset 4 is out of the bounds [0, 4] [[01;35m[K-Warray-bounds=[m[K]
+  437 |             [01;35m[K__builtin_memmove(__result, __first, sizeof(_Tp) * _Num)[m[K;
+      |             [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In static member function ‘[01m[Kstatic constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::[01;32m[K__copy_m[m[K(_Tp*, _Tp*, _Up*) [35m[K[with _Tp = unsigned int; _Up = unsigned int; bool _IsMove = false][m[K[m[K’,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a2[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:506:30[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a1[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:533:42[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:540:31[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[Kcopy[m[K(_II, _II, _OI) [35m[K[with _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:633:7[m[K,
+    inlined from ‘[01m[Kstatic _ForwardIterator std::__uninitialized_copy<true>::[01;32m[K__uninit_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:147:27[m[K,
+    inlined from ‘[01m[K_ForwardIterator std::[01;32m[Kuninitialized_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:185:15[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kgrow[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:925:26[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_reserve[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:928:39[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_resize[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:919:16[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kresize[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:897:63[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign[m[K(UInt) [35m[K[with UInt = long unsigned int; typename std::enable_if<(std::is_same<UInt, long unsigned int>::value || std::is_same<_Tp, __int128 unsigned>::value), int>::type <anonymous> = 0][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2792:19[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Koperator=[m[K(Int) [35m[K[with Int = int][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2813:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign_pow10[m[K(int)[m[K’ at [01m[K/usr/include/fmt/format.h:2893:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign_pow10[m[K(int)[m[K’ at [01m[K/usr/include/fmt/format.h:2884:24[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::[01;32m[Kformat_dragon[m[K(basic_fp<__int128 unsigned>, unsigned int, int, buffer<char>&, int&)[m[K’ at [01m[K/usr/include/fmt/format.h:3011:29[m[K:
+[01m[K/usr/include/c++/13/bits/stl_algobase.h:437:30:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid*[01;32m[K __builtin_memmove[m[K(void*, const void*, long unsigned int)[m[K’ forming offset 4 is out of the bounds [0, 4] [[01;35m[K-Warray-bounds=[m[K]
+  437 |             [01;35m[K__builtin_memmove(__result, __first, sizeof(_Tp) * _Num)[m[K;
+      |             [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+In static member function ‘[01m[Kstatic constexpr _Up* std::__copy_move<_IsMove, true, std::random_access_iterator_tag>::[01;32m[K__copy_m[m[K(_Tp*, _Tp*, _Up*) [35m[K[with _Tp = unsigned int; _Up = unsigned int; bool _IsMove = false][m[K[m[K’,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a2[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:506:30[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a1[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:533:42[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[K__copy_move_a[m[K(_II, _II, _OI) [35m[K[with bool _IsMove = false; _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:540:31[m[K,
+    inlined from ‘[01m[Kconstexpr _OI std::[01;32m[Kcopy[m[K(_II, _II, _OI) [35m[K[with _II = unsigned int*; _OI = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_algobase.h:633:7[m[K,
+    inlined from ‘[01m[Kstatic _ForwardIterator std::__uninitialized_copy<true>::[01;32m[K__uninit_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:147:27[m[K,
+    inlined from ‘[01m[K_ForwardIterator std::[01;32m[Kuninitialized_copy[m[K(_InputIterator, _InputIterator, _ForwardIterator) [35m[K[with _InputIterator = unsigned int*; _ForwardIterator = unsigned int*][m[K[m[K’ at [01m[K/usr/include/c++/13/bits/stl_uninitialized.h:185:15[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kgrow[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:925:26[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_reserve[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:928:39[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::buffer<T>::[01;32m[Ktry_resize[m[K(size_t) [35m[K[with T = unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/core.h:919:16[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::basic_memory_buffer<T, SIZE, Allocator>::[01;32m[Kresize[m[K(size_t) [35m[K[with T = unsigned int; long unsigned int SIZE = 32; Allocator = std::allocator<unsigned int>][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:897:63[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Kassign[m[K(UInt) [35m[K[with UInt = long unsigned int; typename std::enable_if<(std::is_same<UInt, long unsigned int>::value || std::is_same<_Tp, __int128 unsigned>::value), int>::type <anonymous> = 0][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2792:19[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::bigint::[01;32m[Koperator=[m[K(Int) [35m[K[with Int = long long unsigned int][m[K[m[K’ at [01m[K/usr/include/fmt/format.h:2813:11[m[K,
+    inlined from ‘[01m[Kconstexpr void fmt::v9::detail::[01;32m[Kformat_dragon[m[K(basic_fp<__int128 unsigned>, unsigned int, int, buffer<char>&, int&)[m[K’ at [01m[K/usr/include/fmt/format.h:3015:19[m[K:
+[01m[K/usr/include/c++/13/bits/stl_algobase.h:437:30:[m[K [01;35m[Kwarning: [m[K‘[01m[Kvoid*[01;32m[K __builtin_memmove[m[K(void*, const void*, long unsigned int)[m[K’ forming offset 4 is out of the bounds [0, 4] [[01;35m[K-Warray-bounds=[m[K]
+  437 |             [01;35m[K__builtin_memmove(__result, __first, sizeof(_Tp) * _Num)[m[K;
+      |             [01;35m[K~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[m[K
+[ 92%] Linking CXX shared library ../../../../Mod/Mesh/MeshGui.so
+[100%] Built target MeshGui

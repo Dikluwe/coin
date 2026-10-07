@@ -1,0 +1,3 @@
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x1002 device_id=0x1638 homogeneous_depth=0
+QT 1 Coin WGPU initialization/render failed; switching viewport to Coin/GL: "SoSceneTexture2 supports units 0..7, RGBA8, MODULATE/REPLACE/DECAL/BLEND, REPEAT/CLAMP, NONE/ALPHA_BLEND/ALPHA_TEST and SoTransparencyType scene policy"
+RESULT {"adapter":"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)","gpu_available":1,"reason":"RTT admission caused legacy fallback","renderer":"vulkan","status":"FAIL","test":"rtt-window"}

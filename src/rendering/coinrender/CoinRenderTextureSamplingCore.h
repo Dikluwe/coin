@@ -30,17 +30,16 @@ public:
     return static_cast<uint32_t>(filter) >= 2;
   }
   static bool validMipImage(const CoinRenderTextureImageSnapshot &image) {
-    return !image.mipmapped
-               ? image.mipmapsRgba.empty()
-               : !image.producerId && !image.gpuToken && image.width <= 8192 &&
-                     image.height <= 8192 && powerOfTwo(image.width) &&
-                     powerOfTwo(image.height) &&
-                     size_t(image.width) * image.height * 4 +
-                             mipBytes(image.width, image.height) <=
-                         128u * 1024u * 1024u &&
-                     image.mipmapsRgba.size() ==
-                         mipBytes(image.width, image.height);
+    if (!image.mipmapped) return image.mipmapsRgba.empty();
+    const bool extent = image.width <= 8192 && image.height <= 8192 &&
+      powerOfTwo(image.width) && powerOfTwo(image.height) &&
+      size_t(image.width)*image.height*4 + mipBytes(image.width,image.height) <= 128u*1024u*1024u;
+    if (!extent || image.gpuToken) return false;
+    // A planned producer requests a chain; bytes exist only after staged render.
+    return image.producerId ? image.pixelsRgba.empty() && image.mipmapsRgba.empty()
+                            : image.mipmapsRgba.size()==mipBytes(image.width,image.height);
   }
+
   static bool generate(CoinRenderTextureImageSnapshot &image) {
     if (image.width > 8192 || image.height > 8192 || !powerOfTwo(image.width) ||
         !powerOfTwo(image.height) || image.producerId || image.gpuToken ||

@@ -2993,11 +2993,11 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                                        uint64_t & token)
 {
   token = 0;
-  if (!this->initialized || !this->onApiThread() || this->presentToWindow ||
+  if (!this->initialized || !this->onApiThread() ||
       producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
       size[0] > 2048 || size[1] > 2048) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY,
-                        "BGFX direct RTT requires a prepared offscreen backend");
+                        "BGFX direct RTT requires a prepared backend and valid extent");
   }
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)

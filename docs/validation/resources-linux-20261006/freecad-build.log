@@ -1,0 +1,35 @@
+[  0%] Built target libfastsignals_autogen_timestamp_deps
+[  0%] Generating version_file
+[  0%] Built target libfastsignals_autogen
+[  0%] Built target libfastsignals
+git
+/tmp/freecad-p16-build/src/Build/Version.h.out written
+[  0%] Built target fc_version
+[  0%] Built target FreeCADBase_autogen_timestamp_deps
+[  0%] Built target FreeCADBase_autogen
+[ 20%] Built target FreeCADBase
+[ 20%] Built target FreeCADApp_autogen_timestamp_deps
+[ 20%] Built target FreeCADApp_autogen
+[ 40%] Built target FreeCADApp
+[ 40%] Built target FreeCADGui_autogen_timestamp_deps
+[ 40%] Automatic MOC and UIC for target FreeCADGui
+[ 40%] Built target FreeCADGui_autogen
+[ 40%] Building CXX object src/Gui/CMakeFiles/FreeCADGui.dir/Quarter/QuarterWidget.cpp.o
+In file included from [01m[K/mnt/Laranja/Git/externos/freecad-source/src/Gui/Quarter/QuarterP.h:37[m[K,
+                 from [01m[K/mnt/Laranja/Git/externos/freecad-source/src/Gui/Quarter/QuarterWidget.cpp:105[m[K:
+[01m[K/tmp/freecad-p16-build/config.h:81:[m[K [01;35m[Kwarning: [m[K"HAVE_STDINT_H" redefined
+   81 | #define HAVE_STDINT_H
+      |
+In file included from [01m[K/tmp/coin-p16-bgfx-prefix/include/Inventor/C/basic.h:98[m[K,
+                 from [01m[K/mnt/Laranja/Git/externos/freecad-source/src/Gui/Quarter/QuarterWidget.cpp:72[m[K:
+[01m[K/tmp/coin-p16-bgfx-prefix/include/Inventor/system/inttypes.h:77:[m[K [01;36m[Knote: [m[Kthis is the location of the previous definition
+   77 | #define HAVE_STDINT_H 1
+      |
+[01m[K/tmp/freecad-p16-build/config.h:111:[m[K [01;35m[Kwarning: [m[K"HAVE_SYS_TYPES_H" redefined
+  111 | #define HAVE_SYS_TYPES_H
+      |
+[01m[K/tmp/coin-p16-bgfx-prefix/include/Inventor/system/inttypes.h:79:[m[K [01;36m[Knote: [m[Kthis is the location of the previous definition
+   79 | #define HAVE_SYS_TYPES_H 1
+      |
+[ 40%] Linking CXX shared library ../../lib/libFreeCADGui.so
+[100%] Built target FreeCADGui

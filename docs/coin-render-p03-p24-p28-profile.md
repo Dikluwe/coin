@@ -67,9 +67,10 @@ Neste NVIDIA, quatro unidades fixed-function permitem 144 referências CoinGL;
 as outras 144 têm equações escalares independentes. A limitação é consultada no
 contexto GL efetivo e não vira uma certificação nativa das unidades superiores.
 
-Fora do perfil: formatos float/depth/sRGB, outros wraps, mipmaps RTT e direto de
-janela. Estes itens permanecem explicitamente abertos; não são habilitados por
-uma capacidade de hardware.
+A [continuação Linux](coin-render-linux-nodes-resources-closure.md) implementa
+mipmaps staged RGBA8 e RTT direto de janela. Formatos float/depth/sRGB, outros
+wraps e mips GPU diretos permanecem abertos; capacidade de hardware não basta
+para habilitá-los.
 
 ## Delegação raster do host
 

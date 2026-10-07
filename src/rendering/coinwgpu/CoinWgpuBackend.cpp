@@ -285,6 +285,7 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       ? coin_wgpu_surface_submit_readback(target.surfaceId, &fView,
           target.colorBuffer.data(), target.colorBuffer.size(), errBuf, sizeof(errBuf))
       : coin_wgpu_surface_submit(target.surfaceId, &fView, errBuf, sizeof(errBuf));
+    if (st == COIN_WGPU_OK) serial = coin_wgpu_surface_submission_serial(target.surfaceId);
   } else {
     // 6. Build target pod for offscreen
     CoinWgpuTarget tPod{};

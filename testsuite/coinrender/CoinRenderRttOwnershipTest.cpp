@@ -266,6 +266,39 @@ int main() {
   ok &= check(!resources.resolve(captured, stamp, output, diagnostic),
               "invalidation drops logical bindings");
 
+  {
+    CoinRenderRttPlan staged(COIN_RENDER_SCENE_TEXTURE_STAGED);
+    staged.append(producer(91,4),id,diagnostic);
+    auto requested=consumer(1,4); requested.textures[0].mipmapped=true;
+    requested.samplers.push_back(CoinRenderSamplerSnapshot()); requested.samplers[0].filter=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+    ok &= check(staged.validate(requested,diagnostic),"staged mip request is a valid logical dependency");
+    CoinRenderRttResources cpuResources;
+    CoinRenderTextureImageSnapshot base; base.width=base.height=4;
+    base.pixelsRgba.resize(64,255);
+    for(unsigned y=0;y<4;++y) for(unsigned x=0;x<4;++x) for(unsigned c=0;c<3;++c)
+      base.pixelsRgba[(y*4+x)*4+c]=((x+y)&1) ? 255 : 0;
+    cpuResources.bind(1,91,stamp,base,diagnostic);
+    CoinRenderFramePlan chain;
+    ok &= check(cpuResources.resolve(requested,stamp,chain,diagnostic) && chain.isValid(&diagnostic) &&
+                chain.textures[0].mipmapped && chain.textures[0].mipmapsRgba.size()==20 &&
+                chain.textures[0].mipmapsRgba[0]==128 && chain.textures[0].mipmapsRgba.back()==255,
+                "Core resolves deterministic box mips after rendering without changing the capture");
+    requested.textures[0].width=3;
+    ok &= check(!staged.validate(requested,diagnostic),"non-POT mip producer fails admission");
+    requested.textures[0].width=4;
+    CoinRenderRttPlan gpuOnly(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    gpuOnly.append(producer(91,4),id,diagnostic);
+    ok &= check(!gpuOnly.validate(requested,diagnostic),"direct mip request rejects before GPU work");
+    CoinRenderRttPlan full(COIN_RENDER_SCENE_TEXTURE_STAGED);
+    for(unsigned source=1;source<=4;++source) full.append(producer(source,2048),id,diagnostic);
+    auto extra=consumer(4,2048); extra.textures[0].mipmapped=true;
+    extra.samplers.push_back(CoinRenderSamplerSnapshot()); extra.samplers[0].filter=CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+    ok &= check(!full.validate(extra,diagnostic),"base plus mip bytes enforce the graph budget");
+    full.producers.resize(1); extra.textures[0].producerId=1;
+    full.chargedBytes=CoinRenderRttPlan::budget();
+    ok &= check(!full.validate(extra,diagnostic),"conservative repeated producer charge also includes mips");
+  }
+
   CoinRenderOptions options;
   options.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
   CoinRenderTargetP target(SbVec2i32(4, 4));
@@ -335,8 +368,9 @@ int main() {
     CoinRenderRttExecution execution(&target, options);
     CoinRenderFramePlan resolved;
     auto result = execution.prepare(executionGraph, root, resolved);
-    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && witness->submits == 0,
-                "direct window RTT must not silently stage");
+    ok &= check(result.status == CoinRenderBackendStatus::SUCCESS && witness->submits == 2 &&
+                    witness->sawDependency && !resolved.textures[0].producerId && resolved.textures[0].gpuToken,
+                "direct window RTT retains resources on the consumer device without staging");
   }
   target.kind = CoinRenderTargetP::KIND_OFFSCREEN;
   {

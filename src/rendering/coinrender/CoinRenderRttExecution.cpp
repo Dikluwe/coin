@@ -76,9 +76,9 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     return check;
 
   if (graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
-    if (!target || target->kind != CoinRenderTargetP::KIND_OFFSCREEN)
+    if (!target)
       return {CoinRenderBackendStatus::UNSUPPORTED,
-              "Direct scene texture requires an offscreen GPU target"};
+              "Direct scene texture requires a live GPU consumer target"};
     auto prepared = target->prepareBackend();
     if (prepared != CoinRenderBackendStatus::SUCCESS) {
       const auto error = target->backend->getLastError();

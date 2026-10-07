@@ -2,6 +2,7 @@
 #define COIN_RENDER_RTT_CORE_H
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include <Inventor/rendering/CoinRenderOptions.h>
 #include <algorithm>
 
@@ -97,7 +98,26 @@ public:
       if (!producer.plan.isValid(&diagnostic) || !dependencies(producer.plan, i, diagnostic))
         return false;
     }
-    return root.isValid(&diagnostic) && dependencies(root, producers.size(), diagnostic);
+    if (!root.isValid(&diagnostic) || !dependencies(root, producers.size(), diagnostic)) return false;
+    // Count a chain per captured image use, conservatively including nested
+    // consumers. Reject direct chains before submitting any GPU producer.
+    distinctBytes = std::max(distinctBytes, chargedBytes);
+    const auto chargeMips = [&](const CoinRenderFramePlan & frame) {
+      for (const auto & image : frame.textures) {
+        if (!image.producerId || !image.mipmapped) continue;
+        if (mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+          diagnostic="Direct RTT mip generation is outside this profile"; return false;
+        }
+        const size_t bytes=CoinRenderTextureSamplingCore::mipBytes(image.width,image.height);
+        if (bytes>budget()-distinctBytes) {
+          diagnostic="SoSceneTexture2 base images and mip chains exceed 64 MiB per apply"; return false;
+        }
+        distinctBytes+=bytes;
+      }
+      return true;
+    };
+    for (const auto & producer : producers) if (!chargeMips(producer.plan)) return false;
+    return chargeMips(root);
   }
 
 private:
@@ -186,11 +206,15 @@ public:
         diagnostic = "Scene texture resource belongs to another owner, device or generation";
         return false;
       }
+      const bool requestedMips = texture.mipmapped;
       const bool opaque = texture.gpuOpaque;
       const int32_t transparencyFunction = texture.sceneTransparencyFunction;
       texture = entry.texture;
       texture.gpuOpaque = opaque;
       texture.sceneTransparencyFunction = transparencyFunction;
+      if (requestedMips && !CoinRenderTextureSamplingCore::generate(texture)) {
+        diagnostic="Cannot resolve the staged RTT mip chain"; return false;
+      }
     }
     output = std::move(candidate);
     return true;

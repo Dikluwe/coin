@@ -2,6 +2,7 @@
 #include "config.h"
 #endif
 #include <Inventor/SoDB.h>
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/nodes/SoComplexity.h>
@@ -51,8 +52,11 @@ static void quad(SoSeparator * root) {
 int main(int argc, char ** argv) {
   if (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) return 77;
   SoDB::init(); CoinRenderAction::initClass();
+  const bool mipOnly = argc>1 && std::string(argv[1])=="--mips";
   const bool direct = argc > 1 && std::string(argv[1]) == "--direct";
-  CoinRenderOptions options;
+  std::string optionError;
+  CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionError);
+  if (!optionError.empty()) { std::cerr<<optionError<<'\n'; return 1; }
   options.sceneTexture = direct ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),options));
   CoinRenderAction action(SbViewportRegion(32,32)); action.setRenderTarget(target.get());
@@ -63,7 +67,7 @@ int main(int argc, char ** argv) {
   gl.getGLRenderAction()->setTransparencyType(SoGLRenderAction::BLEND);
   unsigned passed = 0, nativePassed = 0;
   GLint nativeUnits = 0;
-  for (int unit = 0; unit < 8; ++unit)
+  for (int unit = 0; unit < (mipOnly ? 0 : 8); ++unit)
   for (int model : {SoSceneTexture2::MODULATE,SoSceneTexture2::REPLACE,SoSceneTexture2::DECAL,SoSceneTexture2::BLEND})
   for (int policy : {SoSceneTexture2::NONE,SoSceneTexture2::ALPHA_BLEND,SoSceneTexture2::ALPHA_TEST})
   for (int producerPolicy : {-1, int(SoTransparencyType::NONE), int(SoTransparencyType::BLEND)}) {
@@ -145,8 +149,53 @@ int main(int argc, char ** argv) {
     if (action.getLastStatus()!=CoinRenderAction::SUCCESS || retained!=pixels) return 1;
     root->unref(); ++passed;
   }
+  if (mipOnly) {
+    auto * child=base();
+    static_cast<SoComplexity *>(child->getChild(2))->textureQuality=.1f;
+    auto * pattern=new SoTexture2; pattern->model=SoTexture2::REPLACE; std::vector<unsigned char> checker(16*16*4,255);
+    for(int y=0;y<16;++y) for(int x=0;x<16;++x) {
+      const unsigned i=(y*16+x)*4; checker[i]=((x+y)&1)?255:0;
+      checker[i+1]=0; checker[i+2]=((x+y)&1)?0:255;
+    }
+    pattern->image.setValue(SbVec2s(16,16),4,checker.data()); child->addChild(pattern); quad(child);
+    auto * root=base(); root->ref(); auto * quality=static_cast<SoComplexity *>(root->getChild(2));
+    auto * texture=new SoSceneTexture2; texture->scene=child; texture->size=SbVec2s(64,64);
+    texture->model=SoSceneTexture2::REPLACE; root->addChild(texture); quad(root);
+    auto * uv=static_cast<SoTextureCoordinate2 *>(root->getChild(root->getNumChildren()-2));
+    const SbVec2f repeated[]={{.023f,.031f},{10.323f,.031f},{10.323f,10.331f},{.023f,10.331f}};
+    uv->point.setValues(0,4,repeated);
+    double largestMae=0;
+    for(float q : {.3f,.5f,.51f,.7f,.85f,.5f,.7f}) {
+      quality->textureQuality=q; action.apply(root);
+      std::vector<uint8_t> pixels; target->readbackRGBA(pixels);
+      if(action.getLastStatus()!=CoinRenderAction::SUCCESS || pixels.size()!=32*32*4) {
+        std::cerr<<"RTT mip quality "<<q<<": "<<action.getLastError().getString()<<'\n';return 1;
+      }
+      if(!gl.render(root) || !gl.getBuffer()) { std::cerr<<"RTT mip CoinGL render failed at quality "<<q<<'\n'; return 1; }
+      const auto * reference=gl.getBuffer(); double mae=0;
+      for(unsigned i=0;i<32*32;++i) for(unsigned c=0;c<3;++c) mae+=std::abs(int(pixels[i*4+c])-int(reference[i*3+c]));
+      mae/=32*32*3; if(q>.5f) largestMae=std::max(largestMae,mae);
+      if(q>.5f) {
+        for(unsigned i=0;i<32*32;++i) if(std::abs(int(pixels[i*4])-128)>3 || pixels[i*4+1]>3 || std::abs(int(pixels[i*4+2])-128)>3) {
+          std::cerr<<"RTT minification lost deterministic mip average at "<<i<<'\n';return 1;
+        }
+        if(mae>4) { std::cerr<<"RTT mip CoinGL MAE="<<mae<<'\n';return 1; }
+      }
+      const auto previous=pixels;
+      texture->size=SbVec2s(64,48); quality->textureQuality=.7f; action.apply(root); target->readbackRGBA(pixels);
+      if(action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || pixels!=previous) { std::cerr<<"RTT mip NPOT rejection/publication failed at "<<q<<'\n'; return 1; }
+      texture->size=SbVec2s(64,64); quality->textureQuality=q; action.apply(root); target->readbackRGBA(pixels);
+      if(action.getLastStatus()!=CoinRenderAction::SUCCESS || pixels!=previous) { std::cerr<<"RTT mip recovery failed at "<<q<<": "<<action.getLastError().getString()<<'\n'; return 1; }
+      ++passed;
+    }
+    quality->textureQuality=0; action.apply(root);
+    if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
+    quality->textureQuality=.7f; action.apply(root);
+    if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
+    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae<<"; NPOT rejection/publication and recovery passed\n";
+  }
   action.setRenderTarget(nullptr);
-  std::cout << "RTT extended " << (direct ? "direct" : "staged") << ": " << passed
+  if (!mipOnly) std::cout << "RTT extended " << (direct ? "direct" : "staged") << ": " << passed
             << " controls (" << nativePassed << " native CoinGL, " << passed-nativePassed
             << " scalar higher-unit expectations), rejection and recovery passed\n";
   return 0;

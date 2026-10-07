@@ -29,6 +29,11 @@
 #include <Mod/Mesh/Gui/SoFCMeshObject.h>
 #include <Mod/Mesh/Gui/SoPolygon.h>
 #include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <QApplication>
 #include <QDir>
 #include <QElapsedTimer>
@@ -156,6 +161,39 @@ void rendered(View * view, const QString & name) {
   },5000);
   require(visible.save(artifacts+"/"+name+".png"), "could not save presented image");
   require(hasGeometry, "exposed surface is black/empty or contains no rendered geometry after GPU visibility timeout");
+}
+void rttWindow() {
+  require(qEnvironmentVariableIntValue("COIN_RENDER_RTT_GPU_DIRECT")==1,"window RTT test requires GPU-direct mode");
+  QMainWindow window; auto * view=new View; window.setCentralWidget(view);
+  SoMaterial * consumerMaterial=nullptr, *producerMaterial=nullptr;
+  auto * root=scene(nullptr,&consumerMaterial); root->ref();
+  consumerMaterial->diffuseColor=SbColor(1,1,1);
+  auto * texture=new SoSceneTexture2;
+  texture->scene=scene(nullptr,&producerMaterial); texture->size=SbVec2s(64,32);
+  texture->model=SoSceneTexture2::REPLACE;
+  texture->backgroundColor=SbVec4f(.05f,.1f,.2f,1);
+  auto * quality=new SoComplexity; quality->textureQuality=.3f;
+  root->insertChild(quality,4); root->insertChild(texture,5);
+  view->setSceneGraph(root); window.resize(480,360); window.show(); rendered(view,"rtt-first");
+  const auto before=capture(view->surface(),"rtt-before");
+  producerMaterial->diffuseColor=SbColor(0,1,0);
+  spin(350); const auto changed=capture(view->surface(),"rtt-green");
+  require(difference(before,changed)>.5,"producer mutation did not reach window pixels");
+  const auto count=view->frameCount(); texture->size=SbVec2s(128,64); window.resize(530,390);
+  require(until([&]{return view->frameCount()>count;}),"RTT/window resize did not submit");
+  spin(250); capture(view->surface(),"rtt-resized");
+  // An invalid producer must not silently stage or publish a partially updated window.
+  const auto valid=capture(view->surface(),"rtt-valid");
+  const auto beforeReject=view->frameCount();
+  texture->type=SoSceneTexture2::RGBA16F;
+  require(until([&]{return view->property("wgpuFrameStatus").toInt()==CoinRenderAction::UNSUPPORTED;}),"RTT format was not rejected");
+  require(view->frameCount()==beforeReject,"rejected candidate counted as a publication"); spin(250);
+  require(view->surface()!=nullptr && view->property("wgpuFallbackReason").toString().isEmpty(),"RTT admission caused legacy fallback");
+  const auto rejected=capture(view->surface(),"rtt-rejected");
+  require(difference(valid,rejected)<.01,"RTT rejection changed actual window publication");
+  texture->type=SoSceneTexture2::RGBA8; producerMaterial->diffuseColor=SbColor(1,.05f,.02f);
+  errors.clear(); rendered(view,"rtt-recovered");
+  root->unref(); report["direct_rtt_window"]=true;
 }
 void lifecycle(const QString & test) {
   QMainWindow window;
@@ -524,7 +562,7 @@ int main(int argc,char **argv) {
     if(QStringList{"retained-rejection","colorbar","navicube","depth","polygon-offset","annotation","foregroundroot","decorationroot","axis-cross","rubber-band"}.contains(test)) {
       visual(test);
     } else {
-      lifecycle(test);
+      if(test=="rtt-window") rttWindow(); else lifecycle(test);
     }
     require(errors.empty(),"Qt reported a WGPU rendering failure");
   } catch(const std::exception & error) {

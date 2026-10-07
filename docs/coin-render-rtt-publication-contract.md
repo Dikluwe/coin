@@ -141,3 +141,8 @@ Registros locais: `/tmp/coin-p13-{wgpu,bgfx}-regression.log`,
 `/tmp/coin-p13-bgfx-final-descriptors.log`. A campanha 70/70 precede a extensão
 da fixture async; os 16 casos afetados foram repetidos após essa extensão.
 Esses resultados não encerram a matriz física de P20 nem a recuperação geral P14.
+
+A [continuação Linux](coin-render-linux-nodes-resources-closure.md) acrescenta
+RTT direto de janela, recuperação no host e serial de publicação por surface
+wgpu. O perfil histórico da tabela acima permanece registrado; os novos limites
+e gates estão na continuação.

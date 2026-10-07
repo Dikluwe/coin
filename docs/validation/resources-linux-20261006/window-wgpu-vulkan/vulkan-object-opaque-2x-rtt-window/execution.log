@@ -1,0 +1,9 @@
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=2 size=960x720
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=4 size=960x720
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=6 size=960x720
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=8 size=960x720
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=10 size=1060x780
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=12 size=1060x780
+QT 1 CoinRender frame rejected; previous image retained: "SoSceneTexture2 supports units 0..7, RGBA8, MODULATE/REPLACE/DECAL/BLEND, REPEAT/CLAMP, NONE/ALPHA_BLEND/ALPHA_TEST and SoTransparencyType scene policy"
+COIN_RENDER_PHASE wgpu_surface renderer=vulkan vendor_id=0x1002 device_id=0x1638 device_type=IntegratedGpu surface=1 serial=14 size=1060x780
+RESULT {"adapter":"AMD Radeon Graphics (RADV RENOIR) (Vulkan)","direct_rtt_window":true,"gpu_available":1,"renderer":"vulkan","status":"PASS","test":"rtt-window"}

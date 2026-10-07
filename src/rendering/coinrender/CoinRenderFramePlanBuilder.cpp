@@ -890,11 +890,15 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
   tSnap.pixelsRgba = std::move(rgba);
   if (isSceneTexture) {
-    if (quality>.5f) {
-      this->isUnsupported=true; this->builderError="P07 RTT sampling requires linear quality (0,0.5]; RTT mipmaps/nearest are outside this profile";
+    // SoSceneTexture2's FBO sampler is always linear, and becomes trilinear
+    // strictly above 0.5 (unlike stored SoTexture2 quality thresholds).
+    filter = quality > .5f ? CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR
+                           : CoinRenderTextureFilter::LINEAR;
+    tSnap.mipmapped = quality > .5f;
+    if (!CoinRenderTextureSamplingCore::validMipImage(tSnap)) {
+      this->isUnsupported=true; this->builderError="RTT mipmaps require power-of-two RGBA8 extents";
       if(outError)*outError=this->builderError; return false;
     }
-    filter=CoinRenderTextureFilter::LINEAR;
   } else if (CoinRenderTextureSamplingCore::mipFilter(filter) &&
              !CoinRenderTextureSamplingCore::generate(tSnap)) {
     this->isUnsupported=true;this->builderError="P07 mipmaps require power-of-two 2D RGBA8 images and at most 128 MiB including all levels";

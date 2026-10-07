@@ -18,7 +18,7 @@ usam a nova rejeição. O protocolo privado permanece em 49, sem mudança na ABI
 | SoFCBoundingBox | prepara caixa/rótulos, modelo projetado e depth explícito | cantos dentro do volume de profundidade; dependência de geometric depth clamp é recusada |
 | SoShapeScale | atualiza escala antes de atravessar o kit | campo shape precisa conter geometria; shape nulo é vazio |
 | SoTransformDragger | prepara cache e escala dos eixos | pixels, translation e caminhos lógicos de picking; arraste por eventos ainda separado |
-| SoPolygon | contorno fechado retido com segmentos independentes, largura 3 e BASE_COLOR | faixa válida, até 65.536 pontos; menos de dois pontos é vazio |
+| SoPolygon | contorno fechado em generatePrimitives, segmentos independentes, largura 3 e BASE_COLOR | faixa válida, até 65.536 pontos; menos de dois pontos é vazio |
 | SoFCMeshGridNode | linhas verdes retidas | 1..128 por eixo, até 99.846 vértices; (0,0,0) é inerte |
 | SoFCColorBar | prepara viewport antes de atravessar rótulos/gradiente | câmera foreground com height 10; três intervalos/precisões comparados com CoinGL |
 
@@ -79,14 +79,10 @@ executou o backend.
 Windows deve repetir build, callbacks, pixels, DPI, input e rejeição/recuperação.
 Os consumidores completos Sketcher/Measure, spline Part, Mesh/FEM e arraste do
 dragger precisam de fixtures próprias; os tipos reais usados no viewport não
-certificam todos os workbenches. A dependência de depth clamp do bbox e o registro tardio de subclasses em SoCallbackAction ficam como estudos.
-Na primeira captura primitiva do Polygon, uma action criada depois do import
-emitia quatro segmentos; a action do viewport já existia antes de MeshGui ser
-carregado e não produzia pixels. `set_callback_data` enumera os tipos derivados
-no registro, e `shouldGeneratePrimitives` consulta essa tabela por ID. Esse
-mecanismo é compatível com a omissão observada; a melhoria futura deve tratar
-novos tipos, callbacks do usuário e invalidação de caches sem duplicar callbacks.
-O perfil publicado usa linhas retidas de tipos padrão já inicializados.
-Formatos/mips RTT adicionais, RTT direto de janela, shaders, volume/cubo e
+certificam todos os workbenches. A dependência de depth clamp do bbox permanece estudo. A
+[continuação Linux](coin-render-linux-nodes-resources-closure.md) corrige o registro
+tardio de subclasses, volta ao Polygon primitivo, qualifica BSpline curva e
+superfície Part::Spline e amplia RTT com janela direta e mips staged.
+Mips GPU diretos, formatos adicionais, shaders, volume/cubo e
 MSAA/multipass continuam nas frentes de recursos; suas definições de contrato
 não equivalem a executores implementados.
