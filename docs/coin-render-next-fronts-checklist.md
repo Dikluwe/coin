@@ -7,6 +7,15 @@ P02/P04/P05/P06 e do primeiro perfil P07, na branch
 precisam de ampliação ou qualificação apenas nos escopos indicados.
 O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
 
+O checkout de continuação deste PC fica em
+`/mnt/Laranja/Git/externos/coin-render`, na branch `codex/coin-render`.
+Esta checklist, fontes e evidências em `docs/validation` são versionados e
+publicados no fork. Não usar `/tmp` como checkout de desenvolvimento nem como
+única cópia de evidências; os paths `/tmp` nos logs anteriores são históricos.
+Builds, SDKs e arquivos ainda necessários à continuação devem ficar em armazenamento
+permanente. O antigo checkout temporário foi recuperado do commit `20f987b7c9`
+em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
+
 ## 1. Contrato comum de texturas — P07, primeira implementação
 
 - [x] Definir o perfil inicial de UV DEFAULT/FUNCTION com textura ativa,
