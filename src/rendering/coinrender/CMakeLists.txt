@@ -154,8 +154,9 @@ add_library(CoinWgpuExperimental ALIAS CoinRender)
 set_target_properties(CoinRender PROPERTIES
 	CXX_VISIBILITY_PRESET hidden
 	VISIBILITY_INLINES_HIDDEN ON
-	COMPILE_DEFINITIONS "COIN_RENDER_INTERNAL;COIN_INTERNAL;HAVE_CONFIG_H"
 )
+target_compile_definitions(CoinRender PRIVATE
+	COIN_RENDER_INTERNAL COIN_INTERNAL HAVE_CONFIG_H)
 
 target_include_directories(CoinRender PUBLIC
 	$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/experimental/include>
