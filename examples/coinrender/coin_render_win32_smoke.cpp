@@ -1,4 +1,4 @@
-/* Win32 surface smoke for the experimental wgpu/D3D12 connector.
+/* Win32 surface smoke for the experimental BGFX and wgpu connectors.
  * Run on a real Windows GPU; CoinRender never owns either HWND. */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
@@ -98,9 +98,14 @@ bool render(WindowRun & run, SoSeparator * scene, bool capture) {
   if (size != run.target->getSize() && !run.target->resize(size)) return false;
   run.action->setViewportRegion(SbViewportRegion(size[0], size[1]));
   if (capture && !run.target->requestWindowReadbackRGBA()) return false;
+  const uint64_t priorSerial = run.target->getLastSubmissionSerial();
   run.action->apply(scene);
   if (run.action->getLastStatus() != CoinRenderAction::SUCCESS) {
     std::cerr << "Win32 render failed: " << run.action->getLastError().getString() << '\n';
+    return false;
+  }
+  if (run.target->getLastSubmissionSerial() <= priorSerial) {
+    std::cerr << "Window submission serial did not advance\n";
     return false;
   }
   std::vector<uint8_t> rgba;
@@ -142,6 +147,41 @@ bool compareOffscreen(WindowRun& run, SoSeparator* scene, const char* fixture) {
   std::cout << "window_offscreen fixture=" << fixture
             << " max_channel_delta=" << maximumDifference << " tolerance=3\n";
   return maximumDifference <= 3;
+}
+
+bool detachedTicket(SoSeparator * scene, const CoinRenderOptions & options,
+                    CoinRenderReadbackTicket & ticket, std::vector<uint8_t> & expected) {
+  std::unique_ptr<CoinRenderTarget> target(
+    CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), options));
+  if (!target || target->getStatus() != CoinRenderTarget::TARGET_READY) return false;
+  CoinRenderAction action(SbViewportRegion(32, 32));
+  action.setRenderTarget(target.get());
+  action.apply(scene);
+  target->readbackRGBA(expected);
+  if (action.getLastStatus() != CoinRenderAction::SUCCESS || expected.size() != 32 * 32 * 4)
+    return false;
+  action.applyAsync(scene, ticket);
+  return action.getLastStatus() == CoinRenderAction::SUCCESS && ticket.token &&
+    ticket.width == 32 && ticket.height == 32 && ticket.submissionSerial &&
+    ticket.submissionSerial == target->getLastSubmissionSerial();
+  // Both producer objects are destroyed before the HWND is replaced.
+}
+
+bool consumeDetachedTicket(const CoinRenderReadbackTicket & ticket,
+                           const std::vector<uint8_t> & expected) {
+  std::vector<uint8_t> color;
+  std::vector<float> depth;
+  for (int i = 0; i < 5000; ++i) {
+    const auto status = CoinRenderTarget::pollReadback(ticket, color, depth);
+    if (status == CoinRenderTarget::READBACK_READY) {
+      if (color != expected) return false;
+      return CoinRenderTarget::pollReadback(ticket, color, depth) ==
+        CoinRenderTarget::READBACK_INVALID_TICKET;
+    }
+    if (status != CoinRenderTarget::READBACK_NOT_READY) return false;
+    Sleep(1);
+  }
+  return false;
 }
 }
 
@@ -218,6 +258,14 @@ int main(int argc, char** argv) {
     windows[1].target->readbackRGBA(survivorPixels);
   }
   for (int cycle = 0; ok && cycle < 3; ++cycle) {
+    CoinRenderReadbackTicket ticket{};
+    std::vector<uint8_t> expected;
+    const uint64_t survivorSerial = windows[1].target->getLastSubmissionSerial();
+    ok = detachedTicket(scene, windows[0].target->getOptions(), ticket, expected);
+    if (!ok) {
+      if (ticket.token) CoinRenderTarget::cancelReadback(ticket);
+      break;
+    }
     const HWND old = windows[0].hwnd;
     windows[0].action.reset();
     windows[0].target.reset();
@@ -229,12 +277,16 @@ int main(int argc, char** argv) {
     ok = DestroyWindow(old) && ok;
     pumpMessages();
     ok = ok && !IsWindow(old) && createTarget(windows[0], instance, renderer) &&
-      render(windows[0], scene, false) && compareOffscreen(windows[0], scene, "recreated") &&
-      render(windows[1], scene, true);
+      render(windows[0], scene, false) && compareOffscreen(windows[0], scene, "recreated");
+    ok = ok && windows[1].target->getLastSubmissionSerial() == survivorSerial &&
+      consumeDetachedTicket(ticket, expected);
+    if (!ok) CoinRenderTarget::cancelReadback(ticket);
+    ok = ok && render(windows[1], scene, true);
     std::vector<uint8_t> after;
     windows[1].target->readbackRGBA(after);
     ok = ok && framebufferSize(windows[1].hwnd) == survivorSize && after == survivorPixels;
-    std::cout << "hwnd_recreation cycle=" << cycle + 1 << " survivor_unchanged=" << ok << '\n';
+    std::cout << "hwnd_recreation cycle=" << cycle + 1 << " survivor_unchanged=" << ok
+              << " detached_ticket_exact=" << ok << " survivor_serial_isolated=" << ok << '\n';
   }
   if (ok) {
     EnumDisplayMonitors(NULL, NULL, collectMonitor, 0);
