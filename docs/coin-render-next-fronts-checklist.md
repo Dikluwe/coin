@@ -201,6 +201,8 @@ Fechamento por backend/API/driver/plataforma/alvo; manter skips, diferenças
 visuais e dispositivos indisponíveis separados dos passes. A documentação
 Windows foi reconciliada com BGFX/D3D12 já implementado, sem requalificação
 Windows de código novo neste PC.
+O [roteiro Windows de 2026-10-07](coin-render-windows-continuation-20261007.md)
+detalha pré-requisitos, APIs, gates e prioridades para a continuação no outro PC.
 
 ## 6. Critérios para cada entrega
 
