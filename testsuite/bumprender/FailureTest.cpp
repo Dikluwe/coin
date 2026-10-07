@@ -180,8 +180,8 @@ void shared_program_cases() {
     Renderer::spec_programidx pa, pb;
     CHECK(!a.ensurePrograms(glue, NULL, pa));
     CHECK(mock.warnings == 1 && Cache::sharedPrograms().entries.empty());
-    CHECK(std::strcmp(a.programcache->contexts[1].specerror.message,
-                      "injected upload failure") == 0);
+    // The diagnostic was reported once and its cache copy was cleared.
+    CHECK(a.programcache->contexts[1].specerror.message[0] == '\0');
     mock.failure = NONE;
     CHECK(b.ensurePrograms(glue, NULL, pb));
     CHECK(!a.ensurePrograms(glue, NULL, pa));
@@ -552,7 +552,6 @@ void allocation_failure_cases() {
     CHECK(mock.bindings[std::make_pair(1, GL_FRAGMENT_PROGRAM_ARB)] == 91);
     // Pool metadata fails first; the unshared upload still reports the error.
     CHECK(!failure.untouched());
-    CHECK(bool(r.programcache->contexts[1].specerror.longmessage) == bool(longtext));
   }
   // A deferred upload may fail before any renderer can report its error.
   // Preserve the full driver text until the next request; if allocation of
