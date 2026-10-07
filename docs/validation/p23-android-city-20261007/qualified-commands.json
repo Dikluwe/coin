@@ -1,0 +1,527 @@
+[
+  {
+    "name": "qualified-install",
+    "command": [
+      "install",
+      "--no-incremental",
+      "-r",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-stop",
+    "command": [
+      "shell",
+      "am",
+      "force-stop",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-old-pid-0",
+    "command": [
+      "shell",
+      "pidof",
+      "org.coin3d.coinrender.p23"
+    ],
+    "exit": 1
+  },
+  {
+    "name": "qualified-clear",
+    "command": [
+      "logcat",
+      "-c"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-start",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-before",
+    "command": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-baseline",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-yaw",
+    "command": [
+      "shell",
+      "input",
+      "swipe",
+      "378",
+      "1200",
+      "702",
+      "1200",
+      "600"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-yaw",
+    "command": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-zoom",
+    "command": [
+      "shell",
+      "input",
+      "swipe",
+      "540",
+      "1800",
+      "540",
+      "600",
+      "600"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-zoom",
+    "command": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-interaction",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-home-1",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "3"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-reopen-1",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-return-1",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-home-2",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "3"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-reopen-2",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-return-2",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-home-3",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "3"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-reopen-3",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-return-3",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-portrait",
+    "command": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "0"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-portrait",
+    "command": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-landscape",
+    "command": [
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "1"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-landscape",
+    "command": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-lifecycle",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-back-1",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "4"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-exit-1",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-launcher-1",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-relaunch-1",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-back-2",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "4"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-exit-2",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-launcher-2",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-relaunch-2",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-exit",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "4"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-cube-start",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity",
+      "--ez",
+      "coinrender_city",
+      "false",
+      "--ez",
+      "coinrender_continuous",
+      "false"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-cube",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-cube-exit",
+    "command": [
+      "shell",
+      "input",
+      "keyevent",
+      "4"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-final",
+    "command": [
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-a",
+      "android.intent.action.MAIN",
+      "-c",
+      "android.intent.category.LAUNCHER",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-final",
+    "command": [
+      "logcat",
+      "-d",
+      "-v",
+      "threadtime",
+      "CoinRenderP23:I",
+      "CoinRenderWgpu:I",
+      "AndroidRuntime:E",
+      "libc:F",
+      "*:S"
+    ],
+    "exit": 0
+  },
+  {
+    "name": "qualified-city-final",
+    "command": [
+      "exec-out",
+      "screencap",
+      "-p"
+    ],
+    "exit": 0
+  }
+]

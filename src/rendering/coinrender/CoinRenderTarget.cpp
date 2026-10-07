@@ -87,6 +87,17 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
 
 CoinRenderTargetP::~CoinRenderTargetP()
 {
+#if defined(__ANDROID__)
+  // Serialize the idle transition with new target registration. The offscreen
+  // peer keeps this registry nonempty during window TERM/INIT cycles.
+  auto& registry = targetRegistry();
+  std::lock_guard<std::mutex> guard(registry.mutex);
+  registry.targets.erase(std::remove(registry.targets.begin(), registry.targets.end(), this),
+                         registry.targets.end());
+  this->runtime->destroySurface(*this);
+  this->backend.reset();
+  if (registry.targets.empty()) this->runtime->releaseIdleDevice();
+#else
   {
     auto& registry = targetRegistry();
     std::lock_guard<std::mutex> guard(registry.mutex);
@@ -95,6 +106,7 @@ CoinRenderTargetP::~CoinRenderTargetP()
   }
   this->runtime->destroySurface(*this);
   this->backend.reset();
+#endif
 }
 
 bool

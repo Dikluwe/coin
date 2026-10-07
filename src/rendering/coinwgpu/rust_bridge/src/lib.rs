@@ -1680,6 +1680,8 @@ fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
 }
 
 static RUNTIME_CTX: Mutex<Option<RuntimeContext>> = Mutex::new(None);
+#[cfg(target_os = "android")]
+static ANDROID_RUNTIME_GENERATION: AtomicU64 = AtomicU64::new(0);
 static VALIDATED_FRAME_CACHE: Mutex<Option<(u64, Vec<composition::CompositionItem>)>> =
     Mutex::new(None);
 static NEXT_SURFACE_ID: AtomicU64 = AtomicU64::new(1);
@@ -1989,7 +1991,12 @@ fn init_runtime_if_needed() -> Result<(), String> {
             instance: wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default()),
             surfaces: HashMap::new(),
             device_state: None,
-            device_generation: 0,
+            device_generation: {
+                #[cfg(target_os = "android")]
+                { ANDROID_RUNTIME_GENERATION.load(Ordering::SeqCst) }
+                #[cfg(not(target_os = "android"))]
+                { 0 }
+            },
             pending_readbacks: HashMap::new(),
             retired_readbacks: Vec::new(),
             extra_devices: HashMap::new(),
@@ -1998,6 +2005,45 @@ fn init_runtime_if_needed() -> Result<(), String> {
         });
     }
     Ok(())
+}
+
+// NativeActivity may finish its render thread while the process stays alive.
+// Drop the idle EGL/device on that thread, before it exits. Never invalidate a
+// surviving target, direct RTT publication, explicit device, or readback ticket.
+#[cfg(target_os = "android")]
+#[no_mangle]
+pub extern "C" fn coin_wgpu_release_idle_android_runtime() -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        let mut guard = match RUNTIME_CTX.lock() {
+            Ok(guard) => guard,
+            Err(_) => return CoinWgpuStatus::BackendError,
+        };
+        let Some(runtime) = guard.as_mut() else { return CoinWgpuStatus::Ok; };
+        reap_cancelled_readbacks(runtime);
+        if !runtime.surfaces.is_empty() || !runtime.pending_readbacks.is_empty()
+            || !runtime.retired_readbacks.is_empty() || !runtime.extra_devices.is_empty()
+            || !runtime.extra_generations.is_empty()
+        {
+            return CoinWgpuStatus::NotReady;
+        }
+        if let Some(device) = runtime.device_state.as_ref() {
+            match device.rtt_textures.lock() {
+                Ok(registry) if registry.active.is_empty() => (),
+                _ => return CoinWgpuStatus::NotReady,
+            }
+            let _ = device.device.poll(wgpu::Maintain::Wait);
+        }
+        let Some(next_generation) = runtime.device_generation.checked_add(1) else {
+            return CoinWgpuStatus::BackendError;
+        };
+        // Advance the epoch across process-local Activity lifetimes. Global
+        // ticket/token/submission IDs are intentionally never reset.
+        ANDROID_RUNTIME_GENERATION.store(next_generation, Ordering::SeqCst);
+        *guard = None;
+        DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
+        log::info!("Released idle Android renderer; next_generation={next_generation}");
+        CoinWgpuStatus::Ok
+    }).unwrap_or(CoinWgpuStatus::BackendError)
 }
 
 fn renderer_backend(renderer: u32) -> Result<Option<wgpu::Backends>, String> {

@@ -7,7 +7,12 @@ no NDK r30/API 26, ABI **x86_64**. O APK de desenvolvimento foi alinhado para
 APK pede **OpenGL ES pelo backend wgpu**, explicitamente. Vulkan permanece
 selecionável; não há troca automática de API após falha.
 
-[Relatório e evidência](coin-render-p23-apk-validation-20261007.md).
+[Primeiro relatório e evidência](coin-render-p23-apk-validation-20261007.md).
+A [continuação interativa](coin-render-p23-android-city-20261007.md) inclui
+40.000 prédios no APK atual, giro/zoom, launcher padrão, três recriações de
+janela com offscreen sobrevivente e reabertura após BACK no mesmo processo.
+O cubo do primeiro APK é selecionável explicitamente; esse relatório anterior
+é histórico.
 
 ## Fronteira do Coin base
 

@@ -4,6 +4,7 @@
     <application android:hasCode="false" android:label="CoinRender P23">
         <activity android:name="android.app.NativeActivity"
             android:exported="true"
+            android:launchMode="singleTask"
             android:configChanges="orientation|screenSize|density|keyboardHidden">
             <meta-data android:name="android.app.lib_name"
                 android:value="coin_render_android_smoke" />

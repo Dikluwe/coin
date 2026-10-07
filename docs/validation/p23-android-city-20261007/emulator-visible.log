@@ -1,0 +1,477 @@
+INFO         | Android emulator version 37.2.12.0 (build_id 16428233) (CL:N/A)
+INFO         | Graphics backend: gfxstream
+INFO         | Found systemPath /home/dikluwe/Android/Sdk/system-images/android-37.0/google_apis_playstore/x86_64/
+INFO         | Guest usage of host flag 'VulkanVirtualQueue' will be ignored.
+INFO         | Increasing RAM size to 4096MB
+INFO         | Guest GLES Driver: Auto (ext controls)
+INFO         | emuglConfig_init: vulkan_mode_selected:host gles_mode_selected:host
+INFO         | emuglConfig_get_vulkan_hardware_gpu_support_info: Found physical GPU 'AMD Radeon Graphics (RADV RENOIR)', type: VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU, apiVersion: 1.4.318, driverVersion: 25.2.8
+
+INFO         | Enabled VulkanAllocateDeviceMemoryOnly feature for gpu vendor AMD Radeon Graphics (RADV RENOIR) on Linux
+
+INFO         | Enabled VulkanAllocateHostMemory feature for gpu vendor AMD Radeon Graphics (RADV RENOIR)
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `Medium_Phone_API_37.0` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `Medium_Phone_API_37.0` are passed
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `Medium_Phone_API_37.0` are met
+WARNING      | File System is not ext4, disable QuickbootFileBacked feature
+WARNING      | Emulator does not support more than 6 cores. Number of cores set to 6
+INFO         | Storing crashdata in: /tmp/android-dikluwe/emu-crash-37.2.12.db, detection is enabled for process: 4181395
+INFO         | Initializing gfxstream backend
+INFO         | startOpenglesRendererImpl: gpu info
+INFO         | 
+INFO         | Vulkan 1.4 is not supported for the guest and won't be enabled
+INFO         | SharedLibrary::open for [/home/dikluwe/Android/Sdk/emulator/qemu/linux-x86_64/lib64/vulkan/libvulkan.so]
+INFO         | SharedLibrary::open for [/home/dikluwe/Android/Sdk/emulator/qemu/linux-x86_64/lib64/vulkan/libvulkan.so.1]
+INFO         | SharedLibrary::open for [/home/dikluwe/Android/Sdk/emulator/lib64/vulkan/libvulkan.so]
+INFO         | Added library: /home/dikluwe/Android/Sdk/emulator/lib64/vulkan/libvulkan.so
+INFO         | Selecting Vulkan device: AMD Radeon Graphics (RADV RENOIR), Version: 1.4.318
+INFO         | Using Vulkan externalMemoryMode: OpaqueFd for VkEmulation
+INFO         | Format VK_FORMAT_G10X6_B10X6R10X6_2PLANE_422_UNORM_3PACK16 does not support YCbCr sampler conversion
+INFO         | SharedLibrary::open for [libX11]
+INFO         | SharedLibrary::open for [libX11-xcb]
+INFO         | SharedLibrary::open for [libGL.so.1]
+INFO         | Initializing VkEmulation features:
+INFO         |     glInteropSupported: true
+INFO         |     useDeferredCommands: true
+INFO         |     createResourceWithRequirements: true
+INFO         |     useVulkanComposition: false
+INFO         |     useVulkanNativeSwapchain: false
+INFO         |     enable guestRenderDoc: false
+INFO         |     ASTC LDR emulation mode: Gpu
+INFO         |     enable ETC2 emulation: true
+INFO         |     enable Ycbcr emulation: false
+INFO         |     guestVulkanOnly: false
+INFO         |     useDedicatedAllocations: true
+INFO         |     guestVulkanMaxApiVersion: 1.3.0
+INFO         |     enableProtectedMemoryEmulation: false
+INFO         | Graphics Adapter Vendor Google (AMD)
+INFO         | Graphics Adapter Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic))
+INFO         | Graphics API Version OpenGL ES 3.0 (4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4)
+INFO         | Graphics API Extensions GL_OES_EGL_sync GL_OES_EGL_image GL_OES_EGL_image_external GL_OES_depth24 GL_OES_depth32 GL_OES_element_index_uint GL_OES_texture_float GL_OES_texture_float_linear GL_OES_compressed_paletted_texture GL_OES_compressed_ETC1_RGB8_texture GL_OES_depth_texture GL_OES_texture_half_float GL_OES_texture_half_float_linear GL_OES_packed_depth_stencil GL_OES_vertex_half_float GL_OES_texture_npot GL_OES_rgb8_rgba8 GL_EXT_color_buffer_float GL_EXT_color_buffer_half_float GL_EXT_texture_format_BGRA8888 GL_APPLE_texture_format_BGRA8888 
+INFO         | Graphics Device Extensions N/A
+INFO         | Disabling sparse binding feature support
+INFO         | Sending adb public key [QAAAAP/Brz8BwrMW4fMphNRHSXWoJkR5yeupvf8R/sIkrCmuhUzDuKCR+sQbB1v9IKjchDQzuIzpy2O5MHOc0i2ZuDsQYrFdno8ldWEMK4cD1lAMA+RcR6UVL+C6QKXojwHRg0Af2apOAXI7M9ZhwiJ7oymFDWDUxvEZTeXF7F25nxzZXPcTrKLYgt38ZtHv380Lr5spRw2DX3/zKvbeo+sUd+WU1qPOMbV+5Gfh4uirLf8LVIFNgOFBhhOscPJ1UqMgQ8OA5LTW2PewFWkbP5iuS3OPMfECBYeU+97Bek8TeIVIisSey8wl1rYZRL3LpDqKiyjIdKcV+dd71WfqRjvCMkMlH1GnZfPer+w3ykjr0XY3tfy8gWQJvjsqLWbX1dkEJDjoILLE2aQsqacGnL5NueCZ5nonFF9fYHX1MYUUzRk9fPNk05CmGpHuXG+hVxi5qsWSrlmYYz0dTFweGuqDCg3ErF1meMgbtv4b+JWpS5A2NoLixkFRpRpvspsitwnBnRU/gMtAy+utU5RYOfw09uvxegy7Av7KRdor2in13Y4M+rLOYkZxY0oW5l1zUOaNembtoyihaq58xStT7ffQNte9PXlNPHDTaIzI3raRVJX1w5PCRvPHKoJ9MwywkLN8EpDJcRsMvbA6vFHmJgkRkMYWVDkS+JJ1HNb9yEfHw7cbIpjyTQEAAQA= dikluwe@unknown]
+INFO         | Userspace boot properties:
+INFO         |   androidboot.boot_devices=pci0000:00/0000:00:03.0 pci0000:00/0000:00:06.0
+INFO         |   androidboot.dalvik.vm.heapsize=576m
+INFO         |   androidboot.debug.hwui.renderer=skiagl
+INFO         |   androidboot.debug.sf.nobootanimation=1
+INFO         |   androidboot.hardware=ranchu
+INFO         |   androidboot.hardware.gltransport=pipe
+INFO         |   androidboot.hardware.vulkan=ranchu
+INFO         |   androidboot.logcat=*:V
+INFO         |   androidboot.opengles.version=196609
+INFO         |   androidboot.qemu=1
+INFO         |   androidboot.qemu.adb.pubkey=QAAAAP/Brz8BwrMW4fMphNRHSXWoJkR5yeupvf8R/sIkrCmuhUzDuKCR+sQbB1v9IKjchDQzuIzpy2O5MHOc0i2ZuDsQYrFdno8ldWEMK4cD1lAMA+RcR6UVL+C6QKXojwHRg0Af2apOAXI7M9ZhwiJ7oymFDWDUxvEZTeXF7F25nxzZXPcTrKLYgt38ZtHv380Lr5spRw2DX3/zKvbeo+sUd+WU1qPOMbV+5Gfh4uirLf8LVIFNgOFBhhOscPJ1UqMgQ8OA5LTW2PewFWkbP5iuS3OPMfECBYeU+97Bek8TeIVIisSey8wl1rYZRL3LpDqKiyjIdKcV+dd71WfqRjvCMkMlH1GnZfPer+w3ykjr0XY3tfy8gWQJvjsqLWbX1dkEJDjoILLE2aQsqacGnL5NueCZ5nonFF9fYHX1MYUUzRk9fPNk05CmGpHuXG+hVxi5qsWSrlmYYz0dTFweGuqDCg3ErF1meMgbtv4b+JWpS5A2NoLixkFRpRpvspsitwnBnRU/gMtAy+utU5RYOfw09uvxegy7Av7KRdor2in13Y4M+rLOYkZxY0oW5l1zUOaNembtoyihaq58xStT7ffQNte9PXlNPHDTaIzI3raRVJX1w5PCRvPHKoJ9MwywkLN8EpDJcRsMvbA6vFHmJgkRkMYWVDkS+JJ1HNb9yEfHw7cbIpjyTQEAAQA= dikluwe@unknown
+INFO         |   androidboot.qemu.avd_name=Medium_Phone_API_37.0
+INFO         |   androidboot.qemu.camera_hq_edge_processing=0
+INFO         |   androidboot.qemu.camera_protocol_ver=1
+INFO         |   androidboot.qemu.cpuvulkan.version=4210688
+INFO         |   androidboot.qemu.gltransport.drawFlushInterval=800
+INFO         |   androidboot.qemu.gltransport.name=pipe
+INFO         |   androidboot.qemu.hwcodec.avcdec=2
+INFO         |   androidboot.qemu.hwcodec.hevcdec=2
+INFO         |   androidboot.qemu.hwcodec.vpxdec=2
+INFO         |   androidboot.qemu.settings.system.screen_off_timeout=2147483647
+INFO         |   androidboot.qemu.skin=1080x2400
+INFO         |   androidboot.qemu.virtiowifi=1
+INFO         |   androidboot.qemu.vsync=60
+INFO         |   androidboot.serialno=EMULATOR37X2X12X0
+INFO         |   androidboot.vbmeta.digest=bb50238116ebb95ca407415523d34be28a89696874f73533dd0f9f9168801771
+INFO         |   androidboot.vbmeta.hash_alg=sha256
+INFO         |   androidboot.vbmeta.size=6720
+INFO         |   androidboot.veritymode=enforcing
+WARNING: cannnot unmap ptr 0x715a6e201000 as it is in the protected range from 0x71596e200000 to 0x715a6e400000
+pc_memory_init: above 4g size: 40000000
+INFO         | Monitoring duration of emulator setup.
+WARNING      | The emulator now requires a signed jwt token for gRPC access! Use the -grpc flag if you really want an open unprotected grpc port
+INFO         | Using security allow list from: /home/dikluwe/Android/Sdk/emulator/lib/emulator_access.json
+INFO         | The active JSON Web Key Sets can be found here: /run/user/1000/avd/running/4181395/jwks/6e01d715-4f3d-40bb-8649-63a321ceb44b/active.jwk
+INFO         | Scanning /run/user/1000/avd/running/4181395/jwks/6e01d715-4f3d-40bb-8649-63a321ceb44b for jwk keys.
+INFO         | Started GRPC server at 127.0.0.1:8554, security: Local, auth: +token
+INFO         | Advertising in: /run/user/1000/avd/running/pid_4181395.ini
+INFO         | Activated packet streamer for uwb emulation
+INFO         | Successfully initialized netsim WiFi
+INFO         | Activated packet streamer for bluetooth emulation
+INFO         | Setting display: 0 configuration to: 1080x2400, dpi: 420x420 
+INFO         | setDisplayActiveConfig: id:0, 1080x2400
+INFO         | Checking system compatibility:
+INFO         |   Checking: hasSufficientDiskSpace
+INFO         |      Ok: Disk space requirements to run avd: `Medium_Phone_API_37.0` are met
+INFO         |   Checking: hasSufficientHwGpu
+INFO         |      Ok: Hardware GPU requirements to run avd: `Medium_Phone_API_37.0` are passed
+INFO         |   Checking: hasSufficientSystem
+INFO         |      Ok: System requirements to run avd: `Medium_Phone_API_37.0` are met
+WARNING      | getEnvironmentConfig: No environment config is provided
+INFO         | getEnvironmentConfig: Using default virtual scene mode for the environment.
+INFO         | getEnvironmentConfig: Using default configuration for mode mesh3d for the environment.
+INFO         | Initializing a scene with mode: mesh3d, argument: Toren1BD.obj
+INFO         | GPU Vendor=[Google (AMD)]
+INFO         | GPU Renderer=[Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic))]
+INFO         | GPU Version=[OpenGL ES 3.0 (4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4)]
+INFO         | Loading snapshot 'default_boot'...
+WARNING      | Device 'cache' does not have the requested snapshot 'default_boot'
+
+WARNING      | Failed to load snapshot 'default_boot'
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_rgbcSensorValueWidget_valueChanged() (:0, )
+INFO         | Warning: QMetaObject::connectSlotsByName: No matching signal for on_posture_valueChanged(int) (:0, )
+INFO         | TouchpadHolder: registering via hw_xr_led agent for instance=0x58ecea319580
+INFO         | Warning: QObject::connect: Cannot queue arguments of type 'std::vector<android::emulation::control::SnapshotInfo>'
+(Make sure 'std::vector<android::emulation::control::SnapshotInfo>' is registered using qRegisterMetaType().) (:0, )
+INFO         | AVD supportsNativeGLES=1, supportsGuestAngle=1
+INFO         | Guest Angle is still unstable for API > 35.
+INFO         | Created extended window in 694.312ms
+WARNING      | adb command '/home/dikluwe/Android/Sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb: device offline'
+WARNING      | adb command '/home/dikluwe/Android/Sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb: device offline'
+WARNING      | adb command '/home/dikluwe/Android/Sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb: device offline'
+WARNING      | adb command '/home/dikluwe/Android/Sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb: device offline'
+WARNING      | adb command '/home/dikluwe/Android/Sdk/platform-tools/adb -s emulator-5554 shell getprop sys.boot_completed ' failed: 'adb: device offline'
+INFO         | Boot completed in 52474 ms
+INFO         | Increasing screen off timeout, logcat buffer size to 2M.
+INFO         | Created VkInstance:0x58ecf00ff000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ecf00ff000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Info: Sandboxing disabled by user. (:0, )
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+ERROR        | DisplaySurfaceGlContextHelper context was preempted by others, current=(nil), needed=0x3, thread=0x58ecf12e5548
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:internal_glDeleteSync:492 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteTextures:1403 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteMemoryObjectsEXT:4653 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteTextures:1403 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteBuffers:1313 error null ctx
+INFO         | Created VkInstance:0x58ecf0100800 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ecf0100800 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glClientWaitSync:537 error null ctx
+INFO         | Created VkInstance:0x58ecf219c000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ecf219c000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenRenderbuffers:1855 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindRenderbuffer:696 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetIntegerv:2472 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenFramebuffers:1840 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferRenderbuffer:1701 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindRenderbuffer:696 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenTextures:1869 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindTexture:734 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glTexStorage2D:733 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindTexture:734 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteBuffers:1313 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteBuffers:1313 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDeleteBuffers:1313 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenBuffers:1806 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferData:818 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenBuffers:1806 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferData:818 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenBuffers:1806 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferData:818 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenBuffers:1806 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferData:818 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGenBuffers:1806 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferData:818 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferSubData:827 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferSubData:827 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferSubData:827 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferSubData:827 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBufferSubData:827 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindBuffer:542 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glColorMask:874 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDepthMask:1479 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glStencilMask:3495 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferRenderbuffer:1701 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glScissor:3420 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnable:1661 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glViewport:4229 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDepthRangef:1485 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glDrawBuffers:584 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetIntegerv:2472 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glClearBufferfv:95 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glClearDepthf:860 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glClear:844 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBindFramebuffer:663 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glColorMask:874 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDepthMask:1479 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glStencilMask:3495 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferRenderbuffer:1701 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1762 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glScissor:3420 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnable:1661 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glViewport:4229 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDepthRangef:1485 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glDrawBuffers:584 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribIFormat:627 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnableVertexAttribArray:1684 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribFormat:620 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v31_imp.cpp:glVertexAttribBinding:613 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glUseProgram:4062 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetIntegerv:2472 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v30_imp.cpp:glBindSampler:854 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFrontFace:1800 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDisable:1520 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDepthFunc:1474 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glDepthMask:1479 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glStencilFuncSeparate:3490 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glStencilMaskSeparate:3501 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glStencilOpSeparate:3513 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnable:1661 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnable:1661 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glColorMask:874 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glEnable:1661 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBlendEquation:788 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glBlendFunc:803 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetIntegerv:2472 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetIntegerv:2472 error null ctx
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glGetError:2456 error null ctx
+INFO         | Created VkInstance:0x58ece75e1000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ece75e1000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58ecf219d800 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ecf219d800 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58ecf219f000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ecf219f000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58ece4ca4000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ece4ca4000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58eceb17b800 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58eceb17b800 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58ecead02800 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ecead02800 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58ece74f8000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ece74f8000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58eceacfe000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58eceacfe000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58eceff65000 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58eceff65000 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+INFO         | Created VkInstance:0x58ece74f9800 for application:'wgpu' engine:'wgpu-hal'.
+INFO         | Destroyed VkInstance:0x58ece74f9800 for application:'wgpu' engine:'wgpu-hal'.
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502
+/buildbot/src/googleplex-android/emu-37-2-release/hardware/google/gfxstream/host/gl/glestranslator/gles_v2/gles_v2_imp.cpp:glFramebufferTexture2D:1768 error 0x502

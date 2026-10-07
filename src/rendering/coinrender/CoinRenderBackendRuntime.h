@@ -24,6 +24,8 @@ public:
   virtual bool cancelReadback(const CoinRenderReadbackTicket &) { return false; }
   virtual bool cacheTelemetry(CoinRenderCacheTelemetry &) const { return false; }
   virtual void pollDevice() {}
+  // Called only after the last registered target releases all backend objects.
+  virtual void releaseIdleDevice() {}
 };
 
 #endif

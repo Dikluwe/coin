@@ -1,0 +1,213 @@
+[
+  {
+    "step": "configure",
+    "command": [
+      "cmake",
+      "-S",
+      "/mnt/Laranja/Git/externos/coin-render",
+      "-B",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64",
+      "-G",
+      "Ninja",
+      "-DCMAKE_TOOLCHAIN_FILE=/home/dikluwe/Android/Sdk/ndk/30.0.16248370/build/cmake/android.toolchain.cmake",
+      "-DANDROID_NDK=/home/dikluwe/Android/Sdk/ndk/30.0.16248370",
+      "-DANDROID_ABI=x86_64",
+      "-DANDROID_PLATFORM=android-26",
+      "-DANDROID_STL=c++_shared",
+      "-DCMAKE_BUILD_TYPE=Release",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_RENDER_BACKEND=RUST_BRIDGE",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=OFF",
+      "-DCOIN_RENDER_ANDROID_SMOKE_RENDERER=OPENGL"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "build",
+    "command": [
+      "cmake",
+      "--build",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64",
+      "--target",
+      "coin_render_android_smoke",
+      "-j",
+      "4"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "strip-libCoin",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
+      "--strip-unneeded",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libCoin.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "elf-libCoin",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf",
+      "-h",
+      "-l",
+      "-d",
+      "--dyn-syms",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libCoin.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "strip-libCoinRender",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
+      "--strip-unneeded",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libCoinRender.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "elf-libCoinRender",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf",
+      "-h",
+      "-l",
+      "-d",
+      "--dyn-syms",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libCoinRender.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "strip-libcoin_render_android_smoke",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
+      "--strip-unneeded",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libcoin_render_android_smoke.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "elf-libcoin_render_android_smoke",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf",
+      "-h",
+      "-l",
+      "-d",
+      "--dyn-syms",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libcoin_render_android_smoke.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "strip-libc++_shared",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-strip",
+      "--strip-unneeded",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libc++_shared.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "elf-libc++_shared",
+    "command": [
+      "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf",
+      "-h",
+      "-l",
+      "-d",
+      "--dyn-syms",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/native-x86_64/libc++_shared.so"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "generate-city",
+    "command": [
+      "python3",
+      "/mnt/Laranja/Git/externos/coin-render/examples/coinrender/generate_large_scene.py",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/city-40000.iv",
+      "--grid",
+      "200",
+      "--seed",
+      "136"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "aapt2",
+    "command": [
+      "/home/dikluwe/Android/Sdk/build-tools/36.0.0/aapt2",
+      "link",
+      "-o",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/unsigned.apk",
+      "--manifest",
+      "/mnt/Laranja/Git/externos/coin-render/examples/coinrender/AndroidManifest-p23.xml",
+      "-I",
+      "/home/dikluwe/Android/Sdk/platforms/android-37.0/android.jar",
+      "--min-sdk-version",
+      "26",
+      "--target-sdk-version",
+      "37",
+      "--version-code",
+      "1",
+      "--version-name",
+      "0.1-p23"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "zipalign",
+    "command": [
+      "/home/dikluwe/Android/Sdk/build-tools/36.0.0/zipalign",
+      "-P",
+      "16",
+      "-f",
+      "4",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/unsigned.apk",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/aligned.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "sign",
+    "command": [
+      "/home/dikluwe/Android/Sdk/build-tools/36.0.0/apksigner",
+      "sign",
+      "--ks",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/p23-development.keystore",
+      "--ks-key-alias",
+      "androiddebugkey",
+      "--ks-pass",
+      "pass:android",
+      "--key-pass",
+      "pass:android",
+      "--out",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/coin-render-p23-x86_64.apk",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/aligned.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "verify",
+    "command": [
+      "/home/dikluwe/Android/Sdk/build-tools/36.0.0/apksigner",
+      "verify",
+      "--verbose",
+      "--print-certs",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  },
+  {
+    "step": "verify-align",
+    "command": [
+      "/home/dikluwe/Android/Sdk/build-tools/36.0.0/zipalign",
+      "-c",
+      "-P",
+      "16",
+      "4",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/coin-render-p23-x86_64.apk"
+    ],
+    "exit": 0
+  }
+]

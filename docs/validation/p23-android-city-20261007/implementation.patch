@@ -1,0 +1,529 @@
+diff --git a/.github/scripts/build-coin-render-android-apk.py b/.github/scripts/build-coin-render-android-apk.py
+index 000a7d0e5d..fa7a51e80b 100644
+--- a/.github/scripts/build-coin-render-android-apk.py
++++ b/.github/scripts/build-coin-render-android-apk.py
+@@ -73,6 +73,10 @@ def main():
+         run('strip-' + source.stem, [llvm / 'bin/llvm-strip', '--strip-unneeded', dest])
+         hashes[str(dest)] = hashlib.sha256(dest.read_bytes()).hexdigest()
+         run('elf-' + source.stem, [llvm / 'bin/llvm-readelf', '-h', '-l', '-d', '--dyn-syms', dest])
++    city = output / 'city-40000.iv'
++    run('generate-city', ['python3', repo / 'examples/coinrender/generate_large_scene.py',
++        city, '--grid', '200', '--seed', '136'])
++    hashes[str(city)] = hashlib.sha256(city.read_bytes()).hexdigest()
+     raw, aligned = output / 'unsigned.apk', output / 'aligned.apk'
+     apk = output / ('coin-render-p23-' + args.abi + '.apk')
+     run('aapt2', [tools / 'aapt2', 'link', '-o', raw, '--manifest',
+@@ -81,6 +85,7 @@ def main():
+         '--min-sdk-version', '26', '--target-sdk-version', args.target_sdk,
+         '--version-code', '1', '--version-name', '0.1-p23'])
+     with zipfile.ZipFile(raw, 'a', compression=zipfile.ZIP_STORED) as archive:
++        archive.write(city, 'assets/city-40000.iv', compress_type=zipfile.ZIP_DEFLATED)
+         for library in sorted(staging.glob('*.so')):
+             archive.write(library, 'lib/' + args.abi + '/' + library.name)
+     run('zipalign', [tools / 'zipalign', '-P', '16', '-f', '4', raw, aligned])
+diff --git a/examples/coinrender/AndroidManifest-p23.xml b/examples/coinrender/AndroidManifest-p23.xml
+index 1eb4960549..b276df5c99 100644
+--- a/examples/coinrender/AndroidManifest-p23.xml
++++ b/examples/coinrender/AndroidManifest-p23.xml
+@@ -4,6 +4,7 @@
+     <application android:hasCode="false" android:label="CoinRender P23">
+         <activity android:name="android.app.NativeActivity"
+             android:exported="true"
++            android:launchMode="singleTask"
+             android:configChanges="orientation|screenSize|density|keyboardHidden">
+             <meta-data android:name="android.app.lib_name"
+                 android:value="coin_render_android_smoke" />
+diff --git a/examples/coinrender/coin_render_android_smoke.cpp b/examples/coinrender/coin_render_android_smoke.cpp
+index a62eadfc87..481308155f 100644
+--- a/examples/coinrender/coin_render_android_smoke.cpp
++++ b/examples/coinrender/coin_render_android_smoke.cpp
+@@ -2,6 +2,7 @@
+  * APP_CMD_INIT_WINDOW creates a new CoinRenderTarget; TERM_WINDOW destroys it
+  * before the NDK invalidates the pointer. No parallel scene interpretation. */
+ #include <android/log.h>
++#include <android/asset_manager.h>
+ #include <android/native_window.h>
+ #include <android_native_app_glue.h>
+ #include <sys/system_properties.h>
+@@ -9,6 +10,9 @@
+ #include <cstring>
+ 
+ #include <Inventor/SoDB.h>
++#include <Inventor/SoInput.h>
++#include <Inventor/actions/SoSearchAction.h>
++#include <Inventor/nodes/SoPerspectiveCamera.h>
+ #include <Inventor/actions/CoinRenderAction.h>
+ #include <Inventor/rendering/CoinRenderCapabilities.h>
+ #include <Inventor/rendering/CoinRenderNativeSurface.h>
+@@ -19,6 +23,9 @@
+ #include <Inventor/nodes/SoOrthographicCamera.h>
+ #include <Inventor/nodes/SoSeparator.h>
+ 
++#include <algorithm>
++#include <chrono>
++#include <cmath>
+ #include <cstdint>
+ #include <cstdlib>
+ #include <Inventor/actions/SoGLRenderAction.h>
+@@ -32,7 +39,8 @@ const char * const tag = "CoinRenderP23";
+ 
+ // Goldfish reports no Vulkan conformance version. This opt-in is exclusively
+ // for emulator diagnostics, never enabled for normal APK launches/hardware.
+-bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer) {
++bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
++                       bool & city, bool & continuous) {
+   char qemu[PROP_VALUE_MAX] = {};
+   __system_property_get("ro.kernel.qemu", qemu);
+   const bool isEmulator = std::strcmp(qemu, "1") == 0;
+@@ -56,6 +64,14 @@ bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer) {
+     jstring name = env->NewStringUTF("coinrender_allow_noncompliant_vulkan");
+     if (getBool) allowed = env->CallBooleanMethod(intent, getBool, name, JNI_FALSE) == JNI_TRUE;
+     env->DeleteLocalRef(name);
++    if (getBool) {
++      name = env->NewStringUTF("coinrender_city");
++      city = env->CallBooleanMethod(intent, getBool, name, city ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
++      env->DeleteLocalRef(name);
++      name = env->NewStringUTF("coinrender_continuous");
++      continuous = env->CallBooleanMethod(intent, getBool, name, continuous ? JNI_TRUE : JNI_FALSE) == JNI_TRUE;
++      env->DeleteLocalRef(name);
++    }
+     env->DeleteLocalRef(type);
+   }
+   if (env->ExceptionCheck()) { env->ExceptionClear(); allowed = false; }
+@@ -79,8 +95,19 @@ struct Host {
+   SoSeparator * scene = nullptr;
+   std::unique_ptr<CoinRenderAction> action;
+   std::unique_ptr<CoinRenderTarget> target;
++  // Keep the independent capture target alive across window recreations.
++  std::unique_ptr<CoinRenderTarget> captureTarget;
++  std::unique_ptr<CoinRenderAction> captureAction;
+   uint64_t surfaceGeneration = 0;
+   CoinRenderRenderer renderer = COIN_ANDROID_SMOKE_RENDERER;
++  SoPerspectiveCamera * cityCamera = nullptr;
++  bool city = false;
++  bool continuous = false;
++  float touchX = 0, touchY = 0;
++  bool dragging = false;
++  uint64_t frames = 0;
++  double renderMillis = 0;
++  std::chrono::steady_clock::time_point sampleStart = std::chrono::steady_clock::now();
+   bool resumed = false;
+   bool failed = false;
+ 
+@@ -89,7 +116,7 @@ struct Host {
+     target.reset();
+   }
+ 
+-  void render() {
++  void render(bool qualify = true) {
+     if (!resumed || !target || !app->window) return;
+     const SbVec2i32 size(ANativeWindow_getWidth(app->window),
+                          ANativeWindow_getHeight(app->window));
+@@ -103,6 +130,31 @@ struct Host {
+       return;
+     }
+     action->setViewportRegion(SbViewportRegion(size[0], size[1]));
++    const auto renderStart = std::chrono::steady_clock::now();
++    if (!qualify) {
++      action->apply(scene);
++      if (action->getLastStatus() != CoinRenderAction::SUCCESS) {
++        failed = true;
++        resumed = false;
++        __android_log_print(ANDROID_LOG_ERROR, tag, "continuous render failed: %s",
++                            action->getLastError().getString());
++        return;
++      }
++      const auto now = std::chrono::steady_clock::now();
++      renderMillis += std::chrono::duration<double, std::milli>(now - renderStart).count();
++      if (++frames % 10 == 0) {
++        const double seconds = std::chrono::duration<double>(now - sampleStart).count();
++        __android_log_print(ANDROID_LOG_INFO, tag,
++          "city=%d generation=%llu frames=%llu serial=%llu fps_cpu_wall=%.2f render_present_mean_ms=%.3f",
++          city ? 1 : 0, static_cast<unsigned long long>(surfaceGeneration),
++          static_cast<unsigned long long>(frames),
++          static_cast<unsigned long long>(target->getLastSubmissionSerial()),
++          10.0 / seconds, renderMillis / 10.0);
++        renderMillis = 0;
++        sampleStart = now;
++      }
++      return;
++    }
+     const bool windowCapture = renderer != COIN_RENDER_RENDERER_OPENGL &&
+                                target->requestWindowReadbackRGBA();
+     if (!windowCapture && renderer != COIN_RENDER_RENDERER_OPENGL) {
+@@ -125,20 +177,21 @@ struct Host {
+       // GLES surfaces may lack COPY_SRC. Qualify presentation separately and
+       // capture the same scene offscreen; never call this window equivalence.
+       captureSize = SbVec2i32(64, 64);
+-      CoinRenderOptions options;
+-      options.renderer = renderer;
+-      std::unique_ptr<CoinRenderTarget> capture(CoinRenderTarget::createOffscreen(captureSize, options));
+-      CoinRenderAction captureAction(SbViewportRegion(64, 64));
+-      captureAction.setRenderTarget(capture.get());
+-      captureAction.apply(scene);
+-      if (captureAction.getLastStatus() != CoinRenderAction::SUCCESS) {
++      if (!captureTarget) {
++        CoinRenderOptions options;
++        options.renderer = renderer;
++        captureTarget.reset(CoinRenderTarget::createOffscreen(captureSize, options));
++        captureAction.reset(new CoinRenderAction(SbViewportRegion(64, 64)));
++        captureAction->setRenderTarget(captureTarget.get());
++      }
++      captureAction->apply(scene);
++      if (captureAction->getLastStatus() != CoinRenderAction::SUCCESS) {
+         failed = true;
+         __android_log_print(ANDROID_LOG_ERROR, tag, "offscreen capture failed: %s",
+-                            captureAction.getLastError().getString());
++                            captureAction->getLastError().getString());
+         return;
+       }
+-      capture->readbackRGBA(rgba);
+-      captureAction.setRenderTarget(nullptr);
++      captureTarget->readbackRGBA(rgba);
+     }
+     if (rgba.size() != size_t(captureSize[0]) * size_t(captureSize[1]) * 4u) {
+       failed = true;
+@@ -146,9 +199,13 @@ struct Host {
+       return;
+     }
+     const size_t center = (size_t(captureSize[1] / 2) * size_t(captureSize[0]) + size_t(captureSize[0] / 2)) * 4u;
+-    if (rgba[center] < rgba[center + 1] + 50 || rgba[center] < rgba[center + 2] + 50) {
++    size_t colored = 0;
++    for (size_t i = 0; i < rgba.size(); i += 4)
++      if (rgba[i] > 8 || rgba[i + 1] > 8 || rgba[i + 2] > 8) ++colored;
++    if ((city && colored < 32) || (!city &&
++        (rgba[center] < rgba[center + 1] + 50 || rgba[center] < rgba[center + 2] + 50))) {
+       failed = true;
+-      __android_log_print(ANDROID_LOG_ERROR, tag, "scene center is not red");
++      __android_log_print(ANDROID_LOG_ERROR, tag, "scene capture content check failed");
+       return;
+     }
+     const uint64_t capturedSerial = target->getLastSubmissionSerial();
+@@ -196,6 +253,7 @@ struct Host {
+     }
+     ++surfaceGeneration;
+     action->setRenderTarget(target.get());
++    if (cityCamera) cityCamera->viewAll(scene, SbViewportRegion(size[0], size[1]), 1.15f);
+     render();
+     if (target->getLastSubmissionSerial() != 0) {
+       CoinRenderCapabilities caps{};
+@@ -209,8 +267,56 @@ struct Host {
+   }
+ };
+ 
++int32_t onInput(android_app * app, AInputEvent * event) {
++  Host & host = *static_cast<Host *>(app->userData);
++  if (!host.cityCamera || AInputEvent_getType(event) != AINPUT_EVENT_TYPE_MOTION) return 0;
++  const int action = AMotionEvent_getAction(event) & AMOTION_EVENT_ACTION_MASK;
++  const float x = AMotionEvent_getX(event, 0), y = AMotionEvent_getY(event, 0);
++  if (action == AMOTION_EVENT_ACTION_DOWN) {
++    host.dragging = true;
++    host.touchX = x;
++    host.touchY = y;
++    return 1;
++  }
++  if (action == AMOTION_EVENT_ACTION_CANCEL) {
++    host.dragging = false;
++    return 1;
++  }
++  // Under a heavy frame the input queue can coalesce MOVE events. Apply the
++  // final UP position too, so a short drag cannot disappear between frames.
++  if ((action == AMOTION_EVENT_ACTION_MOVE || action == AMOTION_EVENT_ACTION_UP) && host.dragging) {
++    SoPerspectiveCamera & camera = *host.cityCamera;
++    SbVec3f forward;
++    camera.orientation.getValue().multVec(SbVec3f(0, 0, -1), forward);
++    const SbVec3f center = camera.position.getValue() + forward * camera.focalDistance.getValue();
++    const float width = float(std::max(1, host.target ? host.target->getSize()[0] : 1));
++    const float height = float(std::max(1, host.target ? host.target->getSize()[1] : 1));
++    SbRotation yaw(SbVec3f(0, 1, 0), -(x - host.touchX) / width * 6.0f);
++    SbVec3f offset;
++    yaw.multVec(camera.position.getValue() - center, offset);
++    // Horizontal drag orbits; vertical drag dollies with a bounded step.
++    const float step = (y - host.touchY) / height;
++    const float scale = std::exp(step < -.2f ? -.4f : step > .2f ? .4f : step * 2.0f);
++    const float focal = camera.focalDistance.getValue();
++    const float nextFocal = std::max(5.0f, std::min(5000.0f, focal * scale));
++    camera.position = center + offset * (nextFocal / focal);
++    camera.focalDistance = nextFocal;
++    camera.nearDistance = .1f;
++    camera.farDistance = std::max(2000.0f, nextFocal * 4.0f);
++    camera.pointAt(center);
++    __android_log_print(ANDROID_LOG_INFO, tag, "camera_touch x=%.1f y=%.1f focal=%.3f", x, y,
++                        camera.focalDistance.getValue());
++  }
++  host.touchX = x;
++  host.touchY = y;
++  if (action == AMOTION_EVENT_ACTION_UP) host.dragging = false;
++  return 1;
++}
++
+ void onCommand(android_app * app, int32_t command) {
+   Host & host = *static_cast<Host *>(app->userData);
++  __android_log_print(ANDROID_LOG_INFO, tag, "lifecycle command=%d generation=%llu",
++                      command, static_cast<unsigned long long>(host.surfaceGeneration));
+   switch (command) {
+     case APP_CMD_INIT_WINDOW:
+       host.createSurface();
+@@ -219,6 +325,9 @@ void onCommand(android_app * app, int32_t command) {
+       host.releaseSurface();
+       break;
+     case APP_CMD_RESUME:
++      host.sampleStart = std::chrono::steady_clock::now();
++      host.renderMillis = 0;
++      host.frames = 0;
+       host.resumed = true;
+       host.render();
+       break;
+@@ -248,7 +357,8 @@ void onCommand(android_app * app, int32_t command) {
+ extern "C" void android_main(android_app * app) {
+   setenv("COIN_WGPU_LOG", "debug", 0);
+   CoinRenderRenderer requestedRenderer = COIN_ANDROID_SMOKE_RENDERER;
+-  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer);
++  bool city = true, continuous = true;
++  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous);
+   setenv("WGPU_ALLOW_UNDERLYING_NONCOMPLIANT_ADAPTER", emulatedVulkan ? "1" : "0", 1);
+   __android_log_print(ANDROID_LOG_INFO, tag,
+                       "emulator_noncompliant_vulkan_opt_in=%d", emulatedVulkan ? 1 : 0);
+@@ -258,21 +368,62 @@ extern "C" void android_main(android_app * app) {
+   Host host;
+   host.app = app;
+   host.renderer = requestedRenderer;
++  host.city = city;
++  host.continuous = continuous;
+   __android_log_print(ANDROID_LOG_INFO, tag, "requested_renderer=%u", unsigned(host.renderer));
+   host.action.reset(new CoinRenderAction);
+   host.scene = new SoSeparator;
+   host.scene->ref();
+-  SoOrthographicCamera * camera = new SoOrthographicCamera;
+-  camera->position.setValue(0, 0, 4);
+-  camera->height = 3;
+-  host.scene->addChild(camera);
+-  SoLightModel * model = new SoLightModel;
+-  model->model = SoLightModel::BASE_COLOR;
+-  host.scene->addChild(model);
+-  SoMaterial * material = new SoMaterial;
+-  material->diffuseColor.setValue(1, 0, 0);
+-  host.scene->addChild(material);
+-  host.scene->addChild(new SoCube);
++  if (city) {
++    AAsset * asset = AAssetManager_open(app->activity->assetManager, "city-40000.iv", AASSET_MODE_BUFFER);
++    if (!asset) {
++      __android_log_print(ANDROID_LOG_ERROR, tag, "city asset unavailable");
++      host.scene->unref();
++      ANativeActivity_finish(app->activity);
++      return;
++    }
++    SoInput input;
++    input.setBuffer(AAsset_getBuffer(asset), size_t(AAsset_getLength64(asset)));
++    SoSeparator * imported = SoDB::readAll(&input);
++    AAsset_close(asset);
++    if (!imported) {
++      __android_log_print(ANDROID_LOG_ERROR, tag, "city asset parse failed");
++      host.scene->unref();
++      ANativeActivity_finish(app->activity);
++      return;
++    }
++    host.cityCamera = new SoPerspectiveCamera;
++    host.cityCamera->orientation.setValue(SbRotation(SbVec3f(0, 0, -1), SbVec3f(-.5f, -.35f, -1)));
++    host.scene->addChild(host.cityCamera);
++    host.scene->addChild(imported);
++    SoSearchAction count;
++    count.setType(SoCube::getClassTypeId());
++    count.setInterest(SoSearchAction::ALL);
++    count.setSearchingAll(TRUE);
++    count.apply(imported);
++    const int cubes = count.getPaths().getLength();
++    __android_log_print(ANDROID_LOG_INFO, tag,
++                        "scene=city-40000 buildings=%d ground=1 triangles=%d continuous=%d",
++                        cubes - 1, cubes * 12, continuous ? 1 : 0);
++    if (cubes != 40001) {
++      __android_log_print(ANDROID_LOG_ERROR, tag, "unexpected city occurrence count=%d", cubes);
++      host.scene->unref();
++      ANativeActivity_finish(app->activity);
++      return;
++    }
++  } else {
++    SoOrthographicCamera * camera = new SoOrthographicCamera;
++    camera->position.setValue(0, 0, 4);
++    camera->height = 3;
++    host.scene->addChild(camera);
++    SoLightModel * model = new SoLightModel;
++    model->model = SoLightModel::BASE_COLOR;
++    host.scene->addChild(model);
++    SoMaterial * material = new SoMaterial;
++    material->diffuseColor.setValue(1, 0, 0);
++    host.scene->addChild(material);
++    host.scene->addChild(new SoCube);
++  }
+ #if COIN_ANDROID_CPU_ONLY
+   {
+     SoGLRenderAction legacy(SbViewportRegion(32, 32));
+@@ -287,17 +438,22 @@ extern "C" void android_main(android_app * app) {
+ 
+   app->userData = &host;
+   app->onAppCmd = onCommand;
++  app->onInputEvent = onInput;
+ 
+   while (!app->destroyRequested) {
+     int events = 0;
+     android_poll_source * source = nullptr;
+-    const int timeout = host.resumed && host.target ? 50 : -1;
++    const int timeout = host.resumed && host.target ? (host.continuous ? 0 : 50) : -1;
+     const int id = ALooper_pollOnce(timeout, nullptr, &events,
+                                    reinterpret_cast<void **>(&source));
+     if (id >= 0 && source) source->process(app, source);
++    if (!app->destroyRequested && !host.failed && host.continuous) host.render(false);
+   }
+   host.releaseSurface();
+   host.action.reset();
++  if (host.captureAction) host.captureAction->setRenderTarget(nullptr);
++  host.captureAction.reset();
++  host.captureTarget.reset();
+   host.scene->unref();
+   __android_log_print(host.failed ? ANDROID_LOG_ERROR : ANDROID_LOG_INFO, tag,
+                       "P23 smoke finished: %s", host.failed ? "FAILED" : "OK");
+diff --git a/src/rendering/coinrender/CoinRenderBackendRuntime.h b/src/rendering/coinrender/CoinRenderBackendRuntime.h
+index 14a2feb79e..a59ec3e6fe 100644
+--- a/src/rendering/coinrender/CoinRenderBackendRuntime.h
++++ b/src/rendering/coinrender/CoinRenderBackendRuntime.h
+@@ -24,6 +24,8 @@ public:
+   virtual bool cancelReadback(const CoinRenderReadbackTicket &) { return false; }
+   virtual bool cacheTelemetry(CoinRenderCacheTelemetry &) const { return false; }
+   virtual void pollDevice() {}
++  // Called only after the last registered target releases all backend objects.
++  virtual void releaseIdleDevice() {}
+ };
+ 
+ #endif
+diff --git a/src/rendering/coinrender/CoinRenderTarget.cpp b/src/rendering/coinrender/CoinRenderTarget.cpp
+index ee6d17655a..23edc0bdac 100644
+--- a/src/rendering/coinrender/CoinRenderTarget.cpp
++++ b/src/rendering/coinrender/CoinRenderTarget.cpp
+@@ -87,6 +87,17 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
+ 
+ CoinRenderTargetP::~CoinRenderTargetP()
+ {
++#if defined(__ANDROID__)
++  // Serialize the idle transition with new target registration. The offscreen
++  // peer keeps this registry nonempty during window TERM/INIT cycles.
++  auto& registry = targetRegistry();
++  std::lock_guard<std::mutex> guard(registry.mutex);
++  registry.targets.erase(std::remove(registry.targets.begin(), registry.targets.end(), this),
++                         registry.targets.end());
++  this->runtime->destroySurface(*this);
++  this->backend.reset();
++  if (registry.targets.empty()) this->runtime->releaseIdleDevice();
++#else
+   {
+     auto& registry = targetRegistry();
+     std::lock_guard<std::mutex> guard(registry.mutex);
+@@ -95,6 +106,7 @@ CoinRenderTargetP::~CoinRenderTargetP()
+   }
+   this->runtime->destroySurface(*this);
+   this->backend.reset();
++#endif
+ }
+ 
+ bool
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfi.h b/src/rendering/coinwgpu/CoinWgpuFfi.h
+index 0d171c8c01..3531c2606e 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfi.h
++++ b/src/rendering/coinwgpu/CoinWgpuFfi.h
+@@ -388,6 +388,10 @@ CoinWgpuStatus coin_wgpu_submit_texture(
+ 
+ void coin_wgpu_release_texture(uint64_t token);
+ uint64_t coin_wgpu_default_device_generation(void);
++#if defined(__ANDROID__)
++// Internal idle hook; refuses live surfaces, tickets, RTT tokens or extra devices.
++CoinWgpuStatus coin_wgpu_release_idle_android_runtime(void);
++#endif
+ void coin_wgpu_rtt_resource_counts(uint64_t * active, uint64_t * retired);
+ // Remaining capacity on the default device; read-only and no device initialization.
+ uint32_t coin_wgpu_default_rtt_capacity(void);
+diff --git a/src/rendering/coinwgpu/CoinWgpuRuntime.cpp b/src/rendering/coinwgpu/CoinWgpuRuntime.cpp
+index d72627529a..5322330985 100644
+--- a/src/rendering/coinwgpu/CoinWgpuRuntime.cpp
++++ b/src/rendering/coinwgpu/CoinWgpuRuntime.cpp
+@@ -127,6 +127,9 @@ public:
+     return true;
+   }
+   void pollDevice() override { coin_wgpu_poll_device(); }
++#if defined(__ANDROID__)
++  void releaseIdleDevice() override { coin_wgpu_release_idle_android_runtime(); }
++#endif
+ };
+ }
+ CoinRenderBackendRuntime & CoinWgpuBackend::runtime() {
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index f7dccb9dd5..1624c49c5f 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -1680,6 +1680,8 @@ fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
+ }
+ 
+ static RUNTIME_CTX: Mutex<Option<RuntimeContext>> = Mutex::new(None);
++#[cfg(target_os = "android")]
++static ANDROID_RUNTIME_GENERATION: AtomicU64 = AtomicU64::new(0);
+ static VALIDATED_FRAME_CACHE: Mutex<Option<(u64, Vec<composition::CompositionItem>)>> =
+     Mutex::new(None);
+ static NEXT_SURFACE_ID: AtomicU64 = AtomicU64::new(1);
+@@ -1989,7 +1991,12 @@ fn init_runtime_if_needed() -> Result<(), String> {
+             instance: wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default()),
+             surfaces: HashMap::new(),
+             device_state: None,
+-            device_generation: 0,
++            device_generation: {
++                #[cfg(target_os = "android")]
++                { ANDROID_RUNTIME_GENERATION.load(Ordering::SeqCst) }
++                #[cfg(not(target_os = "android"))]
++                { 0 }
++            },
+             pending_readbacks: HashMap::new(),
+             retired_readbacks: Vec::new(),
+             extra_devices: HashMap::new(),
+@@ -2000,6 +2007,45 @@ fn init_runtime_if_needed() -> Result<(), String> {
+     Ok(())
+ }
+ 
++// NativeActivity may finish its render thread while the process stays alive.
++// Drop the idle EGL/device on that thread, before it exits. Never invalidate a
++// surviving target, direct RTT publication, explicit device, or readback ticket.
++#[cfg(target_os = "android")]
++#[no_mangle]
++pub extern "C" fn coin_wgpu_release_idle_android_runtime() -> CoinWgpuStatus {
++    std::panic::catch_unwind(|| {
++        let mut guard = match RUNTIME_CTX.lock() {
++            Ok(guard) => guard,
++            Err(_) => return CoinWgpuStatus::BackendError,
++        };
++        let Some(runtime) = guard.as_mut() else { return CoinWgpuStatus::Ok; };
++        reap_cancelled_readbacks(runtime);
++        if !runtime.surfaces.is_empty() || !runtime.pending_readbacks.is_empty()
++            || !runtime.retired_readbacks.is_empty() || !runtime.extra_devices.is_empty()
++            || !runtime.extra_generations.is_empty()
++        {
++            return CoinWgpuStatus::NotReady;
++        }
++        if let Some(device) = runtime.device_state.as_ref() {
++            match device.rtt_textures.lock() {
++                Ok(registry) if registry.active.is_empty() => (),
++                _ => return CoinWgpuStatus::NotReady,
++            }
++            let _ = device.device.poll(wgpu::Maintain::Wait);
++        }
++        let Some(next_generation) = runtime.device_generation.checked_add(1) else {
++            return CoinWgpuStatus::BackendError;
++        };
++        // Advance the epoch across process-local Activity lifetimes. Global
++        // ticket/token/submission IDs are intentionally never reset.
++        ANDROID_RUNTIME_GENERATION.store(next_generation, Ordering::SeqCst);
++        *guard = None;
++        DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
++        log::info!("Released idle Android renderer; next_generation={next_generation}");
++        CoinWgpuStatus::Ok
++    }).unwrap_or(CoinWgpuStatus::BackendError)
++}
++
+ fn renderer_backend(renderer: u32) -> Result<Option<wgpu::Backends>, String> {
+     match renderer {
+         0 => Ok(None),

@@ -388,6 +388,10 @@ CoinWgpuStatus coin_wgpu_submit_texture(
 
 void coin_wgpu_release_texture(uint64_t token);
 uint64_t coin_wgpu_default_device_generation(void);
+#if defined(__ANDROID__)
+// Internal idle hook; refuses live surfaces, tickets, RTT tokens or extra devices.
+CoinWgpuStatus coin_wgpu_release_idle_android_runtime(void);
+#endif
 void coin_wgpu_rtt_resource_counts(uint64_t * active, uint64_t * retired);
 // Remaining capacity on the default device; read-only and no device initialization.
 uint32_t coin_wgpu_default_rtt_capacity(void);

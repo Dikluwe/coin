@@ -73,6 +73,10 @@ def main():
         run('strip-' + source.stem, [llvm / 'bin/llvm-strip', '--strip-unneeded', dest])
         hashes[str(dest)] = hashlib.sha256(dest.read_bytes()).hexdigest()
         run('elf-' + source.stem, [llvm / 'bin/llvm-readelf', '-h', '-l', '-d', '--dyn-syms', dest])
+    city = output / 'city-40000.iv'
+    run('generate-city', ['python3', repo / 'examples/coinrender/generate_large_scene.py',
+        city, '--grid', '200', '--seed', '136'])
+    hashes[str(city)] = hashlib.sha256(city.read_bytes()).hexdigest()
     raw, aligned = output / 'unsigned.apk', output / 'aligned.apk'
     apk = output / ('coin-render-p23-' + args.abi + '.apk')
     run('aapt2', [tools / 'aapt2', 'link', '-o', raw, '--manifest',
@@ -81,6 +85,7 @@ def main():
         '--min-sdk-version', '26', '--target-sdk-version', args.target_sdk,
         '--version-code', '1', '--version-name', '0.1-p23'])
     with zipfile.ZipFile(raw, 'a', compression=zipfile.ZIP_STORED) as archive:
+        archive.write(city, 'assets/city-40000.iv', compress_type=zipfile.ZIP_DEFLATED)
         for library in sorted(staging.glob('*.so')):
             archive.write(library, 'lib/' + args.abi + '/' + library.name)
     run('zipalign', [tools / 'zipalign', '-P', '16', '-f', '4', raw, aligned])

@@ -1,0 +1,53 @@
+{
+  "base_commit": "0e72e0c27b46650dbcc52de259cc9b7fd73ae515",
+  "apk_path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/coin-render-p23-x86_64.apk",
+  "apk_sha256": "aa5e3c4aaaa64bcdcb677d361084258be336c088216b4ea3ec8eaa6f46d5e0df",
+  "scene_sha256": "bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576",
+  "buildings": 40000,
+  "triangles": 480012,
+  "api": "wgpu/OpenGL ES",
+  "device": "Medium_Phone_API_37.0 x86_64 emulation on AMD Renoir",
+  "qualified_pid": 5471,
+  "first_native_thread": 5497,
+  "final_native_thread": 5765,
+  "surface_generations_first_activity": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "checkpoints_first_activity": 12,
+  "checkpoints_all": 24,
+  "idle_epochs": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "city_activity_threads": [
+    5497,
+    5692,
+    5720,
+    5765
+  ],
+  "source_sha256": {
+    "examples/coinrender/coin_render_android_smoke.cpp": "aa1d5c1931b2afe4acba57eadf0ac352757f458405421d872758d33fa9f42152",
+    "examples/coinrender/AndroidManifest-p23.xml": "c217c1629c32a6f7244a28d0e8961a05dd423a65c01313adfafb52e6b29c2695",
+    ".github/scripts/build-coin-render-android-apk.py": "2540d15a9e88e6cf10315d592d76ad214877f5f40487045b51ee1c6727e58fc1",
+    "examples/coinrender/generate_large_scene.py": "c0e177bb839fae7c5594f23ce3ec5b9c9d2a865e782697cd70965b3979be2ec6",
+    "src/rendering/coinrender/CoinRenderBackendRuntime.h": "0ed52bfc8e1866cf8def4492c51b4259f6327ff259a8985fca790a021405362f",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "398326348bb28609892f1a710574985972b9912a8f3e497abe01429d1f7ffc25",
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": "35ecddae74d378378272e5b89ec2f1c5850d18726d0bdcc54465df25dc6777d1",
+    "src/rendering/coinwgpu/CoinWgpuRuntime.cpp": "7774a89f0be56113a9a755e0ab38bf9ad8b766cb9403225898c5e7809803dd6f",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "a2f826328770a8ed9227d5f5ed088fb7b87b90f9f6891af83dd0740a2324206d"
+  },
+  "limits": [
+    "emulation only",
+    "64x64 offscreen capture; window presentation inspected separately",
+    "interactive functional samples, not a controlled benchmark",
+    "camera viewAll on surface recreation",
+    "about 1 FPS at 40000 buildings; performance study open",
+    "Vulkan/physical Android/async ticket retention across Activity threads unqualified"
+  ],
+  "excluded": "launcher-log.log/relaunch-crash.log and ui-diagnostic-full.log are prior failures, not delivery passes"
+}

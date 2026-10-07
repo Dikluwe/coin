@@ -127,6 +127,9 @@ public:
     return true;
   }
   void pollDevice() override { coin_wgpu_poll_device(); }
+#if defined(__ANDROID__)
+  void releaseIdleDevice() override { coin_wgpu_release_idle_android_runtime(); }
+#endif
 };
 }
 CoinRenderBackendRuntime & CoinWgpuBackend::runtime() {

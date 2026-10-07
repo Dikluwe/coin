@@ -1,0 +1,697 @@
+--------- beginning of main
+10-07 16:10:29.754  4199  4213 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-07 16:10:29.755  4199  4213 I CoinRenderP23: requested_renderer=2
+10-07 16:10:30.148  4199  4213 I CoinRenderP23: scene=city-40000 buildings=40000 ground=1 triangles=480012 continuous=1
+10-07 16:10:30.292  4199  4213 I CoinRenderP23: legacy_gl_unavailable=1
+10-07 16:10:30.292  4199  4213 I CoinRenderP23: lifecycle command=10 generation=0
+10-07 16:10:30.295  4199  4213 I CoinRenderP23: lifecycle command=11 generation=0
+10-07 16:10:30.299  4199  4213 I CoinRenderP23: lifecycle command=0 generation=0
+10-07 16:10:30.338  4199  4213 I CoinRenderP23: lifecycle command=1 generation=0
+10-07 16:10:30.753  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 16:10:30.753  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 16:10:30.758  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 16:10:30.758  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 16:10:30.764  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 16:10:30.764  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 16:10:30.764  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 16:10:30.764  4199  4213 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 16:10:32.631  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:10:32.632  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:10:33.239  4199  4213 I CoinRenderP23: generation=1 serial=3 size=2400x1080 rgba_fnv64=7e6fa0ca92e6a9eb capture_scope=offscreen
+10-07 16:10:33.239  4199  4213 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)
+10-07 16:10:34.082  4199  4213 I CoinRenderP23: lifecycle command=3 generation=1
+10-07 16:10:35.502  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:10:35.502  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:10:36.057  4199  4213 I CoinRenderP23: generation=1 serial=7 size=2400x1080 rgba_fnv64=7e6fa0ca92e6a9eb capture_scope=offscreen
+10-07 16:10:36.980  4199  4213 I CoinRenderP23: lifecycle command=5 generation=1
+10-07 16:10:38.481  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:10:38.482  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:10:39.027  4199  4213 I CoinRenderP23: generation=1 serial=11 size=2400x1080 rgba_fnv64=7e6fa0ca92e6a9eb capture_scope=offscreen
+10-07 16:10:39.936  4199  4213 I CoinRenderP23: lifecycle command=4 generation=1
+10-07 16:10:40.781  4199  4213 I CoinRenderP23: lifecycle command=6 generation=1
+10-07 16:10:45.874  4199  4213 I CoinRenderP23: city=1 generation=1 frames=10 serial=19 fps_cpu_wall=0.64 render_present_mean_ms=861.213
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1179.6 y=550.0 focal=846.363
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1415.4 y=683.0 focal=846.363
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1409.7 y=683.0 focal=846.363
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1398.1 y=683.0 focal=846.363
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1379.6 y=683.0 focal=846.363
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1356.1 y=683.0 focal=846.363
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1315.5 y=687.0 focal=852.717
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1278.3 y=691.8 focal=860.247
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1235.8 y=692.0 focal=860.584
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1212.2 y=694.8 focal=865.022
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1190.8 y=697.0 focal=868.552
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1173.1 y=697.0 focal=868.552
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1160.2 y=700.0 focal=873.391
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1154.4 y=700.0 focal=873.391
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1133.0 y=703.0 focal=878.255
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1115.4 y=703.0 focal=878.255
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1093.8 y=703.0 focal=878.255
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=1041.1 y=703.0 focal=878.255
+10-07 16:10:48.012  4199  4213 I CoinRenderP23: camera_touch x=992.3 y=703.0 focal=878.255
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=937.5 y=703.0 focal=878.255
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=856.1 y=703.0 focal=878.255
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=809.3 y=700.1 focal=873.500
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=763.3 y=692.8 focal=861.918
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=751.6 y=693.1 focal=862.320
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=748.4 y=691.0 focal=859.011
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=985.0 y=657.4 focal=853.381
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=986.9 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=998.4 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1015.4 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1050.2 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1075.6 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1119.5 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1171.2 y=655.0 focal=849.522
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1247.9 y=661.0 focal=859.011
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1319.9 y=661.0 focal=859.011
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1388.6 y=664.0 focal=863.796
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1442.1 y=669.0 focal=871.847
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1453.7 y=669.0 focal=871.847
+10-07 16:10:48.871  4199  4213 I CoinRenderP23: camera_touch x=1464.9 y=669.0 focal=871.847
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=904.0 y=650.0 focal=867.019
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=904.0 y=647.0 focal=862.217
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=916.6 y=647.0 focal=862.217
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=963.3 y=657.4 focal=879.061
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=1013.8 y=663.8 focal=889.442
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=1089.4 y=673.3 focal=905.217
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=1146.7 y=672.0 focal=903.099
+10-07 16:10:49.683  4199  4213 I CoinRenderP23: camera_touch x=1200.9 y=672.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1257.7 y=672.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1305.4 y=672.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1334.5 y=672.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1348.3 y=672.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1354.4 y=672.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1013.2 y=650.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1022.0 y=650.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1033.7 y=650.0 focal=903.099
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1062.2 y=644.4 focal=893.842
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1111.4 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1176.3 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1247.7 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1319.2 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1382.8 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1417.2 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1444.6 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1457.0 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1461.8 y=644.0 focal=893.122
+10-07 16:10:50.555  4199  4213 I CoinRenderP23: camera_touch x=1463.4 y=644.0 focal=893.122
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=678.0 focal=889.802
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=665.3 focal=869.053
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=653.8 focal=850.774
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=643.6 focal=834.927
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=632.4 focal=817.680
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=608.2 focal=781.967
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=569.8 focal=728.252
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=552.4 focal=705.101
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=540.7 focal=689.976
+10-07 16:10:51.644  4199  4213 I CoinRenderP23: camera_touch x=1179.9 y=524.8 focal=669.958
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1200.0 y=494.3 focal=457.723
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1168.9 y=658.4 focal=453.012
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1166.1 y=650.2 focal=446.175
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=643.5 focal=440.656
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1162.9 y=625.2 focal=426.031
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1159.9 y=603.2 focal=409.010
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1159.9 y=591.5 focal=400.250
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1159.9 y=562.9 focal=379.588
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1159.9 y=551.5 focal=371.677
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1159.9 y=547.8 focal=369.083
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1162.0 y=541.9 focal=365.085
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1165.8 y=530.2 focal=357.283
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=517.4 focal=348.877
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=506.5 focal=341.956
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=487.7 focal=330.241
+10-07 16:10:52.593  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=472.2 focal=320.909
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=460.0 focal=313.730
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=453.3 focal=309.857
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=439.0 focal=301.769
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=428.4 focal=295.914
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=413.2 focal=287.673
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1165.9 y=398.0 focal=279.684
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1168.9 y=388.9 focal=275.009
+10-07 16:10:52.594  4199  4213 I CoinRenderP23: camera_touch x=1168.9 y=387.0 focal=274.054
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1207.9 y=752.4 focal=272.238
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=748.9 focal=270.473
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=745.5 focal=268.777
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1201.9 y=742.6 focal=267.338
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1199.9 y=736.0 focal=264.081
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1199.9 y=727.1 focal=259.766
+10-07 16:10:53.434  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=718.2 focal=255.540
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=706.1 focal=249.877
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=680.4 focal=238.274
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=664.8 focal=231.465
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=637.9 focal=220.224
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=617.9 focal=212.202
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=598.0 focal=204.523
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=587.9 focal=200.754
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=580.5 focal=198.027
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1199.8 y=572.2 focal=194.998
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1199.9 y=565.6 focal=192.644
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1199.9 y=552.7 focal=188.088
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1199.9 y=541.5 focal=184.216
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1199.9 y=541.0 focal=184.047
+10-07 16:10:54.314  4199  4213 I CoinRenderP23: camera_touch x=1196.9 y=541.0 focal=184.047
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: city=1 generation=1 frames=20 serial=29 fps_cpu_wall=1.07 render_present_mean_ms=931.929
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1321.9 y=815.9 focal=183.675
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1321.9 y=812.5 focal=182.520
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1319.9 y=809.0 focal=181.348
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1316.9 y=787.7 focal=174.345
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=741.0 focal=159.888
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1309.6 y=699.0 focal=147.912
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1308.0 y=665.4 focal=139.003
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1308.0 y=622.9 focal=128.468
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1316.3 y=596.7 focal=122.405
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=570.5 focal=116.602
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=548.5 focal=111.953
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=533.0 focal=108.777
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=517.3 focal=105.652
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=502.2 focal=102.738
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=489.4 focal=100.347
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=480.1 focal=98.624
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=469.8 focal=96.765
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=461.9 focal=95.351
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=455.2 focal=94.189
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=449.6 focal=93.210
+10-07 16:10:55.196  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=447.5 focal=92.848
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1313.9 y=446.0 focal=92.590
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1299.9 y=801.5 focal=91.822
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1296.2 y=797.6 focal=91.160
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1296.9 y=793.6 focal=90.491
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1294.7 y=786.8 focal=89.366
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1293.9 y=775.2 focal=87.454
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1291.6 y=754.5 focal=84.171
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1291.9 y=739.8 focal=81.909
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1291.9 y=729.2 focal=80.319
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1291.9 y=705.3 focal=76.834
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1288.9 y=692.0 focal=74.967
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1285.9 y=666.6 focal=71.521
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1282.9 y=655.5 focal=70.073
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1282.9 y=645.7 focal=68.807
+10-07 16:10:56.309  4199  4213 I CoinRenderP23: camera_touch x=1282.9 y=639.1 focal=67.970
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1279.9 y=635.4 focal=67.508
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1279.1 y=623.8 focal=66.082
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1277.9 y=617.2 focal=65.273
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1277.9 y=608.5 focal=64.236
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1277.9 y=596.8 focal=62.854
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1277.9 y=584.9 focal=61.483
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1277.9 y=570.5 focal=59.866
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1277.9 y=556.3 focal=58.315
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1274.9 y=546.1 focal=57.218
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1274.9 y=533.7 focal=55.925
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1274.9 y=525.8 focal=55.115
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1274.9 y=521.7 focal=54.691
+10-07 16:10:57.318  4199  4213 I CoinRenderP23: camera_touch x=1274.9 y=519.5 focal=54.472
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1419.9 y=695.7 focal=54.043
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1419.9 y=692.9 focal=53.763
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1419.9 y=686.7 focal=53.151
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1415.4 y=677.0 focal=52.204
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1416.9 y=674.5 focal=51.958
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1413.9 y=661.5 focal=50.728
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1411.6 y=633.5 focal=48.165
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1411.9 y=604.6 focal=45.655
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1410.3 y=558.1 focal=41.885
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1408.9 y=522.8 focal=39.238
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1408.9 y=513.1 focal=38.536
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1408.9 y=504.6 focal=37.937
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1408.9 y=500.5 focal=37.648
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1408.9 y=494.5 focal=37.232
+10-07 16:11:00.774  4199  4213 I CoinRenderP23: camera_touch x=1408.9 y=493.0 focal=37.129
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1310.9 y=708.0 focal=37.129
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1310.9 y=701.9 focal=36.715
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1310.9 y=673.2 focal=34.812
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1305.1 y=633.3 focal=32.335
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1301.8 y=600.7 focal=30.438
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1299.9 y=556.6 focal=28.050
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1299.9 y=535.0 focal=26.952
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1299.9 y=529.0 focal=26.655
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1296.9 y=526.5 focal=26.530
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1296.9 y=505.2 focal=25.503
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1296.9 y=496.5 focal=25.095
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1296.9 y=491.2 focal=24.850
+10-07 16:11:03.349  4199  4213 I CoinRenderP23: camera_touch x=1296.9 y=491.0 focal=24.842
+10-07 16:11:04.203  4199  4213 I CoinRenderP23: city=1 generation=1 frames=30 serial=39 fps_cpu_wall=1.11 render_present_mean_ms=900.602
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1824.9 y=461.5 focal=24.636
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1822.9 y=460.0 focal=24.568
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1820.4 y=460.0 focal=24.568
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1821.9 y=457.0 focal=24.432
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1817.4 y=457.0 focal=24.432
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1814.4 y=457.0 focal=24.432
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1808.7 y=454.8 focal=24.332
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1802.1 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1796.4 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1789.8 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1768.7 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1739.8 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1711.3 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1644.8 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1593.3 y=454.0 focal=24.296
+10-07 16:11:05.922  4199  4213 I CoinRenderP23: camera_touch x=1554.4 y=454.0 focal=24.296
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1515.4 y=454.0 focal=24.296
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1493.9 y=451.6 focal=24.190
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1485.8 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1483.9 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1480.9 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1471.3 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1465.4 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1456.0 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1447.1 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1437.4 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1426.6 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1425.0 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1422.9 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1419.9 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1422.9 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1408.1 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1395.3 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1386.9 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1378.5 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1366.1 y=452.0 focal=24.206
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1358.2 y=449.0 focal=24.072
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1347.2 y=449.0 focal=24.072
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1336.7 y=449.0 focal=24.072
+10-07 16:11:05.923  4199  4213 I CoinRenderP23: camera_touch x=1325.2 y=449.0 focal=24.072
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1312.9 y=449.0 focal=24.072
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1304.6 y=449.0 focal=24.072
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1297.9 y=449.0 focal=24.072
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1293.9 y=446.2 focal=23.948
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1284.9 y=446.0 focal=23.939
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1271.8 y=446.0 focal=23.939
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1259.0 y=446.0 focal=23.939
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1245.4 y=446.0 focal=23.939
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1236.1 y=448.9 focal=24.067
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1225.9 y=449.0 focal=24.072
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1216.2 y=452.0 focal=24.206
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1203.8 y=454.0 focal=24.296
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1175.3 y=459.8 focal=24.556
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1153.3 y=460.0 focal=24.568
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1137.8 y=463.0 focal=24.704
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1132.2 y=463.0 focal=24.704
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1117.9 y=466.0 focal=24.842
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1102.2 y=467.9 focal=24.931
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1075.5 y=471.0 focal=25.074
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1053.4 y=477.0 focal=25.354
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1034.5 y=480.0 focal=25.495
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1021.3 y=481.8 focal=25.581
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1012.6 y=482.0 focal=25.588
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1003.9 y=482.0 focal=25.588
+10-07 16:11:06.856  4199  4213 I CoinRenderP23: camera_touch x=1000.9 y=482.0 focal=25.588
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1706.9 y=493.0 focal=25.447
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1704.9 y=493.0 focal=25.447
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1698.4 y=491.0 focal=25.352
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1691.7 y=491.0 focal=25.352
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1679.1 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1667.1 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1638.3 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1607.5 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1585.3 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1546.7 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1495.9 y=488.0 focal=25.212
+10-07 16:11:07.801  4199  4213 I CoinRenderP23: camera_touch x=1447.2 y=488.0 focal=25.212
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1382.2 y=494.9 focal=25.537
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1348.4 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1323.4 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1289.3 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1276.9 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1259.9 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1244.9 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1230.4 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1221.4 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1214.7 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1209.2 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1203.4 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1196.4 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1189.6 y=493.0 focal=25.447
+10-07 16:11:08.699  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=496.0 focal=25.588
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1745.9 y=511.5 focal=25.376
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1743.9 y=508.8 focal=25.251
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1732.9 y=508.4 focal=25.228
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1720.2 y=505.5 focal=25.096
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1702.3 y=505.0 focal=25.072
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1681.5 y=499.0 focal=24.795
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1623.4 y=494.7 focal=24.599
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1538.8 y=489.6 focal=24.369
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1469.5 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1402.5 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1280.2 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1190.9 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1167.4 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1146.2 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1129.4 y=488.0 focal=24.295
+10-07 16:11:09.548  4199  4213 I CoinRenderP23: camera_touch x=1114.6 y=488.0 focal=24.295
+10-07 16:11:10.430  4199  4213 I CoinRenderP23: camera_touch x=1111.4 y=488.0 focal=24.295
+10-07 16:11:10.430  4199  4213 I CoinRenderP23: camera_touch x=1109.9 y=488.0 focal=24.295
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: city=1 generation=1 frames=40 serial=49 fps_cpu_wall=1.13 render_present_mean_ms=887.626
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1496.8 y=449.0 focal=24.295
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1489.6 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1477.9 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1448.5 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1389.7 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1322.0 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1286.9 y=441.9 focal=23.977
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1264.9 y=440.0 focal=23.893
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1212.4 y=440.0 focal=23.893
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1140.0 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1140.7 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1128.3 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1117.9 y=446.0 focal=24.160
+10-07 16:11:13.081  4199  4213 I CoinRenderP23: camera_touch x=1123.9 y=446.0 focal=24.160
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1573.0 y=625.0 focal=24.072
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1558.4 y=625.0 focal=24.070
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1515.2 y=625.0 focal=24.070
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1471.0 y=622.0 focal=23.937
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1391.4 y=611.4 focal=23.470
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1314.1 y=607.5 focal=23.303
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1200.5 y=602.0 focal=23.066
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1097.9 y=597.0 focal=22.853
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1069.5 y=588.7 focal=22.507
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1043.3 y=588.0 focal=22.476
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1037.6 y=588.0 focal=22.476
+10-07 16:11:15.718  4199  4213 I CoinRenderP23: camera_touch x=1037.9 y=586.0 focal=22.394
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1190.9 y=499.3 focal=22.866
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1190.9 y=524.3 focal=23.951
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1185.9 y=557.6 focal=25.475
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1182.4 y=570.5 focal=26.090
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=573.5 focal=26.236
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=581.1 focal=26.606
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=593.8 focal=27.239
+10-07 16:11:18.443  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=608.9 focal=28.011
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=638.5 focal=29.592
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=652.8 focal=30.386
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=665.5 focal=31.111
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=677.9 focal=31.834
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=686.6 focal=32.346
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=696.7 focal=32.957
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=705.0 focal=33.472
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1185.8 y=706.0 focal=33.531
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1185.9 y=711.4 focal=33.870
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1185.9 y=724.0 focal=34.666
+10-07 16:11:19.352  4199  4213 I CoinRenderP23: camera_touch x=1185.9 y=725.0 focal=34.733
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1215.9 y=441.9 focal=35.900
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1212.9 y=466.6 focal=37.581
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1207.9 y=524.6 focal=41.844
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=584.4 focal=46.743
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=609.0 focal=48.921
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=619.3 focal=49.867
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=626.5 focal=50.536
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=632.9 focal=51.137
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=644.9 focal=52.285
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=659.3 focal=53.699
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=663.5 focal=54.120
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=665.5 focal=54.318
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=666.0 focal=54.369
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1207.4 y=532.6 focal=56.691
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1207.9 y=625.9 focal=67.382
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1207.9 y=632.1 focal=68.159
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1207.9 y=653.8 focal=70.956
+10-07 16:11:20.242  4199  4213 I CoinRenderP23: camera_touch x=1210.9 y=719.8 focal=80.186
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1210.9 y=769.9 focal=87.985
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1210.9 y=792.3 focal=91.708
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1210.9 y=804.6 focal=93.817
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1213.9 y=810.5 focal=94.843
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1247.7 y=561.0 focal=96.445
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1244.7 y=583.3 focal=100.508
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1243.9 y=629.3 focal=109.433
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1238.0 y=670.6 focal=118.135
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1238.9 y=701.0 focal=124.984
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1238.9 y=739.6 focal=134.235
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1238.9 y=779.6 focal=144.567
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1238.9 y=807.7 focal=152.286
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1245.1 y=826.6 focal=157.697
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1246.9 y=839.7 focal=161.595
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1249.1 y=852.4 focal=165.437
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1250.0 y=855.8 focal=166.475
+10-07 16:11:21.120  4199  4213 I CoinRenderP23: camera_touch x=1250.0 y=857.5 focal=166.989
+10-07 16:11:21.970  4199  4213 I CoinRenderP23: city=1 generation=1 frames=50 serial=59 fps_cpu_wall=1.12 render_present_mean_ms=888.800
+10-07 16:11:21.970  4199  4213 I CoinRenderP23: camera_touch x=1218.9 y=315.0 focal=166.989
+10-07 16:11:21.970  4199  4213 I CoinRenderP23: camera_touch x=1215.9 y=332.1 focal=172.351
+10-07 16:11:21.970  4199  4213 I CoinRenderP23: camera_touch x=1212.9 y=366.3 focal=183.613
+10-07 16:11:21.970  4199  4213 I CoinRenderP23: camera_touch x=1207.9 y=417.6 focal=201.926
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1204.9 y=487.6 focal=229.891
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1203.6 y=505.2 focal=237.493
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1198.5 y=526.5 focal=247.049
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1193.9 y=554.1 focal=260.018
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=578.7 focal=272.121
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=597.1 focal=281.558
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=627.8 focal=298.015
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=645.1 focal=307.708
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=654.9 focal=313.377
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=656.0 focal=313.992
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=660.5 focal=316.596
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=675.0 focal=325.252
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=693.3 focal=336.418
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=711.7 focal=348.137
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=718.2 focal=352.294
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=728.3 focal=358.996
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=735.3 focal=363.686
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=744.9 focal=370.150
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=753.5 focal=376.142
+10-07 16:11:22.850  4199  4213 I CoinRenderP23: camera_touch x=1187.9 y=760.1 focal=380.770
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1230.0 y=456.7 focal=382.705
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1230.0 y=484.5 focal=402.890
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1230.0 y=519.9 focal=430.158
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1230.0 y=540.0 focal=446.506
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1230.0 y=565.0 focal=467.658
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1230.0 y=582.6 focal=483.133
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1233.3 y=606.5 focal=505.005
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1234.1 y=617.2 focal=515.094
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1237.9 y=639.4 focal=536.754
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1243.9 y=657.7 focal=555.273
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1243.9 y=684.2 focal=583.218
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1243.9 y=693.2 focal=592.964
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1245.6 y=711.3 focal=613.147
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1246.9 y=723.8 focal=627.487
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1249.9 y=732.9 focal=638.179
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1250.0 y=742.9 focal=650.192
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1250.0 y=751.1 focal=660.122
+10-07 16:11:25.487  4199  4213 I CoinRenderP23: camera_touch x=1250.0 y=753.9 focal=663.553
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1114.1 y=678.0 focal=663.553
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1114.5 y=675.0 focal=659.878
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1117.4 y=675.0 focal=659.878
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1118.9 y=675.0 focal=659.878
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1125.2 y=672.0 focal=656.224
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1131.4 y=672.0 focal=656.224
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1132.9 y=672.0 focal=656.224
+10-07 16:11:28.212  4199  4213 I CoinRenderP23: camera_touch x=1132.9 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1148.3 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1161.5 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1185.8 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1255.5 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1304.5 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1341.9 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1366.3 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1382.2 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1394.3 y=675.0 focal=659.878
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1399.0 y=672.0 focal=656.224
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1407.5 y=672.0 focal=656.224
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1416.7 y=672.0 focal=656.224
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1428.8 y=672.0 focal=656.224
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1439.1 y=669.0 focal=652.589
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1451.3 y=666.0 focal=648.974
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1461.4 y=664.2 focal=646.758
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1473.8 y=664.0 focal=646.563
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1482.8 y=661.0 focal=642.981
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1494.2 y=658.0 focal=639.420
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1505.4 y=658.0 focal=639.420
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1514.9 y=653.5 focal=634.115
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1522.6 y=654.1 focal=634.828
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1538.1 y=650.9 focal=631.086
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1550.5 y=650.0 focal=630.006
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1560.9 y=647.0 focal=626.517
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1566.1 y=647.0 focal=626.517
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1572.0 y=644.0 focal=623.046
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1581.2 y=644.0 focal=623.046
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1586.9 y=644.0 focal=623.046
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1593.5 y=644.0 focal=623.046
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1598.2 y=641.0 focal=619.596
+10-07 16:11:29.093  4199  4213 I CoinRenderP23: camera_touch x=1600.5 y=641.0 focal=619.596
+10-07 16:11:30.187  4199  4213 I CoinRenderP23: camera_touch x=1048.9 y=650.0 focal=616.164
+10-07 16:11:30.187  4199  4213 I CoinRenderP23: camera_touch x=1051.9 y=650.0 focal=616.164
+10-07 16:11:31.254  4199  4213 I CoinRenderP23: city=1 generation=1 frames=60 serial=69 fps_cpu_wall=1.08 render_present_mean_ms=928.340
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1059.1 y=647.0 focal=612.752
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1065.8 y=647.0 focal=612.752
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1074.9 y=650.4 focal=616.684
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1095.5 y=651.2 focal=617.588
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1131.2 y=654.3 focal=621.084
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1178.3 y=655.0 focal=621.907
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1231.8 y=655.0 focal=621.907
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1268.4 y=659.1 focal=626.665
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1349.9 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1418.6 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1460.8 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1494.6 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1512.4 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1524.9 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1533.7 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1543.7 y=658.0 focal=625.371
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1551.9 y=654.0 focal=620.706
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1560.9 y=655.0 focal=621.907
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1569.2 y=655.0 focal=621.907
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1574.0 y=655.0 focal=621.907
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1579.3 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1583.1 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1586.6 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1588.0 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1589.9 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1595.7 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1600.5 y=653.0 focal=619.596
+10-07 16:11:31.255  4199  4213 I CoinRenderP23: camera_touch x=1600.9 y=653.0 focal=619.596
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1111.4 y=666.0 focal=619.596
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1118.8 y=666.0 focal=619.596
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1145.9 y=666.0 focal=619.596
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1165.2 y=664.0 focal=617.294
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1202.7 y=664.0 focal=617.294
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1263.8 y=664.0 focal=617.294
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1316.0 y=664.0 focal=617.294
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1354.4 y=664.0 focal=617.294
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1404.1 y=664.0 focal=617.294
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1422.1 y=661.0 focal=613.874
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1439.7 y=661.0 focal=613.874
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1457.5 y=661.0 focal=613.874
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1476.2 y=661.0 focal=613.874
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1482.6 y=658.0 focal=610.474
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1489.3 y=658.0 focal=610.474
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1495.0 y=658.0 focal=610.474
+10-07 16:11:32.182  4199  4213 I CoinRenderP23: camera_touch x=1494.9 y=653.5 focal=605.409
+10-07 16:11:33.254  4199  4213 I CoinRenderP23: camera_touch x=1212.9 y=627.0 focal=602.056
+10-07 16:11:33.254  4199  4213 I CoinRenderP23: camera_touch x=1215.9 y=627.0 focal=602.056
+10-07 16:11:33.254  4199  4213 I CoinRenderP23: camera_touch x=1218.0 y=625.0 focal=599.819
+10-07 16:11:33.254  4199  4213 I CoinRenderP23: camera_touch x=1224.7 y=625.0 focal=599.819
+10-07 16:11:33.254  4199  4213 I CoinRenderP23: camera_touch x=1252.9 y=625.0 focal=599.819
+10-07 16:11:33.254  4199  4213 I CoinRenderP23: camera_touch x=1287.6 y=625.0 focal=599.819
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1339.9 y=625.0 focal=599.819
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1375.0 y=625.0 focal=599.819
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1422.7 y=625.0 focal=599.819
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1523.0 y=625.0 focal=599.819
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1577.6 y=623.7 focal=598.356
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1609.9 y=620.0 focal=594.236
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1644.7 y=619.0 focal=593.193
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1664.0 y=619.0 focal=593.193
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1680.6 y=616.0 focal=589.908
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1679.9 y=616.0 focal=589.908
+10-07 16:11:34.286  4199  4213 I CoinRenderP23: camera_touch x=1681.9 y=616.0 focal=589.908
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1138.0 y=651.6 focal=588.357
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1138.0 y=648.5 focal=585.013
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1145.6 y=647.2 focal=583.634
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1159.6 y=647.0 focal=583.392
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1182.9 y=639.7 focal=575.592
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1220.2 y=632.5 focal=567.918
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1260.4 y=622.6 focal=557.664
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1346.4 y=611.1 focal=545.845
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1432.5 y=600.7 focal=535.490
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1454.7 y=598.6 focal=533.350
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1473.3 y=597.0 focal=531.800
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1483.7 y=597.0 focal=531.800
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1493.5 y=597.0 focal=531.800
+10-07 16:11:35.160  4199  4213 I CoinRenderP23: camera_touch x=1489.9 y=597.0 focal=531.800
+10-07 16:11:36.197  4199  4213 I CoinRenderP23: lifecycle command=13 generation=1
+10-07 16:11:36.198  4199  4213 I CoinRenderP23: lifecycle command=7 generation=1
+10-07 16:11:36.808  4199  4213 I CoinRenderP23: lifecycle command=2 generation=1
+10-07 16:11:36.862  4199  4213 I CoinRenderP23: lifecycle command=14 generation=1
+10-07 16:11:36.862  4199  4213 I CoinRenderP23: lifecycle command=12 generation=1
+10-07 16:11:37.700  4199  4213 I CoinRenderP23: lifecycle command=8 generation=1
+10-07 16:11:37.701  4199  4213 I CoinRenderP23: lifecycle command=10 generation=1
+10-07 16:11:37.701  4199  4213 I CoinRenderP23: lifecycle command=11 generation=1
+10-07 16:11:37.754  4199  4213 I CoinRenderP23: lifecycle command=1 generation=1
+10-07 16:11:39.519  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:39.519  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:40.117  4199  4213 I CoinRenderP23: generation=2 serial=77 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:11:40.117  4199  4213 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)
+10-07 16:11:41.000  4199  4213 I CoinRenderP23: lifecycle command=3 generation=2
+10-07 16:11:42.480  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:42.480  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:43.048  4199  4213 I CoinRenderP23: generation=2 serial=81 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:11:44.021  4199  4213 I CoinRenderP23: lifecycle command=8 generation=2
+10-07 16:11:45.998  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:45.999  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:46.615  4199  4213 I CoinRenderP23: generation=2 serial=85 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:11:47.695  4199  4213 I CoinRenderP23: lifecycle command=4 generation=2
+10-07 16:11:48.533  4199  4213 I CoinRenderP23: lifecycle command=6 generation=2
+10-07 16:11:49.439  4199  4213 I CoinRenderP23: lifecycle command=13 generation=2
+10-07 16:11:49.439  4199  4213 I CoinRenderP23: lifecycle command=11 generation=2
+10-07 16:11:50.898  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:50.898  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:51.481  4199  4213 I CoinRenderP23: generation=2 serial=91 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:11:52.358  4199  4213 I CoinRenderP23: lifecycle command=13 generation=2
+10-07 16:11:52.359  4199  4213 I CoinRenderP23: lifecycle command=2 generation=2
+10-07 16:11:52.366  4199  4213 I CoinRenderP23: lifecycle command=14 generation=2
+10-07 16:11:52.366  4199  4213 I CoinRenderP23: lifecycle command=12 generation=2
+10-07 16:11:52.367  4199  4213 I CoinRenderP23: lifecycle command=10 generation=2
+10-07 16:11:52.367  4199  4213 I CoinRenderP23: lifecycle command=11 generation=2
+10-07 16:11:52.369  4199  4213 I CoinRenderP23: lifecycle command=1 generation=2
+10-07 16:11:53.900  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:53.901  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:54.436  4199  4213 I CoinRenderP23: generation=3 serial=95 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:11:54.436  4199  4213 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)
+10-07 16:11:55.314  4199  4213 I CoinRenderP23: lifecycle command=3 generation=3
+10-07 16:11:56.757  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:56.758  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:11:57.440  4199  4213 I CoinRenderP23: generation=3 serial=99 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:11:58.449  4199  4213 I CoinRenderP23: lifecycle command=4 generation=3
+10-07 16:11:59.370  4199  4213 I CoinRenderP23: lifecycle command=7 generation=3
+10-07 16:12:00.247  4199  4213 I CoinRenderP23: lifecycle command=6 generation=3
+10-07 16:12:01.236  4199  4213 I CoinRenderP23: lifecycle command=13 generation=3
+10-07 16:12:01.237  4199  4213 I CoinRenderP23: lifecycle command=2 generation=3
+10-07 16:12:01.247  4199  4213 I CoinRenderP23: lifecycle command=14 generation=3
+10-07 16:12:01.247  4199  4213 I CoinRenderP23: lifecycle command=12 generation=3
+10-07 16:12:01.247  4199  4213 I CoinRenderP23: lifecycle command=10 generation=3
+10-07 16:12:01.247  4199  4213 I CoinRenderP23: lifecycle command=11 generation=3
+10-07 16:12:01.248  4199  4213 I CoinRenderP23: lifecycle command=7 generation=3
+10-07 16:12:01.250  4199  4213 I CoinRenderP23: lifecycle command=1 generation=3
+10-07 16:12:02.937  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:02.937  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:03.511  4199  4213 I CoinRenderP23: generation=4 serial=106 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:03.512  4199  4213 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)
+10-07 16:12:04.329  4199  4213 I CoinRenderP23: lifecycle command=3 generation=4
+10-07 16:12:05.796  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:05.796  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:06.399  4199  4213 I CoinRenderP23: generation=4 serial=110 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:07.377  4199  4213 I CoinRenderP23: lifecycle command=4 generation=4
+10-07 16:12:08.277  4199  4213 I CoinRenderP23: lifecycle command=6 generation=4
+10-07 16:12:09.113  4199  4213 I CoinRenderP23: lifecycle command=8 generation=4
+10-07 16:12:10.556  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:10.557  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:11.103  4199  4213 I CoinRenderP23: generation=4 serial=116 size=1080x2400 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:11.981  4199  4213 I CoinRenderP23: lifecycle command=3 generation=4
+10-07 16:12:13.763  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:13.764  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:14.378  4199  4213 I CoinRenderP23: generation=4 serial=120 size=1080x2400 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:15.267  4199  4213 I CoinRenderP23: lifecycle command=5 generation=4
+10-07 16:12:16.673  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:16.673  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:17.309  4199  4213 I CoinRenderP23: generation=4 serial=124 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:18.154  4199  4213 I CoinRenderP23: lifecycle command=4 generation=4
+10-07 16:12:19.292  4199  4213 I CoinRenderP23: lifecycle command=8 generation=4
+10-07 16:12:20.831  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:20.832  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:21.395  4199  4213 I CoinRenderP23: generation=4 serial=129 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:22.257  4199  4213 I CoinRenderP23: lifecycle command=3 generation=4
+10-07 16:12:23.674  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:23.674  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:24.236  4199  4213 I CoinRenderP23: generation=4 serial=133 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:25.092  4199  4213 I CoinRenderP23: city=1 generation=4 frames=10 serial=134 fps_cpu_wall=0.42 render_present_mean_ms=899.793
+10-07 16:12:25.092  4199  4213 I CoinRenderP23: lifecycle command=5 generation=4
+10-07 16:12:26.527  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:26.527  4199  4213 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 16:12:27.213  4199  4213 I CoinRenderP23: generation=4 serial=137 size=2400x1080 rgba_fnv64=376f0640d2c40387 capture_scope=offscreen
+10-07 16:12:28.046  4199  4213 I CoinRenderP23: lifecycle command=4 generation=4
+10-07 16:12:35.957  4199  4213 I CoinRenderP23: city=1 generation=4 frames=20 serial=147 fps_cpu_wall=0.92 render_present_mean_ms=874.345
+10-07 16:12:44.777  4199  4213 I CoinRenderP23: city=1 generation=4 frames=30 serial=157 fps_cpu_wall=1.13 render_present_mean_ms=881.917
+10-07 16:12:53.922  4199  4213 I CoinRenderP23: city=1 generation=4 frames=40 serial=167 fps_cpu_wall=1.09 render_present_mean_ms=914.472
+10-07 16:13:02.717  4199  4213 I CoinRenderP23: city=1 generation=4 frames=50 serial=177 fps_cpu_wall=1.14 render_present_mean_ms=879.468
+10-07 16:13:09.765  4199  4213 I CoinRenderP23: lifecycle command=13 generation=4
+10-07 16:13:09.796  4199  4213 I CoinRenderP23: lifecycle command=7 generation=4
+10-07 16:13:10.858  4199  4213 I CoinRenderP23: lifecycle command=2 generation=4
+10-07 16:13:10.900  4199  4213 I CoinRenderP23: lifecycle command=14 generation=4
+10-07 16:13:10.900  4199  4213 I CoinRenderP23: lifecycle command=0 generation=4
+10-07 16:13:10.900  4199  4213 I CoinRenderP23: lifecycle command=15 generation=4
+10-07 16:13:11.091  4199  4213 I CoinRenderP23: P23 smoke finished: OK
+10-07 16:13:13.836  4199  4502 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-07 16:13:13.837  4199  4502 I CoinRenderP23: requested_renderer=2
+10-07 16:13:14.187  4199  4502 I CoinRenderP23: scene=city-40000 buildings=40000 ground=1 triangles=480012 continuous=1
+10-07 16:13:14.335  4199  4502 I CoinRenderP23: legacy_gl_unavailable=1
+10-07 16:13:14.335  4199  4502 I CoinRenderP23: lifecycle command=10 generation=0
+10-07 16:13:14.336  4199  4502 I CoinRenderP23: lifecycle command=11 generation=0
+10-07 16:13:14.338  4199  4502 I CoinRenderP23: lifecycle command=0 generation=0
+10-07 16:13:14.344  4199  4502 I CoinRenderP23: lifecycle command=1 generation=0
+--------- beginning of crash
+10-07 16:13:15.305  4199  4502 F libc    : Fatal signal 8 (SIGFPE), code 1 (FPE_INTDIV), fault addr 0x71f0be0f58d2 in tid 4502 (Thread-3), pid 4199 (.coinrender.p23)

@@ -230,12 +230,20 @@ nem encerra uma campanha completa de desempenho Windows.
 - [x] Validar no AVD x86_64 a primeira execução wgpu/OpenGL ES: apresentação,
   captura offscreen 64×64, ausência de captura da janela, seriais crescentes,
   HOME/retomada, rotação 1080×2400 ↔ 2400×1080 e encerramento `OK`.
-- [ ] Ampliar Android para recriações repetidas de superfície na mesma execução,
-  múltiplos alvos, API automática e demais fixtures/formatos.
+- [x] Ampliar o AVD x86_64/GLES para 40.000 prédios: asset no APK, launcher padrão,
+  giro/zoom e loop contínuo; três recriações reais de janela com offscreen vivo,
+  rotação, duas reaberturas após BACK no mesmo processo e controle do cubo.
+- [x] Liberar runtime Android ocioso antes da thread da Activity terminar;
+  epochs avançam e alvos/recursos externos vivos impedem esse teardown.
+- [ ] Ampliar Android para duas janelas, API automática, tickets/RTT entre threads
+  de Activities e demais fixtures/formatos; preservar o zoom entre recriações.
+- [ ] Estudo: perfilar 40.000 prédios em Android/GLES/gfxstream; a amostra
+  funcional observou cerca de 1 FPS, sem qualificar desempenho físico.
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 
 [Primeiro APK e validação emulada](coin-render-p23-apk-validation-20261007.md).
+[Cidade interativa e continuação Android](coin-render-p23-android-city-20261007.md).
 
 [Evidência e limites desta rodada](coin-render-hardware-surfaces-linux.md).
 Fechamento por backend/API/driver/plataforma/alvo; manter skips, diferenças
