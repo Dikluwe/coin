@@ -1,0 +1,130 @@
+[1/932] Building CXX object src/CMakeFiles/Coin.dir/tidbits.cpp.o
+[2/932] Building CXX object src/xml/CMakeFiles/xml.dir/attribute.cpp.o
+[3/932] Building CXX object src/xml/CMakeFiles/xml.dir/element.cpp.o
+[4/932] Building CXX object src/xml/CMakeFiles/xml.dir/entity.cpp.o
+[5/932] Building CXX object src/xml/CMakeFiles/xml.dir/document.cpp.o
+[6/932] Building CXX object src/xml/CMakeFiles/xml.dir/utils.cpp.o
+[7/932] Building CXX object src/xml/CMakeFiles/xml.dir/path.cpp.o
+[8/932] Building C object src/xml/expat/CMakeFiles/expat.dir/xmlrole.c.o
+[9/932] Building C object src/xml/expat/CMakeFiles/expat.dir/loadlibrary.c.o
+[10/932] Building CXX object src/actions/CMakeFiles/actions.dir/SoAction.cpp.o
+FAILED: src/actions/CMakeFiles/actions.dir/SoAction.cpp.o 
+/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DCOIN_BUILDING_COIN -DCOIN_BUILD_LEGACY_GL_RENDERER=0 -DCOIN_DEBUG=0 -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/tmp/coin-hardware-20261007/android/data -I/tmp/coin-render-first-frame/include/Inventor/annex -I/tmp/coin-render-first-frame/src/glue/khronos -I/tmp/coin-render-first-frame/src -I/tmp/coin-hardware-20261007/android/src -I/tmp/coin-render-first-frame/include -I/tmp/coin-hardware-20261007/android/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -Winconsistent-missing-override -O3 -DNDEBUG  -std=gnu++11 -fPIC -MD -MT src/actions/CMakeFiles/actions.dir/SoAction.cpp.o -MF src/actions/CMakeFiles/actions.dir/SoAction.cpp.o.d -o src/actions/CMakeFiles/actions.dir/SoAction.cpp.o -c /tmp/coin-render-first-frame/src/actions/SoAction.cpp
+In file included from /tmp/coin-render-first-frame/src/actions/SoAction.cpp:223:
+In file included from /tmp/coin-render-first-frame/include/Inventor/system/gl.h:47:
+/tmp/coin-hardware-20261007/android/include/Inventor/system/gl-headers.h:62:12: fatal error: 'GL/gl.h' file not found
+   62 | #  include <GL/gl.h>
+      |            ^~~~~~~~~
+1 error generated.
+[11/932] Building C object src/xml/expat/CMakeFiles/expat.dir/xmltok.c.o
+[12/932] Building C object src/xml/expat/CMakeFiles/expat.dir/xmlparse.c.o
+[13/932] Building Rust WebGPU bridge library (release)...
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.26
+   Compiling serde_core v1.0.229
+   Compiling cfg_aliases v0.2.2
+   Compiling libc v0.2.189
+   Compiling rustversion v1.0.23
+   Compiling cfg-if v1.0.5
+   Compiling autocfg v1.5.1
+   Compiling jni-sys v0.3.1
+   Compiling parking_lot_core v0.9.12
+   Compiling heck v0.5.0
+   Compiling thiserror v2.0.20
+   Compiling khronos-egl v6.0.0
+   Compiling log v0.4.34
+   Compiling ash v0.38.0+1.3.281
+   Compiling naga v24.0.0
+   Compiling libloading v0.8.9
+   Compiling termcolor v1.4.1
+   Compiling bit-vec v0.8.0
+   Compiling unicode-width v0.1.14
+   Compiling hashbrown v0.17.1
+   Compiling foldhash v0.1.5
+   Compiling scopeguard v1.2.0
+   Compiling smallvec v1.16.1
+   Compiling equivalent v1.0.2
+   Compiling lock_api v0.4.14
+   Compiling hashbrown v0.15.5
+   Compiling wgpu-hal v24.0.4
+   Compiling arrayvec v0.7.8
+   Compiling bit-set v0.8.0
+   Compiling num-traits v0.2.19
+   Compiling codespan-reporting v0.11.1
+   Compiling unicode-xid v0.2.6
+   Compiling rustc-hash v1.1.0
+   Compiling hexf-parse v0.2.1
+   Compiling wgpu-core v24.0.5
+   Compiling glow v0.16.0
+   Compiling renderdoc-sys v1.1.0
+   Compiling profiling v1.0.18
+   Compiling litrs v1.0.0
+   Compiling raw-window-handle v0.6.2
+   Compiling once_cell v1.21.4
+   Compiling wgpu v24.0.5
+   Compiling static_assertions v1.1.0
+   Compiling pollster v0.4.0
+   Compiling indexmap v2.14.2
+   Compiling android_system_properties v0.1.6
+   Compiling syn v2.0.119
+   Compiling syn v3.0.6
+   Compiling document-features v0.2.12
+   Compiling parking_lot v0.12.5
+   Compiling ordered-float v4.6.0
+   Compiling bitflags v2.13.2
+   Compiling gpu-alloc-types v0.3.1
+   Compiling spirv v0.3.0+sdk-1.3.268.0
+   Compiling gpu-descriptor-types v0.2.0
+   Compiling wgpu-types v24.0.0
+   Compiling gpu-descriptor v0.3.2
+   Compiling gpu-alloc v0.6.2
+   Compiling thiserror-impl v2.0.20
+   Compiling bytemuck_derive v1.12.1
+   Compiling bytemuck v1.25.2
+   Compiling jni-sys-macros v0.4.1
+   Compiling strum_macros v0.26.4
+   Compiling jni-sys v0.4.1
+   Compiling ndk-sys v0.5.0+25.2.9519653
+   Compiling strum v0.26.3
+   Compiling coin_wgpu_rust_bridge v0.1.0 (/tmp/coin-render-first-frame/src/rendering/coinwgpu/rust_bridge)
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:2304:15
+     |
+2304 |         wgpu::ImageCopyTexture {
+     |               ^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:2311:15
+     |
+2311 |         wgpu::ImageDataLayout {
+     |               ^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:3394:19
+     |
+3394 |             wgpu::ImageCopyTexture {
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:3401:19
+     |
+3401 |             wgpu::ImageDataLayout {
+     |                   ^^^^^^^^^^^^^^^
+
+warning: field `default_texture` is never read
+    --> src/lib.rs:1452:5
+     |
+1426 | struct DeviceState {
+     |        ----------- field in this struct
+...
+1452 |     default_texture: wgpu::Texture,
+     |     ^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coin_wgpu_rust_bridge` (lib) generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 30.49s
+ninja: build stopped: subcommand failed.

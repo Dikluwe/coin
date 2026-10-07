@@ -1,0 +1,39 @@
+{
+  "key": "amd-wayland-scale-negative",
+  "command": [
+    "python3",
+    "testsuite/qt-quarter/run_isolated.py",
+    "--server",
+    "xwayland",
+    "--weston-shell",
+    "desktop-shell.so",
+    "--weston-scale",
+    "1",
+    "--weston-prefix",
+    "/tmp/coin-p16-weston",
+    "--artifacts",
+    "/tmp/coin-hardware-20261007/amd-wayland-scale-negative/session",
+    "--exec",
+    "--",
+    "env",
+    "DISPLAY=:0",
+    "WAYLAND_DISPLAY=coin-isolated",
+    "GDK_BACKEND=wayland",
+    "GDK_SCALE=1",
+    "COIN_RENDER_EXPECT_WAYLAND_SCALE=2",
+    "COIN_RENDER_REQUIRE_GL_REFERENCE=1",
+    "/tmp/coin-render-first-frame-wgpu/bin/coin_render_wayland_smoke"
+  ],
+  "exit": 3,
+  "environment": {
+    "DISPLAY": ":0",
+    "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+    "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_GLXGLUE_NO_PBUFFERS": "1",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+  },
+  "expected_exit": 3
+}

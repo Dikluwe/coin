@@ -1,0 +1,75 @@
+Date: 2026-10-07 -03
+[02:13:17.279] weston 13.0.0
+               https://wayland.freedesktop.org
+               Bug reports to: https://gitlab.freedesktop.org/wayland/weston/issues/
+               Build: 13.0.0
+[02:13:17.279] Command line: /tmp/coin-p16-weston/usr/bin/weston --backend=headless --renderer=gl --shell=desktop-shell.so --socket=coin-isolated --width=2400 --height=1600 --scale=1 --idle-time=0 --config=/tmp/coin-hardware-20261007/amd-wayland-scale1-qualified/session/weston.ini --log=/tmp/coin-hardware-20261007/amd-wayland-scale1-qualified/session/weston.log
+[02:13:17.279] OS: Linux, 6.17.0-42-generic, #42-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul 23 19:56:28 UTC 2026, x86_64
+[02:13:17.279] Flight recorder: enabled
+[02:13:17.280] Using config file '/tmp/coin-hardware-20261007/amd-wayland-scale1-qualified/session/weston.ini'
+[02:13:17.280] Output repaint window is 7 ms maximum.
+[02:13:17.280] Loading module '/tmp/coin-p16-weston/usr/lib/x86_64-linux-gnu/libweston-13/headless-backend.so'
+[02:13:17.283] Loading module '/tmp/coin-p16-weston/usr/lib/x86_64-linux-gnu/libweston-13/gl-renderer.so'
+[02:13:17.321] Using rendering device: /dev/dri/renderD128
+[02:13:17.321] EGL version: 1.5
+[02:13:17.321] EGL vendor: Mesa Project
+[02:13:17.321] EGL client APIs: OpenGL OpenGL_ES 
+[02:13:17.321] EGL features:
+               EGL Wayland extension: no
+               context priority: yes
+               buffer age: no
+               partial update: no
+               swap buffers with damage: no
+               configless context: yes
+               surfaceless context: yes
+               dmabuf support: modifiers
+[02:13:17.324] GL version: OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.4
+[02:13:17.324] GLSL version: OpenGL ES GLSL ES 3.20
+[02:13:17.324] GL vendor: AMD
+[02:13:17.324] GL renderer: AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)
+[02:13:17.330] GL ES 3.2 - renderer features:
+               read-back format: ARGB8888
+               glReadPixels supports y-flip: yes
+               wl_shm 10 bpc formats: yes
+               wl_shm 16 bpc formats: yes
+               wl_shm half-float formats: yes
+               internal R and RG formats: yes
+               OES_EGL_image_external: yes
+[02:13:17.330] Using GL renderer
+[02:13:17.330] Registered plugin API 'weston_windowed_output_api_v2' of size 16
+[02:13:17.330] Color manager: no-op
+[02:13:17.330] Output 'headless' attempts EOTF mode: SDR
+[02:13:17.330] Output 'headless' using color profile: stock sRGB color profile
+[02:13:17.331] Output 'headless' enabled with head(s) headless
+[02:13:17.331] Compositor capabilities:
+               arbitrary surface rotation: yes
+               screen capture uses y-flip: yes
+               cursor planes: no
+               arbitrary resolutions: no
+               view mask clipping: yes
+               explicit sync: yes
+               color operations: yes
+               presentation clock: CLOCK_MONOTONIC_RAW, id 4
+               presentation clock resolution: 0.000000001 s
+[02:13:17.331] Loading module '/tmp/coin-p16-weston/usr/lib/x86_64-linux-gnu/weston/desktop-shell.so'
+[02:13:17.332] launching '/usr/libexec/weston-keyboard'
+[02:13:17.333] launching '/tmp/coin-p16-weston/usr/libexec/weston-desktop-shell'
+[02:13:17.334] input_method disconnected, respawning...
+[02:13:17.334] launching '/usr/libexec/weston-keyboard'
+[02:13:17.335] /usr/libexec/weston-keyboard exited with status 1
+[02:13:17.336] input_method disconnected, respawning...
+[02:13:17.336] launching '/usr/libexec/weston-keyboard'
+[02:13:17.337] /usr/libexec/weston-keyboard exited with status 1
+[02:13:17.338] input_method disconnected, respawning...
+[02:13:17.338] launching '/usr/libexec/weston-keyboard'
+[02:13:17.340] /usr/libexec/weston-keyboard exited with status 1
+[02:13:17.340] input_method disconnected, respawning...
+[02:13:17.340] launching '/usr/libexec/weston-keyboard'
+[02:13:17.344] /usr/libexec/weston-keyboard exited with status 1
+[02:13:17.344] /usr/libexec/weston-keyboard exited with status 1
+[02:13:17.344] input_method disconnected, respawning...
+[02:13:17.344] launching '/usr/libexec/weston-keyboard'
+[02:13:17.347] input_method disconnected, giving up.
+[02:13:17.347] /usr/libexec/weston-keyboard exited with status 1
+[02:13:18.143] caught signal 15
+[02:13:18.144] BUG: finalizing a layer with views still on it.

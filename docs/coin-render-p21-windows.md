@@ -24,8 +24,12 @@ o host deve converter medidas lógicas de DPI antes de chamar criação/resize.
 Na primeira superfície, uma opção explícita seleciona apenas adaptadores da API
 pedida compatíveis com o `HWND`; depois que o device compartilhado existe, pedidos
 para outra API retornam `UNSUPPORTED`, sem trocar de device nem aplicar fallback.
-No BGFX atual, a opção D3D12 responde `UNSUPPORTED`: seu conector e o build de shaders ainda são Linux/Xlib com
-Vulkan/OpenGL. D3D11 não foi implementado. Nenhum perfil Windows é marcado
+O [conector BGFX atual](coin-render-bgfx-windows.md) também aceita Win32 e
+D3D12, com shaders DXBC e device compartilhado; Vulkan e OpenGL são seleções
+explícitas. A campanha BGFX Windows documenta 163 testes distintos aprovados,
+incluindo 39 de sombras com GPU obrigatória. D3D11 não foi implementado.
+Esses resultados anteriores não qualificam automaticamente as mudanças Linux
+de 2026-10-07. Nenhum perfil Windows é marcado
 como qualificado pela API de capacidades.
 
 O CMake da ponte Rust agora usa a extensão `.lib` do `staticlib` com MSVC,
@@ -42,7 +46,7 @@ dependentes de X11.
 | wgpu/D3D12 + `HWND` | Build e smoke passaram em Windows/NVIDIA 581.08 | Perda/recriação e demais pendências da campanha |
 | wgpu/Vulkan + `HWND` | Build e smoke passaram em Windows/NVIDIA 581.08 | Perda/recriação e demais pendências da campanha |
 | BGFX/D3D11 | Pendente | Shaders, build, surface e matriz física |
-| BGFX/D3D12 | Rejeição explícita, sem fallback | Infra, shaders, build e matriz física |
+| BGFX/D3D12 | Win32/shaders implementados; campanha física documentada em BGFX Windows | Requalificar a revisão atual, DPI entre monitores e perda real de surface/device |
 | Win32 resize/DPI/multiwindow | Duas janelas, resize e minimizar/restaurar passaram a 96 DPI | Mudança entre monitores DPI distintos |
 
 ## Critérios para fechar

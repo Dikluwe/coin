@@ -1,0 +1,481 @@
+{
+  "device": "amd",
+  "expected_ids": [
+    "0x1002",
+    "0x1638"
+  ],
+  "gl_renderer": "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+  "icd": "/usr/share/vulkan/icd.d/radeon_icd.json",
+  "vulkan_driver": [
+    "radv",
+    "Mesa 25.2.8-0ubuntu0.24.04.4"
+  ],
+  "git_commit": "94a2ee1a9b0f5491e473626a8b8302272fe27bcb",
+  "builds": {
+    "bgfx": {
+      "path": "/tmp/coin-render-first-frame-bgfx",
+      "window_sha256": "aa8b51875f7ba77f560f166c30b3012490cf0d0d3daa327bc9b335f13b37396b",
+      "offscreen_sha256": "7af68df05f27df991414ebea7c3c4520ac15bffe5e9a02937b200418e7031a29"
+    },
+    "wgpu": {
+      "path": "/tmp/coin-render-first-frame-wgpu",
+      "window_sha256": "c8ceac0e35f42c6c732d9e6b2d75ca26ad2c9b8cfbebe274d20ca5da154e4fe1",
+      "offscreen_sha256": "cc5a68116cd760edb733e6b5fe0e57f7b55a20f7e094b5625141c8196b68ab98"
+    }
+  },
+  "uname": "Linux 6.17.0-42-generic x86_64 GNU/Linux",
+  "scenes": {
+    "opaque-interleaved": {
+      "path": "/tmp/coin-p17-scenes/opaque-interleaved.iv",
+      "sha256": "32854a58541b03ad07bbf03f8cace6e8b394b456d83d6e9be0e20e6d5473c072"
+    },
+    "transparent-overlap": {
+      "path": "/tmp/coin-p17-scenes/transparent-overlap.iv",
+      "sha256": "7fc70de5b45323521ff68714298049625b1f66ba1248a42c3952879d895a4caf"
+    }
+  },
+  "size": 128,
+  "warmup": 1,
+  "frames": 3,
+  "session": "physical",
+  "targets": [
+    "window",
+    "offscreen"
+  ],
+  "runs": [
+    {
+      "key": "amd-window-opaque-interleaved-coin-gl",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "adapter": "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0xb4211e441f5ada05",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-opaque-interleaved-coin-gl.log"
+    },
+    {
+      "key": "amd-window-opaque-interleaved-bgfx-opengl",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0xbd7999730dbe6385",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-opaque-interleaved-bgfx-opengl.log"
+    },
+    {
+      "key": "amd-window-opaque-interleaved-bgfx-vulkan",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0xbd7999730dbe6385",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-opaque-interleaved-bgfx-vulkan.log"
+    },
+    {
+      "key": "amd-window-opaque-interleaved-wgpu-vulkan",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0xbd7999730dbe6385",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-opaque-interleaved-wgpu-vulkan.log"
+    },
+    {
+      "key": "amd-window-transparent-overlap-coin-gl",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "adapter": "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x4f320a9a4c050af0",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-transparent-overlap-coin-gl.log"
+    },
+    {
+      "key": "amd-window-transparent-overlap-bgfx-opengl",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x2c0296f75c761bf3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-transparent-overlap-bgfx-opengl.log"
+    },
+    {
+      "key": "amd-window-transparent-overlap-bgfx-vulkan",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0x2c0296f75c761bf3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-transparent-overlap-bgfx-vulkan.log"
+    },
+    {
+      "key": "amd-window-transparent-overlap-wgpu-vulkan",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0x2c0296f75c761bf3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-window-transparent-overlap-wgpu-vulkan.log"
+    },
+    {
+      "key": "amd-offscreen-opaque-interleaved-coin-gl",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "adapter": "not-queried",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x3831140d152e44aa",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-opaque-interleaved-coin-gl.log"
+    },
+    {
+      "key": "amd-offscreen-opaque-interleaved-bgfx-opengl",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x5094726603f138d3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-opaque-interleaved-bgfx-opengl.log"
+    },
+    {
+      "key": "amd-offscreen-opaque-interleaved-bgfx-vulkan",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0x5094726603f138d3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-opaque-interleaved-bgfx-vulkan.log"
+    },
+    {
+      "key": "amd-offscreen-opaque-interleaved-wgpu-vulkan",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0x5094726603f138d3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-opaque-interleaved-wgpu-vulkan.log"
+    },
+    {
+      "key": "amd-offscreen-transparent-overlap-coin-gl",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "adapter": "not-queried",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0xe61d0d7f982300a5",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-transparent-overlap-coin-gl.log"
+    },
+    {
+      "key": "amd-offscreen-transparent-overlap-bgfx-opengl",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x6e4c2757ed19133b",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-transparent-overlap-bgfx-opengl.log"
+    },
+    {
+      "key": "amd-offscreen-transparent-overlap-bgfx-vulkan",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0x394a9e3f904e85b4",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-transparent-overlap-bgfx-vulkan.log"
+    },
+    {
+      "key": "amd-offscreen-transparent-overlap-wgpu-vulkan",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)",
+      "vendor_id": "0x1002",
+      "device_id": "0x1638",
+      "rgba_fnv64": "0x394a9e3f904e85b4",
+      "qualification": "capture; see RGB comparisons",
+      "log": "amd-offscreen-transparent-overlap-wgpu-vulkan.log"
+    }
+  ],
+  "failures": [
+    {
+      "key": "amd-offscreen-transparent-overlap-bgfx-vulkan-CoinGL",
+      "error": "RGB exceeds the declared gate",
+      "metrics": {
+        "mae": 0.13401285807291666,
+        "max": 17,
+        "pixels_over3": 4
+      }
+    },
+    {
+      "key": "amd-offscreen-transparent-overlap-wgpu-vulkan-CoinGL",
+      "error": "RGB exceeds the declared gate",
+      "metrics": {
+        "mae": 0.13401285807291666,
+        "max": 17,
+        "pixels_over3": 4
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.3644816080729167,
+        "max": 1,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.3644816080729167,
+        "max": 1,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.3644816080729167,
+        "max": 1,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.133056640625,
+        "max": 1,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.13401285807291666,
+        "max": 17,
+        "pixels_over3": 4
+      },
+      "passed": false
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.13401285807291666,
+        "max": 17,
+        "pixels_over3": 4
+      },
+      "passed": false
+    }
+  ]
+}

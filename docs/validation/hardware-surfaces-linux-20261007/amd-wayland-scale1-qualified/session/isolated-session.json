@@ -1,0 +1,15 @@
+{
+  "server": "xwayland",
+  "display": ":1",
+  "private_dbus": true,
+  "authenticated": true,
+  "host_input_forwarded": false,
+  "window_manager": "/usr/bin/metacity",
+  "screen": "2400x1600",
+  "requested_screen": "2400x1600",
+  "private_runtime": true,
+  "compositor_backend": "headless-gl",
+  "compositor_shell": "desktop-shell.so",
+  "compositor_scale": 1,
+  "hardware": "must be proven by runner, never inferred from isolation"
+}

@@ -1,0 +1,73 @@
+Start testing: Oct 07 02:11 -03
+----------------------------------------------------------
+3/212 Testing: CoinTests
+3/212 Test: CoinTests
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinTests"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinTests" start time: Oct 07 02:11 -03
+Output:
+----------------------------------------------------------
+Coin info in cc_dict_print_stat(): Used buckets 0 of 2 (0 elements), avg chain length: 0.00, max chain length: 0
+
+Coin info in cc_hash_print_stat(): Used buckets 0 of 2 (0 elements), avg chain length: 0.00, max chain length: 0
+
+Coin warning in SoVRMLScript::initialize(): No script language evaluation engine available.
+[OK] 418 tests, 309076 checks
+<end of output>
+Test time =   0.97 sec
+----------------------------------------------------------
+Test Passed.
+"CoinTests" end time: Oct 07 02:11 -03
+"CoinTests" time elapsed: 00:00:00
+----------------------------------------------------------
+
+43/212 Testing: CoinRenderActionTest
+43/212 Test: CoinRenderActionTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderActionTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderActionTest" start time: Oct 07 02:11 -03
+Output:
+----------------------------------------------------------
+Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+<end of output>
+Test time =   0.78 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderActionTest" end time: Oct 07 02:11 -03
+"CoinRenderActionTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+54/212 Testing: CoinRenderFrameCoreTest
+54/212 Test: CoinRenderFrameCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderFrameCoreTest" start time: Oct 07 02:11 -03
+Output:
+----------------------------------------------------------
+CoinRenderFrameCoreTest passed
+<end of output>
+Test time =   0.02 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameCoreTest" end time: Oct 07 02:11 -03
+"CoinRenderFrameCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+59/212 Testing: CoinRenderFrameReuseCoreTest
+59/212 Test: CoinRenderFrameReuseCoreTest
+Command: "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderFrameReuseCoreTest"
+Directory: /tmp/coin-render-first-frame-wgpu/testsuite
+"CoinRenderFrameReuseCoreTest" start time: Oct 07 02:11 -03
+Output:
+----------------------------------------------------------
+CoinRenderFrameReuseCoreTest passed
+<end of output>
+Test time =   0.58 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderFrameReuseCoreTest" end time: Oct 07 02:11 -03
+"CoinRenderFrameReuseCoreTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 07 02:11 -03

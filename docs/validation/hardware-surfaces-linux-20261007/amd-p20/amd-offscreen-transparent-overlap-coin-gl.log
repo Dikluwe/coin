@@ -1,0 +1,18 @@
+startup_detail arguments_ms=0.01598 coin_init_ms=2.23273 capability_probe_ms=0.000141
+scene_detail parse_ms=0.832717 wrapper_ms=0.018274 camera_fit_ms=0.333961
+scene_load_ms=1.21978
+startup_detail material_search_ms=0.044052 target_setup_ms=0.007594
+CoinGL_first_detail render_ms=45.1666 lazy_readback_ms=0.722813 publication_copy_ms=0.004378 update_ms=4e-05 total_with_update_ms=45.8938 before_frame_since_main_ms=3.57818 result_since_main_ms=49.472
+CoinGL_first_frame_ms=45.8938
+gl_rgba_fnv64=0xe61d0d7f982300a5
+image=/tmp/coin-hardware-20261007/amd-p20/amd-offscreen-transparent-overlap-coin-gl.ppm
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=128x128 warmup=1 scene=/tmp/coin-p17-scenes/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..2 warmup_indices=-1..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=legacy-frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+CoinGL frames=3 median_ms=0.632605 p95_ms=0.823921 min_ms=0.619311 max_ms=0.823921
+CoinGL_timing_total frames=3 median_ms=0.632786 p95_ms=0.823981 p99_ms=0.823981 max_ms=0.823981 over_16_67=0 over_33_33=0
+CoinGL_timing_update frames=3 median_ms=7e-05 p95_ms=0.000181 p99_ms=0.000181 max_ms=0.000181 over_16_67=0 over_33_33=0
+CoinGL_timing_render frames=3 median_ms=0.630722 p95_ms=0.822218 p99_ms=0.822218 max_ms=0.822218 over_16_67=0 over_33_33=0
+CoinGL_publication_copy frames=3 median_ms=0.001713 p95_ms=0.001883 min_ms=0.001703 max_ms=0.001883
+CoinGL_throughput frames=3 total_ms=2.07756 fps=1444
+backend_cleanup_begin
+backend_cleanup_ms=1.03272

@@ -1,0 +1,61 @@
+startup_detail arguments_ms=0.014026 coin_init_ms=2.35446 capability_probe_ms=40.9147
+scene_detail parse_ms=0.908499 wrapper_ms=0.023664 camera_fit_ms=0.383783
+scene_load_ms=1.35601
+startup_detail material_search_ms=0.062376 target_setup_ms=0.225298
+BGFX-Vulkan_first_detail render_ms=37.9455 publication_copy_ms=0.024325 update_ms=0.00012 total_with_update_ms=37.97 before_frame_since_main_ms=44.9986 result_since_main_ms=82.9684
+BGFX-Vulkan_first_frame_ms=37.9699
+rgba_fnv64=0x394a9e3f904e85b4
+image=/tmp/coin-hardware-20261007/amd-p20/amd-offscreen-transparent-overlap-bgfx-vulkan.ppm
+adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) vendor_id=0x1002 device_id=0x1638 backend=bgfx size=128x128 warmup=1 scene=/tmp/coin-p17-scenes/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..2 warmup_indices=-1..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=legacy-frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-Vulkan frames=3 median_ms=0.377621 p95_ms=0.578916 min_ms=0.362524 max_ms=0.578916
+BGFX_render_and_readback frames=3 median_ms=0.374345 p95_ms=0.575459 min_ms=0.3602 max_ms=0.575459
+BGFX_publication_copy frames=3 median_ms=0.003276 p95_ms=0.003457 min_ms=0.002324 max_ms=0.003457
+BGFX-Vulkan_timing_total frames=3 median_ms=0.377651 p95_ms=0.579146 p99_ms=0.579146 max_ms=0.579146 over_16_67=0 over_33_33=0
+BGFX-Vulkan_timing_update frames=3 median_ms=5e-05 p95_ms=0.00023 p99_ms=0.00023 max_ms=0.00023 over_16_67=0 over_33_33=0
+BGFX-Vulkan_timing_render frames=3 median_ms=0.374345 p95_ms=0.575459 p99_ms=0.575459 max_ms=0.575459 over_16_67=0 over_33_33=0
+BGFX-Vulkan_throughput frames=3 total_ms=1.32047 fps=2271.91
+backend_cleanup_begin
+backend_cleanup_ms=2.9382
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x1002 device_id=0x1638 homogeneous_depth=0
+COIN_RENDER_PHASE bgfx_formats rgba8=0x1fedb d24s8=0x0 d32f=0xfe41 readback=1
+COIN_RENDER_PHASE combine_validation_memo enabled=1 programs_checked=200 cache_hits=192 validated=8
+COIN_RENDER_PHASE validation_detail materials_ms=0.001362 vertices_ms=0.001613 indices_ms=0.000121 scene_state_ms=0.000370 render_states_ms=0.003497 draws_ms=0.000952 finish_ms=0.003957
+COIN_RENDER_PHASE composition_range_memo enabled=1 entries=49 admissions=49 hits=0 depth_skipped=294 bound_fallbacks=0
+COIN_RENDER_PHASE composition_identity consumer=common copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=49 qualify_ms=0.013385 copy_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.009247 sort_ms=0.004499 finish_ms=0.005460
+COIN_RENDER_PHASE plan_storage vertices=196 indices=294 render_states=25 draws=49 vertex_stride=164 vertex_bytes=32144 vertex_capacity_bytes=41984 index_bytes=1176 index_capacity_bytes=2048 render_state_bytes=41200 render_state_capacity_bytes=52736 draw_capacity_bytes=4704 capture_reserve_estimate=49 transfer_ownership=1 cube_replay_hits=0 cube_template_entries=0 cube_range_entries=0 cube_template_evictions=0 cube_range_evictions=0 cube_range_reuse_hits=0
+COIN_RENDER_PHASE builder_detail expand_styles_ms=0.001533 validation_ms=0.023894 composition_ms=0.028173 storage_report_ms=0.005470 publish_plan_ms=0.001393 finish_ms=0.000050
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x1002 device_id=0x1638 homogeneous_depth=0
+COIN_RENDER_PHASE bgfx_formats rgba8=0x1fedb d24s8=0x0 d32f=0xfe41 readback=1
+COIN_RENDER_PHASE bgfx_instancing_declined enabled=1 max_instance_data=16 max_vertex_attributes=32 reason=BGFX instancing declined: draw count
+COIN_RENDER_PHASE bgfx_base_program solid=0 instancing=0
+COIN_RENDER_PHASE bgfx_program_cache enabled=0 hits=0 writes=0
+COIN_RENDER_PHASE bgfx_geometry compact_vertices=0 vertex_stride=220 instancing=0 instances=0 instance_stride=160 instance_buffer_capacity=0
+COIN_RENDER_PHASE bgfx lower_ms=0.256227 upload_ms=0.049301 encode_ms=0.223746 draw_encode_ms=0.216873 blit_encode_ms=0.006873 submit_frame_ms=0.004989 read_request_ms=0.000892 read_wait_ms=1.469200 frame_wait_ms=1.469170 row_flip_ms=0.000140 vertices=294 draws=49 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=131072 readback_gpu_staging_bytes=65536 readback_cpu_staging_bytes=65536 readback_published_bytes=65536 readback_bootstrap=1 resource_cache_hit=0 texture_cache_hit=0 geometry_buffer_reused=0 vertex_buffer_capacity=512 index_buffer_capacity=512 camera_patch=0 material_patch=0 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000041 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=48 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=2 logical_material_changes=48 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=0.004057 prepare_ms=35.128273 submit_ms=2.063405
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=49 copied_bytes=2744 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000301 copy_ms=0.001482
+COIN_RENDER_PHASE action traversal_ms=0.569739 frame_plan_ms=0.068357 backend_ms=37.2058 vertices=196 indices=294 draws=49 plan_cache_hit=0 plan_reuse=full_rebuild
+COIN_RENDER_PHASE object_qualification finish_ms=0.000130
+COIN_RENDER_PHASE capture_camera_basis calls=1 prepares=1 reuse=0 prepare_ms=0.004919
+COIN_RENDER_PHASE bgfx_base_program solid=0 instancing=0
+COIN_RENDER_PHASE bgfx_program_cache enabled=0 hits=0 writes=0
+COIN_RENDER_PHASE bgfx_geometry compact_vertices=0 vertex_stride=220 instancing=0 instances=0 instance_stride=160 instance_buffer_capacity=0
+COIN_RENDER_PHASE bgfx lower_ms=0.003427 upload_ms=0.000340 encode_ms=0.125984 draw_encode_ms=0.124652 blit_encode_ms=0.001332 submit_frame_ms=0.004788 read_request_ms=0.000121 read_wait_ms=0.393993 frame_wait_ms=0.393963 row_flip_ms=0.000070 vertices=294 draws=49 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=131072 readback_gpu_staging_bytes=65536 readback_cpu_staging_bytes=65536 readback_published_bytes=65536 readback_bootstrap=1 resource_cache_hit=1 texture_cache_hit=1 geometry_buffer_reused=1 vertex_buffer_capacity=512 index_buffer_capacity=512 camera_patch=0 material_patch=0 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000030 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=48 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=2 logical_material_changes=48 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=0.000781 prepare_ms=0.000231 submit_ms=0.556604
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000400 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.001913 frame_plan_ms=0.000301 backend_ms=0.563126 vertices=196 indices=294 draws=49 plan_cache_hit=1 plan_reuse=reuse
+COIN_RENDER_PHASE bgfx_base_program solid=0 instancing=0
+COIN_RENDER_PHASE bgfx_program_cache enabled=0 hits=0 writes=0
+COIN_RENDER_PHASE bgfx_geometry compact_vertices=0 vertex_stride=220 instancing=0 instances=0 instance_stride=160 instance_buffer_capacity=0
+COIN_RENDER_PHASE bgfx lower_ms=0.003717 upload_ms=0.000150 encode_ms=0.050363 draw_encode_ms=0.049682 blit_encode_ms=0.000681 submit_frame_ms=0.004728 read_request_ms=0.000101 read_wait_ms=0.277456 frame_wait_ms=0.277426 row_flip_ms=0.000060 vertices=294 draws=49 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=131072 readback_gpu_staging_bytes=65536 readback_cpu_staging_bytes=65536 readback_published_bytes=65536 readback_bootstrap=1 resource_cache_hit=1 texture_cache_hit=1 geometry_buffer_reused=1 vertex_buffer_capacity=512 index_buffer_capacity=512 camera_patch=0 material_patch=0 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000030 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=48 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=2 logical_material_changes=48 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=0.000491 prepare_ms=0.000111 submit_ms=0.362253
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000240 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.001112 frame_plan_ms=0.00011 backend_ms=0.367463 vertices=196 indices=294 draws=49 plan_cache_hit=1 plan_reuse=reuse
+COIN_RENDER_PHASE bgfx_base_program solid=0 instancing=0
+COIN_RENDER_PHASE bgfx_program_cache enabled=0 hits=0 writes=0
+COIN_RENDER_PHASE bgfx_geometry compact_vertices=0 vertex_stride=220 instancing=0 instances=0 instance_stride=160 instance_buffer_capacity=0
+COIN_RENDER_PHASE bgfx lower_ms=0.003516 upload_ms=0.000150 encode_ms=0.057137 draw_encode_ms=0.056415 blit_encode_ms=0.000722 submit_frame_ms=0.004578 read_request_ms=0.000080 read_wait_ms=0.265253 frame_wait_ms=0.265223 row_flip_ms=0.000071 vertices=294 draws=49 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=131072 readback_gpu_staging_bytes=65536 readback_cpu_staging_bytes=65536 readback_published_bytes=65536 readback_bootstrap=1 resource_cache_hit=1 texture_cache_hit=1 geometry_buffer_reused=1 vertex_buffer_capacity=512 index_buffer_capacity=512 camera_patch=0 material_patch=0 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000030 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=48 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=2 logical_material_changes=48 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=0.000461 prepare_ms=0.000110 submit_ms=0.350362
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=0 qualify_ms=0.000210 copy_ms=0.000000
+COIN_RENDER_PHASE action traversal_ms=0.000822 frame_plan_ms=5e-05 backend_ms=0.354499 vertices=196 indices=294 draws=49 plan_cache_hit=1 plan_reuse=reuse

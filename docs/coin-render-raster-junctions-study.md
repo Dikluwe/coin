@@ -9,6 +9,14 @@ entre CPU e BGFX/wgpu continuam exigindo correção e qualificação.
 
 ## Evidência atual
 
+Achados adicionais em [P20/câmera AMD de 2026-10-07](coin-render-hardware-surfaces-linux.md):
+quatro pixels de borda na transparência offscreen Vulkan e 48 no fixture
+wgpu de câmera ultrapassam os gates CoinGL. Reúso e travessia completa
+reproduzem a diferença de câmera; BGFX/wgpu Vulkan coincidem no fixture P20.
+A classificação de borda está demonstrada pelos pixels/cores vizinhas, mas
+a causa específica ainda exige estudo. Esses achados não são prova de que
+o mecanismo das junções curvas seja a causa; nenhum gate foi relaxado.
+
 Os [logs diagnósticos preservados](validation/raster-junctions-study-20261006/README.md)
 registram o reproducer e o controle FILLED, com o alcance das observações.
 

@@ -124,8 +124,10 @@ perda/recriação de superfície/device em janela. As comparações GL corrigida
 usam as equivalências descritas acima, sem qualificar oito unidades fixas nativas.
 Os testes de falha offscreen da suíte não substituem a perda de uma superfície
 Win32 real. Não se altera a máscara de perfis qualificados da API só por estes
-smokes. BGFX/D3D11 e BGFX/D3D12 continuam sem conector Windows; o CMake BGFX
-permanece Linux-only. A oitava sombra Coin/GL nativa também continua pendente:
+smokes. Esse era o estado BGFX desta campanha wgpu de 2026-10-02;
+a [campanha BGFX posterior](coin-render-bgfx-windows.md) implementou Win32,
+D3D12/DXBC e validou 39 testes de sombras. D3D11 continua pendente e as mudanças
+Linux atuais exigem uma nova execução Windows. A oitava sombra Coin/GL nativa também continua pendente:
 este WGL não fornece o contexto necessário de nove unidades utilizáveis.
 
 ## Reproduzir

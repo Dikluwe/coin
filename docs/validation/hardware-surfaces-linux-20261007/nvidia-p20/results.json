@@ -1,0 +1,462 @@
+{
+  "device": "nvidia",
+  "expected_ids": [
+    "0x10de",
+    "0x2560"
+  ],
+  "gl_renderer": "NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2",
+  "icd": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+  "vulkan_driver": [
+    "NVIDIA",
+    "610.57.04"
+  ],
+  "git_commit": "94a2ee1a9b0f5491e473626a8b8302272fe27bcb",
+  "builds": {
+    "bgfx": {
+      "path": "/tmp/coin-render-first-frame-bgfx",
+      "window_sha256": "aa8b51875f7ba77f560f166c30b3012490cf0d0d3daa327bc9b335f13b37396b",
+      "offscreen_sha256": "7af68df05f27df991414ebea7c3c4520ac15bffe5e9a02937b200418e7031a29"
+    },
+    "wgpu": {
+      "path": "/tmp/coin-render-first-frame-wgpu",
+      "window_sha256": "c8ceac0e35f42c6c732d9e6b2d75ca26ad2c9b8cfbebe274d20ca5da154e4fe1",
+      "offscreen_sha256": "cc5a68116cd760edb733e6b5fe0e57f7b55a20f7e094b5625141c8196b68ab98"
+    }
+  },
+  "uname": "Linux 6.17.0-42-generic x86_64 GNU/Linux",
+  "scenes": {
+    "opaque-interleaved": {
+      "path": "/tmp/coin-p17-scenes/opaque-interleaved.iv",
+      "sha256": "32854a58541b03ad07bbf03f8cace6e8b394b456d83d6e9be0e20e6d5473c072"
+    },
+    "transparent-overlap": {
+      "path": "/tmp/coin-p17-scenes/transparent-overlap.iv",
+      "sha256": "7fc70de5b45323521ff68714298049625b1f66ba1248a42c3952879d895a4caf"
+    }
+  },
+  "size": 128,
+  "warmup": 1,
+  "frames": 3,
+  "session": "physical",
+  "targets": [
+    "window",
+    "offscreen"
+  ],
+  "runs": [
+    {
+      "key": "nvidia-window-opaque-interleaved-coin-gl",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "adapter": "NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0xb4211e441f5ada05",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-opaque-interleaved-coin-gl.log"
+    },
+    {
+      "key": "nvidia-window-opaque-interleaved-bgfx-opengl",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "vendor_id": "0x10de",
+      "device_id": "0x0",
+      "rgba_fnv64": "0xbd7999730dbe6385",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-opaque-interleaved-bgfx-opengl.log"
+    },
+    {
+      "key": "nvidia-window-opaque-interleaved-bgfx-vulkan",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0xbd7999730dbe6385",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-opaque-interleaved-bgfx-vulkan.log"
+    },
+    {
+      "key": "nvidia-window-opaque-interleaved-wgpu-vulkan",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "adapter": "NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0xbd7999730dbe6385",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-opaque-interleaved-wgpu-vulkan.log"
+    },
+    {
+      "key": "nvidia-window-transparent-overlap-coin-gl",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "adapter": "NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x9026eb86a05ab545",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-transparent-overlap-coin-gl.log"
+    },
+    {
+      "key": "nvidia-window-transparent-overlap-bgfx-opengl",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "vendor_id": "0x10de",
+      "device_id": "0x0",
+      "rgba_fnv64": "0xbccc5b7b0cfff364",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-transparent-overlap-bgfx-opengl.log"
+    },
+    {
+      "key": "nvidia-window-transparent-overlap-bgfx-vulkan",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0xbccc5b7b0cfff364",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-transparent-overlap-bgfx-vulkan.log"
+    },
+    {
+      "key": "nvidia-window-transparent-overlap-wgpu-vulkan",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "adapter": "NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0xbccc5b7b0cfff364",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-window-transparent-overlap-wgpu-vulkan.log"
+    },
+    {
+      "key": "nvidia-offscreen-opaque-interleaved-coin-gl",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "adapter": "not-queried",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x3831140d152e44aa",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-opaque-interleaved-coin-gl.log"
+    },
+    {
+      "key": "nvidia-offscreen-opaque-interleaved-bgfx-opengl",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "vendor_id": "0x10de",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x5094726603f138d3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-opaque-interleaved-bgfx-opengl.log"
+    },
+    {
+      "key": "nvidia-offscreen-opaque-interleaved-bgfx-vulkan",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0x5094726603f138d3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-opaque-interleaved-bgfx-vulkan.log"
+    },
+    {
+      "key": "nvidia-offscreen-opaque-interleaved-wgpu-vulkan",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "adapter": "NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0x5094726603f138d3",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-opaque-interleaved-wgpu-vulkan.log"
+    },
+    {
+      "key": "nvidia-offscreen-transparent-overlap-coin-gl",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "adapter": "not-queried",
+      "vendor_id": "0x0",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x6806301c94dc92ff",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-transparent-overlap-coin-gl.log"
+    },
+    {
+      "key": "nvidia-offscreen-transparent-overlap-bgfx-opengl",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "adapter": "BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000)",
+      "vendor_id": "0x10de",
+      "device_id": "0x0",
+      "rgba_fnv64": "0x9a7ac3d22faf426d",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-transparent-overlap-bgfx-opengl.log"
+    },
+    {
+      "key": "nvidia-offscreen-transparent-overlap-bgfx-vulkan",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "adapter": "BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0x9a7ac3d22faf426d",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-transparent-overlap-bgfx-vulkan.log"
+    },
+    {
+      "key": "nvidia-offscreen-transparent-overlap-wgpu-vulkan",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "adapter": "NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan)",
+      "vendor_id": "0x10de",
+      "device_id": "0x2560",
+      "rgba_fnv64": "0x9a7ac3d22faf426d",
+      "qualification": "capture; see RGB comparisons",
+      "log": "nvidia-offscreen-transparent-overlap-wgpu-vulkan.log"
+    }
+  ],
+  "failures": [],
+  "comparisons": [
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.30267333984375,
+        "max": 2,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.30267333984375,
+        "max": 2,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.30267333984375,
+        "max": 2,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.0,
+        "max": 0,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-opengl"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.10268147786458333,
+        "max": 2,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "bgfx-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.10268147786458333,
+        "max": 2,
+        "pixels_over3": 0
+      },
+      "passed": true
+    },
+    {
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "coin-gl",
+        "wgpu-vulkan"
+      ],
+      "policy": "top-down RGB max<=2 MAE<=1.0",
+      "metrics": {
+        "mae": 0.10268147786458333,
+        "max": 2,
+        "pixels_over3": 0
+      },
+      "passed": true
+    }
+  ]
+}

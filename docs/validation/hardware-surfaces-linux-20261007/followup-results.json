@@ -1,0 +1,590 @@
+[
+  {
+    "key": "amd-wgpu-vulkan-final",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-wgpu",
+      "wgpu",
+      "/tmp/coin-hardware-20261007/amd-wgpu-vulkan-final"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "key": "amd-capacity",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowReferenceTest",
+      "--gl-capacity"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "key": "amd-eight-native-negative",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowReferenceTest",
+      "--quality",
+      "8"
+    ],
+    "exit": 1,
+    "expected_exit": 1,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE": "1"
+    }
+  },
+  {
+    "key": "nvidia-capacity",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowReferenceTest",
+      "--gl-capacity"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "key": "nvidia-eight-native-negative",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowReferenceTest",
+      "--quality",
+      "8"
+    ],
+    "exit": 1,
+    "expected_exit": 1,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE": "1"
+    }
+  },
+  {
+    "key": "amd-bgfx-vulkan-eight",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowEightMapTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "key": "amd-bgfx-vulkan-camera-portable",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1"
+    }
+  },
+  {
+    "key": "amd-bgfx-vulkan-camera-GL-diagnostic",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit": 1,
+    "expected_exit": 1,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_CAMERA_REFERENCE_IMAGES": "/tmp/coin-hardware-20261007/amd-bgfx-vulkan-camera-GL-diagnostic"
+    }
+  },
+  {
+    "key": "amd-bgfx-opengl-eight",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowEightMapTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "key": "amd-bgfx-opengl-camera-portable",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1"
+    }
+  },
+  {
+    "key": "amd-wgpu-vulkan-eight",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderShadowEightMapTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "key": "amd-wgpu-vulkan-camera-portable",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1"
+    }
+  },
+  {
+    "key": "amd-wgpu-vulkan-camera-GL-diagnostic",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit": 1,
+    "expected_exit": 1,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_CAMERA_REFERENCE_IMAGES": "/tmp/coin-hardware-20261007/amd-wgpu-vulkan-camera-GL-diagnostic"
+    }
+  },
+  {
+    "key": "nvidia-bgfx-vulkan-eight",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowEightMapTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "key": "nvidia-bgfx-opengl-eight",
+    "command": [
+      "/tmp/coin-render-first-frame-bgfx/bin/CoinRenderShadowEightMapTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "key": "nvidia-wgpu-vulkan-eight",
+    "command": [
+      "/tmp/coin-render-first-frame-wgpu/bin/CoinRenderShadowEightMapTest"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "key": "amd-p20",
+    "command": [
+      "python3",
+      "scripts/coinrender/run_p20_physical_matrix.py",
+      "--device",
+      "amd",
+      "--session",
+      "physical",
+      "--bgfx-build",
+      "/tmp/coin-render-first-frame-bgfx",
+      "--wgpu-build",
+      "/tmp/coin-render-first-frame-wgpu",
+      "--scenes-dir",
+      "/tmp/coin-p17-scenes",
+      "--output-dir",
+      "/tmp/coin-hardware-20261007/amd-p20"
+    ],
+    "exit": 1,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "key": "nvidia-p20",
+    "command": [
+      "python3",
+      "scripts/coinrender/run_p20_physical_matrix.py",
+      "--device",
+      "nvidia",
+      "--session",
+      "physical",
+      "--bgfx-build",
+      "/tmp/coin-render-first-frame-bgfx",
+      "--wgpu-build",
+      "/tmp/coin-render-first-frame-wgpu",
+      "--scenes-dir",
+      "/tmp/coin-p17-scenes",
+      "--output-dir",
+      "/tmp/coin-hardware-20261007/nvidia-p20"
+    ],
+    "exit": 0,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "x11",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "key": "amd-wayland-scale1",
+    "command": [
+      "python3",
+      "testsuite/qt-quarter/run_isolated.py",
+      "--server",
+      "xwayland",
+      "--weston-shell",
+      "desktop-shell.so",
+      "--weston-prefix",
+      "/tmp/coin-p16-weston",
+      "--artifacts",
+      "/tmp/coin-hardware-20261007/amd-wayland-scale1/session",
+      "--exec",
+      "--",
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_wayland_smoke"
+    ],
+    "exit": 1,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "wayland",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "WAYLAND_DISPLAY": "coin-isolated",
+      "GDK_SCALE": "1"
+    }
+  },
+  {
+    "key": "amd-wayland-scale2",
+    "command": [
+      "python3",
+      "testsuite/qt-quarter/run_isolated.py",
+      "--server",
+      "xwayland",
+      "--weston-shell",
+      "desktop-shell.so",
+      "--weston-prefix",
+      "/tmp/coin-p16-weston",
+      "--artifacts",
+      "/tmp/coin-hardware-20261007/amd-wayland-scale2/session",
+      "--exec",
+      "--",
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_wayland_smoke"
+    ],
+    "exit": 1,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "wayland",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "WAYLAND_DISPLAY": "coin-isolated",
+      "GDK_SCALE": "2"
+    }
+  },
+  {
+    "key": "nvidia-wayland-scale1",
+    "command": [
+      "python3",
+      "testsuite/qt-quarter/run_isolated.py",
+      "--server",
+      "xwayland",
+      "--weston-shell",
+      "desktop-shell.so",
+      "--weston-prefix",
+      "/tmp/coin-p16-weston",
+      "--artifacts",
+      "/tmp/coin-hardware-20261007/nvidia-wayland-scale1/session",
+      "--exec",
+      "--",
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_wayland_smoke"
+    ],
+    "exit": 1,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "wayland",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "WAYLAND_DISPLAY": "coin-isolated",
+      "GDK_SCALE": "1"
+    }
+  },
+  {
+    "key": "nvidia-wayland-scale2",
+    "command": [
+      "python3",
+      "testsuite/qt-quarter/run_isolated.py",
+      "--server",
+      "xwayland",
+      "--weston-shell",
+      "desktop-shell.so",
+      "--weston-prefix",
+      "/tmp/coin-p16-weston",
+      "--artifacts",
+      "/tmp/coin-hardware-20261007/nvidia-wayland-scale2/session",
+      "--exec",
+      "--",
+      "/tmp/coin-render-first-frame-wgpu/bin/coin_render_wayland_smoke"
+    ],
+    "exit": 1,
+    "expected_exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "GDK_BACKEND": "wayland",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "WAYLAND_DISPLAY": "coin-isolated",
+      "GDK_SCALE": "2"
+    }
+  }
+]

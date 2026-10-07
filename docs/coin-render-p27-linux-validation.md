@@ -1,5 +1,10 @@
 # P27 — fechamento local Linux (2026-10-02)
 
+O perfil foi [requalificado em 2026-10-07](coin-render-hardware-surfaces-linux.md)
+nas seis células físicas, com 304 verificações no agregado e uma expectativa
+independente de conservação da iluminação em oito mapas. O limite do oráculo
+CoinGL nativo continua explícito; a campanha abaixo é histórica.
+
 O perfil funcional descrito em [P27](coin-render-p27-shadows.md) foi exercitado
 em seis células físicas, com executor GPU e referência Coin/GL obrigatórios,
 sem skips. A campanha inicial usou AMD/Mesa como referência Coin/GL. Após corrigir

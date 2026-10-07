@@ -165,19 +165,42 @@ qualificados por este fechamento.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
-- [ ] Diagnosticar e qualificar as divergências recentes do oráculo pixmap AMD.
+- [x] Requalificar sombras Linux nas duas GPUs físicas: BGFX Vulkan/OpenGL e
+  wgpu Vulkan, com GPU/oráculo reais e sem skips no perfil.
+- [x] Diagnosticar o pixmap AMD e comparar 32 capturas X11 janela/offscreen;
+  opacidade e janela qualificadas. Transparência offscreen Vulkan mantém
+  quatro pixels de borda fora do gate CoinGL, documentados como estudo.
+- [x] Definir expectativa independente para oito mapas: conservação de
+  intensidade, contribuição da oitava luz, nona rejeitada sem publicação e
+  recuperação exata. O limite CoinGL de oito unidades foi demonstrado nas
+  duas GPUs; sua referência nativa de oito mapas continua externa.
+- [x] Executar `BumpProgramGLX` nas duas GPUs, com visual double-buffer no PRIME.
+  Executar câmera com CoinGL na NVIDIA e AMD/OpenGL, e contrato portátil nas
+  três APIs AMD. Diferenças de borda AMD/Vulkan permanecem explicitamente abertas.
+- [x] Ampliar Wayland/wgpu Vulkan: AMD/NVIDIA, escala **observada** 1/2,
+  pixels iguais ao offscreen/CoinGL, duas janelas, resize, suspensão e três
+  recriações reais de superfície com isolamento da janela sobrevivente.
+- [x] Recompilar ponte Rust e objetos Android arm64/API 26; retirar GL da ação
+  comum/profiler quando o renderer legado está desligado.
+- [ ] Melhorar a seleção de fragmentos nas bordas AMD/Vulkan de P20/câmera,
+  mantendo o gate atual e a diferença documentada como estudo.
+- [ ] Separar os componentes GL restantes do Coin base para concluir
+  **build/link e empacotamento Android neste Linux**.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
-- [ ] Qualificar o oráculo CoinGL de oito mapas de sombra ou registrar uma
-  expectativa independente e a divergência demonstrada.
+- [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
+  utilizáveis; a expectativa portátil local não encerra essa célula.
 - [ ] Ampliar Windows: APIs BGFX pendentes, DPI entre monitores, multiwindow
-  e perda/recriação real de superfície/dispositivo.
-- [ ] Qualificar AppKit/Metal e ampliar o perfil Wayland nativo.
-- [ ] Fechar build/link Android e testar pause/resume e recriação em dispositivo.
-- [ ] Resolver as condições dos skips `BumpProgramGLX` e
-  `CoinRenderCameraReuseReferenceTest` em campanhas específicas.
+  e perda/recriação real de superfície/dispositivo na revisão atual.
+- [ ] Qualificar AppKit/Metal e Wayland em compositor físico, escala fracionária,
+  mudança de monitor, formato de swapchain e demais perfis visuais; BGFX/Wayland
+  continua sem mecanismo neste conector.
+- [ ] Testar Android pause/resume, rotação e recriação em dispositivo, após o APK.
 
-Fechamento por backend/API/driver/plataforma/alvo; manter skips e dispositivos
-indisponíveis separados dos passes. Windows anterior não qualifica código novo.
+[Evidência e limites desta rodada](coin-render-hardware-surfaces-linux.md).
+Fechamento por backend/API/driver/plataforma/alvo; manter skips, diferenças
+visuais e dispositivos indisponíveis separados dos passes. A documentação
+Windows foi reconciliada com BGFX/D3D12 já implementado, sem requalificação
+Windows de código novo neste PC.
 
 ## 6. Critérios para cada entrega
 

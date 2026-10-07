@@ -1,0 +1,29 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (0.9s)
+-- Generating done (0.2s)
+-- Build files have been written to: /tmp/coin-render-first-frame-bgfx
+[1/21] Building CXX object src/nodes/CMakeFiles/nodes.dir/SoLOD.cpp.o
+[2/21] Building CXX object src/nodes/CMakeFiles/nodes.dir/SoGroup.cpp.o
+[3/21] Building CXX object src/nodes/CMakeFiles/nodes.dir/SoSeparator.cpp.o
+[4/21] Building CXX object src/actions/CMakeFiles/actions.dir/SoAction.cpp.o
+[5/21] Building CXX object src/vrml97/CMakeFiles/vrml97.dir/Appearance.cpp.o
+[6/21] Building CXX object src/vrml97/CMakeFiles/vrml97.dir/Collision.cpp.o
+[7/21] Building CXX object src/vrml97/CMakeFiles/vrml97.dir/Billboard.cpp.o
+[8/21] Building CXX object src/vrml97/CMakeFiles/vrml97.dir/Group.cpp.o
+[9/21] Building CXX object src/vrml97/CMakeFiles/vrml97.dir/Shape.cpp.o
+[10/21] Building CXX object src/vrml97/CMakeFiles/vrml97.dir/LOD.cpp.o
+[11/21] Linking CXX shared library lib/libCoin.so.80.0.10
+[12/21] Creating library symlink lib/libCoin.so.80 lib/libCoin.so
+[13/21] Linking CXX shared library lib/libCoinRender.so
+[14/21] Linking CXX executable bin/CoinTests
+[15/21] Linking CXX executable bin/CoinRenderActionTest
+[16/21] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[17/21] Linking CXX executable bin/coin_render_window_benchmark
+[18/21] Linking CXX executable bin/CoinRenderFrameCoreTest
+[19/21] Linking CXX executable bin/CoinRenderShadowEightMapTest
+[20/21] Linking CXX executable bin/CoinRenderFrameReuseCoreTest
+[21/21] Linking CXX executable bin/CoinRenderShadowReferenceTest

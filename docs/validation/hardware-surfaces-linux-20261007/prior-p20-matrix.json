@@ -1,0 +1,593 @@
+{
+  "profile": "P20 Linux Xwayland/Xlib 128x128 object transparency, 1 warmup + 3 frames",
+  "git_commit": "87f37084582823392b1898f741ac43aea67b98c1",
+  "fixture_sha256": {
+    "opaque-interleaved": "32854a58541b03ad07bbf03f8cace6e8b394b456d83d6e9be0e20e6d5473c072",
+    "transparent-overlap": "7fc70de5b45323521ff68714298049625b1f66ba1248a42c3952879d895a4caf"
+  },
+  "devices": {
+    "amd": {
+      "ids": [
+        "0x1002",
+        "0x1638"
+      ],
+      "gl_renderer": "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "icd": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "vulkan_driver": [
+        "radv",
+        "Mesa 25.2.8-0ubuntu0.24.04.2"
+      ]
+    },
+    "nvidia": {
+      "ids": [
+        "0x10de",
+        "0x2560"
+      ],
+      "gl_renderer": "NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2",
+      "icd": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "vulkan_driver": [
+        "NVIDIA",
+        "610.57.04"
+      ]
+    }
+  },
+  "cells": [
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "presentation-only",
+      "rgba_fnv64": null
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbd7999730dbe6385"
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbd7999730dbe6385"
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbd7999730dbe6385"
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "presentation-only",
+      "rgba_fnv64": null
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x2c0296f75c761bf3"
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x2c0296f75c761bf3"
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x2c0296f75c761bf3"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "GL-context-needs-visual-check",
+      "rgba_fnv64": "0xeb05052ea5b62325"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x5094726603f138d3"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x5094726603f138d3"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x5094726603f138d3"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "GL-context-needs-visual-check",
+      "rgba_fnv64": "0xeb05052ea5b62325"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x6e4c2757ed19133b"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x394a9e3f904e85b4"
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x394a9e3f904e85b4"
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "presentation-only",
+      "rgba_fnv64": null
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbd7999730dbe6385"
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbd7999730dbe6385"
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "presentation-only",
+      "rgba_fnv64": null
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbccc5b7b0cfff364"
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0xbccc5b7b0cfff364"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "GL-context-needs-visual-check",
+      "rgba_fnv64": "0x3831140d152e44aa"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x5094726603f138d3"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x5094726603f138d3"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "execution": "pass",
+      "qualification": "GL-context-needs-visual-check",
+      "rgba_fnv64": "0x6806301c94dc92ff"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x9a7ac3d22faf426d"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "execution": "pass",
+      "qualification": "capture",
+      "rgba_fnv64": "0x9a7ac3d22faf426d"
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "execution": "fail",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "diagnostic": "Native frame failed: BGFX profiling drain failed: BGFX fatal 2 at /mnt/Laranja/Git/externos/coin/build-bgfx-recovery/deps/bgfx.cmake/bgfx/src/glcontext_egl.cpp:185: Failed to create surface."
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "execution": "fail",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "diagnostic": "Native frame failed: BGFX profiling drain failed: BGFX fatal 2 at /mnt/Laranja/Git/externos/coin/build-bgfx-recovery/deps/bgfx.cmake/bgfx/src/glcontext_egl.cpp:185: Failed to create surface."
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "execution": "fail",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "diagnostic": "WebGPU frame failed: BGFX renderer lacks the required window/offscreen capabilities"
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "execution": "fail",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "diagnostic": "WebGPU frame failed: BGFX renderer lacks the required window/offscreen capabilities"
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "coin-gl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-opengl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "bgfx-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backend": "wgpu-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "coin-gl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-opengl",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "bgfx-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    },
+    {
+      "device": "intel",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backend": "wgpu-vulkan",
+      "execution": "skip",
+      "qualification": "none",
+      "rgba_fnv64": null,
+      "reason": "No physical Intel GPU is present in this host PCI inventory."
+    }
+  ],
+  "comparisons": [
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "amd",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "amd",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "nvidia",
+      "target": "window",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "opaque-interleaved",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    },
+    {
+      "device": "nvidia",
+      "target": "offscreen",
+      "scene": "transparent-overlap",
+      "backends": [
+        "bgfx-vulkan",
+        "wgpu-vulkan"
+      ],
+      "policy": "exact RGBA8 FNV within one physical GPU",
+      "equal": true
+    }
+  ],
+  "builds": {
+    "bgfx": {
+      "path": "/mnt/Laranja/Git/externos/coin/build-bgfx-recovery/coin-build",
+      "configuration": "Release",
+      "window_sha256": "09ab4890b1bae67665509439214a80c9bd65ca48067b09b4cb471467d1444953",
+      "offscreen_sha256": "9d534d927f5d05f5dc1ad66cf716373aca1ba9f071afbd517525d5640d1ed3b6"
+    },
+    "wgpu": {
+      "path": "/tmp/coin-p17-wgpu-release",
+      "configuration": "Release",
+      "window_sha256": "2184c9acc7ba80fd087ff7db12324cdf972729aa9f7ff33b8cf2b843db56d771",
+      "offscreen_sha256": "d1e556f45382a8b7a6c36639e508a852948d4cc3f74ff6ff7eda6cb7eedf09d1"
+    }
+  },
+  "uname": "Linux 6.17.0-42-generic x86_64 GNU/Linux"
+}

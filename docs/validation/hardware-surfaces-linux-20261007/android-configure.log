@@ -1,0 +1,149 @@
+-- The C compiler identification is Clang 21.0.0
+-- The CXX compiler identification is Clang 21.0.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: /home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: /home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- Performing Test COIN_HAVE_INCONSISTENT_MISSING_OVERRIDE
+-- Performing Test COIN_HAVE_INCONSISTENT_MISSING_OVERRIDE - Success
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Check if compiler accepts -pthread
+-- Check if compiler accepts -pthread - yes
+-- Found Threads: TRUE  
+-- Looking for C++ include thread
+-- Looking for C++ include thread - found
+-- 
+-- Threads::Threads
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of int8_t
+-- Check size of int8_t - done
+-- Check size of uint8_t
+-- Check size of uint8_t - done
+-- Check size of int16_t
+-- Check size of int16_t - done
+-- Check size of uint16_t
+-- Check size of uint16_t - done
+-- Check size of int32_t
+-- Check size of int32_t - done
+-- Check size of uint32_t
+-- Check size of uint32_t - done
+-- Check size of int64_t
+-- Check size of int64_t - done
+-- Check size of uint64_t
+-- Check size of uint64_t - done
+-- Check size of intptr_t
+-- Check size of intptr_t - done
+-- Check size of uintptr_t
+-- Check size of uintptr_t - done
+-- Looking for inttypes.h
+-- Looking for inttypes.h - found
+-- Looking for unistd.h
+-- Looking for unistd.h - found
+-- Looking for sys/time.h
+-- Looking for sys/time.h - found
+-- Looking for sys/timeb.h
+-- Looking for sys/timeb.h - not found
+-- Looking for sys/stat.h
+-- Looking for sys/stat.h - found
+-- Looking for sys/param.h
+-- Looking for sys/param.h - found
+-- Looking for io.h
+-- Looking for io.h - not found
+-- Looking for ieeefp.h
+-- Looking for ieeefp.h - not found
+-- Looking for time.h
+-- Looking for time.h - found
+-- Looking for 4 include files stdlib.h, ..., float.h
+-- Looking for 4 include files stdlib.h, ..., float.h - found
+-- Looking for libgen.h
+-- Looking for libgen.h - found
+-- Looking for gettimeofday
+-- Looking for gettimeofday - found
+-- Looking for mach-o/dyld.h
+-- Looking for mach-o/dyld.h - not found
+-- Looking for dlfcn.h
+-- Looking for dlfcn.h - found
+-- Looking for shl_load in dld
+-- Looking for shl_load in dld - not found
+-- Looking for va_copy
+-- Looking for va_copy - found
+-- Looking for strncasecmp
+-- Looking for strncasecmp - found
+-- Looking for memmove
+-- Looking for memmove - found
+-- Looking for bcopy
+-- Looking for bcopy - found
+-- Looking for fstat
+-- Looking for fstat - found
+-- Looking for localtime_s
+-- Looking for localtime_s - not found
+-- Looking for localtime_r
+-- Looking for localtime_r - found
+-- Looking for ftime
+-- Looking for ftime - not found
+-- Looking for _ftime
+-- Looking for _ftime - not found
+-- Looking for getcwd
+-- Looking for getcwd - found
+-- Looking for isinf
+-- Looking for isinf - found
+-- Looking for isnan
+-- Looking for isnan - found
+-- Looking for finite
+-- Looking for finite - not found
+-- Looking for _finite
+-- Looking for _finite - not found
+-- Looking for ilogb
+-- Looking for ilogb - found
+-- Looking for vsnprintf
+-- Looking for vsnprintf - found
+-- Looking for __builtin_expect
+-- Looking for __builtin_expect - not found
+-- Performing Test HAVE___BUILTIN_UNREACHABLE
+-- Performing Test HAVE___BUILTIN_UNREACHABLE - Success
+-- Looking for __func__
+-- Looking for __func__ - found
+-- Looking for __PRETTY_FUNCTION__
+-- Looking for __PRETTY_FUNCTION__ - found
+-- Looking for __FUNCTION__
+-- Looking for __FUNCTION__ - found
+-- Performing Test HAVE_PTHREAD_TIMESPEC_NSEC
+-- Performing Test HAVE_PTHREAD_TIMESPEC_NSEC - Success
+-- Check size of ((struct timeval*)0)->tv_sec
+-- Check size of ((struct timeval*)0)->tv_sec - done
+-- Check size of time_t
+-- Check size of time_t - done
+-- Check size of ((struct timeval*)0)->tv_usec
+-- Check size of ((struct timeval*)0)->tv_usec - done
+-- Check size of suseconds_t
+-- Check size of suseconds_t - done
+-- Performing Test HAVE_HASH_QUOTING
+-- Performing Test HAVE_HASH_QUOTING - Success
+-- Performing Test COIN_PRIVATE_CORE_GL_HEADER_COMPILES
+-- Performing Test COIN_PRIVATE_CORE_GL_HEADER_COMPILES - Success
+-- Performing Test COIN_PRIVATE_CORE_WITH_LEGACY_GL_H_COMPILES
+-- Performing Test COIN_PRIVATE_CORE_WITH_LEGACY_GL_H_COMPILES - Failed
+-- Performing Test COIN_PRIVATE_CORE_WITH_COMPAT_GLEXT_H_COMPILES
+-- Performing Test COIN_PRIVATE_CORE_WITH_COMPAT_GLEXT_H_COMPILES - Failed
+-- Performing Test DISABLE_WARNING_TAUTOLOGCOMPARE
+-- Performing Test DISABLE_WARNING_TAUTOLOGCOMPARE - Success
+-- Configuring done (7.2s)
+-- Generating done (0.2s)
+-- Build files have been written to: /tmp/coin-hardware-20261007/android

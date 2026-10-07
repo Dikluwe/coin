@@ -1,5 +1,11 @@
 # P22 — Wayland nativo e AppKit/Metal (parcial)
 
+A [continuação Linux de 2026-10-07](coin-render-hardware-surfaces-linux.md)
+ampliou wgpu/Vulkan às duas GPUs AMD/NVIDIA, escala de output observada 1/2,
+comparação RGB exata com offscreen/CoinGL e três recriações reais de superfície,
+mantendo a outra janela intacta. Compositor físico, escala fracionária e
+AppKit abaixo continuam abertos.
+
 P22 compõe as superfícies nativas com o `CoinRenderTarget` já existente. O
 Wiring valida o descriptor e mantém o contrato de tamanho em pixels de
 framebuffer; a Infra wgpu cria `RawWindowHandle::Wayland` ou uma superfície
@@ -10,7 +16,7 @@ janela; o alvo deve ser destruído antes dos handles.
 
 | Combinação | Estado | Limite |
 |---|---|---|
-| Linux/Wayland/wgpu Vulkan | Implementada e executada com Weston headless + RADV | Falta comparação visual com Coin/GL, HiDPI real e outros compositores/drivers |
+| Linux/Wayland/wgpu Vulkan | Weston headless AMD/NVIDIA; escala observada 1/2, BASE_COLOR igual a CoinGL/offscreen, recriação de superfícies | Ampliar fixtures, compositor/HiDPI físico, escala fracionária e outros drivers |
 | macOS/AppKit/wgpu Metal | Descriptor, FFI e smoke preparados | Sem toolchain/host macOS; build, apresentação e Retina aguardam execução nativa |
 | BGFX/Wayland ou Metal | Sem mecanismo neste conector | Seleção Metal rejeita sem fallback; implementação específica é pendente |
 
@@ -56,8 +62,8 @@ backing e resultados; só então marcar a célula como executada.
 
 ## Para fechar P22
 
-- Wayland: comparar pixels com Coin/GL por fixture e tolerância, testar compositor
-  real, scale 1/2/fracionário, `xdg_surface` configure, resize, perda/recriação,
+- Wayland: ampliar fixtures além de BASE_COLOR e testar compositor
+  físico, scale 1/2 em monitores e escala fracionária, `xdg_surface` configure, resize, perda/recriação,
   múltiplas janelas e destruição ordenada.
 - AppKit/Metal: compilar e executar em macOS Intel e Apple Silicon conforme a
   matriz disponível; validar Retina, mudança de monitor, duas janelas,

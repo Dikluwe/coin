@@ -1,0 +1,203 @@
+[
+  {
+    "cell": "amd-bgfx-vulkan",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-bgfx",
+      "bgfx",
+      "/tmp/coin-hardware-20261007/amd-bgfx-vulkan"
+    ],
+    "exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "cell": "amd-bgfx-vulkan",
+    "test": "CoinBumpGLXTest",
+    "exit": 0
+  },
+  {
+    "cell": "amd-bgfx-vulkan",
+    "test": "CoinRenderCameraReuseReferenceTest",
+    "exit": 1
+  },
+  {
+    "cell": "amd-bgfx-opengl",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-bgfx",
+      "bgfx",
+      "/tmp/coin-hardware-20261007/amd-bgfx-opengl"
+    ],
+    "exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "cell": "amd-bgfx-opengl",
+    "test": "CoinBumpGLXTest",
+    "exit": 0
+  },
+  {
+    "cell": "amd-bgfx-opengl",
+    "test": "CoinRenderCameraReuseReferenceTest",
+    "exit": 0
+  },
+  {
+    "cell": "amd-wgpu-vulkan",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-wgpu",
+      "wgpu",
+      "/tmp/coin-hardware-20261007/amd-wgpu-vulkan"
+    ],
+    "exit": 8,
+    "environment": {
+      "DISPLAY": ":0",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "AMD",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "cell": "amd-wgpu-vulkan",
+    "test": "CoinBumpGLXTest",
+    "exit": 0
+  },
+  {
+    "cell": "amd-wgpu-vulkan",
+    "test": "CoinRenderCameraReuseReferenceTest",
+    "exit": 1
+  },
+  {
+    "cell": "nvidia-bgfx-vulkan",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-bgfx",
+      "bgfx",
+      "/tmp/coin-hardware-20261007/nvidia-bgfx-vulkan"
+    ],
+    "exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "cell": "nvidia-bgfx-vulkan",
+    "test": "CoinBumpGLXTest",
+    "exit": 0
+  },
+  {
+    "cell": "nvidia-bgfx-vulkan",
+    "test": "CoinRenderCameraReuseReferenceTest",
+    "exit": 0
+  },
+  {
+    "cell": "nvidia-bgfx-opengl",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-bgfx",
+      "bgfx",
+      "/tmp/coin-hardware-20261007/nvidia-bgfx-opengl"
+    ],
+    "exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "cell": "nvidia-bgfx-opengl",
+    "test": "CoinBumpGLXTest",
+    "exit": 0
+  },
+  {
+    "cell": "nvidia-bgfx-opengl",
+    "test": "CoinRenderCameraReuseReferenceTest",
+    "exit": 0
+  },
+  {
+    "cell": "nvidia-wgpu-vulkan",
+    "command": [
+      "bash",
+      ".github/scripts/qualify-coin-render-shadows-linux.sh",
+      "/tmp/coin-render-first-frame-wgpu",
+      "wgpu",
+      "/tmp/coin-hardware-20261007/nvidia-wgpu-vulkan"
+    ],
+    "exit": 0,
+    "environment": {
+      "DISPLAY": ":0",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+      "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-wgpu/lib",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "0",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "cell": "nvidia-wgpu-vulkan",
+    "test": "CoinBumpGLXTest",
+    "exit": 0
+  },
+  {
+    "cell": "nvidia-wgpu-vulkan",
+    "test": "CoinRenderCameraReuseReferenceTest",
+    "exit": 0
+  }
+]

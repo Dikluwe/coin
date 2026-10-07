@@ -1,0 +1,24 @@
+{
+  "command": [
+    "bash",
+    ".github/scripts/qualify-coin-render-shadows-linux.sh",
+    "/tmp/coin-render-first-frame-bgfx",
+    "bgfx",
+    "/tmp/coin-hardware-20261007/nvidia-wrong-egl-negative"
+  ],
+  "environment": {
+    "DISPLAY": ":0",
+    "COIN_BGFX_RENDERER": "opengl",
+    "COIN_SHADOW_GPU_VENDOR_PATTERN": "NVIDIA",
+    "LD_LIBRARY_PATH": "/tmp/coin-render-first-frame-bgfx/lib",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_GLXGLUE_NO_PBUFFERS": "0",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "__NV_PRIME_RENDER_OFFLOAD": "1"
+  },
+  "exit": 1,
+  "expected_exit": 1
+}

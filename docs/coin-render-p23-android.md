@@ -1,5 +1,12 @@
 # P23 — Android/NDK (toolchain e compilação cruzada parcial)
 
+Em [2026-10-07](coin-render-hardware-surfaces-linux.md), a ponte Rust e os
+objetos Android foram recompilados com o NDK real. `SoAction` e
+`SoCallbackAction` também compilaram: o profiler comum deixou de incluir GL
+e chamar `glFinish` quando o renderer legado está desligado. O link completo
+continua aberto nos componentes GL reais de Coin; não houve APK ou execução
+em dispositivo. Os logs anteriores abaixo registram o bloqueio inicial.
+
 P23 compõe o lifecycle do host Android com o `CoinRenderTarget` existente. O
 Wiring aceita um `ANativeWindow` emprestado em
 `COIN_RENDER_SURFACE_ANDROID_NDK`; a ponte wgpu o transforma em

@@ -1,0 +1,10 @@
+[1/4] Building CXX object testsuite/CMakeFiles/CoinRenderCameraReuseReferenceTest.dir/coinrender/CoinRenderCameraReuseReferenceTest.cpp.o
+[2/4] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[3/4] Building CXX object testsuite/CMakeFiles/CoinRenderShadowReferenceTest.dir/coinrender/CoinRenderShadowReferenceTest.cpp.o
+[4/4] Linking CXX executable bin/CoinRenderShadowReferenceTest
+FAILED: bin/CoinRenderShadowReferenceTest 
+: && /usr/bin/c++ -Wsuggest-override -O3 -DNDEBUG  testsuite/CMakeFiles/CoinRenderShadowReferenceTest.dir/coinrender/CoinRenderShadowReferenceTest.cpp.o -o bin/CoinRenderShadowReferenceTest  -Wl,-rpath,/tmp/coin-render-first-frame-wgpu/lib  lib/libCoinRender.so  lib/libCoin.so.80.0.10 && :
+/usr/bin/ld: testsuite/CMakeFiles/CoinRenderShadowReferenceTest.dir/coinrender/CoinRenderShadowReferenceTest.cpp.o: undefined reference to symbol 'glGetString'
+/usr/bin/ld: /lib/x86_64-linux-gnu/libOpenGL.so.0: error adding symbols: DSO missing from command line
+collect2: error: ld returned 1 exit status
+ninja: build stopped: subcommand failed.

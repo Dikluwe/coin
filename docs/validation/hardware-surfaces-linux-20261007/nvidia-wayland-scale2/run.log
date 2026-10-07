@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/tmp/coin-render-first-frame/testsuite/qt-quarter/run_isolated.py", line 236, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/tmp/coin-render-first-frame/testsuite/qt-quarter/run_isolated.py", line 194, in main
+    raise RuntimeError('private WM exited; inspect window-manager.log')
+RuntimeError: private WM exited; inspect window-manager.log

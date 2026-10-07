@@ -1,5 +1,11 @@
 # P27 — sombras Coin: perfis BGFX e wgpu qualificados
 
+A [continuação Linux de 2026-10-07](coin-render-hardware-surfaces-linux.md)
+requalifica as seis células físicas e acrescenta `CoinRenderShadowEightMapTest`:
+expectativa independente de conservação da intensidade e contribuição da oitava
+luz, com rejeição da nona sem publicação e recuperação exata. O oráculo CoinGL
+nativo continua limitado a sete mapas neste hardware.
+
 P27 exige executar `SoShadowGroup` ativo com a semântica Coin em BGFX e wgpu.
 A referência GL e a captura comum estão verificadas nos perfis descritos abaixo:
 até oito mapas, composição, cenas próprias, transparência, alfa RTT,

@@ -1,0 +1,13 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (1.0s)
+-- Generating done (0.2s)
+-- Build files have been written to: /tmp/coin-render-first-frame-wgpu
+[1/6] Building CXX object examples/coinrender/CMakeFiles/coin_render_wayland_smoke.dir/coin_render_wayland_smoke.cpp.o
+[2/6] Building CXX object testsuite/CMakeFiles/CoinRenderShadowEightMapTest.dir/coinrender/CoinRenderShadowEightMapTest.cpp.o
+[3/6] Linking CXX executable bin/CoinRenderShadowEightMapTest
+[4/6] Building CXX object testsuite/CMakeFiles/CoinBumpGLXTest.dir/bumprender/GLXTest.cpp.o
+[5/6] Linking CXX executable bin/coin_render_wayland_smoke
+[6/6] Linking CXX executable bin/CoinBumpGLXTest

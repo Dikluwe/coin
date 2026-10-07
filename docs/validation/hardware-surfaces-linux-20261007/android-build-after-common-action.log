@@ -1,0 +1,31 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- 
+-- Threads::Threads
+-- Configuring done (1.1s)
+-- Generating done (0.2s)
+-- Build files have been written to: /tmp/coin-hardware-20261007/android
+[1/916] Building CXX object src/actions/CMakeFiles/actions.dir/SoActionP.cpp.o
+[2/916] Building CXX object src/actions/CMakeFiles/actions.dir/SoAction.cpp.o
+FAILED: src/actions/CMakeFiles/actions.dir/SoAction.cpp.o 
+/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DCOIN_BUILDING_COIN -DCOIN_BUILD_LEGACY_GL_RENDERER=0 -DCOIN_DEBUG=0 -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/tmp/coin-hardware-20261007/android/data -I/tmp/coin-render-first-frame/include/Inventor/annex -I/tmp/coin-render-first-frame/src/glue/khronos -I/tmp/coin-render-first-frame/src -I/tmp/coin-hardware-20261007/android/src -I/tmp/coin-render-first-frame/include -I/tmp/coin-hardware-20261007/android/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -Winconsistent-missing-override -O3 -DNDEBUG  -std=gnu++11 -fPIC -MD -MT src/actions/CMakeFiles/actions.dir/SoAction.cpp.o -MF src/actions/CMakeFiles/actions.dir/SoAction.cpp.o.d -o src/actions/CMakeFiles/actions.dir/SoAction.cpp.o -c /tmp/coin-render-first-frame/src/actions/SoAction.cpp
+In file included from /tmp/coin-render-first-frame/src/actions/SoAction.cpp:231:
+In file included from /tmp/coin-render-first-frame/src/profiler/SoNodeProfiling.h:39:
+In file included from /tmp/coin-render-first-frame/include/Inventor/system/gl.h:47:
+/tmp/coin-hardware-20261007/android/include/Inventor/system/gl-headers.h:62:12: fatal error: 'GL/gl.h' file not found
+   62 | #  include <GL/gl.h>
+      |            ^~~~~~~~~
+1 error generated.
+[3/916] Building CXX object src/actions/CMakeFiles/actions.dir/SoBoxHighlightRenderAction.cpp.o
+[4/916] Building CXX object src/actions/CMakeFiles/actions.dir/SoGLRenderAction.cpp.o
+FAILED: src/actions/CMakeFiles/actions.dir/SoGLRenderAction.cpp.o 
+/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=aarch64-none-linux-android26 --sysroot=/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DCOIN_BUILDING_COIN -DCOIN_BUILD_LEGACY_GL_RENDERER=0 -DCOIN_DEBUG=0 -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/tmp/coin-hardware-20261007/android/data -I/tmp/coin-render-first-frame/include/Inventor/annex -I/tmp/coin-render-first-frame/src/glue/khronos -I/tmp/coin-render-first-frame/src -I/tmp/coin-hardware-20261007/android/src -I/tmp/coin-render-first-frame/include -I/tmp/coin-hardware-20261007/android/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -Winconsistent-missing-override -O3 -DNDEBUG  -std=gnu++11 -fPIC -MD -MT src/actions/CMakeFiles/actions.dir/SoGLRenderAction.cpp.o -MF src/actions/CMakeFiles/actions.dir/SoGLRenderAction.cpp.o.d -o src/actions/CMakeFiles/actions.dir/SoGLRenderAction.cpp.o -c /tmp/coin-render-first-frame/src/actions/SoGLRenderAction.cpp
+In file included from /tmp/coin-render-first-frame/src/actions/SoGLRenderAction.cpp:72:
+In file included from /tmp/coin-render-first-frame/include/Inventor/C/glue/gl.h:42:
+In file included from /tmp/coin-render-first-frame/include/Inventor/system/gl.h:47:
+/tmp/coin-hardware-20261007/android/include/Inventor/system/gl-headers.h:62:12: fatal error: 'GL/gl.h' file not found
+   62 | #  include <GL/gl.h>
+      |            ^~~~~~~~~
+1 error generated.
+[5/916] Building CXX object src/actions/CMakeFiles/actions.dir/SoCallbackAction.cpp.o
+ninja: build stopped: subcommand failed.

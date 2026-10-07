@@ -1,0 +1,656 @@
+diff --git a/.github/scripts/qualify-coin-render-shadows-linux.sh b/.github/scripts/qualify-coin-render-shadows-linux.sh
+index d6ed7e31f3..ee63c248b6 100755
+--- a/.github/scripts/qualify-coin-render-shadows-linux.sh
++++ b/.github/scripts/qualify-coin-render-shadows-linux.sh
+@@ -38,6 +38,24 @@ fi
+ export COIN_GLXGLUE_NO_PBUFFERS="${COIN_GLXGLUE_NO_PBUFFERS:-1}"
+ export COIN_GLX_PIXMAP_DIRECT_RENDERING=1
+ "${build_dir}/bin/CoinRenderShadowReferenceTest" --gl-capacity > "${evidence_dir}/gl-capacity.txt" 2>&1
++if ! rg -iq "${expected_vendor}" "${evidence_dir}/gl-capacity.txt" ||
++   rg -iq 'llvmpipe|softpipe|lavapipe|swiftshader' "${evidence_dir}/gl-capacity.txt"; then
++  echo 'The current CoinGL offscreen context must match the physical GPU' >&2
++  exit 1
++fi
++if [[ "${backend}:${renderer}" == bgfx:opengl ]]; then
++  COIN_RENDER_TRACE_PHASES=1 COIN_BGFX_TRACE_GL_ADAPTER=1 COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1 \
++    "${build_dir}/bin/CoinRenderShadowReferenceTest" --viewport > "${evidence_dir}/gpu-context.txt" 2>&1
++  if ! rg 'bgfx_gl_adapter' "${evidence_dir}/gpu-context.txt" > "${evidence_dir}/gpu-adapter.txt"; then
++    echo 'BGFX did not report its current EGL context; cell cannot be qualified' >&2
++    exit 1
++  fi
++  if ! rg -iq "${expected_vendor}" "${evidence_dir}/gpu-adapter.txt" ||
++     rg -iq 'llvmpipe|softpipe|lavapipe|swiftshader' "${evidence_dir}/gpu-adapter.txt"; then
++    echo 'The current BGFX EGL context must match the physical GPU' >&2
++    exit 1
++  fi
++fi
+ export COIN_RENDER_REQUIRE_GL_REFERENCE=1
+ if [[ "${backend}" == bgfx ]]; then
+   export COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU=1
+diff --git a/examples/coinrender/CMakeLists.txt b/examples/coinrender/CMakeLists.txt
+index fa6f9f8a47..826ce4e979 100644
+--- a/examples/coinrender/CMakeLists.txt
++++ b/examples/coinrender/CMakeLists.txt
+@@ -62,6 +62,8 @@ if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
+       if(COIN_RENDER_GTK3_FOUND)
+         add_executable(coin_render_wayland_smoke coin_render_wayland_smoke.cpp)
+         target_link_libraries(coin_render_wayland_smoke PRIVATE CoinRender Coin PkgConfig::COIN_RENDER_GTK3)
++        target_compile_definitions(coin_render_wayland_smoke PRIVATE
++          COIN_WAYLAND_GL_REFERENCE=$<BOOL:${COIN_BUILD_LEGACY_GL_RENDERER}>)
+         target_include_directories(coin_render_wayland_smoke PRIVATE
+           ${PROJECT_SOURCE_DIR}/experimental/include
+           ${PROJECT_SOURCE_DIR}/include
+diff --git a/examples/coinrender/coin_render_wayland_smoke.cpp b/examples/coinrender/coin_render_wayland_smoke.cpp
+index ebb13a73c8..a3d11e6827 100644
+--- a/examples/coinrender/coin_render_wayland_smoke.cpp
++++ b/examples/coinrender/coin_render_wayland_smoke.cpp
+@@ -4,6 +4,9 @@
+ #include <gdk/gdkwayland.h>
+ 
+ #include <Inventor/SoDB.h>
++#if COIN_WAYLAND_GL_REFERENCE
++#include <Inventor/SoOffscreenRenderer.h>
++#endif
+ #include <Inventor/actions/CoinRenderAction.h>
+ #include <Inventor/rendering/CoinRenderCapabilities.h>
+ #include <Inventor/rendering/CoinRenderNativeSurface.h>
+@@ -15,6 +18,9 @@
+ #include <Inventor/nodes/SoSeparator.h>
+ 
+ #include <cstdint>
++#include <cstdlib>
++#include <algorithm>
++#include <cmath>
+ #include <iostream>
+ #include <memory>
+ #include <vector>
+@@ -45,6 +51,7 @@ struct WindowRun {
+   GtkWidget * widget = nullptr;
+   std::unique_ptr<CoinRenderTarget> target;
+   std::unique_ptr<CoinRenderAction> action;
++  std::vector<uint8_t> captured;
+ };
+ 
+ bool create(WindowRun & run, GdkDisplay * display) {
+@@ -72,6 +79,13 @@ bool create(WindowRun & run, GdkDisplay * display) {
+ 
+ bool render(WindowRun & run, SoSeparator * scene, bool capture) {
+   pump();
++  if (const char * expected = std::getenv("COIN_RENDER_EXPECT_WAYLAND_SCALE")) {
++    const int actual = gdk_window_get_scale_factor(gtk_widget_get_window(run.widget));
++    if (std::atoi(expected) != actual) {
++      std::cerr << "Wayland scale expected=" << expected << " actual=" << actual << '\n';
++      return false;
++    }
++  }
+   const SbVec2i32 size = pixels(run.widget);
+   if (size[0] <= 0 || size[1] <= 0) return false;
+   if (size != run.target->getSize() && !run.target->resize(size)) return false;
+@@ -88,6 +102,39 @@ bool render(WindowRun & run, SoSeparator * scene, bool capture) {
+   if (rgba.size() != size_t(size[0]) * size_t(size[1]) * 4u) return false;
+   const size_t center = (size_t(size[1] / 2) * size_t(size[0]) + size_t(size[0] / 2)) * 4u;
+   if (rgba[center] < rgba[center + 1] + 50 || rgba[center] < rgba[center + 2] + 50) return false;
++  // Compare every RGB pixel with the common offscreen fixture at the actual
++  // framebuffer size; this also checks surface orientation and color conversion.
++  std::unique_ptr<CoinRenderTarget> reference(CoinRenderTarget::createOffscreen(size));
++  if (!reference) return false;
++  CoinRenderAction referenceAction(SbViewportRegion(size[0], size[1]));
++  referenceAction.setRenderTarget(reference.get()); referenceAction.apply(scene);
++  std::vector<uint8_t> expected; reference->readbackRGBA(expected);
++  if (referenceAction.getLastStatus() != CoinRenderAction::SUCCESS || expected.size() != rgba.size()) return false;
++  int maximum = 0;
++  for (size_t i = 0; i < rgba.size(); ++i) if (i % 4 != 3)
++    maximum = std::max(maximum, std::abs(int(rgba[i])-int(expected[i])));
++  std::cout << "wayland_offscreen_rgb_max=" << maximum << '\n';
++  if (maximum > 2) return false;
++  if (std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
++#if COIN_WAYLAND_GL_REFERENCE
++    // Wayland owns presentation; DISPLAY identifies the independent GL oracle.
++    SoOffscreenRenderer gl(SbViewportRegion(size[0],size[1]));
++    gl.setComponents(SoOffscreenRenderer::RGB);
++    if (!gl.render(scene) || !gl.getBuffer()) return false;
++    maximum = 0;
++    for (int y=0; y<size[1]; ++y) for (int x=0; x<size[0]; ++x) for (int c=0; c<3; ++c) {
++      const size_t a = (size_t(y)*size[0]+x)*4+c;
++      const size_t b = (size_t(size[1]-y-1)*size[0]+x)*3+c;
++      maximum = std::max(maximum,std::abs(int(rgba[a])-int(gl.getBuffer()[b])));
++    }
++    std::cout << "wayland_CoinGL_rgb_max=" << maximum << '\n';
++    if (maximum > 2) return false;
++#else
++    std::cerr << "Required Wayland CoinGL oracle needs COIN_BUILD_LEGACY_GL_RENDERER=ON\n";
++    return false;
++#endif
++  }
++  run.captured = rgba;
+   std::cout << "wayland_rgba_fnv64=0x" << std::hex << checksum(rgba) << std::dec
+             << " size=" << size[0] << 'x' << size[1]
+             << " scale=" << gdk_window_get_scale_factor(gtk_widget_get_window(run.widget)) << '\n';
+@@ -131,6 +178,8 @@ int main(int argc, char ** argv) {
+          render(windows[0], scene, false) && render(windows[1], scene, false);
+   }
+   if (ok) {
++    const std::vector<uint8_t> secondPixels = windows[1].captured;
++    const uint64_t secondSerial = windows[1].target->getLastSubmissionSerial();
+     const SbVec2i32 before = pixels(windows[0].widget);
+     gtk_window_resize(GTK_WINDOW(windows[0].widget), 520, 390);
+     for (int i = 0; i < 200 && pixels(windows[0].widget) == before; ++i) {
+@@ -138,7 +187,25 @@ int main(int argc, char ** argv) {
+       g_usleep(10000);
+     }
+     ok = pixels(windows[0].widget) != before &&
+-         render(windows[0], scene, true) && render(windows[1], scene, true);
++         render(windows[0], scene, true) &&
++         windows[1].target->getLastSubmissionSerial() == secondSerial &&
++         render(windows[1], scene, true) && windows[1].captured == secondPixels;
++  }
++  // Destroy Coin objects before GTK invalidates the borrowed wl_surface. Repeat
++  // real host-surface replacement while the second window remains usable.
++  for (int cycle = 0; cycle < 3 && ok; ++cycle) {
++    const std::vector<uint8_t> secondPixels = windows[1].captured;
++    const uint64_t secondSerial = windows[1].target->getLastSubmissionSerial();
++    windows[0].action.reset(); windows[0].target.reset();
++    gtk_widget_destroy(windows[0].widget); pump();
++    windows[0].widget = gtk_window_new(GTK_WINDOW_TOPLEVEL);
++    gtk_window_set_default_size(GTK_WINDOW(windows[0].widget), 360 + cycle*20, 280 + cycle*10);
++    gtk_widget_show_all(windows[0].widget); pump();
++    ok = create(windows[0], display) && render(windows[0], scene, true) &&
++         render(windows[0], scene, false) &&
++         windows[1].target->getLastSubmissionSerial() == secondSerial &&
++         render(windows[1], scene, true) && windows[1].captured == secondPixels;
++    std::cout << "wayland_surface_recreate=" << cycle + 1 << " success=" << ok << '\n';
+   }
+   if (ok) {
+     ok = windows[0].target->resize(SbVec2i32(0, 0)) &&
+@@ -155,7 +222,8 @@ int main(int argc, char ** argv) {
+       COIN_RENDER_EXPERIMENTAL_WAYLAND_WINDOW, COIN_RENDER_RENDERER_VULKAN,
+       &caps, sizeof(caps));
+     ok = query == 0 && caps.gpu_available && caps.renderer == COIN_RENDER_RENDERER_VULKAN;
+-    if (ok) std::cout << "adapter=\"" << caps.adapter_name << "\" renderer=" << caps.renderer << '\n';
++    if (ok) std::cout << "adapter=\"" << caps.adapter_name << "\" renderer=" << caps.renderer
++      << " vendor_id=0x" << std::hex << caps.vendor_id << " device_id=0x" << caps.device_id << std::dec << '\n';
+   }
+   for (auto & window : windows) {
+     window.action.reset();
+diff --git a/examples/coinrender/coin_render_window_benchmark.cpp b/examples/coinrender/coin_render_window_benchmark.cpp
+index 761877cb46..dd46425241 100644
+--- a/examples/coinrender/coin_render_window_benchmark.cpp
++++ b/examples/coinrender/coin_render_window_benchmark.cpp
+@@ -55,6 +55,7 @@ struct Options {
+   std::string scenePath;
+   std::string animation;
+   std::string samplesOutput;
++  std::string imageOutput;
+   int width;
+   int height;
+   int warmup;
+@@ -103,7 +104,7 @@ void usage()
+                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
+                " [--animation static|camera|transforms|materials|geometry]"
+                " [--animated-percent 1..100] [--animation-step 1] [--samples-output frames.csv]"
+-               " [--dynamic|--material-dynamic] [--capture-window]\n";
++               " [--dynamic|--material-dynamic] [--capture-window] [--image-output frame.ppm]\n";
+ }
+ 
+ bool parseInteger(const char * text, int & value)
+@@ -152,6 +153,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
+       options.materialDynamic = true;
+     else if (std::strcmp(argv[i], "--capture-window") == 0)
+       options.captureWindow = true;
++    else if (std::strcmp(argv[i], "--image-output") == 0 && i + 1 < argc)
++      options.imageOutput = argv[++i];
+     else return false;
+   }
+   const bool backend = options.backend == "coin-gl" ||
+@@ -164,7 +167,7 @@ bool parseOptions(int argc, char ** argv, Options & options)
+   if (!backend || !transparency ||
+       !CoinRenderBenchmarkAnimation::parseMode(options.animation, animationMode) ||
+       options.animatedPercent < 1 || options.animatedPercent > 100 || options.animationStep < 1 ||
+-      (options.captureWindow && options.backend == "coin-gl") ||
++      (!options.imageOutput.empty() && !options.captureWindow) ||
+       (options.dynamic && options.materialDynamic) ||
+       (options.animationSpecified && (options.dynamic || options.materialDynamic)) ||
+       options.width < 1 || options.width > 8192 ||
+@@ -555,6 +558,21 @@ void report(const Options & options, const std::vector<FrameSample> & samples,
+     << " throughput_fps=" << double(options.frames) * 1000.0 / totalMs << '\n';
+ }
+ 
++bool writeCapture(const Options & options, const std::vector<uint8_t> & rgba, bool bottomUp) {
++  if (rgba.size() != size_t(options.width)*options.height*4u) return false;
++  uint64_t hash = UINT64_C(14695981039346656037);
++  for (uint8_t byte : rgba) { hash ^= byte; hash *= UINT64_C(1099511628211); }
++  std::cout << "window_rgba_fnv64=0x" << std::hex << hash << std::dec << '\n';
++  if (options.imageOutput.empty()) return true;
++  std::ofstream image(options.imageOutput.c_str(), std::ios::binary);
++  image << "P6\n" << options.width << ' ' << options.height << "\n255\n";
++  for (int y=0; y<options.height; ++y) for (int x=0; x<options.width; ++x) {
++    const size_t offset = (size_t(bottomUp ? options.height-y-1 : y)*options.width+x)*4;
++    image.write(reinterpret_cast<const char *>(rgba.data()+offset),3);
++  }
++  return bool(image);
++}
++
+ int runCoinGl(const Options & options, SoSeparator * root,
+               SoTransform * animation, SoMaterial * animatedMaterial,
+               CoinRenderBenchmarkAnimation & animator, Clock::time_point mainBegin,
+@@ -579,6 +597,8 @@ int runCoinGl(const Options & options, SoSeparator * root,
+   manager.setSize(SbVec2s(options.width, options.height));
+   manager.setViewportRegion(SbViewportRegion(options.width, options.height));
+   manager.setBackgroundColor(SbColor(0.0f, 0.0f, 0.0f));
++  std::vector<uint8_t> captured;
++  if (options.captureWindow) captured.resize(size_t(options.width)*options.height*4u);
+   manager.getGLRenderAction()->setTransparencyType(
+     options.transparency == "sorted_layers" ?
+       SoGLRenderAction::SORTED_LAYERS_BLEND :
+@@ -603,6 +623,14 @@ int runCoinGl(const Options & options, SoSeparator * root,
+     updateScene(options, frame, animator, animation, animatedMaterial);
+     const Clock::time_point updated = Clock::now();
+     manager.render();
++    if (options.captureWindow) {
++      GLint readBuffer = 0, alignment = 0;
++      glGetIntegerv(GL_READ_BUFFER, &readBuffer); glGetIntegerv(GL_PACK_ALIGNMENT, &alignment);
++      glReadBuffer(GL_BACK); glPixelStorei(GL_PACK_ALIGNMENT, 1);
++      glReadPixels(0,0,options.width,options.height,GL_RGBA,GL_UNSIGNED_BYTE,captured.data());
++      glPixelStorei(GL_PACK_ALIGNMENT, alignment); glReadBuffer(readBuffer);
++      if (glGetError() != GL_NO_ERROR) { exitCode=1; break; }
++    }
+     glXSwapBuffers(glx.display, glx.window);
+     const Clock::time_point end = Clock::now();
+     FrameSample sample{frame, static_cast<int64_t>(frame) * options.animationStep, frame < 0,
+@@ -621,6 +649,7 @@ int runCoinGl(const Options & options, SoSeparator * root,
+     report(options, samples, totalMs, elapsedMs(drainBegin, drained), animator,
+            renderer ? renderer : "unknown OpenGL renderer", 0, 0);
+     writeSamples(samplesOutput, samples);
++    if (options.captureWindow && !writeCapture(options, captured, true)) exitCode=1;
+   }
+   destroyGlxWindow(glx);
+   return exitCode;
+@@ -735,12 +764,7 @@ int runNative(const Options & options, SoSeparator * root,
+           caps.adapter_name[0] ? caps.adapter_name : "native adapter", caps.vendor_id, caps.device_id);
+         writeSamples(samplesOutput, samples);
+         if (options.captureWindow) {
+-          uint64_t hash = UINT64_C(14695981039346656037);
+-          for (uint8_t byte : captured) {
+-            hash ^= byte;
+-            hash *= UINT64_C(1099511628211);
+-          }
+-          std::cout << "window_rgba_fnv64=0x" << std::hex << hash << std::dec << '\n';
++          if (!writeCapture(options, captured, false)) exitCode=1;
+         }
+       }
+     }
+diff --git a/scripts/coinrender/run_p20_physical_matrix.py b/scripts/coinrender/run_p20_physical_matrix.py
+index d3cdddffdb..3bb202132c 100644
+--- a/scripts/coinrender/run_p20_physical_matrix.py
++++ b/scripts/coinrender/run_p20_physical_matrix.py
+@@ -39,6 +39,19 @@ def field(report, name):
+     return values[name]
+ 
+ 
++def rgb_metrics(left, right):
++    """Read the benchmark's top-down P6 files, without correcting pixel values."""
++    def read(path):
++        header, size, maximum, pixels = path.read_bytes().split(b'\n', 3)
++        if header != b'P6' or size != b'128 128' or maximum != b'255' or len(pixels) != 128*128*3:
++            raise ValueError('invalid 128x128 RGB fixture: ' + str(path))
++        return pixels
++    a, b = read(left), read(right)
++    differences = [abs(x-y) for x, y in zip(a, b)]
++    return {'mae': sum(differences)/len(differences), 'max': max(differences),
++            'pixels_over3': sum(max(differences[i:i+3]) > 3 for i in range(0, len(differences), 3))}
++
++
+ def main():
+     parser = argparse.ArgumentParser(description=__doc__)
+     parser.add_argument('--device', choices=DEVICES, required=True)
+@@ -46,9 +59,13 @@ def main():
+     parser.add_argument('--wgpu-build', type=Path, required=True)
+     parser.add_argument('--scenes-dir', type=Path, required=True)
+     parser.add_argument('--output-dir', type=Path, required=True)
++    parser.add_argument('--session', choices=('isolated', 'physical'), default='isolated')
++    parser.add_argument('--targets', choices=('window', 'offscreen'), nargs='+', default=['window', 'offscreen'])
+     args = parser.parse_args()
+-    if not os.getenv('COIN_TEST_ISOLATED_X11'):
++    if args.session == 'isolated' and not os.getenv('COIN_TEST_ISOLATED_X11'):
+         parser.error('run inside testsuite/qt-quarter/run_isolated.py')
++    if args.session == 'physical' and not os.getenv('DISPLAY'):
++        parser.error('physical session requires an explicit DISPLAY')
+     device = DEVICES[args.device]
+     if os.getenv('VK_DRIVER_FILES') != device['icd']:
+         parser.error('pin the physical device ICD via VK_DRIVER_FILES')
+@@ -100,9 +117,10 @@ def main():
+                                      'coin_render_gl_benchmark').read_bytes()).hexdigest()}
+                           for name, build in builds.items()},
+                'uname': run(['uname', '-srmo']).strip(), 'scenes': scenes, 'size': 128, 'warmup': 1, 'frames': 3,
++               'session': args.session, 'targets': args.targets,
+                'runs': [], 'failures': [], 'comparisons': []}
+     result_file = args.output_dir / 'results.json'
+-    for target in ('window', 'offscreen'):
++    for target in args.targets:
+         for scene_name in SCENES:
+             for backend in BACKENDS:
+                 key = f'{args.device}-{target}-{scene_name}-{backend}'
+@@ -113,20 +131,26 @@ def main():
+                             'wgpu' if backend == 'wgpu-vulkan' else 'bgfx')
+                 command = [str(executable), '--backend', mapped, '--scene', scenes[scene_name]['path'],
+                            '--warmup', '1', '--frames', '3']
+-                command += (['--width', '128', '--height', '128'] +
+-                            ([] if backend == 'coin-gl' else ['--capture-window'])
++                command += (['--width', '128', '--height', '128', '--capture-window']
+                             if target == 'window' else ['--size', '128'])
+                 env = dict(os.environ, LD_LIBRARY_PATH=str(build / 'lib') + ':' +
+                            os.environ.get('LD_LIBRARY_PATH', ''),
+                            COIN_GLX_PIXMAP_DIRECT_RENDERING='1')
+                 env.pop('COIN_RENDER_TRACE_PHASES', None)
++                env['COIN_RENDER_TRACE_PHASES'] = '1' if backend == 'bgfx-opengl' else '0'
++                env['COIN_BGFX_TRACE_GL_ADAPTER'] = '1'
++                command += ['--image-output', str(args.output_dir / (key + '.ppm'))]
+                 env['COIN_BGFX_RENDERER'] = ('opengl' if backend == 'bgfx-opengl' else 'vulkan')
+                 try:
+                     output = run(command, env=env, log=args.output_dir / (key + '.log'))
++                    image = (args.output_dir / (key+'.ppm')).read_bytes().split(b'\n',3)[-1]
++                    colors = {image[i:i+3] for i in range(0,len(image),3)}
++                    if len(image) != 128*128*3 or len(colors) < 3:
++                        raise RuntimeError('empty or degenerate RGB capture')
+                     prefix = ('window_rgba_fnv64' if target == 'window' else
+                               'gl_rgba_fnv64' if backend == 'coin-gl' else 'rgba_fnv64')
+                     hashes = re.findall(r'^' + prefix + r'=(0x[0-9a-f]+)$', output, re.M)
+-                    if len(hashes) != (0 if target == 'window' and backend == 'coin-gl' else 1):
++                    if len(hashes) != 1:
+                         raise RuntimeError('missing or unexpected RGBA checksum')
+                     report_prefix = 'window_benchmark ' if target == 'window' else 'adapter='
+                     reports = [line for line in output.splitlines()
+@@ -134,6 +158,10 @@ def main():
+                     if len(reports) != 1:
+                         raise RuntimeError('missing unique adapter report')
+                     report = reports[0]
++                    if backend == 'bgfx-opengl':
++                        actual = re.findall(r'bgfx_gl_adapter vendor=(.*?) renderer=(.*?) version=', output)
++                        if not actual or device['gl'].lower() not in actual[-1][1].lower():
++                            raise RuntimeError('current BGFX EGL context does not prove the requested GPU')
+                     if target == 'window':
+                         adapter = field(report, 'adapter')
+                         vendor, product = field(report, 'vendor_id'), field(report, 'device_id')
+@@ -147,17 +175,13 @@ def main():
+                             device['gl'].lower() not in adapter.lower():
+                         raise RuntimeError('wrong OpenGL adapter: ' + adapter)
+                     # BGFX GL Caps may report 0:0. The pinned GLX session is the proof.
+-                    if target == 'window' and field(report, 'readback') != (
+-                            'none' if backend == 'coin-gl' else 'rgba-on-request'):
++                    if target == 'window' and field(report, 'readback') != 'rgba-on-request':
+                         raise RuntimeError('unexpected window readback mode')
+                     results['runs'].append({'key': key, 'target': target, 'scene': scene_name,
+                                             'backend': backend, 'adapter': adapter,
+                                             'vendor_id': vendor, 'device_id': product,
+                                             'rgba_fnv64': hashes[0] if hashes else None,
+-                                            'qualification': ('presentation-only' if target == 'window' and
+-                                                              backend == 'coin-gl' else
+-                                                              'GL-context-needs-visual-check' if target == 'offscreen' and
+-                                                              backend == 'coin-gl' else 'capture'),
++                                            'qualification': 'capture; see RGB comparisons',
+                                             'log': key + '.log'})
+                     print(key, hashes[0] if hashes else 'presentation-only', flush=True)
+                 except Exception as exc:
+@@ -166,7 +190,14 @@ def main():
+                 result_file.write_text(json.dumps(results, indent=2) + '\n')
+     indexed = {(row['target'], row['scene'], row['backend']): row
+                for row in results['runs']}
+-    for target in ('window', 'offscreen'):
++    for target in args.targets:
++        for backend in BACKENDS:
++            images = [indexed.get((target, scene, backend)) for scene in SCENES]
++            if all(images) and (args.output_dir / (images[0]['key']+'.ppm')).read_bytes() == \
++                              (args.output_dir / (images[1]['key']+'.ppm')).read_bytes():
++                results['failures'].append({'key': f'{args.device}-{target}-{backend}',
++                                           'error': 'distinct fixtures produced identical RGB'})
++    for target in args.targets:
+         for scene in SCENES:
+             left = indexed.get((target, scene, 'bgfx-vulkan'))
+             right = indexed.get((target, scene, 'wgpu-vulkan'))
+@@ -178,8 +209,26 @@ def main():
+             if not equal:
+                 results['failures'].append({'key': f'{args.device}-{target}-{scene}-vulkan-pair',
+                                             'error': 'BGFX and wgpu Vulkan RGBA differ'})
++    for target in args.targets:
++        # Fixed RGB gate: <=2 levels per channel, MAE <=1.0. RGBA exactness of
++        # Vulkan backends above remains a separate, stricter check including alpha.
++        for scene in SCENES:
++            for backend in ('bgfx-opengl', 'bgfx-vulkan', 'wgpu-vulkan'):
++                left = indexed.get((target, scene, 'coin-gl'))
++                right = indexed.get((target, scene, backend))
++                if not left or not right:
++                    continue
++                metrics = rgb_metrics(args.output_dir / (left['key']+'.ppm'),
++                                      args.output_dir / (right['key']+'.ppm'))
++                passed = metrics['max'] <= 2 and metrics['mae'] <= 1.0
++                results['comparisons'].append({'target': target, 'scene': scene,
++                    'backends': ['coin-gl', backend], 'policy': 'top-down RGB max<=2 MAE<=1.0',
++                    'metrics': metrics, 'passed': passed})
++                if not passed:
++                    results['failures'].append({'key': f'{args.device}-{target}-{scene}-{backend}-CoinGL',
++                                               'error': 'RGB exceeds the declared gate', 'metrics': metrics})
+     result_file.write_text(json.dumps(results, indent=2) + '\n')
+-    return 1 if results['failures'] or len(results['runs']) != 16 else 0
++    return 1 if results['failures'] or len(results['runs']) != 8*len(args.targets) else 0
+ 
+ 
+ if __name__ == '__main__':
+diff --git a/src/actions/SoAction.cpp b/src/actions/SoAction.cpp
+index 0e17587fba..b7a8864b17 100644
+--- a/src/actions/SoAction.cpp
++++ b/src/actions/SoAction.cpp
+@@ -220,7 +220,6 @@
+ #include <Inventor/misc/SoState.h>
+ #include <Inventor/lists/SbList.h>
+ #include <Inventor/SoDB.h>
+-#include <Inventor/system/gl.h>
+ #include <Inventor/errors/SoDebugError.h>
+ 
+ #include "tidbitsp.h"
+diff --git a/src/profiler/SoNodeProfiling.h b/src/profiler/SoNodeProfiling.h
+index b37de44a50..15863b7539 100644
+--- a/src/profiler/SoNodeProfiling.h
++++ b/src/profiler/SoNodeProfiling.h
+@@ -34,9 +34,11 @@
+ \**************************************************************************/
+ 
+ #include <Inventor/actions/SoAction.h>
+-#include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/nodes/SoGroup.h>
++#if !defined(COIN_BUILD_LEGACY_GL_RENDERER) || COIN_BUILD_LEGACY_GL_RENDERER
++#include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/system/gl.h>
++#endif
+ #include <Inventor/annex/Profiler/SoProfiler.h>
+ #include <Inventor/annex/Profiler/elements/SoProfilerElement.h>
+ 
+@@ -89,9 +91,11 @@ public:
+   {
+     if (!SoNodeProfiling::isActive(action)) return;
+ 
++#if !defined(COIN_BUILD_LEGACY_GL_RENDERER) || COIN_BUILD_LEGACY_GL_RENDERER
+     if (action->isOfType(SoGLRenderAction::getClassTypeId()) &&
+         SoProfilerP::shouldSyncGL())
+       glFinish();
++#endif
+ 
+     const SbTime duration(SbTime::getTimeOfDay() - this->pretime);
+ 
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index da1de5569e..28ab13937c 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -1369,10 +1369,23 @@ if(COIN_BUILD_RENDER)
+ 			set_tests_properties(CoinRenderMarkerSetGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+ 		endif()
+ 	endif()
++	add_executable(CoinRenderShadowEightMapTest coinrender/CoinRenderShadowEightMapTest.cpp)
++	set_target_properties(CoinRenderShadowEightMapTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
++	target_link_libraries(CoinRenderShadowEightMapTest CoinRender Coin)
++	target_include_directories(CoinRenderShadowEightMapTest PRIVATE
++		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
++		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
++	add_test(NAME CoinRenderShadowEightMapTest COMMAND CoinRenderShadowEightMapTest)
++	set_tests_properties(CoinRenderShadowEightMapTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+ 	if(COIN_BUILD_LEGACY_GL_RENDERER)
+ 		add_executable(CoinRenderShadowReferenceTest coinrender/CoinRenderShadowReferenceTest.cpp)
+ 		set_target_properties(CoinRenderShadowReferenceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+ 		target_link_libraries(CoinRenderShadowReferenceTest CoinRender Coin)
++		if(TARGET OpenGL::GL)
++			target_link_libraries(CoinRenderShadowReferenceTest OpenGL::GL)
++		else()
++			target_link_libraries(CoinRenderShadowReferenceTest ${OPENGL_gl_LIBRARY})
++		endif()
+ 		target_include_directories(CoinRenderShadowReferenceTest PRIVATE
+ 			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+ 			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+diff --git a/testsuite/bumprender/GLXTest.cpp b/testsuite/bumprender/GLXTest.cpp
+index 0086107282..024bbd5b3a 100644
+--- a/testsuite/bumprender/GLXTest.cpp
++++ b/testsuite/bumprender/GLXTest.cpp
+@@ -154,13 +154,20 @@ int main() {
+   if (!display) { std::puts("SKIP: no X display"); return 77; }
+   int attr[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
+   XVisualInfo * visual = glXChooseVisual(display, DefaultScreen(display), attr);
+-  if (!visual) { XCloseDisplay(display); return 77; }
++  // PRIME NVIDIA exposes the compatible RGBA visual with double buffering.
++  if (!visual) {
++    int buffered[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, 24, None };
++    visual = glXChooseVisual(display, DefaultScreen(display), buffered);
++  }
++  if (!visual) { std::puts("SKIP: no compatible RGBA/depth GLX visual"); XCloseDisplay(display); return 77; }
+   SoDB::init();
+   {
+     GLContext a(display, visual), b(display, visual); a.current(71);
+     const char * extensions = (const char *) glGetString(GL_EXTENSIONS);
+     if (!extensions || !std::strstr(extensions, "GL_ARB_fragment_program") ||
+-        !std::strstr(extensions, "GL_ARB_vertex_program")) return 77;
++        !std::strstr(extensions, "GL_ARB_vertex_program")) {
++      std::puts("SKIP: ARB vertex/fragment programs unavailable"); return 77;
++    }
+     std::printf("GL renderer: %s\n", glGetString(GL_RENDERER));
+     const cc_glglue * gluea = cc_glglue_instance(71);
+     CoinBumpTestRenderer * renderer = new CoinBumpTestRenderer;
+diff --git a/testsuite/coinrender/CoinRenderCameraReuseReferenceTest.cpp b/testsuite/coinrender/CoinRenderCameraReuseReferenceTest.cpp
+index f319a0158c..289f69acd9 100644
+--- a/testsuite/coinrender/CoinRenderCameraReuseReferenceTest.cpp
++++ b/testsuite/coinrender/CoinRenderCameraReuseReferenceTest.cpp
+@@ -19,6 +19,7 @@
+ #include <cmath>
+ #include <cstdlib>
+ #include <iostream>
++#include <fstream>
+ #include <memory>
+ #include <vector>
+ 
+@@ -58,6 +59,24 @@ bool compare(const std::vector<uint8_t> & actual, const std::vector<uint8_t> & r
+   const double mae = double(sum) / (side * side * 3);
+   std::cout << name << " frame=" << frame << " rgb_mae=" << mae
+             << " max=" << maximum << " pixels_over3=" << over3 << '\n';
++  if (mae > .10 || over3 > side*side/500u) {
++    // Optional unmodified diagnostic images; gate and normal behavior stay fixed.
++    const char * directory = std::getenv("COIN_RENDER_CAMERA_REFERENCE_IMAGES");
++    if (directory) {
++      std::string label(name); std::replace(label.begin(), label.end(), '/', '-');
++      for (bool expected : {false, true}) {
++        const std::string path = std::string(directory) + "/" + label + "-" +
++          std::to_string(frame) + (expected ? "-reference.ppm" : "-actual.ppm");
++        std::ofstream image(path.c_str(), std::ios::binary);
++        image << "P6\n" << side << ' ' << side << "\n255\n";
++        for (int y=0; y<side; ++y) for (int x=0; x<side; ++x) {
++          const size_t offset = expected ? (size_t(flip ? side-y-1 : y)*side+x)*channels : (size_t(y)*side+x)*4;
++          image.write(reinterpret_cast<const char *>((expected ? reference : actual).data()+offset), 3);
++        }
++        if (!image) std::cerr << "Cannot write camera diagnostic " << path << '\n';
++      }
++    }
++  }
+   // Floating-point rasterization can differ at isolated silhouette edges.
+   return check(mae <= 0.10 && over3 <= side * side / 500u,
+                "camera reuse changed RGB beyond the fixed reference gate");
+@@ -151,7 +170,11 @@ bool run(bool perspective, bool requireGl) {
+         if (ok) {
+           const uint8_t * bytes = gl.getBuffer();
+           std::vector<uint8_t> pixels(bytes, bytes + side * side * 3);
+-          ok &= compare(fastPixels, pixels, 3, true, perspective ? "perspective/CoinGL" : "ortho/CoinGL", frame);
++          // Compare the full traversal too: an oracle mismatch must not be
++          // attributed to the camera overlay when both paths produce it.
++          const bool fastMatches = compare(fastPixels, pixels, 3, true, perspective ? "perspective/CoinGL" : "ortho/CoinGL", frame);
++          const bool fullMatches = compare(fullPixels, pixels, 3, true, perspective ? "perspective/rebuild-CoinGL" : "ortho/rebuild-CoinGL", frame);
++          ok &= fastMatches && fullMatches;
+         }
+       }
+     }
+diff --git a/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp b/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
+index 1c9d8bf1d9..c7a543a3f7 100644
+--- a/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
++++ b/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
+@@ -8,6 +8,7 @@
+ #include <Inventor/actions/CoinRenderAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/C/glue/gl.h>
++#include <Inventor/system/gl.h>
+ #include "actions/CoinRenderActionP.h"
+ #include <Inventor/rendering/CoinRenderTarget.h>
+ #include "rendering/coinrender/CoinRenderTargetP.h"
+@@ -97,6 +98,17 @@ void captureGlTextureUnits(void * data, SoGLRenderAction * action)
+     cc_glglue_instance(action->getCacheContext()));
+ }
+ 
++void captureGlCapacity(void * data, SoGLRenderAction * action)
++{
++  captureGlTextureUnits(data, action);
++  GLint coords = 0, samplers = 0;
++  glGetIntegerv(GL_MAX_TEXTURE_COORDS, &coords);
++  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &samplers);
++  std::cout << "CoinGL renderer=\"" << glGetString(GL_RENDERER)
++            << "\" vendor=\"" << glGetString(GL_VENDOR)
++            << "\" texture_coords=" << coords << " fragment_samplers=" << samplers << '\n';
++}
++
+ bool render(SoOffscreenRenderer & gl, SoNode * root,
+             std::vector<unsigned char> & rgb)
+ {
+@@ -1509,9 +1521,9 @@ int main(int argc, char ** argv)
+     SoOffscreenRenderer gl(SbViewportRegion(side,side));
+     gl.setComponents(SoOffscreenRenderer::RGB);
+     int units=0;
+-    gl.getGLRenderAction()->addPreRenderCallback(captureGlTextureUnits,&units);
++    gl.getGLRenderAction()->addPreRenderCallback(captureGlCapacity,&units);
+     const bool ok=gl.render(root) && gl.getBuffer();
+-    gl.getGLRenderAction()->removePreRenderCallback(captureGlTextureUnits,&units);
++    gl.getGLRenderAction()->removePreRenderCallback(captureGlCapacity,&units);
+     std::cout << "CoinGL max_texture_units=" << units << " native_eight_maps=" << (units>=9) << '\n';
+     root->unref();
+     return ok ? 0 : 1;
+diff --git a/testsuite/qt-quarter/run_isolated.py b/testsuite/qt-quarter/run_isolated.py
+index 3f2efd8bb4..83042943d9 100644
+--- a/testsuite/qt-quarter/run_isolated.py
++++ b/testsuite/qt-quarter/run_isolated.py
+@@ -56,6 +56,8 @@ def main():
+                         help='optional locally extracted Weston prefix (xwayland only)')
+     parser.add_argument('--weston-shell', choices=('kiosk-shell.so', 'desktop-shell.so'),
+                         default='kiosk-shell.so', help='Weston shell for xwayland sessions')
++    parser.add_argument('--weston-scale', type=int, choices=(1, 2), default=1,
++                        help='advertised integer scale of the private headless output')
+     parser.add_argument('--artifacts', required=True, type=Path)
+     parser.add_argument('--private-dir', type=Path, help=argparse.SUPPRESS)
+     parser.add_argument('--worker', action='store_true', help=argparse.SUPPRESS)
+@@ -138,7 +140,8 @@ def main():
+                 compositor = subprocess.Popen([
+                     weston, '--backend=headless', '--renderer=gl',
+                     '--shell='+args.weston_shell, '--socket=coin-isolated',
+-                    '--width=2400', '--height=1600', '--idle-time=0',
++                    '--width='+str(2400*args.weston_scale), '--height='+str(1600*args.weston_scale),
++                    '--scale='+str(args.weston_scale), '--idle-time=0',
+                     *weston_config, '--log='+str(artifacts/'weston.log')],
+                     env=server_env, stdout=log, stderr=subprocess.STDOUT,
+                     start_new_session=True)
+@@ -215,6 +218,7 @@ def main():
+                 'private_runtime': True,
+                 'compositor_backend': 'headless-gl' if args.server == 'xwayland' else None,
+                 'compositor_shell': args.weston_shell if args.server == 'xwayland' else None,
++                'compositor_scale': args.weston_scale if args.server == 'xwayland' else None,
+                 'hardware': 'must be proven by runner, never inferred from isolation',
+             }, indent=2))
+             if args.exec:
