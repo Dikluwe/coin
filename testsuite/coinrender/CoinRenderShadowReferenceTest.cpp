@@ -102,8 +102,8 @@ void captureGlCapacity(void * data, SoGLRenderAction * action)
 {
   captureGlTextureUnits(data, action);
   GLint coords = 0, samplers = 0;
-  glGetIntegerv(GL_MAX_TEXTURE_COORDS, &coords);
-  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &samplers);
+  glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB, &coords);
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &samplers);
   std::cout << "CoinGL renderer=\"" << glGetString(GL_RENDERER)
             << "\" vendor=\"" << glGetString(GL_VENDOR)
             << "\" texture_coords=" << coords << " fragment_samplers=" << samplers << '\n';
