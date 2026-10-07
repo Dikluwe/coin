@@ -1,0 +1,122 @@
+[
+  {
+    "label": "cross-bgfx-vulkan",
+    "exit": 0,
+    "seconds": 515,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx",
+      "-C",
+      "Release",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-bgfx-vulkan.xml",
+      "--tests-from-file",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-bgfx-vulkan-selected.txt"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_RENDERER": "vulkan"
+    },
+    "total": 105,
+    "failed": [],
+    "skipped": []
+  },
+  {
+    "label": "cross-bgfx-opengl",
+    "exit": 0,
+    "seconds": 478,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx",
+      "-C",
+      "Release",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-bgfx-opengl.xml",
+      "--tests-from-file",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-bgfx-opengl-selected.txt"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_RENDERER": "opengl"
+    },
+    "total": 105,
+    "failed": [],
+    "skipped": []
+  },
+  {
+    "label": "cross-wgpu-vulkan",
+    "exit": 0,
+    "seconds": 579,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu",
+      "-C",
+      "Release",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-wgpu-vulkan.xml",
+      "--tests-from-file",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-wgpu-vulkan-selected.txt"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "total": 131,
+    "failed": [],
+    "skipped": []
+  },
+  {
+    "label": "cross-wgpu-gl",
+    "exit": 0,
+    "seconds": 835,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu",
+      "-C",
+      "Release",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-wgpu-gl.xml",
+      "--tests-from-file",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\cross-wgpu-gl-selected.txt"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "WGPU_BACKEND": "gl"
+    },
+    "total": 131,
+    "failed": [],
+    "skipped": []
+  }
+]

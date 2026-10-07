@@ -1,0 +1,29 @@
+startup_detail arguments_ms=0.1379 coin_init_ms=4.0878 capability_probe_ms=457.35
+scene_detail parse_ms=26.2145 wrapper_ms=0.0233 camera_fit_ms=7.3655
+scene_load_ms=33.7115
+animation_detail mode=geometry animated_percent=100 eligible=2500 selected=2500 prepared_clones=2500 prepare_ms=12.4559 frame_step=100 time_step_seconds=1.66667 selection_fnv64=0x453c3335d215e341
+startup_detail material_search_ms=0.1226 target_setup_ms=0.2566
+WebGPU_first_detail render_ms=336.716 publication_copy_ms=0.0448 update_ms=3.9116 total_with_update_ms=340.672 before_frame_since_main_ms=512.421 result_since_main_ms=849.182
+WebGPU_first_frame_ms=336.761
+capture backend=WebGPU frame_index=0 logical_frame=0 rgba_fnv64=0x573aec543d0368b5 rgb_fnv64=0xef320a4f81b8583b state_fnv64=0xc246972d934d355b image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000000.ppm
+capture backend=WebGPU frame_index=1 logical_frame=100 rgba_fnv64=0xe43502085d942c7e rgb_fnv64=0xf3ee374dccb5b62 state_fnv64=0xc997cccb4fb97c5f image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000001.ppm
+capture backend=WebGPU frame_index=2 logical_frame=200 rgba_fnv64=0x9cbb00f4f134b5f9 rgb_fnv64=0x97fcab64a5975db state_fnv64=0xe3286e5eea489bd7 image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000002.ppm
+capture backend=WebGPU frame_index=3 logical_frame=300 rgba_fnv64=0x4c57218a35ec7058 rgb_fnv64=0x9de8a6806fd803d2 state_fnv64=0x7fdbf4c9e21309af image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000003.ppm
+capture backend=WebGPU frame_index=4 logical_frame=400 rgba_fnv64=0x6737096fcf0c8041 rgb_fnv64=0xe433c0b477d53167 state_fnv64=0x758ff049a3d180e9 image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000004.ppm
+capture backend=WebGPU frame_index=5 logical_frame=500 rgba_fnv64=0xf82958caa20d4db6 rgb_fnv64=0x314c7704261e8f54 state_fnv64=0xc764304fdd91bb55 image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000005.ppm
+capture backend=WebGPU frame_index=6 logical_frame=600 rgba_fnv64=0x37c79b4f17efe72 rgb_fnv64=0x27c8788a32fe1bc4 state_fnv64=0x5fb5410ef38e0416 image=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1-WebGPU-000006.ppm
+WebGPU_animation_final logical_frame=600 state_fnv64=0x5fb5410ef38e0416
+samples_output=H:\Git\coin\build\windows-render-20261007\performance\verify\geometry-100-wgpu-dx12-literal-1.csv rows=7
+rgba_fnv64=0x37c79b4f17efe72
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) vendor_id=0x10de device_id=0x1c03 backend=wgpu size=256x256 warmup=0 scene=H:\Git\coin\build\windows-render-20261007\performance\city-2500.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..6 warmup_indices=-0..-1 frame_step=100 captures=7 capture_io=outside_frame_timers wall_throughput_includes_capture=1 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+WebGPU frames=7 median_ms=22.9718 p95_ms=336.761 min_ms=22.3963 max_ms=336.761
+WebGPU_render frames=7 median_ms=22.9515 p95_ms=336.716 min_ms=22.3775 max_ms=336.716
+WebGPU_copy frames=7 median_ms=0.021 p95_ms=0.0448 min_ms=0.018 max_ms=0.0448
+WebGPU_timing_total frames=7 median_ms=29.4276 p95_ms=340.6724 p99_ms=340.6724 max_ms=340.6724 over_16_67=7 over_33_33=2
+WebGPU_timing_update frames=7 median_ms=6.3491 p95_ms=12.5053 p99_ms=12.5053 max_ms=12.5053 over_16_67=0 over_33_33=0
+WebGPU_timing_render frames=7 median_ms=22.9515 p95_ms=336.716 p99_ms=336.716 max_ms=336.716 over_16_67=7 over_33_33=1
+WebGPU_throughput frames=7 total_ms=536.244 fps=13.0538
+WebGPU_cache last_frame_uploads=1 last_frame_uploaded_bytes=360144 last_frame_hits=1 cumulative_uploads=7 cumulative_uploaded_bytes=2525808 cumulative_hits=6
+backend_cleanup_begin
+backend_cleanup_ms=2.2138

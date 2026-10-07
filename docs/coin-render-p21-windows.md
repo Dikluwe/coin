@@ -9,6 +9,15 @@ offscreen em ambas as APIs. DPI entre monitores e perda/recriação em janela
 continuam pendentes; a campanha documenta as correções das referências Coin/WGL
 e seus limites de equivalência.
 
+A [continuação de 2026-10-07](coin-render-windows-continuation-validation-20261007.md)
+recompilou a revisão atual e ampliou Win32 para BGFX D3D12/Vulkan/OpenGL e
+wgpu D3D12/Vulkan: pixels iguais ao offscreen, três recriações de HWND,
+isolamento de seriais e tickets offscreen retidos após destruir o produtor.
+wgpu/OpenGL passou em apresentação/lifecycle e rejeição de captura sem
+publicação; sua superfície não oferece COPY_SRC e os pixels de janela não
+foram comparados. Dois monitores físicos a 96 DPI foram exercitados; DPI
+distinto e perda real de dispositivo continuam abertos.
+
 P21 começa pela apresentação wgpu/D3D12 em uma janela Win32. O descriptor
 público já continha `HINSTANCE` e `HWND`, mas o alvo comum rejeitava o tag
 Win32 e a ponte só construía handles Xlib. Agora, em builds Windows com a
@@ -43,10 +52,11 @@ dependentes de X11.
 
 | Combinação | Estado nesta entrega | Evidência ainda necessária |
 |---|---|---|
-| wgpu/D3D12 + `HWND` | Build e smoke passaram em Windows/NVIDIA 581.08 | Perda/recriação e demais pendências da campanha |
-| wgpu/Vulkan + `HWND` | Build e smoke passaram em Windows/NVIDIA 581.08 | Perda/recriação e demais pendências da campanha |
+| wgpu/D3D12 + `HWND` | Revisão atual: pixels, três recriações, seriais/tickets passaram | DPI distinto e perda real de dispositivo |
+| wgpu/Vulkan + `HWND` | Revisão atual: pixels, três recriações, seriais/tickets passaram | DPI distinto e perda real de dispositivo |
+| wgpu/OpenGL + `HWND` | Apresentação, três recriações, seriais/tickets e rejeição de captura passaram | Captura visual: COPY_SRC indisponível neste host |
 | BGFX/D3D11 | Pendente | Shaders, build, surface e matriz física |
-| BGFX/D3D12 | Win32/shaders implementados; campanha física documentada em BGFX Windows | Requalificar a revisão atual, DPI entre monitores e perda real de surface/device |
+| BGFX/D3D12, Vulkan e OpenGL | Revisão atual: pixels, três recriações, seriais/tickets passaram | DPI distinto e perda real de dispositivo |
 | Win32 resize/DPI/multiwindow | Duas janelas, resize e minimizar/restaurar passaram a 96 DPI | Mudança entre monitores DPI distintos |
 
 ## Critérios para fechar
@@ -67,8 +77,9 @@ confirmar captura RGBA solicitada e ausência de readback no render normal.
 Aplicar `WM_SIZE`, minimização/restauração e mudança de DPI usando o tamanho
 físico do client area. Destruir cada alvo antes de seu `HWND`; injetar perda
 de superfície/device e confirmar recuperação ou diagnóstico sem publicar um
-quadro incompleto. Repetir por API e driver, com skips explícitos. D3D11 e
-BGFX/D3D12 exigem implementação antes de entrar na matriz funcional.
+quadro incompleto. Repetir por API e driver, com skips explícitos.
+BGFX/D3D12 já tem implementação Win32; D3D11 ainda exige implementação
+antes de entrar na matriz funcional.
 
 Neste host Linux não existem toolchain/target Rust Windows nem Wine. Por isso
 os resultados desta entrega são de **compilação e regressão Linux**, não de

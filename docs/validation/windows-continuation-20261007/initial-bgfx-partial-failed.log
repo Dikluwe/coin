@@ -1,0 +1,191 @@
+Internal ctest changing into directory: H:/Git/coin/build/windows-render-20261007/bgfx
+Test project H:/Git/coin/build/windows-render-20261007/bgfx
+        Start   1: CoinRenderWin32D3D12Smoke
+  1/297 Test   #1: CoinRenderWin32D3D12Smoke ....................   Passed    2.20 sec
+        Start   2: CoinRenderWin32VulkanSmoke
+  2/297 Test   #2: CoinRenderWin32VulkanSmoke ...................   Passed    2.33 sec
+        Start   3: BumpProgramFailuresAndLifetime
+  3/297 Test   #3: BumpProgramFailuresAndLifetime ...............   Passed    0.13 sec
+        Start   4: CoinTests
+  4/297 Test   #4: CoinTests ....................................   Passed    2.98 sec
+        Start   5: SoTempPathReplaceTail_valid_sentinel
+  5/297 Test   #5: SoTempPathReplaceTail_valid_sentinel .........   Passed    0.11 sec
+        Start   6: SoTempPathReplaceTail_valid_replacement
+  6/297 Test   #6: SoTempPathReplaceTail_valid_replacement ......   Passed    0.07 sec
+        Start   7: SoTempPathReplaceTail_empty_noop
+  7/297 Test   #7: SoTempPathReplaceTail_empty_noop .............   Passed    0.08 sec
+        Start   8: SoPathRange
+  8/297 Test   #8: SoPathRange ..................................   Passed    0.11 sec
+        Start   9: SoPathLegacyAccessorBounds_node
+  9/297 Test   #9: SoPathLegacyAccessorBounds_node ..............   Passed    0.11 sec
+        Start  10: SoPathLegacyAccessorBounds_node-tail
+ 10/297 Test  #10: SoPathLegacyAccessorBounds_node-tail .........   Passed    0.08 sec
+        Start  11: SoPathLegacyAccessorBounds_index
+ 11/297 Test  #11: SoPathLegacyAccessorBounds_index .............   Passed    0.08 sec
+        Start  12: SoPathLegacyAccessorBounds_index-tail
+ 12/297 Test  #12: SoPathLegacyAccessorBounds_index-tail ........   Passed    0.08 sec
+        Start  13: SoPathLegacyAccessorBounds_valid
+ 13/297 Test  #13: SoPathLegacyAccessorBounds_valid .............   Passed    0.08 sec
+        Start  14: SoPathLegacyAccessorBounds_visibility
+ 14/297 Test  #14: SoPathLegacyAccessorBounds_visibility ........   Passed    0.08 sec
+        Start  15: SoPathAssignmentAuditor_reassign
+ 15/297 Test  #15: SoPathAssignmentAuditor_reassign .............   Passed    0.11 sec
+        Start  16: SoPathAssignmentAuditor_self-assign
+ 16/297 Test  #16: SoPathAssignmentAuditor_self-assign ..........   Passed    0.08 sec
+        Start  17: SoPathAssignmentAuditor_copy-construct
+ 17/297 Test  #17: SoPathAssignmentAuditor_copy-construct .......   Passed    0.08 sec
+        Start  18: SoPathAuditorCallback_empty
+ 18/297 Test  #18: SoPathAuditorCallback_empty ..................   Passed    0.11 sec
+        Start  19: SoPathAuditorCallback_foreign-parent
+ 19/297 Test  #19: SoPathAuditorCallback_foreign-parent .........   Passed    0.08 sec
+        Start  20: SoPathAuditorCallback_negative-index
+ 20/297 Test  #20: SoPathAuditorCallback_negative-index .........   Passed    0.08 sec
+        Start  21: SoPathAuditorCallback_null-replacement
+ 21/297 Test  #21: SoPathAuditorCallback_null-replacement .......   Passed    0.08 sec
+        Start  22: SoPathAuditorCallback_valid-callbacks
+ 22/297 Test  #22: SoPathAuditorCallback_valid-callbacks ........   Passed    0.08 sec
+        Start  23: SoPathChildAppend
+ 23/297 Test  #23: SoPathChildAppend ............................   Passed    0.10 sec
+        Start  24: CoinConfigCompatibility
+ 24/297 Test  #24: CoinConfigCompatibility ......................   Passed    1.64 sec
+        Start  25: CoinTestsFilterExact
+ 25/297 Test  #25: CoinTestsFilterExact .........................   Passed    0.09 sec
+        Start  26: CoinTestsFilterWildcard
+ 26/297 Test  #26: CoinTestsFilterWildcard ......................   Passed    0.08 sec
+        Start  27: CoinTestsFilterSuite
+ 27/297 Test  #27: CoinTestsFilterSuite .........................   Passed    0.07 sec
+        Start  28: CoinTestsFilterCombined
+ 28/297 Test  #28: CoinTestsFilterCombined ......................   Passed    0.08 sec
+        Start  29: CoinTestsFilterRepeated
+ 29/297 Test  #29: CoinTestsFilterRepeated ......................   Passed    0.08 sec
+        Start  30: CoinTestsFilterNoMatch
+ 30/297 Test  #30: CoinTestsFilterNoMatch .......................   Passed    0.08 sec
+        Start  31: CoinTestsFilterMissingValue
+ 31/297 Test  #31: CoinTestsFilterMissingValue ..................   Passed    0.08 sec
+        Start  32: CoinTestsFilterEmptyValue
+ 32/297 Test  #32: CoinTestsFilterEmptyValue ....................   Passed    0.08 sec
+        Start  33: ProfilerInit_unset
+ 33/297 Test  #33: ProfilerInit_unset ...........................   Passed    0.15 sec
+        Start  34: ProfilerInit_off
+ 34/297 Test  #34: ProfilerInit_off .............................   Passed    0.12 sec
+        Start  35: ProfilerInit_0
+ 35/297 Test  #35: ProfilerInit_0 ...............................   Passed    0.11 sec
+        Start  36: ProfilerInit_on
+ 36/297 Test  #36: ProfilerInit_on ..............................   Passed    0.11 sec
+        Start  37: ProfilerInit_1
+ 37/297 Test  #37: ProfilerInit_1 ...............................   Passed    0.12 sec
+        Start  38: ProfilerInit_syncgl
+ 38/297 Test  #38: ProfilerInit_syncgl ..........................   Passed    0.12 sec
+        Start  39: ProfilerInit_invalid
+ 39/297 Test  #39: ProfilerInit_invalid .........................   Passed    0.13 sec
+        Start  40: RenderManagerFramePreparationTest
+ 40/297 Test  #40: RenderManagerFramePreparationTest ............   Passed    0.10 sec
+        Start  41: CoinRenderActionTest
+ 41/297 Test  #41: CoinRenderActionTest .........................***Failed    1.98 sec
+Running CoinRenderActionTest...
+FAILED: captured submission must loan the exact opaque order and retain literal payload/status (action.getLastStatus() == CoinRenderAction::SUCCESS && same() && backend->captured.draws.size() >= 256 && backend->receiptPresent && backend->borrowed && literalBackend->receiptPresent && !literalBackend->borrowed) at C:\Users\Diklu\.codex\worktrees\coin-render-windows-20261007\coin\testsuite\actions\CoinRenderActionTest.cpp:225
+testCapturedCompositionBorrow failed
+FAILED: shared Cube geometry with exclusive transform/state occurrences must qualify exactly (action.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->translationProofValid && action.getPimpl()->translationBindings.size() == scene.positions.size() && action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan)) at C:\Users\Diklu\.codex\worktrees\coin-render-windows-20261007\coin\testsuite\actions\CoinRenderActionTest.cpp:1124
+testTranslationOverlayAndRollback failed
+FAILED: invalidated movement must take full capture and match its complete payload (action.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS && action.getPimpl()->translationGeneration > oldGeneration && action.getPimpl()->lastValidPlan.hasSamePayload(full.getPimpl()->lastValidPlan)) at C:\Users\Diklu\.codex\worktrees\coin-render-windows-20261007\coin\testsuite\actions\CoinRenderActionTest.cpp:1543
+testTranslationOverlayInvalidationAndOwnership failed
+3 test(s) FAILED!
+
+        Start  42: CoinRenderBackendBoundaryTest
+ 42/297 Test  #42: CoinRenderBackendBoundaryTest ................   Passed    0.11 sec
+        Start  43: CoinRenderRuntimeBoundaryTest
+ 43/297 Test  #43: CoinRenderRuntimeBoundaryTest ................   Passed    0.12 sec
+        Start  44: CoinRenderPlanAssemblyCoreTest
+ 44/297 Test  #44: CoinRenderPlanAssemblyCoreTest ...............   Passed    0.17 sec
+        Start  45: CoinRenderTransformCoreTest
+ 45/297 Test  #45: CoinRenderTransformCoreTest ..................   Passed    0.11 sec
+        Start  46: CoinRenderCameraReuseReferenceTest
+ 46/297 Test  #46: CoinRenderCameraReuseReferenceTest ...........   Passed    1.83 sec
+        Start  47: CoinRenderSelectionTest
+ 47/297 Test  #47: CoinRenderSelectionTest ......................   Passed   12.12 sec
+        Start  48: CoinRenderSelection_vulkan
+ 48/297 Test  #48: CoinRenderSelection_vulkan ...................   Passed    8.52 sec
+        Start  49: CoinRenderSelection_opengl
+ 49/297 Test  #49: CoinRenderSelection_opengl ...................   Passed    4.41 sec
+        Start  50: CoinRenderSelection_d3d12
+ 50/297 Test  #50: CoinRenderSelection_d3d12 ....................   Passed    4.56 sec
+        Start  51: CoinRenderProductTest
+ 51/297 Test  #51: CoinRenderProductTest ........................   Passed    2.04 sec
+        Start  52: CoinRenderBackendContractTest
+ 52/297 Test  #52: CoinRenderBackendContractTest ................   Passed    1.59 sec
+        Start  53: CoinRenderOffscreenTest
+ 53/297 Test  #53: CoinRenderOffscreenTest ......................   Passed    0.13 sec
+        Start  54: CoinRenderGateG0Test
+ 54/297 Test  #54: CoinRenderGateG0Test .........................   Passed    0.11 sec
+        Start  55: CoinRenderFrameCoreTest
+ 55/297 Test  #55: CoinRenderFrameCoreTest ......................   Passed    0.15 sec
+        Start  56: CoinBgfxReadbackModes_vulkan
+ 56/297 Test  #56: CoinBgfxReadbackModes_vulkan .................   Passed    4.23 sec
+        Start  57: CoinBgfxReadbackModes_opengl
+ 57/297 Test  #57: CoinBgfxReadbackModes_opengl .................   Passed    3.68 sec
+        Start  58: CoinBgfxReadbackModes_d3d12
+ 58/297 Test  #58: CoinBgfxReadbackModes_d3d12 ..................   Passed    3.59 sec
+        Start  59: CoinBgfxSurface_vulkan_object
+ 59/297 Test  #59: CoinBgfxSurface_vulkan_object ................   Passed   19.24 sec
+        Start  60: CoinBgfxSurface_vulkan_weighted_oit
+ 60/297 Test  #60: CoinBgfxSurface_vulkan_weighted_oit ..........   Passed   28.27 sec
+        Start  61: CoinBgfxSurface_vulkan_sorted_layers
+ 61/297 Test  #61: CoinBgfxSurface_vulkan_sorted_layers .........   Passed   25.21 sec
+        Start  62: CoinBgfxSurface_opengl_object
+ 62/297 Test  #62: CoinBgfxSurface_opengl_object ................   Passed   14.54 sec
+        Start  63: CoinBgfxSurface_opengl_weighted_oit
+ 63/297 Test  #63: CoinBgfxSurface_opengl_weighted_oit ..........   Passed   14.15 sec
+        Start  64: CoinBgfxSurface_opengl_sorted_layers
+ 64/297 Test  #64: CoinBgfxSurface_opengl_sorted_layers .........   Passed   13.93 sec
+        Start  65: CoinBgfxSurface_d3d12_object
+ 65/297 Test  #65: CoinBgfxSurface_d3d12_object .................   Passed   19.57 sec
+        Start  66: CoinBgfxSurface_d3d12_weighted_oit
+ 66/297 Test  #66: CoinBgfxSurface_d3d12_weighted_oit ...........   Passed   21.65 sec
+        Start  67: CoinBgfxSurface_d3d12_sorted_layers
+ 67/297 Test  #67: CoinBgfxSurface_d3d12_sorted_layers ..........   Passed   19.76 sec
+        Start  68: CoinBgfxCoreTest
+ 68/297 Test  #68: CoinBgfxCoreTest .............................   Passed    0.75 sec
+        Start  69: CoinBgfxProgramSelectionTest
+ 69/297 Test  #69: CoinBgfxProgramSelectionTest .................   Passed    0.04 sec
+        Start  70: CoinRenderDepthContractTest
+ 70/297 Test  #70: CoinRenderDepthContractTest ..................***Failed    0.15 sec
+CoinRenderDepthContractTest: shared native templates must retain exact indexed geometry, attributes and states versus full callbacks
+CoinRenderDepthContractTest: append after copy must reuse frame ranges while preserving independent snapshots and full callback semantics
+
+        Start  71: CoinRenderDepthContractVulkanTest
+ 71/297 Test  #71: CoinRenderDepthContractVulkanTest ............   Passed    1.28 sec
+        Start  72: CoinRenderDepthContractOpenGLTest
+ 72/297 Test  #72: CoinRenderDepthContractOpenGLTest ............   Passed    1.39 sec
+        Start  73: CoinRenderProductOpenGLTest
+ 73/297 Test  #73: CoinRenderProductOpenGLTest ..................   Passed    1.23 sec
+        Start  74: CoinBgfxOffscreenTest
+ 74/297 Test  #74: CoinBgfxOffscreenTest ........................   Passed    3.95 sec
+        Start  75: CoinBgfxOpenGLTest
+ 75/297 Test  #75: CoinBgfxOpenGLTest ...........................   Passed    3.40 sec
+        Start  76: CoinBgfxInstancingTest
+ 76/297 Test  #76: CoinBgfxInstancingTest .......................   Passed    1.07 sec
+        Start  77: CoinBgfxInstancingOpenGLTest
+ 77/297 Test  #77: CoinBgfxInstancingOpenGLTest .................   Passed    1.57 sec
+        Start  78: CoinRenderBackendContractOpenGLTest
+ 78/297 Test  #78: CoinRenderBackendContractOpenGLTest ..........   Passed    1.56 sec
+        Start  79: CoinBgfxTransparencyTest
+ 79/297 Test  #79: CoinBgfxTransparencyTest .....................   Passed    3.57 sec
+        Start  80: CoinBgfxTransparencyOpenGLTest
+ 80/297 Test  #80: CoinBgfxTransparencyOpenGLTest ...............   Passed    2.75 sec
+        Start  81: CoinBgfxSortedLayersTest
+ 81/297 Test  #81: CoinBgfxSortedLayersTest .....................   Passed    2.71 sec
+        Start  82: CoinBgfxSortedLayersOpenGLTest
+ 82/297 Test  #82: CoinBgfxSortedLayersOpenGLTest ...............   Passed    2.53 sec
+        Start  83: CoinBgfxWeightedOitTest
+ 83/297 Test  #83: CoinBgfxWeightedOitTest ......................   Passed    6.25 sec
+        Start  84: CoinBgfxWeightedOitOpenGLTest
+ 84/297 Test  #84: CoinBgfxWeightedOitOpenGLTest ................   Passed    4.37 sec
+        Start  85: CoinRenderFrameReuseCoreTest
+ 85/297 Test  #85: CoinRenderFrameReuseCoreTest .................   Passed    1.37 sec
+        Start  86: CoinRenderDiagnosticShellTest
+ 86/297 Test  #86: CoinRenderDiagnosticShellTest ................   Passed    0.21 sec
+        Start  87: CoinRenderIndexedGeometryCoreTest
+ 87/297 Test  #87: CoinRenderIndexedGeometryCoreTest ............   Passed    0.11 sec
+        Start  88: CoinRenderGateG1Test
+ 88/297 Test  #88: CoinRenderGateG1Test .........................   Passed    2.30 sec
+        Start  89: CoinRenderGateG2Test

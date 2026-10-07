@@ -9,6 +9,12 @@ qualificação Windows ao código. A [checklist principal](coin-render-next-fron
 e o [relatório Linux](coin-render-hardware-surfaces-linux.md) continuam sendo
 os registros de fechamento.
 
+A execução posterior deste roteiro está no
+[relatório Windows da revisão corrigida](coin-render-windows-continuation-validation-20261007.md).
+Ele registra builds, matrizes, SDKs, smokes Win32 e os escopos ainda abertos.
+O smoke agora aceita `--opengl`; para o contrato sem captura de janela, aceita
+também `--expect-no-window-readback`, que exige rejeição e recuperação explícitas.
+
 ## Checkout e pré-requisitos
 
 Preservar o checkout principal e seus arquivos locais. Uma opção é buscar a

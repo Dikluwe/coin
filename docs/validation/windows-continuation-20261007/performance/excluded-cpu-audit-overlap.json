@@ -1,0 +1,975 @@
+[
+  {
+    "stem": "geometry-10-bgfx-vulkan-reserve-1",
+    "case": "geometry-10",
+    "variant": "bgfx-vulkan-reserve",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-bgfx-vulkan-reserve-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.583,
+    "environment": {
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "0"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.58385,
+        "p95_ms": 0.8469,
+        "p99_ms": 1.71,
+        "max_ms": 1.71,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 5.7458,
+        "p95_ms": 7.0133,
+        "p99_ms": 7.4519,
+        "max_ms": 7.4519,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.01965,
+        "p95_ms": 0.0649,
+        "p99_ms": 0.0725,
+        "max_ms": 0.0725,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 6.39245,
+        "p95_ms": 7.798,
+        "p99_ms": 8.0381,
+        "max_ms": 8.0381,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 419.637,
+      "publication_copy_ms": 0.1294,
+      "update_ms": 0.3042,
+      "total_with_update_ms": 420.07,
+      "before_frame_since_main_ms": 552.647,
+      "result_since_main_ms": 972.413
+    }
+  },
+  {
+    "stem": "geometry-10-bgfx-opengl-literal-1",
+    "case": "geometry-10",
+    "variant": "bgfx-opengl-literal",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-bgfx-opengl-literal-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.23,
+    "environment": {
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "1"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.5846,
+        "p95_ms": 0.7339,
+        "p99_ms": 1.6181,
+        "max_ms": 1.6181,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 6.1516,
+        "p95_ms": 7.1969,
+        "p99_ms": 7.4422,
+        "max_ms": 7.4422,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.01635,
+        "p95_ms": 0.0253,
+        "p99_ms": 0.0761,
+        "max_ms": 0.0761,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 6.78815,
+        "p95_ms": 7.7907,
+        "p99_ms": 8.1201,
+        "max_ms": 8.1201,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 214.478,
+      "publication_copy_ms": 0.0299,
+      "update_ms": 0.3144,
+      "total_with_update_ms": 214.822,
+      "before_frame_since_main_ms": 433.754,
+      "result_since_main_ms": 648.262
+    }
+  },
+  {
+    "stem": "geometry-10-bgfx-opengl-reserve-1",
+    "case": "geometry-10",
+    "variant": "bgfx-opengl-reserve",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-bgfx-opengl-reserve-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.275,
+    "environment": {
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "0"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.5807,
+        "p95_ms": 0.7073,
+        "p99_ms": 1.6996,
+        "max_ms": 1.6996,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 6.46105,
+        "p95_ms": 7.5294,
+        "p99_ms": 7.8801,
+        "max_ms": 7.8801,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0186,
+        "p95_ms": 0.0262,
+        "p99_ms": 0.0894,
+        "max_ms": 0.0894,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 7.0573999999999995,
+        "p95_ms": 8.3216,
+        "p99_ms": 8.9271,
+        "max_ms": 8.9271,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 215.918,
+      "publication_copy_ms": 0.0426,
+      "update_ms": 0.3053,
+      "total_with_update_ms": 216.266,
+      "before_frame_since_main_ms": 439.414,
+      "result_since_main_ms": 655.374
+    }
+  },
+  {
+    "stem": "geometry-10-wgpu-dx12-literal-1",
+    "case": "geometry-10",
+    "variant": "wgpu-dx12-literal",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-wgpu-dx12-literal-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.572,
+    "environment": {
+      "WGPU_BACKEND": "dx12",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "1"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.6113,
+        "p95_ms": 0.8526,
+        "p99_ms": 1.813,
+        "max_ms": 1.813,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 8.1365,
+        "p95_ms": 10.051,
+        "p99_ms": 10.3568,
+        "max_ms": 10.3568,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0172,
+        "p95_ms": 0.0301,
+        "p99_ms": 0.0394,
+        "max_ms": 0.0394,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 8.83935,
+        "p95_ms": 10.6862,
+        "p99_ms": 11.3667,
+        "max_ms": 11.3667,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 310.965,
+      "publication_copy_ms": 0.1253,
+      "update_ms": 0.2843,
+      "total_with_update_ms": 311.374,
+      "before_frame_since_main_ms": 488.606,
+      "result_since_main_ms": 799.696
+    }
+  },
+  {
+    "stem": "geometry-10-wgpu-dx12-reserve-1",
+    "case": "geometry-10",
+    "variant": "wgpu-dx12-reserve",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-wgpu-dx12-reserve-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.546,
+    "environment": {
+      "WGPU_BACKEND": "dx12",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "0"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.61495,
+        "p95_ms": 0.9482,
+        "p99_ms": 1.6122,
+        "max_ms": 1.6122,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 7.751,
+        "p95_ms": 9.1229,
+        "p99_ms": 9.8662,
+        "max_ms": 9.8662,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.01865,
+        "p95_ms": 0.0453,
+        "p99_ms": 0.0827,
+        "max_ms": 0.0827,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 8.588149999999999,
+        "p95_ms": 10.0189,
+        "p99_ms": 10.7017,
+        "max_ms": 10.7017,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 298.101,
+      "publication_copy_ms": 0.1509,
+      "update_ms": 0.315,
+      "total_with_update_ms": 298.567,
+      "before_frame_since_main_ms": 497.335,
+      "result_since_main_ms": 795.587
+    }
+  },
+  {
+    "stem": "geometry-10-wgpu-vulkan-literal-1",
+    "case": "geometry-10",
+    "variant": "wgpu-vulkan-literal",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-wgpu-vulkan-literal-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.077,
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "1"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.61355,
+        "p95_ms": 0.9808,
+        "p99_ms": 1.1548,
+        "max_ms": 1.1548,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 7.79365,
+        "p95_ms": 9.1965,
+        "p99_ms": 9.8807,
+        "max_ms": 9.8807,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0183,
+        "p95_ms": 0.0384,
+        "p99_ms": 0.1712,
+        "max_ms": 0.1712,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 8.550049999999999,
+        "p95_ms": 10.0546,
+        "p99_ms": 10.5335,
+        "max_ms": 10.5335,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 32.1523,
+      "publication_copy_ms": 0.1097,
+      "update_ms": 0.3166,
+      "total_with_update_ms": 32.5786,
+      "before_frame_since_main_ms": 331.577,
+      "result_since_main_ms": 363.839
+    }
+  },
+  {
+    "stem": "geometry-10-wgpu-vulkan-reserve-1",
+    "case": "geometry-10",
+    "variant": "wgpu-vulkan-reserve",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-wgpu-vulkan-reserve-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.061,
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "0"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.6104,
+        "p95_ms": 2.2047,
+        "p99_ms": 2.9301,
+        "max_ms": 2.9301,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 7.204549999999999,
+        "p95_ms": 9.0916,
+        "p99_ms": 10.105,
+        "max_ms": 10.105,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0168,
+        "p95_ms": 0.0342,
+        "p99_ms": 0.0384,
+        "max_ms": 0.0384,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 8.31195,
+        "p95_ms": 9.7246,
+        "p99_ms": 10.7415,
+        "max_ms": 10.7415,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 31.3396,
+      "publication_copy_ms": 0.1054,
+      "update_ms": 0.3828,
+      "total_with_update_ms": 31.8278,
+      "before_frame_since_main_ms": 314.736,
+      "result_since_main_ms": 346.181
+    }
+  },
+  {
+    "stem": "geometry-10-wgpu-gl-literal-1",
+    "case": "geometry-10",
+    "variant": "wgpu-gl-literal",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-wgpu-gl-literal-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.255,
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "1"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.5803,
+        "p95_ms": 0.8278,
+        "p99_ms": 1.8246,
+        "max_ms": 1.8246,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 10.909849999999999,
+        "p95_ms": 13.4207,
+        "p99_ms": 14.5411,
+        "max_ms": 14.5411,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.019299999999999998,
+        "p95_ms": 0.0476,
+        "p99_ms": 0.1048,
+        "max_ms": 0.1048,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 11.578949999999999,
+        "p95_ms": 14.0083,
+        "p99_ms": 15.3575,
+        "max_ms": 15.3575,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 39.7343,
+      "publication_copy_ms": 0.1111,
+      "update_ms": 0.3354,
+      "total_with_update_ms": 40.1808,
+      "before_frame_since_main_ms": 294.194,
+      "result_since_main_ms": 334.039
+    }
+  },
+  {
+    "stem": "geometry-10-wgpu-gl-reserve-1",
+    "case": "geometry-10",
+    "variant": "wgpu-gl-reserve",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "wgpu",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-wgpu-gl-reserve-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 2.893,
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "0"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.6073999999999999,
+        "p95_ms": 0.7968,
+        "p99_ms": 2.4397,
+        "max_ms": 2.4397,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 18.2227,
+        "p95_ms": 158.7772,
+        "p99_ms": 245.1673,
+        "max_ms": 245.1673,
+        "over_16_67": 44,
+        "over_33_33": 15
+      },
+      "publication_ms": {
+        "median_ms": 0.022,
+        "p95_ms": 0.0374,
+        "p99_ms": 0.0751,
+        "max_ms": 0.0751,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 18.850450000000002,
+        "p95_ms": 159.4205,
+        "p99_ms": 245.8333,
+        "max_ms": 245.8333,
+        "over_16_67": 47,
+        "over_33_33": 15
+      }
+    },
+    "first_frame": {
+      "render_ms": 39.2903,
+      "publication_copy_ms": 0.1039,
+      "update_ms": 0.3466,
+      "total_with_update_ms": 39.7408,
+      "before_frame_since_main_ms": 291.193,
+      "result_since_main_ms": 330.587
+    }
+  },
+  {
+    "stem": "geometry-10-coingl-1",
+    "case": "geometry-10",
+    "variant": "coingl",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "gl",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-coingl-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.358,
+    "environment": {},
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.7192000000000001,
+        "p95_ms": 0.9077,
+        "p99_ms": 2.0274,
+        "max_ms": 2.0274,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 9.229700000000001,
+        "p95_ms": 11.4912,
+        "p99_ms": 13.9046,
+        "max_ms": 13.9046,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.036000000000000004,
+        "p95_ms": 0.0739,
+        "p99_ms": 0.1321,
+        "max_ms": 0.1321,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 10.02665,
+        "p95_ms": 12.2184,
+        "p99_ms": 14.7067,
+        "max_ms": 14.7067,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 415.945,
+      "lazy_readback_ms": 2.4049,
+      "publication_copy_ms": 0.0729,
+      "update_ms": 0.4994,
+      "total_with_update_ms": 418.922,
+      "before_frame_since_main_ms": 38.8154,
+      "result_since_main_ms": 457.238
+    }
+  },
+  {
+    "stem": "geometry-10-bgfx-d3d12-literal-1",
+    "case": "geometry-10",
+    "variant": "bgfx-d3d12-literal",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-bgfx-d3d12-literal-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.568,
+    "environment": {
+      "COIN_BGFX_RENDERER": "d3d12",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "1"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.5943499999999999,
+        "p95_ms": 0.7471,
+        "p99_ms": 1.2666,
+        "max_ms": 1.2666,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 8.069749999999999,
+        "p95_ms": 9.541,
+        "p99_ms": 11.5154,
+        "max_ms": 11.5154,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0198,
+        "p95_ms": 0.0352,
+        "p99_ms": 0.0722,
+        "max_ms": 0.0722,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 8.70275,
+        "p95_ms": 10.24,
+        "p99_ms": 12.1461,
+        "max_ms": 12.1461,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 334.815,
+      "publication_copy_ms": 0.1182,
+      "update_ms": 0.3991,
+      "total_with_update_ms": 335.333,
+      "before_frame_since_main_ms": 462.291,
+      "result_since_main_ms": 797.225
+    }
+  },
+  {
+    "stem": "geometry-10-bgfx-d3d12-reserve-1",
+    "case": "geometry-10",
+    "variant": "bgfx-d3d12-reserve",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-bgfx-d3d12-reserve-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.564,
+    "environment": {
+      "COIN_BGFX_RENDERER": "d3d12",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "0"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.6063000000000001,
+        "p95_ms": 0.8161,
+        "p99_ms": 1.0098,
+        "max_ms": 1.0098,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 8.1035,
+        "p95_ms": 9.5812,
+        "p99_ms": 10.2054,
+        "max_ms": 10.2054,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0283,
+        "p95_ms": 0.0567,
+        "p99_ms": 0.0747,
+        "max_ms": 0.0747,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 8.7729,
+        "p95_ms": 10.2551,
+        "p99_ms": 10.9061,
+        "max_ms": 10.9061,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 343.522,
+      "publication_copy_ms": 0.1404,
+      "update_ms": 0.3212,
+      "total_with_update_ms": 343.984,
+      "before_frame_since_main_ms": 449.767,
+      "result_since_main_ms": 793.429
+    }
+  },
+  {
+    "stem": "geometry-10-bgfx-vulkan-literal-1",
+    "case": "geometry-10",
+    "variant": "bgfx-vulkan-literal",
+    "round": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_gl_benchmark.exe",
+      "--backend",
+      "bgfx",
+      "--scene",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\city-2500.iv",
+      "--animation",
+      "geometry",
+      "--animated-percent",
+      "10",
+      "--transparency",
+      "object",
+      "--size",
+      "256",
+      "--warmup",
+      "10",
+      "--frames",
+      "60",
+      "--samples-output",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\performance\\measure\\geometry-10-bgfx-vulkan-literal-1.csv"
+    ],
+    "exit": 0,
+    "seconds": 1.495,
+    "environment": {
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE": "1"
+    },
+    "stats": {
+      "update_ms": {
+        "median_ms": 0.5895,
+        "p95_ms": 0.9241,
+        "p99_ms": 2.4127,
+        "max_ms": 2.4127,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "render_ms": {
+        "median_ms": 5.742850000000001,
+        "p95_ms": 6.8222,
+        "p99_ms": 7.6393,
+        "max_ms": 7.6393,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "publication_ms": {
+        "median_ms": 0.0203,
+        "p95_ms": 0.071,
+        "p99_ms": 0.1719,
+        "max_ms": 0.1719,
+        "over_16_67": 0,
+        "over_33_33": 0
+      },
+      "total_ms": {
+        "median_ms": 6.5108,
+        "p95_ms": 7.7336,
+        "p99_ms": 8.2661,
+        "max_ms": 8.2661,
+        "over_16_67": 0,
+        "over_33_33": 0
+      }
+    },
+    "first_frame": {
+      "render_ms": 353.003,
+      "publication_copy_ms": 0.1614,
+      "update_ms": 1.4352,
+      "total_with_update_ms": 354.6,
+      "before_frame_since_main_ms": 544.863,
+      "result_since_main_ms": 898.028
+    }
+  }
+]

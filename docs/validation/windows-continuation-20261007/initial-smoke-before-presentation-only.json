@@ -1,0 +1,112 @@
+[
+  {
+    "label": "bgfx-win32-d3d12",
+    "exit": 0,
+    "seconds": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_win32_smoke.exe"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "bgfx-win32-vulkan",
+    "exit": 0,
+    "seconds": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_win32_smoke.exe",
+      "--vulkan"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "bgfx-win32-opengl",
+    "exit": 0,
+    "seconds": 2,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\coin_render_win32_smoke.exe",
+      "--opengl"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "bgfx-instancing-d3d12",
+    "exit": 0,
+    "seconds": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx\\bin\\CoinBgfxInstancingTest.exe"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_RENDERER": "d3d12"
+    }
+  },
+  {
+    "label": "wgpu-win32-d3d12",
+    "exit": 0,
+    "seconds": 2,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_win32_smoke.exe"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "wgpu-win32-vulkan",
+    "exit": 0,
+    "seconds": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_win32_smoke.exe",
+      "--vulkan"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "wgpu-win32-opengl",
+    "exit": 3,
+    "seconds": 1,
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu\\bin\\coin_render_win32_smoke.exe",
+      "--opengl"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  }
+]

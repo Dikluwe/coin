@@ -1,0 +1,21 @@
+startup_detail arguments_ms=0.0482 coin_init_ms=2.0906 capability_probe_ms=424.279
+scene_detail parse_ms=24.7407 wrapper_ms=0.0598 camera_fit_ms=5.6342
+scene_load_ms=30.5284
+animation_detail mode=transforms animated_percent=10 eligible=2500 selected=250 prepared_clones=0 prepare_ms=3.4818 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x216afdb67e204eae
+startup_detail material_search_ms=0.1494 target_setup_ms=0.2741
+BGFX-D3D12_first_detail render_ms=332.888 publication_copy_ms=0.1893 update_ms=0.2504 total_with_update_ms=333.328 before_frame_since_main_ms=461.367 result_since_main_ms=794.445
+BGFX-D3D12_first_frame_ms=333.078
+BGFX-D3D12_animation_final logical_frame=59 state_fnv64=0x50536e915d0ff070
+samples_output=H:\Git\coin\build\windows-render-20261007\performance\measure\transforms-10-bgfx-d3d12-reserve-1.csv rows=70
+rgba_fnv64=0x4e4e5996ca37a00e
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) vendor_id=0x10de device_id=0x1c03 backend=bgfx size=256x256 warmup=10 scene=H:\Git\coin\build\windows-render-20261007\performance\city-2500.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=transforms
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..59 warmup_indices=-10..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+BGFX-D3D12 frames=60 median_ms=6.995 p95_ms=8.5475 min_ms=5.9597 max_ms=9.2086
+BGFX_render_and_readback frames=60 median_ms=6.9697 p95_ms=8.5053 min_ms=5.8713 max_ms=9.1815
+BGFX_publication_copy frames=60 median_ms=0.0271 p95_ms=0.0573 min_ms=0.0187 max_ms=0.0886
+BGFX-D3D12_timing_total frames=60 median_ms=7.38435 p95_ms=8.9323 p99_ms=9.6707 max_ms=9.6707 over_16_67=0 over_33_33=0
+BGFX-D3D12_timing_update frames=60 median_ms=0.4026 p95_ms=0.502 p99_ms=0.5485 max_ms=0.5485 over_16_67=0 over_33_33=0
+BGFX-D3D12_timing_render frames=60 median_ms=6.9671 p95_ms=8.5053 p99_ms=9.1815 max_ms=9.1815 over_16_67=0 over_33_33=0
+BGFX-D3D12_throughput frames=60 total_ms=454.656 fps=131.968
+backend_cleanup_begin
+backend_cleanup_ms=49.5944

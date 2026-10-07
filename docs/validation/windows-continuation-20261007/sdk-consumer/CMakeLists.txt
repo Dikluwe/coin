@@ -1,0 +1,7 @@
+cmake_minimum_required(VERSION 3.16)
+project(WindowsCoinRenderSdkConsumer LANGUAGES CXX)
+find_package(Coin CONFIG REQUIRED)
+find_package(CoinRender CONFIG REQUIRED)
+add_executable(coin-render-sdk-consumer main.cpp)
+target_compile_features(coin-render-sdk-consumer PRIVATE cxx_std_17)
+target_link_libraries(coin-render-sdk-consumer PRIVATE CoinRender::CoinRender Coin::Coin opengl32)

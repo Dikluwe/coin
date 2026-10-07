@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="6"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="28"
+	timestamp="2026-10-07T10:14:27"
+	>
+	<testcase name="CoinRenderPublicationTest" classname="CoinRenderPublicationTest" time="0.0807874" status="run">
+		<properties/>
+		<system-out>CoinRenderPublicationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnershipTest" classname="CoinRenderRttOwnershipTest" time="0.660481" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuFfiFrameTest" classname="CoinWgpuFfiFrameTest" time="1.24136" status="run">
+		<properties/>
+		<system-out>CoinWgpuFfiFrameTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAsyncReadbackTest" classname="CoinRenderAsyncReadbackTest" time="1.18437" status="run">
+		<properties/>
+		<system-out>CoinRenderAsyncReadbackTest passed; adapter=NVIDIA GeForce GTX 1060 6GB (Dx12); two 64x64 RGBA8+Depth32 staging requests=65536 bytes; test roundtrip=602705 us (not an SLA)
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuMultiDeviceTest" classname="CoinWgpuMultiDeviceTest" time="18.3804" status="run">
+		<properties/>
+		<system-out>CoinWgpuMultiDeviceTest passed
+</system-out>
+	</testcase>
+	<testcase name="WgpuMultiDeviceStressTest" classname="WgpuMultiDeviceStressTest" time="6.88293" status="run">
+		<properties/>
+		<system-out>CoinWgpuMultiDeviceTest passed (stress)
+</system-out>
+	</testcase>
+</testsuite>

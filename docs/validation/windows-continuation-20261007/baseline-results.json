@@ -1,0 +1,60 @@
+[
+  {
+    "label": "baseline-bgfx-d3d12",
+    "exit": 0,
+    "seconds": 1381,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx",
+      "-C",
+      "Release",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\baseline-bgfx-d3d12.xml"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_RENDERER": "d3d12"
+    },
+    "total": 297,
+    "failed": [],
+    "skipped": []
+  },
+  {
+    "label": "baseline-wgpu-dx12",
+    "exit": 8,
+    "seconds": 2290,
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu",
+      "-C",
+      "Release",
+      "--parallel",
+      "1",
+      "--output-on-failure",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\baseline-wgpu-dx12.xml"
+    ],
+    "environment": {
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_WGPU_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "WGPU_BACKEND": "dx12"
+    },
+    "total": 205,
+    "failed": [
+      "CoinWgpuMultiDeviceTest"
+    ],
+    "skipped": []
+  }
+]

@@ -1,0 +1,20 @@
+startup_detail arguments_ms=0.0438 coin_init_ms=3 capability_probe_ms=0.0004
+scene_detail parse_ms=25.2495 wrapper_ms=0.0225 camera_fit_ms=6.193
+scene_load_ms=31.6332
+animation_detail mode=geometry animated_percent=100 eligible=2500 selected=2500 prepared_clones=2500 prepare_ms=11.9278 frame_step=1 time_step_seconds=0.0166667 selection_fnv64=0x453c3335d215e341
+startup_detail material_search_ms=0.0957 target_setup_ms=0.0097
+CoinGL_first_detail render_ms=346.786 lazy_readback_ms=2.704 publication_copy_ms=0.0397 update_ms=3.7544 total_with_update_ms=353.284 before_frame_since_main_ms=50.7859 result_since_main_ms=400.316
+CoinGL_first_frame_ms=349.53
+CoinGL_animation_final logical_frame=59 state_fnv64=0x59068d798bb237c8
+samples_output=H:\Git\coin\build\windows-render-20261007\performance\measure\geometry-100-coingl-2.csv rows=70
+gl_rgba_fnv64=0x672b6ada6fadafea
+adapter=not-queried vendor_id=0x0 device_id=0x0 backend=gl size=256x256 warmup=10 scene=H:\Git\coin\build\windows-render-20261007\performance\city-2500.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=geometry
+timing_detail legacy_frame_scope=render+readback+publication total_scope=update+render+readback+publication render_scope=render+readback experimental_publication=copy coingl_publication=copy measured_indices=0..59 warmup_indices=-10..-1 frame_step=1 captures=0 capture_io=outside_frame_timers wall_throughput_includes_capture=0 wall_throughput_scope=update+frame new_stats_percentile=nearest_rank new_stats_median=average_middle legacy_stats_median=upper_middle budget_60hz_ms=16.6667 budget_30hz_ms=33.3333
+CoinGL frames=60 median_ms=16.2013 p95_ms=18.0628 min_ms=14.9923 max_ms=18.913
+CoinGL_timing_total frames=60 median_ms=22.3854 p95_ms=24.7464 p99_ms=26.6441 max_ms=26.6441 over_16_67=60 over_33_33=0
+CoinGL_timing_update frames=60 median_ms=6.1267 p95_ms=7.7311 p99_ms=8.3446 max_ms=8.3446 over_16_67=0 over_33_33=0
+CoinGL_timing_render frames=60 median_ms=16.1473 p95_ms=18.0312 p99_ms=18.8804 max_ms=18.8804 over_16_67=18 over_33_33=0
+CoinGL_publication_copy frames=60 median_ms=0.0338 p95_ms=0.0654 min_ms=0.0286 max_ms=0.0736
+CoinGL_throughput frames=60 total_ms=1357.71 fps=44.1922
+backend_cleanup_begin
+backend_cleanup_ms=1.8897

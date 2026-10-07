@@ -1,0 +1,172 @@
+[
+  {
+    "label": "bgfx-sdk-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\coin-render-windows-20261007\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON"
+    ],
+    "exit": 0,
+    "seconds": 12.015
+  },
+  {
+    "label": "bgfx-sdk-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\bgfx",
+      "--config",
+      "Release",
+      "--prefix",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\install-bgfx"
+    ],
+    "exit": 0,
+    "seconds": 9.58
+  },
+  {
+    "label": "bgfx-consumer-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer",
+      "-B",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-bgfx",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\windows-render-20261007\\install-bgfx;H:/Git/coin/build/bgfx-windows-install"
+    ],
+    "exit": 0,
+    "seconds": 3.901
+  },
+  {
+    "label": "bgfx-consumer-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-bgfx",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 3.045
+  },
+  {
+    "label": "wgpu-sdk-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\coin-render-windows-20261007\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON"
+    ],
+    "exit": 0,
+    "seconds": 12.47
+  },
+  {
+    "label": "wgpu-sdk-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\wgpu",
+      "--config",
+      "Release",
+      "--prefix",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\install-wgpu"
+    ],
+    "exit": 0,
+    "seconds": 1.404
+  },
+  {
+    "label": "wgpu-consumer-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer",
+      "-B",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-wgpu",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\windows-render-20261007\\install-wgpu;H:/Git/coin/build/bgfx-windows-install"
+    ],
+    "exit": 0,
+    "seconds": 4.053
+  },
+  {
+    "label": "wgpu-consumer-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-wgpu",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 3.101
+  },
+  {
+    "label": "bgfx-sdk-d3d12",
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-bgfx\\Release\\coin-render-sdk-consumer.exe",
+      "d3d12"
+    ],
+    "exit": 0,
+    "seconds": 2.437
+  },
+  {
+    "label": "bgfx-sdk-vulkan",
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-bgfx\\Release\\coin-render-sdk-consumer.exe",
+      "vulkan"
+    ],
+    "exit": 0,
+    "seconds": 1.41
+  },
+  {
+    "label": "bgfx-sdk-opengl",
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-bgfx\\Release\\coin-render-sdk-consumer.exe",
+      "opengl"
+    ],
+    "exit": 0,
+    "seconds": 1.748
+  },
+  {
+    "label": "wgpu-sdk-d3d12",
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-wgpu\\Release\\coin-render-sdk-consumer.exe",
+      "d3d12"
+    ],
+    "exit": 0,
+    "seconds": 1.319
+  },
+  {
+    "label": "wgpu-sdk-vulkan",
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-wgpu\\Release\\coin-render-sdk-consumer.exe",
+      "vulkan"
+    ],
+    "exit": 0,
+    "seconds": 0.689
+  },
+  {
+    "label": "wgpu-sdk-opengl",
+    "command": [
+      "H:\\Git\\coin\\build\\windows-render-20261007\\sdk-consumer-wgpu\\Release\\coin-render-sdk-consumer.exe",
+      "opengl"
+    ],
+    "exit": 0,
+    "seconds": 0.663
+  }
+]

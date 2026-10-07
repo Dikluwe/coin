@@ -1,6 +1,7 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-06, com a entrega P03/P15/P16/P24/P28 após o fechamento
+Atualizada em 2026-10-07, incluindo a continuação Windows, com a entrega
+P03/P15/P16/P24/P28 após o fechamento
 P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
 precisam de ampliação ou qualificação apenas nos escopos indicados.
@@ -163,6 +164,16 @@ Validação incremental, reuso de lowering, timestamps de janela wgpu e ampliaç
 de hardware seguem como estudos futuros; Windows e outras GPUs não são
 qualificados por este fechamento.
 
+- [x] Executar um piloto A/B Windows offscreen na revisão corrigida: seis
+  casos e seis combinações backend/API, 252 pares de imagens idênticos,
+  234 processos de medição qualificados e regressões de p95 registradas.
+- [ ] Ampliar Windows para janela sem readback e campanha de latência maior,
+  controlando variação do host/clocks e investigando as regressões observadas.
+
+O [relatório Windows](coin-render-windows-continuation-validation-20261007.md)
+preserva dados, exclusões e limites do piloto; não demonstra ganho uniforme
+nem encerra uma campanha completa de desempenho Windows.
+
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
 - [x] Requalificar sombras Linux nas duas GPUs físicas: BGFX Vulkan/OpenGL e
@@ -189,8 +200,16 @@ qualificados por este fechamento.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
 - [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
   utilizáveis; a expectativa portátil local não encerra essa célula.
-- [ ] Ampliar Windows: APIs BGFX pendentes, DPI entre monitores, multiwindow
-  e perda/recriação real de superfície/dispositivo na revisão atual.
+- [x] Recompilar MSVC BGFX/wgpu na revisão atual, instalar SDKs experimentais
+  isolados e executar consumidores públicos nas três APIs de cada backend.
+- [x] Repetir os gates Windows BGFX D3D12/Vulkan/OpenGL e wgpu dx12/Vulkan/gl,
+  com GPU/oráculo obrigatórios, correções e resultados por rodada registrados.
+- [x] Ampliar Win32 nesta revisão: duas janelas, resize/minimização, três
+  recriações reais de HWND, seriais isolados e ticket offscreen sobrevivente.
+  Pixels janela/offscreen iguais nas três APIs BGFX e em wgpu D3D12/Vulkan;
+  wgpu/OpenGL qualifica apresentação/rejeição de captura, sem comparar a janela.
+- [ ] Fechar Windows com DPI físico distinto entre monitores, captura visual
+  wgpu/OpenGL sem COPY_SRC e perda real de dispositivo em campanha controlada.
 - [ ] Qualificar AppKit/Metal e Wayland em compositor físico, escala fracionária,
   mudança de monitor, formato de swapchain e demais perfis visuais; BGFX/Wayland
   continua sem mecanismo neste conector.
@@ -199,8 +218,10 @@ qualificados por este fechamento.
 [Evidência e limites desta rodada](coin-render-hardware-surfaces-linux.md).
 Fechamento por backend/API/driver/plataforma/alvo; manter skips, diferenças
 visuais e dispositivos indisponíveis separados dos passes. A documentação
-Windows foi reconciliada com BGFX/D3D12 já implementado, sem requalificação
-Windows de código novo neste PC.
+Windows foi reconciliada com BGFX/D3D12 já implementado. A
+[campanha Windows de 2026-10-07](coin-render-windows-continuation-validation-20261007.md)
+requalifica o código novo em GTX 1060/581.08, com os limites indicados acima;
+os dois monitores físicos disponíveis têm DPI observado 96.
 O [roteiro Windows de 2026-10-07](coin-render-windows-continuation-20261007.md)
 detalha pré-requisitos, APIs, gates e prioridades para a continuação no outro PC.
 

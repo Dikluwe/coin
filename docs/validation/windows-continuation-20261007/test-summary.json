@@ -1,0 +1,81 @@
+[
+  {
+    "file": "baseline-bgfx-d3d12.xml",
+    "tests": 297,
+    "failures": [],
+    "skipped": [],
+    "seconds": 1380.121
+  },
+  {
+    "file": "baseline-wgpu-dx12.xml",
+    "tests": 205,
+    "failures": [
+      "CoinWgpuMultiDeviceTest"
+    ],
+    "skipped": [],
+    "seconds": 2289.933
+  },
+  {
+    "file": "bgfx-padding-fixed.xml",
+    "tests": 3,
+    "failures": [],
+    "skipped": [],
+    "seconds": 3.052
+  },
+  {
+    "file": "bgfx-pbuffer-fixed.xml",
+    "tests": 6,
+    "failures": [],
+    "skipped": [],
+    "seconds": 6.034
+  },
+  {
+    "file": "cross-bgfx-opengl.xml",
+    "tests": 105,
+    "failures": [],
+    "skipped": [],
+    "seconds": 477.865
+  },
+  {
+    "file": "cross-bgfx-vulkan.xml",
+    "tests": 105,
+    "failures": [],
+    "skipped": [],
+    "seconds": 514.994
+  },
+  {
+    "file": "cross-wgpu-gl.xml",
+    "tests": 131,
+    "failures": [],
+    "skipped": [],
+    "seconds": 835.025
+  },
+  {
+    "file": "cross-wgpu-vulkan.xml",
+    "tests": 131,
+    "failures": [],
+    "skipped": [],
+    "seconds": 578.821
+  },
+  {
+    "file": "wgpu-multidevice-fixed.xml",
+    "tests": 6,
+    "failures": [],
+    "skipped": [],
+    "seconds": 28.43
+  },
+  {
+    "file": "wgpu-padding-fixed.xml",
+    "tests": 3,
+    "failures": [],
+    "skipped": [],
+    "seconds": 3.832
+  },
+  {
+    "file": "wgpu-pbuffer-fixed.xml",
+    "tests": 2,
+    "failures": [],
+    "skipped": [],
+    "seconds": 2.513
+  }
+]
