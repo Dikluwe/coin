@@ -23,6 +23,7 @@
 
 namespace {
 unsigned int dpiChanges = 0;
+bool windowReadback = true;
 std::vector<RECT> monitorBounds;
 BOOL CALLBACK collectMonitor(HMONITOR, HDC, LPRECT bounds, LPARAM) {
   monitorBounds.push_back(*bounds);
@@ -92,6 +93,7 @@ bool createTarget(WindowRun & run, HINSTANCE instance, CoinRenderRenderer render
 }
 
 bool render(WindowRun & run, SoSeparator * scene, bool capture) {
+  capture = capture && windowReadback;
   pumpMessages();
   const SbVec2i32 size = framebufferSize(run.hwnd);
   if (size[0] <= 0 || size[1] <= 0) return false;
@@ -122,6 +124,13 @@ bool render(WindowRun & run, SoSeparator * scene, bool capture) {
 
 bool compareOffscreen(WindowRun& run, SoSeparator* scene, const char* fixture) {
   run.action->setTransparencyType(CoinRenderAction::SORTED_OBJECT_BLEND);
+  if (!windowReadback) {
+    const bool ok = render(run, scene, false);
+    std::cout << "window_present fixture=" << fixture
+              << " pixel_comparison_enabled=0 serial="
+              << run.target->getLastSubmissionSerial() << '\n';
+    return ok;
+  }
   if (!render(run, scene, true)) return false;
   const SbVec2i32 size = run.target->getSize();
   std::unique_ptr<CoinRenderTarget> offscreen(
@@ -187,13 +196,16 @@ bool consumeDetachedTicket(const CoinRenderReadbackTicket & ticket,
 
 int main(int argc, char** argv) {
   CoinRenderRenderer renderer = COIN_RENDER_RENDERER_D3D12;
-  if (argc == 2 && std::strcmp(argv[1], "--vulkan") == 0)
-    renderer = COIN_RENDER_RENDERER_VULKAN;
-  else if (argc == 2 && std::strcmp(argv[1], "--opengl") == 0)
-    renderer = COIN_RENDER_RENDERER_OPENGL;
-  else if (argc != 1) {
-    std::cerr << "Usage: coin_render_win32_smoke [--vulkan|--opengl]\n";
-    return 2;
+  bool expectNoWindowReadback = false;
+  for (int arg = 1; arg < argc; ++arg) {
+    if (std::strcmp(argv[arg], "--vulkan") == 0) renderer = COIN_RENDER_RENDERER_VULKAN;
+    else if (std::strcmp(argv[arg], "--opengl") == 0) renderer = COIN_RENDER_RENDERER_OPENGL;
+    else if (std::strcmp(argv[arg], "--expect-no-window-readback") == 0)
+      expectNoWindowReadback = true;
+    else {
+      std::cerr << "Usage: coin_render_win32_smoke [--vulkan|--opengl] [--expect-no-window-readback]\n";
+      return 2;
+    }
   }
   SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
   HINSTANCE instance = GetModuleHandleW(NULL);
@@ -227,6 +239,23 @@ int main(int argc, char** argv) {
   scene->addChild(new SoCube);
 
   bool ok = createTarget(windows[0], instance, renderer) && createTarget(windows[1], instance, renderer);
+  if (ok && expectNoWindowReadback) {
+    windowReadback = false;
+    ok = render(windows[0], scene, false);
+    const uint64_t serial = windows[0].target->getLastSubmissionSerial();
+    ok = ok && windows[0].target->requestWindowReadbackRGBA();
+    if (ok) {
+      windows[0].action->apply(scene);
+      std::vector<uint8_t> pixels;
+      windows[0].target->readbackRGBA(pixels);
+      ok = windows[0].action->getLastStatus() != CoinRenderAction::SUCCESS &&
+        std::strstr(windows[0].action->getLastError().getString(), "COPY_SRC") &&
+        windows[0].target->getLastSubmissionSerial() == serial && pixels.empty() &&
+        render(windows[0], scene, false);
+    }
+    std::cout << "window_capture_unsupported expected=1 serial_preserved=" << ok
+              << " recovered=" << ok << " pixel_comparison_enabled=0\n";
+  }
   if (ok) {
     ok = render(windows[0], scene, true) && render(windows[1], scene, true) &&
          render(windows[0], scene, false) && render(windows[1], scene, false);
@@ -286,7 +315,8 @@ int main(int argc, char** argv) {
     windows[1].target->readbackRGBA(after);
     ok = ok && framebufferSize(windows[1].hwnd) == survivorSize && after == survivorPixels;
     std::cout << "hwnd_recreation cycle=" << cycle + 1 << " survivor_unchanged=" << ok
-              << " detached_ticket_exact=" << ok << " survivor_serial_isolated=" << ok << '\n';
+              << " detached_ticket_exact=" << ok << " survivor_serial_isolated=" << ok
+              << " pixel_comparison_enabled=" << windowReadback << '\n';
   }
   if (ok) {
     EnumDisplayMonitors(NULL, NULL, collectMonitor, 0);
