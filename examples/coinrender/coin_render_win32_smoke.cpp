@@ -22,8 +22,16 @@
 #include <vector>
 
 namespace {
+unsigned int dpiChanges = 0;
+std::vector<RECT> monitorBounds;
+BOOL CALLBACK collectMonitor(HMONITOR, HDC, LPRECT bounds, LPARAM) {
+  monitorBounds.push_back(*bounds);
+  return TRUE;
+}
+
 LRESULT CALLBACK windowProc(HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
   if (message == WM_DPICHANGED) {
+    ++dpiChanges;
     const RECT * suggested = reinterpret_cast<const RECT *>(lparam);
     SetWindowPos(hwnd, NULL, suggested->left, suggested->top,
                  suggested->right - suggested->left,
@@ -141,8 +149,10 @@ int main(int argc, char** argv) {
   CoinRenderRenderer renderer = COIN_RENDER_RENDERER_D3D12;
   if (argc == 2 && std::strcmp(argv[1], "--vulkan") == 0)
     renderer = COIN_RENDER_RENDERER_VULKAN;
+  else if (argc == 2 && std::strcmp(argv[1], "--opengl") == 0)
+    renderer = COIN_RENDER_RENDERER_OPENGL;
   else if (argc != 1) {
-    std::cerr << "Usage: coin_render_win32_smoke [--vulkan]\n";
+    std::cerr << "Usage: coin_render_win32_smoke [--vulkan|--opengl]\n";
     return 2;
   }
   SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
@@ -197,6 +207,60 @@ int main(int argc, char** argv) {
     ok = compareOffscreen(windows[0], scene, "opaque");
     material->transparency = 0.5f;
     ok = ok && compareOffscreen(windows[0], scene, "transparent");
+  }
+  // A target owns its surface, while the host owns its HWND. Exercise real
+  // handle replacement without changing the surviving window's resources.
+  material->transparency = 0.0f;
+  std::vector<uint8_t> survivorPixels;
+  const SbVec2i32 survivorSize = framebufferSize(windows[1].hwnd);
+  if (ok) {
+    ok = render(windows[1], scene, true);
+    windows[1].target->readbackRGBA(survivorPixels);
+  }
+  for (int cycle = 0; ok && cycle < 3; ++cycle) {
+    const HWND old = windows[0].hwnd;
+    windows[0].action.reset();
+    windows[0].target.reset();
+    // Allocate before destroying old so handle reuse cannot disguise this test.
+    windows[0].hwnd = CreateWindowExW(0, type.lpszClassName, L"CoinRender recreated P21",
+      WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 100, 360, 280,
+      NULL, NULL, instance, NULL);
+    ok = windows[0].hwnd && windows[0].hwnd != old;
+    ok = DestroyWindow(old) && ok;
+    pumpMessages();
+    ok = ok && !IsWindow(old) && createTarget(windows[0], instance, renderer) &&
+      render(windows[0], scene, false) && compareOffscreen(windows[0], scene, "recreated") &&
+      render(windows[1], scene, true);
+    std::vector<uint8_t> after;
+    windows[1].target->readbackRGBA(after);
+    ok = ok && framebufferSize(windows[1].hwnd) == survivorSize && after == survivorPixels;
+    std::cout << "hwnd_recreation cycle=" << cycle + 1 << " survivor_unchanged=" << ok << '\n';
+  }
+  if (ok) {
+    EnumDisplayMonitors(NULL, NULL, collectMonitor, 0);
+    const UINT initialDpi = GetDpiForWindow(windows[0].hwnd);
+    bool distinctDpi = false;
+    for (const RECT & bounds : monitorBounds) {
+      const unsigned int before = dpiChanges;
+      SetWindowPos(windows[0].hwnd, NULL, bounds.left + 40, bounds.top + 40,
+                   360, 280, SWP_NOZORDER);
+      pumpMessages();
+      const UINT dpi = GetDpiForWindow(windows[0].hwnd);
+      if (dpi != initialDpi) {
+        distinctDpi = true;
+        ok = dpiChanges > before;
+      }
+      ok = ok && compareOffscreen(windows[0], scene, "monitor") &&
+        render(windows[1], scene, true);
+      std::vector<uint8_t> after;
+      windows[1].target->readbackRGBA(after);
+      ok = ok && framebufferSize(windows[1].hwnd) == survivorSize && after == survivorPixels;
+      std::cout << "monitor_dpi=" << dpi << " dpi_changed_events=" << dpiChanges
+                << " survivor_unchanged=" << ok << '\n';
+      if (!ok) break;
+    }
+    std::cout << "physical_distinct_dpi=" << distinctDpi
+              << " monitors=" << monitorBounds.size() << '\n';
   }
   CoinRenderCapabilities caps{};
   if (ok) {
