@@ -18,6 +18,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstring>
+#include <cstddef>
 #include <limits>
 
 namespace {
@@ -53,6 +54,24 @@ makePlan(uint64_t revision)
   draw.sourceRevision = 11;
   plan.draws.push_back(draw);
   return plan;
+}
+
+bool testDrawPadding() {
+  auto first = makePlan(1), second = first;
+  second.revision = 2;
+  for (size_t i = offsetof(CoinRenderDrawPacket, hasSortingCenter) + sizeof(bool);
+       i < offsetof(CoinRenderDrawPacket, sortingCenterWorld); ++i) {
+    reinterpret_cast<unsigned char *>(&first.draws[0])[i] = 0x55;
+    reinterpret_cast<unsigned char *>(&second.draws[0])[i] = 0xaa;
+  }
+  bool ok = check(CoinRenderFrameReuseCore::classify(first, second).kind ==
+                  CoinRenderFrameReuseKind::REUSE,
+                  "draw padding must not trigger a rebuild for identical captured fields");
+  second.draws[0].clearDepthBefore = true;
+  ok &= check(CoinRenderFrameReuseCore::classify(first, second).kind ==
+                CoinRenderFrameReuseKind::FULL_REBUILD,
+                "a changed depth-clear draw must still invalidate reuse");
+  return ok;
 }
 
 bool nearValue(float a, float b) {
@@ -696,6 +715,7 @@ int
 main()
 {
   SoDB::init();
+  const bool paddingOk = testDrawPadding();
   bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
     testTranslationOverlay() && testObjectPayloadTransaction() && testGeometryIntervalValidation();
   CoinRenderTextureImageSnapshot alphaImage;
@@ -866,7 +886,7 @@ main()
                   CoinRenderFrameReuseCore::classify(targetFrame, optionsChanged).kind ==
                       CoinRenderFrameReuseKind::FULL_REBUILD,
               "budget changes must not reuse the old plan");
-  if (!ok) return 1;
+  if (!ok || !paddingOk) return 1;
   std::cout << "CoinRenderFrameReuseCoreTest passed\n";
   return 0;
 }

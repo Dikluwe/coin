@@ -441,6 +441,19 @@ main()
   ok &= check(first.hasSamePayload(second),
               "revision must not be part of immutable payload equality");
 
+  CoinRenderFramePlan paddingA, paddingB;
+  paddingA.draws.emplace_back(); paddingB.draws.emplace_back();
+  for (size_t i = offsetof(CoinRenderDrawPacket, hasSortingCenter) + sizeof(bool);
+       i < offsetof(CoinRenderDrawPacket, sortingCenterWorld); ++i) {
+    reinterpret_cast<unsigned char *>(&paddingA.draws[0])[i] = 0x55;
+    reinterpret_cast<unsigned char *>(&paddingB.draws[0])[i] = 0xaa;
+  }
+  ok &= check(paddingA.hasSamePayload(paddingB),
+              "draw padding must not split equal immutable payloads");
+  paddingB.draws[0].sortingCenterWorld[0] = 1.0f;
+  ok &= check(!paddingA.hasSamePayload(paddingB),
+              "draw field changes must still invalidate immutable payload equality");
+
   first.vertices.push_back(CoinRenderVertexSnapshot());
   second.vertices.push_back(CoinRenderVertexSnapshot());
   ok &= check(first.hasSamePayload(second), "equal vertices must compare equal");

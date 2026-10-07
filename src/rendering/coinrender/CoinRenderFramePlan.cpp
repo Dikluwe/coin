@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderDrawEqualityCore.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
@@ -106,7 +107,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
       !samePlainSnapshots(this->viewports, other.viewports) ||
       this->renderStates.size() != other.renderStates.size() ||
       !samePlainSnapshots(this->samplers, other.samplers) ||
-      !samePlainSnapshots(this->draws, other.draws) ||
+      !coin_render_same_draws(this->draws, other.draws) ||
       this->lightingStates.size() != other.lightingStates.size() ||
       this->textures.size() != other.textures.size()) return false;
   for (size_t i = 0; i < this->renderStates.size(); ++i) {

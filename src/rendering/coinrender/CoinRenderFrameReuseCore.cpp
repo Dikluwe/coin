@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderDrawEqualityCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
@@ -145,7 +146,7 @@ sameCameraIndependentPayload(const CoinRenderFramePlan & previous,
       !samePlainSnapshots(previous.viewports, current.viewports) ||
       !sameTextures(previous.textures, current.textures) ||
       !samePlainSnapshots(previous.samplers, current.samplers) ||
-      !samePlainSnapshots(previous.draws, current.draws) ||
+      !coin_render_same_draws(previous.draws, current.draws) ||
       previous.cameras.size() != current.cameras.size() ||
       previous.cameras.empty() ||
       previous.renderStates.size() != current.renderStates.size()) return false;
