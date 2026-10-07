@@ -1020,6 +1020,11 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
     this->glimagevalid = FALSE;
   }
 
+  // SoGLImage's direct pbuffer binding exposes only the base level. Use its
+  // stored-image path when RTT requests mipmaps, even if WGL can bind the
+  // pbuffer directly, so the requested trilinear sampler has a complete chain.
+  const SbBool usePbufferTexture = this->canrendertotexture && quality <= 0.5f;
+
   if (!this->buffervalid) {
     assert(this->glaction != NULL);
     assert(this->glcontext != NULL);
@@ -1033,7 +1038,7 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
     // flickering. DON'T REMOVE THIS. You have been warned.
     glFlush();
 
-    if (!this->canrendertotexture) {
+    if (!usePbufferTexture) {
       SbVec2s size = this->glcontextsize;
       int reqbytes = size[0]*size[1]*4;
       if (reqbytes > this->offscreenbuffersize) {
@@ -1075,7 +1080,7 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
       assert(0 && "should not get here");
       break;
     }
-    if (this->canrendertotexture) {
+    if (usePbufferTexture) {
       // bind texture to pbuffer
       this->glimage->setPBuffer(state, this->glcontext,
                                 translateWrap((SoSceneTexture2::Wrap)PUBLIC(this)->wrapS.getValue()),
@@ -1090,7 +1095,7 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
     else flags |= SoGLImage::LINEAR_MIPMAP_FILTER;
     this->glimage->setFlags(flags);
   }
-  if (!this->canrendertotexture) {
+  if (!usePbufferTexture) {
     assert(this->glimage);
     assert(this->offscreenbuffer);
     this->glimage->setData(this->offscreenbuffer,
