@@ -1,0 +1,343 @@
+{
+  "adapter": "nvidia",
+  "api": "vulkan",
+  "source_head": "8b7e7372bf44a2981d1b9955e2bc43ca1db9d0eb",
+  "environment": {
+    "DISPLAY": ":0",
+    "WGPU_BACKEND": "vulkan",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_GLXGLUE_NO_PBUFFERS": "1"
+  },
+  "source_hashes": {
+    "testsuite/coinrender/CoinRenderRasterStudy.cpp": "8f8a354a9730c7fa13a82678caebecebfdb4bceefe089906306415dbf612ccb7",
+    "testsuite/CMakeLists.txt": "58e73460deaba344b75be70f23992c8cf94e277dce216e8273c6b432b1170fd6",
+    "src/rendering/coinrender/CoinRenderStrokeCore.h": "f4eec00693e3c8f04280db0cc97a98312f006a135df88704b6bfda7786ab6473",
+    "src/rendering/coinrender/CoinRenderPolygonStyleCore.h": "51bb477c3fe83c7c3d100653e4e6527801b5682c5d04641447e9354c6f964b65",
+    "src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp": "8042a453463717b1c0b2cfb407e6605ad02204de2c24ac955b4f81ee7f22b956",
+    "src/rendering/SoGL.cpp": "9af98c7b8cfe51ecb348cc2412374b122170557c4272c1cf7328b10a79698662",
+    "src/misc/SoGenerate.cpp": "1b2f0c7586fa167fb45f2ff21240e224125bbd36d9e4c00acd929fd9503a3539",
+    "testsuite/coinrender/run-raster-study.py": "b76f444f7f9d9b56096dd03d98c32d04485f8440a3b9af44ba7a4775de72d7b1"
+  },
+  "binary_hashes": {
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy": "1378f442ef984a5def0e2ed153c699993d21249237d9ea7a880ce0f0343f0c16",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoinRender.so": "5edbb2098211b1def1028178dc07c1b37f7a64138ef57becdcabbcb86e2dcfe1",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoin.so": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877"
+  },
+  "runs": [
+    {
+      "label": "nvidia-vulkan-sphere-lines-w1-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "sphere",
+        "0",
+        "1",
+        "lines",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-sphere-lines-w1-native"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "0ff062b197f5dab0ae91ae1876caa7b9fa05dcce6639ce8bd298dd7833612367",
+        "coin-gl.ppm": "e862c548cbe981be4880c13ac13e23b6458227b10770a65e54071619eab926c7",
+        "cpu-coin.csv": "8c535b4f6e8fd32d6ae5fcadf190facf13daf2245ec6bd35c540ddcd1854b5a2",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "c1744999ea83a06e96f41ad28a2e61bbbca66a436795ed4ef42dfea897657ac4",
+        "cpu.ppm": "6a1bd52cd0f12db58920ee921e82e0b44d5718d44ea2cfb9b43b8fa0fc226cbc",
+        "gpu-coin.csv": "efbb5c9f6996793ce41f9a96a0b242b7a40ec869ccf1aaadc93d53b83bcf5505",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "98605cdcf8e8db8dd968637f79904a2888403b8c300a751d3634a0942c873902",
+        "gpu.ppm": "6a1bd52cd0f12db58920ee921e82e0b44d5718d44ea2cfb9b43b8fa0fc226cbc",
+        "replay-gl.depth-f32": "c834e8f30d0a813b6e91cc5845bdf8606360233a54176edf531b9568f23ce2a7",
+        "replay-gl.ppm": "6a1bd52cd0f12db58920ee921e82e0b44d5718d44ea2cfb9b43b8fa0fc226cbc",
+        "run.log": "7705dcd0300f8c9e733e6c467a993ba207c4b5d1d344da7841bb4ffa6174638a",
+        "source-state.json": "b6f93923fe9d5158fd71eb5c2852dc2991484922d414dd469c967114da58b6c6"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-sphere-lines-w4-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "sphere",
+        "0",
+        "4",
+        "lines",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-sphere-lines-w4-native",
+        "--polygons"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "a716d2e241b9fd6efed565a125da64a8811eaeb3f74828343343aabe1b26eb5c",
+        "coin-gl.ppm": "a74873f02d843fa6bdef9b7db924b227b0622fc64aa72ca95fb4e26beedc438e",
+        "cpu-coin.csv": "90801cb326d13fbc9ad06f43ed5881e40ffe210e264d14c01c6ec77a68d3dbba",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "4c5a74c847d460ff96c25ab7353c52d5ede2cc382bdb0a836fd225650c7375f2",
+        "cpu.ppm": "86dc2cff11572df83478ae489f026757ec4bfecd1713fb2c10af9f6687360c62",
+        "gpu-coin.csv": "58771674a6a1f70a159d6a7eb1217c0958c5d146f3f9073c6cd1b11b7e3f5583",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "fa1f3529a41b19b32783ef8e57d608496d1a75600209ecaeff8c13ee2201fb74",
+        "gpu.ppm": "86dc2cff11572df83478ae489f026757ec4bfecd1713fb2c10af9f6687360c62",
+        "polygons.csv": "dc82552dafe6a8fedc6aebfd793c55e9113dbc070fad8e7e7518eae4d1cd8466",
+        "polygons.csv.edges": "c2c65184bb28a4f1e3b028bf61ea9df585469c7814415b0dd0abe84b5b17701d",
+        "polygons.csv.vertices": "25c9b231f63fb6881229aef5452473acfbd99299d100bdc442e2379da29c1beb",
+        "replay-gl.depth-f32": "45554106cda26f6adba3812e168c3223315ce21720f4cafe6050ecc789e4688c",
+        "replay-gl.ppm": "86dc2cff11572df83478ae489f026757ec4bfecd1713fb2c10af9f6687360c62",
+        "run.log": "9c7e9ff4c2ba2bd0b823f380e86e82c5c881fb538ffde3647bf163ac72f5c014",
+        "source-state.json": "b6f93923fe9d5158fd71eb5c2852dc2991484922d414dd469c967114da58b6c6"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-sphere-filled-w4-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "sphere",
+        "0",
+        "4",
+        "filled",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-sphere-filled-w4-native"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "bda3a79381860ab3542f745f5242364acaf014b25c9d5ac63d1226e9528e5c10",
+        "coin-gl.ppm": "fc29648a4d9fa176675f742c8d862d7d5c577817d3a9c3785866f1c6cc721eff",
+        "cpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "8d9355d81004e3aa035dc762090618add2518735bb152fd995ba43571c7326ce",
+        "cpu.ppm": "fc29648a4d9fa176675f742c8d862d7d5c577817d3a9c3785866f1c6cc721eff",
+        "gpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "2acb83fc97ded0465d0ad67c5bcaad88ded33a26ed3e330a7c08f0100ec9e6bc",
+        "gpu.ppm": "fc29648a4d9fa176675f742c8d862d7d5c577817d3a9c3785866f1c6cc721eff",
+        "replay-gl.depth-f32": "bda3a79381860ab3542f745f5242364acaf014b25c9d5ac63d1226e9528e5c10",
+        "replay-gl.ppm": "fc29648a4d9fa176675f742c8d862d7d5c577817d3a9c3785866f1c6cc721eff",
+        "run.log": "75faf2f9f0d284f5f3533ac03a56b0853c1cde58db6a2441bd21efabb6470642",
+        "source-state.json": "b6f93923fe9d5158fd71eb5c2852dc2991484922d414dd469c967114da58b6c6"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-cone-lines-w1-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "cone",
+        "0",
+        "1",
+        "lines",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-cone-lines-w1-native"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "6689da66ea5f6cf10652baab1b517999e09c1c147aa14254c18e0a45d3908912",
+        "coin-gl.ppm": "4652074ced4ade916967f379524ce7830ba28e3b4c60d34ed0f521544a5e769d",
+        "cpu-coin.csv": "a2bd730af19773be99e937c58fab7422bdc1e524d62f8679253c6cc7d18e99a8",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "5f57a6298386c26b0d3eec03c3eeb06ac63224dc40121a1c9d832cd451cc3a92",
+        "cpu.ppm": "106501b720ebd361c450ff1333711fa1f76b46cdb5a611ee0ad94045d16a6b75",
+        "gpu-coin.csv": "831c23f50f18b34611a3d4fc1acc03d21713943e5706b5243db0dcee3e440594",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "b621cfa2c229b77070e8efd76a2407f487068f05a61eeb873b2706c815c1c0ff",
+        "gpu.ppm": "106501b720ebd361c450ff1333711fa1f76b46cdb5a611ee0ad94045d16a6b75",
+        "replay-gl.depth-f32": "06bbffb6922cde988e5399b4fa857ac9ffe64f06f16be4efc55c2c220e22bc61",
+        "replay-gl.ppm": "106501b720ebd361c450ff1333711fa1f76b46cdb5a611ee0ad94045d16a6b75",
+        "run.log": "bd7bca0eb098eeaa45ee05d28be74f6de0f410487df30ed5950585750af9f03e",
+        "source-state.json": "b6f93923fe9d5158fd71eb5c2852dc2991484922d414dd469c967114da58b6c6"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-cone-lines-w4-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "cone",
+        "0",
+        "4",
+        "lines",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-cone-lines-w4-native",
+        "--polygons"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "d133468705cd2d93a084bbd91f3c176b16bb3182a6a85288fafedb1866ffa054",
+        "coin-gl.ppm": "09034edf8da401f11c3236585dcd97c696f5cdd3b6f38ee0e47c72b259f102b6",
+        "cpu-coin.csv": "14a4ab161d5faa62df3fe9ee7334a4bece10c7526064c7d2c8ca19c6802284c8",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "30805060683bac75d60920d9c1ce2decd243428bbb712d35aa6a89c7521d4968",
+        "cpu.ppm": "b9b69be63b75bfe95bdac1776dbcb4981d1c2fea792ebaec72a2b53f13caf257",
+        "gpu-coin.csv": "906dd26437088f09494ad9fb372fd163d83024603e494289af91eba3e49a78e4",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "c59d0d058dd49b3710ec7013f8f770952aecca03c872af7a184ab925ddc13370",
+        "gpu.ppm": "b9b69be63b75bfe95bdac1776dbcb4981d1c2fea792ebaec72a2b53f13caf257",
+        "polygons.csv": "c52cbba392d3bd39008dcfc4004e09927bd94e6425226f4d1c1e41a65d3a95ce",
+        "polygons.csv.edges": "8fe50a49cf73fb5e990aaf73898d938d5dd26edd231e5ac8f7210d6066f615db",
+        "polygons.csv.vertices": "9e359126de94ea1ce0295ac106c8d3264e6b24d705fa540c819e476bf2d9514d",
+        "replay-gl.depth-f32": "a8f04c307f4554db93db3bea9bc9f683fa23f63809c7471e27d976e596cb1205",
+        "replay-gl.ppm": "b9b69be63b75bfe95bdac1776dbcb4981d1c2fea792ebaec72a2b53f13caf257",
+        "run.log": "d813aec9b1d7ddf3ef52554a8acdabf60c93589aaf2f386a23abf54583bbe699",
+        "source-state.json": "b6f93923fe9d5158fd71eb5c2852dc2991484922d414dd469c967114da58b6c6"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-cone-filled-w4-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "cone",
+        "0",
+        "4",
+        "filled",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-cone-filled-w4-native"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "007b64b5b92f0661fa2499a142353c60dc54af6b514dea87ec5ad938d7a9b4a5",
+        "coin-gl.ppm": "ff6e2eb3d69d152e85427ed51d75ac4ea4b0da25bd71bd3d5e74d16be2a4330d",
+        "cpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "b1b7fb21e643b652ca291b4f4d26489e26344067ffd956671cda0737387c98f4",
+        "cpu.ppm": "ff6e2eb3d69d152e85427ed51d75ac4ea4b0da25bd71bd3d5e74d16be2a4330d",
+        "gpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "27df716fe3c32d73ef1aa442616980597a882a737cb9df16b60a250e9df7146a",
+        "gpu.ppm": "ff6e2eb3d69d152e85427ed51d75ac4ea4b0da25bd71bd3d5e74d16be2a4330d",
+        "replay-gl.depth-f32": "007b64b5b92f0661fa2499a142353c60dc54af6b514dea87ec5ad938d7a9b4a5",
+        "replay-gl.ppm": "ff6e2eb3d69d152e85427ed51d75ac4ea4b0da25bd71bd3d5e74d16be2a4330d",
+        "run.log": "6c696ea4f8845e276c1033ac5bf8c700f7358c12b30544457b616e98242a5f8d",
+        "source-state.json": "b6f93923fe9d5158fd71eb5c2852dc2991484922d414dd469c967114da58b6c6"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-camera-filled-w1-native",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "camera",
+        "5",
+        "1",
+        "filled",
+        "native",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-camera-filled-w1-native"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "14aeb24008631cf69f7c1825e8f84c492a68ab3c167af4ef116ce6709a021c2e",
+        "coin-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "cpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-gpu.csv": "f7da82a19bfb1647f273cbff397dd18fdecbb32e65ae3e25313def7851363056",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "25ebbb746f0fe542c8ee1f9e2acaa075bd1346b3314af3818ca3ac60cad32b46",
+        "cpu.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "gpu-coin.csv": "b2aa5c38d3827e0963b934cf71377756b149dfed948168fafd034262a8b9e14b",
+        "gpu-replay.csv": "b2aa5c38d3827e0963b934cf71377756b149dfed948168fafd034262a8b9e14b",
+        "gpu.depth-f32": "2626d20b253ee4fc900160cb9723176ed1a973ffd78cc039a2e327c62fee3d88",
+        "gpu.ppm": "b6383a6e72e3560d49b91b913d5dd876e43ba0ae02b3a41975b17fbff3bf73dc",
+        "replay-gl.depth-f32": "1f2f0d0d27d5ebb3712f7b675ff5befb67fe22423452d50fda0a74c5a5e873f6",
+        "replay-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "run.log": "61728a9198c3d9a1095c65f7c90041525810ea641ee56fbfc70156821400a214",
+        "source-state.json": "87b3e17114f720162cae89b53f7a617040cdf65df24d36fa3a60d904995de30a"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-camera-filled-w1-float",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "camera",
+        "5",
+        "1",
+        "filled",
+        "float",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-camera-filled-w1-float"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "14aeb24008631cf69f7c1825e8f84c492a68ab3c167af4ef116ce6709a021c2e",
+        "coin-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "cpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-gpu.csv": "4acd9de0aaa0bc46c71c8754d5be51d423854b895079b2009f67ae2ee1617574",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "7e318f622fd2943e48b5a611387372da91b51f65a104fc2d0dc9a35d1dd5b72f",
+        "cpu.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "gpu-coin.csv": "4bf9b1bba1ca2daf34c385c83475c1207feb85647a8a554e36e5abc0ff881c33",
+        "gpu-replay.csv": "4bf9b1bba1ca2daf34c385c83475c1207feb85647a8a554e36e5abc0ff881c33",
+        "gpu.depth-f32": "116e1efc807e24ae64b4efe1a807ca6524acdd87add1de376748d3ee35d90ddc",
+        "gpu.ppm": "b6383a6e72e3560d49b91b913d5dd876e43ba0ae02b3a41975b17fbff3bf73dc",
+        "projected.csv": "147d8e69f4fdc25847c1b7212765a90f477bf238e1da5ab3a86cedc4fa5f3179",
+        "replay-gl.depth-f32": "1f2f0d0d27d5ebb3712f7b675ff5befb67fe22423452d50fda0a74c5a5e873f6",
+        "replay-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "run.log": "adb98692a6ebf9a362ea3ee0bdbfac544c803f5051375ddcf0fa27a7c55d95ff",
+        "source-state.json": "87b3e17114f720162cae89b53f7a617040cdf65df24d36fa3a60d904995de30a"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-camera-filled-w1-double",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "camera",
+        "5",
+        "1",
+        "filled",
+        "double",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-camera-filled-w1-double"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "14aeb24008631cf69f7c1825e8f84c492a68ab3c167af4ef116ce6709a021c2e",
+        "coin-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "cpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-gpu.csv": "4acd9de0aaa0bc46c71c8754d5be51d423854b895079b2009f67ae2ee1617574",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "4ec29d8db100afcd4354e0b6060410b8e95d933ddcd597b27f58a44f6bcc38f6",
+        "cpu.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "gpu-coin.csv": "4bf9b1bba1ca2daf34c385c83475c1207feb85647a8a554e36e5abc0ff881c33",
+        "gpu-replay.csv": "4bf9b1bba1ca2daf34c385c83475c1207feb85647a8a554e36e5abc0ff881c33",
+        "gpu.depth-f32": "6b5db8b3c91a71557e21adcacecf306fc89424c3e505ffdfbf81d2e473752533",
+        "gpu.ppm": "b6383a6e72e3560d49b91b913d5dd876e43ba0ae02b3a41975b17fbff3bf73dc",
+        "projected.csv": "147d8e69f4fdc25847c1b7212765a90f477bf238e1da5ab3a86cedc4fa5f3179",
+        "replay-gl.depth-f32": "d6a8fc13d536fbabec58200843a97424fcea1b7e2278d1cf956ce95e987a00ea",
+        "replay-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "run.log": "3798fea9cb9dbc1438d62c279b360d215a8f7b184dd906ffd5ac5df31390ea3f",
+        "source-state.json": "87b3e17114f720162cae89b53f7a617040cdf65df24d36fa3a60d904995de30a"
+      }
+    },
+    {
+      "label": "nvidia-vulkan-camera-filled-w1-snap8",
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderRasterStudy",
+        "camera",
+        "5",
+        "1",
+        "filled",
+        "snap8",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/qualified/nvidia-vulkan-camera-filled-w1-snap8"
+      ],
+      "exit_code": 0,
+      "files": {
+        "coin-gl.depth-f32": "14aeb24008631cf69f7c1825e8f84c492a68ab3c167af4ef116ce6709a021c2e",
+        "coin-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "cpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-gpu.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "cpu.depth-f32": "50f6affcfaa32fec206e4e08c38b002edcbc2446e560ab6a7ab2f618afd229b7",
+        "cpu.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "gpu-coin.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu-replay.csv": "28c4159dab923fa08d09341e68846a339a399dc3a25f643debb52abaa72456e4",
+        "gpu.depth-f32": "982683acc5ef59a29e2992f79a8544cc01b87dbfe35ae37c506d531f5822a4b5",
+        "gpu.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "projected.csv": "147d8e69f4fdc25847c1b7212765a90f477bf238e1da5ab3a86cedc4fa5f3179",
+        "replay-gl.depth-f32": "bf407f496eb4a76bd52d515c34015ef9c1b35c6513f5818d12385e07346b70bd",
+        "replay-gl.ppm": "7d3414f64446e14a4252786db24c163f87db1ef47ef841bb638f3d97018afda1",
+        "run.log": "10ff49c550170ab0518639af586a9762825062639bc668b09207d46eef3dc04c",
+        "source-state.json": "87b3e17114f720162cae89b53f7a617040cdf65df24d36fa3a60d904995de30a"
+      }
+    }
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "wgpu-vulkan-curved-gate.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "api_environment": {
+      "WGPU_BACKEND": "vulkan"
+    },
+    "exit_code": 0,
+    "attempted": 84,
+    "failures": 0,
+    "executable_sha256": "e6a2342279d54f34d8a24fa52b9291331ffcedddab343a73687faced2dd46b9b",
+    "source_sha256": "80ae3907e6967e3ee461efc5856659bad56d8658cce7c6515c41384a6e6a999b"
+  },
+  "wgpu-gl-curved-gate.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "api_environment": {
+      "WGPU_BACKEND": "gl"
+    },
+    "exit_code": 0,
+    "attempted": 84,
+    "failures": 0,
+    "executable_sha256": "e6a2342279d54f34d8a24fa52b9291331ffcedddab343a73687faced2dd46b9b",
+    "source_sha256": "80ae3907e6967e3ee461efc5856659bad56d8658cce7c6515c41384a6e6a999b"
+  },
+  "bgfx-vulkan-curved-gate.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "api_environment": {
+      "COIN_BGFX_RENDERER": "vulkan"
+    },
+    "exit_code": 0,
+    "attempted": 84,
+    "failures": 0,
+    "executable_sha256": "c66b7567f4b2ecb2487920accf89c2bbf292de409290f117bcd95b17447506bd",
+    "source_sha256": "80ae3907e6967e3ee461efc5856659bad56d8658cce7c6515c41384a6e6a999b"
+  },
+  "bgfx-gl-curved-gate.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "api_environment": {
+      "COIN_BGFX_RENDERER": "opengl"
+    },
+    "exit_code": 0,
+    "attempted": 84,
+    "failures": 0,
+    "executable_sha256": "c66b7567f4b2ecb2487920accf89c2bbf292de409290f117bcd95b17447506bd",
+    "source_sha256": "80ae3907e6967e3ee461efc5856659bad56d8658cce7c6515c41384a6e6a999b"
+  },
+  "baseline-amd-vulkan/camera.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit_code": 1,
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "adapter": "amd",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "executable_sha256": "0df8491ae3c4ba4b1a67c47eff4b6f3721f7b88ad3429ba8b5a9834b1cf4cbeb",
+    "source_sha256": "d20f012095d8b39029b6fd85011257dfb5b40db6b67860f869b2a45556c31b43"
+  },
+  "baseline-amd-gl/camera.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit_code": 0,
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "adapter": "amd",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "executable_sha256": "0df8491ae3c4ba4b1a67c47eff4b6f3721f7b88ad3429ba8b5a9834b1cf4cbeb",
+    "source_sha256": "d20f012095d8b39029b6fd85011257dfb5b40db6b67860f869b2a45556c31b43"
+  },
+  "baseline-nvidia-camera.log": {
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderCameraReuseReferenceTest"
+    ],
+    "exit_code": 0,
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "adapter": "nvidia",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "executable_sha256": "0df8491ae3c4ba4b1a67c47eff4b6f3721f7b88ad3429ba8b5a9834b1cf4cbeb",
+    "source_sha256": "d20f012095d8b39029b6fd85011257dfb5b40db6b67860f869b2a45556c31b43"
+  }
+}

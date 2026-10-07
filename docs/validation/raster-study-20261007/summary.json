@@ -1,0 +1,85 @@
+{
+  "physical_profiles": {
+    "amd-vulkan": {
+      "runs": 10,
+      "backend": 1,
+      "renderer": 1,
+      "vendor": 4098
+    },
+    "amd-gl": {
+      "runs": 10,
+      "backend": 1,
+      "renderer": 2,
+      "vendor": 4098
+    },
+    "nvidia-vulkan": {
+      "runs": 10,
+      "backend": 1,
+      "renderer": 1,
+      "vendor": 4318
+    },
+    "bgfx-amd-vulkan": {
+      "runs": 10,
+      "backend": 3,
+      "renderer": 1,
+      "vendor": 4098
+    },
+    "bgfx-nvidia-vulkan": {
+      "runs": 10,
+      "backend": 3,
+      "renderer": 1,
+      "vendor": 4318
+    }
+  },
+  "unidentified_opengl_profile": {
+    "runs": 10,
+    "backend": 3,
+    "renderer": 2,
+    "vendor": 0
+  },
+  "cross_backend_rgba": {
+    "amd": {
+      "amd-vulkan-camera-filled-w1-double": 0,
+      "amd-vulkan-camera-filled-w1-float": 0,
+      "amd-vulkan-camera-filled-w1-snap8": 0,
+      "amd-vulkan-cone-filled-w4-native": 0,
+      "amd-vulkan-cone-lines-w1-native": 0,
+      "amd-vulkan-cone-lines-w4-native": 0,
+      "amd-vulkan-sphere-filled-w4-native": 0,
+      "amd-vulkan-sphere-lines-w1-native": 0,
+      "amd-vulkan-sphere-lines-w4-native": 0,
+      "amd-vulkan-camera-filled-w1-native": 0
+    },
+    "nvidia": {
+      "nvidia-vulkan-camera-filled-w1-double": 0,
+      "nvidia-vulkan-camera-filled-w1-float": 0,
+      "nvidia-vulkan-camera-filled-w1-native": 0,
+      "nvidia-vulkan-camera-filled-w1-snap8": 0,
+      "nvidia-vulkan-cone-filled-w4-native": 0,
+      "nvidia-vulkan-cone-lines-w1-native": 0,
+      "nvidia-vulkan-cone-lines-w4-native": 0,
+      "nvidia-vulkan-sphere-filled-w4-native": 0,
+      "nvidia-vulkan-sphere-lines-w1-native": 0,
+      "nvidia-vulkan-sphere-lines-w4-native": 0
+    }
+  },
+  "curved_gates": {
+    "bgfx-gl-curved-gate.log": {
+      "attempted": 84,
+      "failures": 0
+    },
+    "bgfx-vulkan-curved-gate.log": {
+      "attempted": 84,
+      "failures": 0
+    },
+    "wgpu-gl-curved-gate.log": {
+      "attempted": 84,
+      "failures": 0
+    },
+    "wgpu-vulkan-curved-gate.log": {
+      "attempted": 84,
+      "failures": 0
+    }
+  },
+  "analysis_source_sha256": "774a1322926a35111a204ed20fb5cf90817de93cfe6302bc310305667beffb1c"
+}

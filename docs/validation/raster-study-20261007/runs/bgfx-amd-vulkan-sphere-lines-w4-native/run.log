@@ -1,0 +1,13 @@
+backend=3 renderer=1 vendor_id=4098 device_id=5688 adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638)
+scene=sphere frame=0 width=4 style=lines transform=native
+GL vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 depth_bits=24 samples=0 subpixel_bits=8
+GL vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 depth_bits=24 samples=0 subpixel_bits=8
+cpu-gpu rgb_mae=0 pixels_over3=0 coverage_xor=0 shared=1638 shared_depth_over1e-5=0 shared_depth_max=2.98023e-08
+cpu-coin rgb_mae=0.239063 pixels_over3=6 coverage_xor=6 shared=1638 shared_depth_over1e-5=527 shared_depth_max=0.0222904
+gpu-coin rgb_mae=0.239063 pixels_over3=6 coverage_xor=6 shared=1638 shared_depth_over1e-5=527 shared_depth_max=0.0222904
+cpu-replay rgb_mae=0 pixels_over3=0 coverage_xor=0 shared=1638 shared_depth_over1e-5=14 shared_depth_max=2.06828e-05
+gpu-replay rgb_mae=0 pixels_over3=0 coverage_xor=0 shared=1638 shared_depth_over1e-5=14 shared_depth_max=2.06828e-05
+witness x=33 y=20 cpu=0.3070157468 gpu=0.307015717 coin=0.3036298752 replay=0.307015717
+witness x=26 y=21 cpu=0.3275402188 gpu=0.3275402188 coin=0.316767782 replay=0.3275402188
+witness x=26 y=23 cpu=0.3275402188 gpu=0.3275402188 coin=0.30524984 replay=0.3275402188
+Diagnostic completed; no visual gate was applied or waived.

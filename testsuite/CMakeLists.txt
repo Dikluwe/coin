@@ -1012,6 +1012,16 @@ if(COIN_BUILD_RENDER)
 		endforeach()
 	endif()
 
+	# Manual study tool: reports differences without changing qualification gates.
+	if(COIN_BUILD_LEGACY_GL_RENDERER)
+		add_executable(CoinRenderRasterStudy coinrender/CoinRenderRasterStudy.cpp)
+		target_compile_definitions(CoinRenderRasterStudy PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+		target_link_libraries(CoinRenderRasterStudy CoinRender Coin OpenGL::GL)
+		target_include_directories(CoinRenderRasterStudy PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	endif()
+
 	add_executable(CoinRenderProceduralTextureTest coinrender/CoinRenderProceduralTextureTest.cpp)
 	target_compile_definitions(CoinRenderProceduralTextureTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
 	target_link_libraries(CoinRenderProceduralTextureTest CoinRender Coin)

@@ -7,7 +7,17 @@ um estudo de melhoria futura; não bloqueia o primeiro perfil portátil.
 Este registro não declara concluída a validação de P02/P04/P05/P06: diferenças
 entre CPU e BGFX/wgpu continuam exigindo correção e qualificação.
 
-## Evidência atual
+## Estudo controlado de 2026-10-07
+
+O [relatório com controles e alternativas](coin-render-raster-study-20261007.md)
+isolou três mecanismos: ownership de endpoints dependente do sentido de emissão,
+extrapolação nativa de depth nos caps versus clamp comum, e quantização subpixel
+na câmera AMD. Há sondas por polígono/segmento, matrizes, imagens, CSVs e hashes.
+BGFX/wgpu Vulkan repetem o mesmo resultado da cena branca na AMD; controles
+NVIDIA delimitam a diferença de câmera. Melhorias de produção, P20/alpha e
+custos continuam abertos; nenhum gate foi alterado.
+
+## Evidência anterior e contexto
 
 Achados adicionais em [P20/câmera AMD de 2026-10-07](coin-render-hardware-surfaces-linux.md):
 quatro pixels de borda na transparência offscreen Vulkan e 48 no fixture
@@ -31,9 +41,10 @@ A esfera conserva concordância CPU/wgpu de máximo 1, mas o reproducer nativo
 `--probe-sphere` mede máximo 9 contra CoinGL no perfil com mipmaps P07.
 O testemunho de profundidade mediu, no pixel (26,23), aproximadamente
 0,32754022 na expansão comum e 0,30524847 no CoinGL. O contexto nativo fornece
-D24, mas a diferença é muito maior que uma unidade D24. Isso demonstra uma
-seleção diferente de fragmentos nas junções; não demonstra isoladamente que
-um dos dois rasterizadores esteja errado.
+D24, mas a diferença é muito maior que uma unidade D24. Isso demonstra depth divergente, mas isoladamente não distingue interpolação
+de troca de cobertura. As sondas de 2026-10-07 identificam ambos os mecanismos:
+(26,21) é explicado pelo cap; (26,23), por cobertura de uma borda autoral ausente
+na expansão comum. Nenhum resultado isolado demonstra erro do driver.
 
 Uma execução FILLED de controle conserva concordância RGB e, no mesmo pixel,
 nenhum dos dois cobre a face. Experimentos com interpolação perpendicular,

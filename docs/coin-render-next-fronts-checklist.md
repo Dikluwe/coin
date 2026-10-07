@@ -71,6 +71,11 @@ O [contrato ampliado](coin-render-geometry-viewport-contract.md) define o alcanc
 
 Melhoria futura, fora deste primeiro perfil:
 
+- [x] **Estudo inicial de rasterização:** isolar cobertura por sentido de linha,
+  extrapolação/clamp dos caps e quantização subpixel AMD/Vulkan–CoinGL;
+  preservar [sondas, imagens, métricas e alternativas](coin-render-raster-study-20261007.md).
+  Essa conclusão fecha a investigação controlada desta rodada, não a melhoria
+  de produção nem a igualdade nativa de todos os estilos.
 - [ ] **Estudo:** reprodução das junções curvas/coincidentes e endpoints
   transparentes do CoinGL, conforme o [roteiro e evidências](coin-render-raster-junctions-study.md).
   Comparar abordagens e custos antes de escolher a melhoria. Isso não dispensa
@@ -203,7 +208,9 @@ nem encerra uma campanha completa de desempenho Windows.
 - [x] Recompilar ponte Rust e objetos Android arm64/API 26; retirar GL da ação
   comum/profiler quando o renderer legado está desligado.
 - [ ] Melhorar a seleção de fragmentos nas bordas AMD/Vulkan de P20/câmera,
-  mantendo o gate atual e a diferença documentada como estudo.
+  mantendo o gate atual. A [câmera branca foi diagnosticada](coin-render-raster-study-20261007.md)
+  por quantização subpixel; validar snap comum em câmera/viewport/RTT e aplicar
+  os controles à transparência P20 antes de declarar a mesma causa.
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.

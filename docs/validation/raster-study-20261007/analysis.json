@@ -1,0 +1,811 @@
+{
+  "precision": [
+    {
+      "bits": 4,
+      "coin_xor": 136,
+      "gpu_xor": 94,
+      "pixels": 19983
+    },
+    {
+      "bits": 8,
+      "coin_xor": 48,
+      "gpu_xor": 0,
+      "pixels": 19987
+    },
+    {
+      "bits": 9,
+      "coin_xor": 2,
+      "gpu_xor": 50,
+      "pixels": 20033
+    },
+    {
+      "bits": 10,
+      "coin_xor": 0,
+      "gpu_xor": 48,
+      "pixels": 20031
+    },
+    {
+      "bits": 11,
+      "coin_xor": 1,
+      "gpu_xor": 49,
+      "pixels": 20032
+    },
+    {
+      "bits": 12,
+      "coin_xor": 0,
+      "gpu_xor": 48,
+      "pixels": 20031
+    },
+    {
+      "bits": 16,
+      "coin_xor": 0,
+      "gpu_xor": 48,
+      "pixels": 20031
+    },
+    {
+      "bits": 20,
+      "coin_xor": 0,
+      "gpu_xor": 48,
+      "pixels": 20031
+    }
+  ],
+  "witnesses": [
+    {
+      "profile": "amd-vulkan",
+      "x": 33,
+      "y": 20,
+      "winners": {
+        "common": {
+          "polygon": 20,
+          "depth": 0.3070157468
+        },
+        "polygon": {
+          "polygon": 36,
+          "depth": 0.3036298752
+        },
+        "line": {
+          "polygon": 36,
+          "depth": 0.3036298752
+        }
+      },
+      "edges": [
+        {
+          "polygon": "20",
+          "edge": "1",
+          "x": "33",
+          "y": "20",
+          "common_covered": "1",
+          "common_depth": "0.3177045584",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3176967204",
+          "authored_covered": "1",
+          "authored_depth": "0.3176967204",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3176967204",
+          "t_major": 0.611753185327347,
+          "endpoint_depths": [
+            0.3234435227919985,
+            0.31404961794885233
+          ],
+          "extrapolated_major": 0.31769677158154186,
+          "clamped_major": 0.31769677158154186
+        },
+        {
+          "polygon": "20",
+          "edge": "2",
+          "x": "33",
+          "y": "20",
+          "common_covered": "1",
+          "common_depth": "0.3070157468",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3070336878",
+          "authored_covered": "1",
+          "authored_depth": "0.3070336878",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3070336878",
+          "t_major": 0.5886726514581889,
+          "endpoint_depths": [
+            0.31404961794885233,
+            0.3021316227810937
+          ],
+          "extrapolated_major": 0.307033820133382,
+          "clamped_major": 0.307033820133382
+        },
+        {
+          "polygon": "36",
+          "edge": "1",
+          "x": "33",
+          "y": "20",
+          "common_covered": "0",
+          "common_depth": "1",
+          "canonical_covered": "0",
+          "canonical_depth": "1",
+          "authored_covered": "1",
+          "authored_depth": "0.3036298752",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.1099036825616704,
+          "endpoint_depths": [
+            0.3021316227810937,
+            0.28849655023370446
+          ],
+          "extrapolated_major": 0.30363016746604726,
+          "clamped_major": 0.3021316227810937
+        }
+      ]
+    },
+    {
+      "profile": "amd-vulkan",
+      "x": 26,
+      "y": 21,
+      "winners": {
+        "common": {
+          "polygon": 33,
+          "depth": 0.3275402188
+        },
+        "polygon": {
+          "polygon": 48,
+          "depth": 0.316767782
+        },
+        "line": {
+          "polygon": 48,
+          "depth": 0.316767782
+        }
+      },
+      "edges": [
+        {
+          "polygon": "33",
+          "edge": "2",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.316767782",
+          "authored_covered": "0",
+          "authored_depth": "1",
+          "reversed_covered": "1",
+          "reversed_depth": "0.316767782",
+          "t_major": 1.4700380451272823,
+          "endpoint_depths": [
+            0.35045947145708,
+            0.32754023532626203
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "33",
+          "edge": "3",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3274212182",
+          "authored_covered": "1",
+          "authored_depth": "0.3274212182",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.067552138003035,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.32930194540289626
+          ],
+          "extrapolated_major": 0.3274212280440439,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "48",
+          "edge": "0",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.316767782",
+          "authored_covered": "1",
+          "authored_depth": "0.316767782",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.47003804512728237,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.35045947145708
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        }
+      ]
+    },
+    {
+      "profile": "amd-vulkan",
+      "x": 26,
+      "y": 23,
+      "winners": {
+        "common": {
+          "polygon": 33,
+          "depth": 0.3275402188
+        },
+        "polygon": {
+          "polygon": 50,
+          "depth": 0.30524984
+        },
+        "line": {
+          "polygon": 50,
+          "depth": 0.30524984
+        }
+      },
+      "edges": [
+        {
+          "polygon": "33",
+          "edge": "2",
+          "x": "26",
+          "y": "23",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.316767782",
+          "authored_covered": "0",
+          "authored_depth": "1",
+          "reversed_covered": "1",
+          "reversed_depth": "0.316767782",
+          "t_major": 1.4700380451272823,
+          "endpoint_depths": [
+            0.35045947145708,
+            0.32754023532626203
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "33",
+          "edge": "3",
+          "x": "26",
+          "y": "23",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3274212182",
+          "authored_covered": "1",
+          "authored_depth": "0.3274212182",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.067552138003035,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.32930194540289626
+          ],
+          "extrapolated_major": 0.3274212280440439,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "50",
+          "edge": "1",
+          "x": "26",
+          "y": "23",
+          "common_covered": "0",
+          "common_depth": "1",
+          "canonical_covered": "0",
+          "canonical_depth": "1",
+          "authored_covered": "1",
+          "authored_depth": "0.30524984",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": 0.05301174304280411,
+          "endpoint_depths": [
+            0.3056226800963401,
+            0.29858526890987425
+          ],
+          "extrapolated_major": 0.3052496146628366,
+          "clamped_major": 0.3052496146628366
+        }
+      ]
+    },
+    {
+      "profile": "amd-gl",
+      "x": 33,
+      "y": 20,
+      "winners": {
+        "common": {
+          "polygon": 20,
+          "depth": 0.3070157468
+        },
+        "polygon": {
+          "polygon": 36,
+          "depth": 0.3036298752
+        },
+        "line": {
+          "polygon": 36,
+          "depth": 0.3036298752
+        }
+      },
+      "edges": [
+        {
+          "polygon": "20",
+          "edge": "1",
+          "x": "33",
+          "y": "20",
+          "common_covered": "1",
+          "common_depth": "0.3177045584",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3176967204",
+          "authored_covered": "1",
+          "authored_depth": "0.3176967204",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3176967204",
+          "t_major": 0.611753185327347,
+          "endpoint_depths": [
+            0.3234435227919985,
+            0.31404961794885233
+          ],
+          "extrapolated_major": 0.31769677158154186,
+          "clamped_major": 0.31769677158154186
+        },
+        {
+          "polygon": "20",
+          "edge": "2",
+          "x": "33",
+          "y": "20",
+          "common_covered": "1",
+          "common_depth": "0.3070157468",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3070336878",
+          "authored_covered": "1",
+          "authored_depth": "0.3070336878",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3070336878",
+          "t_major": 0.5886726514581889,
+          "endpoint_depths": [
+            0.31404961794885233,
+            0.3021316227810937
+          ],
+          "extrapolated_major": 0.307033820133382,
+          "clamped_major": 0.307033820133382
+        },
+        {
+          "polygon": "36",
+          "edge": "1",
+          "x": "33",
+          "y": "20",
+          "common_covered": "0",
+          "common_depth": "1",
+          "canonical_covered": "0",
+          "canonical_depth": "1",
+          "authored_covered": "1",
+          "authored_depth": "0.3036298752",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.1099036825616704,
+          "endpoint_depths": [
+            0.3021316227810937,
+            0.28849655023370446
+          ],
+          "extrapolated_major": 0.30363016746604726,
+          "clamped_major": 0.3021316227810937
+        }
+      ]
+    },
+    {
+      "profile": "amd-gl",
+      "x": 26,
+      "y": 21,
+      "winners": {
+        "common": {
+          "polygon": 33,
+          "depth": 0.3275402188
+        },
+        "polygon": {
+          "polygon": 48,
+          "depth": 0.316767782
+        },
+        "line": {
+          "polygon": 48,
+          "depth": 0.316767782
+        }
+      },
+      "edges": [
+        {
+          "polygon": "33",
+          "edge": "2",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.316767782",
+          "authored_covered": "0",
+          "authored_depth": "1",
+          "reversed_covered": "1",
+          "reversed_depth": "0.316767782",
+          "t_major": 1.4700380451272823,
+          "endpoint_depths": [
+            0.35045947145708,
+            0.32754023532626203
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "33",
+          "edge": "3",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3274212182",
+          "authored_covered": "1",
+          "authored_depth": "0.3274212182",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.067552138003035,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.32930194540289626
+          ],
+          "extrapolated_major": 0.3274212280440439,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "48",
+          "edge": "0",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.316767782",
+          "authored_covered": "1",
+          "authored_depth": "0.316767782",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.47003804512728237,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.35045947145708
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        }
+      ]
+    },
+    {
+      "profile": "amd-gl",
+      "x": 26,
+      "y": 23,
+      "winners": {
+        "common": {
+          "polygon": 33,
+          "depth": 0.3275402188
+        },
+        "polygon": {
+          "polygon": 50,
+          "depth": 0.30524984
+        },
+        "line": {
+          "polygon": 50,
+          "depth": 0.30524984
+        }
+      },
+      "edges": [
+        {
+          "polygon": "33",
+          "edge": "2",
+          "x": "26",
+          "y": "23",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.316767782",
+          "authored_covered": "0",
+          "authored_depth": "1",
+          "reversed_covered": "1",
+          "reversed_depth": "0.316767782",
+          "t_major": 1.4700380451272823,
+          "endpoint_depths": [
+            0.35045947145708,
+            0.32754023532626203
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "33",
+          "edge": "3",
+          "x": "26",
+          "y": "23",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3274212182",
+          "authored_covered": "1",
+          "authored_depth": "0.3274212182",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.067552138003035,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.32930194540289626
+          ],
+          "extrapolated_major": 0.3274212280440439,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "50",
+          "edge": "1",
+          "x": "26",
+          "y": "23",
+          "common_covered": "0",
+          "common_depth": "1",
+          "canonical_covered": "0",
+          "canonical_depth": "1",
+          "authored_covered": "1",
+          "authored_depth": "0.30524984",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": 0.05301174304280411,
+          "endpoint_depths": [
+            0.3056226800963401,
+            0.29858526890987425
+          ],
+          "extrapolated_major": 0.3052496146628366,
+          "clamped_major": 0.3052496146628366
+        }
+      ]
+    },
+    {
+      "profile": "nvidia-vulkan",
+      "x": 33,
+      "y": 20,
+      "winners": {
+        "common": {
+          "polygon": 20,
+          "depth": 0.3070157468
+        },
+        "polygon": {
+          "polygon": 36,
+          "depth": 0.3036419451
+        },
+        "line": {
+          "polygon": 36,
+          "depth": 0.3036419451
+        }
+      },
+      "edges": [
+        {
+          "polygon": "20",
+          "edge": "1",
+          "x": "33",
+          "y": "20",
+          "common_covered": "1",
+          "common_depth": "0.3177045584",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3176944554",
+          "authored_covered": "1",
+          "authored_depth": "0.3176944554",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3176944554",
+          "t_major": 0.611753185327347,
+          "endpoint_depths": [
+            0.3234435227919985,
+            0.31404961794885233
+          ],
+          "extrapolated_major": 0.31769677158154186,
+          "clamped_major": 0.31769677158154186
+        },
+        {
+          "polygon": "20",
+          "edge": "2",
+          "x": "33",
+          "y": "20",
+          "common_covered": "1",
+          "common_depth": "0.3070157468",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3070326149",
+          "authored_covered": "1",
+          "authored_depth": "0.3070326149",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3070326149",
+          "t_major": 0.5886726514581889,
+          "endpoint_depths": [
+            0.31404961794885233,
+            0.3021316227810937
+          ],
+          "extrapolated_major": 0.307033820133382,
+          "clamped_major": 0.307033820133382
+        },
+        {
+          "polygon": "36",
+          "edge": "1",
+          "x": "33",
+          "y": "20",
+          "common_covered": "0",
+          "common_depth": "1",
+          "canonical_covered": "0",
+          "canonical_depth": "1",
+          "authored_covered": "1",
+          "authored_depth": "0.3036419451",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.1099036825616704,
+          "endpoint_depths": [
+            0.3021316227810937,
+            0.28849655023370446
+          ],
+          "extrapolated_major": 0.30363016746604726,
+          "clamped_major": 0.3021316227810937
+        }
+      ]
+    },
+    {
+      "profile": "nvidia-vulkan",
+      "x": 26,
+      "y": 21,
+      "winners": {
+        "common": {
+          "polygon": 33,
+          "depth": 0.3275402188
+        },
+        "polygon": {
+          "polygon": 48,
+          "depth": 0.3167000115
+        },
+        "line": {
+          "polygon": 48,
+          "depth": 0.3167000115
+        }
+      },
+      "edges": [
+        {
+          "polygon": "33",
+          "edge": "2",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3167000115",
+          "authored_covered": "0",
+          "authored_depth": "1",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3167000115",
+          "t_major": 1.4700380451272823,
+          "endpoint_depths": [
+            0.35045947145708,
+            0.32754023532626203
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "33",
+          "edge": "3",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3274203837",
+          "authored_covered": "1",
+          "authored_depth": "0.3274203837",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.067552138003035,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.32930194540289626
+          ],
+          "extrapolated_major": 0.3274212280440439,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "48",
+          "edge": "0",
+          "x": "26",
+          "y": "21",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3167000115",
+          "authored_covered": "1",
+          "authored_depth": "0.3167000115",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.47003804512728237,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.35045947145708
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        }
+      ]
+    },
+    {
+      "profile": "nvidia-vulkan",
+      "x": 26,
+      "y": 23,
+      "winners": {
+        "common": {
+          "polygon": 33,
+          "depth": 0.3275402188
+        },
+        "polygon": {
+          "polygon": 50,
+          "depth": 0.3052484691
+        },
+        "line": {
+          "polygon": 50,
+          "depth": 0.3052484691
+        }
+      },
+      "edges": [
+        {
+          "polygon": "33",
+          "edge": "2",
+          "x": "26",
+          "y": "23",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3167000115",
+          "authored_covered": "0",
+          "authored_depth": "1",
+          "reversed_covered": "1",
+          "reversed_depth": "0.3167000115",
+          "t_major": 1.4700380451272823,
+          "endpoint_depths": [
+            0.35045947145708,
+            0.32754023532626203
+          ],
+          "extrapolated_major": 0.31676732237952177,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "33",
+          "edge": "3",
+          "x": "26",
+          "y": "23",
+          "common_covered": "1",
+          "common_depth": "0.3275402188",
+          "canonical_covered": "1",
+          "canonical_depth": "0.3274203837",
+          "authored_covered": "1",
+          "authored_depth": "0.3274203837",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": -0.067552138003035,
+          "endpoint_depths": [
+            0.32754023532626203,
+            0.32930194540289626
+          ],
+          "extrapolated_major": 0.3274212280440439,
+          "clamped_major": 0.32754023532626203
+        },
+        {
+          "polygon": "50",
+          "edge": "1",
+          "x": "26",
+          "y": "23",
+          "common_covered": "0",
+          "common_depth": "1",
+          "canonical_covered": "0",
+          "canonical_depth": "1",
+          "authored_covered": "1",
+          "authored_depth": "0.3052484691",
+          "reversed_covered": "0",
+          "reversed_depth": "1",
+          "t_major": 0.05301174304280411,
+          "endpoint_depths": [
+            0.3056226800963401,
+            0.29858526890987425
+          ],
+          "extrapolated_major": 0.3052496146628366,
+          "clamped_major": 0.3052496146628366
+        }
+      ]
+    }
+  ],
+  "limitation": "White union ignores occlusion ownership; precision models are not universal driver conformance tests."
+}
