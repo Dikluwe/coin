@@ -1,0 +1,9 @@
+10-07 14:51:36.790  7293  7322 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-07 14:51:36.793  7293  7322 I CoinRenderP23: legacy_gl_unavailable=1
+10-07 14:51:36.840  7293  7322 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 14:51:36.840  7293  7322 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 14:51:36.843  7293  7322 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 14:51:36.843  7293  7322 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 14:51:36.862  7293  7322 W CoinRenderWgpu: wgpu_hal::vulkan::adapter: Adapter is not Vulkan compliant, hiding adapter: Goldfish GFXStream (AMD Radeon Graphics (RADV RENOIR))
+10-07 14:51:36.862  7293  7322 E CoinRenderP23: render failed: No physical adapter for the requested renderer and surface
+10-07 14:51:36.862  7293  7322 E CoinRenderP23: capture request failed

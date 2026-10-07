@@ -204,8 +204,13 @@ nem encerra uma campanha completa de desempenho Windows.
   comum/profiler quando o renderer legado está desligado.
 - [ ] Melhorar a seleção de fragmentos nas bordas AMD/Vulkan de P20/câmera,
   mantendo o gate atual e a diferença documentada como estudo.
-- [ ] Separar os componentes GL restantes do Coin base para concluir
-  **build/link e empacotamento Android neste Linux**.
+- [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
+  perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
+  assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
+- [ ] Remover completamente os fontes/referências GL remanescentes do Coin base;
+  a primeira fronteira Android conserva ABI com referências fracas indisponíveis.
+- [ ] Qualificar Vulkan nesta imagem Android: Goldfish é não conforme e a
+  execução de diagnóstico falha em `vulkan.ranchu.so` no submit. Sem fallback.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
 - [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
   utilizáveis; a expectativa portátil local não encerra essa célula.
@@ -222,7 +227,15 @@ nem encerra uma campanha completa de desempenho Windows.
 - [ ] Qualificar AppKit/Metal e Wayland em compositor físico, escala fracionária,
   mudança de monitor, formato de swapchain e demais perfis visuais; BGFX/Wayland
   continua sem mecanismo neste conector.
-- [ ] Testar Android pause/resume, rotação e recriação em dispositivo, após o APK.
+- [x] Validar no AVD x86_64 a primeira execução wgpu/OpenGL ES: apresentação,
+  captura offscreen 64×64, ausência de captura da janela, seriais crescentes,
+  HOME/retomada, rotação 1080×2400 ↔ 2400×1080 e encerramento `OK`.
+- [ ] Ampliar Android para recriações repetidas de superfície na mesma execução,
+  múltiplos alvos, API automática e demais fixtures/formatos.
+- [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
+  recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
+
+[Primeiro APK e validação emulada](coin-render-p23-apk-validation-20261007.md).
 
 [Evidência e limites desta rodada](coin-render-hardware-surfaces-linux.md).
 Fechamento por backend/API/driver/plataforma/alvo; manter skips, diferenças

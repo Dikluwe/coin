@@ -1,0 +1,12 @@
+10-07 14:55:35.158  7494  7509 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-07 14:55:35.160  7494  7509 I CoinRenderP23: requested_renderer=2
+10-07 14:55:35.160  7494  7509 I CoinRenderP23: legacy_gl_unavailable=1
+10-07 14:55:35.195  7494  7509 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 14:55:35.195  7494  7509 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 14:55:35.200  7494  7509 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 14:55:35.200  7494  7509 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 14:55:35.225  7494  7509 D CoinRenderWgpu: coin_wgpu_rust_bridge: Requested renderer candidate: AdapterInfo { name: "Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic))", vendor: 4098, device: 0, device_type: Other, driver: "", driver_info: "OpenGL ES 3.1 (4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4)", backend: Gl }
+10-07 14:55:35.225  7494  7509 D CoinRenderWgpu: coin_wgpu_rust_bridge: Surface capabilities: SurfaceCapabilities { formats: [Rgba8Unorm, Bgra8Unorm, Rgba16Float], present_modes: [Fifo], alpha_modes: [Opaque], usages: TextureUsages(RENDER_ATTACHMENT) }
+10-07 14:55:35.336  7494  7509 W CoinRenderWgpu: wgpu_hal::gles::egl: Error in create_window_surface: BadAlloc
+10-07 14:55:35.339  7494  7509 E CoinRenderP23: render failed: Window surface does not support COPY_SRC readback
+10-07 14:55:35.339  7494  7509 E CoinRenderP23: render failed: Window surface does not support COPY_SRC readback

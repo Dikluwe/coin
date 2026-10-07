@@ -1,0 +1,14 @@
+10-07 14:52:29.204  7391  7406 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=1
+10-07 14:52:29.206  7391  7406 I CoinRenderP23: legacy_gl_unavailable=1
+10-07 14:52:29.255  7391  7406 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 14:52:29.255  7391  7406 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 14:52:29.259  7391  7406 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 14:52:29.259  7391  7406 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 14:52:29.278  7391  7406 W CoinRenderWgpu: wgpu_hal::vulkan::adapter: Adapter is not Vulkan compliant: Goldfish GFXStream (AMD Radeon Graphics (RADV RENOIR))
+10-07 14:52:29.279  7391  7406 D CoinRenderWgpu: coin_wgpu_rust_bridge: Requested renderer candidate: AdapterInfo { name: "Goldfish GFXStream (AMD Radeon Graphics (RADV RENOIR))", vendor: 4098, device: 5688, device_type: IntegratedGpu, driver: "", driver_info: "", backend: Vulkan }
+10-07 14:52:29.279  7391  7406 W CoinRenderWgpu: wgpu_hal::vulkan::conv: Unrecognized present mode 1000361000
+10-07 14:52:29.279  7391  7406 D CoinRenderWgpu: coin_wgpu_rust_bridge: Surface capabilities: SurfaceCapabilities { formats: [Rgba8UnormSrgb, Rgba8Unorm, Rgba16Float], present_modes: [Mailbox, Fifo], alpha_modes: [Inherit], usages: TextureUsages(COPY_SRC | COPY_DST | TEXTURE_BINDING | STORAGE_BINDING | RENDER_ATTACHMENT | STORAGE_ATOMIC) }
+10-07 14:52:29.444  7391  7406 W CoinRenderWgpu: wgpu_hal::vulkan::conv: Unrecognized present mode 1000361000
+10-07 14:52:29.444  7391  7406 W CoinRenderWgpu: wgpu_hal::vulkan::conv: Unrecognized present mode 1000361000
+10-07 14:52:29.445  7391  7406 W CoinRenderWgpu: wgpu_hal::vulkan::conv: Unrecognized present mode 1000361000
+10-07 14:52:29.554  7391  7406 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0 in tid 7406 (Thread-2), pid 7391 (.coinrender.p23)

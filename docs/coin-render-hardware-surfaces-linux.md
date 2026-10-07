@@ -141,6 +141,12 @@ preservando inicialização de tipos, formatos Coin e ABI antes de produzir o
 APK. Não há adb/dispositivo acessível validado nesta campanha; pause/resume,
 rotação e TERM_WINDOW/INIT_WINDOW exigem APK ligado e dispositivo físico.
 
+Atualização posterior desta mesma data: o primeiro link completo/APK **x86_64**
+foi concluído e executado no AVD em wgpu/OpenGL ES. A fronteira CPU preserva a
+ABI de Coin com entradas GL fracas indisponíveis; remover completamente os
+fontes GL continua aberto. A campanha anterior acima continua histórica.
+[APK, execução e limites](coin-render-p23-apk-validation-20261007.md).
+
 ## Reprodução e evidência
 
 Os scripts de campanha, comandos, seleção de ICD/GLX/EGL, capacidade real,

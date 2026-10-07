@@ -1,0 +1,31 @@
+--------- beginning of crash
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: FATAL EXCEPTION: main
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: Process: com.google.android.apps.wellbeing, PID: 2176
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: java.lang.NullPointerException: Attempt to invoke virtual method 'int android.content.pm.ServiceInfo.getUid()' on a null object reference
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3398)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Parcel.createException(Parcel.java:3376)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Parcel.readException(Parcel.java:3359)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Parcel.readException(Parcel.java:3301)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.service.quicksettings.IQSService$Stub$Proxy.updateQsTile(IQSService.java:305)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.service.quicksettings.Tile.updateTile(Tile.java:238)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at gd$$ExternalSyntheticApiModelOutline0.m(D8$$SyntheticClass:48)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at hpg.f(PG:341)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at gad.g(PG:9)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at gaf.h(PG:30)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at gaf.c(PG:24)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at gad.c(PG:6)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at dmu.run(PG:152)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at com.google.android.apps.wellbeing.screen.ui.GrayscaleTileService.a(PG:19)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at com.google.android.apps.wellbeing.screen.ui.GrayscaleTileService.onStartListening(PG:22)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.service.quicksettings.TileService$H.handleMessage(TileService.java:561)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Handler.dispatchMessageImpl(Handler.java:142)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Handler.dispatchMessage(Handler.java:125)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Looper.loopOnce(Looper.java:296)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.os.Looper.loop(Looper.java:397)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at android.app.ActivityThread.main(ActivityThread.java:9523)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at java.lang.reflect.Method.invoke(Native Method)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:575)
+10-07 14:16:27.389  2176  2176 E AndroidRuntime: 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:939)
+--------- beginning of main
+10-07 14:36:47.914  6823  6898 E CoinRenderP23: render failed: No physical adapter for the requested renderer and surface
+10-07 14:36:47.914  6823  6898 E CoinRenderP23: capture request failed

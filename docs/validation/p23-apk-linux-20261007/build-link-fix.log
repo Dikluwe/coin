@@ -1,0 +1,12 @@
+[1/5] Building CXX object src/glue/CMakeFiles/glue.dir/dl.cpp.o
+[2/5] Building CXX object src/rendering/CMakeFiles/rendering.dir/SoRenderManager.cpp.o
+FAILED: src/rendering/CMakeFiles/rendering.dir/SoRenderManager.cpp.o 
+/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/clang++ --target=x86_64-none-linux-android26 --sysroot=/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot -DCOIN_BUILDING_COIN -DCOIN_BUILD_LEGACY_GL_RENDERER=0 -DCOIN_DEBUG=0 -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/data -I/mnt/Laranja/Git/externos/coin-render/include/Inventor/annex -I/mnt/Laranja/Git/externos/coin-render/src/glue/khronos -I/mnt/Laranja/Git/externos/coin-render/src -I/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/src -I/mnt/Laranja/Git/externos/coin-render/include -I/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/include -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -Winconsistent-missing-override -O3 -DNDEBUG  -std=gnu++11 -fPIC -MD -MT src/rendering/CMakeFiles/rendering.dir/SoRenderManager.cpp.o -MF src/rendering/CMakeFiles/rendering.dir/SoRenderManager.cpp.o.d -o src/rendering/CMakeFiles/rendering.dir/SoRenderManager.cpp.o -c /mnt/Laranja/Git/externos/coin-render/src/rendering/SoRenderManager.cpp
+/mnt/Laranja/Git/externos/coin-render/src/rendering/SoRenderManager.cpp:593:3: error: use of undeclared identifier 'SoDebugError'
+  593 |   SoDebugError::post("SoRenderManager::render",
+      |   ^
+/mnt/Laranja/Git/externos/coin-render/src/rendering/SoRenderManager.cpp:727:3: error: use of undeclared identifier 'SoDebugError'
+  727 |   SoDebugError::post("SoRenderManager::render",
+      |   ^
+2 errors generated.
+ninja: build stopped: subcommand failed.

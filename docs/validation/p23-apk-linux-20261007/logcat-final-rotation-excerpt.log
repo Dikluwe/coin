@@ -1,0 +1,28 @@
+10-07 15:11:22.169  7894  7911 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-07 15:11:22.172  7894  7911 I CoinRenderP23: requested_renderer=2
+10-07 15:11:22.172  7894  7911 I CoinRenderP23: legacy_gl_unavailable=1
+10-07 15:11:22.348  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 15:11:22.349  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 15:11:22.354  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 15:11:22.354  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 15:11:22.367  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL_MESA_platform_surfaceless not available. Using default platform
+10-07 15:11:22.367  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL surface: -srgb
+10-07 15:11:22.367  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: EGL says it can present to the window but not natively
+10-07 15:11:22.367  7894  7911 W CoinRenderWgpu: wgpu_hal::gles::egl: 	EGL context: -robust access
+10-07 15:11:22.439  7894  7911 D CoinRenderWgpu: coin_wgpu_rust_bridge: Requested renderer candidate: AdapterInfo { name: "Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic))", vendor: 4098, device: 0, device_type: Other, driver: "", driver_info: "OpenGL ES 3.1 (4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4)", backend: Gl }
+10-07 15:11:22.439  7894  7911 D CoinRenderWgpu: coin_wgpu_rust_bridge: Surface capabilities: SurfaceCapabilities { formats: [Rgba8Unorm, Bgra8Unorm, Rgba16Float], present_modes: [Fifo], alpha_modes: [Opaque], usages: TextureUsages(RENDER_ATTACHMENT) }
+10-07 15:11:22.858  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:11:22.859  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:11:22.885  7894  7911 I CoinRenderP23: generation=1 serial=3 size=1080x2400 rgba_fnv64=dc8224a1b44d3d8d capture_scope=offscreen
+10-07 15:11:22.885  7894  7911 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)
+10-07 15:11:22.915  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:11:22.916  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:11:22.931  7894  7911 I CoinRenderP23: generation=1 serial=6 size=1080x2400 rgba_fnv64=dc8224a1b44d3d8d capture_scope=offscreen
+10-07 15:14:25.396  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:14:25.397  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:14:25.432  7894  7911 I CoinRenderP23: generation=1 serial=9 size=1080x2400 rgba_fnv64=dc8224a1b44d3d8d capture_scope=offscreen
+10-07 15:14:25.488  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:14:25.489  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:14:25.538  7894  7911 I CoinRenderP23: generation=1 serial=12 size=1080x2400 rgba_fnv64=dc8224a1b44d3d8d capture_scope=offscreen
+10-07 15:14:25.762  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map
+10-07 15:14:25.766  7894  7911 E CoinRenderWgpu: wgpu_hal::gles::adapter: Fake map

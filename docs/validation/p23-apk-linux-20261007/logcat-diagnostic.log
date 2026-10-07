@@ -1,0 +1,35 @@
+--------- beginning of main
+10-07 14:36:47.914  6823  6898 E CoinRenderP23: render failed: No physical adapter for the requested renderer and surface
+10-07 14:36:47.914  6823  6898 E CoinRenderP23: capture request failed
+--------- beginning of crash
+10-07 14:46:54.971  7064  7080 F libc    : Fatal signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0 in tid 7080 (.coinrender.p23), pid 7064 (.coinrender.p23)
+10-07 14:46:55.467  7084  7084 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+10-07 14:46:55.467  7084  7084 F DEBUG   : Build fingerprint: 'google/sdk_gphone64_x86_64/emu64xa:17/CE2A.260420.019/15611780:user/release-keys'
+10-07 14:46:55.467  7084  7084 F DEBUG   : Kernel Release: '6.12.58-android16-6-gccafb60de224-ab14828483'
+10-07 14:46:55.467  7084  7084 F DEBUG   : Revision: '0'
+10-07 14:46:55.467  7084  7084 F DEBUG   : ABI: 'x86_64'
+10-07 14:46:55.467  7084  7084 F DEBUG   : Timestamp: 2026-10-07 14:46:55.070077960-0300
+10-07 14:46:55.467  7084  7084 F DEBUG   : Process uptime: 1s
+10-07 14:46:55.467  7084  7084 F DEBUG   : Executable: /system/bin/app_process64
+10-07 14:46:55.467  7084  7084 F DEBUG   : Cmdline: org.coin3d.coinrender.p23
+10-07 14:46:55.467  7084  7084 F DEBUG   : pid: 7064, ppid: 476, tid: 7080, name: .coinrender.p23  >>> org.coin3d.coinrender.p23 <<<
+10-07 14:46:55.467  7084  7084 F DEBUG   : uid: 10235
+10-07 14:46:55.467  7084  7084 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0000000000000000 (read)
+10-07 14:46:55.467  7084  7084 F DEBUG   : Cause: null pointer dereference
+10-07 14:46:55.467  7084  7084 F DEBUG   :     rax 00007f1948675328  rbx 00007f1b276276f8  rcx 00007f1b7760c230  rdx b2e4000000048105
+10-07 14:46:55.467  7084  7084 F DEBUG   :     r8  0000000000000000  r9  0000000000000000  r10 0000000000000001  r11 ffffffffffffffff
+10-07 14:46:55.467  7084  7084 F DEBUG   :     r12 0000000000000056  r13 00007f1aa7614970  r14 00007f1a2764aa60  r15 000000000000001d
+10-07 14:46:55.467  7084  7084 F DEBUG   :     rdi 0000000000000c11  rsi 00007f1a2764aa60
+10-07 14:46:55.467  7084  7084 F DEBUG   :     rbp 00007f19a6843e10  rsp 00007f19a6843db8  rip 0000000000000000  err 0000000000000014
+10-07 14:46:55.467  7084  7084 F DEBUG   : 8 total frames
+10-07 14:46:55.467  7084  7084 F DEBUG   : backtrace:
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #00 pc 0000000000000000  <unknown>
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #01 pc 000000000061a99f  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libCoin.so (SoState::SoState(SoAction*, SoTypeList const&)+287) (BuildId: fcd00a2c269d4db802b3892537fc44ae3037d603)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #02 pc 000000000042c1dd  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libCoin.so (SoAction::getState() const+125) (BuildId: fcd00a2c269d4db802b3892537fc44ae3037d603)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #03 pc 000000000042bf10  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libCoin.so (SoAction::apply(SoNode*)+160) (BuildId: fcd00a2c269d4db802b3892537fc44ae3037d603)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #04 pc 0000000000004626  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libcoin_render_android_smoke.so (android_main+454) (BuildId: dd836005d87635f049b6038f39bef8d809cd05b7)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #05 pc 0000000000005f9c  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libcoin_render_android_smoke.so (BuildId: dd836005d87635f049b6038f39bef8d809cd05b7)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #06 pc 000000000008c7af  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*) (.__uniq.67847048707805468364044055584648682506)+63) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #07 pc 000000000008670d  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+45) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+10-07 14:46:55.467  7084  7084 F DEBUG   : Note: To display stack pointer information, use the pbtombstone tool:
+10-07 14:46:55.467  7084  7084 F DEBUG   :         pbtombstone --display-sp tombstone_XX.pb

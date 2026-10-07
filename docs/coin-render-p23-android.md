@@ -1,81 +1,101 @@
-# P23 — Android/NDK (toolchain e compilação cruzada parcial)
+# P23 — primeiro APK Android e perfil de emulação
 
-Em [2026-10-07](coin-render-hardware-surfaces-linux.md), a ponte Rust e os
-objetos Android foram recompilados com o NDK real. `SoAction` e
-`SoCallbackAction` também compilaram: o profiler comum deixou de incluir GL
-e chamar `glFinish` quando o renderer legado está desligado. O link completo
-continua aberto nos componentes GL reais de Coin; não houve APK ou execução
-em dispositivo. Os logs anteriores abaixo registram o bloqueio inicial.
+Em 2026-10-07, o link completo de Coin, CoinRender/wgpu e NativeActivity passou
+no NDK r30/API 26, ABI **x86_64**. O APK de desenvolvimento foi alinhado para
+16 KB, assinado, instalado e executado no AVD `Medium_Phone_API_37.0`, Android
+17/API 37, em KVM/gfxstream sobre AMD Renoir/Mesa 25.2.8. O perfil inicial do
+APK pede **OpenGL ES pelo backend wgpu**, explicitamente. Vulkan permanece
+selecionável; não há troca automática de API após falha.
 
-P23 compõe o lifecycle do host Android com o `CoinRenderTarget` existente. O
-Wiring aceita um `ANativeWindow` emprestado em
-`COIN_RENDER_SURFACE_ANDROID_NDK`; a ponte wgpu o transforma em
-`RawWindowHandle::AndroidNdk`. O Core continua dono de travessia capturada,
-composição e publicação; nenhum estado Coin é reinterpretado para Android.
-`COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW` permite consultar o adaptador ativo,
-sem transformar o probe em qualificação de apresentação.
+[Relatório e evidência](coin-render-p23-apk-validation-20261007.md).
 
-O host deve executar criação, resize, apply e destruição na thread que processa
-os comandos de janela. Em `APP_CMD_TERM_WINDOW`, solta a referência da action
-e destrói o target **antes** de o NDK invalidar `ANativeWindow`. Um novo
-`APP_CMD_INIT_WINDOW` cria outro target para a janela nova. Em `APP_CMD_PAUSE` ou
-`APP_CMD_STOP`, suspende os submits; em `APP_CMD_RESUME`, renderiza se ainda há
-janela. O resize usa `ANativeWindow_getWidth/Height`, em pixels físicos. Não é
-necessária uma API paralela de detach/reattach: o novo target recebe a mesma
-cena e cria seus próprios recursos e estado de apresentação.
+## Fronteira do Coin base
 
-O [smoke NativeActivity](../examples/coinrender/coin_render_android_smoke.cpp)
-implementa esse fluxo com `android_native_app_glue`. Pede Vulkan, apresenta
-uma cena opaca, captura RGBA8 e verifica cor central/checksum, submete outro
-quadro sem readback, registra geração/serial e consulta renderer/vendor/device.
-O [manifesto de exemplo](../examples/coinrender/AndroidManifest-p23.xml) identifica
-a biblioteca nativa. A ponte Rust/CMake mapeia `arm64-v8a`, `armeabi-v7a`,
-`x86_64` e `x86` para seus targets Rust e usa o compilador C do NDK como linker
-Cargo. O app precisa empacotar `libCoinRender.so`, `libCoin.so` e suas
-dependências para a ABI escolhida.
+`COIN_ANDROID_CPU_ONLY` é derivado de Android com
+`COIN_BUILD_LEGACY_GL_RENDERER=OFF`. O perfil mantém registro de tipos, nós,
+campos, ações CPU e geração de primitivas usados pela travessia CoinRender.
+As declarações escalares/tokens da ABI GL são instaláveis, com proveniência
+Mesa/libglvnd registrada. As referências GL remanescentes são **indefinidas
+fracas**; as bibliotecas não têm DT_NEEDED libGL/libGLES. O backend wgpu carrega
+EGL/GLES reais do Android durante sua execução.
+Não existe implementação de funções GL para fabricar renderização.
 
-Neste host, o NDK r30 (`30.0.16248370`) está instalado em
-`~/Android/Sdk/ndk/30.0.16248370`, e o target Rust
-`aarch64-linux-android` está instalado. O arquivo oficial Linux foi
-verificado pelo SHA-1 `5107f898313790e449e87eee2183d9a20602dee9` antes
-da extração. Para reproduzir a configuração:
+`SoAction::apply` rejeita ações GL antes de `getState()`, porque a inicialização
+de elementos GL já executa chamadas do driver. `SoGLRenderAction`,
+`SoOffscreenRenderer`, `SoRenderManager` e a descoberta de desktop GL também
+tratam a indisponibilidade. O controle negativo no APK exige ação terminada e
+render offscreen legado recusado; depois a mesma cena passa por CoinRender.
+
+Isso conclui o primeiro link/APK. **A remoção completa dos fontes e referências
+GL da biblioteca base continua aberta**. APIs GL diretas/elementos GL não são
+suportados neste perfil; não usar essa ABI como renderer legado no Android.
+Os logs arm64 anteriores documentam a compilação parcial; não há APK arm64 ou
+validação física Android/ARM nesta entrega.
+
+## Build e pacote em armazenamento permanente
+
+Pré-requisitos: NDK r30, target Rust `x86_64-linux-android`, SDK Platform
+`android-37.0`, Build Tools 36.0.0 e Java. O empacotador usa CMake/Ninja,
+NativeActivity e aapt2/zipalign/apksigner. Mantém uma chave **de desenvolvimento**
+no build-dir e empacota Coin, CoinRender, smoke e libc++ compartilhada. A chave
+não é artifact versionado nem chave de publicação.
 
 ```sh
-export ANDROID_NDK="$HOME/Android/Sdk/ndk/30.0.16248370"
-cmake -S . -B /tmp/coin-p23-android-arm64-sdk -G Ninja \
-  -DCMAKE_TOOLCHAIN_FILE="$ANDROID_NDK/build/cmake/android.toolchain.cmake" \
-  -DANDROID_NDK="$ANDROID_NDK" \
-  -DANDROID_ABI=arm64-v8a -DANDROID_PLATFORM=android-26 \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DCOIN_BUILD_RENDER=ON -DCOIN_RENDER_BACKEND=RUST_BRIDGE \
-  -DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON \
-  -DCOIN_BUILD_LEGACY_GL_RENDERER=OFF
-cmake --build /tmp/coin-p23-android-arm64-sdk \
-  --target coin_wgpu_rust_bridge_build -j4
+python3 .github/scripts/build-coin-render-android-apk.py \
+  --sdk "$HOME/Android/Sdk" \
+  --ndk "$HOME/Android/Sdk/ndk/30.0.16248370" \
+  --abi x86_64 --renderer opengl \
+  --build-dir /mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64 \
+  --output-dir /mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64 \
+  --java-home "$HOME/android-studio/jbr"
 ```
 
-A configuração, a ponte Rust arm64, os objetos C++ do smoke NativeActivity,
-`CoinRenderTarget` e `CoinWgpuBackend`, e o objeto C do `android_native_app_glue`
-compilaram com o NDK real. O build completo de `coin_render_android_smoke`
-**ainda falha**: a biblioteca Coin base compila `SoGLRenderAction.cpp` e outros
-fontes de GL desktop mesmo com `COIN_BUILD_LEGACY_GL_RENDERER=OFF`. O NDK não
-fornece `GL/gl.h`, e trocar apenas por `GLES/gl.h` não resolve chamadas como
-`glAccum`, `glColorMaterial` e geração de coordenadas de textura. O próximo
-passo local é isolar essas dependências na biblioteca Coin para uma variante
-Android, mantendo o contrato de renderização compartilhado. Não há `adb` neste
-host; link final, APK e execução em Android/ARM com GPU continuam pendentes.
+O script também aceita `--abi arm64-v8a` e `--renderer vulkan`; esses argumentos
+não são evidência de build ou execução qualificada dessas células. Usar outro
+output-dir para uma campanha nova; não sobrescrever os artifacts arquivados.
 
-## Fechamento por evidência
+```sh
+adb -s emulator-5554 install --no-incremental -r /path/to/coin-render-p23-x86_64.apk
+adb -s emulator-5554 shell am start -W -f 0x10008000 \
+  -n org.coin3d.coinrender.p23/android.app.NativeActivity
+```
 
-- Compilar e empacotar a ABI do dispositivo; registrar Android API, SoC/GPU,
-  driver Vulkan, formato de superfície e hashes dos binários.
-- Forçar foreground/background, rotação e perda/recriação de `ANativeWindow`.
-  Verificar que cada geração apresenta e captura, sem usar handle destruído nem
-  publicar frame incompleto; testar `APP_CMD_TERM_WINDOW` antes/depois de pause.
-- Conferir serial, ausência de readback no quadro normal, resize em pixels,
-  memória/recursos após ciclos repetidos e diagnóstico de device/surface lost.
-- Comparar fixtures Coin com um oráculo válido e tolerâncias por combinação
-  dispositivo/API/alvo. Skips explícitos para APIs/formatos indisponíveis.
+O default do APK fornecido é OpenGL ES. `--ei coinrender_renderer 1` solicita
+Vulkan; `2` solicita OpenGL ES. Para um cold-start verificável, parar o pacote
+e aguardar `pidof` vazio antes de iniciar, evitando logs de instâncias anteriores.
 
-A célula que exige Android/ARM permanece no
-[registro de validação externa](coin-render-platform-validation-pending.md).
+## Superfície e captura
+
+O Wiring recebe um `ANativeWindow` emprestado em
+`COIN_RENDER_SURFACE_ANDROID_NDK`, e a ponte usa `AndroidNdkWindowHandle`.
+A criação Android restringe a instância **sem recursos vivos** à API pedida
+antes de criar a superfície. A tentativa anterior de criar EGL e Vulkan na
+mesma janela produzia `EGL_BAD_ALLOC`; não se substitui instância/device ativo.
+
+Em OpenGL ES o host configura buffers RGBA8. A superfície anuncia apenas
+`RENDER_ATTACHMENT`, sem `COPY_SRC`: o smoke apresenta dois quadros normais,
+exige serial crescente/ausência de readback da janela e captura a mesma cena
+em offscreen 64×64. O log declara `capture_scope=offscreen`; checksum/centro
+vermelho e screenshot de apresentação não são equivalência integral de pixels
+janela/offscreen. Vulkan pede captura da janela, quando suportada.
+
+## Lifecycle e limites
+
+Criar, resize, apply e destruir permanecem na thread dos comandos Android.
+`TERM_WINDOW` solta action/target antes de invalidar a janela; `INIT_WINDOW`
+cria outro target. PAUSE/STOP suspendem submissões, RESUME permite renderizar.
+O resize restaura a geometria base da janela GLES antes de consultar dimensões,
+incluindo `CONTENT_RECT_CHANGED`; isso evita conservar o tamanho de buffer
+anterior após rotação. Rotação e retomada são
+qualificadas somente pelas execuções registradas no relatório.
+
+O adapter Vulkan Goldfish não declara conformidade e o wgpu o oculta na
+execução normal. O Intent `--ez coinrender_allow_noncompliant_vulkan true`
+permite diagnóstico apenas quando `ro.kernel.qemu=1` e Vulkan foi solicitado.
+A opção é impressa no log, preserva rejeição de adapter CPU e não habilita um
+perfil físico. Nesta imagem, a tentativa explícita falha em
+`vulkan.ranchu.so/ResourceTracker::on_vkQueueSubmit`; permanece aberta.
+
+Continuam externos Android/ARM físico, drivers/formatos adicionais, comparação
+visual completa, perda real de device e demais fixtures. O
+[registro externo](coin-render-platform-validation-pending.md) mantém essas células.

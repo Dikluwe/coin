@@ -1,0 +1,7 @@
+["cmake", "-S", "/mnt/Laranja/Git/externos/coin-render", "-B", "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64", "-G", "Ninja", "-DCMAKE_TOOLCHAIN_FILE=/home/dikluwe/Android/Sdk/ndk/30.0.16248370/build/cmake/android.toolchain.cmake", "-DANDROID_NDK=/home/dikluwe/Android/Sdk/ndk/30.0.16248370", "-DANDROID_ABI=x86_64", "-DANDROID_PLATFORM=android-26", "-DANDROID_STL=c++_shared", "-DCMAKE_BUILD_TYPE=Release", "-DCOIN_BUILD_RENDER=ON", "-DCOIN_RENDER_BACKEND=RUST_BRIDGE", "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON", "-DCOIN_BUILD_LEGACY_GL_RENDERER=OFF", "-DCOIN_RENDER_ANDROID_SMOKE_RENDERER=OPENGL"]
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- 
+-- Threads::Threads
+-- Configuring done (3.2s)
+-- Generating done (0.7s)
+-- Build files have been written to: /mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64

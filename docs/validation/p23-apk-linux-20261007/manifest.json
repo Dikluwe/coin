@@ -1,0 +1,154 @@
+{
+  "source_base": "07088f3165b6390a0b0868fceceb39de0f6116dd",
+  "branch": "codex/coin-render",
+  "protocol_revision": 49,
+  "source_sha256": {
+    "CMakeLists.txt": "5a6a0c0579d4d52916c8990a3330970eb6f64b3d67c70fcab258f38f049fd4bf",
+    "examples/coinrender/CMakeLists.txt": "85e4a490020d4f0a6b5bfbad18d186b96d2babb3d66d06bc63686b270ef728db",
+    "examples/coinrender/coin_render_android_smoke.cpp": "97ae67f3f2217cc875271efc1e2657c707d4a1c52b277d24e381c30b735857ca",
+    "include/CMakeLists.txt": "dad69935e248451aea154e514742ed8d917363e736f0a12a6319418933dc8096",
+    "include/Inventor/system/gl-headers.h.cmake.in": "018f798a18a6bf504d0f34f7c0b1478e840cdf1df813b49372c73390a5648791",
+    "src/actions/SoAction.cpp": "8be61c2549064dd9be71cf3b692c41b843a5f0e2ecbba38e78f0039661b201d3",
+    "src/actions/SoGLRenderAction.cpp": "b9dd0e181fcd99f87a2628aed788635d51a689f505af1bf03d38d2c9d8fb4457",
+    "src/config.h.cmake.in": "69a69904fcf0338754a0b3e7285082e29e0f0e4e5cdd9e9ba74011402c3e6d7f",
+    "src/glue/dl.cpp": "399e9ca1307a37ae0779b48be84487b898b5b774662437beb2339ffd5a39cd22",
+    "src/glue/khronos/PROVENANCE.txt": "45fe15f03e90648c08c611441c1ae5a82519d6849562b0f4b4b8afef58177077",
+    "src/rendering/SoOffscreenRenderer.cpp": "d1ac1f10499ea2f0ead6743bb230ef43fa1b1ca078f3f793dcadc6036022df4d",
+    "src/rendering/SoRenderManager.cpp": "3130efda89846d76b8100ffa3d2b32d156ed0d5181b72370cd94f64f17a71364",
+    "src/rendering/coinwgpu/rust_bridge/Cargo.lock": "7a7dee7ca1e34d92ca03cf8ba0aef0683453acf3b33ed7d0b795e13c5776c611",
+    "src/rendering/coinwgpu/rust_bridge/Cargo.toml": "0208e13522be3b3ad521dec38bf6bc6d14913bc0ac68debe6641ee28b5135cb3",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "2e5aa964d6da53e06da6177e6b59309e8f4ffdd2c4ca69cee7d7d5420affbf12",
+    ".github/scripts/build-coin-render-android-apk.py": "ad359c8828ef3d88fee12cb5f7b7491dbae4440238362c3ea2d399ca99002578",
+    "src/glue/khronos/GL/gl.h": "bd3eba4807307da860141a9d9e60256d3ff9ea06e49ad0bc9074950e039f3c92",
+    "src/rendering/coinwgpu/rust_bridge/src/android_log.rs": "702a1a5ea494cf187542814b9297ce1348bd2a206e4821321196bc1c3c4dc24f"
+  },
+  "apk_path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64/coin-render-p23-x86_64.apk",
+  "apk_sha256": "3d8903c58758f3dc8f986fa0f07343f916f1c0f64f817323bb9b845f865a0b44",
+  "apk_bytes": 19489415,
+  "abi": "x86_64",
+  "min_api": 26,
+  "target_api": 37,
+  "ndk": "30.0.16248370",
+  "runtime": "Android 17/API 37 AVD/gfxstream, OpenGL ES 3.1 on AMD host",
+  "renderer": 2,
+  "capture_scope": "offscreen64x64; presentation screenshots separate",
+  "legacy_gl_weak_imports": 112,
+  "legacy_gl_strong_imports": 0,
+  "linux_cpu_tests": 5,
+  "linux_cpu_failures": 0,
+  "linux_cpu_skips": 0,
+  "normal_vulkan": "adapter noncompliant; rejected without fallback",
+  "opt_in_vulkan": "FAILED in vulkan.ranchu.so/on_vkQueueSubmit; includes single-api attempt",
+  "qualified_pid": 8456,
+  "qualified_native_thread": 8503,
+  "lifecycle": "HOME/resume, rotation portrait-landscape-portrait; clean BACK/OK",
+  "rotation_original_mode_restored": "free",
+  "surface_recreation_in_same_run": "not demonstrated; generation=1",
+  "binary_sha256": {
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/lib/libCoin.so": "1f90ea5ae75c2dab4f2bf09048283db26f8779884151cacfbe7c7b8b939ef17c",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64/native-x86_64/libCoin.so": "2c96407e987d0f81b64d0bb9781873c4e91bb68a52fb1f5ce73b8663dca31036",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/lib/libCoinRender.so": "d61387555bb25ce0de0943bd0b57754c3e4a23b09e1f14fd9cd6669af87768b6",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64/native-x86_64/libCoinRender.so": "cc95249594436b07efa92f9f00f904f96263ac1db3b522f08302bfc2a7f173b8",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-x86_64/lib/libcoin_render_android_smoke.so": "9e4c0e670118457056b7104ee992cd4a754978af23c9363730d733c9f3643f88",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64/native-x86_64/libcoin_render_android_smoke.so": "c633e7c739147600ce9de274f04d380e9789ae207f2d0c6f6a4cc8e9e3018d72",
+    "/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib/x86_64-linux-android/libc++_shared.so": "7918ebd0b8074c312d0c610205d49760b98c008026e6b817cd92103a3e12241b",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64/native-x86_64/libc++_shared.so": "39faf2d59346e65a18980f207794fab2f1faff8a8de3f087b8319a181fa16fbd",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-delivery-x86_64/coin-render-p23-x86_64.apk": "3d8903c58758f3dc8f986fa0f07343f916f1c0f64f817323bb9b845f865a0b44"
+  },
+  "scope": "First development APK/link and bounded GLES/emulated smoke. No ARM physical/benchmark/full visual parity.",
+  "delivery_result": {
+    "pid": "8456",
+    "frames": [
+      [
+        "1",
+        "3",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "6",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "9",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "12",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "15",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "18",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "21",
+        "2400",
+        "1080",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "24",
+        "2400",
+        "1080",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "27",
+        "2400",
+        "1080",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "30",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ],
+      [
+        "1",
+        "33",
+        "1080",
+        "2400",
+        "dc8224a1b44d3d8d",
+        "offscreen"
+      ]
+    ],
+    "original_rotation_restored": "free",
+    "result": "passed"
+  }
+}

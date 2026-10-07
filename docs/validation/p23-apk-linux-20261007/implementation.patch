@@ -1,0 +1,570 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index b458430901..2731c37845 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -153,6 +153,13 @@ option(COIN_BUILD_LEGACY_GL_RENDERER
+   "Build Coin's legacy fixed-function OpenGL renderer."
+   ON)
+ set(COIN_HAVE_LEGACY_GL_RENDERER ${COIN_BUILD_LEGACY_GL_RENDERER})
++# Android keeps Coin's scene/type ABI, but has no desktop GL implementation.
++# This boundary makes old GL APIs unavailable rather than emulating them.
++set(COIN_ANDROID_CPU_ONLY OFF)
++if(ANDROID AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
++  set(COIN_ANDROID_CPU_ONLY ON)
++endif()
++
+ 
+ # Transitional source/build compatibility for the former WebGPU-named module.
+ # New CoinRender cache options take precedence when both names are supplied.
+diff --git a/examples/coinrender/CMakeLists.txt b/examples/coinrender/CMakeLists.txt
+index 5c6ef950ef..50ff4fb3da 100644
+--- a/examples/coinrender/CMakeLists.txt
++++ b/examples/coinrender/CMakeLists.txt
+@@ -15,6 +15,15 @@ if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
+     add_library(coin_render_android_smoke SHARED
+       coin_render_android_smoke.cpp "${_coin_android_glue}/android_native_app_glue.c")
+     target_link_libraries(coin_render_android_smoke PRIVATE CoinRender Coin android log)
++    set(COIN_RENDER_ANDROID_SMOKE_RENDERER "OPENGL" CACHE STRING
++        "Explicit default API for the Android development APK: OPENGL or VULKAN")
++    set_property(CACHE COIN_RENDER_ANDROID_SMOKE_RENDERER PROPERTY STRINGS OPENGL VULKAN)
++    if(NOT COIN_RENDER_ANDROID_SMOKE_RENDERER MATCHES "^(OPENGL|VULKAN)$")
++      message(FATAL_ERROR "COIN_RENDER_ANDROID_SMOKE_RENDERER must be OPENGL or VULKAN")
++    endif()
++    target_compile_definitions(coin_render_android_smoke PRIVATE
++      COIN_ANDROID_SMOKE_RENDERER=COIN_RENDER_RENDERER_${COIN_RENDER_ANDROID_SMOKE_RENDERER})
++
+     target_include_directories(coin_render_android_smoke PRIVATE
+       "${_coin_android_glue}"
+       ${PROJECT_SOURCE_DIR}/experimental/include
+diff --git a/examples/coinrender/coin_render_android_smoke.cpp b/examples/coinrender/coin_render_android_smoke.cpp
+index da86da5629..a62eadfc87 100644
+--- a/examples/coinrender/coin_render_android_smoke.cpp
++++ b/examples/coinrender/coin_render_android_smoke.cpp
+@@ -4,6 +4,9 @@
+ #include <android/log.h>
+ #include <android/native_window.h>
+ #include <android_native_app_glue.h>
++#include <sys/system_properties.h>
++#include <jni.h>
++#include <cstring>
+ 
+ #include <Inventor/SoDB.h>
+ #include <Inventor/actions/CoinRenderAction.h>
+@@ -17,12 +20,51 @@
+ #include <Inventor/nodes/SoSeparator.h>
+ 
+ #include <cstdint>
++#include <cstdlib>
++#include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/SoOffscreenRenderer.h>
++#include <Inventor/system/gl-headers.h>
+ #include <memory>
+ #include <vector>
+ 
+ namespace {
+ const char * const tag = "CoinRenderP23";
+ 
++// Goldfish reports no Vulkan conformance version. This opt-in is exclusively
++// for emulator diagnostics, never enabled for normal APK launches/hardware.
++bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer) {
++  char qemu[PROP_VALUE_MAX] = {};
++  __system_property_get("ro.kernel.qemu", qemu);
++  const bool isEmulator = std::strcmp(qemu, "1") == 0;
++  JNIEnv * env = nullptr;
++  JavaVM * vm = app->activity->vm;
++  const bool attach = vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) != JNI_OK;
++  if (attach && vm->AttachCurrentThread(&env, nullptr) != JNI_OK) return false;
++  bool allowed = false;
++  jclass activity = env->GetObjectClass(app->activity->clazz);
++  jmethodID getIntent = env->GetMethodID(activity, "getIntent", "()Landroid/content/Intent;");
++  jobject intent = getIntent ? env->CallObjectMethod(app->activity->clazz, getIntent) : nullptr;
++  if (intent && !env->ExceptionCheck()) {
++    jclass type = env->GetObjectClass(intent);
++    jmethodID getInt = env->GetMethodID(type, "getIntExtra", "(Ljava/lang/String;I)I");
++    jstring rendererKey = env->NewStringUTF("coinrender_renderer");
++    if (getInt) renderer = static_cast<CoinRenderRenderer>(
++        env->CallIntMethod(intent, getInt, rendererKey, jint(COIN_ANDROID_SMOKE_RENDERER)));
++    env->DeleteLocalRef(rendererKey);
++
++    jmethodID getBool = env->GetMethodID(type, "getBooleanExtra", "(Ljava/lang/String;Z)Z");
++    jstring name = env->NewStringUTF("coinrender_allow_noncompliant_vulkan");
++    if (getBool) allowed = env->CallBooleanMethod(intent, getBool, name, JNI_FALSE) == JNI_TRUE;
++    env->DeleteLocalRef(name);
++    env->DeleteLocalRef(type);
++  }
++  if (env->ExceptionCheck()) { env->ExceptionClear(); allowed = false; }
++  if (intent) env->DeleteLocalRef(intent);
++  env->DeleteLocalRef(activity);
++  if (attach) vm->DetachCurrentThread();
++  return allowed && isEmulator && renderer == COIN_RENDER_RENDERER_VULKAN;
++}
++
+ uint64_t checksum(const std::vector<uint8_t> & bytes) {
+   uint64_t value = UINT64_C(14695981039346656037);
+   for (uint8_t byte : bytes) {
+@@ -38,6 +80,7 @@ struct Host {
+   std::unique_ptr<CoinRenderAction> action;
+   std::unique_ptr<CoinRenderTarget> target;
+   uint64_t surfaceGeneration = 0;
++  CoinRenderRenderer renderer = COIN_ANDROID_SMOKE_RENDERER;
+   bool resumed = false;
+   bool failed = false;
+ 
+@@ -60,7 +103,9 @@ struct Host {
+       return;
+     }
+     action->setViewportRegion(SbViewportRegion(size[0], size[1]));
+-    if (!target->requestWindowReadbackRGBA()) {
++    const bool windowCapture = renderer != COIN_RENDER_RENDERER_OPENGL &&
++                               target->requestWindowReadbackRGBA();
++    if (!windowCapture && renderer != COIN_RENDER_RENDERER_OPENGL) {
+       failed = true;
+       __android_log_print(ANDROID_LOG_ERROR, tag, "capture request failed");
+       return;
+@@ -73,13 +118,34 @@ struct Host {
+       return;
+     }
+     std::vector<uint8_t> rgba;
+-    target->readbackRGBA(rgba);
+-    if (rgba.size() != size_t(size[0]) * size_t(size[1]) * 4u) {
++    SbVec2i32 captureSize = size;
++    if (windowCapture) {
++      target->readbackRGBA(rgba);
++    } else {
++      // GLES surfaces may lack COPY_SRC. Qualify presentation separately and
++      // capture the same scene offscreen; never call this window equivalence.
++      captureSize = SbVec2i32(64, 64);
++      CoinRenderOptions options;
++      options.renderer = renderer;
++      std::unique_ptr<CoinRenderTarget> capture(CoinRenderTarget::createOffscreen(captureSize, options));
++      CoinRenderAction captureAction(SbViewportRegion(64, 64));
++      captureAction.setRenderTarget(capture.get());
++      captureAction.apply(scene);
++      if (captureAction.getLastStatus() != CoinRenderAction::SUCCESS) {
++        failed = true;
++        __android_log_print(ANDROID_LOG_ERROR, tag, "offscreen capture failed: %s",
++                            captureAction.getLastError().getString());
++        return;
++      }
++      capture->readbackRGBA(rgba);
++      captureAction.setRenderTarget(nullptr);
++    }
++    if (rgba.size() != size_t(captureSize[0]) * size_t(captureSize[1]) * 4u) {
+       failed = true;
+       __android_log_print(ANDROID_LOG_ERROR, tag, "incomplete RGBA capture");
+       return;
+     }
+-    const size_t center = (size_t(size[1] / 2) * size_t(size[0]) + size_t(size[0] / 2)) * 4u;
++    const size_t center = (size_t(captureSize[1] / 2) * size_t(captureSize[0]) + size_t(captureSize[0] / 2)) * 4u;
+     if (rgba[center] < rgba[center + 1] + 50 || rgba[center] < rgba[center + 2] + 50) {
+       failed = true;
+       __android_log_print(ANDROID_LOG_ERROR, tag, "scene center is not red");
+@@ -96,22 +162,29 @@ struct Host {
+       return;
+     }
+     __android_log_print(ANDROID_LOG_INFO, tag,
+-      "generation=%llu serial=%llu size=%dx%d rgba_fnv64=%016llx",
++      "generation=%llu serial=%llu size=%dx%d rgba_fnv64=%016llx capture_scope=%s",
+       static_cast<unsigned long long>(surfaceGeneration),
+       static_cast<unsigned long long>(target->getLastSubmissionSerial()),
+-      size[0], size[1], static_cast<unsigned long long>(checksum(rgba)));
++      size[0], size[1], static_cast<unsigned long long>(checksum(rgba)),
++      windowCapture ? "window" : "offscreen");
+   }
+ 
+   void createSurface() {
+     releaseSurface();
+     if (!app->window) return;
++    if (renderer == COIN_RENDER_RENDERER_OPENGL &&
++        ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGBA_8888) != 0) {
++      failed = true;
++      __android_log_print(ANDROID_LOG_ERROR, tag, "native RGBA8 buffer geometry failed");
++      return;
++    }
+     CoinRenderNativeSurfaceDescriptor native{};
+     native.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
+     native.structSize = sizeof(native);
+     native.type = COIN_RENDER_SURFACE_ANDROID_NDK;
+     native.native.android.nativeWindow = app->window;
+     CoinRenderOptions options;
+-    options.renderer = COIN_RENDER_RENDERER_VULKAN;
++    options.renderer = renderer;
+     const SbVec2i32 size(ANativeWindow_getWidth(app->window),
+                          ANativeWindow_getHeight(app->window));
+     target.reset(CoinRenderTarget::createWindow(native, size, options));
+@@ -127,7 +200,7 @@ struct Host {
+     if (target->getLastSubmissionSerial() != 0) {
+       CoinRenderCapabilities caps{};
+       if (coin_render_query_capabilities_for_renderer(COIN_RENDER_EXPERIMENTAL_ANDROID_WINDOW,
+-          COIN_RENDER_RENDERER_VULKAN, &caps, sizeof(caps)) == 0) {
++          renderer, &caps, sizeof(caps)) == 0) {
+         __android_log_print(ANDROID_LOG_INFO, tag,
+           "renderer=%u vendor=%04x device=%04x adapter=%s",
+           caps.renderer, caps.vendor_id, caps.device_id, caps.adapter_name);
+@@ -155,6 +228,15 @@ void onCommand(android_app * app, int32_t command) {
+       break;
+     case APP_CMD_WINDOW_RESIZED:
+     case APP_CMD_CONFIG_CHANGED:
++    case APP_CMD_CONTENT_RECT_CHANGED:
++      // GLES configuration overrides buffer dimensions. Reset that override
++      // before querying the new window base size after layout/rotation.
++      if (host.renderer == COIN_RENDER_RENDERER_OPENGL && app->window &&
++          ANativeWindow_setBuffersGeometry(app->window, 0, 0, WINDOW_FORMAT_RGBA_8888) != 0) {
++        host.failed = true;
++        __android_log_print(ANDROID_LOG_ERROR, tag, "native resize geometry failed");
++        break;
++      }
+       host.render();
+       break;
+     default:
+@@ -164,10 +246,19 @@ void onCommand(android_app * app, int32_t command) {
+ }
+ 
+ extern "C" void android_main(android_app * app) {
++  setenv("COIN_WGPU_LOG", "debug", 0);
++  CoinRenderRenderer requestedRenderer = COIN_ANDROID_SMOKE_RENDERER;
++  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer);
++  setenv("WGPU_ALLOW_UNDERLYING_NONCOMPLIANT_ADAPTER", emulatedVulkan ? "1" : "0", 1);
++  __android_log_print(ANDROID_LOG_INFO, tag,
++                      "emulator_noncompliant_vulkan_opt_in=%d", emulatedVulkan ? 1 : 0);
++
+   SoDB::init();
+   CoinRenderAction::initClass();
+   Host host;
+   host.app = app;
++  host.renderer = requestedRenderer;
++  __android_log_print(ANDROID_LOG_INFO, tag, "requested_renderer=%u", unsigned(host.renderer));
+   host.action.reset(new CoinRenderAction);
+   host.scene = new SoSeparator;
+   host.scene->ref();
+@@ -182,6 +273,18 @@ extern "C" void android_main(android_app * app) {
+   material->diffuseColor.setValue(1, 0, 0);
+   host.scene->addChild(material);
+   host.scene->addChild(new SoCube);
++#if COIN_ANDROID_CPU_ONLY
++  {
++    SoGLRenderAction legacy(SbViewportRegion(32, 32));
++    legacy.apply(host.scene);
++    SoOffscreenRenderer offscreen(SbViewportRegion(32, 32));
++    const bool rejected = legacy.hasTerminated() && !offscreen.render(host.scene);
++    host.failed = !rejected;
++    __android_log_print(rejected ? ANDROID_LOG_INFO : ANDROID_LOG_ERROR, tag,
++                        "legacy_gl_unavailable=%d", rejected ? 1 : 0);
++  }
++#endif
++
+   app->userData = &host;
+   app->onAppCmd = onCommand;
+ 
+diff --git a/include/CMakeLists.txt b/include/CMakeLists.txt
+index 8fbedbbeaf..8800f7baa1 100644
+--- a/include/CMakeLists.txt
++++ b/include/CMakeLists.txt
+@@ -1,3 +1,15 @@
++# Legacy scalar/token declarations keep Coin node ABI usable in the Android
++# CPU profile. No OpenGL library or GLES substitution is linked.
++if(COIN_ANDROID_CPU_ONLY)
++  foreach(_header gl.h glext.h)
++    configure_file("${PROJECT_SOURCE_DIR}/src/glue/khronos/GL/${_header}"
++      "${CMAKE_CURRENT_BINARY_DIR}/Inventor/system/legacy-gl/${_header}" COPYONLY)
++    install(FILES "${CMAKE_CURRENT_BINARY_DIR}/Inventor/system/legacy-gl/${_header}"
++      DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/Inventor/system/legacy-gl"
++      COMPONENT development)
++  endforeach()
++endif()
++
+ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Inventor/C/basic.h.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Inventor/C/basic.h)
+ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Inventor/system/gl-headers.h.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Inventor/system/gl-headers.h)
+ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Inventor/system/inttypes.h.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/Inventor/system/inttypes.h)
+diff --git a/include/Inventor/system/gl-headers.h.cmake.in b/include/Inventor/system/gl-headers.h.cmake.in
+index 4537270f20..ac9c63bcde 100644
+--- a/include/Inventor/system/gl-headers.h.cmake.in
++++ b/include/Inventor/system/gl-headers.h.cmake.in
+@@ -46,7 +46,11 @@
+ #define GL_GLEXT_PROTOTYPES 1
+ #endif
+ 
+-#if defined(COIN_BUILDING_COIN) && defined(_WIN32)
++#cmakedefine01 COIN_ANDROID_CPU_ONLY
++
++#if COIN_ANDROID_CPU_ONLY
++# include <Inventor/system/legacy-gl/gl.h>
++#elif defined(COIN_BUILDING_COIN) && defined(_WIN32)
+ #  include <windows.h>
+ #  include <GL/gl.h>
+ #  include "glue/khronos/GL/glext.h"
+diff --git a/src/actions/SoAction.cpp b/src/actions/SoAction.cpp
+index b7a8864b17..a048734221 100644
+--- a/src/actions/SoAction.cpp
++++ b/src/actions/SoAction.cpp
+@@ -461,6 +461,16 @@ SoAction::isOfType(SoType type) const
+ void
+ SoAction::apply(SoNode * root)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  // Reject before getState(): GL element initialization itself calls GL.
++  if (this->isOfType(SoGLRenderAction::getClassTypeId())) {
++    SoDebugError::post("SoAction::apply",
++                      "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
++    this->setTerminated(TRUE);
++    return;
++  }
++#endif
++
+   SoDB::readlock();
+   // need to store these in case action is re-applied
+   AppliedCode storedcode = PRIVATE(this)->appliedcode;
+@@ -615,6 +625,16 @@ SoAction::apply(SoNode * root)
+ void
+ SoAction::apply(SoPath * path)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  // Reject before getState(): GL element initialization itself calls GL.
++  if (this->isOfType(SoGLRenderAction::getClassTypeId())) {
++    SoDebugError::post("SoAction::apply",
++                      "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
++    this->setTerminated(TRUE);
++    return;
++  }
++#endif
++
+   SoDB::readlock();
+   // need to store these in case action in reapplied
+   AppliedCode storedcode = PRIVATE(this)->appliedcode;
+@@ -677,6 +697,16 @@ SoAction::apply(SoPath * path)
+ void
+ SoAction::apply(const SoPathList & pathlist, SbBool obeysrules)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  // Reject before getState(): GL element initialization itself calls GL.
++  if (this->isOfType(SoGLRenderAction::getClassTypeId())) {
++    SoDebugError::post("SoAction::apply",
++                      "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
++    this->setTerminated(TRUE);
++    return;
++  }
++#endif
++
+   SoDB::readlock();
+   // This is a pretty good indicator on whether or not we remembered
+   // to use the SO_ACTION_CONSTRUCTOR() macro in the constructor of
+diff --git a/src/actions/SoGLRenderAction.cpp b/src/actions/SoGLRenderAction.cpp
+index fc5b26aac5..60bcbca270 100644
+--- a/src/actions/SoGLRenderAction.cpp
++++ b/src/actions/SoGLRenderAction.cpp
+@@ -1220,6 +1220,13 @@ SoGLRenderAction::getSortedLayersNumPasses() const
+ void
+ SoGLRenderAction::beginTraversal(SoNode * node)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  SoDebugError::post("SoGLRenderAction::beginTraversal",
++                     "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
++  this->setTerminated(TRUE);
++  return;
++#endif
++
+   if (PRIVATE(this)->cachedprofilingsg == NULL) {
+     SoGroup * group = coin_safe_cast<SoGroup *>(node);
+     if (group && group->getNumChildren() > 0) {
+diff --git a/src/config.h.cmake.in b/src/config.h.cmake.in
+index d6134883fc..64f0618e20 100644
+--- a/src/config.h.cmake.in
++++ b/src/config.h.cmake.in
+@@ -489,3 +489,6 @@
+ 
+ /* Enable thread check in several central Coin functions. */
+ #cmakedefine COIN_DEBUG_CHECK_THREAD
++
++/* Android scene ABI without a legacy desktop OpenGL implementation. */
++#cmakedefine01 COIN_ANDROID_CPU_ONLY
+diff --git a/src/glue/dl.cpp b/src/glue/dl.cpp
+index db2f6ebf33..5051e51601 100644
+--- a/src/glue/dl.cpp
++++ b/src/glue/dl.cpp
+@@ -1036,6 +1036,9 @@ cc_dl_coin_handle(void)
+ cc_libhandle
+ cc_dl_opengl_handle(void)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  return NULL;
++#else
+ #ifndef OPENGL_SYSTEM_LIBRARY_NAME /* should usually be available in config.h */
+ #define OPENGL_SYSTEM_LIBRARY_NAME "libGL.so"
+ #endif
+@@ -1071,6 +1074,7 @@ cc_dl_opengl_handle(void)
+      sure to clean up to avoid resource leak. */
+   if (hnd) { cc_dl_close(hnd); }
+   return NULL;
++#endif /* COIN_ANDROID_CPU_ONLY */
+ }
+ 
+ /* 
+diff --git a/src/glue/khronos/PROVENANCE.txt b/src/glue/khronos/PROVENANCE.txt
+index 36cd008fc6..1d00dff709 100644
+--- a/src/glue/khronos/PROVENANCE.txt
++++ b/src/glue/khronos/PROVENANCE.txt
+@@ -37,3 +37,16 @@ tip commit retain their earlier generated version values.
+ 
+ If these headers are updated, record the exact upstream commit or release,
+ the update date, and any Coin-specific modifications here.
++
++Android legacy ABI declarations (GL/gl.h)
++---------------------------------------
++Import date: 2026-10-07
++Source: https://github.com/NVIDIA/libglvnd/blob/v1.7.0/include/GL/gl.h
++Original SHA-256: 1989b51365b6d7d0c48ff6e8b181ef75e2cdf71bfb1626b1cc4362e2f54854a3
++The upstream bytes matched /usr/include/GL/gl.h from libgl-dev 1.7.0-1build1.
++The Mesa copyright and MIT license remain in the file.
++Coin modifications: the glext.h include is relative for SDK relocation;
++GLAPI declarations become weak only for COIN_ANDROID_CPU_ONLY. These are ABI
++scalar/token/function declarations, without a driver implementation. The
++Android profile rejects legacy rendering before initializing GL state.
++The other Khronos files listed above remain unchanged.
+diff --git a/src/rendering/SoOffscreenRenderer.cpp b/src/rendering/SoOffscreenRenderer.cpp
+index ac79aff2e8..b524baff8c 100644
+--- a/src/rendering/SoOffscreenRenderer.cpp
++++ b/src/rendering/SoOffscreenRenderer.cpp
+@@ -1006,6 +1006,12 @@ SoOffscreenRendererP::renderFromBase(SoBase * base)
+ SbBool
+ SoOffscreenRenderer::render(SoNode * scene)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  SoDebugError::post("SoOffscreenRenderer::render",
++                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderTarget");
++  return FALSE;
++#endif
++
+   return PRIVATE(this)->renderFromBase(scene);
+ }
+ 
+@@ -1015,6 +1021,12 @@ SoOffscreenRenderer::render(SoNode * scene)
+ SbBool
+ SoOffscreenRenderer::render(SoPath * scene)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  SoDebugError::post("SoOffscreenRenderer::render",
++                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderTarget");
++  return FALSE;
++#endif
++
+   return PRIVATE(this)->renderFromBase(scene);
+ }
+ 
+diff --git a/src/rendering/SoRenderManager.cpp b/src/rendering/SoRenderManager.cpp
+index 06698ae9ae..f4e120f8e8 100644
+--- a/src/rendering/SoRenderManager.cpp
++++ b/src/rendering/SoRenderManager.cpp
+@@ -48,6 +48,7 @@
+ */
+ 
+ #include <Inventor/SoRenderManager.h>
++#include <Inventor/errors/SoDebugError.h>
+ #include <Inventor/elements/SoLinePatternElement.h>
+ #include <Inventor/elements/SoLineWidthElement.h>
+ #include <Inventor/elements/SoDrawStyleElement.h>
+@@ -589,6 +590,12 @@ SoRenderManager::removeSuperimposition(Superimposition * s)
+ void
+ SoRenderManager::render(const SbBool clearwindow, const SbBool clearzbuffer)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  SoDebugError::post("SoRenderManager::render",
++                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
++  return;
++#endif
++
+   // FIXME: according to a user, TGS Inventor seems to disable the
+   // redraw SoOneShotSensor while the scene graph is being rendered,
+   // which Coin does not do. SGI Inventor probably has the same
+@@ -717,6 +724,12 @@ SoRenderManager::render(SoGLRenderAction * action,
+                         const SbBool clearwindow,
+                         const SbBool clearzbuffer)
+ {
++#if COIN_ANDROID_CPU_ONLY
++  SoDebugError::post("SoRenderManager::render",
++                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
++  return;
++#endif
++
+   SbBool clearwindow_tmp = clearwindow; // make sure we only clear the color buffer once
+   PRIVATE(this)->invokePreRenderCallbacks();
+ 
+diff --git a/src/rendering/coinwgpu/rust_bridge/Cargo.lock b/src/rendering/coinwgpu/rust_bridge/Cargo.lock
+index bf4d452f3c..3e87f0b613 100644
+--- a/src/rendering/coinwgpu/rust_bridge/Cargo.lock
++++ b/src/rendering/coinwgpu/rust_bridge/Cargo.lock
+@@ -121,6 +121,7 @@ name = "coin_wgpu_rust_bridge"
+ version = "0.1.0"
+ dependencies = [
+  "bytemuck",
++ "log",
+  "naga",
+  "pollster",
+  "raw-window-handle",
+diff --git a/src/rendering/coinwgpu/rust_bridge/Cargo.toml b/src/rendering/coinwgpu/rust_bridge/Cargo.toml
+index 894f00cd89..c3519fe880 100644
+--- a/src/rendering/coinwgpu/rust_bridge/Cargo.toml
++++ b/src/rendering/coinwgpu/rust_bridge/Cargo.toml
+@@ -11,6 +11,7 @@ wgpu = "24"
+ pollster = "0.4"
+ bytemuck = { version = "1.21", features = ["derive"] }
+ raw-window-handle = "0.6"
++log = "0.4"
+ 
+ [dev-dependencies]
+ naga = { version = "24", features = ["wgsl-in", "glsl-out"] }
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 5f94ceac9d..f7dccb9dd5 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -28,6 +28,8 @@ mod uniform_arena;
+ mod shader_profile;
+ mod depth_transfer;
+ mod instancing;
++#[cfg(target_os = "android")]
++mod android_log;
+ 
+ pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 49;
+ pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
+@@ -1979,6 +1981,8 @@ unsafe fn create_surface_from_descriptor(
+ }
+ 
+ fn init_runtime_if_needed() -> Result<(), String> {
++    #[cfg(target_os = "android")]
++    android_log::init();
+     let mut guard = RUNTIME_CTX.lock().map_err(|e| e.to_string())?;
+     if guard.is_none() {
+         *guard = Some(RuntimeContext {
+@@ -2044,9 +2048,11 @@ fn get_or_init_device_impl<'a>(
+ 
+     let adapter = if let Some(backends) = backend {
+         runtime.instance.enumerate_adapters(backends).into_iter().find(|candidate| {
++            log::debug!("Requested renderer candidate: {:?}", candidate.get_info());
+             if candidate.get_info().device_type == wgpu::DeviceType::Cpu { return false; }
+             target_surface.map_or(true, |surface| {
+                 let caps = surface.get_capabilities(candidate);
++                log::debug!("Surface capabilities: {:?}", caps);
+                 !caps.formats.is_empty() && !caps.present_modes.is_empty()
+             })
+         }).ok_or_else(|| "No physical adapter for the requested renderer and surface".to_string())?
+@@ -5028,6 +5034,21 @@ pub extern "C" fn coin_wgpu_surface_create(
+         };
+         let runtime = guard.as_mut().unwrap();
+ 
++        #[cfg(target_os = "android")]
++        if runtime.device_state.is_none() && runtime.surfaces.is_empty()
++            && runtime.extra_devices.is_empty() && runtime.pending_readbacks.is_empty()
++            && runtime.retired_readbacks.is_empty()
++        {
++            if let Ok(Some(backends)) = renderer_backend(inf.renderer) {
++                // ANativeWindow admits one native graphics connection. Creating
++                // EGL and Vulkan surfaces for it at once can yield EGL_BAD_ALLOC.
++                // Narrow only an unused runtime; never replace a live device.
++                let mut descriptor = wgpu::InstanceDescriptor::from_env_or_default();
++                descriptor.backends = backends;
++                runtime.instance = wgpu::Instance::new(&descriptor);
++            }
++        }
++
+         // Create surface from native handles
+         let surface =
+             match unsafe { create_surface_from_descriptor(&runtime.instance, &inf.native) } {

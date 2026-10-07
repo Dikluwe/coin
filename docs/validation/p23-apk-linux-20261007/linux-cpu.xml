@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="5"
+	failures="0"
+	disabled="0"
+	skipped="0"
+	hostname=""
+	time="1"
+	timestamp="2026-10-07T14:52:31"
+	>
+	<testcase name="CoinTests" classname="CoinTests" time="1.02632" status="run">
+		<properties/>
+		<system-out>Coin info in cc_dict_print_stat(): Used buckets 0 of 2 (0 elements), avg chain length: 0.00, max chain length: 0
+
+Coin info in cc_hash_print_stat(): Used buckets 0 of 2 (0 elements), avg chain length: 0.00, max chain length: 0
+
+Coin warning in SoVRMLScript::initialize(): No script language evaluation engine available.
+[OK] 418 tests, 309076 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderActionTest" classname="CoinRenderActionTest" time="0.376394" status="run">
+		<properties/>
+		<system-out>Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameCoreTest" classname="CoinRenderFrameCoreTest" time="0.0166297" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="0.209889" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameReuseCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderNodeInventoryTest" classname="CoinRenderNodeInventoryTest" time="0.0380675" status="run">
+		<properties/>
+		<system-out>P15/P25: GL-only characterization, native raster, delegation, effect gates and subclass callbacks characterized
+</system-out>
+	</testcase>
+</testsuite>

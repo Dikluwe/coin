@@ -1,0 +1,16 @@
+{
+  "pid": "8108",
+  "command": [
+    "/home/dikluwe/Android/Sdk/platform-tools/adb",
+    "-s",
+    "emulator-5554",
+    "shell",
+    "am",
+    "start",
+    "-W",
+    "-f",
+    "0x10008000",
+    "-n",
+    "org.coin3d.coinrender.p23/android.app.NativeActivity"
+  ]
+}

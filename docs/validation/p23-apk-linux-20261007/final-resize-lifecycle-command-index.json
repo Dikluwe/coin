@@ -1,0 +1,226 @@
+[
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1716116,
+    "stdout_sha256": "56e050524367c17e4c9db8f12bedebd5c4dd53f68666cb905acc5c6c2a849c0f"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "shell",
+      "input",
+      "keyevent",
+      "KEYCODE_HOME"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "shell",
+      "am",
+      "start",
+      "-W",
+      "-n",
+      "org.coin3d.coinrender.p23/android.app.NativeActivity"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 276,
+    "stdout_sha256": "39c012a55eeac593b649e725e3d8b79357e58c3118483c875397d49e71b93a0a",
+    "stdout": "Starting: Intent { cmp=org.coin3d.coinrender.p23/android.app.NativeActivity }\nWarning: Activity not started, its current task has been brought to the front\nStatus: ok\nLaunchState: UNKNOWN (0)\nActivity: org.coin3d.coinrender.p23/android.app.NativeActivity\nWaitTime: 6\nComplete\n"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1716911,
+    "stdout_sha256": "e0bc81aaa6f31a1e5f494c97f8bbcb47f39a7bd8075bed6de719411188c1aab0"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "shell",
+      "wm",
+      "user-rotation"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 5,
+    "stdout_sha256": "0cf9340d8bc2f1f7836e0ce6e2178d5fd382bde7fc50dc845dbf228dee3713b4",
+    "stdout": "free\n"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "shell",
+      "wm",
+      "user-rotation",
+      "lock",
+      "1"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1717607,
+    "stdout_sha256": "02bcdae8e98cc8d2644ef8a5800ebe3966a5b193e9ecfa36528126b0de0122e6"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1718215,
+    "stdout_sha256": "92c22bf83521ecf825fa157034c3625c61a8a6c8d90f0863842be6f499fadfa2"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "shell",
+      "wm",
+      "user-rotation",
+      "free"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "shell",
+      "input",
+      "keyevent",
+      "KEYCODE_BACK"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stdout": ""
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1719519,
+    "stdout_sha256": "a15ff66876df5ef4bb515f5080b2e8a57f993cfa62287ef4227f566a95234666"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1719519,
+    "stdout_sha256": "a15ff66876df5ef4bb515f5080b2e8a57f993cfa62287ef4227f566a95234666"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1719519,
+    "stdout_sha256": "a15ff66876df5ef4bb515f5080b2e8a57f993cfa62287ef4227f566a95234666"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1719519,
+    "stdout_sha256": "a15ff66876df5ef4bb515f5080b2e8a57f993cfa62287ef4227f566a95234666"
+  },
+  {
+    "command": [
+      "/home/dikluwe/Android/Sdk/platform-tools/adb",
+      "-s",
+      "emulator-5554",
+      "logcat",
+      "-d",
+      "--pid=8108"
+    ],
+    "exit": 0,
+    "stderr": "",
+    "stdout_bytes": 1719885,
+    "stdout_sha256": "183ca0a68208455136f74ce86dd1252863d5a29a646abe1c2f99ce746f5acbe4"
+  }
+]

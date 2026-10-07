@@ -1,0 +1,79 @@
+--------- beginning of crash
+10-07 14:46:55.467  7084  7084 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+10-07 14:46:55.467  7084  7084 F DEBUG   : Build fingerprint: 'google/sdk_gphone64_x86_64/emu64xa:17/CE2A.260420.019/15611780:user/release-keys'
+10-07 14:46:55.467  7084  7084 F DEBUG   : Kernel Release: '6.12.58-android16-6-gccafb60de224-ab14828483'
+10-07 14:46:55.467  7084  7084 F DEBUG   : Revision: '0'
+10-07 14:46:55.467  7084  7084 F DEBUG   : ABI: 'x86_64'
+10-07 14:46:55.467  7084  7084 F DEBUG   : Timestamp: 2026-10-07 14:46:55.070077960-0300
+10-07 14:46:55.467  7084  7084 F DEBUG   : Process uptime: 1s
+10-07 14:46:55.467  7084  7084 F DEBUG   : Executable: /system/bin/app_process64
+10-07 14:46:55.467  7084  7084 F DEBUG   : Cmdline: org.coin3d.coinrender.p23
+10-07 14:46:55.467  7084  7084 F DEBUG   : pid: 7064, ppid: 476, tid: 7080, name: .coinrender.p23  >>> org.coin3d.coinrender.p23 <<<
+10-07 14:46:55.467  7084  7084 F DEBUG   : uid: 10235
+10-07 14:46:55.467  7084  7084 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0000000000000000 (read)
+10-07 14:46:55.467  7084  7084 F DEBUG   : Cause: null pointer dereference
+10-07 14:46:55.467  7084  7084 F DEBUG   :     rax 00007f1948675328  rbx 00007f1b276276f8  rcx 00007f1b7760c230  rdx b2e4000000048105
+10-07 14:46:55.467  7084  7084 F DEBUG   :     r8  0000000000000000  r9  0000000000000000  r10 0000000000000001  r11 ffffffffffffffff
+10-07 14:46:55.467  7084  7084 F DEBUG   :     r12 0000000000000056  r13 00007f1aa7614970  r14 00007f1a2764aa60  r15 000000000000001d
+10-07 14:46:55.467  7084  7084 F DEBUG   :     rdi 0000000000000c11  rsi 00007f1a2764aa60
+10-07 14:46:55.467  7084  7084 F DEBUG   :     rbp 00007f19a6843e10  rsp 00007f19a6843db8  rip 0000000000000000  err 0000000000000014
+10-07 14:46:55.467  7084  7084 F DEBUG   : 8 total frames
+10-07 14:46:55.467  7084  7084 F DEBUG   : backtrace:
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #00 pc 0000000000000000  <unknown>
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #01 pc 000000000061a99f  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libCoin.so (SoState::SoState(SoAction*, SoTypeList const&)+287) (BuildId: fcd00a2c269d4db802b3892537fc44ae3037d603)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #02 pc 000000000042c1dd  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libCoin.so (SoAction::getState() const+125) (BuildId: fcd00a2c269d4db802b3892537fc44ae3037d603)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #03 pc 000000000042bf10  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libCoin.so (SoAction::apply(SoNode*)+160) (BuildId: fcd00a2c269d4db802b3892537fc44ae3037d603)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #04 pc 0000000000004626  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libcoin_render_android_smoke.so (android_main+454) (BuildId: dd836005d87635f049b6038f39bef8d809cd05b7)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #05 pc 0000000000005f9c  /data/app/~~EKTP5u2v6AkKduVvrw5lmg==/org.coin3d.coinrender.p23-6skazm3uAj6Axoxv6Nw3qA==/lib/x86_64/libcoin_render_android_smoke.so (BuildId: dd836005d87635f049b6038f39bef8d809cd05b7)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #06 pc 000000000008c7af  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*) (.__uniq.67847048707805468364044055584648682506)+63) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+10-07 14:46:55.467  7084  7084 F DEBUG   :       #07 pc 000000000008670d  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+45) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+10-07 14:46:55.467  7084  7084 F DEBUG   : Note: To display stack pointer information, use the pbtombstone tool:
+10-07 14:46:55.467  7084  7084 F DEBUG   :         pbtombstone --display-sp tombstone_XX.pb
+10-07 14:52:29.700  7417  7417 F DEBUG   : *** *** *** *** *** *** *** *** *** *** *** *** *** *** *** ***
+10-07 14:52:29.700  7417  7417 F DEBUG   : Build fingerprint: 'google/sdk_gphone64_x86_64/emu64xa:17/CE2A.260420.019/15611780:user/release-keys'
+10-07 14:52:29.700  7417  7417 F DEBUG   : Kernel Release: '6.12.58-android16-6-gccafb60de224-ab14828483'
+10-07 14:52:29.700  7417  7417 F DEBUG   : Revision: '0'
+10-07 14:52:29.700  7417  7417 F DEBUG   : ABI: 'x86_64'
+10-07 14:52:29.700  7417  7417 F DEBUG   : Timestamp: 2026-10-07 14:52:29.609923686-0300
+10-07 14:52:29.700  7417  7417 F DEBUG   : Process uptime: 2s
+10-07 14:52:29.700  7417  7417 F DEBUG   : Executable: /system/bin/app_process64
+10-07 14:52:29.700  7417  7417 F DEBUG   : Cmdline: org.coin3d.coinrender.p23
+10-07 14:52:29.700  7417  7417 F DEBUG   : pid: 7391, ppid: 476, tid: 7406, name: Thread-2  >>> org.coin3d.coinrender.p23 <<<
+10-07 14:52:29.700  7417  7417 F DEBUG   : uid: 10235
+10-07 14:52:29.700  7417  7417 F DEBUG   : signal 11 (SIGSEGV), code 1 (SEGV_MAPERR), fault addr 0x0000000000000000 (read)
+10-07 14:52:29.700  7417  7417 F DEBUG   : Cause: null pointer dereference
+10-07 14:52:29.700  7417  7417 F DEBUG   :     rax 00007f1a77635410  rbx 00007f1a2765ec20  rcx 0000000000000000  rdx c423000000008101
+10-07 14:52:29.700  7417  7417 F DEBUG   :     r8  0000000000000000  r9  0000000000000000  r10 0000000000000000  r11 0000000000000217
+10-07 14:52:29.700  7417  7417 F DEBUG   :     r12 0000000000000000  r13 00007f1a77635410  r14 00007f1a77635418  r15 0000000000000000
+10-07 14:52:29.700  7417  7417 F DEBUG   :     rdi 00007f1c8f1916c4  rsi 0000000000008000
+10-07 14:52:29.700  7417  7417 F DEBUG   :     rbp 00007f19a6834bf0  rsp 00007f19a6834bb0  rip 00007f1949bbeb95  err 0000000000000004
+10-07 14:52:29.700  7417  7417 F DEBUG   : 26 total frames
+10-07 14:52:29.700  7417  7417 F DEBUG   : backtrace:
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #00 pc 0000000000166b95  /vendor/lib64/hw/vulkan.ranchu.so (std::__1::vector<unsigned long, std::__1::allocator<unsigned long>>::push_back[abi:nn220000](unsigned long const&)+165) (BuildId: 6af04031d41e7167af0f763631c4cefb)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #01 pc 000000000017b83f  /vendor/lib64/hw/vulkan.ranchu.so (gfxstream::vk::ResourceTracker::on_vkQueueSubmit(void*, VkResult, VkQueue_T*, unsigned int, VkSubmitInfo const*, VkFence_T*)+4607) (BuildId: 6af04031d41e7167af0f763631c4cefb)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #02 pc 00000000001cb338  /vendor/lib64/hw/vulkan.ranchu.so (gfxstream_vk_QueueSubmit+1960) (BuildId: 6af04031d41e7167af0f763631c4cefb)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #03 pc 0000000000027ac5  /system/lib64/libvulkan.so (vulkan::driver::QueueSubmit(VkQueue_T*, unsigned int, VkSubmitInfo const*, VkFence_T*)+53) (BuildId: 3905fb4774671b2327c4fa24b8d70850)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #04 pc 000000000058230e  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (_$LT$wgpu_hal..vulkan..Queue$u20$as$u20$wgpu_hal..Queue$GT$::submit::h37277c5ba1f5fa83+2302) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #05 pc 0000000000487499  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #06 pc 00000000004d2568  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (wgpu_core::device::queue::Queue::submit::h96de61c3bd1a8bc3+8008) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #07 pc 00000000004329a7  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (wgpu_core::device::queue::_$LT$impl$u20$wgpu_core..global..Global$GT$::queue_submit::h6bcccff250e44faf+215) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #08 pc 00000000003f4f07  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (_$LT$wgpu..backend..wgpu_core..CoreQueue$u20$as$u20$wgpu..dispatch..QueueInterface$GT$::submit::h2be34a81f0772c54+199) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #09 pc 00000000003e170d  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #10 pc 00000000003a231f  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #11 pc 000000000039e8ee  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #12 pc 00000000003b365d  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (coin_wgpu_surface_submit_readback+13) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #13 pc 0000000000375c86  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (CoinWgpuBackend::submitInternal(CoinRenderFramePlan const&, CoinRenderTargetP&, CoinRenderReadbackTicket*, CoinRenderFrameReuseDecision const&)+694) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #14 pc 0000000000376223  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (CoinWgpuBackend::submit(CoinRenderFramePlan const&, CoinRenderTargetP&, CoinRenderFrameReuseDecision const&)+19) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #15 pc 0000000000334246  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (CoinRenderTargetP::executeFrameInternal(CoinRenderFramePlan const&, CoinRenderReadbackTicket*, CoinRenderFrameReuseDecision const&, CoinRenderFramePreflight const*)+2134) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #16 pc 0000000000334ca5  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (CoinRenderTargetP::executeFrame(CoinRenderFramePlan const&, CoinRenderFrameReuseDecision const&, CoinRenderFramePreflight const*)+21) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #17 pc 0000000000338f16  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #18 pc 00000000003372de  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libCoinRender.so (CoinRenderAction::apply(SoNode*)+46) (BuildId: f8a385c1f99615392ba82e3f9df970f7111faab2)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #19 pc 0000000000005369  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libcoin_render_android_smoke.so (BuildId: e4b83cf5c01309149a14e818d18a577ee103c913)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #20 pc 000000000000502b  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libcoin_render_android_smoke.so (BuildId: e4b83cf5c01309149a14e818d18a577ee103c913)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #21 pc 000000000000674b  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libcoin_render_android_smoke.so (BuildId: e4b83cf5c01309149a14e818d18a577ee103c913)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #22 pc 0000000000004a83  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libcoin_render_android_smoke.so (android_main+979) (BuildId: e4b83cf5c01309149a14e818d18a577ee103c913)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #23 pc 000000000000660c  /data/app/~~tDOaiw1pWNMlVCK6cT9ANQ==/org.coin3d.coinrender.p23-2fSCqzmyMFm9XPjoGX2Cxw==/lib/x86_64/libcoin_render_android_smoke.so (BuildId: e4b83cf5c01309149a14e818d18a577ee103c913)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #24 pc 000000000008c7af  /apex/com.android.runtime/lib64/bionic/libc.so (__pthread_start(void*) (.__uniq.67847048707805468364044055584648682506)+63) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+10-07 14:52:29.701  7417  7417 F DEBUG   :       #25 pc 000000000008670d  /apex/com.android.runtime/lib64/bionic/libc.so (__start_thread+45) (BuildId: aa76614279c09bc4bbbbbec6ba4a811e)
+10-07 14:52:29.701  7417  7417 F DEBUG   : Note: To display stack pointer information, use the pbtombstone tool:
+10-07 14:52:29.701  7417  7417 F DEBUG   :         pbtombstone --display-sp tombstone_XX.pb

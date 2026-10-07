@@ -1,0 +1,191 @@
+["/home/dikluwe/Android/Sdk/ndk/30.0.16248370/toolchains/llvm/prebuilt/linux-x86_64/bin/llvm-readelf", "-h", "-l", "-d", "--dyn-syms", "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/apk-final-resize-x86_64/native-x86_64/libcoin_render_android_smoke.so"]
+ELF Header:
+  Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
+  Class:                             ELF64
+  Data:                              2's complement, little endian
+  Version:                           1 (current)
+  OS/ABI:                            UNIX - System V
+  ABI Version:                       0
+  Type:                              DYN (Shared object file)
+  Machine:                           Advanced Micro Devices X86-64
+  Version:                           0x1
+  Entry point address:               0x0
+  Start of program headers:          64 (bytes into file)
+  Start of section headers:          47056 (bytes into file)
+  Flags:                             0x0
+  Size of this header:               64 (bytes)
+  Size of program headers:           56 (bytes)
+  Number of program headers:         9
+  Size of section headers:           64 (bytes)
+  Number of section headers:         26
+  Section header string table index: 25
+
+Elf file type is DYN (Shared object file)
+Entry point 0x0
+There are 9 program headers, starting at offset 64
+
+Program Headers:
+  Type           Offset   VirtAddr           PhysAddr           FileSiz  MemSiz   Flg Align
+  PHDR           0x000040 0x0000000000000040 0x0000000000000040 0x0001f8 0x0001f8 R   0x8
+  LOAD           0x000000 0x0000000000000000 0x0000000000000000 0x00aee0 0x00aee0 R E 0x4000
+  LOAD           0x00aee0 0x000000000000eee0 0x000000000000eee0 0x0005c0 0x001120 RW  0x4000
+  LOAD           0x00b4a0 0x00000000000134a0 0x00000000000134a0 0x000020 0x000860 RW  0x4000
+  DYNAMIC        0x00af80 0x000000000000ef80 0x000000000000ef80 0x0001e0 0x0001e0 RW  0x8
+  GNU_RELRO      0x00aee0 0x000000000000eee0 0x000000000000eee0 0x0005c0 0x001120 R   0x1
+  GNU_EH_FRAME   0x003c14 0x0000000000003c14 0x0000000000003c14 0x00026c 0x00026c R   0x4
+  GNU_STACK      0x000000 0x0000000000000000 0x0000000000000000 0x000000 0x000000 RW  0x0
+  NOTE           0x000238 0x0000000000000238 0x0000000000000238 0x0000bc 0x0000bc R   0x4
+
+ Section to Segment mapping:
+  Segment Sections...
+   00     
+   01     .note.android.ident .note.gnu.build-id .dynsym .gnu.version .gnu.version_r .gnu.hash .dynstr .rela.dyn .rela.plt .rodata .gcc_except_table .eh_frame_hdr .eh_frame .text .plt 
+   02     .data.rel.ro .fini_array .dynamic .got .got.plt .relro_padding 
+   03     .data .bss 
+   04     .dynamic 
+   05     .data.rel.ro .fini_array .dynamic .got .got.plt .relro_padding 
+   06     .eh_frame_hdr 
+   07     
+   08     .note.android.ident .note.gnu.build-id 
+   None   .comment .shstrtab 
+Dynamic section at offset 0xaf80 contains 30 entries:
+  Tag                Type           Name/Value
+  0x0000000000000001 (NEEDED)       Shared library: [libCoinRender.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libCoin.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libandroid.so]
+  0x0000000000000001 (NEEDED)       Shared library: [liblog.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libm.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libc++_shared.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libdl.so]
+  0x0000000000000001 (NEEDED)       Shared library: [libc.so]
+  0x000000000000000e (SONAME)       Library soname: [libcoin_render_android_smoke.so]
+  0x000000000000001e (FLAGS)        BIND_NOW 
+  0x000000006ffffffb (FLAGS_1)      NOW 
+  0x0000000000000007 (RELA)         0x1958
+  0x0000000000000008 (RELASZ)       552 (bytes)
+  0x0000000000000009 (RELAENT)      24 (bytes)
+  0x000000006ffffff9 (RELACOUNT)    21
+  0x0000000000000017 (JMPREL)       0x1b80
+  0x0000000000000002 (PLTRELSZ)     2400 (bytes)
+  0x0000000000000003 (PLTGOT)       0xf168
+  0x0000000000000014 (PLTREL)       RELA
+  0x0000000000000006 (SYMTAB)       0x2f8
+  0x000000000000000b (SYMENT)       24 (bytes)
+  0x0000000000000005 (STRTAB)       0xe4c
+  0x000000000000000a (STRSZ)        2821 (bytes)
+  0x000000006ffffef5 (GNU_HASH)     0xe00
+  0x000000000000001a (FINI_ARRAY)   0xef70
+  0x000000000000001c (FINI_ARRAYSZ) 16 (bytes)
+  0x000000006ffffff0 (VERSYM)       0xce8
+  0x000000006ffffffe (VERNEED)      0xdbc
+  0x000000006fffffff (VERNEEDNUM)   2
+  0x0000000000000000 (NULL)         0x0
+
+Symbol table '.dynsym' contains 106 entries:
+   Num:    Value          Size Type    Bind   Vis       Ndx Name
+     0: 0000000000000000     0 NOTYPE  LOCAL  DEFAULT   UND 
+     1: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND __cxa_finalize@LIBC
+     2: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND setenv@LIBC
+     3: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND __system_property_get@LIBC
+     4: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND __android_log_print
+     5: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN4SoDB4initEv
+     6: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderAction9initClassEv
+     7: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _Znwm
+     8: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderActionC1Ev
+     9: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN11SoSeparatorC1Ev
+    10: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK6SoBase3refEv
+    11: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN20SoOrthographicCameraC1Ev
+    12: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN9SoSFVec3f8setValueEfff
+    13: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN9SoSFFloat8setValueEf
+    14: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN12SoLightModelC1Ev
+    15: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN8SoSFEnum8setValueEi
+    16: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN10SoMaterialC1Ev
+    17: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN9SoMFColor8setValueEfff
+    18: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN6SoCubeC1Ev
+    19: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16SbViewportRegionC1Ess
+    20: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16SoGLRenderActionC1ERK16SbViewportRegion
+    21: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN8SoAction5applyEP6SoNode
+    22: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN19SoOffscreenRendererC1ERK16SbViewportRegion
+    23: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK8SoAction13hasTerminatedEv
+    24: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN19SoOffscreenRenderer6renderEP6SoNode
+    25: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN19SoOffscreenRendererD1Ev
+    26: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16SoGLRenderActionD1Ev
+    27: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND ALooper_pollOnce
+    28: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderAction15setRenderTargetEP16CoinRenderTarget
+    29: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderTargetD1Ev
+    30: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZdlPv
+    31: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK6SoBase5unrefEv
+    32: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND __stack_chk_fail@LIBC
+    33: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND ANativeWindow_setBuffersGeometry
+    34: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND ANativeWindow_getWidth
+    35: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND ANativeWindow_getHeight
+    36: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderTarget12createWindowERK33CoinRenderNativeSurfaceDescriptorRK9SbVec2i32RK17CoinRenderOptions
+    37: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderTarget9getStatusEv
+    38: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderTarget12getLastErrorEv
+    39: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderTarget23getLastSubmissionSerialEv
+    40: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND memset@LIBC
+    41: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND coin_render_query_capabilities_for_renderer
+    42: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderTarget6resizeERK9SbVec2i32
+    43: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderTarget7getSizeEv
+    44: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderAction17setViewportRegionERK16SbViewportRegion
+    45: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderAction13getLastStatusEv
+    46: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderAction12getLastErrorEv
+    47: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND cc_string_get_text
+    48: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderTarget25requestWindowReadbackRGBAEv
+    49: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZNK16CoinRenderTarget12readbackRGBAERNSt6__ndk16vectorIhNS0_9allocatorIhEEEE
+    50: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderTarget15createOffscreenERK9SbVec2i32RK17CoinRenderOptions
+    51: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderActionC1ERK16SbViewportRegion
+    52: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderAction5applyEP6SoNode
+    53: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND _ZN16CoinRenderActionD1Ev
+    54: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND __gxx_personality_v0
+    55: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND read@LIBC
+    56: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_mutex_lock@LIBC
+    57: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND free@LIBC
+    58: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_mutex_unlock@LIBC
+    59: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_cond_broadcast@LIBC
+    60: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AInputQueue_detachLooper
+    61: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AInputQueue_attachLooper
+    62: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AConfiguration_fromAssetManager
+    63: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AConfiguration_getLanguage
+    64: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AConfiguration_getCountry
+    65: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND calloc@LIBC
+    66: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_mutex_init@LIBC
+    67: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_cond_init@LIBC
+    68: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND malloc@LIBC
+    69: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND memcpy@LIBC
+    70: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pipe@LIBC
+    71: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND __errno@LIBC
+    72: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND strerror@LIBC
+    73: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_attr_init@LIBC
+    74: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_attr_setdetachstate@LIBC
+    75: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_create@LIBC
+    76: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_cond_wait@LIBC
+    77: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND write@LIBC
+    78: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND close@LIBC
+    79: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_cond_destroy@LIBC
+    80: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_mutex_destroy@LIBC
+    81: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AConfiguration_new
+    82: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND ALooper_prepare
+    83: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND ALooper_addFd
+    84: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AConfiguration_delete
+    85: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AInputQueue_getEvent
+    86: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AInputQueue_finishEvent
+    87: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND AInputQueue_preDispatchEvent
+    88: 0000000000000000     0 OBJECT  GLOBAL DEFAULT   UND __sF@LIBC
+    89: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND fprintf@LIBC
+    90: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND fflush@LIBC
+    91: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND abort@LIBC
+    92: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_rwlock_wrlock@LIBC
+    93: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_rwlock_unlock@LIBC
+    94: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND dl_iterate_phdr@LIBC
+    95: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND pthread_rwlock_rdlock@LIBC
+    96: 0000000000000000     0 FUNC    GLOBAL DEFAULT   UND fwrite@LIBC
+    97: 0000000000004a60  2100 FUNC    GLOBAL DEFAULT    14 android_main
+    98: 0000000000005640   162 FUNC    WEAK   DEFAULT    14 _ZN7_JNIEnv16CallObjectMethodEP8_jobjectP10_jmethodIDz
+    99: 00000000000057a0   162 FUNC    WEAK   DEFAULT    14 _ZN7_JNIEnv17CallBooleanMethodEP8_jobjectP10_jmethodIDz
+   100: 0000000000005ef0   166 FUNC    GLOBAL DEFAULT    14 android_app_read_cmd
+   101: 0000000000006140   141 FUNC    GLOBAL DEFAULT    14 android_app_post_exec_cmd
+   102: 00000000000061e0   536 FUNC    GLOBAL DEFAULT    14 ANativeActivity_onCreate
+   103: 00000000000056f0   162 FUNC    WEAK   DEFAULT    14 _ZN7_JNIEnv13CallIntMethodEP8_jobjectP10_jmethodIDz
+   104: 0000000000005fa0   405 FUNC    GLOBAL DEFAULT    14 android_app_pre_exec_cmd
+   105: 00000000000061d0     1 FUNC    GLOBAL DEFAULT    14 app_dummy
