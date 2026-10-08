@@ -20,6 +20,7 @@
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
+#include "rendering/coinrender/CoinRenderSamplingCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <algorithm>
 #include <array>
@@ -103,6 +104,7 @@ static bool selection(bool gpu, bool window = false) {
   if (!gpu) return ok;
   if (!check(coin_render_query_capabilities(window ? COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"v4 runtime capabilities")) return false;
   ok &= check(caps.version==4 && (caps.implemented_sampling_policies&COIN_RENDER_SAMPLING_POLICY_PORTABLE) && caps.portable_sampling_filter_mask==(1u<<2) && caps.portable_sampling_max_anisotropy==1 && caps.max_texture_mip_chain_bytes==UINT64_C(128)*1024*1024,"explicit portable profile and limits");
+  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,1).reason==COIN_RENDER_SELECTION_SUPPORTED,"bounded Linux offscreen/Xlib portable qualification");
   ok &= check(caps.portable_sampling_formats==31,"five explicit compiled image formats");
 #ifdef HAVE_COIN_BGFX
   ok &= check(caps.portable_sampling_derivatives==COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT,"BGFX reports ordinary shader derivatives for every renderer");
@@ -206,6 +208,9 @@ int main(int argc,char**argv) {
     for(int y=8;y<56;++y)for(int x : {30,31})for(int c=0;c<3;++c)
       ok &= check(std::abs(int(portablePixels[(y*64+x)*4+c])-(x==30?40:160))<=1,"portable active-mip floor oracle");
     auto valid=action.getPimpl()->lastValidPlan;
+    auto unused=valid;auto incompatible=unused.samplers.front();incompatible.maxAnisotropy=4;
+    unused.samplers.push_back(incompatible);std::string admissionDiagnostic;
+    ok &= check(coin_render_valid_sampling(unused,admissionDiagnostic),"unused incompatible sampler does not reject an otherwise valid frame");
     const uint64_t serial=portable->getLastSubmissionSerial();std::size_t borrowedBytes=0;
     const uint8_t* borrowed=portable->borrowRGBA(borrowedBytes);
     auto invalid=valid;const auto layer=coin_render_texture_unit(invalid.renderStates[0],textureUnit);

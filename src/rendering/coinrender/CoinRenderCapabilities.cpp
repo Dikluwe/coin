@@ -394,9 +394,13 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                                 renderer == COIN_RENDER_RENDERER_UNKNOWN))
       result.available_sampling_policies = result.implemented_sampling_policies;
 #if defined(__linux__) && !defined(__ANDROID__)
-    if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
-        (result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING ||
-         result.renderer == COIN_RENDER_RENDERER_VULKAN || result.renderer == COIN_RENDER_RENDERER_OPENGL))
+    const bool testedRenderer = result.renderer == COIN_RENDER_RENDERER_VULKAN ||
+                                result.renderer == COIN_RENDER_RENDERER_OPENGL;
+    const bool testedTarget = (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
+        (result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING || testedRenderer)) ||
+        (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW && testedRenderer &&
+         (result.backend == COIN_RENDER_EXPERIMENTAL_RUST || result.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION));
+    if (testedTarget)
       result.qualified_sampling_policies = result.implemented_sampling_policies & COIN_RENDER_SAMPLING_POLICY_PORTABLE;
 #endif
   }

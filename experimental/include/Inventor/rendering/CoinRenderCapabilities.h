@@ -251,7 +251,7 @@ COIN_RENDER_DLL_API int32_t coin_render_query_capabilities_for_renderer(
 
 /** Pure sampling selection; requires the version 4 prefix. No fallback,
  * runtime initialization or environment access. Qualification is bounded
- * Linux offscreen evidence, not certification of the current driver. */
+ * Linux offscreen/Xlib evidence, not certification of the current driver. */
 COIN_RENDER_DLL_API struct CoinRenderSamplingSelection coin_render_select_sampling_policy(
     const CoinRenderCapabilities* capabilities, enum CoinRenderTextureSamplingPolicy policy,
     uint32_t require_qualified_profile);
