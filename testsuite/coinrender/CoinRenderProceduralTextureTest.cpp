@@ -263,10 +263,10 @@ struct Harness {
       for (int c=0;c<3;++c) {
         const int d=std::abs(int(a[(y*size+x)*4+c])-int(b[(y*size+x)*channels+c]));
         sum+=d;
-        if (d > maximum && d > 3 && channels == 3) {
-          std::cerr << "junction x=" << x << " y=" << y << " channel=" << c
-                    << " CPU=" << int(a[(y*size+x)*4+c]) << " GL=" << int(b[(y*size+x)*channels+c])
-                    << " depth=" << cpu->getPimpl()->depthBuffer[y*size+x] << '\n';
+        if (d > maximum && d > 3 && (channels == 3 || std::getenv("COIN_PROCEDURAL_DIAGNOSTIC"))) {
+          std::cerr << "junction " << label << " x=" << x << " y=" << y << " channel=" << c
+                    << " CPU=" << int(a[(y*size+x)*4+c]) << " reference=" << int(b[(y*size+x)*channels+c])
+                    << " depth=" << std::setprecision(10) << cpu->getPimpl()->depthBuffer[y*size+x] << " gpuDepth=" << (native && native->getPimpl()->depthBuffer.size()==size*size ? native->getPimpl()->depthBuffer[y*size+x] : -1) << '\n';
         }
         maximum=std::max(maximum,d);
       }

@@ -344,6 +344,14 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
         auto &vertex = plan.vertices[expanded.geometry.firstVertex + i];
         vertex.position[0] -= dx;
         vertex.position[1] += dy;
+        // Publish the same eight-bit window grid used for CPU coverage.
+        // GPU interpolation must consume these positions too, rather than
+        // keeping unsnapped planes behind quantized coverage endpoints.
+        for (int axis = 0; axis < 2; ++axis) {
+          const float dimension = axis == 0 ? float(viewport.width) : float(viewport.height);
+          const float pixel = (vertex.position[axis] + 1.0f) * 0.5f * dimension;
+          vertex.position[axis] = std::round(pixel * 256.0f) / 256.0f * 2.0f / dimension - 1.0f;
+        }
       }
     }
     // A coplanar line/point range has exactly constant mapped depth. Express
