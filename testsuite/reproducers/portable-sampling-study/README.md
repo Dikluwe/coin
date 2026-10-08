@@ -147,3 +147,11 @@ separados e exclua-os das medianas normais de render/present. Não é medição
 de latência de tela nem profiler assíncrono de produção.
 
 Relatório: docs/coin-render-native-sampling-path-study-20261008.md.
+
+## Correção das 28 falhas — 2026-10-08
+
+A continuação mantém as tolerâncias e separa correções de geometria/profundidade
+do workaround **externo do Mesa**, salvo em [mesa/README.md](mesa/README.md).
+O ledger individual e os controles A/B ficam no relatório
+`docs/coin-render-failure-closure-20261008.md`. Coin original, a branch principal
+coin-render e o driver instalado continuam intactos.
