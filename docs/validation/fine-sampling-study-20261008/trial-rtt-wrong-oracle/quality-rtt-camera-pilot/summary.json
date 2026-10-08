@@ -1,0 +1,54 @@
+[
+  {
+    "profile": "wgpu-amd-vulkan",
+    "mode": "fine_uniform",
+    "case": "rtt-study",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/build-wgpu/bin/CoinRenderRttProfileTest",
+      "--sampling-rtt-study"
+    ],
+    "exit": 1,
+    "log": "wgpu-amd-vulkan-fine_uniform-rtt-study.log",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "binary_sha256": "283f066ba2cd3c073932f53d1329024cc67a19bcd8d837213076cadbdcb10197",
+    "log_sha256": "a3df36f4680221cc74d576bccee1ba1ceac57fea40afae8640e92cf9283e64ea",
+    "adapter": "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) renderer=1 vendor=4098 device=5688",
+    "metrics": [
+      "direct-rtt/512x128/unit-0/step-6.10352e-05 samples=2352 mae=0.214286 maximum=1 status=0",
+      "direct-rtt/512x128/unit-0/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/512x128/unit-0/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/1024x64/unit-0/step-6.10352e-05 samples=2352 mae=0.0357143 maximum=1 status=0",
+      "direct-rtt/1024x64/unit-0/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/1024x64/unit-0/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/128x256/unit-0/step-6.10352e-05 samples=2352 mae=0.0714286 maximum=1 status=0",
+      "direct-rtt/128x256/unit-0/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/128x256/unit-0/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/512x128/unit-0/step-6.10352e-05 samples=2352 mae=0.214286 maximum=1 status=0",
+      "direct-rtt/512x128/unit-0/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/512x128/unit-0/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/512x128/unit-7/step-6.10352e-05 samples=2352 mae=0.214286 maximum=1 status=0",
+      "direct-rtt/512x128/unit-7/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/512x128/unit-7/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/1024x64/unit-7/step-6.10352e-05 samples=2352 mae=0.0357143 maximum=1 status=0",
+      "direct-rtt/1024x64/unit-7/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/1024x64/unit-7/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/128x256/unit-7/step-6.10352e-05 samples=2352 mae=0.0714286 maximum=1 status=0",
+      "direct-rtt/128x256/unit-7/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/128x256/unit-7/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0",
+      "direct-rtt/512x128/unit-7/step-6.10352e-05 samples=2352 mae=0.214286 maximum=1 status=0",
+      "direct-rtt/512x128/unit-7/step-0.0625 samples=2352 mae=6.42857 maximum=60 status=0",
+      "direct-rtt/512x128/unit-7/step-0.09375 samples=2352 mae=4.71429 maximum=60 status=0"
+    ]
+  }
+]

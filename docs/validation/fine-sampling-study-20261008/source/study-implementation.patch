@@ -1,0 +1,816 @@
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index 18e3710988..3007d8328b 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -727,7 +727,7 @@ CoinBgfxBackend::CoinBgfxBackend()
+     alphaTestUniform(BGFX_INVALID_HANDLE),
+     clipMetaUniform(BGFX_INVALID_HANDLE), clipPlanesUniform(BGFX_INVALID_HANDLE),
+     textureSampler(BGFX_INVALID_HANDLE), fogColorModeUniform(BGFX_INVALID_HANDLE),
+-    fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
++    fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE), studyTextureSizesUniform(BGFX_INVALID_HANDLE),
+     textureBlendUniform(BGFX_INVALID_HANDLE), textureCombineUniform(BGFX_INVALID_HANDLE),
+     ambientLightUniform(BGFX_INVALID_HANDLE), lightCountUniform(BGFX_INVALID_HANDLE),
+     lightPositionTypeUniform(BGFX_INVALID_HANDLE),
+@@ -925,6 +925,7 @@ CoinBgfxBackend::destroyResources()
+     if (bgfx::isValid(handle)) bgfx::destroy(handle);
+   if (bgfx::isValid(this->fogColorModeUniform)) bgfx::destroy(this->fogColorModeUniform);
+   if (bgfx::isValid(this->fogRangeUniform)) bgfx::destroy(this->fogRangeUniform);
++  if (bgfx::isValid(this->studyTextureSizesUniform)) bgfx::destroy(this->studyTextureSizesUniform);
+   if (bgfx::isValid(this->textureParamsUniform)) bgfx::destroy(this->textureParamsUniform);
+   if (bgfx::isValid(this->textureBlendUniform)) bgfx::destroy(this->textureBlendUniform);
+   if (bgfx::isValid(this->textureCombineUniform)) bgfx::destroy(this->textureCombineUniform);
+@@ -1266,6 +1267,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
+   }
+   this->fogColorModeUniform = bgfx::createUniform("u_fogColorMode", bgfx::UniformType::Vec4);
+   this->fogRangeUniform = bgfx::createUniform("u_fogRange", bgfx::UniformType::Vec4);
++  this->studyTextureSizesUniform = bgfx::createUniform("u_studyTextureSizes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
+   this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
+   this->screenDoorUniform = bgfx::createUniform("u_screenDoor", bgfx::UniformType::Vec4);
+   this->alphaTestUniform = bgfx::createUniform("u_alphaTest", bgfx::UniformType::Vec4);
+@@ -1290,7 +1292,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
+   if (!textureUniformsValid || !bgfx::isValid(this->textureSampler) ||
+       !bgfx::isValid(this->coinDepthUniform) ||
+       !bgfx::isValid(this->alphaTestUniform) ||
+-      !bgfx::isValid(this->textureParamsUniform) ||
++      !bgfx::isValid(this->studyTextureSizesUniform) || !bgfx::isValid(this->textureParamsUniform) ||
+       !bgfx::isValid(this->textureBlendUniform) ||
+       !bgfx::isValid(this->textureCombineUniform) ||
+       !bgfx::isValid(this->ambientLightUniform) ||
+@@ -1659,6 +1661,8 @@ CoinBgfxBackend::bindDrawTexture(
+ {
+   float params[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
+   float blend[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
++  float sizes[COIN_RENDER_MAX_TEXTURE_UNITS][4];
++  std::memcpy(sizes, draw.studyTextureSizes, sizeof(sizes));
+   for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+     CoinBgfxDraw::TextureLayer layer;
+     if (unit == 0) {
+@@ -1680,13 +1684,15 @@ CoinBgfxBackend::bindDrawTexture(
+     bool directRenderTarget = false;
+     if (layer.enabled) for (const auto & resource : this->directTextures) {
+       const auto direct = bgfx::getTexture(resource.frameBuffer, 0);
+-      if (bgfx::isValid(direct) && direct.idx == texture.idx) directRenderTarget = true;
++      if (bgfx::isValid(direct) && direct.idx == texture.idx) {
++        directRenderTarget = true; sizes[unit][0] = float(resource.width); sizes[unit][1] = float(resource.height);
++      }
+     }
+     params[unit][0] = layer.enabled ? 1.0f : 0.0f;
+     static const std::string study = [] { const char * p = std::getenv("COIN_SAMPLING_STUDY"); return std::string(p ? p : ""); }();
+     if (layer.enabled && layer.maxAnisotropy == 1 &&
+-        (study == "fetch" || ((study == "nearest" || study == "center") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
+-      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "center" ? 16 : 0)));
++        (study == "fetch" || ((study == "nearest" || study == "center" || study == "fine" || study == "fine_uniform") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
++      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "fine_uniform" ? 112 : study == "fine" ? 48 : study == "center" ? 16 : 0)));
+ 
+     params[unit][1] = static_cast<float>(layer.model);
+     params[unit][2] = directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f;
+@@ -1696,6 +1702,7 @@ CoinBgfxBackend::bindDrawTexture(
+       unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, 0, 1, 0,
+       CoinRenderTextureSamplingCore::mipFilter(layer.filter) ? UINT8_MAX : 1, flags);
+   }
++  bgfx::setUniform(this->studyTextureSizesUniform, sizes, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureParamsUniform, params, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureBlendUniform, blend, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureCombineUniform, draw.textureCombines, COIN_RENDER_MAX_TEXTURE_UNITS * 4);
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.h b/src/rendering/coinbgfx/CoinBgfxBackend.h
+index 33787cd7ba..5919632266 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.h
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.h
+@@ -214,6 +214,7 @@ private:
+   bgfx::UniformHandle fogColorModeUniform;
+   bgfx::UniformHandle fogRangeUniform;
+   bgfx::UniformHandle textureParamsUniform;
++  bgfx::UniformHandle studyTextureSizesUniform;
+   bgfx::UniformHandle textureBlendUniform;
+   bgfx::UniformHandle textureCombineUniform;
+   bgfx::UniformHandle ambientLightUniform;
+diff --git a/src/rendering/coinbgfx/CoinBgfxLowering.cpp b/src/rendering/coinbgfx/CoinBgfxLowering.cpp
+index d8fd9c8e81..558b6c4201 100644
+--- a/src/rendering/coinbgfx/CoinBgfxLowering.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxLowering.cpp
+@@ -189,6 +189,7 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
+   if (result == 0) result = compareBytes(lhs.fogColorMode, rhs.fogColorMode, sizeof(lhs.fogColorMode));
+   if (result == 0) result = compareBytes(lhs.fogRange, rhs.fogRange, sizeof(lhs.fogRange));
+   if (result == 0) result = compareBytes(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures));
++  if (result == 0) result = compareBytes(lhs.studyTextureSizes, rhs.studyTextureSizes, sizeof(lhs.studyTextureSizes));
+   if (result == 0) result = compareBytes(lhs.textureCombines, rhs.textureCombines, sizeof(lhs.textureCombines));
+   if (result == 0) result = compareValue(lhs.hasTexture, rhs.hasTexture);
+   if (result == 0) result = compareValue(lhs.textureSlot, rhs.textureSlot);
+@@ -821,6 +822,14 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
+       const auto & sampler = frame.samplers[source.samplerSlot];
+       layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter; layer.maxAnisotropy = sampler.maxAnisotropy;
+     }
++    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
++      const auto layer = coin_render_texture_unit(state, unit);
++      if (layer.enabled) {
++        const auto & image = frame.textures[layer.imageSlot];
++        lowered.studyTextureSizes[unit][0] = float(image.width);
++        lowered.studyTextureSizes[unit][1] = float(image.height);
++      }
++    }
+     std::memcpy(lowered.fogColorMode, state.fogColor, sizeof(state.fogColor));
+     lowered.fogColorMode[3] = static_cast<float>(state.fogMode);
+     lowered.fogRange[0] = state.fogStart; lowered.fogRange[1] = state.fogEnd;
+diff --git a/src/rendering/coinbgfx/CoinBgfxLowering.h b/src/rendering/coinbgfx/CoinBgfxLowering.h
+index d1f1f375b4..0539a3887d 100644
+--- a/src/rendering/coinbgfx/CoinBgfxLowering.h
++++ b/src/rendering/coinbgfx/CoinBgfxLowering.h
+@@ -113,6 +113,7 @@ struct CoinBgfxDraw {
+   uint32_t maxAnisotropy = 1;
+   };
+   TextureLayer extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
++  float studyTextureSizes[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
+   CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
+   float fogColorMode[4] = {};
+   float fogRange[4] = {};
+diff --git a/src/rendering/coinbgfx/shaders/coin_surface.sh b/src/rendering/coinbgfx/shaders/coin_surface.sh
+index 549d956237..3bf3e6f78a 100644
+--- a/src/rendering/coinbgfx/shaders/coin_surface.sh
++++ b/src/rendering/coinbgfx/shaders/coin_surface.sh
+@@ -12,6 +12,7 @@ SAMPLER2D(s_texColor6, 8);
+ SAMPLER2D(s_texColor7, 9);
+ #endif
+ uniform vec4 u_texParams[8];
++uniform vec4 u_studyTextureSizes[8];
+ uniform vec4 u_texBlend[8];
+ uniform vec4 u_texCombine[32];
+ uniform vec4 u_fogColorMode;
+@@ -37,11 +38,13 @@ vec4 studyLevel(sampler2D t, vec2 uv, int level, bool linearFilter, int flags) {
+   return studyLerp(studyLerp(studyFetch(t, lo, level, flags), studyFetch(t, lo+ivec2(1,0), level, flags), f.x),
+              studyLerp(studyFetch(t, lo+ivec2(0,1), level, flags), studyFetch(t, lo+ivec2(1,1), level, flags), f.x), f.y);
+ }
+-vec4 studySample(sampler2D t, vec2 uv, float enabled) {
+-  vec2 n = vec2(textureSize(t, 0));
+-  vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
++vec4 studySample(sampler2D t, vec2 uv, float enabled, vec4 suppliedSize) {
+   if (enabled < 1.5) return texture2D(t, uv);
+   int flags = int(enabled/2.0)-1, filterKind = int(mod(float(flags),4.0));
++  bool supplied = flags >= 64;
++  vec2 n = suppliedSize.xy;
++  if (!supplied) n = vec2(textureSize(t, 0));
++  vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
+   vec2 boundedUv = fract(uv);
+   if (mod(floor(float(flags)/4.0),2.0)>0.5) boundedUv.x=clamp(uv.x,0.0,1.0);
+   if (mod(floor(float(flags)/8.0),2.0)>0.5) boundedUv.y=clamp(uv.y,0.0,1.0);
+@@ -53,7 +56,14 @@ vec4 studySample(sampler2D t, vec2 uv, float enabled) {
+   int hi=min(lo+1,maximum);
+   if (flags>=16) {
+     if(lod<=0.0)return texture2DLod(t,uv,0.0);
+-    vec2 a=vec2(textureSize(t,lo)),b=vec2(textureSize(t,hi));
++    ivec2 ni = ivec2(n);
++    vec2 a = vec2(max(ni >> lo, ivec2(1)));
++    if (!supplied) a = vec2(textureSize(t,lo));
++    bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
++    bool fine = mod(floor(float(flags)/32.0),2.0) > 0.5;
++    if(fine && pot) return texture2DLod(t,(floor(boundedUv*a)+0.5)/a,lod);
++    vec2 b = vec2(max(ni >> hi, ivec2(1)));
++    if (!supplied) b = vec2(textureSize(t,hi));
+     return studyLerp(texture2DLod(t,(floor(boundedUv*a)+0.5)/a,float(lo)),texture2DLod(t,(floor(boundedUv*b)+0.5)/b,float(hi)),fract(lod));
+   }
+   return studyLerp(studyLevel(t,boundedUv,lo,linearFilter,flags),studyLevel(t,boundedUv,hi,linearFilter,flags),fract(lod));
+@@ -134,22 +144,22 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec3 v_texcoord0, vec3 v_v
+   if (u_screenDoor.w > 0.5) color.a = 1.0;
+   vec4 primary = color;
+   if (u_texParams[0].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0]), u_texParams[0].x), u_texParams[0], u_texBlend[0], 0);
++    color = coinTextureProgram(primary, color, studySample(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0]), u_texParams[0].x, u_studyTextureSizes[0]), u_texParams[0], u_texBlend[0], 0);
+ #ifndef COIN_SHADOW_SURFACE
+   if (u_texParams[1].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1]), u_texParams[1].x), u_texParams[1], u_texBlend[1], 1);
++    color = coinTextureProgram(primary, color, studySample(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1]), u_texParams[1].x, u_studyTextureSizes[1]), u_texParams[1], u_texBlend[1], 1);
+   if (u_texParams[2].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2]), u_texParams[2].x), u_texParams[2], u_texBlend[2], 2);
++    color = coinTextureProgram(primary, color, studySample(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2]), u_texParams[2].x, u_studyTextureSizes[2]), u_texParams[2], u_texBlend[2], 2);
+   if (u_texParams[3].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3]), u_texParams[3].x), u_texParams[3], u_texBlend[3], 3);
++    color = coinTextureProgram(primary, color, studySample(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3]), u_texParams[3].x, u_studyTextureSizes[3]), u_texParams[3], u_texBlend[3], 3);
+   if (u_texParams[4].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4]), u_texParams[4].x), u_texParams[4], u_texBlend[4], 4);
++    color = coinTextureProgram(primary, color, studySample(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4]), u_texParams[4].x, u_studyTextureSizes[4]), u_texParams[4], u_texBlend[4], 4);
+   if (u_texParams[5].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5]), u_texParams[5].x), u_texParams[5], u_texBlend[5], 5);
++    color = coinTextureProgram(primary, color, studySample(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5]), u_texParams[5].x, u_studyTextureSizes[5]), u_texParams[5], u_texBlend[5], 5);
+   if (u_texParams[6].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6]), u_texParams[6].x), u_texParams[6], u_texBlend[6], 6);
++    color = coinTextureProgram(primary, color, studySample(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6]), u_texParams[6].x, u_studyTextureSizes[6]), u_texParams[6], u_texBlend[6], 6);
+   if (u_texParams[7].x > 0.5)
+-    color = coinTextureProgram(primary, color, studySample(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7]), u_texParams[7].x), u_texParams[7], u_texBlend[7], 7);
++    color = coinTextureProgram(primary, color, studySample(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7]), u_texParams[7].x, u_studyTextureSizes[7]), u_texParams[7], u_texBlend[7], 7);
+ #endif
+   coinAlphaTest(color.a);
+   float mode = u_fogColorMode.w;
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 18f456905a..0e384e1a41 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -194,8 +194,8 @@ fn study_sampler_flag(enabled: u32, s: &CoinWgpuSampler) -> f32 {
+     static MODE: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+     let mode = MODE.get_or_init(|| std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default());
+     if enabled == 0 { return 0.0; }
+-    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center") && s.filter == 2)) { return 1.0; }
+-    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "center" {16} else {0})) as f32
++    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center" || mode == "fine" || mode == "fine_uniform") && s.filter == 2)) { return 1.0; }
++    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "fine_uniform" {112} else if mode == "fine" {48} else if mode == "center" {16} else {0})) as f32
+ }
+ 
+ #[repr(C)]
+@@ -265,6 +265,8 @@ pub struct CoinWgpuUniforms {
+     pub shadow_meta_fourth: [f32; 4],
+     pub shadow_falloff_fourth: [f32; 4],
+     pub alpha_test: [f32; 4],
++    // Private GPU block, never part of the transported C ABI. Actual bound extents.
++    pub study_texture_sizes: [[f32; 4]; 8],
+ }
+ 
+ #[repr(C)]
+@@ -4309,7 +4311,7 @@ fn encode_frame(
+                     .iter()
+                     .map(|layer| {
+                         if layer.enabled == 0 {
+-                            return (&ctx.default_texture_view, &ctx.default_sampler);
++                            return (&ctx.default_texture_view, &ctx.default_sampler, [1.0, 1.0, 0.0, 0.0]);
+                         }
+                         let t = &textures_slice[layer.texture_slot as usize];
+                         let s = &samplers_slice[layer.sampler_slot as usize];
+@@ -4325,23 +4327,15 @@ fn encode_frame(
+                             filter: s.filter,
+             max_anisotropy_minus_one: s.reserved,
+                         };
+-                        let view = if t.format == 1 {
+-                            &rtt_cache
+-                                .active
+-                                .get(&t.content_digest)
+-                                .expect("RTT token preflighted before encoding")
+-                                .view
+-                        } else {
+-                            tex_cache
+-                                .entries
+-                                .get(&tk)
+-                                .map(|e| &e.view)
+-                                .unwrap_or(&ctx.default_texture_view)
+-                        };
+-                        (
+-                            view,
+-                            samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
+-                        )
++                        let (view, width, height) = if t.format == 1 {
++                            let resource = rtt_cache.active.get(&t.content_digest)
++                                .expect("RTT token preflighted before encoding");
++                            (&resource.view, resource.width, resource.height)
++                        } else if let Some(entry) = tex_cache.entries.get(&tk) {
++                            (&entry.view, entry.texture.width(), entry.texture.height())
++                        } else { (&ctx.default_texture_view, 1, 1) };
++                        (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
++                         [width as f32, height as f32, 0.0, 0.0])
+                     })
+                     .collect();
+                 let extra_texture_matrices = std::array::from_fn(|unit| {
+@@ -4394,6 +4388,7 @@ fn encode_frame(
+                 });
+                 let uniforms = CoinWgpuUniforms {
+                     alpha_test: [st.alpha_test_function as f32, st.alpha_test_reference, 0.0, 0.0],
++                    study_texture_sizes: std::array::from_fn(|unit| texture_bindings[unit].2),
+                     model_view_projection: mvp,
+                     model_view: mv,
+                     normal_matrix: nm,
+@@ -4562,7 +4557,7 @@ fn encode_frame(
+                             resource: materials_buffer.as_entire_binding(),
+                         },
+                     ];
+-                    for (unit, (view, sampler)) in texture_bindings.iter().enumerate() {
++                    for (unit, (view, sampler, _size)) in texture_bindings.iter().enumerate() {
+                         if eight_shadows && unit >= 4 { continue; }
+                         entries.push(wgpu::BindGroupEntry {
+                             binding: 2 + 2 * unit as u32,
+diff --git a/src/rendering/coinwgpu/shaders/coin_standard.wgsl b/src/rendering/coinwgpu/shaders/coin_standard.wgsl
+index 8b66f9b67b..f854f2e6a7 100644
+--- a/src/rendering/coinwgpu/shaders/coin_standard.wgsl
++++ b/src/rendering/coinwgpu/shaders/coin_standard.wgsl
+@@ -54,6 +54,7 @@ struct Uniforms {
+     shadow_meta_fourth: vec4<f32>,
+     shadow_falloff_fourth: vec4<f32>,
+     alpha_test: vec4<f32>, // semantic function, clamped reference
++    study_texture_sizes: array<vec4<f32>, 8>,
+ };
+ 
+ struct GpuMaterial {
+@@ -286,12 +287,13 @@ fn study_level(t: texture_2d<f32>, uv: vec2<f32>, level: i32, linear_filter: boo
+     return study_lerp(study_lerp(study_fetch(t, lo, level, flags), study_fetch(t, lo + vec2<i32>(1,0), level, flags), f.x),
+                study_lerp(study_fetch(t, lo + vec2<i32>(0,1), level, flags), study_fetch(t, lo + vec2<i32>(1,1), level, flags), f.x), f.y);
+ }
+-fn study_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32) -> vec4<f32> {
+-    let n = vec2<f32>(textureDimensions(t, 0));
+-    let gx = dpdxFine(uv) * n;
+-    let gy = dpdyFine(uv) * n;
++fn study_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32, supplied_size: vec4<f32>) -> vec4<f32> {
+     if enabled < 1.5 { return textureSample(t, s, uv); }
+     let flags = u32(enabled / 2.0) - 1u;
++    var n = supplied_size.xy;
++    if (flags & 64u) == 0u { n = vec2<f32>(textureDimensions(t, 0)); }
++    let gx = dpdxFine(uv) * n;
++    let gy = dpdyFine(uv) * n;
+     let wrapped = fract(uv);
+     let clamped = clamp(uv, vec2<f32>(0.0), vec2<f32>(1.0));
+     let bounded_uv = vec2<f32>(select(wrapped.x, clamped.x, (flags & 4u) != 0u),
+@@ -306,8 +308,15 @@ fn study_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32) ->
+     let hi = min(lo + 1, maximum);
+     if (flags & 16u) != 0u {
+         if lod <= 0.0 { return textureSampleLevel(t, s, uv, 0.0); }
+-        let a = vec2<f32>(textureDimensions(t, lo));
+-        let b = vec2<f32>(textureDimensions(t, hi));
++        var a = vec2<f32>(max(vec2<u32>(n) >> vec2<u32>(u32(lo)), vec2<u32>(1u)));
++        if (flags & 64u) == 0u { a = vec2<f32>(textureDimensions(t, lo)); }
++        let ni = vec2<u32>(n);
++        let pot = (ni.x & (ni.x - 1u)) == 0u && (ni.y & (ni.y - 1u)) == 0u;
++        if (flags & 32u) != 0u && pot {
++            return textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, lod);
++        }
++        var b = vec2<f32>(max(vec2<u32>(n) >> vec2<u32>(u32(hi)), vec2<u32>(1u)));
++        if (flags & 64u) == 0u { b = vec2<f32>(textureDimensions(t, hi)); }
+         return study_lerp(textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, f32(lo)),
+                    textureSampleLevel(t, s, (floor(bounded_uv*b)+vec2<f32>(0.5))/b, f32(hi)), fract(lod));
+     }
+@@ -463,28 +472,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
+     if (u.tex_params.x > 0.5) {
+         let projected = projected_uv(input.texcoord, u.tex_params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), u.tex_params.z > 0.5);
+-        let tex_col = study_sample(t_diffuse, s_diffuse, uv, u.tex_params.x);
++        let tex_col = study_sample(t_diffuse, s_diffuse, uv, u.tex_params.x, u.study_texture_sizes[0]);
+         base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
+     }
+     if (u.extra_tex_params[0].x > 0.5) {
+         let params = u.extra_tex_params[0];
+         let projected = projected_uv(input.uv1, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture1, s_texture1, uv, params.x);
++        let tex = study_sample(t_texture1, s_texture1, uv, params.x, u.study_texture_sizes[1]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
+     }
+     if (u.extra_tex_params[1].x > 0.5) {
+         let params = u.extra_tex_params[1];
+         let projected = projected_uv(input.uv2, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture2, s_texture2, uv, params.x);
++        let tex = study_sample(t_texture2, s_texture2, uv, params.x, u.study_texture_sizes[2]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
+     }
+     if (u.extra_tex_params[2].x > 0.5) {
+         let params = u.extra_tex_params[2];
+         let projected = projected_uv(input.uv3, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture3, s_texture3, uv, params.x);
++        let tex = study_sample(t_texture3, s_texture3, uv, params.x, u.study_texture_sizes[3]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
+     }
+     // COIN_UPPER_TEXTURE_UNITS_BEGIN
+@@ -492,28 +501,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
+         let params = u.extra_tex_params[3];
+         let projected = projected_uv(input.uv4, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture4, s_texture4, uv, params.x);
++        let tex = study_sample(t_texture4, s_texture4, uv, params.x, u.study_texture_sizes[4]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
+     }
+     if (u.extra_tex_params[4].x > 0.5) {
+         let params = u.extra_tex_params[4];
+         let projected = projected_uv(input.uv5, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture5, s_texture5, uv, params.x);
++        let tex = study_sample(t_texture5, s_texture5, uv, params.x, u.study_texture_sizes[5]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
+     }
+     if (u.extra_tex_params[5].x > 0.5) {
+         let params = u.extra_tex_params[5];
+         let projected = projected_uv(input.uv6, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture6, s_texture6, uv, params.x);
++        let tex = study_sample(t_texture6, s_texture6, uv, params.x, u.study_texture_sizes[6]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
+     }
+     if (u.extra_tex_params[6].x > 0.5) {
+         let params = u.extra_tex_params[6];
+         let projected = projected_uv(input.uv7, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture7, s_texture7, uv, params.x);
++        let tex = study_sample(t_texture7, s_texture7, uv, params.x, u.study_texture_sizes[7]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
+     }
+     // COIN_UPPER_TEXTURE_UNITS_END
+diff --git a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+index 69701df601..c73977ba6d 100644
+--- a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+@@ -215,6 +215,168 @@ int main(int argc, char **argv) {
+     }
+     return passed;
+   };
++  if (argc > 2 && std::string(argv[2]) == "--sampling-rtt-study") {
++    // Public SoSceneTexture2 always uses linear/trilinear. This explicitly
++    // authored private consumer tests filter2 against a direct GPU resource.
++    CoinRenderOptions directOptions;directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
++    directOptions.renderer=selectedRenderer;
++    std::unique_ptr<CoinRenderTarget> direct(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),directOptions));
++    unsigned cases=0;
++    for(F format : {F::RGBA8_LINEAR,F::RGBA16_FLOAT}) for(unsigned unit : {0u,7u})
++    for(auto size : {SbVec2i32(512,128),SbVec2i32(1024,64),SbVec2i32(128,256),SbVec2i32(512,128)})
++    for(float step : {1.f/16384,1.f/16,3.f/32}) {
++      auto root=base;
++      auto &image=root.textures[0];image.width=size[0];image.height=size[1];image.format=format;
++      image.pixelsRgba.clear();image.mipmapsRgba.clear();image.mipmapped=true;image.producerId=1;
++      root.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
++      for(auto &vertex:root.vertices) {
++        vertex.texcoord[0]=.49999237060546875f+((vertex.position[0]+1)*16-15.5f)*step;
++        vertex.texcoord[1]=.53125f;
++        if(unit)for(unsigned c=0;c<2;++c)vertex.extraTexcoords[6][c]=vertex.texcoord[c];
++      }
++      for(auto &state:root.renderStates)if(unit) {
++        auto layer=coin_render_texture_unit(state,0);state.hasTexture=false;state.extraTextures[6]=layer;
++      }
++      CoinRenderRttProducer producer;producer.sourceRevision=++revision;
++      producer.size=size;producer.format=format;producer.plan=base;producer.plan.revision=revision;
++      for(auto &draw:producer.plan.draws)draw.sourceRevision=revision;
++      for(auto &viewport:producer.plan.viewports){viewport.width=size[0];viewport.height=size[1];}
++      // Captured square projection and clip-space quad deliberately fill the
++      // rectangular target. This isolates sampling from camera aspect policy.
++      auto &source=producer.plan.textures[0];source.width=128;source.height=16;source.format=F::RGBA8_LINEAR;
++      source.mipmapped=false;source.mipmapsRgba.clear();source.pixelsRgba.assign(128*16*4,255);
++      for(unsigned y=0;y<16;++y)for(unsigned x=0;x<128;++x)for(unsigned c=0;c<3;++c)
++        source.pixelsRgba[(y*128+x)*4+c]=x<64?40:160;
++      producer.plan.samplers[0].filter=CoinRenderTextureFilter::NEAREST;
++      CoinRenderRttPlan graph(COIN_RENDER_SCENE_TEXTURE_DIRECT);uint64_t id;std::string diagnostic;
++      ok &= check(graph.append(producer,id,diagnostic),"direct half-band capture "+diagnostic);
++      CoinRenderRttExecution execution(direct->getPimpl().operator->(),directOptions);CoinRenderFramePlan resolved;
++      auto result=execution.prepare(graph,root,resolved);
++      ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,"direct half-band prepare "+result.diagnostic);
++      if(result.status!=CoinRenderBackendStatus::SUCCESS)continue;
++      resolved.revision=++revision;for(auto &draw:resolved.draws)draw.sourceRevision=revision;
++      result=direct->getPimpl()->executeFrame(resolved);
++      ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,"direct half-band consumer "+result.diagnostic);
++      std::vector<uint8_t> pixels;direct->readbackRGBA(pixels);
++      double mae=0;int maximum=0;unsigned samples=0;
++      if(pixels.size()==32*32*4)for(int y=2;y<30;++y)for(int x=2;x<30;++x)for(int c=0;c<3;++c) {
++        const double uv=.49999237060546875+(x-15)*double(step);const double wrapped=uv-std::floor(uv);
++        double expected=wrapped<.5?40:160;
++        if(step==1.f/16384) {
++          const double at=wrapped*size[0]-.5;const int left=int(std::floor(at));const double f=at-left;
++          const auto band=[&](int at){at=(at%size[0]+size[0])%size[0];return at<size[0]/2?40.:160.;};
++          expected=band(left)+(band(left+1)-band(left))*f;
++        }
++        const int delta=std::abs(int(pixels[(y*32+x)*4+c])-int(std::lround(expected)));
++        mae+=delta;maximum=std::max(maximum,delta);++samples;
++      }
++      if(samples)mae/=samples;
++      const std::string label="direct-filter2/"+std::to_string(size[0])+"x"+std::to_string(size[1])+"/format-"+
++        std::to_string(unsigned(format))+"/unit-"+std::to_string(unit)+"/step-"+std::to_string(step);
++      std::cout<<label<<" samples="<<samples<<" mae="<<mae<<" maximum="<<maximum<<'\n';
++      ok &= check(samples==28*28*3 && mae<=1.5 && maximum<=4,label+" scalar oracle");++cases;
++    }
++    std::cout<<"direct filter2 sampling cases="<<cases<<" controls="<<controls<<" result="<<(ok?"PASS":"FAIL")<<'\n';
++    return ok?0:1;
++  }
++  const bool viewportStudy=argc>2 && std::string(argv[2])=="--sampling-viewport-study";
++  if (viewportStudy || (argc > 2 && std::string(argv[2]) == "--sampling-deep-study")) {
++    // Independent half-band oracle at integer/fractional deep LOD. Original UV
++    // derivatives select LOD8 at width4096; source coordinates lie just below
++    // the half-texture boundary. Native AMD rounding chose the opposite band.
++    unsigned cases = 0;
++    for (auto size : {std::pair<unsigned,unsigned>{128,128}, {512,512},
++                     {4096,4096}, {4096,128}, {511,257}})
++    for (F format : {F::RGBA8_LINEAR, F::RGBA8_SRGB, F::RGBA16_FLOAT,
++                     F::BC3_LINEAR, F::BC3_SRGB}) {
++      // The larger square is the precision regression, typed formats use the
++      // rectangular control to bound memory while preserving the same LOD.
++      if (format != F::RGBA8_LINEAR && size != std::make_pair(4096u,128u)) continue;
++      if(viewportStudy && (format!=F::RGBA8_LINEAR || (size!=std::make_pair(4096u,128u) && size!=std::make_pair(511u,257u))))continue;
++      auto authored = base;
++      auto &image = authored.textures[0];
++      image.width=size.first; image.height=size.second; image.format=format;
++      image.mipmapped=false; image.mipmapsRgba.clear();
++      image.pixelsRgba.assign(Format::levelBytes(image.width,image.height,format),0);
++      const auto fill = [&](std::vector<uint8_t> &bytes,unsigned width,unsigned height) {
++        if (Format::compressed(format)) {
++          // Independently authored BC3 blocks: opaque RGB565 endpoints and
++          // selector zero; each mip is explicit, with no encode dependency.
++          for(unsigned y=0;y<(height+3)/4;++y) for(unsigned x=0;x<(width+3)/4;++x) {
++            auto *b=bytes.data()+(y*((width+3)/4)+x)*16;
++            b[0]=255; Format::write16(b+8,x*4<width/2?0x2800:0xa000);
++          }
++        } else for(unsigned y=0;y<height;++y) for(unsigned x=0;x<width;++x) {
++          const uint8_t band=x<width/2?40:160;
++          const size_t i=size_t(y)*width+x;
++          if(format==F::RGBA16_FLOAT) {
++            for(unsigned c=0;c<4;++c) Format::write16(bytes.data()+i*8+c*2,
++              Format::toHalf(c==3?1.f:float(band)/255.f));
++          } else {
++            for(unsigned c=0;c<3;++c) bytes[i*4+c]=band;
++            bytes[i*4+3]=255;
++          }
++        }
++      };
++      fill(image.pixelsRgba,image.width,image.height);
++      if (Format::compressed(format)) {
++        unsigned w=image.width,h=image.height;
++        while(w>1 || h>1) {
++          w=std::max(1u,w/2);h=std::max(1u,h/2);
++          std::vector<uint8_t> level(Format::levelBytes(w,h,format),0);
++          fill(level,w,h);image.mipmapsRgba.insert(image.mipmapsRgba.end(),level.begin(),level.end());
++        }
++        image.mipmapped=true;
++      } else ok &= check(Sampling::generate(image),"deep authored complete chain");
++      for(float step : {1.f/16384,1.f/16,3.f/32}) for(unsigned unit : {0u,7u,8u})
++      for(CoinRenderTextureWrap wrap : {CoinRenderTextureWrap::REPEAT,CoinRenderTextureWrap::CLAMP}) {
++        auto frame=authored;
++        if(viewportStudy)for(auto &viewport:frame.viewports){viewport.x=4;viewport.y=5;viewport.width=24;viewport.height=18;}
++        const unsigned x0=viewportStudy?6:2,x1=viewportStudy?26:30;
++        const unsigned y0=viewportStudy?11:2,y1=viewportStudy?25:30;
++        frame.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
++        frame.samplers[0].wrapS=frame.samplers[0].wrapT=wrap;
++        frame.samplers[0].maxAnisotropy=1;
++        for(auto &vertex:frame.vertices) {
++          vertex.texcoord[0]=.49999237060546875f+((vertex.position[0]+1)*16-15.5f)*step;
++          vertex.texcoord[1]=.53125f;
++          if(unit) for(unsigned c=0;c<2;++c) vertex.extraTexcoords[6][c]=vertex.texcoord[c];
++        }
++        for(auto &state:frame.renderStates) if(unit) {
++          auto layer=coin_render_texture_unit(state,0);
++          state.hasTexture=unit==8;state.extraTextures[6]=layer;
++        }
++        frame.revision=++revision;for(auto &draw:frame.draws) draw.sourceRevision=frame.revision;
++        const std::string label=std::string(viewportStudy?"viewport-inset/":"deep/")+std::to_string(size.first)+"x"+std::to_string(size.second)+
++          "/format-"+std::to_string(unsigned(format))+"/step-"+std::to_string(step)+
++          "/unit-"+std::to_string(unit)+"/wrap-"+std::to_string(unsigned(wrap));
++        auto result=cpu.executeFrame(frame);
++        ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,label+" CPU "+result.diagnostic);
++        if(size.first==4096 && step>=1.f/16 && cpu.colorBuffer.size()==32*32*4) {
++          const int expected = format==F::RGBA8_SRGB?5 : format==F::BC3_SRGB?6 : format==F::BC3_LINEAR?41:40;
++          ok &= check(std::abs(int(cpu.colorBuffer[(16*32+15)*4])-expected)<=1,
++            label+" independent low-band oracle at boundary pixel");
++        }
++        if(native) {
++          result=native->getPimpl()->executeFrame(frame);
++          ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,label+" GPU "+result.diagnostic);
++          std::vector<uint8_t> pixels;native->readbackRGBA(pixels);
++          double mae=0;int maximum=0;unsigned samples=0;
++          if(pixels.size()==cpu.colorBuffer.size() && pixels.size()==32*32*4)
++            for(unsigned y=y0;y<y1;++y) for(unsigned x=x0;x<x1;++x) for(unsigned c=0;c<4;++c) {
++              const auto i=(y*32+x)*4+c;const int delta=std::abs(int(pixels[i])-int(cpu.colorBuffer[i]));
++              mae+=delta;maximum=std::max(maximum,delta);++samples;
++            }
++          if(samples) mae/=samples;
++          std::cout<<label<<" samples="<<samples<<" mae="<<mae<<" maximum="<<maximum<<'\n';
++          ok &= check(samples==(x1-x0)*(y1-y0)*4 && mae<=1.5 && maximum<=4,label+" CPU/GPU strict interior");
++        }
++        ++cases;
++      }
++    }
++    std::cout<<"deep sampling cases="<<cases<<" controls="<<controls<<" result="<<(ok?"PASS":"FAIL")<<'\n';
++    return ok?0:1;
++  }
+   // Independent alpha oracle: constant byte 128 must remain exact across
+   // fractional/projective mip blends. This does not depend on CoinGL clamping.
+   using Alpha = CoinRenderAlphaTestFunction;
+diff --git a/testsuite/reproducers/portable-sampling-study/README.md b/testsuite/reproducers/portable-sampling-study/README.md
+index 7a9226d0a7..61a99054b3 100644
+--- a/testsuite/reproducers/portable-sampling-study/README.md
++++ b/testsuite/reproducers/portable-sampling-study/README.md
+@@ -8,6 +8,10 @@ Nenhuma mudança em Coin original, nenhum relaxamento dos gates.
+ - `native`/ausente: sampler nativo.
+ - `nearest`: reconstrução nearest/trilinear por fetch, só filtro 2.
+ - `fetch`: reconstrução de nearest/bilinear/trilinear isotrópica.
++- `fine`: centro no mip `floor(LOD)`, uma amostra nearest/trilinear em POT;
++  NPOT usa os dois centros. Só filtro 2 isotrópico, magnificação linear.
++- `fine_uniform`: mesmo algoritmo, dimensões dos mips derivadas de uniforme com
++  o tamanho **do recurso ligado**, inclusive RTT.
+ - `center`: LOD explícito, escolha `floor` do texel, centros com sampler nativo,
+   mistura explícita de dois mips; só filtro 2. Magnificação permanece linear.
+ 
+@@ -61,9 +65,48 @@ registrar native/centro/fetch e identificação real da GPU.
+ ## Candidatos de uma amostra — 2026-10-08
+ 
+ `base_probe.cpp` e `run_base.py` são sondas independentes EGL/OpenGL, sem Coin.
+-`base`/`base_uniform`/`fine` são nomes destas sondas e não seletores implementados
+-na bridge. Tamanho base não basta para correspondência segura POT em mips grossos
++`base`/`base_uniform` são nomes exclusivos destas sondas. `fine`/`fine_uniform`
++também foram integrados na bridge nesta continuação isolada. Tamanho base não basta para correspondência segura POT em mips grossos
+ na AMD; `fine` centraliza no mip `floor(LOD)`. As variantes usam dois centros em
+ NPOT. Consulte `docs/coin-render-base-sampling-counterexample-20261008.md`.
+ O controle `--derived` calcula LOD8 das UV originais e valida todos os pixels.
+ Não se mediu desempenho nem magnificação nesta sonda; são próximos controles.
++
++
++## Campanha integrada fine/fine_uniform
++
++```sh
++python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform --deep --output-name quality-deep
++python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform --rtt-study --output-name quality-direct
++python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform --viewport-study --output-name quality-viewport
++python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform
++python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes fine,fine_uniform --extra --output-name quality-extra
++python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes fine_uniform --resources --output-name quality-resources
++c++ -O2 -std=c++17 testsuite/reproducers/portable-sampling-study/gpu_benchmark.cpp -o "$study_artifacts/gpu-benchmark-fine" -lEGL -lOpenGL
++python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind gpu
++python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind window
++python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind city --backends wgpu
++python3 testsuite/reproducers/portable-sampling-study/summarize_fine.py --artifacts "$study_artifacts"
++```
++
++`--deep`: 162 casos por processo, mip profundo/fractional, magnificação, wrap,
++clamp, unidade0/7/ambas, POT quadrado/retangular, NPOT, RGBA8/SRGB/HDR/BC3.
++`--rtt-study`: 48 consumidores privados explícitos filter2 com recursos diretos
++RGBA8/RGBA16F e mudança de tamanho. SoSceneTexture2 público usa linear/trilinear
++(filter1/3), e não ativa fine: o gate público RTT continua separado e intacto.
++GPU/EGL: modos0/3/5/6 = native/center/fine/fine_uniform; 30 warmups, 5×60 draws.
++Janela: baseline da produção, native do estudo e três candidatos, ordem direta
++mais inversa; 45 warmups e150 quadros medidos, wgpu/BGFX Vulkan AMD/NVIDIA.
++`--viewport-study` repete36 casos POT/NPOT com viewport24×18 na origem(4,5),
++comparando o interior físico sem mudar os gates.
++Os CSV contêm warmups: o agregador exclui `warmup=1`, mede `render_present_ms`.
++Cenas POT128² e NPOT129×127, 1/8 unidades. EGL reutiliza uma imagem1024² entre
++as unidades; cache quente, não representa streaming nem texturas gerais.
++Não execute workloads GPU simultaneamente. As cenas e baseline paths são locais:
++`scenes-fine`, builds wgpu/BGFX e executável EGL devem existir antes da campanha.
++
++Antes/depois de cada benchmark de janela, registra-se DPMS. Monitor Off é
++reativado com `xset dpms force on`, sem alterar preferências ou desbloquear a
++sessão. Medições cujo monitor não permaneceu On são excluídas do agregador;
++o ensaio anterior com DPMS Off foi preservado separadamente. `--resume` evita
++repetir logs concluídos quando uma configuração interrompe uma campanha.
+diff --git a/testsuite/reproducers/portable-sampling-study/benchmark_fine.py b/testsuite/reproducers/portable-sampling-study/benchmark_fine.py
+new file mode 100644
+index 0000000000..0b9ede7206
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/benchmark_fine.py
+@@ -0,0 +1,49 @@
++#!/usr/bin/env python3
++"""Sequential, interleaved native/two-center/fine/fine-uniform controls."""
++import argparse, hashlib, json, os, re, subprocess
++from pathlib import Path
++p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True)
++p.add_argument('--kind',choices=['gpu','window','city'],required=True)
++p.add_argument('--gpus',default='amd,nvidia');p.add_argument('--backends',default='wgpu,bgfx')
++p.add_argument('--resume',action='store_true');p.add_argument('--workloads',default='');a=p.parse_args()
++out=a.artifacts/('benchmark-fine-'+a.kind);out.mkdir(exist_ok=True)
++runs=json.loads((out/'summary.json').read_text()) if (out/'summary.json').exists() else []
++modes=['native','center','fine','fine_uniform'];codes={'native':0,'center':3,'fine':5,'fine_uniform':6}
++for gpu in a.gpus.split(','):
++ env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',WGPU_BACKEND='vulkan',COIN_BGFX_RENDERER='vulkan',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1')
++ env['VK_DRIVER_FILES']=env['VK_ICD_FILENAMES']='/usr/share/vulkan/icd.d/'+('nvidia_icd.json' if gpu=='nvidia' else 'radeon_icd.json')
++ env['__GLX_VENDOR_LIBRARY_NAME']='nvidia' if gpu=='nvidia' else 'mesa'
++ env['__EGL_VENDOR_LIBRARY_FILENAMES']='/usr/share/glvnd/egl_vendor.d/'+('10_nvidia.json' if gpu=='nvidia' else '50_mesa.json')
++ if gpu=='nvidia':env['__NV_PRIME_RENDER_OFFLOAD']='1'
++ else:env.pop('__NV_PRIME_RENDER_OFFLOAD',None)
++ for backend in (['egl'] if a.kind=='gpu' else a.backends.split(',')):
++  workloads=[(f'{u}-{q}',u,q) for u in [1,4,8] for q in [0,1]] if a.kind=='gpu' else [(s,None,None) for s in (['city-40000','city-1000000'] if a.kind=='city' else ['texture-1-0.5','texture-8-0.5','texture-8-0.8','texture-8-npot-0.5'])]
++  if a.workloads:workloads=[x for x in workloads if x[0] in a.workloads.split(',')]
++  for workload,units,linear in workloads:
++   selected=['baseline',*modes] if a.kind=='window' else modes
++   order=['baseline','native','fine_uniform','fine_uniform','native','baseline'] if a.kind=='city' else selected+list(reversed(selected))
++   for repeat,mode in enumerate(order):
++    key=f'{gpu}-{backend}-{workload}-{repeat}-{mode}';log=out/(key+'.log')
++    if a.resume and any(r['log']==log.name and r['exit']==0 for r in runs):continue
++    env['COIN_SAMPLING_STUDY']=mode
++    if a.kind=='gpu':cmd=[str(a.artifacts/'gpu-benchmark-fine'),str(codes[mode]),str(linear),str(units)]
++    else:
++     baselines={'wgpu':'/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu','bgfx':'/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx'}
++     build=Path(baselines[backend]) if mode=='baseline' else a.artifacts/('build-'+backend)
++     scene=Path('/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/apk-memory-final')/(workload+'.iv') if a.kind=='city' else a.artifacts/'scenes-fine'/(workload+'.iv')
++     cmd=[str(build/'bin'/'coin_render_window_benchmark'),'--backend',backend+'-vulkan','--scene',str(scene),'--width','1280','--height','720','--warmup','45','--frames','150','--samples-output',str(out/(key+'.csv'))]
++     if a.kind=='city':cmd+=['--animation','static']
++    if not Path(cmd[0]).is_file():raise FileNotFoundError('Build the configured baseline/study window benchmark first: '+cmd[0])
++    monitor_before=monitor_after=None;woke_monitor=False
++    if a.kind!='gpu':
++     monitor_before=subprocess.check_output(['xset','q'],env=env,text=True).split('Monitor is ')[-1].splitlines()[0].strip()
++     if monitor_before=='Off':
++      subprocess.run(['xset','dpms','force','on'],env=env,check=True);woke_monitor=True
++      monitor_before=subprocess.check_output(['xset','q'],env=env,text=True).split('Monitor is ')[-1].splitlines()[0].strip()
++    with log.open('w') as f:
++     try:code=subprocess.run(cmd,env=env,stdout=f,stderr=subprocess.STDOUT,timeout=200).returncode
++     except subprocess.TimeoutExpired:code=124
++    if a.kind!='gpu':monitor_after=subprocess.check_output(['xset','q'],env=env,text=True).split('Monitor is ')[-1].splitlines()[0].strip()
++    content=log.read_text(errors='replace')
++    runs.append(dict(monitor_before=monitor_before,monitor_after=monitor_after,woke_monitor=woke_monitor,timing_admitted=a.kind=='gpu' or monitor_before==monitor_after=='On',gpu=gpu,backend=backend,workload=workload,mode=mode,repeat=repeat,command=cmd,exit=code,log=log.name,binary_sha256=hashlib.sha256(Path(cmd[0]).read_bytes()).hexdigest(),log_sha256=hashlib.sha256(log.read_bytes()).hexdigest(),environment={k:v for k,v in env.items() if k in ['COIN_SAMPLING_STUDY','WGPU_BACKEND','COIN_BGFX_RENDERER','VK_DRIVER_FILES','__GLX_VENDOR_LIBRARY_NAME','__EGL_VENDOR_LIBRARY_FILENAMES','__NV_PRIME_RENDER_OFFLOAD','DISPLAY','XAUTHORITY','COIN_GLX_PIXMAP_DIRECT_RENDERING','COIN_GLXGLUE_NO_PBUFFERS']},gpu_ms=[float(x) for x in re.findall(r'gpu_ms=([0-9.]+)',content)],report=next((x for x in content.splitlines() if x.startswith('window_benchmark')),None)))
++    (out/'summary.json').write_text(json.dumps(runs,indent=2));print(key,code,flush=True)
+diff --git a/testsuite/reproducers/portable-sampling-study/gpu_benchmark.cpp b/testsuite/reproducers/portable-sampling-study/gpu_benchmark.cpp
+index 0217f2ee2c..64756e910e 100644
+--- a/testsuite/reproducers/portable-sampling-study/gpu_benchmark.cpp
++++ b/testsuite/reproducers/portable-sampling-study/gpu_benchmark.cpp
+@@ -23,7 +23,7 @@ int main(int argc,char **argv){
+  for(int i=0;i<units;++i){glActiveTexture(GL_TEXTURE0+i);glBindTexture(GL_TEXTURE_2D,tex);}
+  std::string vs="#version 450 compatibility\nout vec2 st;void main(){gl_Position=gl_Vertex;st=(gl_Vertex.xy*.5+.5)*64.;}";
+  std::string fs="#version 450 compatibility\n#define MODE "+std::to_string(mode)+"\n#define LINEAR "+std::to_string(linear)+R"(
+- in vec2 st;out vec4 result;uniform sampler2D images[8];
++ in vec2 st;out vec4 result;uniform sampler2D images[8];uniform vec2 suppliedSize;
+  vec4 fetch(sampler2D t,ivec2 p,int l){ivec2 n=textureSize(t,l);
+ #if MODE == 4
+ p=ivec2(p.x<0?p.x+n.x:p.x>=n.x?p.x-n.x:p.x,p.y<0?p.y+n.y:p.y>=n.y?p.y-n.y:p.y);
+@@ -46,18 +46,33 @@ vec2 at=uv*vec2(textureSize(t,l));
+  #if MODE == 0
+  return texture(t,uv);
+  #else
+- vec2 n=vec2(textureSize(t,0));float lod=clamp(log2(max(length(dFdxFine(uv)*n),length(dFdyFine(uv)*n))),0.,10.);
++ #if MODE == 6
++ vec2 n=suppliedSize;
++ #else
++ vec2 n=vec2(textureSize(t,0));
++ #endif
++ float lod=clamp(log2(max(length(dFdxFine(uv)*n),length(dFdyFine(uv)*n))),0.,10.);
+  #if MODE == 1
+  return textureLod(t,uv,lod);
+  #else
+  int lo=int(floor(lod));
+-#if MODE == 3
++#if MODE == 3 || MODE == 5 || MODE == 6
+ #if LINEAR
+ return texture(t,uv);
+ #else
+-int hi=min(lo+1,10);vec2 a=vec2(textureSize(t,lo)),b=vec2(textureSize(t,hi));
++if(lod<=0.)return textureLod(t,uv,0.);
++#if MODE == 6
++vec2 a=vec2(max(ivec2(n)>>lo,ivec2(1)));
++#else
++vec2 a=vec2(textureSize(t,lo));
++#endif
++#if MODE == 5 || MODE == 6
++return textureLod(t,(floor(fract(uv)*a)+.5)/a,lod);
++#else
++int hi=min(lo+1,10);vec2 b=vec2(textureSize(t,hi));
+ return mix(textureLod(t,(floor(fract(uv)*a)+.5)/a,float(lo)),textureLod(t,(floor(fract(uv)*b)+.5)/b,float(hi)),fract(lod));
+ #endif
++#endif
+ #else
+ return mix(levelSample(t,uv,lo),levelSample(t,uv,min(lo+1,10)),fract(lod));
+ #endif
+@@ -69,6 +84,7 @@ return mix(levelSample(t,uv,lo),levelSample(t,uv,min(lo+1,10)),fract(lod));
+  for(int i=0;i<units;++i)fs+="c *= sampleImage(images["+std::to_string(i)+"],uv+vec2("+std::to_string(i)+".0/128.));\n";
+  fs+="result=c;}";GLuint v=compile(GL_VERTEX_SHADER,vs),f=compile(GL_FRAGMENT_SHADER,fs),prog=glCreateProgram();glAttachShader(prog,v);glAttachShader(prog,f);glLinkProgram(prog);GLint ok;glGetProgramiv(prog,GL_LINK_STATUS,&ok);if(!ok)return 1;glUseProgram(prog);
+  for(int i=0;i<units;++i)glUniform1i(glGetUniformLocation(prog,("images["+std::to_string(i)+"]").c_str()),i);
++ glUniform2f(glGetUniformLocation(prog,"suppliedSize"),1024,1024);
+  glViewport(0,0,1280,720);glDisable(GL_BLEND);glDisable(GL_DEPTH_TEST);
+  auto draw=[](){glBegin(GL_TRIANGLES);glVertex2f(-1,-1);glVertex2f(3,-1);glVertex2f(-1,3);glEnd();};
+  for(int i=0;i<30;++i)draw();glFinish();GLuint query;glGenQueries(1,&query);
+diff --git a/testsuite/reproducers/portable-sampling-study/run.py b/testsuite/reproducers/portable-sampling-study/run.py
+index 84ee69c58a..6dba80dcea 100644
+--- a/testsuite/reproducers/portable-sampling-study/run.py
++++ b/testsuite/reproducers/portable-sampling-study/run.py
+@@ -1,7 +1,7 @@
+ #!/usr/bin/env python3
+ import os, json, subprocess, hashlib, argparse, re
+ from pathlib import Path
+-ap=argparse.ArgumentParser(); ap.add_argument('--artifacts',type=Path,required=True); ap.add_argument('--profiles',default='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-amd-gl'); ap.add_argument('--extra',action='store_true');ap.add_argument('--alpha',action='store_true');ap.add_argument('--modes',default='native,nearest,fetch');ap.add_argument('--output-name',default='quality'); args=ap.parse_args()
++ap=argparse.ArgumentParser(); ap.add_argument('--artifacts',type=Path,required=True); ap.add_argument('--profiles',default='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-amd-gl'); ap.add_argument('--extra',action='store_true');ap.add_argument('--alpha',action='store_true');ap.add_argument('--deep',action='store_true');ap.add_argument('--rtt-study',action='store_true');ap.add_argument('--viewport-study',action='store_true');ap.add_argument('--resources',action='store_true');ap.add_argument('--modes',default='native,nearest,fetch');ap.add_argument('--output-name',default='quality'); args=ap.parse_args()
+ out=args.artifacts/args.output_name;out.mkdir(exist_ok=True);runs=json.loads((out/'summary.json').read_text()) if (out/'summary.json').exists() else []
+ for profile in args.profiles.split(','):
+     backend,gpu,api=profile.split('-'); env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1',COIN_RENDER_REQUIRE_GL_REFERENCE='1',WGPU_BACKEND='gl' if api=='gl' else 'vulkan',COIN_BGFX_RENDERER='opengl' if api=='gl' else 'vulkan')
+@@ -11,7 +11,7 @@ for profile in args.profiles.split(','):
+     else:env.pop('__NV_PRIME_RENDER_OFFLOAD',None)
+     for mode in (list(dict.fromkeys(['native']+args.modes.split(','))) if args.extra else args.modes.split(',')):
+         env['COIN_SAMPLING_STUDY']=mode
+-        for case,command in ([('alpha',['CoinRenderAdvancedTextureTest','--gpu'])] if args.alpha else ([('multitexture',['CoinRenderMultitextureTest']),('fragment-policy',['CoinRenderFragmentPolicyTest','--gpu'])] if args.extra else [('projective',['CoinRenderTextureSamplingTest','--projective-study']),('sampling',['CoinRenderTextureSamplingTest','--gpu']),('advanced',['CoinRenderAdvancedTextureTest','--gpu']),('procedural',['CoinRenderProceduralTextureTest','--gpu']),('rtt',['CoinRenderRttProfileTest','--mips-direct'])])):
++        for case,command in ([('viewport-study',['CoinRenderAdvancedTextureTest','--gpu','--sampling-viewport-study'])] if args.viewport_study else [('rtt-study',['CoinRenderAdvancedTextureTest','--gpu','--sampling-rtt-study'])] if args.rtt_study else ([('large-bindings',['CoinWgpuLargeBindingsTest']),('multi-device',['CoinWgpuMultiDeviceTest']),('stress',['CoinWgpuMultiDeviceTest','--stress'])] if backend=='wgpu' else [('instancing',['CoinBgfxInstancingTest'])]) if args.resources else [('deep',['CoinRenderAdvancedTextureTest','--gpu','--sampling-deep-study'])] if args.deep else [('alpha',['CoinRenderAdvancedTextureTest','--gpu'])] if args.alpha else ([('multitexture',['CoinRenderMultitextureTest']),('fragment-policy',['CoinRenderFragmentPolicyTest','--gpu'])] if args.extra else [('projective',['CoinRenderTextureSamplingTest','--projective-study']),('sampling',['CoinRenderTextureSamplingTest','--gpu']),('advanced',['CoinRenderAdvancedTextureTest','--gpu']),('procedural',['CoinRenderProceduralTextureTest','--gpu']),('rtt',['CoinRenderRttProfileTest','--mips-direct'])])):
+             cmd=[str(args.artifacts/('build-'+backend)/'bin'/command[0]),*command[1:]];log=out/f'{profile}-{mode}-{case}.log'
+             with log.open('w') as f:
+                 try:code=subprocess.run(cmd,env=env,stdout=f,stderr=subprocess.STDOUT,timeout=180).returncode
+diff --git a/testsuite/reproducers/portable-sampling-study/summarize_fine.py b/testsuite/reproducers/portable-sampling-study/summarize_fine.py
+new file mode 100644
+index 0000000000..cd0e44c06a
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/summarize_fine.py
+@@ -0,0 +1,38 @@
++#!/usr/bin/env python3
++import argparse, collections, csv, json, re, statistics
++from pathlib import Path
++p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True);a=p.parse_args();root=a.artifacts;result={'quality':{},'timings':{}}
++for phase in ['quality-deep','quality-direct','quality-viewport','quality','quality-extra','quality-resources']:
++ path=root/phase/'summary.json'
++ if not path.exists():continue
++ runs=json.loads(path.read_text());groups={}
++ for mode in sorted({r['mode'] for r in runs}):
++  own=[r for r in runs if r['mode']==mode];metrics=[]; nearest=[]
++  for r in own:
++   content=(root/phase/r['log']).read_text(errors='replace')
++   metrics += [tuple(map(float,x)) for x in re.findall(r'samples=(\d+) mae=([0-9.]+) maximum=(\d+)',content)]
++   nearest += [tuple(map(float,x)) for x in re.findall(r'quality-0\.500000[^\n]*CPU-GPU samples=(\d+) mae=([0-9.]+) max=(\d+)',content)]
++  groups[mode]={'processes':len(own),'pass':sum(r['exit']==0 for r in own),'fail':sum(r['exit'] not in [0,77] for r in own),'skip':sum(r['exit']==77 for r in own),'failures':[{'profile':r['profile'],'case':r['case'],'exit':r['exit']} for r in own if r['exit'] not in [0,77]]}
++  if metrics:groups[mode].update(comparisons=len(metrics),component_samples=sum(int(x[0]) for x in metrics),mae_max=max(x[1] for x in metrics),error_max=max(x[2] for x in metrics),divergences=sum(x[1]>1.5 or x[2]>4 for x in metrics))
++  if nearest:groups[mode]['projective_nearest_cpu_gpu']={'comparisons':len(nearest),'mae_max':max(x[1] for x in nearest),'error_max':max(x[2] for x in nearest)}
++ result['quality'][phase]=groups
++for kind in ['gpu','window','city']:
++ path=root/('benchmark-fine-'+kind)/'summary.json'
++ if not path.exists():continue
++ runs=json.loads(path.read_text());groups=collections.defaultdict(list)
++ for r in runs:
++  if r['exit'] or not r.get('timing_admitted',True):continue
++  if kind=='gpu':values=r['gpu_ms']
++  else:
++   file=root/('benchmark-fine-'+kind)/(Path(r['log']).stem+'.csv')
++   with file.open() as f:
++    rows=[row for row in csv.DictReader(f) if row['warmup']=='0']
++   key=next((k for k in rows[0] if k in ['render_present_ms','frame_ms','elapsed_ms','render_ms','milliseconds']),None)
++   if not key:raise ValueError(list(rows[0]))
++   values=[float(x[key]) for x in rows]
++  groups[(r['gpu'],r['backend'],r['workload'],r['mode'])].append(values)
++ result['timings'][kind]={'processes':len(runs),'failures':[r['log'] for r in runs if r['exit']], 'groups':[]}
++ for (gpu,backend,workload,mode),values in sorted(groups.items()):
++  process_medians=[statistics.median(v) for v in values];allvalues=sum(values,[])
++  result['timings'][kind]['groups'].append(dict(gpu=gpu,backend=backend,workload=workload,mode=mode,processes=len(values),samples=len(allvalues),median_ms=statistics.median(allvalues),process_medians_ms=process_medians,min_ms=min(allvalues),max_ms=max(allvalues)))
++(root/'results-fine.json').write_text(json.dumps(result,indent=2));print(json.dumps(result,indent=2))

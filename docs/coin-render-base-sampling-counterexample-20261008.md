@@ -5,12 +5,17 @@ O algoritmo `base`/`base_uniform` descrito foi reproduzido numa sonda EGL sem
 Coin. Ele funciona matematicamente com seleção nearest exata, mas a precisão
 nativa pode selecionar o texel vizinho nos mips grossos. O novo candidato
 `fine` centraliza no mip `floor(LOD)` e conserva uma amostra/hardware trilinear;
-passou estes controles. Ainda precisa de implementação e campanha integrada.
+passou estes controles. A integração e medição foram concluídas na continuação
+vinculada abaixo.
 
 O estudo existente não tinha seletores `base`/`base_uniform` na bridge.
 Os nomes abaixo descrevem **variantes da sonda**, sem promover renderer ou mudar
 sampling padrão. Os resultados complementam a
 [avaliação anterior](coin-render-portable-sampling-study-20261007.md).
+
+**Continuação concluída:** [fine/fine_uniform integrados e medidos](coin-render-fine-sampling-study-20261008.md)
+na branch isolada, com POT/NPOT, formatos, viewport e RTT. O restante deste texto
+preserva os resultados da sonda inicial e sua limitação de alcance.
 
 ## Experimento e resultados
 

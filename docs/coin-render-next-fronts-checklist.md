@@ -64,9 +64,13 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   contraexemplo AMD em mips profundos, inclusive LOD calculado das UV originais;
   [sonda sem Coin e alternativa pelo mip fino ativo](coin-render-base-sampling-counterexample-20261008.md).
   Uniformizar tamanho não corrige a escolha; candidato `fine` passou o oracle inicial.
-- [ ] Integrar e medir `fine`/`fine_uniform` de uma amostra em POT, mantendo fallback
-  NPOT de duas amostras e magnificação linear; qualificar formatos/viewport/derivadas
-  e garantir que o ganho de chamadas também apareça no tempo GPU.
+- [x] Integrar e medir `fine`/`fine_uniform` no estudo isolado: uma amostra em POT,
+  fallback NPOT de duas e magnificação linear; mip profundo/formatos/RTT explícito/
+  viewport deslocado, seis configurações, erro máximo1 nos controles novos.
+  [Resultados e decisão](coin-render-fine-sampling-study-20261008.md): `fine_uniform`
+  reduz custo GPU frente a dois centros (≈34% AMD/60% NVIDIA com8 unidades), mas
+  native continua mais rápido. Produção recebe somente docs/evidências; promoção
+  exige remover custo do laboratório, inclusive avaliar NVIDIA/1milhão sem textura.
 - [ ] Promover política comum nearest portátil com API/capacidades e limites
   explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
   perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.
