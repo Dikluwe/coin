@@ -85,10 +85,15 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [ ] Estudar as diferenças adicionais de recorte/iluminação CoinGL AMD:
   oito FAIL de estilos estritos também no baseline; contrato portátil8/8 PASS.
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
-- [ ] Promover política comum nearest portátil com API/capacidades e limites
-  explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
-  perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.
-  Sampling CoinGL AMD continua divergente; gate MAE≤1,5/max≤4 preservado.
+- [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
+  retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,
+  herdar política em RTT e recusar incompatibilidade sem publicação. Linux offscreen:
+  170/170 processos PASS, Rust46/46 e C11 PASS; driver instalado qualifica portátil,
+  comparações CoinGL AMD delimitam uso do Mesa externo.
+  [Contrato, API e ledger](coin-render-texture-sampling-api.md).
+- [ ] Qualificar esta API em Windows/Android/FreeCAD e janela; medir custo native/
+  portable, avaliar promoção para coin-render. Sampling CoinGL AMD instalado
+  continua divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
 - [x] Reconciliar LargeBindings/MultiDevice: 25.600 draws independentes com clipping
   aceitando toda a geometria; upload exato GPU 96 bytes/instância, imagens/depth e
   reuso preservados; nove passes AMD Vulkan/OpenGL e NVIDIA Vulkan, incluindo stress.
