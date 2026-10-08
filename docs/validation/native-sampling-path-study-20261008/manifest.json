@@ -1,0 +1,2284 @@
+{
+  "source_commit": "eff6103da599b8dc6b2ee4c92a2ff23568dc4661",
+  "source_base": "ccd43105f0fcb55d599589516f1ff66f910711f4",
+  "scope": "Isolated study only; main renderer receives documentation/evidence.",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native",
+  "process_counts": {
+    "quality-wgpu-pilot": 6,
+    "quality-deep": 12,
+    "quality-direct": 12,
+    "quality-viewport": 12,
+    "quality": 60,
+    "quality-resources": 24,
+    "quality-shadow": 36,
+    "benchmark-fine-window": 84,
+    "million-before": 18,
+    "million-after": 18,
+    "million-diagnostic": 4
+  },
+  "builds": {
+    "original-study": {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/original-study",
+      "resolved_path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/original-study",
+      "binary_sha256": "798fb7fb72cfbf9f041c974301d6aafef26faa51d00cfdbd21d9a50ada29a8d2",
+      "library_path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/original-study/lib",
+      "libraries": {
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/original-study/lib/libCoin.so.80": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/original-study/lib/libCoinRender.so": "2ea221a7978b6e70a647e12001b3b928b2d5b4c67df2ed941d510e253da0f2ea"
+      }
+    },
+    "study-wgpu": {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-wgpu",
+      "resolved_path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu",
+      "binary_sha256": "798fb7fb72cfbf9f041c974301d6aafef26faa51d00cfdbd21d9a50ada29a8d2",
+      "library_path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-wgpu/lib",
+      "libraries": {
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-wgpu/lib/libCoin.so": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-wgpu/lib/libCoin.so.80": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-wgpu/lib/libCoin.so.80.0.10": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-wgpu/lib/libCoinRender.so": "7a2418dca62ec5e789858bcd9d1071873fb172236918143125d4806d0190e773"
+      }
+    },
+    "study-bgfx": {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx",
+      "resolved_path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-bgfx",
+      "binary_sha256": "f5deec438e8302c4e0276f2449c35ced2423dff342ad56af259113db346dfbc2",
+      "library_path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/lib",
+      "libraries": {
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/lib/libCoin.so": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/lib/libCoin.so.80": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/lib/libCoin.so.80.0.10": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/lib/libCoinRender.so": "88a4a9eb6a0a45f0f2e7b7f85b6447ac16c029607745f2a829f49f946a6dc9ce"
+      }
+    },
+    "baseline-wgpu": {
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu",
+      "resolved_path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu",
+      "binary_sha256": "a49fd65c4b07edca1ea2e020b1ac6a1f77049830c4de512d2a467f92fce8b0e1",
+      "library_path": "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib",
+      "libraries": {
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoin.so": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoin.so.80": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoin.so.80.0.10": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoinRender.so": "c1861c7a3d7b84d4318d876ebb4521e5a2e7abe4cc70de7713228b129db0e537"
+      }
+    },
+    "baseline-bgfx": {
+      "path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx",
+      "resolved_path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx",
+      "binary_sha256": "f167c1dd00aeb5d19864ea67cbfa3ae6725ce5c29b6064acd9dee81cee9b21d4",
+      "library_path": "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib",
+      "libraries": {
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib/libCoin.so": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib/libCoin.so.80": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib/libCoin.so.80.0.10": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+        "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib/libCoinRender.so": "321aa9ff605ba04ffecf9ba6cd1d03b5a86cea0bf652a4380250ac9d000b6f57"
+      }
+    }
+  },
+  "scenes": {
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/scenes-fine/texture-1-0.5.iv": {
+      "bytes": 180658,
+      "sha256": "05f730e4c431a610ada742f9c3542a4ef63d82463684610ffe486c2dfa6cf75f"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/scenes-fine/texture-8-0.5.iv": {
+      "bytes": 1443136,
+      "sha256": "b35bc4e32ada15e4ee1f65ff069fcfdab50ef152fc80b8b85032febfcb7b8ed4"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/scenes-fine/texture-8-0.8.iv": {
+      "bytes": 1443136,
+      "sha256": "d926ff382fb8c61d37800b92bec4d6e0ec6757b7b829ead83ee08c4df644db25"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/scenes-fine/texture-8-npot-0.5.iv": {
+      "bytes": 1443048,
+      "sha256": "31dc32d60688b0bdcf02e8e3229d10ad6af0b9ccf37655a47d5e21c67a31a480"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/apk-memory-final/city-1000000.iv": {
+      "bytes": 133200021,
+      "sha256": "b52a2ce714bf94129d3ddf7a02f910ffacadf915a72b61c8c86acb40ed72ab19"
+    }
+  },
+  "bgfx_generated": {
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_oit_glsl.h": {
+      "bytes": 888910,
+      "sha256": "115dab8774e15d2d9bd4796536a53cd6bba08f72e385070606a87693501e838b"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_solid_color_spirv.h": {
+      "bytes": 23221,
+      "sha256": "4ee4acd8bb3959eb661411954c6942525ea21f463cd00f2bc6905d6f60c36c43"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_composite_glsl.h": {
+      "bytes": 2037,
+      "sha256": "d53c1ff66905b4a60f21d0b41839a714aee906d67420e5585a4bcd84666b0b74"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_composite_spirv.h": {
+      "bytes": 8239,
+      "sha256": "acfc053d25345f9c0ba006a358084736e706e8454b3afe735cc70d3116df6b6c"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_depth_readback_glsl.h": {
+      "bytes": 2279,
+      "sha256": "35c007216556fde0e0d05172477f45231b80ddacc9c84fd858cf3257334045a4"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_depth_readback_spirv.h": {
+      "bytes": 8841,
+      "sha256": "92254ceea43ded3adedb45999a102266f9cbc2a7ec950236683ee28605496f46"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_glsl.h": {
+      "bytes": 793305,
+      "sha256": "6e1f1454d32ee4de9d552009e050e49b70d372d2b53e37195969f32dec9e5ec8"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_instanced_color_glsl.h": {
+      "bytes": 3811,
+      "sha256": "2d9bc39137c8cb5762f490eaaf8b47b12b47997ea14d719d37d5dfb2e4ddd458"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_instanced_color_spirv.h": {
+      "bytes": 11184,
+      "sha256": "4d0033eb9b610c4a04c4c7447b7f9e396f166a983f6bc6314959277186181ceb"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_peel_next_glsl.h": {
+      "bytes": 794959,
+      "sha256": "73263aa28cca4824bd1f55516eebb16dcfd08eae6dc93867c3f38a50e4750273"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_peel_next_spirv.h": {
+      "bytes": 574764,
+      "sha256": "da4faaf1e9faee55077b803c4baa01e02ec3aecc0cf2eafe3bb5a54e9d1e2524"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_peel_next_study_glsl.h": {
+      "bytes": 3342277,
+      "sha256": "34759aaef474339f3b3ce880b88d5b4137ff95f09f9e71e42a432a838cb5db11"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_peel_next_study_spirv.h": {
+      "bytes": 1584479,
+      "sha256": "e3fc6580f5fdfe3036baf1f1fc798b0b0abfe46ffac1b2e3576797ea0215f5d9"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_moments_glsl.h": {
+      "bytes": 6136,
+      "sha256": "b19a8626fc0997f68e788f6164579534d3a3474d612fb6e1637231f6ae8bc34a"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_moments_spirv.h": {
+      "bytes": 14687,
+      "sha256": "cdda76429f5af1c205db46b3aeea79f48027fad0447c3145df8460d5407ae16a"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_spirv.h": {
+      "bytes": 571006,
+      "sha256": "7fc743f81a91b4ef98716071cc4a3f6e59a15fedf58076df5e095b62c015824a"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_study_glsl.h": {
+      "bytes": 3340519,
+      "sha256": "00f0cad71a7513c3e7028add05e347ef036de49c0815be5cb1414017228c4257"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_study_spirv.h": {
+      "bytes": 1580721,
+      "sha256": "422d44b36ad5d720d216909dee41588f8cd0a84fe6267a57e5e3fb5080be3858"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_weighted_composite_glsl.h": {
+      "bytes": 4744,
+      "sha256": "6e2f7e107ef782de0758b6cf841f9b9c860429f6d08809b7e22b24271ef46316"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_weighted_composite_spirv.h": {
+      "bytes": 13873,
+      "sha256": "a7a4da62c3268cc7c8680178940b1409835d3fd1d89ac98a1b8132859713ea46"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_weighted_oit_glsl.h": {
+      "bytes": 796133,
+      "sha256": "f7ab880c8169aedb9f2f27d9e23db5980b717feee61b750166b6085b678d1b5b"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_weighted_oit_spirv.h": {
+      "bytes": 575699,
+      "sha256": "8edfdcb4d9912b87b8b02469b3b2d36b366ddbbdc60c5cc08527111beed7b773"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_weighted_oit_study_glsl.h": {
+      "bytes": 3343567,
+      "sha256": "4d3f19ce7cf3b4b67e3804c5fdc1d931d86e05d527c00665a22d1e66440023c2"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_weighted_oit_study_spirv.h": {
+      "bytes": 1585414,
+      "sha256": "a2cfd479b493765cea824523e57861416d3a9bb005ad7e7c7ca49694d8d16a2d"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_oit_spirv.h": {
+      "bytes": 632674,
+      "sha256": "fd598f481601972ae93a48328243192cf30c8e10fd895cf465dd2d3f49743e02"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_oit_study_glsl.h": {
+      "bytes": 1206682,
+      "sha256": "9314470a0b528885dbd66eaacb0cfa80672f26b1832dc2238ace5af63dffdfff"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_oit_study_spirv.h": {
+      "bytes": 760915,
+      "sha256": "0aa9fdde039d96465a7c5868d4dfba81ae503e79f3b37bd3ae00f0873e30bb55"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_peel_glsl.h": {
+      "bytes": 887625,
+      "sha256": "62491a3d32b1f9542c69fd591b3c01feba74b454812250b612b7972cd2d5e6d0"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_peel_spirv.h": {
+      "bytes": 631747,
+      "sha256": "0a8068a9802cc0e5b9205cd5586b02f4babebaca6b1ecac4a3d34b508a18afa1"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_peel_study_glsl.h": {
+      "bytes": 1205394,
+      "sha256": "910cf72f59e3dd2ce44a00cf123b3bd1fbb3d98ffc532681fb982f50fb00e352"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_peel_study_spirv.h": {
+      "bytes": 759988,
+      "sha256": "6163dc344d10000fe3bd0ffda87391b0182907118ec45696c9763b94b13f3b5d"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver4_glsl.h": {
+      "bytes": 543293,
+      "sha256": "f568832e662be1790d2b2efa1cb74a882956bf1fc6980de81189f08abc04555e"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver4_spirv.h": {
+      "bytes": 400080,
+      "sha256": "cf993103349d1645a588a99b5462b29072a2af78320b31257685c85d4a529f61"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver4_study_glsl.h": {
+      "bytes": 861898,
+      "sha256": "964245369bb28b846d1af9bfb8526baa99787cb14d4c47fefc2a5e32b6b4f20b"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver4_study_spirv.h": {
+      "bytes": 528320,
+      "sha256": "e129e935437a09c93a77579c03f3efa660c5d545043095f79a8a433ac1147575"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver8_glsl.h": {
+      "bytes": 885878,
+      "sha256": "fc1361fb0bc5b91c14e84bf135f009b29928769aa2ca52fe455c62c712f4ccb5"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver8_spirv.h": {
+      "bytes": 627887,
+      "sha256": "eb2c42dce2a673b4b835d3c7ffd9bf9a4139d6710eeb21c7813dc98467291cfe"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver8_study_glsl.h": {
+      "bytes": 1203654,
+      "sha256": "aafaa03d2dc93dbf376f77500e88f5bd3f239fcc34c10b50add1f09407b23b32"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver8_study_spirv.h": {
+      "bytes": 756128,
+      "sha256": "270324f09893e8c80cb319a64d59d6a91f9ba833ce357b549302ba6d334049b1"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver_glsl.h": {
+      "bytes": 376802,
+      "sha256": "49ee8a1d0f491d7d3dd556cb161d6065a3fbbf110d3d4593db832d722dd53641"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver_spirv.h": {
+      "bytes": 286365,
+      "sha256": "b70f2a91e8c83bf6c6174057825defaea7867951ce516fe38ab45f7da9dfda9c"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver_study_glsl.h": {
+      "bytes": 685929,
+      "sha256": "5cf85f7b5676cd39b8fbc4fe5dbf4de04de92ac545ce663ff554a0e9a2db2bc5"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_shadow_receiver_study_spirv.h": {
+      "bytes": 414605,
+      "sha256": "4d68b091181fc5b47b9c0988758ffcf9e0ebe7c00ee1b8f9dd3fcd4caa801fc7"
+    },
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-native/build-bgfx/src/rendering/coinrender/bgfx-generated/coin_bgfx_fs_solid_color_glsl.h": {
+      "bytes": 19939,
+      "sha256": "1fb574c41f9cb4e01145aa378ebe991f25590488d91a961572209efc45e03434"
+    }
+  },
+  "rejected_trials": [
+    "million-before/rejected-monitor-off/4-2-native"
+  ],
+  "diagnostic_environment": {
+    "COIN_SAMPLING_AUDIT": "1",
+    "COIN_WGPU_TRACE_PHASES": "1",
+    "COIN_WGPU_GPU_TIMESTAMPS": "1",
+    "WGPU_BACKEND": "vulkan",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json"
+  },
+  "qualification_note": "QA ran before the final trace-label/command-count-only adjustment. Final libraries were rebuilt and used for window/million/diagnostic runs. Executable hashes are recorded per process; library hashes here describe the final build. Initial failing standalone Naga translation test was repaired by resolving overrides, without changing runtime shaders.",
+  "files": {
+    "baseline-bgfx-cmake-options.log": {
+      "bytes": 147991,
+      "sha256": "c1de86466ea68246b1e94fa2c7a2dfb38e1c1949833c022284052947baf8d71d"
+    },
+    "baseline-bgfx-linkage.log": {
+      "bytes": 1388,
+      "sha256": "77f5c72e0c6e450674f15ff40410a90230c366f28a89ea6b6b50dfe98e8b67a7"
+    },
+    "baseline-wgpu-cmake-options.log": {
+      "bytes": 229965,
+      "sha256": "7271800c23886d1754ae94072a003c1266437bab9639cb79a94faab38e400e33"
+    },
+    "baseline-wgpu-linkage.log": {
+      "bytes": 1390,
+      "sha256": "6c32492125f4a95e8b1861dea0d5dacb9c81b2eba4d06cfc67290a4d0e9ed96e"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-0-baseline.csv.gz": {
+      "bytes": 3590,
+      "sha256": "013eb22e28327b27a5638d8ea50cbeb9ec55c1877536dc931f6e6eb5cc92e7e7"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-0-baseline.log": {
+      "bytes": 2495,
+      "sha256": "b4e095bdc22eed5469d0a19dbc7c88e681474f6adcebd705e1af39fcc21ef8a4"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-1-native.csv.gz": {
+      "bytes": 3697,
+      "sha256": "4e817674a44a7df59c2132b0889068e6d197eddef40542bb4dda86bb620fb1ca"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-1-native.log": {
+      "bytes": 2492,
+      "sha256": "903503a043ca2fe52cb5c07d40fdc258bf8e36ddfec3d78abb7c477f4b566ee8"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-2-fine_uniform.csv.gz": {
+      "bytes": 3759,
+      "sha256": "88e37fe25ce89375bedb07257c447bd58532a9cccef3b5f33800865e65f5adb8"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-2-fine_uniform.log": {
+      "bytes": 2493,
+      "sha256": "ffb3a990133db37b4c48f9ef8ee243ae5ed71a40c1f38bf7c8fe57341111bdde"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3763,
+      "sha256": "d12058be0253dfb906d43bb4e24f406482be10581707b45c7af3fe68eb55010c"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-3-fine_uniform.log": {
+      "bytes": 2495,
+      "sha256": "4ac4c277fd06d4031f0fc40eff9e9e1a2d5997975a43be8aed8b6097024cf86d"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-4-native.csv.gz": {
+      "bytes": 3683,
+      "sha256": "ee1171a48aae3ca0dc987f97cd2c5ce4ce89f0920e688f2ab57b7089480601a9"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-4-native.log": {
+      "bytes": 2492,
+      "sha256": "dc4b25f59771f24562e9d8dfa0422e4db203308bc655825bff46eafa61934073"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-5-baseline.csv.gz": {
+      "bytes": 3729,
+      "sha256": "fbd280a25454ad3f7b1edabb5d748ece7460011b8f16c23bad8e831acb6df3fd"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.5-5-baseline.log": {
+      "bytes": 2492,
+      "sha256": "21ee47b29f84aa657109848895e08e6de7b647b2c49297015fa313dd37b69b44"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-0-baseline.csv.gz": {
+      "bytes": 3630,
+      "sha256": "adfcfcfac27ad147902777a1ec3bff332b3e31102533f8f114b78836eb1b9728"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-0-baseline.log": {
+      "bytes": 2492,
+      "sha256": "06f0b10c59f9b639f26509adff1ff54cc13307eea79a69c50d345838522eb176"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-1-native.csv.gz": {
+      "bytes": 3724,
+      "sha256": "f8099a3bc402a79557d40afb2e05fd410ef9a2639ad26064d601b0f4e48f9d72"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-1-native.log": {
+      "bytes": 2496,
+      "sha256": "b1920f60db9b45e2e49e1fd5b28b0d89383f0f1529223e0d4c37a3d434147142"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-2-fine_uniform.csv.gz": {
+      "bytes": 3597,
+      "sha256": "d11f45fa28442e9ba2faa3751be5941116334e5a35f66fa4ff20a4aa2a2af605"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-2-fine_uniform.log": {
+      "bytes": 2492,
+      "sha256": "14cbd937868c40c309bd7d7a1a6b159989e6a4af1c1b60c8fa2f7b3ac3d06d7e"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-3-fine_uniform.csv.gz": {
+      "bytes": 3626,
+      "sha256": "dfec9792d8d3089b76f6de2a0fc94bdead676f78c960cf4fbcf3c9293a3d4583"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-3-fine_uniform.log": {
+      "bytes": 2492,
+      "sha256": "f77815ec16d7aff4dddb3c5789ba21543d99ca75d4b588127cd9bc912f23bd5c"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-4-native.csv.gz": {
+      "bytes": 3599,
+      "sha256": "a140be70c098b695b9ea43bee4738b5b60507082433f506261854390cf55fe64"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-4-native.log": {
+      "bytes": 2492,
+      "sha256": "4661c9afd760e87f17af44c0cf8d5a21e4a3ef2f8d18324fe2e0fdc0f3d23866"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-5-baseline.csv.gz": {
+      "bytes": 3673,
+      "sha256": "04c50496ff82b664411d47fa7c67c108624aa6e2b8c35d634380b9979038d2a4"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-0.8-5-baseline.log": {
+      "bytes": 2492,
+      "sha256": "dedc4994413594d7d662fe36b1e89a56f7105329b73a818415dc3138cce7f9ae"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-0-baseline.csv.gz": {
+      "bytes": 3675,
+      "sha256": "b9f62c1b809b35ae7957463a46e3f2c3526aab0fef5fea24594aefd02b293d1a"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-0-baseline.log": {
+      "bytes": 2497,
+      "sha256": "8813fab705a3f54c2d3eb710de229a59774df3492eae7b2395d0a34b5609fe66"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-1-native.csv.gz": {
+      "bytes": 3665,
+      "sha256": "50bea736fd3b7eede105db377d4a006923e52f3125cc603964bc9aa614fa2b8d"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-1-native.log": {
+      "bytes": 2497,
+      "sha256": "583d24a9d61af9f8f91990ecad57543d944185efa7c9fea3b5453269afb0db2e"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-2-fine_uniform.csv.gz": {
+      "bytes": 3708,
+      "sha256": "cc8799d1cae3435dc2c98ad3e8d450526ccfdf04a28be73a038022e61bfa6012"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-2-fine_uniform.log": {
+      "bytes": 2498,
+      "sha256": "64c46d25bc75bed818922ba5012b95232733dec722878d075fddc85c9a8bceb9"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3740,
+      "sha256": "c8a1684225604f103822a9bcbd06afb3a64746e3a385f6805259331557b91e45"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-3-fine_uniform.log": {
+      "bytes": 2498,
+      "sha256": "1a3dcb404316866b947856349527084087968150117a1862ff325d50c605052b"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-4-native.csv.gz": {
+      "bytes": 3666,
+      "sha256": "8a1c4114b0881ac5f47e54e5f3bea6ef548f597ac875a3d53012294d2a0fb72e"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-4-native.log": {
+      "bytes": 2497,
+      "sha256": "c18702580934acc916933727e6b5421c7f25cd38f2b2c66a2ce6fc95dc1cfba6"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-5-baseline.csv.gz": {
+      "bytes": 3709,
+      "sha256": "3136bdd1f3c846e82e8fad0eab2e1ff6f83f8fedbbedfb573795b7943b9b53c8"
+    },
+    "benchmark-fine-window/amd-bgfx-texture-8-npot-0.5-5-baseline.log": {
+      "bytes": 2497,
+      "sha256": "aaa595f645cda3abaa611ce18571667562b6ae4bd19b477175c5c6d3a628be1a"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-0-baseline.csv.gz": {
+      "bytes": 3682,
+      "sha256": "6de4c09c721ee223eaf203a8b59f73a8932b4601dde235efcd67fe88b9a90fe5"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-0-baseline.log": {
+      "bytes": 2488,
+      "sha256": "125b2261f024d3203c54117f0cf844d5e17e6490ccd99a9b5f5db13099ab9366"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-1-original-native.csv.gz": {
+      "bytes": 3704,
+      "sha256": "14104e30509e862aafa068104276d3d48fa0049e1125ba9cf2f0c808ab9311c8"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-1-original-native.log": {
+      "bytes": 2487,
+      "sha256": "f161bdb32cf8ee927d11b475b0dd785eb14dfff320456eb1c595d41086648ab4"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-2-native.csv.gz": {
+      "bytes": 3715,
+      "sha256": "c7d4270719f5ee1bf5a58a377414ea739cdbc27bd3676315defdbc101621e798"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-2-native.log": {
+      "bytes": 2487,
+      "sha256": "12e150d61f4756801369ef285398181ccb68467de125b61af271809ed10edc1e"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3793,
+      "sha256": "a0189d023f438ada7eae347df9a6540c443c43e45cdcf2b2376e630922f026a0"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-3-fine_uniform.log": {
+      "bytes": 2488,
+      "sha256": "816b038c9fb674ff5d9ca798a44852e87499a5bfa18fcd501bc708e748966a6f"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-4-fine_uniform.csv.gz": {
+      "bytes": 3772,
+      "sha256": "b650112c749f4c44d60ccc4e53f6957e8386783c7ad4a4ec3f4c19df27f3c24c"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-4-fine_uniform.log": {
+      "bytes": 2488,
+      "sha256": "5efa6d8e64168532d7bedb0d4c53a33bf53134c8e1c1c0f2519c9d345ac97ead"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-5-native.csv.gz": {
+      "bytes": 3715,
+      "sha256": "f84fde2184a41982a9920447665139b18ade2b5afeab3e0d53b09381d2b2ceb2"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-5-native.log": {
+      "bytes": 2487,
+      "sha256": "10694760ca14be4b3d8df19d4b9e01f9c14b353bba9b53847079fd31fb7f5433"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-6-original-native.csv.gz": {
+      "bytes": 3718,
+      "sha256": "cf60bd13f933dfd988bff4e720508345d9594ae912377aa3885d2225ecdad292"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-6-original-native.log": {
+      "bytes": 2487,
+      "sha256": "8aa2dd5b5cfcc691e079a48676eac5529bb00ff8a707324e386808fb3a954e98"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-7-baseline.csv.gz": {
+      "bytes": 3712,
+      "sha256": "45a4b89222d72655eb27d4b2b7e396ca5eaff791097cacc986c818e23b71b7a3"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.5-7-baseline.log": {
+      "bytes": 2487,
+      "sha256": "ac88740c754b20ebd8947fd9e4967d19863a12f408abcc032bd72708f76483b3"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-0-baseline.csv.gz": {
+      "bytes": 3733,
+      "sha256": "226f9c5dc886abcfdc73e381d9c8e88a8078de95df457876300d3cf3a1942ed0"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-0-baseline.log": {
+      "bytes": 2487,
+      "sha256": "f8095deb6456f002e2171ebfaf82e537fce216a26165ea5b181dbb6e64f827ac"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-1-original-native.csv.gz": {
+      "bytes": 3732,
+      "sha256": "fe88ea08f1f8d6860c8cda8447d493dcc680ff33822d898da81fd41df07f12ff"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-1-original-native.log": {
+      "bytes": 2487,
+      "sha256": "25cf6049893a4b8ad38e2107f355b3cfe58e51bc3eb15498db9b4195e8c19a9d"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-2-native.csv.gz": {
+      "bytes": 3709,
+      "sha256": "5a12881263f1423224148c02bb336abab45ffbd906757c64d358722a475fa358"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-2-native.log": {
+      "bytes": 2487,
+      "sha256": "ecc68c0888c1406db9a4b100c65ff7013681892d02e64210a66007ffde94c462"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-3-fine_uniform.csv.gz": {
+      "bytes": 3733,
+      "sha256": "08f224754e6ab7db8910f43e294cf4663c3828ac627aae95d108083287e6e50e"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-3-fine_uniform.log": {
+      "bytes": 2487,
+      "sha256": "47b1d60b957f4272881be3787d695fb36019a26ae34da9a9cd6595cdb4b16ae1"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-4-fine_uniform.csv.gz": {
+      "bytes": 3714,
+      "sha256": "cbe0a45ac29f83a4f32089010c92aa2081f4b3ee3cf3e3ea701037f6ec5f8b78"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-4-fine_uniform.log": {
+      "bytes": 2487,
+      "sha256": "459910410d2b35613293fb5a2c4ea682423f91177c163fb28e3a0c8c28f675ee"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-5-native.csv.gz": {
+      "bytes": 3689,
+      "sha256": "fafa5b587946b741f008d3d6b8126d84ce3b92d10fad38193044c802deb778ab"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-5-native.log": {
+      "bytes": 2487,
+      "sha256": "1355d631b48c4b5c2809e6ef91d83971e0eda9acffa26b37101247e0c839bccd"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-6-original-native.csv.gz": {
+      "bytes": 3735,
+      "sha256": "25d4496b9202587d1aef70d873b3ed01a718e98d68ae0d286bd68246035f4943"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-6-original-native.log": {
+      "bytes": 2487,
+      "sha256": "3d6f22da4d16784396eb66dfc607b5352ee644aab8410d2195acb1aca917b084"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-7-baseline.csv.gz": {
+      "bytes": 3706,
+      "sha256": "0704711a93c42242acd4e77b67db7b6f32a3095d225ab0eced0b35c5be7299ba"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-0.8-7-baseline.log": {
+      "bytes": 2487,
+      "sha256": "00459b8ef471cb26d4dd8c9d77268791b35f5df2b615ebecae043dcb9ba4e83c"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-0-baseline.csv.gz": {
+      "bytes": 3664,
+      "sha256": "631f7c4e9a7ab5f58fa8c2417e1cdebd4fc8e17e1d9bb2e6b33c01eb5a4af564"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-0-baseline.log": {
+      "bytes": 2492,
+      "sha256": "b0ba3e142df9e1f129f73bf3145ed73f8d77cb2d8a8f1225cec4eb5d6ce12aab"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-1-original-native.csv.gz": {
+      "bytes": 3684,
+      "sha256": "fb4bc3c6605fa08f0f964ae3171ed619c555679fc1b3c84a7c92661aaa95dec6"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-1-original-native.log": {
+      "bytes": 2492,
+      "sha256": "afed7276b9ffd3ecc5b5dd0d5ff0dcbcc12922b6bcf886f06887e82e1136d305"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-2-native.csv.gz": {
+      "bytes": 3634,
+      "sha256": "3a5859cc227fd639502ffd32684cfbf2cdcc50b48092b48b894568008710885f"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-2-native.log": {
+      "bytes": 2492,
+      "sha256": "aedb617f94e6816fb377e1fd035f4d5b3b72989ba302e52c84787c32b0670257"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3868,
+      "sha256": "1e561896bef5b55114d5cd053b8c9e2dd1bcbd6698366ea7e17e9630844271c4"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-3-fine_uniform.log": {
+      "bytes": 2494,
+      "sha256": "ab3edbec1031784febd73c11cf1d522c219c615e6baa395a7f92db9c1ad25f08"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-4-fine_uniform.csv.gz": {
+      "bytes": 3853,
+      "sha256": "6e9e6013bcbff21404c8f8fd1a26ee7e27078650cdf2058cdc3fe79998abc0e2"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-4-fine_uniform.log": {
+      "bytes": 2493,
+      "sha256": "3ed999481636d51d70213705da92aa918ade59ec148dfa5498be2431f7e482ed"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-5-native.csv.gz": {
+      "bytes": 3646,
+      "sha256": "39095e99bf89aacaf453b296a566428497efc91cc5a890e417e410be884443e2"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-5-native.log": {
+      "bytes": 2492,
+      "sha256": "7a097f33ded9ad21a344dd513b2eba5f7bd86bdab42c72fc421f8d3eaca7cc17"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-6-original-native.csv.gz": {
+      "bytes": 3754,
+      "sha256": "66871f6e4e25a25dceaeaf29caa6a43247db9cf9979c86f0a3561a98a3d87716"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-6-original-native.log": {
+      "bytes": 2493,
+      "sha256": "5ae1e56ad889b58b82c2a51b5f910391ae8bfef730303194cc84fe74ca5d73e5"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-7-baseline.csv.gz": {
+      "bytes": 3693,
+      "sha256": "3deb3f20ba4c1f989f99beb6c3a312df9a6070df269c430489b64c72a7859774"
+    },
+    "benchmark-fine-window/amd-wgpu-texture-8-npot-0.5-7-baseline.log": {
+      "bytes": 2493,
+      "sha256": "712e9eec97f334117436c468d9f4b2be9d73c6714f33bd187942f9646ceba4a9"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-0-baseline.csv.gz": {
+      "bytes": 3590,
+      "sha256": "7db573cc45258df74d7fb725fe2e1f620acb30f692d9b9fb968cffa514126150"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-0-baseline.log": {
+      "bytes": 2500,
+      "sha256": "c772e4c3d0080d3106d2c48237f9a4ca668d6f2895b931078f9063976e0a996f"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-1-native.csv.gz": {
+      "bytes": 3595,
+      "sha256": "52c00a079aa58394bd2999a53648019ad9281e31d56efbdb659c4c5980bbe982"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-1-native.log": {
+      "bytes": 2500,
+      "sha256": "e12a05c80d9715e9623d0b7c08fd4a1873766a593df22b50970d06091c00681f"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-2-fine_uniform.csv.gz": {
+      "bytes": 3606,
+      "sha256": "5d7b94f0a562150c4c52b03820a48b07e385e0b41724f70070becbdb972fc045"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-2-fine_uniform.log": {
+      "bytes": 2500,
+      "sha256": "5b0012490dfe380ab4aec8ccc59d57522c09da4414e7ccb469cf29101034a942"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3644,
+      "sha256": "ab963dbf55907f20fe67b6435081a5b3eb641079ff09c569e53ada04e4ef7d76"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-3-fine_uniform.log": {
+      "bytes": 2500,
+      "sha256": "c03c086f699e2e9121023b69227b6f075a3c4ebbcf2e536d774bcd81f7163c5a"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-4-native.csv.gz": {
+      "bytes": 3581,
+      "sha256": "4e680ebb5341033463174b5adc4e440cd13a9c1cb4fbc0d6959eb5b80e922e68"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-4-native.log": {
+      "bytes": 2500,
+      "sha256": "7bbeeb8be64c801076028c0b7c8b0184b095fa2b3377ca72d322e0c0c0be2b8f"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-5-baseline.csv.gz": {
+      "bytes": 3649,
+      "sha256": "c2c6a9007ad5544251bc72b0b10a5634a4a9621223a8affaab974c77ff8896a8"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.5-5-baseline.log": {
+      "bytes": 2500,
+      "sha256": "19f580e399b3c8da8eba7f413d968daffca530292d216406dca3e5898331d472"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-0-baseline.csv.gz": {
+      "bytes": 3646,
+      "sha256": "fde0a7bd581b395b4106e5c79911bfe6b0633351d726c49c904ff36f47260458"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-0-baseline.log": {
+      "bytes": 2500,
+      "sha256": "c06e2937bf72b978ce94d95b1655c1c93f18fd3981c3baadd586cb2b5329b805"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-1-native.csv.gz": {
+      "bytes": 3659,
+      "sha256": "3a70b16536a94b40c6ed53a0c99dfb8a1a2995d5271edec0a3bf86c32d8a87de"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-1-native.log": {
+      "bytes": 2500,
+      "sha256": "53b67f64400b5b16efd4426a0f8b4691570497051a5e5099f50ba8b7063500f9"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-2-fine_uniform.csv.gz": {
+      "bytes": 3653,
+      "sha256": "33c96d4a3ba7e78b888f468f1f280179730d683ef17deea4c047a70e0782b8a7"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-2-fine_uniform.log": {
+      "bytes": 2500,
+      "sha256": "ffd466b30280d0805943855e413d9024cdd41637ea9fac741be1c1e39d1b0f9b"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-3-fine_uniform.csv.gz": {
+      "bytes": 3571,
+      "sha256": "ca06e1e885e7765e149c9b2458c5ca43897973d683e64051fb2a0e95e27c6d26"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-3-fine_uniform.log": {
+      "bytes": 2500,
+      "sha256": "599d144c5010b114c9ad433a0b8dbdc70a67f03c9d54bb1cd2b9d0a31cf64061"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-4-native.csv.gz": {
+      "bytes": 3622,
+      "sha256": "b4bdfcd2a051aee212efce01fabb45e5e3bf6f1d810cf783fdc8673b86d35f54"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-4-native.log": {
+      "bytes": 2500,
+      "sha256": "16c326d48f4beba431c2b622c635352aba2eda44686e5641a97ba0fff29184a8"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-5-baseline.csv.gz": {
+      "bytes": 3598,
+      "sha256": "a45d77d43dce9289caa4e4ad155ceb73d86ab0ecbc9b4c195a9401ffa0469f02"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-0.8-5-baseline.log": {
+      "bytes": 2500,
+      "sha256": "9ce85b25f470c6fce4af24101b51a172511e194458600a40f7a7f10b48b805ad"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-0-baseline.csv.gz": {
+      "bytes": 3639,
+      "sha256": "80c248a3127e55b1528ee43c53faa2a09134a2e56482f9d34aaa9329884b3752"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-0-baseline.log": {
+      "bytes": 2505,
+      "sha256": "3bcd303a4a0ac9c9b907645b678d033b6e854c21e208f84655a4eeb26ea59dbe"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-1-native.csv.gz": {
+      "bytes": 3692,
+      "sha256": "40882e43a1ea969f976e91f4ba0a4e9a93f26a87bbb7314d3bce52c52cb5396d"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-1-native.log": {
+      "bytes": 2505,
+      "sha256": "d94caa1d06bfd8347753b7f570b303297af888593cd3770a3528ac0867870a0e"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-2-fine_uniform.csv.gz": {
+      "bytes": 3651,
+      "sha256": "8db6140d59dcb73c6b6fefa25ee0d9cf96b6ea799eb23e928d1781cbf3e3cce1"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-2-fine_uniform.log": {
+      "bytes": 2505,
+      "sha256": "755a888adbf42b625fccc90e58aacdea1a7a40e984bb17a5e8aee6078132b1b7"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3605,
+      "sha256": "82a684b9bcb28537b7f8c59af44b16c8422f79f0835733241df8f5ad5bf257c4"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-3-fine_uniform.log": {
+      "bytes": 2505,
+      "sha256": "d00277d98282517544ac09eace68f673af30cb83ee34934408ee10ee6225a0f4"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-4-native.csv.gz": {
+      "bytes": 3671,
+      "sha256": "942278949611ac129096d34442957f2511ff7351afe9401a7ca824bce36029fc"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-4-native.log": {
+      "bytes": 2505,
+      "sha256": "68d67f58e0a0a0261f513f3786ec4f0e6d0ead889469cbeb93b90bec825d7988"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-5-baseline.csv.gz": {
+      "bytes": 3731,
+      "sha256": "40e5ae8570ffe7eb8ed6066a66fe914f0384a01dad357b0d3eb60d2f7bdda611"
+    },
+    "benchmark-fine-window/nvidia-bgfx-texture-8-npot-0.5-5-baseline.log": {
+      "bytes": 2505,
+      "sha256": "95a8db83faeefd7e9128b1ac0422faaddd9f578cc3dcc5bb2d7f7660ffeb4eb2"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-0-baseline.csv.gz": {
+      "bytes": 3609,
+      "sha256": "92d0dfcc958fe80f9ba49890f2ba5748148210910347b635a0eadc4a53b85871"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-0-baseline.log": {
+      "bytes": 2492,
+      "sha256": "6cfa8bdad7ec24593480bb1df475793821a1c68d152044f6a079d1a6160c71bd"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-1-original-native.csv.gz": {
+      "bytes": 3584,
+      "sha256": "1f0a2ecf9868b1472f9b2969073147d0ee1652e071cd9ac6a2f5283cb0ccbd6e"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-1-original-native.log": {
+      "bytes": 2492,
+      "sha256": "20cbb0ba66e2db34919258ca75d509b2ed7cfc14ae0175f13b51c6549679fba7"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-2-native.csv.gz": {
+      "bytes": 3525,
+      "sha256": "f8a31df1ef47a3d5ee7c883f99afcfe125dc758924be1c7b3199e2e22566465f"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-2-native.log": {
+      "bytes": 2492,
+      "sha256": "f3970356bf222a692be062916f61800fbd63fc16c5dd355f45986afb73f9d12e"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3513,
+      "sha256": "0ddd0d9656b266be73eb366760e3303a36c9b48abf948bf741a15a07368aac6f"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-3-fine_uniform.log": {
+      "bytes": 2492,
+      "sha256": "5aa4a3297c024f75cdb15385a18ef92f5bea3948e1edc5e0ee3ac07d4b2eecde"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-4-fine_uniform.csv.gz": {
+      "bytes": 3568,
+      "sha256": "e965a326e1f73e0233698e9615b4f9e29e34b42b29b8c4efc080b8ab0b0bbadf"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-4-fine_uniform.log": {
+      "bytes": 2492,
+      "sha256": "6a2b464bf144f181c8edd343a24d1ef377dcefdb300cf6a72a0bbb0c93d42c5a"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-5-native.csv.gz": {
+      "bytes": 3585,
+      "sha256": "72bc12e2166ea267d6c0ce6aa95121610a6cea5eab63932b7cc5c853840c61bd"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-5-native.log": {
+      "bytes": 2494,
+      "sha256": "bc60e985d7753ba2adcf7bf04584889641cf06d3f0f6c406d2b001bbdafef270"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-6-original-native.csv.gz": {
+      "bytes": 3507,
+      "sha256": "585fb3d9860f8ec3cefbe754777fe37520422bc03e422c15b59027d53f153693"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-6-original-native.log": {
+      "bytes": 2492,
+      "sha256": "520c93b18f7d66e4e2c13ef29aa6b82f8e43272281f08e9e007e3926e03b56de"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-7-baseline.csv.gz": {
+      "bytes": 3576,
+      "sha256": "19f93d2a4b6e3b8a6037f143d22a5376836fc2f40fc04ed819a4dbc32dd750d0"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.5-7-baseline.log": {
+      "bytes": 2492,
+      "sha256": "505823be8a1940b75cc81073dfc8e014eaac48ba9c19a9ff2d653a5582a3d8f8"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-0-baseline.csv.gz": {
+      "bytes": 3581,
+      "sha256": "8dad8ccd9803bf3c387b05fa0764568b3b5ffec0063ec14c947e8dd84a2599bb"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-0-baseline.log": {
+      "bytes": 2492,
+      "sha256": "5ed239c763eeda7ee2cd281c5a003989aad6039588e96130035ad38e11aae656"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-1-original-native.csv.gz": {
+      "bytes": 3548,
+      "sha256": "73866de28b102235ac369d9ec30c12cb47448b2743981162dbdb59c9124e2d06"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-1-original-native.log": {
+      "bytes": 2492,
+      "sha256": "0db4261add3b0264d1354c07b5fcddcb789e17a3aa0b1a1319f4ea4fbea80363"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-2-native.csv.gz": {
+      "bytes": 3582,
+      "sha256": "a258b94951daba3061f874662dbf4bcda2b00a1bbc04e30cc4cdbdd59e0949e6"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-2-native.log": {
+      "bytes": 2492,
+      "sha256": "ce06e493d6389358de1e7e8bbe642fb0d0426ce9ac3c3805a2d782f14bf4d712"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-3-fine_uniform.csv.gz": {
+      "bytes": 3514,
+      "sha256": "9d9464996dd2d9e4f0028747f6190e4f052dc8a43cc0ee708f0bd88bddb96102"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-3-fine_uniform.log": {
+      "bytes": 2492,
+      "sha256": "90e7257371e76bc95bc7dc1e14c8ed3a72ee11080d963cabb84c2b62f0275b5b"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-4-fine_uniform.csv.gz": {
+      "bytes": 3539,
+      "sha256": "636920f17655547dc2e4715fa809ab1abe524079b0089e7279f9ae167c1738e7"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-4-fine_uniform.log": {
+      "bytes": 2492,
+      "sha256": "1dc2caaaa3c2daaa7103fe78de34753197c429e0d94a0bdebd9a39b112e23643"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-5-native.csv.gz": {
+      "bytes": 3480,
+      "sha256": "209d9f53748fd2bdb1a416bf2637ce6eb65eb9104fbf424e2d0093d2c6cb0058"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-5-native.log": {
+      "bytes": 2492,
+      "sha256": "6238c404b4e0a19bd67ed58dcb5940f92886c3a4c1a181bfdc0daea421b58547"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-6-original-native.csv.gz": {
+      "bytes": 3508,
+      "sha256": "1f6a735415a28def9983fe63642235c5d068a3fc729572bb614899ee9c73c46a"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-6-original-native.log": {
+      "bytes": 2492,
+      "sha256": "c5d9e47f5798521abee3075cb462efcaeececc8909410547b666b8570486ab35"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-7-baseline.csv.gz": {
+      "bytes": 3523,
+      "sha256": "73e35bf72af0edcb78d0121e00bb4d79e2435e52a7638423dd3b799cd2dc905c"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-0.8-7-baseline.log": {
+      "bytes": 2492,
+      "sha256": "0e9620b87db63a1ae677711d18a8d7c5fcb3623d367576eaf11894d7343e357b"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-0-baseline.csv.gz": {
+      "bytes": 3540,
+      "sha256": "6edc3b9528fdafcf5d0048db040ac60a1e8d7842eea365bdc184b893eeec7949"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-0-baseline.log": {
+      "bytes": 2497,
+      "sha256": "4054ae9fbf8ca24f01559f6419ba1766a1a4a65dc9be04e997cb7842244388cd"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-1-original-native.csv.gz": {
+      "bytes": 3597,
+      "sha256": "a7c39ffa400cb94e3e06c4a5dbd7056ad9a1c3c329d5cd2ee59ba585ce7df49b"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-1-original-native.log": {
+      "bytes": 2497,
+      "sha256": "830ac6134afbc22f2d2def8587494fc88fb205d3214c70f6c6fe28d0f8317a8c"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-2-native.csv.gz": {
+      "bytes": 3583,
+      "sha256": "22cdbb0002e4f26d625886745d2d74159c6c83072be243f33be4691944f9a0a6"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-2-native.log": {
+      "bytes": 2497,
+      "sha256": "2b70f3756791f43b9a6dd44435a9ab92aadb25a97c0fad35b8392afcf16b63e6"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-3-fine_uniform.csv.gz": {
+      "bytes": 3496,
+      "sha256": "75f695679d30e2757ad1a6042804e80afb76e7b4bfa7a6a0f1f41b06058fb8bb"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-3-fine_uniform.log": {
+      "bytes": 2497,
+      "sha256": "2c513aaf6d1e082e911a4f633b9dc72ca48c1ff6a1d159900f7f8ab06f5b9eb1"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-4-fine_uniform.csv.gz": {
+      "bytes": 3588,
+      "sha256": "e260c49683e22cac0b16dd1b32d3f954ef662ba993be8611a898cf7611ff610f"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-4-fine_uniform.log": {
+      "bytes": 2497,
+      "sha256": "6252cefaa140a8c7dceed6c6779bc08cb2efcc8f6913a118e82db2490d237242"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-5-native.csv.gz": {
+      "bytes": 3542,
+      "sha256": "4d591eb444885f3d90967ffc70c92b62807961ada0e607b9abf357adb2f68849"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-5-native.log": {
+      "bytes": 2497,
+      "sha256": "7eea180af4ea7b596ac56a9cf5308b3e918ced27045d9214adf6a78970ba864f"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-6-original-native.csv.gz": {
+      "bytes": 3568,
+      "sha256": "a4fde48edf81ae305a2298ab093e1ebf0af20580b3c8c5d1aca78d5cd7012227"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-6-original-native.log": {
+      "bytes": 2497,
+      "sha256": "75e7261123b23ff1dbb4b39a56cb9243dace1d7f6183d3a92d3d0f87332c9e53"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-7-baseline.csv.gz": {
+      "bytes": 3572,
+      "sha256": "027a7c91bf131a96b284ef9eb6e0a3ced7f0fdb5697a3a62e0d5face4b5ef6cd"
+    },
+    "benchmark-fine-window/nvidia-wgpu-texture-8-npot-0.5-7-baseline.log": {
+      "bytes": 2497,
+      "sha256": "d95bd0472e1ea97ea43c93ae7e6b45ac24ec2bd4019845787952e126be406946"
+    },
+    "benchmark-fine-window/summary.json": {
+      "bytes": 271146,
+      "sha256": "33b99900319508b77ead1ce5a2478c0549ac31beb9a27ac2eddd543ddd61e93b"
+    },
+    "build-bgfx-final.log": {
+      "bytes": 5470,
+      "sha256": "42609a4b0c9ca0ef22c381a82eab6ca64a124957789d2e12fdf1ff8803926133"
+    },
+    "build-bgfx.log": {
+      "bytes": 9827,
+      "sha256": "0a9c4ba6f32636c1a529d18555e02ad7ed73c318a03d3c80069aabd2b35c750f"
+    },
+    "build-wgpu-final.log": {
+      "bytes": 1840,
+      "sha256": "3b80bed8822bbb4016c516aaf8ff055ce52ced5b8179371177bdcfbe2db260fa"
+    },
+    "build-wgpu.log": {
+      "bytes": 6886,
+      "sha256": "1fc6951e3fc8246a9035a96c4b74ec7a9f7ff0fccc2fdaba637558c62eaecd75"
+    },
+    "generated/coin_bgfx_fs_glsl.h": {
+      "bytes": 793305,
+      "sha256": "6e1f1454d32ee4de9d552009e050e49b70d372d2b53e37195969f32dec9e5ec8"
+    },
+    "generated/coin_bgfx_fs_spirv.h": {
+      "bytes": 571006,
+      "sha256": "7fc743f81a91b4ef98716071cc4a3f6e59a15fedf58076df5e095b62c015824a"
+    },
+    "generated/coin_bgfx_fs_study_glsl.h": {
+      "bytes": 3340519,
+      "sha256": "00f0cad71a7513c3e7028add05e347ef036de49c0815be5cb1414017228c4257"
+    },
+    "generated/coin_bgfx_fs_study_spirv.h": {
+      "bytes": 1580721,
+      "sha256": "422d44b36ad5d720d216909dee41588f8cd0a84fe6267a57e5e3fb5080be3858"
+    },
+    "million-after/0-0-baseline-telemetry.csv.gz": {
+      "bytes": 503,
+      "sha256": "443040b541426a7cb147f6017c1b5609276f82dad0adcfe10db13adc83744c6a"
+    },
+    "million-after/0-0-baseline.csv.gz": {
+      "bytes": 3822,
+      "sha256": "6237676e30c35dcb32b24497e69dc0251d291e04f3f992d1972911039a82f4dd"
+    },
+    "million-after/0-0-baseline.log": {
+      "bytes": 2525,
+      "sha256": "ecda17e2b34cf57beb17e8104dc8f457d65d3d741a0c0b58cb38a8ea280dd999"
+    },
+    "million-after/0-1-native-telemetry.csv.gz": {
+      "bytes": 495,
+      "sha256": "029337b7280434bcf5d106e2b73d4d557f1ab8fd49485663460ca8d50afe0beb"
+    },
+    "million-after/0-1-native.csv.gz": {
+      "bytes": 3978,
+      "sha256": "fefbc18c990e469339908e7444629510bb39f8b821ebac0c9d95b649792abfa2"
+    },
+    "million-after/0-1-native.log": {
+      "bytes": 2525,
+      "sha256": "34d043eb38716576e067d8c44328af5c1228d929a1c9950c4d21183a839f65a5"
+    },
+    "million-after/0-2-fine_uniform-telemetry.csv.gz": {
+      "bytes": 458,
+      "sha256": "1070e35ee3c443be14e35b45777be8e1118f0ab1773e87f3ca8a8a7c8ba613ef"
+    },
+    "million-after/0-2-fine_uniform.csv.gz": {
+      "bytes": 3848,
+      "sha256": "9544674b2928495fccf226deca61f7676d3180e11b8baa2ab90e69c108e0bd2b"
+    },
+    "million-after/0-2-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "8ddefb1c475cbdbab9e3e42a061175e7405b7dfff602538e65d1439256402680"
+    },
+    "million-after/1-0-baseline-telemetry.csv.gz": {
+      "bytes": 495,
+      "sha256": "e567a4f04bd426b560549853e040b7e2db66cf93008d390b4ff1d83f2eea28b8"
+    },
+    "million-after/1-0-baseline.csv.gz": {
+      "bytes": 3897,
+      "sha256": "0ffd10ef990c1ddc9e474c0782b6ac9b1d00a3c2459852c5e026a28d5ce24a09"
+    },
+    "million-after/1-0-baseline.log": {
+      "bytes": 2525,
+      "sha256": "9c3206959d7b76294afc11acdfc1b2ec4179993fe272d78cedaeaee300d878f3"
+    },
+    "million-after/1-1-fine_uniform-telemetry.csv.gz": {
+      "bytes": 472,
+      "sha256": "3b748529704f6159776ce94996867808742fbd8a399b8332fff62992cfb28a68"
+    },
+    "million-after/1-1-fine_uniform.csv.gz": {
+      "bytes": 3921,
+      "sha256": "9ad99e2bdacd50a8f14896b0a6e5b179bfdec7cd0b8e1ec5f432fded4ddd0c50"
+    },
+    "million-after/1-1-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "1e25f09d731c84c441be68bf0e9fa684f0563145acbf8ec52a5a5a89b9149879"
+    },
+    "million-after/1-2-native-telemetry.csv.gz": {
+      "bytes": 489,
+      "sha256": "e5b3770f761529baf0bc36f0e67612dc1450ca13d6414fe64b44502dd4d9aec2"
+    },
+    "million-after/1-2-native.csv.gz": {
+      "bytes": 3931,
+      "sha256": "83ab8bb298dabb45c69f2827e2c2882a466631150d1802521ef8d77cfd212263"
+    },
+    "million-after/1-2-native.log": {
+      "bytes": 2525,
+      "sha256": "de382d81bf3d104cafac469c6d81d86bd16a1178c0ef432f585d11f7aa68e914"
+    },
+    "million-after/2-0-native-telemetry.csv.gz": {
+      "bytes": 479,
+      "sha256": "ad7ab5ce954aca5f5a9598cbd94cd064ea84a52bdaa073af6c2a78185e72b67f"
+    },
+    "million-after/2-0-native.csv.gz": {
+      "bytes": 3978,
+      "sha256": "d94a4aaa27c5b583ae3d9de0cf40841abcdf4fee7b42f7edae4b595260564983"
+    },
+    "million-after/2-0-native.log": {
+      "bytes": 2525,
+      "sha256": "0b6d8f806a8968421693c90e99874aeee6da5f66ce4c216d76617a82659d61fa"
+    },
+    "million-after/2-1-baseline-telemetry.csv.gz": {
+      "bytes": 465,
+      "sha256": "73beaa901cebe58fcb174af786a0445c4169dfd71e40a5196c03d8da64c53ff3"
+    },
+    "million-after/2-1-baseline.csv.gz": {
+      "bytes": 3939,
+      "sha256": "177baf30cec0920e3e6efb182d0c32f26fd8cb6c031594c00486af2e831cea18"
+    },
+    "million-after/2-1-baseline.log": {
+      "bytes": 2525,
+      "sha256": "60cd89311885d516831ead10d0335f262f5df27415d7723724eedc97578b12f1"
+    },
+    "million-after/2-2-fine_uniform-telemetry.csv.gz": {
+      "bytes": 500,
+      "sha256": "da2d2b93b7b5e304320ee6a7c52560c290a96446321fe32706de82b7060582ae"
+    },
+    "million-after/2-2-fine_uniform.csv.gz": {
+      "bytes": 3890,
+      "sha256": "dbb01cd2cee379f416211aab42aa85833a8568186bd63f0a08b6de037b533b28"
+    },
+    "million-after/2-2-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "1af8b6baef83f92379e76e5dc692512b7d035e14ea86400d73ee21863a29969e"
+    },
+    "million-after/3-0-native-telemetry.csv.gz": {
+      "bytes": 464,
+      "sha256": "7ad9efd5a38eb5667f17b74900efe64d28ecb35bd881b962263f7ea3fa3e56fc"
+    },
+    "million-after/3-0-native.csv.gz": {
+      "bytes": 3929,
+      "sha256": "2e0980a13b47a65b9d18afc4a18fba0bdc113f23aa9a41e5d7cf5be906751a65"
+    },
+    "million-after/3-0-native.log": {
+      "bytes": 2525,
+      "sha256": "c33d63cf09491500d863e80a5ee4d211735ee2f3917ce18f85876fc53533eacc"
+    },
+    "million-after/3-1-fine_uniform-telemetry.csv.gz": {
+      "bytes": 493,
+      "sha256": "5d0cf97d9227eae93e1da0562638ecde3eeca6aaa43b598a2f4286e0bf607ec1"
+    },
+    "million-after/3-1-fine_uniform.csv.gz": {
+      "bytes": 3923,
+      "sha256": "9af8fab9368e5a28bdcf18448f037f3e2ca88af7ae3d7ed19f57735ddd954bd8"
+    },
+    "million-after/3-1-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "7f6bc1e7fb3c41fa7b610bbd5f4573b62c221312deff8654d91d1f0d342be781"
+    },
+    "million-after/3-2-baseline-telemetry.csv.gz": {
+      "bytes": 470,
+      "sha256": "1fae25c801d3db639f74de76f51693c57bcb3edd3250933a5868b3fb8823ad2a"
+    },
+    "million-after/3-2-baseline.csv.gz": {
+      "bytes": 3862,
+      "sha256": "18ab50ede0854b420d7da211f9bc1f512c6b58aa97b70eed2e84ea41cee12814"
+    },
+    "million-after/3-2-baseline.log": {
+      "bytes": 2524,
+      "sha256": "94326bf0520844f9a720aee5f2f6aa3857ffc8ea0a2cf8f8fd61bbf41499861d"
+    },
+    "million-after/4-0-fine_uniform-telemetry.csv.gz": {
+      "bytes": 476,
+      "sha256": "64291a5a7f8b436afa21ab477764c0e5fcec17affef38b0725465638c20a82a8"
+    },
+    "million-after/4-0-fine_uniform.csv.gz": {
+      "bytes": 3914,
+      "sha256": "9cf3d8327b4658117525961bdb9aa8cd40d4197b9a8cef1d2f5956377f75441e"
+    },
+    "million-after/4-0-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "767aefba6ed1c8f3f5cf9214b8226aae2cd5d41f7bf9bfb48e5bb19da009861f"
+    },
+    "million-after/4-1-baseline-telemetry.csv.gz": {
+      "bytes": 481,
+      "sha256": "0527cfe5b4d3d4c4986e26c5c97c57889dccab88cb8d1b9c3dfde044dfbfa8f3"
+    },
+    "million-after/4-1-baseline.csv.gz": {
+      "bytes": 3821,
+      "sha256": "8df3ee066be6f9aed73cd76df0d81580bafcc1bb58bcc0bd10cbfb77891335df"
+    },
+    "million-after/4-1-baseline.log": {
+      "bytes": 2525,
+      "sha256": "dae4d8212a30b044616b52e16f51be751489389a583f34724eb516b8f0efe02a"
+    },
+    "million-after/4-2-native-telemetry.csv.gz": {
+      "bytes": 475,
+      "sha256": "f8f796abcf7c07c1ead6bd6c07ba769122b2ab6ab46da52268dd4ba6b31b155c"
+    },
+    "million-after/4-2-native.csv.gz": {
+      "bytes": 3855,
+      "sha256": "04ff219d8df655cd548c355395b8744d76f020b60c4401ef11852fe1e8bf9e52"
+    },
+    "million-after/4-2-native.log": {
+      "bytes": 2522,
+      "sha256": "37be5b4703f7f85fdde67db99ddce1144aa84b97945f644d1f79bc25f9277cad"
+    },
+    "million-after/5-0-fine_uniform-telemetry.csv.gz": {
+      "bytes": 485,
+      "sha256": "a1f16c90311f73ac9684d8e214faee9a98f3c457c4860126fd3f9e97c54e5041"
+    },
+    "million-after/5-0-fine_uniform.csv.gz": {
+      "bytes": 3894,
+      "sha256": "94d890620cb582bf4d0d2d5423be8d16532387aa112ece522e53351239ebaaff"
+    },
+    "million-after/5-0-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "ab96805642ea5bce02b4ec7287d6d429e483de5a65b73dd7ca112351fc632450"
+    },
+    "million-after/5-1-native-telemetry.csv.gz": {
+      "bytes": 488,
+      "sha256": "340aed523a1ab5d627d83063eb3d7317426a3592b3f99e9ba27beb277a28ac9b"
+    },
+    "million-after/5-1-native.csv.gz": {
+      "bytes": 3904,
+      "sha256": "50cba33ed64b057b457d0205edbe75b29af8a97d00cf022eef50382bdafc9c7c"
+    },
+    "million-after/5-1-native.log": {
+      "bytes": 2525,
+      "sha256": "85e6b6c00b6c8014d9f370f21698600f3a28d801b02ceb349c1081a79070df19"
+    },
+    "million-after/5-2-baseline-telemetry.csv.gz": {
+      "bytes": 471,
+      "sha256": "d0864547cd991e5919572aed6c574b26dbac14306fe15d754272ff0a3a496549"
+    },
+    "million-after/5-2-baseline.csv.gz": {
+      "bytes": 3863,
+      "sha256": "39ee7cdd2f2cedd1f8d2308e8910572027b2223107881866b076031d1421820a"
+    },
+    "million-after/5-2-baseline.log": {
+      "bytes": 2525,
+      "sha256": "11fa288e7f074fca670cc6ece977606843b3fb5a817afed9052b755f8fa16041"
+    },
+    "million-after/summary.json": {
+      "bytes": 20170,
+      "sha256": "3b307ff78830181300a80df14a363f0a089cfb4e756dec021d3cd4f9da875c48"
+    },
+    "million-before/0-0-baseline-telemetry.csv.gz": {
+      "bytes": 467,
+      "sha256": "f60e79137083596182cfa7af822546d24cd536159d5805e81accc9ba448e0801"
+    },
+    "million-before/0-0-baseline.csv.gz": {
+      "bytes": 3934,
+      "sha256": "603eac96a5cfc643114038ebce5e809f087cb204d6014fbc4aaa2af81fd3ea28"
+    },
+    "million-before/0-0-baseline.log": {
+      "bytes": 2525,
+      "sha256": "22bbcb0a7a9338f5d907a08e7aa275259face9f8e30d33d303163270777b2148"
+    },
+    "million-before/0-1-native-telemetry.csv.gz": {
+      "bytes": 470,
+      "sha256": "11ae7934487cc54935d3aa8c4a6f099549e33dbcaa03d9bd1c91a4998964f5a6"
+    },
+    "million-before/0-1-native.csv.gz": {
+      "bytes": 3804,
+      "sha256": "2622f60ba6b7dfc8b52d372d97f1d54756b481f8b6ff4caaf2fcec753c0c00c3"
+    },
+    "million-before/0-1-native.log": {
+      "bytes": 2526,
+      "sha256": "888bc91b647c572924c3a702ed56bf5cee7491f9a07972378f337b8ad1be54f6"
+    },
+    "million-before/0-2-fine_uniform-telemetry.csv.gz": {
+      "bytes": 480,
+      "sha256": "721619412d2229938f01930c5147316982d9ff127feff929c0aafbc8cb63b9d0"
+    },
+    "million-before/0-2-fine_uniform.csv.gz": {
+      "bytes": 3875,
+      "sha256": "5dfe8c7b05c2f33f11fa214455aeda69de8a39c192c9859e561147ca78a98895"
+    },
+    "million-before/0-2-fine_uniform.log": {
+      "bytes": 2526,
+      "sha256": "ba51c2c70dbc89b8ab3e41c2354a227907fc5b46a2286aecd13a914db8b1dc2f"
+    },
+    "million-before/1-0-baseline-telemetry.csv.gz": {
+      "bytes": 474,
+      "sha256": "88dbe10d7c04edf89f2d765279bfe7ac941a6268e68e7dc3ecc983d0066f90e3"
+    },
+    "million-before/1-0-baseline.csv.gz": {
+      "bytes": 3894,
+      "sha256": "908eca9e3a73322ef1d191c3e3f6826504877962c77e13e55a11272692354020"
+    },
+    "million-before/1-0-baseline.log": {
+      "bytes": 2525,
+      "sha256": "6e96fd4a0b8a8759ce1dd0a3c4afaeb9ce432608bb1904fa445e892f40972a01"
+    },
+    "million-before/1-1-fine_uniform-telemetry.csv.gz": {
+      "bytes": 481,
+      "sha256": "c008404d56d571888f0e6470c9c49d907e9ac045d3db3fd7b1afbada77bf1b60"
+    },
+    "million-before/1-1-fine_uniform.csv.gz": {
+      "bytes": 3851,
+      "sha256": "7bd5071a177919cbe1139908aea585ddf55c210696b6ba488b64d69e87bf154a"
+    },
+    "million-before/1-1-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "9efed1f25ea8f1d3da5acb0413bc4553cfc911b7db80c68273d97a6a35008b4b"
+    },
+    "million-before/1-2-native-telemetry.csv.gz": {
+      "bytes": 482,
+      "sha256": "3fe97a93a2bd717739ae3e6c1d900845fdc747fbd557f5686dd3dd99d11add87"
+    },
+    "million-before/1-2-native.csv.gz": {
+      "bytes": 3857,
+      "sha256": "2258ea9e2081bec3f6f4d21e23ff2247aaf1cc07522d56ad660a2083dc132120"
+    },
+    "million-before/1-2-native.log": {
+      "bytes": 2525,
+      "sha256": "e637dd671ddeaf111e3feea3f23f3448f1f8d90b47d0aa6f3f837a727e3bfd64"
+    },
+    "million-before/2-0-native-telemetry.csv.gz": {
+      "bytes": 476,
+      "sha256": "af820c7dc02c457ec120d628fbdd2f3e44e73af2c95dc14f22140ea747442399"
+    },
+    "million-before/2-0-native.csv.gz": {
+      "bytes": 3875,
+      "sha256": "8ddb8350903981f5b9567d4282593bc524c79dec5fcc4a62bb05b5149e5e8f68"
+    },
+    "million-before/2-0-native.log": {
+      "bytes": 2522,
+      "sha256": "ba4c8712ac37ef21e31671b0dfe2f387298faaee63587d7018fb1f0bfccb26dd"
+    },
+    "million-before/2-1-baseline-telemetry.csv.gz": {
+      "bytes": 479,
+      "sha256": "c7563e75cabf248b06ce82a97eaaa2f5cb589784d4daa190b6dc5c6e60122fb1"
+    },
+    "million-before/2-1-baseline.csv.gz": {
+      "bytes": 3911,
+      "sha256": "bb0108c0c88889dfc3f66eaf21c88f6599e75d933c5029765d2c0299d8fd40a6"
+    },
+    "million-before/2-1-baseline.log": {
+      "bytes": 2524,
+      "sha256": "f6100411e0c3747820cdc9f65588ffd3033cdcc08fbca11b679ced295e27530c"
+    },
+    "million-before/2-2-fine_uniform-telemetry.csv.gz": {
+      "bytes": 488,
+      "sha256": "3b783f28127033f238bb757c65c237d85781281f0cd586da63f8e784194275c8"
+    },
+    "million-before/2-2-fine_uniform.csv.gz": {
+      "bytes": 3915,
+      "sha256": "f3136fe3ef98f0c3551e5ebf8882d00a6ed6ebbb853b6147dcad4f0ccccf6144"
+    },
+    "million-before/2-2-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "f0093a5f8d12736156dc8455af62072803cfba2b2ce4a0757dec463f09158197"
+    },
+    "million-before/3-0-native-telemetry.csv.gz": {
+      "bytes": 476,
+      "sha256": "53a8cf0d3036c26084b3701ab0e9403214ce0f3b009ba6982b46aa9ba6e313cd"
+    },
+    "million-before/3-0-native.csv.gz": {
+      "bytes": 3959,
+      "sha256": "a3495cac86ccad2c1a52140bbd6305d692a4313f5ec49b5bbeeb8c4d985956a9"
+    },
+    "million-before/3-0-native.log": {
+      "bytes": 2525,
+      "sha256": "cc92da4ad262147874a0fe7336614c54c7731daddc68b5990bbdaf0f7d91c704"
+    },
+    "million-before/3-1-fine_uniform-telemetry.csv.gz": {
+      "bytes": 477,
+      "sha256": "99140ffd479de9ffc8c3b508124a35a608b9a73484d6efbe69cdcfaaf09144e7"
+    },
+    "million-before/3-1-fine_uniform.csv.gz": {
+      "bytes": 3850,
+      "sha256": "43bd0a442c54246e91095fe0579fac97f6259df05616919c95b28778c745501e"
+    },
+    "million-before/3-1-fine_uniform.log": {
+      "bytes": 2525,
+      "sha256": "3330e0a6952c4216fe6e0a181db5c1d9c51849b114c5719200d1305db2bef88e"
+    },
+    "million-before/3-2-baseline-telemetry.csv.gz": {
+      "bytes": 533,
+      "sha256": "b222bbe721941cb7bb67061c231f7093df2841adf2b4cdc8b4a7febba254c006"
+    },
+    "million-before/3-2-baseline.csv.gz": {
+      "bytes": 4020,
+      "sha256": "75fd7201cde85799e23a090426d3728fc24c302d5527d7b267c29fd7b133d5e2"
+    },
+    "million-before/3-2-baseline.log": {
+      "bytes": 2528,
+      "sha256": "e5117c734c44a5fb33ccd1effabb81cf8fb6259257c2a8eaf49721095779b4cf"
+    },
+    "million-before/4-0-fine_uniform-telemetry.csv.gz": {
+      "bytes": 480,
+      "sha256": "89b36cbacf8112be9ef6adfd59da37c04f1c1f557795e825a2026ddd6048fe6b"
+    },
+    "million-before/4-0-fine_uniform.csv.gz": {
+      "bytes": 3959,
+      "sha256": "8932158145156a1dee4362a7c0d01fbdadbe1b8b4c828c33e8a6441f0141bd26"
+    },
+    "million-before/4-0-fine_uniform.log": {
+      "bytes": 2528,
+      "sha256": "4a632f6c7f0e5f46a01adc6a91b910e3ac73980bff9c00b08a4e96c316f5db0f"
+    },
+    "million-before/4-1-baseline-telemetry.csv.gz": {
+      "bytes": 509,
+      "sha256": "d062c4a36dd41a33ee36188e5a3ebcb4281abcc2396e0d675407f2828c0c688b"
+    },
+    "million-before/4-1-baseline.csv.gz": {
+      "bytes": 3898,
+      "sha256": "887cb357a47833f743ee561fc49cc94a53a9e4c54f933b9983337381d0ee1a2a"
+    },
+    "million-before/4-1-baseline.log": {
+      "bytes": 2528,
+      "sha256": "602ea1358e24e4bd7b07af5d102d4887ffaa16ea9692ab479135bccafd843d0e"
+    },
+    "million-before/4-2-native-telemetry.csv.gz": {
+      "bytes": 492,
+      "sha256": "452f08c8eac40e664de23e5cb0ef7b536a6a655f418c353d9383b966e67e23e1"
+    },
+    "million-before/4-2-native.csv.gz": {
+      "bytes": 3964,
+      "sha256": "8e7c638df261ea76a128163ca3ed015185874ab01a323a48e89d8e8e89c8efd3"
+    },
+    "million-before/4-2-native.log": {
+      "bytes": 2527,
+      "sha256": "8b3796ec7151b909a254003dd04caa9b51817b484c7e0898c69c25ef46b37d19"
+    },
+    "million-before/5-0-fine_uniform-telemetry.csv.gz": {
+      "bytes": 506,
+      "sha256": "9c86a1de6be628229e5d01273d823267ddbc5788e7cf97a22a1b5efde3edf811"
+    },
+    "million-before/5-0-fine_uniform.csv.gz": {
+      "bytes": 3968,
+      "sha256": "97561a238dfd3467cdfebd5339ec7fcbcd2a732723b5e68f8101ada3e52de4aa"
+    },
+    "million-before/5-0-fine_uniform.log": {
+      "bytes": 2528,
+      "sha256": "701c5dcdc1ea2355a23c0a0ac3281fe29987a4eda8e30feaded67b7f6c774e81"
+    },
+    "million-before/5-1-native-telemetry.csv.gz": {
+      "bytes": 486,
+      "sha256": "18b6a556e65b476d3bc0f59ad830d172f871f62ba40ea0563c59f3ee5c2f5f42"
+    },
+    "million-before/5-1-native.csv.gz": {
+      "bytes": 3921,
+      "sha256": "993fb22876af24770f6c38fa6cf4635ae5ecac586a84bd9e7c8980716edcbe6f"
+    },
+    "million-before/5-1-native.log": {
+      "bytes": 2528,
+      "sha256": "b5911fb086eca492d327816d51a8aadec44e0345f44a2b95568d81f0dcb419ba"
+    },
+    "million-before/5-2-baseline-telemetry.csv.gz": {
+      "bytes": 490,
+      "sha256": "6b24c10c72cc85d25d4ead0a46a0b919bc90d66a241501d30c5a67f037f4f5c8"
+    },
+    "million-before/5-2-baseline.csv.gz": {
+      "bytes": 3962,
+      "sha256": "90ec10ad850baeb09a250f9fb00c47d63bd8ea96a53d980210f873182bf4dab3"
+    },
+    "million-before/5-2-baseline.log": {
+      "bytes": 2528,
+      "sha256": "54d04824d708a1e5d67cfa3614eb2c6f33e38231acc77a73b6f1a5c586e18b7e"
+    },
+    "million-before/rejected-monitor-off/4-2-native/4-2-native-telemetry.csv.gz": {
+      "bytes": 485,
+      "sha256": "cd360e9214042b8cabb077807d6d68d22e274e5522b3a68862ed32f83a913de5"
+    },
+    "million-before/rejected-monitor-off/4-2-native/4-2-native.csv.gz": {
+      "bytes": 3900,
+      "sha256": "55cd4a11e7cde6c331f59eb2e459c60fd4c3b49de181cb7ac53b3e9db8184775"
+    },
+    "million-before/rejected-monitor-off/4-2-native/4-2-native.log": {
+      "bytes": 2526,
+      "sha256": "7cba408ca440f214244bb561a0900df85e9e14dd4e6981502cf9aef98cb9ad60"
+    },
+    "million-before/rejected-monitor-off/4-2-native/row.json": {
+      "bytes": 1047,
+      "sha256": "465cc62fd848307a436fa48f1ec46d886be37322133aff75de470fffcccc9c1d"
+    },
+    "million-before/summary.json": {
+      "bytes": 20338,
+      "sha256": "2ee060e8f01828b73e498b5b8571d9c38b21a3ed3bc8b3a5dabb0c5026be99ac"
+    },
+    "million-diagnostic/0-native.csv.gz": {
+      "bytes": 852,
+      "sha256": "c37c3a5ffee398eb5a92856d4c5958e7c4cc5ddb0c23a9eea3c155352d0a2b10"
+    },
+    "million-diagnostic/0-native.log": {
+      "bytes": 98143,
+      "sha256": "3907a4cfb11932fb16b6f3bb82886d412e7d3ad6d3e85d97007e63d7021c04e3"
+    },
+    "million-diagnostic/1-fine_uniform.csv.gz": {
+      "bytes": 867,
+      "sha256": "f35db59d689adefa8dd681740c97b4f8b76eecf3e0daf47c08daa8449f197d22"
+    },
+    "million-diagnostic/1-fine_uniform.log": {
+      "bytes": 98123,
+      "sha256": "13ec1ba7632cc4f0d19fb0c08af3f19904057596a28d6ccf96c23f853c371a39"
+    },
+    "million-diagnostic/2-fine_uniform.csv.gz": {
+      "bytes": 871,
+      "sha256": "949fc6ccd2e7eed845cd4c00161fdd5345c5e53b423d4f1b9d667ccd2a8e58f0"
+    },
+    "million-diagnostic/2-fine_uniform.log": {
+      "bytes": 97591,
+      "sha256": "2673c28992dd326db9b815fc3b258b4594380457e4451cb21bb026292aa2e6a3"
+    },
+    "million-diagnostic/3-native.csv.gz": {
+      "bytes": 872,
+      "sha256": "b59a7a5daa9e2c039038fbfb114637426fffd500aed792f63ce483c625b7baaa"
+    },
+    "million-diagnostic/3-native.log": {
+      "bytes": 97537,
+      "sha256": "1c3788307e77145a0e9061e47b2e9c651288c5b73f89d155ba7068bc744f05c5"
+    },
+    "million-diagnostic/summary.json": {
+      "bytes": 3234,
+      "sha256": "0a111c8b8ec8a7655d34e6f3128b0713a5a765420d00e7d62c33a45020af0066"
+    },
+    "original-study-linkage.log": {
+      "bytes": 1406,
+      "sha256": "41e1716cb67af0543de0cf33b2de03a89ec23b752288b04bac96a6d5fb135594"
+    },
+    "original-study.json": {
+      "bytes": 736,
+      "sha256": "c36e89dc20553e57be20831177f9dfc922e84dd79f3ae674bd90e3366112b3fd"
+    },
+    "quality/bgfx-amd-gl-fine_uniform-advanced.log": {
+      "bytes": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    "quality/bgfx-amd-gl-fine_uniform-procedural.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "quality/bgfx-amd-gl-fine_uniform-projective.log": {
+      "bytes": 4188,
+      "sha256": "84227e4d6cfd8744da8598a7c4a7d02284566cd2914f575514eafba987d48ccb"
+    },
+    "quality/bgfx-amd-gl-fine_uniform-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/bgfx-amd-gl-fine_uniform-sampling.log": {
+      "bytes": 54792,
+      "sha256": "b0ec451bf7c0a63ee9858fa7ce96ba7f065689f0f5de3b68767c224debb6af5a"
+    },
+    "quality/bgfx-amd-gl-native-advanced.log": {
+      "bytes": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    "quality/bgfx-amd-gl-native-procedural.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "quality/bgfx-amd-gl-native-projective.log": {
+      "bytes": 4208,
+      "sha256": "8a1f44785623ed05b16ba4703c4164b9f377a482522e69bc9c5b5741006d641e"
+    },
+    "quality/bgfx-amd-gl-native-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/bgfx-amd-gl-native-sampling.log": {
+      "bytes": 54807,
+      "sha256": "b954a4d7e2347de6ff25cc08d0360845611fc1ea6aaa9acefc01c57527821f2a"
+    },
+    "quality/bgfx-amd-vulkan-fine_uniform-advanced.log": {
+      "bytes": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    "quality/bgfx-amd-vulkan-fine_uniform-procedural.log": {
+      "bytes": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    "quality/bgfx-amd-vulkan-fine_uniform-projective.log": {
+      "bytes": 4174,
+      "sha256": "3f9808db4ae41385e903492168c9fcda9bf18c6e5754cc0d7fb3aea31c87d982"
+    },
+    "quality/bgfx-amd-vulkan-fine_uniform-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/bgfx-amd-vulkan-fine_uniform-sampling.log": {
+      "bytes": 54784,
+      "sha256": "775e7b427bf32af9c3bbeafd194becab117c14bfc4bfe3d4c47089a68f4ffbfa"
+    },
+    "quality/bgfx-amd-vulkan-native-advanced.log": {
+      "bytes": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    "quality/bgfx-amd-vulkan-native-procedural.log": {
+      "bytes": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    "quality/bgfx-amd-vulkan-native-projective.log": {
+      "bytes": 4188,
+      "sha256": "36ac47a3a81d493c70ac4972854c4322d895bca0b7e6aee57f63be9f6442c271"
+    },
+    "quality/bgfx-amd-vulkan-native-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/bgfx-amd-vulkan-native-sampling.log": {
+      "bytes": 54796,
+      "sha256": "76e6e672555ee111909de665d4b84e5b2a39bfa324cc5604a69a65ce1b3159e7"
+    },
+    "quality/bgfx-nvidia-vulkan-fine_uniform-advanced.log": {
+      "bytes": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    "quality/bgfx-nvidia-vulkan-fine_uniform-procedural.log": {
+      "bytes": 31337,
+      "sha256": "f67874cf50fec3e4fe63376768b008bc89c15b10f48a5207c1761be12c9fd49f"
+    },
+    "quality/bgfx-nvidia-vulkan-fine_uniform-projective.log": {
+      "bytes": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    "quality/bgfx-nvidia-vulkan-fine_uniform-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/bgfx-nvidia-vulkan-fine_uniform-sampling.log": {
+      "bytes": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    "quality/bgfx-nvidia-vulkan-native-advanced.log": {
+      "bytes": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    "quality/bgfx-nvidia-vulkan-native-procedural.log": {
+      "bytes": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    "quality/bgfx-nvidia-vulkan-native-projective.log": {
+      "bytes": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    "quality/bgfx-nvidia-vulkan-native-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/bgfx-nvidia-vulkan-native-sampling.log": {
+      "bytes": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    "quality/summary.json": {
+      "bytes": 790733,
+      "sha256": "15625fe04c205ebdd83f5e040b729c747d5eac40f0c2d711395577533369722b"
+    },
+    "quality/wgpu-amd-gl-fine_uniform-advanced.log": {
+      "bytes": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    "quality/wgpu-amd-gl-fine_uniform-procedural.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "quality/wgpu-amd-gl-fine_uniform-projective.log": {
+      "bytes": 4202,
+      "sha256": "655a16081d241bc64002e9043b1af21cfd646ae1172d0a672e13536c2ae85e4c"
+    },
+    "quality/wgpu-amd-gl-fine_uniform-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/wgpu-amd-gl-fine_uniform-sampling.log": {
+      "bytes": 54812,
+      "sha256": "4cdfb306ab8333b85c6d2c30c08e46a17ae7cbc994e536783dd6296b9753092a"
+    },
+    "quality/wgpu-amd-gl-native-advanced.log": {
+      "bytes": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    "quality/wgpu-amd-gl-native-procedural.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "quality/wgpu-amd-gl-native-projective.log": {
+      "bytes": 4216,
+      "sha256": "ed4af38dbf090c6b00f9cb7acdca6fe4332b32030586335864ad1d9a65fb6e5e"
+    },
+    "quality/wgpu-amd-gl-native-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/wgpu-amd-gl-native-sampling.log": {
+      "bytes": 54824,
+      "sha256": "40ada83de372046c0cf075bc4760b2ab37d847cac459c3b75918b6e37e3ef68e"
+    },
+    "quality/wgpu-amd-vulkan-fine_uniform-advanced.log": {
+      "bytes": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    "quality/wgpu-amd-vulkan-fine_uniform-procedural.log": {
+      "bytes": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    "quality/wgpu-amd-vulkan-fine_uniform-projective.log": {
+      "bytes": 4170,
+      "sha256": "4ef1546d555212da54fcc96f35663bac2a3c0621fa34b75109342ce63c0c86fe"
+    },
+    "quality/wgpu-amd-vulkan-fine_uniform-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/wgpu-amd-vulkan-fine_uniform-sampling.log": {
+      "bytes": 54780,
+      "sha256": "7b32593052523e8c0d02c6ea88942b4b84cfc2ad1012f196554375e064bfe547"
+    },
+    "quality/wgpu-amd-vulkan-native-advanced.log": {
+      "bytes": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    "quality/wgpu-amd-vulkan-native-procedural.log": {
+      "bytes": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    "quality/wgpu-amd-vulkan-native-projective.log": {
+      "bytes": 4184,
+      "sha256": "49c9c66a2838998c4f841ef62bff64e3bb1de89fa74153d72062b83e4b8672e8"
+    },
+    "quality/wgpu-amd-vulkan-native-rtt.log": {
+      "bytes": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    "quality/wgpu-amd-vulkan-native-sampling.log": {
+      "bytes": 54792,
+      "sha256": "2042c8c079434b9f6665eb897a78a5c38bb2cfd481d4883f37d26c612d43f3db"
+    },
+    "quality/wgpu-nvidia-vulkan-fine_uniform-advanced.log": {
+      "bytes": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    "quality/wgpu-nvidia-vulkan-fine_uniform-procedural.log": {
+      "bytes": 31337,
+      "sha256": "f67874cf50fec3e4fe63376768b008bc89c15b10f48a5207c1761be12c9fd49f"
+    },
+    "quality/wgpu-nvidia-vulkan-fine_uniform-projective.log": {
+      "bytes": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    "quality/wgpu-nvidia-vulkan-fine_uniform-rtt.log": {
+      "bytes": 146,
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8"
+    },
+    "quality/wgpu-nvidia-vulkan-fine_uniform-sampling.log": {
+      "bytes": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    "quality/wgpu-nvidia-vulkan-native-advanced.log": {
+      "bytes": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    "quality/wgpu-nvidia-vulkan-native-procedural.log": {
+      "bytes": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    "quality/wgpu-nvidia-vulkan-native-projective.log": {
+      "bytes": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    "quality/wgpu-nvidia-vulkan-native-rtt.log": {
+      "bytes": 146,
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8"
+    },
+    "quality/wgpu-nvidia-vulkan-native-sampling.log": {
+      "bytes": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    "quality-deep/bgfx-amd-gl-fine_uniform-deep.log": {
+      "bytes": 13462,
+      "sha256": "70defb76fdba167ebcba70ccd01166d28049226fcff01d1ebe3d2191fe149d2a"
+    },
+    "quality-deep/bgfx-amd-gl-native-deep.log": {
+      "bytes": 22009,
+      "sha256": "d087fafdeb8d298c093041b5d763993599814e8a1242f27d5d8e7741ffcde99c"
+    },
+    "quality-deep/bgfx-amd-vulkan-fine_uniform-deep.log": {
+      "bytes": 13457,
+      "sha256": "1f97e410f76044e20f5cd80ea3fa6d7767c1cdaf3d284e5775770a139cb798c3"
+    },
+    "quality-deep/bgfx-amd-vulkan-native-deep.log": {
+      "bytes": 22004,
+      "sha256": "17050ba1ca456b29476f9b1c7d0d07546e3c73bfdc106b4f26a8e67baec4a76f"
+    },
+    "quality-deep/bgfx-nvidia-vulkan-fine_uniform-deep.log": {
+      "bytes": 13430,
+      "sha256": "6c85b5afd4f05b72c7ec67d51658ec81e6d91e22334ddf20201893b17c6fb017"
+    },
+    "quality-deep/bgfx-nvidia-vulkan-native-deep.log": {
+      "bytes": 13430,
+      "sha256": "6c85b5afd4f05b72c7ec67d51658ec81e6d91e22334ddf20201893b17c6fb017"
+    },
+    "quality-deep/summary.json": {
+      "bytes": 193760,
+      "sha256": "a6be25a375f371fd6140c0ab4b8b2f9702d27b640a98475cbf82fe1546d4e10c"
+    },
+    "quality-deep/wgpu-amd-gl-fine_uniform-deep.log": {
+      "bytes": 13485,
+      "sha256": "2062d616e0c2af6d661e927af06bc422e311a37647b5c653d6fab21247ddbf69"
+    },
+    "quality-deep/wgpu-amd-gl-native-deep.log": {
+      "bytes": 22032,
+      "sha256": "3fe8620c25d56f9cd08e496dd1ba3628d83042eb07ac024a36df7ad34e99cd25"
+    },
+    "quality-deep/wgpu-amd-vulkan-fine_uniform-deep.log": {
+      "bytes": 13453,
+      "sha256": "728ce849d9ccf66d2a2d4ba18dd832029b65a3c0720e49a2decb68c34ec57ab9"
+    },
+    "quality-deep/wgpu-amd-vulkan-native-deep.log": {
+      "bytes": 22000,
+      "sha256": "42588e499d781626d7b313014d0b79f531ad4bc04ecd61615482c80a54607963"
+    },
+    "quality-deep/wgpu-nvidia-vulkan-fine_uniform-deep.log": {
+      "bytes": 13424,
+      "sha256": "23b12a355f9bab0e3a577a1540e9df87ebe7819adbb1a3340e2d2e0f03b06318"
+    },
+    "quality-deep/wgpu-nvidia-vulkan-native-deep.log": {
+      "bytes": 13424,
+      "sha256": "23b12a355f9bab0e3a577a1540e9df87ebe7819adbb1a3340e2d2e0f03b06318"
+    },
+    "quality-direct/bgfx-amd-gl-fine_uniform-rtt-study.log": {
+      "bytes": 4225,
+      "sha256": "1462fb715e3e2d2f3d623dff001bc65e24a42a0e92e2caf5454a920534e517b2"
+    },
+    "quality-direct/bgfx-amd-gl-native-rtt-study.log": {
+      "bytes": 6785,
+      "sha256": "7ce3eedfc44da4fa7db809a3e0eefb83a709d7c458ca781aed2960447b19e30c"
+    },
+    "quality-direct/bgfx-amd-vulkan-fine_uniform-rtt-study.log": {
+      "bytes": 4220,
+      "sha256": "8fe7a8f5297c693507a2eff2ea8447a1d2d77773fca6104ec50c24bdf56f756d"
+    },
+    "quality-direct/bgfx-amd-vulkan-native-rtt-study.log": {
+      "bytes": 6780,
+      "sha256": "33041dc458b2572c6236025166e679bdc108a7fda26362a1fa9e8119ec9d4a90"
+    },
+    "quality-direct/bgfx-nvidia-vulkan-fine_uniform-rtt-study.log": {
+      "bytes": 4177,
+      "sha256": "6116e8f195354163ad20e15c272b441782384758042a845fd4c703df308abc6e"
+    },
+    "quality-direct/bgfx-nvidia-vulkan-native-rtt-study.log": {
+      "bytes": 4177,
+      "sha256": "6116e8f195354163ad20e15c272b441782384758042a845fd4c703df308abc6e"
+    },
+    "quality-direct/summary.json": {
+      "bytes": 68996,
+      "sha256": "0f0f6be3897a791a4467a70360ea4019605e50a8d1065f45126679e09b37aa39"
+    },
+    "quality-direct/wgpu-amd-gl-fine_uniform-rtt-study.log": {
+      "bytes": 4248,
+      "sha256": "bcc025d45942459e17f22ff7291ca17f41e4cd1420df68686d459b8ac8a54249"
+    },
+    "quality-direct/wgpu-amd-gl-native-rtt-study.log": {
+      "bytes": 6808,
+      "sha256": "b24609d659773f7835069d950339bc3de75aa0c3e4882a3ea0f9cbd8f9a52aed"
+    },
+    "quality-direct/wgpu-amd-vulkan-fine_uniform-rtt-study.log": {
+      "bytes": 4216,
+      "sha256": "a7b3fafeac7620a4c4d29498e603745b077620a9cf4f3fb75939e667ce95ef8e"
+    },
+    "quality-direct/wgpu-amd-vulkan-native-rtt-study.log": {
+      "bytes": 6776,
+      "sha256": "c3aa19dc7498f17caa3e60248320c412e721119c02d70572611c909e9384a064"
+    },
+    "quality-direct/wgpu-nvidia-vulkan-fine_uniform-rtt-study.log": {
+      "bytes": 4171,
+      "sha256": "7436331da0d7458dd39b7aef3e3d5797df741485c21d2ef53531300ba2d60c46"
+    },
+    "quality-direct/wgpu-nvidia-vulkan-native-rtt-study.log": {
+      "bytes": 4171,
+      "sha256": "7436331da0d7458dd39b7aef3e3d5797df741485c21d2ef53531300ba2d60c46"
+    },
+    "quality-resources/bgfx-amd-gl-fine_uniform-instancing.log": {
+      "bytes": 2147,
+      "sha256": "fa2f5a2df7e190be9e52ba9a2efe699cb951cae691d0fb97d0da6ebaebe139f1"
+    },
+    "quality-resources/bgfx-amd-gl-native-instancing.log": {
+      "bytes": 2147,
+      "sha256": "fa2f5a2df7e190be9e52ba9a2efe699cb951cae691d0fb97d0da6ebaebe139f1"
+    },
+    "quality-resources/bgfx-amd-vulkan-fine_uniform-instancing.log": {
+      "bytes": 2075,
+      "sha256": "7ba75c7e0ac45953ee256375a7ecc389782706d5667782d2355eb80cad6c3b12"
+    },
+    "quality-resources/bgfx-amd-vulkan-native-instancing.log": {
+      "bytes": 2075,
+      "sha256": "7ba75c7e0ac45953ee256375a7ecc389782706d5667782d2355eb80cad6c3b12"
+    },
+    "quality-resources/bgfx-nvidia-vulkan-fine_uniform-instancing.log": {
+      "bytes": 2137,
+      "sha256": "3df574545b14c7187a0728dfbe23b82f84a9fd7b4fd0d8cc2f2c18c3430e5b84"
+    },
+    "quality-resources/bgfx-nvidia-vulkan-native-instancing.log": {
+      "bytes": 2137,
+      "sha256": "3df574545b14c7187a0728dfbe23b82f84a9fd7b4fd0d8cc2f2c18c3430e5b84"
+    },
+    "quality-resources/summary.json": {
+      "bytes": 26568,
+      "sha256": "a5a65a8c0005601821e62873c9bdcc7331be55571235a309e0c3e4d6debd9b87"
+    },
+    "quality-resources/wgpu-amd-gl-fine_uniform-large-bindings.log": {
+      "bytes": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    "quality-resources/wgpu-amd-gl-fine_uniform-multi-device.log": {
+      "bytes": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    "quality-resources/wgpu-amd-gl-fine_uniform-stress.log": {
+      "bytes": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    "quality-resources/wgpu-amd-gl-native-large-bindings.log": {
+      "bytes": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    "quality-resources/wgpu-amd-gl-native-multi-device.log": {
+      "bytes": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    "quality-resources/wgpu-amd-gl-native-stress.log": {
+      "bytes": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    "quality-resources/wgpu-amd-vulkan-fine_uniform-large-bindings.log": {
+      "bytes": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    "quality-resources/wgpu-amd-vulkan-fine_uniform-multi-device.log": {
+      "bytes": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    "quality-resources/wgpu-amd-vulkan-fine_uniform-stress.log": {
+      "bytes": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    "quality-resources/wgpu-amd-vulkan-native-large-bindings.log": {
+      "bytes": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    "quality-resources/wgpu-amd-vulkan-native-multi-device.log": {
+      "bytes": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    "quality-resources/wgpu-amd-vulkan-native-stress.log": {
+      "bytes": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    "quality-resources/wgpu-nvidia-vulkan-fine_uniform-large-bindings.log": {
+      "bytes": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    "quality-resources/wgpu-nvidia-vulkan-fine_uniform-multi-device.log": {
+      "bytes": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    "quality-resources/wgpu-nvidia-vulkan-fine_uniform-stress.log": {
+      "bytes": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    "quality-resources/wgpu-nvidia-vulkan-native-large-bindings.log": {
+      "bytes": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    "quality-resources/wgpu-nvidia-vulkan-native-multi-device.log": {
+      "bytes": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    "quality-resources/wgpu-nvidia-vulkan-native-stress.log": {
+      "bytes": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    "quality-shadow/bgfx-amd-gl-fine_uniform-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    "quality-shadow/bgfx-amd-gl-fine_uniform-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    "quality-shadow/bgfx-amd-gl-fine_uniform-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    "quality-shadow/bgfx-amd-gl-native-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    "quality-shadow/bgfx-amd-gl-native-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    "quality-shadow/bgfx-amd-gl-native-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    "quality-shadow/bgfx-amd-vulkan-fine_uniform-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    "quality-shadow/bgfx-amd-vulkan-fine_uniform-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    "quality-shadow/bgfx-amd-vulkan-fine_uniform-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    "quality-shadow/bgfx-amd-vulkan-native-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    "quality-shadow/bgfx-amd-vulkan-native-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    "quality-shadow/bgfx-amd-vulkan-native-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    "quality-shadow/bgfx-nvidia-vulkan-fine_uniform-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "a560faf7ce6ae0c97c1b28378ef951328d34bbab93a256ca1f47f1ef122a8323"
+    },
+    "quality-shadow/bgfx-nvidia-vulkan-fine_uniform-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "54288a51c4a1882fecfa6b737240d1a1c7d7cdc8875f8b31caaf93d68c3665d2"
+    },
+    "quality-shadow/bgfx-nvidia-vulkan-fine_uniform-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    "quality-shadow/bgfx-nvidia-vulkan-native-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "a560faf7ce6ae0c97c1b28378ef951328d34bbab93a256ca1f47f1ef122a8323"
+    },
+    "quality-shadow/bgfx-nvidia-vulkan-native-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "54288a51c4a1882fecfa6b737240d1a1c7d7cdc8875f8b31caaf93d68c3665d2"
+    },
+    "quality-shadow/bgfx-nvidia-vulkan-native-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    "quality-shadow/summary.json": {
+      "bytes": 39650,
+      "sha256": "b6e1df82e0bdf6f7ebbc557ce57e3f00641b6a11372bee1ec60f92e14eec5179"
+    },
+    "quality-shadow/wgpu-amd-gl-fine_uniform-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    "quality-shadow/wgpu-amd-gl-fine_uniform-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "1c66fd4ca2948037a59ccac121e696f4285890bdd9fab8512095b7879670889b"
+    },
+    "quality-shadow/wgpu-amd-gl-fine_uniform-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    "quality-shadow/wgpu-amd-gl-native-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    "quality-shadow/wgpu-amd-gl-native-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "1c66fd4ca2948037a59ccac121e696f4285890bdd9fab8512095b7879670889b"
+    },
+    "quality-shadow/wgpu-amd-gl-native-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    "quality-shadow/wgpu-amd-vulkan-fine_uniform-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    "quality-shadow/wgpu-amd-vulkan-fine_uniform-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "5b71cf529208f2f206356f7ee69e07479f243a6cc0c8842f7b483b01ff0694f9"
+    },
+    "quality-shadow/wgpu-amd-vulkan-fine_uniform-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    "quality-shadow/wgpu-amd-vulkan-native-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    "quality-shadow/wgpu-amd-vulkan-native-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "5b71cf529208f2f206356f7ee69e07479f243a6cc0c8842f7b483b01ff0694f9"
+    },
+    "quality-shadow/wgpu-amd-vulkan-native-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    "quality-shadow/wgpu-nvidia-vulkan-fine_uniform-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "845fef323c56430c2cf3f757f2ad654417625136a15572a84bb532da94d84be4"
+    },
+    "quality-shadow/wgpu-nvidia-vulkan-fine_uniform-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "a3883c74fe08842401759629918ba458ade0312dbf4e98e5c9d00058c1f22ded"
+    },
+    "quality-shadow/wgpu-nvidia-vulkan-fine_uniform-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    "quality-shadow/wgpu-nvidia-vulkan-native-shadow-alpha-rtt.log": {
+      "bytes": 12216,
+      "sha256": "845fef323c56430c2cf3f757f2ad654417625136a15572a84bb532da94d84be4"
+    },
+    "quality-shadow/wgpu-nvidia-vulkan-native-shadow-eight.log": {
+      "bytes": 190,
+      "sha256": "a3883c74fe08842401759629918ba458ade0312dbf4e98e5c9d00058c1f22ded"
+    },
+    "quality-shadow/wgpu-nvidia-vulkan-native-shadow-viewport.log": {
+      "bytes": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    "quality-viewport/bgfx-amd-gl-fine_uniform-viewport-study.log": {
+      "bytes": 3435,
+      "sha256": "283fbdc18143310a8ae1bb58806ff5683c8fcc3072f543bcaa09eee8a15f4d3f"
+    },
+    "quality-viewport/bgfx-amd-gl-native-viewport-study.log": {
+      "bytes": 3435,
+      "sha256": "283fbdc18143310a8ae1bb58806ff5683c8fcc3072f543bcaa09eee8a15f4d3f"
+    },
+    "quality-viewport/bgfx-amd-vulkan-fine_uniform-viewport-study.log": {
+      "bytes": 3430,
+      "sha256": "f235f2662a203a27e1aebf340626739a2e9798896bf399f6f195da30685bfe18"
+    },
+    "quality-viewport/bgfx-amd-vulkan-native-viewport-study.log": {
+      "bytes": 3430,
+      "sha256": "f235f2662a203a27e1aebf340626739a2e9798896bf399f6f195da30685bfe18"
+    },
+    "quality-viewport/bgfx-nvidia-vulkan-fine_uniform-viewport-study.log": {
+      "bytes": 3433,
+      "sha256": "e0d57784819386fcb0987f5bf511dcbf46d856d26fd34988a0681ec891aa8cd4"
+    },
+    "quality-viewport/bgfx-nvidia-vulkan-native-viewport-study.log": {
+      "bytes": 3433,
+      "sha256": "e0d57784819386fcb0987f5bf511dcbf46d856d26fd34988a0681ec891aa8cd4"
+    },
+    "quality-viewport/summary.json": {
+      "bytes": 57680,
+      "sha256": "db3cc0baaea604cd6b715dbb2c118a7062fa8324626ff81c705a3e7900881a9d"
+    },
+    "quality-viewport/wgpu-amd-gl-fine_uniform-viewport-study.log": {
+      "bytes": 3458,
+      "sha256": "1553f9b973f3560540afb3fa081ce9eddd135a6585594a88b3d6bc1b13a11c21"
+    },
+    "quality-viewport/wgpu-amd-gl-native-viewport-study.log": {
+      "bytes": 3458,
+      "sha256": "1553f9b973f3560540afb3fa081ce9eddd135a6585594a88b3d6bc1b13a11c21"
+    },
+    "quality-viewport/wgpu-amd-vulkan-fine_uniform-viewport-study.log": {
+      "bytes": 3426,
+      "sha256": "042a07a996890043e8b6218e94b056ae8d23cf8643c75252a97451fc0e233920"
+    },
+    "quality-viewport/wgpu-amd-vulkan-native-viewport-study.log": {
+      "bytes": 3426,
+      "sha256": "042a07a996890043e8b6218e94b056ae8d23cf8643c75252a97451fc0e233920"
+    },
+    "quality-viewport/wgpu-nvidia-vulkan-fine_uniform-viewport-study.log": {
+      "bytes": 3427,
+      "sha256": "72253c65e77793c8ee863a37ad0b77dfc7f49612de92d22301348b6c9a574e13"
+    },
+    "quality-viewport/wgpu-nvidia-vulkan-native-viewport-study.log": {
+      "bytes": 3427,
+      "sha256": "72253c65e77793c8ee863a37ad0b77dfc7f49612de92d22301348b6c9a574e13"
+    },
+    "quality-wgpu-pilot/summary.json": {
+      "bytes": 6912,
+      "sha256": "1b233fd082cda278d64db6afd3f08e87541e662b4d9f2fbcafcebd3152b11c0e"
+    },
+    "quality-wgpu-pilot/wgpu-amd-gl-fine_uniform-alpha.log": {
+      "bytes": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    "quality-wgpu-pilot/wgpu-amd-gl-native-alpha.log": {
+      "bytes": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    "quality-wgpu-pilot/wgpu-amd-vulkan-fine_uniform-alpha.log": {
+      "bytes": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    "quality-wgpu-pilot/wgpu-amd-vulkan-native-alpha.log": {
+      "bytes": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    "quality-wgpu-pilot/wgpu-nvidia-vulkan-fine_uniform-alpha.log": {
+      "bytes": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    "quality-wgpu-pilot/wgpu-nvidia-vulkan-native-alpha.log": {
+      "bytes": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    "results-native.json": {
+      "bytes": 16691,
+      "sha256": "1fa6841456eb339814a191860071a4c0a9df0e493267e70b24494c67367a9880"
+    },
+    "rust-tests-final.log": {
+      "bytes": 6917,
+      "sha256": "ec213f2021635de7f8cfeb0b6179b0768f7d6fe9f2bfa4bd51440b73946ca41e"
+    },
+    "rust-tests.log": {
+      "bytes": 6599,
+      "sha256": "86a62e1ffcc04222573383b9e6bae0d0b47b1a75ee1ff0cec604e0a5163ab083"
+    },
+    "scenes-fine/texture-1-0.5.iv": {
+      "bytes": 180658,
+      "sha256": "05f730e4c431a610ada742f9c3542a4ef63d82463684610ffe486c2dfa6cf75f"
+    },
+    "source/src/rendering/coinbgfx/CoinBgfxBackend.cpp": {
+      "bytes": 187452,
+      "sha256": "2a66ac8a37b12304473448856240fac9a7818807a33bd934b8e88421a9affa79"
+    },
+    "source/src/rendering/coinbgfx/CoinBgfxBackend.h": {
+      "bytes": 12111,
+      "sha256": "48c9988c92134f131f0167e89572efbf77fe43b556b46402e3ea896ecf58684d"
+    },
+    "source/src/rendering/coinbgfx/CoinBgfxLowering.cpp": {
+      "bytes": 74144,
+      "sha256": "9c01cd50facb9526f5f42af2bf37dda09ab4d89fb8d3281d0cf9f86c9588004d"
+    },
+    "source/src/rendering/coinbgfx/CoinBgfxLowering.h": {
+      "bytes": 9423,
+      "sha256": "876034b606762ad7757f349a2f4fefaa8f4353e3041374bbe16d03af38b7b853"
+    },
+    "source/src/rendering/coinbgfx/shaders/coin_surface.sh": {
+      "bytes": 9714,
+      "sha256": "79b43b31b0f63aa8130891aa95feff476f39ccef4a0223b803d957783e734c13"
+    },
+    "source/src/rendering/coinrender/CMakeLists.txt": {
+      "bytes": 11329,
+      "sha256": "a1ce5090612a1b16f2d3389bc1ee77cd37f617be33baa90fe2f54f51eb872431"
+    },
+    "source/src/rendering/coinwgpu/rust_bridge/src/lib.rs": {
+      "bytes": 371121,
+      "sha256": "f7eb68e7ab10866eaa34a0b14ad5d96a3addee39eb82851a02fb41c8f93b6ebd"
+    },
+    "source/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs": {
+      "bytes": 7286,
+      "sha256": "402b3ea16d5ba4506ad3cc83a4558099acb3c4ccfd2da424249f3608cb6d549e"
+    },
+    "source/src/rendering/coinwgpu/rust_bridge/src/uniform_arena.rs": {
+      "bytes": 2636,
+      "sha256": "04218f5c78c58a0938c5079735aef4325cb1c71ddd1be4b446ed0efac0614920"
+    },
+    "source/testsuite/reproducers/portable-sampling-study/README.md": {
+      "bytes": 10519,
+      "sha256": "73a18a707cb9973b59579d46f85396aa753a1f88b9666ea104b227c623354d79"
+    },
+    "source/testsuite/reproducers/portable-sampling-study/analyze_native.py": {
+      "bytes": 3345,
+      "sha256": "278e1ec62d9ea525915f6ded77beda249a6ada0daca7ac0f370449c055b84e50"
+    },
+    "source/testsuite/reproducers/portable-sampling-study/benchmark_fine.py": {
+      "bytes": 5326,
+      "sha256": "3d8b006f7b0f402adf4783b81eccc6bc71afe143cd5431ffdf453b4a3ff3528e"
+    },
+    "source/testsuite/reproducers/portable-sampling-study/investigate_native.py": {
+      "bytes": 4139,
+      "sha256": "7f0d89dd34283687fdb601a4ef80b5928fa33fe75eaa97631ebd7a3f206901b3"
+    },
+    "source/testsuite/reproducers/portable-sampling-study/run.py": {
+      "bytes": 4461,
+      "sha256": "3862f034ab137dd29cdf2774132fe9f604fdda2eaee34bcb949c841856bbaba9"
+    },
+    "source.patch": {
+      "bytes": 67712,
+      "sha256": "dce82419881176401137b7fe35c2fbd42ebc008f7f17f3d5c17aa6d2eb100658"
+    },
+    "study-bgfx-cmake-options.log": {
+      "bytes": 190367,
+      "sha256": "c5925307ef144c47346be0ace4a307f9e413e85e613477ee34b90811c1e606c9"
+    },
+    "study-bgfx-linkage.log": {
+      "bytes": 1398,
+      "sha256": "a51063550dab7c6391db8db437ef2553cc00dd27ee6e4b6a879df537cd5d4665"
+    },
+    "study-wgpu-cmake-options.log": {
+      "bytes": 272340,
+      "sha256": "c92a45a7c007a8df5b9a4c0c4dbb0d3a89453502a5f9c38684cda2c8e6eab9cc"
+    },
+    "study-wgpu-linkage.log": {
+      "bytes": 1398,
+      "sha256": "60c66c2dbaef04e46226ecb5d05b374bdddf57e13be8f9d51742c386e4eb2def"
+    }
+  }
+}

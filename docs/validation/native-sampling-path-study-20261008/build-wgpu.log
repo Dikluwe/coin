@@ -1,0 +1,120 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (1.5s)
+-- Generating done (0.7s)
+-- Build files have been written to: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu
+[1/73] Building Rust WebGPU bridge library (release)...
+   Compiling coin_wgpu_rust_bridge v0.1.0 (/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinwgpu/rust_bridge)
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:2399:15
+     |
+2399 |         wgpu::ImageCopyTexture {
+     |               ^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:2406:15
+     |
+2406 |         wgpu::ImageDataLayout {
+     |               ^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:3498:19
+     |
+3498 |             wgpu::ImageCopyTexture {
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:3505:19
+     |
+3505 |             wgpu::ImageDataLayout {
+     |                   ^^^^^^^^^^^^^^^
+
+warning: field `default_texture` is never read
+    --> src/lib.rs:1491:5
+     |
+1465 | struct DeviceState {
+     |        ----------- field in this struct
+...
+1491 |     default_texture: wgpu::Texture,
+     |     ^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coin_wgpu_rust_bridge` (lib) generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 5.65s
+[2/73] Building CXX object testsuite/CMakeFiles/CoinBgfxProgramSelectionTest.dir/coinbgfx/CoinBgfxProgramSelectionTest.cpp.o
+[3/73] Linking CXX shared library lib/libCoinRender.so
+[4/73] Linking CXX executable bin/coin_render_wayland_smoke
+[5/73] Linking CXX executable bin/coin_render_window_cone
+[6/73] Linking CXX executable bin/coin_render_viewer
+[7/73] Linking CXX executable bin/coin_render_window_benchmark
+[8/73] Linking CXX executable bin/coin_render_gl_benchmark
+[9/73] Linking CXX executable bin/coin_render_freecad_compare
+[10/73] Linking CXX executable bin/CoinRenderActionTest
+[11/73] Linking CXX executable bin/CoinRenderBackendBoundaryTest
+[12/73] Linking CXX executable bin/CoinRenderRuntimeBoundaryTest
+[13/73] Building CXX object testsuite/CMakeFiles/CoinBgfxCoreTest.dir/__/src/rendering/coinbgfx/CoinBgfxLowering.cpp.o
+[14/73] Linking CXX executable bin/CoinRenderPlanAssemblyCoreTest
+[15/73] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[16/73] Linking CXX executable bin/CoinRenderSelectionTest
+[17/73] Linking CXX executable bin/CoinRenderProductTest
+[18/73] Building CXX object testsuite/CMakeFiles/CoinRenderDepthContractTest.dir/coinrender/CoinRenderDepthContractTest.cpp.o
+[19/73] Linking CXX executable bin/CoinRenderBackendContractTest
+[20/73] Linking CXX executable bin/CoinRenderOffscreenTest
+[21/73] Linking CXX executable bin/CoinRenderGateG0Test
+[22/73] Linking CXX executable bin/CoinBgfxProgramSelectionTest
+[23/73] Linking CXX executable bin/CoinRenderFrameCoreTest
+[24/73] Building CXX object testsuite/CMakeFiles/CoinBgfxCoreTest.dir/coinbgfx/CoinBgfxCoreTest.cpp.o
+[25/73] Linking CXX executable bin/CoinRenderDiagnosticShellTest
+[26/73] Linking CXX executable bin/CoinRenderFrameReuseCoreTest
+[27/73] Linking CXX executable bin/CoinBgfxCoreTest
+[28/73] Linking CXX executable bin/CoinRenderGateG1Test
+[29/73] Linking CXX executable bin/CoinRenderIndexedGeometryCoreTest
+[30/73] Linking CXX executable bin/CoinRenderGateG2Test
+[31/73] Linking CXX executable bin/CoinRenderIndexedFastPathTest
+[32/73] Linking CXX executable bin/CoinWgpuCacheTest
+[33/73] Linking CXX executable bin/CoinRenderStabilizationTest
+[34/73] Linking CXX executable bin/CoinRenderMaterialTest
+[35/73] Linking CXX executable bin/CoinRenderTextureTest
+[36/73] Linking CXX executable bin/CoinRenderTextureSamplingTest
+[37/73] Linking CXX executable bin/CoinRenderRttProfileTest
+[38/73] Linking CXX executable bin/CoinRenderAdvancedTextureTest
+[39/73] Linking CXX executable bin/CoinRenderRttMatrixTest
+[40/73] Linking CXX executable bin/CoinRenderGeometryViewportTest
+[41/73] Linking CXX executable bin/CoinRenderRasterStudy
+[42/73] Linking CXX executable bin/CoinRenderProceduralTextureTest
+[43/73] Linking CXX executable bin/CoinRenderLightingTest
+[44/73] Linking CXX executable bin/CoinRenderGouraudInterpolationTest
+[45/73] Linking CXX executable bin/CoinRenderFogTest
+[46/73] Linking CXX executable bin/CoinRenderClipPlaneTest
+[47/73] Linking CXX executable bin/CoinRenderDrawStyleTest
+[48/73] Linking CXX executable bin/CoinRenderMultitextureTest
+[49/73] Linking CXX executable bin/CoinRenderPeelingTest
+[50/73] Linking CXX executable bin/CoinRenderTransparencyTest
+[51/73] Linking CXX executable bin/CoinRenderCompositionTest
+[52/73] Linking CXX executable bin/CoinRenderNodeInventoryTest
+[53/73] Linking CXX executable bin/CoinRenderScreenContentTest
+[54/73] Linking CXX executable bin/CoinRenderFragmentPolicyTest
+[55/73] Linking CXX executable bin/CoinRenderProjectiveUvTest
+[56/73] Linking CXX executable bin/CoinRenderBoundingBoxTest
+[57/73] Linking CXX executable bin/CoinRenderMarkerSetTest
+[58/73] Linking CXX executable bin/CoinRenderShadowEightMapTest
+[59/73] Linking CXX executable bin/CoinRenderMultiTargetTest
+[60/73] Linking CXX executable bin/CoinRenderShadowReferenceTest
+[61/73] Linking CXX executable bin/CoinRenderPublicationTest
+[62/73] Linking CXX executable bin/CoinRenderSceneTextureTest
+[63/73] Linking CXX executable bin/CoinRenderRttOwnershipTest
+[64/73] Linking CXX executable bin/CoinRenderSceneTextureBudgetTest
+[65/73] Linking CXX executable bin/CoinWgpuFfiFrameTest
+[66/73] Linking CXX executable bin/CoinWgpuLargeBindingsTest
+[67/73] Linking CXX executable bin/CoinRenderPerformanceTest
+[68/73] Linking CXX executable bin/CoinRenderAsyncReadbackTest
+[69/73] Linking CXX executable bin/CoinWgpuMultiDeviceTest
+[70/73] Linking CXX executable bin/CoinRenderAsyncActionTest
+[71/73] Linking CXX executable bin/CoinRenderSurfaceTest
+[72/73] Building CXX object testsuite/CMakeFiles/CoinRenderDepthContractTest.dir/__/src/rendering/coinbgfx/CoinBgfxLowering.cpp.o
+[73/73] Linking CXX executable bin/CoinRenderDepthContractTest

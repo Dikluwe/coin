@@ -69,8 +69,14 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   viewport deslocado, seis configurações, erro máximo1 nos controles novos.
   [Resultados e decisão](coin-render-fine-sampling-study-20261008.md): `fine_uniform`
   reduz custo GPU frente a dois centros (≈34% AMD/60% NVIDIA com8 unidades), mas
-  native continua mais rápido. Produção recebe somente docs/evidências; promoção
-  exige remover custo do laboratório, inclusive avaliar NVIDIA/1milhão sem textura.
+  native continua mais rápido. Produção recebe somente docs/evidências.
+- [x] Separar perfis nativos e experimentais no laboratório e investigar NVIDIA/
+  1milhão: prefixo wgpu3040 bytes/instancing nativo e fragmentos BGFX separados;
+  162 controles (134 PASS/28 FAIL conhecidos), Rust46 PASS e84 medições de janela.
+  [Relatório e limites](coin-render-native-sampling-path-study-20261008.md): custo
+  extra AMD/wgpu removido nesta amostra;36 controles válidos do milhão e144 hashes/
+  timestamps de diagnóstico não reproduzem regressão persistente do seletor.
+  Coin original e código de produção intactos; política pública continua pendente.
 - [ ] Promover política comum nearest portátil com API/capacidades e limites
   explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
   perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.
