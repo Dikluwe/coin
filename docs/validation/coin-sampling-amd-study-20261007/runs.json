@@ -1,0 +1,850 @@
+{
+  "runs": [
+    {
+      "gpu": "amd",
+      "api": "coin",
+      "quality": 0.5,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-coin-q.5-o0",
+        ".5",
+        "0"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "amd-coin-q.5-o0.log",
+      "log_sha256": "742b18832235f8c761cf02a0ec90266a3a1cf2ab0dd7ec3b480e51bc34108645",
+      "renderer": [
+        "route=coin vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "egl",
+      "quality": 0.5,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-egl-q.5-o0",
+        ".5",
+        "0"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "amd-egl-q.5-o0.log",
+      "log_sha256": "ad9a26d13125fc3a9f50fa541bcc64d6d1d60d9187b75b605c36e2baf37d5feb",
+      "renderer": [
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "coin",
+      "quality": 0.5,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-coin-q.5-o-.001",
+        ".5",
+        "-.001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "amd-coin-q.5-o-.001.log",
+      "log_sha256": "bea0c5de0a83c4d1014c2add72cdd9cabff7d8d90862f0777222c9344cbb0536",
+      "renderer": [
+        "route=coin vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "egl",
+      "quality": 0.5,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-egl-q.5-o-.001",
+        ".5",
+        "-.001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "amd-egl-q.5-o-.001.log",
+      "log_sha256": "ad9a26d13125fc3a9f50fa541bcc64d6d1d60d9187b75b605c36e2baf37d5feb",
+      "renderer": [
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "coin",
+      "quality": 0.5,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-coin-q.5-o.001",
+        ".5",
+        ".001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "amd-coin-q.5-o.001.log",
+      "log_sha256": "fc04d1669999b1fa3497f2c5f9ad1ee6e51d32a2a6cd0cb9da85b52f420e2b40",
+      "renderer": [
+        "route=coin vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "egl",
+      "quality": 0.5,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-egl-q.5-o.001",
+        ".5",
+        ".001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "amd-egl-q.5-o.001.log",
+      "log_sha256": "ad9a26d13125fc3a9f50fa541bcc64d6d1d60d9187b75b605c36e2baf37d5feb",
+      "renderer": [
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "coin",
+      "quality": 0.8,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-coin-q.8-o0",
+        ".8",
+        "0"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "amd-coin-q.8-o0.log",
+      "log_sha256": "d6ac0468303544585dc343ef411f43c4db32f287c5d0e752bf21bc416b74c6ff",
+      "renderer": [
+        "route=coin vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "egl",
+      "quality": 0.8,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-egl-q.8-o0",
+        ".8",
+        "0"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "amd-egl-q.8-o0.log",
+      "log_sha256": "cce91033f21199a8af6e1b077b2096d2ff7c2d73b4f1b18ace4e12f7b70efc18",
+      "renderer": [
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "coin",
+      "quality": 0.8,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-coin-q.8-o-.001",
+        ".8",
+        "-.001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "amd-coin-q.8-o-.001.log",
+      "log_sha256": "63d8bb8181a74e0ab0bfd498f1786cfa5effe6b8de3c5290b6462c903c25bcbf",
+      "renderer": [
+        "route=coin vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "egl",
+      "quality": 0.8,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-egl-q.8-o-.001",
+        ".8",
+        "-.001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "amd-egl-q.8-o-.001.log",
+      "log_sha256": "cce91033f21199a8af6e1b077b2096d2ff7c2d73b4f1b18ace4e12f7b70efc18",
+      "renderer": [
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "coin",
+      "quality": 0.8,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-coin-q.8-o.001",
+        ".8",
+        ".001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "amd-coin-q.8-o.001.log",
+      "log_sha256": "a3af72e80aeea316787edfba6f088dd4c7db3325000d195161afe25ef2b4e397",
+      "renderer": [
+        "route=coin vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "amd",
+      "api": "egl",
+      "quality": 0.8,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/amd-egl-q.8-o.001",
+        ".8",
+        ".001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "amd-egl-q.8-o.001.log",
+      "log_sha256": "cce91033f21199a8af6e1b077b2096d2ff7c2d73b4f1b18ace4e12f7b70efc18",
+      "renderer": [
+        "route=fixed vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=implicit vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=explicit-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=fetch-round256 vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=query-lod vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-scan vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+        "route=boundary-fetch vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "coin",
+      "quality": 0.5,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-coin-q.5-o0",
+        ".5",
+        "0",
+        "--egl-current"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "nvidia-coin-q.5-o0.log",
+      "log_sha256": "ce484289a3fe5bcbc3c4e1b57ccf202379015da9fc886301218a62ef5d90ae45",
+      "renderer": [
+        "route=coin vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "egl",
+      "quality": 0.5,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-egl-q.5-o0",
+        ".5",
+        "0"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "nvidia-egl-q.5-o0.log",
+      "log_sha256": "e21f095ef5c9254b7db21790b5e01076383f32515b2199dbc8d8777c5b95baec",
+      "renderer": [
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "coin",
+      "quality": 0.5,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-coin-q.5-o-.001",
+        ".5",
+        "-.001",
+        "--egl-current"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "nvidia-coin-q.5-o-.001.log",
+      "log_sha256": "70e168b53e2527fb040296fb748dddb7e49f61cbad06b75d4f2d20581cd1f8ff",
+      "renderer": [
+        "route=coin vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "egl",
+      "quality": 0.5,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-egl-q.5-o-.001",
+        ".5",
+        "-.001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "nvidia-egl-q.5-o-.001.log",
+      "log_sha256": "e21f095ef5c9254b7db21790b5e01076383f32515b2199dbc8d8777c5b95baec",
+      "renderer": [
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "coin",
+      "quality": 0.5,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-coin-q.5-o.001",
+        ".5",
+        ".001",
+        "--egl-current"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "nvidia-coin-q.5-o.001.log",
+      "log_sha256": "d89fa3a0dfd36b079dd86c2dfc8403dc1f49730edb00f86ee87a04039716435f",
+      "renderer": [
+        "route=coin vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "egl",
+      "quality": 0.5,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-egl-q.5-o.001",
+        ".5",
+        ".001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "nvidia-egl-q.5-o.001.log",
+      "log_sha256": "e21f095ef5c9254b7db21790b5e01076383f32515b2199dbc8d8777c5b95baec",
+      "renderer": [
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "coin",
+      "quality": 0.8,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-coin-q.8-o0",
+        ".8",
+        "0",
+        "--egl-current"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "nvidia-coin-q.8-o0.log",
+      "log_sha256": "8d7c970e1c4a0e820f0fe7dc41daff671320a24267d998159871c6415b9b9004",
+      "renderer": [
+        "route=coin vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "egl",
+      "quality": 0.8,
+      "offset": 0.0,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-egl-q.8-o0",
+        ".8",
+        "0"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "nvidia-egl-q.8-o0.log",
+      "log_sha256": "0c6527061bcdc3313f426e0718a2c08e06d96b1287d9b9cdf07e31f799ff7f8c",
+      "renderer": [
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "coin",
+      "quality": 0.8,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-coin-q.8-o-.001",
+        ".8",
+        "-.001",
+        "--egl-current"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "nvidia-coin-q.8-o-.001.log",
+      "log_sha256": "e10d777cbba819353701d696b49c032f822e74dde11e3033c9ca036d76199e25",
+      "renderer": [
+        "route=coin vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "egl",
+      "quality": 0.8,
+      "offset": -0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-egl-q.8-o-.001",
+        ".8",
+        "-.001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "nvidia-egl-q.8-o-.001.log",
+      "log_sha256": "0c6527061bcdc3313f426e0718a2c08e06d96b1287d9b9cdf07e31f799ff7f8c",
+      "renderer": [
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "coin",
+      "quality": 0.8,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-coin-q.8-o.001",
+        ".8",
+        ".001",
+        "--egl-current"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+      "log": "nvidia-coin-q.8-o.001.log",
+      "log_sha256": "913242ee25319c6a11d985f28fe13af3b7d9565f798f59c940c402efcc10de6b",
+      "renderer": [
+        "route=coin vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    },
+    {
+      "gpu": "nvidia",
+      "api": "egl",
+      "quality": 0.8,
+      "offset": 0.001,
+      "command": [
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling",
+        "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/final-native-controls-scan/nvidia-egl-q.8-o.001",
+        ".8",
+        ".001"
+      ],
+      "environment": {
+        "XAUTHORITY": "/home/dikluwe/.Xauthority",
+        "DISPLAY": ":0",
+        "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+        "COIN_GLXGLUE_NO_PBUFFERS": "1",
+        "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+        "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+        "__NV_PRIME_RENDER_OFFLOAD": "1"
+      },
+      "exit": 0,
+      "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+      "log": "nvidia-egl-q.8-o.001.log",
+      "log_sha256": "0c6527061bcdc3313f426e0718a2c08e06d96b1287d9b9cdf07e31f799ff7f8c",
+      "renderer": [
+        "route=fixed vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=implicit vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=explicit-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=fetch-round256 vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=query-lod vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-scan vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04",
+        "route=boundary-fetch vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.6.0 NVIDIA 610.57.04"
+      ]
+    }
+  ]
+}

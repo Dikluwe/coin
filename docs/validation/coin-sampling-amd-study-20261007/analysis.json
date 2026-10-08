@@ -1,0 +1,1592 @@
+{
+  "rows": [
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.0,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 8.08,
+          "maximum": 78
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 7.44,
+          "maximum": 68
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        }
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.0,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 7.44,
+          "maximum": 68
+        }
+      }
+    },
+    {
+      "comparison": "cross_gpu",
+      "quality": 0.5,
+      "offset": 0.0,
+      "native": {
+        "samples": 300,
+        "mae": 8.08,
+        "maximum": 78
+      },
+      "fetch": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": -0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        }
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": -0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        }
+      }
+    },
+    {
+      "comparison": "cross_gpu",
+      "quality": 0.5,
+      "offset": -0.001,
+      "native": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      },
+      "fetch": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.77,
+          "maximum": 77
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.74,
+          "maximum": 74
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        }
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.74,
+          "maximum": 74
+        }
+      }
+    },
+    {
+      "comparison": "cross_gpu",
+      "quality": 0.5,
+      "offset": 0.001,
+      "native": {
+        "samples": 300,
+        "mae": 0.77,
+        "maximum": 77
+      },
+      "fetch": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.0,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.11,
+          "maximum": 1
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.89,
+          "maximum": 3
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.04,
+          "maximum": 1
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.04,
+          "maximum": 1
+        }
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.0,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.12,
+          "maximum": 1
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.38,
+          "maximum": 2
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.15,
+          "maximum": 1
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.15,
+          "maximum": 1
+        }
+      }
+    },
+    {
+      "comparison": "cross_gpu",
+      "quality": 0.8,
+      "offset": 0.0,
+      "native": {
+        "samples": 300,
+        "mae": 0.64,
+        "maximum": 2
+      },
+      "fetch": {
+        "samples": 300,
+        "mae": 0.11,
+        "maximum": 1
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": -0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.14,
+          "maximum": 1
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.82,
+          "maximum": 3
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.06,
+          "maximum": 1
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.06,
+          "maximum": 1
+        }
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": -0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.22,
+          "maximum": 1
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.36,
+          "maximum": 2
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.16,
+          "maximum": 1
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.16,
+          "maximum": 1
+        }
+      }
+    },
+    {
+      "comparison": "cross_gpu",
+      "quality": 0.8,
+      "offset": -0.001,
+      "native": {
+        "samples": 300,
+        "mae": 0.62,
+        "maximum": 2
+      },
+      "fetch": {
+        "samples": 300,
+        "mae": 0.24,
+        "maximum": 1
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.09,
+          "maximum": 1
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.77,
+          "maximum": 3
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.05,
+          "maximum": 1
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.05,
+          "maximum": 1
+        }
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.001,
+      "comparisons": {
+        "coin_vs_raw_fixed_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_raw_shader_same_context": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_fixed": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "coin_vs_pure_egl_shader": {
+          "samples": 300,
+          "mae": 0.0,
+          "maximum": 0
+        },
+        "fetch_vs_independent_ideal": {
+          "samples": 300,
+          "mae": 0.19,
+          "maximum": 1
+        },
+        "native_vs_fetch": {
+          "samples": 300,
+          "mae": 0.36,
+          "maximum": 2
+        },
+        "explicit_lod_vs_fetch": {
+          "samples": 300,
+          "mae": 0.19,
+          "maximum": 1
+        },
+        "explicit_lod_vs_round256": {
+          "samples": 300,
+          "mae": 0.19,
+          "maximum": 1
+        }
+      }
+    },
+    {
+      "comparison": "cross_gpu",
+      "quality": 0.8,
+      "offset": 0.001,
+      "native": {
+        "samples": 300,
+        "mae": 0.67,
+        "maximum": 2
+      },
+      "fetch": {
+        "samples": 300,
+        "mae": 0.14,
+        "maximum": 1
+      }
+    }
+  ],
+  "boundary_scans": [
+    {
+      "gpu": "amd",
+      "native_transition_columns": [
+        24
+      ],
+      "shader_fetch_transition_column": 32,
+      "step_in_mip3_texels": 0.000244140625,
+      "experimental_model": "round256 then floor",
+      "rgb8_full_image_oracle": true
+    },
+    {
+      "gpu": "nvidia",
+      "native_transition_columns": [
+        32
+      ],
+      "shader_fetch_transition_column": 32,
+      "step_in_mip3_texels": 0.000244140625,
+      "experimental_model": "floor",
+      "rgb8_full_image_oracle": true
+    }
+  ],
+  "native_lod_samples": [
+    {
+      "gpu": "amd",
+      "pixel": [
+        33,
+        27
+      ],
+      "native_query_lod": 2.80859375,
+      "shader_max_norm_lod": 2.70668163367804,
+      "major_singular_lod": 2.780181707053572,
+      "native_red": 55,
+      "explicit_lod_red": 65,
+      "fetch_red": 133,
+      "round256_red": 65,
+      "ideal_red": 133
+    },
+    {
+      "gpu": "amd",
+      "pixel": [
+        33,
+        36
+      ],
+      "native_query_lod": 2.73828125,
+      "shader_max_norm_lod": 2.7066816336780417,
+      "major_singular_lod": 2.714969204595711,
+      "native_red": 108,
+      "explicit_lod_red": 105,
+      "fetch_red": 37,
+      "round256_red": 105,
+      "ideal_red": 37
+    },
+    {
+      "gpu": "amd",
+      "pixel": [
+        35,
+        31
+      ],
+      "native_query_lod": 2.72265625,
+      "shader_max_norm_lod": 2.6640886421128434,
+      "major_singular_lod": 2.6975514409343373,
+      "native_red": 64,
+      "explicit_lod_red": 69,
+      "fetch_red": 133,
+      "round256_red": 69,
+      "ideal_red": 133
+    },
+    {
+      "gpu": "nvidia",
+      "pixel": [
+        33,
+        27
+      ],
+      "native_query_lod": 2.76171875,
+      "shader_max_norm_lod": 2.70668163367804,
+      "major_singular_lod": 2.780181707053572,
+      "native_red": 133,
+      "explicit_lod_red": 133,
+      "fetch_red": 133,
+      "round256_red": 65,
+      "ideal_red": 133
+    },
+    {
+      "gpu": "nvidia",
+      "pixel": [
+        33,
+        36
+      ],
+      "native_query_lod": 2.73046875,
+      "shader_max_norm_lod": 2.7066816336780417,
+      "major_singular_lod": 2.714969204595711,
+      "native_red": 37,
+      "explicit_lod_red": 37,
+      "fetch_red": 37,
+      "round256_red": 105,
+      "ideal_red": 37
+    },
+    {
+      "gpu": "nvidia",
+      "pixel": [
+        35,
+        31
+      ],
+      "native_query_lod": 2.68359375,
+      "shader_max_norm_lod": 2.6640886421128434,
+      "major_singular_lod": 2.6975514409343373,
+      "native_red": 133,
+      "explicit_lod_red": 133,
+      "fetch_red": 133,
+      "round256_red": 69,
+      "ideal_red": 133
+    }
+  ],
+  "checks": [
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.0,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "name": "cross_gpu_explicit_fetch",
+      "quality": 0.5,
+      "offset": 0.0,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      },
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": -0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "name": "cross_gpu_explicit_fetch",
+      "quality": 0.5,
+      "offset": -0.001,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      },
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.5,
+      "offset": 0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "name": "cross_gpu_explicit_fetch",
+      "quality": 0.5,
+      "offset": 0.001,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      },
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.11,
+        "maximum": 1
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.0,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.12,
+        "maximum": 1
+      }
+    },
+    {
+      "name": "cross_gpu_explicit_fetch",
+      "quality": 0.8,
+      "offset": 0.0,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.11,
+        "maximum": 1
+      },
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.14,
+        "maximum": 1
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": -0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.22,
+        "maximum": 1
+      }
+    },
+    {
+      "name": "cross_gpu_explicit_fetch",
+      "quality": 0.8,
+      "offset": -0.001,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.24,
+        "maximum": 1
+      },
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "amd",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.09,
+        "maximum": 1
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_raw_fixed_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_raw_shader_same_context",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_fixed",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "coin_vs_pure_egl_shader",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.0,
+        "maximum": 0
+      }
+    },
+    {
+      "gpu": "nvidia",
+      "quality": 0.8,
+      "offset": 0.001,
+      "name": "fetch_vs_independent_ideal",
+      "passed": true,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.19,
+        "maximum": 1
+      }
+    },
+    {
+      "name": "cross_gpu_explicit_fetch",
+      "quality": 0.8,
+      "offset": 0.001,
+      "metrics": {
+        "samples": 300,
+        "mae": 0.14,
+        "maximum": 1
+      },
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "name": "boundary_fetch_exact_integer_oracle",
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "name": "boundary_native_matches_measured_precision_model",
+      "passed": true
+    },
+    {
+      "gpu": "amd",
+      "name": "boundary_coin_matches_coin_free_egl",
+      "passed": true
+    },
+    {
+      "gpu": "nvidia",
+      "name": "boundary_fetch_exact_integer_oracle",
+      "passed": true
+    },
+    {
+      "gpu": "nvidia",
+      "name": "boundary_native_matches_measured_precision_model",
+      "passed": true
+    },
+    {
+      "gpu": "nvidia",
+      "name": "boundary_coin_matches_coin_free_egl",
+      "passed": true
+    }
+  ],
+  "passed": 72,
+  "total": 72
+}

@@ -1,0 +1,16 @@
+{
+  "coin-native-sampling": {
+    "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+    "dependencies": "\tlinux-vdso.so.1 (0x00007f9199cc0000)\n\tlibCoin.so.80 => /mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-coin-master/lib/libCoin.so.80 (0x00007f9199200000)\n\tlibEGL.so.1 => /lib/x86_64-linux-gnu/libEGL.so.1 (0x00007f9199c6b000)\n\tlibOpenGL.so.0 => /lib/x86_64-linux-gnu/libOpenGL.so.0 (0x00007f9199c40000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x00007f9198e00000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007f9199c12000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x00007f9198a00000)\n\tlibX11.so.6 => /lib/x86_64-linux-gnu/libX11.so.6 (0x00007f91990c3000)\n\tlibGLX.so.0 => /lib/x86_64-linux-gnu/libGLX.so.0 (0x00007f9199bdd000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x00007f9198d17000)\n\tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x00007f9198c5f000)\n\t/lib64/ld-linux-x86-64.so.2 (0x00007f9199cc2000)\n\tlibxcb.so.1 => /lib/x86_64-linux-gnu/libxcb.so.1 (0x00007f9199bb2000)\n\tlibXau.so.6 => /lib/x86_64-linux-gnu/libXau.so.6 (0x00007f9199bac000)\n\tlibXdmcp.so.6 => /lib/x86_64-linux-gnu/libXdmcp.so.6 (0x00007f9199ba4000)\n\tlibbsd.so.0 => /lib/x86_64-linux-gnu/libbsd.so.0 (0x00007f9199b8e000)\n\tlibmd.so.0 => /lib/x86_64-linux-gnu/libmd.so.0 (0x00007f9199b7f000)\n"
+  },
+  "pure-egl-sampling": {
+    "binary_sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6",
+    "dependencies": "\tlinux-vdso.so.1 (0x0000718599b1c000)\n\tlibEGL.so.1 => /lib/x86_64-linux-gnu/libEGL.so.1 (0x0000718599aca000)\n\tlibOpenGL.so.0 => /lib/x86_64-linux-gnu/libOpenGL.so.0 (0x0000718599a9f000)\n\tlibstdc++.so.6 => /lib/x86_64-linux-gnu/libstdc++.so.6 (0x0000718599800000)\n\tlibgcc_s.so.1 => /lib/x86_64-linux-gnu/libgcc_s.so.1 (0x00007185997d2000)\n\tlibc.so.6 => /lib/x86_64-linux-gnu/libc.so.6 (0x0000718599400000)\n\tlibGLdispatch.so.0 => /lib/x86_64-linux-gnu/libGLdispatch.so.0 (0x000071859971a000)\n\tlibm.so.6 => /lib/x86_64-linux-gnu/libm.so.6 (0x0000718599631000)\n\t/lib64/ld-linux-x86-64.so.2 (0x0000718599b1e000)\n"
+  },
+  "coin_library": {
+    "path": "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-coin-master/lib/libCoin.so.80.0.10",
+    "sha256": "aeb4914ad7873336dbe2b9d84759355ec761e85e8abe4d186498c5dc0cd8c851",
+    "CoinRender_symbols": false,
+    "coin_wgpu_symbols": false
+  }
+}

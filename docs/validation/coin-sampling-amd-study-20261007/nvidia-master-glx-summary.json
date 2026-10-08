@@ -1,0 +1,21 @@
+{
+  "command": [
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling",
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/nvidia-master-glx",
+    ".5",
+    "0"
+  ],
+  "environment": {
+    "DISPLAY": ":0",
+    "XAUTHORITY": "/home/dikluwe/.Xauthority",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+    "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+    "COIN_GLXGLUE_NO_PBUFFERS": "1"
+  },
+  "exit": 1,
+  "binary_sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891",
+  "log": "nvidia-master-glx.log",
+  "sha256": "9aa7ab1f70c4a6dad07cd6282c35a71e96e1591e6b2c998d07bc4d8072dacd0d"
+}

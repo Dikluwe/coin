@@ -1,0 +1,31 @@
+[
+  {
+    "gpu": "amd",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/glx-visual-probe"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa"
+    },
+    "exit": 0,
+    "log": "amd-glx-visual.log",
+    "log_sha256": "4b6c0cc6fed8a08491b46d917a40c0999330a9f4ca659dbd32e55154a1e1a62c"
+  },
+  {
+    "gpu": "nvidia",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/glx-visual-probe"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    },
+    "exit": 0,
+    "log": "nvidia-glx-visual.log",
+    "log_sha256": "61c9fda03122d5e413a1b99fdf5042539d9cb29db092c6f95a54ca1599c3e916"
+  }
+]

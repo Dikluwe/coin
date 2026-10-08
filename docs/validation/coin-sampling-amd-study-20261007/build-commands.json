@@ -1,0 +1,32 @@
+[
+  [
+    "cmake",
+    "-S",
+    "/home/dikluwe/.codex/worktrees/coin-sampling-amd/coin",
+    "-B",
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-coin-master",
+    "-G",
+    "Ninja",
+    "-UCOIN_BUILD_RENDER",
+    "-DCMAKE_BUILD_TYPE=Release",
+    "-DCOIN_BUILD_TESTS=OFF",
+    "-DCOIN_BUILD_DOCUMENTATION=OFF",
+    "-DCOIN_BUILD_SHARED_LIBS=ON"
+  ],
+  [
+    "cmake",
+    "--build",
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-coin-master",
+    "--target",
+    "Coin",
+    "-j",
+    "6"
+  ],
+  [
+    "cmake",
+    "--build",
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe",
+    "-j",
+    "6"
+  ]
+]
