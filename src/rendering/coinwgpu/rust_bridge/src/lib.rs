@@ -6193,9 +6193,9 @@ fn coin_wgpu_surface_submit_internal(
                 wgpu::Backend::Dx12 => "dx12",
                 _ => "other",
             };
-            eprintln!("COIN_RENDER_PHASE wgpu_surface renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} surface={} serial={} size={}x{}",
+            eprintln!("COIN_RENDER_PHASE wgpu_surface renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} surface={} serial={} size={}x{} adapter_name={:?}",
                 renderer, info.vendor, info.device, info.device_type,
-                surface_id, sub_serial, f.width, f.height);
+                surface_id, sub_serial, f.width, f.height, info.name);
         }
         record.published_serial = sub_serial;
         CoinWgpuStatus::Ok

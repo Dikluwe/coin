@@ -19,10 +19,11 @@ for profile in a.profiles.split(','):
   env.update(__EGL_VENDOR_LIBRARY_FILENAMES='/usr/share/glvnd/egl_vendor.d/'+('10_nvidia.json' if gpu=='nvidia' else '50_mesa.json'),__GLX_VENDOR_LIBRARY_NAME='nvidia' if gpu=='nvidia' else 'mesa',VK_DRIVER_FILES='/usr/share/vulkan/icd.d/'+('nvidia_icd.json' if gpu=='nvidia' else 'radeon_icd.json'))
   env['VK_ICD_FILENAMES']=env['VK_DRIVER_FILES']
   if gpu=='nvidia':env['__NV_PRIME_RENDER_OFFLOAD']='1'
-  # GL uses the accelerated desktop: this headless Xwayland cannot prove DRI3 GL.
-  # Profiles/preferences remain owned by run.py; Vulkan gets a private display too.
-  cmd=['python3',str(repo/'testsuite/qt-quarter'/('run.py' if api=='gl' else 'run_isolated.py'))]
-  if api!='gl':cmd+=['--server','xwayland','--weston-prefix',str(root/'weston/prefix')]
+  # GL and NVIDIA use the accelerated desktop: this headless session cannot
+  # prove DRI3 GL, and its NVIDIA WM exits before launching the host.
+  # Profiles/preferences remain owned by run.py; AMD Vulkan gets a private display.
+  cmd=['python3',str(repo/'testsuite/qt-quarter'/('run.py' if api=='gl' or gpu=='nvidia' else 'run_isolated.py'))]
+  if api!='gl' and gpu!='nvidia':cmd+=['--server','xwayland','--weston-prefix',str(root/'weston/prefix')]
   cmd+=['--artifacts',str(dest),'--harness',str(exe),'--freecad',str(exe),'--case','freecad-sampling-policy','--renderer','opengl' if api=='gl' else 'vulkan','--backend',backend,'--mode','object','--scale',str(a.scale),'--timeout','120','--require-hardware']
   log=dest/'launcher.log'
   with log.open('w') as f:

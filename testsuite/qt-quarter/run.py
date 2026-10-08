@@ -29,6 +29,20 @@ def bgfx_gl_adapter_evidence(output):
             word in text for word in ('nvidia geforce','nvidia quadro','nvidia rtx','amd radeon','mesa intel','intel(r)'))
     return adapters, hardware
 
+def wgpu_gl_adapter_evidence(output):
+    # wgpu's GLES adapter can report Other/device 0 for physical GPUs. Require
+    # the submitted context's renderer name and known vendor, never Qt inventory.
+    records = re.findall(r'COIN_RENDER_PHASE wgpu_surface renderer=opengl '
+                         r'vendor_id=(0x[0-9a-f]+) device_id=0x[0-9a-f]+ '
+                         r'device_type=(\w+) .*?adapter_name="([^"\n]+)"', output)
+    physical = bool(records)
+    for vendor, kind, name in records:
+        lower = name.lower()
+        physical = physical and vendor in ('0x1002', '0x10de', '0x8086') and kind in ('Other', 'IntegratedGpu', 'DiscreteGpu') and not any(
+            word in lower for word in ('llvmpipe', 'lavapipe', 'softpipe', 'software', 'virgl', 'cpu')) and any(
+            word in lower for word in ('amd radeon', 'nvidia geforce', 'nvidia quadro', 'nvidia rtx', 'intel'))
+    return records, physical
+
 def execute(command, env, timeout):
     # FreeCAD may launch helper processes which otherwise retain stdout and
     # survive a parent-only timeout. Own and terminate the complete test group.
@@ -323,6 +337,9 @@ def main():
                     phase = 'wgpu_offscreen' if offscreen else 'wgpu_surface'
                     types = re.findall(r'COIN_RENDER_PHASE ' + phase + r' .*?device_type=(\w+)', output)
                     hardware = bool(types) and all(t in ('IntegratedGpu', 'DiscreteGpu') for t in types)
+                    if renderer == 'opengl':
+                        names, hardware = wgpu_gl_adapter_evidence(output)
+                        result['backend_gl_contexts'] = names
                 submitted = submission_evidence(output, args.backend, offscreen)
                 result.update(test=case, backend=args.backend, renderer=renderer, mode=mode, alpha=alpha,
                               scale=scale, hardware_gpu=hardware and submitted,

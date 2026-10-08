@@ -4,7 +4,7 @@ import os
 import sys
 from types import SimpleNamespace
 from unittest.mock import patch
-from run import classify, execute, window_manager_available, parse_lock_state, select_variants, session_locked, device_evidence, bgfx_gl_adapter_evidence
+from run import wgpu_gl_adapter_evidence, classify, execute, window_manager_available, parse_lock_state, select_variants, session_locked, device_evidence, bgfx_gl_adapter_evidence
 
 class ResultGate(unittest.TestCase):
     def test_backend_context_proof_rejects_cpu_unknown_and_absent(self):
@@ -121,6 +121,15 @@ class ResultGate(unittest.TestCase):
         code, output = execute([sys.executable, '-c', 'import time; time.sleep(5)'], os.environ, .1)
         self.assertLess(code, 0)
         self.assertIn('HARNESS_TIMEOUT', output)
+
+class WgpuGlPhysicalEvidenceTest(unittest.TestCase):
+    def test_other_requires_actual_submitted_physical_adapter(self):
+        line = 'COIN_RENDER_PHASE wgpu_surface renderer=opengl vendor_id=0x1002 device_id=0x0 device_type=Other surface=1 serial=1 size=64x64 adapter_name="AMD Radeon Graphics (radeonsi, renoir)"'
+        self.assertTrue(wgpu_gl_adapter_evidence(line)[1])
+        self.assertFalse(wgpu_gl_adapter_evidence(line.replace('AMD Radeon Graphics (radeonsi, renoir)', 'llvmpipe (LLVM 20)'))[1])
+        self.assertFalse(wgpu_gl_adapter_evidence(line.split(' adapter_name=')[0])[1])
+        self.assertFalse(wgpu_gl_adapter_evidence(line.replace('device_type=Other', 'device_type=Cpu'))[1])
+        self.assertFalse(wgpu_gl_adapter_evidence(line+'\n'+line.replace('vendor_id=0x1002','vendor_id=0x0'))[1])
 
 if __name__ == '__main__':
     unittest.main()
