@@ -31,7 +31,7 @@ for profile in a.profiles.split(','):
    except subprocess.TimeoutExpired:code=124
   results=json.loads((dest/'results.json').read_text()) if (dest/'results.json').exists() else []
   expected=1 if policy=='portable' else 0
-  valid=code==0 and len(results)==1 and all(r['status']=='PASS' and r.get('hardware_gpu') and r.get('active_sampling_policy')==expected for r in results)
+  valid=code==0 and len(results)==1 and all(r['status']=='PASS' and r.get('hardware_gpu') and r.get('active_sampling_policy')==expected and r.get('qualification_scope')=='steady host after text resource warmup' and r.get('cold_start_qualified') is False and r.get('projective_sampling_fixture',{}).get('filter')=='NEAREST_MIPMAP_LINEAR' for r in results)
   rows.append(dict(profile=profile,policy=policy,scale=a.scale,exit=code,valid=valid,command=cmd,results=results,host_sha256=hashlib.sha256((host/'lib/libFreeCADGui.so').read_bytes()).hexdigest(),environment={k:v for k,v in env.items() if k in ['DISPLAY','XAUTHORITY','LD_LIBRARY_PATH','DRI_PRIME','WGPU_BACKEND','COIN_TEST_PORTABLE_SAMPLING','VK_DRIVER_FILES','VK_ICD_FILENAMES','__EGL_VENDOR_LIBRARY_FILENAMES','__GLX_VENDOR_LIBRARY_NAME','__NV_PRIME_RENDER_OFFLOAD','COIN_SAMPLING_STUDY']}))
   (out/'summary.json').write_text(json.dumps(rows,indent=2));print(profile,policy,code,'valid',valid,flush=True)
 raise SystemExit(0 if rows and all(x['valid'] for x in rows) else 1)
