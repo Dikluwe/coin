@@ -3,6 +3,8 @@
 import argparse,csv,hashlib,itertools,json,os,statistics,subprocess,time
 from pathlib import Path
 p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True);p.add_argument('--phase',default='before');p.add_argument('--candidate-build',type=Path);p.add_argument('--short',action='store_true');p.add_argument('--resume',action='store_true');a=p.parse_args()
+from legacy_runtime import require_legacy_sampling
+require_legacy_sampling(a.candidate_build or a.artifacts/'original-study')
 out=a.artifacts/('million-'+a.phase);out.mkdir(exist_ok=True);runs=json.loads((out/'summary.json').read_text()) if a.resume and (out/'summary.json').exists() else []
 env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',WGPU_BACKEND='vulkan',VK_DRIVER_FILES='/usr/share/vulkan/icd.d/nvidia_icd.json',VK_ICD_FILENAMES='/usr/share/vulkan/icd.d/nvidia_icd.json',__NV_PRIME_RENDER_OFFLOAD='1',__GLX_VENDOR_LIBRARY_NAME='nvidia',__EGL_VENDOR_LIBRARY_FILENAMES='/usr/share/glvnd/egl_vendor.d/10_nvidia.json',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1')
 for k in ['COIN_RENDER_TRACE_PHASES','COIN_WGPU_TRACE_PHASES','COIN_WGPU_GPU_TIMESTAMPS']:env.pop(k,None)

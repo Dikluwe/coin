@@ -1,3 +1,5 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -222,9 +224,9 @@ bool close(const SbVec4f & a, const SbVec4f & b) {
 }
 struct Harness {
   Harness(bool gpu) : action(SbViewportRegion(size,size)), gpuAction(SbViewportRegion(size,size)) {
-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size)));
+    cpu.reset(samplingTestOffscreen(SbVec2i32(size,size)));
     capture = new CaptureBackend; cpu->getPimpl()->backend.reset(capture); action.setRenderTarget(cpu.get());
-    if (gpu) { native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
+    if (gpu) { native.reset(samplingTestOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
     action.setBackgroundColor(SbColor4f(0,0,0,1)); gpuAction.setBackgroundColor(SbColor4f(0,0,0,1));
     action.setTransparencyType(CoinRenderAction::BLEND);gpuAction.setTransparencyType(CoinRenderAction::BLEND);
   }
@@ -456,6 +458,7 @@ bool run(bool gpu) {
 }
 }
 int main(int argc,char ** argv) {
+  configureSamplingTest(argc, argv);
   SoDB::init(); CoinRenderAction::initClass(); ProceduralCoordinates::initClass(); ProceduralFaces::initClass(); EnabledEmptyTexture::initClass();
   // Opt-in reproducers for the open textured contour junctions. These are
   // intentionally outside the qualified CTest profile; thresholds stay intact.

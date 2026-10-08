@@ -6,6 +6,9 @@ p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True
 p.add_argument('--kind',choices=['gpu','window','city'],required=True)
 p.add_argument('--gpus',default='amd,nvidia');p.add_argument('--backends',default='wgpu,bgfx')
 p.add_argument('--resume',action='store_true');p.add_argument('--modes',default='');p.add_argument('--workloads',default='');a=p.parse_args()
+if a.kind != 'gpu':
+ from legacy_runtime import require_legacy_sampling
+ for backend in a.backends.split(','):require_legacy_sampling(a.artifacts/('build-'+backend))
 out=a.artifacts/('benchmark-fine-'+a.kind);out.mkdir(exist_ok=True)
 runs=json.loads((out/'summary.json').read_text()) if (out/'summary.json').exists() else []
 modes=['native','center','fine','fine_uniform'];codes={'native':0,'center':3,'fine':5,'fine_uniform':6}

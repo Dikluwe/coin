@@ -139,8 +139,8 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	# The laboratory builds separate fragment binaries. Native never declares
-	# the study uniform or compiles its sampling/flag branches.
+	# Native and portable use separate fragment binaries. Native never declares
+	# the portable uniform or compiles reconstructed sampling.
 	foreach(_surface fs fs_peel_next fs_weighted_oit fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_peel fs_shadow_oit)
 		if(_surface STREQUAL "fs")
 			set(_surface_file fs_base_color)
@@ -157,14 +157,14 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			else()
 				set(_shader_profile 330)
 			endif()
-			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_surface}_study_${_renderer}.h)
+			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_surface}_portable_${_renderer}.h)
 			add_custom_command(OUTPUT ${_shader_output}
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
 					-f ${_coin_bgfx_shader_dir}/${_surface_file}.sc -o ${_shader_output}
 					--type fragment --platform ${_shader_platform} --profile ${_shader_profile}
-					--define COIN_SAMPLING_STUDY_SHADER=1
+					--define COIN_PORTABLE_SAMPLING_SHADER=1
 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
-					--bin2c coin_bgfx_${_surface}_study_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+					--bin2c coin_bgfx_${_surface}_portable_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_surface_file}.sc
 					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/coin_lighting.sh

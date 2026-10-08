@@ -1,15 +1,15 @@
-// Native compilation removes study functions and its private uniform appendix.
+// Native compilation removes portable functions and its uniform appendix.
 // Both vertex and fragment stages therefore use the original binding prefix.
-pub(super) fn sampling_profile(source: &str, study: bool) -> String {
-    if study || !source.contains("fn study_sample(") { return source.to_owned(); }
+pub(super) fn sampling_profile(source: &str, portable: bool) -> String {
+    if portable || !source.contains("fn coin_portable_sample(") { return source.to_owned(); }
     let mut source = source.to_owned();
-    let start = source.find("fn study_lerp(").unwrap();
+    let start = source.find("fn coin_portable_lerp(").unwrap();
     let end = source[start..].find("fn projected_uv(").unwrap() + start;
     source.replace_range(start..end, "");
-    source = source.replace("    study_texture_sizes: array<vec4<f32>, 8>,\n", "");
-    source = source.replace(", u.tex_params.x, u.study_texture_sizes[0]", "");
-    for unit in 1..8 { source = source.replace(&format!(", params.x, u.study_texture_sizes[{unit}]"), ""); }
-    source.replace("study_sample(", "textureSample(")
+    source = source.replace("    sampling_texture_sizes: array<vec4<f32>, 8>,\n", "");
+    source = source.replace(", u.tex_params.x, u.sampling_texture_sizes[0]", "");
+    for unit in 1..8 { source = source.replace(&format!(", params.x, u.sampling_texture_sizes[{unit}]"), ""); }
+    source.replace("coin_portable_sample(", "textureSample(")
 }
 
 // Keep the transported uniform ABI intact. Specialization only removes work
@@ -82,7 +82,7 @@ pub(super) mod tests {
             super::super::shadow_receiver::four_map_source(), super::super::shadow_receiver::eight_map_source(),
             super::super::instancing::shader_source()] {
             let source = texture_specialization(&format!("{}{}", sampling_profile(&source, false), super::super::weighted::FRAGMENT));
-            assert!(!source.contains("study_texture_sizes") && !source.contains("fn study_") && !source.contains("dpdxFine"));
+            assert!(!source.contains("sampling_texture_sizes") && !source.contains("fn coin_portable_") && !source.contains("dpdxFine"));
             let module = naga::front::wgsl::parse_str(&source).expect("native profile parse");
             Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module).expect("native profile validate");
             let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;

@@ -28,6 +28,7 @@ namespace {
 const size_t capabilitiesV1Size =
   offsetof(CoinRenderCapabilities, probe_status);
 const size_t capabilitiesV2Size = offsetof(CoinRenderCapabilities, known_hardware_facts);
+const size_t capabilitiesV3Size = offsetof(CoinRenderCapabilities, implemented_sampling_policies);
 
 void
 setDiagnostic(CoinRenderCapabilities & result, const std::string & text)
@@ -176,7 +177,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
                                                                void* output, size_t output_size) {
   const bool legacyV1 = output_size == capabilitiesV1Size;
   const bool legacyV2 = output_size == capabilitiesV2Size;
-  if (!output || (!legacyV1 && !legacyV2 && output_size < sizeof(CoinRenderCapabilities)))
+  const bool legacyV3 = output_size == capabilitiesV3Size;
+  if (!output || (!legacyV1 && !legacyV2 && !legacyV3 && output_size < sizeof(CoinRenderCapabilities)))
     return 2;
   if (renderer != COIN_RENDER_RENDERER_UNKNOWN && renderer != COIN_RENDER_RENDERER_VULKAN &&
       renderer != COIN_RENDER_RENDERER_OPENGL && renderer != COIN_RENDER_RENDERER_D3D12 &&
@@ -184,6 +186,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
     return 2;
   const size_t copySize = legacyV1   ? capabilitiesV1Size
                           : legacyV2 ? capabilitiesV2Size
+                          : legacyV3 ? capabilitiesV3Size
                                      : sizeof(CoinRenderCapabilities);
   if (target != COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
       target != COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW &&
@@ -215,7 +218,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
 
   CoinRenderCapabilities result{};
   result.struct_size = static_cast<uint32_t>(copySize);
-  result.version = legacyV1 ? 1u : legacyV2 ? 2u : COIN_RENDER_CAPABILITIES_VERSION;
+  result.version = legacyV1 ? 1u : legacyV2 ? 2u : legacyV3 ? 3u : COIN_RENDER_CAPABILITIES_VERSION;
   result.target = target;
   result.probe_status = COIN_RENDER_PROBE_NOT_RUN;
 
@@ -369,6 +372,34 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
     if (result.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION)
       result.qualified_profiles |= COIN_RENDER_PROFILE_P10_BGFX_WEIGHTED_OIT;
   }
+  if (result.features & COIN_RENDER_FEATURE_TEXTURE_2D) {
+    result.implemented_sampling_policies = COIN_RENDER_SAMPLING_POLICY_NATIVE;
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX) || (!defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE))
+    result.implemented_sampling_policies |= COIN_RENDER_SAMPLING_POLICY_PORTABLE;
+    result.portable_sampling_filter_mask = 1u << 2; // NEAREST_MIPMAP_LINEAR
+    result.portable_sampling_max_anisotropy = 1;
+    result.portable_sampling_formats = COIN_RENDER_SAMPLING_FORMAT_RGBA8 |
+        COIN_RENDER_SAMPLING_FORMAT_SRGB8 | COIN_RENDER_SAMPLING_FORMAT_RGBA16F |
+        COIN_RENDER_SAMPLING_FORMAT_BC3 | COIN_RENDER_SAMPLING_FORMAT_BC3_SRGB;
+    result.max_texture_mip_chain_bytes = UINT64_C(128) * 1024 * 1024;
+    result.portable_sampling_derivatives = result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING
+        ? COIN_RENDER_SAMPLING_DERIVATIVE_ANALYTIC
+        : result.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ||
+          result.renderer == COIN_RENDER_RENDERER_OPENGL
+          ? COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT
+          : result.renderer == COIN_RENDER_RENDERER_UNKNOWN
+            ? COIN_RENDER_SAMPLING_DERIVATIVE_UNKNOWN : COIN_RENDER_SAMPLING_DERIVATIVE_FINE;
+#endif
+    if (result.gpu_available || (result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING &&
+                                renderer == COIN_RENDER_RENDERER_UNKNOWN))
+      result.available_sampling_policies = result.implemented_sampling_policies;
+#if defined(__linux__) && !defined(__ANDROID__)
+    if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
+        (result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING ||
+         result.renderer == COIN_RENDER_RENDERER_VULKAN || result.renderer == COIN_RENDER_RENDERER_OPENGL))
+      result.qualified_sampling_policies = result.implemented_sampling_policies & COIN_RENDER_SAMPLING_POLICY_PORTABLE;
+#endif
+  }
   std::memcpy(output, &result, copySize);
   return 0;
 }
@@ -388,7 +419,7 @@ extern "C" int32_t coin_render_query_capabilities(uint32_t target, void* output,
 extern "C" CoinRenderSelection coin_render_select_mechanism(const CoinRenderCapabilities* caps,
                                                             uint64_t mechanism,
                                                             uint32_t require_qualified_profile) {
-  if (!caps || caps->version < 3 || caps->struct_size < sizeof(CoinRenderCapabilities) ||
+  if (!caps || caps->version < 3 || caps->struct_size < capabilitiesV3Size ||
       require_qualified_profile > 1) {
     CoinRenderSelection result{};
     result.mechanism = mechanism;
@@ -412,4 +443,25 @@ extern "C" CoinRenderSelection coin_render_select_mechanism(const CoinRenderCapa
     return result;
   }
   return selection;
+}
+
+extern "C" CoinRenderSamplingSelection coin_render_select_sampling_policy(
+    const CoinRenderCapabilities* caps, CoinRenderTextureSamplingPolicy policy,
+    uint32_t requireQualified) {
+  CoinRenderSamplingSelection result{};
+  result.policy = uint32_t(policy);
+  if (!caps || caps->version < 4 || caps->struct_size < sizeof(CoinRenderCapabilities) ||
+      requireQualified > 1 || (policy != COIN_RENDER_SAMPLING_NATIVE && policy != COIN_RENDER_SAMPLING_PORTABLE)) {
+    result.reason = COIN_RENDER_SELECTION_INVALID_REQUEST;
+    return result;
+  }
+  const uint64_t bit = UINT64_C(1) << uint32_t(policy);
+  result.qualified_profile = (caps->qualified_sampling_policies & bit) != 0;
+  if (!(caps->implemented_sampling_policies & bit)) result.reason = COIN_RENDER_SELECTION_NOT_IMPLEMENTED;
+  else if (caps->backend != COIN_RENDER_EXPERIMENTAL_RECORDING &&
+           (caps->probe_status == COIN_RENDER_PROBE_BUSY || caps->probe_status == COIN_RENDER_PROBE_NOT_RUN))
+    result.reason = COIN_RENDER_SELECTION_RUNTIME_NOT_READY;
+  else if (!(caps->available_sampling_policies & bit)) result.reason = COIN_RENDER_SELECTION_HARDWARE_UNAVAILABLE;
+  else if (requireQualified && !result.qualified_profile) result.reason = COIN_RENDER_SELECTION_UNQUALIFIED_PROFILE;
+  return result;
 }

@@ -54,7 +54,7 @@ public:
   void endForeground();
   void endAnnotation();
 
-  void configureTextures(const CoinRenderOptions& options) { storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
+  void configureTextures(const CoinRenderOptions& options) { currentPlan.textureSamplingPolicy=options.textureSamplingPolicy; storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
   void registerAuthoredTextureImage(const unsigned char * bytes,bool compressed=false) {
     if(bytes) { authoredTextureImages.insert(bytes); if(compressed) compressedTextureImages.insert(bytes); else compressedTextureImages.erase(bytes); }
   }

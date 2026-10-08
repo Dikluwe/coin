@@ -2,6 +2,10 @@
 import os, json, subprocess, hashlib, argparse, re
 from pathlib import Path
 ap=argparse.ArgumentParser(); ap.add_argument('--artifacts',type=Path,required=True); ap.add_argument('--profiles',default='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-amd-gl'); ap.add_argument('--extra',action='store_true');ap.add_argument('--alpha',action='store_true');ap.add_argument('--deep',action='store_true');ap.add_argument('--rtt-study',action='store_true');ap.add_argument('--viewport-study',action='store_true');ap.add_argument('--resources',action='store_true');ap.add_argument('--shadow',action='store_true');ap.add_argument('--modes',default='native,nearest,fetch');ap.add_argument('--output-name',default='quality'); args=ap.parse_args()
+if any(mode != 'native' for mode in args.modes.split(',')):
+    from legacy_runtime import require_legacy_sampling
+    for backend in sorted({profile.split('-')[0] for profile in args.profiles.split(',')}):
+        require_legacy_sampling(args.artifacts/('build-'+backend))
 out=args.artifacts/args.output_name;out.mkdir(exist_ok=True);runs=json.loads((out/'summary.json').read_text()) if (out/'summary.json').exists() else []
 for profile in args.profiles.split(','):
     backend,gpu,api=profile.split('-'); env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1',COIN_RENDER_REQUIRE_GL_REFERENCE='1',WGPU_BACKEND='gl' if api=='gl' else 'vulkan',COIN_BGFX_RENDERER='opengl' if api=='gl' else 'vulkan')

@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define COIN_RENDER_CAPABILITIES_VERSION 3u
+#define COIN_RENDER_CAPABILITIES_VERSION 4u
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,6 +48,39 @@ enum CoinRenderFeature {
   COIN_RENDER_FEATURE_TEXTURE_ANISOTROPY = UINT64_C(1) << 16,
   COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F = UINT64_C(1) << 17,
   COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS = UINT64_C(1) << 18
+};
+
+/** Sampling policy is immutable per target. PORTABLE reconstructs isotropic
+ * NEAREST_MIPMAP_LINEAR only; the other filters retain native semantics.
+ * Neither policy promises identical rasterization or LOD at every boundary. */
+enum CoinRenderTextureSamplingPolicy {
+  COIN_RENDER_SAMPLING_NATIVE = 0,
+  COIN_RENDER_SAMPLING_PORTABLE = 1
+};
+enum CoinRenderSamplingPolicyBit {
+  COIN_RENDER_SAMPLING_POLICY_NATIVE = UINT64_C(1) << COIN_RENDER_SAMPLING_NATIVE,
+  COIN_RENDER_SAMPLING_POLICY_PORTABLE = UINT64_C(1) << COIN_RENDER_SAMPLING_PORTABLE
+};
+/** Compiled portable image formats; selected-device format admission still applies. */
+enum CoinRenderSamplingFormat {
+  COIN_RENDER_SAMPLING_FORMAT_RGBA8 = UINT32_C(1) << 0,
+  COIN_RENDER_SAMPLING_FORMAT_SRGB8 = UINT32_C(1) << 1,
+  COIN_RENDER_SAMPLING_FORMAT_RGBA16F = UINT32_C(1) << 2,
+  COIN_RENDER_SAMPLING_FORMAT_BC3 = UINT32_C(1) << 3,
+  COIN_RENDER_SAMPLING_FORMAT_BC3_SRGB = UINT32_C(1) << 4
+};
+enum CoinRenderSamplingDerivative {
+  COIN_RENDER_SAMPLING_DERIVATIVE_UNKNOWN = 0,
+  COIN_RENDER_SAMPLING_DERIVATIVE_ANALYTIC = 1,
+  COIN_RENDER_SAMPLING_DERIVATIVE_FINE = 2,
+  COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT = 3
+};
+
+struct CoinRenderSamplingSelection {
+  uint32_t policy;
+  uint32_t reason;
+  uint32_t qualified_profile;
+  uint32_t reserved;
 };
 
 enum CoinRenderProbeStatus {
@@ -178,6 +211,18 @@ typedef struct CoinRenderCapabilities {
   uint64_t qualified_profiles;
   uint32_t max_peel_layers;
   uint32_t reserved;
+  /* Version 4: implementation/availability/evidence are distinct. Portable
+   * filter mask uses bits 0..3 in the existing NEAREST/LINEAR/mipmap order.
+   * It describes reconstructed filters, not all filters accepted by the target.
+   * Existing texture format/unit/RTT features and device admission still apply. */
+  uint64_t implemented_sampling_policies;
+  uint64_t available_sampling_policies;
+  uint64_t qualified_sampling_policies;
+  uint64_t max_texture_mip_chain_bytes;
+  uint32_t portable_sampling_filter_mask;
+  uint32_t portable_sampling_max_anisotropy;
+  uint32_t portable_sampling_derivatives;
+  uint32_t portable_sampling_formats;
 } CoinRenderCapabilities;
 
 /**
@@ -188,7 +233,9 @@ typedef struct CoinRenderCapabilities {
  * runtime probe and reports renderer, adapter IDs, selected format flags and
  * runtime feature bits. A caller compiled with the exact version 1 struct size
  * is still accepted and receives the compatible prefix with version set to 1.
- * Exact version 2 size is also accepted. Version 3 separates known hardware
+ * Exact version 2 and version 3 sizes are also accepted, with no write beyond
+ * their prefix. Version 4 adds sampling policies and bounded portable limits.
+ * Version 3 separates known hardware
  * facts, implemented/available mechanisms, and bounded qualified profiles.
  * Window queries probe an adapter, not a real presentation surface.
  * This is an experimental contract, not an addition to libCoin's public ABI.
@@ -201,6 +248,13 @@ COIN_RENDER_DLL_API int32_t coin_render_query_capabilities(
  * mismatch. UNKNOWN means the connector default. Return codes match query. */
 COIN_RENDER_DLL_API int32_t coin_render_query_capabilities_for_renderer(
     uint32_t target, enum CoinRenderRenderer renderer, void* output, size_t output_size);
+
+/** Pure sampling selection; requires the version 4 prefix. No fallback,
+ * runtime initialization or environment access. Qualification is bounded
+ * Linux offscreen evidence, not certification of the current driver. */
+COIN_RENDER_DLL_API struct CoinRenderSamplingSelection coin_render_select_sampling_policy(
+    const CoinRenderCapabilities* capabilities, enum CoinRenderTextureSamplingPolicy policy,
+    uint32_t require_qualified_profile);
 
 /** Pure selection; never initializes a runtime or selects a fallback. */
 COIN_RENDER_DLL_API CoinRenderSelection

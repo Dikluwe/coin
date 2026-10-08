@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderSamplingCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -599,6 +600,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
+  if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy ||
+      !coin_render_valid_sampling(frame, this->lastError)) {
+    if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy)
+      this->lastError = "Frame sampling policy differs from the immutable target policy";
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  }
   if (outTicket && this->kind != KIND_OFFSCREEN) {
     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
                                 "applyAsync() requires an offscreen target");

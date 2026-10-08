@@ -1,3 +1,5 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -113,12 +115,12 @@ struct Harness {
   Harness(bool gpu)
       : action(SbViewportRegion(64, 64)), gpuAction(SbViewportRegion(64, 64)),
         gl(SbViewportRegion(64, 64)) {
-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+    cpu.reset(samplingTestOffscreen(SbVec2i32(64, 64)));
     capture = new Capture;
     cpu->getPimpl()->backend.reset(capture);
     action.setRenderTarget(cpu.get());
     if (gpu) {
-      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+      native.reset(samplingTestOffscreen(SbVec2i32(64, 64)));
       gpuAction.setRenderTarget(native.get());
     }
     action.setTransparencyType(CoinRenderAction::BLEND);
@@ -428,6 +430,7 @@ bool run(bool gpu) {
 }
 } // namespace
 int main(int argc, char **argv) {
+  configureSamplingTest(argc, argv);
   SoDB::init();
   CoinRenderAction::initClass();
   if (argc > 1 && std::string(argv[1]) == "--reject-config") {

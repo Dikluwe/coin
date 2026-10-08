@@ -366,6 +366,7 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
  */
 struct CoinRenderFramePlan {
   uint64_t revision = 0;
+  CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
   CoinRenderTextureFormat outputColorFormat = CoinRenderTextureFormat::RGBA8_LINEAR;
   bool outputMipmaps = false; // Execution-owned RTT request, never an implicit root fallback.
   // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.

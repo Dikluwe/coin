@@ -1646,6 +1646,7 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.abi_version = COIN_WGPU_ABI_VERSION;
   this->view.struct_size = sizeof(CoinWgpuFrameView);
   this->view.frame_revision = frame.revision;
+  this->view.texture_sampling_policy = uint32_t(frame.textureSamplingPolicy);
   this->view.vertices = this->vertices.empty() ? NULL : this->vertices.data();
   this->view.vertex_count = static_cast<uint64_t>(this->vertices.size());
   this->view.indices = this->indices.empty() ? NULL : this->indices.data();

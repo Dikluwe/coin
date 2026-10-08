@@ -12,8 +12,8 @@ SAMPLER2D(s_texColor6, 8);
 SAMPLER2D(s_texColor7, 9);
 #endif
 uniform vec4 u_texParams[8];
-#ifdef COIN_SAMPLING_STUDY_SHADER
-uniform vec4 u_studyTextureSizes[8];
+#ifdef COIN_PORTABLE_SAMPLING_SHADER
+uniform vec4 u_coinSamplingSizes[8];
 #endif
 uniform vec4 u_texBlend[8];
 uniform vec4 u_texCombine[32];
@@ -24,55 +24,31 @@ uniform vec4 u_clipMeta;
 uniform vec4 u_clipPlanes[8];
 #include "coin_alpha.sh"
 
-#ifdef COIN_SAMPLING_STUDY_SHADER
-vec4 studyLerp(vec4 a,vec4 b,float w){return a+(b-a)*w;}
-// Isolated sampling study. GLSL 330 exposes ordinary derivatives, not fine control.
-vec4 studyFetch(sampler2D t, ivec2 at, int level, int flags) {
-  ivec2 n = ivec2(textureSize(t, level));
-  ivec2 p = ivec2(at.x<0?at.x+n.x:at.x>=n.x?at.x-n.x:at.x, at.y<0?at.y+n.y:at.y>=n.y?at.y-n.y:at.y);
-  if (mod(floor(float(flags)/4.0), 2.0) > 0.5) p.x = clamp(at.x, 0, n.x-1);
-  if (mod(floor(float(flags)/8.0), 2.0) > 0.5) p.y = clamp(at.y, 0, n.y-1);
-  return texelFetch(t, p, level);
-}
-vec4 studyLevel(sampler2D t, vec2 uv, int level, bool linearFilter, int flags) {
-  vec2 at = uv * vec2(textureSize(t, level));
-  if (!linearFilter) return studyFetch(t, ivec2(floor(at)), level, flags);
-  ivec2 lo = ivec2(floor(at-0.5)); vec2 f = fract(at-0.5);
-  return studyLerp(studyLerp(studyFetch(t, lo, level, flags), studyFetch(t, lo+ivec2(1,0), level, flags), f.x),
-             studyLerp(studyFetch(t, lo+ivec2(0,1), level, flags), studyFetch(t, lo+ivec2(1,1), level, flags), f.x), f.y);
-}
-vec4 studySample(sampler2D t, vec2 uv, float enabled, vec4 suppliedSize) {
-  if (enabled < 1.5) return texture2D(t, uv);
-  int flags = int(enabled/2.0)-1, filterKind = int(mod(float(flags),4.0));
-  bool supplied = flags >= 64;
+#ifdef COIN_PORTABLE_SAMPLING_SHADER
+vec4 coinPortableLerp(vec4 a,vec4 b,float w){return a+(b-a)*w;}
+// Dimensions/filter/wrap describe the actual bound resource. GLSL330 uses
+// ordinary derivatives; the public capability reports DEFAULT, not FINE.
+vec4 coinPortableSample(sampler2D t, vec2 uv, vec4 suppliedSize) {
+  if (suppliedSize.z != 2.0) return texture2D(t, uv);
   vec2 n = suppliedSize.xy;
-  if (!supplied) n = vec2(textureSize(t, 0));
   vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
-  vec2 boundedUv = fract(uv);
-  if (mod(floor(float(flags)/4.0),2.0)>0.5) boundedUv.x=clamp(uv.x,0.0,1.0);
-  if (mod(floor(float(flags)/8.0),2.0)>0.5) boundedUv.y=clamp(uv.y,0.0,1.0);
-  if (filterKind < 2) return studyLevel(t, boundedUv, 0, filterKind == 1, flags);
   int maximum = int(floor(log2(max(n.x,n.y))));
   float lod = clamp(log2(max(max(length(gx),length(gy)),0.000001)),0.0,float(maximum));
-  bool linearFilter = filterKind == 3 || lod <= 0.0;
-  int lo = int(floor(lod));
-  int hi=min(lo+1,maximum);
-  if (flags>=16) {
-    if(lod<=0.0)return texture2DLod(t,uv,0.0);
-    ivec2 ni = ivec2(n);
-    vec2 a = vec2(max(ni >> lo, ivec2(1)));
-    if (!supplied) a = vec2(textureSize(t,lo));
-    bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
-    bool fine = mod(floor(float(flags)/32.0),2.0) > 0.5;
-    if(fine && pot) return texture2DLod(t,(floor(boundedUv*a)+0.5)/a,lod);
-    vec2 b = vec2(max(ni >> hi, ivec2(1)));
-    if (!supplied) b = vec2(textureSize(t,hi));
-    return studyLerp(texture2DLod(t,(floor(boundedUv*a)+0.5)/a,float(lo)),texture2DLod(t,(floor(boundedUv*b)+0.5)/b,float(hi)),fract(lod));
-  }
-  return studyLerp(studyLevel(t,boundedUv,lo,linearFilter,flags),studyLevel(t,boundedUv,hi,linearFilter,flags),fract(lod));
+  if(lod<=0.0)return texture2DLod(t,uv,0.0);
+  int flags = int(suppliedSize.w);
+  vec2 bounded = fract(uv);
+  if (mod(float(flags),2.0)>0.5) bounded.x=clamp(uv.x,0.0,1.0);
+  if (flags>=2) bounded.y=clamp(uv.y,0.0,1.0);
+  int lo = int(floor(lod)), hi = min(lo+1,maximum);
+  ivec2 ni = ivec2(n);
+  vec2 a = vec2(max(ni >> lo, ivec2(1)));
+  bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
+  if(pot)return texture2DLod(t,(floor(bounded*a)+0.5)/a,lod);
+  vec2 b = vec2(max(ni >> hi, ivec2(1)));
+  return coinPortableLerp(texture2DLod(t,(floor(bounded*a)+0.5)/a,float(lo)),
+                          texture2DLod(t,(floor(bounded*b)+0.5)/b,float(hi)),fract(lod));
 }
-
-#define COIN_SURFACE_SAMPLE(t, uv, enabled, unit) studySample(t, uv, enabled, u_studyTextureSizes[unit])
+#define COIN_SURFACE_SAMPLE(t, uv, enabled, unit) coinPortableSample(t, uv, u_coinSamplingSizes[unit])
 #else
 #define COIN_SURFACE_SAMPLE(t, uv, enabled, unit) texture2D(t, uv)
 #endif

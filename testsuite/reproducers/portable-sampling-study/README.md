@@ -1,3 +1,10 @@
+> Esta revisão usa a API pública de sampling por alvo. Os comandos históricos
+> abaixo exigem fontes/runtimes congelados em `43f00b0e` ou anteriores: a variável
+> `COIN_SAMPLING_STUDY` não seleciona mais o renderer. Os runners rejeitam
+> runtimes incompatíveis para evitar medições rotuladas incorretamente.
+> Para esta revisão, use `../sampling-api/run.py` e
+> `docs/coin-render-texture-sampling-api.md`. As sondas EGL independentes continuam válidas.
+
 # Sampling portátil — laboratório isolado, 2026-10-07
 
 Branch `codex/coin-portable-sampling-study`, base `f94a6c2898582d6dfd5796771392c38a541f4fb2`.

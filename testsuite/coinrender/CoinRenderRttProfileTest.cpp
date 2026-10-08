@@ -1,3 +1,5 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -50,6 +52,7 @@ static void quad(SoSeparator * root) {
   face->coordIndex.setValues(0,5,indices); root->addChild(face);
 }
 int main(int argc, char ** argv) {
+  configureSamplingTest(argc, argv);
   if (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) return 77;
   SoDB::init(); CoinRenderAction::initClass();
   const bool mipOnly = argc>1 && (std::string(argv[1])=="--mips" || std::string(argv[1])=="--mips-direct");
@@ -57,8 +60,9 @@ int main(int argc, char ** argv) {
   std::string optionError;
   CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionError);
   if (!optionError.empty()) { std::cerr<<optionError<<'\n'; return 1; }
+  options.textureSamplingPolicy = samplingTestPolicy;
   options.sceneTexture = direct ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),options));
+  std::unique_ptr<CoinRenderTarget> target(samplingTestOffscreen(SbVec2i32(32,32),options));
   CoinRenderAction action(SbViewportRegion(32,32)); action.setRenderTarget(target.get());
   action.setTransparencyType(CoinRenderAction::BLEND);
   action.setBackgroundColor(SbColor4f(.1f,.2f,.3f,1));

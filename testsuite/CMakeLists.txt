@@ -459,6 +459,17 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderCameraReuseReferenceTest COMMAND CoinRenderCameraReuseReferenceTest)
 	set_tests_properties(CoinRenderCameraReuseReferenceTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
 
+	add_executable(CoinRenderSamplingPolicyTest coinrender/CoinRenderSamplingPolicyTest.cpp)
+	set_target_properties(CoinRenderSamplingPolicyTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderSamplingPolicyTest CoinRender Coin)
+	target_include_directories(CoinRenderSamplingPolicyTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderSamplingPolicyTest COMMAND CoinRenderSamplingPolicyTest)
+	add_test(NAME CoinRenderSamplingPolicyGpuTest COMMAND CoinRenderSamplingPolicyTest --gpu)
+	set_tests_properties(CoinRenderSamplingPolicyGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
+		ENVIRONMENT "COIN_SAMPLING_STUDY=fetch")
+
 	add_executable(CoinRenderSelectionTest coinrender/CoinRenderSelectionTest.cpp)
 	set_target_properties(CoinRenderSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderSelectionTest CoinRender Coin)

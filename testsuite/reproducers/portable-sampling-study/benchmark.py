@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 import argparse,os,subprocess,json,hashlib,re
 from pathlib import Path
-ap=argparse.ArgumentParser();ap.add_argument('--artifacts',type=Path,required=True);ap.add_argument('--kind',choices=['gpu','window'],required=True);ap.add_argument("--optimized",action="store_true");ap.add_argument("--workloads",default="");a=ap.parse_args();out=a.artifacts/('benchmark-'+a.kind+('-optimized' if a.optimized else ''));out.mkdir(exist_ok=True);runs=[]
+ap=argparse.ArgumentParser();ap.add_argument('--artifacts',type=Path,required=True);ap.add_argument('--kind',choices=['gpu','window'],required=True);ap.add_argument("--optimized",action="store_true");ap.add_argument("--workloads",default="");a=ap.parse_args()
+if a.kind == 'window':
+ from legacy_runtime import require_legacy_sampling
+ require_legacy_sampling(a.artifacts/'build-wgpu')
+out=a.artifacts/('benchmark-'+a.kind+('-optimized' if a.optimized else ''));out.mkdir(exist_ok=True);runs=[]
 for gpu in ['amd','nvidia']:
  env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',WGPU_BACKEND='vulkan',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1');env['VK_DRIVER_FILES']=env['VK_ICD_FILENAMES']='/usr/share/vulkan/icd.d/'+('nvidia_icd.json' if gpu=='nvidia' else 'radeon_icd.json');env['__GLX_VENDOR_LIBRARY_NAME']='nvidia' if gpu=='nvidia' else 'mesa';env['__EGL_VENDOR_LIBRARY_FILENAMES']='/usr/share/glvnd/egl_vendor.d/'+('10_nvidia.json' if gpu=='nvidia' else '50_mesa.json')
  if gpu=='nvidia':env['__NV_PRIME_RENDER_OFFLOAD']='1'

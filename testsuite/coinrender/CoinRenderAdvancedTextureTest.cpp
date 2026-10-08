@@ -1,3 +1,5 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -161,15 +163,16 @@ static bool center(const std::vector<uint8_t> &pixels, const int expected[3],
   return check(ok && maximum <= tolerance, label);
 }
 int main(int argc, char **argv) {
+  configureSamplingTest(argc, argv);
   SoDB::init();
   CoinRenderAction::initClass();
   bool gpu = argc > 1 && std::string(argv[1]) == "--gpu";
   bool ok = numeric();
   Scene scene;
-  CoinRenderOptions options;
+  CoinRenderOptions options = samplingTestOptions();
   options.storedTextureColorSpace = COIN_RENDER_TEXTURE_SRGB;
   std::unique_ptr<CoinRenderTarget> captureTarget(
-      CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), options));
+      samplingTestOffscreen(SbVec2i32(32, 32), options));
   auto *capture = new Capture;
   captureTarget->getPimpl()->backend.reset(capture);
   CoinRenderAction action(SbViewportRegion(32, 32));
@@ -180,11 +183,12 @@ int main(int argc, char **argv) {
               "authored SRGB opt-in capture");
   CoinRenderFramePlan base = capture->plan;
   CoinRenderTargetP cpu(SbVec2i32(32, 32));
+  cpu.options.textureSamplingPolicy = samplingTestPolicy;
   cpu.backend.reset(new CoinRenderCpuReferenceBackend);
   CoinRenderRenderer selectedRenderer = COIN_RENDER_RENDERER_UNKNOWN;
   std::unique_ptr<CoinRenderTarget> native;
   if (gpu) {
-    native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(32, 32)));
+    native.reset(samplingTestOffscreen(SbVec2i32(32, 32)));
     CoinRenderCapabilities caps{};
     coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
                                    sizeof(caps));
@@ -218,9 +222,9 @@ int main(int argc, char **argv) {
   if (argc > 2 && std::string(argv[2]) == "--sampling-rtt-study") {
     // Public SoSceneTexture2 always uses linear/trilinear. This explicitly
     // authored private consumer tests filter2 against a direct GPU resource.
-    CoinRenderOptions directOptions;directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    CoinRenderOptions directOptions = samplingTestOptions();directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
     directOptions.renderer=selectedRenderer;
-    std::unique_ptr<CoinRenderTarget> direct(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),directOptions));
+    std::unique_ptr<CoinRenderTarget> direct(samplingTestOffscreen(SbVec2i32(32,32),directOptions));
     unsigned cases=0;
     for(F format : {F::RGBA8_LINEAR,F::RGBA16_FLOAT}) for(unsigned unit : {0u,7u})
     for(auto size : {SbVec2i32(512,128),SbVec2i32(1024,64),SbVec2i32(128,256),SbVec2i32(512,128)})
@@ -721,11 +725,11 @@ int main(int argc, char **argv) {
                   prior == cpu.colorBuffer,
               "invalid anisotropy preserves publication");
   if (gpu) {
-    CoinRenderOptions directOptions;
+    CoinRenderOptions directOptions = samplingTestOptions();
     directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
     directOptions.renderer = selectedRenderer;
     std::unique_ptr<CoinRenderTarget> direct(
-        CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), directOptions));
+        samplingTestOffscreen(SbVec2i32(32, 32), directOptions));
     auto hdrRoot = base;
     hdrRoot.textures[0].pixelsRgba.clear();
     hdrRoot.textures[0].mipmapsRgba.clear();
@@ -742,6 +746,7 @@ int main(int argc, char **argv) {
     producer.format = F::RGBA16_FLOAT;
     producer.plan = base;
     producer.plan = CoinRenderFramePlan();
+    producer.plan.textureSamplingPolicy = samplingTestPolicy;
     producer.plan.clearColor = SbColor4f(2, .5f, .25f, 1);
     uint64_t id;
     std::string diagnostic;

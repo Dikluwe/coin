@@ -34,8 +34,8 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 50,
-              "Shadow, opaque-instance, alpha-test and projective-UV bridge protocol");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 51,
+              "Shadow, opaque-instance, alpha-test, projective-UV and sampling-policy bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
 static_assert(sizeof(CoinWgpuRenderState) == 2292, "Texture projection policy bridge layout");
 static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection policy bridge tail");

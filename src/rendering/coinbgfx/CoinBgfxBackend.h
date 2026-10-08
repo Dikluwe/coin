@@ -65,6 +65,7 @@ public:
   const std::string & getLastError() const override { return lastError; }
 
 private:
+  bool portableSampling = false; // Immutable policy of the owning target.
   struct ReadbackSlot {
     bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
     bgfx::TextureHandle depthTexture = BGFX_INVALID_HANDLE;
@@ -216,8 +217,8 @@ private:
   bgfx::UniformHandle fogColorModeUniform;
   bgfx::UniformHandle fogRangeUniform;
   bgfx::UniformHandle textureParamsUniform;
-  std::map<uint16_t, std::pair<uint32_t, uint32_t>> studyBoundTextureSizes;
-  bgfx::UniformHandle studyTextureSizesUniform;
+  std::map<uint16_t, std::pair<uint32_t, uint32_t>> samplingBoundTextureSizes;
+  bgfx::UniformHandle samplingTextureSizesUniform;
   bgfx::UniformHandle textureBlendUniform;
   bgfx::UniformHandle textureCombineUniform;
   bgfx::UniformHandle ambientLightUniform;

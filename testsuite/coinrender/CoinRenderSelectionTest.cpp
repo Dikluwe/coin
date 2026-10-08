@@ -239,7 +239,7 @@ bool probe() {
   CoinRenderCapabilities caps{};
   if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
                                             sizeof(caps)) == 0 &&
-                 caps.version == 3 && caps.max_texture_units == 8 && caps.max_peel_layers == 8 &&
+                 caps.version == COIN_RENDER_CAPABILITIES_VERSION && caps.max_texture_units == 8 && caps.max_peel_layers == 8 &&
                  (caps.implemented_mechanisms & COIN_RENDER_MECHANISM_PEELING),
              "current compiled profile"))
     return false;

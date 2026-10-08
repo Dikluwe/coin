@@ -54,7 +54,7 @@ struct Uniforms {
     shadow_meta_fourth: vec4<f32>,
     shadow_falloff_fourth: vec4<f32>,
     alpha_test: vec4<f32>, // semantic function, clamped reference
-    study_texture_sizes: array<vec4<f32>, 8>,
+    sampling_texture_sizes: array<vec4<f32>, 8>,
 };
 
 struct GpuMaterial {
@@ -269,60 +269,32 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 // Coin's active shadow shader samples transformed ST without Q division.
 // Other paths preserve Q through interpolation and keep ordinary q=1 UV fast.
-fn study_lerp(a: vec4<f32>, b: vec4<f32>, w: f32) -> vec4<f32> { return a + (b-a)*w; }
-// Study implementation: floor-selected texels and fine max-vector footprint.
-fn study_fetch(t: texture_2d<f32>, at: vec2<i32>, level: i32, flags: u32) -> vec4<f32> {
-    let n = vec2<i32>(textureDimensions(t, level));
-    let repeat_at = select(select(at, at - n, at >= n), at + n, at < vec2<i32>(0));
-    let clamp_at = clamp(at, vec2<i32>(0), n - vec2<i32>(1));
-    let pos = vec2<i32>(select(repeat_at.x, clamp_at.x, (flags & 4u) != 0u),
-                        select(repeat_at.y, clamp_at.y, (flags & 8u) != 0u));
-    return textureLoad(t, pos, level);
-}
-fn study_level(t: texture_2d<f32>, uv: vec2<f32>, level: i32, linear_filter: bool, flags: u32) -> vec4<f32> {
-    let at = uv * vec2<f32>(textureDimensions(t, level));
-    if !linear_filter { return study_fetch(t, vec2<i32>(floor(at)), level, flags); }
-    let lo = vec2<i32>(floor(at - vec2<f32>(0.5)));
-    let f = fract(at - vec2<f32>(0.5));
-    return study_lerp(study_lerp(study_fetch(t, lo, level, flags), study_fetch(t, lo + vec2<i32>(1,0), level, flags), f.x),
-               study_lerp(study_fetch(t, lo + vec2<i32>(0,1), level, flags), study_fetch(t, lo + vec2<i32>(1,1), level, flags), f.x), f.y);
-}
-fn study_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32, supplied_size: vec4<f32>) -> vec4<f32> {
-    if enabled < 1.5 { return textureSample(t, s, uv); }
-    let flags = u32(enabled / 2.0) - 1u;
-    var n = supplied_size.xy;
-    if (flags & 64u) == 0u { n = vec2<f32>(textureDimensions(t, 0)); }
+fn coin_portable_lerp(a: vec4<f32>, b: vec4<f32>, w: f32) -> vec4<f32> { return a + (b-a)*w; }
+// supplied_size.xy = dimensions of the bound resource; z = filter; w = wrap bits.
+// Derivatives use original UV, before repeat/clamp and texel centering.
+fn coin_portable_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32, supplied_size: vec4<f32>) -> vec4<f32> {
+    if supplied_size.z != 2.0 { return textureSample(t, s, uv); }
+    let n = supplied_size.xy;
     let gx = dpdxFine(uv) * n;
     let gy = dpdyFine(uv) * n;
-    let wrapped = fract(uv);
-    let clamped = clamp(uv, vec2<f32>(0.0), vec2<f32>(1.0));
-    let bounded_uv = vec2<f32>(select(wrapped.x, clamped.x, (flags & 4u) != 0u),
-                               select(wrapped.y, clamped.y, (flags & 8u) != 0u));
-    let filter_kind = flags & 3u;
-    if filter_kind < 2u { return study_level(t, bounded_uv, 0, filter_kind == 1u, flags); }
     let maximum = i32(floor(log2(max(n.x, n.y))));
     let lod = clamp(log2(max(max(length(gx), length(gy)), 0.000001)), 0.0, f32(maximum));
-    // Coin filter_kind 2 has linear magnification, nearest minification.
-    let linear_filter = filter_kind == 3u || lod <= 0.0;
-    let lo = i32(floor(lod));
-    let hi = min(lo + 1, maximum);
-    if (flags & 16u) != 0u {
-        if lod <= 0.0 { return textureSampleLevel(t, s, uv, 0.0); }
-        var a = vec2<f32>(max(vec2<u32>(n) >> vec2<u32>(u32(lo)), vec2<u32>(1u)));
-        if (flags & 64u) == 0u { a = vec2<f32>(textureDimensions(t, lo)); }
-        let ni = vec2<u32>(n);
-        let pot = (ni.x & (ni.x - 1u)) == 0u && (ni.y & (ni.y - 1u)) == 0u;
-        if (flags & 32u) != 0u && pot {
-            return textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, lod);
-        }
-        var b = vec2<f32>(max(vec2<u32>(n) >> vec2<u32>(u32(hi)), vec2<u32>(1u)));
-        if (flags & 64u) == 0u { b = vec2<f32>(textureDimensions(t, hi)); }
-        return study_lerp(textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, f32(lo)),
-                   textureSampleLevel(t, s, (floor(bounded_uv*b)+vec2<f32>(0.5))/b, f32(hi)), fract(lod));
-    }
-    return study_lerp(study_level(t, bounded_uv, lo, linear_filter, flags), study_level(t, bounded_uv, hi, linear_filter, flags), fract(lod));
+    if lod <= 0.0 { return textureSampleLevel(t, s, uv, 0.0); }
+    let flags = u32(supplied_size.w);
+    let wrapped = fract(uv);
+    let clamped = clamp(uv, vec2<f32>(0.0), vec2<f32>(1.0));
+    let bounded = vec2<f32>(select(wrapped.x, clamped.x, (flags & 1u) != 0u),
+                           select(wrapped.y, clamped.y, (flags & 2u) != 0u));
+    let lo = u32(floor(lod));
+    let hi = min(lo + 1u, u32(maximum));
+    let ni = vec2<u32>(n);
+    let a = vec2<f32>(max(ni >> vec2<u32>(lo), vec2<u32>(1u)));
+    let pot = (ni.x & (ni.x-1u)) == 0u && (ni.y & (ni.y-1u)) == 0u;
+    if pot { return textureSampleLevel(t, s, (floor(bounded*a)+0.5)/a, lod); }
+    let b = vec2<f32>(max(ni >> vec2<u32>(hi), vec2<u32>(1u)));
+    return coin_portable_lerp(textureSampleLevel(t, s, (floor(bounded*a)+0.5)/a, f32(lo)),
+                              textureSampleLevel(t, s, (floor(bounded*b)+0.5)/b, f32(hi)), fract(lod));
 }
-
 fn projected_uv(value: vec3<f32>, projection: f32) -> vec2<f32> {
     if (projection > 0.5 || value.z == 1.0) { return value.xy; }
     return value.xy / value.z;
@@ -472,28 +444,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
     if (u.tex_params.x > 0.5) {
         let projected = projected_uv(input.texcoord, u.tex_params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), u.tex_params.z > 0.5);
-        let tex_col = study_sample(t_diffuse, s_diffuse, uv, u.tex_params.x, u.study_texture_sizes[0]);
+        let tex_col = coin_portable_sample(t_diffuse, s_diffuse, uv, u.tex_params.x, u.sampling_texture_sizes[0]);
         base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
     }
     if (u.extra_tex_params[0].x > 0.5) {
         let params = u.extra_tex_params[0];
         let projected = projected_uv(input.uv1, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture1, s_texture1, uv, params.x, u.study_texture_sizes[1]);
+        let tex = coin_portable_sample(t_texture1, s_texture1, uv, params.x, u.sampling_texture_sizes[1]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
     }
     if (u.extra_tex_params[1].x > 0.5) {
         let params = u.extra_tex_params[1];
         let projected = projected_uv(input.uv2, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture2, s_texture2, uv, params.x, u.study_texture_sizes[2]);
+        let tex = coin_portable_sample(t_texture2, s_texture2, uv, params.x, u.sampling_texture_sizes[2]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
     }
     if (u.extra_tex_params[2].x > 0.5) {
         let params = u.extra_tex_params[2];
         let projected = projected_uv(input.uv3, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture3, s_texture3, uv, params.x, u.study_texture_sizes[3]);
+        let tex = coin_portable_sample(t_texture3, s_texture3, uv, params.x, u.sampling_texture_sizes[3]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
     }
     // COIN_UPPER_TEXTURE_UNITS_BEGIN
@@ -501,28 +473,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         let params = u.extra_tex_params[3];
         let projected = projected_uv(input.uv4, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture4, s_texture4, uv, params.x, u.study_texture_sizes[4]);
+        let tex = coin_portable_sample(t_texture4, s_texture4, uv, params.x, u.sampling_texture_sizes[4]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
     }
     if (u.extra_tex_params[4].x > 0.5) {
         let params = u.extra_tex_params[4];
         let projected = projected_uv(input.uv5, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture5, s_texture5, uv, params.x, u.study_texture_sizes[5]);
+        let tex = coin_portable_sample(t_texture5, s_texture5, uv, params.x, u.sampling_texture_sizes[5]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
     }
     if (u.extra_tex_params[5].x > 0.5) {
         let params = u.extra_tex_params[5];
         let projected = projected_uv(input.uv6, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture6, s_texture6, uv, params.x, u.study_texture_sizes[6]);
+        let tex = coin_portable_sample(t_texture6, s_texture6, uv, params.x, u.sampling_texture_sizes[6]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
     }
     if (u.extra_tex_params[6].x > 0.5) {
         let params = u.extra_tex_params[6];
         let projected = projected_uv(input.uv7, params.w);
         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = study_sample(t_texture7, s_texture7, uv, params.x, u.study_texture_sizes[7]);
+        let tex = coin_portable_sample(t_texture7, s_texture7, uv, params.x, u.sampling_texture_sizes[7]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
     // COIN_UPPER_TEXTURE_UNITS_END

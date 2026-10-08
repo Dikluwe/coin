@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderSamplingCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -1438,6 +1439,11 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
                                       capture.inheritedClipPlaneCount);
       light.mapSceneCaptured = true;
     }
+  }
+  if (!coin_render_valid_sampling(plan, err)) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
+    return;
   }
   if (!this->shadowSceneCaptures.empty() && !plan.isValid(&err)) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
