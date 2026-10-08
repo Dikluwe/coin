@@ -1,0 +1,1088 @@
+{
+  "base_commit": "01b360af322ac873cd4d1c4262315673aa1ad3c8",
+  "branch": "codex/coin-sampling-amd-study",
+  "production_source_diff": [],
+  "renderer_branch_head": "f94a6c2898582d6dfd5796771392c38a541f4fb2",
+  "validated_at_utc": "2026-10-08T00:35:07.718296+00:00",
+  "sources": {
+    "testsuite/reproducers/coin-sampling-amd-study/CMakeLists.txt": {
+      "bytes": 1110,
+      "sha256": "b932744d758314c6ddb4fa126711930f61a5c71baae954104ed342a31a449ebe"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/README.md": {
+      "bytes": 3019,
+      "sha256": "a5185a4aa1837e02efb69bdd708a13929467c4a4013cee204c89a8a231d95cf5"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/analyze.py": {
+      "bytes": 6676,
+      "sha256": "2dd0265e8a2ce54185a4ed8baa51e6bfead901ffeb58399ff6c4b1d77a755de8"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/egl_context.h": {
+      "bytes": 1767,
+      "sha256": "fd5dbfdb595cfae31bb180b9c836fe5e818a1e24fb0b841aa8b42595180cd0da"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/glx_visual.cpp": {
+      "bytes": 709,
+      "sha256": "3ee4810ee7f6bc1944e8d177f7bc42a474b869d4bdf9c359d8a4f7a669be4549"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/native_sampling.cpp": {
+      "bytes": 4732,
+      "sha256": "b715465069aeb16a3933654dd2aa7d7e7436335a7f9c1a612ef9b38bb8b2135b"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/plot.py": {
+      "bytes": 2056,
+      "sha256": "7d99b90db6ca229ed55ac6e9c0b757ad09df875c49882e6d82be763487097207"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/pure_egl.cpp": {
+      "bytes": 1255,
+      "sha256": "d7ee846f13b111e83619bb4c30b2fc8665bb936dda3a818c53ee59ee89d082bb"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/raw_gl.h": {
+      "bytes": 9277,
+      "sha256": "2ba5e8e93120cc4bc5f34cb6d166e587764341398fe6bd496b62d1f3a5d1544d"
+    },
+    "testsuite/reproducers/coin-sampling-amd-study/run.py": {
+      "bytes": 2465,
+      "sha256": "80b2f6615e90f0471c6991853163faf234fd45bfe6313dc079afad8c87402dad"
+    },
+    "src/rendering/SoGLImage.cpp": {
+      "bytes": 74623,
+      "sha256": "90b126fe72a95889a5ab91f8d8e4a223b18b85dd6f4a34a36974d9bca1accf56"
+    },
+    "src/nodes/SoTexture2.cpp": {
+      "bytes": 24689,
+      "sha256": "7e006345c3e5b4c4822763eaa0e91dbf95e5775f6c776fc603a08b754f15d8ff"
+    },
+    "src/nodes/SoTextureMatrixTransform.cpp": {
+      "bytes": 5629,
+      "sha256": "60333f9b0dc7f8ba8585072b4b0aacf81d97002e46ce9ce5bbb8cd0259265457"
+    },
+    "src/elements/GL/SoGLMultiTextureMatrixElement.cpp": {
+      "bytes": 5253,
+      "sha256": "1ddcf13f329a32be8f8a1bfe1e49dd90b94f5bd97f5224843e3372c9cc9bac6d"
+    },
+    "src/glue/gl_glx.cpp": {
+      "bytes": 38308,
+      "sha256": "1b051adfaf945904d55937e60b3c1959d213cda764eda5014187f89730b4a91d"
+    },
+    "src/glue/gl.cpp": {
+      "bytes": 185418,
+      "sha256": "00e90239725c12e1fbdb574fed264fd7b2078fbb74ac75366afc83c84733d756"
+    },
+    "src/rendering/SoOffscreenRenderer.cpp": {
+      "bytes": 61753,
+      "sha256": "cfd66c2272bea4f4b82e3bb6741604d9ea065d2295c16c573ca351eac7f0565b"
+    },
+    "docs/coin-sampling-amd-origin-study-20261007.md": {
+      "bytes": 9844,
+      "sha256": "6e4964779490f179da446394301ab7c637bb8dfeb6d7afce5077c550cf5075f6"
+    }
+  },
+  "binaries": {
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-coin-master/lib/libCoin.so.80.0.10": {
+      "bytes": 11947328,
+      "sha256": "aeb4914ad7873336dbe2b9d84759355ec761e85e8abe4d186498c5dc0cd8c851"
+    },
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/coin-native-sampling": {
+      "bytes": 77696,
+      "sha256": "0e7d2ae4fdf425ce5402e602d8ce7bc2e0d0e72bfc836ed4b08069707cef7891"
+    },
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/pure-egl-sampling": {
+      "bytes": 57520,
+      "sha256": "11da812856ded9f553c3b7fb16624b8a12c973eed2ae7f3675e5aefe860576b6"
+    },
+    "/mnt/Laranja/Git/externos/coin-sampling-amd-artifacts/20261007/build-probe/glx-visual-probe": {
+      "bytes": 16560,
+      "sha256": "7799e02d3102412b299206168dd26e1e026f81714d82eb7cfc052e657e616e66"
+    }
+  },
+  "evidence": {
+    "amd-coin-q.5-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-coin-q.5-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "2db4d1971095521b51a28ff6e01e4fdecebfdccbb74b9acc606287c78a2470b4"
+    },
+    "amd-coin-q.5-o-.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "faac0102650e5df260e56a87d3e5709cfbf86662a21eefb2011da6db2cb4dd9a"
+    },
+    "amd-coin-q.5-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "amd-coin-q.5-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "amd-coin-q.5-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "amd-coin-q.5-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "faac0102650e5df260e56a87d3e5709cfbf86662a21eefb2011da6db2cb4dd9a"
+    },
+    "amd-coin-q.5-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "faac0102650e5df260e56a87d3e5709cfbf86662a21eefb2011da6db2cb4dd9a"
+    },
+    "amd-coin-q.5-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "33e57b1e9a1cec4d0413edb137e307c6fdbdf14ce71b0811fa3cc3e88d311d01"
+    },
+    "amd-coin-q.5-o-.001.log": {
+      "bytes": 8025,
+      "sha256": "bea0c5de0a83c4d1014c2add72cdd9cabff7d8d90862f0777222c9344cbb0536"
+    },
+    "amd-coin-q.5-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-coin-q.5-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "2db4d1971095521b51a28ff6e01e4fdecebfdccbb74b9acc606287c78a2470b4"
+    },
+    "amd-coin-q.5-o.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "fddee03033b0e952086d5e9e4c3cca321404bdf84983a7f07595458718959d44"
+    },
+    "amd-coin-q.5-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "15424bb8c41ed648acc08454049e3314cfb5fa47a0ea84afcb89ca1cbf71c120"
+    },
+    "amd-coin-q.5-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "15424bb8c41ed648acc08454049e3314cfb5fa47a0ea84afcb89ca1cbf71c120"
+    },
+    "amd-coin-q.5-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "cc5ae8c6e99cef6678e9158152606b1c5c90529c27f98f51f61d76e33c07b836"
+    },
+    "amd-coin-q.5-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "fddee03033b0e952086d5e9e4c3cca321404bdf84983a7f07595458718959d44"
+    },
+    "amd-coin-q.5-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "fddee03033b0e952086d5e9e4c3cca321404bdf84983a7f07595458718959d44"
+    },
+    "amd-coin-q.5-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "34f7e690af4b80e1b2fe471699a166cad63fe9cac8f620ce39e3272246f9a333"
+    },
+    "amd-coin-q.5-o.001.log": {
+      "bytes": 8023,
+      "sha256": "fc04d1669999b1fa3497f2c5f9ad1ee6e51d32a2a6cd0cb9da85b52f420e2b40"
+    },
+    "amd-coin-q.5-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-coin-q.5-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "2db4d1971095521b51a28ff6e01e4fdecebfdccbb74b9acc606287c78a2470b4"
+    },
+    "amd-coin-q.5-o0-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "dadf194bf85f27e81602ba513e2fcbb004ab343d2f7928a67ccf34ede2943752"
+    },
+    "amd-coin-q.5-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "341014d6c75a8ace4067fc5520995436c308d81dde33404a1e48188269c7c45f"
+    },
+    "amd-coin-q.5-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "341014d6c75a8ace4067fc5520995436c308d81dde33404a1e48188269c7c45f"
+    },
+    "amd-coin-q.5-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "255cf117c28fa21a875fd141c2fd97d306cae91308518598e5e707699dbf2b92"
+    },
+    "amd-coin-q.5-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "dadf194bf85f27e81602ba513e2fcbb004ab343d2f7928a67ccf34ede2943752"
+    },
+    "amd-coin-q.5-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "dadf194bf85f27e81602ba513e2fcbb004ab343d2f7928a67ccf34ede2943752"
+    },
+    "amd-coin-q.5-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "27f9ee45207d1f5537f60d093b4b5128845e92cb946d60789b342283691b318e"
+    },
+    "amd-coin-q.5-o0.log": {
+      "bytes": 7999,
+      "sha256": "742b18832235f8c761cf02a0ec90266a3a1cf2ab0dd7ec3b480e51bc34108645"
+    },
+    "amd-coin-q.8-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-coin-q.8-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "amd-coin-q.8-o-.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "3a5d87c8d554a31461327e572ad4809d6cadf972272d7061cfe62bddeee8edf0"
+    },
+    "amd-coin-q.8-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "070d06a822088fba3dcdc7d52180da3d7f0417e9630b305f5788c3aa7beab2a0"
+    },
+    "amd-coin-q.8-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "9d45b3abe49b24f90d193653416ff888beaf796b77e5cc910cb1e9e7946c5408"
+    },
+    "amd-coin-q.8-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9d45b3abe49b24f90d193653416ff888beaf796b77e5cc910cb1e9e7946c5408"
+    },
+    "amd-coin-q.8-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "3a5d87c8d554a31461327e572ad4809d6cadf972272d7061cfe62bddeee8edf0"
+    },
+    "amd-coin-q.8-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "3a5d87c8d554a31461327e572ad4809d6cadf972272d7061cfe62bddeee8edf0"
+    },
+    "amd-coin-q.8-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "33e57b1e9a1cec4d0413edb137e307c6fdbdf14ce71b0811fa3cc3e88d311d01"
+    },
+    "amd-coin-q.8-o-.001.log": {
+      "bytes": 8025,
+      "sha256": "63d8bb8181a74e0ab0bfd498f1786cfa5effe6b8de3c5290b6462c903c25bcbf"
+    },
+    "amd-coin-q.8-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-coin-q.8-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "amd-coin-q.8-o.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "671002140de6361a84a98f38d45de7b722bc4bc901197ab0cdd962092b8046c9"
+    },
+    "amd-coin-q.8-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "01c2f0f1479699e9b9de77cc2b1ddc591087e6c644193725262c316bafeec7ab"
+    },
+    "amd-coin-q.8-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "cc18f942a6663cbce097a9cf49adac7e5560402752b1e2b0011d810a972e5e87"
+    },
+    "amd-coin-q.8-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "cc18f942a6663cbce097a9cf49adac7e5560402752b1e2b0011d810a972e5e87"
+    },
+    "amd-coin-q.8-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "671002140de6361a84a98f38d45de7b722bc4bc901197ab0cdd962092b8046c9"
+    },
+    "amd-coin-q.8-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "671002140de6361a84a98f38d45de7b722bc4bc901197ab0cdd962092b8046c9"
+    },
+    "amd-coin-q.8-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "34f7e690af4b80e1b2fe471699a166cad63fe9cac8f620ce39e3272246f9a333"
+    },
+    "amd-coin-q.8-o.001.log": {
+      "bytes": 8023,
+      "sha256": "a3af72e80aeea316787edfba6f088dd4c7db3325000d195161afe25ef2b4e397"
+    },
+    "amd-coin-q.8-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-coin-q.8-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "amd-coin-q.8-o0-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "a9f6808f6d9a301d9dabaff713173d7b9f24ea2214b15e2129908defce231d1c"
+    },
+    "amd-coin-q.8-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "b6e192e50d1a7520c720f4394923367d02a9e1f427b06df8303998e103c1313b"
+    },
+    "amd-coin-q.8-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "87520a4ce96486c838dbec681e642c3c4cb58d6bdd0e8b32ba9506f4555f3e6e"
+    },
+    "amd-coin-q.8-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "87520a4ce96486c838dbec681e642c3c4cb58d6bdd0e8b32ba9506f4555f3e6e"
+    },
+    "amd-coin-q.8-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "a9f6808f6d9a301d9dabaff713173d7b9f24ea2214b15e2129908defce231d1c"
+    },
+    "amd-coin-q.8-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "a9f6808f6d9a301d9dabaff713173d7b9f24ea2214b15e2129908defce231d1c"
+    },
+    "amd-coin-q.8-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "27f9ee45207d1f5537f60d093b4b5128845e92cb946d60789b342283691b318e"
+    },
+    "amd-coin-q.8-o0.log": {
+      "bytes": 7999,
+      "sha256": "d6ac0468303544585dc343ef411f43c4db32f287c5d0e752bf21bc416b74c6ff"
+    },
+    "amd-egl-q.5-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-egl-q.5-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "2db4d1971095521b51a28ff6e01e4fdecebfdccbb74b9acc606287c78a2470b4"
+    },
+    "amd-egl-q.5-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "amd-egl-q.5-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "amd-egl-q.5-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "amd-egl-q.5-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "faac0102650e5df260e56a87d3e5709cfbf86662a21eefb2011da6db2cb4dd9a"
+    },
+    "amd-egl-q.5-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "faac0102650e5df260e56a87d3e5709cfbf86662a21eefb2011da6db2cb4dd9a"
+    },
+    "amd-egl-q.5-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "33e57b1e9a1cec4d0413edb137e307c6fdbdf14ce71b0811fa3cc3e88d311d01"
+    },
+    "amd-egl-q.5-o-.001.log": {
+      "bytes": 7140,
+      "sha256": "ad9a26d13125fc3a9f50fa541bcc64d6d1d60d9187b75b605c36e2baf37d5feb"
+    },
+    "amd-egl-q.5-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-egl-q.5-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "2db4d1971095521b51a28ff6e01e4fdecebfdccbb74b9acc606287c78a2470b4"
+    },
+    "amd-egl-q.5-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "15424bb8c41ed648acc08454049e3314cfb5fa47a0ea84afcb89ca1cbf71c120"
+    },
+    "amd-egl-q.5-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "15424bb8c41ed648acc08454049e3314cfb5fa47a0ea84afcb89ca1cbf71c120"
+    },
+    "amd-egl-q.5-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "cc5ae8c6e99cef6678e9158152606b1c5c90529c27f98f51f61d76e33c07b836"
+    },
+    "amd-egl-q.5-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "fddee03033b0e952086d5e9e4c3cca321404bdf84983a7f07595458718959d44"
+    },
+    "amd-egl-q.5-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "fddee03033b0e952086d5e9e4c3cca321404bdf84983a7f07595458718959d44"
+    },
+    "amd-egl-q.5-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "34f7e690af4b80e1b2fe471699a166cad63fe9cac8f620ce39e3272246f9a333"
+    },
+    "amd-egl-q.5-o.001.log": {
+      "bytes": 7140,
+      "sha256": "ad9a26d13125fc3a9f50fa541bcc64d6d1d60d9187b75b605c36e2baf37d5feb"
+    },
+    "amd-egl-q.5-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-egl-q.5-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "2db4d1971095521b51a28ff6e01e4fdecebfdccbb74b9acc606287c78a2470b4"
+    },
+    "amd-egl-q.5-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "341014d6c75a8ace4067fc5520995436c308d81dde33404a1e48188269c7c45f"
+    },
+    "amd-egl-q.5-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "341014d6c75a8ace4067fc5520995436c308d81dde33404a1e48188269c7c45f"
+    },
+    "amd-egl-q.5-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "255cf117c28fa21a875fd141c2fd97d306cae91308518598e5e707699dbf2b92"
+    },
+    "amd-egl-q.5-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "dadf194bf85f27e81602ba513e2fcbb004ab343d2f7928a67ccf34ede2943752"
+    },
+    "amd-egl-q.5-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "dadf194bf85f27e81602ba513e2fcbb004ab343d2f7928a67ccf34ede2943752"
+    },
+    "amd-egl-q.5-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "27f9ee45207d1f5537f60d093b4b5128845e92cb946d60789b342283691b318e"
+    },
+    "amd-egl-q.5-o0.log": {
+      "bytes": 7140,
+      "sha256": "ad9a26d13125fc3a9f50fa541bcc64d6d1d60d9187b75b605c36e2baf37d5feb"
+    },
+    "amd-egl-q.8-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-egl-q.8-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "amd-egl-q.8-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "070d06a822088fba3dcdc7d52180da3d7f0417e9630b305f5788c3aa7beab2a0"
+    },
+    "amd-egl-q.8-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "9d45b3abe49b24f90d193653416ff888beaf796b77e5cc910cb1e9e7946c5408"
+    },
+    "amd-egl-q.8-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9d45b3abe49b24f90d193653416ff888beaf796b77e5cc910cb1e9e7946c5408"
+    },
+    "amd-egl-q.8-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "3a5d87c8d554a31461327e572ad4809d6cadf972272d7061cfe62bddeee8edf0"
+    },
+    "amd-egl-q.8-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "3a5d87c8d554a31461327e572ad4809d6cadf972272d7061cfe62bddeee8edf0"
+    },
+    "amd-egl-q.8-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "33e57b1e9a1cec4d0413edb137e307c6fdbdf14ce71b0811fa3cc3e88d311d01"
+    },
+    "amd-egl-q.8-o-.001.log": {
+      "bytes": 7140,
+      "sha256": "cce91033f21199a8af6e1b077b2096d2ff7c2d73b4f1b18ace4e12f7b70efc18"
+    },
+    "amd-egl-q.8-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-egl-q.8-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "amd-egl-q.8-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "01c2f0f1479699e9b9de77cc2b1ddc591087e6c644193725262c316bafeec7ab"
+    },
+    "amd-egl-q.8-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "cc18f942a6663cbce097a9cf49adac7e5560402752b1e2b0011d810a972e5e87"
+    },
+    "amd-egl-q.8-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "cc18f942a6663cbce097a9cf49adac7e5560402752b1e2b0011d810a972e5e87"
+    },
+    "amd-egl-q.8-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "671002140de6361a84a98f38d45de7b722bc4bc901197ab0cdd962092b8046c9"
+    },
+    "amd-egl-q.8-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "671002140de6361a84a98f38d45de7b722bc4bc901197ab0cdd962092b8046c9"
+    },
+    "amd-egl-q.8-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "34f7e690af4b80e1b2fe471699a166cad63fe9cac8f620ce39e3272246f9a333"
+    },
+    "amd-egl-q.8-o.001.log": {
+      "bytes": 7140,
+      "sha256": "cce91033f21199a8af6e1b077b2096d2ff7c2d73b4f1b18ace4e12f7b70efc18"
+    },
+    "amd-egl-q.8-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "amd-egl-q.8-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "amd-egl-q.8-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "b6e192e50d1a7520c720f4394923367d02a9e1f427b06df8303998e103c1313b"
+    },
+    "amd-egl-q.8-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "87520a4ce96486c838dbec681e642c3c4cb58d6bdd0e8b32ba9506f4555f3e6e"
+    },
+    "amd-egl-q.8-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "87520a4ce96486c838dbec681e642c3c4cb58d6bdd0e8b32ba9506f4555f3e6e"
+    },
+    "amd-egl-q.8-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "a9f6808f6d9a301d9dabaff713173d7b9f24ea2214b15e2129908defce231d1c"
+    },
+    "amd-egl-q.8-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "a9f6808f6d9a301d9dabaff713173d7b9f24ea2214b15e2129908defce231d1c"
+    },
+    "amd-egl-q.8-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "27f9ee45207d1f5537f60d093b4b5128845e92cb946d60789b342283691b318e"
+    },
+    "amd-egl-q.8-o0.log": {
+      "bytes": 7140,
+      "sha256": "cce91033f21199a8af6e1b077b2096d2ff7c2d73b4f1b18ace4e12f7b70efc18"
+    },
+    "amd-glx-visual.log": {
+      "bytes": 82,
+      "sha256": "4b6c0cc6fed8a08491b46d917a40c0999330a9f4ca659dbd32e55154a1e1a62c"
+    },
+    "analysis-final.log": {
+      "bytes": 4241,
+      "sha256": "86ade8f52820f0f4416b4c7e531a03c1b33bbd27f0685684a23b900827087188"
+    },
+    "analysis.json": {
+      "bytes": 33450,
+      "sha256": "444b788219249dd3eabd220b68336f1f63c828c9f3ddc0c97a3df97941327a54"
+    },
+    "build-commands.json": {
+      "bytes": 688,
+      "sha256": "fe00d0584d1babf3dafffff1b8cec9d3009a6ab1ea1c0f442e6fa45fdc131d90"
+    },
+    "build-final-0.log": {
+      "bytes": 450,
+      "sha256": "e7d2a15ae4a0c30c04d34d48e21d6d5e2e8ce2c8286c54c10f541457f53536fd"
+    },
+    "build-final-1.log": {
+      "bytes": 22,
+      "sha256": "8c35b1682f73592d30612d7b0fabdb384fcfff35cb5a076cb48b85b1368aa794"
+    },
+    "build-final-2.log": {
+      "bytes": 387,
+      "sha256": "978fba011b59516d9886f15c1c374dadf60a4c95b2dbaff8083849a1c21524ba"
+    },
+    "coin-native-sampling-linkage.log": {
+      "bytes": 1244,
+      "sha256": "1aebb6ffd55fa0a2f857747580b2ccbd715c01c746de0a42f41c543b92cfb643"
+    },
+    "glx-visual-summary.json": {
+      "bytes": 903,
+      "sha256": "bf4269c210413ad46840186fbf03b310559efe9595a71713adcf8aa704d24981"
+    },
+    "linkage.json": {
+      "bytes": 2483,
+      "sha256": "d504b5979687174e9d2f2c772cfb8f829575492cf61483794d6cc7147f1e2411"
+    },
+    "nvidia-coin-q.5-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.5-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.5-o-.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "320df1c43b11ab7840f69525e3878c6d384f910e107bcb099ab6c1f409965cf9"
+    },
+    "nvidia-coin-q.5-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "nvidia-coin-q.5-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "nvidia-coin-q.5-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "nvidia-coin-q.5-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "320df1c43b11ab7840f69525e3878c6d384f910e107bcb099ab6c1f409965cf9"
+    },
+    "nvidia-coin-q.5-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "320df1c43b11ab7840f69525e3878c6d384f910e107bcb099ab6c1f409965cf9"
+    },
+    "nvidia-coin-q.5-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "3ee70112b7d5fd34946482dff8337dec21e3fdd6e5cdbc84304954b8bbb289c3"
+    },
+    "nvidia-coin-q.5-o-.001.log": {
+      "bytes": 7632,
+      "sha256": "70e168b53e2527fb040296fb748dddb7e49f61cbad06b75d4f2d20581cd1f8ff"
+    },
+    "nvidia-coin-q.5-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.5-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.5-o.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "2f59feb5e85d090e534637b94d146843b479a00ea1794892655fa31fc3d9f90e"
+    },
+    "nvidia-coin-q.5-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "cc5ae8c6e99cef6678e9158152606b1c5c90529c27f98f51f61d76e33c07b836"
+    },
+    "nvidia-coin-q.5-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "15424bb8c41ed648acc08454049e3314cfb5fa47a0ea84afcb89ca1cbf71c120"
+    },
+    "nvidia-coin-q.5-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "cc5ae8c6e99cef6678e9158152606b1c5c90529c27f98f51f61d76e33c07b836"
+    },
+    "nvidia-coin-q.5-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "2f59feb5e85d090e534637b94d146843b479a00ea1794892655fa31fc3d9f90e"
+    },
+    "nvidia-coin-q.5-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "2f59feb5e85d090e534637b94d146843b479a00ea1794892655fa31fc3d9f90e"
+    },
+    "nvidia-coin-q.5-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "35741b36760bdca9af1268751681ab490639586dc49ca76dd9d11fd035a383c5"
+    },
+    "nvidia-coin-q.5-o.001.log": {
+      "bytes": 7630,
+      "sha256": "d89fa3a0dfd36b079dd86c2dfc8403dc1f49730edb00f86ee87a04039716435f"
+    },
+    "nvidia-coin-q.5-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.5-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.5-o0-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "7b149b4ac20a33199e48ed76c90062c6a4fbe7b6438dd2af9b9b9bd542b213fc"
+    },
+    "nvidia-coin-q.5-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "255cf117c28fa21a875fd141c2fd97d306cae91308518598e5e707699dbf2b92"
+    },
+    "nvidia-coin-q.5-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "341014d6c75a8ace4067fc5520995436c308d81dde33404a1e48188269c7c45f"
+    },
+    "nvidia-coin-q.5-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "255cf117c28fa21a875fd141c2fd97d306cae91308518598e5e707699dbf2b92"
+    },
+    "nvidia-coin-q.5-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "7b149b4ac20a33199e48ed76c90062c6a4fbe7b6438dd2af9b9b9bd542b213fc"
+    },
+    "nvidia-coin-q.5-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "7b149b4ac20a33199e48ed76c90062c6a4fbe7b6438dd2af9b9b9bd542b213fc"
+    },
+    "nvidia-coin-q.5-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "147bcf26398714d64bad635fcfd1f25ea2583ae4fafa4cef66ca9df7f63406e5"
+    },
+    "nvidia-coin-q.5-o0.log": {
+      "bytes": 7606,
+      "sha256": "ce484289a3fe5bcbc3c4e1b57ccf202379015da9fc886301218a62ef5d90ae45"
+    },
+    "nvidia-coin-q.8-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.8-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "nvidia-coin-q.8-o-.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "2dfd585567d30237390c9aef4ebfd5b6cf6851b3b662d088e6828c92369f3347"
+    },
+    "nvidia-coin-q.8-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "639cccae02278aef93c46cd2e60b83b8225e71c8f4e5524d0c944f69b08d4cec"
+    },
+    "nvidia-coin-q.8-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "0ec6c528524143f6a8ef7eb094b7a6d6af73c38bcef386709fa5e42ea1798914"
+    },
+    "nvidia-coin-q.8-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "0ec6c528524143f6a8ef7eb094b7a6d6af73c38bcef386709fa5e42ea1798914"
+    },
+    "nvidia-coin-q.8-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "2dfd585567d30237390c9aef4ebfd5b6cf6851b3b662d088e6828c92369f3347"
+    },
+    "nvidia-coin-q.8-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "2dfd585567d30237390c9aef4ebfd5b6cf6851b3b662d088e6828c92369f3347"
+    },
+    "nvidia-coin-q.8-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "3ee70112b7d5fd34946482dff8337dec21e3fdd6e5cdbc84304954b8bbb289c3"
+    },
+    "nvidia-coin-q.8-o-.001.log": {
+      "bytes": 7632,
+      "sha256": "e10d777cbba819353701d696b49c032f822e74dde11e3033c9ca036d76199e25"
+    },
+    "nvidia-coin-q.8-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.8-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "nvidia-coin-q.8-o.001-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "ae618a0caa91ab40f40c5b229f39d34b939993578760b2cac079cd073c592814"
+    },
+    "nvidia-coin-q.8-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "63a7f4f98a9d010d98c8a05b5f5e447277e93c9d4a094882bc9c7ee829095588"
+    },
+    "nvidia-coin-q.8-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "5a9549ac957b74d155e6f69fbb3b4ccfb813995dfb0b011e4daa6fc5b80df8f2"
+    },
+    "nvidia-coin-q.8-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "5a9549ac957b74d155e6f69fbb3b4ccfb813995dfb0b011e4daa6fc5b80df8f2"
+    },
+    "nvidia-coin-q.8-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "ae618a0caa91ab40f40c5b229f39d34b939993578760b2cac079cd073c592814"
+    },
+    "nvidia-coin-q.8-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "ae618a0caa91ab40f40c5b229f39d34b939993578760b2cac079cd073c592814"
+    },
+    "nvidia-coin-q.8-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "35741b36760bdca9af1268751681ab490639586dc49ca76dd9d11fd035a383c5"
+    },
+    "nvidia-coin-q.8-o.001.log": {
+      "bytes": 7630,
+      "sha256": "913242ee25319c6a11d985f28fe13af3b7d9565f798f59c940c402efcc10de6b"
+    },
+    "nvidia-coin-q.8-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-coin-q.8-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "nvidia-coin-q.8-o0-coin.rgb": {
+      "bytes": 12288,
+      "sha256": "d61ad3483f60f4ec1c84332422773e6b82d546ca92d9fb7dbea9f8ea5e26aaf6"
+    },
+    "nvidia-coin-q.8-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "bfba08988c7ba98435a1b96b449a6c811a56e000b0d369a786f49d1757c34c96"
+    },
+    "nvidia-coin-q.8-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "ddbd707fc234f54d0cf01f33b69caa949098dcbffb5387dc22af522701e4b371"
+    },
+    "nvidia-coin-q.8-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "ddbd707fc234f54d0cf01f33b69caa949098dcbffb5387dc22af522701e4b371"
+    },
+    "nvidia-coin-q.8-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "d61ad3483f60f4ec1c84332422773e6b82d546ca92d9fb7dbea9f8ea5e26aaf6"
+    },
+    "nvidia-coin-q.8-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "d61ad3483f60f4ec1c84332422773e6b82d546ca92d9fb7dbea9f8ea5e26aaf6"
+    },
+    "nvidia-coin-q.8-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "147bcf26398714d64bad635fcfd1f25ea2583ae4fafa4cef66ca9df7f63406e5"
+    },
+    "nvidia-coin-q.8-o0.log": {
+      "bytes": 7606,
+      "sha256": "8d7c970e1c4a0e820f0fe7dc41daff671320a24267d998159871c6415b9b9004"
+    },
+    "nvidia-egl-q.5-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.5-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.5-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "nvidia-egl-q.5-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "nvidia-egl-q.5-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "6d74a82fb3b194acd8646d9d1333f3ee48f714e7ad7902aad4f9e3d5e80d46d0"
+    },
+    "nvidia-egl-q.5-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "320df1c43b11ab7840f69525e3878c6d384f910e107bcb099ab6c1f409965cf9"
+    },
+    "nvidia-egl-q.5-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "320df1c43b11ab7840f69525e3878c6d384f910e107bcb099ab6c1f409965cf9"
+    },
+    "nvidia-egl-q.5-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "3ee70112b7d5fd34946482dff8337dec21e3fdd6e5cdbc84304954b8bbb289c3"
+    },
+    "nvidia-egl-q.5-o-.001.log": {
+      "bytes": 6758,
+      "sha256": "e21f095ef5c9254b7db21790b5e01076383f32515b2199dbc8d8777c5b95baec"
+    },
+    "nvidia-egl-q.5-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.5-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.5-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "cc5ae8c6e99cef6678e9158152606b1c5c90529c27f98f51f61d76e33c07b836"
+    },
+    "nvidia-egl-q.5-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "15424bb8c41ed648acc08454049e3314cfb5fa47a0ea84afcb89ca1cbf71c120"
+    },
+    "nvidia-egl-q.5-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "cc5ae8c6e99cef6678e9158152606b1c5c90529c27f98f51f61d76e33c07b836"
+    },
+    "nvidia-egl-q.5-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "2f59feb5e85d090e534637b94d146843b479a00ea1794892655fa31fc3d9f90e"
+    },
+    "nvidia-egl-q.5-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "2f59feb5e85d090e534637b94d146843b479a00ea1794892655fa31fc3d9f90e"
+    },
+    "nvidia-egl-q.5-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "35741b36760bdca9af1268751681ab490639586dc49ca76dd9d11fd035a383c5"
+    },
+    "nvidia-egl-q.5-o.001.log": {
+      "bytes": 6758,
+      "sha256": "e21f095ef5c9254b7db21790b5e01076383f32515b2199dbc8d8777c5b95baec"
+    },
+    "nvidia-egl-q.5-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.5-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.5-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "255cf117c28fa21a875fd141c2fd97d306cae91308518598e5e707699dbf2b92"
+    },
+    "nvidia-egl-q.5-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "341014d6c75a8ace4067fc5520995436c308d81dde33404a1e48188269c7c45f"
+    },
+    "nvidia-egl-q.5-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "255cf117c28fa21a875fd141c2fd97d306cae91308518598e5e707699dbf2b92"
+    },
+    "nvidia-egl-q.5-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "7b149b4ac20a33199e48ed76c90062c6a4fbe7b6438dd2af9b9b9bd542b213fc"
+    },
+    "nvidia-egl-q.5-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "7b149b4ac20a33199e48ed76c90062c6a4fbe7b6438dd2af9b9b9bd542b213fc"
+    },
+    "nvidia-egl-q.5-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "147bcf26398714d64bad635fcfd1f25ea2583ae4fafa4cef66ca9df7f63406e5"
+    },
+    "nvidia-egl-q.5-o0.log": {
+      "bytes": 6758,
+      "sha256": "e21f095ef5c9254b7db21790b5e01076383f32515b2199dbc8d8777c5b95baec"
+    },
+    "nvidia-egl-q.8-o-.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.8-o-.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "nvidia-egl-q.8-o-.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "639cccae02278aef93c46cd2e60b83b8225e71c8f4e5524d0c944f69b08d4cec"
+    },
+    "nvidia-egl-q.8-o-.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "0ec6c528524143f6a8ef7eb094b7a6d6af73c38bcef386709fa5e42ea1798914"
+    },
+    "nvidia-egl-q.8-o-.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "0ec6c528524143f6a8ef7eb094b7a6d6af73c38bcef386709fa5e42ea1798914"
+    },
+    "nvidia-egl-q.8-o-.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "2dfd585567d30237390c9aef4ebfd5b6cf6851b3b662d088e6828c92369f3347"
+    },
+    "nvidia-egl-q.8-o-.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "2dfd585567d30237390c9aef4ebfd5b6cf6851b3b662d088e6828c92369f3347"
+    },
+    "nvidia-egl-q.8-o-.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "3ee70112b7d5fd34946482dff8337dec21e3fdd6e5cdbc84304954b8bbb289c3"
+    },
+    "nvidia-egl-q.8-o-.001.log": {
+      "bytes": 6758,
+      "sha256": "0c6527061bcdc3313f426e0718a2c08e06d96b1287d9b9cdf07e31f799ff7f8c"
+    },
+    "nvidia-egl-q.8-o.001-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.8-o.001-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "nvidia-egl-q.8-o.001-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "63a7f4f98a9d010d98c8a05b5f5e447277e93c9d4a094882bc9c7ee829095588"
+    },
+    "nvidia-egl-q.8-o.001-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "5a9549ac957b74d155e6f69fbb3b4ccfb813995dfb0b011e4daa6fc5b80df8f2"
+    },
+    "nvidia-egl-q.8-o.001-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "5a9549ac957b74d155e6f69fbb3b4ccfb813995dfb0b011e4daa6fc5b80df8f2"
+    },
+    "nvidia-egl-q.8-o.001-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "ae618a0caa91ab40f40c5b229f39d34b939993578760b2cac079cd073c592814"
+    },
+    "nvidia-egl-q.8-o.001-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "ae618a0caa91ab40f40c5b229f39d34b939993578760b2cac079cd073c592814"
+    },
+    "nvidia-egl-q.8-o.001-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "35741b36760bdca9af1268751681ab490639586dc49ca76dd9d11fd035a383c5"
+    },
+    "nvidia-egl-q.8-o.001.log": {
+      "bytes": 6758,
+      "sha256": "0c6527061bcdc3313f426e0718a2c08e06d96b1287d9b9cdf07e31f799ff7f8c"
+    },
+    "nvidia-egl-q.8-o0-boundary-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "9b72a0055d7c16712f8891df1384340b8bb83817dea73cd3071abab1b5d0145f"
+    },
+    "nvidia-egl-q.8-o0-boundary-scan.rgb": {
+      "bytes": 12288,
+      "sha256": "df4785f372f883ce8c234db49bd922b899eb1275dacaa1a5cd00c7fe7007f126"
+    },
+    "nvidia-egl-q.8-o0-explicit-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "bfba08988c7ba98435a1b96b449a6c811a56e000b0d369a786f49d1757c34c96"
+    },
+    "nvidia-egl-q.8-o0-fetch-round256.rgb": {
+      "bytes": 12288,
+      "sha256": "ddbd707fc234f54d0cf01f33b69caa949098dcbffb5387dc22af522701e4b371"
+    },
+    "nvidia-egl-q.8-o0-fetch.rgb": {
+      "bytes": 12288,
+      "sha256": "ddbd707fc234f54d0cf01f33b69caa949098dcbffb5387dc22af522701e4b371"
+    },
+    "nvidia-egl-q.8-o0-fixed.rgb": {
+      "bytes": 12288,
+      "sha256": "d61ad3483f60f4ec1c84332422773e6b82d546ca92d9fb7dbea9f8ea5e26aaf6"
+    },
+    "nvidia-egl-q.8-o0-implicit.rgb": {
+      "bytes": 12288,
+      "sha256": "d61ad3483f60f4ec1c84332422773e6b82d546ca92d9fb7dbea9f8ea5e26aaf6"
+    },
+    "nvidia-egl-q.8-o0-query-lod.rgb": {
+      "bytes": 12288,
+      "sha256": "147bcf26398714d64bad635fcfd1f25ea2583ae4fafa4cef66ca9df7f63406e5"
+    },
+    "nvidia-egl-q.8-o0.log": {
+      "bytes": 6758,
+      "sha256": "0c6527061bcdc3313f426e0718a2c08e06d96b1287d9b9cdf07e31f799ff7f8c"
+    },
+    "nvidia-glx-visual.log": {
+      "bytes": 80,
+      "sha256": "61c9fda03122d5e413a1b99fdf5042539d9cb29db092c6f95a54ca1599c3e916"
+    },
+    "nvidia-master-glx-summary.json": {
+      "bytes": 786,
+      "sha256": "854deb10b4584aab1f7e29ba6ef1596a80c2a7906241c7ab28945b91b2156bd8"
+    },
+    "nvidia-master-glx.log": {
+      "bytes": 292,
+      "sha256": "9aa7ab1f70c4a6dad07cd6282c35a71e96e1591e6b2c998d07bc4d8072dacd0d"
+    },
+    "pure-egl-sampling-linkage.log": {
+      "bytes": 607,
+      "sha256": "08c49c941e71f234462a691f9d93196ad306690acfeab8eded024baced88b6cb"
+    },
+    "runs.json": {
+      "bytes": 57179,
+      "sha256": "2f1efd329996ea1ba34ca3c222dc6bc012ee2d1a9a0919df0ff61144623c96a1"
+    },
+    "sampling-origin.png": {
+      "bytes": 130565,
+      "sha256": "d6b86abd01930ae2d0428fc57d1a9fbb65c3b7abcb793bcac1e994cd991ccefc"
+    }
+  },
+  "result": {
+    "processes": 24,
+    "diagnostic_renders": 204,
+    "analysis_checks": 72,
+    "passed_checks": 72,
+    "pure_egl_depends_on_Coin": false,
+    "coin_sampling_data_error_found": false,
+    "native_nearest_and_lod_difference_reproduced_without_Coin": true,
+    "separate_glx_visual_admission_failure_found": true,
+    "renderer_branch_modified": false
+  }
+}
