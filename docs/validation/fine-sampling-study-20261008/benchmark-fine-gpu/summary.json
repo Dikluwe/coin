@@ -1,0 +1,3602 @@
+[
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "e13bbfb1b6fd4695a12b5ffb1c78888f2139200cd4e5d87b18669add5e1f60fb",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.054836,
+      0.0296527,
+      0.0311053,
+      0.031352,
+      0.0315413
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "caf72458352ac8770b2f11cd97fe736fd3605f22824d901e6d0d5e660a90031e",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.105503,
+      0.100009,
+      0.100023,
+      0.0999407,
+      0.100007
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "851fb323ba43443b1401796dfbb3769bd89704b784c9518eb7e2e97fb764e0f7",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0768127,
+      0.0662833,
+      0.0658173,
+      0.0657687,
+      0.065806
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "7e801b230c6e6fff31d93428895753215692c9181dd9d32e8c710a6076bb6937",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.077396,
+      0.0672387,
+      0.0667193,
+      0.0666407,
+      0.0667067
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "2abdae7a32e6e5e0f0672b3a8b189f2d3613553172b30f29e7bf9dacf14e4961",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0788447,
+      0.06701,
+      0.0667707,
+      0.066638,
+      0.0667127
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "a765e1002219c3b6bbc88fe931f365d3d30fd7d92af6f8a6e0dd18efa4e49407",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.077572,
+      0.0658007,
+      0.0658113,
+      0.065742,
+      0.0658093
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "b702240882c779ae174958afedb98d5498c320d0010b8841f5d3a64a80ee4792",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.106316,
+      0.100309,
+      0.100018,
+      0.0999447,
+      0.0999393
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-0-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "f2855c8e505941aec69488c739fd1f0a9fc59a884d0b57eed673e1d77e1d4e62",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0557893,
+      0.0305627,
+      0.032472,
+      0.030002,
+      0.0313793
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "8b14bd061e70d8bb399853149e6b15bf56cc83d9f4ac1da0871253335c3ff47b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0551767,
+      0.0331267,
+      0.0364653,
+      0.0367893,
+      0.0340793
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "ef508a63f57f4e71473e5d7b7e87adcdbee3073df214f1a1e852456623046700",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.055822,
+      0.0345367,
+      0.030774,
+      0.0312507,
+      0.0307733
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "6a94070c80e706e48ace47d76c39098b16ded481312a4b98a323571b56f9cb49",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0548513,
+      0.03074,
+      0.0316193,
+      0.0306313,
+      0.0307593
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "cae6749c07a452e189ebcbf82aa94c53a374027d6f2418fdd672bc1370193d5f",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0547173,
+      0.0331173,
+      0.031888,
+      0.0308693,
+      0.0311207
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "f60795aedb71ae79b9b524d167da9e697cacc0de8a174af218a9b47063b2dd85",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0547627,
+      0.0338073,
+      0.0335273,
+      0.0339467,
+      0.031748
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "fc757d0e09c5d9c3e554b3e0d7ad458996118219bf155ad29ff8dfc35a4cf167",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.055096,
+      0.0347967,
+      0.030822,
+      0.0314133,
+      0.0306967
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "a247a9a08ead0e3ea73cafa1d61754a5f22fda09a51685e86f92e89e5a2cc842",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0554613,
+      0.0310833,
+      0.032896,
+      0.0334267,
+      0.0383707
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "amd-egl-1-1-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "24fd487634597639a4d4b3f22416ed9f87a0e0a4af90b636d9887e4c3b92c621",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0550107,
+      0.033358,
+      0.0307113,
+      0.0304033,
+      0.0307047
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "c77cf5f502c0e7a70ea4b97f79d35c2b1bd09e8e9d4e370000bdec06d6fc1dc8",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.124743,
+      0.118194,
+      0.115316,
+      0.115259,
+      0.115329
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "7950bec14d53ce2118d2a6e6cad502c2151add5e0f9818e05adae11f27a7fd73",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.380793,
+      0.380858,
+      0.380784,
+      0.38082,
+      0.3808
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "ec9c59d4eba666b99293daa7d4b57695496a09834d6ac05a1e72788af681c714",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.247763,
+      0.247686,
+      0.247713,
+      0.247654,
+      0.247811
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "b698dc2e99f93ac585a70d131e7bb3e80b035ef502d128fdd1672d8a7839268a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.252561,
+      0.251171,
+      0.251174,
+      0.251171,
+      0.251174
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "2f2e28d803288b208593bfde42218f7fb949072a9339222850b327c593be11c9",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.252801,
+      0.251268,
+      0.251177,
+      0.251201,
+      0.251178
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "20a3bb621bbd2d54163747cc4cbb97ba4de3c3ba2d1760717d7238bd54912e7a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.248805,
+      0.247629,
+      0.247684,
+      0.247629,
+      0.247628
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "ff36423696f2a3d6dac54ba7e63e4bd894db014e1dcff2e0b8f0ed5041262bbb",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.389361,
+      0.392195,
+      0.381906,
+      0.381843,
+      0.382907
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-0-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "66cfd8696110dc40a4cdc3ec048f53a2f81ed881b789adb17024ea9ef262a930",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.118458,
+      0.115273,
+      0.115279,
+      0.115289,
+      0.115269
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "209b4935cedfe6ba8678decfa575357ade20a751128ca531e24c3908bca380bf",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.121199,
+      0.118062,
+      0.117661,
+      0.117736,
+      0.117673
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "ae7b29511ef400fb1177fd183c6075cba4c0a9ea01de5cb166b027068d8ecc73",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.12273,
+      0.119049,
+      0.117557,
+      0.117489,
+      0.117559
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "9232d81086ca1f23b3a6779d4f46c8e11cf3e0c7deeed64154fd21844dbce8e6",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.122859,
+      0.117436,
+      0.117396,
+      0.117389,
+      0.117372
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "212b39d4407689ca748fa0b7317a0a8553e948f23506c7f7c4d1738aad6da0ba",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.123203,
+      0.119169,
+      0.117633,
+      0.117661,
+      0.117588
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "3b1173cca2c4e54d4c07507cde339347d2354827303686f367c2235f5ecfe905",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.126099,
+      0.118034,
+      0.117486,
+      0.117424,
+      0.117449
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "b8085e44f9315819c2b518ff859d5b5bf26016361d5810ad449952f624dc2e7b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.121072,
+      0.117411,
+      0.117432,
+      0.117358,
+      0.117373
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "0ffe373e4b2321f1bd274e169d2f17f4712ee5542cbdcfb52d7f60686007b2f3",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.122409,
+      0.117417,
+      0.117441,
+      0.117365,
+      0.117433
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "amd-egl-4-1-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "d372993e4b052ae576b8a291d5b98b6d32308c81edf691aaa38bedeae3b4d6da",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.121171,
+      0.117516,
+      0.117443,
+      0.117352,
+      0.11742
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "14591c0fe1e6d74c837a690457621e88b8b38a2aece6799952db25d56526488e",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.230789,
+      0.230512,
+      0.23054,
+      0.230461,
+      0.230479
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "8e59c196a19f9382b1089ce30ebddf6bb31642e51398bbec0ba3acb375245fdf",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.751615,
+      0.751595,
+      0.751605,
+      0.7516,
+      0.752031
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "bea36736fcfd7b758b2d8ab2c1435a3ee46d3dbb599a6b03f55cb24c35fc5279",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.485623,
+      0.485645,
+      0.485625,
+      0.486795,
+      0.488279
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "5199c11cd4d239bb64fead2cbbfa44bf8ba635bf10fb329cc4ddef94224456f3",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.492379,
+      0.492385,
+      0.492436,
+      0.49363,
+      0.495162
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "7f4be7eb0757c792138986dcde76a15b9c3e6c1f7ac9d3cd5d8cc150c0198e52",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.492481,
+      0.506877,
+      0.506449,
+      0.502687,
+      0.504725
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "f38e95331a2d8579850332ba71af93db9567562a626c3d6c9ca5edcc33cba19a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.485623,
+      0.485705,
+      0.485959,
+      0.488409,
+      0.491051
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "b5654bf0984728db65356e8e0399db0899900e1e9bf6893a22d1d2e417682b5c",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.751593,
+      0.751588,
+      0.760153,
+      0.760593,
+      0.756322
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-0-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "761298693ecec243f550851d46d7323a3fd4b17982eb9bcd371baa061923a5ec",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.230487,
+      0.230515,
+      0.230535,
+      0.230455,
+      0.230531
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "0adfaef900abacefa41e02480ba26dadbf65cd887b01ef7b42cc79dfa549db20",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.235295,
+      0.234647,
+      0.234664,
+      0.234592,
+      0.234655
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "630badd87684d52e448720929238ec103b279dadcd194e1d57415611a1dc94fa",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.238795,
+      0.235112,
+      0.234778,
+      0.235005,
+      0.235879
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "e945da0d28ab2f11fc2c2bfb8d1781ee0176ad7b5e8c28eb2c2a350915f5830c",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.248888,
+      0.234652,
+      0.235925,
+      0.234793,
+      0.234967
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "d448c8583cfefffcfd1ce5991bbc1db40cd56dd0c01acff0fd118b4848946ee7",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.23579,
+      0.234649,
+      0.234675,
+      0.2346,
+      0.234633
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "8946367e40e7411db084adc00e3a755036468c772071d0604e51f7b2e28a8b0e",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.235031,
+      0.234591,
+      0.234671,
+      0.23459,
+      0.23464
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "835134078a0a62983bc9d2273030acc62c4bcbc129e5f3a7d597432a0f76d974",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.234953,
+      0.234692,
+      0.234599,
+      0.234597,
+      0.234636
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "95193bf63f1a3d31057bf801f9dca14f6104f473b9d1e65cf2aa5f2d7ca6bd79",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.235061,
+      0.234591,
+      0.234609,
+      0.234612,
+      0.234663
+    ],
+    "report": null
+  },
+  {
+    "gpu": "amd",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "amd-egl-8-1-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "100aea2d98adbb331111eab3e6845b23ca6fc9751a954a66112b3b7b386f40f5",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.234609,
+      0.234597,
+      0.234587,
+      0.23461,
+      0.234635
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "a41f2c1ce353a94d530ecb4079f92365ceb15942402ce820b0a8755dbb98f310",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0115883,
+      0.0115029,
+      0.0116395,
+      0.0115712,
+      0.0115541
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "5412f0c7fdd59a97cf2df3b98b656cff9fcf5f6fd29b8bec30e2894941128049",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0380587,
+      0.0380587,
+      0.0380416,
+      0.0380245,
+      0.0380587
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "cf063fbc1007288c5e7636c1d2186591374b040730037bb7afd2456fc1464c48",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0286549,
+      0.0287403,
+      0.0287403,
+      0.0285867,
+      0.028672
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "d1cf7f01beda2c7253ab4147c07f19438deb12ed6be73f66426de547e391836e",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.017152,
+      0.0171691,
+      0.017152,
+      0.017152,
+      0.017152
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "417e11db611c52384ec0b9703a8f9aaf686b2f9e17ed55c22e26cb66237c5ad3",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.017152,
+      0.017152,
+      0.0171179,
+      0.017152,
+      0.017152
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "38e19241eb7c7ead6fc3cf7c3ddf7c3801f8f1a849928385c644453ac3de594b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.028672,
+      0.028672,
+      0.0286549,
+      0.028672,
+      0.0286549
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "c3267eaa8011ec9f5d382118a1a86822b4fdd717d2531a828c71040696a40775",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0380587,
+      0.0380587,
+      0.0380587,
+      0.0380587,
+      0.0380587
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-0",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-0-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "16f8ee777bd99397f5f65b5b3eb4c9f30005b58d31a840c3cfc7e39df37a0c1c",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0116053,
+      0.0115883,
+      0.0115883,
+      0.0115712,
+      0.0115712
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "467bc1d398339b515ba437c7540db180ed15e2dee4c73457ce37c604b8e25907",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0115712,
+      0.0115029,
+      0.0115712,
+      0.0116053,
+      0.0115883
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "a2b61c941cbfbccd9c7f306ee418668fa2eef5373dd5a1a9f7aab925166a2532",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0115712,
+      0.0115883,
+      0.0115883,
+      0.0115883,
+      0.0116053
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "ca619211641ec5507104af5ea8b4e8c62fceee24d96842bf6119805d0a302742",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0115883,
+      0.0115712,
+      0.0115883,
+      0.0115712,
+      0.0115883
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "82c954460ee18dd26292eb743e5500264ea2ed538dbdafb1058300ff1f31a118",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0115712,
+      0.0115712,
+      0.0115712,
+      0.0115371,
+      0.0114859
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "f749955956e476440da281bbd3b5cc1c140b623105e5d5f1e12f271693905181",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0115712,
+      0.0115712,
+      0.0115712,
+      0.0115712,
+      0.0115883
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "c0a70fe0b35b631c8d8be807e09c9e61a2f77e51c9f75cea7ba30809516dde48",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0115883,
+      0.0115883,
+      0.0116053,
+      0.0115883,
+      0.0115712
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "59e2ff29dfc53d20de4e59eb359428bf74083266748998c1ff51260895a81f49",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0115883,
+      0.0115883,
+      0.0115883,
+      0.0115712,
+      0.0115883
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "1-1",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "1"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-1-1-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "23dade554ded6bcc3b0d0dfc6df1d7087c67835dfe4f0e062645ebb25b72a30a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0115712,
+      0.0115883,
+      0.0115883,
+      0.0115883,
+      0.0115712
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "6f7a79a586ac5051308c940468970d65ce9bf59cbf2c41bcefae014ba6681e58",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0366421,
+      0.0365739,
+      0.0366592,
+      0.0365739,
+      0.0365739
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "92b390f63469188d0416717c59ce5acf8b59b90025a12c24670579e98b85ddca",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.151859,
+      0.151876,
+      0.151842,
+      0.151859,
+      0.151893
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "e37b2a6aee77d932156bce411386f4d811e47ab5edf4634ff33f3cfab65d4e80",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.114295,
+      0.114313,
+      0.11433,
+      0.11421,
+      0.114313
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "dad41bed887b3d6b2a1c3cd95de69fe25fe5570ed0e9a40caa4164d55a67a202",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0624299,
+      0.0625152,
+      0.0624981,
+      0.0625152,
+      0.0624981
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "d37e27deb690c9cadc1c8431a67ee808fc870dda8cda0c6eb50295c0f449640a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0624981,
+      0.0625152,
+      0.062464,
+      0.0625152,
+      0.0624981
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "60c7c71b3377fbf07d34946ebf85982fea18a65d2d91af661f8b931bfb192a3d",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.114227,
+      0.114313,
+      0.114313,
+      0.114313,
+      0.114313
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "25dab93e9b7a8da13351db49843fd06d0c6c5fe69443c8072bb07eafe6a01ba8",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.152201,
+      0.152098,
+      0.151962,
+      0.151791,
+      0.151757
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-0",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-0-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "f3bd480d80d4c17a8f978ccffcfb3e1807f1932f6dccd092bcb102a89f1d5f00",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0366251,
+      0.0366421,
+      0.0366592,
+      0.0365739,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "18a97de8f392cad63ce6b4c2beec919f3fe06b123574bd526ba6a8ba7de705ea",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0366592,
+      0.0366251,
+      0.0366592,
+      0.0366421,
+      0.0366421
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "248c91da922db60354e5d01270010148f3d149995778e48d49b0944849856e85",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0366592,
+      0.0366592,
+      0.0366592,
+      0.0365739,
+      0.0366763
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "09ddd61ecf52e7070422bc0c36636f457fb3233e5ccfaf625f1a02cc28e9af93",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0366592,
+      0.0365739,
+      0.0366592,
+      0.0366592,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "70c18734691c740edca309c362617075f91537affa103aa88bb960197e0262bc",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0365568,
+      0.0366421,
+      0.0366421,
+      0.0366592,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "a6f83545c75767339822876694e9e07a8de406eb9ed701097b1ebe66cf4aa943",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0366763,
+      0.0366592,
+      0.0366592,
+      0.0366421,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "b723dd8847b1f3a143c2994ee26eaf095f92bafecb7489b8fdcf7ca581713d92",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0366763,
+      0.0366592,
+      0.0366592,
+      0.0366421,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "101d6c6e5ac186a7739987085cc009bcc7afd2a13619bcfdb8f3eb33931f53fd",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0366592,
+      0.0366592,
+      0.0366592,
+      0.0365909,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "4-1",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "4"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-4-1-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "3822d4d617d710cb2e92798f2a9d67021356280773cb12bddd8c0fee24f9ef82",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0366592,
+      0.0366592,
+      0.0366592,
+      0.0366592,
+      0.0366592
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "811d634e8f6980f79c2d5439e6867576418c3ef99957cc8e2c0c0b52ab874ba4",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0733867,
+      0.0732672,
+      0.0733696,
+      0.0733696,
+      0.0733696
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "702341179ad936d164e61a518ece986f260bffeecd002c391b84557534a3c8eb",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.303616,
+      0.303616,
+      0.303497,
+      0.303599,
+      0.303497
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "71704466158a1f4c88cf377d0179d8db69df46fb7ccee40bfaa8a20e2540495b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.228403,
+      0.228523,
+      0.228523,
+      0.228523,
+      0.228523
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "4489f35dbf205c1c28158fb92b5f0fee2a8d2eb9c1061ebab1edb6b83f7ec287",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.122317,
+      0.122249,
+      0.1223,
+      0.122317,
+      0.1223
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "ffb86f3043cf2af36725a9683b8b75c9144f28505c170da3f91164c411c64bd9",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.1223,
+      0.1223,
+      0.1223,
+      0.122283,
+      0.1223
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "c338a346aa4b2b9a063ae2263d9475ff10e2b3d9f46247adc7d0d255145d738d",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.228403,
+      0.228523,
+      0.228506,
+      0.228506,
+      0.228506
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "db624ad63716ecc2f3d7d43a950584bab71a4c93059a1e8ecd51e9f7d9b3c577",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.303497,
+      0.303616,
+      0.303599,
+      0.303616,
+      0.303616
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-0",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "0",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-0-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "8c862717efdca5aeeacd62b7ef0ec65c520184c2f9d85b4899d0682ba0d5962c",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0625664,
+      0.0625493,
+      0.0625493,
+      0.0625493,
+      0.0625323
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "native",
+    "repeat": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-0-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "282084799dae40845f1d890251779daf632c382ba40909c23bd2c89ac2f6f08a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0629589,
+      0.0629248,
+      0.0629589,
+      0.062976,
+      0.062976
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "center",
+    "repeat": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-1-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "a5113bb4af7b16ef16d1e68bf75dc3b4fe61db080e7abcc1d469a6a77be56fc5",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.062976,
+      0.062976,
+      0.0629589,
+      0.0629589,
+      0.062976
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine",
+    "repeat": 2,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-2-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "f82a2faf834d018f45e54cb004b9842559e52f7992224c3fa29d4869af6610f8",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0634027,
+      0.0633856,
+      0.0634197,
+      0.0634027,
+      0.0633344
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine_uniform",
+    "repeat": 3,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-3-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "2944678aa1cc067fe038eb72306764bda3a99d03d011e9bae9e0930daa32ca96",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0634027,
+      0.0633344,
+      0.0633856,
+      0.0634027,
+      0.0633685
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine_uniform",
+    "repeat": 4,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "6",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-4-fine_uniform.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "637062e9b25c09e184df4bfb3c678e31a93710aab307f43b94244ff1cf168804",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    },
+    "gpu_ms": [
+      0.0634027,
+      0.0634027,
+      0.0634027,
+      0.0634027,
+      0.0634197
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "fine",
+    "repeat": 5,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "5",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-5-fine.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "167cc2e290dfda979d79f8e3bb5123c88b95603ae70bd563e2a6752e54e80eb9",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine"
+    },
+    "gpu_ms": [
+      0.0634197,
+      0.0633856,
+      0.0633003,
+      0.0634027,
+      0.0633856
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "center",
+    "repeat": 6,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "3",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-6-center.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "901e1430b548edcc1d745bc9cb854ef7269342a17e271b6e2771c89ec15829f1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "center"
+    },
+    "gpu_ms": [
+      0.0634197,
+      0.0633856,
+      0.0634027,
+      0.0634027,
+      0.0634027
+    ],
+    "report": null
+  },
+  {
+    "gpu": "nvidia",
+    "backend": "egl",
+    "workload": "8-1",
+    "mode": "native",
+    "repeat": 7,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine/gpu-benchmark-fine",
+      "0",
+      "1",
+      "8"
+    ],
+    "exit": 0,
+    "log": "nvidia-egl-8-1-7-native.log",
+    "binary_sha256": "344ebe752b222bd54487b99cd3df65e44cb7047e6d584c400dc7fa323e4d9d5f",
+    "log_sha256": "399a48dedff4cbd74b22e62b251264aee86bdc09874d39e573c399eee1ef8f4b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "gpu_ms": [
+      0.0634027,
+      0.0633173,
+      0.0633856,
+      0.0633856,
+      0.0633856
+    ],
+    "report": null
+  }
+]
