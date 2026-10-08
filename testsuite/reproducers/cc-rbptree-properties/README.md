@@ -13,3 +13,8 @@ to inspect the private node type without defining a second copy of it.
 This is a lab experiment, not a change to the public test suite. It does
 not test out-of-memory behavior or mutation from a traversal callback;
 those have separate regressions in the integration lab.
+
+The second reproducer shows the snapshot's identity limit: removing and
+reinserting an identical `(pointer, data)` pair before its snapshot turn
+still results in one callback for that pair. This records current behavior;
+it does not promise that newly inserted entries are visited.
