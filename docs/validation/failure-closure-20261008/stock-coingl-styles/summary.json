@@ -1,0 +1,74 @@
+[
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "exit": 1,
+    "log": "wgpu-vulkan.log",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderDrawStyleTest"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "MESA_SHADER_CACHE_DISABLE": "true"
+    }
+  },
+  {
+    "backend": "wgpu",
+    "api": "gl",
+    "exit": 1,
+    "log": "wgpu-gl.log",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderDrawStyleTest"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "MESA_SHADER_CACHE_DISABLE": "true"
+    }
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "exit": 1,
+    "log": "bgfx-vulkan.log",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderDrawStyleTest"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "MESA_SHADER_CACHE_DISABLE": "true"
+    }
+  },
+  {
+    "backend": "bgfx",
+    "api": "gl",
+    "exit": 1,
+    "log": "bgfx-gl.log",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderDrawStyleTest"
+    ],
+    "environment": {
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "MESA_SHADER_CACHE_DISABLE": "true"
+    }
+  }
+]

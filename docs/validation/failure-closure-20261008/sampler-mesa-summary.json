@@ -1,0 +1,37 @@
+[
+  {
+    "active": false,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/sampler-state-probe"
+    ],
+    "exit": 0,
+    "log": "sampler-mesa-False.log",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate"
+    }
+  },
+  {
+    "active": true,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/sampler-state-probe"
+    ],
+    "exit": -11,
+    "log": "sampler-mesa-True.log",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1"
+    }
+  }
+]

@@ -1,0 +1,24 @@
+The Meson build system
+Version: 1.4.2
+Source dir: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8
+Build dir: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build
+Build type: native build
+Project name: mesa
+Project version: 25.2.8
+C compiler for the host machine: /usr/bin/cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: /usr/bin/cc ld.bfd 2.42
+C++ compiler for the host machine: /usr/bin/c++ (gcc 13.3.0 "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C++ linker for the host machine: /usr/bin/c++ ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Checking for size of "void*" : 8 
+Checking if "-mtls-dialect=gnu2" runs: YES
+Checking if "split TLSDESC" : links: YES 
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Run-time dependency libglvnd found: YES 1.7.0
+Dependency vdpau skipped: feature gallium-vdpau disabled
+Program glslangValidator found: NO
+
+../coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8/meson.build:650:15: ERROR: Program 'glslangValidator' not found or not executable
+
+A full log can be found at /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build/meson-logs/meson-log.txt

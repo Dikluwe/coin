@@ -1,0 +1,30 @@
+{
+  "command": [
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build-tools/bin/meson",
+    "setup",
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build",
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8",
+    "--prefix=/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install",
+    "-Dbuildtype=release",
+    "-Dgallium-drivers=radeonsi",
+    "-Dvulkan-drivers=amd",
+    "-Dplatforms=x11",
+    "-Dglx=dri",
+    "-Degl=enabled",
+    "-Dgbm=disabled",
+    "-Dllvm=disabled",
+    "-Damd-use-llvm=false",
+    "-Dgallium-va=disabled",
+    "-Dgallium-vdpau=disabled",
+    "-Dvideo-codecs=",
+    "-Dbuild-tests=false"
+  ],
+  "environment": {
+    "CC": "/usr/bin/cc",
+    "CXX": "/usr/bin/c++",
+    "PKG_CONFIG": "/usr/bin/pkg-config",
+    "PKG_CONFIG_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig",
+    "PKG_CONFIG_SYSROOT_DIR": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies",
+    "PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/bin:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build-tools/bin:/usr/bin:/bin"
+  }
+}

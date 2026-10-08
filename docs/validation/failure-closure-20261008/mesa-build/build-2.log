@@ -1,0 +1,110 @@
+ninja: Entering directory `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build'
+[1/1432] Linking static target src/util/blake3/libblake3.a
+[2/1432] Compiling C object src/util/libmesa_util.a.p/meson-generated_.._format_srgb.c.o
+[3/1432] Compiling C object src/util/libmesa_util.a.p/cnd_monotonic.c.o
+[4/1432] Compiling C object src/util/libmesa_util.a.p/build_id.c.o
+[5/1432] Compiling C object src/util/libmesa_util.a.p/thread_sched.c.o
+[6/1432] Compiling C object src/util/libmesa_util.a.p/crc32.c.o
+[7/1432] Compiling C object src/util/libmesa_util.a.p/compress.c.o
+[8/1432] Compiling C object src/util/libmesa_util.a.p/dag.c.o
+[9/1432] Compiling C object src/util/libmesa_util.a.p/blob.c.o
+[10/1432] Compiling C object src/util/libmesa_util.a.p/futex.c.o
+[11/1432] Compiling C object src/util/libmesa_util.a.p/fast_idiv_by_const.c.o
+[12/1432] Compiling C object src/util/libmesa_util.a.p/float8.c.o
+[13/1432] Compiling C object src/util/libmesa_util.a.p/disk_cache.c.o
+[14/1432] Compiling C object src/util/libmesa_util.a.p/helpers.c.o
+[15/1432] Compiling C object src/util/libmesa_util.a.p/double.c.o
+[16/1432] Compiling C object src/util/libmesa_util.a.p/half_float.c.o
+[17/1432] Compiling C object src/util/libmesa_util.a.p/memstream.c.o
+[18/1432] Compiling C object src/util/libmesa_util.a.p/fossilize_db.c.o
+[19/1432] Compiling C object src/util/libmesa_util.a.p/mesa-sha1.c.o
+[20/1432] Compiling C object src/util/libmesa_util.a.p/disk_cache_os.c.o
+[21/1432] Compiling C object src/util/libmesa_util.a.p/mesa-blake3.c.o
+[22/1432] Compiling C object src/util/libmesa_util.a.p/os_time.c.o
+[23/1432] Compiling C object src/util/libmesa_util.a.p/log.c.o
+[24/1432] Compiling C object src/util/libmesa_util.a.p/u_idalloc.c.o
+[25/1432] Compiling C object src/util/libmesa_util.a.p/os_file.c.o
+[26/1432] Compiling C object src/util/libmesa_util.a.p/hash_table.c.o
+[27/1432] Compiling C object src/util/libmesa_util.a.p/os_file_notify.c.o
+[28/1432] Compiling C object src/util/libmesa_util.a.p/os_memory_fd.c.o
+[29/1432] Compiling C object src/util/libmesa_util.a.p/os_socket.c.o
+[30/1432] Compiling C object src/util/libmesa_util.a.p/rwlock.c.o
+[31/1432] Compiling C object src/util/libmesa_util.a.p/os_misc.c.o
+[32/1432] Compiling C object src/util/libmesa_util.a.p/rand_xor.c.o
+[33/1432] Compiling C object src/util/libmesa_util.a.p/pb_slab.c.o
+[34/1432] Compiling C object src/util/libmesa_util.a.p/u_process.c.o
+[35/1432] Compiling C object src/util/libmesa_util.a.p/sha1_sha1.c.o
+[36/1432] Compiling C++ object src/util/libmesa_util.a.p/u_qsort.cpp.o
+[37/1432] Compiling C object src/util/libmesa_util.a.p/perf_u_trace.c.o
+[38/1432] Compiling C object src/util/libmesa_util.a.p/rb_tree.c.o
+[39/1432] Compiling C object src/util/libmesa_util.a.p/simple_mtx.c.o
+[40/1432] Compiling C object src/util/libmesa_util.a.p/set.c.o
+[41/1432] Compiling C object src/util/libmesa_util.a.p/slab.c.o
+[42/1432] Compiling C object src/util/libmesa_util.a.p/rgtc.c.o
+[43/1432] Compiling C object src/util/libmesa_util.a.p/string_buffer.c.o
+[44/1432] Compiling C object src/util/libmesa_util.a.p/u_atomic.c.o
+[45/1432] Compiling C object src/util/libmesa_util.a.p/ralloc.c.o
+[46/1432] Compiling C object src/util/libmesa_util.a.p/strtod.c.o
+[47/1432] Compiling C object src/util/libmesa_util.a.p/sparse_array.c.o
+[48/1432] Compiling C object src/util/libmesa_util.a.p/register_allocate.c.o
+[49/1432] Compiling C object src/util/libmesa_util.a.p/u_dl.c.o
+[50/1432] Compiling C object src/util/libmesa_util.a.p/softfloat.c.o
+[51/1432] Compiling C object src/util/libmesa_util.a.p/u_dynarray.c.o
+[52/1432] Compiling C object src/util/libmesa_util.a.p/u_call_once.c.o
+[53/1432] Compiling C object src/util/libmesa_util.a.p/u_hash_table.c.o
+[54/1432] Compiling C object src/util/libmesa_util.a.p/u_thread.c.o
+[55/1432] Compiling C object src/util/libmesa_util.a.p/u_vector.c.o
+[56/1432] Compiling C object src/util/libmesa_util.a.p/u_mm.c.o
+[57/1432] Compiling C object src/util/libmesa_util.a.p/u_queue.c.o
+[58/1432] Compiling C++ object src/util/libmesa_util.a.p/texcompress_astc_luts_wrap.cpp.o
+[59/1432] Compiling C object src/util/libmesa_util.a.p/vl_zscan_data.c.o
+[60/1432] Compiling C object src/util/libmesa_util.a.p/u_math.c.o
+[61/1432] Compiling C object src/util/libmesa_util.a.p/u_worklist.c.o
+[62/1432] Compiling C object src/util/libmesa_util.a.p/u_debug_memory.c.o
+[63/1432] Compiling C object src/util/libmesa_util.a.p/u_debug.c.o
+[64/1432] Compiling C object src/util/libmesa_util.a.p/vma.c.o
+[65/1432] Compiling C++ object src/util/libmesa_util.a.p/texcompress_astc_luts.cpp.o
+[66/1432] Compiling C object src/util/libmesa_util.a.p/u_cpu_detect.c.o
+[67/1432] Compiling C object src/util/libmesa_util.a.p/u_printf.c.o
+[68/1432] Compiling C object src/util/libmesa_util.a.p/mesa_cache_db_multipart.c.o
+[69/1432] Compiling C object src/util/libmesa_util.a.p/mesa_cache_db.c.o
+[70/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_etc.c.o
+[71/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_latc.c.o
+[72/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format.c.o
+[73/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_unpack_neon.c.o
+[74/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_rgtc.c.o
+[75/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_fxt1.c.o
+[76/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_tests.c.o
+[77/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_other.c.o
+[78/1432] Linking static target src/util/libxmlconfig.a
+[79/1432] Generating src/git_sha1.h with a custom command
+[80/1432] Compiling C object src/util/libmesa_util.a.p/u_sync_provider.c.o
+[81/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_bptc.c.o
+[82/1432] Compiling C object src/util/libmesa_util.a.p/u_debug_stack.c.o
+[83/1432] Compiling C object src/util/libmesa_util.a.p/u_debug_symbol.c.o
+[84/1432] Compiling C object src/x11/libloader_x11.a.p/x11_dri3.c.o
+FAILED: src/x11/libloader_x11.a.p/x11_dri3.c.o 
+/usr/bin/cc -Isrc/x11/libloader_x11.a.p -Isrc/x11 -I../mesa-25.2.8/src/x11 -Iinclude -I../mesa-25.2.8/include -Isrc -I../mesa-25.2.8/src -I../mesa-25.2.8/src/gallium/include -Isrc/util/format -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/libdrm -fvisibility=hidden -fdiagnostics-color=always -DNDEBUG -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c11 -O3 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS '-DPACKAGE_VERSION="25.2.8"' '-DPACKAGE_BUGREPORT="https://gitlab.freedesktop.org/mesa/mesa/-/issues"' -DHAVE_OPENGL=1 -DHAVE_OPENGL_ES_1=1 -DHAVE_OPENGL_ES_2=1 -DHAVE_RADEONSI -DVIDEO_CODEC_VC1DEC=0 -DVIDEO_CODEC_H264DEC=0 -DVIDEO_CODEC_H264ENC=0 -DVIDEO_CODEC_H265DEC=0 -DVIDEO_CODEC_H265ENC=0 -DVIDEO_CODEC_AV1DEC=0 -DVIDEO_CODEC_AV1ENC=0 -DVIDEO_CODEC_VP9DEC=0 -DHAVE_X11_PLATFORM -DHAVE_SURFACELESS_PLATFORM -DHAVE_XCB_PLATFORM -DUSE_LIBGLVND=1 -DGLX_INDIRECT_RENDERING -DGLX_DIRECT_RENDERING -DGLX_USE_DRM -DGLAPI_EXPORT_PROTO_ENTRY_POINTS=0 -DALLOW_KCMP -DMESA_DEBUG=0 -DENABLE_SHADER_CACHE -DHAVE___BUILTIN_BSWAP32 -DHAVE___BUILTIN_BSWAP64 -DHAVE___BUILTIN_CLZ -DHAVE___BUILTIN_CLZLL -DHAVE___BUILTIN_CTZ -DHAVE___BUILTIN_EXPECT -DHAVE___BUILTIN_FFS -DHAVE___BUILTIN_FFSLL -DHAVE___BUILTIN_POPCOUNT -DHAVE___BUILTIN_POPCOUNTLL -DHAVE___BUILTIN_UNREACHABLE -DHAVE___BUILTIN_TYPES_COMPATIBLE_P -DHAVE_FUNC_ATTRIBUTE_CONST -DHAVE_FUNC_ATTRIBUTE_FLATTEN -DHAVE_FUNC_ATTRIBUTE_MALLOC -DHAVE_FUNC_ATTRIBUTE_PURE -DHAVE_FUNC_ATTRIBUTE_UNUSED -DHAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT -DHAVE_FUNC_ATTRIBUTE_WEAK -DHAVE_FUNC_ATTRIBUTE_FORMAT -DHAVE_FUNC_ATTRIBUTE_PACKED -DHAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL -DHAVE_FUNC_ATTRIBUTE_ALIAS -DHAVE_FUNC_ATTRIBUTE_NORETURN -DHAVE_FUNC_ATTRIBUTE_OPTIMIZE -DHAVE_FUNC_ATTRIBUTE_VISIBILITY -DHAVE_UINT128 -DHAVE_REALLOCARRAY -DHAVE_FMEMOPEN -D_GNU_SOURCE -DUSE_SSE41 -DHAVE___BUILTIN_IA32_CLFLUSHOPT -DUSE_GCC_ATOMIC_BUILTINS -DUSE_X86_64_ASM -DMAJOR_IN_SYSMACROS -DHAS_SCHED_H -DHAS_SCHED_GETAFFINITY -DHAVE_LINUX_FUTEX_H -DHAVE_ENDIAN_H -DHAVE_DLFCN_H -DHAVE_SYS_SHM_H -DHAVE_CET_H -DHAVE_SYS_INOTIFY_H -DHAVE_LINUX_UDMABUF_H -DHAVE_STRTOF -DHAVE_MKOSTEMP -DHAVE_MEMFD_CREATE -DHAVE_RANDOM_R -DHAVE_FLOCK -DHAVE_STRTOK_R -DHAVE_GETRANDOM -DHAVE_POSIX_FALLOCATE -DHAVE_SECURE_GETENV -DHAVE_GNU_QSORT_R -DHAVE_STRUCT_TIMESPEC -DHAVE_PROGRAM_INVOCATION_NAME -DHAVE_ISSIGNALING -DHAVE_POSIX_MEMALIGN -DHAVE_DIRENT_D_TYPE -DHAVE_STRTOD_L -DHAVE_DLADDR -DHAVE_DL_ITERATE_PHDR -DHAVE_ZLIB -DHAVE_ZSTD -DHAVE_COMPRESSION -DHAVE_PTHREAD -DHAVE_PTHREAD_SETAFFINITY -DHAVE_LIBDRM -DHAVE_LIBUDEV -DLLVM_AVAILABLE=0 -DDRAW_LLVM_AVAILABLE=0 -DAMD_LLVM_AVAILABLE=0 -DGALLIVM_USE_ORCJIT=0 -DHAVE_SPIRV_TOOLS -DUSE_LIBELF -DTHREAD_SANITIZER=0 -DHAVE_OPENMP -DXCB_KEYSYMS_AVAILABLE -DHAVE_X11_DRM -DHAVE_DRI -DHAVE_DRI2 -DHAVE_DRISW_KMS -mtls-dialect=gnu2 -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=return-type -Werror=empty-body -Werror=incompatible-pointer-types -Werror=int-conversion -Wimplicit-fallthrough -Wmisleading-indentation -Wno-missing-field-initializers -Wno-format-truncation -Wno-nonnull-compare -fno-math-errno -fno-trapping-math -fno-common -Wno-unknown-pragmas -Wno-unused-function -Werror=format -Wformat-security -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-unused-but-set-variable -fPIC -pthread -MD -MQ src/x11/libloader_x11.a.p/x11_dri3.c.o -MF src/x11/libloader_x11.a.p/x11_dri3.c.o.d -o src/x11/libloader_x11.a.p/x11_dri3.c.o -c ../mesa-25.2.8/src/x11/x11_dri3.c
+In file included from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/xcb/present.h:17,
+                 from ../mesa-25.2.8/src/x11/x11_dri3.c:32:
+/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/xcb/randr.h:17:10: fatal error: render.h: No such file or directory
+   17 | #include "render.h"
+      |          ^~~~~~~~~~
+compilation terminated.
+[85/1432] Compiling C object src/loader/libloader.a.p/loader_dri_helper.c.o
+FAILED: src/loader/libloader.a.p/loader_dri_helper.c.o 
+/usr/bin/cc -Isrc/loader/libloader.a.p -Isrc/loader -I../mesa-25.2.8/src/loader -Iinclude -I../mesa-25.2.8/include -Isrc -I../mesa-25.2.8/src -I../mesa-25.2.8/src/gallium/include -Isrc/util/format -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/libdrm -fvisibility=hidden -fdiagnostics-color=always -DNDEBUG -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c11 -O3 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS '-DPACKAGE_VERSION="25.2.8"' '-DPACKAGE_BUGREPORT="https://gitlab.freedesktop.org/mesa/mesa/-/issues"' -DHAVE_OPENGL=1 -DHAVE_OPENGL_ES_1=1 -DHAVE_OPENGL_ES_2=1 -DHAVE_RADEONSI -DVIDEO_CODEC_VC1DEC=0 -DVIDEO_CODEC_H264DEC=0 -DVIDEO_CODEC_H264ENC=0 -DVIDEO_CODEC_H265DEC=0 -DVIDEO_CODEC_H265ENC=0 -DVIDEO_CODEC_AV1DEC=0 -DVIDEO_CODEC_AV1ENC=0 -DVIDEO_CODEC_VP9DEC=0 -DHAVE_X11_PLATFORM -DHAVE_SURFACELESS_PLATFORM -DHAVE_XCB_PLATFORM -DUSE_LIBGLVND=1 -DGLX_INDIRECT_RENDERING -DGLX_DIRECT_RENDERING -DGLX_USE_DRM -DGLAPI_EXPORT_PROTO_ENTRY_POINTS=0 -DALLOW_KCMP -DMESA_DEBUG=0 -DENABLE_SHADER_CACHE -DHAVE___BUILTIN_BSWAP32 -DHAVE___BUILTIN_BSWAP64 -DHAVE___BUILTIN_CLZ -DHAVE___BUILTIN_CLZLL -DHAVE___BUILTIN_CTZ -DHAVE___BUILTIN_EXPECT -DHAVE___BUILTIN_FFS -DHAVE___BUILTIN_FFSLL -DHAVE___BUILTIN_POPCOUNT -DHAVE___BUILTIN_POPCOUNTLL -DHAVE___BUILTIN_UNREACHABLE -DHAVE___BUILTIN_TYPES_COMPATIBLE_P -DHAVE_FUNC_ATTRIBUTE_CONST -DHAVE_FUNC_ATTRIBUTE_FLATTEN -DHAVE_FUNC_ATTRIBUTE_MALLOC -DHAVE_FUNC_ATTRIBUTE_PURE -DHAVE_FUNC_ATTRIBUTE_UNUSED -DHAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT -DHAVE_FUNC_ATTRIBUTE_WEAK -DHAVE_FUNC_ATTRIBUTE_FORMAT -DHAVE_FUNC_ATTRIBUTE_PACKED -DHAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL -DHAVE_FUNC_ATTRIBUTE_ALIAS -DHAVE_FUNC_ATTRIBUTE_NORETURN -DHAVE_FUNC_ATTRIBUTE_OPTIMIZE -DHAVE_FUNC_ATTRIBUTE_VISIBILITY -DHAVE_UINT128 -DHAVE_REALLOCARRAY -DHAVE_FMEMOPEN -D_GNU_SOURCE -DUSE_SSE41 -DHAVE___BUILTIN_IA32_CLFLUSHOPT -DUSE_GCC_ATOMIC_BUILTINS -DUSE_X86_64_ASM -DMAJOR_IN_SYSMACROS -DHAS_SCHED_H -DHAS_SCHED_GETAFFINITY -DHAVE_LINUX_FUTEX_H -DHAVE_ENDIAN_H -DHAVE_DLFCN_H -DHAVE_SYS_SHM_H -DHAVE_CET_H -DHAVE_SYS_INOTIFY_H -DHAVE_LINUX_UDMABUF_H -DHAVE_STRTOF -DHAVE_MKOSTEMP -DHAVE_MEMFD_CREATE -DHAVE_RANDOM_R -DHAVE_FLOCK -DHAVE_STRTOK_R -DHAVE_GETRANDOM -DHAVE_POSIX_FALLOCATE -DHAVE_SECURE_GETENV -DHAVE_GNU_QSORT_R -DHAVE_STRUCT_TIMESPEC -DHAVE_PROGRAM_INVOCATION_NAME -DHAVE_ISSIGNALING -DHAVE_POSIX_MEMALIGN -DHAVE_DIRENT_D_TYPE -DHAVE_STRTOD_L -DHAVE_DLADDR -DHAVE_DL_ITERATE_PHDR -DHAVE_ZLIB -DHAVE_ZSTD -DHAVE_COMPRESSION -DHAVE_PTHREAD -DHAVE_PTHREAD_SETAFFINITY -DHAVE_LIBDRM -DHAVE_LIBUDEV -DLLVM_AVAILABLE=0 -DDRAW_LLVM_AVAILABLE=0 -DAMD_LLVM_AVAILABLE=0 -DGALLIVM_USE_ORCJIT=0 -DHAVE_SPIRV_TOOLS -DUSE_LIBELF -DTHREAD_SANITIZER=0 -DHAVE_OPENMP -DXCB_KEYSYMS_AVAILABLE -DHAVE_X11_DRM -DHAVE_DRI -DHAVE_DRI2 -DHAVE_DRISW_KMS -mtls-dialect=gnu2 -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=return-type -Werror=empty-body -Werror=incompatible-pointer-types -Werror=int-conversion -Wimplicit-fallthrough -Wmisleading-indentation -Wno-missing-field-initializers -Wno-format-truncation -Wno-nonnull-compare -fno-math-errno -fno-trapping-math -fno-common -Wno-unknown-pragmas -Wno-unused-function -Werror=format -Wformat-security -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-unused-but-set-variable -fPIC -pthread -DUSE_DRICONF -MD -MQ src/loader/libloader.a.p/loader_dri_helper.c.o -MF src/loader/libloader.a.p/loader_dri_helper.c.o.d -o src/loader/libloader.a.p/loader_dri_helper.c.o -c ../mesa-25.2.8/src/loader/loader_dri_helper.c
+In file included from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/xcb/present.h:17,
+                 from ../mesa-25.2.8/src/loader/loader_dri_helper.h:35,
+                 from ../mesa-25.2.8/src/loader/loader_dri_helper.c:30:
+/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/xcb/randr.h:17:10: fatal error: render.h: No such file or directory
+   17 | #include "render.h"
+      |          ^~~~~~~~~~
+compilation terminated.
+[86/1432] Generating src/mapi/glapi/gen/enums.c with a custom command (wrapped by meson to capture output)
+[87/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_zs.c.o
+[88/1432] Generating src/mapi/glapi/gen/api_exec_init.c with a custom command (wrapped by meson to capture output)
+[89/1432] Compiling C object src/loader/libloader.a.p/loader.c.o
+[90/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_s3tc.c.o
+[91/1432] Compiling C object src/util/libmesa_util.a.p/format_u_format_yuv.c.o
+ninja: build stopped: subcommand failed.

@@ -1,0 +1,30 @@
+Collecting meson==1.4.2
+  Downloading meson-1.4.2.tar.gz (2.2 MB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 2.2/2.2 MB 2.6 MB/s eta 0:00:00
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting Mako
+  Downloading mako-1.4.3-py3-none-any.whl.metadata (2.9 kB)
+Collecting packaging
+  Using cached packaging-26.3-py3-none-any.whl.metadata (3.5 kB)
+Collecting PyYAML
+  Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.4 kB)
+Collecting MarkupSafe>=2.0 (from Mako)
+  Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl.metadata (2.7 kB)
+Downloading mako-1.4.3-py3-none-any.whl (80 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 80.2/80.2 kB 7.0 MB/s eta 0:00:00
+Using cached packaging-26.3-py3-none-any.whl (129 kB)
+Using cached pyyaml-6.0.3-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (807 kB)
+Downloading markupsafe-3.0.4-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl (22 kB)
+Building wheels for collected packages: meson
+  Building wheel for meson (pyproject.toml): started
+  Building wheel for meson (pyproject.toml): finished with status 'done'
+  Created wheel for meson: filename=meson-1.4.2-py3-none-any.whl size=937944 sha256=42577589fb29202fbebab27d1455750609cc400dcfbfca30cbd0db2fe2386623
+  Stored in directory: /home/dikluwe/.cache/pip/wheels/b3/0a/e1/ae4f39e1d4c0e8e0e66c66188a40c9d0f1ea81bbaf72b7c7c5
+Successfully built meson
+Installing collected packages: PyYAML, packaging, meson, MarkupSafe, Mako
+Successfully installed Mako-1.4.3 MarkupSafe-3.0.4 PyYAML-6.0.3 meson-1.4.2 packaging-26.3

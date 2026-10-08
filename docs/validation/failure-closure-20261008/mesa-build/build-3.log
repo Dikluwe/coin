@@ -1,0 +1,705 @@
+ninja: Entering directory `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build'
+[1/1347] Generating src/git_sha1.h with a custom command
+[2/1346] Compiling C object src/x11/libloader_x11.a.p/x11_dri3.c.o
+[3/1346] Linking static target src/x11/libloader_x11.a
+[4/1346] Linking static target src/util/libmesa_util.a
+[5/1346] Compiling C object src/loader/libloader.a.p/loader_dri_helper.c.o
+[6/1346] Linking static target src/loader/libloader.a
+[7/1346] Generating src/mapi/glapi/gen/api_hw_select_init.h with a custom command (wrapped by meson to capture output)
+[8/1346] Generating src/mapi/glapi/gen/api_save.h with a custom command (wrapped by meson to capture output)
+[9/1346] Generating src/mapi/glapi/gen/api_save_init.h with a custom command (wrapped by meson to capture output)
+[10/1346] Generating src/mapi/glapi/gen/api_exec_decl.h with a custom command (wrapped by meson to capture output)
+[11/1346] Generating src/mapi/glapi/gen/api_beginend_init.h with a custom command (wrapped by meson to capture output)
+[12/1346] Generating src/mapi/glapi/gen/dispatch.h with a custom command (wrapped by meson to capture output)
+[13/1346] Generating src/mapi/glapi/gen/marshal_generated.h with a custom command (wrapped by meson to capture output)
+[14/1346] Generating src/mapi/glapi/gen/marshal_generated1.c with a custom command (wrapped by meson to capture output)
+[15/1346] Generating src/mapi/glapi/gen/marshal_generated0.c with a custom command (wrapped by meson to capture output)
+[16/1346] Generating src/mapi/glapi/gen/marshal_generated2.c with a custom command (wrapped by meson to capture output)
+[17/1346] Generating src/mapi/glapi/gen/unmarshal_table.c with a custom command (wrapped by meson to capture output)
+[18/1346] Generating src/mapi/glapi/gen/marshal_generated4.c with a custom command (wrapped by meson to capture output)
+[19/1346] Generating src/mapi/glapi/gen/marshal_generated3.c with a custom command (wrapped by meson to capture output)
+[20/1346] Generating src/mapi/glapi/gen/marshal_generated5.c with a custom command (wrapped by meson to capture output)
+[21/1346] Generating src/mapi/glapi/gen/marshal_generated6.c with a custom command (wrapped by meson to capture output)
+[22/1346] Generating src/compiler/builtin_types.c with a custom command
+[23/1346] Generating src/mapi/glapi/gen/indirect.c with a custom command (wrapped by meson to capture output)
+[24/1346] Generating src/mapi/glapi/gen/indirect.h with a custom command (wrapped by meson to capture output)
+[25/1346] Generating src/mapi/glapi/gen/marshal_generated7.c with a custom command (wrapped by meson to capture output)
+[26/1346] Generating src/mapi/glapi/gen/indirect_size.c with a custom command (wrapped by meson to capture output)
+[27/1346] Generating src/mapi/glapi/gen/indirect_size.h with a custom command (wrapped by meson to capture output)
+[28/1346] Generating src/mapi/glapi/gen/indirect_init.c with a custom command (wrapped by meson to capture output)
+[29/1346] Compiling C object src/compiler/libcompiler.a.p/shader_enums.c.o
+[30/1346] Compiling C object src/compiler/libcompiler.a.p/meson-generated_.._builtin_types.c.o
+[31/1346] Generating src/compiler/nir/nir_intrinsic.c with a custom command
+[32/1346] Generating src/mapi/shared-glapi/shared_glapi_mapi_tmp.h with a custom command (wrapped by meson to capture output)
+[33/1346] Generating src/compiler/nir/nir_constant_expressions.c with a custom command (wrapped by meson to capture output)
+[34/1346] Generating src/compiler/nir/nir_opcodes.c with a custom command (wrapped by meson to capture output)
+[35/1346] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_intrinsics.c.o
+[36/1346] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_opcodes.c.o
+[37/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_builder.c.o
+[38/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_builtin_builder.c.o
+[39/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_clone.c.o
+[40/1346] Compiling C object src/compiler/nir/libnir.a.p/nir.c.o
+[41/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_control_flow.c.o
+[42/1346] Compiling C object src/compiler/libcompiler.a.p/glsl_types.c.o
+[43/1346] Linking static target src/compiler/libcompiler.a
+[44/1346] Compiling C object src/mapi/shared-glapi/libglapi.a.p/core.c.o
+[45/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_fixup_is_exported.c.o
+[46/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_dominance.c.o
+[47/1346] Linking static target src/mapi/shared-glapi/libglapi.a
+[48/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_divergence_analysis.c.o
+[49/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_deref.c.o
+[50/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_functions.c.o
+[51/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_info.c.o
+[52/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_from_ssa.c.o
+[53/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_format_convert.c.o
+[54/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_tcs_info.c.o
+[55/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_types.c.o
+[56/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_output_deps.c.o
+[57/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_gather_xfb_info.c.o
+[58/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_group_loads.c.o
+[59/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_gs_count_vertices.c.o
+[60/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_io_add_xfb_info.c.o
+[61/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_inline_uniforms.c.o
+[62/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_io_add_const_offset_to_base.c.o
+[63/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_instr_set.c.o
+[64/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_legacy.c.o
+[65/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_liveness.c.o
+[66/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alu.c.o
+[67/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_linking_helpers.c.o
+[68/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alpha.c.o
+[69/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alu_width.c.o
+[70/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_alpha_test.c.o
+[71/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_loop_analyze.c.o
+[72/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_amul.c.o
+[73/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_atomics_to_ssbo.c.o
+[74/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bitmap.c.o
+[75/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bool_to_float.c.o
+[76/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bool_to_bitsize.c.o
+[77/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_blend.c.o
+[78/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bool_to_int32.c.o
+[79/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_array_deref_of_vec.c.o
+[80/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_calls_to_builtins.c.o
+[81/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clamp_color_outputs.c.o
+[82/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_cl_images.c.o
+[83/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip_halfz.c.o
+[84/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip_disable.c.o
+[85/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_const_arrays_to_uniforms.c.o
+[86/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip.c.o
+[87/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_continue_constructs.c.o
+[88/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_clip_cull_distance_array_vars.c.o
+[89/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_discard_if.c.o
+[90/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_convert_alu_types.c.o
+[91/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_drawpixels.c.o
+[92/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_variable_initializers.c.o
+[93/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_double_ops.c.o
+[94/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fb_read.c.o
+[95/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_flatshade.c.o
+[96/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_flrp.c.o
+[97/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fragcoord_wtrans.c.o
+[98/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_explicit_io.c.o
+[99/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fp16_conv.c.o
+[100/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_frag_coord_to_pixel_coord.c.o
+[101/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_fragcolor.c.o
+[102/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_frexp.c.o
+[103/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_global_vars_to_local.c.o
+[104/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_halt_to_return.c.o
+[105/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_helper_writes.c.o
+[106/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_load_const_to_scalar.c.o
+[107/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_goto_ifs.c.o
+[108/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_locals_to_regs.c.o
+[109/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_gs_intrinsics.c.o
+[110/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_idiv.c.o
+[111/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_image.c.o
+[112/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_image_atomics_to_global.c.o
+[113/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_indirect_derefs.c.o
+[114/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_input_attachments.c.o
+[115/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_interpolation.c.o
+[116/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_int_to_float.c.o
+[117/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_int64.c.o
+[118/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_array_vars_to_elements.c.o
+[119/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_vars_to_temporaries.c.o
+[120/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_indirect_loads.c.o
+[121/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_vars_to_scalar.c.o
+[122/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io.c.o
+[123/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_io_to_scalar.c.o
+[124/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_is_helper_invocation.c.o
+[125/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_multiview.c.o
+[126/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_memory_model.c.o
+[127/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_memcpy.c.o
+[128/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_mediump.c.o
+[129/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_non_uniform_access.c.o
+[130/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_passthrough_edgeflags.c.o
+[131/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_packing.c.o
+[132/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_patch_vertices.c.o
+[133/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_pntc_ytransform.c.o
+[134/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_phis_to_scalar.c.o
+[135/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_mem_access_bit_sizes.c.o
+[136/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_point_size.c.o
+[137/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_point_size_mov.c.o
+[138/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_point_smooth.c.o
+[139/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_poly_line_smooth.c.o
+[140/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_reg_intrinsics_to_ssa.c.o
+[141/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_printf.c.o
+[142/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_returns.c.o
+[143/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_readonly_images_to_tex.c.o
+[144/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_robust_access.c.o
+[145/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_samplers.c.o
+[146/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_scratch.c.o
+[147/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_scratch_to_var.c.o
+[148/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_single_sampled.c.o
+[149/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_ssbo.c.o
+[150/1346] Generating src/compiler/nir/nir_opt_algebraic.c with a custom command
+[151/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_system_values.c.o
+[152/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_terminate_to_demote.c.o
+[153/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_tess_coord_z.c.o
+[154/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_task_shader.c.o
+[155/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_tex_shadow.c.o
+[156/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_subgroups.c.o
+[157/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_texcoord_replace.c.o
+[158/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_texcoord_replace_late.c.o
+[159/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_shader_calls.c.o
+[160/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_two_sided_color.c.o
+[161/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_undef_to_zero.c.o
+[162/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_var_copies.c.o
+[163/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_view_index_to_device_index.c.o
+[164/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_tex.c.o
+[165/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_vec3_to_vec4.c.o
+[166/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_vec_to_regs.c.o
+[167/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_vars_to_ssa.c.o
+[168/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_viewport_transform.c.o
+[169/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_wpos_center.c.o
+[170/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_wrmasks.c.o
+[171/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_wpos_ytransform.c.o
+[172/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_bit_size.c.o
+[173/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_sysvals_to_varyings.c.o
+[174/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_ubo_vec4.c.o
+[175/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_metadata.c.o
+[176/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_uniforms_to_ubo.c.o
+[177/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_mod_analysis.c.o
+[178/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_move_output_stores_to_end.c.o
+[179/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_move_vec_src_uses_to_dest.c.o
+[180/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_access.c.o
+[181/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_normalize_cubemap_coords.c.o
+[182/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_barriers.c.o
+[183/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_call.c.o
+[184/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_clip_cull_const.c.o
+[185/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_combine_stores.c.o
+[186/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_comparison_pre.c.o
+[187/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_cse.c.o
+[188/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_constant_folding.c.o
+[189/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_copy_propagate.c.o
+[190/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_dce.c.o
+[191/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_dead_cf.c.o
+[192/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_copy_prop_vars.c.o
+[193/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_dead_write_vars.c.o
+[194/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_frag_coord_to_pixel_coord.c.o
+[195/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_find_array_copies.c.o
+[196/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_fragdepth.c.o
+[197/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_generate_bfi.c.o
+[198/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_gcm.c.o
+[199/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_idiv_const.c.o
+[200/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_licm.c.o
+[201/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_large_constants.c.o
+[202/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_if.c.o
+[203/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_intrinsics.c.o
+[204/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_move.c.o
+[205/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_loop.c.o
+[206/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_move_discards_to_top.c.o
+[207/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_memcpy.c.o
+[208/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_loop_unroll.c.o
+[209/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_mqsad.c.o
+[210/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_non_uniform_access.c.o
+[211/1346] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_opt_algebraic.c.o
+[212/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_offsets.c.o
+[213/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_peephole_select.c.o
+[214/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_load_store_vectorize.c.o
+[215/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_move_to_top.c.o
+[216/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_phi_precision.c.o
+[217/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_phi_to_bool.c.o
+[218/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_ray_queries.c.o
+[219/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_reassociate_bfi.c.o
+[220/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_rematerialize_compares.c.o
+[221/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_remove_phis.c.o
+[222/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_preamble.c.o
+[223/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_shrink_stores.c.o
+[224/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_sink.c.o
+[225/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_tex_skip_helpers.c.o
+[226/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_uniform_subgroup.c.o
+[227/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_uniform_atomics.c.o
+[228/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_undef.c.o
+[229/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_shrink_vectors.c.o
+[230/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_passthrough_tcs.c.o
+[231/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_phi_builder.c.o
+[232/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_vectorize_io.c.o
+[233/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_passthrough_gs.c.o
+[234/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_vectorize_io_vars.c.o
+[235/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_vectorize.c.o
+[236/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_propagate_invariant.c.o
+[237/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_recompute_io_bases.c.o
+[238/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_remove_dead_variables.c.o
+[239/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_remove_tex_shadow.c.o
+[240/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_repair_ssa.c.o
+[241/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_scale_fdiv.c.o
+[242/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_range_analysis.c.o
+[243/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_print.c.o
+[244/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_search.c.o
+[245/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_split_conversions.c.o
+[246/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_split_64bit_vec3_and_vec4.c.o
+[247/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_schedule.c.o
+[248/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_serialize.c.o
+[249/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_split_per_member_structs.c.o
+[250/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_opt_varyings.c.o
+[251/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_split_var_copies.c.o
+[252/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_sweep.c.o
+[253/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_to_lcssa.c.o
+[254/1346] Generating src/compiler/spirv/vtn_gather_types.c with a custom command
+[255/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_validate.c.o
+[256/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_worklist.c.o
+[257/1346] Generating src/compiler/glsl/glcpp/glcpp-lex.c with a custom command
+[258/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_use_dominance.c.o
+[259/1346] Generating src/compiler/glsl/glsl_lexer_cpp with a custom command
+[260/1346] Generating src/compiler/glsl/glcpp/glcpp-parse.[ch] with a custom command
+[261/1346] Generating src/compiler/spirv/vtn_generator_ids.h with a custom command
+[262/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_trivialize_registers.c.o
+[263/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_lower_atomics.c.o
+[264/1346] Compiling C object src/compiler/nir/libnir.a.p/nir_split_vars.c.o
+[265/1346] Generating src/compiler/glsl/glsl_parser with a custom command
+[266/1346] Generating src/compiler/glsl/ir_expression_operation_constant.h with a custom command (wrapped by meson to capture output)
+[267/1346] Compiling C object src/compiler/spirv/libvtn.a.p/meson-generated_.._spirv_info.c.o
+[268/1346] Compiling C object src/compiler/spirv/libvtn.a.p/gl_spirv.c.o
+[269/1346] Compiling C object src/compiler/spirv/libvtn.a.p/meson-generated_.._vtn_gather_types.c.o
+[270/1346] Compiling C object src/compiler/glsl/glcpp/libglcpp.a.p/meson-generated_.._glcpp-lex.c.o
+[271/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_amd.c.o
+[272/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_cfg.c.o
+[273/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_alu.c.o
+[274/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_debug.c.o
+[275/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_cmat.c.o
+[276/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_glsl450.c.o
+[277/1346] Compiling C object src/compiler/nir/libnir.a.p/meson-generated_.._nir_constant_expressions.c.o
+[278/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_subgroup.c.o
+[279/1346] Generating src/compiler/glsl/ir_expression_operation_strings.h with a custom command (wrapped by meson to capture output)
+[280/1346] Compiling C object src/compiler/glsl/glcpp/libglcpp.a.p/pp.c.o
+[281/1346] Generating src/compiler/glsl/cross_platform_settings_piece_all.h with a custom command
+[282/1346] Generating src/compiler/glsl/float64_glsl.h with a custom command
+[283/1346] Generating src/compiler/glsl/bc1_glsl.h with a custom command
+[284/1346] Generating src/compiler/glsl/bc4_glsl.h with a custom command
+[285/1346] Linking static target src/compiler/nir/libnir.a
+[286/1346] Generating src/compiler/glsl/etc2_rgba_stitch_glsl.h with a custom command
+[287/1346] Generating src/vulkan/vulkan_api.def with a custom command
+[288/1346] Generating src/compiler/glsl/astc_glsl.h with a custom command
+[289/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_opencl.c.o
+[290/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_structured_cfg.c.o
+[291/1346] Compiling C object src/compiler/glsl/glcpp/libglcpp.a.p/meson-generated_.._glcpp-parse.c.o
+[292/1346] Linking static target src/compiler/glsl/glcpp/libglcpp.a
+[293/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ast_expr.cpp.o
+[294/1346] Compiling C object src/compiler/spirv/libvtn.a.p/vtn_variables.c.o
+[295/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ast_array_index.cpp.o
+[296/1346] Compiling C object src/compiler/spirv/libvtn.a.p/spirv_to_nir.c.o
+[297/1346] Linking static target src/compiler/spirv/libvtn.a
+[298/1346] Compiling C object src/vulkan/util/libvulkan_util.a.p/meson-generated_.._vk_dispatch_table.c.o
+[299/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ast_type.cpp.o
+[300/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/builtin_types.cpp.o
+[301/1346] Compiling C object src/vulkan/util/libvulkan_util.a.p/meson-generated_.._vk_enum_to_str.c.o
+[302/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ast_function.cpp.o
+[303/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_detect_function_recursion.c.o
+[304/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/meson-generated_.._glsl_parser.cpp.o
+[305/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_atomics.c.o
+[306/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/builtin_variables.cpp.o
+[307/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_images.c.o
+[308/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ast_to_hir.cpp.o
+[309/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_buffers.c.o
+[310/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_discard_flow.c.o
+[311/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_named_interface_blocks.c.o
+[312/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_samplers.c.o
+[313/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_blend_equation_advanced.c.o
+[314/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_packed_varyings.c.o
+[315/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_atomics.c.o
+[316/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_samplers_as_deref.c.o
+[317/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_lower_xfb_varying.c.o
+[318/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_functions.c.o
+[319/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_interface_blocks.c.o
+[320/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_uniform_blocks.c.o
+[321/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_uniform_initializers.c.o
+[322/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/meson-generated_.._glsl_lexer.cpp.o
+[323/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_xfb.c.o
+[324/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_uniforms.c.o
+[325/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/glsl_symbol_table.cpp.o
+[326/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/hir_field_selection.cpp.o
+[327/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_link_varyings.c.o
+[328/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_basic_block.cpp.o
+[329/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_builder.cpp.o
+[330/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_clone.cpp.o
+[331/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/glsl_parser_extras.cpp.o
+[332/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_expression_flattening.cpp.o
+[333/1346] Compiling C object src/compiler/glsl/libglsl.a.p/gl_nir_linker.c.o
+[334/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_function_detect_recursion.cpp.o
+[335/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir.cpp.o
+[336/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_hierarchical_visitor.cpp.o
+[337/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/glsl_to_nir.cpp.o
+[338/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_hv_accept.cpp.o
+[339/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_function.cpp.o
+[340/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_rvalue_visitor.cpp.o
+[341/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/builtin_functions.cpp.o
+[342/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_variable_refcount.cpp.o
+[343/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_builtins.cpp.o
+[344/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_print_visitor.cpp.o
+[345/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_validate.cpp.o
+[346/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/linker_util.cpp.o
+[347/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_jumps.cpp.o
+[348/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_mat_op_to_vec.cpp.o
+[349/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_instructions.cpp.o
+[350/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_packing_builtins.cpp.o
+[351/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_subroutine.cpp.o
+[352/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_vec_index_to_cond_assign.cpp.o
+[353/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_algebraic.cpp.o
+[354/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_vector_derefs.cpp.o
+[355/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/lower_precision.cpp.o
+[356/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_flatten_nested_if_blocks.cpp.o
+[357/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_dead_code.cpp.o
+[358/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_function_inlining.cpp.o
+[359/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_dead_builtin_variables.cpp.o
+[360/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/string_to_uint_map.cpp.o
+[361/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_if_simplification.cpp.o
+[362/1346] Compiling C object src/vulkan/util/libvulkan_util.a.p/meson-generated_.._vk_extensions.c.o
+[363/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/propagate_invariance.cpp.o
+[364/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_tree_grafting.cpp.o
+[365/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_rebalance_tree.cpp.o
+[366/1346] Compiling C object src/vulkan/util/libvulkan_util.a.p/vk_alloc.c.o
+[367/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/opt_minmax.cpp.o
+[368/1346] Compiling C object src/vulkan/util/libvulkan_util.a.p/vk_format.c.o
+[369/1346] Compiling C object src/vulkan/util/libvulkan_util.a.p/vk_util.c.o
+[370/1346] Linking static target src/vulkan/util/libvulkan_util.a
+[371/1346] Generating src/vulkan/runtime/vk_physical_device_spirv_caps with a custom command
+[372/1346] Generating src/vulkan/runtime/vk_synchronization_helpers with a custom command
+[373/1346] Generating src/vulkan/runtime/vk_dispatch_trampolines with a custom command
+[374/1346] Generating src/vulkan/runtime/bvh/lbvh_generate_ir.spv.h with a custom command
+[375/1346] Generating src/vulkan/runtime/bvh/lbvh_main.spv.h with a custom command
+[376/1346] Generating src/vulkan/runtime/bvh/morton.spv.h with a custom command
+[377/1346] Generating src/vulkan/runtime/bvh/leaf.spv.h with a custom command
+[378/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/serialize.cpp.o
+[379/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/shader_cache.cpp.o
+[380/1346] Generating src/vulkan/runtime/bvh/ploc_internal.spv.h with a custom command
+[381/1346] Generating src/vulkan/runtime/astc_spv.h with a custom command
+[382/1346] Compiling C object src/vulkan/wsi/libvulkan_wsi.a.p/meson-generated_.._wsi_common_entrypoints.c.o
+[383/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_addrinterface.cpp.o
+[384/1346] Compiling C object src/vulkan/wsi/libvulkan_wsi.a.p/wsi_common_headless.c.o
+[385/1346] Compiling C object src/vulkan/wsi/libvulkan_wsi.a.p/wsi_common_drm.c.o
+[386/1346] Compiling C object src/vulkan/wsi/libvulkan_wsi.a.p/wsi_common.c.o
+[387/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrlib.cpp.o
+[388/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrelemlib.cpp.o
+[389/1346] Compiling C object src/vulkan/wsi/libvulkan_wsi.a.p/wsi_common_x11.c.o
+[390/1346] Generating src/vulkan/runtime/vk_format_info with a custom command
+[391/1346] Compiling C object src/vulkan/wsi/libvulkan_wsi.a.p/wsi_common_display.c.o
+[392/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrlib2.cpp.o
+[393/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrobject.cpp.o
+[394/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrlib1.cpp.o
+[395/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_cmd_enqueue_entrypoints.c.o
+[396/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrlib3.cpp.o
+[397/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_common_entrypoints.c.o
+[398/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_format_info.c.o
+[399/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_synchronization_helpers.c.o
+[400/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_addrswizzler.cpp.o
+[401/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_physical_device_spirv_caps.c.o
+[402/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_blend.c.o
+[403/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_physical_device_properties.c.o
+[404/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/rmv_vk_rmv_common.c.o
+[405/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_dispatch_trampolines.c.o
+[406/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/rmv_vk_rmv_exporter.c.o
+[407/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_buffer.c.o
+[408/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_buffer_view.c.o
+[409/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_cmd_copy.c.o
+[410/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_cmd_enqueue.c.o
+[411/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_command_buffer.c.o
+[412/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_debug_report.c.o
+[413/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_command_pool.c.o
+[414/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_debug_utils.c.o
+[415/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_deferred_operation.c.o
+[416/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_descriptor_set_layout.c.o
+[417/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_descriptors.c.o
+[418/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_descriptor_update_template.c.o
+[419/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_device_memory.c.o
+[420/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_device_generated_commands.c.o
+[421/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_device.c.o
+[422/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_fence.c.o
+[423/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_framebuffer.c.o
+[424/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_log.c.o
+[425/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_image.c.o
+[426/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_meta_object_list.c.o
+[427/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_physical_device_features.c.o
+[428/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_object.c.o
+[429/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_physical_device.c.o
+[430/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_pipeline_layout.c.o
+[431/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_query_pool.c.o
+[432/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_standard_sample_locations.c.o
+[433/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/meson-generated_.._vk_cmd_queue.c.o
+[434/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_sampler.c.o
+[435/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_semaphore.c.o
+[436/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_queue.c.o
+[437/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_graphics_state.c.o
+[438/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_sync_dummy.c.o
+[439/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_sync.c.o
+[440/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_sync_binary.c.o
+[441/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_render_pass.c.o
+[442/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_sync_timeline.c.o
+[443/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_ycbcr_conversion.c.o
+[444/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_synchronization.c.o
+[445/1346] Compiling C++ object src/compiler/glsl/libglsl.a.p/ir_constant_expression.cpp.o
+[446/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_drm_syncobj.c.o
+[447/1346] Linking static target src/compiler/glsl/libglsl.a
+[448/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_meta.c.o
+[449/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_meta_blit_resolve.c.o
+[450/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_nir.c.o
+[451/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_meta_clear.c.o
+[452/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_meta_draw_rects.c.o
+[453/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_nir_convert_ycbcr.c.o
+[454/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_shader_module.c.o
+[455/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_pipeline_cache.c.o
+[456/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_pipeline.c.o
+[457/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/radix_sort_common_util.c.o
+[458/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_shader.c.o
+[459/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/radix_sort_radix_sort_u64.c.o
+[460/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_meta_copy_fill_update.c.o
+[461/1346] Compiling C object src/vulkan/runtime/libvulkan_lite_runtime.a.p/vk_video.c.o
+[462/1346] Linking static target src/vulkan/wsi/libvulkan_wsi.a
+[463/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_texcompress_astc.c.o
+[464/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/radix_sort_common_vk_barrier.c.o
+[465/1346] Linking static target src/vulkan/runtime/libvulkan_lite_runtime.a
+[466/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_texcompress_etc2.c.o
+[467/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/vk_acceleration_structure.c.o
+[468/1346] Compiling C object src/vulkan/runtime/libvulkan_runtime.a.p/radix_sort_radix_sort_vk.c.o
+[469/1346] Linking static target src/vulkan/runtime/libvulkan_runtime.a
+[470/1346] Compiling C object src/vulkan/runtime/libvulkan_instance.a.p/vk_instance.c.o
+[471/1346] Linking static target src/vulkan/runtime/libvulkan_instance.a
+[472/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_core_coord.cpp.o
+[473/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_r800_ciaddrlib.cpp.o
+[474/1346] Generating src/amd/common/gfx10_format_table.c with a custom command (wrapped by meson to capture output)
+[475/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_gfx12_gfx12addrlib.cpp.o
+[476/1346] Compiling C object src/amd/common/libamd_common.a.p/meson-generated_.._gfx10_format_table.c.o
+[477/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_r800_egbaddrlib.cpp.o
+[478/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_shader_args.c.o
+[479/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_binary.c.o
+[480/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_r800_siaddrlib.cpp.o
+[481/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_cmdbuf.c.o
+[482/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_gfx9_gfx9addrlib.cpp.o
+[483/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_gfx11_gfx11addrlib.cpp.o
+[484/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_shader_util.c.o
+[485/1346] Compiling C++ object src/amd/addrlib/libaddrlib.a.p/src_gfx10_gfx10addrlib.cpp.o
+[486/1346] Linking static target src/amd/addrlib/libaddrlib.a
+[487/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_gather_context_rolls.c.o
+[488/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_formats.c.o
+[489/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_debug.c.o
+[490/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_shadowed_regs.c.o
+[491/1346] Compiling C object src/amd/common/libamd_common.a.p/amd_family.c.o
+[492/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_spm.c.o
+[493/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_gpu_info.c.o
+[494/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_descriptors.c.o
+[495/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_msgpack.c.o
+[496/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_vcn_enc.c.o
+[497/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_sqtt.c.o
+[498/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_rgp.c.o
+[499/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_pm4.c.o
+[500/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_perfcounter.c.o
+[501/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_uvd_dec.c.o
+[502/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_surface.c.o
+[503/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_vcn_dec.c.o
+[504/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_opt_outputs.c.o
+[505/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_create_gs_copy_shader.c.o
+[506/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_cull.c.o
+[507/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_global_access.c.o
+[508/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir.c.o
+[509/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_esgs_io_to_mem.c.o
+[510/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_image_opcodes_cdna.c.o
+[511/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_legacy_vs.c.o
+[512/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_parse_ib.c.o
+[513/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_legacy_gs.c.o
+[514/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_mem_access_bit_sizes.c.o
+[515/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_intrinsics_to_args.c.o
+[516/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_resinfo.c.o
+[517/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_taskmesh_io_to_mem.c.o
+[518/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_tex.c.o
+[519/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_sin_cos.c.o
+[520/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_ps_early.c.o
+[521/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_ngg_gs.c.o
+[522/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_ps_late.c.o
+[523/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_tess_io_to_mem.c.o
+[524/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_ngg_mesh.c.o
+[525/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_lower_ngg.c.o
+[526/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_opt_pack_half.c.o
+[527/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_opt_shared_append.c.o
+[528/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_meta_ps_resolve.c.o
+[529/1346] Compiling C object src/amd/common/ac_ib_parser.p/ac_ib_parser.c.o
+[530/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_rtld.c.o
+[531/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_linux_drm.c.o
+[532/1346] Compiling C object src/amd/common/libamd_common.a.p/ac_rgp_elf_object_pack.c.o
+[533/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_meta_cs_clear_copy_buffer.c.o
+[534/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_surface.c.o
+[535/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_meta_cs_blit.c.o
+[536/1346] Generating src/amd/compiler/aco_opcodes.cpp with a custom command (wrapped by meson to capture output)
+[537/1346] Compiling C object src/amd/common/libamd_common.a.p/nir_ac_nir_prerast_utils.c.o
+[538/1346] Linking static target src/amd/common/libamd_common.a
+[539/1346] Linking target src/amd/common/ac_ib_parser
+[540/1346] Compiling C++ object src/amd/compiler/libaco.a.p/meson-generated_.._aco_opcodes.cpp.o
+[541/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_isel_cfg.cpp.o
+[542/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_isel_setup.cpp.o
+[543/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_isel_helpers.cpp.o
+[544/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_ps_epilog.cpp.o
+[545/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_ps_prolog.cpp.o
+[546/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_nir.cpp.o
+[547/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_rt_prolog.cpp.o
+[548/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_dead_code_analysis.cpp.o
+[549/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_trap_handler.cpp.o
+[550/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_dominance.cpp.o
+[551/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_vs_prolog.cpp.o
+[552/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_form_hard_clauses.cpp.o
+[553/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_interface.cpp.o
+[554/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_ir.cpp.o
+[555/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_insert_delay_alu.cpp.o
+[556/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_assembler.cpp.o
+[557/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_insert_fp_mode.cpp.o
+[558/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_nir_intrinsics.cpp.o
+[559/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_reduce_assign.cpp.o
+[560/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_insert_exec_mask.cpp.o
+[561/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_insert_waitcnt.cpp.o
+[562/1346] Compiling C++ object src/amd/compiler/libaco.a.p/instruction_selection_aco_select_nir_alu.cpp.o
+[563/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_insert_NOPs.cpp.o
+[564/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_live_var_analysis.cpp.o
+[565/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_lower_branches.cpp.o
+[566/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_lower_phis.cpp.o
+[567/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_lower_subdword.cpp.o
+[568/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_lower_to_cssa.cpp.o
+[569/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_print_asm.cpp.o
+[570/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_optimizer_postRA.cpp.o
+[571/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_opt_value_numbering.cpp.o
+[572/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_print_ir.cpp.o
+[573/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_reindex_ssa.cpp.o
+[574/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_register_allocation.cpp.o
+[575/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_repair_ssa.cpp.o
+[576/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_scheduler_ilp.cpp.o
+[577/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_scheduler.cpp.o
+[578/1346] Generating src/amd/vulkan/layers/radv_annotate with a custom command
+[579/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_ssa_elimination.cpp.o
+[580/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_lower_to_hw_instr.cpp.o
+[581/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meson-generated_.._radv_entrypoints.c.o
+[582/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_optimizer.cpp.o
+[583/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_ctx_roll_layer.c.o
+[584/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_metro_exodus.c.o
+[585/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_statistics.cpp.o
+[586/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_quantic_dream.c.o
+[587/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meson-generated_.._layers_radv_annotate_layer.c.o
+[588/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_rage2.c.o
+[589/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_rmv_layer.c.o
+[590/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_no_mans_sky.c.o
+[591/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_rra_layer.c.o
+[592/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta.c.o
+[593/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_astc_decode.c.o
+[594/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/layers_radv_sqtt_layer.c.o
+[595/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_validate.cpp.o
+[596/1346] Compiling C++ object src/amd/compiler/libaco.a.p/aco_spill.cpp.o
+[597/1346] Linking static target src/amd/compiler/libaco.a
+[598/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_blit.c.o
+[599/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_blit2d.c.o
+[600/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_buffer.c.o
+[601/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_bufimage.c.o
+[602/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_copy_vrs_htile.c.o
+[603/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_copy.c.o
+[604/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_dcc_retile.c.o
+[605/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_clear.c.o
+[606/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_decompress.c.o
+[607/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_etc_decode.c.o
+[608/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_fast_clear.c.o
+[609/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_fmask_copy.c.o
+[610/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_fmask_expand.c.o
+[611/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_resolve.c.o
+[612/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_resolve_cs.c.o
+[613/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/meta_radv_meta_resolve_fs.c.o
+[614/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_export_multiview.c.o
+[615/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_abi.c.o
+[616/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_intrinsics_early.c.o
+[617/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_apply_pipeline_layout.c.o
+[618/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_meta_nir.c.o
+[619/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_fs_barycentric.c.o
+[620/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_hit_attrib_derefs.c.o
+[621/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_fs_intrinsics.c.o
+[622/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_cooperative_matrix.c.o
+[623/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_primitive_shading_rate.c.o
+[624/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_io.c.o
+[625/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_printf.c.o
+[626/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_view_index.c.o
+[627/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_viewport_to_zero.c.o
+[628/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_opt_fs_builtins.c.o
+[629/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_vs_inputs.c.o
+[630/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/winsys_null_radv_null_bo.c.o
+[631/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_remap_color_attachment.c.o
+[632/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_opt_tid_function.c.o
+[633/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/winsys_null_radv_null_cs.c.o
+[634/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_lower_ray_queries.c.o
+[635/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/winsys_null_radv_null_winsys.c.o
+[636/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_android.c.o
+[637/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_rt_common.c.o
+[638/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_buffer.c.o
+[639/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_buffer_view.c.o
+[640/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_acceleration_structure.c.o
+[641/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_cp_dma.c.o
+[642/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/nir_radv_nir_rt_shader.c.o
+[643/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_cp_reg_shadowing.c.o
+[644/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_cs.c.o
+[645/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_device_memory.c.o
+[646/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_descriptors.c.o
+[647/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_debug.c.o
+[648/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_descriptor_pool.c.o
+[649/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_device.c.o
+[650/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_descriptor_set.c.o
+[651/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_descriptor_update_template.c.o
+[652/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_event.c.o
+[653/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_host_image_copy.c.o
+[654/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_formats.c.o
+[655/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_image.c.o
+[656/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_instance.c.o
+[657/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_image_view.c.o
+[658/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_dgc.c.o
+[659/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_perfcounter.c.o
+[660/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_cmd_buffer.c.o
+[661/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline_binary.c.o
+[662/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_physical_device.c.o
+[663/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline_cache.c.o
+[664/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline_layout.c.o
+[665/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o
+FAILED: src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o 
+/usr/bin/cc -Isrc/amd/vulkan/libvulkan_radeon.so.p -Isrc/amd/vulkan -I../mesa-25.2.8/src/amd/vulkan -Iinclude -I../mesa-25.2.8/include -Isrc -I../mesa-25.2.8/src -Isrc/amd -I../mesa-25.2.8/src/amd -Isrc/amd/common -I../mesa-25.2.8/src/amd/common -I../mesa-25.2.8/src/amd/common/nir -I../mesa-25.2.8/src/virtio/virtio-gpu -Isrc/amd/compiler -I../mesa-25.2.8/src/amd/compiler -Isrc/compiler/nir -I../mesa-25.2.8/src/compiler/nir -Isrc/compiler -I../mesa-25.2.8/src/compiler -Isrc/vulkan/util -I../mesa-25.2.8/src/vulkan/util -Isrc/vulkan/wsi -I../mesa-25.2.8/src/vulkan/wsi -Isrc/vulkan/runtime -I../mesa-25.2.8/src/vulkan/runtime -Isrc/vulkan/runtime/bvh -I../mesa-25.2.8/src/vulkan/runtime/bvh -Isrc/vulkan/runtime/radix_sort/shaders -Isrc/amd/vulkan/bvh -Isrc/amd/vulkan/layers -Isrc/util/format -Isrc/compiler/spirv -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/libdrm -fvisibility=hidden -fdiagnostics-color=always -DNDEBUG -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c11 -O3 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS '-DPACKAGE_VERSION="25.2.8"' '-DPACKAGE_BUGREPORT="https://gitlab.freedesktop.org/mesa/mesa/-/issues"' -DHAVE_OPENGL=1 -DHAVE_OPENGL_ES_1=1 -DHAVE_OPENGL_ES_2=1 -DHAVE_RADEONSI -DVIDEO_CODEC_VC1DEC=0 -DVIDEO_CODEC_H264DEC=0 -DVIDEO_CODEC_H264ENC=0 -DVIDEO_CODEC_H265DEC=0 -DVIDEO_CODEC_H265ENC=0 -DVIDEO_CODEC_AV1DEC=0 -DVIDEO_CODEC_AV1ENC=0 -DVIDEO_CODEC_VP9DEC=0 -DHAVE_X11_PLATFORM -DHAVE_SURFACELESS_PLATFORM -DHAVE_XCB_PLATFORM -DUSE_LIBGLVND=1 -DGLX_INDIRECT_RENDERING -DGLX_DIRECT_RENDERING -DGLX_USE_DRM -DGLAPI_EXPORT_PROTO_ENTRY_POINTS=0 -DALLOW_KCMP -DMESA_DEBUG=0 -DENABLE_SHADER_CACHE -DHAVE___BUILTIN_BSWAP32 -DHAVE___BUILTIN_BSWAP64 -DHAVE___BUILTIN_CLZ -DHAVE___BUILTIN_CLZLL -DHAVE___BUILTIN_CTZ -DHAVE___BUILTIN_EXPECT -DHAVE___BUILTIN_FFS -DHAVE___BUILTIN_FFSLL -DHAVE___BUILTIN_POPCOUNT -DHAVE___BUILTIN_POPCOUNTLL -DHAVE___BUILTIN_UNREACHABLE -DHAVE___BUILTIN_TYPES_COMPATIBLE_P -DHAVE_FUNC_ATTRIBUTE_CONST -DHAVE_FUNC_ATTRIBUTE_FLATTEN -DHAVE_FUNC_ATTRIBUTE_MALLOC -DHAVE_FUNC_ATTRIBUTE_PURE -DHAVE_FUNC_ATTRIBUTE_UNUSED -DHAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT -DHAVE_FUNC_ATTRIBUTE_WEAK -DHAVE_FUNC_ATTRIBUTE_FORMAT -DHAVE_FUNC_ATTRIBUTE_PACKED -DHAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL -DHAVE_FUNC_ATTRIBUTE_ALIAS -DHAVE_FUNC_ATTRIBUTE_NORETURN -DHAVE_FUNC_ATTRIBUTE_OPTIMIZE -DHAVE_FUNC_ATTRIBUTE_VISIBILITY -DHAVE_UINT128 -DHAVE_REALLOCARRAY -DHAVE_FMEMOPEN -D_GNU_SOURCE -DUSE_SSE41 -DHAVE___BUILTIN_IA32_CLFLUSHOPT -DUSE_GCC_ATOMIC_BUILTINS -DUSE_X86_64_ASM -DMAJOR_IN_SYSMACROS -DHAS_SCHED_H -DHAS_SCHED_GETAFFINITY -DHAVE_LINUX_FUTEX_H -DHAVE_ENDIAN_H -DHAVE_DLFCN_H -DHAVE_SYS_SHM_H -DHAVE_CET_H -DHAVE_SYS_INOTIFY_H -DHAVE_LINUX_UDMABUF_H -DHAVE_STRTOF -DHAVE_MKOSTEMP -DHAVE_MEMFD_CREATE -DHAVE_RANDOM_R -DHAVE_FLOCK -DHAVE_STRTOK_R -DHAVE_GETRANDOM -DHAVE_POSIX_FALLOCATE -DHAVE_SECURE_GETENV -DHAVE_GNU_QSORT_R -DHAVE_STRUCT_TIMESPEC -DHAVE_PROGRAM_INVOCATION_NAME -DHAVE_ISSIGNALING -DHAVE_POSIX_MEMALIGN -DHAVE_DIRENT_D_TYPE -DHAVE_STRTOD_L -DHAVE_DLADDR -DHAVE_DL_ITERATE_PHDR -DHAVE_ZLIB -DHAVE_ZSTD -DHAVE_COMPRESSION -DHAVE_PTHREAD -DHAVE_PTHREAD_SETAFFINITY -DHAVE_LIBDRM -DHAVE_LIBUDEV -DLLVM_AVAILABLE=0 -DDRAW_LLVM_AVAILABLE=0 -DAMD_LLVM_AVAILABLE=0 -DGALLIVM_USE_ORCJIT=0 -DHAVE_SPIRV_TOOLS -DUSE_LIBELF -DTHREAD_SANITIZER=0 -DHAVE_OPENMP -DXCB_KEYSYMS_AVAILABLE -DHAVE_X11_DRM -DHAVE_DRI -DHAVE_DRI2 -DHAVE_DRISW_KMS -mtls-dialect=gnu2 -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=return-type -Werror=empty-body -Werror=incompatible-pointer-types -Werror=int-conversion -Wimplicit-fallthrough -Wmisleading-indentation -Wno-missing-field-initializers -Wno-format-truncation -Wno-nonnull-compare -fno-math-errno -fno-trapping-math -fno-common -Wno-unknown-pragmas -Wno-unused-function -Werror=format -Wformat-security -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-unused-but-set-variable -fPIC -DVK_USE_PLATFORM_XCB_KHR -DVK_USE_PLATFORM_XLIB_KHR -DVK_USE_PLATFORM_DISPLAY_KHR -DVK_USE_PLATFORM_XLIB_XRANDR_EXT -pthread -Wno-override-init -Wimplicit-fallthrough -Wshadow -Werror=pointer-arith -Werror=vla -MD -MQ src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o -MF src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o.d -o src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o -c ../mesa-25.2.8/src/amd/vulkan/radv_pipeline.c
+In file included from ../mesa-25.2.8/src/amd/vulkan/radv_pipeline.c:1:
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h: In function ‘mixed_filter_instr’:
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:102:33: error: implicit declaration of function ‘nir_fddx_fine’; did you mean ‘nir_ddx_fine’? [-Werror=implicit-function-declaration]
+  102 |       nir_def *gx = nir_fmul(b, nir_fddx_fine(b, uv), n);
+      |                                 ^~~~~~~~~~~~~
+      |                                 nir_ddx_fine
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:102:33: error: passing argument 2 of ‘nir_fmul’ makes pointer from integer without a cast [-Werror=int-conversion]
+  102 |       nir_def *gx = nir_fmul(b, nir_fddx_fine(b, uv), n);
+      |                                 ^~~~~~~~~~~~~~~~~~~~
+      |                                 |
+      |                                 int
+In file included from ../mesa-25.2.8/src/compiler/nir/nir_builder.h:582,
+                 from ../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:4:
+src/compiler/nir/nir_builder_opcodes.h:1277:39: note: expected ‘nir_def *’ {aka ‘struct nir_def *’} but argument is of type ‘int’
+ 1277 | nir_fmul(nir_builder *build, nir_def *src0, nir_def *src1)
+      |                              ~~~~~~~~~^~~~
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:103:33: error: implicit declaration of function ‘nir_fddy_fine’; did you mean ‘nir_ddy_fine’? [-Werror=implicit-function-declaration]
+  103 |       nir_def *gy = nir_fmul(b, nir_fddy_fine(b, uv), n);
+      |                                 ^~~~~~~~~~~~~
+      |                                 nir_ddy_fine
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:103:33: error: passing argument 2 of ‘nir_fmul’ makes pointer from integer without a cast [-Werror=int-conversion]
+  103 |       nir_def *gy = nir_fmul(b, nir_fddy_fine(b, uv), n);
+      |                                 ^~~~~~~~~~~~~~~~~~~~
+      |                                 |
+      |                                 int
+src/compiler/nir/nir_builder_opcodes.h:1277:39: note: expected ‘nir_def *’ {aka ‘struct nir_def *’} but argument is of type ‘int’
+ 1277 | nir_fmul(nir_builder *build, nir_def *src0, nir_def *src1)
+      |                              ~~~~~~~~~^~~~
+cc1: some warnings being treated as errors
+[666/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline_compute.c.o
+[667/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_rra_gfx10_3.c.o
+[668/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_printf.c.o
+[669/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_rmv.c.o
+[670/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_queue.c.o
+[671/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline_rt.c.o
+[672/1346] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline_graphics.c.o
+ninja: build stopped: subcommand failed.

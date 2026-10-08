@@ -1,0 +1,77 @@
+EGL vendor=Mesa Project version=1.5
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, b8g8r8a8_unorm
+    Surf: size=65536, slice_size=65536, alignment=65536, swmode=25, tile_swizzle=0, epitch=127, pitch=128, blk_w=1, blk_h=1, bpe=4, flags=0x5010000
+    DCC: offset=131072, size=65536, alignment=65536, pitch_max=511, num_dcc_levels=1
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, tc_compatible_htile=0, z24x8_unorm
+    Surf: size=16384, slice_size=16384, alignment=4096, swmode=20, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x820000
+    HTile: offset=32768, size=32768, alignment=32768
+adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) driver=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+Texture:
+  Info: npix_x=128, npix_y=128, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=65536, slice_size=65536, alignment=65536, swmode=26, tile_swizzle=0, epitch=127, pitch=128, blk_w=1, blk_h=1, bpe=4, flags=0x0
+    DCC: offset=65536, size=65536, alignment=65536, pitch_max=511, num_dcc_levels=1
+Texture:
+  Info: npix_x=128, npix_y=128, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=65536, slice_size=65536, alignment=256, swmode=0, tile_swizzle=0, epitch=127, pitch=128, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=128, npix_y=128, npix_z=1, array_size=1, last_level=7, nsamples=0, r8g8b8a8_unorm
+    Surf: size=131072, slice_size=131072, alignment=65536, swmode=26, tile_swizzle=0, epitch=255, pitch=128, blk_w=1, blk_h=1, bpe=4, flags=0x0
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=32, npix_y=32, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=8192, slice_size=8192, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=16, npix_y=16, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=4096, slice_size=4096, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=8, npix_y=8, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=2048, slice_size=2048, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=4, npix_y=4, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=1024, slice_size=1024, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=2, npix_y=2, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=512, slice_size=512, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=1, npix_y=1, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=256, slice_size=256, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=0 min=nearest-mip-linear mag=linear lod=0 linear_magnification_or_floor_min_oracle_mae=0.109375 maximum=1 pixels_over_1=0 first_high_column=-1
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=0 min=nearest-mip-linear mag=linear lod=3 linear_magnification_or_floor_min_oracle_mae=15 maximum=120 pixels_over_1=512 first_high_column=24
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=0 min=nearest-mip-linear mag=linear lod=3.5 linear_magnification_or_floor_min_oracle_mae=22.5 maximum=120 pixels_over_1=1024 first_high_column=24
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=1 min=nearest-mip-linear mag=nearest lod=0 linear_magnification_or_floor_min_oracle_mae=56.25 maximum=60 pixels_over_1=4096 first_high_column=32
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=1 min=nearest-mip-linear mag=nearest lod=3 linear_magnification_or_floor_min_oracle_mae=0 maximum=0 pixels_over_1=0 first_high_column=32
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=1 min=nearest-mip-linear mag=nearest lod=3.5 linear_magnification_or_floor_min_oracle_mae=0 maximum=0 pixels_over_1=0 first_high_column=32
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=2 min=nearest-mip-linear mag=linear lod=0 linear_magnification_or_floor_min_oracle_mae=0.109375 maximum=1 pixels_over_1=0 first_high_column=-1
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=2 min=nearest-mip-linear mag=linear lod=3 linear_magnification_or_floor_min_oracle_mae=0 maximum=0 pixels_over_1=0 first_high_column=32
+Texture:
+  Info: npix_x=64, npix_y=64, npix_z=1, array_size=1, last_level=0, nsamples=0, r8g8b8a8_unorm
+    Surf: size=16384, slice_size=16384, alignment=256, swmode=0, tile_swizzle=0, epitch=63, pitch=64, blk_w=1, blk_h=1, bpe=4, flags=0x10000
+sampler-state mode=2 min=nearest-mip-linear mag=linear lod=3.5 linear_magnification_or_floor_min_oracle_mae=0 maximum=0 pixels_over_1=0 first_high_column=32

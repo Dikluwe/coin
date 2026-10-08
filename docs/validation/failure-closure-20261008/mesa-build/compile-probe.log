@@ -1,0 +1,73 @@
+ninja: Entering directory `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build'
+[1/44] Generating src/git_sha1.h with a custom command
+[2/44] Generating src/compiler/nir/nir_intrinsics.h with a custom command
+[3/44] Generating src/compiler/spirv/spirv_info with a custom command
+[4/44] Generating src/compiler/nir/nir_intrinsics_indices.h with a custom command
+[5/44] Generating src/compiler/ir_expression_operation.h with a custom command (wrapped by meson to capture output)
+[6/44] Generating src/compiler/nir/nir_opcodes.h with a custom command (wrapped by meson to capture output)
+[7/44] Generating src/compiler/nir/nir_builder_opcodes.h with a custom command (wrapped by meson to capture output)
+[8/44] Generating src/vulkan/util/vk_dispatch_table with a custom command
+[9/44] Generating src/util/format/u_format_gen.h with a custom command (wrapped by meson to capture output)
+[10/44] Generating src/vulkan/util/vk_struct_type_cast with a custom command
+[11/44] Generating src/vulkan/util/vk_enum_to_str with a custom command
+[12/44] Generating src/vulkan/util/vk_extensions with a custom command
+[13/44] Generating src/compiler/builtin_types.h with a custom command
+[14/44] Generating src/vulkan/runtime/vk_common_entrypoints with a custom command
+[15/44] Generating src/vulkan/runtime/radix_sort/shaders/init.comp.spv.h with a custom command
+[16/44] Generating src/vulkan/runtime/vk_cmd_enqueue_entrypoints with a custom command
+[17/44] Generating src/vulkan/runtime/vk_physical_device_features with a custom command
+[18/44] Generating src/vulkan/runtime/radix_sort/shaders/fill.comp.spv.h with a custom command
+[19/44] Generating src/vulkan/runtime/vk_physical_device_properties with a custom command
+[20/44] Generating src/vulkan/runtime/radix_sort/shaders/histogram.comp.spv.h with a custom command
+[21/44] Generating src/vulkan/runtime/radix_sort/shaders/prefix.comp.spv.h with a custom command
+[22/44] Generating src/vulkan/runtime/vk_cmd_queue with a custom command
+[23/44] Generating src/vulkan/runtime/radix_sort/shaders/scatter_0_even.comp.spv.h with a custom command
+[24/44] Generating src/vulkan/runtime/radix_sort/shaders/scatter_1_even.comp.spv.h with a custom command
+[25/44] Generating src/vulkan/runtime/radix_sort/shaders/scatter_0_odd.comp.spv.h with a custom command
+[26/44] Generating src/vulkan/runtime/radix_sort/shaders/scatter_1_odd.comp.spv.h with a custom command
+[27/44] Generating src/vulkan/wsi/wsi_entrypoints with a custom command
+[28/44] Generating src/amd/compiler/aco_opcodes.h with a custom command (wrapped by meson to capture output)
+[29/44] Generating src/amd/vulkan/bvh/copy_blas_addrs_gfx12.spv.h with a custom command
+[30/44] Generating src/amd/vulkan/bvh/copy.spv.h with a custom command
+[31/44] Generating src/amd/compiler/aco_builder.h with a custom command (wrapped by meson to capture output)
+[32/44] Generating src/amd/vulkan/bvh/header.spv.h with a custom command
+[33/44] Generating src/amd/vulkan/bvh/encode.spv.h with a custom command
+[34/44] Generating src/amd/vulkan/bvh/encode_gfx12.spv.h with a custom command
+[35/44] Generating src/amd/vulkan/bvh/update.spv.h with a custom command
+[36/44] Generating src/amd/vulkan/bvh/update_gfx12.spv.h with a custom command
+[37/44] Generating src/amd/vulkan/radv_entrypoints with a custom command
+[38/44] Generating src/amd/vulkan/bvh/radv_leaf.spv.h with a custom command
+[39/44] Generating src/gallium/auxiliary/u_tracepoints.h with a custom command
+[40/44] Generating src/gallium/drivers/radeonsi/si_tracepoints.[ch] with a custom command
+[41/44] Generating src/amd/common/amdgfxregs_h with a custom command (wrapped by meson to capture output)
+[42/44] Compiling C object src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o
+FAILED: src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o 
+/usr/bin/cc -Isrc/amd/vulkan/libvulkan_radeon.so.p -Isrc/amd/vulkan -I../mesa-25.2.8/src/amd/vulkan -Iinclude -I../mesa-25.2.8/include -Isrc -I../mesa-25.2.8/src -Isrc/amd -I../mesa-25.2.8/src/amd -Isrc/amd/common -I../mesa-25.2.8/src/amd/common -I../mesa-25.2.8/src/amd/common/nir -I../mesa-25.2.8/src/virtio/virtio-gpu -Isrc/amd/compiler -I../mesa-25.2.8/src/amd/compiler -Isrc/compiler/nir -I../mesa-25.2.8/src/compiler/nir -Isrc/compiler -I../mesa-25.2.8/src/compiler -Isrc/vulkan/util -I../mesa-25.2.8/src/vulkan/util -Isrc/vulkan/wsi -I../mesa-25.2.8/src/vulkan/wsi -Isrc/vulkan/runtime -I../mesa-25.2.8/src/vulkan/runtime -Isrc/vulkan/runtime/bvh -I../mesa-25.2.8/src/vulkan/runtime/bvh -Isrc/vulkan/runtime/radix_sort/shaders -Isrc/amd/vulkan/bvh -Isrc/amd/vulkan/layers -Isrc/util/format -Isrc/compiler/spirv -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/include/libdrm -fvisibility=hidden -fdiagnostics-color=always -DNDEBUG -D_FILE_OFFSET_BITS=64 -Wall -Winvalid-pch -std=c11 -O3 -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D__STDC_LIMIT_MACROS '-DPACKAGE_VERSION="25.2.8"' '-DPACKAGE_BUGREPORT="https://gitlab.freedesktop.org/mesa/mesa/-/issues"' -DHAVE_OPENGL=1 -DHAVE_OPENGL_ES_1=1 -DHAVE_OPENGL_ES_2=1 -DHAVE_RADEONSI -DVIDEO_CODEC_VC1DEC=0 -DVIDEO_CODEC_H264DEC=0 -DVIDEO_CODEC_H264ENC=0 -DVIDEO_CODEC_H265DEC=0 -DVIDEO_CODEC_H265ENC=0 -DVIDEO_CODEC_AV1DEC=0 -DVIDEO_CODEC_AV1ENC=0 -DVIDEO_CODEC_VP9DEC=0 -DHAVE_X11_PLATFORM -DHAVE_SURFACELESS_PLATFORM -DHAVE_XCB_PLATFORM -DUSE_LIBGLVND=1 -DGLX_INDIRECT_RENDERING -DGLX_DIRECT_RENDERING -DGLX_USE_DRM -DGLAPI_EXPORT_PROTO_ENTRY_POINTS=0 -DALLOW_KCMP -DMESA_DEBUG=0 -DENABLE_SHADER_CACHE -DHAVE___BUILTIN_BSWAP32 -DHAVE___BUILTIN_BSWAP64 -DHAVE___BUILTIN_CLZ -DHAVE___BUILTIN_CLZLL -DHAVE___BUILTIN_CTZ -DHAVE___BUILTIN_EXPECT -DHAVE___BUILTIN_FFS -DHAVE___BUILTIN_FFSLL -DHAVE___BUILTIN_POPCOUNT -DHAVE___BUILTIN_POPCOUNTLL -DHAVE___BUILTIN_UNREACHABLE -DHAVE___BUILTIN_TYPES_COMPATIBLE_P -DHAVE_FUNC_ATTRIBUTE_CONST -DHAVE_FUNC_ATTRIBUTE_FLATTEN -DHAVE_FUNC_ATTRIBUTE_MALLOC -DHAVE_FUNC_ATTRIBUTE_PURE -DHAVE_FUNC_ATTRIBUTE_UNUSED -DHAVE_FUNC_ATTRIBUTE_WARN_UNUSED_RESULT -DHAVE_FUNC_ATTRIBUTE_WEAK -DHAVE_FUNC_ATTRIBUTE_FORMAT -DHAVE_FUNC_ATTRIBUTE_PACKED -DHAVE_FUNC_ATTRIBUTE_RETURNS_NONNULL -DHAVE_FUNC_ATTRIBUTE_ALIAS -DHAVE_FUNC_ATTRIBUTE_NORETURN -DHAVE_FUNC_ATTRIBUTE_OPTIMIZE -DHAVE_FUNC_ATTRIBUTE_VISIBILITY -DHAVE_UINT128 -DHAVE_REALLOCARRAY -DHAVE_FMEMOPEN -D_GNU_SOURCE -DUSE_SSE41 -DHAVE___BUILTIN_IA32_CLFLUSHOPT -DUSE_GCC_ATOMIC_BUILTINS -DUSE_X86_64_ASM -DMAJOR_IN_SYSMACROS -DHAS_SCHED_H -DHAS_SCHED_GETAFFINITY -DHAVE_LINUX_FUTEX_H -DHAVE_ENDIAN_H -DHAVE_DLFCN_H -DHAVE_SYS_SHM_H -DHAVE_CET_H -DHAVE_SYS_INOTIFY_H -DHAVE_LINUX_UDMABUF_H -DHAVE_STRTOF -DHAVE_MKOSTEMP -DHAVE_MEMFD_CREATE -DHAVE_RANDOM_R -DHAVE_FLOCK -DHAVE_STRTOK_R -DHAVE_GETRANDOM -DHAVE_POSIX_FALLOCATE -DHAVE_SECURE_GETENV -DHAVE_GNU_QSORT_R -DHAVE_STRUCT_TIMESPEC -DHAVE_PROGRAM_INVOCATION_NAME -DHAVE_ISSIGNALING -DHAVE_POSIX_MEMALIGN -DHAVE_DIRENT_D_TYPE -DHAVE_STRTOD_L -DHAVE_DLADDR -DHAVE_DL_ITERATE_PHDR -DHAVE_ZLIB -DHAVE_ZSTD -DHAVE_COMPRESSION -DHAVE_PTHREAD -DHAVE_PTHREAD_SETAFFINITY -DHAVE_LIBDRM -DHAVE_LIBUDEV -DLLVM_AVAILABLE=0 -DDRAW_LLVM_AVAILABLE=0 -DAMD_LLVM_AVAILABLE=0 -DGALLIVM_USE_ORCJIT=0 -DHAVE_SPIRV_TOOLS -DUSE_LIBELF -DTHREAD_SANITIZER=0 -DHAVE_OPENMP -DXCB_KEYSYMS_AVAILABLE -DHAVE_X11_DRM -DHAVE_DRI -DHAVE_DRI2 -DHAVE_DRISW_KMS -mtls-dialect=gnu2 -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=return-type -Werror=empty-body -Werror=incompatible-pointer-types -Werror=int-conversion -Wimplicit-fallthrough -Wmisleading-indentation -Wno-missing-field-initializers -Wno-format-truncation -Wno-nonnull-compare -fno-math-errno -fno-trapping-math -fno-common -Wno-unknown-pragmas -Wno-unused-function -Werror=format -Wformat-security -ffunction-sections -fdata-sections -Wno-unused-variable -Wno-unused-but-set-variable -fPIC -DVK_USE_PLATFORM_XCB_KHR -DVK_USE_PLATFORM_XLIB_KHR -DVK_USE_PLATFORM_DISPLAY_KHR -DVK_USE_PLATFORM_XLIB_XRANDR_EXT -pthread -Wno-override-init -Wimplicit-fallthrough -Wshadow -Werror=pointer-arith -Werror=vla -MD -MQ src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o -MF src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o.d -o src/amd/vulkan/libvulkan_radeon.so.p/radv_pipeline.c.o -c ../mesa-25.2.8/src/amd/vulkan/radv_pipeline.c
+In file included from ../mesa-25.2.8/src/amd/vulkan/radv_pipeline.c:1:
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h: In function ‘mixed_filter_instr’:
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:109:22: error: implicit declaration of function ‘nir_fmax_imm’; did you mean ‘nir_umax_imm’? [-Werror=implicit-function-declaration]
+  109 |    lod = nir_fmin(b, nir_fmax_imm(b, lod, 0.0), max_level);
+      |                      ^~~~~~~~~~~~
+      |                      nir_umax_imm
+../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:109:22: error: passing argument 2 of ‘nir_fmin’ makes pointer from integer without a cast [-Werror=int-conversion]
+  109 |    lod = nir_fmin(b, nir_fmax_imm(b, lod, 0.0), max_level);
+      |                      ^~~~~~~~~~~~~~~~~~~~~~~~~
+      |                      |
+      |                      int
+In file included from ../mesa-25.2.8/src/compiler/nir/nir_builder.h:582,
+                 from ../mesa-25.2.8/src/amd/common/nir/ac_nir_mixed_filter_study.h:4:
+src/compiler/nir/nir_builder_opcodes.h:1262:39: note: expected ‘nir_def *’ {aka ‘struct nir_def *’} but argument is of type ‘int’
+ 1262 | nir_fmin(nir_builder *build, nir_def *src0, nir_def *src1)
+      |                              ~~~~~~~~~^~~~
+In file included from ../mesa-25.2.8/src/amd/vulkan/radv_device.h:25,
+                 from ../mesa-25.2.8/src/amd/vulkan/radv_cmd_buffer.h:18,
+                 from ../mesa-25.2.8/src/amd/vulkan/meta/radv_meta.h:14,
+                 from ../mesa-25.2.8/src/amd/vulkan/radv_pipeline.c:13:
+../mesa-25.2.8/src/amd/vulkan/radv_shader.h: At top level:
+../mesa-25.2.8/src/amd/vulkan/radv_shader.h:15:10: fatal error: util/shader_stats.h: No such file or directory
+   15 | #include "util/shader_stats.h"
+      |          ^~~~~~~~~~~~~~~~~~~~~
+cc1: some warnings being treated as errors
+compilation terminated.
+[43/44] Generating src/amd/common/sid_tables_h with a custom command (wrapped by meson to capture output)
+ninja: build stopped: subcommand failed.

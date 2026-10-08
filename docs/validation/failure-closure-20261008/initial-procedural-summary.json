@@ -1,0 +1,62 @@
+[
+  {
+    "api": "gl",
+    "mode": "native",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "exit": 1,
+    "log": "initial-wgpu-amd-gl-native-procedural.log"
+  },
+  {
+    "api": "gl",
+    "mode": "fetch",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "exit": 1,
+    "log": "initial-wgpu-amd-gl-fetch-procedural.log"
+  },
+  {
+    "api": "gl",
+    "mode": "fine_uniform",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "exit": 1,
+    "log": "initial-wgpu-amd-gl-fine_uniform-procedural.log"
+  },
+  {
+    "api": "vulkan",
+    "mode": "native",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "initial-wgpu-amd-vulkan-native-procedural.log"
+  },
+  {
+    "api": "vulkan",
+    "mode": "fetch",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "initial-wgpu-amd-vulkan-fetch-procedural.log"
+  },
+  {
+    "api": "vulkan",
+    "mode": "fine_uniform",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "initial-wgpu-amd-vulkan-fine_uniform-procedural.log"
+  }
+]

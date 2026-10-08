@@ -1,0 +1,134 @@
+[Thread debugging using libthread_db enabled]
+Using host libthread_db library "/lib/x86_64-linux-gnu/libthread_db.so.1".
+[New Thread 0x7ffff5dff6c0 (LWP 1547165)]
+[New Thread 0x7ffff55fe6c0 (LWP 1547166)]
+[New Thread 0x7ffff4dfd6c0 (LWP 1547167)]
+[New Thread 0x7fffe7fff6c0 (LWP 1547168)]
+[New Thread 0x7fffe77fe6c0 (LWP 1547169)]
+[New Thread 0x7fffe6ffd6c0 (LWP 1547170)]
+[New Thread 0x7fffe67fc6c0 (LWP 1547171)]
+[New Thread 0x7fffe5ffb6c0 (LWP 1547172)]
+[New Thread 0x7fffe572f6c0 (LWP 1547173)]
+
+Thread 3 "sampler-st:sh0" received signal SIGSEGV, Segmentation fault.
+[Switching to Thread 0x7ffff55fe6c0 (LWP 1547166)]
+0x00007ffff67c1f22 in mixed_level () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+
+Thread 10 (Thread 0x7fffe572f6c0 (LWP 1547173) "sampler-st:gl0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x7fffe57300d0) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x7fffe57300d0) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x7fffe57300d0, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x7fffe5730078, cond=0x7fffe57300a8) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x7fffe57300a8, mutex=0x7fffe5730078) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 9 (Thread 0x7fffe5ffb6c0 (LWP 1547172) "sampler-:gdrv0"):
+#0  __memset_avx2_unaligned_erms () at ../sysdeps/x86_64/multiarch/memset-vec-unaligned-erms.S:328
+#1  0x00007ffff689a4a6 in amdgpu_bo_slab_alloc () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#2  0x00007ffff698d4e6 in pb_slab_alloc_reclaimed () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#3  0x00007ffff6899f05 in amdgpu_bo_create () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#4  0x00007ffff6850635 in si_alloc_resource () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#5  0x00007ffff681637b in si_texture_create_object () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6817031 in si_texture_create_with_modifier () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff6814bda in si_texture_transfer_map () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff69ec36e in u_default_texture_subdata () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#9  0x00007ffff6754532 in tc_batch_execute () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#10 0x00007ffff6474df9 in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#11 0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#12 0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#13 0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 8 (Thread 0x7fffe67fc6c0 (LWP 1547171) "sample:traceq0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555556a13c8) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x5555556a13c8) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555556a13c8, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555556a1370, cond=0x5555556a13a0) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555556a13a0, mutex=0x5555556a1370) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 7 (Thread 0x7fffe6ffd6c0 (LWP 1547170) "sample:traceq0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555556474f8) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x5555556474f8) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555556474f8, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555556474a0, cond=0x5555556474d0) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555556474d0, mutex=0x5555556474a0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 6 (Thread 0x7fffe77fe6c0 (LWP 1547169) "sample:traceq0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x555555602a98) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x555555602a98) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x555555602a98, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x555555602a40, cond=0x555555602a70) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x555555602a70, mutex=0x555555602a40) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 5 (Thread 0x7fffe7fff6c0 (LWP 1547168) "sample:traceq0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5555555af418) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x5555555af418) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5555555af418, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5555555af3c0, cond=0x5555555af3f0) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5555555af3f0, mutex=0x5555555af3c0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 4 (Thread 0x7ffff4dfd6c0 (LWP 1547167) "sample:sh_opt0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=0, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x55555559ce98) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=0, abstime=0x0, clockid=0, expected=0, futex_word=0x55555559ce98) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x55555559ce98, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x55555559ce40, cond=0x55555559ce70) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x55555559ce70, mutex=0x55555559ce40) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 3 (Thread 0x7ffff55fe6c0 (LWP 1547166) "sampler-st:sh0"):
+#0  0x00007ffff67c1f22 in mixed_level () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#1  0x00007ffff67c3220 in mixed_filter_instr.part () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#2  0x00007ffff67c7efc in si_compile_shader () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#3  0x00007ffff67fb643 in si_init_shader_selector_async(void*, void*, int) () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#4  0x00007ffff6474df9 in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#5  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#7  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 2 (Thread 0x7ffff5dff6c0 (LWP 1547165) "sampler-st:cs0"):
+#0  0x00007ffff7898e51 in __futex_abstimed_wait_common64 (private=-1637193700, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x55555558b338) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=-1637193700, abstime=0x0, clockid=0, expected=0, futex_word=0x55555558b338) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x55555558b338, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007ffff789b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x55555558b2e0, cond=0x55555558b310) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x55555558b310, mutex=0x55555558b2e0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007ffff64d879d in cnd_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x00007ffff6474d3b in util_queue_thread_func () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#7  0x00007ffff64d86fb in impl_thrd_routine () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#8  0x00007ffff789cb84 in start_thread (arg=<optimized out>) at ./nptl/pthread_create.c:447
+#9  0x00007ffff7929ecc in clone3 () at ../sysdeps/unix/sysv/linux/x86_64/clone3.S:78
+
+Thread 1 (Thread 0x7ffff7f20d00 (LWP 1547162) "sampler-state-p"):
+#0  syscall () at ../sysdeps/unix/sysv/linux/x86_64/syscall.S:38
+#1  0x00007ffff6465b96 in futex_wait () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#2  0x00007ffff6474bcb in do_futex_fence_wait.constprop.1.isra () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#3  0x00007ffff686c278 in si_fence_finish () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#4  0x00007ffff5f217c3 in st_finish () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#5  0x00007ffff5f21874 in st_glFinish () from /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/libgallium-25.2.8.so
+#6  0x0000555555556ca1 in main ()

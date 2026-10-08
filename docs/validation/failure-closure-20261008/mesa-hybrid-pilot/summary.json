@@ -1,0 +1,71 @@
+[
+  {
+    "profile": "wgpu-amd-vulkan",
+    "mode": "native",
+    "case": "projective",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--projective-study"
+    ],
+    "exit": 0,
+    "log": "wgpu-amd-vulkan-native-projective.log",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "AMD_DEBUG": "llvm",
+      "AMD_FORCE_SHADER_USE_ACO": "ps",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/lib/x86_64-linux-gnu",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/lib/x86_64-linux-gnu/dri",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "binary_sha256": "4ca4f532cf7a8400a3e859b287152a1f26511270ac1c9c50a390b54e4f5e9e56",
+    "log_sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d",
+    "adapter": "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) renderer=1 vendor=4098 device=5688"
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "mode": "native",
+    "case": "styles",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderDrawStyleTest"
+    ],
+    "exit": 1,
+    "log": "wgpu-amd-vulkan-native-styles.log",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "AMD_DEBUG": "llvm",
+      "AMD_FORCE_SHADER_USE_ACO": "ps",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/lib/x86_64-linux-gnu",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/lib/x86_64-linux-gnu/dri",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install-llvm/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_SAMPLING_STUDY": "native"
+    },
+    "binary_sha256": "af90ad03bdd20cfbde3a87551cfbedb4b9e7d71677ef046f623ed5abef1d71b8",
+    "log_sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce",
+    "adapter": null
+  }
+]

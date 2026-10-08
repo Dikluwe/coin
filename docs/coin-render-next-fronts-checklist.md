@@ -77,6 +77,14 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   extra AMD/wgpu removido nesta amostra;36 controles válidos do milhão e144 hashes/
   timestamps de diagnóstico não reproduzem regressão persistente do seletor.
   Coin original e código de produção intactos; política pública continua pendente.
+- [x] Tratar as28 falhas da campanha original no estudo: quatro corrigidas em
+  strokes/profundidade BGFX e24 passam com workaround Mesa **externo e isolado**;
+  campanha original162/162 PASS, gates preservados.
+  [Correções, ledger e condições](coin-render-failure-closure-20261008.md).
+  Driver instalado e código de produção continuam sem essa correção de sampling.
+- [ ] Estudar as diferenças adicionais de recorte/iluminação CoinGL AMD:
+  oito FAIL de estilos estritos também no baseline; contrato portátil8/8 PASS.
+  Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [ ] Promover política comum nearest portátil com API/capacidades e limites
   explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
   perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.
