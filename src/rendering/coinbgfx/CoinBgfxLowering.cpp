@@ -189,7 +189,6 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareBytes(lhs.fogColorMode, rhs.fogColorMode, sizeof(lhs.fogColorMode));
   if (result == 0) result = compareBytes(lhs.fogRange, rhs.fogRange, sizeof(lhs.fogRange));
   if (result == 0) result = compareBytes(lhs.extraTextures, rhs.extraTextures, sizeof(lhs.extraTextures));
-  if (result == 0) result = compareBytes(lhs.studyTextureSizes, rhs.studyTextureSizes, sizeof(lhs.studyTextureSizes));
   if (result == 0) result = compareBytes(lhs.textureCombines, rhs.textureCombines, sizeof(lhs.textureCombines));
   if (result == 0) result = compareValue(lhs.hasTexture, rhs.hasTexture);
   if (result == 0) result = compareValue(lhs.textureSlot, rhs.textureSlot);
@@ -821,14 +820,6 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       std::memcpy(layer.blendColor, source.blendColor, sizeof(layer.blendColor));
       const auto & sampler = frame.samplers[source.samplerSlot];
       layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter; layer.maxAnisotropy = sampler.maxAnisotropy;
-    }
-    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-      const auto layer = coin_render_texture_unit(state, unit);
-      if (layer.enabled) {
-        const auto & image = frame.textures[layer.imageSlot];
-        lowered.studyTextureSizes[unit][0] = float(image.width);
-        lowered.studyTextureSizes[unit][1] = float(image.height);
-      }
     }
     std::memcpy(lowered.fogColorMode, state.fogColor, sizeof(state.fogColor));
     lowered.fogColorMode[3] = static_cast<float>(state.fogMode);

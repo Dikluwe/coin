@@ -8,6 +8,8 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <bgfx/bgfx.h>
 #include <memory>
+#include <map>
+#include <utility>
 #include <thread>
 
 struct CoinRenderShadowPlan;
@@ -214,6 +216,7 @@ private:
   bgfx::UniformHandle fogColorModeUniform;
   bgfx::UniformHandle fogRangeUniform;
   bgfx::UniformHandle textureParamsUniform;
+  std::map<uint16_t, std::pair<uint32_t, uint32_t>> studyBoundTextureSizes;
   bgfx::UniformHandle studyTextureSizesUniform;
   bgfx::UniformHandle textureBlendUniform;
   bgfx::UniformHandle textureCombineUniform;

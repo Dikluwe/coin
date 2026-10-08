@@ -190,12 +190,30 @@ pub struct CoinWgpuTexture {
 
 // Experimental study only: pack mode metadata into the GPU has-texture value.
 // The CPU ABI and native default remain unchanged. Anisotropic samplers stay native.
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum SamplingStudy { Native, Nearest, Fetch, Center, Fine, FineUniform }
+fn parse_sampling_study(mode: &str) -> SamplingStudy {
+    match mode { "nearest" => SamplingStudy::Nearest, "fetch" => SamplingStudy::Fetch,
+        "center" => SamplingStudy::Center, "fine" => SamplingStudy::Fine,
+        "fine_uniform" => SamplingStudy::FineUniform, _ => SamplingStudy::Native }
+}
+fn sampling_study() -> SamplingStudy {
+    static MODE: std::sync::OnceLock<SamplingStudy> = std::sync::OnceLock::new();
+    *MODE.get_or_init(|| parse_sampling_study(&std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default()))
+}
 fn study_sampler_flag(enabled: u32, s: &CoinWgpuSampler) -> f32 {
-    static MODE: std::sync::OnceLock<String> = std::sync::OnceLock::new();
-    let mode = MODE.get_or_init(|| std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default());
     if enabled == 0 { return 0.0; }
-    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center" || mode == "fine" || mode == "fine_uniform") && s.filter == 2)) { return 1.0; }
-    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "fine_uniform" {112} else if mode == "fine" {48} else if mode == "center" {16} else {0})) as f32
+    let mode = sampling_study();
+    if mode == SamplingStudy::Native || s.reserved > 0 || (mode != SamplingStudy::Fetch && s.filter != 2) { return 1.0; }
+    let flags = match mode { SamplingStudy::FineUniform =>112, SamplingStudy::Fine =>48,
+        SamplingStudy::Center =>16, _ =>0 };
+    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + flags)) as f32
+}
+// Native/instance pipelines bind the original prefix, not the study appendix.
+const NATIVE_UNIFORM_BYTES: usize = std::mem::offset_of!(CoinWgpuUniforms, study_texture_sizes);
+fn uniform_binding_bytes(instanced: bool) -> usize {
+    if instanced || sampling_study() == SamplingStudy::Native { NATIVE_UNIFORM_BYTES }
+    else { std::mem::size_of::<CoinWgpuUniforms>() }
 }
 
 #[repr(C)]
@@ -2188,7 +2206,8 @@ fn get_or_init_device_impl<'a>(
 
     let gl_depth_loads = adapter.get_info().backend == wgpu::Backend::Gl;
     let shader_source = |source: &str| shader_profile::depth_load_profile(
-        &shader_profile::texture_specialization(source), gl_depth_loads);
+        &shader_profile::texture_specialization(&shader_profile::sampling_profile(source,
+            sampling_study() != SamplingStudy::Native)), gl_depth_loads);
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
@@ -2198,7 +2217,7 @@ fn get_or_init_device_impl<'a>(
     let instanced_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin opaque instances"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
-            &format!("{}{}", instancing::shader_source(), weighted::FRAGMENT)).into()),
+            &format!("{}{}", shader_profile::sampling_profile(&instancing::shader_source(), false), weighted::FRAGMENT)).into()),
     });
 
     let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
@@ -2233,7 +2252,7 @@ fn get_or_init_device_impl<'a>(
         wgpu::BindGroupLayoutEntry { binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
             ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
                 has_dynamic_offset: true,
-                min_binding_size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64) }, count: None },
+                min_binding_size: std::num::NonZeroU64::new(uniform_binding_bytes(false) as u64) }, count: None },
         wgpu::BindGroupLayoutEntry { binding: 1, visibility: storage_visibility,
             ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
                 has_dynamic_offset: false, min_binding_size: None }, count: None },
@@ -2314,6 +2333,8 @@ fn get_or_init_device_impl<'a>(
     });
 
     let mut instanced_entries = layout_entries.clone();
+    instanced_entries[0].ty = wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
+        has_dynamic_offset: true, min_binding_size: std::num::NonZeroU64::new(NATIVE_UNIFORM_BYTES as u64) };
     instanced_entries.push(wgpu::BindGroupLayoutEntry {
         binding: 24, visibility: wgpu::ShaderStages::VERTEX,
         ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
@@ -3018,7 +3039,7 @@ fn get_or_create_pipeline<'a>(
                 label: Some("Coin untextured shader profile"),
                 source: wgpu::ShaderSource::Wgsl(shader_profile::depth_load_profile(
                     &shader_profile::texture_specialization(
-                        &format!("{}{}", source, weighted::FRAGMENT)), true).into()),
+                        &shader_profile::sampling_profile(&format!("{}{}", source, weighted::FRAGMENT), sampling_study() != SamplingStudy::Native)), true).into()),
             })
         }).clone()
     } else { selected_shader.clone() };
@@ -3657,7 +3678,7 @@ fn encode_frame(
         && !materials_slice.is_empty()
         && draws_slice.len() <= 512
         && mat_buffer_size.saturating_add(draws_slice.len()
-            .saturating_mul(std::mem::size_of::<CoinWgpuUniforms>())) <= 4 * 1024 * 1024
+            .saturating_mul(uniform_binding_bytes(instanced))) <= 4 * 1024 * 1024
     });
     let mut camera_bindings = ctx.camera_bindings.lock().unwrap();
     if !camera_binding_geometry.is_some_and(|geometry| camera_bindings.as_ref()
@@ -4041,7 +4062,9 @@ fn encode_frame(
     let uniform_records = draw_order.iter().try_fold(0usize, |count, item| {
         count.checked_add(if item.peel { peel_passes as usize } else { 1 })
     }).ok_or_else(|| (CoinWgpuStatus::InvalidArgument, "Draw uniform count overflow".into()))?;
-    let mut uniform_arena = uniform_arena::UniformArena::new(&ctx.device, uniform_records);
+    let uniform_size = uniform_binding_bytes(instanced);
+    let sampling_audit = std::env::var_os("COIN_SAMPLING_AUDIT").is_some();
+    let mut uniform_arena = uniform_arena::UniformArena::new(&ctx.device, uniform_records, uniform_size);
     // Resources are stable while the texture/RTT caches are locked. A disabled
     // unit always binds the same defaults; unused eight-shadow units are omitted.
     let mut draw_bindings: HashMap<(usize, [(u32, u32); 8], usize), wgpu::BindGroup> = HashMap::new();
@@ -4330,9 +4353,9 @@ fn encode_frame(
                         let (view, width, height) = if t.format == 1 {
                             let resource = rtt_cache.active.get(&t.content_digest)
                                 .expect("RTT token preflighted before encoding");
-                            (&resource.view, resource.width, resource.height)
+                            (&resource.view, if sampling_study()==SamplingStudy::FineUniform {resource.width} else {1}, if sampling_study()==SamplingStudy::FineUniform {resource.height} else {1})
                         } else if let Some(entry) = tex_cache.entries.get(&tk) {
-                            (&entry.view, entry.texture.width(), entry.texture.height())
+                            (&entry.view, if sampling_study()==SamplingStudy::FineUniform {entry.texture.width()} else {1}, if sampling_study()==SamplingStudy::FineUniform {entry.texture.height()} else {1})
                         } else { (&ctx.default_texture_view, 1, 1) };
                         (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
                          [width as f32, height as f32, 0.0, 0.0])
@@ -4549,7 +4572,7 @@ fn encode_frame(
                             binding: 0,
                             resource: wgpu::BindingResource::Buffer(wgpu::BufferBinding {
                                 buffer: u_buffer, offset: 0,
-                                size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64),
+                                size: std::num::NonZeroU64::new(uniform_size as u64),
                             }),
                         },
                         wgpu::BindGroupEntry {
@@ -4646,6 +4669,13 @@ fn encode_frame(
                 // Queue writes are submitted before this frame's command buffer.
                 // They cannot alter a preceding submission; wgpu keeps the
                 // underlying resources alive while that submission is in flight.
+                if sampling_audit {
+                    let hash=bytemuck::bytes_of(&uniforms)[..uniform_size].iter()
+                        .fold(0xcbf29ce484222325u64,|h,b|(h^u64::from(*b)).wrapping_mul(0x100000001b3));
+                    eprintln!("COIN_SAMPLING_AUDIT mode={:?} revision={} instanced={} instances={} draws={} texture_units={} uniform_bytes={} uniform_hash={:016x}",
+                        sampling_study(),frame_revision,instanced,instances_slice.len(),draws_slice.len(),
+                        layers.iter().filter(|x|x.enabled!=0).count(),uniform_size,hash);
+                }
                 let (chunk, uniform_offset) = uniform_arena.push(&ctx.device, &uniforms);
                 let units = std::array::from_fn(|unit| {
                     let layer = &layers[unit];
@@ -5920,6 +5950,12 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
 
+        // Dedicated synchronous diagnostic. Ordinary window timings allocate
+        // no queries/readback and never wait for this sampling audit.
+        let audit_probe = (trace_phases && std::env::var_os("COIN_SAMPLING_AUDIT").is_some()
+            && std::env::var("COIN_WGPU_GPU_TIMESTAMPS").as_deref()==Ok("1")
+            && dev.device.features().contains(wgpu::Features::TIMESTAMP_QUERY | wgpu::Features::TIMESTAMP_QUERY_INSIDE_ENCODERS))
+            .then(|| GpuTimestampProbe::new(&dev.device));
         let profile_acquired = trace_phases.then(std::time::Instant::now);
         // 9. Encode frame into acquired texture view
         let color_view = surface_texture
@@ -5950,7 +5986,7 @@ fn coin_wgpu_surface_submit_internal(
             None, // window shadows remain preflight-rejected
             next_scene.as_ref().map(|scene| &scene.geometry),
             instances_slice, instance_ranges,
-            None,
+            audit_probe.as_ref().map(|p|&p.queries),
             &color_view,
             record.color_format,
             depth_view,
@@ -6003,6 +6039,13 @@ fn coin_wgpu_surface_submit_internal(
         let sub_serial = GLOBAL_SUBMISSION_SERIAL.fetch_add(1, Ordering::SeqCst);
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = dev.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
+        if let Some(probe)=audit_probe.as_ref() {
+            let mut resolve=dev.device.create_command_encoder(&wgpu::CommandEncoderDescriptor{label:Some("Coin sampling audit resolve")});
+            resolve.resolve_query_set(&probe.queries,0..2,&probe.resolved,0);
+            resolve.copy_buffer_to_buffer(&probe.resolved,0,&probe.readback,0,16);
+            commands.push(resolve.finish());
+        }
+        let command_buffers_count=commands.len();
         dev.queue.submit(commands);
         let profile_submitted = trace_phases.then(std::time::Instant::now);
         let completed = dev.completed_serial.clone();
@@ -6041,6 +6084,20 @@ fn coin_wgpu_surface_submit_internal(
             drop(mapped);
             staging.unmap();
             captured_rgba = Some(pixels);
+        }
+        if let Some(probe)=audit_probe.as_ref() {
+            let (sender,receiver)=std::sync::mpsc::channel();
+            probe.readback.slice(..16).map_async(wgpu::MapMode::Read,move|r|{let _=sender.send(r);});
+            let _=dev.device.poll(wgpu::Maintain::Wait);
+            if matches!(receiver.try_recv(),Ok(Ok(()))) {
+                let mapped=probe.readback.slice(..16).get_mapped_range();
+                let a=u64::from_ne_bytes(mapped[..8].try_into().unwrap());
+                let b=u64::from_ne_bytes(mapped[8..16].try_into().unwrap());
+                if let Some(ticks)=b.checked_sub(a) {
+                    eprintln!("COIN_SAMPLING_AUDIT_GPU status=ok render_ms={:.6} period_ns={:.6}",ticks as f64*dev.queue.get_timestamp_period() as f64/1_000_000.,dev.queue.get_timestamp_period());
+                } else {eprintln!("COIN_SAMPLING_AUDIT_GPU status=invalid_ticks");}
+                drop(mapped);probe.readback.unmap();
+            } else {eprintln!("COIN_SAMPLING_AUDIT_GPU status=map_failed");}
         }
         let profile_present_begin = trace_phases.then(std::time::Instant::now);
         surface_texture.present();
@@ -6093,7 +6150,7 @@ fn coin_wgpu_surface_submit_internal(
             let capture_bytes = if readback_rgba.is_null() { 0 } else {
                 u64::from((f.width * 4 + 255) & !255) * u64::from(f.height)
             };
-            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} queue_submit_ms={:.6} completion_registration_ms={:.6} capture_readback_ms={:.6} present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing=unavailable",
+            eprintln!("COIN_RENDER_PHASE rust_surface_cpu total_ms={:.6} validation_ms={:.6} acquire_ms={:.6} encode_ms={:.6} submit_present_ms={:.6} queue_submit_ms={:.6} completion_registration_ms={:.6} capture_readback_ms={:.6} present_ms={:.6} capture_requested={} capture_staging_bytes={} queue_submissions=1 command_buffers={} gpu_timing={}",
                 duration_ms(start, presented), duration_ms(start, validated),
                 duration_ms(validated, acquired), duration_ms(acquired, encoded),
                 duration_ms(encoded, presented),
@@ -6102,7 +6159,7 @@ fn coin_wgpu_surface_submit_internal(
                 duration_ms(profile_notified.unwrap(), profile_present_begin.unwrap()),
                 duration_ms(profile_present_begin.unwrap(), presented),
                 u8::from(!readback_rgba.is_null()),
-                capture_bytes, if readback_rgba.is_null() { 1 } else { 2 });
+                capture_bytes, command_buffers_count, if audit_probe.is_some() {"sampling_audit"} else {"unavailable"});
             trace_owned_resources(dev, "window", f.width, f.height, capture_bytes, 0);
             let info = dev.adapter.get_info();
             let renderer = match info.backend {

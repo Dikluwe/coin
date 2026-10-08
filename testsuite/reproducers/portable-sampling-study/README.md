@@ -110,3 +110,40 @@ reativado com `xset dpms force on`, sem alterar preferências ou desbloquear a
 sessão. Medições cujo monitor não permaneceu On são excluídas do agregador;
 o ensaio anterior com DPMS Off foi preservado separadamente. `--resume` evita
 repetir logs concluídos quando uma configuração interrompe uma campanha.
+
+## Separação do caminho nativo — 2026-10-08
+
+O laboratório agora compila native sem helpers de sampling nem o apêndice de
+128 bytes. Wgpu liga o prefixo original de3040 bytes (stride3072 quando o
+alinhamento é256); o perfil experimental usa3168/3328. Instancing sem textura
+sempre usa o perfil nativo, inclusive sob fine_uniform. BGFX compila fragmentos
+nativos e experimentais separados, não cria/envia o uniforme extra no nativo
+e remove o apêndice dos draws. Só fine_uniform consulta os tamanhos ligados.
+O seletor continua privado e fixo por processo; isto ainda não é API pública.
+
+```sh
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,fine_uniform --resources --output-name quality-resources
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,fine_uniform --shadow --output-name quality-shadow
+python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind window --modes baseline,original-native,native,fine_uniform
+python3 testsuite/reproducers/portable-sampling-study/investigate_native.py --artifacts "$study_artifacts" --phase before
+python3 testsuite/reproducers/portable-sampling-study/investigate_native.py --artifacts "$study_artifacts" --phase after --candidate-build "$study_artifacts/build-wgpu"
+python3 testsuite/reproducers/portable-sampling-study/analyze_native.py --artifacts "$study_artifacts"
+```
+
+Antes de rebuild, copie o executável e suas bibliotecas para original-study/bin
+e original-study/lib, registrando hashes/revisão. O runner fixa LD_LIBRARY_PATH
+por filho; sem isso o RUNPATH absoluto do executável copiado carrega o rebuild.
+O baseline usa os builds de produção registrados nos comandos. O controle do
+milhão executa todas as seis permutações dos três modos (18 processos por fase),
+45 warmups/150 quadros e telemetria NVIDIA. --resume preserva o ensaio rejeitado
+por DPMS/erro em rejected-monitor-off e repete apenas controles inválidos.
+
+COIN_SAMPLING_AUDIT imprime hash/bytes dos uniformes, instâncias, draws e
+unidades. Para a sonda GPU de janela, habilite também COIN_WGPU_TRACE_PHASES=1
+e COIN_WGPU_GPU_TIMESTAMPS=1. Requer TIMESTAMP_QUERY e
+TIMESTAMP_QUERY_INSIDE_ENCODERS; a saída COIN_SAMPLING_AUDIT_GPU mede o trecho
+do encoder. Resolve/copia timestamps e espera sincronicamente: use processos
+separados e exclua-os das medianas normais de render/present. Não é medição
+de latência de tela nem profiler assíncrono de produção.
+
+Relatório: docs/coin-render-native-sampling-path-study-20261008.md.
