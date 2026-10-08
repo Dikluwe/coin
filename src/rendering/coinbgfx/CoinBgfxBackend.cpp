@@ -727,7 +727,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     alphaTestUniform(BGFX_INVALID_HANDLE),
     clipMetaUniform(BGFX_INVALID_HANDLE), clipPlanesUniform(BGFX_INVALID_HANDLE),
     textureSampler(BGFX_INVALID_HANDLE), fogColorModeUniform(BGFX_INVALID_HANDLE),
-    fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE),
+    fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE), studyTextureSizesUniform(BGFX_INVALID_HANDLE),
     textureBlendUniform(BGFX_INVALID_HANDLE), textureCombineUniform(BGFX_INVALID_HANDLE),
     ambientLightUniform(BGFX_INVALID_HANDLE), lightCountUniform(BGFX_INVALID_HANDLE),
     lightPositionTypeUniform(BGFX_INVALID_HANDLE),
@@ -925,6 +925,7 @@ CoinBgfxBackend::destroyResources()
     if (bgfx::isValid(handle)) bgfx::destroy(handle);
   if (bgfx::isValid(this->fogColorModeUniform)) bgfx::destroy(this->fogColorModeUniform);
   if (bgfx::isValid(this->fogRangeUniform)) bgfx::destroy(this->fogRangeUniform);
+  if (bgfx::isValid(this->studyTextureSizesUniform)) bgfx::destroy(this->studyTextureSizesUniform);
   if (bgfx::isValid(this->textureParamsUniform)) bgfx::destroy(this->textureParamsUniform);
   if (bgfx::isValid(this->textureBlendUniform)) bgfx::destroy(this->textureBlendUniform);
   if (bgfx::isValid(this->textureCombineUniform)) bgfx::destroy(this->textureCombineUniform);
@@ -1266,6 +1267,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   }
   this->fogColorModeUniform = bgfx::createUniform("u_fogColorMode", bgfx::UniformType::Vec4);
   this->fogRangeUniform = bgfx::createUniform("u_fogRange", bgfx::UniformType::Vec4);
+  this->studyTextureSizesUniform = bgfx::createUniform("u_studyTextureSizes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
   this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
   this->screenDoorUniform = bgfx::createUniform("u_screenDoor", bgfx::UniformType::Vec4);
   this->alphaTestUniform = bgfx::createUniform("u_alphaTest", bgfx::UniformType::Vec4);
@@ -1290,7 +1292,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   if (!textureUniformsValid || !bgfx::isValid(this->textureSampler) ||
       !bgfx::isValid(this->coinDepthUniform) ||
       !bgfx::isValid(this->alphaTestUniform) ||
-      !bgfx::isValid(this->textureParamsUniform) ||
+      !bgfx::isValid(this->studyTextureSizesUniform) || !bgfx::isValid(this->textureParamsUniform) ||
       !bgfx::isValid(this->textureBlendUniform) ||
       !bgfx::isValid(this->textureCombineUniform) ||
       !bgfx::isValid(this->ambientLightUniform) ||
@@ -1659,6 +1661,8 @@ CoinBgfxBackend::bindDrawTexture(
 {
   float params[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
   float blend[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
+  float sizes[COIN_RENDER_MAX_TEXTURE_UNITS][4];
+  std::memcpy(sizes, draw.studyTextureSizes, sizeof(sizes));
   for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
     CoinBgfxDraw::TextureLayer layer;
     if (unit == 0) {
@@ -1680,13 +1684,15 @@ CoinBgfxBackend::bindDrawTexture(
     bool directRenderTarget = false;
     if (layer.enabled) for (const auto & resource : this->directTextures) {
       const auto direct = bgfx::getTexture(resource.frameBuffer, 0);
-      if (bgfx::isValid(direct) && direct.idx == texture.idx) directRenderTarget = true;
+      if (bgfx::isValid(direct) && direct.idx == texture.idx) {
+        directRenderTarget = true; sizes[unit][0] = float(resource.width); sizes[unit][1] = float(resource.height);
+      }
     }
     params[unit][0] = layer.enabled ? 1.0f : 0.0f;
     static const std::string study = [] { const char * p = std::getenv("COIN_SAMPLING_STUDY"); return std::string(p ? p : ""); }();
     if (layer.enabled && layer.maxAnisotropy == 1 &&
-        (study == "fetch" || ((study == "nearest" || study == "center") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
-      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "center" ? 16 : 0)));
+        (study == "fetch" || ((study == "nearest" || study == "center" || study == "fine" || study == "fine_uniform") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
+      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "fine_uniform" ? 112 : study == "fine" ? 48 : study == "center" ? 16 : 0)));
 
     params[unit][1] = static_cast<float>(layer.model);
     params[unit][2] = directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f;
@@ -1696,6 +1702,7 @@ CoinBgfxBackend::bindDrawTexture(
       unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, 0, 1, 0,
       CoinRenderTextureSamplingCore::mipFilter(layer.filter) ? UINT8_MAX : 1, flags);
   }
+  bgfx::setUniform(this->studyTextureSizesUniform, sizes, COIN_RENDER_MAX_TEXTURE_UNITS);
   bgfx::setUniform(this->textureParamsUniform, params, COIN_RENDER_MAX_TEXTURE_UNITS);
   bgfx::setUniform(this->textureBlendUniform, blend, COIN_RENDER_MAX_TEXTURE_UNITS);
   bgfx::setUniform(this->textureCombineUniform, draw.textureCombines, COIN_RENDER_MAX_TEXTURE_UNITS * 4);

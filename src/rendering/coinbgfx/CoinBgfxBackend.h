@@ -214,6 +214,7 @@ private:
   bgfx::UniformHandle fogColorModeUniform;
   bgfx::UniformHandle fogRangeUniform;
   bgfx::UniformHandle textureParamsUniform;
+  bgfx::UniformHandle studyTextureSizesUniform;
   bgfx::UniformHandle textureBlendUniform;
   bgfx::UniformHandle textureCombineUniform;
   bgfx::UniformHandle ambientLightUniform;

@@ -194,8 +194,8 @@ fn study_sampler_flag(enabled: u32, s: &CoinWgpuSampler) -> f32 {
     static MODE: std::sync::OnceLock<String> = std::sync::OnceLock::new();
     let mode = MODE.get_or_init(|| std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default());
     if enabled == 0 { return 0.0; }
-    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center") && s.filter == 2)) { return 1.0; }
-    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "center" {16} else {0})) as f32
+    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center" || mode == "fine" || mode == "fine_uniform") && s.filter == 2)) { return 1.0; }
+    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "fine_uniform" {112} else if mode == "fine" {48} else if mode == "center" {16} else {0})) as f32
 }
 
 #[repr(C)]
@@ -265,6 +265,8 @@ pub struct CoinWgpuUniforms {
     pub shadow_meta_fourth: [f32; 4],
     pub shadow_falloff_fourth: [f32; 4],
     pub alpha_test: [f32; 4],
+    // Private GPU block, never part of the transported C ABI. Actual bound extents.
+    pub study_texture_sizes: [[f32; 4]; 8],
 }
 
 #[repr(C)]
@@ -4309,7 +4311,7 @@ fn encode_frame(
                     .iter()
                     .map(|layer| {
                         if layer.enabled == 0 {
-                            return (&ctx.default_texture_view, &ctx.default_sampler);
+                            return (&ctx.default_texture_view, &ctx.default_sampler, [1.0, 1.0, 0.0, 0.0]);
                         }
                         let t = &textures_slice[layer.texture_slot as usize];
                         let s = &samplers_slice[layer.sampler_slot as usize];
@@ -4325,23 +4327,15 @@ fn encode_frame(
                             filter: s.filter,
             max_anisotropy_minus_one: s.reserved,
                         };
-                        let view = if t.format == 1 {
-                            &rtt_cache
-                                .active
-                                .get(&t.content_digest)
-                                .expect("RTT token preflighted before encoding")
-                                .view
-                        } else {
-                            tex_cache
-                                .entries
-                                .get(&tk)
-                                .map(|e| &e.view)
-                                .unwrap_or(&ctx.default_texture_view)
-                        };
-                        (
-                            view,
-                            samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
-                        )
+                        let (view, width, height) = if t.format == 1 {
+                            let resource = rtt_cache.active.get(&t.content_digest)
+                                .expect("RTT token preflighted before encoding");
+                            (&resource.view, resource.width, resource.height)
+                        } else if let Some(entry) = tex_cache.entries.get(&tk) {
+                            (&entry.view, entry.texture.width(), entry.texture.height())
+                        } else { (&ctx.default_texture_view, 1, 1) };
+                        (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
+                         [width as f32, height as f32, 0.0, 0.0])
                     })
                     .collect();
                 let extra_texture_matrices = std::array::from_fn(|unit| {
@@ -4394,6 +4388,7 @@ fn encode_frame(
                 });
                 let uniforms = CoinWgpuUniforms {
                     alpha_test: [st.alpha_test_function as f32, st.alpha_test_reference, 0.0, 0.0],
+                    study_texture_sizes: std::array::from_fn(|unit| texture_bindings[unit].2),
                     model_view_projection: mvp,
                     model_view: mv,
                     normal_matrix: nm,
@@ -4562,7 +4557,7 @@ fn encode_frame(
                             resource: materials_buffer.as_entire_binding(),
                         },
                     ];
-                    for (unit, (view, sampler)) in texture_bindings.iter().enumerate() {
+                    for (unit, (view, sampler, _size)) in texture_bindings.iter().enumerate() {
                         if eight_shadows && unit >= 4 { continue; }
                         entries.push(wgpu::BindGroupEntry {
                             binding: 2 + 2 * unit as u32,

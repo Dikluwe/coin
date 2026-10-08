@@ -8,6 +8,10 @@ Nenhuma mudança em Coin original, nenhum relaxamento dos gates.
 - `native`/ausente: sampler nativo.
 - `nearest`: reconstrução nearest/trilinear por fetch, só filtro 2.
 - `fetch`: reconstrução de nearest/bilinear/trilinear isotrópica.
+- `fine`: centro no mip `floor(LOD)`, uma amostra nearest/trilinear em POT;
+  NPOT usa os dois centros. Só filtro 2 isotrópico, magnificação linear.
+- `fine_uniform`: mesmo algoritmo, dimensões dos mips derivadas de uniforme com
+  o tamanho **do recurso ligado**, inclusive RTT.
 - `center`: LOD explícito, escolha `floor` do texel, centros com sampler nativo,
   mistura explícita de dois mips; só filtro 2. Magnificação permanece linear.
 
@@ -61,9 +65,48 @@ registrar native/centro/fetch e identificação real da GPU.
 ## Candidatos de uma amostra — 2026-10-08
 
 `base_probe.cpp` e `run_base.py` são sondas independentes EGL/OpenGL, sem Coin.
-`base`/`base_uniform`/`fine` são nomes destas sondas e não seletores implementados
-na bridge. Tamanho base não basta para correspondência segura POT em mips grossos
+`base`/`base_uniform` são nomes exclusivos destas sondas. `fine`/`fine_uniform`
+também foram integrados na bridge nesta continuação isolada. Tamanho base não basta para correspondência segura POT em mips grossos
 na AMD; `fine` centraliza no mip `floor(LOD)`. As variantes usam dois centros em
 NPOT. Consulte `docs/coin-render-base-sampling-counterexample-20261008.md`.
 O controle `--derived` calcula LOD8 das UV originais e valida todos os pixels.
 Não se mediu desempenho nem magnificação nesta sonda; são próximos controles.
+
+
+## Campanha integrada fine/fine_uniform
+
+```sh
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform --deep --output-name quality-deep
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform --rtt-study --output-name quality-direct
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform --viewport-study --output-name quality-viewport
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes native,center,fine,fine_uniform
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes fine,fine_uniform --extra --output-name quality-extra
+python3 testsuite/reproducers/portable-sampling-study/run.py --artifacts "$study_artifacts" --modes fine_uniform --resources --output-name quality-resources
+c++ -O2 -std=c++17 testsuite/reproducers/portable-sampling-study/gpu_benchmark.cpp -o "$study_artifacts/gpu-benchmark-fine" -lEGL -lOpenGL
+python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind gpu
+python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind window
+python3 testsuite/reproducers/portable-sampling-study/benchmark_fine.py --artifacts "$study_artifacts" --kind city --backends wgpu
+python3 testsuite/reproducers/portable-sampling-study/summarize_fine.py --artifacts "$study_artifacts"
+```
+
+`--deep`: 162 casos por processo, mip profundo/fractional, magnificação, wrap,
+clamp, unidade0/7/ambas, POT quadrado/retangular, NPOT, RGBA8/SRGB/HDR/BC3.
+`--rtt-study`: 48 consumidores privados explícitos filter2 com recursos diretos
+RGBA8/RGBA16F e mudança de tamanho. SoSceneTexture2 público usa linear/trilinear
+(filter1/3), e não ativa fine: o gate público RTT continua separado e intacto.
+GPU/EGL: modos0/3/5/6 = native/center/fine/fine_uniform; 30 warmups, 5×60 draws.
+Janela: baseline da produção, native do estudo e três candidatos, ordem direta
+mais inversa; 45 warmups e150 quadros medidos, wgpu/BGFX Vulkan AMD/NVIDIA.
+`--viewport-study` repete36 casos POT/NPOT com viewport24×18 na origem(4,5),
+comparando o interior físico sem mudar os gates.
+Os CSV contêm warmups: o agregador exclui `warmup=1`, mede `render_present_ms`.
+Cenas POT128² e NPOT129×127, 1/8 unidades. EGL reutiliza uma imagem1024² entre
+as unidades; cache quente, não representa streaming nem texturas gerais.
+Não execute workloads GPU simultaneamente. As cenas e baseline paths são locais:
+`scenes-fine`, builds wgpu/BGFX e executável EGL devem existir antes da campanha.
+
+Antes/depois de cada benchmark de janela, registra-se DPMS. Monitor Off é
+reativado com `xset dpms force on`, sem alterar preferências ou desbloquear a
+sessão. Medições cujo monitor não permaneceu On são excluídas do agregador;
+o ensaio anterior com DPMS Off foi preservado separadamente. `--resume` evita
+repetir logs concluídos quando uma configuração interrompe uma campanha.

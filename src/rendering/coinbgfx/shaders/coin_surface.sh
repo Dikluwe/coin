@@ -12,6 +12,7 @@ SAMPLER2D(s_texColor6, 8);
 SAMPLER2D(s_texColor7, 9);
 #endif
 uniform vec4 u_texParams[8];
+uniform vec4 u_studyTextureSizes[8];
 uniform vec4 u_texBlend[8];
 uniform vec4 u_texCombine[32];
 uniform vec4 u_fogColorMode;
@@ -37,11 +38,13 @@ vec4 studyLevel(sampler2D t, vec2 uv, int level, bool linearFilter, int flags) {
   return studyLerp(studyLerp(studyFetch(t, lo, level, flags), studyFetch(t, lo+ivec2(1,0), level, flags), f.x),
              studyLerp(studyFetch(t, lo+ivec2(0,1), level, flags), studyFetch(t, lo+ivec2(1,1), level, flags), f.x), f.y);
 }
-vec4 studySample(sampler2D t, vec2 uv, float enabled) {
-  vec2 n = vec2(textureSize(t, 0));
-  vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
+vec4 studySample(sampler2D t, vec2 uv, float enabled, vec4 suppliedSize) {
   if (enabled < 1.5) return texture2D(t, uv);
   int flags = int(enabled/2.0)-1, filterKind = int(mod(float(flags),4.0));
+  bool supplied = flags >= 64;
+  vec2 n = suppliedSize.xy;
+  if (!supplied) n = vec2(textureSize(t, 0));
+  vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
   vec2 boundedUv = fract(uv);
   if (mod(floor(float(flags)/4.0),2.0)>0.5) boundedUv.x=clamp(uv.x,0.0,1.0);
   if (mod(floor(float(flags)/8.0),2.0)>0.5) boundedUv.y=clamp(uv.y,0.0,1.0);
@@ -53,7 +56,14 @@ vec4 studySample(sampler2D t, vec2 uv, float enabled) {
   int hi=min(lo+1,maximum);
   if (flags>=16) {
     if(lod<=0.0)return texture2DLod(t,uv,0.0);
-    vec2 a=vec2(textureSize(t,lo)),b=vec2(textureSize(t,hi));
+    ivec2 ni = ivec2(n);
+    vec2 a = vec2(max(ni >> lo, ivec2(1)));
+    if (!supplied) a = vec2(textureSize(t,lo));
+    bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
+    bool fine = mod(floor(float(flags)/32.0),2.0) > 0.5;
+    if(fine && pot) return texture2DLod(t,(floor(boundedUv*a)+0.5)/a,lod);
+    vec2 b = vec2(max(ni >> hi, ivec2(1)));
+    if (!supplied) b = vec2(textureSize(t,hi));
     return studyLerp(texture2DLod(t,(floor(boundedUv*a)+0.5)/a,float(lo)),texture2DLod(t,(floor(boundedUv*b)+0.5)/b,float(hi)),fract(lod));
   }
   return studyLerp(studyLevel(t,boundedUv,lo,linearFilter,flags),studyLevel(t,boundedUv,hi,linearFilter,flags),fract(lod));
@@ -134,22 +144,22 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec3 v_texcoord0, vec3 v_v
   if (u_screenDoor.w > 0.5) color.a = 1.0;
   vec4 primary = color;
   if (u_texParams[0].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0]), u_texParams[0].x), u_texParams[0], u_texBlend[0], 0);
+    color = coinTextureProgram(primary, color, studySample(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0]), u_texParams[0].x, u_studyTextureSizes[0]), u_texParams[0], u_texBlend[0], 0);
 #ifndef COIN_SHADOW_SURFACE
   if (u_texParams[1].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1]), u_texParams[1].x), u_texParams[1], u_texBlend[1], 1);
+    color = coinTextureProgram(primary, color, studySample(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1]), u_texParams[1].x, u_studyTextureSizes[1]), u_texParams[1], u_texBlend[1], 1);
   if (u_texParams[2].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2]), u_texParams[2].x), u_texParams[2], u_texBlend[2], 2);
+    color = coinTextureProgram(primary, color, studySample(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2]), u_texParams[2].x, u_studyTextureSizes[2]), u_texParams[2], u_texBlend[2], 2);
   if (u_texParams[3].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3]), u_texParams[3].x), u_texParams[3], u_texBlend[3], 3);
+    color = coinTextureProgram(primary, color, studySample(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3]), u_texParams[3].x, u_studyTextureSizes[3]), u_texParams[3], u_texBlend[3], 3);
   if (u_texParams[4].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4]), u_texParams[4].x), u_texParams[4], u_texBlend[4], 4);
+    color = coinTextureProgram(primary, color, studySample(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4]), u_texParams[4].x, u_studyTextureSizes[4]), u_texParams[4], u_texBlend[4], 4);
   if (u_texParams[5].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5]), u_texParams[5].x), u_texParams[5], u_texBlend[5], 5);
+    color = coinTextureProgram(primary, color, studySample(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5]), u_texParams[5].x, u_studyTextureSizes[5]), u_texParams[5], u_texBlend[5], 5);
   if (u_texParams[6].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6]), u_texParams[6].x), u_texParams[6], u_texBlend[6], 6);
+    color = coinTextureProgram(primary, color, studySample(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6]), u_texParams[6].x, u_studyTextureSizes[6]), u_texParams[6], u_texBlend[6], 6);
   if (u_texParams[7].x > 0.5)
-    color = coinTextureProgram(primary, color, studySample(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7]), u_texParams[7].x), u_texParams[7], u_texBlend[7], 7);
+    color = coinTextureProgram(primary, color, studySample(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7]), u_texParams[7].x, u_studyTextureSizes[7]), u_texParams[7], u_texBlend[7], 7);
 #endif
   coinAlphaTest(color.a);
   float mode = u_fogColorMode.w;

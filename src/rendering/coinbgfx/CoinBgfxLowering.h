@@ -113,6 +113,7 @@ struct CoinBgfxDraw {
   uint32_t maxAnisotropy = 1;
   };
   TextureLayer extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+  float studyTextureSizes[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
   CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
   float fogColorMode[4] = {};
   float fogRange[4] = {};

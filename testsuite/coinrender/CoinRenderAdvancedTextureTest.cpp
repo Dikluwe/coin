@@ -215,6 +215,168 @@ int main(int argc, char **argv) {
     }
     return passed;
   };
+  if (argc > 2 && std::string(argv[2]) == "--sampling-rtt-study") {
+    // Public SoSceneTexture2 always uses linear/trilinear. This explicitly
+    // authored private consumer tests filter2 against a direct GPU resource.
+    CoinRenderOptions directOptions;directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    directOptions.renderer=selectedRenderer;
+    std::unique_ptr<CoinRenderTarget> direct(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),directOptions));
+    unsigned cases=0;
+    for(F format : {F::RGBA8_LINEAR,F::RGBA16_FLOAT}) for(unsigned unit : {0u,7u})
+    for(auto size : {SbVec2i32(512,128),SbVec2i32(1024,64),SbVec2i32(128,256),SbVec2i32(512,128)})
+    for(float step : {1.f/16384,1.f/16,3.f/32}) {
+      auto root=base;
+      auto &image=root.textures[0];image.width=size[0];image.height=size[1];image.format=format;
+      image.pixelsRgba.clear();image.mipmapsRgba.clear();image.mipmapped=true;image.producerId=1;
+      root.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+      for(auto &vertex:root.vertices) {
+        vertex.texcoord[0]=.49999237060546875f+((vertex.position[0]+1)*16-15.5f)*step;
+        vertex.texcoord[1]=.53125f;
+        if(unit)for(unsigned c=0;c<2;++c)vertex.extraTexcoords[6][c]=vertex.texcoord[c];
+      }
+      for(auto &state:root.renderStates)if(unit) {
+        auto layer=coin_render_texture_unit(state,0);state.hasTexture=false;state.extraTextures[6]=layer;
+      }
+      CoinRenderRttProducer producer;producer.sourceRevision=++revision;
+      producer.size=size;producer.format=format;producer.plan=base;producer.plan.revision=revision;
+      for(auto &draw:producer.plan.draws)draw.sourceRevision=revision;
+      for(auto &viewport:producer.plan.viewports){viewport.width=size[0];viewport.height=size[1];}
+      // Captured square projection and clip-space quad deliberately fill the
+      // rectangular target. This isolates sampling from camera aspect policy.
+      auto &source=producer.plan.textures[0];source.width=128;source.height=16;source.format=F::RGBA8_LINEAR;
+      source.mipmapped=false;source.mipmapsRgba.clear();source.pixelsRgba.assign(128*16*4,255);
+      for(unsigned y=0;y<16;++y)for(unsigned x=0;x<128;++x)for(unsigned c=0;c<3;++c)
+        source.pixelsRgba[(y*128+x)*4+c]=x<64?40:160;
+      producer.plan.samplers[0].filter=CoinRenderTextureFilter::NEAREST;
+      CoinRenderRttPlan graph(COIN_RENDER_SCENE_TEXTURE_DIRECT);uint64_t id;std::string diagnostic;
+      ok &= check(graph.append(producer,id,diagnostic),"direct half-band capture "+diagnostic);
+      CoinRenderRttExecution execution(direct->getPimpl().operator->(),directOptions);CoinRenderFramePlan resolved;
+      auto result=execution.prepare(graph,root,resolved);
+      ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,"direct half-band prepare "+result.diagnostic);
+      if(result.status!=CoinRenderBackendStatus::SUCCESS)continue;
+      resolved.revision=++revision;for(auto &draw:resolved.draws)draw.sourceRevision=revision;
+      result=direct->getPimpl()->executeFrame(resolved);
+      ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,"direct half-band consumer "+result.diagnostic);
+      std::vector<uint8_t> pixels;direct->readbackRGBA(pixels);
+      double mae=0;int maximum=0;unsigned samples=0;
+      if(pixels.size()==32*32*4)for(int y=2;y<30;++y)for(int x=2;x<30;++x)for(int c=0;c<3;++c) {
+        const double uv=.49999237060546875+(x-15)*double(step);const double wrapped=uv-std::floor(uv);
+        double expected=wrapped<.5?40:160;
+        if(step==1.f/16384) {
+          const double at=wrapped*size[0]-.5;const int left=int(std::floor(at));const double f=at-left;
+          const auto band=[&](int at){at=(at%size[0]+size[0])%size[0];return at<size[0]/2?40.:160.;};
+          expected=band(left)+(band(left+1)-band(left))*f;
+        }
+        const int delta=std::abs(int(pixels[(y*32+x)*4+c])-int(std::lround(expected)));
+        mae+=delta;maximum=std::max(maximum,delta);++samples;
+      }
+      if(samples)mae/=samples;
+      const std::string label="direct-filter2/"+std::to_string(size[0])+"x"+std::to_string(size[1])+"/format-"+
+        std::to_string(unsigned(format))+"/unit-"+std::to_string(unit)+"/step-"+std::to_string(step);
+      std::cout<<label<<" samples="<<samples<<" mae="<<mae<<" maximum="<<maximum<<'\n';
+      ok &= check(samples==28*28*3 && mae<=1.5 && maximum<=4,label+" scalar oracle");++cases;
+    }
+    std::cout<<"direct filter2 sampling cases="<<cases<<" controls="<<controls<<" result="<<(ok?"PASS":"FAIL")<<'\n';
+    return ok?0:1;
+  }
+  const bool viewportStudy=argc>2 && std::string(argv[2])=="--sampling-viewport-study";
+  if (viewportStudy || (argc > 2 && std::string(argv[2]) == "--sampling-deep-study")) {
+    // Independent half-band oracle at integer/fractional deep LOD. Original UV
+    // derivatives select LOD8 at width4096; source coordinates lie just below
+    // the half-texture boundary. Native AMD rounding chose the opposite band.
+    unsigned cases = 0;
+    for (auto size : {std::pair<unsigned,unsigned>{128,128}, {512,512},
+                     {4096,4096}, {4096,128}, {511,257}})
+    for (F format : {F::RGBA8_LINEAR, F::RGBA8_SRGB, F::RGBA16_FLOAT,
+                     F::BC3_LINEAR, F::BC3_SRGB}) {
+      // The larger square is the precision regression, typed formats use the
+      // rectangular control to bound memory while preserving the same LOD.
+      if (format != F::RGBA8_LINEAR && size != std::make_pair(4096u,128u)) continue;
+      if(viewportStudy && (format!=F::RGBA8_LINEAR || (size!=std::make_pair(4096u,128u) && size!=std::make_pair(511u,257u))))continue;
+      auto authored = base;
+      auto &image = authored.textures[0];
+      image.width=size.first; image.height=size.second; image.format=format;
+      image.mipmapped=false; image.mipmapsRgba.clear();
+      image.pixelsRgba.assign(Format::levelBytes(image.width,image.height,format),0);
+      const auto fill = [&](std::vector<uint8_t> &bytes,unsigned width,unsigned height) {
+        if (Format::compressed(format)) {
+          // Independently authored BC3 blocks: opaque RGB565 endpoints and
+          // selector zero; each mip is explicit, with no encode dependency.
+          for(unsigned y=0;y<(height+3)/4;++y) for(unsigned x=0;x<(width+3)/4;++x) {
+            auto *b=bytes.data()+(y*((width+3)/4)+x)*16;
+            b[0]=255; Format::write16(b+8,x*4<width/2?0x2800:0xa000);
+          }
+        } else for(unsigned y=0;y<height;++y) for(unsigned x=0;x<width;++x) {
+          const uint8_t band=x<width/2?40:160;
+          const size_t i=size_t(y)*width+x;
+          if(format==F::RGBA16_FLOAT) {
+            for(unsigned c=0;c<4;++c) Format::write16(bytes.data()+i*8+c*2,
+              Format::toHalf(c==3?1.f:float(band)/255.f));
+          } else {
+            for(unsigned c=0;c<3;++c) bytes[i*4+c]=band;
+            bytes[i*4+3]=255;
+          }
+        }
+      };
+      fill(image.pixelsRgba,image.width,image.height);
+      if (Format::compressed(format)) {
+        unsigned w=image.width,h=image.height;
+        while(w>1 || h>1) {
+          w=std::max(1u,w/2);h=std::max(1u,h/2);
+          std::vector<uint8_t> level(Format::levelBytes(w,h,format),0);
+          fill(level,w,h);image.mipmapsRgba.insert(image.mipmapsRgba.end(),level.begin(),level.end());
+        }
+        image.mipmapped=true;
+      } else ok &= check(Sampling::generate(image),"deep authored complete chain");
+      for(float step : {1.f/16384,1.f/16,3.f/32}) for(unsigned unit : {0u,7u,8u})
+      for(CoinRenderTextureWrap wrap : {CoinRenderTextureWrap::REPEAT,CoinRenderTextureWrap::CLAMP}) {
+        auto frame=authored;
+        if(viewportStudy)for(auto &viewport:frame.viewports){viewport.x=4;viewport.y=5;viewport.width=24;viewport.height=18;}
+        const unsigned x0=viewportStudy?6:2,x1=viewportStudy?26:30;
+        const unsigned y0=viewportStudy?11:2,y1=viewportStudy?25:30;
+        frame.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+        frame.samplers[0].wrapS=frame.samplers[0].wrapT=wrap;
+        frame.samplers[0].maxAnisotropy=1;
+        for(auto &vertex:frame.vertices) {
+          vertex.texcoord[0]=.49999237060546875f+((vertex.position[0]+1)*16-15.5f)*step;
+          vertex.texcoord[1]=.53125f;
+          if(unit) for(unsigned c=0;c<2;++c) vertex.extraTexcoords[6][c]=vertex.texcoord[c];
+        }
+        for(auto &state:frame.renderStates) if(unit) {
+          auto layer=coin_render_texture_unit(state,0);
+          state.hasTexture=unit==8;state.extraTextures[6]=layer;
+        }
+        frame.revision=++revision;for(auto &draw:frame.draws) draw.sourceRevision=frame.revision;
+        const std::string label=std::string(viewportStudy?"viewport-inset/":"deep/")+std::to_string(size.first)+"x"+std::to_string(size.second)+
+          "/format-"+std::to_string(unsigned(format))+"/step-"+std::to_string(step)+
+          "/unit-"+std::to_string(unit)+"/wrap-"+std::to_string(unsigned(wrap));
+        auto result=cpu.executeFrame(frame);
+        ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,label+" CPU "+result.diagnostic);
+        if(size.first==4096 && step>=1.f/16 && cpu.colorBuffer.size()==32*32*4) {
+          const int expected = format==F::RGBA8_SRGB?5 : format==F::BC3_SRGB?6 : format==F::BC3_LINEAR?41:40;
+          ok &= check(std::abs(int(cpu.colorBuffer[(16*32+15)*4])-expected)<=1,
+            label+" independent low-band oracle at boundary pixel");
+        }
+        if(native) {
+          result=native->getPimpl()->executeFrame(frame);
+          ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,label+" GPU "+result.diagnostic);
+          std::vector<uint8_t> pixels;native->readbackRGBA(pixels);
+          double mae=0;int maximum=0;unsigned samples=0;
+          if(pixels.size()==cpu.colorBuffer.size() && pixels.size()==32*32*4)
+            for(unsigned y=y0;y<y1;++y) for(unsigned x=x0;x<x1;++x) for(unsigned c=0;c<4;++c) {
+              const auto i=(y*32+x)*4+c;const int delta=std::abs(int(pixels[i])-int(cpu.colorBuffer[i]));
+              mae+=delta;maximum=std::max(maximum,delta);++samples;
+            }
+          if(samples) mae/=samples;
+          std::cout<<label<<" samples="<<samples<<" mae="<<mae<<" maximum="<<maximum<<'\n';
+          ok &= check(samples==(x1-x0)*(y1-y0)*4 && mae<=1.5 && maximum<=4,label+" CPU/GPU strict interior");
+        }
+        ++cases;
+      }
+    }
+    std::cout<<"deep sampling cases="<<cases<<" controls="<<controls<<" result="<<(ok?"PASS":"FAIL")<<'\n';
+    return ok?0:1;
+  }
   // Independent alpha oracle: constant byte 128 must remain exact across
   // fractional/projective mip blends. This does not depend on CoinGL clamping.
   using Alpha = CoinRenderAlphaTestFunction;
