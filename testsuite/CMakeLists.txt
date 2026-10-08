@@ -465,6 +465,14 @@ if(COIN_BUILD_RENDER)
 	target_include_directories(CoinRenderSamplingPolicyTest PRIVATE
 		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	if(UNIX AND NOT APPLE AND X11_FOUND)
+		target_compile_definitions(CoinRenderSamplingPolicyTest PRIVATE COIN_SAMPLING_X11)
+		target_link_libraries(CoinRenderSamplingPolicyTest ${X11_LIBRARIES})
+		target_include_directories(CoinRenderSamplingPolicyTest PRIVATE ${X11_INCLUDE_DIR})
+		add_test(NAME CoinRenderSamplingPolicyWindowTest COMMAND CoinRenderSamplingPolicyTest --window)
+		set_tests_properties(CoinRenderSamplingPolicyWindowTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_SAMPLING_STUDY=fetch")
+	endif()
 	add_test(NAME CoinRenderSamplingPolicyTest COMMAND CoinRenderSamplingPolicyTest)
 	add_test(NAME CoinRenderSamplingPolicyGpuTest COMMAND CoinRenderSamplingPolicyTest --gpu)
 	set_tests_properties(CoinRenderSamplingPolicyGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77

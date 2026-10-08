@@ -10,6 +10,7 @@
 class SoNode;
 class SbViewportRegion;
 class CoinRenderTarget;
+struct CoinRenderOptions;
 struct CoinRenderNativeSurfaceDescriptor;
 struct CoinRenderReadbackTicket;
 
@@ -25,6 +26,10 @@ public:
   explicit CoinRenderSceneManager(const SbVec2i32 & offscreenSize);
   CoinRenderSceneManager(const CoinRenderNativeSurfaceDescriptor & nativeWindow,
                      const SbVec2i32 & framebufferSize);
+  // Explicit immutable options are forwarded unchanged to the owned target.
+  CoinRenderSceneManager(const SbVec2i32 & offscreenSize, const CoinRenderOptions & options);
+  CoinRenderSceneManager(const CoinRenderNativeSurfaceDescriptor & nativeWindow,
+                        const SbVec2i32 & framebufferSize, const CoinRenderOptions & options);
   ~CoinRenderSceneManager();
 
   CoinRenderSceneManager(const CoinRenderSceneManager &) = delete;

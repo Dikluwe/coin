@@ -1,0 +1,29 @@
+# Real FreeCAD viewer and screen-content contracts, with explicit per-view policy.
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_screen_content.FCMacro').read_text())
+report['test'] = 'freecad-sampling-policy'
+policy = int(os.environ.get('COIN_TEST_PORTABLE_SAMPLING', '1'))
+report['sampling_policy'] = policy
+original_axes_baseline = axes_baseline
+original_capture = capture
+
+def axes_baseline():
+    widget = viewer_widget()
+    widget.setProperty('coinRenderPortableSampling', bool(policy))
+    # Establish the same top camera before adapter recreation's first baseline.
+    # These explicit host redraws do not relax any image/change/removal gate.
+    view.viewTop()
+    for _ in range(2):
+        view.redraw()
+        Gui.updateGui()
+    report['prebaseline_redraws'] = 2
+    original_axes_baseline()
+
+def capture(name):
+    widget = viewer_widget()
+    active = widget.property('coinRenderActiveSamplingPolicy')
+    if native and (active is None or int(active) != policy):
+        raise RuntimeError('explicit sampling policy was not admitted by the real host')
+    report['active_sampling_policy'] = int(active) if active is not None else None
+    return original_capture(name)

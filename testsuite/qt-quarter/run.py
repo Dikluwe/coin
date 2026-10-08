@@ -12,7 +12,7 @@ import sys
 
 CASES = ('rtt-window', 'first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
-         'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
+         'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
          'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
 EXIT = {'PASS': 0, 'REFERENCE_PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
 OFFSCREEN_CASES = ('retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
@@ -168,9 +168,10 @@ def main():
     parser.add_argument('--reference-gl', action='store_true',
                         help='Coin/GL-only document baseline; never reports native backend PASS')
     args = parser.parse_args()
-    if args.backend == 'wgpu' and (args.reference_gl or args.renderer not in (None, ['vulkan'])):
+    if args.backend == 'wgpu' and (args.reference_gl or (args.renderer not in (None, ['vulkan']) and
+            not (args.case == ['freecad-sampling-policy'] and args.renderer == ['opengl']))):
         parser.error('the current wgpu native profile requires --renderer vulkan and no --reference-gl')
-    if args.reference_gl and (args.case not in (['freecad-mouse-links'], ['freecad-mouse-link-topology'], ['freecad-viewport'], ['freecad-multi'], ['freecad-grid'], ['freecad-path-selection'], ['freecad-mouse-elements'], ['freecad-screen-content']) or
+    if args.reference_gl and (args.case not in (['freecad-mouse-links'], ['freecad-mouse-link-topology'], ['freecad-viewport'], ['freecad-multi'], ['freecad-grid'], ['freecad-path-selection'], ['freecad-mouse-elements'], ['freecad-screen-content'], ['freecad-sampling-policy']) or
                               args.renderer != ['opengl'] or args.require_hardware or
                               args.mode not in (None, ['object'])):
         parser.error('--reference-gl requires one reference-capable FreeCAD case, --renderer opengl, and no --require-hardware')
@@ -210,7 +211,7 @@ def main():
                         for alpha in ('opaque', 'translucent') for scale in (1,)] if case == 'navicube' else [('object', 'opaque', s) for s in ((1, 2) if case == 'dpr' else (1,))]
             if case in ('two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-legacy-polyline', 'freecad-delayed-overlays'):
                 variants = [(mode, 'opaque', 1) for mode in ('object', 'weighted_oit')]
-            if case in ('freecad-screen-content', 'freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
+            if case in ('freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
             if case == 'rtt-window':
@@ -240,13 +241,13 @@ def main():
                 if not env.get('DISPLAY'):
                     result = dict(status='SKIP', reason='no DISPLAY; native X11 surface cannot execute')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and session_locked() is True:
+                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and session_locked() is True:
                     result = dict(status='SKIP', reason='desktop session locked; screen capture unavailable')
                     output = ''
                 elif case == 'maximize' and not window_manager:
                     result = dict(status='SKIP', reason='no EWMH window manager; maximize/restore cannot be verified')
                     output = ''
-                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
+                elif case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays') and not args.freecad:
                     result = dict(status='UNSUPPORTED', reason='--freecad required for real FreeCAD viewport tests')
                     output = ''
                 elif case in ('freecad-delayed-overlays', 'freecad-selection-menu') and not Path(env.get('COIN_TEST_DELAYED_HELPER', '')).is_file():
@@ -257,10 +258,11 @@ def main():
                     output = ''
                 else:
                     command = [str(args.harness.resolve()), case]
-                    if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays'):
+                    if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'freecad-delayed-overlays'):
                         macro = {'freecad-viewport': 'freecad_viewport.FCMacro', 'hover': 'freecad_hover.FCMacro', 'freecad-multi': 'freecad_multi.FCMacro',
                                  'freecad-overlays': 'freecad_overlays.FCMacro',
                                  'freecad-screen-content': 'freecad_screen_content.FCMacro',
+                                 'freecad-sampling-policy': 'freecad_sampling_policy.FCMacro',
                                  'freecad-legacy-polyline': 'freecad_legacy_polyline.FCMacro',
                                  'freecad-flags': 'freecad_flags.FCMacro',
                                  'freecad-delayed-overlays': 'freecad_delayed_overlays.FCMacro',
@@ -290,7 +292,7 @@ def main():
                                 result['status'] = 'REFERENCE_PASS'
                             else:
                                 result.update(status='FAIL', reason='reference macro did not identify Coin/GL')
-                        if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
+                        if case in ('hover', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu') and code in (0, 1) and session_locked() is True:
                             result = dict(status='SKIP', reason='session locked during screen capture',
                                           captured_result=result)
                         if 'HARNESS_TIMEOUT' in output:

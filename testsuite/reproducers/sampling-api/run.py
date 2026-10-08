@@ -10,7 +10,7 @@ p.add_argument('--modes',default='native,portable')
 p.add_argument('--cases',default='api,deep,direct,viewport,procedural')
 p.add_argument('--mesa-prefix',type=Path,help='optional external Mesa profile for the CoinGL comparison only')
 a=p.parse_args();root=a.artifacts.resolve();out=root/a.name;out.mkdir(parents=True,exist_ok=True)
-cases={'api':['CoinRenderSamplingPolicyTest','--gpu'],'selection':['CoinRenderSelectionTest'],
+cases={'api':['CoinRenderSamplingPolicyTest','--gpu'],'window':['CoinRenderSamplingPolicyTest','--window'],'selection':['CoinRenderSelectionTest'],
  'publication':['CoinRenderPublicationTest'],'ownership':['CoinRenderRttOwnershipTest'],
  'projective':['CoinRenderTextureSamplingTest','--projective-study'],'sampling':['CoinRenderTextureSamplingTest','--gpu'],
  'advanced':['CoinRenderAdvancedTextureTest','--gpu'],'procedural':['CoinRenderProceduralTextureTest','--gpu'],
@@ -42,7 +42,7 @@ for profile in a.profiles.split(','):
  env['VK_ICD_FILENAMES']=env['VK_DRIVER_FILES']
  for case in requested:
   if (case in ['large','devices','stress'] and backend!='wgpu') or (case=='instancing' and backend!='bgfx'):continue
-  selected=['both'] if case=='api' else ['native'] if case in ['selection','publication','ownership','large','devices','stress','instancing','shadow-eight','shadow-viewport','shadow-alpha'] else modes
+  selected=['both'] if case in ['api','window'] else ['native'] if case in ['selection','publication','ownership','large','devices','stress','instancing','shadow-eight','shadow-viewport','shadow-alpha'] else modes
   for mode in selected:
    cmd=[str(build/'bin'/cases[case][0]),*cases[case][1:]]
    if mode=='portable':cmd.append('--portable-sampling')

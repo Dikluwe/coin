@@ -305,6 +305,11 @@ public:
         }
       } catch (const std::bad_alloc &) { this->screenshotPixels.clear(); }
     }
+    if (this->screenshotPixels.empty()) {
+      this->screenshotError = "BGFX window screenshot incomplete: actual=" + std::to_string(width) + "x" + std::to_string(height) +
+        " expected=" + std::to_string(this->screenshotWidth) + "x" + std::to_string(this->screenshotHeight) +
+        " format=" + std::to_string(format) + " pitch=" + std::to_string(pitch) + " bytes=" + std::to_string(bytes);
+    }
     this->screenshotPending = false;
     this->screenshotReady = true;
     this->screenshotCondition.notify_all();
@@ -314,7 +319,7 @@ public:
   {
     std::lock_guard<std::mutex> guard(this->screenshotMutex);
     this->screenshotWidth = width; this->screenshotHeight = height;
-    this->screenshotPixels.clear();
+    this->screenshotPixels.clear();this->screenshotError.clear();
     this->screenshotReady = false; this->screenshotPending = true;
     this->screenshotName = "coin-window-rgba-" + std::to_string(++this->screenshotSerial);
     return this->screenshotName;
@@ -326,15 +331,15 @@ public:
     this->screenshotPending = false;
   }
 
-  bool takeScreenshot(std::vector<uint8_t> & output)
+  bool takeScreenshot(std::vector<uint8_t> & output, std::string & error)
   {
     std::unique_lock<std::mutex> guard(this->screenshotMutex);
     if (!this->screenshotCondition.wait_for(guard, std::chrono::seconds(5),
           [this] { return this->screenshotReady; })) {
-      this->screenshotPending = false;
+      this->screenshotPending = false;error = "BGFX window screenshot timed out";
       return false;
     }
-    if (this->screenshotPixels.empty()) return false;
+    if (this->screenshotPixels.empty()) {error = this->screenshotError; return false;}
     output.swap(this->screenshotPixels);
     return true;
   }
@@ -388,6 +393,7 @@ private:
   bool screenshotReady = false;
   uint64_t screenshotSerial = 0;
   std::string screenshotName;
+  std::string screenshotError;
 };
 
 struct SharedBgfxRuntime {
@@ -2714,8 +2720,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
     const Clock::time_point submitted = Clock::now();
     if (target.windowReadbackRequested &&
-        !screenshotCallback->takeScreenshot(target.colorBuffer)) {
-      this->lastError = "BGFX window screenshot unavailable or incomplete";
+        !screenshotCallback->takeScreenshot(target.colorBuffer, this->lastError)) {
+      if(this->lastError.empty()) this->lastError = "BGFX window screenshot unavailable or incomplete";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     CoinBgfxPhaseSample sample;
