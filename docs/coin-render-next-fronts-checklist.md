@@ -60,6 +60,13 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   texturas avançadas e benchmarks GPU/janela, incluindo cidades40mil/1milhão.
   [Avaliação e decisão](coin-render-portable-sampling-study-20261007.md): manter
   native padrão; contrato portátil nearest como opção futura. Fetch completo é mais caro.
+- [x] Verificar o candidato POT de uma amostra `base`/`base_uniform`:
+  contraexemplo AMD em mips profundos, inclusive LOD calculado das UV originais;
+  [sonda sem Coin e alternativa pelo mip fino ativo](coin-render-base-sampling-counterexample-20261008.md).
+  Uniformizar tamanho não corrige a escolha; candidato `fine` passou o oracle inicial.
+- [ ] Integrar e medir `fine`/`fine_uniform` de uma amostra em POT, mantendo fallback
+  NPOT de duas amostras e magnificação linear; qualificar formatos/viewport/derivadas
+  e garantir que o ganho de chamadas também apareça no tempo GPU.
 - [ ] Promover política comum nearest portátil com API/capacidades e limites
   explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
   perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.

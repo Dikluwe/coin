@@ -1,0 +1,36 @@
+{
+  "processes": 18,
+  "image_comparisons": 624,
+  "modes": {
+    "native": {
+      "cases": 104,
+      "failed_oracle": 43,
+      "maximum_rgb_error": 120
+    },
+    "base": {
+      "cases": 104,
+      "failed_oracle": 22,
+      "maximum_rgb_error": 120
+    },
+    "base_uniform": {
+      "cases": 104,
+      "failed_oracle": 22,
+      "maximum_rgb_error": 120
+    },
+    "fine": {
+      "cases": 104,
+      "failed_oracle": 0,
+      "maximum_rgb_error": 0
+    },
+    "center": {
+      "cases": 104,
+      "failed_oracle": 0,
+      "maximum_rgb_error": 0
+    },
+    "fetch": {
+      "cases": 104,
+      "failed_oracle": 0,
+      "maximum_rgb_error": 0
+    }
+  }
+}

@@ -57,3 +57,13 @@ Veja o relatório versionado em `docs/coin-render-portable-sampling-study-202610
 `boundary.cpp` compila com `-lEGL -lOpenGL`; recebe prefixo de saída e verifica
 4.096 pixels por modo no mip3. Execute separadamente sob cada EGL vendor para
 registrar native/centro/fetch e identificação real da GPU.
+
+## Candidatos de uma amostra — 2026-10-08
+
+`base_probe.cpp` e `run_base.py` são sondas independentes EGL/OpenGL, sem Coin.
+`base`/`base_uniform`/`fine` são nomes destas sondas e não seletores implementados
+na bridge. Tamanho base não basta para correspondência segura POT em mips grossos
+na AMD; `fine` centraliza no mip `floor(LOD)`. As variantes usam dois centros em
+NPOT. Consulte `docs/coin-render-base-sampling-counterexample-20261008.md`.
+O controle `--derived` calcula LOD8 das UV originais e valida todos os pixels.
+Não se mediu desempenho nem magnificação nesta sonda; são próximos controles.
