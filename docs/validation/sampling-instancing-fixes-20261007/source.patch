@@ -1,0 +1,342 @@
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index 8922aabdf6..8ff4b15237 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -1653,9 +1653,9 @@ if(COIN_BUILD_RENDER)
+ 			${COIN_TARGET_INCLUDE_DIRECTORIES}
+ 		)
+ 		add_test(NAME CoinWgpuMultiDeviceTest COMMAND CoinWgpuMultiDeviceTest)
+-		set_tests_properties(CoinWgpuMultiDeviceTest PROPERTIES TIMEOUT 60)
++		set_tests_properties(CoinWgpuMultiDeviceTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
+ 		add_test(NAME WgpuMultiDeviceStressTest COMMAND CoinWgpuMultiDeviceTest --stress)
+-		set_tests_properties(WgpuMultiDeviceStressTest PROPERTIES TIMEOUT 300)
++		set_tests_properties(WgpuMultiDeviceStressTest PROPERTIES TIMEOUT 300 SKIP_RETURN_CODE 77)
+ 
+ 		add_executable(CoinRenderAsyncActionTest coinrender/CoinRenderAsyncActionTest.cpp)
+ 		set_target_properties(CoinRenderAsyncActionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+diff --git a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+index 5404592b33..4f20ff84f1 100644
+--- a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+@@ -418,9 +418,18 @@ bool run(bool gpu) {
+   }
+   function->invalid=false;
+   if (!h.render(scene,"recovery-after",true)) return false;
++  // Quality > .85 now requests anisotropy in the advanced profile. Retain
++  // the publication rejection checks with an out-of-range value,
++  // and require the newly admitted procedural combination to render first.
++  scene.quality->textureQuality=.95f;
++  if (!h.render(scene,"anisotropic-procedural-profile",true)) return false;
++  if (!check(!h.capture->frame.samplers.empty() &&
++      h.capture->frame.samplers[0].maxAnisotropy==16 &&
++      h.capture->frame.samplers[0].filter==CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR,
++      "procedural anisotropic sampler contract")) return false;
+   const unsigned beforeQuality=h.capture->submissions;
+   h.cpu->readbackRGBA(previous);
+-  scene.quality->textureQuality=.95f; h.action.apply(scene.root);
++  scene.quality->textureQuality=1.01f; h.action.apply(scene.root);
+   h.cpu->readbackRGBA(preserved);
+   if (!check(h.action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+       h.capture->submissions==beforeQuality && preserved==previous,"unsupported quality publication")) return false;
+diff --git a/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp b/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+index ffc9ab5897..ecf307b726 100644
+--- a/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
++++ b/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+@@ -152,6 +152,18 @@ struct Harness {
+         }
+     std::cout << label << " samples=" << n << " mae=" << sum / n
+               << " max=" << maximum << '\n';
++    if (sum / n > 1.5 || maximum > 4) {
++      unsigned reported = 0;
++      for (int y = 32-radius; y < 32+radius && reported < 12; ++y)
++        for (int x = 32-radius; x < 32+radius && reported < 12; ++x) {
++          const size_t at = (y*64+x)*4, bt = (y*64+x)*channels;
++          if (std::abs(int(a[at])-int(b[bt])) > 4) {
++            std::cout << label << " pixel=" << x << ',' << y << " red="
++                      << int(a[at]) << '/' << int(b[bt]) << '\n';
++            ++reported;
++          }
++        }
++    }
+     return check(sum / n <= 1.5 && maximum <= 4, label + ": texture pixels");
+   }
+   bool render(Scene &s, const std::string &label, bool minify,
+@@ -167,12 +179,18 @@ struct Harness {
+       if (!check(gpuAction.getLastStatus() == CoinRenderAction::SUCCESS,
+                  label + ": GPU " + gpuAction.getLastError().getString()))
+         return false;
++      if (!reportedAdapter) {
++        CoinRenderCapabilities caps{};
++        coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps));
++        std::cout << "adapter=" << caps.adapter_name << " renderer=" << caps.renderer
++                  << " vendor=" << caps.vendor_id << " device=" << caps.device_id << '\n';
++        reportedAdapter = true;
++      }
+       std::vector<uint8_t> a, b;
+       cpu->readbackRGBA(a);
+       native->readbackRGBA(b);
+       const int radius = minify ? 5 : 18;
+-      if (!compare(a, b, 4, label + "/CPU-GPU", radius))
+-        return false;
++      const bool cpuGpu = compare(a, b, 4, label + "/CPU-GPU", radius);
+       if (!check(gl.render(s.root) && gl.getBuffer(),
+                  label + ": mandatory CoinGL"))
+         return false;
+@@ -181,8 +199,9 @@ struct Harness {
+       for (int y = 0; y < 64; ++y)
+         std::copy(p + (63 - y) * 64 * 3, p + (64 - y) * 64 * 3,
+                   reference.begin() + y * 64 * 3);
+-      if (!compare(a, reference, 3, label + "/CPU-GL", radius) ||
+-          !compare(b, reference, 3, label + "/GPU-GL", radius))
++      const bool cpuGl = compare(a, reference, 3, label + "/CPU-GL", radius);
++      const bool gpuGl = compare(b, reference, 3, label + "/GPU-GL", radius);
++      if (!cpuGpu || !cpuGl || !gpuGl)
+         return false;
+     }
+     ++cases;
+@@ -220,6 +239,7 @@ struct Harness {
+   CoinRenderAction action, gpuAction;
+   SoOffscreenRenderer gl;
+   unsigned cases = 0, rejects = 0;
++  bool reportedAdapter = false;
+ };
+ bool core() {
+   CoinRenderTextureImageSnapshot image;
+@@ -247,6 +267,37 @@ bool core() {
+     return false;
+   return true;
+ }
++bool projective(Harness &h, bool study = false) {
++  bool projectiveOk = true;
++  // Keep offset zero as the original strict gate; the study also moves the
++  // footprint away from nearest-texel boundaries without changing thresholds.
++  for (float q : {.5f, .8f}) {
++    const std::vector<float> offsets = study ? std::vector<float>{0.f, -.001f, .001f}
++                                            : std::vector<float>{0.f};
++    for (float offset : offsets) {
++      Scene projective(3, SoTexture2::REPLACE, 1, true, true);
++      projective.quality->textureQuality = q;
++      std::vector<uint8_t> blocks(128 * 128 * 3);
++      for (int y = 0; y < 128; ++y)
++        for (int x = 0; x < 128; ++x)
++          for (int c = 0; c < 3; ++c)
++            blocks[(y * 128 + x) * 3 + c] = ((x / 8 + y / 8) & 1) ? 160 : 40;
++      projective.images[0]->image.setValue(SbVec2s(128, 128), 3, blocks.data());
++      auto *matrix = new SoTextureMatrixTransform;
++      SbMatrix m = SbMatrix::identity();
++      m[0][3] = .3f;
++      m[3][0] = m[3][1] = offset;
++      matrix->matrix = m;
++      projective.root->insertChild(matrix, projective.root->getNumChildren() - 2);
++      if (!h.render(projective,
++                    "projective mip footprint/quality-" + std::to_string(q) +
++                        "/offset-" + std::to_string(offset),
++                    true))
++        projectiveOk = false;
++    }
++  }
++  return projectiveOk;
++}
+ bool run(bool gpu) {
+   if (!core())
+     return false;
+@@ -295,25 +346,7 @@ bool run(bool gpu) {
+             return false;
+         }
+       }
+-  for (float q : {.5f, .8f}) {
+-    Scene projective(3, SoTexture2::REPLACE, 1, true, true);
+-    projective.quality->textureQuality = q;
+-    std::vector<uint8_t> blocks(128 * 128 * 3);
+-    for (int y = 0; y < 128; ++y)
+-      for (int x = 0; x < 128; ++x)
+-        for (int c = 0; c < 3; ++c)
+-          blocks[(y * 128 + x) * 3 + c] = ((x / 8 + y / 8) & 1) ? 160 : 40;
+-    projective.images[0]->image.setValue(SbVec2s(128, 128), 3, blocks.data());
+-    auto *matrix = new SoTextureMatrixTransform;
+-    SbMatrix m = SbMatrix::identity();
+-    m[0][3] = .3f;
+-    matrix->matrix = m;
+-    projective.root->insertChild(matrix, projective.root->getNumChildren() - 2);
+-    if (!h.render(projective,
+-                  "projective mip footprint/quality-" + std::to_string(q),
+-                  true))
+-      return false;
+-  }
++  const bool projectiveOk = projective(h);
+   Scene scene(4, SoTexture2::MODULATE, 2, false, false);
+   scene.quality->textureQuality = .3f;
+   if (!h.render(scene, "off-on-baseline", false))
+@@ -391,7 +424,7 @@ bool run(bool gpu) {
+   }
+   std::cout << "P07 sampling cases=" << h.cases << " rejected=" << h.rejects
+             << " GPU=" << gpu << '\n';
+-  return true;
++  return projectiveOk;
+ }
+ } // namespace
+ int main(int argc, char **argv) {
+@@ -403,5 +436,9 @@ int main(int argc, char **argv) {
+     s.quality->textureQuality = .3f;
+     return h.rejected(s, "custom quality threshold") ? 0 : 1;
+   }
++  if (argc > 1 && std::string(argv[1]) == "--projective-study") {
++    Harness h(true);
++    return projective(h, true) ? 0 : 1;
++  }
+   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
+ }
+diff --git a/testsuite/coinrender/run-sampling-instancing.py b/testsuite/coinrender/run-sampling-instancing.py
+new file mode 100644
+index 0000000000..f6f00d2c43
+--- /dev/null
++++ b/testsuite/coinrender/run-sampling-instancing.py
+@@ -0,0 +1,60 @@
++#!/usr/bin/env python3
++"""Sampling/instancing validation; original failing sampling gate stays enabled."""
++import argparse
++import hashlib
++import json
++import os
++from pathlib import Path
++import re
++import subprocess
++
++parser = argparse.ArgumentParser()
++parser.add_argument('--wgpu-build', type=Path, required=True)
++parser.add_argument('--bgfx-build', type=Path, required=True)
++parser.add_argument('--output', type=Path, required=True)
++parser.add_argument('--profiles', default='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-opengl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-opengl')
++args = parser.parse_args()
++args.output.mkdir(parents=True, exist_ok=True)
++root = Path(__file__).resolve().parents[2]
++result = {'base_commit': subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=root, text=True).strip(),
++          'source_diff_sha256': hashlib.sha256(subprocess.check_output(['git', 'diff', 'HEAD'], cwd=root)).hexdigest(), 'runs': []}
++for profile in args.profiles.split(','):
++    backend = profile.split('-')[0]
++    build = args.wgpu_build if backend == 'wgpu' else args.bgfx_build
++    api = 'opengl' if profile.endswith('opengl') else 'vulkan'
++    gpu = 'nvidia' if 'nvidia' in profile else 'amd'
++    env = dict(os.environ, DISPLAY=os.environ.get('DISPLAY', ':0'),
++               COIN_GLX_PIXMAP_DIRECT_RENDERING='1', COIN_GLXGLUE_NO_PBUFFERS='1',
++               COIN_RENDER_REQUIRE_GL_REFERENCE='1', WGPU_BACKEND='gl' if api == 'opengl' else 'vulkan', COIN_BGFX_RENDERER=api)
++    env['VK_DRIVER_FILES'] = env['VK_ICD_FILENAMES'] = '/usr/share/vulkan/icd.d/' + ('nvidia_icd.json' if gpu == 'nvidia' else 'radeon_icd.json')
++    env['__GLX_VENDOR_LIBRARY_NAME'] = 'nvidia' if gpu == 'nvidia' else 'mesa'
++    env['__EGL_VENDOR_LIBRARY_FILENAMES'] = '/usr/share/glvnd/egl_vendor.d/' + ('10_nvidia.json' if gpu == 'nvidia' else '50_mesa.json')
++    if gpu == 'nvidia': env['__NV_PRIME_RENDER_OFFLOAD'] = '1'
++    else: env.pop('__NV_PRIME_RENDER_OFFLOAD', None)
++    if 'XAUTHORITY' not in env and Path.home().joinpath('.Xauthority').exists(): env['XAUTHORITY'] = str(Path.home() / '.Xauthority')
++    cases = [('sampling', ['CoinRenderTextureSamplingTest', '--gpu']),
++             ('projective-study', ['CoinRenderTextureSamplingTest', '--projective-study']),
++             ('procedural', ['CoinRenderProceduralTextureTest', '--gpu'])]
++    if backend == 'wgpu':
++        cases += [('large-bindings', ['CoinWgpuLargeBindingsTest']),
++                  ('multi-device', ['CoinWgpuMultiDeviceTest']),
++                  ('multi-device-stress', ['CoinWgpuMultiDeviceTest', '--stress'])]
++    for case, command in cases:
++        cmd = [str(build / 'bin' / command[0]), *command[1:]]
++        log = args.output / (profile + '-' + case + '.log')
++        try:
++            with log.open('w') as stream: run = subprocess.run(cmd, env=env, stdout=stream, stderr=subprocess.STDOUT, timeout=200)
++            code = run.returncode
++        except subprocess.TimeoutExpired: code = 124
++        content = log.read_text(errors='replace')
++        result['runs'].append({'profile': profile, 'case': case, 'command': cmd,
++            'environment': {k: env[k] for k in ['DISPLAY', 'XAUTHORITY', 'VK_DRIVER_FILES', '__GLX_VENDOR_LIBRARY_NAME', '__EGL_VENDOR_LIBRARY_FILENAMES', 'WGPU_BACKEND', 'COIN_BGFX_RENDERER', 'COIN_GLX_PIXMAP_DIRECT_RENDERING', 'COIN_GLXGLUE_NO_PBUFFERS', 'COIN_RENDER_REQUIRE_GL_REFERENCE', '__NV_PRIME_RENDER_OFFLOAD'] if k in env},
++            'exit': code, 'status': 'PASS' if code == 0 else 'SKIP' if code == 77 else 'FAIL',
++            'adapter_report': next((line for line in content.splitlines() if line.startswith('adapter=')), None),
++            'log': log.name, 'sha256': hashlib.sha256(log.read_bytes()).hexdigest(),
++            'controls': re.findall(r'P07 sampling cases=(\d+) rejected=(\d+)', content),
++            'binary_sha256': hashlib.sha256(Path(cmd[0]).read_bytes()).hexdigest(),
++            'projective_metrics': [line for line in content.splitlines() if 'projective mip footprint' in line and 'samples=' in line],
++            'failures': [line for line in content.splitlines() if line.startswith('FAIL ') or 'texture pixels' in line or line.startswith('CoinRenderProceduralTextureTest:')]})
++        (args.output / 'summary.json').write_text(json.dumps(result, indent=2) + '\n')
++        print(profile, case, result['runs'][-1]['status'], flush=True)
+diff --git a/testsuite/coinwgpu/CoinWgpuLargeBindingsTest.cpp b/testsuite/coinwgpu/CoinWgpuLargeBindingsTest.cpp
+index fca71b2893..d65cc50cb6 100644
+--- a/testsuite/coinwgpu/CoinWgpuLargeBindingsTest.cpp
++++ b/testsuite/coinwgpu/CoinWgpuLargeBindingsTest.cpp
+@@ -8,12 +8,19 @@
+ #include <iostream>
+ #include <vector>
+ 
+-// Repeated geometry deliberately prevents baking/merging. 25,600 independent
++// Accepting clip planes keep repeated geometry in separate draws. 25,600 independent
+ // draw uniforms cross the 64 MiB arena boundary and exceed D3D12's old sampler
+ // descriptor allocation pattern. Check every cell, not just successful submit.
+ int main()
+ {
+   if (!coin_wgpu_is_available()) return 77;
++  char adapter[256] = {};
++  CoinWgpuRuntimeCapabilities capabilities{};
++  if (coin_wgpu_query_runtime_capabilities(&capabilities, sizeof(capabilities)) != COIN_WGPU_OK)
++    return 1;
++  coin_wgpu_get_adapter_info(adapter, sizeof(adapter));
++  std::cout << "adapter=" << adapter << " renderer=" << capabilities.renderer
++            << " vendor=" << capabilities.vendor_id << " device=" << capabilities.device_id << '\n';
+   const uint32_t columns = 200, rows = 128, width = columns * 5, height = rows * 5;
+   CoinRenderFramePlan frame;
+   frame.revision = 701;
+@@ -43,6 +50,10 @@ int main()
+     state.lightModel = CoinRenderLightModel::BASE_COLOR;
+     state.cullMode = CoinRenderCullMode::NONE;
+     state.materialSlot = i % 2;
++    // An accepting clip plane exercises independent draw uniforms: opaque
++    // batching/instancing deliberately do not admit clipping. All vertices
++    // lie at z=0, inside z >= -1, so the exact pixel oracle is unchanged.
++    state.clipPlanesWorld.emplace_back(SbVec3f(0, 0, 1), -1.0f);
+     state.model.setTranslate(SbVec3f(-1 + 2.0f * (i % columns) / columns,
+                                     1 - 2.0f * (i / columns) / rows, 0));
+     auto & draw = frame.draws[i];
+@@ -68,8 +79,10 @@ int main()
+     }
+     std::string error;
+     if (!packed.prepare(frame, width, height, error) ||
+-        packed.getView().draw_count != columns * rows) {
+-      std::cerr << "Large bindings packing failed: " << error << '\n';
++        (packed.getView().draw_count != columns * rows || packed.getView().instance_count != 0)) {
++      std::cerr << "Large bindings packing failed: " << error
++                << " draws=" << packed.getView().draw_count
++                << " instances=" << packed.getView().instance_count << '\n';
+       return 1;
+     }
+     char gpuError[1024] = {};
+diff --git a/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp b/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp
+index 8aff4b3b5c..c960b3ffd4 100644
+--- a/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp
++++ b/testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp
+@@ -867,9 +867,15 @@ bool instancedOpaqueOwnership() {
+   };
+   auto dynamicOnly = [&] {
+     CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
+-    // GpuMaterial: four color vec4 plus one params vec4, as in the shader.
++    // GPU instances use three affine model rows and three normal rows (96
++    // bytes), independently of the 144-byte CPU transport. GpuMaterial is
++    // four color vec4 plus one params vec4. Keep the exact upload budget.
++    const uint64_t expectedBytes = frame.instance_count * 96u + 2u*5u*16u;
++    std::cout << "instance/material update uploads=" << stats.frame_uploads
++              << " bytes=" << stats.frame_uploaded_bytes << " expected=" << expectedBytes
++              << " geometry_hits=" << stats.frame_hits << '\n';
+     return check(stats.frame_uploads == 1 && stats.frame_hits >= 1 &&
+-                 stats.frame_uploaded_bytes == sizeof(instances) + 2u*5u*16u,
++                 stats.frame_uploaded_bytes == expectedBytes,
+                  "object/material updates must upload only instances/materials, retaining canonical geometry");
+   };
+   if (!compare(0,frame,"initial instances RGB/depth") ||
+@@ -1421,8 +1427,15 @@ bool stress() {
+ int main(int argc, char ** argv) {
+   if (!coin_wgpu_is_available()) {
+     std::cout << "No WebGPU adapter; multi-device test skipped\n";
+-    return 0;
++    return 77;
+   }
++  char adapter[256] = {};
++  CoinWgpuRuntimeCapabilities capabilities{};
++  if (coin_wgpu_query_runtime_capabilities(&capabilities, sizeof(capabilities)) != COIN_WGPU_OK)
++    return 1;
++  coin_wgpu_get_adapter_info(adapter, sizeof(adapter));
++  std::cout << "adapter=" << adapter << " renderer=" << capabilities.renderer
++            << " vendor=" << capabilities.vendor_id << " device=" << capabilities.device_id << '\n';
+   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
+   const bool passed = runStress ? stress() :
+                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&

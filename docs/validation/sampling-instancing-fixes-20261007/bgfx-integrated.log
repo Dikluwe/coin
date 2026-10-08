@@ -1,0 +1,1725 @@
+Internal ctest changing into directory: /mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx
+Test project /mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx
+      Start 104: CoinRenderTextureSamplingCaptureTest
+ 1/10 Test #104: CoinRenderTextureSamplingCaptureTest .......   Passed    0.19 sec
+      Start 105: CoinRenderTextureSamplingConfigLimitTest
+ 2/10 Test #105: CoinRenderTextureSamplingConfigLimitTest ...   Passed    0.04 sec
+      Start 106: CoinRenderTextureSampling_vulkan
+ 3/10 Test #106: CoinRenderTextureSampling_vulkan ...........***Failed    0.58 sec
+adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) renderer=1 vendor=4098 device=5688
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+minify/quality-0.100000/units-1/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.100000/units-1/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.100000/units-2/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.100000/units-2/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-1/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-1/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-2/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-2/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/GPU-GL samples=300 mae=0 max=0
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=8.08 max=78
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,27 red=133/55
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,28 red=37/113
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,29 red=133/57
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,30 red=133/59
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,31 red=37/111
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=35,31 red=133/64
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,32 red=133/60
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,33 red=37/110
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,34 red=133/61
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,35 red=37/109
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,36 red=37/108
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU: texture pixels
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=8.08 max=78
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,27 red=133/55
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,28 red=37/113
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,29 red=133/57
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,30 red=133/59
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,31 red=37/111
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=35,31 red=133/64
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,32 red=133/60
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,33 red=37/110
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,34 red=133/61
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,35 red=37/109
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,36 red=37/108
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL: texture pixels
+projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0
+projective mip footprint/quality-0.800000/offset-0.000000/CPU-GPU samples=300 mae=0.81 max=3
+projective mip footprint/quality-0.800000/offset-0.000000/CPU-GL samples=300 mae=0.81 max=3
+projective mip footprint/quality-0.800000/offset-0.000000/GPU-GL samples=300 mae=0 max=0
+off-on-baseline/CPU-GPU samples=3888 mae=0.333333 max=1
+off-on-baseline/CPU-GL samples=3888 mae=0.666667 max=1
+off-on-baseline/GPU-GL samples=3888 mae=0.333333 max=1
+anisotropic constant-color control/CPU-GPU samples=3888 mae=0.333333 max=1
+anisotropic constant-color control/CPU-GL samples=3888 mae=0.666667 max=1
+anisotropic constant-color control/GPU-GL samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GL samples=3888 mae=0.666667 max=1
+quality recovery/GPU-GL samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GL samples=3888 mae=0.666667 max=1
+quality recovery/GPU-GL samples=3888 mae=0.333333 max=1
+format recovery/CPU-GPU samples=3888 mae=0.666667 max=1
+format recovery/CPU-GL samples=3888 mae=0.666667 max=1
+format recovery/GPU-GL samples=3888 mae=0 max=0
+format recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+format recovery/CPU-GL samples=3888 mae=0.666667 max=1
+format recovery/GPU-GL samples=3888 mae=0.333333 max=1
+NPOT mipmaps/CPU-GPU samples=3888 mae=0.333333 max=1
+NPOT mipmaps/CPU-GL samples=3888 mae=0.666667 max=1
+NPOT mipmaps/GPU-GL samples=3888 mae=0.333333 max=1
+NPOT base preserves native extent/CPU-GPU samples=3888 mae=0.333333 max=1
+NPOT base preserves native extent/CPU-GL samples=3888 mae=0.666667 max=1
+NPOT base preserves native extent/GPU-GL samples=3888 mae=0.333333 max=1
+NPOT error recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+NPOT error recovery/CPU-GL samples=3888 mae=0.666667 max=1
+NPOT error recovery/GPU-GL samples=3888 mae=0.333333 max=1
+authored white luminance is not pending-file dummy/CPU-GPU samples=3888 mae=1 max=1
+authored white luminance is not pending-file dummy/CPU-GL samples=3888 mae=1 max=1
+authored white luminance is not pending-file dummy/GPU-GL samples=3888 mae=0 max=0
+quality off/CPU-GPU samples=3888 mae=0.333333 max=1
+quality off/CPU-GL samples=3888 mae=0.666667 max=1
+quality off/GPU-GL samples=3888 mae=0.333333 max=1
+mipmap reactivation/CPU-GPU samples=3888 mae=1 max=1
+mipmap reactivation/CPU-GL samples=3888 mae=1 max=1
+mipmap reactivation/GPU-GL samples=3888 mae=0 max=0
+individual texture unit disabled-0/CPU-GPU samples=3888 mae=1 max=1
+individual texture unit disabled-0/CPU-GL samples=3888 mae=1 max=1
+individual texture unit disabled-0/GPU-GL samples=3888 mae=0 max=0
+individual unit reactivated-0/CPU-GPU samples=3888 mae=0.333333 max=1
+individual unit reactivated-0/CPU-GL samples=3888 mae=0.666667 max=1
+individual unit reactivated-0/GPU-GL samples=3888 mae=0.333333 max=1
+individual texture unit disabled-1/CPU-GPU samples=3888 mae=1 max=1
+individual texture unit disabled-1/CPU-GL samples=3888 mae=1 max=1
+individual texture unit disabled-1/GPU-GL samples=3888 mae=0 max=0
+individual unit reactivated-1/CPU-GPU samples=3888 mae=0.333333 max=1
+individual unit reactivated-1/CPU-GL samples=3888 mae=0.666667 max=1
+individual unit reactivated-1/GPU-GL samples=3888 mae=0.333333 max=1
+P07 sampling cases=233 rejected=4 GPU=1
+
+      Start 107: CoinRenderTextureSampling_opengl
+ 4/10 Test #107: CoinRenderTextureSampling_opengl ...........***Failed    0.60 sec
+adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.100000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.100000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.200000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.200000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.200000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.200000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.499000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.499000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.499000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.499000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.500000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.500000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.500000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.500000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.799000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.799000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.799000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.799000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.800000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.800000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.800000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.800000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-1/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-1/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-8448/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-2/model-7681/units-1/CPU-GPU samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-1/CPU-GL samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-7681/units-2/CPU-GPU samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-2/CPU-GL samples=3888 mae=1 max=1
+quality-0.850000/nc-2/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-2/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-2/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-3/model-3042/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-3/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-2/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-3/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-8448/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8448/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8448/units-2/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8448/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8448/units-2/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-7681/units-1/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-7681/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-8449/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8449/units-1/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8449/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-8449/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8449/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-8449/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-3042/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.850000/nc-4/model-3042/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-3042/units-1/GPU-GL samples=3888 mae=0.333333 max=1
+quality-0.850000/nc-4/model-3042/units-2/CPU-GPU samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-3042/units-2/CPU-GL samples=3888 mae=0.666667 max=1
+quality-0.850000/nc-4/model-3042/units-2/GPU-GL samples=3888 mae=0 max=0
+minify/quality-0.100000/units-1/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.100000/units-1/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.100000/units-2/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.100000/units-2/CPU-GPU samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/CPU-GL samples=300 mae=0.5 max=1
+minify/quality-0.100000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-1/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-1/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-2/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.300000/units-2/CPU-GPU samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/CPU-GL samples=300 mae=0.48 max=1
+minify/quality-0.300000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.500000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.700000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-1/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/GPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GPU samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/CPU-GL samples=300 mae=0 max=0
+minify/quality-0.800000/units-2/GPU-GL samples=300 mae=0 max=0
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=7.99 max=77
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,27 red=133/56
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,28 red=37/112
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,29 red=133/58
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,30 red=133/59
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,31 red=37/110
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=35,31 red=133/64
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,32 red=133/61
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,33 red=37/109
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,34 red=133/62
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,35 red=37/108
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU pixel=33,36 red=37/107
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU: texture pixels
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=8.08 max=78
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,27 red=133/55
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,28 red=37/113
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,29 red=133/57
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,30 red=133/59
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,31 red=37/111
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=35,31 red=133/64
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,32 red=133/60
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,33 red=37/110
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,34 red=133/61
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,35 red=37/109
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL pixel=33,36 red=37/108
+projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL: texture pixels
+projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0.09 max=1
+projective mip footprint/quality-0.800000/offset-0.000000/CPU-GPU samples=300 mae=0.71 max=3
+projective mip footprint/quality-0.800000/offset-0.000000/CPU-GL samples=300 mae=0.81 max=3
+projective mip footprint/quality-0.800000/offset-0.000000/GPU-GL samples=300 mae=0.12 max=1
+off-on-baseline/CPU-GPU samples=3888 mae=0.333333 max=1
+off-on-baseline/CPU-GL samples=3888 mae=0.666667 max=1
+off-on-baseline/GPU-GL samples=3888 mae=0.333333 max=1
+anisotropic constant-color control/CPU-GPU samples=3888 mae=0.333333 max=1
+anisotropic constant-color control/CPU-GL samples=3888 mae=0.666667 max=1
+anisotropic constant-color control/GPU-GL samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GL samples=3888 mae=0.666667 max=1
+quality recovery/GPU-GL samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+quality recovery/CPU-GL samples=3888 mae=0.666667 max=1
+quality recovery/GPU-GL samples=3888 mae=0.333333 max=1
+format recovery/CPU-GPU samples=3888 mae=0.666667 max=1
+format recovery/CPU-GL samples=3888 mae=0.666667 max=1
+format recovery/GPU-GL samples=3888 mae=0 max=0
+format recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+format recovery/CPU-GL samples=3888 mae=0.666667 max=1
+format recovery/GPU-GL samples=3888 mae=0.333333 max=1
+NPOT mipmaps/CPU-GPU samples=3888 mae=0.333333 max=1
+NPOT mipmaps/CPU-GL samples=3888 mae=0.666667 max=1
+NPOT mipmaps/GPU-GL samples=3888 mae=0.333333 max=1
+NPOT base preserves native extent/CPU-GPU samples=3888 mae=0.333333 max=1
+NPOT base preserves native extent/CPU-GL samples=3888 mae=0.666667 max=1
+NPOT base preserves native extent/GPU-GL samples=3888 mae=0.333333 max=1
+NPOT error recovery/CPU-GPU samples=3888 mae=0.333333 max=1
+NPOT error recovery/CPU-GL samples=3888 mae=0.666667 max=1
+NPOT error recovery/GPU-GL samples=3888 mae=0.333333 max=1
+authored white luminance is not pending-file dummy/CPU-GPU samples=3888 mae=1 max=1
+authored white luminance is not pending-file dummy/CPU-GL samples=3888 mae=1 max=1
+authored white luminance is not pending-file dummy/GPU-GL samples=3888 mae=0 max=0
+quality off/CPU-GPU samples=3888 mae=0.333333 max=1
+quality off/CPU-GL samples=3888 mae=0.666667 max=1
+quality off/GPU-GL samples=3888 mae=0.333333 max=1
+mipmap reactivation/CPU-GPU samples=3888 mae=1 max=1
+mipmap reactivation/CPU-GL samples=3888 mae=1 max=1
+mipmap reactivation/GPU-GL samples=3888 mae=0 max=0
+individual texture unit disabled-0/CPU-GPU samples=3888 mae=1 max=1
+individual texture unit disabled-0/CPU-GL samples=3888 mae=1 max=1
+individual texture unit disabled-0/GPU-GL samples=3888 mae=0 max=0
+individual unit reactivated-0/CPU-GPU samples=3888 mae=0.333333 max=1
+individual unit reactivated-0/CPU-GL samples=3888 mae=0.666667 max=1
+individual unit reactivated-0/GPU-GL samples=3888 mae=0.333333 max=1
+individual texture unit disabled-1/CPU-GPU samples=3888 mae=1 max=1
+individual texture unit disabled-1/CPU-GL samples=3888 mae=1 max=1
+individual texture unit disabled-1/GPU-GL samples=3888 mae=0 max=0
+individual unit reactivated-1/CPU-GPU samples=3888 mae=0.333333 max=1
+individual unit reactivated-1/CPU-GL samples=3888 mae=0.666667 max=1
+individual unit reactivated-1/GPU-GL samples=3888 mae=0.333333 max=1
+P07 sampling cases=233 rejected=4 GPU=1
+
+      Start 108: CoinRenderAdvancedTextureCoreTest
+ 5/10 Test #108: CoinRenderAdvancedTextureCoreTest ..........   Passed    0.06 sec
+      Start 109: CoinRenderAdvancedTexture_vulkan
+ 6/10 Test #109: CoinRenderAdvancedTexture_vulkan ...........   Passed    0.16 sec
+      Start 110: CoinRenderAdvancedTexture_opengl
+ 7/10 Test #110: CoinRenderAdvancedTexture_opengl ...........   Passed    0.27 sec
+      Start 134: CoinRenderProceduralTextureCaptureTest
+ 8/10 Test #134: CoinRenderProceduralTextureCaptureTest .....   Passed    0.63 sec
+      Start 135: CoinRenderProceduralTexture_vulkan
+ 9/10 Test #135: CoinRenderProceduralTexture_vulkan .........   Passed    3.83 sec
+      Start 136: CoinRenderProceduralTexture_opengl
+10/10 Test #136: CoinRenderProceduralTexture_opengl .........***Failed    1.36 sec
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.314976 max=1
+native/CPU-CoinGL pixels=1380 mae=0.314976 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.314976 max=1
+native/CPU-CoinGL pixels=1380 mae=0.314976 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.131579 max=1
+native/CPU-CoinGL pixels=1140 mae=0.131579 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.131579 max=1
+native/CPU-CoinGL pixels=1140 mae=0.131579 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-1/CPU-GPU pixels=1140 mae=0.108187 max=1
+native/CPU-CoinGL pixels=1140 mae=0.108187 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-1/CPU-GPU pixels=1140 mae=0.108187 max=1
+native/CPU-CoinGL pixels=1140 mae=0.108187 max=1
+native/GPU-CoinGL pixels=1140 mae=0 max=0
+shape-1/mode-3/CPU-GPU pixels=1140 mae=0.305556 max=1
+shape-1/mode-3/CPU-GPU pixels=1140 mae=0.305556 max=1
+shape-2/mode-0/CPU-GPU pixels=1236 mae=0.297195 max=1
+native/CPU-CoinGL pixels=1236 mae=0.297195 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-0/CPU-GPU pixels=1236 mae=0.297195 max=1
+native/CPU-CoinGL pixels=1236 mae=0.297195 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-1/CPU-GPU pixels=1236 mae=0.125135 max=1
+native/CPU-CoinGL pixels=1236 mae=0.125135 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-1/CPU-GPU pixels=1236 mae=0.125135 max=1
+native/CPU-CoinGL pixels=1236 mae=0.125135 max=1
+native/GPU-CoinGL pixels=1236 mae=0 max=0
+shape-2/mode-3/CPU-GPU pixels=1236 mae=0.313376 max=1
+shape-2/mode-3/CPU-GPU pixels=1236 mae=0.313376 max=1
+shape-3/mode-0/CPU-GPU pixels=578 mae=0.289504 max=1
+native/CPU-CoinGL pixels=578 mae=0.289504 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-0/CPU-GPU pixels=578 mae=0.289504 max=1
+native/CPU-CoinGL pixels=578 mae=0.289504 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-1/CPU-GPU pixels=578 mae=0.0761246 max=1
+native/CPU-CoinGL pixels=578 mae=0.0761246 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-1/CPU-GPU pixels=578 mae=0.0761246 max=1
+native/CPU-CoinGL pixels=578 mae=0.0761246 max=1
+native/GPU-CoinGL pixels=578 mae=0 max=0
+shape-3/mode-3/CPU-GPU pixels=578 mae=0.340254 max=1
+shape-3/mode-3/CPU-GPU pixels=578 mae=0.340254 max=1
+shape-4/mode-0/CPU-GPU pixels=1296 mae=0.287037 max=1
+native/CPU-CoinGL pixels=1296 mae=0.287037 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-0/CPU-GPU pixels=1296 mae=0.287037 max=1
+native/CPU-CoinGL pixels=1296 mae=0.287037 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-1/CPU-GPU pixels=1296 mae=0.148148 max=1
+native/CPU-CoinGL pixels=1296 mae=0.148148 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-1/CPU-GPU pixels=1296 mae=0.148148 max=1
+native/CPU-CoinGL pixels=1296 mae=0.148148 max=1
+native/GPU-CoinGL pixels=1296 mae=0 max=0
+shape-4/mode-3/CPU-GPU pixels=1296 mae=0.314558 max=1
+shape-4/mode-3/CPU-GPU pixels=1296 mae=0.314558 max=1
+shape-5/mode-0/CPU-GPU pixels=504 mae=0.157407 max=1
+shape-5/mode-0/CPU-GPU pixels=504 mae=0.157407 max=1
+shape-5/mode-1/CPU-GPU pixels=504 mae=0.138889 max=1
+shape-5/mode-1/CPU-GPU pixels=504 mae=0.138889 max=1
+shape-5/mode-3/CPU-GPU pixels=504 mae=0.263228 max=1
+shape-5/mode-3/CPU-GPU pixels=504 mae=0.263228 max=1
+shape-6/mode-0/CPU-GPU pixels=100 mae=0 max=0
+shape-6/mode-0/CPU-GPU pixels=100 mae=0 max=0
+shape-6/mode-1/CPU-GPU pixels=100 mae=0.166667 max=1
+shape-6/mode-1/CPU-GPU pixels=100 mae=0.166667 max=1
+shape-6/mode-3/CPU-GPU pixels=100 mae=0.0833333 max=1
+shape-6/mode-3/CPU-GPU pixels=100 mae=0.0833333 max=1
+shape-7/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-3/CPU-GPU pixels=1380 mae=0.314976 max=1
+native/CPU-CoinGL pixels=1380 mae=0.314976 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-7/mode-3/CPU-GPU pixels=1380 mae=0.314976 max=1
+native/CPU-CoinGL pixels=1380 mae=0.314976 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+polygon-style/shape-0/style-1/UV-0/multi-0/CPU-GPU pixels=624 mae=0.189103 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.191239 max=2
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.00213675 max=2
+polygon-style/shape-0/style-1/UV-0/multi-0/CPU-GPU pixels=624 mae=0.189103 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.191239 max=2
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.00213675 max=2
+polygon-style/shape-0/style-1/UV-0/multi-1/CPU-GPU pixels=624 mae=0.469017 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.471154 max=2
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.00213675 max=2
+polygon-style/shape-0/style-1/UV-0/multi-1/CPU-GPU pixels=624 mae=0.469017 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.471154 max=2
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.00213675 max=2
+polygon-style/shape-0/style-1/UV-1/multi-0/CPU-GPU pixels=624 mae=0.123932 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.123932 max=1
+polygon-style-native/GPU-CoinGL pixels=624 mae=0 max=0
+polygon-style/shape-0/style-1/UV-1/multi-0/CPU-GPU pixels=624 mae=0.123932 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.123932 max=1
+polygon-style-native/GPU-CoinGL pixels=624 mae=0 max=0
+polygon-style/shape-0/style-1/UV-1/multi-1/CPU-GPU pixels=624 mae=0.461538 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.461538 max=1
+polygon-style-native/GPU-CoinGL pixels=624 mae=0 max=0
+polygon-style/shape-0/style-1/UV-1/multi-1/CPU-GPU pixels=624 mae=0.461538 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.461538 max=1
+polygon-style-native/GPU-CoinGL pixels=624 mae=0 max=0
+polygon-style/shape-0/style-1/UV-3/multi-0/CPU-GPU pixels=624 mae=0.242521 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.246795 max=3
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.00854701 max=2
+polygon-style/shape-0/style-1/UV-3/multi-0/CPU-GPU pixels=624 mae=0.242521 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.246795 max=3
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.00854701 max=2
+polygon-style/shape-0/style-1/UV-3/multi-1/CPU-GPU pixels=624 mae=0.589744 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.590812 max=3
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.0117521 max=2
+polygon-style/shape-0/style-1/UV-3/multi-1/CPU-GPU pixels=624 mae=0.589744 max=1
+polygon-style-native/CPU-CoinGL pixels=624 mae=0.590812 max=3
+polygon-style-native/GPU-CoinGL pixels=624 mae=0.0117521 max=2
+polygon-style/shape-0/style-2/UV-0/multi-0/CPU-GPU pixels=100 mae=0 max=0
+polygon-style-native/CPU-CoinGL pixels=81 mae=0 max=0
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-0/multi-0/CPU-GPU pixels=100 mae=0 max=0
+polygon-style-native/CPU-CoinGL pixels=81 mae=0 max=0
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-0/multi-1/CPU-GPU pixels=100 mae=0.333333 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.333333 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-0/multi-1/CPU-GPU pixels=100 mae=0.333333 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.333333 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-1/multi-0/CPU-GPU pixels=100 mae=0.166667 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.185185 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-1/multi-0/CPU-GPU pixels=100 mae=0.166667 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.185185 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-1/multi-1/CPU-GPU pixels=100 mae=0.5 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.518519 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-1/multi-1/CPU-GPU pixels=100 mae=0.5 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.518519 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-3/multi-0/CPU-GPU pixels=100 mae=0.0833333 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.102881 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-3/multi-0/CPU-GPU pixels=100 mae=0.0833333 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.102881 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-3/multi-1/CPU-GPU pixels=100 mae=0.416667 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.415638 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-0/style-2/UV-3/multi-1/CPU-GPU pixels=100 mae=0.416667 max=1
+polygon-style-native/CPU-CoinGL pixels=81 mae=0.415638 max=1
+polygon-style-native/GPU-CoinGL pixels=81 mae=0 max=0
+polygon-style/shape-1/style-1/UV-0/multi-0/CPU-GPU pixels=560 mae=0.209524 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.209524 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-0/multi-0/CPU-GPU pixels=560 mae=0.209524 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.209524 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-0/multi-1/CPU-GPU pixels=560 mae=0.511905 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.511905 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-0/multi-1/CPU-GPU pixels=560 mae=0.511905 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.511905 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-1/multi-0/CPU-GPU pixels=560 mae=0.0547619 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.0547619 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-1/multi-0/CPU-GPU pixels=560 mae=0.0547619 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.0547619 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-1/multi-1/CPU-GPU pixels=560 mae=0.397619 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.397619 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-1/multi-1/CPU-GPU pixels=560 mae=0.397619 max=1
+polygon-style-native/CPU-CoinGL pixels=560 mae=0.397619 max=1
+polygon-style-native/GPU-CoinGL pixels=560 mae=0 max=0
+polygon-style/shape-1/style-1/UV-3/multi-0/CPU-GPU pixels=560 mae=0.230952 max=1
+polygon-style/shape-1/style-1/UV-3/multi-0/CPU-GPU pixels=560 mae=0.230952 max=1
+polygon-style/shape-1/style-1/UV-3/multi-1/CPU-GPU pixels=560 mae=0.655952 max=1
+polygon-style/shape-1/style-1/UV-3/multi-1/CPU-GPU pixels=560 mae=0.655952 max=1
+polygon-style/shape-1/style-2/UV-0/multi-0/CPU-GPU pixels=100 mae=0 max=0
+polygon-style-native/CPU-CoinGL pixels=90 mae=0 max=0
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-0/multi-0/CPU-GPU pixels=100 mae=0 max=0
+polygon-style-native/CPU-CoinGL pixels=90 mae=0 max=0
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-0/multi-1/CPU-GPU pixels=100 mae=0.333333 max=1
+polygon-style-native/CPU-CoinGL pixels=90 mae=0.333333 max=1
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-0/multi-1/CPU-GPU pixels=100 mae=0.333333 max=1
+polygon-style-native/CPU-CoinGL pixels=90 mae=0.333333 max=1
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-1/multi-0/CPU-GPU pixels=100 mae=0 max=0
+polygon-style-native/CPU-CoinGL pixels=90 mae=0 max=0
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-1/multi-0/CPU-GPU pixels=100 mae=0 max=0
+polygon-style-native/CPU-CoinGL pixels=90 mae=0 max=0
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-1/multi-1/CPU-GPU pixels=100 mae=0.333333 max=1
+polygon-style-native/CPU-CoinGL pixels=90 mae=0.333333 max=1
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-1/multi-1/CPU-GPU pixels=100 mae=0.333333 max=1
+polygon-style-native/CPU-CoinGL pixels=90 mae=0.333333 max=1
+polygon-style-native/GPU-CoinGL pixels=90 mae=0 max=0
+polygon-style/shape-1/style-2/UV-3/multi-0/CPU-GPU pixels=100 mae=0.0833333 max=1
+polygon-style/shape-1/style-2/UV-3/multi-0/CPU-GPU pixels=100 mae=0.0833333 max=1
+polygon-style/shape-1/style-2/UV-3/multi-1/CPU-GPU pixels=100 mae=0.666667 max=1
+polygon-style/shape-1/style-2/UV-3/multi-1/CPU-GPU pixels=100 mae=0.666667 max=1
+polygon-style/shape-2/style-1/UV-0/multi-0/CPU-GPU pixels=1638 mae=0.319495 max=4
+CoinRenderProceduralTextureTest: polygon-style/shape-2/style-1/UV-0/multi-0/CPU-GPU: UV differs
+
+
+70% tests passed, 3 tests failed out of 10
+
+Total Test time (real) =   7.74 sec
+
+The following tests FAILED:
+	106 - CoinRenderTextureSampling_vulkan (Failed)
+	107 - CoinRenderTextureSampling_opengl (Failed)
+	136 - CoinRenderProceduralTexture_opengl (Failed)
+Errors while running CTest

@@ -1,0 +1,355 @@
+{
+  "base_commit": "6c91ed26df655b5bdbf7fcbebce71a7b841c4539",
+  "branch": "codex/coin-render",
+  "validated_at_utc": "2026-10-08T00:04:27.626199+00:00",
+  "production_source_diff": [],
+  "sources": {
+    "testsuite/CMakeLists.txt": {
+      "bytes": 98840,
+      "sha256": "67285dec8494fa176e3080de68793f3215c407ed7fc7661e3f4e5004aed04548"
+    },
+    "testsuite/coinrender/CoinRenderProceduralTextureTest.cpp": {
+      "bytes": 25456,
+      "sha256": "476cf47a4011d32bb6bb6605f7ba8aef1dc0d11f7ccdc807777124d0d730080d"
+    },
+    "testsuite/coinrender/CoinRenderTextureSamplingTest.cpp": {
+      "bytes": 17560,
+      "sha256": "7502e599169aaa089396c3daf7bc1e7616183fe58b291d4cf019130758d594af"
+    },
+    "testsuite/coinrender/run-sampling-instancing.py": {
+      "bytes": 4359,
+      "sha256": "49806e654564a747a7596d63d591f961bbdf571c8ab3b82750e46dfce72dfe8e"
+    },
+    "testsuite/coinwgpu/CoinWgpuLargeBindingsTest.cpp": {
+      "bytes": 4882,
+      "sha256": "660ca86711c572ffdd33c2cfafb4e7b52c2d6aac74d343bd02b44bd77d53759c"
+    },
+    "testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp": {
+      "bytes": 76288,
+      "sha256": "16114940b552726d365e0302bb29cd7c7546606721fbde392523dccd4ddaf9e7"
+    },
+    "src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp": {
+      "bytes": 42554,
+      "sha256": "1502e9ab564e887373de24aed542c092918185c7ad81d226b51dfa9356b6257c"
+    },
+    "src/rendering/coinwgpu/CoinWgpuFfi.h": {
+      "bytes": 16682,
+      "sha256": "45c485706d55c240436d934f566dbc5f89b0e515d6566cb644167736c05e9e90"
+    },
+    "src/rendering/coinwgpu/rust_bridge/src/instancing.rs": {
+      "bytes": 28760,
+      "sha256": "f5b86e557c042603a1d53ee674a1e88f0ec469427dfdc2753da7a0617bd608ef"
+    },
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": {
+      "bytes": 365708,
+      "sha256": "cb620e9382806a85221671b5450082ad4427561a2207028a2c2a8c642c39fa9e"
+    },
+    "docs/coin-render-sampling-instancing-validation-20261007.md": {
+      "bytes": 8796,
+      "sha256": "1a3af5ebaa80ed18b173741741a35f16f004e4ba48bc6cc04021647f0a69b9c3"
+    },
+    "docs/coin-render-next-fronts-checklist.md": {
+      "bytes": 22986,
+      "sha256": "77329fba55da584047d441695638c0bc345b61fc1583c851f4ea66ef0dd6f800"
+    },
+    "docs/coin-render-advanced-textures-validation-20261007.md": {
+      "bytes": 7734,
+      "sha256": "b9ae5a6ac4e58390e0b8c22ad8268c87fcbc7962babe05d94a56a22ee0359d99"
+    }
+  },
+  "binaries": {
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderTextureSamplingTest": {
+      "bytes": 118472,
+      "sha256": "cbca94fda7850aee3df53b0a0492923dc2ce54073152857edd1bb606356bd9e3"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderProceduralTextureTest": {
+      "bytes": 133168,
+      "sha256": "56721467fd2bf4767ba7a5eea02b8c016182ab3c73bcf66306abd6f2414213d3"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinWgpuLargeBindingsTest": {
+      "bytes": 232680,
+      "sha256": "2ba4e084934e08cf898b67134a5afbf94085d188ba050ec01843d725c9ad6ec0"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinWgpuMultiDeviceTest": {
+      "bytes": 303232,
+      "sha256": "d72409cd93d108d21098f5edc931fe3031b035cba62486ccfb3ba4f7f85ac4e1"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/lib/libCoinRender.so": {
+      "bytes": 15866984,
+      "sha256": "c1861c7a3d7b84d4318d876ebb4521e5a2e7abe4cc70de7713228b129db0e537"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderTextureSamplingTest": {
+      "bytes": 118472,
+      "sha256": "ec3b70a3fedb7575bb7213694bc75e4e4f6dd95de055736a247bbc43bbbfdc26"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderProceduralTextureTest": {
+      "bytes": 133168,
+      "sha256": "617664f2c72330fc90963d38cb47b5abf32c924d47a0ed9d3f3156ab9f2808d8"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/lib/libCoinRender.so": {
+      "bytes": 5545584,
+      "sha256": "321aa9ff605ba04ffecf9ba6cd1d03b5a86cea0bf652a4380250ac9d000b6f57"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-linux-recording/bin/CoinRenderTextureSamplingTest": {
+      "bytes": 118472,
+      "sha256": "9249eee1daa96ccaecb5b5cb49c4ab63f1f09d9a84a3a58ac30bbb4edc6f0eb7"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-linux-recording/bin/CoinRenderProceduralTextureTest": {
+      "bytes": 133168,
+      "sha256": "bb49e1e028b3a6735644b4995b876267bc5183ac18e2da9407991d5cb11e7d6d"
+    },
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-linux-recording/lib/libCoinRender.so": {
+      "bytes": 1158288,
+      "sha256": "42f4269c213c883a48c9a97121923ef7cb0aee2be4a03f4218b00d8146770d87"
+    }
+  },
+  "evidence": {
+    "analytic-footprint.json": {
+      "bytes": 5481,
+      "sha256": "2346a11a740d4604979997ea9beb9c9e770b3de634a2eec593d3dab83f4d4258"
+    },
+    "analyze_footprint.py": {
+      "bytes": 2384,
+      "sha256": "5b902b6b21b5516de5cf6b9793e25a4f4840070dcdb6f822f7e5745d609a214d"
+    },
+    "baseline-procedural-summary.json": {
+      "bytes": 1172,
+      "sha256": "61078ca11694c600d11572675e149c7312dea205ea2175b1e34f13928a39c0a2"
+    },
+    "bgfx-amd-vulkan-procedural.log": {
+      "bytes": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    "bgfx-amd-vulkan-projective-study.log": {
+      "bytes": 4188,
+      "sha256": "36ac47a3a81d493c70ac4972854c4322d895bca0b7e6aee57f63be9f6442c271"
+    },
+    "bgfx-amd-vulkan-sampling.log": {
+      "bytes": 54796,
+      "sha256": "76e6e672555ee111909de665d4b84e5b2a39bfa324cc5604a69a65ce1b3159e7"
+    },
+    "bgfx-baseline-procedural-build.log": {
+      "bytes": 364,
+      "sha256": "9d72c5edd9b44a9bc028226f07bd5af97cf819b2e7b0411137b8c399e4c67e89"
+    },
+    "bgfx-baseline-procedural-gl.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "bgfx-integrated.log": {
+      "bytes": 125256,
+      "sha256": "e82191c1db8f52a5ea44c0a6ffee47a3db045bb40c32d8dbb331af8a066693a3"
+    },
+    "bgfx-nvidia-vulkan-procedural.log": {
+      "bytes": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    "bgfx-nvidia-vulkan-projective-study.log": {
+      "bytes": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    "bgfx-nvidia-vulkan-sampling.log": {
+      "bytes": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    "bgfx-opengl-procedural.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "bgfx-opengl-projective-study.log": {
+      "bytes": 4208,
+      "sha256": "8a1f44785623ed05b16ba4703c4164b9f377a482522e69bc9c5b5741006d641e"
+    },
+    "bgfx-opengl-sampling.log": {
+      "bytes": 54807,
+      "sha256": "b954a4d7e2347de6ff25cc08d0360845611fc1ea6aaa9acefc01c57527821f2a"
+    },
+    "bgfx-restore-procedural-build.log": {
+      "bytes": 197,
+      "sha256": "d30894d478419eafa54030ab2170ef09644da9c3d7779dcf6ed36f0a222faff5"
+    },
+    "experiment-round256-coarse.patch": {
+      "bytes": 1234,
+      "sha256": "a5cdc6ad20de1aa3816b75335e752172691e9e737b0f6d373b7c48785317965b"
+    },
+    "experiment-round256-svd.patch": {
+      "bytes": 1267,
+      "sha256": "0c389959d16ffc9d7f037c1561d1fb0c1d0019366eca6de2e05b2fdc1b8e7fe2"
+    },
+    "experiment-round256.patch": {
+      "bytes": 581,
+      "sha256": "29fb9dd4938ca30e103c69b69073c7aa30ff0dbbeeae3aec564467fb0bce1e2a"
+    },
+    "initial-bgfx-integrated.log": {
+      "bytes": 110970,
+      "sha256": "e45aee2caf25817b2bbb862da445d8c4fa101f2caa088a3c6037093a2763b201"
+    },
+    "initial-full.log": {
+      "bytes": 51198,
+      "sha256": "d4fcf644cad34929301f69c842c80796eb547c212c0f45d8360a5f45b973efd1"
+    },
+    "initial-integrated-summary.json": {
+      "bytes": 869,
+      "sha256": "c36212d01a9fed8c50a892e2afd066bfa491b33567d41113ce904a859919ef1c"
+    },
+    "initial-wgpu-integrated.log": {
+      "bytes": 91035,
+      "sha256": "2044a900602505c2e3d5381617819132edf9d269cb5d49b48f72a74739ff4f2e"
+    },
+    "integrated-summary.json": {
+      "bytes": 1957,
+      "sha256": "fb921b787626ef92b1e8d4cc19c00eeeac1d1b64bc0960f122fb7df1735e264f"
+    },
+    "nearest-round256-amd.log": {
+      "bytes": 50906,
+      "sha256": "3117d1a049b9db884ccf6662a88318f9bf77c4317f6ba5bc664212fbd5a3d083"
+    },
+    "nearest-round256-coarse-amd.log": {
+      "bytes": 50181,
+      "sha256": "0a545831b108b566f6584dc873da0091f8d5911158031e53c278ab4369c35b39"
+    },
+    "nearest-round256-nvidia.log": {
+      "bytes": 50316,
+      "sha256": "8d20f3d3e8a8039de76301ddd7a80de404f41fb19fff36a35582c606c52377fc"
+    },
+    "nearest-round256-svd-amd.log": {
+      "bytes": 52498,
+      "sha256": "e62c5386ea1fe562a79e06700b75c993c7ba57c06209e8c50c5222ec5d298c35"
+    },
+    "nearest-round256-svd-final-amd.log": {
+      "bytes": 52680,
+      "sha256": "110abd435ef482a6e75707cb2ab41be92f98152f9855ae09464950b09c1458f6"
+    },
+    "nearest-round256-svd-final-nvidia.log": {
+      "bytes": 53778,
+      "sha256": "1d2ecf322d0d173ee804d1c8490764dd299d1226b8d64091f0ef70bdfbdf900e"
+    },
+    "no-adapter-skip-summary.json": {
+      "bytes": 568,
+      "sha256": "6af8fe04792b58469b25e89d669ea85983221cab9d5fec1efa9516f403952c78"
+    },
+    "no-adapter-skip.log": {
+      "bytes": 638,
+      "sha256": "4717703682cd2773dd26a8902ad51ab8ad2f10d1e0698525bb6929eb72dfcb51"
+    },
+    "recording-integrated.log": {
+      "bytes": 707,
+      "sha256": "05b41de9ebec644b81d5f090df60bcfc6f49dab17299892c2a7997535599b462"
+    },
+    "recording-summary.json": {
+      "bytes": 457,
+      "sha256": "af9ff9877b4da3afcced5cd1b2726da060956f75ff17b6c02c85da1f28ab2a37"
+    },
+    "restore-final-build.log": {
+      "bytes": 411,
+      "sha256": "c210263b1ada63d5d583b77ce8fb0fc18e6c93e48e38cd459589949f79299b85"
+    },
+    "source.patch": {
+      "bytes": 18109,
+      "sha256": "0ad8ce7774a2eccc26680390461045a2567f0d0da0ac99a3094c1b18aa068f0a"
+    },
+    "summary.json": {
+      "bytes": 51018,
+      "sha256": "fc9a3ecd1e6d3863ce678252f6b665a63dfde8f3a3e055a8a26d9d6c0aa28e49"
+    },
+    "svd-experiment-build.log": {
+      "bytes": 230,
+      "sha256": "f4d142014bcf95d7a40ea2e0e1cf2b0e865efa66a8e6d5dfb89b8435041142f6"
+    },
+    "wgpu-amd-opengl-large-bindings.log": {
+      "bytes": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    "wgpu-amd-opengl-multi-device-stress.log": {
+      "bytes": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    "wgpu-amd-opengl-multi-device.log": {
+      "bytes": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    "wgpu-amd-opengl-procedural.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "wgpu-amd-opengl-projective-study.log": {
+      "bytes": 4216,
+      "sha256": "ed4af38dbf090c6b00f9cb7acdca6fe4332b32030586335864ad1d9a65fb6e5e"
+    },
+    "wgpu-amd-opengl-sampling.log": {
+      "bytes": 54824,
+      "sha256": "40ada83de372046c0cf075bc4760b2ab37d847cac459c3b75918b6e37e3ef68e"
+    },
+    "wgpu-amd-vulkan-large-bindings.log": {
+      "bytes": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    "wgpu-amd-vulkan-multi-device-stress.log": {
+      "bytes": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    "wgpu-amd-vulkan-multi-device.log": {
+      "bytes": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    "wgpu-amd-vulkan-procedural.log": {
+      "bytes": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    "wgpu-amd-vulkan-projective-study.log": {
+      "bytes": 4184,
+      "sha256": "49c9c66a2838998c4f841ef62bff64e3bb1de89fa74153d72062b83e4b8672e8"
+    },
+    "wgpu-amd-vulkan-sampling.log": {
+      "bytes": 54792,
+      "sha256": "2042c8c079434b9f6665eb897a78a5c38bb2cfd481d4883f37d26c612d43f3db"
+    },
+    "wgpu-baseline-procedural-build.log": {
+      "bytes": 197,
+      "sha256": "d30894d478419eafa54030ab2170ef09644da9c3d7779dcf6ed36f0a222faff5"
+    },
+    "wgpu-baseline-procedural-gl.log": {
+      "bytes": 13796,
+      "sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+    },
+    "wgpu-integrated.log": {
+      "bytes": 59640,
+      "sha256": "509b5a0d7886e65d3d0a2a1030792bec84b96c3cf3b11d11bf334b801c70f05a"
+    },
+    "wgpu-nvidia-vulkan-large-bindings.log": {
+      "bytes": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    "wgpu-nvidia-vulkan-multi-device-stress.log": {
+      "bytes": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    "wgpu-nvidia-vulkan-multi-device.log": {
+      "bytes": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    "wgpu-nvidia-vulkan-procedural.log": {
+      "bytes": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    "wgpu-nvidia-vulkan-projective-study.log": {
+      "bytes": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    "wgpu-nvidia-vulkan-sampling.log": {
+      "bytes": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    "wgpu-restore-procedural-build.log": {
+      "bytes": 197,
+      "sha256": "d30894d478419eafa54030ab2170ef09644da9c3d7779dcf6ed36f0a222faff5"
+    }
+  },
+  "interpretation": {
+    "instancing_hardware_runs": "9 PASS, no skipped adapter counted",
+    "sampling_original_gate": "FAIL AMD/runtime OpenGL, PASS NVIDIA Vulkan; thresholds unchanged",
+    "experimental_patches": "diagnostic only; original CPU source restored",
+    "opengl_procedural": "pre-existing sphere/line/default UV mismatch; original HEAD fixture reproduced",
+    "new_production_rendering_code": false
+  }
+}

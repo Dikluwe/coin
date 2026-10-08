@@ -1653,9 +1653,9 @@ if(COIN_BUILD_RENDER)
 			${COIN_TARGET_INCLUDE_DIRECTORIES}
 		)
 		add_test(NAME CoinWgpuMultiDeviceTest COMMAND CoinWgpuMultiDeviceTest)
-		set_tests_properties(CoinWgpuMultiDeviceTest PROPERTIES TIMEOUT 60)
+		set_tests_properties(CoinWgpuMultiDeviceTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
 		add_test(NAME WgpuMultiDeviceStressTest COMMAND CoinWgpuMultiDeviceTest --stress)
-		set_tests_properties(WgpuMultiDeviceStressTest PROPERTIES TIMEOUT 300)
+		set_tests_properties(WgpuMultiDeviceStressTest PROPERTIES TIMEOUT 300 SKIP_RETURN_CODE 77)
 
 		add_executable(CoinRenderAsyncActionTest coinrender/CoinRenderAsyncActionTest.cpp)
 		set_target_properties(CoinRenderAsyncActionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")

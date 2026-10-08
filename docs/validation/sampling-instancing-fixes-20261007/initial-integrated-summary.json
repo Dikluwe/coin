@@ -1,0 +1,34 @@
+[
+  {
+    "name": "wgpu",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu",
+      "-R",
+      "CoinWgpu|WgpuMulti|CoinRender.*Texture|CoinRenderRtt",
+      "--output-on-failure",
+      "-j",
+      "1"
+    ],
+    "exit": 8,
+    "sha256": "2044a900602505c2e3d5381617819132edf9d269cb5d49b48f72a74739ff4f2e",
+    "log": "wgpu-integrated.log"
+  },
+  {
+    "name": "bgfx",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx",
+      "-R",
+      "CoinRenderTextureSampling|CoinRenderAdvancedTexture",
+      "--output-on-failure",
+      "-j",
+      "1"
+    ],
+    "exit": 8,
+    "sha256": "e45aee2caf25817b2bbb862da445d8c4fa101f2caa088a3c6037093a2763b201",
+    "log": "bgfx-integrated.log"
+  }
+]

@@ -104,6 +104,12 @@ Esses controles antigos de instancing/bindings continuam abertos; não foram
 alterados para converter o resultado em PASS. Os testes de imagem/qualidade do
 perfil novo têm expectativas numéricas próprias. Esta campanha não mede FPS.
 
+Continuação posterior desta mesma data: os dois gates de instancing foram
+reconciliados, com imagens/depth e contagens exatas preservados. O sampling AMD
+foi isolado contra CoinGL e continua aberto. Ver
+[diagnóstico e resultados atualizados](coin-render-sampling-instancing-validation-20261007.md).
+As contagens e afirmações acima descrevem esta campanha histórica.
+
 ## Reprodução
 
 Compilar os testes com o backend desejado e o protocolo privado **50**. Os

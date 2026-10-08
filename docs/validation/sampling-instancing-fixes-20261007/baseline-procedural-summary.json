@@ -1,0 +1,28 @@
+[
+  {
+    "name": "wgpu",
+    "exit": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "baseline_commit": "6c91ed26df655b5bdbf7fcbebce71a7b841c4539",
+    "source_sha256": "e234093afc1d7e5459604c918e7254ac27fccd9afca4f8c97e687ba74ba8e73f",
+    "binary_sha256": "77f3cc3eb6ce4a1139da20d4de0b1f5defdb8bbb94933ae51fa0f95051db8258",
+    "log": "wgpu-baseline-procedural-gl.log",
+    "log_sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+  },
+  {
+    "name": "bgfx",
+    "exit": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx/bin/CoinRenderProceduralTextureTest",
+      "--gpu"
+    ],
+    "baseline_commit": "6c91ed26df655b5bdbf7fcbebce71a7b841c4539",
+    "source_sha256": "e234093afc1d7e5459604c918e7254ac27fccd9afca4f8c97e687ba74ba8e73f",
+    "binary_sha256": "d6f635d10cbe4073c62606e9e188e3c7d65464d794ef22e80bc419795f8fe70e",
+    "log": "bgfx-baseline-procedural-gl.log",
+    "log_sha256": "8382b044b9430e39423c34f50686145d56d759409aff7ac22712eae221bc5bd2"
+  }
+]

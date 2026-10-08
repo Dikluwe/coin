@@ -867,9 +867,15 @@ bool instancedOpaqueOwnership() {
   };
   auto dynamicOnly = [&] {
     CoinWgpuCacheStats stats{}; coin_wgpu_get_cache_stats(&stats);
-    // GpuMaterial: four color vec4 plus one params vec4, as in the shader.
+    // GPU instances use three affine model rows and three normal rows (96
+    // bytes), independently of the 144-byte CPU transport. GpuMaterial is
+    // four color vec4 plus one params vec4. Keep the exact upload budget.
+    const uint64_t expectedBytes = frame.instance_count * 96u + 2u*5u*16u;
+    std::cout << "instance/material update uploads=" << stats.frame_uploads
+              << " bytes=" << stats.frame_uploaded_bytes << " expected=" << expectedBytes
+              << " geometry_hits=" << stats.frame_hits << '\n';
     return check(stats.frame_uploads == 1 && stats.frame_hits >= 1 &&
-                 stats.frame_uploaded_bytes == sizeof(instances) + 2u*5u*16u,
+                 stats.frame_uploaded_bytes == expectedBytes,
                  "object/material updates must upload only instances/materials, retaining canonical geometry");
   };
   if (!compare(0,frame,"initial instances RGB/depth") ||
@@ -1421,8 +1427,15 @@ bool stress() {
 int main(int argc, char ** argv) {
   if (!coin_wgpu_is_available()) {
     std::cout << "No WebGPU adapter; multi-device test skipped\n";
-    return 0;
+    return 77;
   }
+  char adapter[256] = {};
+  CoinWgpuRuntimeCapabilities capabilities{};
+  if (coin_wgpu_query_runtime_capabilities(&capabilities, sizeof(capabilities)) != COIN_WGPU_OK)
+    return 1;
+  coin_wgpu_get_adapter_info(adapter, sizeof(adapter));
+  std::cout << "adapter=" << adapter << " renderer=" << capabilities.renderer
+            << " vendor=" << capabilities.vendor_id << " device=" << capabilities.device_id << '\n';
   const bool runStress = argc > 1 && std::string(argv[1]) == "--stress";
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&

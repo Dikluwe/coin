@@ -1,0 +1,15 @@
+{
+  "command": [
+    "ctest",
+    "--test-dir",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-apk-20261007/build-linux-recording",
+    "-R",
+    "CoinRenderTextureSamplingCaptureTest|CoinRenderTextureSamplingConfigLimitTest|CoinRenderProceduralTextureCaptureTest",
+    "--output-on-failure",
+    "-j",
+    "1"
+  ],
+  "exit": 0,
+  "log": "recording-integrated.log",
+  "sha256": "05b41de9ebec644b81d5f090df60bcfc6f49dab17299892c2a7997535599b462"
+}

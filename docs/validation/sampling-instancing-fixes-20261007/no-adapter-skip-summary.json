@@ -1,0 +1,20 @@
+{
+  "command": [
+    "ctest",
+    "--test-dir",
+    "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu",
+    "-R",
+    "^CoinWgpuMultiDeviceTest$|^WgpuMultiDeviceStressTest$",
+    "--output-on-failure",
+    "-j",
+    "1"
+  ],
+  "exit": 0,
+  "environment": {
+    "VK_DRIVER_FILES": "/nonexistent/coin-test-no-adapter.json",
+    "VK_ICD_FILENAMES": "/nonexistent/coin-test-no-adapter.json",
+    "WGPU_BACKEND": "vulkan"
+  },
+  "log": "no-adapter-skip.log",
+  "sha256": "4717703682cd2773dd26a8902ad51ab8ad2f10d1e0698525bb6929eb72dfcb51"
+}

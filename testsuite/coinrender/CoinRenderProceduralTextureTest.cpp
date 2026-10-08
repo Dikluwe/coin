@@ -418,9 +418,18 @@ bool run(bool gpu) {
   }
   function->invalid=false;
   if (!h.render(scene,"recovery-after",true)) return false;
+  // Quality > .85 now requests anisotropy in the advanced profile. Retain
+  // the publication rejection checks with an out-of-range value,
+  // and require the newly admitted procedural combination to render first.
+  scene.quality->textureQuality=.95f;
+  if (!h.render(scene,"anisotropic-procedural-profile",true)) return false;
+  if (!check(!h.capture->frame.samplers.empty() &&
+      h.capture->frame.samplers[0].maxAnisotropy==16 &&
+      h.capture->frame.samplers[0].filter==CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR,
+      "procedural anisotropic sampler contract")) return false;
   const unsigned beforeQuality=h.capture->submissions;
   h.cpu->readbackRGBA(previous);
-  scene.quality->textureQuality=.95f; h.action.apply(scene.root);
+  scene.quality->textureQuality=1.01f; h.action.apply(scene.root);
   h.cpu->readbackRGBA(preserved);
   if (!check(h.action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
       h.capture->submissions==beforeQuality && preserved==previous,"unsupported quality publication")) return false;

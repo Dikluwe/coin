@@ -1,0 +1,58 @@
+[
+  {
+    "name": "wgpu",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/p23-fps-20261007/build-linux-wgpu",
+      "-R",
+      "CoinWgpu|WgpuMulti|CoinRender.*Texture|CoinRenderRtt",
+      "--output-on-failure",
+      "-j",
+      "1"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "exit": 8,
+    "sha256": "509b5a0d7886e65d3d0a2a1030792bec84b96c3cf3b11d11bf334b801c70f05a",
+    "log": "wgpu-integrated.log"
+  },
+  {
+    "name": "bgfx",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "/mnt/Laranja/Git/externos/coin-render-artifacts/raster-study-20261007/build-bgfx",
+      "-R",
+      "CoinRenderTextureSampling|CoinRenderAdvancedTexture|CoinRenderProceduralTexture",
+      "--output-on-failure",
+      "-j",
+      "1"
+    ],
+    "environment": {
+      "DISPLAY": ":0",
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_GLX_PIXMAP_DIRECT_RENDERING": "1",
+      "COIN_GLXGLUE_NO_PBUFFERS": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "WGPU_BACKEND": "vulkan"
+    },
+    "exit": 8,
+    "sha256": "e82191c1db8f52a5ea44c0a6ffee47a3db045bb40c32d8dbb331af8a066693a3",
+    "log": "bgfx-integrated.log"
+  }
+]

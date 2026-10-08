@@ -1,0 +1,24 @@
+--- a/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
++++ b/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
+@@ -92,8 +92,8 @@
+   };
+ 
+   if (!linear) {
+-    int nx = static_cast<int>(std::floor(uCoord * static_cast<float>(tw)));
+-    int ny = static_cast<int>(std::floor(vCoord * static_cast<float>(th)));
++    int nx = static_cast<int>(std::floor(std::round(uCoord * static_cast<float>(tw) * 256.0f) / 256.0f));
++    int ny = static_cast<int>(std::floor(std::round(vCoord * static_cast<float>(th) * 256.0f) / 256.0f));
+     return fetchPixel(nx, ny);
+   }
+ 
+@@ -357,8 +357,8 @@
+           };
+           // Match fragment-quad finite differences, including homogeneous Q.
+           const float x=float(px & ~1)+.5f,y=float(py & ~1)+.5f;
+-          const auto dx=uvAt(x+1,float(py)+.5f)-uvAt(x,float(py)+.5f);
+-          const auto dy=uvAt(float(px)+.5f,y+1)-uvAt(float(px)+.5f,y);
++          const auto dx=uvAt(x+1,y)-uvAt(x,y);
++          const auto dy=uvAt(x,y+1)-uvAt(x,y);
+           const SbVec2f gx(dx[0]*image.width,dx[1]*image.height),gy(dy[0]*image.width,dy[1]*image.height);
+           const float rho=std::max(std::hypot(gx[0],gx[1]),std::hypot(gy[0],gy[1]));
+           if(rho>0)lod=std::log2(rho);

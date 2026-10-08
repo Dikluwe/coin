@@ -8,12 +8,19 @@
 #include <iostream>
 #include <vector>
 
-// Repeated geometry deliberately prevents baking/merging. 25,600 independent
+// Accepting clip planes keep repeated geometry in separate draws. 25,600 independent
 // draw uniforms cross the 64 MiB arena boundary and exceed D3D12's old sampler
 // descriptor allocation pattern. Check every cell, not just successful submit.
 int main()
 {
   if (!coin_wgpu_is_available()) return 77;
+  char adapter[256] = {};
+  CoinWgpuRuntimeCapabilities capabilities{};
+  if (coin_wgpu_query_runtime_capabilities(&capabilities, sizeof(capabilities)) != COIN_WGPU_OK)
+    return 1;
+  coin_wgpu_get_adapter_info(adapter, sizeof(adapter));
+  std::cout << "adapter=" << adapter << " renderer=" << capabilities.renderer
+            << " vendor=" << capabilities.vendor_id << " device=" << capabilities.device_id << '\n';
   const uint32_t columns = 200, rows = 128, width = columns * 5, height = rows * 5;
   CoinRenderFramePlan frame;
   frame.revision = 701;
@@ -43,6 +50,10 @@ int main()
     state.lightModel = CoinRenderLightModel::BASE_COLOR;
     state.cullMode = CoinRenderCullMode::NONE;
     state.materialSlot = i % 2;
+    // An accepting clip plane exercises independent draw uniforms: opaque
+    // batching/instancing deliberately do not admit clipping. All vertices
+    // lie at z=0, inside z >= -1, so the exact pixel oracle is unchanged.
+    state.clipPlanesWorld.emplace_back(SbVec3f(0, 0, 1), -1.0f);
     state.model.setTranslate(SbVec3f(-1 + 2.0f * (i % columns) / columns,
                                     1 - 2.0f * (i / columns) / rows, 0));
     auto & draw = frame.draws[i];
@@ -68,8 +79,10 @@ int main()
     }
     std::string error;
     if (!packed.prepare(frame, width, height, error) ||
-        packed.getView().draw_count != columns * rows) {
-      std::cerr << "Large bindings packing failed: " << error << '\n';
+        (packed.getView().draw_count != columns * rows || packed.getView().instance_count != 0)) {
+      std::cerr << "Large bindings packing failed: " << error
+                << " draws=" << packed.getView().draw_count
+                << " instances=" << packed.getView().instance_count << '\n';
       return 1;
     }
     char gpuError[1024] = {};

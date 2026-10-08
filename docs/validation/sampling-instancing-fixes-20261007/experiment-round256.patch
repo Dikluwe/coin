@@ -1,0 +1,13 @@
+--- a/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
++++ b/src/rendering/coinrender/CoinRenderCpuReferenceBackend.cpp
+@@ -92,8 +92,8 @@
+   };
+ 
+   if (!linear) {
+-    int nx = static_cast<int>(std::floor(uCoord * static_cast<float>(tw)));
+-    int ny = static_cast<int>(std::floor(vCoord * static_cast<float>(th)));
++    int nx = static_cast<int>(std::floor(std::round(uCoord * static_cast<float>(tw) * 256.0f) / 256.0f));
++    int ny = static_cast<int>(std::floor(std::round(vCoord * static_cast<float>(th) * 256.0f) / 256.0f));
+     return fetchPixel(nx, ny);
+   }
+ 

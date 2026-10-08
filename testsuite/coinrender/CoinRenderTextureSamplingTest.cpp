@@ -152,6 +152,18 @@ struct Harness {
         }
     std::cout << label << " samples=" << n << " mae=" << sum / n
               << " max=" << maximum << '\n';
+    if (sum / n > 1.5 || maximum > 4) {
+      unsigned reported = 0;
+      for (int y = 32-radius; y < 32+radius && reported < 12; ++y)
+        for (int x = 32-radius; x < 32+radius && reported < 12; ++x) {
+          const size_t at = (y*64+x)*4, bt = (y*64+x)*channels;
+          if (std::abs(int(a[at])-int(b[bt])) > 4) {
+            std::cout << label << " pixel=" << x << ',' << y << " red="
+                      << int(a[at]) << '/' << int(b[bt]) << '\n';
+            ++reported;
+          }
+        }
+    }
     return check(sum / n <= 1.5 && maximum <= 4, label + ": texture pixels");
   }
   bool render(Scene &s, const std::string &label, bool minify,
@@ -167,12 +179,18 @@ struct Harness {
       if (!check(gpuAction.getLastStatus() == CoinRenderAction::SUCCESS,
                  label + ": GPU " + gpuAction.getLastError().getString()))
         return false;
+      if (!reportedAdapter) {
+        CoinRenderCapabilities caps{};
+        coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps, sizeof(caps));
+        std::cout << "adapter=" << caps.adapter_name << " renderer=" << caps.renderer
+                  << " vendor=" << caps.vendor_id << " device=" << caps.device_id << '\n';
+        reportedAdapter = true;
+      }
       std::vector<uint8_t> a, b;
       cpu->readbackRGBA(a);
       native->readbackRGBA(b);
       const int radius = minify ? 5 : 18;
-      if (!compare(a, b, 4, label + "/CPU-GPU", radius))
-        return false;
+      const bool cpuGpu = compare(a, b, 4, label + "/CPU-GPU", radius);
       if (!check(gl.render(s.root) && gl.getBuffer(),
                  label + ": mandatory CoinGL"))
         return false;
@@ -181,8 +199,9 @@ struct Harness {
       for (int y = 0; y < 64; ++y)
         std::copy(p + (63 - y) * 64 * 3, p + (64 - y) * 64 * 3,
                   reference.begin() + y * 64 * 3);
-      if (!compare(a, reference, 3, label + "/CPU-GL", radius) ||
-          !compare(b, reference, 3, label + "/GPU-GL", radius))
+      const bool cpuGl = compare(a, reference, 3, label + "/CPU-GL", radius);
+      const bool gpuGl = compare(b, reference, 3, label + "/GPU-GL", radius);
+      if (!cpuGpu || !cpuGl || !gpuGl)
         return false;
     }
     ++cases;
@@ -220,6 +239,7 @@ struct Harness {
   CoinRenderAction action, gpuAction;
   SoOffscreenRenderer gl;
   unsigned cases = 0, rejects = 0;
+  bool reportedAdapter = false;
 };
 bool core() {
   CoinRenderTextureImageSnapshot image;
@@ -246,6 +266,37 @@ bool core() {
              "mip budget limit"))
     return false;
   return true;
+}
+bool projective(Harness &h, bool study = false) {
+  bool projectiveOk = true;
+  // Keep offset zero as the original strict gate; the study also moves the
+  // footprint away from nearest-texel boundaries without changing thresholds.
+  for (float q : {.5f, .8f}) {
+    const std::vector<float> offsets = study ? std::vector<float>{0.f, -.001f, .001f}
+                                            : std::vector<float>{0.f};
+    for (float offset : offsets) {
+      Scene projective(3, SoTexture2::REPLACE, 1, true, true);
+      projective.quality->textureQuality = q;
+      std::vector<uint8_t> blocks(128 * 128 * 3);
+      for (int y = 0; y < 128; ++y)
+        for (int x = 0; x < 128; ++x)
+          for (int c = 0; c < 3; ++c)
+            blocks[(y * 128 + x) * 3 + c] = ((x / 8 + y / 8) & 1) ? 160 : 40;
+      projective.images[0]->image.setValue(SbVec2s(128, 128), 3, blocks.data());
+      auto *matrix = new SoTextureMatrixTransform;
+      SbMatrix m = SbMatrix::identity();
+      m[0][3] = .3f;
+      m[3][0] = m[3][1] = offset;
+      matrix->matrix = m;
+      projective.root->insertChild(matrix, projective.root->getNumChildren() - 2);
+      if (!h.render(projective,
+                    "projective mip footprint/quality-" + std::to_string(q) +
+                        "/offset-" + std::to_string(offset),
+                    true))
+        projectiveOk = false;
+    }
+  }
+  return projectiveOk;
 }
 bool run(bool gpu) {
   if (!core())
@@ -295,25 +346,7 @@ bool run(bool gpu) {
             return false;
         }
       }
-  for (float q : {.5f, .8f}) {
-    Scene projective(3, SoTexture2::REPLACE, 1, true, true);
-    projective.quality->textureQuality = q;
-    std::vector<uint8_t> blocks(128 * 128 * 3);
-    for (int y = 0; y < 128; ++y)
-      for (int x = 0; x < 128; ++x)
-        for (int c = 0; c < 3; ++c)
-          blocks[(y * 128 + x) * 3 + c] = ((x / 8 + y / 8) & 1) ? 160 : 40;
-    projective.images[0]->image.setValue(SbVec2s(128, 128), 3, blocks.data());
-    auto *matrix = new SoTextureMatrixTransform;
-    SbMatrix m = SbMatrix::identity();
-    m[0][3] = .3f;
-    matrix->matrix = m;
-    projective.root->insertChild(matrix, projective.root->getNumChildren() - 2);
-    if (!h.render(projective,
-                  "projective mip footprint/quality-" + std::to_string(q),
-                  true))
-      return false;
-  }
+  const bool projectiveOk = projective(h);
   Scene scene(4, SoTexture2::MODULATE, 2, false, false);
   scene.quality->textureQuality = .3f;
   if (!h.render(scene, "off-on-baseline", false))
@@ -391,7 +424,7 @@ bool run(bool gpu) {
   }
   std::cout << "P07 sampling cases=" << h.cases << " rejected=" << h.rejects
             << " GPU=" << gpu << '\n';
-  return true;
+  return projectiveOk;
 }
 } // namespace
 int main(int argc, char **argv) {
@@ -402,6 +435,10 @@ int main(int argc, char **argv) {
     Scene s(3, SoTexture2::MODULATE, 1, false, false);
     s.quality->textureQuality = .3f;
     return h.rejected(s, "custom quality threshold") ? 0 : 1;
+  }
+  if (argc > 1 && std::string(argv[1]) == "--projective-study") {
+    Harness h(true);
+    return projective(h, true) ? 0 : 1;
   }
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

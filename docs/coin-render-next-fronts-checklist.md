@@ -53,10 +53,19 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   diagnosticada e recusada antes dos produtores.
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
-- [ ] Estudo de LOD projetivo AMD: gate legado de sampling falha também no
-  commit anterior; manter MAE≤1,5/max≤4 e investigar a footprint nativa.
-- [ ] Reconciliar os gates wgpu LargeBindings/MultiDevice de instancing/uploads;
-  falhas também reproduzidas no commit anterior, sem alterar suas expectativas.
+- [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
+  quantização nearest e footprint explicam o diagnóstico, com contracontrole NVIDIA.
+- [ ] Fechar a paridade portátil nearest projetiva AMD/CPU sem ampliar MAE≤1,5/max≤4;
+  o modelo que passa AMD falha NVIDIA. Gate original preservado e estudo reproduzível.
+- [x] Reconciliar LargeBindings/MultiDevice: 25.600 draws independentes com clipping
+  aceitando toda a geometria; upload exato GPU 96 bytes/instância, imagens/depth e
+  reuso preservados; nove passes AMD Vulkan/OpenGL e NVIDIA Vulkan, incluindo stress.
+  Ausência de adaptador agora produz SKIP explícito, sem falso PASS.
+- [x] Atualizar a expectativa procedural de qualidade 0,95 para anisotropia suportada;
+  manter recusa sem publicação em qualidade 1,01 e recuperação. Limites RGB preservados.
+
+Diagnóstico, integração e limites desta continuação:
+[Sampling AMD e instancing](coin-render-sampling-instancing-validation-20261007.md).
 
 Escopo, controles e resultados estão no [contrato avançado](coin-render-advanced-textures-profile.md)
 e no [relatório desta máquina](coin-render-advanced-textures-validation-20261007.md).
@@ -103,6 +112,9 @@ Melhoria futura, fora deste primeiro perfil:
   de produção nem a igualdade nativa de todos os estilos.
 - [ ] **Estudo:** reprodução das junções curvas/coincidentes e endpoints
   transparentes do CoinGL, conforme o [roteiro e evidências](coin-render-raster-junctions-study.md).
+  Gate procedural OpenGL da esfera/linhas/UV DEFAULT também reproduzido em
+  `6c91ed26`: máximo 4 contra limite 3; conservar a falha e as
+  [evidências de continuação](coin-render-sampling-instancing-validation-20261007.md).
   Comparar abordagens e custos antes de escolher a melhoria. Isso não dispensa
   diferenças CPU/BGFX/wgpu: as divergências portáteis encontradas nesta rodada
   recebem correção e gates completos, sem exclusão OpenGL ou tolerância ampliada.
