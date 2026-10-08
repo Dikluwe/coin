@@ -30,8 +30,22 @@ report['fixture_interactive_input'] = 'blocked in this host process'
 
 def axes_baseline():
     widget = viewer_widget()
-    Gui.getMainWindow().raise_()
-    Gui.getMainWindow().activateWindow()
+    main = Gui.getMainWindow()
+    # EWMH changes stacking without recreating Qt's native surface.
+    import subprocess
+    subprocess.run(['wmctrl', '-i', '-r', hex(int(main.winId())), '-b',
+                    'add,above'], check=True, timeout=3)
+    loop = QtCore.QEventLoop()
+    QtCore.QTimer.singleShot(60, loop.quit)
+    loop.exec()
+    state = subprocess.check_output(['xprop', '-id', hex(int(main.winId())),
+                                     '_NET_WM_STATE'], timeout=3).decode()
+    if '_NET_WM_STATE_ABOVE' not in state:
+        raise RuntimeError('window manager did not admit ABOVE for the test host')
+    report['fixture_window_state'] = state.strip()
+    main.raise_()
+    main.activateWindow()
+    report['fixture_window_stays_on_top'] = True
     widget.setFocus()
     widget.setProperty('coinRenderPortableSampling', bool(policy))
     # Establish the same top camera before adapter recreation's first baseline.
@@ -42,9 +56,28 @@ def axes_baseline():
         Gui.updateGui()
     report['prebaseline_redraws'] = 2
     original_axes_baseline()
+    # Exercise filter=2 in the real host as well as legacy raster content:
+    # a 256-square texture on this small face reaches mip minification at DPR1
+    # and under the existing projective mutation at DPR2.
+    for name, switch, node, anchor in stages:
+        if name != 'projective-uv':
+            continue
+        group = switch.getChild(0)
+        pattern = bytes(channel for y in range(256) for x in range(256)
+                        for channel in ((255,255,0,255) if ((x//16+y//16)%2)
+                                        else (0,128,255,255)))
+        for index in range(group.getNumChildren()):
+            child = group.getChild(index)
+            if child.isOfType(coin.SoTexture2.getClassTypeId()):
+                child.image.setValue(coin.SbVec2s(256,256),4,pattern)
+            if child.isOfType(coin.SoComplexity.getClassTypeId()):
+                child.textureQuality = .5
+        report['projective_sampling_fixture'] = {'dimensions':[256,256],
+            'quality':.5,'filter':'NEAREST_MIPMAP_LINEAR','unit':0}
 
 def capture(name):
     widget = viewer_widget()
+    Gui.getMainWindow().raise_()
     # Dismiss only this test host's menus/tooltips, which otherwise occlude
     # screen pixels and invalidate comparison with its bare viewport.
     popup = QtWidgets.QApplication.activePopupWidget()

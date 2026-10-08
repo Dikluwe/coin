@@ -289,10 +289,25 @@ def main():
                                  'freecad-selection-menu': 'freecad_selection_menu.FCMacro'}[case]
                         profile = directory / 'private-profile'
                         prepare_profile(profile, case)
+                        macro_path = Path(__file__).with_name(macro)
+                        if case == 'freecad-sampling-policy':
+                            # Freeze the complete fixture before launching the host;
+                            # later repository edits must not change an active run.
+                            fixture = directory / 'fixture'
+                            fixture.mkdir(exist_ok=True)
+                            hashes = {}
+                            for name in ('freecad_sampling_policy.FCMacro',
+                                         'freecad_screen_content.FCMacro', 'freecad_overlays.FCMacro'):
+                                data = Path(__file__).with_name(name).read_bytes()
+                                (fixture / name).write_bytes(data)
+                                hashes[name] = hashlib.sha256(data).hexdigest()
+                            (fixture / 'manifest.json').write_text(json.dumps(hashes, indent=2))
+                            env['COIN_TEST_MACRO_DIR'] = str(fixture.resolve())
+                            macro_path = fixture / macro
                         command = [str(args.freecad.resolve()),
                                    '--user-cfg', str(profile / 'user.cfg'),
                                    '--system-cfg', str(profile / 'system.cfg'),
-                                   str(Path(__file__).with_name(macro))]
+                                   str(macro_path)]
                     if case == 'freecad-delayed-overlays':
                         # No viewport/document or desktop capture: the helper renders
                         # the real Gui nodes to an offscreen BGFX hardware target.
