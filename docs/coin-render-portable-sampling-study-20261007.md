@@ -159,3 +159,12 @@ Fontes/reprodução: [README do estudo](https://github.com/Dikluwe/coin/blob/cod
 Artefatos/builds persistem em `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007`;
 evidências, CSV, dumps, hashes e cenas pequenas comprimidas estão versionados.
 Os pilotos inválidos de compilação não entram nas contagens; logs foram preservados.
+
+## Continuação de 2026-10-08
+
+O [candidato `base`/`base_uniform` de uma amostra](coin-render-base-sampling-counterexample-20261008.md)
+foi testado separadamente. POT não basta na AMD quando o centro é escolhido no
+mip base: erros em mips profundos, confirmados com derivadas UV originais.
+Centralizar no mip `floor(LOD)` é a próxima alternativa de uma amostra em POT;
+passou o oracle EGL inicial, ainda sem campanha integrada ou medição de FPS.
+O modo `center` deste relatório anterior continua sendo **duas amostras**.
