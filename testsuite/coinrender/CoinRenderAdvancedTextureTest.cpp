@@ -215,6 +215,41 @@ int main(int argc, char **argv) {
     }
     return passed;
   };
+  // Independent alpha oracle: constant byte 128 must remain exact across
+  // fractional/projective mip blends. This does not depend on CoinGL clamping.
+  using Alpha = CoinRenderAlphaTestFunction;
+  for (unsigned filter = 0; filter < 4; ++filter) for (unsigned unit : {0u, 7u}) {
+    auto frame = base;
+    frame.clearColor = SbColor4f(0, 0, 0, 1);
+    auto & image = frame.textures[0];
+    image.width = image.height = 64; image.format = F::RGBA8_LINEAR;
+    image.mipmapsRgba.clear(); image.mipmapped = false;
+    image.pixelsRgba.assign(64 * 64 * 4, 0);
+    for (size_t i = 0; i < 64 * 64; ++i) {
+      image.pixelsRgba[i * 4] = 255; image.pixelsRgba[i * 4 + 3] = 128;
+    }
+    frame.samplers[0].filter = CoinRenderTextureFilter(filter);
+    if (filter >= 2) ok &= check(Sampling::generate(image), "alpha authored mip chain");
+    for (auto & vertex : frame.vertices) if (unit)
+      for (unsigned c = 0; c < 2; ++c) vertex.extraTexcoords[unit - 1][c] = vertex.texcoord[c];
+    for (auto & state : frame.renderStates) {
+      state.transparencyType = SoGLRenderAction::BLEND;
+      state.textureMatrix[0][3] = .3f;
+      if (unit) {
+        auto layer = coin_render_texture_unit(state, 0);
+        state.hasTexture = false; state.extraTextures[unit - 1] = layer;
+      }
+    }
+    for (Alpha function : {Alpha::EQUAL, Alpha::NOTEQUAL, Alpha::LESS, Alpha::GREATER, Alpha::GEQUAL}) {
+      for (auto & state : frame.renderStates) {
+        state.alphaTestFunction = function; state.alphaTestReference = 128.f / 255.f;
+      }
+      const bool visible = function == Alpha::EQUAL || function == Alpha::GEQUAL;
+      const int expected[] = {visible ? 128 : 0, 0, 0};
+      ok &= render(frame, expected, "portable alpha/filter-" + std::to_string(filter) +
+          "/unit-" + std::to_string(unit) + "/function-" + std::to_string(unsigned(function)));
+    }
+  }
   const int srgbExpected[] = {55, 55, 55};
   ok &= render(base, srgbExpected, "SRGB 128 decodes to linear 55");
   auto plan = base;

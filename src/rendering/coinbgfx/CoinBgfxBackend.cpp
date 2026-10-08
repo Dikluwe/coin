@@ -1683,6 +1683,11 @@ CoinBgfxBackend::bindDrawTexture(
       if (bgfx::isValid(direct) && direct.idx == texture.idx) directRenderTarget = true;
     }
     params[unit][0] = layer.enabled ? 1.0f : 0.0f;
+    static const std::string study = [] { const char * p = std::getenv("COIN_SAMPLING_STUDY"); return std::string(p ? p : ""); }();
+    if (layer.enabled && layer.maxAnisotropy == 1 &&
+        (study == "fetch" || ((study == "nearest" || study == "center") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
+      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "center" ? 16 : 0)));
+
     params[unit][1] = static_cast<float>(layer.model);
     params[unit][2] = directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f;
     params[unit][3] = static_cast<float>(draw.textureProjection);

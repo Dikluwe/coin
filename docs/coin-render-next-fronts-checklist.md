@@ -55,8 +55,15 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
   quantização nearest e footprint explicam o diagnóstico, com contracontrole NVIDIA.
-- [ ] Fechar a paridade portátil nearest projetiva AMD/CPU sem ampliar MAE≤1,5/max≤4;
-  o modelo que passa AMD falha NVIDIA. Gate original preservado e estudo reproduzível.
+- [x] Testar LOD explícito + fetch/centro como estudo isolado: nearest CPU–GPU
+  MAE0/max0 em AMD/NVIDIA e wgpu/BGFX, oracle EGL sem Coin, alpha independente,
+  texturas avançadas e benchmarks GPU/janela, incluindo cidades40mil/1milhão.
+  [Avaliação e decisão](coin-render-portable-sampling-study-20261007.md): manter
+  native padrão; contrato portátil nearest como opção futura. Fetch completo é mais caro.
+- [ ] Promover política comum nearest portátil com API/capacidades e limites
+  explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
+  perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.
+  Sampling CoinGL AMD continua divergente; gate MAE≤1,5/max≤4 preservado.
 - [x] Reconciliar LargeBindings/MultiDevice: 25.600 draws independentes com clipping
   aceitando toda a geometria; upload exato GPU 96 bytes/instância, imagens/depth e
   reuso preservados; nove passes AMD Vulkan/OpenGL e NVIDIA Vulkan, incluindo stress.

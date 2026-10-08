@@ -1,0 +1,304 @@
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index 474a64523a..18e3710988 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -1683,6 +1683,11 @@ CoinBgfxBackend::bindDrawTexture(
+       if (bgfx::isValid(direct) && direct.idx == texture.idx) directRenderTarget = true;
+     }
+     params[unit][0] = layer.enabled ? 1.0f : 0.0f;
++    static const std::string study = [] { const char * p = std::getenv("COIN_SAMPLING_STUDY"); return std::string(p ? p : ""); }();
++    if (layer.enabled && layer.maxAnisotropy == 1 &&
++        (study == "fetch" || ((study == "nearest" || study == "center") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
++      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "center" ? 16 : 0)));
++
+     params[unit][1] = static_cast<float>(layer.model);
+     params[unit][2] = directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f;
+     params[unit][3] = static_cast<float>(draw.textureProjection);
+diff --git a/src/rendering/coinbgfx/shaders/coin_surface.sh b/src/rendering/coinbgfx/shaders/coin_surface.sh
+index f3cd2b9a23..549d956237 100644
+--- a/src/rendering/coinbgfx/shaders/coin_surface.sh
++++ b/src/rendering/coinbgfx/shaders/coin_surface.sh
+@@ -21,6 +21,44 @@ uniform vec4 u_clipMeta;
+ uniform vec4 u_clipPlanes[8];
+ #include "coin_alpha.sh"
+ 
++vec4 studyLerp(vec4 a,vec4 b,float w){return a+(b-a)*w;}
++// Isolated sampling study. GLSL 330 exposes ordinary derivatives, not fine control.
++vec4 studyFetch(sampler2D t, ivec2 at, int level, int flags) {
++  ivec2 n = ivec2(textureSize(t, level));
++  ivec2 p = ivec2(at.x<0?at.x+n.x:at.x>=n.x?at.x-n.x:at.x, at.y<0?at.y+n.y:at.y>=n.y?at.y-n.y:at.y);
++  if (mod(floor(float(flags)/4.0), 2.0) > 0.5) p.x = clamp(at.x, 0, n.x-1);
++  if (mod(floor(float(flags)/8.0), 2.0) > 0.5) p.y = clamp(at.y, 0, n.y-1);
++  return texelFetch(t, p, level);
++}
++vec4 studyLevel(sampler2D t, vec2 uv, int level, bool linearFilter, int flags) {
++  vec2 at = uv * vec2(textureSize(t, level));
++  if (!linearFilter) return studyFetch(t, ivec2(floor(at)), level, flags);
++  ivec2 lo = ivec2(floor(at-0.5)); vec2 f = fract(at-0.5);
++  return studyLerp(studyLerp(studyFetch(t, lo, level, flags), studyFetch(t, lo+ivec2(1,0), level, flags), f.x),
++             studyLerp(studyFetch(t, lo+ivec2(0,1), level, flags), studyFetch(t, lo+ivec2(1,1), level, flags), f.x), f.y);
++}
++vec4 studySample(sampler2D t, vec2 uv, float enabled) {
++  vec2 n = vec2(textureSize(t, 0));
++  vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
++  if (enabled < 1.5) return texture2D(t, uv);
++  int flags = int(enabled/2.0)-1, filterKind = int(mod(float(flags),4.0));
++  vec2 boundedUv = fract(uv);
++  if (mod(floor(float(flags)/4.0),2.0)>0.5) boundedUv.x=clamp(uv.x,0.0,1.0);
++  if (mod(floor(float(flags)/8.0),2.0)>0.5) boundedUv.y=clamp(uv.y,0.0,1.0);
++  if (filterKind < 2) return studyLevel(t, boundedUv, 0, filterKind == 1, flags);
++  int maximum = int(floor(log2(max(n.x,n.y))));
++  float lod = clamp(log2(max(max(length(gx),length(gy)),0.000001)),0.0,float(maximum));
++  bool linearFilter = filterKind == 3 || lod <= 0.0;
++  int lo = int(floor(lod));
++  int hi=min(lo+1,maximum);
++  if (flags>=16) {
++    if(lod<=0.0)return texture2DLod(t,uv,0.0);
++    vec2 a=vec2(textureSize(t,lo)),b=vec2(textureSize(t,hi));
++    return studyLerp(texture2DLod(t,(floor(boundedUv*a)+0.5)/a,float(lo)),texture2DLod(t,(floor(boundedUv*b)+0.5)/b,float(hi)),fract(lod));
++  }
++  return studyLerp(studyLevel(t,boundedUv,lo,linearFilter,flags),studyLevel(t,boundedUv,hi,linearFilter,flags),fract(lod));
++}
++
+ vec2 coinSurfaceUv(vec2 st, float q, vec4 params)
+ {
+   // Coin's fixed-function surface divides after perspective interpolation.
+@@ -96,22 +134,22 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec3 v_texcoord0, vec3 v_v
+   if (u_screenDoor.w > 0.5) color.a = 1.0;
+   vec4 primary = color;
+   if (u_texParams[0].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0])), u_texParams[0], u_texBlend[0], 0);
++    color = coinTextureProgram(primary, color, studySample(s_texColor, coinSurfaceUv(v_texcoord0.xy, v_texcoord0.z, u_texParams[0]), u_texParams[0].x), u_texParams[0], u_texBlend[0], 0);
+ #ifndef COIN_SHADOW_SURFACE
+   if (u_texParams[1].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1])), u_texParams[1], u_texBlend[1], 1);
++    color = coinTextureProgram(primary, color, studySample(s_texColor1, coinSurfaceUv(v_texcoords4.xy, textureQ0.x, u_texParams[1]), u_texParams[1].x), u_texParams[1], u_texBlend[1], 1);
+   if (u_texParams[2].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2])), u_texParams[2], u_texBlend[2], 2);
++    color = coinTextureProgram(primary, color, studySample(s_texColor2, coinSurfaceUv(v_texcoords4.zw, textureQ0.y, u_texParams[2]), u_texParams[2].x), u_texParams[2], u_texBlend[2], 2);
+   if (u_texParams[3].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3])), u_texParams[3], u_texBlend[3], 3);
++    color = coinTextureProgram(primary, color, studySample(s_texColor3, coinSurfaceUv(v_texcoords5.xy, textureQ0.z, u_texParams[3]), u_texParams[3].x), u_texParams[3], u_texBlend[3], 3);
+   if (u_texParams[4].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4])), u_texParams[4], u_texBlend[4], 4);
++    color = coinTextureProgram(primary, color, studySample(s_texColor4, coinSurfaceUv(v_texcoords5.zw, textureQ0.w, u_texParams[4]), u_texParams[4].x), u_texParams[4], u_texBlend[4], 4);
+   if (u_texParams[5].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5])), u_texParams[5], u_texBlend[5], 5);
++    color = coinTextureProgram(primary, color, studySample(s_texColor5, coinSurfaceUv(v_texcoords6.xy, textureQ1.x, u_texParams[5]), u_texParams[5].x), u_texParams[5], u_texBlend[5], 5);
+   if (u_texParams[6].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6])), u_texParams[6], u_texBlend[6], 6);
++    color = coinTextureProgram(primary, color, studySample(s_texColor6, coinSurfaceUv(v_texcoords6.zw, textureQ1.y, u_texParams[6]), u_texParams[6].x), u_texParams[6], u_texBlend[6], 6);
+   if (u_texParams[7].x > 0.5)
+-    color = coinTextureProgram(primary, color, texture2D(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7])), u_texParams[7], u_texBlend[7], 7);
++    color = coinTextureProgram(primary, color, studySample(s_texColor7, coinSurfaceUv(v_texcoords7.xy, textureQ1.z, u_texParams[7]), u_texParams[7].x), u_texParams[7], u_texBlend[7], 7);
+ #endif
+   coinAlphaTest(color.a);
+   float mode = u_fogColorMode.w;
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 191fb65f74..18f456905a 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -188,6 +188,16 @@ pub struct CoinWgpuTexture {
+     pub pixel_bytes_len: u64,
+ }
+ 
++// Experimental study only: pack mode metadata into the GPU has-texture value.
++// The CPU ABI and native default remain unchanged. Anisotropic samplers stay native.
++fn study_sampler_flag(enabled: u32, s: &CoinWgpuSampler) -> f32 {
++    static MODE: std::sync::OnceLock<String> = std::sync::OnceLock::new();
++    let mode = MODE.get_or_init(|| std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default());
++    if enabled == 0 { return 0.0; }
++    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center") && s.filter == 2)) { return 1.0; }
++    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "center" {16} else {0})) as f32
++}
++
+ #[repr(C)]
+ #[derive(Copy, Clone, Debug)]
+ pub struct CoinWgpuSampler {
+@@ -4342,7 +4352,7 @@ fn encode_frame(
+                 let extra_tex_params = std::array::from_fn(|unit| {
+                     let t = st.extra_textures[unit];
+                     [
+-                        t.enabled as f32,
++                        if t.enabled != 0 { study_sampler_flag(t.enabled, &samplers_slice[t.sampler_slot as usize]) } else { 0.0 },
+                         t.model as f32,
+                         if t.enabled != 0 && textures_slice[t.texture_slot as usize].format == 1 {
+                             1.0
+@@ -4421,7 +4431,7 @@ fn encode_frame(
+                         if st.depth_test != 0 && st.depth_write != 0 { 1.0 } else { 0.0 },
+                     ],
+                     tex_params: [
+-                        if st.has_texture != 0 { 1.0 } else { 0.0 },
++                        if st.has_texture != 0 { study_sampler_flag(st.has_texture, &samplers_slice[st.sampler_slot as usize]) } else { 0.0 },
+                         st.texture_model as f32,
+                         if st.has_texture != 0
+                             && textures_slice[st.texture_slot as usize].format == 1
+diff --git a/src/rendering/coinwgpu/shaders/coin_standard.wgsl b/src/rendering/coinwgpu/shaders/coin_standard.wgsl
+index cfd9373334..8b66f9b67b 100644
+--- a/src/rendering/coinwgpu/shaders/coin_standard.wgsl
++++ b/src/rendering/coinwgpu/shaders/coin_standard.wgsl
+@@ -268,6 +268,52 @@ fn vs_main(input: VertexInput) -> VertexOutput {
+ 
+ // Coin's active shadow shader samples transformed ST without Q division.
+ // Other paths preserve Q through interpolation and keep ordinary q=1 UV fast.
++fn study_lerp(a: vec4<f32>, b: vec4<f32>, w: f32) -> vec4<f32> { return a + (b-a)*w; }
++// Study implementation: floor-selected texels and fine max-vector footprint.
++fn study_fetch(t: texture_2d<f32>, at: vec2<i32>, level: i32, flags: u32) -> vec4<f32> {
++    let n = vec2<i32>(textureDimensions(t, level));
++    let repeat_at = select(select(at, at - n, at >= n), at + n, at < vec2<i32>(0));
++    let clamp_at = clamp(at, vec2<i32>(0), n - vec2<i32>(1));
++    let pos = vec2<i32>(select(repeat_at.x, clamp_at.x, (flags & 4u) != 0u),
++                        select(repeat_at.y, clamp_at.y, (flags & 8u) != 0u));
++    return textureLoad(t, pos, level);
++}
++fn study_level(t: texture_2d<f32>, uv: vec2<f32>, level: i32, linear_filter: bool, flags: u32) -> vec4<f32> {
++    let at = uv * vec2<f32>(textureDimensions(t, level));
++    if !linear_filter { return study_fetch(t, vec2<i32>(floor(at)), level, flags); }
++    let lo = vec2<i32>(floor(at - vec2<f32>(0.5)));
++    let f = fract(at - vec2<f32>(0.5));
++    return study_lerp(study_lerp(study_fetch(t, lo, level, flags), study_fetch(t, lo + vec2<i32>(1,0), level, flags), f.x),
++               study_lerp(study_fetch(t, lo + vec2<i32>(0,1), level, flags), study_fetch(t, lo + vec2<i32>(1,1), level, flags), f.x), f.y);
++}
++fn study_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32) -> vec4<f32> {
++    let n = vec2<f32>(textureDimensions(t, 0));
++    let gx = dpdxFine(uv) * n;
++    let gy = dpdyFine(uv) * n;
++    if enabled < 1.5 { return textureSample(t, s, uv); }
++    let flags = u32(enabled / 2.0) - 1u;
++    let wrapped = fract(uv);
++    let clamped = clamp(uv, vec2<f32>(0.0), vec2<f32>(1.0));
++    let bounded_uv = vec2<f32>(select(wrapped.x, clamped.x, (flags & 4u) != 0u),
++                               select(wrapped.y, clamped.y, (flags & 8u) != 0u));
++    let filter_kind = flags & 3u;
++    if filter_kind < 2u { return study_level(t, bounded_uv, 0, filter_kind == 1u, flags); }
++    let maximum = i32(floor(log2(max(n.x, n.y))));
++    let lod = clamp(log2(max(max(length(gx), length(gy)), 0.000001)), 0.0, f32(maximum));
++    // Coin filter_kind 2 has linear magnification, nearest minification.
++    let linear_filter = filter_kind == 3u || lod <= 0.0;
++    let lo = i32(floor(lod));
++    let hi = min(lo + 1, maximum);
++    if (flags & 16u) != 0u {
++        if lod <= 0.0 { return textureSampleLevel(t, s, uv, 0.0); }
++        let a = vec2<f32>(textureDimensions(t, lo));
++        let b = vec2<f32>(textureDimensions(t, hi));
++        return study_lerp(textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, f32(lo)),
++                   textureSampleLevel(t, s, (floor(bounded_uv*b)+vec2<f32>(0.5))/b, f32(hi)), fract(lod));
++    }
++    return study_lerp(study_level(t, bounded_uv, lo, linear_filter, flags), study_level(t, bounded_uv, hi, linear_filter, flags), fract(lod));
++}
++
+ fn projected_uv(value: vec3<f32>, projection: f32) -> vec2<f32> {
+     if (projection > 0.5 || value.z == 1.0) { return value.xy; }
+     return value.xy / value.z;
+@@ -417,28 +463,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
+     if (u.tex_params.x > 0.5) {
+         let projected = projected_uv(input.texcoord, u.tex_params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), u.tex_params.z > 0.5);
+-        let tex_col = textureSample(t_diffuse, s_diffuse, uv);
++        let tex_col = study_sample(t_diffuse, s_diffuse, uv, u.tex_params.x);
+         base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
+     }
+     if (u.extra_tex_params[0].x > 0.5) {
+         let params = u.extra_tex_params[0];
+         let projected = projected_uv(input.uv1, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture1, s_texture1, uv);
++        let tex = study_sample(t_texture1, s_texture1, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
+     }
+     if (u.extra_tex_params[1].x > 0.5) {
+         let params = u.extra_tex_params[1];
+         let projected = projected_uv(input.uv2, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture2, s_texture2, uv);
++        let tex = study_sample(t_texture2, s_texture2, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
+     }
+     if (u.extra_tex_params[2].x > 0.5) {
+         let params = u.extra_tex_params[2];
+         let projected = projected_uv(input.uv3, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture3, s_texture3, uv);
++        let tex = study_sample(t_texture3, s_texture3, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
+     }
+     // COIN_UPPER_TEXTURE_UNITS_BEGIN
+@@ -446,28 +492,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
+         let params = u.extra_tex_params[3];
+         let projected = projected_uv(input.uv4, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture4, s_texture4, uv);
++        let tex = study_sample(t_texture4, s_texture4, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
+     }
+     if (u.extra_tex_params[4].x > 0.5) {
+         let params = u.extra_tex_params[4];
+         let projected = projected_uv(input.uv5, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture5, s_texture5, uv);
++        let tex = study_sample(t_texture5, s_texture5, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
+     }
+     if (u.extra_tex_params[5].x > 0.5) {
+         let params = u.extra_tex_params[5];
+         let projected = projected_uv(input.uv6, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture6, s_texture6, uv);
++        let tex = study_sample(t_texture6, s_texture6, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
+     }
+     if (u.extra_tex_params[6].x > 0.5) {
+         let params = u.extra_tex_params[6];
+         let projected = projected_uv(input.uv7, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = textureSample(t_texture7, s_texture7, uv);
++        let tex = study_sample(t_texture7, s_texture7, uv, params.x);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
+     }
+     // COIN_UPPER_TEXTURE_UNITS_END
+diff --git a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+index 464de20f2e..69701df601 100644
+--- a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+@@ -215,6 +215,41 @@ int main(int argc, char **argv) {
+     }
+     return passed;
+   };
++  // Independent alpha oracle: constant byte 128 must remain exact across
++  // fractional/projective mip blends. This does not depend on CoinGL clamping.
++  using Alpha = CoinRenderAlphaTestFunction;
++  for (unsigned filter = 0; filter < 4; ++filter) for (unsigned unit : {0u, 7u}) {
++    auto frame = base;
++    frame.clearColor = SbColor4f(0, 0, 0, 1);
++    auto & image = frame.textures[0];
++    image.width = image.height = 64; image.format = F::RGBA8_LINEAR;
++    image.mipmapsRgba.clear(); image.mipmapped = false;
++    image.pixelsRgba.assign(64 * 64 * 4, 0);
++    for (size_t i = 0; i < 64 * 64; ++i) {
++      image.pixelsRgba[i * 4] = 255; image.pixelsRgba[i * 4 + 3] = 128;
++    }
++    frame.samplers[0].filter = CoinRenderTextureFilter(filter);
++    if (filter >= 2) ok &= check(Sampling::generate(image), "alpha authored mip chain");
++    for (auto & vertex : frame.vertices) if (unit)
++      for (unsigned c = 0; c < 2; ++c) vertex.extraTexcoords[unit - 1][c] = vertex.texcoord[c];
++    for (auto & state : frame.renderStates) {
++      state.transparencyType = SoGLRenderAction::BLEND;
++      state.textureMatrix[0][3] = .3f;
++      if (unit) {
++        auto layer = coin_render_texture_unit(state, 0);
++        state.hasTexture = false; state.extraTextures[unit - 1] = layer;
++      }
++    }
++    for (Alpha function : {Alpha::EQUAL, Alpha::NOTEQUAL, Alpha::LESS, Alpha::GREATER, Alpha::GEQUAL}) {
++      for (auto & state : frame.renderStates) {
++        state.alphaTestFunction = function; state.alphaTestReference = 128.f / 255.f;
++      }
++      const bool visible = function == Alpha::EQUAL || function == Alpha::GEQUAL;
++      const int expected[] = {visible ? 128 : 0, 0, 0};
++      ok &= render(frame, expected, "portable alpha/filter-" + std::to_string(filter) +
++          "/unit-" + std::to_string(unit) + "/function-" + std::to_string(unsigned(function)));
++    }
++  }
+   const int srgbExpected[] = {55, 55, 55};
+   ok &= render(base, srgbExpected, "SRGB 128 decodes to linear 55");
+   auto plan = base;

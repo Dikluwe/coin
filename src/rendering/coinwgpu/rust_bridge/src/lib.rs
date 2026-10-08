@@ -188,6 +188,16 @@ pub struct CoinWgpuTexture {
     pub pixel_bytes_len: u64,
 }
 
+// Experimental study only: pack mode metadata into the GPU has-texture value.
+// The CPU ABI and native default remain unchanged. Anisotropic samplers stay native.
+fn study_sampler_flag(enabled: u32, s: &CoinWgpuSampler) -> f32 {
+    static MODE: std::sync::OnceLock<String> = std::sync::OnceLock::new();
+    let mode = MODE.get_or_init(|| std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default());
+    if enabled == 0 { return 0.0; }
+    if s.reserved > 0 || !(mode == "fetch" || ((mode == "nearest" || mode == "center") && s.filter == 2)) { return 1.0; }
+    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + if mode == "center" {16} else {0})) as f32
+}
+
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
 pub struct CoinWgpuSampler {
@@ -4342,7 +4352,7 @@ fn encode_frame(
                 let extra_tex_params = std::array::from_fn(|unit| {
                     let t = st.extra_textures[unit];
                     [
-                        t.enabled as f32,
+                        if t.enabled != 0 { study_sampler_flag(t.enabled, &samplers_slice[t.sampler_slot as usize]) } else { 0.0 },
                         t.model as f32,
                         if t.enabled != 0 && textures_slice[t.texture_slot as usize].format == 1 {
                             1.0
@@ -4421,7 +4431,7 @@ fn encode_frame(
                         if st.depth_test != 0 && st.depth_write != 0 { 1.0 } else { 0.0 },
                     ],
                     tex_params: [
-                        if st.has_texture != 0 { 1.0 } else { 0.0 },
+                        if st.has_texture != 0 { study_sampler_flag(st.has_texture, &samplers_slice[st.sampler_slot as usize]) } else { 0.0 },
                         st.texture_model as f32,
                         if st.has_texture != 0
                             && textures_slice[st.texture_slot as usize].format == 1

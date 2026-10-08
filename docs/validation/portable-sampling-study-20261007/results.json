@@ -1,0 +1,619 @@
+{
+  "quality": {
+    "quality": {
+      "runs": 108,
+      "pass": 66,
+      "fail": 42
+    },
+    "quality-optimized": {
+      "runs": 96,
+      "pass": 52,
+      "fail": 44
+    },
+    "quality-alpha": {
+      "runs": 18,
+      "pass": 18,
+      "fail": 0
+    }
+  },
+  "gpu": {
+    "benchmark-gpu": {
+      "amd-1-0": {
+        "0": 0.0314193,
+        "1": 0.038917999999999994,
+        "2": 0.25383849999999997
+      },
+      "amd-1-1": {
+        "0": 0.031812999999999994,
+        "1": 0.039287,
+        "2": 0.439245
+      },
+      "amd-4-0": {
+        "0": 0.11526,
+        "1": 0.1415215,
+        "2": 0.989154
+      },
+      "amd-4-1": {
+        "0": 0.1173615,
+        "1": 0.141588,
+        "2": 1.724555
+      },
+      "amd-8-0": {
+        "0": 0.2304585,
+        "1": 0.288141,
+        "2": 1.97557
+      },
+      "amd-8-1": {
+        "0": 0.234598,
+        "1": 0.282836,
+        "2": 3.4703150000000003
+      },
+      "nvidia-1-0": {
+        "0": 0.0115712,
+        "1": 0.0183808,
+        "2": 0.0418816
+      },
+      "nvidia-1-1": {
+        "0": 0.01157975,
+        "1": 0.0183808,
+        "2": 0.0746155
+      },
+      "nvidia-4-0": {
+        "0": 0.0366592,
+        "1": 0.0731989,
+        "2": 0.159744
+      },
+      "nvidia-4-1": {
+        "0": 0.03413335,
+        "1": 0.0633685,
+        "2": 0.29782200000000003
+      },
+      "nvidia-8-0": {
+        "0": 0.06277975,
+        "1": 0.126293,
+        "2": 0.30880450000000004
+      },
+      "nvidia-8-1": {
+        "0": 0.0632149,
+        "1": 0.12747950000000002,
+        "2": 0.5851219999999999
+      }
+    },
+    "benchmark-gpu-optimized": {
+      "amd-1-0": {
+        "0": 0.03242735,
+        "3": 0.104651,
+        "4": 0.1050435
+      },
+      "amd-1-1": {
+        "0": 0.03251065,
+        "3": 0.03199465,
+        "4": 0.19989600000000002
+      },
+      "amd-4-0": {
+        "0": 0.1152995,
+        "3": 0.3798545,
+        "4": 0.39339199999999996
+      },
+      "amd-4-1": {
+        "0": 0.1178235,
+        "3": 0.11747450000000001,
+        "4": 0.8209825
+      },
+      "amd-8-0": {
+        "0": 0.230469,
+        "3": 0.7565390000000001,
+        "4": 0.8007059999999999
+      },
+      "amd-8-1": {
+        "0": 0.23621150000000002,
+        "3": 0.2346175,
+        "4": 1.689355
+      },
+      "nvidia-1-0": {
+        "0": 0.0115712,
+        "3": 0.0369152,
+        "4": 0.0369152
+      },
+      "nvidia-1-1": {
+        "0": 0.01157975,
+        "3": 0.0115712,
+        "4": 0.0649387
+      },
+      "nvidia-4-0": {
+        "0": 0.0366336,
+        "3": 0.147319,
+        "4": 0.147319
+      },
+      "nvidia-4-1": {
+        "0": 0.0352768,
+        "3": 0.03526825,
+        "4": 0.249941
+      },
+      "nvidia-8-0": {
+        "0": 0.065408,
+        "3": 0.2655485,
+        "4": 0.2572715
+      },
+      "nvidia-8-1": {
+        "0": 0.063232,
+        "3": 0.063232,
+        "4": 0.46704650000000003
+      }
+    }
+  },
+  "window": {
+    "benchmark-window": {
+      "amd-city-1000000": {
+        "baseline": {
+          "median_of_process_medians_ms": 18.034646000000002,
+          "process_medians_ms": [
+            18.223617,
+            17.845675
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 17.843259500000002,
+          "process_medians_ms": [
+            17.895136,
+            17.791383
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 17.746488999999997,
+          "process_medians_ms": [
+            17.755746,
+            17.737232
+          ]
+        }
+      },
+      "amd-city-40000": {
+        "baseline": {
+          "median_of_process_medians_ms": 0.980198,
+          "process_medians_ms": [
+            1.04701,
+            0.913386
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.886652,
+          "process_medians_ms": [
+            0.865959,
+            0.907345
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.926557,
+          "process_medians_ms": [
+            0.892439,
+            0.960675
+          ]
+        }
+      },
+      "amd-texture-1-0.5": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.5615935000000001,
+          "process_medians_ms": [
+            0.557173,
+            0.566014
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.29857100000000003,
+          "process_medians_ms": [
+            0.298215,
+            0.298927
+          ]
+        }
+      },
+      "amd-texture-1-0.8": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.8725755,
+          "process_medians_ms": [
+            0.949674,
+            0.795477
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.3300445,
+          "process_medians_ms": [
+            0.34643,
+            0.313659
+          ]
+        }
+      },
+      "amd-texture-4-0.5": {
+        "fetch": {
+          "median_of_process_medians_ms": 1.7511645,
+          "process_medians_ms": [
+            1.791136,
+            1.711193
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.4236615,
+          "process_medians_ms": [
+            0.438416,
+            0.408907
+          ]
+        }
+      },
+      "amd-texture-4-0.8": {
+        "fetch": {
+          "median_of_process_medians_ms": 2.708133,
+          "process_medians_ms": [
+            2.735952,
+            2.680314
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.40306600000000004,
+          "process_medians_ms": [
+            0.398127,
+            0.408005
+          ]
+        }
+      },
+      "amd-texture-8-0.5": {
+        "fetch": {
+          "median_of_process_medians_ms": 3.261882,
+          "process_medians_ms": [
+            3.124591,
+            3.399173
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.588226,
+          "process_medians_ms": [
+            0.561331,
+            0.615121
+          ]
+        }
+      },
+      "amd-texture-8-0.8": {
+        "fetch": {
+          "median_of_process_medians_ms": 5.7220355000000005,
+          "process_medians_ms": [
+            5.729259,
+            5.714812
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.6342145,
+          "process_medians_ms": [
+            0.637989,
+            0.63044
+          ]
+        }
+      },
+      "nvidia-city-1000000": {
+        "baseline": {
+          "median_of_process_medians_ms": 9.744897,
+          "process_medians_ms": [
+            9.692945,
+            9.796849
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 9.577282499999999,
+          "process_medians_ms": [
+            9.553661,
+            9.600904
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 10.233592000000002,
+          "process_medians_ms": [
+            10.248625,
+            10.218559
+          ]
+        }
+      },
+      "nvidia-city-40000": {
+        "baseline": {
+          "median_of_process_medians_ms": 0.6130125,
+          "process_medians_ms": [
+            0.608013,
+            0.618012
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.6271964999999999,
+          "process_medians_ms": [
+            0.649045,
+            0.605348
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.609731,
+          "process_medians_ms": [
+            0.625771,
+            0.593691
+          ]
+        }
+      },
+      "nvidia-texture-1-0.5": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.5877795,
+          "process_medians_ms": [
+            0.589543,
+            0.586016
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.590393,
+          "process_medians_ms": [
+            0.601055,
+            0.579731
+          ]
+        }
+      },
+      "nvidia-texture-1-0.8": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.5813985,
+          "process_medians_ms": [
+            0.586057,
+            0.57674
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.585699,
+          "process_medians_ms": [
+            0.589589,
+            0.581809
+          ]
+        }
+      },
+      "nvidia-texture-4-0.5": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.5871895,
+          "process_medians_ms": [
+            0.585346,
+            0.589033
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.590267,
+          "process_medians_ms": [
+            0.586002,
+            0.594532
+          ]
+        }
+      },
+      "nvidia-texture-4-0.8": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.596569,
+          "process_medians_ms": [
+            0.598214,
+            0.594924
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.6002985000000001,
+          "process_medians_ms": [
+            0.594257,
+            0.60634
+          ]
+        }
+      },
+      "nvidia-texture-8-0.5": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.601621,
+          "process_medians_ms": [
+            0.602072,
+            0.60117
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.5969074999999999,
+          "process_medians_ms": [
+            0.591262,
+            0.602553
+          ]
+        }
+      },
+      "nvidia-texture-8-0.8": {
+        "fetch": {
+          "median_of_process_medians_ms": 0.749602,
+          "process_medians_ms": [
+            0.747027,
+            0.752177
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.5949935,
+          "process_medians_ms": [
+            0.589844,
+            0.600143
+          ]
+        }
+      }
+    },
+    "benchmark-window-optimized": {
+      "amd-texture-1-0.5": {
+        "center": {
+          "median_of_process_medians_ms": 0.37178750000000005,
+          "process_medians_ms": [
+            0.374074,
+            0.369501
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.387772,
+          "process_medians_ms": [
+            0.399932,
+            0.375612
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.337604,
+          "process_medians_ms": [
+            0.340477,
+            0.334731
+          ]
+        }
+      },
+      "amd-texture-1-0.8": {
+        "center": {
+          "median_of_process_medians_ms": 0.356431,
+          "process_medians_ms": [
+            0.356861,
+            0.356001
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.5111915,
+          "process_medians_ms": [
+            0.526247,
+            0.496136
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.35263599999999995,
+          "process_medians_ms": [
+            0.346948,
+            0.358324
+          ]
+        }
+      },
+      "amd-texture-8-0.5": {
+        "center": {
+          "median_of_process_medians_ms": 1.4837034999999998,
+          "process_medians_ms": [
+            1.460726,
+            1.506681
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 1.6452149999999999,
+          "process_medians_ms": [
+            1.708094,
+            1.582336
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.636676,
+          "process_medians_ms": [
+            0.618357,
+            0.654995
+          ]
+        }
+      },
+      "amd-texture-8-0.8": {
+        "center": {
+          "median_of_process_medians_ms": 0.582355,
+          "process_medians_ms": [
+            0.611429,
+            0.553281
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 2.8726345,
+          "process_medians_ms": [
+            2.865882,
+            2.879387
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.604727,
+          "process_medians_ms": [
+            0.651639,
+            0.557815
+          ]
+        }
+      },
+      "nvidia-texture-1-0.5": {
+        "center": {
+          "median_of_process_medians_ms": 0.599628,
+          "process_medians_ms": [
+            0.60892,
+            0.590336
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.5983229999999999,
+          "process_medians_ms": [
+            0.590992,
+            0.605654
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.589631,
+          "process_medians_ms": [
+            0.582766,
+            0.596496
+          ]
+        }
+      },
+      "nvidia-texture-1-0.8": {
+        "center": {
+          "median_of_process_medians_ms": 0.5909665,
+          "process_medians_ms": [
+            0.587425,
+            0.594508
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.584928,
+          "process_medians_ms": [
+            0.579811,
+            0.590045
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.5964320000000001,
+          "process_medians_ms": [
+            0.596758,
+            0.596106
+          ]
+        }
+      },
+      "nvidia-texture-8-0.5": {
+        "center": {
+          "median_of_process_medians_ms": 0.591548,
+          "process_medians_ms": [
+            0.586494,
+            0.596602
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.5903205,
+          "process_medians_ms": [
+            0.590636,
+            0.590005
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.5922769999999999,
+          "process_medians_ms": [
+            0.585988,
+            0.598566
+          ]
+        }
+      },
+      "nvidia-texture-8-0.8": {
+        "center": {
+          "median_of_process_medians_ms": 0.6060295,
+          "process_medians_ms": [
+            0.591488,
+            0.620571
+          ]
+        },
+        "fetch": {
+          "median_of_process_medians_ms": 0.601792,
+          "process_medians_ms": [
+            0.611595,
+            0.591989
+          ]
+        },
+        "native": {
+          "median_of_process_medians_ms": 0.5852035,
+          "process_medians_ms": [
+            0.590922,
+            0.579485
+          ]
+        }
+      }
+    }
+  }
+}
