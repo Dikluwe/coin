@@ -183,3 +183,13 @@ comprimidos ficam versionados. Fontes das revisões testadas e hashes distinguem
 os executáveis de QA e os benchmarks. Implementação/testes: `2369685893fac545153d63756ac578d3b33cd6dc`.
 Os artefatos completos/builds permanecem
 em `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-fine`.
+
+## Continuação: custo nativo e NVIDIA/1milhão
+
+O [estudo de separação nativa](coin-render-native-sampling-path-study-20261008.md)
+remove o apêndice/helpers dos perfis nativos e mantém instancing sem textura
+no perfil original. Revalida qualidade/recursos/sombras, mede o controle anterior
+congelado e repete o milhão com permutações, telemetria, hash de uniformes e
+timestamps separados. A regressão anterior não se reproduz como efeito
+persistente do seletor; a tabela deste relatório permanece histórica.
+A política portátil pública e qualificação fora deste PC continuam pendentes.

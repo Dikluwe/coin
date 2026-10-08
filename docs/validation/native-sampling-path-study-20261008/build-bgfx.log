@@ -1,0 +1,138 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (1.7s)
+-- Generating done (1.2s)
+-- Build files have been written to: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-bgfx
+[1/130] Generating bgfx-generated/coin_bgfx_vs_glsl.h
+[2/130] Generating bgfx-generated/coin_bgfx_vs_spirv.h
+[3/130] Generating bgfx-generated/coin_bgfx_fs_solid_color_spirv.h
+[4/130] Generating bgfx-generated/coin_bgfx_fs_solid_color_glsl.h
+[5/130] Generating bgfx-generated/coin_bgfx_fs_glsl.h
+[6/130] Generating bgfx-generated/coin_bgfx_fs_composite_spirv.h
+[7/130] Generating bgfx-generated/coin_bgfx_fs_composite_glsl.h
+[8/130] Generating bgfx-generated/coin_bgfx_fs_spirv.h
+[9/130] Generating bgfx-generated/coin_bgfx_fs_peel_next_glsl.h
+[10/130] Generating bgfx-generated/coin_bgfx_fs_weighted_composite_spirv.h
+[11/130] Generating bgfx-generated/coin_bgfx_fs_peel_next_spirv.h
+[12/130] Generating bgfx-generated/coin_bgfx_fs_weighted_composite_glsl.h
+[13/130] Generating bgfx-generated/coin_bgfx_fs_depth_readback_spirv.h
+[14/130] Generating bgfx-generated/coin_bgfx_fs_depth_readback_glsl.h
+[15/130] Generating bgfx-generated/coin_bgfx_vs_instanced_color_spirv.h
+[16/130] Generating bgfx-generated/coin_bgfx_vs_instanced_color_glsl.h
+[17/130] Generating bgfx-generated/coin_bgfx_fs_instanced_color_spirv.h
+[18/130] Generating bgfx-generated/coin_bgfx_fs_instanced_color_glsl.h
+[19/130] Generating bgfx-generated/coin_bgfx_vs_shadow_moments_spirv.h
+[20/130] Generating bgfx-generated/coin_bgfx_vs_shadow_moments_glsl.h
+[21/130] Generating bgfx-generated/coin_bgfx_fs_weighted_oit_glsl.h
+[22/130] Generating bgfx-generated/coin_bgfx_fs_shadow_moments_spirv.h
+[23/130] Generating bgfx-generated/coin_bgfx_fs_shadow_moments_glsl.h
+[24/130] Generating bgfx-generated/coin_bgfx_fs_weighted_oit_spirv.h
+[25/130] Generating bgfx-generated/coin_bgfx_vs_shadow_receiver_glsl.h
+[26/130] Generating bgfx-generated/coin_bgfx_vs_shadow_receiver_spirv.h
+[27/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_glsl.h
+[28/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_spirv.h
+[29/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_glsl.h
+[30/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_spirv.h
+[31/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_spirv.h
+[32/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_glsl.h
+[33/130] Generating bgfx-generated/coin_bgfx_fs_shadow_peel_glsl.h
+[34/130] Generating bgfx-generated/coin_bgfx_fs_shadow_peel_spirv.h
+[35/130] Generating bgfx-generated/coin_bgfx_fs_shadow_oit_spirv.h
+[36/130] Generating bgfx-generated/coin_bgfx_fs_shadow_oit_glsl.h
+[37/130] Generating bgfx-generated/coin_bgfx_fs_study_glsl.h
+[38/130] Generating bgfx-generated/coin_bgfx_fs_peel_next_study_glsl.h
+[39/130] Generating bgfx-generated/coin_bgfx_fs_study_spirv.h
+[40/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_study_spirv.h
+[41/130] Generating bgfx-generated/coin_bgfx_fs_peel_next_study_spirv.h
+[42/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver_study_glsl.h
+[43/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_study_spirv.h
+[44/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver4_study_glsl.h
+[45/130] Generating bgfx-generated/coin_bgfx_fs_weighted_oit_study_glsl.h
+[46/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_study_spirv.h
+[47/130] Generating bgfx-generated/coin_bgfx_fs_shadow_receiver8_study_glsl.h
+[48/130] Generating bgfx-generated/coin_bgfx_fs_weighted_oit_study_spirv.h
+[49/130] Generating bgfx-generated/coin_bgfx_fs_shadow_peel_study_spirv.h
+[50/130] Generating bgfx-generated/coin_bgfx_fs_shadow_peel_study_glsl.h
+[51/130] Generating bgfx-generated/coin_bgfx_fs_shadow_oit_study_glsl.h
+[52/130] Generating bgfx-generated/coin_bgfx_fs_shadow_oit_study_spirv.h
+[53/130] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderBackendFactory.cpp.o
+[54/130] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/coinbgfx/CoinBgfxRuntime.cpp.o
+[55/130] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderCapabilities.cpp.o
+[56/130] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/coinbgfx/CoinBgfxLowering.cpp.o
+[57/130] Building CXX object testsuite/CMakeFiles/CoinBgfxCoreTest.dir/__/src/rendering/coinbgfx/CoinBgfxLowering.cpp.o
+[58/130] Building CXX object testsuite/CMakeFiles/CoinBgfxProgramSelectionTest.dir/coinbgfx/CoinBgfxProgramSelectionTest.cpp.o
+[59/130] Building CXX object testsuite/CMakeFiles/CoinBgfxCoreTest.dir/coinbgfx/CoinBgfxCoreTest.cpp.o
+[60/130] Building CXX object testsuite/CMakeFiles/CoinBgfxOffscreenTest.dir/coinbgfx/CoinBgfxOffscreenTest.cpp.o
+[61/130] Building CXX object testsuite/CMakeFiles/CoinRenderDepthContractTest.dir/coinrender/CoinRenderDepthContractTest.cpp.o
+[62/130] Building CXX object testsuite/CMakeFiles/CoinRenderDepthContractTest.dir/__/src/rendering/coinbgfx/CoinBgfxLowering.cpp.o
+[63/130] Building CXX object testsuite/CMakeFiles/CoinBgfxInstancingTest.dir/coinbgfx/CoinBgfxInstancingTest.cpp.o
+[64/130] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/coinbgfx/CoinBgfxBackend.cpp.o
+[65/130] Linking CXX shared library lib/libCoinRender.so
+[66/130] Linking CXX executable bin/coin_render_viewer
+[67/130] Linking CXX executable bin/coin_render_window_cone
+[68/130] Linking CXX executable bin/coin_render_window_benchmark
+[69/130] Linking CXX executable bin/coin_render_freecad_compare
+[70/130] Linking CXX executable bin/coin_render_gl_benchmark
+[71/130] Linking CXX executable bin/CoinRenderActionTest
+[72/130] Linking CXX executable bin/CoinRenderBackendBoundaryTest
+[73/130] Linking CXX executable bin/CoinRenderRuntimeBoundaryTest
+[74/130] Linking CXX executable bin/CoinRenderPlanAssemblyCoreTest
+[75/130] Linking CXX executable bin/CoinRenderCameraReuseReferenceTest
+[76/130] Linking CXX executable bin/CoinRenderSelectionTest
+[77/130] Linking CXX executable bin/CoinRenderProductTest
+[78/130] Linking CXX executable bin/CoinRenderBackendContractTest
+[79/130] Linking CXX executable bin/CoinRenderOffscreenTest
+[80/130] Linking CXX executable bin/CoinRenderGateG0Test
+[81/130] Linking CXX executable bin/CoinBgfxReadbackModesTest
+[82/130] Linking CXX executable bin/CoinRenderFrameCoreTest
+[83/130] Linking CXX executable bin/CoinBgfxSurfaceFeaturesTest
+[84/130] Linking CXX executable bin/CoinBgfxProgramSelectionTest
+[85/130] Linking CXX executable bin/CoinBgfxCoreTest
+[86/130] Linking CXX executable bin/CoinRenderDepthContractTest
+[87/130] Linking CXX executable bin/CoinBgfxOffscreenTest
+[88/130] Linking CXX executable bin/CoinBgfxTransparencyTest
+[89/130] Linking CXX executable bin/CoinBgfxWindowTest
+[90/130] Linking CXX executable bin/CoinBgfxMultiWindowTest
+[91/130] Linking CXX executable bin/CoinRenderFrameReuseCoreTest
+[92/130] Linking CXX executable bin/CoinRenderDiagnosticShellTest
+[93/130] Linking CXX executable bin/CoinRenderIndexedGeometryCoreTest
+[94/130] Linking CXX executable bin/CoinRenderGateG1Test
+[95/130] Linking CXX executable bin/CoinRenderGateG2Test
+[96/130] Linking CXX executable bin/CoinRenderIndexedFastPathTest
+[97/130] Linking CXX executable bin/CoinWgpuCacheTest
+[98/130] Linking CXX executable bin/CoinRenderStabilizationTest
+[99/130] Linking CXX executable bin/CoinRenderTextureTest
+[100/130] Linking CXX executable bin/CoinRenderTextureSamplingTest
+[101/130] Linking CXX executable bin/CoinRenderAdvancedTextureTest
+[102/130] Linking CXX executable bin/CoinRenderRttProfileTest
+[103/130] Linking CXX executable bin/CoinRenderRttMatrixTest
+[104/130] Linking CXX executable bin/CoinRenderGeometryViewportTest
+[105/130] Linking CXX executable bin/CoinRenderRasterStudy
+[106/130] Linking CXX executable bin/CoinRenderProceduralTextureTest
+[107/130] Linking CXX executable bin/CoinRenderLightingTest
+[108/130] Linking CXX executable bin/CoinRenderGouraudInterpolationTest
+[109/130] Building CXX object testsuite/CMakeFiles/CoinBgfxInstancingTest.dir/__/src/rendering/coinbgfx/CoinBgfxLowering.cpp.o
+[110/130] Linking CXX executable bin/CoinRenderFogTest
+[111/130] Linking CXX executable bin/CoinRenderClipPlaneTest
+[112/130] Linking CXX executable bin/CoinRenderDrawStyleTest
+[113/130] Linking CXX executable bin/CoinBgfxInstancingTest
+[114/130] Linking CXX executable bin/CoinRenderMultitextureTest
+[115/130] Linking CXX executable bin/CoinRenderPeelingTest
+[116/130] Linking CXX executable bin/CoinRenderTransparencyTest
+[117/130] Linking CXX executable bin/CoinRenderCompositionTest
+[118/130] Linking CXX executable bin/CoinRenderNodeInventoryTest
+[119/130] Linking CXX executable bin/CoinRenderScreenContentTest
+[120/130] Linking CXX executable bin/CoinRenderFragmentPolicyTest
+[121/130] Linking CXX executable bin/CoinRenderBoundingBoxTest
+[122/130] Linking CXX executable bin/CoinRenderMarkerSetTest
+[123/130] Linking CXX executable bin/CoinRenderProjectiveUvTest
+[124/130] Linking CXX executable bin/CoinRenderShadowEightMapTest
+[125/130] Linking CXX executable bin/CoinRenderMultiTargetTest
+[126/130] Linking CXX executable bin/CoinRenderPublicationTest
+[127/130] Linking CXX executable bin/CoinRenderShadowReferenceTest
+[128/130] Linking CXX executable bin/CoinRenderRttOwnershipTest
+[129/130] Linking CXX executable bin/CoinRenderSceneTextureBudgetTest
+[130/130] Linking CXX executable bin/CoinRenderSceneTextureTest
