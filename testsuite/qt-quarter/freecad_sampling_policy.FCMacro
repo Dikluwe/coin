@@ -100,6 +100,8 @@ def capture(name):
     previous = None
     attempt = 0
     while time.monotonic() < deadline:
+        view.redraw()
+        Gui.updateGui()
         loop = QtCore.QEventLoop()
         QtCore.QTimer.singleShot(60, loop.quit)
         loop.exec()
@@ -139,3 +141,20 @@ def content_idle_baseline():
         raise RuntimeError('cleanup did not settle within 5s')
     else:
         step(content_idle_baseline, 100)
+
+# Qualify steady host integration after first-use font/raster resources exist.
+# The separate cold-start diagnostic remains open; do not infer its correctness
+# from this warmed profile. All subsequent image/removal gates are unchanged.
+original_sampling_baseline_ready = baseline_ready
+
+def baseline_ready():
+    before = capture('sampling-startup-before-text')
+    stages[0][1].whichChild = coin.SO_SWITCH_ALL
+    capture('sampling-startup-text-warmup')
+    stages[0][1].whichChild = coin.SO_SWITCH_NONE
+    after = capture('sampling-startup-after-text')
+    rect = QtCore.QRect(0,0,before.width()-1,before.height()-1)
+    report['startup_root_changes'] = changes(before,after,rect)
+    report['qualification_scope'] = 'steady host after text resource warmup'
+    report['cold_start_qualified'] = False
+    original_sampling_baseline_ready()
