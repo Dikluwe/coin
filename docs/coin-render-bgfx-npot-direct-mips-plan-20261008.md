@@ -41,5 +41,19 @@ oráculo. Não há readback/geração CPU na rota direta.
 - falha sem publicação e frame seguinte recuperado;
 - POT existente e replay de token sem regressão.
 
-A `nvidia-smi` deste PC ainda retorna desencontro entre módulo e NVML 615.71;
-a matriz NVIDIA fica para um ambiente com driver íntegro.
+## Estado do host após reinicialização
+
+O driver NVIDIA 615.71.09 está íntegro neste PC: `nvidia-smi` identifica a
+RTX 3060 Laptop, e BGFX/Vulkan passou 380/380 controles de texturas avançadas.
+Isso libera a futura matriz NVIDIA, mas não qualifica mips NPOT diretos:
+`CoinBgfxBackend::preflightRtt` e `submitDirectTexture` ainda os recusam antes
+do produtor. A rota POT existente usa autogeração nativa.
+
+O código atual reserva 16 views por alvo. `submitDirectTexture` usa views para
+sombras, opacidade, transparência e overlays; a redução NPOT precisa planejar
+seus passes depois dessas etapas e dividir a cadeia entre frames internos ou
+recusar o grafo no preflight quando o bloco não comportar a sequência. A
+integração também exige gerar os shaders BGFX para Vulkan e OpenGL (e DX11 no
+build Windows), verificar `FRAMEBUFFER`/blit para cada formato e só publicar o
+token após a última cópia GPU. A recusa atual permanece até que os gates acima
+sejam executados; não há fallback CPU/readback na rota direta.

@@ -127,7 +127,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   liberar as instâncias CPU que impediam retenção; replay/cache hit no milhão
   em AMD/Vulkan native/portable. [Código, gates e A/B delimitado](coin-render-bgfx-million-replay-20261008.md).
 - [ ] Estudar variação NVIDIA/wgpu (coorte longa ~25%, repetição isolada ~1,3%)
-  e ampliar o replay BGFX a outras GPUs/cargas. Não prometer FPS universal.
+  e ampliar o replay BGFX a outras GPUs/cargas. [Novo A/B após o driver](coin-render-nvidia-million-after-driver-20261008.md):
+  oito processos físicos wgpu/BGFX Vulkan válidos; a diferença de 25% não
+  reapareceu e a variação wgpu dentro da mesma política excedeu a diferença
+  agregada. Traces confirmam replay BGFX na NVIDIA, native/portable. Outras
+  cargas e a causa da variação seguem abertas; não prometer FPS universal.
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Sampling CoinGL AMD instalado continua
   divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
