@@ -1,0 +1,44 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {},
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "fixture_interactive_input": "blocked in this host process",
+  "interactive_input_blocked": 22,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "active_sampling_policy": 1,
+  "presentation_reads": {
+    "screen-bare": 2
+  },
+  "reason": "screen presentation did not settle within 0.5s: screen-text",
+  "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+  "backend_gl_contexts": [
+    [
+      "AMD",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+    ],
+    [
+      "AMD",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+      "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+    ]
+  ],
+  "backend": "bgfx",
+  "renderer": "opengl",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-final/bgfx-amd-gl-portable/opengl-object-opaque-1x-freecad-sampling-policy"
+}

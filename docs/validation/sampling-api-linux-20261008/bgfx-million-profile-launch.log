@@ -1,0 +1,7 @@
+native False
+portable False
+Traceback (most recent call last):
+  File "/tmp/profile-bgfx-million.py", line 19, in <module>
+    assert all(x['valid'] for x in rows)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError

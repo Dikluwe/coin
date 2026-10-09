@@ -1,0 +1,36 @@
+{
+  "command": [
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+    "--user-cfg",
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-startup-diagnostic/private-profile/user.cfg",
+    "--system-cfg",
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-startup-diagnostic/private-profile/system.cfg",
+    "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-startup-diagnostic/fixture/freecad_sampling_policy.FCMacro"
+  ],
+  "environment": {
+    "XAUTHORITY": "/home/dikluwe/.Xauthority",
+    "DISPLAY": ":0",
+    "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+    "DRI_PRIME": "0",
+    "WGPU_BACKEND": "vulkan",
+    "COIN_TEST_PORTABLE_SAMPLING": "1",
+    "COIN_SAMPLING_STUDY": "fetch",
+    "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+    "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+    "__NV_PRIME_RENDER_OFFLOAD": "1",
+    "FREECAD_COIN_WGPU": "1",
+    "COIN_TEST_GL_REFERENCE": "0",
+    "QT_QPA_PLATFORM": "xcb",
+    "COIN_RENDER_TRACE_PHASES": "1",
+    "COIN_BGFX_RENDERER": "vulkan",
+    "COIN_BGFX_TRANSPARENCY": "object",
+    "COIN_RENDER_TRANSPARENCY": "object",
+    "COIN_TEST_ALPHA": "opaque",
+    "QT_SCALE_FACTOR": "1",
+    "COIN_TEST_ARTIFACTS": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-startup-diagnostic",
+    "COIN_TEST_MACRO_DIR": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-startup-diagnostic/fixture"
+  },
+  "note": "Diagnostic fixture adds picking/glyph startup probes; not part of qualification totals."
+}

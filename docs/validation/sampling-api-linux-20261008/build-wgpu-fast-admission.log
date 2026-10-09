@@ -1,0 +1,100 @@
+[1/6] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderRttExecution.cpp.o
+FAILED: src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderRttExecution.cpp.o 
+/usr/bin/c++ -DCOIN_INTERNAL -DCOIN_RENDER_INTERNAL -DCoinRender_EXPORTS -DHAVE_CONFIG_H -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/experimental/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu/src -Wsuggest-override -O3 -DNDEBUG -std=gnu++11 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderRttExecution.cpp.o -MF src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderRttExecution.cpp.o.d -o src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderRttExecution.cpp.o -c /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderRttExecution.cpp
+In file included from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderRttExecution.cpp:1:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h: In function ‘bool coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)’:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:75: error: use of ‘auto’ in lambda parameter declaration only available with ‘-std=c++14’ or ‘-std=gnu++14’
+   16 |   if (std::none_of(frame.samplers.begin(), frame.samplers.end(), [](const auto& sampler) {
+      |                                                                           ^~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h: In lambda function:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:17:24: error: request for member ‘filter’ in ‘sampler’, which is of non-class type ‘const int’
+   17 |         return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1;
+      |                        ^~~~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:17:92: error: request for member ‘maxAnisotropy’ in ‘sampler’, which is of non-class type ‘const int’
+   17 |         return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1;
+      |                                                                                            ^~~~~~~~~~~~~
+In file included from /usr/include/c++/13/bits/stl_algobase.h:71,
+                 from /usr/include/c++/13/string:51,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderTransparencyCore.h:7,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderFramePlan.h:5,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:3:
+/usr/include/c++/13/bits/predefined_ops.h: In instantiation of ‘bool __gnu_cxx::__ops::_Iter_pred<_Predicate>::operator()(_Iterator) [with _Iterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, std::vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’:
+/usr/include/c++/13/bits/stl_algobase.h:2072:14:   required from ‘_RandomAccessIterator std::__find_if(_RandomAccessIterator, _RandomAccessIterator, _Predicate, random_access_iterator_tag) [with _RandomAccessIterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = __gnu_cxx::__ops::_Iter_pred<coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)> >]’
+/usr/include/c++/13/bits/stl_algobase.h:2117:23:   required from ‘_Iterator std::__find_if(_Iterator, _Iterator, _Predicate) [with _Iterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = __gnu_cxx::__ops::_Iter_pred<coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)> >]’
+/usr/include/c++/13/bits/stl_algo.h:3923:28:   required from ‘_IIter std::find_if(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’
+/usr/include/c++/13/bits/stl_algo.h:477:47:   required from ‘bool std::none_of(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:19:   required from here
+/usr/include/c++/13/bits/predefined_ops.h:318:30: error: no match for call to ‘(coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>) (const CoinRenderSamplerSnapshot&)’
+  318 |         { return bool(_M_pred(*__it)); }
+      |                       ~~~~~~~^~~~~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:66: note: candidate: ‘coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>’
+   16 |   if (std::none_of(frame.samplers.begin(), frame.samplers.end(), [](const auto& sampler) {
+      |                                                                  ^
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:66: note:   no known conversion for argument 1 from ‘const CoinRenderSamplerSnapshot’ to ‘const int&’
+[2/6] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderTarget.cpp.o
+FAILED: src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderTarget.cpp.o 
+/usr/bin/c++ -DCOIN_INTERNAL -DCOIN_RENDER_INTERNAL -DCoinRender_EXPORTS -DHAVE_CONFIG_H -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/experimental/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu/src -Wsuggest-override -O3 -DNDEBUG -std=gnu++11 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderTarget.cpp.o -MF src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderTarget.cpp.o.d -o src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderTarget.cpp.o -c /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderTarget.cpp
+In file included from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderTarget.cpp:1:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h: In function ‘bool coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)’:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:75: error: use of ‘auto’ in lambda parameter declaration only available with ‘-std=c++14’ or ‘-std=gnu++14’
+   16 |   if (std::none_of(frame.samplers.begin(), frame.samplers.end(), [](const auto& sampler) {
+      |                                                                           ^~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h: In lambda function:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:17:24: error: request for member ‘filter’ in ‘sampler’, which is of non-class type ‘const int’
+   17 |         return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1;
+      |                        ^~~~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:17:92: error: request for member ‘maxAnisotropy’ in ‘sampler’, which is of non-class type ‘const int’
+   17 |         return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1;
+      |                                                                                            ^~~~~~~~~~~~~
+In file included from /usr/include/c++/13/bits/stl_algobase.h:71,
+                 from /usr/include/c++/13/string:51,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderTransparencyCore.h:7,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderFramePlan.h:5,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:3:
+/usr/include/c++/13/bits/predefined_ops.h: In instantiation of ‘bool __gnu_cxx::__ops::_Iter_pred<_Predicate>::operator()(_Iterator) [with _Iterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, std::vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’:
+/usr/include/c++/13/bits/stl_algobase.h:2072:14:   required from ‘_RandomAccessIterator std::__find_if(_RandomAccessIterator, _RandomAccessIterator, _Predicate, random_access_iterator_tag) [with _RandomAccessIterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = __gnu_cxx::__ops::_Iter_pred<coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)> >]’
+/usr/include/c++/13/bits/stl_algobase.h:2117:23:   required from ‘_Iterator std::__find_if(_Iterator, _Iterator, _Predicate) [with _Iterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = __gnu_cxx::__ops::_Iter_pred<coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)> >]’
+/usr/include/c++/13/bits/stl_algo.h:3923:28:   required from ‘_IIter std::find_if(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’
+/usr/include/c++/13/bits/stl_algo.h:477:47:   required from ‘bool std::none_of(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:19:   required from here
+/usr/include/c++/13/bits/predefined_ops.h:318:30: error: no match for call to ‘(coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>) (const CoinRenderSamplerSnapshot&)’
+  318 |         { return bool(_M_pred(*__it)); }
+      |                       ~~~~~~~^~~~~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:66: note: candidate: ‘coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>’
+   16 |   if (std::none_of(frame.samplers.begin(), frame.samplers.end(), [](const auto& sampler) {
+      |                                                                  ^
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:66: note:   no known conversion for argument 1 from ‘const CoinRenderSamplerSnapshot’ to ‘const int&’
+[3/6] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/__/actions/CoinRenderAction.cpp.o
+FAILED: src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/__/actions/CoinRenderAction.cpp.o 
+/usr/bin/c++ -DCOIN_INTERNAL -DCOIN_RENDER_INTERNAL -DCoinRender_EXPORTS -DHAVE_CONFIG_H -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/experimental/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu/src -Wsuggest-override -O3 -DNDEBUG -std=gnu++11 -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -MD -MT src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/__/actions/CoinRenderAction.cpp.o -MF src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/__/actions/CoinRenderAction.cpp.o.d -o src/rendering/coinrender/CMakeFiles/CoinRender.dir/__/__/actions/CoinRenderAction.cpp.o -c /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/actions/CoinRenderAction.cpp
+In file included from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/actions/CoinRenderAction.cpp:1:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h: In function ‘bool coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)’:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:75: error: use of ‘auto’ in lambda parameter declaration only available with ‘-std=c++14’ or ‘-std=gnu++14’
+   16 |   if (std::none_of(frame.samplers.begin(), frame.samplers.end(), [](const auto& sampler) {
+      |                                                                           ^~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h: In lambda function:
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:17:24: error: request for member ‘filter’ in ‘sampler’, which is of non-class type ‘const int’
+   17 |         return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1;
+      |                        ^~~~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:17:92: error: request for member ‘maxAnisotropy’ in ‘sampler’, which is of non-class type ‘const int’
+   17 |         return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1;
+      |                                                                                            ^~~~~~~~~~~~~
+In file included from /usr/include/c++/13/bits/stl_algobase.h:71,
+                 from /usr/include/c++/13/string:51,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderTransparencyCore.h:7,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderFramePlan.h:5,
+                 from /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:3:
+/usr/include/c++/13/bits/predefined_ops.h: In instantiation of ‘bool __gnu_cxx::__ops::_Iter_pred<_Predicate>::operator()(_Iterator) [with _Iterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, std::vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’:
+/usr/include/c++/13/bits/stl_algobase.h:2072:14:   required from ‘_RandomAccessIterator std::__find_if(_RandomAccessIterator, _RandomAccessIterator, _Predicate, random_access_iterator_tag) [with _RandomAccessIterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = __gnu_cxx::__ops::_Iter_pred<coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)> >]’
+/usr/include/c++/13/bits/stl_algobase.h:2117:23:   required from ‘_Iterator std::__find_if(_Iterator, _Iterator, _Predicate) [with _Iterator = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = __gnu_cxx::__ops::_Iter_pred<coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)> >]’
+/usr/include/c++/13/bits/stl_algo.h:3923:28:   required from ‘_IIter std::find_if(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’
+/usr/include/c++/13/bits/stl_algo.h:477:47:   required from ‘bool std::none_of(_IIter, _IIter, _Predicate) [with _IIter = __gnu_cxx::__normal_iterator<const CoinRenderSamplerSnapshot*, vector<CoinRenderSamplerSnapshot> >; _Predicate = coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>]’
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:19:   required from here
+/usr/include/c++/13/bits/predefined_ops.h:318:30: error: no match for call to ‘(coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>) (const CoinRenderSamplerSnapshot&)’
+  318 |         { return bool(_M_pred(*__it)); }
+      |                       ~~~~~~~^~~~~~~
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:66: note: candidate: ‘coin_render_valid_sampling(const CoinRenderFramePlan&, std::string&)::<lambda(const int&)>’
+   16 |   if (std::none_of(frame.samplers.begin(), frame.samplers.end(), [](const auto& sampler) {
+      |                                                                  ^
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinrender/CoinRenderSamplingCore.h:16:66: note:   no known conversion for argument 1 from ‘const CoinRenderSamplerSnapshot’ to ‘const int&’
+ninja: build stopped: subcommand failed.

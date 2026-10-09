@@ -1,0 +1,14 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (1.5s)
+-- Generating done (0.7s)
+-- Build files have been written to: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-wgpu
+[1/7] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderManagerAdapter.cpp.o
+[2/7] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderSceneManager.cpp.o
+[3/7] Building CXX object testsuite/CMakeFiles/CoinRenderSamplingPolicyTest.dir/coinrender/CoinRenderSamplingPolicyTest.cpp.o
+[4/7] Building CXX object examples/coinrender/CMakeFiles/coin_render_window_benchmark.dir/coin_render_window_benchmark.cpp.o
+[5/7] Linking CXX shared library lib/libCoinRender.so
+[6/7] Linking CXX executable bin/CoinRenderSamplingPolicyTest
+[7/7] Linking CXX executable bin/coin_render_window_benchmark

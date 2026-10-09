@@ -1,0 +1,38 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {
+    "text": [
+      {
+        "visible_changes": 700,
+        "resized": false,
+        "glyph_pixels": 700,
+        "document_pick": true,
+        "mutation_changes": 1394,
+        "remaining_changes": 1478
+      }
+    ]
+  },
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "active_sampling_policy": 1,
+  "reason": "text removal left pixels",
+  "adapter": "wgpu opengl vendor 0x1002 device 0x0",
+  "backend": "wgpu",
+  "renderer": "opengl",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": false,
+  "gpu_submitted": true,
+  "gpu_execution": "software-or-unverified",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-matrix/wgpu-amd-gl-portable/opengl-object-opaque-1x-freecad-sampling-policy"
+}

@@ -1,0 +1,29 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {},
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "fixture_interactive_input": "blocked in this host process",
+  "fixture_window_stays_on_top": true,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "active_sampling_policy": 1,
+  "reason": "BGFX frame missing or fallback occurred",
+  "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+  "backend": "wgpu",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy"
+}

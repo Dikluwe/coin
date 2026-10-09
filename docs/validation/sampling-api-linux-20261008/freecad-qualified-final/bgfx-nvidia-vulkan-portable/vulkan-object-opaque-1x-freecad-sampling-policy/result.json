@@ -1,0 +1,207 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {
+    "text": [
+      {
+        "visible_changes": 700,
+        "resized": false,
+        "glyph_pixels": 700,
+        "document_pick": true,
+        "mutation_changes": 1394,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 712,
+        "resized": true,
+        "glyph_pixels": 712,
+        "document_pick": true,
+        "mutation_changes": 1399,
+        "remaining_changes": 0
+      }
+    ],
+    "image": [
+      {
+        "visible_changes": 384,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 768,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 384,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 768,
+        "remaining_changes": 0
+      }
+    ],
+    "colorbar-label": [
+      {
+        "visible_changes": 549,
+        "resized": false,
+        "glyph_pixels": 549,
+        "document_pick": true,
+        "mutation_changes": 1110,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 561,
+        "resized": true,
+        "glyph_pixels": 561,
+        "document_pick": true,
+        "mutation_changes": 1097,
+        "remaining_changes": 0
+      }
+    ],
+    "frame-label": [
+      {
+        "visible_changes": 2605,
+        "resized": false,
+        "glyph_pixels": 1866,
+        "document_pick": true,
+        "mutation_changes": 5234,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 2629,
+        "resized": true,
+        "glyph_pixels": 1803,
+        "document_pick": true,
+        "mutation_changes": 5120,
+        "remaining_changes": 0
+      }
+    ],
+    "alpha-test": [
+      {
+        "visible_changes": 5476,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 5476,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 2253,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 4503,
+        "remaining_changes": 0
+      }
+    ],
+    "projective-uv": [
+      {
+        "visible_changes": 5476,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 2691,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 2254,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 1361,
+        "remaining_changes": 0
+      }
+    ],
+    "complexity-box": [
+      {
+        "visible_changes": 5476,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 12358,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 8991,
+        "resized": true,
+        "document_pick": true,
+        "mutation_changes": 13484,
+        "remaining_changes": 0
+      }
+    ],
+    "markers": [
+      {
+        "visible_changes": 29,
+        "resized": false,
+        "coarse_2x2_changes": 9,
+        "document_pick": true,
+        "mutation_changes": 152,
+        "remaining_changes": 0
+      },
+      {
+        "visible_changes": 123,
+        "resized": true,
+        "coarse_2x2_changes": 32,
+        "document_pick": true,
+        "mutation_changes": 306,
+        "remaining_changes": 0
+      }
+    ]
+  },
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "fixture_interactive_input": "blocked in this host process",
+  "fixture_window_state": "_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE, _NET_WM_STATE_FOCUSED",
+  "fixture_window_stays_on_top": true,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "projective_sampling_fixture": {
+    "dimensions": [
+      256,
+      256
+    ],
+    "quality": 0.5,
+    "filter": "NEAREST_MIPMAP_LINEAR",
+    "unit": 0
+  },
+  "active_sampling_policy": 1,
+  "presentation_reads": {
+    "screen-bare": 2,
+    "screen-text": 2,
+    "screen-text-updated": 2,
+    "screen-text-removed": 2,
+    "screen-image": 2,
+    "screen-image-updated": 2,
+    "screen-image-removed": 2,
+    "screen-colorbar-label": 2,
+    "screen-colorbar-label-updated": 2,
+    "screen-colorbar-label-removed": 2,
+    "screen-frame-label": 2,
+    "screen-frame-label-updated": 2,
+    "screen-frame-label-removed": 2,
+    "screen-alpha-test": 2,
+    "screen-alpha-test-updated": 2,
+    "screen-alpha-test-removed": 2,
+    "screen-projective-uv": 2,
+    "screen-projective-uv-updated": 2,
+    "screen-projective-uv-removed": 2,
+    "screen-complexity-box": 2,
+    "screen-complexity-box-updated": 2,
+    "screen-complexity-box-removed": 2,
+    "screen-markers": 2,
+    "screen-markers-updated": 2,
+    "screen-markers-removed": 2,
+    "screen-resized-bare": 2
+  },
+  "resize_retested": true,
+  "idle_cleanup_settle_s": 0.6003091849852353,
+  "idle_start": 445,
+  "idle_end": 445,
+  "adapter": "bgfx vulkan vendor 0x10de device 0x2560",
+  "backend": "bgfx",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-qualified-final/bgfx-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy"
+}

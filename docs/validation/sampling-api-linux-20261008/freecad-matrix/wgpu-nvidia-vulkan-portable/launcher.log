@@ -1,0 +1,184 @@
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.gtk.vfs.Daemon' requested by ':1.1' (uid=1000 pid=1836215 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.a11y.Bus' requested by ':1.3' (uid=1000 pid=1836215 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[1836247]: Activating service name='org.a11y.atspi.Registry' requested by ':1.0' (uid=1000 pid=1836215 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1836247]: Successfully activated service 'org.a11y.atspi.Registry'
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+X connection to :1 broken (explicit kill or server shutdown).
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.10' (uid=1000 pid=1836273 comm="/mnt/Laranja/Git/externos/coin-portable-sampling-a" label="chatgpt (unconfined)")
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.portal.Documents' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Successfully activated service 'org.freedesktop.portal.Documents'
+Ignoring invalid max threads value 4294967295 > max (100000).
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.impl.portal.desktop.xapp' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+
+(xdg-desktop-portal-xapp:1836311): xdg-desktop-portal-xapp-CRITICAL **: 19:37:20.002: Failed to initialize Gtk
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Successfully activated service 'org.freedesktop.impl.portal.desktop.xapp'
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+
+(xdg-desktop-portal-gtk:1836319): Gtk-WARNING **: 19:37:20.100: cannot open display: :1
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activated service 'org.freedesktop.impl.portal.desktop.gtk' failed: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.102: Failed to create settings proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+
+(xdg-desktop-portal-gtk:1836321): Gtk-WARNING **: 19:37:20.158: cannot open display: :1
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activated service 'org.freedesktop.impl.portal.desktop.gtk' failed: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.160: Failed to create file chooser proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.160: No skeleton to export
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+
+(xdg-desktop-portal-gtk:1836323): Gtk-WARNING **: 19:37:20.211: cannot open display: :1
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activated service 'org.freedesktop.impl.portal.desktop.gtk' failed: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.214: Failed to create app chooser proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: Process org.freedesktop.impl.portal.desktop.gtk exited with status 1
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.214: No skeleton to export
+dbus-daemon[1836204]: [session uid=1000 pid=1836204] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.11' (uid=1000 pid=1836277 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+FAIL        vulkan-object-opaque-1x-freecad-sampling-policy: missing/inconsistent RESULT; process exit -6
+{"PASS": 0, "REFERENCE_PASS": 0, "SKIP": 0, "UNSUPPORTED": 0, "FAIL": 1}
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.267: Failed to create print proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(xdg-desktop-portal-gtk:1836326): Gtk-WARNING **: 19:37:20.267: cannot open display: :1
+A connection to the bus can't be made
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.267: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.268: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.268: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.268: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.268: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.268: Failed to create notification proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.268: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.268: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.269: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.269: Failed to create inhibit proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.xapp: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.269: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.269: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.269: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.269: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.269: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.269: Failed to create access proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.269: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.269: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.270: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.270: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.270: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.270: Failed to create access proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.270: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.273: Failed connect to PipeWire: Couldn't connect to PipeWire
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.273: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.274: Failed to create access proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.274: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.274: Failed to create screenshot proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.xapp: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.274: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.274: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.275: Failed to create access proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.275: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.275: Failed to create wallpaper proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.xapp: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.275: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.275: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.276: Failed to create account proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.276: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.276: Failed to create email proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.276: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.276: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.277: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.277: Failed to create secret proxy: Error calling StartServiceByName for org.freedesktop.secrets: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.277: No skeleton to export
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.277: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.277: Error while sending GetNameOwner() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.277: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): GLib-GIO-CRITICAL **: 19:37:20.277: Error while sending AddMatch() message: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.277: Failed to create dynamic_launcher proxy: Error calling StartServiceByName for org.freedesktop.impl.portal.desktop.gtk: The connection is closed
+
+(/usr/libexec/xdg-desktop-portal:1836277): xdg-desktop-portal-WARNING **: 19:37:20.277: No skeleton to export

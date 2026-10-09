@@ -1,0 +1,30 @@
+[
+  {
+    "profile": "wgpu-amd-gl",
+    "policy": "both",
+    "case": "window",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderSamplingPolicyTest",
+      "--window"
+    ],
+    "log": "wgpu-amd-gl-both-window.log",
+    "binary_sha256": "2cb4d58971950811bc08f5c720acdbdf2b587dbf9321d82f9b07bed1b3ff8ecd",
+    "log_sha256": "3d201f8af93d6e45493dfdd73aa726191fc97cfc1284ed5ed8d7ceb4f8f8f775",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  }
+]

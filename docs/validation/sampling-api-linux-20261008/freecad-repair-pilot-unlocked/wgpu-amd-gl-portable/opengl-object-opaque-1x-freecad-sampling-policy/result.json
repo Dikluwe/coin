@@ -1,0 +1,939 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {
+    "text": [
+      {
+        "visible_changes": 700,
+        "resized": false,
+        "glyph_pixels": 700,
+        "document_pick": true,
+        "mutation_changes": 2871,
+        "remaining_changes": 0
+      }
+    ],
+    "image": [
+      {
+        "visible_changes": 384,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 768,
+        "remaining_changes": 10856
+      }
+    ]
+  },
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "active_sampling_policy": 1,
+  "reason": "image removal left pixels",
+  "adapter": "wgpu opengl vendor 0x1002 device 0x0",
+  "backend_gl_contexts": [
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ],
+    [
+      "0x1002",
+      "Other",
+      "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)"
+    ]
+  ],
+  "backend": "wgpu",
+  "renderer": "opengl",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-repair-pilot-unlocked/wgpu-amd-gl-portable/opengl-object-opaque-1x-freecad-sampling-policy"
+}

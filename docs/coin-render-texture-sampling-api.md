@@ -32,7 +32,10 @@ action.apply(scene);
 action.setRenderTarget(nullptr);
 ```
 
-Os overloads sem opções continuam nativos. A seleção é pura: não inicializa
+Os overloads sem opções continuam nativos. Scene manager e adapter também
+aceitam `CoinRenderOptions` na construção, tanto para offscreen quanto Xlib;
+as opções são encaminhadas ao alvo. Trocar a política de um viewport exige
+recriar seu adapter/alvo, preservando a imutabilidade de cada alvo. A seleção é pura: não inicializa
 runtime, não lê ambiente e não aplica fallback. `require_qualified_profile=1`
 exige evidência delimitada para a política; native permanece disponível com esse
 argumento igual a zero. Não confundir os valores de política 0/1 com seus bits 1/2.
@@ -62,14 +65,15 @@ alvo, plano e produtor são rejeitadas antes da submissão.
 Perfis de shader nativo/portátil são separados. wgpu compartilha dispositivo e
 caches de recursos; o perfil portátil é criado sob demanda. Caminhos sem textura
 ou de instancing conservam o perfil nativo. Não há novo resultado de desempenho
-nesta rodada; medições anteriores de laboratório não certificam esta API.
+na primeira rodada; a continuação Linux mede esta API com drivers instalados.
+Medições anteriores de laboratório não certificam esta API.
 
 ## Capacidades e compatibilidade
 
 `CoinRenderCapabilities` versão 4 separa `implemented_sampling_policies`,
 `available_sampling_policies` e `qualified_sampling_policies`. Implementação não
 implica adaptador disponível, e qualificação descreve evidência de um perfil de
-código/teste Linux offscreen, não certificação automática do driver atual.
+código/teste Linux offscreen/Xlib, não certificação automática do driver atual.
 A consulta conserva os prefixos exatos v1/v2/v3 sem escrever além do buffer.
 O seletor anterior de mecanismos continua aceitando v3. O novo seletor exige v4
 completo e informa pedido inválido, implementação ausente, runtime não pronto,
@@ -116,7 +120,13 @@ O workaround Mesa continua externo e opt-in. Native/CoinGL AMD ainda possui a
 divergência de sampling nos drivers instalados; esta API não a corrige no driver.
 As diferenças anteriores de recorte/iluminação CoinGL permanecem estudos abertos;
 ver [fechamento das 28 falhas e condições](coin-render-failure-closure-20261008.md).
-Windows, Android, janela, FreeCAD e desempenho desta API permanecem pendentes.
+A continuação Linux qualifica Xlib, os overloads com opções de
+`CoinRenderSceneManager`/`CoinRenderManagerAdapter`, o consumidor FreeCAD aquecido e custo
+native/portable nos escopos registrados no
+[relatório Linux](coin-render-sampling-api-linux-20261008.md).
+A transição inicial da borda FreeCAD/NVIDIA/wgpu portable permanece estudo
+aberto; a qualificação aquecida não certifica cold start.
+Windows e Android desta API permanecem pendentes.
 
 ## Reprodução e evidências
 

@@ -1,0 +1,59 @@
+[
+  {
+    "profile": "bgfx-amd-vulkan",
+    "policy": "both",
+    "case": "window",
+    "exit": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "--window"
+    ],
+    "log": "bgfx-amd-vulkan-both-window.log",
+    "binary_sha256": "772ba24ce32836c15ba2f1a66abf012d6f1d7678acb3a7722451800f690bc139",
+    "log_sha256": "9d14cdb00a372d066e89a59c1ce1fccccbe1534144b31f3bb13a2e043ce8b4d1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "policy": "both",
+    "case": "window",
+    "exit": 1,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "--window"
+    ],
+    "log": "bgfx-nvidia-vulkan-both-window.log",
+    "binary_sha256": "772ba24ce32836c15ba2f1a66abf012d6f1d7678acb3a7722451800f690bc139",
+    "log_sha256": "6d809cafd8242f90bf650cbee020b9358929dfb96933ab1736b303d7c35982e1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json"
+    }
+  }
+]

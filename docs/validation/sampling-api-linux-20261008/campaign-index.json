@@ -1,0 +1,30 @@
+{
+  "cpu": [
+    {
+      "campaign": "benchmark-cpu-final",
+      "exclude_profiles": [
+        "bgfx-amd-gl"
+      ]
+    },
+    {
+      "campaign": "benchmark-gl-receipt-final"
+    }
+  ],
+  "baseline": [
+    {
+      "campaign": "benchmark-baseline",
+      "exclude_profiles": [
+        "bgfx-amd-gl"
+      ]
+    },
+    {
+      "campaign": "benchmark-gl-baseline-receipt-final"
+    }
+  ],
+  "gpu": [
+    {
+      "campaign": "benchmark-gpu"
+    }
+  ],
+  "notes": "GL CPU/baseline original rows excluded because physical context receipts were absent; replaced by separate repeats with standalone GL hardware receipts (diagnostic-only backend change). Frozen GL A/B requires full phase instrumentation on both sides; other native controls and ordinary CPU campaigns stay uninstrumented. Historical evidence retained. Main f9 campaign libraries were not frozen before wgpu adapter-name diagnostic rebuild; do not certify historical ELF from final hashes."
+}

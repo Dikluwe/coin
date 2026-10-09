@@ -1,0 +1,56 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {
+    "text": [
+      {
+        "visible_changes": 700,
+        "resized": false,
+        "glyph_pixels": 700,
+        "document_pick": true,
+        "mutation_changes": 1336,
+        "remaining_changes": 0
+      }
+    ],
+    "image": [
+      {
+        "visible_changes": 384,
+        "resized": false,
+        "document_pick": true,
+        "mutation_changes": 42985,
+        "remaining_changes": 56346
+      }
+    ]
+  },
+  "profile": "screen-content",
+  "sampling_policy": 0,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "active_sampling_policy": 0,
+  "presentation_reads": {
+    "screen-bare": 2,
+    "screen-text": 2,
+    "screen-text-updated": 2,
+    "screen-text-removed": 2,
+    "screen-image": 2,
+    "screen-image-updated": 2,
+    "screen-image-removed": 2
+  },
+  "reason": "image removal left pixels",
+  "adapter": "bgfx vulkan vendor 0x10de device 0x2560",
+  "backend": "bgfx",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-presentation-pilot/bgfx-nvidia-vulkan-native/vulkan-object-opaque-1x-freecad-sampling-policy"
+}

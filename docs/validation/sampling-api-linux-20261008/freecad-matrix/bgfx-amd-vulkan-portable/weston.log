@@ -1,0 +1,55 @@
+Date: 2026-10-08 -03
+[19:33:55.055] weston 13.0.0
+               https://wayland.freedesktop.org
+               Bug reports to: https://gitlab.freedesktop.org/wayland/weston/issues/
+               Build: 13.0.0
+[19:33:55.056] Command line: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/weston/prefix/usr/bin/weston --backend=headless --renderer=gl --shell=kiosk-shell.so --socket=coin-isolated --width=2400 --height=1600 --scale=1 --idle-time=0 --no-config --log=/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-matrix/bgfx-amd-vulkan-portable/weston.log
+[19:33:55.056] OS: Linux, 6.17.0-42-generic, #42-Ubuntu SMP PREEMPT_DYNAMIC Thu Jul 23 19:56:28 UTC 2026, x86_64
+[19:33:55.056] Flight recorder: enabled
+[19:33:55.056] Starting with no config file.
+[19:33:55.056] Output repaint window is 7 ms maximum.
+[19:33:55.056] Loading module '/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/weston/prefix/usr/lib/x86_64-linux-gnu/libweston-13/headless-backend.so'
+[19:33:55.069] Loading module '/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/weston/prefix/usr/lib/x86_64-linux-gnu/libweston-13/gl-renderer.so'
+[19:33:55.120] Using rendering device: /dev/dri/renderD128
+[19:33:55.120] EGL version: 1.5
+[19:33:55.120] EGL vendor: Mesa Project
+[19:33:55.120] EGL client APIs: OpenGL OpenGL_ES 
+[19:33:55.120] EGL features:
+               EGL Wayland extension: no
+               context priority: yes
+               buffer age: no
+               partial update: no
+               swap buffers with damage: no
+               configless context: yes
+               surfaceless context: yes
+               dmabuf support: modifiers
+[19:33:55.123] GL version: OpenGL ES 3.2 Mesa 25.2.8-0ubuntu0.24.04.4
+[19:33:55.123] GLSL version: OpenGL ES GLSL ES 3.20
+[19:33:55.123] GL vendor: AMD
+[19:33:55.123] GL renderer: AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)
+[19:33:55.131] GL ES 3.2 - renderer features:
+               read-back format: ARGB8888
+               glReadPixels supports y-flip: yes
+               wl_shm 10 bpc formats: yes
+               wl_shm 16 bpc formats: yes
+               wl_shm half-float formats: yes
+               internal R and RG formats: yes
+               OES_EGL_image_external: yes
+[19:33:55.131] Using GL renderer
+[19:33:55.131] Registered plugin API 'weston_windowed_output_api_v2' of size 16
+[19:33:55.131] Color manager: no-op
+[19:33:55.131] Output 'headless' attempts EOTF mode: SDR
+[19:33:55.131] Output 'headless' using color profile: stock sRGB color profile
+[19:33:55.132] Output 'headless' enabled with head(s) headless
+[19:33:55.132] Compositor capabilities:
+               arbitrary surface rotation: yes
+               screen capture uses y-flip: yes
+               cursor planes: no
+               arbitrary resolutions: no
+               view mask clipping: yes
+               explicit sync: yes
+               color operations: yes
+               presentation clock: CLOCK_MONOTONIC_RAW, id 4
+               presentation clock resolution: 0.000000001 s
+[19:33:55.133] Loading module '/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/weston/prefix/usr/lib/x86_64-linux-gnu/weston/kiosk-shell.so'
+[19:34:34.649] caught signal 15

@@ -1,0 +1,60 @@
+[
+  {
+    "index": 3,
+    "command": [
+      "python3",
+      "testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-gl-receipt-final",
+      "--profiles",
+      "bgfx-amd-gl"
+    ],
+    "exit": 0,
+    "start": 1791504937.3475485,
+    "duration_s": 180.86932253837585,
+    "log": "closure-performance-final-3.log"
+  },
+  {
+    "index": 4,
+    "command": [
+      "python3",
+      "testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-gl-baseline-receipt-final",
+      "--profiles",
+      "bgfx-amd-gl",
+      "--baseline"
+    ],
+    "exit": 0,
+    "start": 1791505118.2174027,
+    "duration_s": 183.7499623298645,
+    "log": "closure-performance-final-4.log"
+  },
+  {
+    "index": 5,
+    "command": [
+      "python3",
+      "testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-nvidia-million-repeat",
+      "--profiles",
+      "wgpu-nvidia-vulkan",
+      "--workloads",
+      "city-1000000",
+      "--frames",
+      "120",
+      "--warmup",
+      "30"
+    ],
+    "exit": 0,
+    "start": 1791505301.9679294,
+    "duration_s": 85.49662637710571,
+    "log": "closure-performance-final-5.log"
+  }
+]

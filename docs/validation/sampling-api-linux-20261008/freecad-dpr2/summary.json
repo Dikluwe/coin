@@ -1,0 +1,1179 @@
+[
+  {
+    "profile": "bgfx-amd-vulkan",
+    "policy": "portable",
+    "scale": 2,
+    "exit": 0,
+    "valid": true,
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run_isolated.py",
+      "--server",
+      "xwayland",
+      "--weston-prefix",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/weston/prefix",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-amd-vulkan-portable",
+      "--harness",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--freecad",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--case",
+      "freecad-sampling-policy",
+      "--renderer",
+      "vulkan",
+      "--backend",
+      "bgfx",
+      "--mode",
+      "object",
+      "--scale",
+      "2",
+      "--timeout",
+      "120",
+      "--require-hardware"
+    ],
+    "results": [
+      {
+        "test": "freecad-sampling-policy",
+        "native": true,
+        "reference_gl": false,
+        "status": "PASS",
+        "nodes": {
+          "text": [
+            {
+              "visible_changes": 700,
+              "resized": false,
+              "glyph_pixels": 700,
+              "document_pick": true,
+              "mutation_changes": 1412,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 712,
+              "resized": true,
+              "glyph_pixels": 712,
+              "document_pick": true,
+              "mutation_changes": 1399,
+              "remaining_changes": 0
+            }
+          ],
+          "image": [
+            {
+              "visible_changes": 384,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 384,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            }
+          ],
+          "colorbar-label": [
+            {
+              "visible_changes": 549,
+              "resized": false,
+              "glyph_pixels": 549,
+              "document_pick": true,
+              "mutation_changes": 1110,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 561,
+              "resized": true,
+              "glyph_pixels": 561,
+              "document_pick": true,
+              "mutation_changes": 1097,
+              "remaining_changes": 0
+            }
+          ],
+          "frame-label": [
+            {
+              "visible_changes": 2780,
+              "resized": false,
+              "glyph_pixels": 2115,
+              "document_pick": true,
+              "mutation_changes": 5597,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 2817,
+              "resized": true,
+              "glyph_pixels": 1907,
+              "document_pick": true,
+              "mutation_changes": 5492,
+              "remaining_changes": 0
+            }
+          ],
+          "alpha-test": [
+            {
+              "visible_changes": 17822,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 17822,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 8847,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 17695,
+              "remaining_changes": 0
+            }
+          ],
+          "projective-uv": [
+            {
+              "visible_changes": 17822,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 17818,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 8847,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 8829,
+              "remaining_changes": 0
+            }
+          ],
+          "complexity-box": [
+            {
+              "visible_changes": 17822,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 39866,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 35404,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 53069,
+              "remaining_changes": 0
+            }
+          ],
+          "markers": [
+            {
+              "visible_changes": 29,
+              "resized": false,
+              "coarse_2x2_changes": 0,
+              "document_pick": true,
+              "mutation_changes": 152,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 123,
+              "resized": true,
+              "coarse_2x2_changes": 32,
+              "document_pick": true,
+              "mutation_changes": 306,
+              "remaining_changes": 0
+            }
+          ]
+        },
+        "profile": "screen-content",
+        "sampling_policy": 1,
+        "prebaseline_redraws": 2,
+        "marker_descriptor": {
+          "coords": 3,
+          "num_points": 3,
+          "start": 0
+        },
+        "active_sampling_policy": 1,
+        "resize_retested": true,
+        "idle_start": 181,
+        "idle_end": 181,
+        "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+        "backend": "bgfx",
+        "renderer": "vulkan",
+        "mode": "object",
+        "alpha": "opaque",
+        "scale": 2,
+        "hardware_gpu": true,
+        "gpu_submitted": true,
+        "gpu_execution": "hardware",
+        "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-amd-vulkan-portable/vulkan-object-opaque-2x-freecad-sampling-policy"
+      }
+    ],
+    "host_sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+      "DRI_PRIME": "0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_TEST_PORTABLE_SAMPLING": "1",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "policy": "portable",
+    "scale": 2,
+    "exit": 1,
+    "valid": false,
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-nvidia-vulkan-portable",
+      "--harness",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--freecad",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--case",
+      "freecad-sampling-policy",
+      "--renderer",
+      "vulkan",
+      "--backend",
+      "bgfx",
+      "--mode",
+      "object",
+      "--scale",
+      "2",
+      "--timeout",
+      "120",
+      "--require-hardware"
+    ],
+    "results": [
+      {
+        "test": "freecad-sampling-policy",
+        "native": true,
+        "reference_gl": false,
+        "status": "FAIL",
+        "nodes": {
+          "text": [
+            {
+              "visible_changes": 700,
+              "resized": false,
+              "glyph_pixels": 700,
+              "document_pick": true,
+              "mutation_changes": 1390,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 712,
+              "resized": true,
+              "glyph_pixels": 712,
+              "document_pick": true,
+              "mutation_changes": 1399,
+              "remaining_changes": 0
+            }
+          ],
+          "image": [
+            {
+              "visible_changes": 384,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 384,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            }
+          ],
+          "colorbar-label": [
+            {
+              "visible_changes": 549,
+              "resized": false,
+              "glyph_pixels": 549,
+              "document_pick": true,
+              "mutation_changes": 1110,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 561,
+              "resized": true,
+              "glyph_pixels": 561,
+              "document_pick": true,
+              "mutation_changes": 1097,
+              "remaining_changes": 0
+            }
+          ],
+          "frame-label": [
+            {
+              "visible_changes": 2769,
+              "resized": false,
+              "glyph_pixels": 1900,
+              "document_pick": true,
+              "mutation_changes": 5565,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 2796,
+              "resized": true,
+              "glyph_pixels": 1861,
+              "document_pick": true,
+              "mutation_changes": 5438,
+              "remaining_changes": 0
+            }
+          ],
+          "alpha-test": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 4900,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 3666,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 7330,
+              "remaining_changes": 0
+            }
+          ],
+          "projective-uv": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 4900,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 3664,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 3659,
+              "remaining_changes": 0
+            }
+          ],
+          "complexity-box": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 10990,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 14670,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 21967,
+              "remaining_changes": 0
+            }
+          ],
+          "markers": [
+            {
+              "visible_changes": 29,
+              "resized": false,
+              "coarse_2x2_changes": 9,
+              "document_pick": true,
+              "mutation_changes": 152,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 123,
+              "resized": true,
+              "coarse_2x2_changes": 28,
+              "document_pick": true,
+              "mutation_changes": 306,
+              "remaining_changes": 0
+            }
+          ]
+        },
+        "profile": "screen-content",
+        "sampling_policy": 1,
+        "prebaseline_redraws": 2,
+        "marker_descriptor": {
+          "coords": 3,
+          "num_points": 3,
+          "start": 0
+        },
+        "active_sampling_policy": 1,
+        "resize_retested": true,
+        "idle_start": 324,
+        "idle_end": 328,
+        "reason": "screen content caused continuous redraw",
+        "adapter": "bgfx vulkan vendor 0x10de device 0x2560",
+        "backend": "bgfx",
+        "renderer": "vulkan",
+        "mode": "object",
+        "alpha": "opaque",
+        "scale": 2,
+        "hardware_gpu": true,
+        "gpu_submitted": true,
+        "gpu_execution": "hardware",
+        "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-nvidia-vulkan-portable/vulkan-object-opaque-2x-freecad-sampling-policy"
+      }
+    ],
+    "host_sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+      "DRI_PRIME": "0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_TEST_PORTABLE_SAMPLING": "1",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "policy": "portable",
+    "scale": 2,
+    "exit": 1,
+    "valid": false,
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-amd-gl-portable",
+      "--harness",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--freecad",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--case",
+      "freecad-sampling-policy",
+      "--renderer",
+      "opengl",
+      "--backend",
+      "bgfx",
+      "--mode",
+      "object",
+      "--scale",
+      "2",
+      "--timeout",
+      "120",
+      "--require-hardware"
+    ],
+    "results": [
+      {
+        "test": "freecad-sampling-policy",
+        "native": true,
+        "reference_gl": false,
+        "status": "FAIL",
+        "nodes": {
+          "text": [
+            {
+              "visible_changes": 119716,
+              "resized": false,
+              "glyph_pixels": 700,
+              "document_pick": true,
+              "mutation_changes": 119934,
+              "remaining_changes": 0
+            }
+          ],
+          "image": [
+            {
+              "visible_changes": 119716,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 1464,
+              "remaining_changes": 119716
+            }
+          ]
+        },
+        "profile": "screen-content",
+        "sampling_policy": 1,
+        "prebaseline_redraws": 2,
+        "marker_descriptor": {
+          "coords": 3,
+          "num_points": 3,
+          "start": 0
+        },
+        "active_sampling_policy": 1,
+        "reason": "image removal left pixels",
+        "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+        "backend_gl_contexts": [
+          [
+            "AMD",
+            "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+            "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+          ],
+          [
+            "AMD",
+            "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+            "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+          ]
+        ],
+        "backend": "bgfx",
+        "renderer": "opengl",
+        "mode": "object",
+        "alpha": "opaque",
+        "scale": 2,
+        "hardware_gpu": true,
+        "gpu_submitted": true,
+        "gpu_execution": "hardware",
+        "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-amd-gl-portable/opengl-object-opaque-2x-freecad-sampling-policy"
+      }
+    ],
+    "host_sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+      "DRI_PRIME": "0",
+      "WGPU_BACKEND": "gl",
+      "COIN_TEST_PORTABLE_SAMPLING": "1",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "policy": "portable",
+    "scale": 2,
+    "exit": 0,
+    "valid": true,
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run_isolated.py",
+      "--server",
+      "xwayland",
+      "--weston-prefix",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/weston/prefix",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/wgpu-amd-vulkan-portable",
+      "--harness",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--freecad",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--case",
+      "freecad-sampling-policy",
+      "--renderer",
+      "vulkan",
+      "--backend",
+      "wgpu",
+      "--mode",
+      "object",
+      "--scale",
+      "2",
+      "--timeout",
+      "120",
+      "--require-hardware"
+    ],
+    "results": [
+      {
+        "test": "freecad-sampling-policy",
+        "native": true,
+        "reference_gl": false,
+        "status": "PASS",
+        "nodes": {
+          "text": [
+            {
+              "visible_changes": 700,
+              "resized": false,
+              "glyph_pixels": 700,
+              "document_pick": true,
+              "mutation_changes": 1412,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 712,
+              "resized": true,
+              "glyph_pixels": 712,
+              "document_pick": true,
+              "mutation_changes": 1399,
+              "remaining_changes": 0
+            }
+          ],
+          "image": [
+            {
+              "visible_changes": 384,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 384,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            }
+          ],
+          "colorbar-label": [
+            {
+              "visible_changes": 549,
+              "resized": false,
+              "glyph_pixels": 549,
+              "document_pick": true,
+              "mutation_changes": 1110,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 561,
+              "resized": true,
+              "glyph_pixels": 561,
+              "document_pick": true,
+              "mutation_changes": 1097,
+              "remaining_changes": 0
+            }
+          ],
+          "frame-label": [
+            {
+              "visible_changes": 2780,
+              "resized": false,
+              "glyph_pixels": 2115,
+              "document_pick": true,
+              "mutation_changes": 8255,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 2817,
+              "resized": true,
+              "glyph_pixels": 1907,
+              "document_pick": true,
+              "mutation_changes": 5492,
+              "remaining_changes": 0
+            }
+          ],
+          "alpha-test": [
+            {
+              "visible_changes": 17822,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 17822,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 8847,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 17694,
+              "remaining_changes": 0
+            }
+          ],
+          "projective-uv": [
+            {
+              "visible_changes": 17822,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 17818,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 8848,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 8829,
+              "remaining_changes": 0
+            }
+          ],
+          "complexity-box": [
+            {
+              "visible_changes": 17822,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 39866,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 35405,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 53067,
+              "remaining_changes": 0
+            }
+          ],
+          "markers": [
+            {
+              "visible_changes": 29,
+              "resized": false,
+              "coarse_2x2_changes": 0,
+              "document_pick": true,
+              "mutation_changes": 152,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 123,
+              "resized": true,
+              "coarse_2x2_changes": 32,
+              "document_pick": true,
+              "mutation_changes": 306,
+              "remaining_changes": 0
+            }
+          ]
+        },
+        "profile": "screen-content",
+        "sampling_policy": 1,
+        "prebaseline_redraws": 2,
+        "marker_descriptor": {
+          "coords": 3,
+          "num_points": 3,
+          "start": 0
+        },
+        "active_sampling_policy": 1,
+        "resize_retested": true,
+        "idle_start": 178,
+        "idle_end": 178,
+        "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+        "backend": "wgpu",
+        "renderer": "vulkan",
+        "mode": "object",
+        "alpha": "opaque",
+        "scale": 2,
+        "hardware_gpu": true,
+        "gpu_submitted": true,
+        "gpu_execution": "hardware",
+        "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/wgpu-amd-vulkan-portable/vulkan-object-opaque-2x-freecad-sampling-policy"
+      }
+    ],
+    "host_sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+      "DRI_PRIME": "0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_TEST_PORTABLE_SAMPLING": "1",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "policy": "portable",
+    "scale": 2,
+    "exit": 0,
+    "valid": true,
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/wgpu-nvidia-vulkan-portable",
+      "--harness",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--freecad",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--case",
+      "freecad-sampling-policy",
+      "--renderer",
+      "vulkan",
+      "--backend",
+      "wgpu",
+      "--mode",
+      "object",
+      "--scale",
+      "2",
+      "--timeout",
+      "120",
+      "--require-hardware"
+    ],
+    "results": [
+      {
+        "test": "freecad-sampling-policy",
+        "native": true,
+        "reference_gl": false,
+        "status": "PASS",
+        "nodes": {
+          "text": [
+            {
+              "visible_changes": 700,
+              "resized": false,
+              "glyph_pixels": 700,
+              "document_pick": true,
+              "mutation_changes": 1390,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 712,
+              "resized": true,
+              "glyph_pixels": 712,
+              "document_pick": true,
+              "mutation_changes": 1399,
+              "remaining_changes": 0
+            }
+          ],
+          "image": [
+            {
+              "visible_changes": 384,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 384,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            }
+          ],
+          "colorbar-label": [
+            {
+              "visible_changes": 549,
+              "resized": false,
+              "glyph_pixels": 549,
+              "document_pick": true,
+              "mutation_changes": 1110,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 561,
+              "resized": true,
+              "glyph_pixels": 561,
+              "document_pick": true,
+              "mutation_changes": 1097,
+              "remaining_changes": 0
+            }
+          ],
+          "frame-label": [
+            {
+              "visible_changes": 2769,
+              "resized": false,
+              "glyph_pixels": 1900,
+              "document_pick": true,
+              "mutation_changes": 5565,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 2796,
+              "resized": true,
+              "glyph_pixels": 1861,
+              "document_pick": true,
+              "mutation_changes": 5438,
+              "remaining_changes": 0
+            }
+          ],
+          "alpha-test": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 4900,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 3666,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 7330,
+              "remaining_changes": 0
+            }
+          ],
+          "projective-uv": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 4900,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 3664,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 3659,
+              "remaining_changes": 0
+            }
+          ],
+          "complexity-box": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 10990,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 14670,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 21967,
+              "remaining_changes": 0
+            }
+          ],
+          "markers": [
+            {
+              "visible_changes": 29,
+              "resized": false,
+              "coarse_2x2_changes": 9,
+              "document_pick": true,
+              "mutation_changes": 152,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 123,
+              "resized": true,
+              "coarse_2x2_changes": 28,
+              "document_pick": true,
+              "mutation_changes": 306,
+              "remaining_changes": 0
+            }
+          ]
+        },
+        "profile": "screen-content",
+        "sampling_policy": 1,
+        "prebaseline_redraws": 2,
+        "marker_descriptor": {
+          "coords": 3,
+          "num_points": 3,
+          "start": 0
+        },
+        "active_sampling_policy": 1,
+        "resize_retested": true,
+        "idle_start": 389,
+        "idle_end": 389,
+        "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+        "backend": "wgpu",
+        "renderer": "vulkan",
+        "mode": "object",
+        "alpha": "opaque",
+        "scale": 2,
+        "hardware_gpu": true,
+        "gpu_submitted": true,
+        "gpu_execution": "hardware",
+        "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-2x-freecad-sampling-policy"
+      }
+    ],
+    "host_sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+      "DRI_PRIME": "0",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_TEST_PORTABLE_SAMPLING": "1",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "policy": "portable",
+    "scale": 2,
+    "exit": 1,
+    "valid": false,
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/wgpu-amd-gl-portable",
+      "--harness",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--freecad",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "--case",
+      "freecad-sampling-policy",
+      "--renderer",
+      "opengl",
+      "--backend",
+      "wgpu",
+      "--mode",
+      "object",
+      "--scale",
+      "2",
+      "--timeout",
+      "120",
+      "--require-hardware"
+    ],
+    "results": [
+      {
+        "test": "freecad-sampling-policy",
+        "native": true,
+        "reference_gl": false,
+        "status": "FAIL",
+        "nodes": {
+          "text": [
+            {
+              "visible_changes": 700,
+              "resized": false,
+              "glyph_pixels": 700,
+              "document_pick": true,
+              "mutation_changes": 1390,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 712,
+              "resized": true,
+              "glyph_pixels": 712,
+              "document_pick": true,
+              "mutation_changes": 1399,
+              "remaining_changes": 0
+            }
+          ],
+          "image": [
+            {
+              "visible_changes": 384,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 384,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 768,
+              "remaining_changes": 0
+            }
+          ],
+          "colorbar-label": [
+            {
+              "visible_changes": 1937,
+              "resized": false,
+              "glyph_pixels": 549,
+              "document_pick": true,
+              "mutation_changes": 2498,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 561,
+              "resized": true,
+              "glyph_pixels": 561,
+              "document_pick": true,
+              "mutation_changes": 1097,
+              "remaining_changes": 0
+            }
+          ],
+          "frame-label": [
+            {
+              "visible_changes": 4150,
+              "resized": false,
+              "glyph_pixels": 1900,
+              "document_pick": true,
+              "mutation_changes": 6932,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 2796,
+              "resized": true,
+              "glyph_pixels": 1861,
+              "document_pick": true,
+              "mutation_changes": 5438,
+              "remaining_changes": 0
+            }
+          ],
+          "alpha-test": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 4900,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 3666,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 7330,
+              "remaining_changes": 0
+            }
+          ],
+          "projective-uv": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 4900,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 3664,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 3659,
+              "remaining_changes": 0
+            }
+          ],
+          "complexity-box": [
+            {
+              "visible_changes": 4900,
+              "resized": false,
+              "document_pick": true,
+              "mutation_changes": 10990,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 14670,
+              "resized": true,
+              "document_pick": true,
+              "mutation_changes": 21967,
+              "remaining_changes": 0
+            }
+          ],
+          "markers": [
+            {
+              "visible_changes": 29,
+              "resized": false,
+              "coarse_2x2_changes": 9,
+              "document_pick": true,
+              "mutation_changes": 152,
+              "remaining_changes": 0
+            },
+            {
+              "visible_changes": 123,
+              "resized": true,
+              "coarse_2x2_changes": 28,
+              "document_pick": true,
+              "mutation_changes": 306,
+              "remaining_changes": 0
+            }
+          ]
+        },
+        "profile": "screen-content",
+        "sampling_policy": 1,
+        "prebaseline_redraws": 2,
+        "marker_descriptor": {
+          "coords": 3,
+          "num_points": 3,
+          "start": 0
+        },
+        "active_sampling_policy": 1,
+        "resize_retested": true,
+        "idle_start": 390,
+        "idle_end": 390,
+        "adapter": "wgpu opengl vendor 0x1002 device 0x0",
+        "backend": "wgpu",
+        "renderer": "opengl",
+        "mode": "object",
+        "alpha": "opaque",
+        "scale": 2,
+        "hardware_gpu": false,
+        "gpu_submitted": true,
+        "gpu_execution": "software-or-unverified",
+        "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/wgpu-amd-gl-portable/opengl-object-opaque-2x-freecad-sampling-policy",
+        "reason": "physical GPU execution was not proven"
+      }
+    ],
+    "host_sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/home/dikluwe/.local/lib/python3.12/site-packages/PySide6/Qt/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Part:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/Mod/Material:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib",
+      "DRI_PRIME": "0",
+      "WGPU_BACKEND": "gl",
+      "COIN_TEST_PORTABLE_SAMPLING": "1",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  }
+]

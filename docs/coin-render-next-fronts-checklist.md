@@ -1,6 +1,6 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-07, incluindo a continuação Windows, com a entrega
+Atualizada em 2026-10-08, incluindo a API de sampling e sua continuação Linux, com a entrega
 P03/P15/P16/P24/P28 após o fechamento
 P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
@@ -77,8 +77,8 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   extra AMD/wgpu removido nesta amostra;36 controles válidos do milhão e144 hashes/
   timestamps de diagnóstico não reproduzem regressão persistente do seletor.
   Coin original e código de produção intactos; política pública continua pendente.
-- [x] Tratar as28 falhas da campanha original no estudo: quatro corrigidas em
-  strokes/profundidade BGFX e24 passam com workaround Mesa **externo e isolado**;
+- [x] Tratar as 28 falhas da campanha original no estudo: quatro corrigidas em
+  strokes/profundidade BGFX e 24 passam com workaround Mesa **externo e isolado**;
   campanha original162/162 PASS, gates preservados.
   [Correções, ledger e condições](coin-render-failure-closure-20261008.md).
   Driver instalado e código de produção continuam sem essa correção de sampling.
@@ -91,9 +91,27 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   170/170 processos PASS, Rust46/46 e C11 PASS; driver instalado qualifica portátil,
   comparações CoinGL AMD delimitam uso do Mesa externo.
   [Contrato, API e ledger](coin-render-texture-sampling-api.md).
-- [ ] Qualificar esta API em Windows/Android/FreeCAD e janela; medir custo native/
-  portable, avaliar promoção para coin-render. Sampling CoinGL AMD instalado
-  continua divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
+- [x] Qualificar a API em janela Xlib Linux neste PC: 30/30 processos
+  janela/API/ownership e 24/24 portátil stock; Rust46/46, runnerQt81/81 e C11 PASS.
+  Opções por manager/adapter e GPU física comprovada. [Continuação Linux e limites](coin-render-sampling-api-linux-20261008.md).
+- [x] Qualificar FreeCAD Linux aquecido: DPR1 native/portable 12/12 PASS e
+  portátil DPR2 6/6 PASS. Recibos físicos, picking, minificação, resize, remoção
+  e idle preservados. SKIPs anteriores ficam separados; cold start não qualificado.
+- [x] Medir native/portable sem readback e custo GPU separadamente: 144 processos
+  CPU, 96 GPU/4.320 timestamps e 120 A/B native/baseline válidos. Corrigir varredura
+  desnecessária da geometria; um milhão wgpu portátil ~100→10–19 ms por chamada.
+  Oito texturas portáteis custam 1,48–3,30× GPU no fixture; native segue padrão.
+- [ ] Estudar a transição inicial da borda do documento no FreeCAD/NVIDIA/wgpu
+  portable: matriz sem aquecimento de texto 11/12 PASS, um FAIL de 1.476 pixels
+  de borda, sem glyphs restantes. O fechamento aquecido não corrige cold start.
+- [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
+  CPU de 128 MiB; plano não retido, lowering ~1,025 s e upload ~126 ms repetidos,
+  apesar de reuso dos buffers GPU. Native e portable têm o mesmo gargalo.
+- [ ] Otimizar payload/replay BGFX mantendo orçamento explícito; estudar variação
+  NVIDIA/wgpu (coorte longa ~25%, repetição isolada ~1,3%). Não prometer FPS universal.
+- [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
+  avaliar promoção para coin-render. Sampling CoinGL AMD instalado continua
+  divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
 - [x] Reconciliar LargeBindings/MultiDevice: 25.600 draws independentes com clipping
   aceitando toda a geometria; upload exato GPU 96 bytes/instância, imagens/depth e
   reuso preservados; nove passes AMD Vulkan/OpenGL e NVIDIA Vulkan, incluindo stress.

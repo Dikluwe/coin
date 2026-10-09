@@ -1,0 +1,19 @@
+[
+  {
+    "index": 0,
+    "command": [
+      "python3",
+      "testsuite/reproducers/sampling-api/qualify_freecad_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "freecad-qualified-final",
+      "--profiles",
+      "bgfx-amd-gl,wgpu-amd-gl,bgfx-amd-vulkan,wgpu-amd-vulkan,bgfx-nvidia-vulkan,wgpu-nvidia-vulkan"
+    ],
+    "exit": 1,
+    "start": 1791502185.4331534,
+    "duration_s": 554.1481034755707,
+    "log": "closure-final-0.log"
+  }
+]

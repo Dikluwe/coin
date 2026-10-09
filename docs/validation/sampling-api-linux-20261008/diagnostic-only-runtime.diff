@@ -1,0 +1,43 @@
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index e600b297d7..d8759aa421 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -199,8 +199,7 @@ class CoinBgfxCallback : public bgfx::CallbackI {
+ public:
+   explicit CoinBgfxCallback(bool openGl) : fatalCode(-1) {
+     this->fatalMessage[0] = 0;
+-    this->glAdapterDiagnostics = openGl && CoinRenderDiagnosticShell::phaseTracingEnabled() &&
+-      std::getenv("COIN_BGFX_TRACE_GL_ADAPTER");
++    this->glAdapterDiagnostics = openGl && std::getenv("COIN_BGFX_TRACE_GL_ADAPTER");
+     const char * disabled = std::getenv("COIN_BGFX_DISABLE_PROGRAM_CACHE");
+     this->programCacheEnabled = openGl && !(disabled && std::strcmp(disabled, "1") == 0);
+   }
+@@ -2771,6 +2770,12 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+       sample.readbackPublishedBytes = target.windowReadbackRequested
+         ? target.colorBuffer.size() : 0;
+       copyLogicalDrawStats(drawStats, this->drawGroupingEnabled, sample);
++      std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_geometry compact_vertices=%d vertex_stride=%u instancing=%d instances=%zu instance_stride=%u instance_buffer_capacity=%u\n",
++        plan->usesCompactVertices ? 1 : 0,
++        static_cast<unsigned int>(plan->usesInstancing ? sizeof(CoinBgfxInstancedVertex) :
++          plan->usesCompactVertices ? sizeof(CoinBgfxVertexPrefix) : sizeof(CoinBgfxVertex)),
++        plan->usesInstancing ? 1 : 0, plan->instances.size(),
++        static_cast<unsigned int>(sizeof(CoinBgfxInstance)), this->cachedInstanceCapacity);
+       std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
+     }
+     this->lastError.clear();
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index 5db533b8c1..80e0a6c62c 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -6193,9 +6193,9 @@ fn coin_wgpu_surface_submit_internal(
+                 wgpu::Backend::Dx12 => "dx12",
+                 _ => "other",
+             };
+-            eprintln!("COIN_RENDER_PHASE wgpu_surface renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} surface={} serial={} size={}x{}",
++            eprintln!("COIN_RENDER_PHASE wgpu_surface renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} surface={} serial={} size={}x{} adapter_name={:?}",
+                 renderer, info.vendor, info.device, info.device_type,
+-                surface_id, sub_serial, f.width, f.height);
++                surface_id, sub_serial, f.width, f.height, info.name);
+         }
+         record.published_serial = sub_serial;
+         CoinWgpuStatus::Ok
