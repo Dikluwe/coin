@@ -19,3 +19,9 @@ oracle, but its unmodified reference already passes, so this is not evidence
 that the supplemental Mesa draw is fully correct.
 The final restricted build passed the strict oracle on private softpipe under
 an isolated Xvfb display. The eight geometry-shader probe cases also passed.
+
+After saving the patch, the three modified Mesa source files were restored
+byte-for-byte from the release tarball and the private library was rebuilt.
+The main X display subsequently returned and glxinfo reported the AMD renderer.
+The restored private driver returned to the strict-oracle baseline:
+GL_POLYGON LINE x16=0/18, exit 1.

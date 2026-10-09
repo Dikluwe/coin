@@ -93,6 +93,12 @@ mas o display X desapareceu após o segundo reset, impedindo uma nova medição
 de hardware. Nenhum driver instalado foi modificado.
 [Registro da tentativa](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-draw-experiment.log).
 
+Após salvar o patch, os três fontes alterados foram restaurados byte a byte
+da tarball Mesa 25.2.8 e a biblioteca privada foi recompilada. O display X
+voltou e `glxinfo` confirmou o renderer AMD; não houve novo ensaio do patch
+restrito na GPU após essa recuperação. O oracle estrito na biblioteca privada
+restaurada voltou ao baseline: `GL_POLYGON`/`LINE` 0/18 e exit 1.
+
 O build restrito passou o oracle e as oito combinações do protótipo com
 softpipe num Xvfb isolado. O softpipe já passava sem o segundo draw; portanto,
 esse controle confirma a compilação e execução da integração, não que ela
