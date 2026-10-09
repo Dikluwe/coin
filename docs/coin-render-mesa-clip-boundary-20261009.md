@@ -116,6 +116,39 @@ não introduzir vértices na diagonal interna. O protótipo cobre apenas um
 plano, triângulos, cor simples e parte dos estados usados pelo oracle. Não deve ser
 promovido como patch do driver.
 
+## Reprodução da transição de estado — 2026-10-09
+
+A sessão `DISPLAY=:0` voltou a oferecer renderização direta na AMD. O patch
+restrito foi recompilado no Mesa privado; `strace openat` confirmou o carregamento
+da biblioteca do build. O oracle completo com a flag experimental voltou a
+provocar `ring gfx timeout` e reset. Como a saída padrão estava em buffer,
+esse ensaio completo não identificava qual draw ficava preso.
+
+Um executável temporário com um único `GL_POLYGON`/`GL_LINE` mostrou que o
+shader suplementar realmente é selecionado (`mode=9`, quatro vértices, plano
+ativo). Tanto com NGG padrão quanto com `AMD_DEBUG=nongg`, ele terminou com
+**18/18**, erro GL zero e saída 0. Num segundo executável temporário, o mesmo
+draw foi seguido por `GL_TRIANGLES`/`GL_LINE`. Com `AMD_DEBUG=nongg`, o
+primeiro draw passou; o segundo chegou como `mode=4`, seis vértices e **não**
+selecionou o shader suplementar. Seu `glFinish` aguardou cerca de 11 segundos;
+o kernel registrou `ring gfx timeout` e `GPU reset(2)`. Assim, desativar NGG
+não impede o reset da sequência e o shader de triângulos do protótipo não é
+necessário para provocá-lo.
+
+Um controle manteve `lower_ucp` ativo e desativou somente o draw suplementar.
+Os dois draws terminaram sem novo reset e retornaram ao baseline 0/18 e 1/18.
+O gatilho, portanto, está no draw suplementar ou na transição de estado após
+ele. A causa interna exata do radeonsi ainda não foi demonstrada. A primeira
+medição `nongg` desta rodada, que deu 0/18, havia omitido por engano
+`MESA_EXPERIMENTAL_CLIP_BOUNDARY`; ela não é uma comparação válida do patch.
+
+[Registro dos ensaios e resets](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-state-transition-20261009.log).
+Os três fontes e a biblioteca Mesa privados foram restaurados byte a byte;
+os hashes SHA256 coincidem com os backups. O driver instalado permaneceu
+intacto. Antes de outra submissão na GPU, é preciso registrar a sequência de
+`bind_gs_state`/restauração, os shaders efetivamente selecionados e os estados
+de clipping e de primitiva no draw seguinte.
+
 ## Trabalho restante
 
 Uma correção precisa gerar a geometria do polígono **depois** do clipping e
