@@ -26,7 +26,14 @@ static GLuint shader(GLenum type, const char *source) {
   return s;
 }
 
-static GLuint program(bool points, bool shaderClip) {
+static void replaceOnce(std::string &text, const char *oldText,
+                        const char *newText) {
+  const size_t pos = text.find(oldText);
+  if (pos != std::string::npos)
+    text.replace(pos, std::strlen(oldText), newText);
+}
+
+static GLuint program(bool points, bool shaderClip, bool wholeQuad) {
   const char *vs = shaderClip ?
     "#version 150 compatibility\n"
     "out vec4 colorVS;\n"
@@ -79,6 +86,11 @@ static GLuint program(bool points, bool shaderClip) {
     "#version 150 compatibility\n"
     "in vec4 colorGS; void main() { gl_FragColor=colorGS; }\n";
   std::string gsSource = points ? gsPoint : gsLine;
+  if (wholeQuad) {
+    replaceOnce(gsSource, "layout(triangles) in;", "layout(lines_adjacency) in;");
+    replaceOnce(gsSource, "i<3", "i<4");
+    replaceOnce(gsSource, "(i+1)%3", "(i+1)%4");
+  }
   if (shaderClip) {
     const char *oldDistance[2] = {
       "gl_in[i].gl_Position.x-cutX*gl_in[i].gl_Position.w",
@@ -106,20 +118,24 @@ static GLuint program(bool points, bool shaderClip) {
   return p;
 }
 
-static void quad() {
+static void quad(bool wholeQuad) {
   float l=coord(6), r=coord(45), b=coord(6), t=coord(31);
-  glBegin(GL_TRIANGLES);
+  glBegin(wholeQuad ? GL_LINES_ADJACENCY : GL_TRIANGLES);
   glVertex2f(l,b); glVertex2f(r,b); glVertex2f(r,t);
-  glVertex2f(l,b); glVertex2f(r,t); glVertex2f(l,t);
+  if (wholeQuad) {
+    glVertex2f(l,t);
+  } else {
+    glVertex2f(l,b); glVertex2f(r,t); glVertex2f(l,t);
+  }
   glEnd();
 }
 
-static bool run(bool points, bool shaderClip) {
+static bool run(bool points, bool shaderClip, bool wholeQuad) {
   glClear(GL_COLOR_BUFFER_BIT);
-  GLuint p=program(points,shaderClip); if(!p) return false;
-  glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+  GLuint p=program(points,shaderClip,wholeQuad); if(!p) return false;
+  glPolygonMode(GL_FRONT_AND_BACK,points?GL_POINT:GL_LINE);
   if(shaderClip) glDisable(GL_CLIP_PLANE0); else glEnable(GL_CLIP_PLANE0);
-  quad(); glFinish();
+  quad(wholeQuad); glFinish();
   std::vector<unsigned char> pixels(W*H*3);
   glReadPixels(0,0,W,H,GL_RGB,GL_UNSIGNED_BYTE,pixels.data());
   int center=0,lo=0,hi=0;
@@ -127,10 +143,12 @@ static bool run(bool points, bool shaderClip) {
   for(int y=5;y<=8;y++) lo+=pixels[(y*W+16)*3]>127;
   for(int y=29;y<=32;y++) hi+=pixels[(y*W+16)*3]>127;
   GLenum err=glGetError();
-  std::printf("%s-%s x16-center=%d x16-low=%d x16-high=%d error=%u\n",
-              shaderClip?"shader":"fixed",points?"point":"line",center,lo,hi,err);
+  std::printf("%s-%s-%s x16-center=%d x16-low=%d x16-high=%d error=%u\n",
+              wholeQuad?"quad":"triangles",shaderClip?"shader":"fixed",
+              points?"point":"line",center,lo,hi,err);
   glUseProgram(0); glDeleteProgram(p);
-  return err==GL_NO_ERROR && (points ? lo==4 && hi==4 && center==6 : center==18);
+  return err==GL_NO_ERROR &&
+         (points ? lo==4 && hi==4 && center==(wholeQuad?0:6) : center==18);
 }
 
 int main(int argc,char **argv) {
@@ -148,7 +166,9 @@ int main(int argc,char **argv) {
               reinterpret_cast<const char *>(glGetString(GL_RENDERER)),
               reinterpret_cast<const char *>(glGetString(GL_VERSION)));
   bool ok=true;
-  ok=run(false,false)&&ok; ok=run(true,false)&&ok;
-  ok=run(false,true)&&ok; ok=run(true,true)&&ok;
+  for (bool wholeQuad : {false, true}) {
+    ok=run(false,false,wholeQuad)&&ok; ok=run(true,false,wholeQuad)&&ok;
+    ok=run(false,true,wholeQuad)&&ok; ok=run(true,true,wholeQuad)&&ok;
+  }
   return ok?0:1;
 }

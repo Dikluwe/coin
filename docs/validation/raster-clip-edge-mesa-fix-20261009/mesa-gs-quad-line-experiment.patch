@@ -1,0 +1,139 @@
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -281,0 +282,4 @@
++   /* Private clip-boundary geometry shader experiment. */
++   bool clip_boundary_experiment;
++   void *clip_boundary_gs[4];
++
+--- a/src/mesa/state_tracker/st_context.c
++++ b/src/mesa/state_tracker/st_context.c
+@@ -619,0 +620,4 @@
++   st->clip_boundary_experiment =
++      getenv("MESA_EXPERIMENTAL_CLIP_BOUNDARY") != NULL;
++   if (st->clip_boundary_experiment)
++      st->lower_ucp = true;
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -53,0 +54 @@
++#include "st_nir.h"
+@@ -54,0 +56,2 @@
++
++#include "compiler/nir/nir_builder.h"
+@@ -112,0 +116,107 @@
++/* Private experiment: emit only the boundary introduced by clip plane 0.
++ * A four-vertex polygon is presented as one adjacency primitive, so the
++ * diagonal of the hardware's triangle fan never becomes a polygon edge.
++ */
++static void *
++st_create_clip_boundary_gs(struct st_context *st, bool quad, bool points)
++{
++   const nir_shader_compiler_options *options =
++      st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
++   nir_builder b = nir_builder_init_simple_shader(MESA_SHADER_GEOMETRY, options,
++                                                  "experimental clip boundary GS");
++   nir_shader *nir = b.shader;
++   nir->info.io_lowered = true;
++   nir->info.clip_distance_array_size = 1;
++   nir->info.gs.input_primitive = quad ? MESA_PRIM_LINES_ADJACENCY : MESA_PRIM_TRIANGLES;
++   nir->info.gs.output_primitive = points ? MESA_PRIM_POINTS : MESA_PRIM_LINE_STRIP;
++   nir->info.gs.vertices_in = quad ? 4 : 3;
++   nir->info.gs.vertices_out = 2;
++   nir->info.gs.invocations = 1;
++   nir->info.gs.active_stream_mask = 1;
++
++   const unsigned count = quad ? 4 : 3;
++   for (unsigned i = 0; i < count; ++i) {
++      const unsigned j = (i + 1) % count;
++      nir_def *a = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, i),
++                                              nir_imm_int(&b, 0),
++                                              .io_semantics.location = VARYING_SLOT_POS);
++      nir_def *c = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, j),
++                                              nir_imm_int(&b, 0),
++                                              .io_semantics.location = VARYING_SLOT_POS);
++      nir_def *ad = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, i),
++                                               nir_imm_int(&b, 0),
++                                               .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++      nir_def *cd = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, j),
++                                               nir_imm_int(&b, 0),
++                                               .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++      nir_def *da = nir_channel(&b, ad, 0);
++      nir_def *dc = nir_channel(&b, cd, 0);
++      nir_def *crosses = nir_ixor(&b, nir_flt_imm(&b, da, 0),
++                                      nir_flt_imm(&b, dc, 0));
++      nir_push_if(&b, crosses);
++      nir_def *t = nir_fdiv(&b, da, nir_fsub(&b, da, dc));
++      nir_def *pos = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, c, a), t), a);
++      nir_def *ac = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, i),
++                                               nir_imm_int(&b, 0),
++                                               .io_semantics.location = VARYING_SLOT_COL0);
++      nir_def *cc = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, j),
++                                               nir_imm_int(&b, 0),
++                                               .io_semantics.location = VARYING_SLOT_COL0);
++      nir_def *color = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, cc, ac), t), ac);
++      nir_store_output(&b, pos, nir_imm_int(&b, 0),
++                       .io_semantics.location = VARYING_SLOT_POS);
++      nir_store_output(&b, color, nir_imm_int(&b, 0),
++                       .io_semantics.location = VARYING_SLOT_COL0);
++      nir_store_output(&b, nir_imm_float(&b, 0), nir_imm_int(&b, 0),
++                       .write_mask = 0x1,
++                       .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++      nir_emit_vertex(&b, 0);
++      if (points)
++         nir_end_primitive(&b, 0);
++      nir_pop_if(&b, NULL);
++   }
++   if (!points)
++      nir_end_primitive(&b, 0);
++   return st_nir_finish_builtin_shader(st, nir);
++}
++
++static void
++st_draw_clip_boundary(struct gl_context *ctx, const struct pipe_draw_info *info,
++                      unsigned drawid_offset,
++                      const struct pipe_draw_start_count_bias *draws,
++                      unsigned num_draws)
++{
++   struct st_context *st = st_context(ctx);
++   if (!st->clip_boundary_experiment || num_draws != 1 || info->index_size ||
++       ctx->GeometryProgram._Current || ctx->TessCtrlProgram._Current ||
++       ctx->TessEvalProgram._Current ||
++       ctx->Transform.ClipPlanesEnabled != 1 ||
++       ctx->Polygon.FrontMode != ctx->Polygon.BackMode)
++      return;
++
++   bool points = ctx->Polygon.FrontMode == GL_POINT;
++   if (!points && ctx->Polygon.FrontMode != GL_LINE)
++      return;
++
++   bool quad = info->mode == MESA_PRIM_POLYGON && draws[0].count == 4;
++   /* Only the quad line case is known to complete on radeonsi.  A separate
++    * triangle invocation caused a GPU reset, so never submit it here. */
++   if (!quad || points)
++      return;
++
++   unsigned key = (quad ? 2 : 0) + (points ? 1 : 0);
++   if (!st->clip_boundary_gs[key])
++      st->clip_boundary_gs[key] = st_create_clip_boundary_gs(st, quad, points);
++   if (!st->clip_boundary_gs[key])
++      return;
++
++   struct cso_context *cso = st->cso_context;
++   cso_save_state(cso, CSO_BIT_GEOMETRY_SHADER);
++   cso_set_geometry_shader_handle(cso, st->clip_boundary_gs[key]);
++   struct pipe_draw_info boundary = *info;
++   if (quad)
++      boundary.mode = MESA_PRIM_LINES_ADJACENCY;
++   cso_draw_vbo(cso, &boundary, drawid_offset, NULL, draws, num_draws);
++   cso_restore_state(cso, 0);
++}
++
+@@ -125,0 +236,2 @@
++   if (!indirect)
++      st_draw_clip_boundary(ctx, info, drawid_offset, draws, num_draws);
+@@ -144,0 +257 @@
++         st_draw_clip_boundary(ctx, info, 0, &draws[first], i - first);
+@@ -287,0 +401,4 @@
++   for (unsigned i = 0; i < ARRAY_SIZE(st->clip_boundary_gs); i++) {
++      if (st->clip_boundary_gs[i])
++         st->pipe->delete_gs_state(st->pipe, st->clip_boundary_gs[i]);
++   }

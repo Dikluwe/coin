@@ -1,0 +1,21 @@
+Mesa 25.2.8 private build, radeonsi Renoir. System driver unchanged.
+
+Baseline, strict oracle: exit 1; GL_POLYGON LINE x16=0/18.
+
+Experimental NIR GS (single clip-distance component), GL_POLYGON LINE only:
+exit 0; x16=18/18, x17=0, x45=18, GL error=0.
+
+Earlier four-component clip-distance export: GPU context lost on first draw;
+kernel reported a gfx ring timeout and recovered through reset.
+
+Full oracle with experimental triangle GS: timed out after the quad-line GS;
+kernel reported a gfxhub protection fault, a GPU reset, and recovery.
+The triangle and point GS paths are disabled in the saved patch. The private
+source was rebuilt after that restriction, but the X display disappeared after
+the second reset, so this final restricted build was not retested on hardware.
+
+Softpipe private build accepted the generated NIR and completed the strict
+oracle, but its unmodified reference already passes, so this is not evidence
+that the supplemental Mesa draw is fully correct.
+The final restricted build passed the strict oracle on private softpipe under
+an isolated Xvfb display. The eight geometry-shader probe cases also passed.

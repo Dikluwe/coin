@@ -47,29 +47,56 @@ preservam os resultados, sem caminhos locais de build.
 ## Protótipo de tratamento por geometry shader
 
 O [reproducer de geometry shader](../testsuite/reproducers/raster-clip-edge/RasterClipBoundaryGsProbe.cpp)
-gera os dois pontos de interseção de cada triângulo com o plano e os emite
-como `line_strip` ou `points`. Ele usa posições em espaço de recorte e interpola
+gera os dois pontos de interseção de triângulos ou de um quad completo com o
+plano e os emite como `line_strip` ou `points`. O quad é codificado como uma
+primitiva `LINES_ADJACENCY` de quatro vértices para o experimento; isso mantém
+as quatro arestas externas juntas, mas ainda não é uma conversão geral de
+`GL_POLYGON` no Mesa. O shader usa posições em espaço de recorte e interpola
 a cor; a variante com shader lê `gl_ClipDistance[0]` diretamente. O caminho de
 plano fixo usa uma constante equivalente para o caso ortográfico do oracle.
 `GL_PROGRAM_POINT_SIZE` é necessário quando o geometry shader escreve
 `gl_PointSize`.
 
-No Mesa privado com radeonsi Renoir, o protótipo passou nas quatro combinações:
+No Mesa privado com radeonsi Renoir, o protótipo passou nas oito combinações:
 
-| Plano | `line_strip`, coluna x16 | `points`, extremidades x16 |
-| --- | ---: | ---: |
-| Fixo | 18/18 | 4+4 |
-| `gl_ClipDistance[0]` | 18/18 | 4+4 |
+| Entrada | Plano | `line_strip`, coluna x16 | `points`, extremidades x16 | Ponto interno |
+| --- | --- | ---: | ---: | ---: |
+| Dois triângulos | Fixo ou `gl_ClipDistance[0]` | 18/18 | 4+4 | 6 pixels |
+| Quad inteiro | Fixo ou `gl_ClipDistance[0]` | 18/18 | 4+4 | 0 pixels |
 
-O mesmo resultado ocorreu no llvmpipe. Cada triângulo também gera um ponto na
-interseção da diagonal interna com o plano; no modo `POINT`, isso soma seis
-pixels na região central da coluna x16. Esse ponto é correto para dois
-triângulos, mas indevido para o `GL_POLYGON` único do oracle. A medição demonstra
+O mesmo resultado ocorreu no llvmpipe. No caso triangulado, a diagonal interna
+também gera um ponto na interseção com o plano; o quad inteiro não o gera. A medição demonstra
 que o geometry shader da GPU consegue rasterizar as interseções; ela
 **não** corrige o Mesa nem é equivalente ao contorno completo de `GL_POLYGON`.
 O [oracle estrito sem o shader suplementar](../testsuite/reproducers/raster-clip-edge/RasterClipEdgeGlOracle.cpp)
 continua falhando no radeonsi.
 [Saída do protótipo na AMD](validation/raster-clip-edge-mesa-fix-20261009/gs-probe-amd.log).
+
+## Integração experimental no Mesa privado
+
+Um [patch experimental do state tracker](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-quad-line-experiment.patch)
+liga um shader NIR suplementar após o draw original somente quando a variável
+`MESA_EXPERIMENTAL_CLIP_BOUNDARY` está presente. No caso de `GL_POLYGON` com
+quatro vértices em modo `LINE` e um plano ativo, o segundo draw apresenta os
+quatro vértices como `LINES_ADJACENCY` e emite só a borda criada pelo recorte.
+O Mesa converte o plano fixo em `gl_ClipDistance` para essa tentativa. O patch
+interpola apenas `COL0` e não foi preparado para uso geral.
+
+Com a saída NIR de `gl_ClipDistance` reduzida a **um componente**, o caso
+isolado `GL_POLYGON`/`LINE` passou no radeonsi: **18/18** pixels da borda,
+sem erro GL. A primeira versão exportava quatro componentes para um array de
+tamanho um e perdeu o contexto GPU. Na execução do oracle completo, a variante
+suplementar para `GL_TRIANGLES` também causou timeout e reset de GPU; sua causa
+exata ainda não foi demonstrada. A versão preservada do patch impede a
+submissão das variantes de triângulo e ponto. A compilação dessa versão passou,
+mas o display X desapareceu após o segundo reset, impedindo uma nova medição
+de hardware. Nenhum driver instalado foi modificado.
+[Registro da tentativa](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-draw-experiment.log).
+
+O build restrito passou o oracle e as oito combinações do protótipo com
+softpipe num Xvfb isolado. O softpipe já passava sem o segundo draw; portanto,
+esse controle confirma a compilação e execução da integração, não que ela
+fecha o defeito no radeonsi.
 
 Para integrar o tratamento no Mesa, o shader gerado deve receber todos os
 varyings do estágio anterior, interpolar atributos `smooth` e `noperspective`
