@@ -51,7 +51,7 @@ int main(int argc, char **) {
   const unsigned char topdown[]={1,2,9, 3,4,8, 5,6,7};
   unsigned char bottomup[]={5,6,7, 3,4,8, 1,2,9};
   fixture.bitmap.rows=3; fixture.bitmap.width=2; fixture.bitmap.pitch=-3;
-  fixture.bitmap.buffer=bottomup+6; fixture.bitmap.pixel_mode=FT_PIXEL_MODE_GRAY; fixture.bitmap.num_grays=256;
+  fixture.bitmap.buffer=bottomup; fixture.bitmap.pixel_mode=FT_PIXEL_MODE_GRAY; fixture.bitmap.num_grays=256;
   if (!metricsonly) {
   cc_flwft_set_char_size(&face,24);
   check("normal 26.6 size",sizeset==1 && requestedheight==24*64);
