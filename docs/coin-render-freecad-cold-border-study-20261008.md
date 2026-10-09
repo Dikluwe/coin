@@ -72,3 +72,25 @@ O runner usado foi `testsuite/qt-quarter/run_isolated.py` com
 `freecad-host/build/bin/FreeCAD`, `--case freecad-sampling-policy`,
 `--renderer vulkan`, `--backend wgpu`, `--mode object`, `--scale 1` e
 `--require-hardware`; a variável de diagnóstico selecionou cada linha.
+
+## Após atualização do driver neste PC
+
+Depois da reinicialização, módulo carregado, biblioteca e `nvidia-smi` passaram
+a reportar NVIDIA 615.71.09. O compositor privado Xwayland/Weston identificou
+GLX/EGL NVIDIA RTX 3060, e `CoinRenderAdvancedTextureTest --gpu` em BGFX/Vulkan
+identificou `10de:2560` e passou 380 controles. Portanto o bloqueio anterior
+de versão do driver foi removido.
+
+A repetição `wgpu`/Vulkan/portable do cold start ainda não produziu capturas:
+o FreeCAD privado abortou antes da macro com `no Qt platform plugin could be
+initialized` para `xcb` (exit `-6`). O sistema tem `libxcb-cursor0`, e um
+`QApplication` PySide6 mínimo abriu em `xcb` no mesmo compositor. Tentar as
+bibliotecas Qt de sistema, as de PySide6 e limpar variáveis Qt herdadas não
+alterou a falha do binário FreeCAD. Isso é falha de inicialização do host,
+não resultado de rendering. O gate cold start e `cold_start_qualified=false`
+permanecem abertos.
+
+Logs e sondas desta sessão estão em
+`/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-after-driver-20261008`.
+O checkout original do estudo não persistiu após o reboot; a mesma branch foi
+restaurada em um novo worktree no commit `ff267411f6` para estas tentativas.

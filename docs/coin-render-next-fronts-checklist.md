@@ -115,7 +115,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   isolam a moldura de 370×370 e a transição após mutar SoText2; a causa
   permanece aberta. Quatro controles AMD físicos tiveram diff final zero;
   a repetição NVIDIA ficou sem adaptador nesta sessão (driver/biblioteca
-  incompatíveis). O fechamento aquecido não corrige cold start.
+  incompatíveis). Após reinicialização, NVIDIA 615.71.09 e BGFX/Vulkan físico
+  380/380 PASS; FreeCAD privado agora aborta no Qt `xcb` antes da macro
+  ([diagnóstico](coin-render-freecad-cold-border-study-20261008.md)).
+  O fechamento aquecido não corrige cold start.
 - [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
   CPU de 128 MiB; plano não retido, lowering ~1,025 s e upload ~126 ms repetidos,
   apesar de reuso dos buffers GPU. Native e portable têm o mesmo gargalo.
