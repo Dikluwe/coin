@@ -79,6 +79,7 @@
 #include <Inventor/elements/SoTextureQualityElement.h>
 #include "elements/SoTextureScalePolicyElement.h"
 #include "elements/SoTextureScaleQualityElement.h"
+#include "glue/simage_wrapper.h"
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoMultiTextureCoordinateElement.h>
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
@@ -891,7 +892,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
   tSnap.pixelsRgba = std::move(rgba);
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
-  // Match its fast resize path; the simage/GLU path needs a separate contract.
+  // Match its nearest and simage paths; the GLU fallback remains unsupported.
   const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
   if (!isSceneTexture && disableNpot && std::atoi(disableNpot) != 0) {
     if (const char * scaleLimit = std::getenv("COIN_TEX2_SCALEUP_LIMIT")) {
@@ -910,12 +911,36 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     const uint32_t newHeight = CoinRenderTextureSamplingCore::legacyPotExtent(
         h, down, useQuality, quality);
     if (newWidth != w || newHeight != h) {
-      if (SoTextureScaleQualityElement::get(state) >= .5f ||
-          !CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight)) {
-        this->isUnsupported = true;
-        this->builderError = "Legacy POT resize requires texture scale quality below 0.5";
-        if (outError) *outError = this->builderError;
-        return false;
+      if (SoTextureScaleQualityElement::get(state) < .5f) {
+        if (!CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight)) {
+          this->isUnsupported = true;
+          this->builderError = "Legacy POT nearest resize exceeds image limits";
+          if (outError) *outError = this->builderError;
+          return false;
+        }
+      } else {
+        const auto * simage = simage_wrapper();
+        if (!simage->available || !simage->versionMatchesAtLeast(1, 1, 1) ||
+            !simage->simage_resize || !simage->simage_free_image ||
+            size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u) {
+          this->isUnsupported = true;
+          this->builderError = "Legacy high-quality POT resize requires simage 1.1.1 or newer";
+          if (outError) *outError = this->builderError;
+          return false;
+        }
+        unsigned char * resized = simage->simage_resize(
+            tSnap.pixelsRgba.data(), int(w), int(h), 4, int(newWidth), int(newHeight));
+        if (!resized) {
+          this->isUnsupported = true;
+          this->builderError = "Legacy high-quality POT resize failed";
+          if (outError) *outError = this->builderError;
+          return false;
+        }
+        std::vector<uint8_t> pixels(resized, resized + size_t(newWidth) * newHeight * 4);
+        simage->simage_free_image(resized);
+        tSnap.width = newWidth;
+        tSnap.height = newHeight;
+        tSnap.pixelsRgba.swap(pixels);
       }
     }
   }

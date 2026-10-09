@@ -71,7 +71,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   sem publicação quando a textura está ativa. Rescaling completo e recorte de
   subtexturas continuam abertos. Sob o override legado que desativa NPOT,
   resize POT por vizinho para qualidade de escala <0,5 passou a sonda 17×19
-  em Vulkan AMD/NVIDIA e OpenGL NVIDIA/Mesa; qualidade alta é recusada.
+  em Vulkan AMD/NVIDIA e OpenGL NVIDIA/Mesa; qualidade alta usa a mesma
+  `simage_resize` do CoinGL quando disponível, com erro máximo de 1 canal nas
+  mesmas rotas e em imagens de 1 a 4 componentes (24 comparações por rota).
+  A transição de qualidade sobre a mesma textura ainda difere no
+  cache do CoinGL.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
