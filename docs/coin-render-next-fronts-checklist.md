@@ -55,9 +55,13 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   [controle AMD nativo/portátil](coin-render-advanced-textures-direct-views-20261008.md).
 - [ ] Fechar a qualificação da redução NPOT direta no BGFX: implementação GPU
   por área e 16/16 processos Linux PASS em AMD/NVIDIA Vulkan/OpenGL, com
-  dimensões até 2047², HDR e rollback de token. Faltam o cenário combinado de
-  sombras/transparência com pressão de views, custo dos frames extras e Windows.
-  [Implementação, ledger e limites](coin-render-bgfx-npot-direct-mips-plan-20261008.md).
+  dimensões até 2047², HDR e rollback de token. O cenário combinado de oito
+  sombras, transparência e mips NPOT passou em seis perfis AMD/NVIDIA Vulkan e
+  AMD OpenGL; o custo de captura sincronizada foi medido exploratoriamente.
+  Faltam repetir NVIDIA/OpenGL após a falha atual do driver, isolar o custo GPU
+  dos mips se necessário e qualificar Windows/DX11.
+  [Implementação](coin-render-bgfx-npot-direct-mips-plan-20261008.md) e
+  [continuação do gate](coin-render-bgfx-npot-shadow-oit-20261009.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

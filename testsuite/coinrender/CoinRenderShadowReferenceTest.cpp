@@ -12,6 +12,7 @@
 #include "actions/CoinRenderActionP.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
@@ -54,6 +55,7 @@
 #include <cstdlib>
 #include <cmath>
 #include <algorithm>
+#include <chrono>
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -1006,6 +1008,132 @@ SoSeparator * shadowCompositionConsumer(SoSeparator * scene)
   return root;
 }
 
+bool qualifyNpotShadowTransparency(SoSeparator * source, int mechanism,
+                                   bool benchmark = false)
+{
+  auto * producer = static_cast<SoSeparator *>(source->copy(TRUE));
+  producer->ref();
+  auto * group = static_cast<SoShadowGroup *>(producer->getChild(1));
+  auto * light = static_cast<SoShadowSpotLight *>(group->getChild(0));
+  light->intensity = 1.0f / 8.0f;
+  for (int i = 1; i < 8; ++i) group->insertChild(light->copy(TRUE), i);
+  auto * ground = static_cast<SoSeparator *>(group->getChild(9));
+  auto * style = static_cast<SoShadowStyle *>(ground->getChild(0));
+  auto * material = static_cast<SoMaterial *>(ground->getChild(1));
+  material->transparency = 0.5f;
+  auto * mode = new SoTransparencyType;
+  mode->value = mechanism == 1 ? 10 : 6;
+  producer->insertChild(mode, 1);
+
+  auto * consumer = shadowCompositionConsumer(producer);
+  consumer->ref();
+  auto * quality = new SoComplexity;
+  quality->textureQuality = 0.7f;
+  consumer->insertChild(quality, 2);
+  auto * texture = static_cast<SoSceneTexture2 *>(consumer->getChild(3));
+  texture->size.setValue(63, 47);
+  texture->model = SoSceneTexture2::REPLACE;
+  CoinRenderOptions options{};
+  std::string rendererError;
+  options.renderer = CoinRenderDiagnosticShell::rendererOption(rendererError);
+  if (!rendererError.empty()) {
+    std::cerr << rendererError << '\n';
+    consumer->unref();
+    producer->unref();
+    return false;
+  }
+  options.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+  options.transparency = mechanism == 1 ? COIN_RENDER_TRANSPARENCY_PEELING :
+    COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
+  std::unique_ptr<CoinRenderTarget> target(
+    CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options));
+  CoinRenderAction action(SbViewportRegion(side, side));
+  action.setRenderTarget(target.get());
+  action.apply(producer);
+  if (action.getLastStatus() != CoinRenderAction::SUCCESS) {
+    std::cerr << "NPOT combined baseline: " << action.getLastError().getString() << '\n';
+    action.setRenderTarget(nullptr);
+    consumer->unref();
+    producer->unref();
+    return false;
+  }
+  CoinRenderCapabilities caps{};
+  coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
+                                 sizeof(caps));
+  std::cout << "NPOT combined adapter=" << caps.adapter_name
+            << " renderer=" << caps.renderer << " vendor=" << caps.vendor_id
+            << " device=" << caps.device_id << '\n';
+  if (options.renderer != COIN_RENDER_RENDERER_UNKNOWN &&
+      caps.renderer != options.renderer) {
+    std::cerr << "NPOT combined renderer does not match the requested API\n";
+    action.setRenderTarget(nullptr);
+    consumer->unref();
+    producer->unref();
+    return false;
+  }
+  auto capture = [&](std::vector<unsigned char> & pixels) {
+    action.apply(consumer);
+    if (action.getLastStatus() != CoinRenderAction::SUCCESS) return false;
+    target->readbackRGBA(pixels);
+    return pixels.size() == size_t(side * side * 4);
+  };
+  std::vector<unsigned char> shadowed, clear, opaque, retained, recovered;
+  bool qualified = capture(shadowed);
+  if (qualified) {
+    style->style = SoShadowStyle::NO_SHADOWING;
+    qualified = capture(clear) && clear != shadowed;
+    style->style = SoShadowStyle::SHADOWED;
+  }
+  if (qualified) {
+    material->transparency = 0.0f;
+    qualified = capture(opaque) && opaque != shadowed;
+    material->transparency = 0.5f;
+  }
+  if (qualified) {
+    const uint64_t serial = target->getLastSubmissionSerial();
+    auto * ninth = static_cast<SoShadowSpotLight *>(light->copy(TRUE));
+    group->insertChild(ninth, 8);
+    action.apply(consumer);
+    const bool rejected = action.getLastStatus() == CoinRenderAction::UNSUPPORTED;
+    const uint64_t rejectedSerial = target->getLastSubmissionSerial();
+    target->readbackRGBA(retained);
+    qualified = rejected && rejectedSerial == serial && retained == opaque;
+    group->removeChild(ninth);
+    qualified = capture(recovered) && qualified && recovered == shadowed;
+  }
+  if (qualified && benchmark) {
+    typedef std::chrono::steady_clock Clock;
+    auto measure = [&](int extent) {
+      texture->size.setValue(extent, extent);
+      std::vector<double> samples;
+      for (int i = 0; i < 40; ++i) {
+        const auto start = Clock::now();
+        std::vector<unsigned char> pixels;
+        if (!capture(pixels)) { qualified = false; break; }
+        const double elapsed = std::chrono::duration<double, std::milli>(
+          Clock::now() - start).count();
+        if (i >= 10) samples.push_back(elapsed);
+      }
+      if (!qualified) return 0.0;
+      std::sort(samples.begin(), samples.end());
+      return samples[samples.size() / 2];
+    };
+    const double potMs = measure(64);
+    const double npotMs = measure(63);
+    std::cout << "NPOT shadow mip benchmark maps=8 mechanism=" << mechanism
+              << " POT64x64_median_ms=" << potMs
+              << " NPOT63x63_median_ms=" << npotMs
+              << " ratio=" << (potMs > 0 ? npotMs / potMs : 0) << '\n';
+  }
+  std::cout << "NPOT shadow transparency maps=8 mechanism=" << mechanism
+            << " size=63x47 mip=1 qualified=" << qualified << '\n';
+  if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+  action.setRenderTarget(nullptr);
+  consumer->unref();
+  producer->unref();
+  return qualified;
+}
+
 bool qualifyShadowComposition(SoSeparator * source, bool annotation, unsigned maps = 1)
 {
   if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
@@ -1489,6 +1617,20 @@ int main(int argc, char ** argv)
       qualifyShadowTransparency(root, true, maps, -1, mechanism) &&
       qualifyShadowTransparency(root, true, maps, 0, mechanism) &&
       qualifyShadowTransparency(root, true, maps, 1, mechanism);
+    root->unref();
+    return ok ? 0 : 1;
+  }
+
+  if (argc == 3 && (std::string(argv[1]) == "--npot-shadow-oit" ||
+                    std::string(argv[1]) == "--npot-shadow-oit-bench")) {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU")) {
+      root->unref();
+      return 77;
+    }
+    const int mechanism = std::atoi(argv[2]);
+    const bool ok = (mechanism == 1 || mechanism == 2) &&
+      qualifyNpotShadowTransparency(root, mechanism,
+        std::string(argv[1]) == "--npot-shadow-oit-bench");
     root->unref();
     return ok ? 0 : 1;
   }

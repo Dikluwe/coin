@@ -50,11 +50,12 @@ Build e logs completos estão em
 GLSL 330 e SPIR-V foram compilados neste Linux. O compilador BGFX local não
 inclui D3D4Linux para gerar DX11, portanto Windows não foi qualificado aqui.
 
-## Gate ainda aberto
+## Continuação do gate
 
-Falta um cenário combinado de mips NPOT com sombras e transparência que
-pressione o bloco de views do frame base, além de qualificação no Windows.
-Como os mips usam frames próprios, eles não consomem views adicionais no frame
-base; essa propriedade foi verificada no código, mas o cenário combinado ainda
-precisa de execução. Não promover a mudança para a branch de produção antes
-desse gate e da medição do custo dos frames extras.
+O [cenário combinado com oito sombras e transparência](coin-render-bgfx-npot-shadow-oit-20261009.md)
+passou em seis perfis AMD/NVIDIA Vulkan e AMD OpenGL. Os mips usam frames
+próprios e não acrescentam views ao frame base. Houve uma medição exploratória
+de captura sincronizada POT/NPOT, mas ela não isola o custo GPU dos mips.
+NVIDIA/OpenGL ficou sem qualificação combinada porque o driver deixou de
+admitir o controle BGFX nesta sessão. Windows/DX11 também permanece aberto.
+Não promover a mudança para a branch de produção antes desses gates.
