@@ -1,6 +1,6 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-08, incluindo a API de sampling e sua continuação Linux, com a entrega
+Atualizada em 2026-10-09, incluindo a API de sampling e sua continuação Linux, com a entrega
 P03/P15/P16/P24/P28 após o fechamento
 P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
@@ -64,6 +64,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   [continuação do gate](coin-render-bgfx-npot-shadow-oit-20261009.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
+  O perfil NPOT pequeno de `USE_TEXTURE_QUALITY`/`SCALE_DOWN`/`SCALE_UP`
+  passou 4/4 processos AMD/NVIDIA Vulkan/OpenGL; `FRACTURE` agora é recusada
+  sem publicação quando a textura está ativa. Rescaling real e recorte de
+  subtexturas continuam abertos. [Contrato e ledger](coin-render-texture-scale-policy-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
   quantização nearest e footprint explicam o diagnóstico, com contracontrole NVIDIA.
 - [x] Testar LOD explícito + fetch/centro como estudo isolado: nearest CPU–GPU

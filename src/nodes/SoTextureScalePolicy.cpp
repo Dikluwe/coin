@@ -107,6 +107,7 @@
 #include <Inventor/nodes/SoTextureScalePolicy.h>
 
 #include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/actions/SoCallbackAction.h>
 
 #include "nodes/SoSubNodeP.h"
 #include "elements/SoTextureScaleQualityElement.h"
@@ -211,6 +212,8 @@ SoTextureScalePolicy::initClass(void)
   SO_NODE_INTERNAL_INIT_CLASS(SoTextureScalePolicy, SO_FROM_COIN_2_0);
   SO_ENABLE(SoGLRenderAction, SoTextureScalePolicyElement);
   SO_ENABLE(SoGLRenderAction, SoTextureScaleQualityElement);
+  SO_ENABLE(SoCallbackAction, SoTextureScalePolicyElement);
+  SO_ENABLE(SoCallbackAction, SoTextureScaleQualityElement);
 }
 
 static SoTextureScalePolicyElement::Policy
@@ -242,6 +245,22 @@ SoTextureScalePolicy::GLRender(SoGLRenderAction * action)
 {
   if (!this->policy.isIgnored()) {
     SoTextureScalePolicyElement::set(action->getState(), this, 
+                                     convert_policy((Policy)this->policy.getValue()));
+  }
+  if (!this->quality.isIgnored()) {
+    SoTextureScaleQualityElement::set(action->getState(), this,
+                                      this->quality.getValue());
+  }
+}
+
+// Keep the callback traversal's scoped texture policy in step with CoinGL.
+// Portable capture can then reject FRACTURE at the textured shape, without
+// rejecting an unrelated shape after a Separator pops the state.
+void
+SoTextureScalePolicy::callback(SoCallbackAction * action)
+{
+  if (!this->policy.isIgnored()) {
+    SoTextureScalePolicyElement::set(action->getState(), this,
                                      convert_policy((Policy)this->policy.getValue()));
   }
   if (!this->quality.isIgnored()) {

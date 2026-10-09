@@ -18,6 +18,7 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureScalePolicy.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoTextureMatrixTransform.h>
 #include <Inventor/nodes/SoTextureUnit.h>
@@ -243,6 +244,54 @@ struct Harness {
   unsigned cases = 0, rejects = 0;
   bool reportedAdapter = false;
 };
+
+bool scalePolicyProbe()
+{
+  Harness h(true);
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  scene.root->insertChild(policy, 3);
+  std::vector<uint8_t> pixels(3 * 5 * 4, 255);
+  for (int y = 0; y < 5; ++y)
+    for (int x = 0; x < 3; ++x) {
+      const size_t at = size_t(y * 3 + x) * 4;
+      pixels[at] = x == 2 ? 255 : 0;
+      pixels[at + 1] = y == 4 ? 255 : 0;
+      pixels[at + 2] = ((x + y) & 1) ? 255 : 0;
+    }
+  scene.images[0]->image.setValue(SbVec2s(3, 5), 4, pixels.data());
+  for (int mode : {int(SoTextureScalePolicy::USE_TEXTURE_QUALITY),
+                   int(SoTextureScalePolicy::SCALE_DOWN),
+                   int(SoTextureScalePolicy::SCALE_UP)})
+    for (float quality : {0.3f, 0.8f}) {
+      policy->policy = mode;
+      scene.quality->textureQuality = quality;
+      if (!h.render(scene, "scale-policy-3x5-" + std::to_string(mode) +
+                           "-quality-" + std::to_string(quality), false))
+        return false;
+      if (!check(h.capture->frame.textures.size() == 1 &&
+                 h.capture->frame.textures[0].width == 3 &&
+                 h.capture->frame.textures[0].height == 5,
+                 "small NPOT remains at authored dimensions")) return false;
+    }
+  policy->policy = SoTextureScalePolicy::FRACTURE;
+  scene.quality->textureQuality = 0.3f;
+  if (!h.rejected(scene, "FRACTURE requires geometry clipping") ||
+      !check(h.action.getLastError().find("FRACTURE") >= 0,
+             "FRACTURE diagnostic")) return false;
+  scene.quality->textureQuality = 0.0f;
+  if (!h.render(scene, "inactive FRACTURE has no texture to fracture", false))
+    return false;
+  policy->policy = SoTextureScalePolicy::USE_TEXTURE_QUALITY;
+  scene.quality->textureQuality = 0.3f;
+  if (!h.render(scene, "FRACTURE rejection recovery", false)) return false;
+  auto * scoped = new SoSeparator;
+  auto * scopedPolicy = new SoTextureScalePolicy;
+  scopedPolicy->policy = SoTextureScalePolicy::FRACTURE;
+  scoped->addChild(scopedPolicy);
+  scene.root->insertChild(scoped, 4);
+  return h.render(scene, "FRACTURE in separate scope does not leak", false);
+}
 bool core() {
   CoinRenderTextureImageSnapshot image;
   image.width = image.height = 2;
@@ -443,5 +492,7 @@ int main(int argc, char **argv) {
     Harness h(true);
     return projective(h, true) ? 0 : 1;
   }
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-probe")
+    return scalePolicyProbe() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

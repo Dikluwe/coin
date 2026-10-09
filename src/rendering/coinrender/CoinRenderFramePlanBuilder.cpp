@@ -77,6 +77,7 @@
 #include <Inventor/details/SoLineDetail.h>
 #include <Inventor/elements/SoMultiTextureMatrixElement.h>
 #include <Inventor/elements/SoTextureQualityElement.h>
+#include "elements/SoTextureScalePolicyElement.h"
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoMultiTextureCoordinateElement.h>
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
@@ -744,6 +745,14 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     rs.textureImageSlot = 0;
     rs.samplerSlot = 0;
     return true;
+  }
+  if (SoTextureScalePolicyElement::get(state) ==
+      SoTextureScalePolicyElement::FRACTURE) {
+    this->isUnsupported = true;
+    this->builderError =
+      "SoTextureScalePolicy FRACTURE requires subtexture geometry clipping";
+    if (outError) *outError = this->builderError;
+    return false;
   }
   if (SoMultiTextureCoordinateElement::getType(state, unit) == SoMultiTextureCoordinateElement::FUNCTION)
     this->coordinateFunctionsCaptured = true;
