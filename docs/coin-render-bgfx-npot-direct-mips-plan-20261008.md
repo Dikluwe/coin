@@ -53,9 +53,9 @@ inclui D3D4Linux para gerar DX11, portanto Windows não foi qualificado aqui.
 ## Continuação do gate
 
 O [cenário combinado com oito sombras e transparência](coin-render-bgfx-npot-shadow-oit-20261009.md)
-passou em seis perfis AMD/NVIDIA Vulkan e AMD OpenGL. Os mips usam frames
-próprios e não acrescentam views ao frame base. Houve uma medição exploratória
-de captura sincronizada POT/NPOT, mas ela não isola o custo GPU dos mips.
-NVIDIA/OpenGL ficou sem qualificação combinada porque o driver deixou de
-admitir o controle BGFX nesta sessão. Windows/DX11 também permanece aberto.
-Não promover a mudança para a branch de produção antes desses gates.
+passou em oito perfis AMD/NVIDIA Vulkan/OpenGL; NVIDIA/OpenGL exigiu
+`EGL_PLATFORM=surfaceless` neste PC. Os mips usam frames próprios e não
+acrescentam views ao frame base. Houve comparação exploratória de captura
+sincronizada NPOT sem/com mips, mas ela não isola o custo GPU dos mips.
+Windows/DX11 permanece aberto. Não promover a mudança para a branch de
+produção antes desse gate e da decisão de desempenho.

@@ -56,10 +56,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [ ] Fechar a qualificação da redução NPOT direta no BGFX: implementação GPU
   por área e 16/16 processos Linux PASS em AMD/NVIDIA Vulkan/OpenGL, com
   dimensões até 2047², HDR e rollback de token. O cenário combinado de oito
-  sombras, transparência e mips NPOT passou em seis perfis AMD/NVIDIA Vulkan e
-  AMD OpenGL; o custo de captura sincronizada foi medido exploratoriamente.
-  Faltam repetir NVIDIA/OpenGL após a falha atual do driver, isolar o custo GPU
-  dos mips se necessário e qualificar Windows/DX11.
+  sombras, transparência e mips NPOT passou em oito perfis AMD/NVIDIA
+  Vulkan/OpenGL; NVIDIA/OpenGL exige EGL surfaceless neste PC. O custo de
+  captura sincronizada NPOT sem/com mips foi medido exploratoriamente.
+  Faltam isolar o custo GPU dos mips se necessário e qualificar Windows/DX11.
   [Implementação](coin-render-bgfx-npot-direct-mips-plan-20261008.md) e
   [continuação do gate](coin-render-bgfx-npot-shadow-oit-20261009.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,

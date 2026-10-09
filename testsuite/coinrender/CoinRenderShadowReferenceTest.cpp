@@ -1103,8 +1103,9 @@ bool qualifyNpotShadowTransparency(SoSeparator * source, int mechanism,
   }
   if (qualified && benchmark) {
     typedef std::chrono::steady_clock Clock;
-    auto measure = [&](int extent) {
+    auto measure = [&](int extent, float textureQuality) {
       texture->size.setValue(extent, extent);
+      quality->textureQuality = textureQuality;
       std::vector<double> samples;
       for (int i = 0; i < 40; ++i) {
         const auto start = Clock::now();
@@ -1118,12 +1119,16 @@ bool qualifyNpotShadowTransparency(SoSeparator * source, int mechanism,
       std::sort(samples.begin(), samples.end());
       return samples[samples.size() / 2];
     };
-    const double potMs = measure(64);
-    const double npotMs = measure(63);
+    const double potMs = measure(64, 0.7f);
+    const double npotBaseMs = measure(63, 0.3f);
+    const double npotMs = measure(63, 0.7f);
     std::cout << "NPOT shadow mip benchmark maps=8 mechanism=" << mechanism
               << " POT64x64_median_ms=" << potMs
+              << " NPOT63x63_no_mips_median_ms=" << npotBaseMs
               << " NPOT63x63_median_ms=" << npotMs
-              << " ratio=" << (potMs > 0 ? npotMs / potMs : 0) << '\n';
+              << " ratio=" << (potMs > 0 ? npotMs / potMs : 0)
+              << " incremental_ratio=" << (npotBaseMs > 0 ? npotMs / npotBaseMs : 0)
+              << '\n';
   }
   std::cout << "NPOT shadow transparency maps=8 mechanism=" << mechanism
             << " size=63x47 mip=1 qualified=" << qualified << '\n';

@@ -1,4 +1,10 @@
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+pci id for fd 4: 10de:2560, driver (null)
+pci id for fd 5: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
 COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
 NPOT combined adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0
-NPOT shadow mip benchmark maps=8 mechanism=1 POT64x64_median_ms=13.8234 NPOT63x63_median_ms=22.0847 ratio=1.59763
+NPOT shadow mip benchmark maps=8 mechanism=1 POT64x64_median_ms=13.4237 NPOT63x63_no_mips_median_ms=13.0607 NPOT63x63_median_ms=18.5799 ratio=1.38411 incremental_ratio=1.42258
 NPOT shadow transparency maps=8 mechanism=1 size=63x47 mip=1 qualified=1
