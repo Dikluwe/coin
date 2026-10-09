@@ -2127,16 +2127,20 @@ static CoinRenderSubmitResult bgfxTextureProfile(const CoinRenderFramePlan & fra
       return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX exposes native maximum anisotropy only (option 16); factors 2/4/8 are unavailable"};
   if (!caps) return {}; // Selected-adapter admission follows prepare.
   if(caps->rendererType==bgfx::RendererType::OpenGL && !frame.textures.empty()) {
-    // This GL connector changes the object's mip range. Stored images get a
-    // separate base-level object after lowering; direct RTT tokens cannot be
-    // duplicated from CPU pixels here.
+    // This GL connector changes the object's mip range. A mixed binding gets
+    // an independent base-level object after lowering.
     std::vector<uint8_t> usage(frame.textures.size(),0);
     for(const auto & state:frame.renderStates)for(size_t unit=0;unit<COIN_RENDER_MAX_TEXTURE_UNITS;++unit) {
       const auto layer=coin_render_texture_unit(state,unit);
       if(!layer.enabled || layer.imageSlot>=usage.size() || layer.samplerSlot>=frame.samplers.size())continue;
       usage[layer.imageSlot]|=CoinRenderTextureSamplingCore::mipFilter(frame.samplers[layer.samplerSlot].filter)?2:1;
-      if(usage[layer.imageSlot]==3 && frame.textures[layer.imageSlot].gpuToken != 0)
-        return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX OpenGL cannot mix base-only and mip samplers on one direct texture token"};
+      if(usage[layer.imageSlot]==3 &&
+          (frame.textures[layer.imageSlot].gpuToken != 0 ||
+           frame.textures[layer.imageSlot].producerId != 0) &&
+          !bgfx::isTextureValid(1, false, 1,
+            coinBgfxTextureFormat(frame.textures[layer.imageSlot].format),
+            coinBgfxTextureFlags(frame.textures[layer.imageSlot].format) | BGFX_TEXTURE_BLIT_DST))
+        return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX OpenGL cannot create an independent base view for this direct texture format"};
     }
   }
   for (const auto & image : frame.textures) {
@@ -2152,7 +2156,7 @@ static CoinRenderSubmitResult bgfxTextureProfile(const CoinRenderFramePlan & fra
 
 // BGFX/OpenGL sets the sampled mip range on the GL texture object. A base-only
 // binding therefore needs its own object when another binding uses the mips.
-static void bgfxSplitStoredSamplerViews(CoinBgfxPlan & plan) {
+static void bgfxSplitSamplerViews(CoinBgfxPlan & plan) {
   const auto * caps = bgfx::getCaps();
   if (!caps || caps->rendererType != bgfx::RendererType::OpenGL) return;
   const size_t originalCount = plan.textures.size();
@@ -2168,17 +2172,20 @@ static void bgfxSplitStoredSamplerViews(CoinBgfxPlan & plan) {
   for (const auto & draw : plan.shadowDraws) mark(draw);
   std::vector<size_t> baseSlots(originalCount, SIZE_MAX);
   for (size_t slot = 0; slot < originalCount; ++slot) {
-    if (usage[slot] != 3 || plan.textures[slot].gpuToken != 0) continue;
+    if (usage[slot] != 3) continue;
     const auto & source = plan.textures[slot];
-    const size_t baseBytes = CoinRenderTextureFormatCore::levelBytes(
-      source.width, source.height, source.format);
-    if (baseBytes > source.pixelsRgba.size()) continue; // Existing upload validation rejects it.
     CoinBgfxTexture base;
     base.format = source.format;
     base.width = source.width;
     base.height = source.height;
-    base.pixelsRgba.assign(source.pixelsRgba.begin(),
-      source.pixelsRgba.begin() + baseBytes);
+    if (source.gpuToken != 0) base.gpuCopySourceSlot = slot;
+    else {
+      const size_t baseBytes = CoinRenderTextureFormatCore::levelBytes(
+        source.width, source.height, source.format);
+      if (baseBytes > source.pixelsRgba.size()) continue; // Existing upload validation rejects it.
+      base.pixelsRgba.assign(source.pixelsRgba.begin(),
+        source.pixelsRgba.begin() + baseBytes);
+    }
     baseSlots[slot] = plan.textures.size();
     plan.textures.push_back(std::move(base));
   }
@@ -2337,7 +2344,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                               this->drawBatchingEnabled, target.submissionPreflight(frame), compact)) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
-    bgfxSplitStoredSamplerViews(freshPlan);
+    bgfxSplitSamplerViews(freshPlan);
     plan = &freshPlan;
   }
   std::vector<CoinBgfxVertexRange> materialRanges;
@@ -2501,6 +2508,20 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   for (size_t textureIndex = 0;
        !textureCacheHit && textureIndex < plan->textures.size(); ++textureIndex) {
     const CoinBgfxTexture & texture = plan->textures[textureIndex];
+    if (texture.gpuCopySourceSlot != SIZE_MAX) {
+      textures[textureIndex] = bgfx::createTexture2D(
+        static_cast<uint16_t>(texture.width), static_cast<uint16_t>(texture.height),
+        false, 1, coinBgfxTextureFormat(texture.format),
+        coinBgfxTextureFlags(texture.format) | BGFX_TEXTURE_BLIT_DST);
+      if (!bgfx::isValid(textures[textureIndex])) {
+        this->lastError = "BGFX direct texture base-view allocation failed";
+        for (size_t i = 0; i < textures.size(); ++i)
+          if (textureOwned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+        return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
+      }
+      textureOwned[textureIndex] = true;
+      continue;
+    }
     if (texture.gpuToken != 0) {
       for (const DirectTextureResource & resource : this->directTextures) {
         if (resource.token == texture.gpuToken && resource.format == texture.format &&
@@ -2541,6 +2562,14 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if(this->portableSampling) for(size_t i=0;i<textures.size();++i)
     this->samplingBoundTextureSizes[textures[i].idx]={plan->textures[i].width,plan->textures[i].height};
+  if (!textureCacheHit) for (size_t i = 0; i < plan->textures.size(); ++i) {
+    const size_t sourceSlot = plan->textures[i].gpuCopySourceSlot;
+    if (sourceSlot == SIZE_MAX) continue;
+    bgfx::TextureRegion destination, source;
+    destination.handle = textures[i];
+    source.handle = textures[sourceSlot];
+    bgfx::blit(this->viewBase, destination, source);
+  }
   bool texturesRetained = textureCacheHit;
   if (!textureCacheHit && retained && !hasDirectTextures) {
     this->cachedTextures = textures;
@@ -3196,7 +3225,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         bgfx::getCaps()->homogeneousDepth, plan, this->lastError, hasShadows)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
-  bgfxSplitStoredSamplerViews(plan);
+  bgfxSplitSamplerViews(plan);
   CoinBgfxTransparencyStrategy strategy;
   if (!CoinBgfxLowering::selectTransparencyStrategy(plan.draws,
         CoinBgfxTransparencyMode::AUTO, this->weightedOitSupported,
@@ -3312,7 +3341,13 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   std::vector<bool> owned(plan.textures.size(), false);
   for (size_t i = 0; i < plan.textures.size(); ++i) {
     const CoinBgfxTexture & source = plan.textures[i];
-    if (source.gpuToken != 0) {
+    if (source.gpuCopySourceSlot != SIZE_MAX) {
+      textures[i] = bgfx::createTexture2D(static_cast<uint16_t>(source.width),
+        static_cast<uint16_t>(source.height), false, 1,
+        coinBgfxTextureFormat(source.format),
+        coinBgfxTextureFlags(source.format) | BGFX_TEXTURE_BLIT_DST);
+      owned[i] = true;
+    } else if (source.gpuToken != 0) {
       for (const DirectTextureResource & resource : this->directTextures) {
         if (resource.token == source.gpuToken && resource.format == source.format &&
             (!source.mipmapped || resource.mipmapped) && resource.width == int(source.width) && resource.height == int(source.height))
@@ -3338,6 +3373,14 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
 
   if(this->portableSampling) for(size_t i=0;i<textures.size();++i)
     this->samplingBoundTextureSizes[textures[i].idx]={plan.textures[i].width,plan.textures[i].height};
+  for (size_t i = 0; i < plan.textures.size(); ++i) {
+    const size_t sourceSlot = plan.textures[i].gpuCopySourceSlot;
+    if (sourceSlot == SIZE_MAX) continue;
+    bgfx::TextureRegion destination, source;
+    destination.handle = textures[i];
+    source.handle = textures[sourceSlot];
+    bgfx::blit(this->viewBase, destination, source);
+  }
   const auto cleanupDirect = [&]() {
     for (size_t i = 0; i < textures.size(); ++i)
       if (owned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);

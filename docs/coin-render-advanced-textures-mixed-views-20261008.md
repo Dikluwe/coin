@@ -11,9 +11,9 @@ participa do cache e do orçamento existente de metadados. Isso cobre também
 quadros de produtor RTT que consomem imagens armazenadas.
 
 Um token de produtor RTT direto não contém pixels CPU para criar esse segundo
-objeto. A combinação base/mips sobre o mesmo token continua recusada na admissão
-antes de alocação, submissão ou publicação. Redução de NPOT RTT direto por área
-no BGFX também continua pendente.
+objeto. Esse caminho foi implementado em uma
+[continuação](coin-render-advanced-textures-direct-views-20261008.md) com cópia
+GPU do nível base. Redução de NPOT RTT direto por área no BGFX continua pendente.
 
 ## Controles locais
 

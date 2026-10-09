@@ -133,6 +133,8 @@ struct CoinBgfxTexture {
   uint32_t width = 0;
   uint32_t height = 0;
   uint64_t gpuToken = 0;
+  // A generated base-only GL view copied from another plan texture on GPU.
+  size_t gpuCopySourceSlot = SIZE_MAX;
   std::vector<uint8_t> pixelsRgba;
 };
 

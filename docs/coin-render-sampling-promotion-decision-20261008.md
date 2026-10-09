@@ -26,8 +26,9 @@ Também não promover o workaround Mesa externo nem o shader `fine_uniform`.
   encontrou custo nativo acima do baseline em cenas texturizadas AMD e variação
   desfavorável NVIDIA no milhão. Não estabelece ganho universal.
 - [Views armazenadas BGFX/OpenGL](coin-render-advanced-textures-mixed-views-20261008.md)
-  agora passam sem contaminação de LOD; tokens RTT compartilhados e redução
-  direta NPOT por área continuam pendentes.
+  passam sem contaminação de LOD. A continuação de
+  [tokens RTT diretos](coin-render-advanced-textures-direct-views-20261008.md)
+  também passou no AMD/OpenGL; redução direta NPOT por área continua pendente.
 
 ## Condições para nova decisão
 
@@ -40,9 +41,9 @@ Também não promover o workaround Mesa externo nem o shader `fine_uniform`.
    adaptadores; repetir o replay BGFX em mais GPUs e cenas.
 4. Qualificar Windows, Android físico, mais consumidores e as rotas FreeCAD
    necessárias ao alvo de produção.
-5. Tratar separadamente os recursos P07/P24 ainda recusados: token RTT misto
-   BGFX/OpenGL e mip NPOT direto BGFX. Não inferir suporte deles a partir da
-   aprovação da política de sampling.
+5. Tratar separadamente o recurso P24 ainda recusado: mip NPOT direto BGFX.
+   Ampliar a qualificação dos tokens RTT mistos além deste AMD/OpenGL. Não
+   inferir suporte universal deles a partir da política de sampling.
 
 A decisão é sobre promoção da API, não sobre descartar a implementação de
 estudo. O próximo gate deve conservar `native` padrão e registrar o adaptador,

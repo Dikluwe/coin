@@ -79,9 +79,11 @@ No BGFX/OpenGL, imagens armazenadas recebem outro objeto com apenas o nível
 base para o sampler sem mips. A integração muda o intervalo de mips do objeto,
 portanto os dois objetos evitam contaminação de LOD. O controle espera azul 128:
 o erro máximo, antes 64, é agora zero no AMD/OpenGL, inclusive em replay.
-Tokens RTT diretos ainda não têm cópia independente nesta rota e continuam
-recusados por frame antes da publicação quando misturam os dois samplers.
-Detalhes em [controle de views de 2026-10-08](coin-render-advanced-textures-mixed-views-20261008.md).
+Tokens RTT diretos também recebem um objeto base independente, copiado no GPU
+com `blit` antes dos draws. Formatos que não aceitam o destino dessa cópia são
+recusados na admissão. Detalhes nos controles de
+[imagens armazenadas](coin-render-advanced-textures-mixed-views-20261008.md) e
+[tokens RTT diretos](coin-render-advanced-textures-direct-views-20261008.md).
 
 wgpu produz a cadeia com passes compute. Em OpenGL, usa uma textura de fonte
 isolada por redução e cópias dentro do GPU para evitar alias de views/nível base.

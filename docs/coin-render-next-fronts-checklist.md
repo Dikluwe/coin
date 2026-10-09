@@ -50,10 +50,12 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [x] Views independentes para samplers base/mips da mesma imagem armazenada em
   BGFX/OpenGL: duplicação apenas do nível base, sem alias de LOD, inclusive
   replay do cache; [controle AMD](coin-render-advanced-textures-mixed-views-20261008.md).
-- [ ] Views independentes para tokens RTT diretos compartilhados por samplers
-  base/mips em BGFX/OpenGL; combinação continua recusada antes da publicação.
+- [x] Views independentes para tokens RTT diretos compartilhados por samplers
+  base/mips em BGFX/OpenGL: cópia do nível base no GPU, sem readback e com
+  [controle AMD nativo/portátil](coin-render-advanced-textures-direct-views-20261008.md).
 - [ ] Redução por área NPOT direta no BGFX: autogeração nativa divergente
   diagnosticada e recusada antes dos produtores.
+  [Rota de implementação e gates](coin-render-bgfx-npot-direct-mips-plan-20261008.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

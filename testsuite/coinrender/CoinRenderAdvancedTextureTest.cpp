@@ -639,6 +639,88 @@ int main(int argc, char **argv) {
       ok &= center(pixels, mixedExpected,
                    "BGFX GL mixed sampler replay color");
     }
+    CoinRenderOptions directOptions = samplingTestOptions();
+    directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    directOptions.renderer = selectedRenderer;
+    std::unique_ptr<CoinRenderTarget> direct(
+        samplingTestOffscreen(SbVec2i32(32, 32), directOptions));
+    auto root = mixed;
+    root.textures[0].pixelsRgba.clear();
+    root.textures[0].mipmapsRgba.clear();
+    root.textures[0].producerId = 1;
+    CoinRenderRttProducer producer;
+    producer.sourceRevision = ++revision;
+    producer.size = SbVec2i32(4, 4);
+    producer.format = F::RGBA8_LINEAR;
+    producer.plan = base;
+    producer.plan.revision = revision;
+    producer.plan.textures[0] = shared;
+    producer.plan.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
+    for (auto &draw : producer.plan.draws) draw.sourceRevision = revision;
+    for (auto &viewport : producer.plan.viewports) {
+      viewport.width = 4;
+      viewport.height = 4;
+    }
+    CoinRenderRttPlan graph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    uint64_t id = 0;
+    std::string diagnostic;
+    ok &= check(graph.append(producer, id, diagnostic),
+                "BGFX GL mixed direct graph " + diagnostic);
+    CoinRenderRttExecution execution(direct->getPimpl().operator->(), directOptions);
+    CoinRenderFramePlan resolved;
+    auto result = execution.prepare(graph, root, resolved);
+    ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                "BGFX GL mixed direct prepare " + result.diagnostic);
+    if (result.status == CoinRenderBackendStatus::SUCCESS) {
+      resolved.revision = ++revision;
+      for (auto &draw : resolved.draws) draw.sourceRevision = resolved.revision;
+      for (int replay = 0; replay < 2; ++replay) {
+        result = direct->getPimpl()->executeFrame(resolved);
+        ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                    "BGFX GL mixed direct consumer " + result.diagnostic);
+        std::vector<uint8_t> pixels;
+        direct->readbackRGBA(pixels);
+        ok &= center(pixels, mixedExpected, "BGFX GL mixed direct color");
+      }
+    }
+    CoinRenderRttPlan nested(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    ok &= check(nested.append(producer, id, diagnostic),
+                "BGFX GL nested mixed first producer " + diagnostic);
+    CoinRenderRttProducer second;
+    second.sourceRevision = ++revision;
+    second.size = SbVec2i32(4, 4);
+    second.format = F::RGBA8_LINEAR;
+    second.plan = root;
+    second.plan.revision = revision;
+    for (auto &draw : second.plan.draws) draw.sourceRevision = revision;
+    for (auto &viewport : second.plan.viewports) {
+      viewport.width = 4;
+      viewport.height = 4;
+    }
+    ok &= check(nested.append(second, id, diagnostic),
+                "BGFX GL nested mixed second producer " + diagnostic);
+    auto nestedRoot = base;
+    nestedRoot.textures[0].pixelsRgba.clear();
+    nestedRoot.textures[0].mipmapsRgba.clear();
+    nestedRoot.textures[0].format = F::RGBA8_LINEAR;
+    nestedRoot.textures[0].producerId = 2;
+    nestedRoot.textures[0].mipmapped = false;
+    nestedRoot.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
+    CoinRenderRttExecution nestedExecution(direct->getPimpl().operator->(), directOptions);
+    CoinRenderFramePlan nestedResolved;
+    result = nestedExecution.prepare(nested, nestedRoot, nestedResolved);
+    ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                "BGFX GL nested mixed prepare " + result.diagnostic);
+    if (result.status == CoinRenderBackendStatus::SUCCESS) {
+      nestedResolved.revision = ++revision;
+      for (auto &draw : nestedResolved.draws) draw.sourceRevision = revision;
+      result = direct->getPimpl()->executeFrame(nestedResolved);
+      ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                  "BGFX GL nested mixed consumer " + result.diagnostic);
+      std::vector<uint8_t> pixels;
+      direct->readbackRGBA(pixels);
+      ok &= center(pixels, mixedExpected, "BGFX GL nested mixed color");
+    }
   }
 #endif
   // A long X footprint must retain Y stripes rather than blur both axes.
