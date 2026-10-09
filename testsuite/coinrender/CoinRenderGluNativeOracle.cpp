@@ -1,4 +1,7 @@
 // A small native-GLU oracle independent of Coin's offscreen renderer.
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include <algorithm>
 #include <cmath>
