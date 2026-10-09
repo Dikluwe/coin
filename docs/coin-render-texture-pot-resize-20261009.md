@@ -115,6 +115,14 @@ não exigem BGFX. Neste Linux, `xvfb-run` passou os testes de captura e
 fallback GLU (2/2). A matriz em
 `.github/workflows/coin-glu-pot-fallback.yml` executa esse gate em
 Ubuntu, Windows e macOS quando a branch de estudo recebe um push.
+Na primeira execução [#37962743507](https://github.com/Dikluwe/coin/actions/runs/37962743507),
+Ubuntu passou. O runner macOS 14 Apple Silicon compilou e passou a captura
+CPU, mas não criou o contexto CoinGL: CGL recusou os formatos de pixel
+offscreen antes de qualquer resize. A matriz passou a manter nesse runner
+o teste CPU e tentar o oráculo GLU em macOS 15 Intel. Windows compilou Coin,
+mas a DLL CoinRender encontrou quatro símbolos internos de Coin não
+exportados no link; a matriz passou a usar bibliotecas estáticas nesse
+perfil para testar o algoritmo sem alterar a ABI compartilhada.
 
 Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
