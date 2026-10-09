@@ -147,8 +147,13 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   mesmo com deslocamentos do plano. O controle OpenGL sem Coin reproduziu
   a ausência somente no radeonsi AMD: NVIDIA e llvmpipe desenham a borda;
   na AMD, o polígono pré-recortado e a linha explícita também a desenham.
-  A causa interna do driver e as demais diferenças de iluminação permanecem
-  abertas; o contrato portátil continua obrigatório.
+  `gl_ClipDistance` no shader confirma a mesma perda na AMD, enquanto llvmpipe
+  preserva a borda. A diferença de iluminação da célula de geometria completa
+  foi atribuída à triangulação: CoinRender usa diagonal 0–2; `GL_QUADS` no
+  radeonsi Renoir usa 1–3, confirmado por oracle de cores não afins. Sondas de
+  luz/material isoladas sustentam essa causa. A regra interna do clipper/flags
+  de aresta do radeonsi ainda precisa de correção comprovada; o contrato
+  portátil continua obrigatório.
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
   retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,

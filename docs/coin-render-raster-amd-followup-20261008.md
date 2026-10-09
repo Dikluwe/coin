@@ -98,3 +98,72 @@ c++ testsuite/reproducers/raster-clip-edge/RasterClipEdgeGlOracle.cpp \
 DISPLAY=:0 XAUTHORITY=/home/dikluwe/.Xauthority \
   __GLX_VENDOR_LIBRARY_NAME=mesa /tmp/coin-raster-clip-edge-gl
 ```
+
+## Separação do caminho de clipping e da iluminação — 2026-10-09
+
+O oracle agora testa também um vertex shader que exporta
+`gl_ClipDistance[0]` para o mesmo plano. Na AMD Renoir/radeonsi, o polígono
+recortado em `GL_LINE` ainda tem `x16=0/18`, enquanto o preenchimento tem
+`18/18`. No llvmpipe, a linha por `glClipPlane` e por `gl_ClipDistance` tem
+`18/18`. Portanto, trocar a origem do plano não resolve a perda da borda no
+caminho de hardware desta GPU. O Mesa 25.2.8 encaminha os planos fixos por
+`ucp_mask` e as distâncias do shader por `clipdist_mask` em
+`si_emit_clip_regs()` (`src/gallium/drivers/radeonsi/si_state.c`); ambos
+convergem no clipping antes do modo de polígono. `GL_TRIANGLES` recortados
+também perdem quase toda a borda criada pelo plano (`x16=1/18`). Isso descarta
+uma causa exclusiva de `GL_POLYGON` ou do CoinGL. O Renoir é GFX9 e o
+`si_pipe.c` só habilita NGG por padrão a partir de GFX10; desabilitar NGG
+não é uma hipótese útil nesta máquina. Ainda falta identificar a
+regra exata do clipper/flags de aresta do radeonsi e testar uma correção do
+driver. Nenhuma tolerância ou driver instalado foi modificado.
+[Logs AMD](validation/raster-clip-edge-20261009/amd-shader-clip.log) e
+[llvmpipe](validation/raster-clip-edge-20261009/llvmpipe-shader-clip.log).
+
+A diferença anterior de geometria completa
+`bindings/0/7/generated-0/alpha-0/fast-0` foi reproduzida em uma sonda
+isolada (`--probe-lighting` em `CoinRenderGeometryViewportTest`). Na AMD,
+CPU/GPU tem erro máximo 1 canal e CPU/CoinGL 11 com três luzes. Sem luzes
+diretas, CPU/CoinGL cai a 1; só a direcional dá 7, só a pontual ou o spot dão
+3. Material uniforme reduz o máximo a 4, enquanto normal uniforme preserva
+11. Uma paleta de materiais **afim sobre cada quad** reduz o erro a 3. O modo
+`BASE_COLOR`, que elimina o cálculo de luz, ainda diverge até 18: logo a
+diferença principal não vem da fórmula das luzes.
+[Medições das variantes](validation/raster-clip-edge-20261009/lighting-amd.log).
+
+O caminho callback de `SoFaceSet` decompõe `QUADS` nos triângulos 0–1–2 e
+0–2–3 (`src/shapenodes/soshape_primdata.cpp`), usados por CPU/GPU. O caminho
+GL direto envia `GL_QUADS` (`src/shapenodes/SoFaceSet.cpp`), e radeonsi usa
+`DI_PT_QUADLIST` (`si_state_draw.cpp`). O
+[oracle de diagonais](../testsuite/reproducers/raster-clip-edge/RasterQuadDiagonalGlOracle.cpp)
+com cores não afins encontrou, no interior do quad:
+
+| Renderizador GL | `GL_QUADS` vs 0–2 | `GL_QUADS` vs 1–3 |
+| --- | ---: | ---: |
+| AMD radeonsi Renoir | máximo 17; 1926 canais >1 | **máximo 0; 0 canais >1** |
+| llvmpipe | **máximo 0; 0 canais >1** | máximo 17; 1926 canais >1 |
+
+Logs: [AMD](validation/raster-clip-edge-20261009/quad-diagonal-amd.log) e
+[llvmpipe](validation/raster-clip-edge-20261009/quad-diagonal-llvmpipe.log).
+
+Assim, as diferenças de iluminação observadas nesta célula são explicadas
+pela diagonal oposta de triangulação do quad e pela interpolação dos valores
+de vértice já iluminados. Não há evidência nesta sonda de erro na equação de
+iluminação do CoinRender. A comparação estrita CoinGL dessa célula continua
+falhando na AMD; CPU/GPU mantém máximo 1. A comparação portátil não deve
+trocar sua diagonal para seguir um comportamento particular do driver.
+
+Para repetir a sonda de quad:
+
+```sh
+c++ testsuite/reproducers/raster-clip-edge/RasterQuadDiagonalGlOracle.cpp \
+  -o /tmp/coin-raster-quad-diagonal -lGL -lglut
+DISPLAY=:0 XAUTHORITY=/home/dikluwe/.Xauthority \
+  __GLX_VENDOR_LIBRARY_NAME=mesa /tmp/coin-raster-quad-diagonal
+```
+
+Para repetir cada variante de iluminação no build wgpu do projeto, use
+`CoinRenderGeometryViewportTest --probe-lighting MODE`, com `MODE` igual a
+`all`, `base`, `ambient-only`, `directional-only`, `point-only`, `spot-only`,
+`overall-material`, `overall-normal`, `uniform-normal` ou `affine-material`.
+Na AMD deste PC, o contexto CoinGL requer
+`COIN_GLXGLUE_NO_PBUFFERS=1 COIN_GLX_PIXMAP_DIRECT_RENDERING=1`.

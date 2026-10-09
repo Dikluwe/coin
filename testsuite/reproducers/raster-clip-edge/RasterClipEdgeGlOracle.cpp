@@ -1,5 +1,6 @@
 // Minimal compatibility-GL control for CoinGL's clipped polygon-line edge.
 // Build: c++ RasterClipEdgeGlOracle.cpp -o raster-clip-edge -lGL -lglut
+#define GL_GLEXT_PROTOTYPES
 #include <GL/freeglut.h>
 #include <cstdio>
 #include <vector>
@@ -93,6 +94,43 @@ int main(int argc, char **argv) {
   ok = run("preclipped-polygon-line", false, false, GL_LINE, false, true) && ok;
   ok = run("explicit-cut-edge", false, false, GL_LINE, true) && ok;
   ok = run("explicit-cut-edge-clipped", true, false, GL_LINE, true) && ok;
+  const char *vertexSource =
+      "#version 130\n"
+      "void main() {\n"
+      "  gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n"
+      "  gl_ClipDistance[0] = gl_Vertex.x - (-0.484375);\n"
+      "  gl_FrontColor = gl_Color;\n"
+      "}\n";
+  const char *fragmentSource =
+      "#version 130\n"
+      "void main() { gl_FragColor = gl_Color; }\n";
+  const GLuint vertex = glCreateShader(GL_VERTEX_SHADER);
+  const GLuint fragment = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(vertex, 1, &vertexSource, nullptr);
+  glShaderSource(fragment, 1, &fragmentSource, nullptr);
+  glCompileShader(vertex);
+  glCompileShader(fragment);
+  GLint vertexStatus = 0, fragmentStatus = 0, linkStatus = 0;
+  glGetShaderiv(vertex, GL_COMPILE_STATUS, &vertexStatus);
+  glGetShaderiv(fragment, GL_COMPILE_STATUS, &fragmentStatus);
+  const GLuint program = glCreateProgram();
+  glAttachShader(program, vertex);
+  glAttachShader(program, fragment);
+  glLinkProgram(program);
+  glGetProgramiv(program, GL_LINK_STATUS, &linkStatus);
+  std::printf("shader-status vertex=%d fragment=%d link=%d\n", vertexStatus,
+              fragmentStatus, linkStatus);
+  if (vertexStatus && fragmentStatus && linkStatus) {
+    glUseProgram(program);
+    ok = run("shader-clip-distance-polygon-line", true, false, GL_LINE) && ok;
+    ok = run("shader-clip-distance-polygon-fill", true, false, GL_FILL) && ok;
+    glUseProgram(0);
+  } else {
+    ok = false;
+  }
+  glDeleteProgram(program);
+  glDeleteShader(vertex);
+  glDeleteShader(fragment);
   glutDestroyWindow(glutGetWindow());
   return ok ? 0 : 1;
 }

@@ -73,13 +73,13 @@ struct Scene {
     model=new SoLightModel; model->model=SoLightModel::BASE_COLOR; root->addChild(model);
     environment=new SoEnvironment; environment->ambientIntensity=.1f;
     environment->fogColor.setValue(.1f,.15f,.3f); environment->fogVisibility=10; root->addChild(environment);
-    auto * directional=new SoDirectionalLight; directional->direction.setValue(.2f,0,-1);
+    directional=new SoDirectionalLight; directional->direction.setValue(.2f,0,-1);
     directional->intensity=.35f; root->addChild(directional);
-    auto *point = new SoPointLight;
+    point = new SoPointLight;
     point->location.setValue(0, .7f, 2);
     point->intensity = .15f;
     root->addChild(point);
-    auto *spot = new SoSpotLight;
+    spot = new SoSpotLight;
     spot->location.setValue(0, -.35f, 2);
     spot->direction.setValue(0, .2f, -1);
     spot->cutOffAngle=.8f; spot->dropOffRate=.02f; spot->intensity=.15f; root->addChild(spot);
@@ -169,6 +169,7 @@ struct Scene {
   FixtureViewport * viewportNode; SoSeparator * root; SoIndexedFaceSet * faces=nullptr;
   SoMaterial * material; SoMaterialBinding * mb; SoNormal * normal; SoNormalBinding * nb;
   SoDrawStyle * style; SoLightModel * model; SoEnvironment * environment; SoDepthBuffer * depth;
+  SoDirectionalLight * directional; SoPointLight * point; SoSpotLight * spot;
 };
 class GeometryCapture : public CoinRenderCpuReferenceBackend {
 public:
@@ -466,6 +467,45 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
 #ifndef HAVE_COIN_BGFX
   if(gpu&&!CoinRenderAction::isGpuBackendAvailable())return 77;
 #endif
+  if (argc > 1 && std::string(argv[1]) == "--probe-lighting") {
+    if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
+    const std::string mode = argc > 2 ? argv[2] : "all";
+    Harness h(true);
+    Scene scene(false);
+    scene.mb->value = SoMaterialBinding::PER_VERTEX;
+    scene.nb->value = SoNormalBinding::PER_VERTEX;
+    if (mode == "overall-material") scene.mb->value = SoMaterialBinding::OVERALL;
+    if (mode == "overall-normal") scene.nb->value = SoNormalBinding::OVERALL;
+    if (mode == "affine-material") {
+      const float ramp[] = {0, 1, 2, 1};
+      for (int i = 0; i < 8; ++i)
+        scene.material->diffuseColor.set1Value(i, SbColor(.3f + .07f * ramp[i % 4],
+                                                            .8f - .06f * ramp[i % 4],
+                                                            .4f + .04f * ramp[i % 4]));
+    }
+    scene.model->model = mode == "base" ? SoLightModel::BASE_COLOR : SoLightModel::PHONG;
+    if (mode == "uniform-normal")
+      for (int i = 0; i < 8; ++i) scene.normal->vector.set1Value(i, SbVec3f(0, 0, 1));
+    if (mode == "directional-only") {
+      scene.point->intensity = 0;
+      scene.spot->intensity = 0;
+    }
+    if (mode == "point-only") {
+      scene.directional->intensity = 0;
+      scene.spot->intensity = 0;
+    }
+    if (mode == "spot-only") {
+      scene.directional->intensity = 0;
+      scene.point->intensity = 0;
+    }
+    if (mode == "ambient-only") {
+      scene.directional->intensity = 0;
+      scene.point->intensity = 0;
+      scene.spot->intensity = 0;
+    }
+    return h.render(scene, SbViewportRegion(64, 64), "probe-lighting/" + mode,
+                    false) ? 0 : 1;
+  }
   if (argc > 1 && std::string(argv[1]) == "--study-curved-styles") {
     if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
     Harness h(true); unsigned attempted = 0, failures = 0;
