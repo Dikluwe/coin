@@ -293,6 +293,7 @@ rbptree_new_node(cc_rbptree * COIN_UNUSED_ARG(t))
 {
   cc_rbptree_node * x = static_cast<cc_rbptree_node*>(
     malloc(sizeof(cc_rbptree_node)));
+  if (x == NULL) coin_oom_abort("cc_rbptree_insert node");
 
   x->left = &rbptree_sentinel;
   x->right = &rbptree_sentinel;
