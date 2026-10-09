@@ -1,0 +1,47 @@
+--- a/src/gallium/auxiliary/draw/draw_pipe_clip.c
++++ b/src/gallium/auxiliary/draw/draw_pipe_clip.c
+@@ -40,6 +40,7 @@
+ 
+ #include "draw_vs.h"
+ #include "draw_pipe.h"
++#include <stdio.h>
+ #include "draw_fs.h"
+ #include "draw_gs.h"
+ 
+@@ -287,6 +288,10 @@
+             }
+          }
+       }
++      fprintf(stderr, "COIN_CPU_CLIP_TRI flags=0x%x", header.flags);
++      for (unsigned j = 0; j < 3; j++)
++         fprintf(stderr, " v%u=(%.3f,%.3f) e=%u", j, header.v[j]->clip_pos[0], header.v[j]->clip_pos[1], header.v[j]->edgeflag);
++      fprintf(stderr, "\n");
+       stage->next->tri(stage->next, &header);
+    }
+ }
+@@ -411,6 +416,7 @@
+    while (clipmask && n >= 3) {
+       const unsigned plane_idx = ffs(clipmask)-1;
+       const bool is_user_clip_plane = plane_idx >= 6;
++      fprintf(stderr, "COIN_CPU_CLIP plane=%u user=%u n=%u mask=0x%x\n", plane_idx, is_user_clip_plane, n, clipmask);
+       struct vertex_header *vert_prev = inlist[0];
+       bool *edge_prev = &inEdges[0];
+       float dp_prev;
+--- a/src/gallium/auxiliary/draw/draw_pipe_unfilled.c
++++ b/src/gallium/auxiliary/draw/draw_pipe_unfilled.c
+@@ -37,6 +37,7 @@
+ #include "pipe/p_defines.h"
+ #include "draw_private.h"
+ #include "draw_pipe.h"
++#include <stdio.h>
+ #include "draw_fs.h"
+ 
+ 
+@@ -141,6 +142,7 @@
+    struct vertex_header *v1 = header->v[1];
+    struct vertex_header *v2 = header->v[2];
+ 
++   fprintf(stderr, "COIN_CPU_UNFILLED flags=0x%x v0e=%u v1e=%u v2e=%u\n", header->flags, v0->edgeflag, v1->edgeflag, v2->edgeflag);
+    if (header->flags & DRAW_PIPE_RESET_STIPPLE)
+       /*
+        * XXX could revisit this. The only stage which cares is the line

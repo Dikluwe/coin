@@ -1,0 +1,15 @@
+Initializing DRM shim on /dev/dri/renderD128
+DRM_IOCTL_GET_CAP: unhandled 0x10
+SHIM GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.49, 6.17.0-42-generic)
+SHIM before polygon
+SHIM after polygon error=0
+SHIM before triangles
+SHIM after triangles error=0
+COIN_CPU_UPDATE enter gs=0 tess=0 ngg=0 dirty=0x3d vs_current=(nil) vs_queued=(nil) gs_queued=(nil)
+COIN_CPU_UPDATE selected gs=0 dirty=0x3d vs_current=0x734194003150 vs_queued=0x734194003150 gs_queued=(nil) vgt_gs_mode=0x0
+COIN_CPU_BIND gs=0x73418803ce90 dirty=0x8 vs_as_es=1 vs_current=0x734194003150 vs_queued=0x734194003150
+COIN_CPU_UPDATE enter gs=1 tess=0 ngg=0 dirty=0x8 vs_current=0x734194003150 vs_queued=0x734194003150 gs_queued=(nil)
+COIN_CPU_UPDATE selected gs=1 dirty=0x8 vs_current=0x734194003150 vs_queued=0x73419405bc90 gs_queued=0x73419405b5a0 vgt_gs_mode=0x300033
+COIN_CPU_BIND gs=(nil) dirty=0x8 vs_as_es=0 vs_current=0x734194003150 vs_queued=0x73419405bc90
+COIN_CPU_UPDATE enter gs=0 tess=0 ngg=0 dirty=0x28 vs_current=0x734194003150 vs_queued=0x73419405bc90 gs_queued=0x73419405b5a0
+COIN_CPU_UPDATE selected gs=0 dirty=0x28 vs_current=0x734194003150 vs_queued=0x73419405bc90 gs_queued=(nil) vgt_gs_mode=0x300033

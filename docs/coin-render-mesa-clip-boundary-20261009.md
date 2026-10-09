@@ -209,16 +209,48 @@ medição do PM4 emitido ou prova da causa do reset. O controle discriminante
 `VGT_SHADER_STAGES_EN` e bases de userdata devem coincidir antes do draw.
 
 Um [patch candidato](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch)
-marca VS ou TES como dirty ao desativar GS. Ele compilou e vinculou em
-`libgallium-25.2.8.so` privado; nenhum draw foi executado com ele. Fonte e
-biblioteca privados foram restaurados byte a byte após a compilação. A
-correção de propagação para shaders combinados, citada no Mesa 26.0, já
-consta das notas do Mesa 25.2.6 e do fonte 25.2.8; não é uma correção
-posterior ausente deste baseline.
+marca VS ou TES como dirty ao desativar GS. O controle em `drm-shim` abaixo
+mostrou que ele restaura a variante VS enfileirada e `VGT_GS_MODE` em CPU.
+Não houve execução física ou leitura de pixels com este patch. A correção de
+propagação para shaders combinados, citada no Mesa 26.0, já consta das notas
+do Mesa 25.2.6 e do fonte 25.2.8; não é uma correção posterior ausente deste
+baseline.
 
 SwiftShader e ANGLE forneceram referências de organização para clipping e
 restauração de estado, respectivamente. São implementações com contratos
 diferentes; seus achados não validam o comportamento OpenGL do radeonsi.
+
+## Controles em CPU: clipping e transição GS — 2026-10-09
+
+Foi compilado um `drm-shim` privado do Mesa 25.2.8. Ele fornece um render
+node simulado (`DRM 3.49`) e descarta o ioctl de submissão, sem executar
+comandos na GPU. A [fixture EGL](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-fixture.cpp)
+executou um polígono em `GL_LINE` com o GS suplementar experimental, seguido
+de triângulos em `GL_LINE` depois de GS→NULL, com `AMD_DEBUG=nongg`.
+Nos dois casos `glGetError()` foi zero; esse resultado não valida pixels.
+
+- [Baseline sem a correção](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-baseline-20261009.log): após GS→NULL, `dirty=0x8` no bind e `dirty=0x28` na atualização; o VS enfileirado continuou sendo a variante da etapa GS e `vgt_gs_mode=0x300033`.
+- [Com a correção candidata](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-candidate-20261009.log): `dirty=0x9` no bind e `dirty=0x29` na atualização; o VS normal foi enfileirado e `vgt_gs_mode=0x0`.
+
+Assim, a invalidação faltante é um defeito de estado CPU reproduzido, e o
+patch candidato corrige **essa** divergência. Ainda faltam a comparação dos
+pacotes PM4 e de `VGT_SHADER_STAGES_EN`/bases de userdata, e a validação
+física de que não ocorre reset; o `drm-shim` não pode demonstrá-las.
+
+Com o mesmo Mesa privado, a [fixture softpipe](validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-fixture.cpp)
+executou o quad em `GL_LINE` sob `EGL_PLATFORM=surfaceless`, uma vez com
+`glClipPlane` e outra com clipping do frustum. O
+[patch de instrumentação temporária](validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-instrument.patch)
+registrou `draw_pipe_clip.c` e `draw_pipe_unfilled.c`:
+
+- [Plano do usuário](validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-user-clip-20261009.log): `plane=6 user=1`; os novos vértices em `x=0` chegaram com `edgeflag=1` e máscara de aresta ativa, formando a borda vertical.
+- [Frustum](validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-frustum-clip-20261009.log): `plane=1 user=0`; a interseção em `x=-1` chegou com `edgeflag=0`, e a borda vertical foi suprimida pelo estágio `unfilled`.
+
+Essas medições confirmam o contrato de flags do caminho de software. Elas
+não provam que o radeonsi implementa a mesma geometria no caminho acelerado.
+Todos os sete fontes Mesa privados usados nos controles e
+`libgallium-25.2.8.so` foram restaurados byte a byte a partir dos backups;
+oito comparações retornaram `MATCH`. O driver instalado não foi modificado.
 
 ## Trabalho restante
 
