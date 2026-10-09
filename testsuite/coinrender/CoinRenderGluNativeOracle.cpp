@@ -128,10 +128,18 @@ int main() {
       return 1;
   if (result != 0) return 1;
 
-  for (const int extent : {16, 32}) {
+  struct ResizeCase { int width, height, newWidth, newHeight; };
+  const ResizeCase cases[] = {
+      {17, 19, 16, 16}, {17, 19, 32, 32},
+      {3, 5, 2, 4}, {3, 5, 4, 8},
+      {1, 7, 1, 4}, {1, 7, 1, 8},
+      {7, 1, 4, 1}, {7, 1, 8, 1},
+      {31, 3, 16, 2}, {31, 3, 32, 4},
+      {2, 2, 1, 1}, {2, 2, 4, 4}};
+  for (const auto &resize : cases) {
     CoinRenderTextureImageSnapshot image;
-    image.width = 17;
-    image.height = 19;
+    image.width = uint32_t(resize.width);
+    image.height = uint32_t(resize.height);
     image.pixelsRgba.resize(size_t(image.width) * image.height * 4);
     for (uint32_t y = 0; y < image.height; ++y)
       for (uint32_t x = 0; x < image.width; ++x)
@@ -139,12 +147,15 @@ int main() {
           image.pixelsRgba[(size_t(y) * image.width + x) * 4 + c] =
               static_cast<uint8_t>((x * 37 + y * 19 + c * 53) & 255);
     const auto source = image.pixelsRgba;
-    std::vector<unsigned char> native(size_t(extent) * extent * 4);
-    const GLint error = gluScaleImage(GL_RGBA, 17, 19, GL_UNSIGNED_BYTE,
-                                      source.data(), extent, extent,
+    std::vector<unsigned char> native(size_t(resize.newWidth) *
+                                      resize.newHeight * 4);
+    const GLint error = gluScaleImage(GL_RGBA, resize.width, resize.height,
+                                      GL_UNSIGNED_BYTE, source.data(),
+                                      resize.newWidth, resize.newHeight,
                                       GL_UNSIGNED_BYTE, native.data());
     if (error || !CoinRenderTextureSamplingCore::legacyResizeGlu(
-                     image, uint32_t(extent), uint32_t(extent)))
+                     image, uint32_t(resize.newWidth),
+                     uint32_t(resize.newHeight)))
       return 1;
     int maximum = 0;
     double total = 0;
@@ -153,7 +164,8 @@ int main() {
       maximum = std::max(maximum, delta);
       total += delta;
     }
-    std::cout << "17x19->" << extent << 'x' << extent
+    std::cout << resize.width << 'x' << resize.height << "->"
+              << resize.newWidth << 'x' << resize.newHeight
               << " max=" << maximum << " mae=" << total / native.size() << '\n';
     if (maximum > 2 || total / native.size() > 0.6) return 1;
   }

@@ -914,7 +914,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
   tSnap.pixelsRgba = std::move(rgba);
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
-  // Match its nearest and simage paths; the GLU fallback remains unsupported.
+  // Match its nearest, simage and GLU fallback paths.
   bool useCompressedTexture = !isSceneTexture && this->compressedTextureImages.count(rawBytes);
   const SoTexture2 * pendingPotNode = nullptr;
   LegacyPotImage pendingPotImage{};

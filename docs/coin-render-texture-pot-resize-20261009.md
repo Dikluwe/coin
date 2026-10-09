@@ -164,6 +164,29 @@ macOS porque CGL recusa o formato de pixel offscreen; no Windows, a
 captura com runtime Coin estático excedeu o timeout na campanha anterior.
 O oráculo não substitui esses dois testes de integração.
 
+### Ampliação Linux: dimensões pequenas e assimétricas
+
+O oráculo nativo agora inclui 12 redimensionamentos: 17×19, 3×5, 1×7,
+7×1, 31×3 e 2×2, com redução e ampliação. Neste Linux com Mesa GLU 1.3,
+todos passaram com diferença máxima de 1 canal; três testes CTest em Xvfb
+passaram. A sonda CoinGL acrescentou 3×5 e 31×3 ao caso 17×19, cobrindo
+72 combinações por executor (três dimensões, três políticas, duas qualidades
+e quatro formatos). A execução física passou nos quatro perfis AMD/NVIDIA
+Vulkan/OpenGL, com diferença GPU/CoinGL máxima de 2 canais em cada perfil.
+O [ledger e os logs](validation/glu-pot-expanded-20261009/summary.json)
+registram identidade do adaptador, contagem, máximo, hashes e resultado.
+O teste usou o Mesa privado já qualificado para a referência CoinGL; a
+sonda interceptou apenas o carregamento de simage para forçar o fallback
+GLU. Para repetir:
+
+```sh
+python3 testsuite/reproducers/portable-sampling-study/mesa/run_glu_pot_expanded_gate.py \
+  --build /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build \
+  --mesa-prefix /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install \
+  --output docs/validation/glu-pot-expanded-20261009 \
+  --display :0 --xauthority /home/dikluwe/.Xauthority
+```
+
 Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
 entre contextos cobre o caminho POT do override legado; outros caminhos de

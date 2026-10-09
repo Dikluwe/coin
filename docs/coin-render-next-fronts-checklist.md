@@ -100,6 +100,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   passaram em Ubuntu, Windows e macOS ARM/Intel. A integração CoinGL
   completa nos runners macOS segue bloqueada pelo contexto CGL offscreen;
   o runtime estático Windows excedeu o timeout da captura anterior.
+  A ampliação Linux verificou 12 redimensionamentos GLU nativos (máximo 1)
+  e 72 comparações GPU/CoinGL em cada perfil AMD/NVIDIA Vulkan/OpenGL
+  (máximo 2), incluindo texturas pequenas e não quadradas; o
+  [ledger](validation/glu-pot-expanded-20261009/summary.json) guarda os logs.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

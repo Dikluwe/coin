@@ -296,9 +296,16 @@ bool scalePolicyProbe()
 }
 bool scalePolicyPotProbe()
 {
-  for (int mode : {int(SoTextureScalePolicy::USE_TEXTURE_QUALITY),
-                   int(SoTextureScalePolicy::SCALE_DOWN),
-                   int(SoTextureScalePolicy::SCALE_UP)}) {
+  struct ImageCase { int width, height, downWidth, downHeight,
+                     upWidth, upHeight; };
+  const ImageCase cases[] = {
+      {17, 19, 16, 16, 32, 32},
+      {3, 5, 4, 8, 4, 8},
+      {31, 3, 16, 4, 32, 4}};
+  for (const auto &image : cases) {
+    for (int mode : {int(SoTextureScalePolicy::USE_TEXTURE_QUALITY),
+                     int(SoTextureScalePolicy::SCALE_DOWN),
+                     int(SoTextureScalePolicy::SCALE_UP)}) {
     for (float scaleQuality : {.3f, .8f}) {
       for (int components : {1, 2, 3, 4}) {
         Harness h(true);
@@ -308,26 +315,32 @@ bool scalePolicyPotProbe()
         policy->quality = scaleQuality;
         scene.root->insertChild(policy, 3);
         scene.quality->textureQuality = .3f;
-        std::vector<uint8_t> pixels(17 * 19 * components, 255);
-        for (int y = 0; y < 19; ++y)
-          for (int x = 0; x < 17; ++x) {
-            const size_t at = size_t(y * 17 + x) * components;
+        std::vector<uint8_t> pixels(size_t(image.width) * image.height * components, 255);
+        for (int y = 0; y < image.height; ++y)
+          for (int x = 0; x < image.width; ++x) {
+            const size_t at = size_t(y * image.width + x) * components;
             pixels[at] = uint8_t(x * 15);
             if (components >= 2) pixels[at + 1] = uint8_t(y * 13);
             if (components >= 3) pixels[at + 2] = uint8_t((x + y) * 7);
             if (components == 4) pixels[at + 3] = uint8_t(120 + ((x + y) % 12) * 10);
           }
-        scene.images[0]->image.setValue(SbVec2s(17, 19), components, pixels.data());
-        if (!h.render(scene, "POT-17x19-policy-" + std::to_string(mode) +
+        scene.images[0]->image.setValue(SbVec2s(image.width, image.height),
+                                        components, pixels.data());
+        if (!h.render(scene, "POT-" + std::to_string(image.width) + "x" +
+                             std::to_string(image.height) + "-policy-" +
+                             std::to_string(mode) +
                              "-scale-" + std::to_string(scaleQuality) +
                              "-components-" + std::to_string(components), false))
           return false;
-        const uint32_t expected = mode == int(SoTextureScalePolicy::SCALE_DOWN) ? 16 : 32;
+        const bool down = mode == int(SoTextureScalePolicy::SCALE_DOWN);
+        const uint32_t expectedWidth = down ? image.downWidth : image.upWidth;
+        const uint32_t expectedHeight = down ? image.downHeight : image.upHeight;
         if (!check(h.capture->frame.textures.size() == 1 &&
-                   h.capture->frame.textures[0].width == expected &&
-                   h.capture->frame.textures[0].height == expected,
+                   h.capture->frame.textures[0].width == expectedWidth &&
+                   h.capture->frame.textures[0].height == expectedHeight,
                    "legacy policy selects POT dimensions")) return false;
       }
+    }
     }
   }
   return true;
