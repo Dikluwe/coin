@@ -41,7 +41,11 @@ for profile in a.profiles.split(','):
  env['VK_ICD_FILENAMES']=env['VK_DRIVER_FILES']
  if gpu=='nvidia':env['__NV_PRIME_RENDER_OFFLOAD']='1'
  if a.kind=='gpu':env.update(COIN_RENDER_TRACE_PHASES='1',COIN_SAMPLING_AUDIT='1',COIN_WGPU_GPU_TIMESTAMPS='1',COIN_BGFX_TRACE_GL_ADAPTER='1')
- if backend=='bgfx' and api=='gl':env['COIN_BGFX_TRACE_GL_ADAPTER']='1'
+ if backend=='bgfx' and api=='gl':
+  env['COIN_BGFX_TRACE_GL_ADAPTER']='1'
+  # The frozen historical runtime required full phase tracing to emit its GL
+  # receipt. Apply the same instrumentation to both sides of this GL A/B.
+  if a.baseline:env['COIN_RENDER_TRACE_PHASES']='1'
  for workload in a.workloads.split(','):
   order=['baseline','native','native','baseline'] if a.baseline else ['native','portable','portable','native']
   if a.baseline and profile=='wgpu-amd-gl':continue # historical executable had no GL CLI entry
@@ -78,6 +82,6 @@ for profile in a.profiles.split(','):
    if len(values)!=frames:valid=False
    gpu_values=[float(x) for x in re.findall(r'(?:COIN_SAMPLING_AUDIT_GPU status=ok render_ms=|gpu_frame_ms=)([0-9.]+)',output)]
    if a.kind=='gpu' and len(gpu_values[warmup:])!=frames:valid=False
-   row=dict(hardware_gpu=hardware,gl_contexts=contexts,profile=profile,workload=workload,policy=policy,repeat=repeat,exit=code,valid=valid,command=cmd,log=log.name,samples=samples.name,report=report,binary_sha256=hashlib.sha256(Path(cmd[0]).read_bytes()).hexdigest(),scene_sha256=hashlib.sha256(scenes[workload].read_bytes()).hexdigest(),environment={k:v for k,v in env.items() if k in ['DISPLAY','XAUTHORITY','LD_LIBRARY_PATH','WGPU_BACKEND','COIN_BGFX_RENDERER','COIN_RENDER_RENDERER','DRI_PRIME','__GLX_VENDOR_LIBRARY_NAME','__EGL_VENDOR_LIBRARY_FILENAMES','VK_DRIVER_FILES','VK_ICD_FILENAMES','__NV_PRIME_RENDER_OFFLOAD','COIN_SAMPLING_STUDY','COIN_RENDER_TRACE_PHASES','COIN_SAMPLING_AUDIT','COIN_WGPU_GPU_TIMESTAMPS','COIN_BGFX_TRACE_GL_ADAPTER']},cpu_median_ms=statistics.median(values) if values else None,gpu_values_ms=gpu_values[warmup:],gpu_median_ms=statistics.median(gpu_values[warmup:]) if len(gpu_values)>warmup else None)
+   row=dict(cpu_instrumented=env.get('COIN_RENDER_TRACE_PHASES')=='1',hardware_gpu=hardware,gl_contexts=contexts,profile=profile,workload=workload,policy=policy,repeat=repeat,exit=code,valid=valid,command=cmd,log=log.name,samples=samples.name,report=report,binary_sha256=hashlib.sha256(Path(cmd[0]).read_bytes()).hexdigest(),scene_sha256=hashlib.sha256(scenes[workload].read_bytes()).hexdigest(),environment={k:v for k,v in env.items() if k in ['DISPLAY','XAUTHORITY','LD_LIBRARY_PATH','WGPU_BACKEND','COIN_BGFX_RENDERER','COIN_RENDER_RENDERER','DRI_PRIME','__GLX_VENDOR_LIBRARY_NAME','__EGL_VENDOR_LIBRARY_FILENAMES','VK_DRIVER_FILES','VK_ICD_FILENAMES','__NV_PRIME_RENDER_OFFLOAD','COIN_SAMPLING_STUDY','COIN_RENDER_TRACE_PHASES','COIN_SAMPLING_AUDIT','COIN_WGPU_GPU_TIMESTAMPS','COIN_BGFX_TRACE_GL_ADAPTER']},cpu_median_ms=statistics.median(values) if values else None,gpu_values_ms=gpu_values[warmup:],gpu_median_ms=statistics.median(gpu_values[warmup:]) if len(gpu_values)>warmup else None)
    rows.append(row);(out/'summary.json').write_text(json.dumps(rows,indent=2));print(key,code,'valid',valid,flush=True)
 raise SystemExit(0 if rows and all(x['valid'] for x in rows) else 1)
