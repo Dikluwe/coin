@@ -47,8 +47,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [x] Mipmaps RTT gerados dentro do GPU: wgpu POT/NPOT e BGFX POT.
   OpenGL/wgpu usa cópias internas GPU para isolar views; orçamento conservador,
   tokens tipados, falha sem publicação e recuperação.
-- [ ] Views independentes para samplers base/mips da mesma imagem em BGFX/OpenGL;
-  alias de LOD diagnosticado e combinação recusada sem publicação.
+- [x] Views independentes para samplers base/mips da mesma imagem armazenada em
+  BGFX/OpenGL: duplicação apenas do nível base, sem alias de LOD, inclusive
+  replay do cache; [controle AMD](coin-render-advanced-textures-mixed-views-20261008.md).
+- [ ] Views independentes para tokens RTT diretos compartilhados por samplers
+  base/mips em BGFX/OpenGL; combinação continua recusada antes da publicação.
 - [ ] Redução por área NPOT direta no BGFX: autogeração nativa divergente
   diagnosticada e recusada antes dos produtores.
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
@@ -122,6 +125,8 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Sampling CoinGL AMD instalado continua
   divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
+  [Decisão de 2026-10-08](coin-render-sampling-promotion-decision-20261008.md):
+  manter native padrão e a API na branch de estudo até fechar os gates listados.
 - [x] Reconciliar LargeBindings/MultiDevice: 25.600 draws independentes com clipping
   aceitando toda a geometria; upload exato GPU 96 bytes/instância, imagens/depth e
   reuso preservados; nove passes AMD Vulkan/OpenGL e NVIDIA Vulkan, incluindo stress.

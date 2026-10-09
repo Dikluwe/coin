@@ -622,32 +622,25 @@ int main(int argc, char **argv) {
     }
   }
   const int mixedExpected[] = {0, 0, 128};
+  ok &= render(
+      mixed, mixedExpected,
+      "base-only and mip consumer share one image without LOD contamination");
 #ifdef HAVE_COIN_BGFX
   if (native && selectedRenderer == COIN_RENDER_RENDERER_OPENGL) {
     mixed.revision = ++revision;
     for (auto &draw : mixed.draws)
       draw.sourceRevision = mixed.revision;
-    ok &= check(cpu.executeFrame(mixed).status ==
-                    CoinRenderBackendStatus::SUCCESS,
-                "CPU mixed sampler profile");
-    ok &= center(cpu.colorBuffer, mixedExpected,
-                 "CPU mixed sampler independent color");
-    std::vector<uint8_t> before, after;
-    native->readbackRGBA(before);
-    const auto serial = native->getPimpl()->lastSubmissionSerial;
-    auto result = native->getPimpl()->executeFrame(mixed);
-    native->readbackRGBA(after);
-    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED &&
-                    result.diagnostic.find("mix") != std::string::npos &&
-                    before == after &&
-                    serial == native->getPimpl()->lastSubmissionSerial,
-                "BGFX GL mixed samplers reject without LOD contamination or "
-                "publication");
-  } else
+    for (int replay = 0; replay < 2; ++replay) {
+      auto result = native->getPimpl()->executeFrame(mixed);
+      ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                  "BGFX GL mixed sampler replay status");
+      std::vector<uint8_t> pixels;
+      native->readbackRGBA(pixels);
+      ok &= center(pixels, mixedExpected,
+                   "BGFX GL mixed sampler replay color");
+    }
+  }
 #endif
-    ok &= render(
-        mixed, mixedExpected,
-        "base-only and mip consumer share one image without LOD contamination");
   // A long X footprint must retain Y stripes rather than blur both axes.
   auto stripes = base;
   auto &striped = stripes.textures[0];

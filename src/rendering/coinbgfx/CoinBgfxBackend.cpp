@@ -2127,16 +2127,16 @@ static CoinRenderSubmitResult bgfxTextureProfile(const CoinRenderFramePlan & fra
       return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX exposes native maximum anisotropy only (option 16); factors 2/4/8 are unavailable"};
   if (!caps) return {}; // Selected-adapter admission follows prepare.
   if(caps->rendererType==bgfx::RendererType::OpenGL && !frame.textures.empty()) {
-    // This GL connector changes the object's mip range; simultaneous base
-    // and mip views of one object contaminate each other's LOD. Admit neither
-    // an incorrect image nor a silent sampler change.
+    // This GL connector changes the object's mip range. Stored images get a
+    // separate base-level object after lowering; direct RTT tokens cannot be
+    // duplicated from CPU pixels here.
     std::vector<uint8_t> usage(frame.textures.size(),0);
     for(const auto & state:frame.renderStates)for(size_t unit=0;unit<COIN_RENDER_MAX_TEXTURE_UNITS;++unit) {
       const auto layer=coin_render_texture_unit(state,unit);
       if(!layer.enabled || layer.imageSlot>=usage.size() || layer.samplerSlot>=frame.samplers.size())continue;
       usage[layer.imageSlot]|=CoinRenderTextureSamplingCore::mipFilter(frame.samplers[layer.samplerSlot].filter)?2:1;
-      if(usage[layer.imageSlot]==3)
-        return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX OpenGL cannot mix base-only and mip samplers on one texture image"};
+      if(usage[layer.imageSlot]==3 && frame.textures[layer.imageSlot].gpuToken != 0)
+        return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX OpenGL cannot mix base-only and mip samplers on one direct texture token"};
     }
   }
   for (const auto & image : frame.textures) {
@@ -2148,6 +2148,53 @@ static CoinRenderSubmitResult bgfxTextureProfile(const CoinRenderFramePlan & fra
       return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX texture format or extent unavailable"};
   }
   return {};
+}
+
+// BGFX/OpenGL sets the sampled mip range on the GL texture object. A base-only
+// binding therefore needs its own object when another binding uses the mips.
+static void bgfxSplitStoredSamplerViews(CoinBgfxPlan & plan) {
+  const auto * caps = bgfx::getCaps();
+  if (!caps || caps->rendererType != bgfx::RendererType::OpenGL) return;
+  const size_t originalCount = plan.textures.size();
+  std::vector<uint8_t> usage(originalCount, 0);
+  const auto mark = [&](const CoinBgfxDraw & draw) {
+    if (draw.hasTexture && draw.textureSlot < originalCount)
+      usage[draw.textureSlot] |= CoinRenderTextureSamplingCore::mipFilter(draw.filter) ? 2 : 1;
+    for (const auto & layer : draw.extraTextures)
+      if (layer.enabled && layer.slot < originalCount)
+        usage[layer.slot] |= CoinRenderTextureSamplingCore::mipFilter(layer.filter) ? 2 : 1;
+  };
+  for (const auto & draw : plan.draws) mark(draw);
+  for (const auto & draw : plan.shadowDraws) mark(draw);
+  std::vector<size_t> baseSlots(originalCount, SIZE_MAX);
+  for (size_t slot = 0; slot < originalCount; ++slot) {
+    if (usage[slot] != 3 || plan.textures[slot].gpuToken != 0) continue;
+    const auto & source = plan.textures[slot];
+    const size_t baseBytes = CoinRenderTextureFormatCore::levelBytes(
+      source.width, source.height, source.format);
+    if (baseBytes > source.pixelsRgba.size()) continue; // Existing upload validation rejects it.
+    CoinBgfxTexture base;
+    base.format = source.format;
+    base.width = source.width;
+    base.height = source.height;
+    base.pixelsRgba.assign(source.pixelsRgba.begin(),
+      source.pixelsRgba.begin() + baseBytes);
+    baseSlots[slot] = plan.textures.size();
+    plan.textures.push_back(std::move(base));
+  }
+  const auto redirect = [&](CoinBgfxDraw & draw) {
+    if (draw.hasTexture && draw.textureSlot < originalCount &&
+        !CoinRenderTextureSamplingCore::mipFilter(draw.filter) &&
+        baseSlots[draw.textureSlot] != SIZE_MAX)
+      draw.textureSlot = static_cast<uint32_t>(baseSlots[draw.textureSlot]);
+    for (auto & layer : draw.extraTextures)
+      if (layer.enabled && layer.slot < originalCount &&
+          !CoinRenderTextureSamplingCore::mipFilter(layer.filter) &&
+          baseSlots[layer.slot] != SIZE_MAX)
+        layer.slot = static_cast<uint32_t>(baseSlots[layer.slot]);
+  };
+  for (auto & draw : plan.draws) redirect(draw);
+  for (auto & draw : plan.shadowDraws) redirect(draw);
 }
 
 CoinRenderSubmitResult
@@ -2290,6 +2337,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                               this->drawBatchingEnabled, target.submissionPreflight(frame), compact)) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
+    bgfxSplitStoredSamplerViews(freshPlan);
     plan = &freshPlan;
   }
   std::vector<CoinBgfxVertexRange> materialRanges;
@@ -3148,6 +3196,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         bgfx::getCaps()->homogeneousDepth, plan, this->lastError, hasShadows)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  bgfxSplitStoredSamplerViews(plan);
   CoinBgfxTransparencyStrategy strategy;
   if (!CoinBgfxLowering::selectTransparencyStrategy(plan.draws,
         CoinBgfxTransparencyMode::AUTO, this->weightedOitSupported,

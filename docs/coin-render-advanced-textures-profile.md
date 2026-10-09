@@ -75,11 +75,13 @@ primeiro produtor. Formato e presença de cadeia fazem parte dos metadados do
 token; owner, device, geração, tamanho e aposentadoria mantêm o contrato anterior.
 SRGB/formato e anisotropia participam da deduplicação/cache/batching.
 Samplers de base e de mips podem compartilhar a mesma imagem em Vulkan e wgpu.
-No BGFX/OpenGL, essa combinação é recusada por frame: a API desta integração
-muda o intervalo de mips do objeto, contaminando o outro sampler. O controle
-espera azul 128 e encontrou erro máximo 64 antes da admissão explícita.
-A implementação futura precisa de views/recursos independentes; não se muda
-silenciosamente o filtro escolhido.
+No BGFX/OpenGL, imagens armazenadas recebem outro objeto com apenas o nível
+base para o sampler sem mips. A integração muda o intervalo de mips do objeto,
+portanto os dois objetos evitam contaminação de LOD. O controle espera azul 128:
+o erro máximo, antes 64, é agora zero no AMD/OpenGL, inclusive em replay.
+Tokens RTT diretos ainda não têm cópia independente nesta rota e continuam
+recusados por frame antes da publicação quando misturam os dois samplers.
+Detalhes em [controle de views de 2026-10-08](coin-render-advanced-textures-mixed-views-20261008.md).
 
 wgpu produz a cadeia com passes compute. Em OpenGL, usa uma textura de fonte
 isolada por redução e cópias dentro do GPU para evitar alias de views/nível base.
