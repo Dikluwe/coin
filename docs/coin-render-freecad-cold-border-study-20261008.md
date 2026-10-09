@@ -32,12 +32,14 @@ O teste posterior aquecido `sampling-startup-before-text` versus
 transição ao primeiro uso do host; não identifica se a origem é estado de
 seleção/estilo do FreeCAD, cache de geometria ou apresentação inicial.
 
-Próximo controle: repetir a sequência sem mutar a string, mutar a string com
+Plano de controle definido após o FAIL histórico: repetir a sequência sem
+mutar a string, mutar a string com
 o switch oculto e mutar um nó não textual, capturando a moldura após cada
 redraw. Registrar o estado de seleção e o estilo do objeto do documento em
 cada captura. Comparar native/portable com o mesmo host e sequência de frames.
 Manter o gate `remaining_changes <= 30` e
-`cold_start_qualified=false` até haver repetição controlada.
+`cold_start_qualified=false` até haver qualificação fria controlada. Os
+controles executados neste PC estão registrados abaixo.
 
 ## Controles executados neste PC
 
@@ -54,12 +56,13 @@ terminaram com `PASS`, GPU física `0x1002:0x1638` e política ativa `1`:
 | `hidden-image-mutation` | mutar imagem oculta | 0 |
 
 Isso confirma que os controles produzem capturas estáveis na AMD; não reproduz
-a transição NVIDIA. Uma tentativa NVIDIA/wgpu/Vulkan foi recusada antes da
+a transição histórica. Uma tentativa NVIDIA/wgpu/Vulkan foi recusada antes da
 primeira captura: `No physical adapter for the requested renderer and surface`.
 Nesta sessão, o módulo NVIDIA carregado é 610.57.04 e a biblioteca NVML
 instalada informa 615.71 (`Driver/library version mismatch`). Esse processo
-não conta como teste de raster ou de sampling. Repetir a matriz NVIDIA depois
-de restaurar a compatibilidade do driver, sem trocar o oracle ou o gate.
+não conta como teste de raster ou de sampling. A matriz NVIDIA foi repetida
+após restaurar a compatibilidade do driver, sem trocar o oracle ou o gate;
+os resultados aparecem abaixo.
 
 Resultados e imagens completos estão no root durável
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-20261008`.
@@ -81,16 +84,46 @@ GLX/EGL NVIDIA RTX 3060, e `CoinRenderAdvancedTextureTest --gpu` em BGFX/Vulkan
 identificou `10de:2560` e passou 380 controles. Portanto o bloqueio anterior
 de versão do driver foi removido.
 
-A repetição `wgpu`/Vulkan/portable do cold start ainda não produziu capturas:
-o FreeCAD privado abortou antes da macro com `no Qt platform plugin could be
-initialized` para `xcb` (exit `-6`). O sistema tem `libxcb-cursor0`, e um
-`QApplication` PySide6 mínimo abriu em `xcb` no mesmo compositor. Tentar as
-bibliotecas Qt de sistema, as de PySide6 e limpar variáveis Qt herdadas não
-alterou a falha do binário FreeCAD. Isso é falha de inicialização do host,
-não resultado de rendering. O gate cold start e `cold_start_qualified=false`
-permanecem abertos.
+A primeira repetição com o shell padrão `kiosk-shell.so` abortou antes da macro:
+Qt informou que o plugin `xcb` não pôde ser inicializado (exit `-6`). O trace
+mostrou `ECONNREFUSED` no socket X11 e o coredump do Weston apontou SIGSEGV
+em `weston_view_move_to_layer` chamado por `kiosk-shell.so` quando a janela do
+FreeCAD surgiu. O erro Qt foi consequência da queda do compositor. Com
+`--weston-shell desktop-shell.so`, o mesmo host iniciou e renderizou na RTX 3060.
 
-Logs e sondas desta sessão estão em
+Oito processos de diagnóstico `wgpu`/Vulkan em GPU física `10de:2560` passaram:
+os quatro cenários abaixo com política portable (`1`) e native (`0`). Em ambos,
+o diff RGB final contra `cold-before` foi zero para todos os cenários. A
+moldura histórica `x=365..734`, `y=135..504` também teve diff zero em todas as
+capturas intermediárias. O texto visível alterou 700 pixels e a mutação de sua
+string alterou 712, conforme esperado; após ocultá-lo, o diff voltou a zero.
+
+| Cenário | Portable | Native | Diff final |
+| --- | --- | --- | ---: |
+| `visible-no-mutation` | PASS | PASS | 0 |
+| `visible-mutation` | PASS | PASS | 0 |
+| `hidden-mutation` | PASS | PASS | 0 |
+| `hidden-image-mutation` | PASS | PASS | 0 |
+
+O gate padrão `freecad-sampling-policy`, sem a variável de diagnóstico, também
+passou em portable e native no host NVIDIA. As primeiras execuções terminaram
+no timeout de 45 s; a repetição com `--timeout 120` concluiu com `PASS` nas duas
+políticas e `startup_root_changes=0`. O fixture padrão segue registrando
+`cold_start_qualified=false`. Os processos de diagnóstico exercitam a sequência
+fria, mas não substituem a qualificação do gate histórico: a borda de 1.476
+pixels não reapareceu, e driver e shell mudaram entre as coletas. A causa
+daquela transição permanece aberta; não há base para atribuí-la ao sampling,
+ao driver ou ao shell isoladamente. Oracle e tolerância não foram alterados.
+
+[Resumo calculado, resultados e capturas](validation/cold-border-nvidia-after-driver-20261008/summary.json)
+estão no ledger versionado. Para repetir neste host, usar
+`testsuite/qt-quarter/run_isolated.py --server xwayland --weston-shell desktop-shell.so`
+com o mesmo `--weston-prefix`, host privado, `--require-hardware` e seletor
+`COIN_TEST_COLD_BORDER_DIAGNOSTIC` dos quatro cenários; definir
+`COIN_TEST_PORTABLE_SAMPLING=1` ou `0`. Para o gate padrão, omitir o seletor
+de diagnóstico e usar `--timeout 120`.
+
+Logs, resultados integrais e sondas desta sessão estão em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-after-driver-20261008`.
 O checkout original do estudo não persistiu após o reboot; a mesma branch foi
 restaurada em um novo worktree no commit `ff267411f6` para estas tentativas.

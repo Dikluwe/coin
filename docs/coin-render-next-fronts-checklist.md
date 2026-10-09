@@ -111,14 +111,15 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   Oito texturas portáteis custam 1,48–3,30× GPU no fixture; native segue padrão.
 - [ ] Estudar a transição inicial da borda do documento no FreeCAD/NVIDIA/wgpu
   portable: matriz sem aquecimento de texto 11/12 PASS, um FAIL de 1.476 pixels
-  de borda, sem glyphs restantes. O [recorte do diff e próximo controle](coin-render-freecad-cold-border-study-20261008.md)
+  de borda, sem glyphs restantes. O [recorte do diff e os controles](coin-render-freecad-cold-border-study-20261008.md)
   isolam a moldura de 370×370 e a transição após mutar SoText2; a causa
   permanece aberta. Quatro controles AMD físicos tiveram diff final zero;
-  a repetição NVIDIA ficou sem adaptador nesta sessão (driver/biblioteca
-  incompatíveis). Após reinicialização, NVIDIA 615.71.09 e BGFX/Vulkan físico
-  380/380 PASS; FreeCAD privado agora aborta no Qt `xcb` antes da macro
-  ([diagnóstico](coin-render-freecad-cold-border-study-20261008.md)).
-  O fechamento aquecido não corrige cold start.
+  a primeira tentativa NVIDIA ficou sem adaptador por incompatibilidade do
+  driver. Após reinicialização, NVIDIA 615.71.09 e BGFX/Vulkan físico 380/380
+  PASS. O shell `kiosk-shell.so` derrubou o Weston ao abrir o FreeCAD; com
+  `desktop-shell.so`, oito controles frios NVIDIA native/portable e dois gates
+  padrão passaram, sem diferença na borda. A transição histórica não reapareceu
+  e o gate ainda registra `cold_start_qualified=false` ([ledger e limites](coin-render-freecad-cold-border-study-20261008.md)).
 - [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
   CPU de 128 MiB; plano não retido, lowering ~1,025 s e upload ~126 ms repetidos,
   apesar de reuso dos buffers GPU. Native e portable têm o mesmo gargalo.
