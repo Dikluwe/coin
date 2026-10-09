@@ -932,6 +932,12 @@ if(COIN_BUILD_RENDER)
 		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 	add_test(NAME CoinRenderTextureSamplingCaptureTest COMMAND CoinRenderTextureSamplingTest)
+	if(NOT SIMAGE_RUNTIME_LINKING AND NOT HAVE_LIBSIMAGE)
+		add_test(NAME CoinRenderTextureSamplingGluFallbackTest
+			COMMAND CoinRenderTextureSamplingTest --scale-policy-pot-glu-probe)
+		set_tests_properties(CoinRenderTextureSamplingGluFallbackTest PROPERTIES
+			ENVIRONMENT "COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES=1;COIN_GLX_PIXMAP_DIRECT_RENDERING=1;COIN_GLXGLUE_NO_PBUFFERS=1")
+	endif()
 	add_test(NAME CoinRenderTextureSamplingConfigLimitTest COMMAND CoinRenderTextureSamplingTest --reject-config)
 	set_tests_properties(CoinRenderTextureSamplingConfigLimitTest PROPERTIES TIMEOUT 60 ENVIRONMENT "COIN_TEX2_LINEAR_LIMIT=0.4")
 	set_tests_properties(CoinRenderTextureSamplingCaptureTest PROPERTIES TIMEOUT 120)

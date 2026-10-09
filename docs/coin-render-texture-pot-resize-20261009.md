@@ -107,6 +107,15 @@ fallback por vizinho passou em AMD/Vulkan nas mesmas 24 combinações,
 GPU/CoinGL máximo 1. A validação cobre GLU 1.3 neste Linux; outras
 implementações de GLU e plataformas ainda requerem execução própria.
 
+O gate `CoinRenderTextureSamplingGluFallbackTest` força ausência de simage
+na configuração (`SIMAGE_RUNTIME_LINKING=OFF` e
+`CMAKE_DISABLE_FIND_PACKAGE_simage=TRUE`) e recusa a execução se GLU não
+estiver disponível. Com backend `RECORDING`, as comparações CPU/CoinGL
+não exigem BGFX. Neste Linux, `xvfb-run` passou os testes de captura e
+fallback GLU (2/2). A matriz em
+`.github/workflows/coin-glu-pot-fallback.yml` executa esse gate em
+Ubuntu, Windows e macOS quando a branch de estudo recebe um push.
+
 Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
 entre contextos cobre o caminho POT do override legado; outros caminhos de

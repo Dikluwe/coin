@@ -6,6 +6,8 @@
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
+#include "glue/GLUWrapper.h"
+#include "glue/simage_wrapper.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
@@ -809,6 +811,11 @@ int main(int argc, char **argv) {
     return scalePolicyProbe() ? 0 : 1;
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-probe")
     return scalePolicyPotProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-glu-probe") {
+    if (!check(!simage_wrapper()->available && GLUWrapper()->available,
+               "GLU POT probe requires GLU and no simage")) return 1;
+    return scalePolicyPotProbe() ? 0 : 1;
+  }
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-cache-probe")
     return scalePolicyPotCacheProbe() ? 0 : 1;
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-compression-probe")
