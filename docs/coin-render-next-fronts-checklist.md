@@ -83,8 +83,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   zero. A captura agora consulta validade e flags persistentes do `SoGLImage`
   no nó; a sonda de troca de contexto com política, qualidade de escala,
   notificação de wrap e compressão passou em AMD/NVIDIA Vulkan e
-  NVIDIA/Mesa OpenGL (máximo 1 para escala, 0 para compressão). Mudança de
-  `textureQuality` sem notificação entre contextos ainda precisa de sonda.
+  NVIDIA/Mesa OpenGL. `textureQuality` alterada sem notificação agora conserva
+  a qualidade do upload para filtro e extensão POT; a sonda 300×300 cobre
+  256×256 antes da notificação e 512×512 após ela (máximo 2 para
+  escala/qualidade, 0 para compressão).
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

@@ -458,6 +458,53 @@ bool scalePolicyPotContextProbe()
       !check(fourth.capture->frame.textures.size() == 1 &&
              fourth.capture->frame.textures[0].width == 16,
              "POT context keeps scale-down across renderers")) return false;
+  scene.quality->textureQuality = .1f;
+  Harness changedQuality(true);
+  if (!changedQuality.render(scene, "POT context textureQuality change", false))
+    return false;
+  scene.quality->textureQuality = .8f;
+  if (!changedQuality.render(scene, "POT context second textureQuality change", false))
+    return false;
+  scene.images[0]->wrapT = SoTexture2::CLAMP;
+  Harness refreshedQuality(true);
+  if (!refreshedQuality.render(scene, "POT context textureQuality reupload", false) ||
+      !check(refreshedQuality.capture->frame.samplers.size() == 1 &&
+             refreshedQuality.capture->frame.samplers[0].filter ==
+                 CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR,
+             "POT context applies textureQuality on reupload")) return false;
+
+  Scene threshold(4, SoTexture2::REPLACE, 1, false, false);
+  auto * thresholdPolicy = new SoTextureScalePolicy;
+  thresholdPolicy->policy = SoTextureScalePolicy::USE_TEXTURE_QUALITY;
+  thresholdPolicy->quality = .3f;
+  threshold.root->insertChild(thresholdPolicy, 3);
+  threshold.quality->textureQuality = .3f;
+  std::vector<uint8_t> large(300 * 300 * 4, 255);
+  for (int y = 0; y < 300; ++y)
+    for (int x = 0; x < 300; ++x) {
+      const size_t at = size_t(y * 300 + x) * 4;
+      large[at] = uint8_t(x * 255 / 299);
+      large[at + 1] = uint8_t(y * 255 / 299);
+      large[at + 2] = uint8_t((x + y) * 255 / 598);
+    }
+  threshold.images[0]->image.setValue(SbVec2s(300, 300), 4, large.data());
+  Harness thresholdFirst(true);
+  if (!thresholdFirst.render(threshold, "POT context quality threshold first", false) ||
+      !check(thresholdFirst.capture->frame.textures.size() == 1 &&
+             thresholdFirst.capture->frame.textures[0].width == 256,
+             "POT context low quality chooses 256")) return false;
+  threshold.quality->textureQuality = .8f;
+  Harness thresholdHeld(true);
+  if (!thresholdHeld.render(threshold, "POT context quality threshold held", false) ||
+      !check(thresholdHeld.capture->frame.textures.size() == 1 &&
+             thresholdHeld.capture->frame.textures[0].width == 256,
+             "POT context valid upload retains 256")) return false;
+  threshold.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness thresholdRefreshed(true);
+  if (!thresholdRefreshed.render(threshold, "POT context quality threshold reupload", false) ||
+      !check(thresholdRefreshed.capture->frame.textures.size() == 1 &&
+             thresholdRefreshed.capture->frame.textures[0].width == 512,
+             "POT context new upload chooses 512")) return false;
 
   Scene compressed(4, SoTexture2::REPLACE, 1, false, false);
   auto * compressionPolicy = new SoTextureScalePolicy;

@@ -749,6 +749,28 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     rs.samplerSlot = 0;
     return true;
   }
+  // The GL image stores textureQuality at setData() time. A new GL context
+  // rebuilds its texture from that value without refreshing the upload.
+  const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
+  const bool legacyPotOverride = disableNpot && std::atoi(disableNpot) != 0;
+  const auto authored = this->authoredTextureSources.find(rawBytes);
+  const SoTexture2 * sourceNode = authored == this->authoredTextureSources.end() ?
+    nullptr : authored->second.node;
+  const SbUniqueId sourceRevision = sourceNode ? authored->second.revision : 0;
+  SbBool glUploadValid = FALSE, glScaleDown = FALSE, glCompressed = FALSE;
+  float glQuality = 0.0f;
+  const bool glImageExists = legacyPotOverride && sourceNode &&
+    sourceNode->getGLImageUploadHints(glUploadValid, glScaleDown, glCompressed, glQuality);
+  const float currentQuality = quality;
+  if (legacyPotOverride && sourceNode) {
+    if (glUploadValid) quality = glQuality;
+    else {
+      const auto cached = this->legacyPotImages.find(sourceNode);
+      if (cached != this->legacyPotImages.end() &&
+          cached->second.revision == sourceRevision)
+        quality = cached->second.quality;
+    }
+  }
   if (SoTextureScalePolicyElement::get(state) ==
       SoTextureScalePolicyElement::FRACTURE) {
     this->isUnsupported = true;
@@ -769,8 +791,9 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       if(outError)*outError=this->builderError;return false;
     }
   }
-  CoinRenderTextureFilter filter;
-  if (!CoinRenderTextureSamplingCore::quality(quality,filter)) {
+  CoinRenderTextureFilter filter, currentFilter;
+  if (!CoinRenderTextureSamplingCore::quality(currentQuality, currentFilter) ||
+      !CoinRenderTextureSamplingCore::quality(quality,filter)) {
     if (outError) *outError = "Texture quality must be finite in [0,1]";
     this->isUnsupported = true;
     this->builderError = outError ? *outError : "Unsupported P07 texture quality";
@@ -894,11 +917,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   tSnap.pixelsRgba = std::move(rgba);
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
   // Match its nearest and simage paths; the GLU fallback remains unsupported.
-  const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
   bool useCompressedTexture = !isSceneTexture && this->compressedTextureImages.count(rawBytes);
   const SoTexture2 * pendingPotNode = nullptr;
   LegacyPotImage pendingPotImage{};
-  if (!isSceneTexture && disableNpot && std::atoi(disableNpot) != 0) {
+  if (!isSceneTexture && legacyPotOverride) {
     if (const char * scaleLimit = std::getenv("COIN_TEX2_SCALEUP_LIMIT")) {
       if (static_cast<float>(std::atof(scaleLimit)) != .7f) {
         this->isUnsupported = true;
@@ -907,10 +929,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
         return false;
       }
     }
-    const auto authored = this->authoredTextureSources.find(rawBytes);
-    const SoTexture2 * sourceNode = authored == this->authoredTextureSources.end() ?
-      nullptr : authored->second.node;
-    const SbUniqueId sourceRevision = sourceNode ? authored->second.revision : 0;
     auto cached = sourceNode ? this->legacyPotImages.find(sourceNode) :
                                this->legacyPotImages.end();
     bool priorCompression = false;
@@ -929,9 +947,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     } else {
       useCompressedTexture = useCompressedTexture || priorCompression;
       const auto policy = SoTextureScalePolicyElement::get(state);
-      SbBool glUploadValid = FALSE, glScaleDown = FALSE, glCompressed = FALSE;
-      const bool glImageExists = sourceNode && sourceNode->getGLImageUploadHints(
-          glUploadValid, glScaleDown, glCompressed);
       // With a valid upload, SoTexture2 skips setData() in a new context:
       // current hints are ignored and only persistent SoGLImage flags apply.
       // After notification, setData() ORs the new hints into those flags.
@@ -988,7 +1003,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
           }
           pendingPotNode = sourceNode;
           pendingPotImage = {sourceRevision, tSnap.width, tSnap.height,
-                             useCompressedTexture,
+                             useCompressedTexture, quality,
                              tSnap.pixelsRgba};
         }
       }

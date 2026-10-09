@@ -67,15 +67,17 @@ O CoinGL preserva a validade e as flags do `SoGLImage` no nó, enquanto cria
 uma textura GL por contexto. A captura agora lê esses hints no nó: enquanto
 o upload é válido, a política nova não muda o resize; após notificação de
 wrap, `SCALE_DOWN` entra em vigor; em outros contextos, essa flag e a escolha
-BC3 continuam persistentes. A sonda cobre cinco renderizadores sequenciais
-para escala e três para compressão. Passou em AMD/NVIDIA Vulkan e
-NVIDIA/Mesa OpenGL, com erro GPU/CoinGL máximo 1 para escala e 0 para a
+BC3 continuam persistentes. A captura também usa a `textureQuality` guardada
+no `SoGLImage` para filtro e extensão POT até que a imagem seja notificada.
+A sonda cobre mudanças 0,3→0,1→0,8 sem notificação, reupload em 0,8 e o
+limiar 300×300→256×256/512×512. Passou em AMD/NVIDIA Vulkan e NVIDIA/Mesa
+OpenGL, com erro GPU/CoinGL máximo 2 para escala/qualidade e 0 para a
 imagem uniforme comprimida.
 O gate CPU completo continuou em 234 cenas e quatro recusas esperadas. O
 gate GPU AMD geral ainda retorna a divergência projetiva conhecida em
 `textureQuality=0,5`; as sondas POT desta mudança passaram.
 
 Ainda falta reproduzir em dispositivo sem NPOT nativo, tratar o fallback GLU,
-limitar pelo máximo físico do adaptador e cobrir 3D. A paridade de
-`textureQuality` alterada sem notificação entre contextos não foi coberta
-por esta sonda.
+limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
+entre contextos cobre o caminho POT do override legado; outros caminhos de
+textura permanecem nos seus contratos próprios.

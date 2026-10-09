@@ -202,6 +202,7 @@ private:
     SbUniqueId revision;
     uint32_t width, height;
     bool compressed;
+    float quality;
     std::vector<uint8_t> pixels;
   };
   // CoinGL keeps its first resized upload until the SoTexture2 node changes.
