@@ -1,5 +1,7 @@
 // A small native-GLU oracle independent of Coin's offscreen renderer.
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -12,8 +14,10 @@
 #include <OpenGL/OpenGL.h>
 #include <OpenGL/gl.h>
 #include <OpenGL/glu.h>
+#elif defined(__linux__)
+#include <GL/freeglut.h>
 #else
-#error This oracle is for Windows and macOS.
+#error This oracle requires desktop OpenGL.
 #endif
 
 namespace {
@@ -45,7 +49,7 @@ struct Context {
     if (window) DestroyWindow(window);
   }
 };
-#else
+#elif defined(__APPLE__)
 struct Context {
   CGLPixelFormatObj format = nullptr;
   CGLContextObj gl = nullptr;
@@ -81,6 +85,17 @@ struct Context {
     if (format) CGLDestroyPixelFormat(format);
   }
 };
+#else
+struct Context {
+  bool create() {
+    int argc = 1;
+    char name[] = "Coin GLU oracle";
+    char *argv[] = {name, nullptr};
+    glutInit(&argc, argv);
+    glutInitDisplayMode(GLUT_RGBA);
+    return glutCreateWindow(name) > 0;
+  }
+};
 #endif
 } // namespace
 
@@ -108,5 +123,36 @@ int main() {
     if (std::abs(int(output[i * 4]) - expected[i]) > 1 ||
         output[i * 4 + 3] != 255)
       return 1;
-  return result == 0 ? 0 : 1;
+  if (result != 0) return 1;
+
+  for (const int extent : {16, 32}) {
+    CoinRenderTextureImageSnapshot image;
+    image.width = 17;
+    image.height = 19;
+    image.pixelsRgba.resize(size_t(image.width) * image.height * 4);
+    for (uint32_t y = 0; y < image.height; ++y)
+      for (uint32_t x = 0; x < image.width; ++x)
+        for (int c = 0; c < 4; ++c)
+          image.pixelsRgba[(size_t(y) * image.width + x) * 4 + c] =
+              static_cast<uint8_t>((x * 37 + y * 19 + c * 53) & 255);
+    const auto source = image.pixelsRgba;
+    std::vector<unsigned char> native(size_t(extent) * extent * 4);
+    const GLint error = gluScaleImage(GL_RGBA, 17, 19, GL_UNSIGNED_BYTE,
+                                      source.data(), extent, extent,
+                                      GL_UNSIGNED_BYTE, native.data());
+    if (error || !CoinRenderTextureSamplingCore::legacyResizeGlu(
+                     image, uint32_t(extent), uint32_t(extent)))
+      return 1;
+    int maximum = 0;
+    double total = 0;
+    for (size_t i = 0; i < native.size(); ++i) {
+      const int delta = std::abs(int(native[i]) - int(image.pixelsRgba[i]));
+      maximum = std::max(maximum, delta);
+      total += delta;
+    }
+    std::cout << "17x19->" << extent << 'x' << extent
+              << " max=" << maximum << " mae=" << total / native.size() << '\n';
+    if (maximum > 2 || total / native.size() > 0.6) return 1;
+  }
+  return 0;
 }

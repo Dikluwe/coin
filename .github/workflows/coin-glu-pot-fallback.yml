@@ -30,7 +30,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libglu1-mesa-dev libx11-dev libxext-dev xvfb xauth
+          sudo apt-get install -y libglu1-mesa-dev freeglut3-dev libx11-dev libxext-dev xvfb xauth
       - name: Configure Unix build without simage
         if: runner.os != 'Windows'
         run: >-
@@ -57,13 +57,12 @@ jobs:
       - name: Build texture sampling probe
         run: cmake --build build-glu --target CoinRenderTextureSamplingTest --config Release --parallel 4
       - name: Build native GLU oracle
-        if: runner.os != 'Linux'
         run: cmake --build build-glu --target CoinRenderGluNativeOracle --config Release --parallel 4
       - name: Compare GLU POT fallback on Linux
         if: runner.os == 'Linux'
         run: >-
           xvfb-run -a ctest --test-dir build-glu -C Release
-          -R 'CoinRenderTextureSampling(Capture|GluFallback)Test'
+          -R '^(CoinRenderTextureSampling(Capture|GluFallback)|CoinRenderGluNativeOracle)Test$'
           --output-on-failure
       - name: Compare against native GLU on Windows and macOS
         if: runner.os != 'Linux'

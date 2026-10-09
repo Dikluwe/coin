@@ -135,6 +135,20 @@ compara uma borda reamostrada pelo GLU nativo com o resultado CPU esperado.
 O workflow executa esse oráculo em Windows e nos dois macOS, conservando a
 sonda CoinGL macOS como diagnóstico não bloqueante.
 
+Na terceira execução [#37964721458](https://github.com/Dikluwe/coin/actions/runs/37964721458),
+os quatro jobs passaram: Ubuntu integrou a sonda CoinGL; Windows, macOS 14
+Apple Silicon e macOS 15 Intel criaram um contexto mínimo e confirmaram com
+seus GLUs nativos o vetor de borda `15,15,25,25`. Ambos os macOS também
+passaram a captura CPU. A tentativa diagnóstica de integração CoinGL nos
+runners macOS continua limitada pelo formato CGL offscreen; o teste não
+bloqueia o oráculo nativo. O caminho completo no runtime estático Windows
+permanece sem validação por seu timeout anterior.
+
+O oráculo nativo foi ampliado para comparar a função de produção
+`legacyResizeGlu` com `gluScaleImage` em imagens RGBA 17×19 para 16×16 e
+32×32, além do vetor de borda. No Linux Mesa GLU 1.3, máximo 1 por canal,
+MAE 0,228 e 0,192 respectivamente; os três testes CTest passaram em Xvfb.
+
 Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
 entre contextos cobre o caminho POT do override legado; outros caminhos de
