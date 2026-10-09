@@ -37,6 +37,8 @@
 #include <cassert>
 #include <cstddef> // NULL definition
 
+class SoCallbackListP;
+
 class COIN_DLL_API SbPList {
   enum { DEFAULTSIZE = 4 };
 
@@ -73,6 +75,7 @@ protected:
 
 private:
   static void invalidIndex(const char * operation);
+  friend class SoCallbackListP;
   void expandindex(const int index) const;
   void expandlist(const int size) const;
   void grow(const int size = -1);
