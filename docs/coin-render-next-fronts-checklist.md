@@ -161,7 +161,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   portátil continua obrigatório. O
   [oracle Mesa estrito e os ensaios de registradores](coin-render-mesa-clip-boundary-20261009.md)
   mostram a borda e os pontos ausentes no radeonsi, com controle llvmpipe;
-  a correção no driver continua aberta.
+  o protótipo de geometry shader nessa investigação gera 18/18 pixels de borda
+  e 4+4 pixels nos pontos das extremidades para plano fixo e
+  `gl_ClipDistance`; ele ainda emite o ponto da diagonal interna da
+  triangulação, portanto a integração geral no Mesa continua aberta.
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
   retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,

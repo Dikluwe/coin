@@ -44,6 +44,45 @@ O [ensaio anterior de `USE_VTX_EDGE_FLAG=0`](coin-render-raster-amd-followup-202
 também não restaurou a borda. Os [logs do oracle](validation/raster-clip-edge-mesa-fix-20261009)
 preservam os resultados, sem caminhos locais de build.
 
+## Protótipo de tratamento por geometry shader
+
+O [reproducer de geometry shader](../testsuite/reproducers/raster-clip-edge/RasterClipBoundaryGsProbe.cpp)
+gera os dois pontos de interseção de cada triângulo com o plano e os emite
+como `line_strip` ou `points`. Ele usa posições em espaço de recorte e interpola
+a cor; a variante com shader lê `gl_ClipDistance[0]` diretamente. O caminho de
+plano fixo usa uma constante equivalente para o caso ortográfico do oracle.
+`GL_PROGRAM_POINT_SIZE` é necessário quando o geometry shader escreve
+`gl_PointSize`.
+
+No Mesa privado com radeonsi Renoir, o protótipo passou nas quatro combinações:
+
+| Plano | `line_strip`, coluna x16 | `points`, extremidades x16 |
+| --- | ---: | ---: |
+| Fixo | 18/18 | 4+4 |
+| `gl_ClipDistance[0]` | 18/18 | 4+4 |
+
+O mesmo resultado ocorreu no llvmpipe. Cada triângulo também gera um ponto na
+interseção da diagonal interna com o plano; no modo `POINT`, isso soma seis
+pixels na região central da coluna x16. Esse ponto é correto para dois
+triângulos, mas indevido para o `GL_POLYGON` único do oracle. A medição demonstra
+que o geometry shader da GPU consegue rasterizar as interseções; ela
+**não** corrige o Mesa nem é equivalente ao contorno completo de `GL_POLYGON`.
+O [oracle estrito sem o shader suplementar](../testsuite/reproducers/raster-clip-edge/RasterClipEdgeGlOracle.cpp)
+continua falhando no radeonsi.
+[Saída do protótipo na AMD](validation/raster-clip-edge-mesa-fix-20261009/gs-probe-amd.log).
+
+Para integrar o tratamento no Mesa, o shader gerado deve receber todos os
+varyings do estágio anterior, interpolar atributos `smooth` e `noperspective`
+segundo as respectivas regras, conservar `flat` no vértice provocador, e
+transportar tamanho do ponto e identificadores. Também precisa lidar com os
+seis planos do frustum, até oito planos do usuário e `gl_ClipDistance`, faces,
+flags de aresta, culling, depth/stencil, stipple, blend, transform feedback e
+programas que já usam geometry/tessellation shaders. Também deve preservar a
+identidade das arestas externas antes da decomposição de `GL_POLYGON`, para
+não introduzir vértices na diagonal interna. O protótipo cobre apenas um
+plano, triângulos, cor simples e parte dos estados usados pelo oracle. Não deve ser
+promovido como patch do driver.
+
 ## Trabalho restante
 
 Uma correção precisa gerar a geometria do polígono **depois** do clipping e
