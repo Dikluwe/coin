@@ -119,6 +119,14 @@ driver. Nenhuma tolerância ou driver instalado foi modificado.
 [Logs AMD](validation/raster-clip-edge-20261009/amd-shader-clip.log) e
 [llvmpipe](validation/raster-clip-edge-20261009/llvmpipe-shader-clip.log).
 
+Uma alteração experimental no Mesa privado forçou
+`S_02881C_USE_VTX_EDGE_FLAG(false)` em `si_get_vs_out_cntl()`.
+O carregamento do `libgallium` experimental foi confirmado no processo; a
+borda nova continuou em `0/18`, tanto com plano fixo quanto com distância de
+shader. Essa flag de saída do vertex shader, isoladamente, não é a causa.
+O fonte e o build privados foram restaurados depois do teste.
+[Log](validation/raster-clip-edge-20261009/amd-private-no-vtx-edgeflag.log).
+
 A diferença anterior de geometria completa
 `bindings/0/7/generated-0/alpha-0/fast-0` foi reproduzida em uma sonda
 isolada (`--probe-lighting` em `CoinRenderGeometryViewportTest`). Na AMD,
