@@ -59,7 +59,9 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   sombras, transparência e mips NPOT passou em oito perfis AMD/NVIDIA
   Vulkan/OpenGL; NVIDIA/OpenGL exige EGL surfaceless neste PC. O custo de
   captura sincronizada NPOT sem/com mips foi medido exploratoriamente.
-  Faltam isolar o custo GPU dos mips se necessário e qualificar Windows/DX11.
+  O custo dos cinco frames GPU de mips foi isolado em 8/8 perfis, com mediana
+  0,0477–0,1558 ms neste fixture; [método e ledger](coin-render-bgfx-npot-mip-gpu-20261009.md).
+  Falta qualificar Windows/DX11.
   [Implementação](coin-render-bgfx-npot-direct-mips-plan-20261008.md) e
   [continuação do gate](coin-render-bgfx-npot-shadow-oit-20261009.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,

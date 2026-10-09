@@ -220,6 +220,11 @@
   phases. Adding <tt>COIN_WGPU_GPU_TIMESTAMPS=1</tt> probes the BGFX GPU
   frame timestamp with extra frame advancement; do not use those perturbed
   runs as the Release performance comparison.
+  For direct NPOT render-to-texture, the same flags also report
+  <tt>rtt_npot_mips_gpu</tt>: the sum of area-reduction view timestamps and the
+  GPU frame timestamps of the mip steps (including blits). Delayed BGFX
+  timestamps require diagnostic drain frames, so incomplete results are
+  reported as unavailable rather than partial totals.
 
   \section coin_render_limits Experimental status
 

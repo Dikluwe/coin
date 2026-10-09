@@ -3214,6 +3214,10 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const bool manualMips = frame.outputMipmaps &&
     (!CoinRenderTextureSamplingCore::powerOfTwo(size[0]) ||
      !CoinRenderTextureSamplingCore::powerOfTwo(size[1]));
+  const char * timestampFlag = std::getenv("COIN_WGPU_GPU_TIMESTAMPS");
+  const bool traceNpotGpu = manualMips &&
+    CoinRenderDiagnosticShell::phaseTracingEnabled() && timestampFlag &&
+    std::strcmp(timestampFlag, "1") == 0;
   if(frame.outputMipmaps && !manualMips &&
      !(runtimeCaps->formats[outputFormat]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))
     return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX format lacks direct GPU mip generation"};
@@ -3233,6 +3237,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
+  if (traceNpotGpu) bgfx::setDebug(BGFX_DEBUG_PROFILER);
   const auto textureAdmission = bgfxTextureProfile(frame);
   if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
   const bool hasShadows = !frame.shadowGroups.empty();
@@ -3586,6 +3591,29 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     const bgfx::TextureHandle color = bgfx::getTexture(output, 0);
     int sourceWidth = size[0], sourceHeight = size[1];
     uint16_t level = 1;
+    std::map<uint32_t, unsigned> mipFrames;
+    std::map<unsigned, double> mipGpuMilliseconds;
+    std::map<unsigned, double> mipFrameMilliseconds;
+    const auto captureMipGpu = [&]() {
+      const bgfx::Stats * stats = bgfx::getStats();
+      if (!stats || stats->gpuTimerFreq <= 0) return;
+      const double millisecondsPerTick = 1000.0 / double(stats->gpuTimerFreq);
+      const auto frame = mipFrames.find(stats->gpuFrameNum);
+      if (frame != mipFrames.end() && stats->gpuTimeEnd > stats->gpuTimeBegin)
+        mipFrameMilliseconds.emplace(frame->second,
+          double(stats->gpuTimeEnd - stats->gpuTimeBegin) * millisecondsPerTick);
+      for (uint16_t index = 0; index < stats->numViews; ++index) {
+        const bgfx::ViewStats & view = stats->viewStats[index];
+        // BGFX can reuse the view name before delayed timestamps arrive.
+        // The submitted frame number identifies this reduction level.
+        const auto found = mipFrames.find(view.gpuFrameNum);
+        if (found == mipFrames.end() ||
+            view.gpuTimeEnd <= view.gpuTimeBegin) continue;
+        mipGpuMilliseconds.emplace(found->second,
+          double(view.gpuTimeEnd - view.gpuTimeBegin) *
+          millisecondsPerTick);
+      }
+    };
     while (sourceWidth > 1 || sourceHeight > 1) {
       const int destinationWidth = std::max(1, sourceWidth / 2);
       const int destinationHeight = std::max(1, sourceHeight / 2);
@@ -3644,7 +3672,11 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
       bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
       bgfx::submit(reduceView, this->npotMipProgram);
-      bgfx::frame();
+      const uint32_t mipFrame = bgfx::frame();
+      if (traceNpotGpu) {
+        mipFrames.emplace(mipFrame, unsigned(level));
+        captureMipGpu();
+      }
       runtimeStatus = this->checkRuntimeFailure("BGFX NPOT mip area reduction failed");
       bgfx::destroy(mipBuffer);
       bgfx::destroy(scratch);
@@ -3655,6 +3687,47 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       sourceWidth = destinationWidth;
       sourceHeight = destinationHeight;
       ++level;
+    }
+    for (int attempts = 0; traceNpotGpu &&
+         (mipGpuMilliseconds.size() < mipFrames.size() ||
+          mipFrameMilliseconds.size() < mipFrames.size()) && attempts < 8;
+         ++attempts) {
+      // Keep a view in each drain frame: BGFX exposes delayed per-view
+      // timestamps through the current frame's view-stat array.
+      bgfx::resetView(this->viewBase + 1);
+      bgfx::setViewName(this->viewBase + 1, "rtt_npot_mip_drain");
+      bgfx::setViewFrameBuffer(this->viewBase + 1, output);
+      bgfx::setViewRect(this->viewBase + 1, 0, 0, 1, 1);
+      bgfx::setViewClear(this->viewBase + 1, BGFX_CLEAR_NONE);
+      bgfx::touch(this->viewBase + 1);
+      bgfx::frame();
+      captureMipGpu();
+      runtimeStatus = this->checkRuntimeFailure("BGFX NPOT mip GPU timestamp drain failed");
+      if (runtimeStatus != CoinRenderBackendStatus::SUCCESS) {
+        cleanupDirect();
+        return CoinRenderSubmitResult(runtimeStatus, this->lastError);
+      }
+    }
+    if (traceNpotGpu) {
+      double areaMs = 0.0, frameMs = 0.0;
+      for (const auto & entry : mipGpuMilliseconds) areaMs += entry.second;
+      for (const auto & entry : mipFrameMilliseconds) frameMs += entry.second;
+      std::fprintf(stderr,
+        "COIN_RENDER_PHASE rtt_npot_mips_gpu levels=%zu area_resolved=%zu area_ms=",
+        mipFrames.size(), mipGpuMilliseconds.size());
+      if (mipGpuMilliseconds.size() == mipFrames.size())
+        std::fprintf(stderr, "%.6f", areaMs);
+      else
+        std::fprintf(stderr, "unavailable");
+      std::fprintf(stderr, " frame_resolved=%zu frame_ms=",
+                   mipFrameMilliseconds.size());
+      if (mipFrameMilliseconds.size() == mipFrames.size())
+        std::fprintf(stderr, "%.6f", frameMs);
+      else
+        std::fprintf(stderr, "unavailable");
+      for (const auto & entry : mipGpuMilliseconds)
+        std::fprintf(stderr, " level%u_ms=%.6f", entry.first, entry.second);
+      std::fprintf(stderr, "\n");
     }
     bgfx::resetView(this->viewBase);
     bgfx::resetView(this->viewBase + 1);

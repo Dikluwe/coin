@@ -62,5 +62,8 @@ recibos e medianas. O build usado fica em
 
 ## Pendências
 
-Medir tempo GPU de mips isoladamente se for preciso decidir sobre desempenho
-e qualificar DX11 no Windows. A implementação permanece na branch de estudo.
+Na campanha inicial, faltavam tempo GPU isolado dos mips e qualificação DX11
+no Windows. A implementação permanece na branch de estudo.
+
+Continuação: os [timestamps isolados dos cinco frames de mips](coin-render-bgfx-npot-mip-gpu-20261009.md)
+foram medidos em oito perfis; a qualificação DX11 permanece aberta.
