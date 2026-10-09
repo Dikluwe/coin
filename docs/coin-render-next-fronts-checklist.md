@@ -144,7 +144,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   oito FAIL de estilos estritos também no baseline; contrato portátil8/8 PASS.
   [Sonda da borda de plano de usuário](coin-render-raster-amd-followup-20261008.md):
   preenchimento e borda original presentes, borda nova ausente em CoinGL
-  mesmo com deslocamentos do plano. A causa GL/driver permanece aberta.
+  mesmo com deslocamentos do plano. O controle OpenGL sem Coin reproduziu
+  a ausência somente no radeonsi AMD: NVIDIA e llvmpipe desenham a borda;
+  na AMD, o polígono pré-recortado e a linha explícita também a desenham.
+  A causa interna do driver e as demais diferenças de iluminação permanecem
+  abertas; o contrato portátil continua obrigatório.
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
   retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,

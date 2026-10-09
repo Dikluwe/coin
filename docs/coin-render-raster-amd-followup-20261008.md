@@ -55,7 +55,46 @@ build-bgfx/bin/CoinRenderDrawStyleTest --probe-clipped-boundary
 O ambiente usa o ICD AMD/RADV e o GLX Mesa do sistema; os comandos completos
 com paths locais e logs ficam em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/raster-amd-followup-20261008`.
-Próximo controle: isolar `glPolygonMode`/edge flags e a aresta de plano de usuário
-em GL sem Coin, depois comparar sentido, larguras e clipping de frustum. Medir
-efeito e custo de qualquer alternativa antes de escolher compatibilidade
-CoinGL; o contrato portátil atual continua obrigatório.
+
+## Controle OpenGL sem Coin — 2026-10-09
+
+O [reproducer mínimo](../testsuite/reproducers/raster-clip-edge/RasterClipEdgeGlOracle.cpp)
+usa o mesmo quadrilátero, viewport 64×64 e plano em `x=16,5` pixels.
+`glPolygonMode(GL_LINE)` com `glClipPlane` reproduziu a ausência da borda
+apenas no radeonsi da AMD; o mesmo contexto desenhou a borda quando recebeu
+um polígono já recortado ou uma linha explícita. NVIDIA e llvmpipe desenharam
+a borda também quando ela foi criada pelo plano:
+
+| GL da máquina | Polígono recortado, linha | Preenchimento recortado | Polígono pré-recortado, linha | Linha explícita |
+| --- | ---: | ---: | ---: | ---: |
+| AMD radeonsi, Mesa 25.2.8 | 0/18 | 18/18 | 18/18 | 18/18 |
+| NVIDIA 615.71.09 | 18/18 | 18/18 | 18/18 | 18/18 |
+| llvmpipe, Mesa 25.2.8 | 18/18 | 18/18 | 18/18 | 18/18 |
+
+As contagens são da coluna `x=16`, `y=10..27`. A borda original direita
+(`x=45`) teve 18/18 em todos os perfis. Os
+[logs OpenGL](validation/raster-clip-edge-20261009/amd-radeonsi.log)
+incluem versões, controles e `glGetError=0`; há também os controles
+[NVIDIA](validation/raster-clip-edge-20261009/nvidia.log) e
+[llvmpipe](validation/raster-clip-edge-20261009/llvmpipe.log).
+Na sonda CoinGL original, [AMD](validation/raster-clip-edge-20261009/coingl-amd.log)
+repetiu `line=0`, `filled=18`, `core_line=18` e saiu com código 1;
+[NVIDIA](validation/raster-clip-edge-20261009/coingl-nvidia.log)
+deu `line=18`, `filled=18`, `core_line=18` e código 0.
+
+A especificação [OpenGL 4.6 Compatibility, §§13.7 e 14.6.4](https://registry.khronos.org/OpenGL/specs/gl/glspec46.compatibility.pdf)
+descreve arestas criadas pelo clipping como bordas e sua rasterização no modo
+`LINE`. O controle isola uma diferença na combinação de clipping de polígono
+e modo de linha do radeonsi deste PC; não demonstra que CoinGL suprimiu a
+borda nem certifica conformidade completa do driver. A causa interna do Mesa
+e outros modos de linha continuam para investigação. Não houve mudança no
+renderizador, no gate estrito ou na tolerância portátil.
+
+Para repetir o controle OpenGL:
+
+```sh
+c++ testsuite/reproducers/raster-clip-edge/RasterClipEdgeGlOracle.cpp \
+  -o /tmp/coin-raster-clip-edge-gl -lGL -lglut
+DISPLAY=:0 XAUTHORITY=/home/dikluwe/.Xauthority \
+  __GLX_VENDOR_LIBRARY_NAME=mesa /tmp/coin-raster-clip-edge-gl
+```
