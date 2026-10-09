@@ -140,7 +140,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   campanha original162/162 PASS, gates preservados.
   [Correções, ledger e condições](coin-render-failure-closure-20261008.md).
   Driver instalado e código de produção continuam sem essa correção de sampling.
-- [ ] Estudar as diferenças adicionais de recorte/iluminação CoinGL AMD:
+- [x] Fechar o gate estrito CoinGL AMD no Renoir/Mesa 25.2.8:
   oito FAIL de estilos estritos também no baseline; contrato portátil8/8 PASS.
   [Sonda da borda de plano de usuário](coin-render-raster-amd-followup-20261008.md):
   preenchimento e borda original presentes, borda nova ausente em CoinGL
@@ -148,11 +148,16 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   a ausência somente no radeonsi AMD: NVIDIA e llvmpipe desenham a borda;
   na AMD, o polígono pré-recortado e a linha explícita também a desenham.
   `gl_ClipDistance` no shader confirma a mesma perda na AMD, enquanto llvmpipe
-  preserva a borda. A diferença de iluminação da célula de geometria completa
+  preserva a borda. CoinGL agora complementa a borda ou os pontos criados pelo
+  recorte nesse perfil de driver e quad; o gate estrito completo passou em
+  CPU e BGFX/Vulkan AMD, com llvmpipe como controle. A fase do stipple é
+  verificada separadamente para cada polígono, conforme a especificação GL.
+  [Correção e evidência](coin-render-raster-amd-strict-gate-20261009.md).
+  A diferença de iluminação da célula de geometria completa
   foi atribuída à triangulação: CoinRender usa diagonal 0–2; `GL_QUADS` no
   radeonsi Renoir usa 1–3, confirmado por oracle de cores não afins. Sondas de
   luz/material isoladas sustentam essa causa. A regra interna do clipper/flags
-  de aresta do radeonsi ainda precisa de correção comprovada; o contrato
+  de aresta do radeonsi ainda precisa de correção comprovada no Mesa; o contrato
   portátil continua obrigatório.
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
