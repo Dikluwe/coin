@@ -148,6 +148,32 @@ def content_idle_baseline():
 original_sampling_baseline_ready = baseline_ready
 
 def baseline_ready():
+    diagnostic = os.environ.get('COIN_TEST_COLD_BORDER_DIAGNOSTIC')
+    if diagnostic:
+        if diagnostic not in ('visible-no-mutation', 'hidden-mutation',
+                              'visible-mutation', 'hidden-image-mutation'):
+            raise RuntimeError('invalid cold border diagnostic')
+        report['cold_border_diagnostic'] = diagnostic
+        report['qualification_scope'] = 'cold border diagnostic only'
+        report['cold_start_qualified'] = False
+        capture('cold-before')
+        text_switch, text_node = stages[0][1:3]
+        if diagnostic in ('visible-no-mutation', 'visible-mutation'):
+            text_switch.whichChild = coin.SO_SWITCH_ALL
+            capture('cold-text-visible')
+        if diagnostic in ('hidden-mutation', 'visible-mutation'):
+            text_node.string.setValues(0, ['Updated P03'])
+            capture('cold-after-text-mutation')
+        elif diagnostic == 'hidden-image-mutation':
+            image_node = stages[1][2]
+            image_node.image.setValue(coin.SbVec2s(24,16), 4,
+                                      bytes([255,128,0,255] * (24*16)))
+            capture('cold-after-image-mutation')
+        if diagnostic in ('visible-no-mutation', 'visible-mutation'):
+            text_switch.whichChild = coin.SO_SWITCH_NONE
+            capture('cold-after-hide')
+        finish()
+        return
     before = capture('sampling-startup-before-text')
     stages[0][1].whichChild = coin.SO_SWITCH_ALL
     capture('sampling-startup-text-warmup')

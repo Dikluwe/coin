@@ -38,3 +38,37 @@ redraw. Registrar o estado de seleção e o estilo do objeto do documento em
 cada captura. Comparar native/portable com o mesmo host e sequência de frames.
 Manter o gate `remaining_changes <= 30` e
 `cold_start_qualified=false` até haver repetição controlada.
+
+## Controles executados neste PC
+
+O fixture ganhou a opção isolada `COIN_TEST_COLD_BORDER_DIAGNOSTIC`, que sai
+após capturas de diagnóstico e não altera o caminho qualificado quando a opção
+está ausente. Quatro processos wgpu/Vulkan/portable em compositor privado AMD
+terminaram com `PASS`, GPU física `0x1002:0x1638` e política ativa `1`:
+
+| Controle | Sequência | Diff RGB final contra `cold-before` |
+| --- | --- | ---: |
+| `visible-no-mutation` | mostrar/ocultar texto | 0 |
+| `visible-mutation` | mostrar, mutar e ocultar texto | 0 |
+| `hidden-mutation` | mutar texto oculto | 0 |
+| `hidden-image-mutation` | mutar imagem oculta | 0 |
+
+Isso confirma que os controles produzem capturas estáveis na AMD; não reproduz
+a transição NVIDIA. Uma tentativa NVIDIA/wgpu/Vulkan foi recusada antes da
+primeira captura: `No physical adapter for the requested renderer and surface`.
+Nesta sessão, o módulo NVIDIA carregado é 610.57.04 e a biblioteca NVML
+instalada informa 615.71 (`Driver/library version mismatch`). Esse processo
+não conta como teste de raster ou de sampling. Repetir a matriz NVIDIA depois
+de restaurar a compatibilidade do driver, sem trocar o oracle ou o gate.
+
+Resultados e imagens completos estão no root durável
+`/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-20261008`.
+Os [cinco resultados e oito capturas selecionadas](validation/cold-border-controls-20261008/amd-portable-visible-mutation/result.json)
+também foram copiados para `docs/validation/cold-border-controls-20261008`,
+com subdiretórios por controle; o quinto resultado documenta a falha de
+inicialização NVIDIA.
+O runner usado foi `testsuite/qt-quarter/run_isolated.py` com
+`--server xwayland`, `--weston-prefix` desse mesmo root, FreeCAD privado em
+`freecad-host/build/bin/FreeCAD`, `--case freecad-sampling-policy`,
+`--renderer vulkan`, `--backend wgpu`, `--mode object`, `--scale 1` e
+`--require-hardware`; a variável de diagnóstico selecionou cada linha.

@@ -1,0 +1,41 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {},
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "fixture_interactive_input": "blocked in this host process",
+  "interactive_input_blocked": 1,
+  "fixture_window_state": "_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE, _NET_WM_STATE_FOCUSED",
+  "fixture_window_stays_on_top": true,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "projective_sampling_fixture": {
+    "dimensions": [
+      256,
+      256
+    ],
+    "quality": 0.5,
+    "filter": "NEAREST_MIPMAP_LINEAR",
+    "unit": 0
+  },
+  "cold_border_diagnostic": "visible-mutation",
+  "qualification_scope": "cold border diagnostic only",
+  "cold_start_qualified": false,
+  "reason": "explicit sampling policy was not admitted by the real host",
+  "backend": "wgpu",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": false,
+  "gpu_submitted": false,
+  "gpu_execution": "not-submitted",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-20261008/portable-visible-mutation/vulkan-object-opaque-1x-freecad-sampling-policy"
+}

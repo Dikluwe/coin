@@ -267,12 +267,22 @@ bool sameVertexExceptMaterial(const CoinBgfxVertex & lhs,
 
 bool
 CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
-                               uint64_t geometryBudget, uint64_t metadataBudget)
+                               uint64_t geometryBudget, uint64_t metadataBudget,
+                               bool instancesUploaded)
 {
-  uint64_t metadataBytes = uint64_t(plan.draws.capacity() + plan.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
+  const uint64_t replayBytes = uint64_t(plan.draws.capacity() + plan.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
     uint64_t(plan.textures.capacity()) * sizeof(CoinBgfxTexture) +
     uint64_t(plan.instances.capacity()) * sizeof(CoinBgfxInstance);
+  uint64_t metadataBytes = replayBytes;
   for (const auto & texture : plan.textures) metadataBytes += texture.pixelsRgba.capacity();
+  if (metadataBytes > metadataBudget && instancesUploaded && plan.usesInstancing &&
+      !plan.instances.empty()) {
+    // BGFX owns a copy in its dynamic instance buffer. The cached draw ranges
+    // need only the count, so release this CPU payload before budget admission.
+    plan.uploadedInstanceCount = plan.instances.size();
+    metadataBytes -= uint64_t(plan.instances.capacity()) * sizeof(CoinBgfxInstance);
+    std::vector<CoinBgfxInstance>().swap(plan.instances);
+  }
   if (metadataBytes > metadataBudget) return false;
   // Large uploads can transfer the vertex allocation to BGFX before caching.
   // Keep their count, and also make retaining an already released plan safe.
@@ -1179,7 +1189,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
     };
     if (!base.instancedCameraPatchable) return decline("unsafe anchor/model normal matrix");
     if (width <= 0 || height <= 0 || width > 16384 || height > 16384 ||
-        frame.draws.empty() || frame.draws.size() != base.instances.size() || base.draws.empty()) return decline("size/source count");
+        frame.draws.empty() || frame.draws.size() != base.instanceCount() || base.draws.empty()) return decline("size/source count");
     if (!frame.shadowGroups.empty() || !frame.textures.empty()) return decline("shadow/texture resources");
     for (int channel = 0; channel < 4; ++channel)
       if (!std::isfinite(frame.clearColor[channel]) || frame.clearColor[channel] != base.clearColor[channel])
@@ -1204,7 +1214,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
     // representative batch uniforms need refreshing, not every occurrence.
     for (auto & draw : candidate) {
       if (draw.firstInstance != nextInstance || draw.sourceDrawSlot != nextInstance ||
-          !draw.instanceCount || draw.instanceCount > base.instances.size() - nextInstance)
+          !draw.instanceCount || draw.instanceCount > base.instanceCount() - nextInstance)
         return decline("instance batch order/count");
       nextInstance += draw.instanceCount;
       const auto & source = frame.draws[draw.sourceDrawSlot];
@@ -1253,7 +1263,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       if (lighting.lights.size() > COIN_RENDER_MAX_LIGHTS) return decline("light count");
       copyLighting(lighting, draw);
     }
-    if (nextInstance != base.instances.size()) return decline("incomplete instance batches");
+    if (nextInstance != base.instanceCount()) return decline("incomplete instance batches");
     output.swap(candidate);
     return true;
   }

@@ -2249,7 +2249,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     homogeneousDepth == this->cachedHomogeneousDepth;
   const bool cacheHit = !hasShadows && frame.revision != 0 &&
     frame.revision == this->cachedRevision && cacheDimensionsMatch &&
-    (!this->cachedPlan.usesInstancing || instancingEnabled);
+    (!this->cachedPlan.usesInstancing ||
+      (instancingEnabled && bgfx::isValid(this->cachedInstanceBuffer)));
   const char * disableInstancedCameraPatch = std::getenv("COIN_BGFX_DISABLE_INSTANCED_CAMERA_PATCH");
   const bool instancedCameraPatchEnabled = instancingEnabled &&
     !(disableInstancedCameraPatch && std::strcmp(disableInstancedCameraPatch, "1") == 0) &&
@@ -2424,7 +2425,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       if (bgfx::isValid(texture)) bgfx::destroy(texture);
     this->cachedTextures.clear();
     this->cachedRevision = 0;
-    if (frame.revision != 0 && CoinBgfxLowering::retainForReuse(freshPlan)) {
+    if (frame.revision != 0 && CoinBgfxLowering::retainForReuse(freshPlan,
+          32u * 1024u * 1024u, 128u * 1024u * 1024u, true)) {
       this->cachedPlan = std::move(freshPlan);
       this->cachedRevision = frame.revision;
       this->cachedWidth = target.size[0];
@@ -2774,7 +2776,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         plan->usesCompactVertices ? 1 : 0,
         static_cast<unsigned int>(plan->usesInstancing ? sizeof(CoinBgfxInstancedVertex) :
           plan->usesCompactVertices ? sizeof(CoinBgfxVertexPrefix) : sizeof(CoinBgfxVertex)),
-        plan->usesInstancing ? 1 : 0, plan->instances.size(),
+        plan->usesInstancing ? 1 : 0, plan->instanceCount(),
         static_cast<unsigned int>(sizeof(CoinBgfxInstance)), this->cachedInstanceCapacity);
       std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
     }
@@ -3073,7 +3075,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       plan->usesCompactVertices ? 1 : 0,
       static_cast<unsigned int>(plan->usesInstancing ? sizeof(CoinBgfxInstancedVertex) :
         plan->usesCompactVertices ? sizeof(CoinBgfxVertexPrefix) : sizeof(CoinBgfxVertex)),
-      plan->usesInstancing ? 1 : 0, plan->instances.size(),
+      plan->usesInstancing ? 1 : 0, plan->instanceCount(),
       static_cast<unsigned int>(sizeof(CoinBgfxInstance)), this->cachedInstanceCapacity);
     std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
   }

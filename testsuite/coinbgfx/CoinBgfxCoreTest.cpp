@@ -400,10 +400,22 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
   CoinBgfxPlan retained = instanced;
   ok &= check(CoinBgfxLowering::retainForReuse(retained) && retained.instances.size() == 300,
               "instanced static reuse must retain instance counts and payload ownership");
+  const uint64_t replayBudget =
+    uint64_t(retained.draws.capacity() + retained.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
+    uint64_t(retained.textures.capacity()) * sizeof(CoinBgfxTexture) + 16;
+  CoinBgfxPlan notUploaded = instanced;
+  ok &= check(!CoinBgfxLowering::retainForReuse(notUploaded,
+                 32u * 1024u * 1024u, replayBudget) && notUploaded.instances.size() == 300,
+              "instance payload must remain required until its GPU upload completes");
+  CoinBgfxPlan uploaded = instanced;
+  ok &= check(CoinBgfxLowering::retainForReuse(uploaded,
+                 32u * 1024u * 1024u, replayBudget, true) &&
+              uploaded.instances.empty() && uploaded.instanceCount() == 300,
+              "uploaded instance payload can be released within the replay budget");
   std::vector<CoinBgfxVertexRange> patches;
   std::vector<CoinBgfxDraw> cameraDraws;
   ok &= check(!CoinBgfxLowering::materialPatchRanges(instanced, instanced, patches) &&
-              CoinBgfxLowering::patchCamera(frame, 4, 4, false, instanced, cameraDraws, diagnostic),
+              CoinBgfxLowering::patchCamera(frame, 4, 4, false, uploaded, cameraDraws, diagnostic),
               "instanced material changes rebuild data while qualified camera changes retain it");
   const auto decline = [&](const CoinRenderFramePlan & unsupported) {
     CoinBgfxPlan preserved = instanced;
