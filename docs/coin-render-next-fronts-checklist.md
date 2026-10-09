@@ -104,6 +104,8 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   e 72 comparações GPU/CoinGL em cada perfil AMD/NVIDIA Vulkan/OpenGL
   (máximo 2), incluindo texturas pequenas e não quadradas; o
   [ledger](validation/glu-pot-expanded-20261009/summary.json) guarda os logs.
+  Os 12 redimensionamentos também passaram no
+  [CI Windows/macOS](https://github.com/Dikluwe/coin/actions/runs/37968646516).
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

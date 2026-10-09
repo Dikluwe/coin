@@ -151,7 +151,7 @@ O oráculo nativo foi ampliado para comparar a função de produção
 32×32, além do vetor de borda. No Linux Mesa GLU 1.3, máximo 1 por canal,
 MAE 0,228 e 0,192 respectivamente; os três testes CTest passaram em Xvfb.
 
-Na execução final [#37967066297](https://github.com/Dikluwe/coin/actions/runs/37967066297),
+Na execução [#37967066297](https://github.com/Dikluwe/coin/actions/runs/37967066297),
 os quatro jobs passaram: Ubuntu 24.04 executou os três testes CTest sob
 Xvfb; Windows 2022, macOS 14 Apple Silicon e macOS 15 Intel passaram o
 oráculo nativo com as duas imagens RGBA e o vetor de borda. O oráculo
@@ -175,8 +175,14 @@ e quatro formatos). A execução física passou nos quatro perfis AMD/NVIDIA
 Vulkan/OpenGL, com diferença GPU/CoinGL máxima de 2 canais em cada perfil.
 O [ledger e os logs](validation/glu-pot-expanded-20261009/summary.json)
 registram identidade do adaptador, contagem, máximo, hashes e resultado.
-O teste usou o Mesa privado já qualificado para a referência CoinGL; a
-sonda interceptou apenas o carregamento de simage para forçar o fallback
+O [CI da revisão ampliada](https://github.com/Dikluwe/coin/actions/runs/37968646516)
+passou nos quatro jobs: Ubuntu executou a integração CoinGL e o oráculo;
+Windows 2022 e macOS ARM/Intel passaram os 12 redimensionamentos no GLU
+nativo. A limitação de contexto CGL offscreen nos dois macOS continua no
+passo diagnóstico de integração CoinGL.
+
+O teste físico usou o Mesa privado já qualificado para a referência CoinGL;
+a sonda interceptou apenas o carregamento de simage para forçar o fallback
 GLU. Para repetir:
 
 ```sh
