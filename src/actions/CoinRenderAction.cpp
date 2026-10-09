@@ -1644,7 +1644,9 @@ CoinRenderActionP::textureImagePreCB(void * userdata, SoCallbackAction *, const 
   // static pending-filename dummy. Reading this field does not traverse/mutate
   // the node or affect pre-callback PRUNE/override behavior.
   if(size[0]>0 && size[1]>0 && components>0)
-    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes,texture->enableCompressedTexture.getValue());
+    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(
+      bytes, texture->enableCompressedTexture.getValue(), texture,
+      texture->getImageUploadRevision());
   return SoCallbackAction::CONTINUE;
 }
 

@@ -11,6 +11,7 @@
 class SoCallbackAction;
 class SoPrimitiveVertex;
 class SoNode;
+class SoTexture2;
 class CoinRenderFramePreflight;
 
 #include <Inventor/rendering/CoinRenderOptions.h>
@@ -55,8 +56,14 @@ public:
   void endAnnotation();
 
   void configureTextures(const CoinRenderOptions& options) { currentPlan.textureSamplingPolicy=options.textureSamplingPolicy; storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
-  void registerAuthoredTextureImage(const unsigned char * bytes,bool compressed=false) {
-    if(bytes) { authoredTextureImages.insert(bytes); if(compressed) compressedTextureImages.insert(bytes); else compressedTextureImages.erase(bytes); }
+  void registerAuthoredTextureImage(const unsigned char * bytes, bool compressed,
+                                    const SoTexture2 * source, SbUniqueId revision) {
+    if(bytes) {
+      authoredTextureImages.insert(bytes);
+      authoredTextureSources[bytes] = {source, revision};
+      if(compressed) compressedTextureImages.insert(bytes);
+      else compressedTextureImages.erase(bytes);
+    }
   }
   void registerSceneTexture(const unsigned char* image, uint64_t producerId, uint32_t width,
                             uint32_t height, bool opaque, int32_t transparencyFunction,
@@ -186,13 +193,19 @@ private:
   };
   std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
   std::unordered_set<const unsigned char*> authoredTextureImages,compressedTextureImages;
+  struct AuthoredTextureSource {
+    const SoTexture2 * node;
+    SbUniqueId revision;
+  };
+  std::unordered_map<const unsigned char*, AuthoredTextureSource> authoredTextureSources;
   struct LegacyPotImage {
+    SbUniqueId revision;
     uint32_t width, height;
     std::vector<uint8_t> pixels;
   };
   // CoinGL keeps its first resized upload until the SoTexture2 node changes.
   // This cache survives frame resets and is bounded to 128 MiB per builder.
-  std::unordered_map<SbUniqueId, LegacyPotImage> legacyPotImages;
+  std::unordered_map<const SoTexture2 *, LegacyPotImage> legacyPotImages;
   size_t legacyPotBytes = 0;
   CoinRenderStoredTextureColorSpace storedTextureColorSpace=COIN_RENDER_TEXTURE_LINEAR;
   uint32_t maxTextureAnisotropy=16;

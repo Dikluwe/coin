@@ -353,6 +353,12 @@ bool scalePolicyPotCacheProbe()
              h.capture->frame.textures[0].width == 32,
              "POT cache first dimensions")) return false;
   const auto first = h.capture->frame.textures[0].pixelsRgba;
+  scene.images[0]->model = SoTexture2::MODULATE;
+  if (!h.render(scene, "POT cache model change", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 32 &&
+             h.capture->frame.textures[0].pixelsRgba == first,
+             "POT cache ignores model change")) return false;
   policy->policy = SoTextureScalePolicy::SCALE_DOWN;
   policy->quality = .8f;
   if (!h.render(scene, "POT cache policy and quality change", false)) return false;
@@ -360,10 +366,18 @@ bool scalePolicyPotCacheProbe()
              h.capture->frame.textures[0].width == 32 &&
              h.capture->frame.textures[0].pixelsRgba == first,
              "POT cache retains the first upload")) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  if (!h.render(scene, "POT cache wrap notification", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 16,
+             "POT cache invalidates on wrap notification")) return false;
+  const auto afterWrap = h.capture->frame.textures[0].pixelsRgba;
+  pixels[0] = 255;
   scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
   if (!h.render(scene, "POT cache image notification", false)) return false;
   return check(h.capture->frame.textures.size() == 1 &&
-               h.capture->frame.textures[0].width == 16,
+               h.capture->frame.textures[0].width == 16 &&
+               h.capture->frame.textures[0].pixelsRgba != afterWrap,
                "POT cache invalidates on image notification");
 }
 bool core() {

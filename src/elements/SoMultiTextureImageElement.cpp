@@ -330,16 +330,6 @@ SoMultiTextureImageElement::getImage(SoState * const state,
   return ud.bytes;
 }
 
-SbUniqueId
-SoMultiTextureImageElement::getSourceNodeId(SoState * const state, const int unit)
-{
-  const SoMultiTextureImageElement * elem =
-    coin_safe_cast<const SoMultiTextureImageElement *>
-    (getConstElement(state, classStackIndex));
-  if (!elem) return 0;
-  PRIVATE(elem)->ensureCapacity(unit);
-  return PRIVATE(elem)->unitdata[unit].nodeid;
-}
 
 
 //! FIXME: write doc.

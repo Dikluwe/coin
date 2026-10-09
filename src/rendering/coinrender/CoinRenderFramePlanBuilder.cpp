@@ -204,6 +204,7 @@ CoinRenderFramePlanBuilder::reset()
   this->builderError.clear();
   this->sceneTextures.clear();
   this->authoredTextureImages.clear(); this->compressedTextureImages.clear();
+  this->authoredTextureSources.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
   this->lightCaptureScratch.clear();
@@ -894,7 +895,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
   // Match its nearest and simage paths; the GLU fallback remains unsupported.
   const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
-  SbUniqueId pendingPotNode = 0;
+  const SoTexture2 * pendingPotNode = nullptr;
   LegacyPotImage pendingPotImage{};
   if (!isSceneTexture && disableNpot && std::atoi(disableNpot) != 0) {
     if (const char * scaleLimit = std::getenv("COIN_TEX2_SCALEUP_LIMIT")) {
@@ -905,10 +906,19 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
         return false;
       }
     }
-    const SbUniqueId sourceNode = this->authoredTextureImages.count(rawBytes) ?
-      SoMultiTextureImageElement::getSourceNodeId(state, unit) : 0;
-    const auto cached = this->legacyPotImages.find(sourceNode);
-    if (sourceNode && cached != this->legacyPotImages.end()) {
+    const auto authored = this->authoredTextureSources.find(rawBytes);
+    const SoTexture2 * sourceNode = authored == this->authoredTextureSources.end() ?
+      nullptr : authored->second.node;
+    const SbUniqueId sourceRevision = sourceNode ? authored->second.revision : 0;
+    auto cached = sourceNode ? this->legacyPotImages.find(sourceNode) :
+                               this->legacyPotImages.end();
+    if (cached != this->legacyPotImages.end() &&
+        cached->second.revision != sourceRevision) {
+      this->legacyPotBytes -= cached->second.pixels.size();
+      this->legacyPotImages.erase(cached);
+      cached = this->legacyPotImages.end();
+    }
+    if (cached != this->legacyPotImages.end()) {
       tSnap.width = cached->second.width;
       tSnap.height = cached->second.height;
       tSnap.pixelsRgba = cached->second.pixels;
@@ -962,7 +972,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
             return false;
           }
           pendingPotNode = sourceNode;
-          pendingPotImage = {tSnap.width, tSnap.height, tSnap.pixelsRgba};
+          pendingPotImage = {sourceRevision, tSnap.width, tSnap.height,
+                             tSnap.pixelsRgba};
         }
       }
     }

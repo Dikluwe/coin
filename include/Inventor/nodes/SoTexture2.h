@@ -79,6 +79,8 @@ public:
   void GLRender(SoGLRenderAction * action) override;
   void callback(SoCallbackAction * action) override;
   void rayPick(SoRayPickAction * action) override;
+  // Changes only when CoinGL invalidates the stored image upload.
+  SbUniqueId getImageUploadRevision(void) const;
 
   static SbBool readImage(const SbString & fname, int & w, int & h, int & nc,
                           unsigned char *& bytes);

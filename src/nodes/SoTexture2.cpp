@@ -224,6 +224,7 @@
 #include <Inventor/misc/SoGLBigImage.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/threads/SbMutex.h>
+#include <atomic>
 
 // *************************************************************************
 
@@ -380,6 +381,7 @@ public:
   static SbMutex * mutex;
   int readstatus;
   SbBool glimagevalid;
+  SbUniqueId imageUploadRevision;
 
   static void cleanup(void) {
     delete SoTexture2P::mutex;
@@ -388,6 +390,7 @@ public:
 };
 
 SbMutex * SoTexture2P::mutex = NULL;
+static std::atomic<SbUniqueId> nextTextureImageUploadRevision{1};
 
 #define PRIVATE(p) ((p)->pimpl)
 
@@ -436,6 +439,7 @@ SoTexture2::SoTexture2(void)
 
   PRIVATE(this)->glimage = NULL;
   PRIVATE(this)->glimagevalid = FALSE;
+  PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
   PRIVATE(this)->readstatus = 1;
 
   // use field sensor for filename since we will load an image if
@@ -455,6 +459,12 @@ SoTexture2::~SoTexture2()
   if (PRIVATE(this)->glimage) PRIVATE(this)->glimage->unref(NULL);
   delete PRIVATE(this)->filenamesensor;
   delete PRIVATE(this);
+}
+
+SbUniqueId
+SoTexture2::getImageUploadRevision(void) const
+{
+  return PRIVATE(this)->imageUploadRevision;
 }
 
 // Documented in superclass.
@@ -707,6 +717,7 @@ SoTexture2::notify(SoNotList * l)
   SoField * f = l->getLastField();
   if (f == &this->image) {
     PRIVATE(this)->glimagevalid = FALSE;
+    PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
 
     // write image, not filename
     this->filename.setDefault(TRUE);
@@ -714,6 +725,7 @@ SoTexture2::notify(SoNotList * l)
   }
   else if (f == &this->wrapS || f == &this->wrapT) {
     PRIVATE(this)->glimagevalid = FALSE;
+    PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
   }
   inherited::notify(l);
 }
@@ -740,6 +752,7 @@ SoTexture2::loadFilename(void)
       this->image.setValue(size, nc, bytes);
       this->image.enableNotify(oldnotify);
       PRIVATE(this)->glimagevalid = FALSE; // recreate GL image in next GLRender()
+      PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
       retval = TRUE;
     }
   }
