@@ -749,6 +749,13 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     rs.samplerSlot = 0;
     return true;
   }
+  CoinRenderTextureFilter currentFilter;
+  if (!CoinRenderTextureSamplingCore::quality(quality, currentFilter)) {
+    this->isUnsupported = true;
+    this->builderError = "Texture quality must be finite in [0,1]";
+    if (outError) *outError = this->builderError;
+    return false;
+  }
   // The GL image stores textureQuality at setData() time. A new GL context
   // rebuilds its texture from that value without refreshing the upload.
   const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
@@ -758,19 +765,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     nullptr : authored->second.node;
   const SbUniqueId sourceRevision = sourceNode ? authored->second.revision : 0;
   SbBool glUploadValid = FALSE, glScaleDown = FALSE, glCompressed = FALSE;
-  float glQuality = 0.0f;
-  const bool glImageExists = legacyPotOverride && sourceNode &&
+  float glQuality = quality;
+  const bool glImageExists = sourceNode &&
     sourceNode->getGLImageUploadHints(glUploadValid, glScaleDown, glCompressed, glQuality);
-  const float currentQuality = quality;
-  if (legacyPotOverride && sourceNode) {
-    if (glUploadValid) quality = glQuality;
-    else {
-      const auto cached = this->legacyPotImages.find(sourceNode);
-      if (cached != this->legacyPotImages.end() &&
-          cached->second.revision == sourceRevision)
-        quality = cached->second.quality;
-    }
-  }
+  if (sourceNode) quality = glQuality;
   if (SoTextureScalePolicyElement::get(state) ==
       SoTextureScalePolicyElement::FRACTURE) {
     this->isUnsupported = true;
@@ -791,9 +789,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       if(outError)*outError=this->builderError;return false;
     }
   }
-  CoinRenderTextureFilter filter, currentFilter;
-  if (!CoinRenderTextureSamplingCore::quality(currentQuality, currentFilter) ||
-      !CoinRenderTextureSamplingCore::quality(quality,filter)) {
+  CoinRenderTextureFilter filter;
+  if (!CoinRenderTextureSamplingCore::quality(quality,filter)) {
     if (outError) *outError = "Texture quality must be finite in [0,1]";
     this->isUnsupported = true;
     this->builderError = outError ? *outError : "Unsupported P07 texture quality";
@@ -1003,7 +1000,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
           }
           pendingPotNode = sourceNode;
           pendingPotImage = {sourceRevision, tSnap.width, tSnap.height,
-                             useCompressedTexture, quality,
+                             useCompressedTexture,
                              tSnap.pixelsRgba};
         }
       }

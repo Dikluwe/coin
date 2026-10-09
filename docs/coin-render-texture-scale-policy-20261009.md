@@ -33,6 +33,16 @@ identificam Radeon Renoir/Mesa 25.2.8 e RTX 3060/driver 615.71.09 em OpenGL.
 NVIDIA/OpenGL usou `EGL_PLATFORM=surfaceless`; CoinGL usou GLX/Mesa como
 oráculo separado.
 
+A sonda `--texture-quality-cache-probe` ampliou o perfil NPOT nativo para a
+qualidade armazenada de `SoTexture2`: primeiro upload em 0,3, mudança para
+0,1 sem notificar a imagem e reupload após mudança de wrap. Antes da
+correção, AMD/Vulkan tinha erro GPU/CoinGL máximo 7 no segundo contexto;
+depois, passou em AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL, com máximo 1.
+Um controle sem CoinGL confirma que duas capturas portáteis do mesmo nó
+conservam o filtro do primeiro upload. O nó associa essa qualidade à revisão
+da imagem, sem cache global de ponteiros. Uma qualidade inválida no primeiro
+uso é recusada antes de entrar nesse estado; corrigir o campo recupera a cena.
+
 Antes da recusa, a sonda bruta de `FRACTURE` no mesmo 3×5 mediu diferença
 máxima RGB 181 entre CPU/CoinGL e 182 entre BGFX/CoinGL. Esse processo de
 diagnóstico retornou 1, como esperado. Os quatro processos finais passaram
@@ -52,9 +62,10 @@ preservam métricas e recibos. A matriz foi executada no build BGFX separado
 
 ## Ainda aberto
 
-Rescaling de imagens quando NPOT não é nativo, política `quality` no resize,
-`FRACTURE` com recorte real, imagens acima do limite e outros dispositivos
-continuam fora do perfil. O gate de sampling projetivo anterior segue aberto
+O [resize POT sob override NPOT](coin-render-texture-pot-resize-20261009.md)
+cobre os casos Linux com simage. O fallback GLU, `FRACTURE` com recorte real,
+imagens acima do limite e outros dispositivos continuam fora do perfil.
+O gate de sampling projetivo anterior segue aberto
 no Mesa instalado, sem mudança de tolerância. Com o Mesa privado corrigido,
 o [gate GPU completo](coin-render-full-gpu-sampling-gate-20261009.md) passou
 8/8 processos; os FAIL deste ledger permanecem como controle do driver instalado.

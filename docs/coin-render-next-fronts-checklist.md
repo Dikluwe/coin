@@ -86,7 +86,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   NVIDIA/Mesa OpenGL. `textureQuality` alterada sem notificação agora conserva
   a qualidade do upload para filtro e extensão POT; a sonda 300×300 cobre
   256×256 antes da notificação e 512×512 após ela (máximo 2 para
-  escala/qualidade, 0 para compressão).
+  escala/qualidade, 0 para compressão). No caminho NPOT nativo, a qualidade
+  do primeiro upload agora também persiste sem CoinGL e entre contextos:
+  sonda 0,3→0,1 com reupload após wrap passou nos quatro perfis locais
+  (GPU/CoinGL máximo 1). O fallback GLU ainda requer equivalência portátil.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

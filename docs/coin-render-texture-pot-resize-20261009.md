@@ -15,7 +15,11 @@ o perfil NPOT nativo anterior mantém os texels originais.
 256; `SCALE_DOWN` reduz para a potência inferior quando a superior excede 16;
 `SCALE_UP` usa a potência superior. Se simage não estiver disponível para um
 resize de alta qualidade, a captura retorna `UNSUPPORTED` antes da publicação;
-o fallback GLU do CoinGL ainda não tem equivalência portátil. Texturas RTT,
+o fallback GLU do CoinGL ainda não tem equivalência portátil. Em
+`SoGLImageP::resizeImage`, esse fallback configura `glPixelStorei` antes de
+`gluScaleImage`; a captura CPU não dispõe de um contexto GL ativo. A recusa
+continua explícita até haver um resampler CPU qualificado contra o oráculo.
+Texturas RTT,
 limites físicos de tamanho e `FRACTURE` permanecem fora deste recorte.
 
 ## Validação local

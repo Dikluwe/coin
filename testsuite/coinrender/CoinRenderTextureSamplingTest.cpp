@@ -537,6 +537,51 @@ bool scalePolicyPotContextProbe()
                    CoinRenderTextureFormat::BC3_LINEAR,
                "POT context keeps BC3 after notification");
 }
+bool textureQualityCacheProbe()
+{
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+  for (int y = 0; y < 19; ++y)
+    for (int x = 0; x < 17; ++x) {
+      const size_t at = size_t(y * 17 + x) * 4;
+      pixels[at] = uint8_t(x * 15);
+      pixels[at + 1] = uint8_t(y * 13);
+      pixels[at + 2] = uint8_t((x + y) * 7);
+    }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  Harness portableOnly(false);
+  portableOnly.action.apply(scene.root);
+  if (!check(portableOnly.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+             portableOnly.capture->frame.samplers.size() == 1 &&
+             portableOnly.capture->frame.samplers[0].filter == CoinRenderTextureFilter::LINEAR,
+             "NPOT portable first quality")) return false;
+  scene.quality->textureQuality = .1f;
+  portableOnly.action.apply(scene.root);
+  if (!check(portableOnly.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+             portableOnly.capture->frame.samplers.size() == 1 &&
+             portableOnly.capture->frame.samplers[0].filter == CoinRenderTextureFilter::LINEAR,
+             "NPOT portable quality persists without CoinGL")) return false;
+  scene.quality->textureQuality = .3f;
+  Harness first(true);
+  if (!first.render(scene, "NPOT quality first upload", false)) return false;
+  scene.quality->textureQuality = .1f;
+  Harness second(true);
+  if (!second.render(scene, "NPOT quality valid upload", false)) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness refreshed(true);
+  if (!refreshed.render(scene, "NPOT quality wrap reupload", false)) return false;
+  Scene invalid(4, SoTexture2::REPLACE, 1, false, false);
+  invalid.quality->textureQuality = 1.01f;
+  Harness recovery(false);
+  if (!recovery.rejected(invalid, "NPOT invalid first quality")) return false;
+  invalid.quality->textureQuality = .3f;
+  recovery.action.apply(invalid.root);
+  return check(recovery.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+               recovery.capture->frame.samplers.size() == 1 &&
+               recovery.capture->frame.samplers[0].filter == CoinRenderTextureFilter::LINEAR,
+               "NPOT first valid quality after rejection");
+}
 bool core() {
   if (!check(CoinRenderTextureSamplingCore::legacyPotExtent(17, true, false, .3f) == 16 &&
              CoinRenderTextureSamplingCore::legacyPotExtent(17, false, false, .3f) == 32 &&
@@ -760,5 +805,7 @@ int main(int argc, char **argv) {
   if (argc > 1 && (std::string(argv[1]) == "--scale-policy-pot-context-probe" ||
                    std::string(argv[1]) == "--scale-policy-pot-context-study"))
     return scalePolicyPotContextProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--texture-quality-cache-probe")
+    return textureQualityCacheProbe() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

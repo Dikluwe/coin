@@ -382,6 +382,8 @@ public:
   int readstatus;
   SbBool glimagevalid;
   SbUniqueId imageUploadRevision;
+  SbUniqueId portableQualityRevision;
+  float portableUploadQuality;
 
   static void cleanup(void) {
     delete SoTexture2P::mutex;
@@ -440,6 +442,8 @@ SoTexture2::SoTexture2(void)
   PRIVATE(this)->glimage = NULL;
   PRIVATE(this)->glimagevalid = FALSE;
   PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
+  PRIVATE(this)->portableQualityRevision = 0;
+  PRIVATE(this)->portableUploadQuality = 0.0f;
   PRIVATE(this)->readstatus = 1;
 
   // use field sensor for filename since we will load an image if
@@ -478,7 +482,14 @@ SoTexture2::getGLImageUploadHints(SbBool & uploadValid, SbBool & scaleDown,
   uploadValid = available && PRIVATE(this)->glimagevalid;
   scaleDown = (flags & SoGLImage::SCALE_DOWN) != 0;
   compressed = (flags & SoGLImage::COMPRESSED) != 0;
-  quality = available ? image->getQuality() : 0.0f;
+  if (uploadValid) quality = image->getQuality();
+  else {
+    if (PRIVATE(this)->portableQualityRevision != PRIVATE(this)->imageUploadRevision) {
+      PRIVATE(this)->portableUploadQuality = quality;
+      PRIVATE(this)->portableQualityRevision = PRIVATE(this)->imageUploadRevision;
+    }
+    quality = PRIVATE(this)->portableUploadQuality;
+  }
   UNLOCK_GLIMAGE(this);
   return available;
 }
