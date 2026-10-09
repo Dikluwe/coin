@@ -418,7 +418,7 @@ bool scalePolicyPotCompressionProbe()
                h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
                "POT compression persists after reupload");
 }
-bool scalePolicyPotContextStudy()
+bool scalePolicyPotContextProbe()
 {
   Scene scene(4, SoTexture2::REPLACE, 1, false, false);
   auto * policy = new SoTextureScalePolicy;
@@ -441,7 +441,54 @@ bool scalePolicyPotContextStudy()
   if (!unchanged.render(scene, "POT context unchanged policy", false)) return false;
   policy->policy = SoTextureScalePolicy::SCALE_DOWN;
   Harness second(true);
-  return second.render(scene, "POT context second renderer", false);
+  if (!second.render(scene, "POT context policy ignored", false) ||
+      !check(second.capture->frame.textures.size() == 1 &&
+             second.capture->frame.textures[0].width == 32,
+             "POT context keeps the valid first upload")) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness third(true);
+  if (!third.render(scene, "POT context wrap reupload", false) ||
+      !check(third.capture->frame.textures.size() == 1 &&
+             third.capture->frame.textures[0].width == 16,
+             "POT context applies the new scale-down flag")) return false;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .8f;
+  Harness fourth(true);
+  if (!fourth.render(scene, "POT context sticky scale-down high quality", false) ||
+      !check(fourth.capture->frame.textures.size() == 1 &&
+             fourth.capture->frame.textures[0].width == 16,
+             "POT context keeps scale-down across renderers")) return false;
+
+  Scene compressed(4, SoTexture2::REPLACE, 1, false, false);
+  auto * compressionPolicy = new SoTextureScalePolicy;
+  compressionPolicy->policy = SoTextureScalePolicy::SCALE_UP;
+  compressionPolicy->quality = .3f;
+  compressed.root->insertChild(compressionPolicy, 3);
+  compressed.quality->textureQuality = .3f;
+  std::vector<uint8_t> solid(17 * 19 * 4);
+  for (size_t i = 0; i < solid.size(); i += 4) {
+    solid[i] = 255; solid[i + 1] = 0;
+    solid[i + 2] = 255; solid[i + 3] = 255;
+  }
+  compressed.images[0]->image.setValue(SbVec2s(17, 19), 4, solid.data());
+  compressed.images[0]->enableCompressedTexture = TRUE;
+  Harness compressedFirst(true);
+  if (!compressedFirst.render(compressed, "POT context first compressed upload", false))
+    return false;
+  compressed.images[0]->enableCompressedTexture = FALSE;
+  Harness compressedSecond(true);
+  if (!compressedSecond.render(compressed, "POT context persistent compression", false) ||
+      !check(compressedSecond.capture->frame.textures.size() == 1 &&
+             compressedSecond.capture->frame.textures[0].format ==
+                 CoinRenderTextureFormat::BC3_LINEAR,
+             "POT context keeps BC3 across renderers")) return false;
+  compressed.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness compressedThird(true);
+  return compressedThird.render(compressed, "POT context compressed reupload", false) &&
+         check(compressedThird.capture->frame.textures.size() == 1 &&
+               compressedThird.capture->frame.textures[0].format ==
+                   CoinRenderTextureFormat::BC3_LINEAR,
+               "POT context keeps BC3 after notification");
 }
 bool core() {
   if (!check(CoinRenderTextureSamplingCore::legacyPotExtent(17, true, false, .3f) == 16 &&
@@ -663,7 +710,8 @@ int main(int argc, char **argv) {
     return scalePolicyPotCacheProbe() ? 0 : 1;
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-compression-probe")
     return scalePolicyPotCompressionProbe() ? 0 : 1;
-  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-context-study")
-    return scalePolicyPotContextStudy() ? 0 : 1;
+  if (argc > 1 && (std::string(argv[1]) == "--scale-policy-pot-context-probe" ||
+                   std::string(argv[1]) == "--scale-policy-pot-context-study"))
+    return scalePolicyPotContextProbe() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

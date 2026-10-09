@@ -81,6 +81,9 @@ public:
   void rayPick(SoRayPickAction * action) override;
   // Changes only when CoinGL invalidates the stored image upload.
   SbUniqueId getImageUploadRevision(void) const;
+  // Read the persistent SoGLImage upload hints for portable texture capture.
+  SbBool getGLImageUploadHints(SbBool & uploadValid, SbBool & scaleDown,
+                               SbBool & compressed) const;
 
   static SbBool readImage(const SbString & fname, int & w, int & h, int & nc,
                           unsigned char *& bytes);

@@ -467,6 +467,21 @@ SoTexture2::getImageUploadRevision(void) const
   return PRIVATE(this)->imageUploadRevision;
 }
 
+SbBool
+SoTexture2::getGLImageUploadHints(SbBool & uploadValid, SbBool & scaleDown,
+                                  SbBool & compressed) const
+{
+  LOCK_GLIMAGE(this);
+  const SoGLImage * image = PRIVATE(this)->glimage;
+  const SbBool available = image && image->getTypeId() == SoGLImage::getClassTypeId();
+  const uint32_t flags = available ? image->getFlags() : 0;
+  uploadValid = available && PRIVATE(this)->glimagevalid;
+  scaleDown = (flags & SoGLImage::SCALE_DOWN) != 0;
+  compressed = (flags & SoGLImage::COMPRESSED) != 0;
+  UNLOCK_GLIMAGE(this);
+  return available;
+}
+
 // Documented in superclass.
 /*!
   \copybrief SoBase::initClass(void)

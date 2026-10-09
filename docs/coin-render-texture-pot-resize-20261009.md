@@ -60,16 +60,22 @@ compressão e notificou o wrap. O formato permaneceu BC3 nas três etapas,
 com erro GPU/CoinGL zero nos quatro executores. A escolha de compressão do
 `SoGLImage` persiste até mesmo após um novo upload da imagem no mesmo nó.
 
-A sonda diagnóstica `--scale-policy-pot-context-study` reproduziu uma
-fronteira ainda aberta em AMD/Vulkan: um renderizador novo usa a mesma
-`SoTexture2` após o primeiro upload 32×32 em `SCALE_UP`, mas a política muda
-para `SCALE_DOWN` antes do segundo contexto. CPU/GPU concordam (máximo 1),
-enquanto ambos divergem do CoinGL (máximo 11). No CoinGL, `SoGLImage` mantém
-as flags no nó entre contextos e recria a textura GL por contexto. O cache POT
-portátil pertence à ação, portanto a segunda ação não conhece as flags do
-primeiro upload. Essa sonda é intencionalmente diagnóstica e retorna falha
-quando encontra a divergência; não integra o gate regular.
+A sonda `--scale-policy-pot-context-probe` antes reproduzia erro máximo 11
+em AMD/Vulkan: um renderizador novo usava a mesma `SoTexture2` após o
+primeiro upload 32×32 em `SCALE_UP`, com política mudada para `SCALE_DOWN`.
+O CoinGL preserva a validade e as flags do `SoGLImage` no nó, enquanto cria
+uma textura GL por contexto. A captura agora lê esses hints no nó: enquanto
+o upload é válido, a política nova não muda o resize; após notificação de
+wrap, `SCALE_DOWN` entra em vigor; em outros contextos, essa flag e a escolha
+BC3 continuam persistentes. A sonda cobre cinco renderizadores sequenciais
+para escala e três para compressão. Passou em AMD/NVIDIA Vulkan e
+NVIDIA/Mesa OpenGL, com erro GPU/CoinGL máximo 1 para escala e 0 para a
+imagem uniforme comprimida.
+O gate CPU completo continuou em 234 cenas e quatro recusas esperadas. O
+gate GPU AMD geral ainda retorna a divergência projetiva conhecida em
+`textureQuality=0,5`; as sondas POT desta mudança passaram.
 
 Ainda falta reproduzir em dispositivo sem NPOT nativo, tratar o fallback GLU,
-limitar pelo máximo físico do adaptador, cobrir 3D e compartilhar o estado de
-upload entre ações/contextos sem reter ponteiros de nós já destruídos.
+limitar pelo máximo físico do adaptador e cobrir 3D. A paridade de
+`textureQuality` alterada sem notificação entre contextos não foi coberta
+por esta sonda.

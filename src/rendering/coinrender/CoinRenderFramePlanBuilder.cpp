@@ -929,8 +929,18 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     } else {
       useCompressedTexture = useCompressedTexture || priorCompression;
       const auto policy = SoTextureScalePolicyElement::get(state);
-      const bool down = policy == SoTextureScalePolicyElement::SCALE_DOWN;
-      const bool useQuality = policy == SoTextureScalePolicyElement::USE_TEXTURE_QUALITY;
+      SbBool glUploadValid = FALSE, glScaleDown = FALSE, glCompressed = FALSE;
+      const bool glImageExists = sourceNode && sourceNode->getGLImageUploadHints(
+          glUploadValid, glScaleDown, glCompressed);
+      // With a valid upload, SoTexture2 skips setData() in a new context:
+      // current hints are ignored and only persistent SoGLImage flags apply.
+      // After notification, setData() ORs the new hints into those flags.
+      const bool down = glUploadValid ? bool(glScaleDown) :
+          (policy == SoTextureScalePolicyElement::SCALE_DOWN || glScaleDown);
+      useCompressedTexture = glUploadValid ? bool(glCompressed) :
+          (useCompressedTexture || (glImageExists && glCompressed));
+      // SoGLImage starts with USE_QUALITY_VALUE, including for SCALE_UP.
+      const bool useQuality = !down;
       const uint32_t newWidth = CoinRenderTextureSamplingCore::legacyPotExtent(
           w, down, useQuality, quality);
       const uint32_t newHeight = CoinRenderTextureSamplingCore::legacyPotExtent(

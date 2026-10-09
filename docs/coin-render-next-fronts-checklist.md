@@ -80,10 +80,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   canal. A dica `enableCompressedTexture` agora segue a escolha do primeiro
   upload e o estado BC3 persistente após notificação de wrap; as sondas
   passaram em AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL com erro GPU/CoinGL
-  zero. Troca de contexto com a mesma `SoTexture2` e mudança de política
-  permanece aberta: a sonda diagnóstica AMD/Vulkan mediu erro máximo 11,
-  porque as flags CoinGL são compartilhadas entre contextos, mas o cache
-  portátil é por ação.
+  zero. A captura agora consulta validade e flags persistentes do `SoGLImage`
+  no nó; a sonda de troca de contexto com política, qualidade de escala,
+  notificação de wrap e compressão passou em AMD/NVIDIA Vulkan e
+  NVIDIA/Mesa OpenGL (máximo 1 para escala, 0 para compressão). Mudança de
+  `textureQuality` sem notificação entre contextos ainda precisa de sonda.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
