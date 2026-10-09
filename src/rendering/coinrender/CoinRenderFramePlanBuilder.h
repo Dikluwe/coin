@@ -186,6 +186,14 @@ private:
   };
   std::unordered_map<const unsigned char*, SceneTexture> sceneTextures;
   std::unordered_set<const unsigned char*> authoredTextureImages,compressedTextureImages;
+  struct LegacyPotImage {
+    uint32_t width, height;
+    std::vector<uint8_t> pixels;
+  };
+  // CoinGL keeps its first resized upload until the SoTexture2 node changes.
+  // This cache survives frame resets and is bounded to 128 MiB per builder.
+  std::unordered_map<SbUniqueId, LegacyPotImage> legacyPotImages;
+  size_t legacyPotBytes = 0;
   CoinRenderStoredTextureColorSpace storedTextureColorSpace=COIN_RENDER_TEXTURE_LINEAR;
   uint32_t maxTextureAnisotropy=16;
 };

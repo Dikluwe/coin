@@ -74,8 +74,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   em Vulkan AMD/NVIDIA e OpenGL NVIDIA/Mesa; qualidade alta usa a mesma
   `simage_resize` do CoinGL quando disponível, com erro máximo de 1 canal nas
   mesmas rotas e em imagens de 1 a 4 componentes (24 comparações por rota).
-  A transição de qualidade sobre a mesma textura ainda difere no
-  cache do CoinGL.
+  O primeiro resize agora fica em cache por revisão do nó de textura; a
+  transição de política/qualidade e a notificação da imagem passaram em
+  AMD/NVIDIA Vulkan e OpenGL NVIDIA/Mesa, com erro máximo de 1 canal. Outros
+  campos do nó e troca de contexto ainda precisam de contrato de cache.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

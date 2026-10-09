@@ -116,6 +116,7 @@ public:
                                        const int unit,
                                        SbVec3s &size,
                                        int &numComponents);
+  static SbUniqueId getSourceNodeId(SoState * const state, const int unit);
 
   static const SbColor & getBlendColor(SoState * const state, const int unit = 0);
   static Model getModel(SoState * const state, const int unit = 0);

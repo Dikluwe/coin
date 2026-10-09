@@ -894,6 +894,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
   // Match its nearest and simage paths; the GLU fallback remains unsupported.
   const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
+  SbUniqueId pendingPotNode = 0;
+  LegacyPotImage pendingPotImage{};
   if (!isSceneTexture && disableNpot && std::atoi(disableNpot) != 0) {
     if (const char * scaleLimit = std::getenv("COIN_TEX2_SCALEUP_LIMIT")) {
       if (static_cast<float>(std::atof(scaleLimit)) != .7f) {
@@ -903,44 +905,65 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
         return false;
       }
     }
-    const auto policy = SoTextureScalePolicyElement::get(state);
-    const bool down = policy == SoTextureScalePolicyElement::SCALE_DOWN;
-    const bool useQuality = policy == SoTextureScalePolicyElement::USE_TEXTURE_QUALITY;
-    const uint32_t newWidth = CoinRenderTextureSamplingCore::legacyPotExtent(
-        w, down, useQuality, quality);
-    const uint32_t newHeight = CoinRenderTextureSamplingCore::legacyPotExtent(
-        h, down, useQuality, quality);
-    if (newWidth != w || newHeight != h) {
-      if (SoTextureScaleQualityElement::get(state) < .5f) {
-        if (!CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight)) {
-          this->isUnsupported = true;
-          this->builderError = "Legacy POT nearest resize exceeds image limits";
-          if (outError) *outError = this->builderError;
-          return false;
+    const SbUniqueId sourceNode = this->authoredTextureImages.count(rawBytes) ?
+      SoMultiTextureImageElement::getSourceNodeId(state, unit) : 0;
+    const auto cached = this->legacyPotImages.find(sourceNode);
+    if (sourceNode && cached != this->legacyPotImages.end()) {
+      tSnap.width = cached->second.width;
+      tSnap.height = cached->second.height;
+      tSnap.pixelsRgba = cached->second.pixels;
+    } else {
+      const auto policy = SoTextureScalePolicyElement::get(state);
+      const bool down = policy == SoTextureScalePolicyElement::SCALE_DOWN;
+      const bool useQuality = policy == SoTextureScalePolicyElement::USE_TEXTURE_QUALITY;
+      const uint32_t newWidth = CoinRenderTextureSamplingCore::legacyPotExtent(
+          w, down, useQuality, quality);
+      const uint32_t newHeight = CoinRenderTextureSamplingCore::legacyPotExtent(
+          h, down, useQuality, quality);
+      if (newWidth != w || newHeight != h) {
+        if (SoTextureScaleQualityElement::get(state) < .5f) {
+          if (!CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight)) {
+            this->isUnsupported = true;
+            this->builderError = "Legacy POT nearest resize exceeds image limits";
+            if (outError) *outError = this->builderError;
+            return false;
+          }
+        } else {
+          const auto * simage = simage_wrapper();
+          if (!simage->available || !simage->versionMatchesAtLeast(1, 1, 1) ||
+              !simage->simage_resize || !simage->simage_free_image ||
+              size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u) {
+            this->isUnsupported = true;
+            this->builderError = "Legacy high-quality POT resize requires simage 1.1.1 or newer";
+            if (outError) *outError = this->builderError;
+            return false;
+          }
+          unsigned char * resized = simage->simage_resize(
+              tSnap.pixelsRgba.data(), int(w), int(h), 4, int(newWidth), int(newHeight));
+          if (!resized) {
+            this->isUnsupported = true;
+            this->builderError = "Legacy high-quality POT resize failed";
+            if (outError) *outError = this->builderError;
+            return false;
+          }
+          std::vector<uint8_t> pixels(resized, resized + size_t(newWidth) * newHeight * 4);
+          simage->simage_free_image(resized);
+          tSnap.width = newWidth;
+          tSnap.height = newHeight;
+          tSnap.pixelsRgba.swap(pixels);
         }
-      } else {
-        const auto * simage = simage_wrapper();
-        if (!simage->available || !simage->versionMatchesAtLeast(1, 1, 1) ||
-            !simage->simage_resize || !simage->simage_free_image ||
-            size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u) {
-          this->isUnsupported = true;
-          this->builderError = "Legacy high-quality POT resize requires simage 1.1.1 or newer";
-          if (outError) *outError = this->builderError;
-          return false;
+        if (sourceNode) {
+          constexpr size_t cacheLimit = 128u * 1024u * 1024u;
+          if (this->legacyPotBytes > cacheLimit ||
+              tSnap.pixelsRgba.size() > cacheLimit - this->legacyPotBytes) {
+            this->isUnsupported = true;
+            this->builderError = "Legacy POT upload cache exceeds 128 MiB";
+            if (outError) *outError = this->builderError;
+            return false;
+          }
+          pendingPotNode = sourceNode;
+          pendingPotImage = {tSnap.width, tSnap.height, tSnap.pixelsRgba};
         }
-        unsigned char * resized = simage->simage_resize(
-            tSnap.pixelsRgba.data(), int(w), int(h), 4, int(newWidth), int(newHeight));
-        if (!resized) {
-          this->isUnsupported = true;
-          this->builderError = "Legacy high-quality POT resize failed";
-          if (outError) *outError = this->builderError;
-          return false;
-        }
-        std::vector<uint8_t> pixels(resized, resized + size_t(newWidth) * newHeight * 4);
-        simage->simage_free_image(resized);
-        tSnap.width = newWidth;
-        tSnap.height = newHeight;
-        tSnap.pixelsRgba.swap(pixels);
       }
     }
   }
@@ -968,6 +991,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     if(outError)*outError=this->builderError;return false;
   }
   const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
+  if (pendingPotNode) {
+    this->legacyPotBytes += pendingPotImage.pixels.size();
+    this->legacyPotImages.emplace(pendingPotNode, std::move(pendingPotImage));
+  }
 
   // 9. Sampler deduplication
   CoinRenderSamplerSnapshot sampSnap;

@@ -330,6 +330,42 @@ bool scalePolicyPotProbe()
   }
   return true;
 }
+bool scalePolicyPotCacheProbe()
+{
+  Harness h(true);
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .3f;
+  scene.root->insertChild(policy, 3);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+  for (int y = 0; y < 19; ++y)
+    for (int x = 0; x < 17; ++x) {
+      const size_t at = size_t(y * 17 + x) * 4;
+      pixels[at] = uint8_t(x * 15);
+      pixels[at + 1] = uint8_t(y * 13);
+      pixels[at + 2] = uint8_t((x + y) * 7);
+    }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  if (!h.render(scene, "POT cache first upload", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 32,
+             "POT cache first dimensions")) return false;
+  const auto first = h.capture->frame.textures[0].pixelsRgba;
+  policy->policy = SoTextureScalePolicy::SCALE_DOWN;
+  policy->quality = .8f;
+  if (!h.render(scene, "POT cache policy and quality change", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 32 &&
+             h.capture->frame.textures[0].pixelsRgba == first,
+             "POT cache retains the first upload")) return false;
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  if (!h.render(scene, "POT cache image notification", false)) return false;
+  return check(h.capture->frame.textures.size() == 1 &&
+               h.capture->frame.textures[0].width == 16,
+               "POT cache invalidates on image notification");
+}
 bool core() {
   if (!check(CoinRenderTextureSamplingCore::legacyPotExtent(17, true, false, .3f) == 16 &&
              CoinRenderTextureSamplingCore::legacyPotExtent(17, false, false, .3f) == 32 &&
@@ -546,5 +582,7 @@ int main(int argc, char **argv) {
     return scalePolicyProbe() ? 0 : 1;
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-probe")
     return scalePolicyPotProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-cache-probe")
+    return scalePolicyPotCacheProbe() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }
