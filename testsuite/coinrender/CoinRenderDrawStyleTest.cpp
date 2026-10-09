@@ -50,6 +50,7 @@
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
 #include <memory>
 
@@ -976,6 +977,9 @@ bool polygonStippleActionContract(bool cpu) {
   root->unref();return ok;
 }
 bool polygonClippedStippleActionContract(bool cpu) {
+  const bool probe = std::getenv("COIN_DRAWSTYLE_CLIP_PROBE") != nullptr;
+  const char * biasText = std::getenv("COIN_DRAWSTYLE_CLIP_BIAS_PIXELS");
+  const float biasPixels = biasText ? static_cast<float>(std::atof(biasText)) : 0.0f;
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
   if (cpu)
     target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
@@ -1015,6 +1019,7 @@ bool polygonClippedStippleActionContract(bool cpu) {
   SoOffscreenRenderer gl(SbViewportRegion(64, 64));
   gl.setComponents(SoOffscreenRenderer::RGB);
   for (int clip = 0; clip < 8; ++clip) {
+    if (probe && clip != 1) continue;
     const int xy[4][2] = {{6, 6}, {45, 6}, {45, 31}, {6, 31}};
     camera->nearDistance = clip >= 6 ? 1 : .1f;
     for (int i = 0; i < 4; ++i) {
@@ -1025,7 +1030,7 @@ bool polygonClippedStippleActionContract(bool cpu) {
     firstClip->on = clip > 0 && clip < 6 ? TRUE : FALSE;
     secondClip->on = clip == 5 ? TRUE : FALSE;
     if (clip == 1 || clip == 5)
-      firstClip->plane = SbPlane(SbVec3f(1, 0, 0), 16.5f / 32 - 1);
+      firstClip->plane = SbPlane(SbVec3f(1, 0, 0), (16.5f + (probe ? biasPixels : 0.0f)) / 32 - 1);
     if (clip == 2)
       firstClip->plane = SbPlane(SbVec3f(-1, 0, 0), -(35.5f / 32 - 1));
     if (clip == 3)
@@ -1050,7 +1055,10 @@ bool polygonClippedStippleActionContract(bool cpu) {
         for (int fast : {0, 1})
           for (int strokeWidth : {1, 3, 6})
             for (int repeat : {1, 2, 5})
-              for (uint32_t pattern : {0u, 0xffffu, 0x000fu, 0xaaaau, 0x9249u}) {
+            for (uint32_t pattern : {0u, 0xffffu, 0x000fu, 0xaaaau, 0x9249u}) {
+                if (probe && (mode != CoinRenderAction::BLEND || transparency != 0.0f ||
+                              fast != 0 || strokeWidth != 1 || repeat != 1 ||
+                              pattern != 0xffffu)) continue;
                 action.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(mode));
                 gl.getGLRenderAction()->setTransparencyType(
                     static_cast<SoGLRenderAction::TransparencyType>(mode));
@@ -1069,6 +1077,7 @@ bool polygonClippedStippleActionContract(bool cpu) {
                   return false;
                 }
                 const unsigned char* reference = nullptr;
+                std::vector<unsigned char> probeLineReference;
                 if (compareGl) {
                   if (!check(gl.render(root) && gl.getBuffer(),
                              "required Coin/GL clipped stipple renders")) {
@@ -1076,6 +1085,28 @@ bool polygonClippedStippleActionContract(bool cpu) {
                     return false;
                   }
                   reference = gl.getBuffer();
+                  if (probe) {
+                    probeLineReference.assign(reference, reference + 64 * 64 * 3);
+                    reference = probeLineReference.data();
+                    drawStyle->style = SoDrawStyle::FILLED;
+                    if (!check(gl.render(root) && gl.getBuffer(),
+                               "Coin/GL filled clip probe renders")) {
+                      root->unref();return false;
+                    }
+                    const unsigned char * filled = gl.getBuffer();
+                    for (int x : {15, 16, 17, 18, 45}) {
+                      int lineCount = 0, fillCount = 0, coreCount = 0;
+                      for (int y = 10; y <= 27; ++y) {
+                        lineCount += reference[(y * 64 + x) * 3] > 40;
+                        fillCount += filled[(y * 64 + x) * 3] > 40;
+                        coreCount += image[((63 - y) * 64 + x) * 4] > 40;
+                      }
+                      std::cout << "clip_probe bias_pixels=" << biasPixels << " x=" << x
+                                << " line=" << lineCount << " filled=" << fillCount
+                                << " core_line=" << coreCount << '\n';
+                    }
+                    drawStyle->style = SoDrawStyle::LINES;
+                  }
                 }
                 auto sample = [&](int x, int y, int counter, int edge) {
                   const bool expected = (pattern & (1u << ((counter / repeat) & 15))) != 0;
@@ -1363,8 +1394,10 @@ bool actionContract(bool cpu) {
   root->unref();return ok;
 }
 }
-int main() {
+int main(int argc, char ** argv) {
   SoDB::init();DerivedStyleCube::initClass();CoinRenderAction::initClass();
+  if (argc == 2 && std::strcmp(argv[1], "--probe-clipped-boundary") == 0)
+    return polygonClippedStippleActionContract(true) ? 0 : 1;
   if(!nativeStippleActionContract(true) || !polygonStippleCapCoreContract() || !polygonStippleCoreContract() || !stateContract() || !polygonCoreContract() || !slopeCoreContract() || !polygonCaptureContract() || !polygonUnsupportedActionContract(true) || !polygonClippedStippleActionContract(true) || !polygonStippleActionContract(true) || !polygonActionContract(true) || !slopeActionContract(true) || !homogeneousStrokeContract(true) || !polygonAttributesActionContract(true) || !actionContract(true))return 1;
   if(!CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr<<"[SKIP] GPU adapter unavailable\n";return 77;
