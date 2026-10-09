@@ -124,6 +124,17 @@ mas a DLL CoinRender encontrou quatro símbolos internos de Coin não
 exportados no link; a matriz passou a usar bibliotecas estáticas nesse
 perfil para testar o algoritmo sem alterar a ABI compartilhada.
 
+Na segunda execução [#37963579955](https://github.com/Dikluwe/coin/actions/runs/37963579955),
+Ubuntu e a captura CPU macOS 14 passaram. O Mac Intel também compilou e
+passou a captura CPU, mas seu CoinGL encontrou a mesma recusa CGL de formato
+offscreen. O Windows compilou com bibliotecas estáticas, porém a captura
+CPU excedeu 120 segundos; o teste seguinte permaneceu em execução e a
+campanha foi cancelada. Para distinguir GLU de CoinGL e do runtime Coin,
+`CoinRenderGluNativeOracle` cria um contexto OpenGL mínimo do sistema e
+compara uma borda reamostrada pelo GLU nativo com o resultado CPU esperado.
+O workflow executa esse oráculo em Windows e nos dois macOS, conservando a
+sonda CoinGL macOS como diagnóstico não bloqueante.
+
 Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
 entre contextos cobre o caminho POT do override legado; outros caminhos de

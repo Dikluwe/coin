@@ -926,6 +926,20 @@ if(COIN_BUILD_RENDER)
 	set_tests_properties(CoinRenderTextureTest PROPERTIES TIMEOUT 30)
 
 	add_executable(CoinRenderTextureSamplingTest coinrender/CoinRenderTextureSamplingTest.cpp)
+	if(WIN32 OR APPLE)
+		add_executable(CoinRenderGluNativeOracle coinrender/CoinRenderGluNativeOracle.cpp)
+		target_link_libraries(CoinRenderGluNativeOracle PRIVATE OpenGL::GL)
+		if(TARGET OpenGL::GLU)
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE OpenGL::GLU)
+		else()
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE ${OPENGL_glu_LIBRARY})
+		endif()
+		if(WIN32)
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE gdi32 user32)
+		endif()
+		add_test(NAME CoinRenderGluNativeOracleTest COMMAND CoinRenderGluNativeOracle)
+		set_tests_properties(CoinRenderGluNativeOracleTest PROPERTIES TIMEOUT 20)
+	endif()
 	target_compile_definitions(CoinRenderTextureSamplingTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
 	target_link_libraries(CoinRenderTextureSamplingTest CoinRender Coin)
 	target_include_directories(CoinRenderTextureSamplingTest PRIVATE
@@ -936,6 +950,7 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinRenderTextureSamplingGluFallbackTest
 			COMMAND CoinRenderTextureSamplingTest --scale-policy-pot-glu-probe)
 		set_tests_properties(CoinRenderTextureSamplingGluFallbackTest PROPERTIES
+			TIMEOUT 120
 			ENVIRONMENT "COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES=1;COIN_GLX_PIXMAP_DIRECT_RENDERING=1;COIN_GLXGLUE_NO_PBUFFERS=1")
 	endif()
 	add_test(NAME CoinRenderTextureSamplingConfigLimitTest COMMAND CoinRenderTextureSamplingTest --reject-config)
