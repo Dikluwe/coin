@@ -78,6 +78,7 @@
 #include <Inventor/elements/SoMultiTextureMatrixElement.h>
 #include <Inventor/elements/SoTextureQualityElement.h>
 #include "elements/SoTextureScalePolicyElement.h"
+#include "elements/SoTextureScaleQualityElement.h"
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoMultiTextureCoordinateElement.h>
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
@@ -880,9 +881,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     }
   }
 
-  // 8. Content digest & Image deduplication
-  uint64_t digest =
-      isSceneTexture ? sceneTexture->second.producerId : CoinRenderImageCore::rgba8Digest(rgba);
   CoinRenderTextureImageSnapshot tSnap;
   tSnap.width = w; tSnap.height = h; tSnap.components = 4;
   tSnap.format=!isSceneTexture && this->storedTextureColorSpace==COIN_RENDER_TEXTURE_SRGB?
@@ -890,9 +888,40 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   if(isSceneTexture)tSnap.format=sceneTexture->second.format;
   tSnap.sceneTransparencyFunction = isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
   tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
-  tSnap.contentDigest = digest;
   tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
   tSnap.pixelsRgba = std::move(rgba);
+  // The legacy GL override makes POT resizing observable even on NPOT hardware.
+  // Match its fast resize path; the simage/GLU path needs a separate contract.
+  const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
+  if (!isSceneTexture && disableNpot && std::atoi(disableNpot) != 0) {
+    if (const char * scaleLimit = std::getenv("COIN_TEX2_SCALEUP_LIMIT")) {
+      if (static_cast<float>(std::atof(scaleLimit)) != .7f) {
+        this->isUnsupported = true;
+        this->builderError = "Legacy POT resize requires the default scale-up limit";
+        if (outError) *outError = this->builderError;
+        return false;
+      }
+    }
+    const auto policy = SoTextureScalePolicyElement::get(state);
+    const bool down = policy == SoTextureScalePolicyElement::SCALE_DOWN;
+    const bool useQuality = policy == SoTextureScalePolicyElement::USE_TEXTURE_QUALITY;
+    const uint32_t newWidth = CoinRenderTextureSamplingCore::legacyPotExtent(
+        w, down, useQuality, quality);
+    const uint32_t newHeight = CoinRenderTextureSamplingCore::legacyPotExtent(
+        h, down, useQuality, quality);
+    if (newWidth != w || newHeight != h) {
+      if (SoTextureScaleQualityElement::get(state) >= .5f ||
+          !CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight)) {
+        this->isUnsupported = true;
+        this->builderError = "Legacy POT resize requires texture scale quality below 0.5";
+        if (outError) *outError = this->builderError;
+        return false;
+      }
+    }
+  }
+  // 8. Content digest & Image deduplication
+  tSnap.contentDigest = isSceneTexture ? sceneTexture->second.producerId
+                                     : CoinRenderImageCore::rgba8Digest(tSnap.pixelsRgba);
   if (isSceneTexture) {
     // SoSceneTexture2's FBO sampler is always linear, and becomes trilinear
     // strictly above 0.5 (unlike stored SoTexture2 quality thresholds).

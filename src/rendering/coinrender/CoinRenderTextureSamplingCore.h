@@ -10,6 +10,46 @@
 class CoinRenderTextureSamplingCore {
 public:
   static bool powerOfTwo(uint32_t v) { return v && !(v & (v - 1)); }
+  static uint32_t legacyPotExtent(uint32_t extent, bool scaleDown,
+                                  bool useQuality, float quality) {
+    if (!extent || extent > 8192) return 0;
+    uint32_t result = 1;
+    while (result < extent) result <<= 1;
+    if (result > extent && result > 16 && scaleDown)
+      result >>= 1;
+    else if (result >= 256 && useQuality && quality < .7f &&
+             result - extent > result / 8 && !scaleDown)
+      result >>= 1;
+    return result;
+  }
+  // CoinGL's fast_image_resize path, used for scale quality below 0.5.
+  static bool legacyResizeNearest(CoinRenderTextureImageSnapshot &image,
+                                  uint32_t newWidth, uint32_t newHeight) {
+    if (!image.width || !image.height || !newWidth || !newHeight ||
+        newWidth > 8192 || newHeight > 8192 || image.producerId ||
+        image.gpuToken || image.components != 4 ||
+        image.pixelsRgba.size() != size_t(image.width) * image.height * 4 ||
+        size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u)
+      return false;
+    if (newWidth == image.width && newHeight == image.height) return true;
+    std::vector<uint8_t> resized(size_t(newWidth) * newHeight * 4);
+    const float dx = float(image.width) / float(newWidth);
+    const float dy = float(image.height) / float(newHeight);
+    float sy = 0.0f;
+    for (uint32_t y = 0; y < newHeight; ++y, sy += dy) {
+      float sx = 0.0f;
+      for (uint32_t x = 0; x < newWidth; ++x, sx += dx) {
+        const size_t src = (size_t(std::min(uint32_t(sy), image.height - 1)) *
+                            image.width + std::min(uint32_t(sx), image.width - 1)) * 4;
+        std::copy_n(image.pixelsRgba.begin() + src, 4,
+                    resized.begin() + (size_t(y) * newWidth + x) * 4);
+      }
+    }
+    image.width = newWidth;
+    image.height = newHeight;
+    image.pixelsRgba.swap(resized);
+    return true;
+  }
   static size_t mipBytes(
       uint32_t w, uint32_t h,
       CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR) {

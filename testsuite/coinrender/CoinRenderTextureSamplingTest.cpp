@@ -292,7 +292,55 @@ bool scalePolicyProbe()
   scene.root->insertChild(scoped, 4);
   return h.render(scene, "FRACTURE in separate scope does not leak", false);
 }
+bool scalePolicyPotProbe()
+{
+  for (int mode : {int(SoTextureScalePolicy::USE_TEXTURE_QUALITY),
+                   int(SoTextureScalePolicy::SCALE_DOWN),
+                   int(SoTextureScalePolicy::SCALE_UP)}) {
+    Harness h(true);
+    Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+    auto * policy = new SoTextureScalePolicy;
+    policy->policy = mode;
+    policy->quality = .3f;
+    scene.root->insertChild(policy, 3);
+    scene.quality->textureQuality = .3f;
+    std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+    for (int y = 0; y < 19; ++y)
+      for (int x = 0; x < 17; ++x) {
+        const size_t at = size_t(y * 17 + x) * 4;
+        pixels[at] = uint8_t(x * 15);
+        pixels[at + 1] = uint8_t(y * 13);
+        pixels[at + 2] = uint8_t((x + y) * 7);
+      }
+    scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+    if (!h.render(scene, "POT-17x19-policy-" + std::to_string(mode), false))
+      return false;
+    const uint32_t expected = mode == int(SoTextureScalePolicy::SCALE_DOWN) ? 16 : 32;
+    if (!check(h.capture->frame.textures.size() == 1 &&
+               h.capture->frame.textures[0].width == expected &&
+               h.capture->frame.textures[0].height == expected,
+               "legacy policy selects POT dimensions")) return false;
+    policy->quality = .8f;
+    if (!h.rejected(scene, "high-quality POT resize is explicit unsupported"))
+      return false;
+    policy->quality = .3f;
+    if (!h.render(scene, "low-quality POT resize recovers", false)) return false;
+  }
+  return true;
+}
 bool core() {
+  if (!check(CoinRenderTextureSamplingCore::legacyPotExtent(17, true, false, .3f) == 16 &&
+             CoinRenderTextureSamplingCore::legacyPotExtent(17, false, false, .3f) == 32 &&
+             CoinRenderTextureSamplingCore::legacyPotExtent(300, false, true, .3f) == 256 &&
+             CoinRenderTextureSamplingCore::legacyPotExtent(300, false, true, .8f) == 512,
+             "legacy POT policy and quality threshold")) return false;
+  CoinRenderTextureImageSnapshot resized;
+  resized.width = 3; resized.height = 1;
+  resized.pixelsRgba = {10, 0, 0, 255, 20, 0, 0, 255, 30, 0, 0, 255};
+  if (!check(CoinRenderTextureSamplingCore::legacyResizeNearest(resized, 4, 1) &&
+             resized.pixelsRgba == std::vector<uint8_t>({10, 0, 0, 255, 10, 0, 0, 255,
+                                                         20, 0, 0, 255, 30, 0, 0, 255}),
+             "legacy nearest resize texels")) return false;
   CoinRenderTextureImageSnapshot image;
   image.width = image.height = 2;
   image.pixelsRgba = {0, 10, 20, 255, 1, 11, 21, 255,
@@ -494,5 +542,7 @@ int main(int argc, char **argv) {
   }
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-probe")
     return scalePolicyProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-probe")
+    return scalePolicyPotProbe() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

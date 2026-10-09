@@ -68,8 +68,12 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
   O perfil NPOT pequeno de `USE_TEXTURE_QUALITY`/`SCALE_DOWN`/`SCALE_UP`
   passou 4/4 processos AMD/NVIDIA Vulkan/OpenGL; `FRACTURE` agora é recusada
-  sem publicação quando a textura está ativa. Rescaling real e recorte de
-  subtexturas continuam abertos. [Contrato e ledger](coin-render-texture-scale-policy-20261009.md).
+  sem publicação quando a textura está ativa. Rescaling completo e recorte de
+  subtexturas continuam abertos. Sob o override legado que desativa NPOT,
+  resize POT por vizinho para qualidade de escala <0,5 passou a sonda 17×19
+  em Vulkan AMD/NVIDIA e OpenGL NVIDIA/Mesa; qualidade alta é recusada.
+  [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
+  [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
   quantização nearest e footprint explicam o diagnóstico, com contracontrole NVIDIA.
   O gate GPU completo de sampling passou 8/8 processos BGFX AMD/NVIDIA
