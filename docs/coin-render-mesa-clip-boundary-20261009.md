@@ -173,6 +173,53 @@ alteração do driver instalado.
 
 [Log da vinculação e do teste VGT](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-bind-vgt-flush-20261009.log).
 
+## Aplicação da pesquisa Bateia 0125 — 2026-10-09
+
+A pesquisa separou o defeito original de contorno do reset introduzido pelo
+GS suplementar. O Bateia leu `../build/compile_commands.json` e preservou
+hashes dos inputs, mas as ASTs selecionadas ultrapassaram 32 MiB; sua análise
+C/C++ terminou `not_evaluated`. As conclusões abaixo foram verificadas por
+leitura do Mesa 25.2.8, não atribuídas ao analisador automático. O relatório
+completo e a bancada rastreável estão no projeto Bateia, sob
+`00_nucleo/relatorios/pesquisa-mesa-0125.md` e
+`lab/bancada/pesquisa/0125/`.
+
+No caminho de software, `draw_pipe_clip.c` transporta as flags de aresta da
+primitiva, marca como visível a borda criada por um **plano do usuário** e
+passa a geometria ao estágio `draw_pipe_unfilled.c`. Este só emite a linha ou
+o ponto quando a flag da primitiva e a do vértice permitem. O mesmo clipper
+suprime a nova edge flag nos planos do frustum. Portanto, os casos do oracle
+com plano do usuário e `gl_ClipDistance` não devem ser extrapolados para os
+seis planos do frustum. `st_atom_rasterizer.c` e `radeonsi/si_state.c` mostram
+a tradução do modo LINE/POINT até os bits `POLY_MODE`/`PTYPE`, mas isso não
+prova que o hardware produz as novas interseções e flags. O controle seguinte
+é capturar **em CPU** os vértices e as duas classes de flags entre clipping e
+unfilled, para plano do usuário e frustum, com o mesmo quad.
+
+Para o reset, a leitura de `si_bind_gs_shader` mostrou que GS→NULL marca o
+estágio GS como dirty e chama `si_shader_change_notify`, que muda chaves e
+bases de userdata. Este último não marca por si só o VS/TES como dirty. Em
+`si_update_shaders`, o ramo sem GS limpa o estado GS, mas só substitui o copy
+shader legado pelo VS/TES normal se o estágio anterior estiver dirty. Assim,
+uma transição sem outra invalidação pode deixar o VS enfileirado apontando
+para o copy shader. Isso é uma **hipótese de estado CPU**, ainda não uma
+medição do PM4 emitido ou prova da causa do reset. O controle discriminante
+é comparar, sem submissão à GPU, o contexto inicial sem GS com GS→NULL:
+`dirty_shaders_mask`, variante/PM4 VS, `VGT_GS_MODE`,
+`VGT_SHADER_STAGES_EN` e bases de userdata devem coincidir antes do draw.
+
+Um [patch candidato](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch)
+marca VS ou TES como dirty ao desativar GS. Ele compilou e vinculou em
+`libgallium-25.2.8.so` privado; nenhum draw foi executado com ele. Fonte e
+biblioteca privados foram restaurados byte a byte após a compilação. A
+correção de propagação para shaders combinados, citada no Mesa 26.0, já
+consta das notas do Mesa 25.2.6 e do fonte 25.2.8; não é uma correção
+posterior ausente deste baseline.
+
+SwiftShader e ANGLE forneceram referências de organização para clipping e
+restauração de estado, respectivamente. São implementações com contratos
+diferentes; seus achados não validam o comportamento OpenGL do radeonsi.
+
 ## Trabalho restante
 
 Uma correção precisa gerar a geometria do polígono **depois** do clipping e
