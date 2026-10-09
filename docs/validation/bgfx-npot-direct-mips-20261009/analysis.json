@@ -1,0 +1,30 @@
+{
+  "driver_nvidia": "615.71.09",
+  "gpu_profiles": "AMD Renoir and NVIDIA RTX 3060 Laptop; Vulkan and OpenGL",
+  "status": "16/16 PASS",
+  "advanced_gpu_processes": 8,
+  "rtt_direct_processes": 6,
+  "rtt_staged_processes": 1,
+  "cpu_core_processes": 1,
+  "npot_dimensions": [
+    "3x5",
+    "1x5",
+    "5x1",
+    "5x7",
+    "129x127",
+    "2047x2047"
+  ],
+  "npot_hdr": "RGBA16F 3x5, value above 1 retained within max RGB difference 1",
+  "gpu_area_oracle": "all six RGBA8 dimensions had max RGB difference 0 at the consumer center when sampling the final mip",
+  "faults": "preexisting pixels and serial unchanged after injected failure at second level; cached token recovered",
+  "shadow_view_stress": "not qualified in this campaign",
+  "shader_profiles_compiled": [
+    "glsl330",
+    "spirv"
+  ],
+  "shader_profiles_not_compiled": [
+    "dx11: Linux shaderc lacks D3D4Linux compiler"
+  ],
+  "build_library_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d",
+  "artifact_source": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/validation-final"
+}

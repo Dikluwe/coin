@@ -94,6 +94,7 @@ private:
                           CoinBgfxTransparencyStrategy strategy,
                           bool instanced = false);
   bool prepareFullscreenResources();
+  bool prepareNpotMipProgram();
   bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);
   bool prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy);
@@ -197,11 +198,14 @@ private:
   bgfx::FrameBufferHandle depthReadFrameBuffer;
   bgfx::ProgramHandle peelNextProgram;
   bgfx::ProgramHandle compositeProgram;
+  bgfx::ProgramHandle npotMipProgram;
   bgfx::ProgramHandle weightedOitProgram;
   bgfx::ProgramHandle weightedCompositeProgram;
   bgfx::UniformHandle previousDepthSampler;
   bgfx::UniformHandle previousColorSampler;
   bgfx::UniformHandle layerSampler;
+  bgfx::UniformHandle npotMipSampler;
+  bgfx::UniformHandle npotMipExtentUniform;
   bgfx::UniformHandle oitAccumSampler;
   bgfx::UniformHandle oitRevealSampler;
   bgfx::UniformHandle depthInfoUniform;

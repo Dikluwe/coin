@@ -20,6 +20,8 @@
 
 #include "coin_bgfx_fs_depth_readback_glsl.h"
 #include "coin_bgfx_fs_depth_readback_spirv.h"
+#include "coin_bgfx_fs_mip_area_glsl.h"
+#include "coin_bgfx_fs_mip_area_spirv.h"
 #include "coin_bgfx_vs_glsl.h"
 #include "coin_bgfx_fs_glsl.h"
 #include "coin_bgfx_vs_spirv.h"
@@ -99,6 +101,7 @@
 #endif
 #ifdef _WIN32
 #include "coin_bgfx_fs_depth_readback_dx11.h"
+#include "coin_bgfx_fs_mip_area_dx11.h"
 #include "coin_bgfx_vs_dx11.h"
 #include "coin_bgfx_fs_dx11.h"
 #include "coin_bgfx_fs_solid_color_dx11.h"
@@ -751,11 +754,13 @@ CoinBgfxBackend::CoinBgfxBackend()
     depthReadProgram(BGFX_INVALID_HANDLE), readDepthSampler(BGFX_INVALID_HANDLE),
     depthReadFrameBuffer(BGFX_INVALID_HANDLE),
     peelNextProgram(BGFX_INVALID_HANDLE), compositeProgram(BGFX_INVALID_HANDLE),
+    npotMipProgram(BGFX_INVALID_HANDLE),
     weightedOitProgram(BGFX_INVALID_HANDLE),
     weightedCompositeProgram(BGFX_INVALID_HANDLE),
     previousDepthSampler(BGFX_INVALID_HANDLE),
     previousColorSampler(BGFX_INVALID_HANDLE),
-    layerSampler(BGFX_INVALID_HANDLE), oitAccumSampler(BGFX_INVALID_HANDLE),
+    layerSampler(BGFX_INVALID_HANDLE), npotMipSampler(BGFX_INVALID_HANDLE),
+    npotMipExtentUniform(BGFX_INVALID_HANDLE), oitAccumSampler(BGFX_INVALID_HANDLE),
     oitRevealSampler(BGFX_INVALID_HANDLE), depthInfoUniform(BGFX_INVALID_HANDLE),
     coinDepthUniform(BGFX_INVALID_HANDLE), screenDoorUniform(BGFX_INVALID_HANDLE),
     alphaTestUniform(BGFX_INVALID_HANDLE),
@@ -947,6 +952,8 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->previousDepthSampler)) bgfx::destroy(this->previousDepthSampler);
   if (bgfx::isValid(this->previousColorSampler)) bgfx::destroy(this->previousColorSampler);
   if (bgfx::isValid(this->layerSampler)) bgfx::destroy(this->layerSampler);
+  if (bgfx::isValid(this->npotMipSampler)) bgfx::destroy(this->npotMipSampler);
+  if (bgfx::isValid(this->npotMipExtentUniform)) bgfx::destroy(this->npotMipExtentUniform);
   if (bgfx::isValid(this->depthInfoUniform)) bgfx::destroy(this->depthInfoUniform);
   if (bgfx::isValid(this->screenDoorUniform)) bgfx::destroy(this->screenDoorUniform);
   if (bgfx::isValid(this->alphaTestUniform)) bgfx::destroy(this->alphaTestUniform);
@@ -979,6 +986,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->cachedInstanceBuffer)) bgfx::destroy(this->cachedInstanceBuffer);
   if (bgfx::isValid(this->peelNextProgram)) bgfx::destroy(this->peelNextProgram);
   if (bgfx::isValid(this->compositeProgram)) bgfx::destroy(this->compositeProgram);
+  if (bgfx::isValid(this->npotMipProgram)) bgfx::destroy(this->npotMipProgram);
   if (bgfx::isValid(this->depthReadProgram)) bgfx::destroy(this->depthReadProgram);
   if (bgfx::isValid(this->readDepthSampler)) bgfx::destroy(this->readDepthSampler);
   if (bgfx::isValid(this->program)) bgfx::destroy(this->program);
@@ -1413,6 +1421,29 @@ CoinBgfxBackend::prepareFullscreenResources()
       !bgfx::isValid(this->fullscreenIndexBuffer)) {
     this->lastError = "BGFX could not allocate shared transparency resources";
     this->status = CoinRenderBackendStatus::BACKEND_ERROR;
+    return false;
+  }
+  return true;
+}
+
+bool
+CoinBgfxBackend::prepareNpotMipProgram()
+{
+  if (!this->prepareFullscreenResources()) return false;
+  if (!bgfx::isValid(this->npotMipProgram))
+    this->npotMipProgram = createLayerProgram(
+      COIN_BGFX_SHADER_DATA(coin_bgfx_vs),
+      COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+      COIN_BGFX_SHADER_DATA(coin_bgfx_fs_mip_area),
+      COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_mip_area));
+  if (!bgfx::isValid(this->npotMipSampler))
+    this->npotMipSampler = bgfx::createUniform("s_mipSource", bgfx::UniformType::Sampler);
+  if (!bgfx::isValid(this->npotMipExtentUniform))
+    this->npotMipExtentUniform = bgfx::createUniform("u_mipExtent", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->npotMipProgram) ||
+      !bgfx::isValid(this->npotMipSampler) ||
+      !bgfx::isValid(this->npotMipExtentUniform)) {
+    this->lastError = "BGFX could not prepare the NPOT area reduction program";
     return false;
   }
   return true;
@@ -3180,11 +3211,18 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const auto outputFormat=coinBgfxTextureFormat(frame.outputColorFormat);
   const auto * runtimeCaps=bgfx::getCaps();
   if(!runtimeCaps) return {CoinRenderBackendStatus::NOT_READY,"BGFX direct RTT runtime unavailable"};
-  if(frame.outputMipmaps && (!CoinRenderTextureSamplingCore::powerOfTwo(size[0]) ||
-                            !CoinRenderTextureSamplingCore::powerOfTwo(size[1])))
-    return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX native RTT mip generation requires POT extents; NPOT exact area reduction unavailable"};
-  if(frame.outputMipmaps && !(runtimeCaps->formats[outputFormat]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))
+  const bool manualMips = frame.outputMipmaps &&
+    (!CoinRenderTextureSamplingCore::powerOfTwo(size[0]) ||
+     !CoinRenderTextureSamplingCore::powerOfTwo(size[1]));
+  if(frame.outputMipmaps && !manualMips &&
+     !(runtimeCaps->formats[outputFormat]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))
     return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX format lacks direct GPU mip generation"};
+  if(manualMips &&
+     (!(runtimeCaps->formats[outputFormat]&BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+      !bgfx::isTextureValid(1, false, 1, outputFormat,
+        BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+        BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT)))
+    return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX format lacks NPOT GPU area-reduction attachments"};
 
   if (!this->initialized || !this->onApiThread() ||
       producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
@@ -3234,6 +3272,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   if (!this->prepareTransparencyPrograms(strategy))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (!this->prepareBaseProgram(plan.draws, hasShadows, strategy))
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
+  if (manualMips && !this->prepareNpotMipProgram())
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && strategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -3286,14 +3326,14 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       break;
     }
   }
-  if (cachedResource &&
+  if (cachedResource && !manualMips &&
       (cachedResource->width != size[0] || cachedResource->height != size[1] || cachedResource->format!=frame.outputColorFormat || cachedResource->mipmapped!=frame.outputMipmaps)) {
     if (bgfx::isValid(cachedResource->frameBuffer))
       bgfx::destroy(cachedResource->frameBuffer);
     cachedResource->frameBuffer = BGFX_INVALID_HANDLE;
   }
   bgfx::FrameBufferHandle output = BGFX_INVALID_HANDLE;
-  if (cachedResource) output = cachedResource->frameBuffer;
+  if (cachedResource && !manualMips) output = cachedResource->frameBuffer;
   const bool newOutput = !bgfx::isValid(output);
   if (newOutput) {
     const bgfx::Caps * caps = bgfx::getCaps();
@@ -3306,8 +3346,19 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::TextureHandle depth = bgfx::createTexture2D(
       static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
       depthFormat, BGFX_TEXTURE_RT_WRITE_ONLY);
-    const bgfx::TextureHandle attachments[2] = {color, depth};
-    output = bgfx::createFrameBuffer(2, attachments, true);
+    if (bgfx::isValid(color) && bgfx::isValid(depth)) {
+      if (manualMips) {
+        bgfx::Attachment attachments[2];
+        attachments[0].init(color, bgfx::Access::Write, 0, 1, 0,
+                            BGFX_ATTACHMENT_NONE);
+        attachments[1].init(depth, bgfx::Access::Write, 0, 1, 0,
+                            BGFX_ATTACHMENT_NONE);
+        output = bgfx::createFrameBuffer(2, attachments, true);
+      } else {
+        const bgfx::TextureHandle attachments[2] = {color, depth};
+        output = bgfx::createFrameBuffer(2, attachments, true);
+      }
+    }
     if (!bgfx::isValid(color) || !bgfx::isValid(depth) || !bgfx::isValid(output)) {
       if (bgfx::isValid(output)) bgfx::destroy(output);
       else {
@@ -3526,6 +3577,88 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
   bgfx::frame();
+  if (manualMips) {
+    auto runtimeStatus = this->checkRuntimeFailure("BGFX direct RTT base render failed");
+    if (runtimeStatus != CoinRenderBackendStatus::SUCCESS) {
+      cleanupDirect();
+      return CoinRenderSubmitResult(runtimeStatus, this->lastError);
+    }
+    const bgfx::TextureHandle color = bgfx::getTexture(output, 0);
+    int sourceWidth = size[0], sourceHeight = size[1];
+    uint16_t level = 1;
+    while (sourceWidth > 1 || sourceHeight > 1) {
+      const int destinationWidth = std::max(1, sourceWidth / 2);
+      const int destinationHeight = std::max(1, sourceHeight / 2);
+      // Fault after one completed level: a partially generated replacement
+      // must never displace an older published texture or advance the serial.
+      // A one-level chain instead fails before its only allocation.
+      if ((level == 2 || (level == 1 && destinationWidth == 1 &&
+                          destinationHeight == 1)) &&
+          consumeTestFault("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE")) {
+        cleanupDirect();
+        return {CoinRenderBackendStatus::OUT_OF_MEMORY,
+                "Injected BGFX NPOT mip allocation failure"};
+      }
+      const uint64_t scratchFlags = BGFX_TEXTURE_BLIT_DST |
+        BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+        BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
+      bgfx::TextureHandle scratch = bgfx::createTexture2D(
+        static_cast<uint16_t>(sourceWidth), static_cast<uint16_t>(sourceHeight),
+        false, 1, outputFormat, scratchFlags);
+      bgfx::FrameBufferHandle mipBuffer = BGFX_INVALID_HANDLE;
+      if (bgfx::isValid(scratch)) {
+        bgfx::Attachment attachment;
+        attachment.init(color, bgfx::Access::Write, 0, 1, level,
+                        BGFX_ATTACHMENT_NONE);
+        mipBuffer = bgfx::createFrameBuffer(1, &attachment, false);
+      }
+      if (!bgfx::isValid(scratch) || !bgfx::isValid(mipBuffer)) {
+        if (bgfx::isValid(scratch)) bgfx::destroy(scratch);
+        if (bgfx::isValid(mipBuffer)) bgfx::destroy(mipBuffer);
+        cleanupDirect();
+        return {CoinRenderBackendStatus::OUT_OF_MEMORY,
+                "BGFX could not allocate NPOT mip GPU scratch or attachment"};
+      }
+      const bgfx::ViewId copyView = this->viewBase;
+      const bgfx::ViewId reduceView = this->viewBase + 1;
+      bgfx::resetView(copyView);
+      bgfx::resetView(reduceView);
+      bgfx::TextureRegion source, destination;
+      source.handle = color;
+      source.mip = static_cast<uint8_t>(level - 1);
+      destination.handle = scratch;
+      bgfx::blit(copyView, destination, source);
+      bgfx::setViewName(reduceView, "rtt_npot_area_mip");
+      bgfx::setViewMode(reduceView, bgfx::ViewMode::Sequential);
+      bgfx::setViewRect(reduceView, 0, 0,
+        static_cast<uint16_t>(destinationWidth),
+        static_cast<uint16_t>(destinationHeight));
+      bgfx::setViewFrameBuffer(reduceView, mipBuffer);
+      bgfx::setViewClear(reduceView, BGFX_CLEAR_NONE);
+      bgfx::setViewTransform(reduceView, nullptr, nullptr);
+      const float extent[4] = {float(sourceWidth), float(sourceHeight),
+                               float(destinationWidth), float(destinationHeight)};
+      bgfx::setUniform(this->npotMipExtentUniform, extent);
+      bgfx::setTexture(0, this->npotMipSampler, scratch);
+      bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+      bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+      bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+      bgfx::submit(reduceView, this->npotMipProgram);
+      bgfx::frame();
+      runtimeStatus = this->checkRuntimeFailure("BGFX NPOT mip area reduction failed");
+      bgfx::destroy(mipBuffer);
+      bgfx::destroy(scratch);
+      if (runtimeStatus != CoinRenderBackendStatus::SUCCESS) {
+        cleanupDirect();
+        return CoinRenderSubmitResult(runtimeStatus, this->lastError);
+      }
+      sourceWidth = destinationWidth;
+      sourceHeight = destinationHeight;
+      ++level;
+    }
+    bgfx::resetView(this->viewBase);
+    bgfx::resetView(this->viewBase + 1);
+  }
   for (size_t i = 0; i < textures.size(); ++i)
     if (owned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
   if (bgfx::isValid(vb)) bgfx::destroy(vb);
@@ -3542,6 +3675,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     this->directTextures.push_back(resource);
     token = resource.token;
   } else {
+    if (manualMips && bgfx::isValid(cachedResource->frameBuffer))
+      bgfx::destroy(cachedResource->frameBuffer);
     cachedResource->width = size[0];
     cachedResource->height = size[1];
     cachedResource->format=frame.outputColorFormat;cachedResource->mipmapped=frame.outputMipmaps;
@@ -3691,15 +3826,20 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
     return {};
   for (size_t producerIndex=0;producerIndex<graph.producers.size();++producerIndex) {
     const auto& producer=graph.producers[producerIndex];
-    if(graph.requestsMips(producerIndex+1,root) &&
-       (!CoinRenderTextureSamplingCore::powerOfTwo(producer.size[0]) ||
-        !CoinRenderTextureSamplingCore::powerOfTwo(producer.size[1])))
-      return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX native RTT mip generation requires POT extents; NPOT exact area reduction unavailable"};
+    const bool requestsMips=graph.requestsMips(producerIndex+1,root);
+    const bool manualMips=requestsMips &&
+      (!CoinRenderTextureSamplingCore::powerOfTwo(producer.size[0]) ||
+       !CoinRenderTextureSamplingCore::powerOfTwo(producer.size[1]));
     const auto format=coinBgfxTextureFormat(producer.format);
     const auto * caps=sharedRuntime().references ? bgfx::getCaps() : nullptr;
     if(caps && (!(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-       (graph.requestsMips(producerIndex+1,root) && !(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))))
+       (requestsMips && !manualMips && !(caps->formats[format]&BGFX_CAPS_FORMAT_TEXTURE_MIP_AUTOGEN))))
       return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX RTT format/mip generation unavailable"};
+    if(caps && manualMips &&
+       !bgfx::isTextureValid(1, false, 1, format,
+         BGFX_TEXTURE_BLIT_DST | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+         BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT))
+      return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX NPOT mip GPU blit destination unavailable"};
     if (!producer.plan.shadowGroups.empty()) {
       CoinRenderShadowPlan shadowPlan;
       std::string diagnostic;

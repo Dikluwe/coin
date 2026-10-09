@@ -1,59 +1,60 @@
-# Próxima implementação: mips NPOT de RTT direto no BGFX
+# BGFX: mips NPOT de RTT direto por redução de área
 
-## Contrato a preservar
+Implementação local na branch `codex/coin-portable-sampling-study`, validada em
+2026-10-09. O produtor 3×5 com última coluna branca exige RGB `(85,85,85)` no
+mip 1×1; a autogeração BGFX divergira desse oráculo e era recusada antes do
+produtor. A rota NPOT agora usa média exata por área, incluindo bordas ímpares,
+sem readback nem geração CPU. A rota POT continua com autogeração nativa.
 
-O controle existente cria um produtor 3×5 não uniforme, com a última coluna
-branca, e espera RGB `(85, 85, 85)` no mip final. `bgfx::AUTO_GEN_MIPS`
-divergiu desse resultado; a admissão recusa NPOT antes de executar produtores.
-Essa recusa continua ativa. A redução requerida é a média por área do
-`CoinRenderTextureSamplingCore::generate`: para cada pixel do nível seguinte,
-pesos de sobreposição cobrem todo o nível anterior, inclusive bordas ímpares.
-RGBA16F deve preservar valores acima de 1; RGBA8 deve arredondar conforme o
-oráculo. Não há readback/geração CPU na rota direta.
+## Rota implementada
 
-## Rota BGFX proposta
+1. Para NPOT, o framebuffer da base usa `BGFX_ATTACHMENT_NONE`, evitando
+   `AUTO_GEN_MIPS`. O preflight exige formato de framebuffer e textura destino
+   de blit válidos antes de submeter o produtor.
+2. A cada nível, `bgfx::blit` copia o mip anterior para uma textura temporária
+   GPU, com filtro pontual. O shader `fs_mip_area.sc` lê até 3×3 texels, calcula
+   pesos de interseção da área de origem e renderiza no mip de destino por
+   `bgfx::Attachment`. Não há leitura e escrita simultâneas no mesmo objeto GL.
+3. A redução usa duas views do bloco privado de 16 por alvo, em um frame BGFX
+   por nível. Assim uma cadeia 2047×2047 não aumenta o número de views usadas
+   pelo frame de sombras/transparência do produtor. O custo de frames extras
+   ainda não foi medido como benchmark.
+4. O orçamento comum de 64 MiB já cobra a cadeia e uma base temporária. O
+   backend aloca um novo framebuffer para substituição NPOT e só troca o token
+   em cache após concluir todos os níveis. Falhas preservam o framebuffer
+   anterior, os pixels publicados e o serial.
 
-1. Preparar programa de redução para RGBA8 linear e RGBA16F. O shader recebe
-   dimensões exatas de origem/destino e amostra texels do nível anterior com
-   pesos de área; usar filtro pontual e coordenadas explícitas.
-2. Renderizar cada nível em uma textura temporária, depois copiar para o mip
-   correspondente da textura de saída. Não amostrar e escrever no mesmo objeto
-   GL. A API `bgfx::Attachment` seleciona o mip do framebuffer e `bgfx::blit`
-   faz a cópia GPU. Evitar `BGFX_ATTACHMENT_AUTO_GEN_MIPS` nesses passes.
-3. Reservar até duas cadeias inferiores e uma base temporária dentro do
-   orçamento de 64 MiB já cobrado pelo grafo. Validar `TEXTURE_FRAMEBUFFER` e
-   destino de blit do formato antes da primeira submissão.
-4. Planejar os views antes de alocar: o backend dispõe de 16 por alvo, usados
-   também por sombras/transparência/readback. A cadeia 2048² pode ter 11
-   reduções; se faltar espaço, dividir em frames internos com ordem explícita
-   ou recusar atomicamente no preflight. Não ultrapassar o bloco de views.
-5. Só publicar o token depois de todos os níveis e da checagem de falha BGFX;
-   injetar falha de alocação/encoding e provar preservação de pixels, serial e
-   possibilidade de recuperação.
+## Validação neste PC
 
-## Gates de aceitação
+O [ledger com resumo e logs](validation/bgfx-npot-direct-mips-20261009/analysis.json)
+registra 16/16 processos PASS no build separado: oito perfis de texturas
+avançadas (AMD Renoir e NVIDIA RTX 3060 Laptop, Vulkan/OpenGL, native/portable),
+seis gates RTT direto com CoinGL, um gate staged e um controle CPU. Os recibos
+OpenGL do próprio BGFX identificam os drivers AMD e NVIDIA; os Vulkan informam
+`1002:1638` e `10de:2560`.
 
-- 3×5 não uniforme → mip final RGB 85 no AMD/Vulkan e AMD/OpenGL;
-- outras dimensões ímpares, 1×N e N×1, com erro numérico delimitado pelo
-  formato, comparadas ao oráculo CPU independente;
-- RGBA16F acima de 1 sem clamp intermediário;
-- cenário com sombras/transparência que exaure views recusa antes do produtor;
-- falha sem publicação e frame seguinte recuperado;
-- POT existente e replay de token sem regressão.
+- RGBA8 final: 3×5, 1×5, 5×1, 5×7, 129×127 e 2047×2047 tiveram diferença RGB
+  máxima zero no centro do consumidor contra a média independente esperada.
+- RGBA16F NPOT 3×5 manteve valor acima de 1 através dos mips (erro RGB máximo
+  de um byte após a composição final RGBA8).
+- Falha injetada após um nível gerado preservou pixels e serial. Uma segunda
+  falha ao substituir um token já em cache preservou o token anterior; a
+  repetição recuperou o mesmo token e os mesmos pixels.
+- O RTT direto 64×48 passou sete transições por processo na AMD/Vulkan,
+  AMD/OpenGL e NVIDIA/Vulkan, incluindo dimensão inválida sem publicação e
+  recuperação; a referência CoinGL teve MAE máxima 0/0/0,667, respectivamente.
+  Os controles POT, staged e CPU continuaram passando.
 
-## Estado do host após reinicialização
+Build e logs completos estão em
+`/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx`.
+GLSL 330 e SPIR-V foram compilados neste Linux. O compilador BGFX local não
+inclui D3D4Linux para gerar DX11, portanto Windows não foi qualificado aqui.
 
-O driver NVIDIA 615.71.09 está íntegro neste PC: `nvidia-smi` identifica a
-RTX 3060 Laptop, e BGFX/Vulkan passou 380/380 controles de texturas avançadas.
-Isso libera a futura matriz NVIDIA, mas não qualifica mips NPOT diretos:
-`CoinBgfxBackend::preflightRtt` e `submitDirectTexture` ainda os recusam antes
-do produtor. A rota POT existente usa autogeração nativa.
+## Gate ainda aberto
 
-O código atual reserva 16 views por alvo. `submitDirectTexture` usa views para
-sombras, opacidade, transparência e overlays; a redução NPOT precisa planejar
-seus passes depois dessas etapas e dividir a cadeia entre frames internos ou
-recusar o grafo no preflight quando o bloco não comportar a sequência. A
-integração também exige gerar os shaders BGFX para Vulkan e OpenGL (e DX11 no
-build Windows), verificar `FRAMEBUFFER`/blit para cada formato e só publicar o
-token após a última cópia GPU. A recusa atual permanece até que os gates acima
-sejam executados; não há fallback CPU/readback na rota direta.
+Falta um cenário combinado de mips NPOT com sombras e transparência que
+pressione o bloco de views do frame base, além de qualificação no Windows.
+Como os mips usam frames próprios, eles não consomem views adicionais no frame
+base; essa propriedade foi verificada no código, mas o cenário combinado ainda
+precisa de execução. Não promover a mudança para a branch de produção antes
+desse gate e da medição do custo dos frames extras.

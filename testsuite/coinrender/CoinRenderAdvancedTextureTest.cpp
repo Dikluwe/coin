@@ -1,5 +1,6 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include "CoinRenderSamplingTestOptions.h"
+#include "CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -855,76 +856,155 @@ int main(int argc, char **argv) {
                    mips ? "HDR direct GPU mips"
                         : "HDR direct base retains values above 1");
     }
-    // Nonconstant NPOT producer: exact area reduction must include column 2.
-    auto npotRoot = base;
-    npotRoot.textures[0].format = F::RGBA8_LINEAR;
-    npotRoot.textures[0].pixelsRgba.clear();
-    npotRoot.textures[0].producerId = 1;
-    npotRoot.textures[0].width = 3;
-    npotRoot.textures[0].height = 5;
-    npotRoot.textures[0].mipmapped = true;
-    npotRoot.samplers[0].filter = CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
-    for (auto &vertex : npotRoot.vertices) {
-      vertex.texcoord[0] *= 128;
-      vertex.texcoord[1] *= 128;
+    // The final level must include every odd row/column, even for 1xN/Nx1.
+    const int npotExtents[][3] = {
+      {3, 5, 1}, {1, 5, 1}, {5, 1, 1}, {5, 7, 1},
+      {129, 127, 43}, {2047, 2047, 682}
+    };
+    for (const auto &extent : npotExtents) {
+      const int oddWidth = extent[0], oddHeight = extent[1];
+      const int stripeWidth = extent[2];
+      const std::string npotLabel = std::to_string(oddWidth) + "x" +
+                                    std::to_string(oddHeight);
+      auto npotRoot = base;
+      npotRoot.textures[0].format = F::RGBA8_LINEAR;
+      npotRoot.textures[0].pixelsRgba.clear();
+      npotRoot.textures[0].producerId = 1;
+      npotRoot.textures[0].width = oddWidth;
+      npotRoot.textures[0].height = oddHeight;
+      npotRoot.textures[0].mipmapped = true;
+      npotRoot.samplers[0].filter = CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+      for (auto &vertex : npotRoot.vertices) {
+        vertex.texcoord[0] *= 128;
+        vertex.texcoord[1] *= 128;
+      }
+      auto oddProducer = producer;
+      oddProducer.format = F::RGBA8_LINEAR;
+      oddProducer.size = SbVec2i32(oddWidth, oddHeight);
+      oddProducer.sourceRevision = 456 + oddWidth * 100 + oddHeight;
+      oddProducer.plan = base;
+      oddProducer.plan.revision = ++revision;
+      for (auto &draw : oddProducer.plan.draws)
+        draw.sourceRevision = oddProducer.plan.revision;
+      for (auto &viewport : oddProducer.plan.viewports) {
+        viewport.width = oddWidth;
+        viewport.height = oddHeight;
+      }
+      auto &oddImage = oddProducer.plan.textures[0];
+      oddImage.width = oddWidth;
+      oddImage.height = oddHeight;
+      oddImage.format = F::RGBA8_LINEAR;
+      oddImage.pixelsRgba.assign(oddWidth * oddHeight * 4, 255);
+      for (int y = 0; y < oddHeight; ++y)
+        for (int x = 0; x < oddWidth; ++x)
+          for (unsigned c = 0; c < 3; ++c)
+            oddImage.pixelsRgba[(y * oddWidth + x) * 4 + c] =
+              (oddWidth > 1 ? x >= oddWidth - stripeWidth :
+                              y >= oddHeight - stripeWidth) ? 255 : 0;
+      oddProducer.plan.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
+      CoinRenderRttPlan oddGraph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+      ok &= check(oddGraph.append(oddProducer, id, diagnostic),
+                  "NPOT producer graph " + npotLabel);
+      uint64_t successfulToken = 0;
+      {
+        CoinRenderRttExecution execution(direct->getPimpl().operator->(),
+                                         directOptions);
+        CoinRenderFramePlan resolved;
+        std::vector<uint8_t> before;
+        direct->readbackRGBA(before);
+        const auto priorSerial = direct->getPimpl()->lastSubmissionSerial;
+#ifdef HAVE_COIN_BGFX
+        if (oddWidth == 3) {
+          coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", "1");
+          const auto failed = execution.prepare(oddGraph, npotRoot, resolved);
+          coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", nullptr);
+          ok &= check(failed.status == CoinRenderBackendStatus::OUT_OF_MEMORY,
+                      "BGFX NPOT mip allocation fault is reported");
+          std::vector<uint8_t> after;
+          direct->readbackRGBA(after);
+          ok &= check(before == after &&
+                        priorSerial == direct->getPimpl()->lastSubmissionSerial,
+                      "BGFX NPOT mip fault retains pixels/serial");
+        }
+#endif
+        auto result = execution.prepare(oddGraph, npotRoot, resolved);
+        ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                    "NPOT direct mip prepare " + npotLabel + " " + result.diagnostic);
+        if (result.status == CoinRenderBackendStatus::SUCCESS) {
+          successfulToken = resolved.textures[0].gpuToken;
+          resolved.revision = ++revision;
+          ok &= check(direct->getPimpl()->executeFrame(resolved).status ==
+                          CoinRenderBackendStatus::SUCCESS,
+                      "NPOT direct mip consumer " + npotLabel);
+        }
+        std::vector<uint8_t> pixels;
+        direct->readbackRGBA(pixels);
+        const int value = int(std::lround(255.0 * stripeWidth /
+          (oddWidth > 1 ? oddWidth : oddHeight)));
+        const int expected[] = {value, value, value};
+        ok &= center(pixels, expected,
+                     "NPOT direct final mip independent area oracle " + npotLabel);
+      }
+#ifdef HAVE_COIN_BGFX
+      if (oddWidth == 3 && successfulToken) {
+        // A failed replacement must leave the previously published token alive.
+        CoinRenderRttExecution replacement(direct->getPimpl().operator->(),
+                                           directOptions);
+        CoinRenderFramePlan resolved;
+        std::vector<uint8_t> before, after;
+        direct->readbackRGBA(before);
+        const auto priorSerial = direct->getPimpl()->lastSubmissionSerial;
+        coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", "1");
+        const auto failed = replacement.prepare(oddGraph, npotRoot, resolved);
+        coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", nullptr);
+        direct->readbackRGBA(after);
+        ok &= check(failed.status == CoinRenderBackendStatus::OUT_OF_MEMORY &&
+                      priorSerial == direct->getPimpl()->lastSubmissionSerial &&
+                      before == after,
+                    "BGFX NPOT cached replacement fault keeps publication");
+        const auto recovered = replacement.prepare(oddGraph, npotRoot, resolved);
+        ok &= check(recovered.status == CoinRenderBackendStatus::SUCCESS &&
+                      resolved.textures[0].gpuToken == successfulToken,
+                    "BGFX NPOT cached token recovers after failed replacement");
+        if (recovered.status == CoinRenderBackendStatus::SUCCESS) {
+          resolved.revision = ++revision;
+          ok &= check(direct->getPimpl()->executeFrame(resolved).status ==
+                          CoinRenderBackendStatus::SUCCESS,
+                      "BGFX NPOT cached replacement consumer");
+          direct->readbackRGBA(after);
+          ok &= check(after == before,
+                      "BGFX NPOT cached replacement reproduces pixels");
+        }
+      }
+#endif
     }
-    auto oddProducer = producer;
-    oddProducer.format = F::RGBA8_LINEAR;
-    oddProducer.size = SbVec2i32(3, 5);
-    oddProducer.sourceRevision = 456;
-    oddProducer.plan = base;
-    oddProducer.plan.revision = ++revision;
-    for (auto &draw : oddProducer.plan.draws)
-      draw.sourceRevision = oddProducer.plan.revision;
-    for (auto &viewport : oddProducer.plan.viewports) {
-      viewport.width = 3;
-      viewport.height = 5;
-    }
-    auto &oddImage = oddProducer.plan.textures[0];
-    oddImage.width = 3;
-    oddImage.height = 5;
-    oddImage.format = F::RGBA8_LINEAR;
-    oddImage.pixelsRgba.assign(3 * 5 * 4, 255);
-    for (unsigned y = 0; y < 5; ++y)
-      for (unsigned x = 0; x < 3; ++x)
-        for (unsigned c = 0; c < 3; ++c)
-          oddImage.pixelsRgba[(y * 3 + x) * 4 + c] = x == 2 ? 255 : 0;
-    oddProducer.plan.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
-    CoinRenderRttPlan oddGraph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
-    ok &= check(oddGraph.append(oddProducer, id, diagnostic),
-                "NPOT producer graph");
+    // Float output must keep HDR values through every NPOT reduction level.
+    auto npotHdrRoot = hdrRoot;
+    npotHdrRoot.textures[0].width = 3;
+    npotHdrRoot.textures[0].height = 5;
+    npotHdrRoot.textures[0].mipmapped = true;
+    auto npotHdrProducer = producer;
+    npotHdrProducer.size = SbVec2i32(3, 5);
+    npotHdrProducer.sourceRevision = 777;
+    CoinRenderRttPlan npotHdrGraph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    ok &= check(npotHdrGraph.append(npotHdrProducer, id, diagnostic),
+                "NPOT HDR producer graph");
     {
       CoinRenderRttExecution execution(direct->getPimpl().operator->(),
                                        directOptions);
       CoinRenderFramePlan resolved;
-      std::vector<uint8_t> before;
-      direct->readbackRGBA(before);
-      const auto priorSerial = direct->getPimpl()->lastSubmissionSerial;
-      auto result = execution.prepare(oddGraph, npotRoot, resolved);
-#ifdef HAVE_COIN_BGFX
-      ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED &&
-                      result.diagnostic.find("POT") != std::string::npos,
-                  "BGFX refuses NPOT direct mips before producer publication");
-      std::vector<uint8_t> after;
-      direct->readbackRGBA(after);
-      ok &= check(before == after &&
-                      priorSerial == direct->getPimpl()->lastSubmissionSerial,
-                  "BGFX NPOT mip rejection retains pixels/serial");
-#else
+      auto result = execution.prepare(npotHdrGraph, npotHdrRoot, resolved);
       ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
-                  "NPOT direct mip prepare " + result.diagnostic);
+                  "NPOT HDR direct mip prepare " + result.diagnostic);
       if (result.status == CoinRenderBackendStatus::SUCCESS) {
         resolved.revision = ++revision;
         ok &= check(direct->getPimpl()->executeFrame(resolved).status ==
                         CoinRenderBackendStatus::SUCCESS,
-                    "NPOT direct mip consumer");
+                    "NPOT HDR direct mip consumer");
       }
       std::vector<uint8_t> pixels;
       direct->readbackRGBA(pixels);
-      const int expected[] = {85, 85, 85};
-      ok &= center(pixels, expected,
-                   "NPOT direct final mip independent area oracle");
-#endif
+      ok &= center(pixels, hdrExpected, "NPOT HDR mips retain value above one");
     }
     CoinRenderRttPlan stagedHdr = graph;
     stagedHdr.mode = COIN_RENDER_SCENE_TEXTURE_STAGED;

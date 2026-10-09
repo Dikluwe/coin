@@ -44,7 +44,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   admissão nativa do GPU e referência numérica independente.
 - [x] HDR RGBA16F em produtor RTT direto e consumidor, sem clamp para RGBA8
   antes da composição; staged/HDR32 recusados, com recuperação.
-- [x] Mipmaps RTT gerados dentro do GPU: wgpu POT/NPOT e BGFX POT.
+- [x] Mipmaps RTT gerados dentro do GPU: wgpu POT/NPOT e BGFX POT/NPOT no Linux.
   OpenGL/wgpu usa cópias internas GPU para isolar views; orçamento conservador,
   tokens tipados, falha sem publicação e recuperação.
 - [x] Views independentes para samplers base/mips da mesma imagem armazenada em
@@ -53,9 +53,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [x] Views independentes para tokens RTT diretos compartilhados por samplers
   base/mips em BGFX/OpenGL: cópia do nível base no GPU, sem readback e com
   [controle AMD nativo/portátil](coin-render-advanced-textures-direct-views-20261008.md).
-- [ ] Redução por área NPOT direta no BGFX: autogeração nativa divergente
-  diagnosticada e recusada antes dos produtores.
-  [Rota de implementação e gates](coin-render-bgfx-npot-direct-mips-plan-20261008.md).
+- [ ] Fechar a qualificação da redução NPOT direta no BGFX: implementação GPU
+  por área e 16/16 processos Linux PASS em AMD/NVIDIA Vulkan/OpenGL, com
+  dimensões até 2047², HDR e rollback de token. Faltam o cenário combinado de
+  sombras/transparência com pressão de views, custo dos frames extras e Windows.
+  [Implementação, ledger e limites](coin-render-bgfx-npot-direct-mips-plan-20261008.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
