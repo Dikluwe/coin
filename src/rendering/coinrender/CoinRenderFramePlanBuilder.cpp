@@ -80,6 +80,7 @@
 #include "elements/SoTextureScalePolicyElement.h"
 #include "elements/SoTextureScaleQualityElement.h"
 #include "glue/simage_wrapper.h"
+#include "glue/GLUWrapper.h"
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoMultiTextureCoordinateElement.h>
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
@@ -967,27 +968,38 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
           }
         } else {
           const auto * simage = simage_wrapper();
-          if (!simage->available || !simage->versionMatchesAtLeast(1, 1, 1) ||
-              !simage->simage_resize || !simage->simage_free_image ||
-              size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u) {
-            this->isUnsupported = true;
-            this->builderError = "Legacy high-quality POT resize requires simage 1.1.1 or newer";
-            if (outError) *outError = this->builderError;
-            return false;
+          if (simage->available && simage->versionMatchesAtLeast(1, 1, 1) &&
+              simage->simage_resize && simage->simage_free_image) {
+            if (size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u) {
+              this->isUnsupported = true;
+              this->builderError = "Legacy high-quality POT resize exceeds image limits";
+              if (outError) *outError = this->builderError;
+              return false;
+            }
+            unsigned char * resized = simage->simage_resize(
+                tSnap.pixelsRgba.data(), int(w), int(h), 4, int(newWidth), int(newHeight));
+            if (!resized) {
+              this->isUnsupported = true;
+              this->builderError = "Legacy high-quality POT resize failed";
+              if (outError) *outError = this->builderError;
+              return false;
+            }
+            std::vector<uint8_t> pixels(resized, resized + size_t(newWidth) * newHeight * 4);
+            simage->simage_free_image(resized);
+            tSnap.width = newWidth;
+            tSnap.height = newHeight;
+            tSnap.pixelsRgba.swap(pixels);
+          } else {
+            const bool resized = GLUWrapper()->available
+                ? CoinRenderTextureSamplingCore::legacyResizeGlu(tSnap, newWidth, newHeight)
+                : CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight);
+            if (!resized) {
+              this->isUnsupported = true;
+              this->builderError = "Legacy fallback POT resize exceeds image limits";
+              if (outError) *outError = this->builderError;
+              return false;
+            }
           }
-          unsigned char * resized = simage->simage_resize(
-              tSnap.pixelsRgba.data(), int(w), int(h), 4, int(newWidth), int(newHeight));
-          if (!resized) {
-            this->isUnsupported = true;
-            this->builderError = "Legacy high-quality POT resize failed";
-            if (outError) *outError = this->builderError;
-            return false;
-          }
-          std::vector<uint8_t> pixels(resized, resized + size_t(newWidth) * newHeight * 4);
-          simage->simage_free_image(resized);
-          tSnap.width = newWidth;
-          tSnap.height = newHeight;
-          tSnap.pixelsRgba.swap(pixels);
         }
         if (sourceNode) {
           constexpr size_t cacheLimit = 128u * 1024u * 1024u;

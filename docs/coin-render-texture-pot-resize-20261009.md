@@ -7,18 +7,19 @@ imagens 2D NPOT para potência de dois. A captura portátil agora acompanha esse
 override para texturas armazenadas RGBA8, usando a escolha de dimensões de
 `SoGLImageP::resizeImage`: o mapeamento por vizinho de `fast_image_resize`
 quando `SoTextureScalePolicy.quality < 0,5`, e a mesma `simage_resize` usada
-pelo CoinGL quando a qualidade é ≥0,5 e simage ≥1.1.1 está disponível. O
+pelo CoinGL quando a qualidade é ≥0,5 e simage ≥1.1.1 está disponível. Sem
+simage, a captura reproduz em CPU a interpolação linear com convolução por
+caixa de um pixel do GLU quando ele está disponível; sem GLU, usa o mesmo
+fallback por vizinho do CoinGL. O
 resize acontece antes do digest, geração de mips e compressão. Sem o override,
 o perfil NPOT nativo anterior mantém os texels originais.
 
 `USE_TEXTURE_QUALITY` respeita o limiar legado 0,7 para dimensões a partir de
 256; `SCALE_DOWN` reduz para a potência inferior quando a superior excede 16;
-`SCALE_UP` usa a potência superior. Se simage não estiver disponível para um
-resize de alta qualidade, a captura retorna `UNSUPPORTED` antes da publicação;
-o fallback GLU do CoinGL ainda não tem equivalência portátil. Em
-`SoGLImageP::resizeImage`, esse fallback configura `glPixelStorei` antes de
-`gluScaleImage`; a captura CPU não dispõe de um contexto GL ativo. A recusa
-continua explícita até haver um resampler CPU qualificado contra o oráculo.
+`SCALE_UP` usa a potência superior. O caminho GLU da captura não chama
+`gluScaleImage`: reamostra bytes RGBA8 em CPU, com a mesma área e extensão
+periódica nas bordas observadas no GLU 1.3 deste Linux. A seleção segue a
+disponibilidade da biblioteca dinâmica, como em `SoGLImageP::resizeImage`.
 Texturas RTT,
 limites físicos de tamanho e `FRACTURE` permanecem fora deste recorte.
 
@@ -81,7 +82,32 @@ O gate CPU completo continuou em 234 cenas e quatro recusas esperadas. O
 gate GPU AMD geral ainda retorna a divergência projetiva conhecida em
 `textureQuality=0,5`; as sondas POT desta mudança passaram.
 
-Ainda falta reproduzir em dispositivo sem NPOT nativo, tratar o fallback GLU,
+### Fallback sem simage
+
+O helper versionado
+`testsuite/coinrender/CoinRenderHideSimageForPotProbe.c` intercepta o
+carregamento dinâmico de simage apenas no processo de teste. Compilação:
+
+```sh
+cc -shared -fPIC -o /tmp/coin-hide-simage.so \
+  testsuite/coinrender/CoinRenderHideSimageForPotProbe.c -ldl
+```
+
+Com `LD_PRELOAD=/tmp/coin-hide-simage.so`,
+`COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES=1` e a sonda
+`--scale-policy-pot-probe`, os quatro perfis Linux locais passaram, com
+24 combinações cada (17×19, 1–4 componentes, três políticas, qualidade de
+escala 0,3/0,8). O log `COIN_DEBUG_SIMAGE=1 COIN_DEBUG_GLU_INFO=1` confirmou
+falha no carregamento de simage e `libGLU.so` 1.3 carregada. Máximo
+GPU/CoinGL: 2 canais em AMD/NVIDIA Vulkan, NVIDIA OpenGL e Mesa OpenGL
+privado. O teste CPU completo passou com 234 cenas e quatro recusas
+esperadas; o núcleo verifica interpolação na borda periódica e falha
+atômica por dimensão inválida. Com `COIN_TEST_HIDE_GLU=1` adicional, o
+fallback por vizinho passou em AMD/Vulkan nas mesmas 24 combinações,
+GPU/CoinGL máximo 1. A validação cobre GLU 1.3 neste Linux; outras
+implementações de GLU e plataformas ainda requerem execução própria.
+
+Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
 entre contextos cobre o caminho POT do override legado; outros caminhos de
 textura permanecem nos seus contratos próprios.

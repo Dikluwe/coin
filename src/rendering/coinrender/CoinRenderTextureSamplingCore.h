@@ -25,7 +25,8 @@ public:
   // CoinGL's fast_image_resize path, used for scale quality below 0.5.
   static bool legacyResizeNearest(CoinRenderTextureImageSnapshot &image,
                                   uint32_t newWidth, uint32_t newHeight) {
-    if (!image.width || !image.height || !newWidth || !newHeight ||
+    if (!image.width || !image.height || image.width > 8192 ||
+        image.height > 8192 || !newWidth || !newHeight ||
         newWidth > 8192 || newHeight > 8192 || image.producerId ||
         image.gpuToken || image.components != 4 ||
         image.pixelsRgba.size() != size_t(image.width) * image.height * 4 ||
@@ -43,6 +44,57 @@ public:
                             image.width + std::min(uint32_t(sx), image.width - 1)) * 4;
         std::copy_n(image.pixelsRgba.begin() + src, 4,
                     resized.begin() + (size_t(y) * newWidth + x) * 4);
+      }
+    }
+    image.width = newWidth;
+    image.height = newHeight;
+    image.pixelsRgba.swap(resized);
+    return true;
+  }
+  // GLU's gluScaleImage reconstruction with a one-pixel box footprint.
+  // The source wraps at the edges, matching Mesa GLU's scale_internal.
+  static bool legacyResizeGlu(CoinRenderTextureImageSnapshot &image,
+                              uint32_t newWidth, uint32_t newHeight) {
+    if (!image.width || !image.height || image.width > 8192 ||
+        image.height > 8192 || !newWidth || !newHeight ||
+        newWidth > 8192 || newHeight > 8192 || image.producerId ||
+        image.gpuToken || image.components != 4 ||
+        image.pixelsRgba.size() != size_t(image.width) * image.height * 4 ||
+        size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u)
+      return false;
+    if (newWidth == image.width && newHeight == image.height) return true;
+    std::vector<uint8_t> resized(size_t(newWidth) * newHeight * 4);
+    const float dx = float(image.width) / float(newWidth);
+    const float dy = float(image.height) / float(newHeight);
+    for (uint32_t y = 0; y < newHeight; ++y) {
+      const float centerY = dy * (float(y) + .5f);
+      const float halfY = std::max(dy, 1.0f) * .5f;
+      const float lowY = centerY - halfY, highY = centerY + halfY;
+      for (uint32_t x = 0; x < newWidth; ++x) {
+        const float centerX = dx * (float(x) + .5f);
+        const float halfX = std::max(dx, 1.0f) * .5f;
+        const float lowX = centerX - halfX, highX = centerX + halfX;
+        float sum[4] = {0, 0, 0, 0}, area = 0;
+        for (int sy = int(std::floor(lowY)); sy < int(std::ceil(highY)); ++sy) {
+          const float wy = std::min(highY, float(sy + 1)) -
+                           std::max(lowY, float(sy));
+          if (wy <= 0) continue;
+          const uint32_t iy = uint32_t((sy + int(image.height)) % int(image.height));
+          for (int sx = int(std::floor(lowX)); sx < int(std::ceil(highX)); ++sx) {
+            const float wx = std::min(highX, float(sx + 1)) -
+                             std::max(lowX, float(sx));
+            if (wx <= 0) continue;
+            const float weight = wx * wy;
+            const size_t src = (size_t(iy) * image.width +
+                                uint32_t((sx + int(image.width)) % int(image.width))) * 4;
+            for (int c = 0; c < 4; ++c)
+              sum[c] += weight * image.pixelsRgba[src + c];
+            area += weight;
+          }
+        }
+        const size_t dst = (size_t(y) * newWidth + x) * 4;
+        for (int c = 0; c < 4; ++c)
+          resized[dst + c] = uint8_t(std::min(255.0f, (sum[c] + .5f) / area));
       }
     }
     image.width = newWidth;

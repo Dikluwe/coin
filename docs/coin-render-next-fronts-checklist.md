@@ -89,7 +89,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   escala/qualidade, 0 para compressão). No caminho NPOT nativo, a qualidade
   do primeiro upload agora também persiste sem CoinGL e entre contextos:
   sonda 0,3→0,1 com reupload após wrap passou nos quatro perfis locais
-  (GPU/CoinGL máximo 1). O fallback GLU ainda requer equivalência portátil.
+  (GPU/CoinGL máximo 1). O fallback GLU 2D agora usa reamostragem CPU por
+  interpolação linear e caixa. Com simage oculto, a sonda POT passou em
+  AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL (24 combinações por perfil,
+  GPU/CoinGL máximo 2); sem simage nem GLU, o fallback por vizinho passou
+  em AMD/Vulkan (máximo 1).
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

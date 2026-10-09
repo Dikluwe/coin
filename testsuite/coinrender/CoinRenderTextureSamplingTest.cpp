@@ -595,6 +595,17 @@ bool core() {
              resized.pixelsRgba == std::vector<uint8_t>({10, 0, 0, 255, 10, 0, 0, 255,
                                                          20, 0, 0, 255, 30, 0, 0, 255}),
              "legacy nearest resize texels")) return false;
+  CoinRenderTextureImageSnapshot glu;
+  glu.width = 2; glu.height = 1;
+  glu.pixelsRgba = {10, 0, 0, 255, 30, 0, 0, 255};
+  if (!check(CoinRenderTextureSamplingCore::legacyResizeGlu(glu, 4, 1) &&
+             glu.pixelsRgba == std::vector<uint8_t>({15, 0, 0, 255, 15, 0, 0, 255,
+                                                     25, 0, 0, 255, 25, 0, 0, 255}),
+             "legacy GLU box interpolation and wrapped edge")) return false;
+  const auto gluBefore = glu.pixelsRgba;
+  if (!check(!CoinRenderTextureSamplingCore::legacyResizeGlu(glu, 8193, 1) &&
+             glu.width == 4 && glu.pixelsRgba == gluBefore,
+             "legacy GLU resize rejects invalid dimensions atomically")) return false;
   CoinRenderTextureImageSnapshot image;
   image.width = image.height = 2;
   image.pixelsRgba = {0, 10, 20, 255, 1, 11, 21, 255,
