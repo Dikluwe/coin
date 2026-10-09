@@ -201,6 +201,7 @@ private:
   struct LegacyPotImage {
     SbUniqueId revision;
     uint32_t width, height;
+    bool compressed;
     std::vector<uint8_t> pixels;
   };
   // CoinGL keeps its first resized upload until the SoTexture2 node changes.

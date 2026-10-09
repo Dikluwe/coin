@@ -77,7 +77,13 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   O primeiro resize agora fica em cache por revisão de upload de `SoTexture2`;
   mudança de `model`, transição de política/qualidade e notificações de wrap/imagem
   passaram em AMD/NVIDIA Vulkan e OpenGL NVIDIA/Mesa, com erro máximo de 1
-  canal. Compressão e troca de contexto ainda precisam de contrato de cache.
+  canal. A dica `enableCompressedTexture` agora segue a escolha do primeiro
+  upload e o estado BC3 persistente após notificação de wrap; as sondas
+  passaram em AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL com erro GPU/CoinGL
+  zero. Troca de contexto com a mesma `SoTexture2` e mudança de política
+  permanece aberta: a sonda diagnóstica AMD/Vulkan mediu erro máximo 11,
+  porque as flags CoinGL são compartilhadas entre contextos, mas o cache
+  portátil é por ação.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

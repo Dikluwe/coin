@@ -353,6 +353,13 @@ bool scalePolicyPotCacheProbe()
              h.capture->frame.textures[0].width == 32,
              "POT cache first dimensions")) return false;
   const auto first = h.capture->frame.textures[0].pixelsRgba;
+  scene.images[0]->enableCompressedTexture = TRUE;
+  if (!h.render(scene, "POT cache compression hint change", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].format == CoinRenderTextureFormat::RGBA8_LINEAR &&
+             h.capture->frame.textures[0].pixelsRgba == first,
+             "POT cache keeps the first compression choice")) return false;
+  scene.images[0]->enableCompressedTexture = FALSE;
   scene.images[0]->model = SoTexture2::MODULATE;
   if (!h.render(scene, "POT cache model change", false)) return false;
   if (!check(h.capture->frame.textures.size() == 1 &&
@@ -379,6 +386,62 @@ bool scalePolicyPotCacheProbe()
                h.capture->frame.textures[0].width == 16 &&
                h.capture->frame.textures[0].pixelsRgba != afterWrap,
                "POT cache invalidates on image notification");
+}
+bool scalePolicyPotCompressionProbe()
+{
+  Harness h(true);
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .3f;
+  scene.root->insertChild(policy, 3);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4);
+  for (size_t i = 0; i < pixels.size(); i += 4) {
+    pixels[i] = 255; pixels[i + 1] = 0;
+    pixels[i + 2] = 255; pixels[i + 3] = 255;
+  }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  scene.images[0]->enableCompressedTexture = TRUE;
+  if (!h.render(scene, "POT compression first upload", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
+             "POT compression first format")) return false;
+  scene.images[0]->enableCompressedTexture = FALSE;
+  if (!h.render(scene, "POT compression hint disabled", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
+             "POT compression remains sticky")) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  if (!h.render(scene, "POT compression wrap notification", false)) return false;
+  return check(h.capture->frame.textures.size() == 1 &&
+               h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
+               "POT compression persists after reupload");
+}
+bool scalePolicyPotContextStudy()
+{
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .3f;
+  scene.root->insertChild(policy, 3);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+  for (int y = 0; y < 19; ++y)
+    for (int x = 0; x < 17; ++x) {
+      const size_t at = size_t(y * 17 + x) * 4;
+      pixels[at] = uint8_t(x * 15);
+      pixels[at + 1] = uint8_t(y * 13);
+      pixels[at + 2] = uint8_t((x + y) * 7);
+    }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  Harness first(true);
+  if (!first.render(scene, "POT context first upload", false)) return false;
+  Harness unchanged(true);
+  if (!unchanged.render(scene, "POT context unchanged policy", false)) return false;
+  policy->policy = SoTextureScalePolicy::SCALE_DOWN;
+  Harness second(true);
+  return second.render(scene, "POT context second renderer", false);
 }
 bool core() {
   if (!check(CoinRenderTextureSamplingCore::legacyPotExtent(17, true, false, .3f) == 16 &&
@@ -598,5 +661,9 @@ int main(int argc, char **argv) {
     return scalePolicyPotProbe() ? 0 : 1;
   if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-cache-probe")
     return scalePolicyPotCacheProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-compression-probe")
+    return scalePolicyPotCompressionProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-context-study")
+    return scalePolicyPotContextStudy() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

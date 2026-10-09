@@ -895,6 +895,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
   // Match its nearest and simage paths; the GLU fallback remains unsupported.
   const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
+  bool useCompressedTexture = !isSceneTexture && this->compressedTextureImages.count(rawBytes);
   const SoTexture2 * pendingPotNode = nullptr;
   LegacyPotImage pendingPotImage{};
   if (!isSceneTexture && disableNpot && std::atoi(disableNpot) != 0) {
@@ -912,8 +913,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     const SbUniqueId sourceRevision = sourceNode ? authored->second.revision : 0;
     auto cached = sourceNode ? this->legacyPotImages.find(sourceNode) :
                                this->legacyPotImages.end();
+    bool priorCompression = false;
     if (cached != this->legacyPotImages.end() &&
         cached->second.revision != sourceRevision) {
+      priorCompression = cached->second.compressed;
       this->legacyPotBytes -= cached->second.pixels.size();
       this->legacyPotImages.erase(cached);
       cached = this->legacyPotImages.end();
@@ -922,7 +925,9 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       tSnap.width = cached->second.width;
       tSnap.height = cached->second.height;
       tSnap.pixelsRgba = cached->second.pixels;
+      useCompressedTexture = cached->second.compressed;
     } else {
+      useCompressedTexture = useCompressedTexture || priorCompression;
       const auto policy = SoTextureScalePolicyElement::get(state);
       const bool down = policy == SoTextureScalePolicyElement::SCALE_DOWN;
       const bool useQuality = policy == SoTextureScalePolicyElement::USE_TEXTURE_QUALITY;
@@ -973,6 +978,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
           }
           pendingPotNode = sourceNode;
           pendingPotImage = {sourceRevision, tSnap.width, tSnap.height,
+                             useCompressedTexture,
                              tSnap.pixelsRgba};
         }
       }
@@ -997,7 +1003,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     if(outError)*outError=this->builderError;return false;
   }
 
-  if(!isSceneTexture && this->compressedTextureImages.count(rawBytes) && !CoinRenderTextureSamplingCore::compress(tSnap)) {
+  if(useCompressedTexture && !CoinRenderTextureSamplingCore::compress(tSnap)) {
     this->isUnsupported=true;this->builderError="BC3 stored textures require block-aligned base dimensions and RGBA8 input";
     if(outError)*outError=this->builderError;return false;
   }

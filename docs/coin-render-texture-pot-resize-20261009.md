@@ -48,13 +48,28 @@ e qualidade, além dos texels do resize por vizinho. O build usado foi
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build`.
 
 A sonda `--scale-policy-pot-cache-probe` passou nos quatro executores acima:
-primeiro upload 32×32 com `SCALE_UP`/qualidade 0,3; mudança de `model`
+primeiro upload 32×32 com `SCALE_UP`/qualidade 0,3; habilitar
+`enableCompressedTexture` sem notificação manteve RGBA8, como no CoinGL;
+mudança de `model`
 preservando os texels; mudança para `SCALE_DOWN`/qualidade 0,8 ainda usando
 32×32; notificação de wrap gerando 16×16; alteração dos pixels seguida de
 notificação da imagem gerando novo upload. O erro GPU/CoinGL
-foi ≤1 canal em cada etapa. Troca de contexto e interação com campos como
-`enableCompressedTexture` ainda precisam de contrato próprio.
+foi ≤1 canal em cada etapa. A sonda
+`--scale-policy-pot-compression-probe` começou com BC3, desligou a dica de
+compressão e notificou o wrap. O formato permaneceu BC3 nas três etapas,
+com erro GPU/CoinGL zero nos quatro executores. A escolha de compressão do
+`SoGLImage` persiste até mesmo após um novo upload da imagem no mesmo nó.
+
+A sonda diagnóstica `--scale-policy-pot-context-study` reproduziu uma
+fronteira ainda aberta em AMD/Vulkan: um renderizador novo usa a mesma
+`SoTexture2` após o primeiro upload 32×32 em `SCALE_UP`, mas a política muda
+para `SCALE_DOWN` antes do segundo contexto. CPU/GPU concordam (máximo 1),
+enquanto ambos divergem do CoinGL (máximo 11). No CoinGL, `SoGLImage` mantém
+as flags no nó entre contextos e recria a textura GL por contexto. O cache POT
+portátil pertence à ação, portanto a segunda ação não conhece as flags do
+primeiro upload. Essa sonda é intencionalmente diagnóstica e retorna falha
+quando encontra a divergência; não integra o gate regular.
 
 Ainda falta reproduzir em dispositivo sem NPOT nativo, tratar o fallback GLU,
-limitar pelo máximo físico do adaptador, cobrir 3D e qualificar a mudança de
-qualidade em outros contextos e com compressão habilitada.
+limitar pelo máximo físico do adaptador, cobrir 3D e compartilhar o estado de
+upload entre ações/contextos sem reter ponteiros de nós já destruídos.
