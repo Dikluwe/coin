@@ -158,7 +158,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   radeonsi Renoir usa 1–3, confirmado por oracle de cores não afins. Sondas de
   luz/material isoladas sustentam essa causa. A regra interna do clipper/flags
   de aresta do radeonsi ainda precisa de correção comprovada no Mesa; o contrato
-  portátil continua obrigatório.
+  portátil continua obrigatório. O
+  [oracle Mesa estrito e os ensaios de registradores](coin-render-mesa-clip-boundary-20261009.md)
+  mostram a borda e os pontos ausentes no radeonsi, com controle llvmpipe;
+  a correção no driver continua aberta.
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
   retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,

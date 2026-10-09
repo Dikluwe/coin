@@ -3,11 +3,13 @@
 #define GL_GLEXT_PROTOTYPES
 #include <GL/freeglut.h>
 #include <cstdio>
+#include <cstring>
 #include <vector>
 
 namespace {
 constexpr int width = 64;
 constexpr int height = 64;
+bool strictBoundary = false;
 float coordinate(int pixel) { return (pixel + .5f) / 32.0f - 1.0f; }
 
 int column(const std::vector<unsigned char> &pixels, int x) {
@@ -51,15 +53,24 @@ bool run(const char *label, bool clipped, bool triangulated, GLenum mode,
   std::vector<unsigned char> pixels(width * height * 3);
   glReadPixels(0, 0, width, height, GL_RGB, GL_UNSIGNED_BYTE, pixels.data());
   const GLenum error = glGetError();
-  std::printf("%s clipped=%d triangles=%d mode=%s x16=%d x17=%d x45=%d error=%u\n",
-              label, clipped, triangulated, mode == GL_LINE ? "line" : "fill",
+  int lower = 0, upper = 0;
+  for (int y = 5; y <= 8; ++y) lower += pixels[(y * width + 16) * 3] > 127;
+  for (int y = 29; y <= 32; ++y) upper += pixels[(y * width + 16) * 3] > 127;
+  const bool boundary = !strictBoundary || !clipped || explicitEdge ||
+    (mode == GL_LINE ? column(pixels, 16) == 18 :
+     mode == GL_POINT ? lower == 4 && upper == 4 : true);
+  std::printf("%s clipped=%d triangles=%d mode=%s x16=%d x17=%d x45=%d p16low=%d p16high=%d error=%u boundary=%d\n",
+              label, clipped, triangulated,
+              mode == GL_LINE ? "line" : mode == GL_POINT ? "point" : "fill",
               column(pixels, 16), column(pixels, 17), column(pixels, 45),
-              static_cast<unsigned>(error));
-  return error == GL_NO_ERROR;
+              lower, upper,
+              static_cast<unsigned>(error), boundary);
+  return error == GL_NO_ERROR && boundary;
 }
 } // namespace
 
 int main(int argc, char **argv) {
+  strictBoundary = argc == 2 && std::strcmp(argv[1], "--strict-boundary") == 0;
   glutInit(&argc, argv);
   glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE);
   glutInitWindowSize(width, height);
@@ -90,6 +101,9 @@ int main(int argc, char **argv) {
   ok = run("polygon-line", true, false, GL_LINE) && ok;
   ok = run("triangles-line", true, true, GL_LINE) && ok;
   ok = run("polygon-fill", true, false, GL_FILL) && ok;
+  glPointSize(6);
+  ok = run("polygon-point", true, false, GL_POINT) && ok;
+  ok = run("preclipped-polygon-point", false, false, GL_POINT, false, true) && ok;
   ok = run("unclipped-line", false, false, GL_LINE) && ok;
   ok = run("preclipped-polygon-line", false, false, GL_LINE, false, true) && ok;
   ok = run("explicit-cut-edge", false, false, GL_LINE, true) && ok;
@@ -123,6 +137,7 @@ int main(int argc, char **argv) {
   if (vertexStatus && fragmentStatus && linkStatus) {
     glUseProgram(program);
     ok = run("shader-clip-distance-polygon-line", true, false, GL_LINE) && ok;
+    ok = run("shader-clip-distance-polygon-point", true, false, GL_POINT) && ok;
     ok = run("shader-clip-distance-polygon-fill", true, false, GL_FILL) && ok;
     glUseProgram(0);
   } else {
