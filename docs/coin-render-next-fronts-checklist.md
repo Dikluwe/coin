@@ -94,10 +94,12 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL (24 combinações por perfil,
   GPU/CoinGL máximo 2); sem simage nem GLU, o fallback por vizinho passou
   em AMD/Vulkan (máximo 1).
-  O oráculo nativo simples também passou em Windows e macOS ARM/Intel no
-  [gate multiplataforma](coin-render-texture-pot-resize-20261009.md). A
-  integração CoinGL completa nos runners macOS segue bloqueada pelo contexto
-  CGL offscreen; o runtime estático Windows excedeu o timeout da captura.
+  O oráculo nativo compara `legacyResizeGlu` com GLU em RGBA 17×19 para
+  16×16 e 32×32, além do vetor de borda. Os quatro jobs do
+  [gate multiplataforma](coin-render-texture-pot-resize-20261009.md)
+  passaram em Ubuntu, Windows e macOS ARM/Intel. A integração CoinGL
+  completa nos runners macOS segue bloqueada pelo contexto CGL offscreen;
+  o runtime estático Windows excedeu o timeout da captura anterior.
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
   [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;

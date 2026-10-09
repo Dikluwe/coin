@@ -104,8 +104,9 @@ privado. O teste CPU completo passou com 234 cenas e quatro recusas
 esperadas; o núcleo verifica interpolação na borda periódica e falha
 atômica por dimensão inválida. Com `COIN_TEST_HIDE_GLU=1` adicional, o
 fallback por vizinho passou em AMD/Vulkan nas mesmas 24 combinações,
-GPU/CoinGL máximo 1. A validação cobre GLU 1.3 neste Linux; outras
-implementações de GLU e plataformas ainda requerem execução própria.
+GPU/CoinGL máximo 1. A integração CoinGL nessa campanha cobre GLU 1.3
+no Linux; a comparação direta com GLU nativo em outros sistemas está
+descrita abaixo.
 
 O gate `CoinRenderTextureSamplingGluFallbackTest` força ausência de simage
 na configuração (`SIMAGE_RUNTIME_LINKING=OFF` e
@@ -113,8 +114,9 @@ na configuração (`SIMAGE_RUNTIME_LINKING=OFF` e
 estiver disponível. Com backend `RECORDING`, as comparações CPU/CoinGL
 não exigem BGFX. Neste Linux, `xvfb-run` passou os testes de captura e
 fallback GLU (2/2). A matriz em
-`.github/workflows/coin-glu-pot-fallback.yml` executa esse gate em
-Ubuntu, Windows e macOS quando a branch de estudo recebe um push.
+`.github/workflows/coin-glu-pot-fallback.yml` executa a integração CoinGL
+no Ubuntu e o oráculo GLU nativo em Windows e macOS quando a branch de
+estudo recebe um push.
 Na primeira execução [#37962743507](https://github.com/Dikluwe/coin/actions/runs/37962743507),
 Ubuntu passou. O runner macOS 14 Apple Silicon compilou e passou a captura
 CPU, mas não criou o contexto CoinGL: CGL recusou os formatos de pixel
@@ -148,6 +150,19 @@ O oráculo nativo foi ampliado para comparar a função de produção
 `legacyResizeGlu` com `gluScaleImage` em imagens RGBA 17×19 para 16×16 e
 32×32, além do vetor de borda. No Linux Mesa GLU 1.3, máximo 1 por canal,
 MAE 0,228 e 0,192 respectivamente; os três testes CTest passaram em Xvfb.
+
+Na execução final [#37967066297](https://github.com/Dikluwe/coin/actions/runs/37967066297),
+os quatro jobs passaram: Ubuntu 24.04 executou os três testes CTest sob
+Xvfb; Windows 2022, macOS 14 Apple Silicon e macOS 15 Intel passaram o
+oráculo nativo com as duas imagens RGBA e o vetor de borda. O oráculo
+aceita diferença máxima de 2 por canal e erro absoluto médio até 0,6
+frente ao GLU de cada runner. Ambos os macOS também passaram a captura
+CPU. Assim, a equivalência numérica foi verificada em GLU de Linux,
+Windows e macOS, incluindo as duas arquiteturas Apple disponíveis na
+matriz. A integração CoinGL completa permanece sem validação nos runners
+macOS porque CGL recusa o formato de pixel offscreen; no Windows, a
+captura com runtime Coin estático excedeu o timeout na campanha anterior.
+O oráculo não substitui esses dois testes de integração.
 
 Ainda falta reproduzir em dispositivo sem NPOT nativo,
 limitar pelo máximo físico do adaptador e cobrir 3D. A sonda de qualidade
