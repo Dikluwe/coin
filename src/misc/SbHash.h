@@ -619,10 +619,13 @@ public:
       coin_oom_abort("SbHash bucket size");
     SbHashEntry ** newbuckets = new (std::nothrow) SbHashEntry * [this->size];
     if (newbuckets == NULL) coin_oom_abort("SbHash buckets");
-    memset(newbuckets, 0, this->size * sizeof(SbHashEntry *));
+    memset(newbuckets, 0, static_cast<size_t>(this->size) * sizeof(SbHashEntry *));
     cc_memalloc * newmemhandler = cc_memalloc_construct_aligned(
       sizeof(SbHashEntry), alignof(SbHashEntry));
-    if (newmemhandler == NULL) coin_oom_abort("SbHash allocator");
+    if (newmemhandler == NULL) {
+      delete [] newbuckets;
+      coin_oom_abort("SbHash allocator");
+    }
 
     this->buckets = newbuckets;
     this->memhandler = newmemhandler;
