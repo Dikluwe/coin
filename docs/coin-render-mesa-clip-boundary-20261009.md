@@ -145,9 +145,33 @@ medição `nongg` desta rodada, que deu 0/18, havia omitido por engano
 [Registro dos ensaios e resets](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-state-transition-20261009.log).
 Os três fontes e a biblioteca Mesa privados foram restaurados byte a byte;
 os hashes SHA256 coincidem com os backups. O driver instalado permaneceu
-intacto. Antes de outra submissão na GPU, é preciso registrar a sequência de
-`bind_gs_state`/restauração, os shaders efetivamente selecionados e os estados
-de clipping e de primitiva no draw seguinte.
+intacto.
+
+## Vínculo do GS e barreira VGT — 2026-10-09
+
+Com logs temporários em `si_bind_gs_shader` e apenas o primeiro draw, o radeonsi
+recebeu a sequência `NULL -> GS -> NULL`. Ambas as mudanças executaram o corpo
+da função; `ngg=0` e `current_rast_prim=3` (linha) após a desvinculação. Esse
+valor é esperado até o draw seguinte, porque `si_update_rasterized_prim` deixa
+a primitiva sob controle de `draw_vbo` quando não há GS, e `si_draw_vbo` a
+recalcula antes de atualizar os shaders. O draw único manteve **18/18** e erro
+GL zero. Portanto, não há evidência de que a restauração do CSO tenha omitido
+a chamada ao driver.
+
+Foi testada uma barreira `SI_BARRIER_EVENT_VGT_FLUSH` ao desativar o GS, com
+`AMD_DEBUG=nongg`, no Mesa privado. O segundo `glFinish` retornou, mas a
+leitura seguinte só terminou depois de `ring gfx timeout` e reset do amdgpu
+às 19:29:28. O resultado do segundo caso permaneceu `0/18` para a borda e
+o executável saiu com código 1. Logo, o flush isolado **não** resolve o reset
+nem fecha o oracle. O tempo da leitura mostra que o retorno de `glFinish`
+sozinho não era prova de recuperação.
+
+Os quatro fontes e a biblioteca privados foram restaurados byte a byte; os
+cinco hashes SHA256 coincidem com os backups. `glxinfo -B` confirmou novamente
+renderização direta na AMD com o driver instalado Mesa 25.2.8. Não houve
+alteração do driver instalado.
+
+[Log da vinculação e do teste VGT](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-bind-vgt-flush-20261009.log).
 
 ## Trabalho restante
 

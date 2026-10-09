@@ -1,0 +1,36 @@
+2026-10-09, Mesa 25.2.8 privado, AMD Renoir, DISPLAY=:0, AMD_DEBUG=nongg, MESA_EXPERIMENTAL_CLIP_BOUNDARY=1.
+Nenhum dos testes alterou o driver instalado.
+
+Instrumentacao si_bind_gs_shader; experimento de apenas um draw:
+  COIN_GS_BIND before old=(nil) new=0x... changed=1 ngg=0
+  COIN_GS_BIND after gs=0x... ngg=0 rast=3
+  COIN_GS_BIND before old=0x... new=(nil) changed=1 ngg=0
+  COIN_GS_BIND after gs=(nil) ngg=0 rast=3
+  after finish
+  polygon-line ... x16=18 x17=0 x45=18 ... error=0 boundary=1
+  exit=0
+
+Teste de VGT_FLUSH em si_bind_gs_shader quando GS muda de ativo para NULL:
+  before draw polygon-line
+  COIN_GS_BIND before old=(nil) new=0x... changed=1 ngg=0
+  COIN_GS_BIND before old=0x... new=(nil) changed=1 ngg=0
+  COIN_GS_BIND queued VGT_FLUSH on GS disable
+  after finish polygon-line
+  polygon-line ... x16=18 x17=0 x45=18 ... error=0 boundary=1
+  before draw triangles-line
+  after draw, before finish triangles-line
+  after finish triangles-line
+  triangles-line ... x16=0 x17=0 x45=0 ... error=0 boundary=0
+  exit=1 (esperado para --strict-boundary com segundo caso sem correcao)
+
+O teste levou aproximadamente 8 s. Journal do kernel no mesmo minuto:
+  2026-10-09T19:29:28-03:00 ... amdgpu: ring gfx timeout
+  2026-10-09T19:29:28-03:00 ... amdgpu: GPU reset begin!
+  2026-10-09T19:29:29-03:00 ... amdgpu: GPU reset(12) succeeded!
+O segundo glFinish retornou antes da leitura de pixels; o reset ocorreu
+antes de o processo encerrar. A barreira isolada nao evitou a falha.
+
+Restauracao apos teste: st_context.h, st_context.c, st_draw.c,
+si_state_shaders.cpp e libgallium-25.2.8.so coincidem por SHA256 com backup.
+DISPLAY=:0 glxinfo -B: direct rendering Yes, renderer AMD Radeon Graphics
+(radeonsi, renoir), OpenGL version Mesa 25.2.8-0ubuntu0.24.04.4.
