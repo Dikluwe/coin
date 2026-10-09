@@ -70,6 +70,9 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   subtexturas continuam abertos. [Contrato e ledger](coin-render-texture-scale-policy-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
   quantização nearest e footprint explicam o diagnóstico, com contracontrole NVIDIA.
+  O gate GPU completo de sampling passou 8/8 processos BGFX AMD/NVIDIA
+  Vulkan/OpenGL, native/portable, com o Mesa privado corrigido. O Mesa instalado
+  ainda diverge; [gate, runner e condição](coin-render-full-gpu-sampling-gate-20261009.md).
 - [x] Testar LOD explícito + fetch/centro como estudo isolado: nearest CPU–GPU
   MAE0/max0 em AMD/NVIDIA e wgpu/BGFX, oracle EGL sem Coin, alpha independente,
   texturas avançadas e benchmarks GPU/janela, incluindo cidades40mil/1milhão.

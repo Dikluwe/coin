@@ -55,4 +55,6 @@ preservam métricas e recibos. A matriz foi executada no build BGFX separado
 Rescaling de imagens quando NPOT não é nativo, política `quality` no resize,
 `FRACTURE` com recorte real, imagens acima do limite e outros dispositivos
 continuam fora do perfil. O gate de sampling projetivo anterior segue aberto
-em sua própria frente, sem mudança de tolerância.
+no Mesa instalado, sem mudança de tolerância. Com o Mesa privado corrigido,
+o [gate GPU completo](coin-render-full-gpu-sampling-gate-20261009.md) passou
+8/8 processos; os FAIL deste ledger permanecem como controle do driver instalado.
