@@ -61,7 +61,8 @@ coin_font_bitmap_size(unsigned int rows, unsigned int width,
   return true;
 }
 
-// Source points to the top row; signed pitch is the offset to the next row.
+// Source is the FreeType buffer base: negative pitch stores the bottom row
+// first. Move to the top row before stepping by the signed pitch.
 // Normalize to a positive-pitch, top-down buffer owned by the caller.
 inline bool
 coin_font_bitmap_copy(unsigned int rows, unsigned int width, int pitch,
@@ -78,9 +79,11 @@ coin_font_bitmap_copy(unsigned int rows, unsigned int width, int pitch,
     if (!source) return false;
     copy = static_cast<unsigned char *>(allocate(bytes));
     if (!copy) return false;
+    const unsigned char * top = pitch < 0 ?
+      source + size_t(rows - 1) * size_t(magnitude) : source;
     for (unsigned int y = 0; y < rows; ++y) {
       std::memcpy(copy + size_t(y) * size_t(magnitude),
-                  source + ptrdiff_t(y) * ptrdiff_t(pitch), size_t(magnitude));
+                  top + ptrdiff_t(y) * ptrdiff_t(pitch), size_t(magnitude));
     }
   }
   buffer = copy;

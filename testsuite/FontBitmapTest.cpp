@@ -16,7 +16,7 @@ int main() {
   for (int sign : {1,-1}) {
     unsigned char *buffer = NULL;
     unsigned int stride = 0;
-    const unsigned char *source = sign > 0 ? topdown : bottomup + 6;
+    const unsigned char *source = sign > 0 ? topdown : bottomup;
     const bool copied = coin_font_bitmap_copy(3,2,sign*3,source,FALSE,buffer,stride);
     check("signed pitch copy", copied && stride == 3 && buffer && std::memcmp(buffer,topdown,9)==0);
     cc_font_bitmap bitmap = {};
