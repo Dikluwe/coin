@@ -418,10 +418,17 @@ nem encerra uma campanha completa de desempenho Windows.
   72 processos, 30 passes e 42 falhas preservadas, sem ampliar
   tolerância. Controle de câmera fixa, PNGs/máscaras, DLLs, logs/XML e escopo
   no [relatório visual Windows](coin-render-windows-visual-scenes-20261010.md).
+- [x] Repetir as mesmas quatro cenas e dois controles em X11/Linux, BGFX/wgpu
+  × Vulkan/OpenGL × native/portable, com código Windows atualizado em SDKs
+  isolados: 48 processos, 16 passes e 32 falhas no gate RGB exato. NVIDIA
+  física em Vulkan e AMD física em OpenGL; 88 capturas conferidas dos PPMs.
+  O [relatório Linux](validation/linux-visual-20261010/README.md) separa as
+  divergências e a primeira captura preta intermitente de wgpu/OpenGL.
 - [ ] Resolver as divergências janela/offscreen das cidades sob movimento,
   os casos BGFX/OpenGL e o buffer inválido do terreno iluminado wgpu;
-  depois repetir os gates exatos. O teste executado não encerra qualificação
-  visual independente ou desempenho das cidades e não representa FreeCAD.
+  qualificar a primeira apresentação/captura X11 de wgpu/OpenGL; depois
+  repetir os gates exatos. Os testes executados não encerram qualificação
+  visual independente ou desempenho das cidades e não representam FreeCAD.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
