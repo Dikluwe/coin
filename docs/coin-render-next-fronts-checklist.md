@@ -487,8 +487,12 @@ nem encerra uma campanha completa de desempenho Windows.
   o upload dividido em 20 draws passou nas quatro combinações wgpu, mas a
   captura final ainda difere em 6–8 pixels por até 1 canal
   ([correção e recibos](coin-render-wgpu-terrain-buffer-20261010.md)).
-  A cidade móvel ainda diverge no SDK atual; a sobreposição dos pixels
-  BGFX/wgpu aponta uma investigação no plano de cena/cobertura comum.
+  Na cidade móvel wgpu/Vulkan, o patch de câmera do batching opaco foi isolado:
+  ações novas, overlay de câmera desligado, patch wgpu desligado ou batching
+  opaco desligado passam RGB 0; só desligar instancing não passa. O patch
+  desligado custa cerca de 77–85 ms/frame contra 8 ms da rota atual, então
+  permanece aberta a correção com equivalência e desempenho
+  ([diagnóstico](coin-render-wgpu-terrain-buffer-20261010.md)).
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou

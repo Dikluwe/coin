@@ -50,10 +50,27 @@ revalidação Windows antes de atualizar a célula física daquela plataforma.
 Na campanha anterior, 35 dos 38 pixels finais divergentes da cidade de 40 mil
 em BGFX/Vulkan coincidem em posição com os 42 de wgpu/Vulkan. Em OpenGL,
 7 dos 8 pixels BGFX coincidem com os 24 de wgpu. No milhão, a interseção foi
-55 pixels em Vulkan e 55 em OpenGL. Essa sobreposição entre backends sugere
-investigar primeiro o plano de cena, a geometria e as regras de cobertura
-compartilhadas; não demonstra ainda uma causa comum. O SDK atual repetiu a
-cidade 40 mil wgpu/Vulkan/native com 42 pixels diferentes e RGB máximo 136.
+55 pixels em Vulkan e 55 em OpenGL. Essa sobreposição orientou o diagnóstico,
+mas não prova que os executores tenham a mesma falha.
+
+Na cidade 40 mil wgpu/Vulkan/native, janela e offscreen passaram com RGB 0
+quando ambas usaram ações novas, quando `COIN_RENDER_DISABLE_CAMERA_OVERLAY=1`,
+ou quando `COIN_WGPU_DISABLE_OPAQUE_CAMERA_PATCH=1`. Usar a mesma ação nas duas
+superfícies manteve a falha (RGB máximo 135). Desativar apenas o instancing
+opaco também manteve a falha; `COIN_WGPU_DISABLE_OPAQUE_BATCHING=1` passou.
+Portanto, a divergência deste caso passa pela rota de patch de câmera do
+batching opaco wgpu. A comparação dos planos de janela e offscreen com nove
+casas decimais encontrou apenas diferenças da ordem de 1e-7 nas direções das
+duas luzes; as matrizes registradas coincidiram. Os 42 pixels diferentes
+incluem colunas de borda com cores de superfícies distintas. Esses dados ainda
+não isolam qual operação interna do patch altera a seleção dos fragmentos.
+
+Desabilitar o patch wgpu produziu cerca de 77–85 ms por frame medido, contra
+8 ms na rota atual; desabilitar todo o overlay de câmera produziu cerca de
+494–524 ms. Essas medições curtas servem apenas para mostrar o custo da
+alternativa diagnóstica, não para qualificar desempenho. O gate RGB da cidade
+continua aberto até haver correção da rota otimizada ou outro desenho que
+preserve a equivalência e o desempenho.
 
 O controle estático wgpu/OpenGL/native de height 140 passou 3/3 repetições
 nesta rodada (RGB 0 inicial e final). A primeira captura preta da campanha
