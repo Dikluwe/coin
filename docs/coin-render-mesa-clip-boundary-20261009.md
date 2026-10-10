@@ -343,6 +343,97 @@ quad e o patch GS→NULL, conforme a seção anterior. O patch incremental fica
 como artefato de estudo; não deve ser integrado sem ampliar a semântica e a
 cobertura de testes.
 
+## Pontos e ligação de `gl_ClipDistance` — 2026-10-09
+
+A variante experimental de `GL_POLYGON`/`POINT` foi liberada apenas para o
+polígono de quatro vértices do oracle. O
+[patch isolado](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-quad-point-after-transition.patch)
+passou no `drm-shim` e na AMD física: os dois pontos da borda recortada
+produziram **4+4** pixels, sem erro GL. O oracle completo, nessa variante,
+terminou com código 1 porque ainda não incluía o patch de triângulos nem
+resolvia os shaders do aplicativo.
+
+O [patch combinado](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-line-point-combined-after-transition.patch)
+habilita `POLYGON/LINE`, `TRIANGLES/LINE` com seis vértices e
+`POLYGON/POINT` com quatro vértices. No Mesa privado com a correção GS→NULL,
+o shim terminou com erro GL zero. Na AMD física, o caso mínimo passou para os
+três desenhos com `AMD_DEBUG=nongg` e com a configuração padrão. O oracle
+estrito completo passou todos os casos de geometria fixa nesses dois modos,
+mas terminou com código 1: os únicos FAIL são
+`shader-clip-distance-polygon-line` e
+`shader-clip-distance-polygon-point`.
+[Saídas e condições](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-point-combined-20261009.log).
+O journal filtrado não registrou reset, timeout de ring ou fault, e a sessão
+AMD continuou com renderização direta. Esses resultados valem para as
+execuções e geometrias testadas; a variante continua experimental.
+
+Um log temporário confirmou que o segundo draw com GS **é selecionado** nos
+dois casos `gl_ClipDistance`. O
+[NIR capturado](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdistance-nir-20261009.log)
+mostra que o vertex shader do aplicativo foi ligado com
+`next_stage=MESA_SHADER_FRAGMENT` e sua escrita em `CLIP_DIST0` tem
+`no_varying`; o GS suplementar, inserido depois da ligação pelo state
+tracker, tenta ler `VARYING_SLOT_CLIP_DIST0`. O Mesa usa essa escrita para o
+recorte de função fixa, mas ela não foi preparada como varying para um GS
+posterior. Isso explica o limite observado do protótipo. Uma solução geral
+precisa preservar/recompilar a saída do vertex shader para o novo estágio ou
+integrar a geometria suplementar antes da otimização dos varyings; reconstruir
+a distância a partir de `gl_Position` não preservaria `gl_ClipDistance`
+arbitrário de um shader do aplicativo.
+
+No CoinGL, a cena escolhe os estados e envia chamadas OpenGL: por exemplo,
+`SoGLDrawStyleElement` chama `glPolygonMode`, `SoGLClipPlaneElement` chama
+`glClipPlane`, e `SoFaceSet` envia primitivas com `glBegin`. A implementação
+OpenGL do contexto atual executa essas chamadas. Nesta AMD Linux, ela é o
+Mesa, cujo state tracker encaminha os draws ao Gallium/radeonsi. O tratamento
+restrito no `SoIndexedFaceSet` consulta o renderer e complementa a geometria
+apenas no perfil afetado. O Mesa privado deste estudo fica fora do Coin e do
+driver instalado.
+
+A instrumentação foi retirada e os arquivos privados `st_draw.c` e
+`libgallium-25.2.8.so` foram restaurados byte a byte ao estado anterior.
+
+## `CLIP_DIST0` preservado e oracle estrito completo — 2026-10-09
+
+Como controle da hipótese acima, executei o patch combinado com
+`MESA_GLSL_DISABLE_IO_OPT=1` apenas no processo do oracle. Na AMD física, o
+oracle estrito completo terminou com **código 0**, incluindo os dois casos
+`gl_ClipDistance`. Isso confirmou que a otimização de varyings na ligação do
+programa era o obstáculo imediato do protótipo.
+
+Em seguida, apliquei um
+[patch NIR restrito](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdist-varying-after-link.patch)
+ao Mesa privado: quando `MESA_EXPERIMENTAL_CLIP_BOUNDARY=1`, há vertex shader
+e não há geometry shader do aplicativo, ele mantém `CLIP_DIST0` como varying
+após a otimização. As demais otimizações de IO permanecem ligadas. O
+[NIR do shim com o patch](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdistance-nir-preserved-20261009.log)
+mostra a escrita de `VARYING_SLOT_CLIP_DIST0` sem `no_varying`, e o shader do
+aplicativo ligou e desenhou sem erro GL.
+
+Com os patches combinado, GS→NULL e NIR restrito, o
+[oracle estrito completo](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-full-oracle-targeted-20261009.log)
+passou na AMD Renoir física **duas vezes**, com `AMD_DEBUG=nongg` e com a
+configuração padrão. `MESA_GLSL_DISABLE_IO_OPT` ficou desativado nesses dois
+ensaios, e o cache de shader foi desligado para forçar a compilação da
+variante candidata. Todos os desenhos passaram, inclusive `POLYGON/POINT` e
+`gl_ClipDistance` em linha e ponto. O journal filtrado não apresentou reset,
+timeout de ring ou fault; depois, o Mesa instalado permaneceu com renderização
+direta na AMD.
+
+Esse resultado fecha **o oracle isolado**, não a correção geral do Mesa. O GS
+suplementar só cobre as geometrias e o plano da fixture e interpola apenas
+posição/cor. O patch NIR exporta `CLIP_DIST0` para programas elegíveis sempre
+que a variável experimental está ativa, mesmo que um draw específico não
+use o segundo GS. Ainda faltam semântica de atributos, múltiplos planos,
+edge flags, culling, depth, stipple, transform feedback, shaders com estágios
+adicionais e regressões de desempenho. O gate do Coin com seu tratamento
+restrito não foi substituído por esse Mesa privado.
+
+Depois do ensaio, `st_draw.c`, `gl_nir_linker.c` e
+`libgallium-25.2.8.so` privados voltaram byte a byte ao estado anterior; os
+objetos foram recompilados dos fontes restaurados. O driver instalado não foi
+alterado.
+
 ## Trabalho restante
 
 Uma correção precisa gerar a geometria do polígono **depois** do clipping e
@@ -351,9 +442,10 @@ interpolados, face/culling, depth, stipple e shaders do aplicativo. O
 `draw_pipe_clip.c` do Mesa já demonstra a semântica de interpolação e flags
 na trilha de software; integrá-la ao caminho acelerado do radeonsi ou criar
 uma variante de geometry shader requer desenho e testes próprios. Alterar
-apenas os três bits acima não fecha o oracle. O workaround restrito no Coin
-continua necessário para o gate local até haver um patch Mesa que faça o
-oracle estrito passar também com a biblioteca CoinGL original.
+apenas os três bits acima não fecha o oracle. O candidato privado desta
+seção passa a fixture OpenGL isolada, mas ainda precisa de integração geral e
+de validação com a biblioteca CoinGL original. O tratamento restrito no Coin
+continua necessário com o Mesa instalado neste computador.
 
 Para repetir o oracle após compilar o Mesa privado:
 

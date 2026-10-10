@@ -167,9 +167,14 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   Mesa privado fez o caso isolado `GL_POLYGON`/`LINE` passar na AMD. A
   primeira variante `GL_TRIANGLES` causou reset de GPU; após corrigir a
   transição GS→NULL, a variante restrita a seis vértices e `LINE` passou em
-  quatro ensaios físicos sem reset. O oracle completo ainda falha em
-  `POLYGON`/`POINT` e `gl_ClipDistance` para linha/ponto. A integração geral
-  no Mesa continua aberta, com [patch e limites registrados](coin-render-mesa-clip-boundary-20261009.md).
+  quatro ensaios físicos sem reset. A variante `POLYGON`/`POINT` também
+  passou em GPU física; as três variantes combinadas passaram com e sem
+  `AMD_DEBUG=nongg`. O shader do aplicativo marcava `CLIP_DIST0` como
+  `no_varying` porque foi ligado sem GS; um patch NIR experimental preservou
+  essa saída para o GS suplementar. Com ele, o oracle OpenGL isolado passou
+  completo na AMD física nos dois caminhos do radeonsi, sem reset. A
+  integração geral e a validação CoinGL original no Mesa candidato continuam
+  abertas, com [patches e limites registrados](coin-render-mesa-clip-boundary-20261009.md).
   Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
   retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,
