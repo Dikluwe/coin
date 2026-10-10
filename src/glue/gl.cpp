@@ -1826,8 +1826,15 @@ glglue_resolve_symbols(cc_glglue * w)
   }
 #endif /* HAVE_GLX || HAVE_WGL */
 
+  // The bump renderer uses GL_TEXTURE0 through GL_TEXTURE2. Query the
+  // fixed-function texture-unit limit, which can be lower than the number
+  // of texture coordinates exposed by fragment-program extensions.
+  GLint fixedtextureunits = 1;
+  if (w->glActiveTexture) {
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &fixedtextureunits);
+  }
   w->can_do_bumpmapping = FALSE;
-  if (w->glActiveTexture &&
+  if (w->glActiveTexture && fixedtextureunits >= 3 &&
       (cc_glglue_glversion_matches_at_least(w, 1, 3, 0) ||
        (cc_glglue_glext_supported(w, "GL_ARB_texture_cube_map") &&
         w->has_texture_env_combine &&
