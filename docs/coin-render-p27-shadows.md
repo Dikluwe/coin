@@ -1,5 +1,9 @@
 # P27 — sombras Coin: perfis BGFX e wgpu qualificados
 
+**Atualização de 2026-10-09:** o oitavo mapa CoinGL nativo foi implementado e
+qualificado neste Linux na [branch dedicada](coin-gl-eight-shadow-maps.md).
+As menções abaixo à referência de sete mapas descrevem as campanhas anteriores.
+
 A [continuação Linux de 2026-10-07](coin-render-hardware-surfaces-linux.md)
 requalifica as seis células físicas e acrescenta `CoinRenderShadowEightMapTest`:
 expectativa independente de conservação da intensidade e contribuição da oitava

@@ -1,0 +1,27 @@
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+native eighth shadow incremental=20 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=0 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=8 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+native eighth shadow incremental=20 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=1 mode=10 delta=47 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=0 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+native eighth shadow incremental=17 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+native eighth shadow incremental=17 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=1 qualified=1

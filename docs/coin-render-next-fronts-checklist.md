@@ -419,8 +419,12 @@ nem encerra uma campanha completa de desempenho Windows.
 - [ ] Qualificar Vulkan nesta imagem Android: Goldfish é não conforme e a
   execução de diagnóstico falha em `vulkan.ranchu.so` no submit. Sem fallback.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
-- [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
-  utilizáveis; a expectativa portátil local não encerra essa célula.
+- [x] Qualificar CoinGL nativo com oito mapas neste Linux: com oito unidades
+  de coordenadas e 32 samplers de fragmento, o oitavo mapa usa binding de
+  fragmento e matriz explícita. AMD/NVIDIA passaram os gates estritos de
+  transparência, peeling/OIT, qualidade e ALPHA_TEST; a oitava sombra teve
+  contribuição incremental própria. [Código e recibos](coin-gl-eight-shadow-maps.md).
+  Integração nas demais branches/plataformas continua separada.
 - [x] Recompilar MSVC BGFX/wgpu na revisão atual, instalar SDKs experimentais
   isolados e executar consumidores públicos nas três APIs de cada backend.
 - [x] Repetir os gates Windows BGFX D3D12/Vulkan/OpenGL e wgpu dx12/Vulkan/gl,
