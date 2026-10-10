@@ -156,8 +156,9 @@
   \var SoSFFloat SoShadowGroup::precision
 
   Use to calculate the size of the shadow map. A precision of 1.0
-  means the maximum shadow buffer size will be used (typically
-  2048x2048 on current graphics cards). Default value is 0.5.
+  requests the maximum supported power-of-two shadow buffer size.
+  The default value of 0.5 retains a 1024x1024 budget on hardware
+  capable of at least 2048x2048. Larger maps require a higher value.
 */
 
 /*!
@@ -277,6 +278,7 @@
 #include "coindefs.h"
 
 #include <cmath>
+#include <limits>
 
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoPointLight.h>
@@ -356,31 +358,42 @@ public:
   {
     const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
 
-    GLint maxsize = 2048;
-    GLint maxtexsize = 2048;
+    GLint maxrenderbuffersize = 0;
+    GLint maxtexsize = 0;
+    glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxrenderbuffersize);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
 
-    // Testing for maximum proxy texture size doesn't seem to work, so
-    // we just have to hardcode the maximum size to 2048 for now.  We
-    // still use the proxy texture test in case the maximum size is
-    // something smaller than 2048 though.  pederb, 2007-05-03
-
-    // glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE_EXT, &maxsize);
-    // glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
-    // if (maxtexsize < maxsize) maxsize = maxtexsize;
+    // SoSceneTexture2 stores dimensions in shorts. Keep the largest
+    // representable power of two within both OpenGL limits.
+    const int limit = SbMax(1, SbMin(SbMin(maxrenderbuffersize, maxtexsize),
+                                    (GLint) std::numeric_limits<short>::max()));
+    int maxsize = 1;
+    while (maxsize <= limit / 2) maxsize <<= 1;
+    const int drivermaxsize = maxsize;
 
     GLenum internalformat = GL_RGBA16F_ARB;
     GLenum format = GL_RGBA;
     GLenum type = GL_FLOAT;
 
-    while (!coin_glglue_is_texture_size_legal(glue, maxsize, maxsize, 0, internalformat, format, type, TRUE) && (maxsize != 0)) {
+    while (maxsize > 1 &&
+           !coin_glglue_is_texture_size_legal(glue, maxsize, maxsize, 0,
+                                              internalformat, format, type, TRUE)) {
       maxsize >>= 1;
     }
-    if (maxsize == 0) { // Can happen on CentOS 7 in VirtualBox
-      glGetIntegerv(GL_MAX_RENDERBUFFER_SIZE, &maxsize);
-      glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
-      if (maxtexsize < maxsize) maxsize = maxtexsize;
+    if (!coin_glglue_is_texture_size_legal(glue, maxsize, maxsize, 0,
+                                           internalformat, format, type, TRUE)) {
+      // Some drivers reject every proxy request. Use the advertised limits.
+      maxsize = drivermaxsize;
     }
-    const int TEXSIZE = coin_geq_power_of_two((int) (sg->precision.getValue() * SbMin(maxsize, maxtexsize)));
+    // Keep the historical default map size as a resource budget, while
+    // allowing explicitly higher precision to use the hardware limit.
+    const int defaultlimit = SbMin(maxsize, 2048);
+    const float precision = SbMax(0.0f, SbMin(1.0f, sg->precision.getValue()));
+    const float requested = precision <= 0.5f
+      ? precision * defaultlimit
+      : 0.5f * defaultlimit + (maxsize - 0.5f * defaultlimit) *
+        (2.0f * precision - 1.0f);
+    const int TEXSIZE = SbMin(maxsize, (int) coin_geq_power_of_two(SbMax(1, (int) requested)));
 
     this->lightid = -1;
     this->vsm_program = NULL;
