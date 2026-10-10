@@ -1,0 +1,247 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -118,6 +118,9 @@
+    ST_CLIP_POS,
+    ST_CLIP_COL0,
+    ST_CLIP_TEX0,
++   ST_CLIP_COL1,
++   ST_CLIP_TEX1, ST_CLIP_TEX2, ST_CLIP_TEX3, ST_CLIP_TEX4,
++   ST_CLIP_TEX5, ST_CLIP_TEX6, ST_CLIP_TEX7,
+    ST_CLIP_FOGC,
+    ST_CLIP_PSIZ,
+    ST_CLIP_DIST0,
+@@ -127,6 +130,9 @@
+ 
+ static const unsigned st_clip_slots[ST_CLIP_VARYING_COUNT] = {
+    VARYING_SLOT_POS, VARYING_SLOT_COL0, VARYING_SLOT_TEX0,
++   VARYING_SLOT_COL1, VARYING_SLOT_TEX1, VARYING_SLOT_TEX2,
++   VARYING_SLOT_TEX3, VARYING_SLOT_TEX4, VARYING_SLOT_TEX5,
++   VARYING_SLOT_TEX6, VARYING_SLOT_TEX7,
+    VARYING_SLOT_FOGC, VARYING_SLOT_PSIZ,
+    VARYING_SLOT_CLIP_DIST0, VARYING_SLOT_CLIP_DIST1,
+ };
+@@ -222,22 +228,18 @@
+ /* Emit a point without a dynamic vertex-array lookup.  On radeonsi, the
+  * dynamic-array point variant does not preserve the emitted positions. */
+ static void
+-st_emit_clip_point(nir_builder *b, nir_def **v, bool tex0, bool fogc,
+-                   bool psize, unsigned n0, unsigned n1)
++st_emit_clip_point(nir_builder *b, nir_def **v, const bool *enabled,
++                   unsigned n0, unsigned n1)
+ {
+-   nir_store_output(b, v[ST_CLIP_POS], nir_imm_int(b, 0),
+-                    .io_semantics.location = VARYING_SLOT_POS);
+-   nir_store_output(b, v[ST_CLIP_COL0], nir_imm_int(b, 0),
+-                    .io_semantics.location = VARYING_SLOT_COL0);
+-   if (tex0)
+-      nir_store_output(b, v[ST_CLIP_TEX0], nir_imm_int(b, 0),
+-                       .io_semantics.location = VARYING_SLOT_TEX0);
+-   if (fogc)
+-      nir_store_output(b, nir_channel(b, v[ST_CLIP_FOGC], 0), nir_imm_int(b, 0),
+-                       .io_semantics.location = VARYING_SLOT_FOGC);
+-   if (psize)
+-      nir_store_output(b, nir_channel(b, v[ST_CLIP_PSIZ], 0), nir_imm_int(b, 0),
+-                       .io_semantics.location = VARYING_SLOT_PSIZ);
++   for (unsigned k = 0; k < ST_CLIP_DIST0; ++k) {
++      if (!enabled[k])
++         continue;
++      nir_def *value = v[k];
++      if (k == ST_CLIP_FOGC || k == ST_CLIP_PSIZ)
++         value = nir_channel(b, value, 0);
++      nir_store_output(b, value, nir_imm_int(b, 0),
++                       .io_semantics.location = st_clip_slots[k]);
++   }
+    nir_store_output(b, nir_imm_vec4(b, 1, 1, 1, 1), nir_imm_int(b, 0),
+                     .write_mask = (1u << n0) - 1,
+                     .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
+@@ -250,7 +252,7 @@
+ 
+ static void *
+ st_create_clip_polygon_gs(struct st_context *st, unsigned active,
+-                          bool points, bool tex0, bool fogc, bool psize)
++                          bool points, uint64_t varying_mask)
+ {
+    const nir_shader_compiler_options *options =
+       st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
+@@ -272,7 +274,11 @@
+    const unsigned n0 = MIN2(num_planes, 4);
+    const unsigned n1 = num_planes > 4 ? num_planes - 4 : 0;
+ 
+-   bool enabled[ST_CLIP_VARYING_COUNT] = {true, true, tex0, fogc, psize, true, n1 > 0};
++   bool enabled[ST_CLIP_VARYING_COUNT] = {0};
++   for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k)
++      enabled[k] = (varying_mask & BITFIELD64_BIT(st_clip_slots[k])) != 0;
++   enabled[ST_CLIP_DIST0] = true;
++   enabled[ST_CLIP_DIST1] = n1 > 0;
+    nir_variable *a[ST_CLIP_VARYING_COUNT] = {NULL};
+    nir_variable *next[ST_CLIP_VARYING_COUNT] = {NULL};
+    for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
+@@ -315,7 +321,7 @@
+             if (enabled[k])
+                v[k] = nir_load_array_var_imm(b, a[k], i);
+          }
+-         st_emit_clip_point(b, v, tex0, fogc, psize, n0, n1);
++         st_emit_clip_point(b, v, enabled, n0, n1);
+          nir_pop_if(b, present);
+       }
+    } else {
+@@ -326,21 +332,15 @@
+          {
+             nir_def *src = nir_bcsel(b, nir_ieq(b, idx, num),
+                                      nir_imm_int(b, 0), idx);
+-            nir_def *pos = nir_load_array_var(b, a[ST_CLIP_POS], src);
+-            nir_def *color = nir_load_array_var(b, a[ST_CLIP_COL0], src);
+-            nir_store_output(b, pos, nir_imm_int(b, 0),
+-                             .io_semantics.location = VARYING_SLOT_POS);
+-            nir_store_output(b, color, nir_imm_int(b, 0),
+-                             .io_semantics.location = VARYING_SLOT_COL0);
+-            if (tex0)
+-               nir_store_output(b, nir_load_array_var(b, a[ST_CLIP_TEX0], src),
+-                                nir_imm_int(b, 0), .io_semantics.location = VARYING_SLOT_TEX0);
+-            if (fogc)
+-               nir_store_output(b, nir_channel(b, nir_load_array_var(b, a[ST_CLIP_FOGC], src), 0),
+-                                nir_imm_int(b, 0), .io_semantics.location = VARYING_SLOT_FOGC);
+-            if (psize)
+-               nir_store_output(b, nir_channel(b, nir_load_array_var(b, a[ST_CLIP_PSIZ], src), 0),
+-                                nir_imm_int(b, 0), .io_semantics.location = VARYING_SLOT_PSIZ);
++            for (unsigned k = 0; k < ST_CLIP_DIST0; ++k) {
++               if (!enabled[k])
++                  continue;
++               nir_def *value = nir_load_array_var(b, a[k], src);
++               if (k == ST_CLIP_FOGC || k == ST_CLIP_PSIZ)
++                  value = nir_channel(b, value, 0);
++               nir_store_output(b, value, nir_imm_int(b, 0),
++                                .io_semantics.location = st_clip_slots[k]);
++            }
+             nir_store_output(b, nir_imm_vec4(b, 1, 1, 1, 1), nir_imm_int(b, 0),
+                              .write_mask = (1u << n0) - 1,
+                              .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
+@@ -373,6 +373,19 @@
+ }
+ 
+ static bool
++st_clip_polygon_unsupported_varyings(const struct st_context *st)
++{
++   if (!st->vp)
++      return true;
++   uint64_t supported = 0;
++   for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k)
++      supported |= BITFIELD64_BIT(st_clip_slots[k]);
++   return (st->vp && (st->vp->info.outputs_written & ~supported)) ||
++      (st->fp &&
++       (st->fp->info.inputs_read & (VARYING_BIT_FACE | VARYING_BIT_PRIMITIVE_ID)));
++}
++
++static bool
+ st_clip_boundary_unsafe_state(const struct gl_context *ctx)
+ {
+    const unsigned back = ctx->Stencil._BackFace;
+@@ -417,7 +430,7 @@
+        ctx->TessEvalProgram._Current || !active || (active & ~0xffu) ||
+        ctx->Polygon.FrontMode != ctx->Polygon.BackMode ||
+        st_clip_boundary_unsafe_state(ctx) ||
+-       st_clip_boundary_unsupported_varyings(st) ||
++       st_clip_polygon_unsupported_varyings(st) ||
+        !((info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) &&
+          draws[0].count == 4))
+       return false;
+@@ -425,21 +438,52 @@
+    bool points = ctx->Polygon.FrontMode == GL_POINT;
+    if (!points && ctx->Polygon.FrontMode != GL_LINE)
+       return false;
+-   bool tex0 = st->vp && (st->vp->info.outputs_written & VARYING_BIT_TEX0);
+-   bool fogc = st->vp && (st->vp->info.outputs_written & VARYING_BIT_FOGC);
+-   bool psize = st->vp && (st->vp->info.outputs_written & VARYING_BIT_PSIZ);
+-   unsigned key = active * 16 + points * 8 + tex0 * 4 + fogc * 2 + psize;
+-   if (!st->clip_polygon_gs[key])
+-      st->clip_polygon_gs[key] =
+-         st_create_clip_polygon_gs(st, active, points, tex0, fogc, psize);
+-   if (!st->clip_polygon_gs[key])
++   const uint64_t varying_mask = st->vp->info.outputs_written;
++   const bool tex0 = varying_mask & VARYING_BIT_TEX0;
++   const bool fogc = varying_mask & VARYING_BIT_FOGC;
++   const bool psize = varying_mask & VARYING_BIT_PSIZ;
++   const unsigned key = active * 16 + points * 8 + tex0 * 4 + fogc * 2 + psize;
++   const uint64_t extra = VARYING_BIT_COL1 | VARYING_BIT_TEX1 |
++      VARYING_BIT_TEX2 | VARYING_BIT_TEX3 | VARYING_BIT_TEX4 |
++      VARYING_BIT_TEX5 | VARYING_BIT_TEX6 | VARYING_BIT_TEX7;
++   void *gs;
++   if (varying_mask & extra) {
++      struct st_clip_polygon_gs_entry *entry;
++      for (entry = st->clip_polygon_extra_gs; entry; entry = entry->next) {
++         if (entry->active == active && entry->points == points &&
++             entry->varying_mask == varying_mask)
++            break;
++      }
++      if (!entry) {
++         entry = CALLOC_STRUCT(st_clip_polygon_gs_entry);
++         if (!entry)
++            return false;
++         entry->gs = st_create_clip_polygon_gs(st, active, points, varying_mask);
++         if (!entry->gs) {
++            FREE(entry);
++            return false;
++         }
++         entry->active = active;
++         entry->points = points;
++         entry->varying_mask = varying_mask;
++         entry->next = st->clip_polygon_extra_gs;
++         st->clip_polygon_extra_gs = entry;
++      }
++      gs = entry->gs;
++   } else {
++      if (!st->clip_polygon_gs[key])
++         st->clip_polygon_gs[key] =
++            st_create_clip_polygon_gs(st, active, points, varying_mask);
++      gs = st->clip_polygon_gs[key];
++   }
++   if (!gs)
+       return false;
+ 
+    struct pipe_draw_info clipped = *info;
+    clipped.mode = MESA_PRIM_LINES_ADJACENCY;
+    struct cso_context *cso = st->cso_context;
+    cso_save_state(cso, CSO_BIT_GEOMETRY_SHADER);
+-   cso_set_geometry_shader_handle(cso, st->clip_polygon_gs[key]);
++   cso_set_geometry_shader_handle(cso, gs);
+    cso_draw_vbo(cso, &clipped, drawid_offset, NULL, draws, num_draws);
+    cso_restore_state(cso, 0);
+    return true;
+@@ -810,6 +854,12 @@
+       if (st->clip_polygon_gs[i])
+          st->pipe->delete_gs_state(st->pipe, st->clip_polygon_gs[i]);
+    }
++   while (st->clip_polygon_extra_gs) {
++      struct st_clip_polygon_gs_entry *entry = st->clip_polygon_extra_gs;
++      st->clip_polygon_extra_gs = entry->next;
++      st->pipe->delete_gs_state(st->pipe, entry->gs);
++      FREE(entry);
++   }
+    draw_destroy(st->draw);
+ }
+ 
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -80,6 +80,14 @@
+    uint8_t *buffer;
+ };
+ 
++struct st_clip_polygon_gs_entry {
++   struct st_clip_polygon_gs_entry *next;
++   uint64_t varying_mask;
++   unsigned active;
++   bool points;
++   void *gs;
++};
++
+ struct st_bound_handles
+ {
+    unsigned num_handles;
+@@ -283,6 +291,7 @@
+    bool clip_boundary_experiment;
+    void *clip_boundary_gs[8 * 8 * 4 * 4];
+    void *clip_polygon_gs[256 * 16];
++   struct st_clip_polygon_gs_entry *clip_polygon_extra_gs;
+ 
+    struct {
+       struct pipe_resource *pixelmap_texture;

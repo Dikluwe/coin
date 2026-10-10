@@ -1,0 +1,156 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -55,6 +55,8 @@
+ #include "st_util.h"
+ 
+ #include "compiler/nir/nir_builder.h"
++#include "compiler/nir/nir_serialize.h"
++#include "compiler/glsl_types.h"
+ 
+ #include "pipe/p_context.h"
+ #include "pipe/p_defines.h"
+@@ -125,7 +127,8 @@
+    ST_CLIP_PSIZ,
+    ST_CLIP_DIST0,
+    ST_CLIP_DIST1,
+-   ST_CLIP_VARYING_COUNT,
++   ST_CLIP_GENERIC_FIRST,
++   ST_CLIP_VARYING_COUNT = ST_CLIP_GENERIC_FIRST + 32,
+ };
+ 
+ static const unsigned st_clip_slots[ST_CLIP_VARYING_COUNT] = {
+@@ -135,6 +138,14 @@
+    VARYING_SLOT_TEX6, VARYING_SLOT_TEX7,
+    VARYING_SLOT_FOGC, VARYING_SLOT_PSIZ,
+    VARYING_SLOT_CLIP_DIST0, VARYING_SLOT_CLIP_DIST1,
++   VARYING_SLOT_VAR0,    VARYING_SLOT_VAR1,    VARYING_SLOT_VAR2,    VARYING_SLOT_VAR3,
++   VARYING_SLOT_VAR4,    VARYING_SLOT_VAR5,    VARYING_SLOT_VAR6,    VARYING_SLOT_VAR7,
++   VARYING_SLOT_VAR8,    VARYING_SLOT_VAR9,    VARYING_SLOT_VAR10,    VARYING_SLOT_VAR11,
++   VARYING_SLOT_VAR12,    VARYING_SLOT_VAR13,    VARYING_SLOT_VAR14,    VARYING_SLOT_VAR15,
++   VARYING_SLOT_VAR16,    VARYING_SLOT_VAR17,    VARYING_SLOT_VAR18,    VARYING_SLOT_VAR19,
++   VARYING_SLOT_VAR20,    VARYING_SLOT_VAR21,    VARYING_SLOT_VAR22,    VARYING_SLOT_VAR23,
++   VARYING_SLOT_VAR24,    VARYING_SLOT_VAR25,    VARYING_SLOT_VAR26,    VARYING_SLOT_VAR27,
++   VARYING_SLOT_VAR28,    VARYING_SLOT_VAR29,    VARYING_SLOT_VAR30,    VARYING_SLOT_VAR31,
+ };
+ 
+ #define ST_CLIP_BEGIN_LOOP(name, limit)                                      \
+@@ -231,8 +242,8 @@
+ st_emit_clip_point(nir_builder *b, nir_def **v, const bool *enabled,
+                    unsigned n0, unsigned n1)
+ {
+-   for (unsigned k = 0; k < ST_CLIP_DIST0; ++k) {
+-      if (!enabled[k])
++   for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++      if (k == ST_CLIP_DIST0 || k == ST_CLIP_DIST1 || !enabled[k])
+          continue;
+       nir_def *value = v[k];
+       if (k == ST_CLIP_FOGC || k == ST_CLIP_PSIZ)
+@@ -332,8 +343,8 @@
+          {
+             nir_def *src = nir_bcsel(b, nir_ieq(b, idx, num),
+                                      nir_imm_int(b, 0), idx);
+-            for (unsigned k = 0; k < ST_CLIP_DIST0; ++k) {
+-               if (!enabled[k])
++            for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++               if (k == ST_CLIP_DIST0 || k == ST_CLIP_DIST1 || !enabled[k])
+                   continue;
+                nir_def *value = nir_load_array_var(b, a[k], src);
+                if (k == ST_CLIP_FOGC || k == ST_CLIP_PSIZ)
+@@ -372,17 +383,72 @@
+       (st->fp->info.inputs_read & (VARYING_BIT_FACE | VARYING_BIT_PRIMITIVE_ID));
+ }
+ 
++/* Unlower a serialized copy so the linked IO type and FS interpolation
++ * qualifiers can be checked even after the live program's NIR was consumed. */
+ static bool
+-st_clip_polygon_unsupported_varyings(const struct st_context *st)
++st_clip_generic_smooth_io(struct st_context *st, struct gl_program *prog,
++                          uint64_t slots, bool fragment)
++{
++   if (!prog || !prog->serialized_nir)
++      return false;
++
++   struct blob_reader reader;
++   blob_reader_init(&reader, prog->serialized_nir,
++                    prog->serialized_nir_size);
++   nir_shader *shader = nir_deserialize(NULL,
++      st_get_nir_compiler_options(st, prog->info.stage), &reader);
++   if (!shader)
++      return false;
++   if (shader->info.io_lowered)
++      st_nir_unlower_io_to_vars(shader);
++
++   uint64_t seen = 0;
++   bool safe = true;
++   nir_foreach_variable_with_modes(var, shader,
++                                   fragment ? nir_var_shader_in : nir_var_shader_out) {
++      unsigned slot = var->data.location;
++      if (slot < VARYING_SLOT_VAR0 || slot >= 64 ||
++          !(slots & BITFIELD64_BIT(slot)))
++         continue;
++      if (!glsl_type_is_vector_or_scalar(var->type) ||
++          glsl_get_base_type(var->type) != GLSL_TYPE_FLOAT ||
++          glsl_get_bit_size(var->type) != 32 ||
++          var->data.location_frac || var->data.compact ||
++          (fragment && var->data.interpolation != INTERP_MODE_SMOOTH &&
++           var->data.interpolation != INTERP_MODE_NONE)) {
++         safe = false;
++         break;
++      }
++      seen |= BITFIELD64_BIT(slot);
++   }
++   ralloc_free(shader);
++   return safe && seen == slots;
++}
++
++static bool
++st_clip_polygon_unsupported_varyings(struct st_context *st)
+ {
+    if (!st->vp)
+       return true;
+    uint64_t supported = 0;
+    for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k)
+       supported |= BITFIELD64_BIT(st_clip_slots[k]);
+-   return (st->vp && (st->vp->info.outputs_written & ~supported)) ||
+-      (st->fp &&
+-       (st->fp->info.inputs_read & (VARYING_BIT_FACE | VARYING_BIT_PRIMITIVE_ID)));
++   if ((st->vp->info.outputs_written & ~supported) ||
++       (st->fp &&
++        (st->fp->info.inputs_read & (VARYING_BIT_FACE | VARYING_BIT_PRIMITIVE_ID))))
++      return true;
++
++   const uint64_t generic = st->vp->info.outputs_written &
++      (st->fp ? st->fp->info.inputs_read : 0) &
++      ~BITFIELD64_MASK(VARYING_SLOT_VAR0);
++   if (!generic)
++      return false;
++   if (st->vp->info.outputs_written_indirectly & generic ||
++       st->fp->info.inputs_read_indirectly & generic ||
++       st->vp->info.outputs_written_16bit || st->fp->info.inputs_read_16bit)
++      return true;
++   return !st_clip_generic_smooth_io(st, st->vp, generic, false) ||
++          !st_clip_generic_smooth_io(st, st->fp, generic, true);
+ }
+ 
+ static bool
+@@ -438,14 +504,18 @@
+    bool points = ctx->Polygon.FrontMode == GL_POINT;
+    if (!points && ctx->Polygon.FrontMode != GL_LINE)
+       return false;
+-   const uint64_t varying_mask = st->vp->info.outputs_written;
++   const uint64_t varying_mask = st->vp->info.outputs_written &
++      ((~BITFIELD64_MASK(VARYING_SLOT_VAR0) &
++        (st->fp ? st->fp->info.inputs_read : 0)) |
++       BITFIELD64_MASK(VARYING_SLOT_VAR0));
+    const bool tex0 = varying_mask & VARYING_BIT_TEX0;
+    const bool fogc = varying_mask & VARYING_BIT_FOGC;
+    const bool psize = varying_mask & VARYING_BIT_PSIZ;
+    const unsigned key = active * 16 + points * 8 + tex0 * 4 + fogc * 2 + psize;
+    const uint64_t extra = VARYING_BIT_COL1 | VARYING_BIT_TEX1 |
+       VARYING_BIT_TEX2 | VARYING_BIT_TEX3 | VARYING_BIT_TEX4 |
+-      VARYING_BIT_TEX5 | VARYING_BIT_TEX6 | VARYING_BIT_TEX7;
++      VARYING_BIT_TEX5 | VARYING_BIT_TEX6 | VARYING_BIT_TEX7 |
++      ~BITFIELD64_MASK(VARYING_SLOT_VAR0);
+    void *gs;
+    if (varying_mask & extra) {
+       struct st_clip_polygon_gs_entry *entry;

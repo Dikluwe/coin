@@ -1,0 +1,75 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -212,6 +212,35 @@
+    ST_CLIP_END_LOOP(copy_vertex)
+ }
+ 
++/* Emit a point without a dynamic vertex-array lookup.  On radeonsi, the
++ * dynamic-array point variant does not preserve the emitted positions. */
++static void
++st_emit_clip_point(nir_builder *b, nir_def **v, bool tex0, bool fogc,
++                   bool psize, unsigned n0, unsigned n1)
++{
++   nir_store_output(b, v[ST_CLIP_POS], nir_imm_int(b, 0),
++                    .io_semantics.location = VARYING_SLOT_POS);
++   nir_store_output(b, v[ST_CLIP_COL0], nir_imm_int(b, 0),
++                    .io_semantics.location = VARYING_SLOT_COL0);
++   if (tex0)
++      nir_store_output(b, v[ST_CLIP_TEX0], nir_imm_int(b, 0),
++                       .io_semantics.location = VARYING_SLOT_TEX0);
++   if (fogc)
++      nir_store_output(b, nir_channel(b, v[ST_CLIP_FOGC], 0), nir_imm_int(b, 0),
++                       .io_semantics.location = VARYING_SLOT_FOGC);
++   if (psize)
++      nir_store_output(b, nir_channel(b, v[ST_CLIP_PSIZ], 0), nir_imm_int(b, 0),
++                       .io_semantics.location = VARYING_SLOT_PSIZ);
++   nir_store_output(b, nir_imm_vec4(b, 1, 1, 1, 1), nir_imm_int(b, 0),
++                    .write_mask = (1u << n0) - 1,
++                    .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++   if (n1)
++      nir_store_output(b, nir_imm_vec4(b, 1, 1, 1, 1), nir_imm_int(b, 0),
++                       .write_mask = (1u << n1) - 1,
++                       .io_semantics.location = VARYING_SLOT_CLIP_DIST1);
++   nir_emit_vertex(b, 0);
++}
++
+ static void *
+ st_create_clip_polygon_gs(struct st_context *st, unsigned active,
+                           bool points, bool tex0, bool fogc, bool psize)
+@@ -265,6 +294,19 @@
+          st_clip_polygon_plane(b, a, next, enabled, count, plane);
+    }
+ 
++   nir_def *num = nir_load_var(b, count);
++   if (points) {
++      for (unsigned i = 0; i < 12; ++i) {
++         nir_if *present = nir_push_if(b, nir_ilt(b, nir_imm_int(b, i), num));
++         nir_def *v[ST_CLIP_VARYING_COUNT] = {NULL};
++         for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++            if (enabled[k])
++               v[k] = nir_load_array_var_imm(b, a[k], i);
++         }
++         st_emit_clip_point(b, v, tex0, fogc, psize, n0, n1);
++         nir_pop_if(b, present);
++      }
++   } else {
+    nir_def *num = nir_load_var(b, count);
+    nir_if *visible = nir_push_if(b, nir_inot(b, nir_ilt_imm(b, num, 2)));
+    {
+@@ -304,6 +346,7 @@
+          nir_end_primitive(b, 0);
+    }
+    nir_pop_if(b, visible);
++   }
+    return st_nir_finish_builtin_shader(st, nir);
+ }
+ 
+@@ -324,7 +367,7 @@
+       return false;
+ 
+    bool points = ctx->Polygon.FrontMode == GL_POINT;
+-   if (points || ctx->Polygon.FrontMode != GL_LINE)
++   if (!points && ctx->Polygon.FrontMode != GL_LINE)
+       return false;
+    bool tex0 = st->vp && (st->vp->info.outputs_written & VARYING_BIT_TEX0);
+    bool fogc = st->vp && (st->vp->info.outputs_written & VARYING_BIT_FOGC);

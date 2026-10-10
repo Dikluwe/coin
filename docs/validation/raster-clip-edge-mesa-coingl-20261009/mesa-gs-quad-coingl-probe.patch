@@ -1,0 +1,11 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -198,7 +198,7 @@
+    if (!points && ctx->Polygon.FrontMode != GL_LINE)
+       return;
+ 
+-   bool quad = info->mode == MESA_PRIM_POLYGON && draws[0].count == 4;
++   bool quad = (info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) && draws[0].count == 4;
+    bool triangles = info->mode == MESA_PRIM_TRIANGLES && draws[0].count == 6;
+    /* Keep this experiment limited to the line/point oracle geometries. */
+    if ((!quad && !triangles) || (triangles && points))

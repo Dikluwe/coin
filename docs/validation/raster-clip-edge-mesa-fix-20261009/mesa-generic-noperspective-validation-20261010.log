@@ -1,0 +1,48 @@
+generic-smooth-w candidate exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,77,0
+mode=point shade=smooth sample=32,58 rgb=178,178,77
+error=0
+generic-smooth-w llvmpipe exit=0
+GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 renderer=llvmpipe (LLVM 20.1.2, 256 bits) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,77,0
+mode=point shade=smooth sample=32,58 rgb=178,178,77
+error=0
+generic-noperspective-w candidate exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=128,128,0
+mode=point shade=smooth sample=32,58 rgb=128,128,128
+error=0
+generic-noperspective-w llvmpipe exit=0
+GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 renderer=llvmpipe (LLVM 20.1.2, 256 bits) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=128,128,0
+mode=point shade=smooth sample=32,58 rgb=128,128,128
+error=0
+generic-mixed-interpolation candidate exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,128,0
+mode=point shade=smooth sample=32,58 rgb=178,128,77
+error=0
+generic-mixed-interpolation llvmpipe exit=0
+GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 renderer=llvmpipe (LLVM 20.1.2, 256 bits) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,128,0
+mode=point shade=smooth sample=32,58 rgb=178,128,77
+error=0
+generic-mixed-interpolation-distinct candidate exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,96,0
+mode=point shade=smooth sample=32,58 rgb=178,95,77
+error=0
+generic-mixed-interpolation-distinct llvmpipe exit=0
+GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 renderer=llvmpipe (LLVM 20.1.2, 256 bits) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,96,0
+mode=point shade=smooth sample=32,58 rgb=178,96,77
+error=0

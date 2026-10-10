@@ -1,0 +1,51 @@
+TEX1-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX1--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX2-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX2--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX3-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX3--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX4-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX4--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX5-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX5--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX6-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX6--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX7-line exit=0 expected=0 result=PASS
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX7--point exit=0 expected=0 result=PASS
+planes=2 error=0 p00=25 p10=25 p11=25 p01=25
+TEX7-line-8planes exit=0 expected=0 result=PASS
+planes=8 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+TEX1-line-flag-off exit=1 expected=1 result=PASS
+planes=2 error=0 vertical=0 horizontal=0 vgreen=0 hgreen=0
+TEX1-point-flag-off exit=1 expected=1 result=PASS
+planes=2 error=0 p00=0 p10=0 p11=25 p01=0
+COL1-line exit=0 expected=0 result=PASS
+mode=line shade=smooth sample=32,32 rgb=125,128,65
+mode=line shade=smooth sample=58,32 rgb=0,0,0
+mode=line shade=smooth sample=58,58 rgb=0,0,0
+mode=line shade=smooth sample=32,58 rgb=0,0,0
+mode=line shade=smooth sample=32,45 rgb=0,0,0
+mode=line shade=smooth sample=45,32 rgb=60,128,97
+error=0
+COL1-point exit=0 expected=0 result=PASS
+mode=point shade=smooth sample=32,32 rgb=128,128,64
+mode=point shade=smooth sample=58,32 rgb=0,128,128
+mode=point shade=smooth sample=58,58 rgb=0,0,255
+mode=point shade=smooth sample=32,58 rgb=128,128,128
+mode=point shade=smooth sample=32,45 rgb=0,0,0
+mode=point shade=smooth sample=45,32 rgb=0,0,0
+error=0
+CHECKS 19/19 PASS

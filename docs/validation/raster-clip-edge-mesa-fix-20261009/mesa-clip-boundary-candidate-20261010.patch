@@ -1,0 +1,302 @@
+--- a/src/compiler/glsl/gl_nir_linker.c
++++ b/src/compiler/glsl/gl_nir_linker.c
+@@ -1583,6 +1583,31 @@
+        */
+       if (nir->xfb_info)
+          nir_gather_xfb_info_from_intrinsics(nir);
++   }
++
++   /* Private experiment: a GS bound after GLSL linking needs the clip distance
++    * as a varying, even though this program was linked without a GS. */
++   if (debug_get_bool_option("MESA_EXPERIMENTAL_CLIP_BOUNDARY", false) &&
++       prog->_LinkedShaders[MESA_SHADER_VERTEX] &&
++       !prog->_LinkedShaders[MESA_SHADER_GEOMETRY]) {
++      nir_shader *vs = prog->_LinkedShaders[MESA_SHADER_VERTEX]->Program->nir;
++      nir_foreach_function_impl(impl, vs) {
++         nir_foreach_block(block, impl) {
++            nir_foreach_instr(instr, block) {
++               if (instr->type != nir_instr_type_intrinsic)
++                  continue;
++               nir_intrinsic_instr *intr = nir_instr_as_intrinsic(instr);
++               if (intr->intrinsic != nir_intrinsic_store_output)
++                  continue;
++               nir_io_semantics sem = nir_intrinsic_io_semantics(intr);
++               if ((sem.location == VARYING_SLOT_CLIP_DIST0 ||
++                    sem.location == VARYING_SLOT_CLIP_DIST1) && sem.no_varying) {
++                  sem.no_varying = false;
++                  nir_intrinsic_set_io_semantics(intr, sem);
++               }
++            }
++         }
++      }
+    }
+ }
+ 
+--- a/src/gallium/drivers/radeonsi/si_state_shaders.cpp
++++ b/src/gallium/drivers/radeonsi/si_state_shaders.cpp
+@@ -3825,6 +3825,13 @@
+    if (enable_changed) {
+       if (sctx->ia_multi_vgt_param_key.u.uses_tess)
+          si_update_tess_uses_prim_id(sctx);
++
++      /* Disabling GS replaces the legacy copy shader with VS or TES even
++       * when the API vertex/tessellation shader itself hasn't changed.
++       */
++      if (!sel)
++         sctx->dirty_shaders_mask |= BITFIELD_BIT(sctx->shader.tes.cso ?
++                                                 PIPE_SHADER_TESS_EVAL : PIPE_SHADER_VERTEX);
+    }
+    si_update_last_vgt_stage_state(sctx, old_hw_vs, old_hw_vs_variant);
+ }
+--- a/src/mesa/state_tracker/st_context.c
++++ b/src/mesa/state_tracker/st_context.c
+@@ -61,6 +61,7 @@
+ #include "st_util.h"
+ #include "pipe/p_context.h"
+ #include "util/u_cpu_detect.h"
++#include "util/u_debug.h"
+ #include "util/u_inlines.h"
+ #include "util/u_upload_mgr.h"
+ #include "util/u_vbuf.h"
+@@ -617,6 +618,10 @@
+       !screen->caps.two_sided_color;
+    st->lower_ucp =
+       !screen->caps.clip_planes;
++   st->clip_boundary_experiment =
++      debug_get_bool_option("MESA_EXPERIMENTAL_CLIP_BOUNDARY", false);
++   if (st->clip_boundary_experiment)
++      st->lower_ucp = true;
+    st->prefer_real_buffer_in_constbuf0 =
+       screen->caps.prefer_real_buffer_in_constbuf0;
+    st->has_conditional_render =
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -279,6 +279,10 @@
+ 
+    struct st_common_variant *vp_variant;
+ 
++   /* Private clip-boundary geometry shader experiment. */
++   bool clip_boundary_experiment;
++   void *clip_boundary_gs[8 * 8 * 4 * 4];
++
+    struct {
+       struct pipe_resource *pixelmap_texture;
+       struct pipe_sampler_view *pixelmap_sampler_view;
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -51,7 +51,10 @@
+ #include "st_debug.h"
+ #include "st_draw.h"
+ #include "st_program.h"
++#include "st_nir.h"
+ #include "st_util.h"
++
++#include "compiler/nir/nir_builder.h"
+ 
+ #include "pipe/p_context.h"
+ #include "pipe/p_defines.h"
+@@ -110,6 +113,176 @@
+    }
+ }
+ 
++/* Private experiment: emit the boundary introduced by each enabled user
++ * clip plane. The hardware clips each emitted line against the other planes.
++ */
++static void *
++st_create_clip_boundary_gs(struct st_context *st, bool quad, bool points,
++                           unsigned num_planes, unsigned plane, bool tex0, bool fogc)
++{
++   const nir_shader_compiler_options *options =
++      st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
++   nir_builder b = nir_builder_init_simple_shader(MESA_SHADER_GEOMETRY, options,
++                                                  "experimental clip boundary GS");
++   nir_shader *nir = b.shader;
++   nir->info.io_lowered = true;
++   nir->info.clip_distance_array_size = num_planes;
++   nir->info.gs.input_primitive = quad ? MESA_PRIM_LINES_ADJACENCY : MESA_PRIM_TRIANGLES;
++   nir->info.gs.output_primitive = points ? MESA_PRIM_POINTS : MESA_PRIM_LINE_STRIP;
++   nir->info.gs.vertices_in = quad ? 4 : 3;
++   nir->info.gs.vertices_out = 2;
++   nir->info.gs.invocations = 1;
++   nir->info.gs.active_stream_mask = 1;
++
++   const unsigned n0 = MIN2(num_planes, 4);
++   const unsigned n1 = num_planes > 4 ? num_planes - 4 : 0;
++   const unsigned count = quad ? 4 : 3;
++   for (unsigned i = 0; i < count; ++i) {
++      const unsigned j = (i + 1) % count;
++      nir_def *a = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, i),
++                                              nir_imm_int(&b, 0),
++                                              .io_semantics.location = VARYING_SLOT_POS);
++      nir_def *c = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, j),
++                                              nir_imm_int(&b, 0),
++                                              .io_semantics.location = VARYING_SLOT_POS);
++      nir_def *ad0 = nir_load_per_vertex_input(&b, n0, 32, nir_imm_int(&b, i),
++                                                nir_imm_int(&b, 0),
++                                                .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++      nir_def *cd0 = nir_load_per_vertex_input(&b, n0, 32, nir_imm_int(&b, j),
++                                                nir_imm_int(&b, 0),
++                                                .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++      nir_def *ad1 = NULL;
++      nir_def *cd1 = NULL;
++      if (n1) {
++         ad1 = nir_load_per_vertex_input(&b, n1, 32, nir_imm_int(&b, i),
++                                          nir_imm_int(&b, 0),
++                                          .io_semantics.location = VARYING_SLOT_CLIP_DIST1);
++         cd1 = nir_load_per_vertex_input(&b, n1, 32, nir_imm_int(&b, j),
++                                          nir_imm_int(&b, 0),
++                                          .io_semantics.location = VARYING_SLOT_CLIP_DIST1);
++      }
++      nir_def *da = plane < 4 ? nir_channel(&b, ad0, plane)
++                              : nir_channel(&b, ad1, plane - 4);
++      nir_def *dc = plane < 4 ? nir_channel(&b, cd0, plane)
++                              : nir_channel(&b, cd1, plane - 4);
++      nir_def *crosses = nir_ixor(&b, nir_flt_imm(&b, da, 0),
++                                      nir_flt_imm(&b, dc, 0));
++      nir_push_if(&b, crosses);
++      nir_def *t = nir_fdiv(&b, da, nir_fsub(&b, da, dc));
++      nir_def *pos = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, c, a), t), a);
++      nir_def *ac = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, i),
++                                               nir_imm_int(&b, 0),
++                                               .io_semantics.location = VARYING_SLOT_COL0);
++      nir_def *cc = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, j),
++                                               nir_imm_int(&b, 0),
++                                               .io_semantics.location = VARYING_SLOT_COL0);
++      nir_def *color = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, cc, ac), t), ac);
++      nir_def *texture = NULL;
++      if (tex0) {
++         nir_def *at = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, i),
++                                                  nir_imm_int(&b, 0),
++                                                  .io_semantics.location = VARYING_SLOT_TEX0);
++         nir_def *ct = nir_load_per_vertex_input(&b, 4, 32, nir_imm_int(&b, j),
++                                                  nir_imm_int(&b, 0),
++                                                  .io_semantics.location = VARYING_SLOT_TEX0);
++         texture = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, ct, at), t), at);
++      }
++      nir_def *fog = NULL;
++      if (fogc) {
++         nir_def *af = nir_load_per_vertex_input(&b, 1, 32, nir_imm_int(&b, i),
++                                                  nir_imm_int(&b, 0),
++                                                  .io_semantics.location = VARYING_SLOT_FOGC);
++         nir_def *cf = nir_load_per_vertex_input(&b, 1, 32, nir_imm_int(&b, j),
++                                                  nir_imm_int(&b, 0),
++                                                  .io_semantics.location = VARYING_SLOT_FOGC);
++         fog = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, cf, af), t), af);
++      }
++      nir_def *dist0 = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, cd0, ad0), t), ad0);
++      if (plane < 4)
++         dist0 = nir_vector_insert_imm(&b, dist0, nir_imm_float(&b, 0), plane);
++      nir_store_output(&b, pos, nir_imm_int(&b, 0),
++                       .io_semantics.location = VARYING_SLOT_POS);
++      nir_store_output(&b, color, nir_imm_int(&b, 0),
++                       .io_semantics.location = VARYING_SLOT_COL0);
++      if (tex0)
++         nir_store_output(&b, texture, nir_imm_int(&b, 0),
++                          .io_semantics.location = VARYING_SLOT_TEX0);
++      if (fogc)
++         nir_store_output(&b, fog, nir_imm_int(&b, 0),
++                          .io_semantics.location = VARYING_SLOT_FOGC);
++      nir_store_output(&b, dist0, nir_imm_int(&b, 0),
++                       .write_mask = (1u << n0) - 1,
++                       .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++      if (n1) {
++         nir_def *dist1 = nir_fadd(&b, nir_fmul(&b, nir_fsub(&b, cd1, ad1), t), ad1);
++         if (plane >= 4)
++            dist1 = nir_vector_insert_imm(&b, dist1, nir_imm_float(&b, 0), plane - 4);
++         nir_store_output(&b, dist1, nir_imm_int(&b, 0),
++                          .write_mask = (1u << n1) - 1,
++                          .io_semantics.location = VARYING_SLOT_CLIP_DIST1);
++      }
++      nir_emit_vertex(&b, 0);
++      if (points)
++         nir_end_primitive(&b, 0);
++      nir_pop_if(&b, NULL);
++   }
++   if (!points)
++      nir_end_primitive(&b, 0);
++   return st_nir_finish_builtin_shader(st, nir);
++}
++
++static void
++st_draw_clip_boundary(struct gl_context *ctx, const struct pipe_draw_info *info,
++                      unsigned drawid_offset,
++                      const struct pipe_draw_start_count_bias *draws,
++                      unsigned num_draws)
++{
++   struct st_context *st = st_context(ctx);
++   const unsigned active = ctx->Transform.ClipPlanesEnabled;
++   if (!st->clip_boundary_experiment || num_draws != 1 || info->index_size ||
++       ctx->GeometryProgram._Current || ctx->TessCtrlProgram._Current ||
++       ctx->TessEvalProgram._Current ||
++       !active || (active & ~0xffu) ||
++       ctx->Polygon.FrontMode != ctx->Polygon.BackMode)
++      return;
++
++   bool points = ctx->Polygon.FrontMode == GL_POINT;
++   if (!points && ctx->Polygon.FrontMode != GL_LINE)
++      return;
++
++   bool quad = (info->mode == MESA_PRIM_POLYGON ||
++                info->mode == MESA_PRIM_QUADS) && draws[0].count == 4;
++   bool triangles = info->mode == MESA_PRIM_TRIANGLES && draws[0].count == 6;
++   if ((!quad && !triangles) || (triangles && points))
++      return;
++
++   unsigned num_planes = 0;
++   for (unsigned mask = active; mask; mask >>= 1)
++      ++num_planes;
++   const bool tex0 = st->vp && (st->vp->info.outputs_written & VARYING_BIT_TEX0);
++   const bool fogc = st->vp && (st->vp->info.outputs_written & VARYING_BIT_FOGC);
++
++   struct cso_context *cso = st->cso_context;
++   cso_save_state(cso, CSO_BIT_GEOMETRY_SHADER);
++   struct pipe_draw_info boundary = *info;
++   if (quad)
++      boundary.mode = MESA_PRIM_LINES_ADJACENCY;
++   for (unsigned plane = 0; plane < num_planes; ++plane) {
++      if (!(active & (1u << plane)))
++         continue;
++      const unsigned key = ((((num_planes - 1) * 8 + plane) * 4) +
++                            (quad ? 2 : 0) + (points ? 1 : 0)) * 4 + tex0 * 2 + fogc;
++      if (!st->clip_boundary_gs[key])
++         st->clip_boundary_gs[key] =
++            st_create_clip_boundary_gs(st, quad, points, num_planes, plane, tex0, fogc);
++      if (!st->clip_boundary_gs[key])
++         continue;
++      cso_set_geometry_shader_handle(cso, st->clip_boundary_gs[key]);
++      cso_draw_vbo(cso, &boundary, drawid_offset, NULL, draws, num_draws);
++   }
++   cso_restore_state(cso, 0);
++}
++
+ void
+ st_draw_gallium(struct gl_context *ctx,
+                 const struct pipe_draw_info *info,
+@@ -123,6 +296,8 @@
+    struct st_context *st = st_context(ctx);
+ 
+    cso_draw_vbo(st->cso_context, info, drawid_offset, indirect, draws, num_draws);
++   if (!indirect)
++      st_draw_clip_boundary(ctx, info, drawid_offset, draws, num_draws);
+ }
+ 
+ static void
+@@ -142,6 +317,7 @@
+       if (i == num_draws || mode[i] != mode[first]) {
+          info->mode = mode[first];
+          cso_draw_vbo(cso, info, 0, NULL, &draws[first], i - first);
++         st_draw_clip_boundary(ctx, info, 0, &draws[first], i - first);
+          first = i;
+ 
+          /* We can pass the reference only once. st_buffer_object keeps
+@@ -285,6 +461,10 @@
+ void
+ st_destroy_draw(struct st_context *st)
+ {
++   for (unsigned i = 0; i < ARRAY_SIZE(st->clip_boundary_gs); i++) {
++      if (st->clip_boundary_gs[i])
++         st->pipe->delete_gs_state(st->pipe, st->clip_boundary_gs[i]);
++   }
+    draw_destroy(st->draw);
+ }
+ 

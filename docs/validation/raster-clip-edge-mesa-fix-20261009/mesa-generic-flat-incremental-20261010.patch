@@ -1,0 +1,193 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -287,7 +287,8 @@
+ static void *
+ st_create_clip_polygon_gs(struct st_context *st, unsigned active,
+                           bool points, uint64_t varying_mask,
+-                          const uint8_t *noperspective_components)
++                          const uint8_t *noperspective_components,
++                          const uint8_t *flat_components, bool provoking_last)
+ {
+    const nir_shader_compiler_options *options =
+       st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
+@@ -334,6 +335,29 @@
+       }
+    }
+ 
++   bool any_flat = false;
++   for (unsigned slot = 0; slot < 32; ++slot)
++      any_flat |= flat_components[slot] != 0;
++   if (any_flat) {
++      for (unsigned k = ST_CLIP_GENERIC_FIRST; k < ST_CLIP_VARYING_COUNT; ++k) {
++         uint8_t mask = flat_components[st_clip_slots[k] - VARYING_SLOT_VAR0];
++         if (!enabled[k] || !mask)
++            continue;
++         nir_def *first_value = nir_load_array_var_imm(b, a[k], 0);
++         nir_def *last_value = nir_load_array_var_imm(b, a[k], 3);
++         nir_def *provoking = provoking_last ? last_value : first_value;
++         for (unsigned i = 0; i < 4; ++i) {
++            nir_def *old = nir_load_array_var_imm(b, a[k], i);
++            nir_def *components[4];
++            for (unsigned c = 0; c < 4; ++c)
++               components[c] = nir_channel(b, (mask & (1u << c)) ? provoking : old, c);
++            nir_store_array_var_imm(b, a[k], i,
++                                    nir_vec4(b, components[0], components[1],
++                                             components[2], components[3]), 0xf);
++         }
++      }
++   }
++
+    nir_variable *count = nir_local_variable_create(b->impl, glsl_int_type(),
+                                                      "clip_count");
+    nir_store_var(b, count, nir_imm_int(b, 4), 1);
+@@ -412,7 +436,8 @@
+  * qualifiers can be checked even after the live program's NIR was consumed. */
+ static bool
+ st_clip_generic_io(struct st_context *st, struct gl_program *prog,
+-                   uint64_t slots, bool fragment, uint8_t *noperspective_components)
++                   uint64_t slots, bool fragment, uint8_t *noperspective_components,
++                   uint8_t *flat_components)
+ {
+    if (!prog || !prog->serialized_nir)
+       return false;
+@@ -442,11 +467,22 @@
+                if (slot < VARYING_SLOT_VAR0 || slot >= 64 ||
+                    !(slots & BITFIELD64_BIT(slot)))
+                   continue;
+-               if (intr->intrinsic == nir_intrinsic_load_input ||
+-                   nir_intrinsic_dest_type(intr) != nir_type_float32) {
++               if (nir_intrinsic_dest_type(intr) != nir_type_float32) {
+                   safe = false;
+                   continue;
+                }
++               unsigned component = nir_intrinsic_component(intr);
++               if (component + intr->def.num_components > 4) {
++                  safe = false;
++                  continue;
++               }
++               interpolation_seen |= BITFIELD64_BIT(slot);
++               if (intr->intrinsic == nir_intrinsic_load_input) {
++                  for (unsigned c = 0; c < intr->def.num_components; ++c)
++                     flat_components[slot - VARYING_SLOT_VAR0] |=
++                        1u << (component + c);
++                  continue;
++               }
+                nir_instr *bary_instr = intr->src[0].ssa->parent_instr;
+                if (bary_instr->type != nir_instr_type_intrinsic) {
+                   safe = false;
+@@ -463,12 +499,6 @@
+                   safe = false;
+                   continue;
+                }
+-               unsigned component = nir_intrinsic_component(intr);
+-               if (component + intr->def.num_components > 4) {
+-                  safe = false;
+-                  continue;
+-               }
+-               interpolation_seen |= BITFIELD64_BIT(slot);
+                if (mode == INTERP_MODE_NOPERSPECTIVE) {
+                   for (unsigned c = 0; c < intr->def.num_components; ++c)
+                      noperspective_components[slot - VARYING_SLOT_VAR0] |=
+@@ -504,7 +534,8 @@
+ 
+ static bool
+ st_clip_polygon_unsupported_varyings(struct st_context *st,
+-                                     uint8_t *noperspective_components)
++                                     uint8_t *noperspective_components,
++                                     uint8_t *flat_components)
+ {
+    if (!st->vp)
+       return true;
+@@ -526,9 +557,9 @@
+        st->vp->info.outputs_written_16bit || st->fp->info.inputs_read_16bit)
+       return true;
+    return !st_clip_generic_io(st, st->vp, generic, false,
+-                              noperspective_components) ||
++                              noperspective_components, flat_components) ||
+           !st_clip_generic_io(st, st->fp, generic, true,
+-                              noperspective_components);
++                              noperspective_components, flat_components);
+ }
+ 
+ static bool
+@@ -572,12 +603,14 @@
+    struct st_context *st = st_context(ctx);
+    unsigned active = ctx->Transform.ClipPlanesEnabled;
+    uint8_t noperspective_components[32] = {0};
++   uint8_t flat_components[32] = {0};
+    if (!st->clip_boundary_experiment || num_draws != 1 || info->index_size ||
+        ctx->GeometryProgram._Current || ctx->TessCtrlProgram._Current ||
+        ctx->TessEvalProgram._Current || !active || (active & ~0xffu) ||
+        ctx->Polygon.FrontMode != ctx->Polygon.BackMode ||
+        st_clip_boundary_unsafe_state(ctx) ||
+-       st_clip_polygon_unsupported_varyings(st, noperspective_components) ||
++       st_clip_polygon_unsupported_varyings(st, noperspective_components,
++                                            flat_components) ||
+        !((info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) &&
+          draws[0].count == 4))
+       return false;
+@@ -585,6 +618,10 @@
+    bool points = ctx->Polygon.FrontMode == GL_POINT;
+    if (!points && ctx->Polygon.FrontMode != GL_LINE)
+       return false;
++   const bool provoking_last =
++      ctx->Light.ProvokingVertex == GL_LAST_VERTEX_CONVENTION_EXT ||
++      (info->mode == MESA_PRIM_QUADS &&
++       !ctx->Const.QuadsFollowProvokingVertexConvention);
+    const uint64_t varying_mask = st->vp->info.outputs_written &
+       ((~BITFIELD64_MASK(VARYING_SLOT_VAR0) &
+         (st->fp ? st->fp->info.inputs_read : 0)) |
+@@ -604,7 +641,9 @@
+          if (entry->active == active && entry->points == points &&
+              entry->varying_mask == varying_mask &&
+              memcmp(entry->noperspective_components,
+-                    noperspective_components, 32) == 0)
++                    noperspective_components, 32) == 0 &&
++             memcmp(entry->flat_components, flat_components, 32) == 0 &&
++             entry->provoking_last == provoking_last)
+             break;
+       }
+       if (!entry) {
+@@ -613,7 +652,9 @@
+             return false;
+          entry->gs = st_create_clip_polygon_gs(st, active, points,
+                                                 varying_mask,
+-                                                noperspective_components);
++                                                noperspective_components,
++                                                flat_components,
++                                                provoking_last);
+          if (!entry->gs) {
+             FREE(entry);
+             return false;
+@@ -623,6 +664,8 @@
+          entry->varying_mask = varying_mask;
+          memcpy(entry->noperspective_components,
+                 noperspective_components, 32);
++         memcpy(entry->flat_components, flat_components, 32);
++         entry->provoking_last = provoking_last;
+          entry->next = st->clip_polygon_extra_gs;
+          st->clip_polygon_extra_gs = entry;
+       }
+@@ -631,7 +674,8 @@
+       if (!st->clip_polygon_gs[key])
+          st->clip_polygon_gs[key] =
+             st_create_clip_polygon_gs(st, active, points, varying_mask,
+-                                      noperspective_components);
++                                      noperspective_components, flat_components,
++                                      provoking_last);
+       gs = st->clip_polygon_gs[key];
+    }
+    if (!gs)
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -84,8 +84,10 @@
+    struct st_clip_polygon_gs_entry *next;
+    uint64_t varying_mask;
+    uint8_t noperspective_components[32];
++   uint8_t flat_components[32];
+    unsigned active;
+    bool points;
++   bool provoking_last;
+    void *gs;
+ };
+ 

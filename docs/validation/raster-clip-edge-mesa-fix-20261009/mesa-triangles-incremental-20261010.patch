@@ -1,0 +1,131 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -288,7 +288,8 @@
+ st_create_clip_polygon_gs(struct st_context *st, unsigned active,
+                           bool points, uint64_t varying_mask,
+                           const uint8_t *noperspective_components,
+-                          const uint8_t *flat_components, bool provoking_last)
++                          const uint8_t *flat_components, bool provoking_last,
++                          unsigned input_vertices)
+ {
+    const nir_shader_compiler_options *options =
+       st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
+@@ -297,9 +298,10 @@
+    nir_builder *b = &builder;
+    nir_shader *nir = b->shader;
+    nir->info.io_lowered = true;
+-   nir->info.gs.input_primitive = MESA_PRIM_LINES_ADJACENCY;
++   nir->info.gs.input_primitive = input_vertices == 3 ?
++      MESA_PRIM_TRIANGLES : MESA_PRIM_LINES_ADJACENCY;
+    nir->info.gs.output_primitive = points ? MESA_PRIM_POINTS : MESA_PRIM_LINE_STRIP;
+-   nir->info.gs.vertices_in = 4;
++   nir->info.gs.vertices_in = input_vertices;
+    nir->info.gs.vertices_out = 13;
+    nir->info.gs.invocations = 1;
+    nir->info.gs.active_stream_mask = 1;
+@@ -324,7 +326,7 @@
+                  glsl_array_type(glsl_vec4_type(), 12, 0), "clip_vertices");
+       next[k] = nir_local_variable_create(b->impl,
+                     glsl_array_type(glsl_vec4_type(), 12, 0), "clip_next");
+-      for (unsigned i = 0; i < 4; ++i) {
++      for (unsigned i = 0; i < input_vertices; ++i) {
+          unsigned comps = (k == ST_CLIP_FOGC || k == ST_CLIP_PSIZ) ? 1 :
+                           k == ST_CLIP_DIST0 ? n0 :
+                           k == ST_CLIP_DIST1 ? n1 : 4;
+@@ -344,9 +346,9 @@
+          if (!enabled[k] || !mask)
+             continue;
+          nir_def *first_value = nir_load_array_var_imm(b, a[k], 0);
+-         nir_def *last_value = nir_load_array_var_imm(b, a[k], 3);
++         nir_def *last_value = nir_load_array_var_imm(b, a[k], input_vertices - 1);
+          nir_def *provoking = provoking_last ? last_value : first_value;
+-         for (unsigned i = 0; i < 4; ++i) {
++         for (unsigned i = 0; i < input_vertices; ++i) {
+             nir_def *old = nir_load_array_var_imm(b, a[k], i);
+             nir_def *components[4];
+             for (unsigned c = 0; c < 4; ++c)
+@@ -360,7 +362,7 @@
+ 
+    nir_variable *count = nir_local_variable_create(b->impl, glsl_int_type(),
+                                                      "clip_count");
+-   nir_store_var(b, count, nir_imm_int(b, 4), 1);
++   nir_store_var(b, count, nir_imm_int(b, input_vertices), 1);
+    ST_CLIP_BEGIN_LOOP(active_plane, nir_imm_int(b, num_planes))
+    {
+       nir_def *bit = nir_ishl(b, nir_imm_int(b, 1), idx);
+@@ -611,13 +613,16 @@
+        st_clip_boundary_unsafe_state(ctx) ||
+        st_clip_polygon_unsupported_varyings(st, noperspective_components,
+                                             flat_components) ||
+-       !((info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) &&
+-         draws[0].count == 4))
++       !(((info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) &&
++          draws[0].count == 4) ||
++         (info->mode == MESA_PRIM_TRIANGLES &&
++          draws[0].count >= 3 && draws[0].count % 3 == 0)))
+       return false;
+ 
+    bool points = ctx->Polygon.FrontMode == GL_POINT;
+    if (!points && ctx->Polygon.FrontMode != GL_LINE)
+       return false;
++   const unsigned input_vertices = info->mode == MESA_PRIM_TRIANGLES ? 3 : 4;
+    const bool provoking_last =
+       ctx->Light.ProvokingVertex == GL_LAST_VERTEX_CONVENTION_EXT ||
+       (info->mode == MESA_PRIM_QUADS &&
+@@ -635,10 +640,11 @@
+       VARYING_BIT_TEX5 | VARYING_BIT_TEX6 | VARYING_BIT_TEX7 |
+       ~BITFIELD64_MASK(VARYING_SLOT_VAR0);
+    void *gs;
+-   if (varying_mask & extra) {
++   if ((varying_mask & extra) || input_vertices == 3) {
+       struct st_clip_polygon_gs_entry *entry;
+       for (entry = st->clip_polygon_extra_gs; entry; entry = entry->next) {
+          if (entry->active == active && entry->points == points &&
++             entry->input_vertices == input_vertices &&
+              entry->varying_mask == varying_mask &&
+              memcmp(entry->noperspective_components,
+                     noperspective_components, 32) == 0 &&
+@@ -654,13 +660,14 @@
+                                                 varying_mask,
+                                                 noperspective_components,
+                                                 flat_components,
+-                                                provoking_last);
++                                                provoking_last, input_vertices);
+          if (!entry->gs) {
+             FREE(entry);
+             return false;
+          }
+          entry->active = active;
+          entry->points = points;
++         entry->input_vertices = input_vertices;
+          entry->varying_mask = varying_mask;
+          memcpy(entry->noperspective_components,
+                 noperspective_components, 32);
+@@ -675,14 +682,15 @@
+          st->clip_polygon_gs[key] =
+             st_create_clip_polygon_gs(st, active, points, varying_mask,
+                                       noperspective_components, flat_components,
+-                                      provoking_last);
++                                      provoking_last, input_vertices);
+       gs = st->clip_polygon_gs[key];
+    }
+    if (!gs)
+       return false;
+ 
+    struct pipe_draw_info clipped = *info;
+-   clipped.mode = MESA_PRIM_LINES_ADJACENCY;
++   if (input_vertices == 4)
++      clipped.mode = MESA_PRIM_LINES_ADJACENCY;
+    struct cso_context *cso = st->cso_context;
+    cso_save_state(cso, CSO_BIT_GEOMETRY_SHADER);
+    cso_set_geometry_shader_handle(cso, gs);
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -86,6 +86,7 @@
+    uint8_t noperspective_components[32];
+    uint8_t flat_components[32];
+    unsigned active;
++   unsigned input_vertices;
+    bool points;
+    bool provoking_last;
+    void *gs;

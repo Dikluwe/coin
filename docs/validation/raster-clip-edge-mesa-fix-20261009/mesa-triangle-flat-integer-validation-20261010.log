@@ -1,0 +1,20 @@
+CASE candidate-radeon exit=0
+renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) GL=4.6 (Compatibility Profile) Mesa 25.2.8 gs=0
+pixel=32,6
+pixel=57,6
+pixel=32,57
+new-point rgb=255,255,255
+error=0
+CASE native-radeon exit=0
+renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) GL=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=0
+pixel=57,6
+pixel=32,57
+new-point rgb=0,0,0
+error=0
+CASE llvmpipe exit=0
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=0
+pixel=32,6
+pixel=57,6
+pixel=32,57
+new-point rgb=255,255,255
+error=0
