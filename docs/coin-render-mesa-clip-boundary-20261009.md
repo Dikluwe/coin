@@ -307,6 +307,42 @@ coincide com o patch candidato, e `si_state_draw.cpp` coincide com o baseline.
 A biblioteca privada foi recompilada nesse estado; o driver instalado não foi
 alterado.
 
+## GS suplementar para `GL_TRIANGLES`/`LINE` — 2026-10-09
+
+Com a correção candidata de GS→NULL já validada no PM4, reativei apenas o
+segundo draw dos seis vértices do oracle (`MESA_PRIM_TRIANGLES`, `count=6`,
+`GL_LINE`, um plano de recorte). O
+[patch incremental](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-triangle-line-after-transition.patch)
+se aplica sobre o patch experimental de quad; os dois dependem também do
+[patch de transição GS→NULL](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch)
+para este ensaio. A variável `MESA_EXPERIMENTAL_CLIP_BOUNDARY=1` continua
+obrigatória. Não há mudança no driver instalado.
+
+No `drm-shim`, uma instrumentação temporária confirmou os dois draws
+suplementares: `POLYGON` com quatro vértices e `TRIANGLES` com seis; ambos
+terminaram com erro GL zero. Retirei a instrumentação e executei na AMD
+Renoir física, com renderização direta e a biblioteca Mesa privada. O caso
+mínimo estrito passou em ambos os caminhos (`AMD_DEBUG=nongg` e configuração
+padrão): **18/18** pixels na borda para `polygon-line` e `triangles-line`,
+sem erro GL. O controle llvmpipe anterior também tinha `x17=1` para
+`triangles-line`; esse pixel não foi criado pelo patch.
+
+O [registro completo](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-triangle-line-20261009.log)
+contém o resultado do shim e dos quatro ensaios físicos. O oracle estrito
+completo terminou sem timeout nos dois caminhos, porém com código 1:
+`polygon-point` segue sem os pontos novos; `gl_ClipDistance` continua sem a
+borda em `LINE` e sem os pontos em `POINT`. Os casos de preenchimento e os
+controles passaram. No intervalo dos quatro ensaios, o journal filtrado não
+apresentou reset, timeout de ring ou fault de GPU; `glxinfo -B` ao final
+confirmou a renderização direta com o Mesa instalado. Essa evidência cobre
+somente as quatro execuções e as geometrias exercitadas.
+
+O código fonte e `libgallium-25.2.8.so` privados foram restaurados byte a
+byte ao estado anterior ao experimento. Esse estado mantém o GS restrito a
+quad e o patch GS→NULL, conforme a seção anterior. O patch incremental fica
+como artefato de estudo; não deve ser integrado sem ampliar a semântica e a
+cobertura de testes.
+
 ## Trabalho restante
 
 Uma correção precisa gerar a geometria do polígono **depois** do clipping e
