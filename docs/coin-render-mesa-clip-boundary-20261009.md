@@ -233,9 +233,8 @@ Nos dois casos `glGetError()` foi zero; esse resultado não valida pixels.
 - [Com a correção candidata](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-candidate-20261009.log): `dirty=0x9` no bind e `dirty=0x29` na atualização; o VS normal foi enfileirado e `vgt_gs_mode=0x0`.
 
 Assim, a invalidação faltante é um defeito de estado CPU reproduzido, e o
-patch candidato corrige **essa** divergência. Ainda faltam a comparação dos
-pacotes PM4 e de `VGT_SHADER_STAGES_EN`/bases de userdata, e a validação
-física de que não ocorre reset; o `drm-shim` não pode demonstrá-las.
+patch candidato corrige **essa** divergência. O controle seguinte compara o
+PM4 e testa fisicamente a sequência que antes provocava reset.
 
 Com o mesmo Mesa privado, a [fixture softpipe](validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-fixture.cpp)
 executou o quad em `GL_LINE` sob `EGL_PLATFORM=surfaceless`, uma vez com
@@ -251,6 +250,62 @@ não provam que o radeonsi implementa a mesma geometria no caminho acelerado.
 Todos os sete fontes Mesa privados usados nos controles e
 `libgallium-25.2.8.so` foram restaurados byte a byte a partir dos backups;
 oito comparações retornaram `MATCH`. O driver instalado não foi modificado.
+
+## PM4 e ensaio físico do patch candidato — 2026-10-09
+
+O Mesa privado foi instrumentado com
+[`si_print_current_ib`](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-instrument.patch)
+e executado no `drm-shim` com a
+[fixture sem `glFlush` intermediário](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-fixture.cpp).
+Os três draws no mesmo command stream foram: polígono original sem GS,
+contorno suplementar com GS, e triângulos após GS→NULL. As capturas completas
+sem códigos ANSI estão em
+[baseline](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-baseline-20261009.log)
+e [candidato](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-candidate-20261009.log).
+Os números de endereço do programa VS variam entre processos; a diferença
+relevante é a emissão de um novo programa após a transição.
+
+| PM4 após o terceiro draw | Sem correção | Com correção |
+| --- | --- | --- |
+| Último `VGT_GS_MODE` | `0x00300033` (modo GS, sem escrita de retorno) | `0x00000000` (escrita explícita) |
+| Último `VGT_SHADER_STAGES_EN` | `0x00010000` (GS desligado) | `0x00010000` (GS desligado) |
+| Programa VS | Permanece o copy shader do draw com GS | Novo VS normal é vinculado |
+
+O baseline, portanto, desligava GS em `VGT_SHADER_STAGES_EN`, mas conservava
+`VGT_GS_MODE` e o programa VS da etapa anterior. O patch candidato remove
+essa inconsistência no PM4. As bases de userdata não foram isoladas como
+causa independente nesta fixture; a captura completa permite inspecioná-las.
+
+A biblioteca candidata foi recompilada **sem a instrumentação PM4** e
+carregada por GLX com renderização direta na AMD Renoir (`DRM 3.64`,
+`AMD_DEBUG=nongg`). O
+[repro físico de dois draws](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-two-draws-fixture.cpp)
+terminou sem travar: o polígono `GL_LINE` teve **18/18** pixels na borda e o
+triângulo seguinte terminou com erro GL zero, embora sem a borda esperada.
+[Saída](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-two-draws-20261009.log).
+
+O [oracle estrito completo](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-oracle-20261009.log)
+também terminou sem timeout. Saiu com código 1 porque ainda falham
+`triangles-line`, `polygon-point` e os casos `gl_ClipDistance` de linha e
+ponto. No intervalo desses dois ensaios com `AMD_DEBUG=nongg`, o
+[journal do kernel](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-kernel-20261009.log)
+não registrou eventos.
+
+A mesma sequência foi repetida com `AMD_DEBUG` desativado: o
+[repro curto](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-two-draws-20261009.log)
+e o [oracle completo](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-oracle-20261009.log)
+terminaram com os mesmos resultados e sem timeout. O
+[journal desse intervalo](validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-kernel-20261009.log)
+também não registrou eventos. `glxinfo -B` depois de cada par confirmou
+renderização direta na AMD. Isso valida a ausência de reset **nessas quatro
+execuções**, não uma prova de estabilidade geral ou da correção completa do
+clipping.
+
+A instrumentação temporária foi retirada. Os três fontes do state tracker
+coincidem com o patch GS experimental aplicado uma vez, `si_state_shaders.cpp`
+coincide com o patch candidato, e `si_state_draw.cpp` coincide com o baseline.
+A biblioteca privada foi recompilada nesse estado; o driver instalado não foi
+alterado.
 
 ## Trabalho restante
 
