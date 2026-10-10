@@ -412,6 +412,17 @@ nem encerra uma campanha completa de desempenho Windows.
   Não fecha clock fixado, latência de display, cidade40mil/milhão de instâncias,
   consumidores FreeCAD ou a investigação completa das caudas observadas.
 
+- [x] Executar cenas visuais Win32 1280×960 em BGFX/wgpu e três APIs,
+  native/portable: cidades de 40.000 e 1.000.000 de instâncias, terreno com
+  um milhão de triângulos e sólidos com textura NPOT/transparência.
+  72 processos, 30 passes e 42 falhas preservadas, sem ampliar
+  tolerância. Controle de câmera fixa, PNGs/máscaras, DLLs, logs/XML e escopo
+  no [relatório visual Windows](coin-render-windows-visual-scenes-20261010.md).
+- [ ] Resolver as divergências janela/offscreen das cidades sob movimento,
+  os casos BGFX/OpenGL e o buffer inválido do terreno iluminado wgpu;
+  depois repetir os gates exatos. O teste executado não encerra qualificação
+  visual independente ou desempenho das cidades e não representa FreeCAD.
+
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
 - [x] Requalificar sombras Linux nas duas GPUs físicas: BGFX Vulkan/OpenGL e

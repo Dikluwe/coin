@@ -1,0 +1,902 @@
+[
+  {
+    "label": "city-40000-bgfx-d3d12-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "native",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-bgfx-d3d12-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.396374702453613,
+    "log": "city-40000-bgfx-d3d12-0-native.log",
+    "log_sha256": "09343515ab7709d57f9b0825ce77b75dfb2f700413ea8d2487065a4b75a4b40a",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "city-40000-bgfx-d3d12-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "portable",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-bgfx-d3d12-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.13631534576416,
+    "log": "city-40000-bgfx-d3d12-1-portable.log",
+    "log_sha256": "5f1567ebfb19a365875dcacd5a7d738994b6eb7ef412b6f0cb8f2fa2e8aa8328",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "city-40000-bgfx-vulkan-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "native",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-bgfx-vulkan-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.541902303695679,
+    "log": "city-40000-bgfx-vulkan-0-native.log",
+    "log_sha256": "4a32005dfbbfbfb482d215a99c23f07e2475df12e437850c9991ab7b6726dce2",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "city-40000-bgfx-vulkan-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "portable",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-bgfx-vulkan-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.488717317581177,
+    "log": "city-40000-bgfx-vulkan-1-portable.log",
+    "log_sha256": "b620d8755cc83aebf3d747a01495f74c2f7e25fb170aad0784fb5bbee470ae41",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "city-40000-bgfx-opengl-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "native",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-bgfx-opengl-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 3.173999309539795,
+    "log": "city-40000-bgfx-opengl-0-native.log",
+    "log_sha256": "b72e970abf51b955765bda8fc874fcb98b0923f74cf402033c7e239ced680a9b",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "city-40000-bgfx-opengl-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "portable",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-bgfx-opengl-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 2.8356235027313232,
+    "log": "city-40000-bgfx-opengl-1-portable.log",
+    "log_sha256": "6e042eec90e9e1cb26bbb1f0b25e76e1d3a64936acfe214aaaccc221d1c0fd58",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "city-40000-wgpu-d3d12-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "native",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-wgpu-d3d12-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.431938409805298,
+    "log": "city-40000-wgpu-d3d12-0-native.log",
+    "log_sha256": "c44da4d227b2f1882b33c1eb3eb198222557bf64954b3dfb0fcb26229eda2f42",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "city-40000-wgpu-d3d12-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "portable",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-wgpu-d3d12-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.2696685791015625,
+    "log": "city-40000-wgpu-d3d12-1-portable.log",
+    "log_sha256": "cf0ef67029a7a947fe4388ac860716082d772cd452d598070fb5a682c03fb3db",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "city-40000-wgpu-vulkan-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "native",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-wgpu-vulkan-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.093314170837402,
+    "log": "city-40000-wgpu-vulkan-0-native.log",
+    "log_sha256": "90d4be80b15e1b3cfaec9098baf2863ca2212860797c5f75b32670b01ddcb6cd",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "city-40000-wgpu-vulkan-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "portable",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-wgpu-vulkan-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.093486070632935,
+    "log": "city-40000-wgpu-vulkan-1-portable.log",
+    "log_sha256": "0df4f32a7b8a2b6ba8e2b29fe7d0fc6644a75ba939228acd82ec4383c261a1ce",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "city-40000-wgpu-opengl-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "native",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-wgpu-opengl-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 3.9095401763916016,
+    "log": "city-40000-wgpu-opengl-0-native.log",
+    "log_sha256": "2edc7317aac3522d68dd826af17e9272ed7aa43c2365ec1beb9d5904a3fe2c23",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "city-40000-wgpu-opengl-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "portable",
+      "city-40000",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\city-40000-wgpu-opengl-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 3.767019033432007,
+    "log": "city-40000-wgpu-opengl-1-portable.log",
+    "log_sha256": "9c65ea9d9d9c62b02267b14451b393da3f65960deed8344d79446c6747370bba",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "terrain-million-bgfx-d3d12-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "native",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-bgfx-d3d12-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 19.28885245323181,
+    "log": "terrain-million-bgfx-d3d12-0-native.log",
+    "log_sha256": "96774f945da5e5489acc25155c9605a62bced41d709a1927d31bb69ef78665a1",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "terrain-million-bgfx-d3d12-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "portable",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-bgfx-d3d12-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 18.949597358703613,
+    "log": "terrain-million-bgfx-d3d12-1-portable.log",
+    "log_sha256": "1eb1de7a99068240306a098853648e0bf0ae19ff381b421be8825a25db95a167",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "terrain-million-bgfx-vulkan-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "native",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-bgfx-vulkan-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 18.692383766174316,
+    "log": "terrain-million-bgfx-vulkan-0-native.log",
+    "log_sha256": "f10971c946681bbf881b2354262a8e7f3e7cc072fe9e771ab0bb63a9fda73dd6",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "terrain-million-bgfx-vulkan-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "portable",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-bgfx-vulkan-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 18.60769534111023,
+    "log": "terrain-million-bgfx-vulkan-1-portable.log",
+    "log_sha256": "3add56db420677a9042eedc1530abb6937bd9f0aaeeba7357c5226146d900cc2",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "terrain-million-bgfx-opengl-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "native",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-bgfx-opengl-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 20.27023720741272,
+    "log": "terrain-million-bgfx-opengl-0-native.log",
+    "log_sha256": "a965e53fe3b4eb7b7f004ea9032c672184c6fe490b509ebf3f7c2d1f78096642",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "terrain-million-bgfx-opengl-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "portable",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-bgfx-opengl-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 20.326551914215088,
+    "log": "terrain-million-bgfx-opengl-1-portable.log",
+    "log_sha256": "79fd33bc015f26ad0eec8d2e481c2ccd3857fcf34e9ced7a13bd2b80403b67d3",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "terrain-million-wgpu-d3d12-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "native",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-wgpu-d3d12-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.104020595550537,
+    "log": "terrain-million-wgpu-d3d12-0-native.log",
+    "log_sha256": "f8e1339c92a36ebf1a2fc7fdac4a715a65d9816a225a9e46df91f490984e02ab",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "terrain-million-wgpu-d3d12-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "portable",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-wgpu-d3d12-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.005079746246338,
+    "log": "terrain-million-wgpu-d3d12-1-portable.log",
+    "log_sha256": "32e117a70dde45dbdf8f66aea35ab5e2233e34ed9e6dc86e420b6a9a400fcfe2",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "terrain-million-wgpu-vulkan-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "native",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-wgpu-vulkan-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 4.0174338817596436,
+    "log": "terrain-million-wgpu-vulkan-0-native.log",
+    "log_sha256": "13a959076c279ae1ff1d3e89647856e8b376a03b25b071b2d52f3be271cb1a49",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "terrain-million-wgpu-vulkan-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "portable",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-wgpu-vulkan-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 3.9485867023468018,
+    "log": "terrain-million-wgpu-vulkan-1-portable.log",
+    "log_sha256": "ad541ecec8a187c0f5be300ed88ca356a4e329c9de35ec28dbfadddd55fabbc5",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "terrain-million-wgpu-opengl-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "native",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-wgpu-opengl-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 3.5876517295837402,
+    "log": "terrain-million-wgpu-opengl-0-native.log",
+    "log_sha256": "288d10d9aebe6b47003286c8dcdb218bfe747395f6bf6b60a4ce802b1c304df5",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "terrain-million-wgpu-opengl-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "portable",
+      "terrain-million",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\terrain-million-wgpu-opengl-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 3.5521342754364014,
+    "log": "terrain-million-wgpu-opengl-1-portable.log",
+    "log_sha256": "51d23cab52ada7a0cfa14718bcebf297f2c1b0c951189c7a7ed26cb94723e6db",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "solids-bgfx-d3d12-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "native",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-bgfx-d3d12-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.8446075916290283,
+    "log": "solids-bgfx-d3d12-0-native.log",
+    "log_sha256": "a8ba89b104eee5535e655a9a977a9587beb65621c88446828fe3b20169418985",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "solids-bgfx-d3d12-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "portable",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-bgfx-d3d12-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.6765201091766357,
+    "log": "solids-bgfx-d3d12-1-portable.log",
+    "log_sha256": "a5bfa6fcfc3893e5b0ad3432b1876428d6293ff5bede2d84378709194f6e5cc3",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "solids-bgfx-vulkan-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "native",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-bgfx-vulkan-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.730926036834717,
+    "log": "solids-bgfx-vulkan-0-native.log",
+    "log_sha256": "a35b454fdab8d1c2f2c412a9ebb586880cacdea28af66a081ddf4fc72700d36e",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "solids-bgfx-vulkan-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "portable",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-bgfx-vulkan-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.585932970046997,
+    "log": "solids-bgfx-vulkan-1-portable.log",
+    "log_sha256": "605b98cda0608a34823bdf3ba19ea3663d443820eb7fbaf4635a4a075b7ba32c",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "solids-bgfx-opengl-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "native",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-bgfx-opengl-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 1.355888843536377,
+    "log": "solids-bgfx-opengl-0-native.log",
+    "log_sha256": "c5e1e7a03c81af400489bae730f217f2d9334853ee564a2aba2a13469d7e7b5d",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "solids-bgfx-opengl-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "portable",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-bgfx-opengl-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 1,
+    "pass_gate": false,
+    "seconds": 1.379563331604004,
+    "log": "solids-bgfx-opengl-1-portable.log",
+    "log_sha256": "07328e5af263c092882fa047eaa257ed99002f70e9e12326d8c1b26ad4148f54",
+    "dll_sha256": "dfff1193a95abc544ff83e2a70c827a126e82d7b9c943503be6d816356c73eef",
+    "binary_sha256": "be063cbfaaf94bb366f4c32595c80e27992a96b25ec49bd8183e52e0c028e706"
+  },
+  {
+    "label": "solids-wgpu-d3d12-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "native",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-wgpu-d3d12-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 7.21164870262146,
+    "log": "solids-wgpu-d3d12-0-native.log",
+    "log_sha256": "1366c8f1442ee5964d9ed2d63c944555f53e8d569d47957ef961ce536ce655d3",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "solids-wgpu-d3d12-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "d3d12",
+      "portable",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-wgpu-d3d12-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 8.658454895019531,
+    "log": "solids-wgpu-d3d12-1-portable.log",
+    "log_sha256": "b4a8564dd2cc2d305cc23ae25e65c8170bed97b8bbca6bb4c03856c8d58df110",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "solids-wgpu-vulkan-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "native",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-wgpu-vulkan-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.6846656799316406,
+    "log": "solids-wgpu-vulkan-0-native.log",
+    "log_sha256": "b50fa92d7ddd1c6b096c5a4684c83261756ee6815ec9b7bc67442e93ac92df76",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "solids-wgpu-vulkan-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "vulkan",
+      "portable",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-wgpu-vulkan-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.777548313140869,
+    "log": "solids-wgpu-vulkan-1-portable.log",
+    "log_sha256": "779fcd844b857792f785b8b52e1728e10987de8b4fb68bfbb6585f1a6cf9337a",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "solids-wgpu-opengl-0-native",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "native",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-wgpu-opengl-0-native"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.7919564247131348,
+    "log": "solids-wgpu-opengl-0-native.log",
+    "log_sha256": "df7a510201b4adc65db02465cb325219121f83c73607769ad13a2ab31d6eb8a6",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  },
+  {
+    "label": "solids-wgpu-opengl-1-portable",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu\\Release\\coin_visual_campaign.exe",
+      "opengl",
+      "portable",
+      "solids",
+      "2",
+      "1",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-initial\\solids-wgpu-opengl-1-portable"
+    ],
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1"
+    },
+    "exit": 0,
+    "pass_gate": true,
+    "seconds": 2.8844499588012695,
+    "log": "solids-wgpu-opengl-1-portable.log",
+    "log_sha256": "43070cfeb9fb8422fb1d9f385093bcb3d5897ba9a214df084c5d008416294729",
+    "dll_sha256": "d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75",
+    "binary_sha256": "52a468633c64eb320e080bf88a3f586f446110ca2bcc9d177d71989666c055db"
+  }
+]
