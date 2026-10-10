@@ -1,0 +1,17 @@
+[
+  {
+    "name": "PhysicalDistinctMonitorDpi",
+    "status": "SKIP",
+    "reason": "Both physical monitors report effective DPI 96; no genuine differing-DPI WM_DPICHANGED transition available."
+  },
+  {
+    "name": "PhysicalDeviceRemovalCampaign",
+    "status": "SKIP",
+    "reason": "No controlled physical driver-loss campaign executed; fault-injection/device lifetime tests are not physical removal. Host Windows 19045, documented RemoveDevice minimum 20348."
+  },
+  {
+    "name": "IntegratedFreecadRetainedConsumers",
+    "status": "SKIP",
+    "reason": "Installed FreeCAD 1.0 has legacy Coin4.dll and no integrated CoinRender4.dll; Part::Spline, Mesh/FEM, ColorBar, event drag and host window RTT not exercised."
+  }
+]

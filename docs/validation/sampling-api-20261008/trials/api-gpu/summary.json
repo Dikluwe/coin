@@ -1,0 +1,142 @@
+[
+  {
+    "profile": "wgpu-amd-vulkan",
+    "exit": 77,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "wgpu-amd-vulkan.log",
+    "binary_sha256": "58fa4b85e64876fa744469f54320f647c3ecbf6b39d1adfd4f63ee15fb6b8089",
+    "log_sha256": "2d9ff2b2dd4046424fecf91751af77c1d017fc9831e9fab45f2ac1d83c98e368",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "wgpu-nvidia-vulkan.log",
+    "binary_sha256": "58fa4b85e64876fa744469f54320f647c3ecbf6b39d1adfd4f63ee15fb6b8089",
+    "log_sha256": "1f7ffcecb53d8fb61a31a649c26258961ac0121dca8de952143ca5fc20c34afb",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "wgpu-amd-gl.log",
+    "binary_sha256": "58fa4b85e64876fa744469f54320f647c3ecbf6b39d1adfd4f63ee15fb6b8089",
+    "log_sha256": "8d889d597327be6b9a7e2ec6968839aa58ae5dab0cf29e2248a3340964de3eb3",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "exit": 77,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "bgfx-amd-vulkan.log",
+    "binary_sha256": "e8319e1c1622ee001bb8d2f98a8c2be4e641aeec87ce88a4514e60b026889faa",
+    "log_sha256": "2d9ff2b2dd4046424fecf91751af77c1d017fc9831e9fab45f2ac1d83c98e368",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "bgfx-nvidia-vulkan.log",
+    "binary_sha256": "e8319e1c1622ee001bb8d2f98a8c2be4e641aeec87ce88a4514e60b026889faa",
+    "log_sha256": "a51fc2a8998f2ca184e3e7021b67538b2ccf26e1cf2f8fd8630af6b8bd9c5b2e",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "bgfx-amd-gl.log",
+    "binary_sha256": "e8319e1c1622ee001bb8d2f98a8c2be4e641aeec87ce88a4514e60b026889faa",
+    "log_sha256": "2d3539bd7188f70dd5cc2a681d4b963752b6d56aa4a4634112a2ac29ce5a2c9a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.x86_64.json"
+    }
+  }
+]

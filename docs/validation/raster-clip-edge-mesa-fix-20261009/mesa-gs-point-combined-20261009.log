@@ -1,0 +1,55 @@
+Mesa 25.2.8 privado, AMD Radeon Graphics (radeonsi, renoir, DRM 3.64).
+Base: GS para quad LINE + correção GS->NULL. MESA_EXPERIMENTAL_CLIP_BOUNDARY=1.
+Point-only patch and combined patch were each compiled from this base; the
+installed Mesa was not changed.
+
+Point-only DRM shim: exit 0
+COIN_CLIP_GS quad=1 points=0 count=4
+COIN_CLIP_GS quad=1 points=1 count=4
+SHIM after polygon-point error=0
+The COIN_CLIP_GS lines came from temporary instrumentation removed before
+physical AMD tests.
+
+Point-only, physical AMD, AMD_DEBUG=nongg:
+Minimal strict oracle: exit 0
+polygon-point clipped=1 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+Full strict oracle: exit 1; polygon-point passed, triangles-line and the two
+shader-clip-distance cases failed as expected without the triangle patch.
+
+Combined patch, DRM shim: exit 0; polygon, triangles and polygon-point each
+completed with GL error 0.
+Combined patch, physical AMD, AMD_DEBUG=nongg: minimal strict oracle exit 0.
+Combined patch, physical AMD, AMD_DEBUG unset: minimal strict oracle exit 0.
+Both runs:
+polygon-line clipped=1 triangles=0 mode=line x16=18 x17=0 x45=18 p16low=3 p16high=2 error=0 boundary=1
+triangles-line clipped=1 triangles=1 mode=line x16=18 x17=1 x45=18 p16low=3 p16high=2 error=0 boundary=1
+polygon-point clipped=1 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+
+Combined full strict oracle, AMD_DEBUG=nongg and AMD_DEBUG unset: exit 1.
+The two runs agreed on all rows:
+polygon-line clipped=1 triangles=0 mode=line x16=18 x17=0 x45=18 p16low=3 p16high=2 error=0 boundary=1
+triangles-line clipped=1 triangles=1 mode=line x16=18 x17=1 x45=18 p16low=3 p16high=2 error=0 boundary=1
+polygon-fill clipped=1 triangles=0 mode=fill x16=18 x17=18 x45=0 p16low=2 p16high=3 error=0 boundary=1
+polygon-point clipped=1 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+preclipped-polygon-point clipped=0 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+unclipped-line clipped=0 triangles=0 mode=line x16=0 x17=0 x45=18 p16low=1 p16high=1 error=0 boundary=1
+preclipped-polygon-line clipped=0 triangles=0 mode=line x16=18 x17=0 x45=18 p16low=3 p16high=3 error=0 boundary=1
+explicit-cut-edge clipped=0 triangles=0 mode=line x16=18 x17=0 x45=0 p16low=3 p16high=2 error=0 boundary=1
+explicit-cut-edge-clipped clipped=1 triangles=0 mode=line x16=18 x17=0 x45=0 p16low=3 p16high=2 error=0 boundary=1
+shader-status vertex=1 fragment=1 link=1
+shader-clip-distance-polygon-line clipped=1 triangles=0 mode=line x16=0 x17=0 x45=18 p16low=1 p16high=0 error=0 boundary=0
+shader-clip-distance-polygon-point clipped=1 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=0 p16high=0 error=0 boundary=0
+shader-clip-distance-polygon-fill clipped=1 triangles=0 mode=fill x16=18 x17=18 x45=0 p16low=2 p16high=3 error=0 boundary=1
+
+Temporary trace confirmed supplemental GS selection even for both shader
+clip-distance draws. AMD_DEBUG=initnir,vs,gs,nongg showed the user vertex
+shader has next_stage=MESA_SHADER_FRAGMENT and its CLIP_DIST0 store is marked
+no_varying. The separately bound GS loads VARYING_SLOT_CLIP_DIST0. Thus the
+supplemental GS cannot assume that the shader's clip distance is exported as
+a varying after the program was linked without a GS. See full NIR dump.
+
+All physical tests completed below their timeouts. Kernel journal filtered
+from first point GPU test to the last combined test showed no GPU reset, ring
+timeout or fault. Installed Mesa afterwards: direct rendering Yes, AMD radeonsi,
+Mesa 25.2.8-0ubuntu0.24.04.4.
+Private st_draw.c and libgallium were restored byte-for-byte to pre-test state.

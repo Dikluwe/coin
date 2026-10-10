@@ -1,0 +1,44 @@
+[1/4] Building Rust WebGPU bridge library (release)...
+   Compiling coin_wgpu_rust_bridge v0.1.0 (/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src/rendering/coinwgpu/rust_bridge)
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:2420:15
+     |
+2420 |         wgpu::ImageCopyTexture {
+     |               ^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:2427:15
+     |
+2427 |         wgpu::ImageDataLayout {
+     |               ^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src/lib.rs:3521:19
+     |
+3521 |             wgpu::ImageCopyTexture {
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src/lib.rs:3528:19
+     |
+3528 |             wgpu::ImageDataLayout {
+     |                   ^^^^^^^^^^^^^^^
+
+warning: field `default_texture` is never read
+    --> src/lib.rs:1682:5
+     |
+1669 | struct DeviceState {
+     |        ----------- field in this struct
+...
+1682 |     default_texture: wgpu::Texture,
+     |     ^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coin_wgpu_rust_bridge` (lib) generated 5 warnings
+    Finished `release` profile [optimized] target(s) in 5.13s
+[2/4] Linking CXX shared library lib/libCoinRender.so
+[3/4] Linking CXX executable bin/coin_render_window_benchmark
+[4/4] Linking CXX executable bin/CoinRenderSamplingPolicyTest

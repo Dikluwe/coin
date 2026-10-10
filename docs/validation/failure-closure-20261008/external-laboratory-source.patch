@@ -1,0 +1,590 @@
+diff --git a/testsuite/reproducers/portable-sampling-study/README.md b/testsuite/reproducers/portable-sampling-study/README.md
+index 85a0c3e543..2d83a92ffd 100644
+--- a/testsuite/reproducers/portable-sampling-study/README.md
++++ b/testsuite/reproducers/portable-sampling-study/README.md
+@@ -147,3 +147,11 @@ separados e exclua-os das medianas normais de render/present. Não é medição
+ de latência de tela nem profiler assíncrono de produção.
+ 
+ Relatório: docs/coin-render-native-sampling-path-study-20261008.md.
++
++## Correção das 28 falhas — 2026-10-08
++
++A continuação mantém as tolerâncias e separa correções de geometria/profundidade
++do workaround **externo do Mesa**, salvo em [mesa/README.md](mesa/README.md).
++O ledger individual e os controles A/B ficam no relatório
++`docs/coin-render-failure-closure-20261008.md`. Coin original, a branch principal
++coin-render e o driver instalado continuam intactos.
+diff --git a/testsuite/reproducers/portable-sampling-study/mesa/.gitignore b/testsuite/reproducers/portable-sampling-study/mesa/.gitignore
+new file mode 100644
+index 0000000000..c18dd8d83c
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/mesa/.gitignore
+@@ -0,0 +1 @@
++__pycache__/
+diff --git a/testsuite/reproducers/portable-sampling-study/mesa/README.md b/testsuite/reproducers/portable-sampling-study/mesa/README.md
+new file mode 100644
+index 0000000000..15fa7167b4
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/mesa/README.md
+@@ -0,0 +1,74 @@
++# Mesa Renoir: workaround externo e isolado
++
++Este diretório é parte do **estudo**, não do backend CoinRender. O patch se
++aplica à fonte oficial Mesa 25.2.8, SHA256
++`097842f3e49d996868b38688db87b006f7d4541e93ce86d2f341d8b3e7be7c93`.
++Ele não modifica Coin nem instala bibliotecas no sistema.
++
++A transformação NIR fica limitada a Renoir, sampler 2D normalizado, não array,
++sem comparação, float32, minificação nearest/mip-linear, magnificação linear,
++sem anisotropia, sampler bias e minLOD zero. Offsets, gradientes explícitos e
++fontes de instrução não suportadas conservam o caminho original. O sampler
++continua ligado: magnificação usa a amostra nativa; minificação calcula LOD
++pelas UV originais e centraliza separadamente em cada mip, inclusive NPOT.
++Formatos continuam sendo decodificados pelo hardware.
++
++O protótipo calcula a amostra nativa antes do ramo dependente de LOD, para
++preservar derivadas implícitas. Portanto minificação pode executar **três
++amostras**: uma nativa e duas reconstruídas. Não foi qualificado em desempenho,
++outros chips ou aplicações gerais; não deve ser apresentado como driver pronto
++para distribuição. Radeonsi usa ACO no fragmento; RADV também recebe o passo.
++
++O guard `COIN_MESA_MIXED_FILTER_STUDY` é por **presença**. Para desativar, remova
++a variável; o valor `0` também habilita. O guard não integra a chave do cache de
++shaders: os launchers desabilitam o cache em ambos os controles A/B. Variáveis e
++bibliotecas ficam restritas ao processo filho.
++
++## Repetição
++
++Extraia a fonte verificada em um diretório permanente e aplique:
++
++```sh
++patch -d "$mesa_source" -p1 -i "$study_repo/testsuite/reproducers/portable-sampling-study/mesa/mesa-25.2.8-renoir-mixed-filter.patch"
++```
++
++Use um prefixo privado, Meson 1.4.2 ou compatível, Mako, PyYAML e as dependências
++de desenvolvimento registradas na evidência. Os comandos exatos, dependências,
++bibliotecas e hashes deste PC ficam em
++`docs/validation/failure-closure-20261008/mesa-build`. A variante ACO usa
++`-Dllvm=disabled -Damd-use-llvm=false`. A variante com LLVM usa LLVM 18.1.3,
++`-Dllvm=enabled -Damd-use-llvm=true`; o launcher pode manter o vertex shader em
++LLVM e o fragmento em ACO com `--gl-compiler llvm-vs-aco-ps`.
++
++Outras opções da compilação: Release, gallium radeonsi, Vulkan amd, platform x11,
++GLX dri, EGL enabled, GBM/VA/VDPAU/build-tests disabled e video-codecs vazio.
++Antes de instalar, confira que **todos** os destinos do install-plan do Meson
++pertencem ao prefixo privado. Nenhum comando deste laboratório deve apontar o
++prefixo para `/usr`, `/usr/local` ou a instalação do driver do sistema.
++
++```sh
++python3 "$study_repo/testsuite/reproducers/portable-sampling-study/mesa/with_mesa.py" --prefix "$mesa_prefix" -- "$program"
++python3 "$study_repo/testsuite/reproducers/portable-sampling-study/mesa/with_mesa.py" --prefix "$mesa_prefix" --disabled -- "$program"
++python3 "$study_repo/testsuite/reproducers/portable-sampling-study/mesa/run_cases.py" --artifacts "$study_artifacts" --mesa-prefix "$mesa_prefix" --name qualification --profiles all6 --cases projective,sampling,advanced,procedural,rtt,deep,direct,viewport,large,devices,stress,instancing,shadow-eight,shadow-viewport,shadow-alpha,curved,styles
++```
++
++`study_artifacts` deve conter os builds wgpu/BGFX da branch de estudo. Os testes
++GPU são sequenciais, com referência CoinGL obrigatória e sem mudar os gates.
++Exit77/SKIP não conta como aprovação. Os programas inaplicáveis a um backend
++(LargeBindings/MultiDevice no BGFX, instancing específico no wgpu) não são
++lançados. NVIDIA usa suas bibliotecas instaladas, como contracontrole.
++
++A sonda `../sampler_state_probe.cpp` compila com `-lEGL -lOpenGL` e não liga Coin.
++Ela é diagnóstica: aceita a divergência do modo nativo e exige os controles
++independentes. Para fechar as falhas, use os testes integrados estritos e o
++ledger de 28 resultados; exit0 da sonda isolada não prova paridade nativa.
++
++Fontes primárias:
++[Mesa 25.2.8](https://docs.mesa3d.org/relnotes/25.2.8.html) e
++[explicação Mesa de TRUNC_COORD e filtros mistos](https://cgit.freedesktop.org/mesa/mesa/commit/?id=6fac2889317e80b601ac63f7e46047bf8893d597).
++
++A variante LLVM foi um contracontrole descartado: a mesma borda CoinGL falhou
++com ela, com ACO, com o driver instalado e com o runtime anterior congelado.
++A campanha principal usa o prefixo ACO. `--cases portable-styles` executa o
++contrato CPU/GPU sem comparação CoinGL opcional; é uma coorte separada. O caso
++`styles` continua exigindo CoinGL, mantém os FAIL e não tem tolerância alterada.
+diff --git a/testsuite/reproducers/portable-sampling-study/mesa/ac_nir_mixed_filter_study.h b/testsuite/reproducers/portable-sampling-study/mesa/ac_nir_mixed_filter_study.h
+new file mode 100644
+index 0000000000..d7258fe65a
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/mesa/ac_nir_mixed_filter_study.h
+@@ -0,0 +1,140 @@
++/* Isolated Renoir mixed nearest-min/linear-mag experiment. Not installed globally. */
++#ifndef AC_NIR_MIXED_FILTER_STUDY_H
++#define AC_NIR_MIXED_FILTER_STUDY_H
++#include "nir_builder.h"
++#include "sid.h"
++#include <stdlib.h>
++
++static nir_def *mixed_field(nir_builder *b, nir_def *word, uint32_t mask)
++{
++   return nir_ushr_imm(b, nir_iand_imm(b, word, mask), __builtin_ctz(mask));
++}
++
++static nir_tex_instr *mixed_clone(nir_builder *b, nir_tex_instr *old)
++{
++   nir_tex_instr *copy = nir_instr_as_tex(nir_instr_clone(b->shader, &old->instr));
++   copy->instr.pass_flags = 1;
++   return copy;
++}
++
++static nir_def *mixed_level(nir_builder *b, nir_tex_instr *old, nir_def *uv,
++                            nir_def *base_size, nir_def *level)
++{
++   nir_def *size = nir_umax(b, nir_ushr(b, base_size, nir_f2u32(b, level)),
++                           nir_imm_ivec2(b, 1, 1));
++   nir_def *n = nir_u2f32(b, size);
++   nir_def *center = nir_fdiv(b, nir_fadd_imm(b, nir_ffloor(b, nir_fmul(b, uv, n)), 0.5), n);
++   nir_tex_instr *sample = mixed_clone(b, old);
++   sample->op = nir_texop_txl;
++   nir_builder_instr_insert(b, &sample->instr);
++   int bias = nir_tex_instr_src_index(sample, nir_tex_src_bias);
++   if (bias >= 0) nir_tex_instr_remove_src(sample, bias);
++   int at = nir_tex_instr_src_index(sample, nir_tex_src_coord);
++   nir_src_rewrite(&sample->src[at].src, center);
++   at = nir_tex_instr_src_index(sample, nir_tex_src_lod);
++   if (at >= 0)
++      nir_src_rewrite(&sample->src[at].src, level);
++   else
++      nir_tex_instr_add_src(sample, nir_tex_src_lod, level);
++   return &sample->def;
++}
++
++static nir_def *mixed_filter_instr(nir_builder *b, nir_instr *instr, void *unused)
++{
++   if (instr->type != nir_instr_type_tex || instr->pass_flags)
++      return NULL;
++   nir_tex_instr *tex = nir_instr_as_tex(instr);
++   if ((tex->op != nir_texop_tex && tex->op != nir_texop_txl && tex->op != nir_texop_txb) ||
++       tex->sampler_dim != GLSL_SAMPLER_DIM_2D || tex->is_array || tex->is_shadow ||
++       tex->coord_components != 2 || tex->def.bit_size != 32 ||
++       nir_alu_type_get_base_type(tex->dest_type) != nir_type_float)
++      return NULL;
++   int si = nir_tex_instr_src_index(tex, nir_tex_src_sampler_handle);
++   int ti = nir_tex_instr_src_index(tex, nir_tex_src_texture_handle);
++   int ci = nir_tex_instr_src_index(tex, nir_tex_src_coord);
++   if (si < 0 || ti < 0 || ci < 0 || tex->src[si].src.ssa->num_components != 4 ||
++       tex->src[ti].src.ssa->num_components != 8)
++      return NULL;
++   /* Keep offsets, explicit gradients, non-default bias and min-LOD out of this
++    * first experiment. The qualification corpus uses normalized, full-chain 2D. */
++   for (unsigned i = 0; i < tex->num_srcs; ++i)
++      if (tex->src[i].src_type != nir_tex_src_sampler_handle &&
++          tex->src[i].src_type != nir_tex_src_texture_handle &&
++          tex->src[i].src_type != nir_tex_src_coord &&
++          tex->src[i].src_type != nir_tex_src_lod &&
++          tex->src[i].src_type != nir_tex_src_bias)
++         return NULL;
++
++   nir_def *sampler = tex->src[si].src.ssa;
++   nir_def *image = tex->src[ti].src.ssa;
++   nir_def *uv = tex->src[ci].src.ssa;
++   nir_def *word0 = nir_channel(b, sampler, 0);
++   nir_def *word1 = nir_channel(b, sampler, 1);
++   nir_def *word2 = nir_channel(b, sampler, 2);
++   const uint32_t filter_mask = S_008F38_XY_MIN_FILTER(3) | S_008F38_XY_MAG_FILTER(3) |
++                                S_008F38_MIP_FILTER(3);
++   const uint32_t filter_value = S_008F38_XY_MAG_FILTER(V_008F38_SQ_TEX_XY_FILTER_BILINEAR) |
++                                 S_008F38_MIP_FILTER(V_008F38_SQ_TEX_Z_FILTER_LINEAR);
++   nir_def *active = nir_ieq_imm(b, nir_iand_imm(b, word2, filter_mask), filter_value);
++   active = nir_iand(b, active, nir_ieq_imm(b, nir_iand_imm(b, word0,
++                        S_008F30_MAX_ANISO_RATIO(7) | S_008F30_FORCE_UNNORMALIZED(1)), 0));
++   active = nir_iand(b, active, nir_ieq_imm(b, nir_iand_imm(b, word1, S_008F34_MIN_LOD_GFX6(0xfff)), 0));
++   active = nir_iand(b, active, nir_ieq_imm(b, nir_iand_imm(b, word2, S_008F38_LOD_BIAS(0x3fff)), 0));
++   /* Keep the original implicit sample outside the new divergent LOD branch.
++    * This correctness-first prototype pays an extra native sample on minified
++    * mixed filters; it is not a performance-qualified driver patch. */
++   nir_tex_instr *native = mixed_clone(b, tex);
++   nir_builder_instr_insert(b, &native->instr);
++   nir_push_if(b, active);
++   nir_def *width = nir_iadd_imm(b, mixed_field(b, nir_channel(b, image, 2), S_008F18_WIDTH(0x3fff)), 1);
++   nir_def *height = nir_iadd_imm(b, mixed_field(b, nir_channel(b, image, 2), S_008F18_HEIGHT(0x3fff)), 1);
++   nir_def *base = mixed_field(b, nir_channel(b, image, 3), S_008F1C_BASE_LEVEL(15));
++   nir_def *last = mixed_field(b, nir_channel(b, image, 3), S_008F1C_LAST_LEVEL(15));
++   nir_def *size = nir_umax(b, nir_ushr(b, nir_vec2(b, width, height), base), nir_imm_ivec2(b, 1, 1));
++   nir_def *max_level = nir_u2f32(b, nir_isub(b, last, base));
++   nir_def *sampler_max = nir_fmul_imm(b, nir_u2f32(b, mixed_field(b, word1, S_008F34_MAX_LOD_GFX6(0xfff))), 1.0 / 256.0);
++   max_level = nir_fmin(b, max_level, sampler_max);
++
++   nir_def *lod;
++   int li = nir_tex_instr_src_index(tex, nir_tex_src_lod);
++   if (li >= 0) {
++      lod = tex->src[li].src.ssa;
++   } else {
++      nir_def *n = nir_u2f32(b, size);
++      nir_def *gx = nir_fmul(b, nir_ddx_fine(b, uv), n);
++      nir_def *gy = nir_fmul(b, nir_ddy_fine(b, uv), n);
++      nir_def *x = nir_fsqrt(b, nir_fadd(b,
++         nir_fmul(b, nir_channel(b, gx, 0), nir_channel(b, gx, 0)),
++         nir_fmul(b, nir_channel(b, gx, 1), nir_channel(b, gx, 1))));
++      nir_def *y = nir_fsqrt(b, nir_fadd(b,
++         nir_fmul(b, nir_channel(b, gy, 0), nir_channel(b, gy, 0)),
++         nir_fmul(b, nir_channel(b, gy, 1), nir_channel(b, gy, 1))));
++      lod = nir_flog2(b, nir_fmax(b, nir_fmax(b, x, y), nir_imm_float(b, 0.000001)));
++   }
++   int bi = nir_tex_instr_src_index(tex, nir_tex_src_bias);
++   if (bi >= 0) lod = nir_fadd(b, lod, tex->src[bi].src.ssa);
++   nir_push_if(b, nir_fgt_imm(b, lod, 0.0));
++   lod = nir_fmin(b, nir_fmax(b, lod, nir_imm_float(b, 0.0)), max_level);
++   nir_def *lo = nir_ffloor(b, lod);
++   nir_def *hi = nir_fmin(b, nir_fadd_imm(b, lo, 1.0), max_level);
++   nir_def *a = mixed_level(b, tex, uv, size, lo);
++   nir_def *c = mixed_level(b, tex, uv, size, hi);
++   nir_def *portable = nir_fadd(b, a, nir_fmul(b, nir_fsub(b, c, a), nir_fsub(b, lod, lo)));
++   nir_push_else(b, NULL);
++   nir_pop_if(b, NULL);
++   /* if_phi requires an else predecessor, with native defined in the dominator. */
++   nir_def *min_or_mag = nir_if_phi(b, portable, &native->def);
++   nir_push_else(b, NULL);
++   nir_pop_if(b, NULL);
++   nir_def *result = nir_if_phi(b, min_or_mag, &native->def);
++   return result;
++}
++
++static bool ac_nir_mixed_filter_study(nir_shader *nir)
++{
++   if (!getenv("COIN_MESA_MIXED_FILTER_STUDY"))
++      return false;
++   nir_shader_clear_pass_flags(nir);
++   return nir_shader_lower_instructions(nir, NULL, mixed_filter_instr, NULL);
++}
++#endif
+diff --git a/testsuite/reproducers/portable-sampling-study/mesa/mesa-25.2.8-renoir-mixed-filter.patch b/testsuite/reproducers/portable-sampling-study/mesa/mesa-25.2.8-renoir-mixed-filter.patch
+new file mode 100644
+index 0000000000..035d6b3bd3
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/mesa/mesa-25.2.8-renoir-mixed-filter.patch
+@@ -0,0 +1,177 @@
++--- /dev/null
+++++ b/src/amd/common/nir/ac_nir_mixed_filter_study.h
++@@ -0,0 +1,140 @@
+++/* Isolated Renoir mixed nearest-min/linear-mag experiment. Not installed globally. */
+++#ifndef AC_NIR_MIXED_FILTER_STUDY_H
+++#define AC_NIR_MIXED_FILTER_STUDY_H
+++#include "nir_builder.h"
+++#include "sid.h"
+++#include <stdlib.h>
+++
+++static nir_def *mixed_field(nir_builder *b, nir_def *word, uint32_t mask)
+++{
+++   return nir_ushr_imm(b, nir_iand_imm(b, word, mask), __builtin_ctz(mask));
+++}
+++
+++static nir_tex_instr *mixed_clone(nir_builder *b, nir_tex_instr *old)
+++{
+++   nir_tex_instr *copy = nir_instr_as_tex(nir_instr_clone(b->shader, &old->instr));
+++   copy->instr.pass_flags = 1;
+++   return copy;
+++}
+++
+++static nir_def *mixed_level(nir_builder *b, nir_tex_instr *old, nir_def *uv,
+++                            nir_def *base_size, nir_def *level)
+++{
+++   nir_def *size = nir_umax(b, nir_ushr(b, base_size, nir_f2u32(b, level)),
+++                           nir_imm_ivec2(b, 1, 1));
+++   nir_def *n = nir_u2f32(b, size);
+++   nir_def *center = nir_fdiv(b, nir_fadd_imm(b, nir_ffloor(b, nir_fmul(b, uv, n)), 0.5), n);
+++   nir_tex_instr *sample = mixed_clone(b, old);
+++   sample->op = nir_texop_txl;
+++   nir_builder_instr_insert(b, &sample->instr);
+++   int bias = nir_tex_instr_src_index(sample, nir_tex_src_bias);
+++   if (bias >= 0) nir_tex_instr_remove_src(sample, bias);
+++   int at = nir_tex_instr_src_index(sample, nir_tex_src_coord);
+++   nir_src_rewrite(&sample->src[at].src, center);
+++   at = nir_tex_instr_src_index(sample, nir_tex_src_lod);
+++   if (at >= 0)
+++      nir_src_rewrite(&sample->src[at].src, level);
+++   else
+++      nir_tex_instr_add_src(sample, nir_tex_src_lod, level);
+++   return &sample->def;
+++}
+++
+++static nir_def *mixed_filter_instr(nir_builder *b, nir_instr *instr, void *unused)
+++{
+++   if (instr->type != nir_instr_type_tex || instr->pass_flags)
+++      return NULL;
+++   nir_tex_instr *tex = nir_instr_as_tex(instr);
+++   if ((tex->op != nir_texop_tex && tex->op != nir_texop_txl && tex->op != nir_texop_txb) ||
+++       tex->sampler_dim != GLSL_SAMPLER_DIM_2D || tex->is_array || tex->is_shadow ||
+++       tex->coord_components != 2 || tex->def.bit_size != 32 ||
+++       nir_alu_type_get_base_type(tex->dest_type) != nir_type_float)
+++      return NULL;
+++   int si = nir_tex_instr_src_index(tex, nir_tex_src_sampler_handle);
+++   int ti = nir_tex_instr_src_index(tex, nir_tex_src_texture_handle);
+++   int ci = nir_tex_instr_src_index(tex, nir_tex_src_coord);
+++   if (si < 0 || ti < 0 || ci < 0 || tex->src[si].src.ssa->num_components != 4 ||
+++       tex->src[ti].src.ssa->num_components != 8)
+++      return NULL;
+++   /* Keep offsets, explicit gradients, non-default bias and min-LOD out of this
+++    * first experiment. The qualification corpus uses normalized, full-chain 2D. */
+++   for (unsigned i = 0; i < tex->num_srcs; ++i)
+++      if (tex->src[i].src_type != nir_tex_src_sampler_handle &&
+++          tex->src[i].src_type != nir_tex_src_texture_handle &&
+++          tex->src[i].src_type != nir_tex_src_coord &&
+++          tex->src[i].src_type != nir_tex_src_lod &&
+++          tex->src[i].src_type != nir_tex_src_bias)
+++         return NULL;
+++
+++   nir_def *sampler = tex->src[si].src.ssa;
+++   nir_def *image = tex->src[ti].src.ssa;
+++   nir_def *uv = tex->src[ci].src.ssa;
+++   nir_def *word0 = nir_channel(b, sampler, 0);
+++   nir_def *word1 = nir_channel(b, sampler, 1);
+++   nir_def *word2 = nir_channel(b, sampler, 2);
+++   const uint32_t filter_mask = S_008F38_XY_MIN_FILTER(3) | S_008F38_XY_MAG_FILTER(3) |
+++                                S_008F38_MIP_FILTER(3);
+++   const uint32_t filter_value = S_008F38_XY_MAG_FILTER(V_008F38_SQ_TEX_XY_FILTER_BILINEAR) |
+++                                 S_008F38_MIP_FILTER(V_008F38_SQ_TEX_Z_FILTER_LINEAR);
+++   nir_def *active = nir_ieq_imm(b, nir_iand_imm(b, word2, filter_mask), filter_value);
+++   active = nir_iand(b, active, nir_ieq_imm(b, nir_iand_imm(b, word0,
+++                        S_008F30_MAX_ANISO_RATIO(7) | S_008F30_FORCE_UNNORMALIZED(1)), 0));
+++   active = nir_iand(b, active, nir_ieq_imm(b, nir_iand_imm(b, word1, S_008F34_MIN_LOD_GFX6(0xfff)), 0));
+++   active = nir_iand(b, active, nir_ieq_imm(b, nir_iand_imm(b, word2, S_008F38_LOD_BIAS(0x3fff)), 0));
+++   /* Keep the original implicit sample outside the new divergent LOD branch.
+++    * This correctness-first prototype pays an extra native sample on minified
+++    * mixed filters; it is not a performance-qualified driver patch. */
+++   nir_tex_instr *native = mixed_clone(b, tex);
+++   nir_builder_instr_insert(b, &native->instr);
+++   nir_push_if(b, active);
+++   nir_def *width = nir_iadd_imm(b, mixed_field(b, nir_channel(b, image, 2), S_008F18_WIDTH(0x3fff)), 1);
+++   nir_def *height = nir_iadd_imm(b, mixed_field(b, nir_channel(b, image, 2), S_008F18_HEIGHT(0x3fff)), 1);
+++   nir_def *base = mixed_field(b, nir_channel(b, image, 3), S_008F1C_BASE_LEVEL(15));
+++   nir_def *last = mixed_field(b, nir_channel(b, image, 3), S_008F1C_LAST_LEVEL(15));
+++   nir_def *size = nir_umax(b, nir_ushr(b, nir_vec2(b, width, height), base), nir_imm_ivec2(b, 1, 1));
+++   nir_def *max_level = nir_u2f32(b, nir_isub(b, last, base));
+++   nir_def *sampler_max = nir_fmul_imm(b, nir_u2f32(b, mixed_field(b, word1, S_008F34_MAX_LOD_GFX6(0xfff))), 1.0 / 256.0);
+++   max_level = nir_fmin(b, max_level, sampler_max);
+++
+++   nir_def *lod;
+++   int li = nir_tex_instr_src_index(tex, nir_tex_src_lod);
+++   if (li >= 0) {
+++      lod = tex->src[li].src.ssa;
+++   } else {
+++      nir_def *n = nir_u2f32(b, size);
+++      nir_def *gx = nir_fmul(b, nir_ddx_fine(b, uv), n);
+++      nir_def *gy = nir_fmul(b, nir_ddy_fine(b, uv), n);
+++      nir_def *x = nir_fsqrt(b, nir_fadd(b,
+++         nir_fmul(b, nir_channel(b, gx, 0), nir_channel(b, gx, 0)),
+++         nir_fmul(b, nir_channel(b, gx, 1), nir_channel(b, gx, 1))));
+++      nir_def *y = nir_fsqrt(b, nir_fadd(b,
+++         nir_fmul(b, nir_channel(b, gy, 0), nir_channel(b, gy, 0)),
+++         nir_fmul(b, nir_channel(b, gy, 1), nir_channel(b, gy, 1))));
+++      lod = nir_flog2(b, nir_fmax(b, nir_fmax(b, x, y), nir_imm_float(b, 0.000001)));
+++   }
+++   int bi = nir_tex_instr_src_index(tex, nir_tex_src_bias);
+++   if (bi >= 0) lod = nir_fadd(b, lod, tex->src[bi].src.ssa);
+++   nir_push_if(b, nir_fgt_imm(b, lod, 0.0));
+++   lod = nir_fmin(b, nir_fmax(b, lod, nir_imm_float(b, 0.0)), max_level);
+++   nir_def *lo = nir_ffloor(b, lod);
+++   nir_def *hi = nir_fmin(b, nir_fadd_imm(b, lo, 1.0), max_level);
+++   nir_def *a = mixed_level(b, tex, uv, size, lo);
+++   nir_def *c = mixed_level(b, tex, uv, size, hi);
+++   nir_def *portable = nir_fadd(b, a, nir_fmul(b, nir_fsub(b, c, a), nir_fsub(b, lod, lo)));
+++   nir_push_else(b, NULL);
+++   nir_pop_if(b, NULL);
+++   /* if_phi requires an else predecessor, with native defined in the dominator. */
+++   nir_def *min_or_mag = nir_if_phi(b, portable, &native->def);
+++   nir_push_else(b, NULL);
+++   nir_pop_if(b, NULL);
+++   nir_def *result = nir_if_phi(b, min_or_mag, &native->def);
+++   return result;
+++}
+++
+++static bool ac_nir_mixed_filter_study(nir_shader *nir)
+++{
+++   if (!getenv("COIN_MESA_MIXED_FILTER_STUDY"))
+++      return false;
+++   nir_shader_clear_pass_flags(nir);
+++   return nir_shader_lower_instructions(nir, NULL, mixed_filter_instr, NULL);
+++}
+++#endif
++--- a/src/gallium/drivers/radeonsi/si_shader.c
+++++ b/src/gallium/drivers/radeonsi/si_shader.c
++@@ -1,3 +1,4 @@
+++#include "ac_nir_mixed_filter_study.h"
++ /*
++  * Copyright 2012 Advanced Micro Devices, Inc.
++  *
++@@ -1638,6 +1639,9 @@
++     */
++    NIR_PASS(progress, nir, nir_lower_io_to_scalar, nir_var_mem_shared, NULL, NULL);
++    NIR_PASS(progress, nir, si_nir_lower_resource, shader, &ctx->args);
+++   if (sel->screen->info.family == CHIP_RENOIR && nir->info.use_aco_amd)
+++      NIR_PASS(progress, nir, ac_nir_mixed_filter_study);
+++
++ 
++    /* This must be done before load/store vectorization to lower 16-bit SMEM loads to 32 bits,
++     * so that they can be vectorized as 32-bit loads. 16-bit loads are never vectorized.
++--- a/src/amd/vulkan/radv_pipeline.c
+++++ b/src/amd/vulkan/radv_pipeline.c
++@@ -1,3 +1,4 @@
+++#include "ac_nir_mixed_filter_study.h"
++ /*
++  * Copyright © 2016 Red Hat.
++  * Copyright © 2016 Bas Nieuwenhuizen
++@@ -459,6 +460,9 @@
++       NIR_PASS(_, stage->nir, nir_opt_constant_folding);
++ 
++    NIR_PASS(_, stage->nir, radv_nir_apply_pipeline_layout, device, stage);
+++   if (pdev->info.family == CHIP_RENOIR)
+++      NIR_PASS(_, stage->nir, ac_nir_mixed_filter_study);
+++
++ 
++    NIR_PASS(_, stage->nir, nir_lower_alu_width, opt_vectorize_callback, device);
++ 
+diff --git a/testsuite/reproducers/portable-sampling-study/mesa/run_cases.py b/testsuite/reproducers/portable-sampling-study/mesa/run_cases.py
+new file mode 100644
+index 0000000000..319eb07f03
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/mesa/run_cases.py
+@@ -0,0 +1,46 @@
++from pathlib import Path
++import os,subprocess,json,hashlib,argparse
++p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True);p.add_argument('--mesa-prefix',type=Path);p.add_argument('--gl-compiler',choices=['aco','llvm-vs-aco-ps'],default='aco');p.add_argument('--name',required=True);p.add_argument('--profiles',default='wgpu-amd-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-amd-gl');p.add_argument('--modes',default='native,fine_uniform');p.add_argument('--disabled',action='store_true');p.add_argument('--cases',default='projective');a=p.parse_args()
++root=a.artifacts.resolve();mesa=(a.mesa_prefix or root/'mesa-study/install').resolve();out=root/a.name;out.mkdir(parents=True,exist_ok=True);rows=[]
++cases={'projective':['CoinRenderTextureSamplingTest','--projective-study'],'sampling':['CoinRenderTextureSamplingTest','--gpu'],
++       'deep':['CoinRenderAdvancedTextureTest','--gpu','--sampling-deep-study'],'direct':['CoinRenderAdvancedTextureTest','--gpu','--sampling-rtt-study'],
++       'viewport':['CoinRenderAdvancedTextureTest','--gpu','--sampling-viewport-study'],'advanced':['CoinRenderAdvancedTextureTest','--gpu'],
++       'procedural':['CoinRenderProceduralTextureTest','--gpu'],'rtt':['CoinRenderRttProfileTest','--mips-direct'],
++       'geometry':['CoinRenderGeometryViewportTest','--gpu'],'curved':['CoinRenderGeometryViewportTest','--study-curved-styles'],
++       'styles':['CoinRenderDrawStyleTest'],'portable-styles':['CoinRenderDrawStyleTest'],'shadow-eight':['CoinRenderShadowEightMapTest'],'shadow-viewport':['CoinRenderShadowReferenceTest','--viewport'],
++       'shadow-alpha':['CoinRenderShadowReferenceTest','--alpha-rtt'],'large':['CoinWgpuLargeBindingsTest'],'devices':['CoinWgpuMultiDeviceTest'],
++       'stress':['CoinWgpuMultiDeviceTest','--stress'],'instancing':['CoinBgfxInstancingTest']}
++profiles='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-amd-gl' if a.profiles=='all6' else a.profiles
++for profile in profiles.split(','):
++ backend,gpu,api=profile.split('-');build=root/('build-'+backend)
++ env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1',COIN_RENDER_REQUIRE_GL_REFERENCE='1',
++     WGPU_BACKEND='gl' if api=='gl' else 'vulkan',COIN_BGFX_RENDERER='opengl' if api=='gl' else 'vulkan',
++     COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU='1',COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU='1',MESA_SHADER_CACHE_DISABLE='true',NIR_DEBUG='validate')
++ env.pop('AMD_DEBUG',None);env.pop('AMD_FORCE_SHADER_USE_ACO',None)
++ if gpu=='amd':
++  if a.gl_compiler=='llvm-vs-aco-ps':env.update(AMD_DEBUG='llvm',AMD_FORCE_SHADER_USE_ACO='ps')
++  env.update(LD_LIBRARY_PATH=str(build/'lib')+':'+str(mesa/'lib/x86_64-linux-gnu'),LIBGL_DRIVERS_PATH=str(mesa/'lib/x86_64-linux-gnu/dri'),
++     __EGL_VENDOR_LIBRARY_FILENAMES=str(mesa/'share/glvnd/egl_vendor.d/50_mesa.json'),__GLX_VENDOR_LIBRARY_NAME='mesa',
++     VK_DRIVER_FILES=str(mesa/'share/vulkan/icd.d/radeon_icd.x86_64.json'))
++  env.pop('__NV_PRIME_RENDER_OFFLOAD',None);env.pop('COIN_MESA_MIXED_FILTER_STUDY',None)
++  if not a.disabled:env['COIN_MESA_MIXED_FILTER_STUDY']='1'
++ else:
++  env.update(LD_LIBRARY_PATH=str(build/'lib'),__NV_PRIME_RENDER_OFFLOAD='1',__GLX_VENDOR_LIBRARY_NAME='nvidia',
++     __EGL_VENDOR_LIBRARY_FILENAMES='/usr/share/glvnd/egl_vendor.d/10_nvidia.json',VK_DRIVER_FILES='/usr/share/vulkan/icd.d/nvidia_icd.json')
++  env.pop('COIN_MESA_MIXED_FILTER_STUDY',None)
++ env['VK_ICD_FILENAMES']=env['VK_DRIVER_FILES']
++ for mode in a.modes.split(','):
++  env['COIN_SAMPLING_STUDY']=mode
++  for case in a.cases.split(','):
++   if (case in ['large','devices','stress'] and backend!='wgpu') or (case=='instancing' and backend!='bgfx'):continue
++   cmd=[str(build/'bin'/cases[case][0]),*cases[case][1:]];log=out/f'{profile}-{mode}-{case}.log'
++   caseenv=env.copy()
++   if case=='portable-styles':caseenv.pop('COIN_RENDER_REQUIRE_GL_REFERENCE',None)
++   with log.open('w') as f:
++    try:code=subprocess.run(cmd,env=caseenv,stdout=f,stderr=subprocess.STDOUT,timeout=240,cwd=out).returncode
++    except subprocess.TimeoutExpired:code=124
++   text=log.read_text(errors='replace');row=dict(profile=profile,mode=mode,case=case,command=cmd,exit=code,log=log.name,
++     environment={k:v for k,v in caseenv.items() if k in ['DISPLAY','XAUTHORITY','WGPU_BACKEND','COIN_BGFX_RENDERER','COIN_SAMPLING_STUDY','LD_LIBRARY_PATH','LIBGL_DRIVERS_PATH','__EGL_VENDOR_LIBRARY_FILENAMES','__GLX_VENDOR_LIBRARY_NAME','__NV_PRIME_RENDER_OFFLOAD','VK_DRIVER_FILES','COIN_MESA_MIXED_FILTER_STUDY','MESA_SHADER_CACHE_DISABLE','NIR_DEBUG','AMD_DEBUG','AMD_FORCE_SHADER_USE_ACO','VK_ICD_FILENAMES','COIN_RENDER_REQUIRE_GL_REFERENCE','COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU','COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU']},
++     binary_sha256=hashlib.sha256(Path(cmd[0]).read_bytes()).hexdigest(),log_sha256=hashlib.sha256(log.read_bytes()).hexdigest(),
++     adapter=next((s for s in text.splitlines() if s.startswith('adapter=')),None))
++   rows.append(row);(out/'summary.json').write_text(json.dumps(rows,indent=2));print(profile,mode,case,code,flush=True)
+diff --git a/testsuite/reproducers/portable-sampling-study/mesa/with_mesa.py b/testsuite/reproducers/portable-sampling-study/mesa/with_mesa.py
+new file mode 100644
+index 0000000000..37c24b35da
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/mesa/with_mesa.py
+@@ -0,0 +1,28 @@
++#!/usr/bin/env python3
++"""Run one process with the privately installed Renoir sampling prototype."""
++from pathlib import Path
++import argparse, os, subprocess
++p = argparse.ArgumentParser(description=__doc__)
++p.add_argument('--prefix', required=True, type=Path)
++p.add_argument('--disabled', action='store_true')
++p.add_argument('--gl-compiler', choices=['aco', 'llvm-vs-aco-ps'], default='aco')
++p.add_argument('command', nargs=argparse.REMAINDER)
++a = p.parse_args()
++command = a.command[1:] if a.command[:1] == ['--'] else a.command
++if not command: p.error('provide a program after --')
++prefix = a.prefix.resolve()
++lib = prefix / 'lib/x86_64-linux-gnu'
++egl = prefix / 'share/glvnd/egl_vendor.d/50_mesa.json'
++vk = prefix / 'share/vulkan/icd.d/radeon_icd.x86_64.json'
++for path in [lib / 'dri/radeonsi_dri.so', egl, vk]:
++    if not path.is_file(): p.error('private Mesa file missing: ' + str(path))
++env = dict(os.environ)
++for key in ['__NV_PRIME_RENDER_OFFLOAD', 'AMD_DEBUG', 'AMD_FORCE_SHADER_USE_ACO', 'COIN_MESA_MIXED_FILTER_STUDY']:
++    env.pop(key, None)
++env.update(LD_LIBRARY_PATH=str(lib) + ':' + env.get('LD_LIBRARY_PATH', ''),
++           LIBGL_DRIVERS_PATH=str(lib / 'dri'), __EGL_VENDOR_LIBRARY_FILENAMES=str(egl),
++           __GLX_VENDOR_LIBRARY_NAME='mesa', VK_DRIVER_FILES=str(vk), VK_ICD_FILENAMES=str(vk),
++           MESA_SHADER_CACHE_DISABLE='true', NIR_DEBUG='validate')
++if not a.disabled: env['COIN_MESA_MIXED_FILTER_STUDY'] = '1'
++if a.gl_compiler == 'llvm-vs-aco-ps': env.update(AMD_DEBUG='llvm', AMD_FORCE_SHADER_USE_ACO='ps')
++raise SystemExit(subprocess.run(command, env=env).returncode)
+diff --git a/testsuite/reproducers/portable-sampling-study/sampler_state_probe.cpp b/testsuite/reproducers/portable-sampling-study/sampler_state_probe.cpp
+new file mode 100644
+index 0000000000..ee1ebb2094
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/sampler_state_probe.cpp
+@@ -0,0 +1,66 @@
++#define GL_GLEXT_PROTOTYPES
++#include <GL/gl.h>
++#include <GL/glext.h>
++#include "egl_context.h"
++#include <algorithm>
++#include <cmath>
++#include <stdexcept>
++#include <string>
++#include <vector>
++
++static GLuint shader(GLenum type, const std::string & source) {
++  GLuint result=glCreateShader(type); const char * text=source.c_str();
++  glShaderSource(result,1,&text,nullptr);glCompileShader(result);
++  GLint ok=0;glGetShaderiv(result,GL_COMPILE_STATUS,&ok);
++  if(!ok) {char log[8192]={};glGetShaderInfoLog(result,sizeof(log),nullptr,log);throw std::runtime_error(log);}
++  return result;
++}
++int main() {
++  EglContext context;if(!context.init())return 77;
++  std::cout<<"adapter="<<glGetString(GL_RENDERER)<<" driver="<<glGetString(GL_VERSION)<<'\n';
++  GLuint texture;glGenTextures(1,&texture);glBindTexture(GL_TEXTURE_2D,texture);
++  for(int level=0;level<8;++level) {
++    int n=128>>level;std::vector<unsigned char> pixels(n*n*4);
++    for(int y=0;y<n;++y)for(int x=0;x<n;++x) {
++      int at=(y*n+x)*4;int value=n==1?100:(x<n/2?40:160);
++      pixels[at]=pixels[at+1]=pixels[at+2]=value;pixels[at+3]=255;
++    }
++    glTexImage2D(GL_TEXTURE_2D,level,GL_RGBA8,n,n,0,GL_RGBA,GL_UNSIGNED_BYTE,pixels.data());
++  }
++  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MIN_FILTER,GL_NEAREST_MIPMAP_LINEAR);
++  glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAX_LEVEL,7);
++  GLuint vertex=shader(GL_VERTEX_SHADER,"#version 450 compatibility\nvoid main(){gl_Position=gl_Vertex;}");
++  GLuint fragment=shader(GL_FRAGMENT_SHADER,R"(#version 450 compatibility
++    uniform sampler2D image;uniform float level;uniform int center;out vec4 color;
++    void main(){vec2 uv=vec2(.5+(gl_FragCoord.x-32.)/65536.,.53125);
++      if(center!=0 && level>0.) {vec2 n=vec2(textureSize(image,int(floor(level))));uv=(floor(uv*n)+.5)/n;}
++      color=textureLod(image,uv,level);}
++  )");
++  GLuint program=glCreateProgram();glAttachShader(program,vertex);glAttachShader(program,fragment);glLinkProgram(program);
++  GLint linked=0;glGetProgramiv(program,GL_LINK_STATUS,&linked);if(!linked)return 2;
++  glUseProgram(program);glUniform1i(glGetUniformLocation(program,"image"),0);
++  glViewport(0,0,64,64);glDisable(GL_BLEND);glDisable(GL_DEPTH_TEST);
++  bool ok=true;
++  for(int mode=0;mode<3;++mode)for(float level:{0.f,3.f,3.5f}) {
++    glTexParameteri(GL_TEXTURE_2D,GL_TEXTURE_MAG_FILTER,mode==1?GL_NEAREST:GL_LINEAR);
++    glUniform1f(glGetUniformLocation(program,"level"),level);
++    glUniform1i(glGetUniformLocation(program,"center"),mode==2);
++    glBegin(GL_TRIANGLES);glVertex2f(-1,-1);glVertex2f(3,-1);glVertex2f(-1,3);glEnd();glFinish();
++    std::vector<unsigned char> pixels(64*64*4);glReadPixels(0,0,64,64,GL_RGBA,GL_UNSIGNED_BYTE,pixels.data());
++    int maximum=0,changed=0,first=-1;double mae=0;
++    for(int y=0;y<64;++y)for(int x=0;x<64;++x) {
++      double u=.5+(x+.5-32.)/65536.;
++      double wanted=level>0 ? (x<32?40:160) : 40+120*(u*128-63.5);
++      int value=pixels[(y*64+x)*4],error=std::abs(value-int(std::lround(wanted)));
++      maximum=std::max(maximum,error);mae+=error;changed+=error>1;
++      if(y==0 && first<0 && value>=160)first=x;
++    }
++    std::cout<<"sampler-state mode="<<mode<<" min=nearest-mip-linear mag="<<(mode==1?"nearest":"linear")
++             <<" lod="<<level<<" linear_magnification_or_floor_min_oracle_mae="<<mae/4096
++             <<" maximum="<<maximum<<" pixels_over_1="<<changed<<" first_high_column="<<first<<'\n';
++    // Mode1 is an intentionally invalid workaround during magnification.
++    if(mode==2 || (mode==1 && level>0) || (mode==0 && level==0))ok &= maximum<=1;
++    ok &= glGetError()==GL_NO_ERROR;
++  }
++  return ok?0:1;
++}

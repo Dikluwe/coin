@@ -1,0 +1,16 @@
+--- a/src/gallium/drivers/radeonsi/si_state_shaders.cpp
++++ b/src/gallium/drivers/radeonsi/si_state_shaders.cpp
+@@ -3825,6 +3825,13 @@
+    if (enable_changed) {
+       if (sctx->ia_multi_vgt_param_key.u.uses_tess)
+          si_update_tess_uses_prim_id(sctx);
++
++      /* Disabling GS replaces the legacy copy shader with VS or TES even
++       * when the API vertex/tessellation shader itself hasn't changed.
++       */
++      if (!sel)
++         sctx->dirty_shaders_mask |= BITFIELD_BIT(sctx->shader.tes.cso ?
++                                                 PIPE_SHADER_TESS_EVAL : PIPE_SHADER_VERTEX);
+    }
+    si_update_last_vgt_stage_state(sctx, old_hw_vs, old_hw_vs_variant);
+ }

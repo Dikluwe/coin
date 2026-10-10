@@ -1,0 +1,39 @@
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  coin_native_removal.vcxproj -> H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\Release\coin_native_removal.exe
+  d3d12_removal_probe.vcxproj -> H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\Release\d3d12_removal_probe.exe
+  main.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244: 'argumento': conversão de '_Ty' para 'float', possível perda de dados [H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\coin_win32_campaign.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         with [H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\coin_win32_campaign.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         [ [H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\coin_win32_campaign.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:             _Ty=int [H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\coin_win32_campaign.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103): warning C4244:         ] [H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\coin_win32_campaign.vcxproj]
+  (compilando o arquivo fonte '../windows-fronts-src/main.cpp')
+      C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\xmemory(732,103):
+      o contexto de instanciação do modelo (o mais antigo primeiro) é
+          H:\Git\coin\build\sampling-win-20261010\windows-fronts-src\main.cpp(42,288):
+          consulte a referência à instanciação 'SbVec3f &std::vector<SbVec3f,std::allocator<SbVec3f>>::emplace_back<float,float,int>(float &&,float &&,int &&)' do modelo que está sendo compilada
+              H:\Git\coin\build\sampling-win-20261010\windows-fronts-src\main.cpp(42,300):
+              veja a primeira referência a 'std::vector<SbVec3f,std::allocator<SbVec3f>>::emplace_back' em 'main'
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(924,24):
+          consulte a referência à instanciação '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_one_at_back<float,float,int>(float &&,float &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Ty=SbVec3f
+          ]
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(845,20):
+          consulte a referência à instanciação '_Ty &std::vector<_Ty,std::allocator<_Ty>>::_Emplace_back_with_unused_capacity<float,float,int>(float &&,float &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Ty=SbVec3f
+          ]
+          C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\vector(863,27):
+          consulte a referência à instanciação 'void std::_Default_allocator_traits<_Alloc>::construct<_Ty,float,float,int>(_Alloc &,_Objty *const ,float &&,float &&,int &&)' do modelo que está sendo compilada
+          with
+          [
+              _Alloc=std::allocator<SbVec3f>,
+              _Ty=SbVec3f,
+              _Objty=SbVec3f
+          ]
+  
+  coin_win32_campaign.vcxproj -> H:\Git\coin\build\sampling-win-20261010\windows-fronts-wgpu\Release\coin_win32_campaign.exe

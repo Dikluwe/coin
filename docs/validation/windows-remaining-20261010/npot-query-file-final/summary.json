@@ -1,0 +1,212 @@
+[
+  {
+    "label": "bgfx-d3d12-npot-1",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "1"
+    ],
+    "exit": 0,
+    "seconds": 17.750802516937256,
+    "log": "bgfx-d3d12-npot-1.log",
+    "log_sha256": "8f137d5da8f36c14a293509f3543f500d8b06624a620e4eb87bc4c02398c5575",
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_D3D12_QUERY_LOG": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-d3d12-npot-1-queries.log",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_WGPU_GPU_TIMESTAMPS": "1",
+      "COIN_RENDER_NPOT_PIXEL_PREFIX": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-d3d12-npot-1"
+    },
+    "clock_monitor_command": [
+      "nvidia-smi",
+      "--query-gpu=timestamp,name,pci.bus_id,driver_version,pstate,temperature.gpu,clocks.current.graphics,clocks.current.memory,utilization.gpu,power.draw",
+      "--format=csv",
+      "-lms",
+      "1000"
+    ],
+    "pass_gate": true,
+    "binary_sha256": "f41a34e8d94e5c3fbea9a39518a90707d82fb2d96e4b4b43a48539b8cbbc7be4"
+  },
+  {
+    "label": "bgfx-d3d12-npot-2",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 17.4955313205719,
+    "log": "bgfx-d3d12-npot-2.log",
+    "log_sha256": "ea827025a07af3f08c67ed32781c9cdf7d3e309bcf961b3a9f92d14a61c4404d",
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_D3D12_QUERY_LOG": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-d3d12-npot-2-queries.log",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_WGPU_GPU_TIMESTAMPS": "1",
+      "COIN_RENDER_NPOT_PIXEL_PREFIX": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-d3d12-npot-2"
+    },
+    "clock_monitor_command": [
+      "nvidia-smi",
+      "--query-gpu=timestamp,name,pci.bus_id,driver_version,pstate,temperature.gpu,clocks.current.graphics,clocks.current.memory,utilization.gpu,power.draw",
+      "--format=csv",
+      "-lms",
+      "1000"
+    ],
+    "pass_gate": true,
+    "binary_sha256": "f41a34e8d94e5c3fbea9a39518a90707d82fb2d96e4b4b43a48539b8cbbc7be4"
+  },
+  {
+    "label": "bgfx-vulkan-npot-1",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "1"
+    ],
+    "exit": 0,
+    "seconds": 5.770086050033569,
+    "log": "bgfx-vulkan-npot-1.log",
+    "log_sha256": "17a6db125627d07ce616307474a334595b0d6898a8b044343dd055340e5eadd1",
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_D3D12_QUERY_LOG": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-vulkan-npot-1-queries.log",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_WGPU_GPU_TIMESTAMPS": "1",
+      "COIN_RENDER_NPOT_PIXEL_PREFIX": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-vulkan-npot-1"
+    },
+    "clock_monitor_command": [
+      "nvidia-smi",
+      "--query-gpu=timestamp,name,pci.bus_id,driver_version,pstate,temperature.gpu,clocks.current.graphics,clocks.current.memory,utilization.gpu,power.draw",
+      "--format=csv",
+      "-lms",
+      "1000"
+    ],
+    "pass_gate": true,
+    "binary_sha256": "f41a34e8d94e5c3fbea9a39518a90707d82fb2d96e4b4b43a48539b8cbbc7be4"
+  },
+  {
+    "label": "bgfx-vulkan-npot-2",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 5.741115570068359,
+    "log": "bgfx-vulkan-npot-2.log",
+    "log_sha256": "2957c2ccefebdafc7f2b179f01977632cb24104b484c8c0bb1244173045de1d0",
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_D3D12_QUERY_LOG": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-vulkan-npot-2-queries.log",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_WGPU_GPU_TIMESTAMPS": "1",
+      "COIN_RENDER_NPOT_PIXEL_PREFIX": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-vulkan-npot-2"
+    },
+    "clock_monitor_command": [
+      "nvidia-smi",
+      "--query-gpu=timestamp,name,pci.bus_id,driver_version,pstate,temperature.gpu,clocks.current.graphics,clocks.current.memory,utilization.gpu,power.draw",
+      "--format=csv",
+      "-lms",
+      "1000"
+    ],
+    "pass_gate": true,
+    "binary_sha256": "f41a34e8d94e5c3fbea9a39518a90707d82fb2d96e4b4b43a48539b8cbbc7be4"
+  },
+  {
+    "label": "bgfx-opengl-npot-1",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "1"
+    ],
+    "exit": 0,
+    "seconds": 14.962248802185059,
+    "log": "bgfx-opengl-npot-1.log",
+    "log_sha256": "d9fb4288146c13bdd040ede03dd4036270a2f59cd09c6a6ae794e756d9c0e068",
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_D3D12_QUERY_LOG": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-opengl-npot-1-queries.log",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_WGPU_GPU_TIMESTAMPS": "1",
+      "COIN_RENDER_NPOT_PIXEL_PREFIX": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-opengl-npot-1"
+    },
+    "clock_monitor_command": [
+      "nvidia-smi",
+      "--query-gpu=timestamp,name,pci.bus_id,driver_version,pstate,temperature.gpu,clocks.current.graphics,clocks.current.memory,utilization.gpu,power.draw",
+      "--format=csv",
+      "-lms",
+      "1000"
+    ],
+    "pass_gate": true,
+    "binary_sha256": "f41a34e8d94e5c3fbea9a39518a90707d82fb2d96e4b4b43a48539b8cbbc7be4"
+  },
+  {
+    "label": "bgfx-opengl-npot-2",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 14.626296520233154,
+    "log": "bgfx-opengl-npot-2.log",
+    "log_sha256": "aa625f643de91951d9eb25edd3f6252365414d1d416ba358b48ca2b1acb3572b",
+    "environment": {
+      "PATH": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Users\\Diklu\\.codex\\tmp\\arg0\\codex-arg03kqLCw;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\libheif\\libheif\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\jxrlib\\jxrlib\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\poppler\\Library\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\override;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\powershell;C:\\Program Files\\WindowsApps\\OpenAI.ChatGPT-Desktop_1.2026.133.0_x64__2p2nqsd0c76g0\\app;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Windows\\System32\\OpenSSH\\;C:\\Program Files\\NVIDIA Corporation\\NVIDIA app\\NvDLISR;C:\\Program Files\\Calibre2\\;C:\\Program Files\\dotnet\\;C:\\Program Files (x86)\\Windows Kits\\10\\Windows Performance Toolkit\\;C:\\Program Files\\Common Files\\Autodesk Shared\\;C:\\Program Files\\Microsoft SQL Server\\150\\Tools\\Binn\\;C:\\Program Files (x86)\\NVIDIA Corporation\\PhysX\\Common;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\Scripts;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313;C:\\Program Files\\Docker\\Docker\\resources\\bin;C:\\Program Files\\Git\\cmd;C:\\Program Files\\WSL\\;C:\\Program Files\\GitHub CLI\\;C:\\Users\\Diklu\\.cargo\\bin;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Launcher\\;C:\\Users\\Diklu\\AppData\\Local\\Microsoft\\WindowsApps;C:\\Users\\Diklu\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Users\\Diklu\\AppData\\Roaming\\Programs\\Zero Install;C:\\Users\\Diklu\\AppData\\Local\\PowerToys\\DSCModules\\;C:\\Program Files (x86)\\Microsoft Visual Studio\\2022\\BuildTools\\Common7\\IDE\\CommonExtensions\\Microsoft\\CMake\\CMake\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\bin\\fallback;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin;C:\\Users\\Diklu\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\native\\git\\cmd;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\441edec208d1681c;C:\\Users\\Diklu\\AppData\\Local\\OpenAI\\Codex\\bin\\9691020b546a15b2",
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "COIN_BGFX_TRACE_GL_ADAPTER": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1",
+      "COIN_BGFX_D3D12_QUERY_LOG": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-opengl-npot-2-queries.log",
+      "COIN_RENDER_TRACE_PHASES": "1",
+      "COIN_WGPU_GPU_TIMESTAMPS": "1",
+      "COIN_RENDER_NPOT_PIXEL_PREFIX": "H:\\Git\\coin\\build\\sampling-win-20261010\\npot-query-file-final\\bgfx-opengl-npot-2"
+    },
+    "clock_monitor_command": [
+      "nvidia-smi",
+      "--query-gpu=timestamp,name,pci.bus_id,driver_version,pstate,temperature.gpu,clocks.current.graphics,clocks.current.memory,utilization.gpu,power.draw",
+      "--format=csv",
+      "-lms",
+      "1000"
+    ],
+    "pass_gate": true,
+    "binary_sha256": "f41a34e8d94e5c3fbea9a39518a90707d82fb2d96e4b4b43a48539b8cbbc7be4"
+  }
+]

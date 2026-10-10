@@ -1,0 +1,15 @@
+sdk_loaded_module name=Coin4.dll path=H:\Git\coin\build\sampling-win-20261010\install-wgpu\bin\Coin4.dll
+sdk_loaded_module name=CoinRender4.dll path=H:\Git\coin\build\sampling-win-20261010\install-wgpu\bin\CoinRender4.dll
+sdk_policy=0 available_selection=0 qualified_selection=4
+CoinGL renderer=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 texture_coords=8 fragment_samplers=32
+sdk_CoinGL_rgb_max=0 reference_ready=1
+installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) pixels_ok=0
+sdk_sampling policy=0 serial=0 floor_oracle=0 maximumRGB=0 result=0
+WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin Standard Render Pipeline'
+    Error matching ShaderStages(VERTEX) shader requirements against the pipeline
+      Shader global ResourceBinding { group: 0, binding: 0 } is not available in the pipeline layout
+        Buffer structure size 3168, added to one element of an unbound array, if it's the last field, ended up greater than the given `min_binding_size`, which is 3040
+

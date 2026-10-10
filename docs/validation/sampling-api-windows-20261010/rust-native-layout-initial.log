@@ -1,0 +1,95 @@
+   Compiling coin_wgpu_rust_bridge v0.1.0 (C:\Users\Diklu\.codex\worktrees\sampling-win-20261010\coin\src\rendering\coinwgpu\rust_bridge)
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src\lib.rs:2420:15
+     |
+2420 |         wgpu::ImageCopyTexture {
+     |               ^^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src\lib.rs:2427:15
+     |
+2427 |         wgpu::ImageDataLayout {
+     |               ^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0.
+    --> src\lib.rs:3521:19
+     |
+3521 |             wgpu::ImageCopyTexture {
+     |                   ^^^^^^^^^^^^^^^^
+
+warning: use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0.
+    --> src\lib.rs:3528:19
+     |
+3528 |             wgpu::ImageDataLayout {
+     |                   ^^^^^^^^^^^^^^^
+
+warning: use of deprecated method `std::sync::atomic::Atomic::<i32>::fetch_update`: renamed to `try_update` for consistency
+    --> src\lib.rs:6268:68
+     |
+6268 |         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+     |                                                                    ^^^^^^^^^^^^
+     |
+help: replace the use of the deprecated method
+     |
+6268 -         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+6268 +         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.try_update(
+     |
+
+warning: value assigned to `vertices` is never read
+   --> src\instancing.rs:365:9
+    |
+365 |         vertices[0].position[0] = -0.0;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+    = note: `#[warn(unused_assignments)]` (part of `#[warn(unused)]`) on by default
+
+warning: value assigned to `instances` is never read
+   --> src\instancing.rs:364:9
+    |
+364 |         instances[0].model_view[12] = 2.0;
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    |
+    = help: maybe it is overwritten before being read?
+
+warning: value assigned to `vertices` is never read
+    --> src\lib.rs:1415:9
+     |
+1415 |         vertices[0].position[0] = 100.0;
+     |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+     |
+     = help: maybe it is overwritten before being read?
+
+warning: field `default_texture` is never read
+    --> src\lib.rs:1682:5
+     |
+1669 | struct DeviceState {
+     |        ----------- field in this struct
+...
+1682 |     default_texture: wgpu::Texture,
+     |     ^^^^^^^^^^^^^^^
+     |
+     = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+
+warning: `coin_wgpu_rust_bridge` (lib test) generated 9 warnings (run `cargo fix --lib -p coin_wgpu_rust_bridge --tests` to apply 1 suggestion)
+    Finished `release` profile [optimized] target(s) in 18.09s
+     Running unittests src\lib.rs (build\sampling-win-20261010\build-wgpu\rust_target\release\deps\coin_wgpu_rust_bridge-c34b47791d12d3b2.exe)
+
+running 1 test
+
+thread 'shader_profile::tests::native_profiles_restore_uniform_layout_and_all_fragment_contracts' (15948) panicked at src\shader_profile.rs:85:13:
+assertion failed: !source.contains("sampling_texture_sizes") &&
+        !source.contains("fn coin_portable_") && !source.contains("dpdxFine")
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+test shader_profile::tests::native_profiles_restore_uniform_layout_and_all_fragment_contracts ... FAILED
+
+failures:
+
+failures:
+    shader_profile::tests::native_profiles_restore_uniform_layout_and_all_fragment_contracts
+
+test result: FAILED. 0 passed; 1 failed; 0 ignored; 0 measured; 40 filtered out; finished in 0.00s
+
+error: test failed, to rerun pass `--lib`

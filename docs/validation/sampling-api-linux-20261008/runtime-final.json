@@ -1,0 +1,981 @@
+{
+  "source_commit": "3c517922e35ee16f83f67c59f7feda0b8b4c63e0",
+  "files": [
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinBgfxCoreTest",
+      "sha256": "83d1e0c8871530f3d0764d2d604644bda9c91463fb963e01150e7b5df119cab6",
+      "bytes": 361544
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinBgfxProgramSelectionTest",
+      "sha256": "5f11ba2d0267f1df701e627313c731aadf595362ccdbf84ac7b12238777e821f",
+      "bytes": 17304
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinBumpGLXTest",
+      "sha256": "a86979a60b90bc5e5370f71c6f4ba0de42a845e5d612a57eeedeb2dfac473089",
+      "bytes": 97080
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinBumpProgramTest",
+      "sha256": "0f536caf412f08a68ff0e3fc3b18dfaee7bd465691a0cb61b06687a13f97c72e",
+      "bytes": 142064
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinProfilerInitTest",
+      "sha256": "26f81715adeb6eb02f8cec78af0c224344ab4e056782565584f55c352b67277c",
+      "bytes": 17520
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderActionTest",
+      "sha256": "156d969eaac9daa2c0f398b405777016396d0a93ad3495bd0d188adcc482a33b",
+      "bytes": 424568
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderAdvancedTextureTest",
+      "sha256": "3c4ece29c36385ca4ab9a532424209ec04f37e3be7287d06f0cbf0415c61814c",
+      "bytes": 167320
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderAsyncActionTest",
+      "sha256": "bf395f815a6d6d744dbf8be7a9b047c2ab2d9539b8b594540fe518be26ba8146",
+      "bytes": 47280
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderAsyncReadbackTest",
+      "sha256": "233aec72f0cf8e5dfac9c26663069f45b22faacc27d7c337891ca854bd732e7a",
+      "bytes": 22560
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderBackendBoundaryTest",
+      "sha256": "843b409834ffe84849c483be0a0555d82d6a0e6708027791246f0a4992e1789c",
+      "bytes": 64216
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderBackendContractTest",
+      "sha256": "6ff6d1c7393db57909ba00c28862bb61e95b0dc3a3e8a251e197c035f3c90d90",
+      "bytes": 23064
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderBenchmarkAnimationTest",
+      "sha256": "f7f7d55905f405a25ad2a7d94bfc1cdee1948ab8ec07b5e961d1c9ca7a960096",
+      "bytes": 88888
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderBoundingBoxTest",
+      "sha256": "9ba922e3c7739dea52785a7e909e58ea0ff69112042612ef158f9453a88108ae",
+      "bytes": 185392
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderCameraReuseReferenceTest",
+      "sha256": "5ca92ac084b0de9b16e17dec21274f62cdbd890bbc02d0a63306c29919060a46",
+      "bytes": 50784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderClipPlaneTest",
+      "sha256": "ed1c45c5ace5a5912c9c61297ffa14f77eb7a6b1e4a0b942ff507e29000a4a3e",
+      "bytes": 431704
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderCompositionTest",
+      "sha256": "3a1b661540ffbe1364de0b650b28023192f67576a422c9e937f55ff9bf336f77",
+      "bytes": 213664
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderDepthContractTest",
+      "sha256": "d2f86f9ed4c8aafd554b916108005dc316ebc16a2376c1a0c5aa55e765131745",
+      "bytes": 769872
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderDiagnosticShellTest",
+      "sha256": "4ce6c1b644d99ce8c338f9fba204f87f692d55380bcef7e08b5639f6eaeb9763",
+      "bytes": 27200
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderDrawStyleTest",
+      "sha256": "412ddc267ea5010b91c3871a28a3738dc99e419d57f61ad79384f427d6bcd915",
+      "bytes": 565032
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderFogTest",
+      "sha256": "98ee744303ab9c00b9f495a0c63ae0ebea31715acb390b3469e08933b59e0c3f",
+      "bytes": 33392
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderFragmentPolicyTest",
+      "sha256": "3b57e5742d8703272b7741bd461a7dd95b091b08726541e1600832a06f80f494",
+      "bytes": 144752
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderFrameCoreTest",
+      "sha256": "88ec395b8126c9d30d204b371d1e547751166b83828bff58a2c280f7892c4fa8",
+      "bytes": 159672
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderFrameReuseBenchmark",
+      "sha256": "43b489ecb454ebc5c6fb2baaba00cb24602af7a44c92354c760248eccc91464a",
+      "bytes": 246568
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderFrameReuseCoreTest",
+      "sha256": "99a0a6be85b8da6d22ac1846aed623341ab06b33d5ed0f16ac59c92d5a423c20",
+      "bytes": 166848
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinWgpuCacheTest",
+      "sha256": "80fc4bb61a7cba7b504c756189b892198dafa9e853b35f4db1d61911c5ada71a",
+      "bytes": 39384
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinWgpuFfiFrameTest",
+      "sha256": "0c04d3f141435a31a9d1c56db71a6eaa3e7f61c2834a392aa1bca59d5531b4b1",
+      "bytes": 471848
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinWgpuLargeBindingsTest",
+      "sha256": "85aaddc9a45b21ae1e8cc5344541ce6b2a477c6a1b88d0bf10588d808affc18b",
+      "bytes": 232680
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinWgpuMultiDeviceTest",
+      "sha256": "c318276515664094b5896498ce3543a68123e5e1eba6bc402a93ec171eba09ba",
+      "bytes": 303232
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/coin_render_freecad_compare",
+      "sha256": "3f290769c83140234167322ed243eda6ac97b917842252025506e7a168d45502",
+      "bytes": 32960
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/coin_render_gl_benchmark",
+      "sha256": "e8fdb6ffe00d8a6615b4d24f3568a367299b9b4f6d9b234746d0cd0baa2972cc",
+      "bytes": 109568
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/coin_render_viewer",
+      "sha256": "d9fbb90a76cc9b8b4a32bde5c791299076c9931de69585950e36970883e6340f",
+      "bytes": 28096
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/coin_render_wayland_smoke",
+      "sha256": "037bf0ea1268ae687b03b8b18b39a8e75375db776bceccebda51147bb912c06e",
+      "bytes": 37792
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/coin_render_window_benchmark",
+      "sha256": "ec0673c5f8f851d327c30257ed7687c7c83ef5c051ff7ac32ab524205b7e0c0e",
+      "bytes": 91784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/coin_render_window_cone",
+      "sha256": "68b5b20400015a8d6ddf7deee9900fcebf7a58650f2f8a78d72cf27002c3d930",
+      "bytes": 27648
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/RenderManagerFramePreparationTest",
+      "sha256": "51169e524a7a1b3ff096cddc663ff003f3d3c2c1c67b37b87eb7d2b02b97f134",
+      "bytes": 24232
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoPathAssignmentAllocationFailureTest",
+      "sha256": "205fd4892c6d9cad32a6672d7da3bf2f8cbbbc206421a535e2b321e1d8b4df91",
+      "bytes": 31224
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoPathAssignmentAuditorTest",
+      "sha256": "d8314b5d7fd01b5f2666e288c6fe08784027275789efa938133e5b655d2cc094",
+      "bytes": 17184
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoPathAuditorCallbackTest",
+      "sha256": "ac1ecd9ba8cb7cf1d29c222fe0efc39464ae6fe8bd7ce08147187329efb9b20b",
+      "bytes": 17416
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoPathChildAppendTest",
+      "sha256": "4d8ef6b53d7fe00959acd95f366e50a9543c877793a7172f9c1565d6368cf085",
+      "bytes": 17600
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoPathLegacyAccessorBoundsTest",
+      "sha256": "b953f1bdeb8c0eeca036ad93bf6ba5def06f5be10eb31464d65963064e7c9485",
+      "bytes": 22168
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoPathRangeTest",
+      "sha256": "647ab6e458a510405b0c0c90c8eef2740ce469926c1ea0f59a812379cf4f9416",
+      "bytes": 17624
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/SoTempPathReplaceTailTest",
+      "sha256": "cfc837ad4de38b6116cac744688c829a556deed70513d18e23ca17aba576d05c",
+      "bytes": 22424
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCApiTest",
+      "sha256": "f937ff412fe6976989c9ac62451160744fdda72272a64d1440e1476558560ba1",
+      "bytes": 16544
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderAttributeTest",
+      "sha256": "0ac47d6d2c477bdb7119ad6dc8e292957575460d859768e2a930bef50d5258ee",
+      "bytes": 15792
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderDocumentTest",
+      "sha256": "bfafb3351d852ec019485d99a46e19790e15c987ecda50039fb0fd5ae8d26291",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderElementTest",
+      "sha256": "dde1ab56881af65b8c279edcad4c0613f57df4cbf6c0841d45b8050c74689523",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderEntityTest",
+      "sha256": "1ec3d978a35233c6af4c3a2921b895adc8df3a2fe3612ea166f6cc988e9d8361",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderParserTest",
+      "sha256": "2aaed220b6b62d7537b29968ba25f90243ff4a090ad4ced2260e953217595a9b",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderPathTest",
+      "sha256": "e2f3883517f56f544bbb776382196311d56d82ceab929ef7a56010a26f3d18d2",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeadersAggregateTest",
+      "sha256": "58dc6d6861c1848bda96a0a3a184a8d2d97b6badf2d15c7c21cec814f369db51",
+      "bytes": 15792
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderTypesTest",
+      "sha256": "54a7be07e18db385a418d834fc419a74d855b27d14a3423683902d7c7adc0afd",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlCHeaderWorldTest",
+      "sha256": "609baf7ac829ec39a0caeded4f330a2c3bf7359067dd21b9f0329f41b75b6602",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/XmlLegacyPathDocumentCxxAbiTest",
+      "sha256": "53ced6d498ff0950be18534e9b3e72e92c011eb0471abec587bf187576ab516a",
+      "bytes": 16536
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderRttMatrixTest",
+      "sha256": "39a80e13c013e6fd6df17c533bc7ee70ce37bb938d685191cb9e016c90c7aa2f",
+      "bytes": 56984
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderRttOwnershipTest",
+      "sha256": "c856496d65be6e4cfc780ccc911fe2120f035c6114652ac1ba569a876539b7e3",
+      "bytes": 175048
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderRttProfileTest",
+      "sha256": "77bf614d0ef40890d3751ab3446f63d15d87192b0ff8a595c5a488f3b2c7c90a",
+      "bytes": 42352
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderRuntimeBoundaryTest",
+      "sha256": "e5b99b4d47fbdf367b3c733ca71b7647377a828246ccef8d603866832ee32f3b",
+      "bytes": 33512
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderSamplingPolicyTest",
+      "sha256": "b19be0e2b79f9882c9e454c0cfb6a33e698c6cdc46fc945451c2bc5a51f0f45e",
+      "bytes": 62032
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderSceneTextureBudgetTest",
+      "sha256": "f830ba7f810f9f172041b0b024d6436e862ae19ba8f579a8631ef234cb98d1a6",
+      "bytes": 28552
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderSceneTextureTest",
+      "sha256": "db39a3dc68ea237f36af6d05caa456963ee492ab1ed1f0912320ba86a73d5731",
+      "bytes": 45936
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderScreenContentTest",
+      "sha256": "3b87c8e6e4c1b130ec4926a13493a75de6e635d483e13006a25bfaaa0dcc66df",
+      "bytes": 100056
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderSelectionTest",
+      "sha256": "b08d5ba07d03a983f63757f5cab649affbe34346fa1b53e2f4c2ae895302b1da",
+      "bytes": 28288
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderShadowEightMapTest",
+      "sha256": "189d069bd9acb86fe18a65a65d6dc5f4eda643eb0299f5768556c717f7a45fcc",
+      "bytes": 48104
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderShadowReferenceTest",
+      "sha256": "29d44d6cd0d6c9bba032583c7e8460624c04ad9d8f56533c502e3800e952094c",
+      "bytes": 304696
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderStabilizationTest",
+      "sha256": "91a31fd6dc9664bcf39876420c7d2587b6680e37da4e168bd8969187042fb191",
+      "bytes": 39520
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderSurfaceTest",
+      "sha256": "bf0a0557a63320f3f9d3af5043dcb66bf47afb8952cce9994c0bbb448fe29c85",
+      "bytes": 62784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderTextureTest",
+      "sha256": "30bf8c5f2290798f33f205d61fbd817658d6b54f804d798169bde58f6c119558",
+      "bytes": 63968
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderTransformCoreTest",
+      "sha256": "378b3f3d5172ee5a95425ce4e54b318ac6a91090dd01f19309f7dfce2073bc45",
+      "bytes": 34728
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderTransparencyTest",
+      "sha256": "d01bbd691b45e7284edf1705b27b449923d13fae89693e0b3f8697ece32bcdec",
+      "bytes": 64096
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinSbPListGrowthFailureTest",
+      "sha256": "6fc87e08bf638b92731c7ecb2e58b3da03246b97b86a0bc4c9d4a3974866469a",
+      "bytes": 17176
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinSensorQueueAllocationFailureTest",
+      "sha256": "ba0e0028f7cad95afbb25896d8da2fed41877103cb3b177e9104139066dde740",
+      "bytes": 23192
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinSensorSchedulingTest",
+      "sha256": "56dbd8e2de9cef63348ee99bf7d39dc687b03da3c15109a3ba171c37a69bc50f",
+      "bytes": 43192
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderGateG0Test",
+      "sha256": "b5b67abbb964785908ee5f5e88ca52b82820ee8722d629a0b99a1a9ff98a3e40",
+      "bytes": 55040
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderRasterStudy",
+      "sha256": "9d870cae2e9aaf7d82c08adca475bccd93394cc85f8daf2a3d8c4b936473d691",
+      "bytes": 235464
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+      "bytes": 118768
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinTests",
+      "sha256": "6923ed8fa9a4a2087c6df624ae9b4f04bb302f14b856d15b7edb71c1db9d772e",
+      "bytes": 1524840
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderGateG1Test",
+      "sha256": "bddeeee02218062661d8fff6dd58aa407d024a24d5742592dc41439dc8edfc8c",
+      "bytes": 35328
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderGateG2Test",
+      "sha256": "3cc2d5176ca4622ae87add46d88a8c0d14eca1c48c9380fb549d64bc8d257976",
+      "bytes": 35520
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "sha256": "2806d6c24893b21549c42b66399303cd33c168881bf84ccbf1b17879b045937f",
+      "bytes": 139184
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderGouraudInterpolationTest",
+      "sha256": "e97f786a6d314776cc958fd5f3b02d9a4333ea6eb76795ee796cfcb59a98faef",
+      "bytes": 39568
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderIndexedFastPathTest",
+      "sha256": "8dc24eae12687da7e64adb747847ad5921ba132e79b0924475460b59ef1fe454",
+      "bytes": 53792
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderIndexedGeometryCoreTest",
+      "sha256": "ac14fb99aa5808ebcf8800c008d0c7109dd3c8ffbea3cbdd58a2917be2f376f1",
+      "bytes": 25928
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderLightingTest",
+      "sha256": "83986ae5219dd7667e0269989c43c09bf78c478fe60284735569c9660ecec499",
+      "bytes": 50592
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderMarkerSetTest",
+      "sha256": "1804bd7cf5e2887247b89df6706e6c57b6d91ea1172a8e78facc16f8b22a43ec",
+      "bytes": 150632
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderMaterialTest",
+      "sha256": "0aef7ebc5e524b65ac025bc68b4cd4f33908ae55b51c1bbeb76e1276bba8f321",
+      "bytes": 45368
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderMultiTargetTest",
+      "sha256": "4e45db829948e9874a6d5b9fc791b816fe085f2defe6d5ff46ac2209eb27c4b5",
+      "bytes": 28560
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderMultitextureTest",
+      "sha256": "1bf78e83ba1e0848fdd093705aff5846cffba6a1e1e0061d9e223945a8762c1c",
+      "bytes": 60464
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderNodeInventoryTest",
+      "sha256": "b21eef6888b0140c9ce808d8afe2219ca2e92084e8b5b1117b79e381426be60d",
+      "bytes": 123680
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderOffscreenTest",
+      "sha256": "c4f9b4476f8b867ea7a9e8e44836bf21cceba01fdf099eee8aa0f3833686cb9f",
+      "bytes": 57784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderPeelingTest",
+      "sha256": "f7ffc39627f83491037499877f88080567801f5429fff84ed31e4f7a0cca773d",
+      "bytes": 96680
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderPerformanceTest",
+      "sha256": "76623f534c72f6adb721a146ea9ec11f241f0377b3a91467a77d094e3ae6b615",
+      "bytes": 28160
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderPlanAssemblyCoreTest",
+      "sha256": "e6932f8d12ca5297a004175bb4b03872ba41854a146c4b12cf2ef867767358ee",
+      "bytes": 91200
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderProceduralTextureTest",
+      "sha256": "09abd695ab314ba3229b2b79630cd8f2238c73c30b9151d737cf56e4678dcd29",
+      "bytes": 133472
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderProductTest",
+      "sha256": "a572e762706253413bf3e1f7fc194e274a92baf5610cf54e5558649184adf5d7",
+      "bytes": 28280
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderProjectiveUvTest",
+      "sha256": "6c8e96dac3a27482be2c99c799d344bcab5f4dba42dd939d0d89a2c1231f259c",
+      "bytes": 170176
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/bin/CoinRenderPublicationTest",
+      "sha256": "de9fdd59f757fdaacdbe6ce0d257d886a698c062c3d5dc3e76e2c81a66eb52c5",
+      "bytes": 39360
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib/libCoin.so.80.0.10",
+      "sha256": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+      "bytes": 12036456
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-wgpu/lib/libCoinRender.so",
+      "sha256": "35572a5479bc1ca13de86703fcc70b795164b0539ee2c1b80bc30121e6176746",
+      "bytes": 15891664
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxCoreTest",
+      "sha256": "a8fe0192e9b585425ff0cb215548a1ad5492edd11c6d414266d4ca51c0e79bdd",
+      "bytes": 365640
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxInstancingTest",
+      "sha256": "90d6534db613b0b97f6da5c3a4420126bf9626654c0e6336a1d485dc73cc6811",
+      "bytes": 269096
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxMultiWindowTest",
+      "sha256": "8c33405c8cd92084f0b28f029cdff0cad666b375ab833e720a64edef9b627ea0",
+      "bytes": 33072
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxOffscreenTest",
+      "sha256": "1a6d8d439b9fcc4c6ea1290158ad2762345cb593a999ac54caa50727280bf78c",
+      "bytes": 68736
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxProgramSelectionTest",
+      "sha256": "2163189d225c07a655abb87b09182ed2de3a0c612617ee16948992bdf4552e3d",
+      "bytes": 17304
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxReadbackModesTest",
+      "sha256": "c0a59d99c617a9b4168fb61843e7c9ad75a3676db707b8334ac591fb44de6cf6",
+      "bytes": 70480
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxSurfaceFeaturesTest",
+      "sha256": "fe4def218ad0910fb8e11c8d93b9261cbe82370ae63188091115ff3992e72c94",
+      "bytes": 42312
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxTransparencyTest",
+      "sha256": "10e1fa195e15f3e585bf3da4af66acea1533cde17bf18084d7485bcbe4003d2c",
+      "bytes": 52976
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBgfxWindowTest",
+      "sha256": "14be438813d51e6f8fd48de4ede3f82be6a40c354036394252324f97973f8007",
+      "bytes": 34664
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBumpGLXTest",
+      "sha256": "09826d343dad681ad70ad961f31ac44bf715abd3e3557ab9b7f187c92d1b6817",
+      "bytes": 97080
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinBumpProgramTest",
+      "sha256": "ec7008d4ab968d73a9dfb2e1f66693594110937eefaf2b9c4cd5c365200c4a3a",
+      "bytes": 142064
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinProfilerInitTest",
+      "sha256": "bcd1ce4193a12b877da21ab72e498d2507b7d451bc1c8924abdf668a8c0a8900",
+      "bytes": 17520
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderActionTest",
+      "sha256": "c6523de2181f065039ce51c057eead3e0672e70621ecbae073366c113715036f",
+      "bytes": 420392
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+      "sha256": "9ca6653495fba0154959dfc5d348b1a331a0865b9eceb4ea94131c3e709d3fea",
+      "bytes": 167384
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderBackendBoundaryTest",
+      "sha256": "13d5c3d79b4a892182996fd717c9145ab12ef79c08d465dbba7e122b9ebd1acc",
+      "bytes": 64216
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderBackendContractTest",
+      "sha256": "2bafa5d758d1a4d5ce2c1d76d1952a9ccb500dff0997b57603d69b8284c64978",
+      "bytes": 23064
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinSensorQueueAllocationFailureTest",
+      "sha256": "3f2ab5a9903e0d95be7f9e7d1e4c909f1b4e88b3a12e38859987efde4d74461b",
+      "bytes": 23192
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinSensorSchedulingTest",
+      "sha256": "5637f09dcd954e980ba981eb11bf4ae51cb543f20243c64db0c6551f173db5d1",
+      "bytes": 43192
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinTests",
+      "sha256": "7bccbb25401284be21a0b702f1d7be5d5f5d05c3983e1f084a41847d45ec9a65",
+      "bytes": 1524840
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinWgpuCacheTest",
+      "sha256": "41ba1586b779d9aeb7127bd125c79f1ac17e3c3b2e80feb1f2e41c5ae4bf8de3",
+      "bytes": 16584
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/coin_render_freecad_compare",
+      "sha256": "48c08a62783834216d5429664e7f51e8ef0f77c4dd3971cf629c2a0bd86b2449",
+      "bytes": 32960
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/coin_render_gl_benchmark",
+      "sha256": "406209facee115ed065fbf3c4c2457ae84b9b63cae482c24f6fde0b70bc0d34c",
+      "bytes": 109568
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/coin_render_viewer",
+      "sha256": "aa79628044f646358e59e126f34ec7435bffbd138c57be89763242b0359bb06a",
+      "bytes": 28096
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/coin_render_window_benchmark",
+      "sha256": "5f7d58ffa436c1edbda198c1a6c17d216b34e23997d4286677220f8b821c7445",
+      "bytes": 91784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/coin_render_window_cone",
+      "sha256": "a58b381172ff928054870107d8c9969470f2d1239b490bd400a8e960cc6ff1cb",
+      "bytes": 27744
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/RenderManagerFramePreparationTest",
+      "sha256": "9347718b44e7bb688827c86f7f368a0ce6cda1c47a3c1ffcfd97d973336c0fd2",
+      "bytes": 24232
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoPathAssignmentAllocationFailureTest",
+      "sha256": "80e188256c5633e2f41d5ba4e65ad0f7692ddf084e3c03c35cfc02bc433098e8",
+      "bytes": 31224
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoPathAssignmentAuditorTest",
+      "sha256": "e1190792ef49243516b524d65a39f03d0f9470daba9c106e8df765115769b95f",
+      "bytes": 17184
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoPathAuditorCallbackTest",
+      "sha256": "476fc9af95214157f5e58c9220211b5e46609b2dfc1168b338b89c73d483c49c",
+      "bytes": 17416
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoPathChildAppendTest",
+      "sha256": "b18733c505766b236b11c78d932e6ee8660eb8ebb233b275289b01519da0ca6e",
+      "bytes": 17600
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoPathLegacyAccessorBoundsTest",
+      "sha256": "760335554daf0b79b1f703d989e678c171d856ce95d63c58e0f30c55c0e66727",
+      "bytes": 22168
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoPathRangeTest",
+      "sha256": "6c1f16dbeab916dfa0e575aa280be089efbb09ee0e831cdb06fb779c0994c401",
+      "bytes": 17624
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/SoTempPathReplaceTailTest",
+      "sha256": "f1112df33345148481b592efc485c8400c7b78da3e8c2ffb091babf379b243ce",
+      "bytes": 22424
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCApiTest",
+      "sha256": "ca38d68b7c9f706af66d6a203eb63bb439e193f70e93a38ec0ed87900a299394",
+      "bytes": 16544
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderAttributeTest",
+      "sha256": "40bc85cb6deea7f36d5cbefe60600339597ccaaead419bf5e193b58dc6b5b390",
+      "bytes": 15792
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderDocumentTest",
+      "sha256": "2603df2cbd07d21631ef5219350b6860981681c037224abb822398a7ba6c297f",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderElementTest",
+      "sha256": "9811fa7cfd1ac062e3fbf05ba6909b5fe0f84881e78fd8b7ecd6db181724731d",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderEntityTest",
+      "sha256": "b0d31a5d68f2a5e7f0b2c02372e45e8870edc2473920f050dfc51c6741c84349",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderParserTest",
+      "sha256": "48b10a9a58fffaed8ca4394f5feda6716e287471df80731011507afb47e3cb48",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderPathTest",
+      "sha256": "b845cacb3cd4fdd816595b0863527e1ab758c04d08e493fed12f9c804483fbea",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeadersAggregateTest",
+      "sha256": "fa02bef9f415e4d8695506a4433ff03bec7ebd2ad9b9807cb7c85381f51ca969",
+      "bytes": 15792
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderTypesTest",
+      "sha256": "bd692864e0aab2bc10c60c810082cd0be39c46d6869da0e27ca4f1f97c4c4c99",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlCHeaderWorldTest",
+      "sha256": "b3a074825e23fec9983e59f9b916da65a59b3232ee8f54c5daf26029edcd7508",
+      "bytes": 15784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/XmlLegacyPathDocumentCxxAbiTest",
+      "sha256": "af37094bc06dd4cc8ba4c69b6484b838845cb81f640685cf5891518bae87de3e",
+      "bytes": 16536
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderProceduralTextureTest",
+      "sha256": "e09e7e07778600d541ba10c7c73c74d9de470fa2084018274096280207afc9af",
+      "bytes": 133472
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderProductTest",
+      "sha256": "89246cd0206e7244b4b95a2855aa7021af151e67b598ea8a9da5973d718d0953",
+      "bytes": 28416
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderProjectiveUvTest",
+      "sha256": "2cd1349850fba9cd57e3a62b8add2c01b117a4223efbb2c3cffc66472501ede5",
+      "bytes": 170176
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderPublicationTest",
+      "sha256": "f3239c7ef167c6aa44da9574e7e6063e4464c0b23ace34f0ea3060f66a3fcf7b",
+      "bytes": 39360
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderRasterStudy",
+      "sha256": "3d46fae6ade35302d2ea5ce476dc9d21c4e6746b45084b0f0a8349df1faaccee",
+      "bytes": 235464
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderRttMatrixTest",
+      "sha256": "d4851c30bcef2cb74a52333824e3e8cb1774ff760b484e4fb259039fc93bb81a",
+      "bytes": 56984
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderRttOwnershipTest",
+      "sha256": "356aead05c6f06562a9a627d7d8b762f9d141a40b83e24cb3abb9f5ff94d27a1",
+      "bytes": 175128
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderRttProfileTest",
+      "sha256": "fc2c86888b05813d21e15d34456b7a594af86ca0d226f71562134e25e3a9f241",
+      "bytes": 42352
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderRuntimeBoundaryTest",
+      "sha256": "aa13fe15620a3523be64cd014899a9267ecdcd0bfab291bfaee549d840b8e609",
+      "bytes": 33512
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "sha256": "f5d53bc4583d434df73ff4fd4f9a2af444d285d716098e2b9cc36ce26221b1ba",
+      "bytes": 62032
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderSceneTextureBudgetTest",
+      "sha256": "6b723e0003a1eaf9f6a9ea02b18119a58a180fa71e351af35257c95093556fe6",
+      "bytes": 28552
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderSceneTextureTest",
+      "sha256": "2d6462242c6b6e7eb365b3c35c77e6b95a80a2046600696c904ae03c2de6d325",
+      "bytes": 37728
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderScreenContentTest",
+      "sha256": "4b84b2eb3b65b800cff902b052a09803fe42e7dc0948f8329874ee38287f1e2d",
+      "bytes": 100056
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderShadowEightMapTest",
+      "sha256": "1507c3804b1bd1da39d15da18c2c012f7a2a45ff804c6b01c0af0d175f30281f",
+      "bytes": 48104
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderShadowReferenceTest",
+      "sha256": "cfc8bbffbbe3fd0aaacf6cb3a4b5211ebebee7789367b547921468d0040f72ee",
+      "bytes": 284224
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderStabilizationTest",
+      "sha256": "9ac9ac69ec15ef713c00ba964be91075a50808eac6e0760bd952eea6d2171641",
+      "bytes": 16592
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+      "bytes": 118768
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderTextureTest",
+      "sha256": "bfa7039f1d155088e245be2eb22b2d0addfde29eaf9010585ac46a377a8f89d5",
+      "bytes": 63968
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderTransformCoreTest",
+      "sha256": "5f7b5fefd5d7a0c8978564f7dfa90a69db3f215d7e0482bf2a0f6e65da219e64",
+      "bytes": 34728
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderTransparencyTest",
+      "sha256": "c9245aec7d451d864603683ec1861c170d1e0cebcbc5f6c2177fa65079e3977c",
+      "bytes": 64168
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderBenchmarkAnimationTest",
+      "sha256": "22e0597f4348f32bc562540349cf346aa5f4d81ff48e448e1fd2e41206ec3cd2",
+      "bytes": 88888
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderPlanAssemblyCoreTest",
+      "sha256": "2a95be17f532465c0610d8cfd8c9ae5f89c0e27e4b55f7ad25942dd1b726c7b2",
+      "bytes": 91200
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderSelectionTest",
+      "sha256": "dfe1d47b2f4a00ce7863468072c50479e824fbeb3de3f5b89eac418a947b5d2d",
+      "bytes": 28504
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinSbPListGrowthFailureTest",
+      "sha256": "14ec55a4b4507bc6f63b8281fb847302c08b4c77095dd4cc7bb36c16a218ef12",
+      "bytes": 17176
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderBoundingBoxTest",
+      "sha256": "1385fbd9b197df95ea95b55646046b4932b542d6f0685323b672f2fdc594483f",
+      "bytes": 185392
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderCameraReuseReferenceTest",
+      "sha256": "b021bed4eb697a7b36cf90d60c863827644a5600295f5bd88b70a86b666f2a07",
+      "bytes": 50784
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderClipPlaneTest",
+      "sha256": "7c6fdd58b43c09c6f5f0416228013941db80647d96f498a31b17c2f8abaf76e0",
+      "bytes": 431840
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderCompositionTest",
+      "sha256": "8c30da465609d612df3d6dd44510c0de70440b18ecd7ef7b2c0e7576da0f2673",
+      "bytes": 213592
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderDepthContractTest",
+      "sha256": "42470444e783e27631635ad652650b505335dde8e5cd8f025826d7fb1f57e067",
+      "bytes": 769872
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderDiagnosticShellTest",
+      "sha256": "556b681c2c162f9bccbca0e817800a93cf5b62183efe849a5dd3b617028573b7",
+      "bytes": 27200
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderDrawStyleTest",
+      "sha256": "dddc6565d669cf0f9c29bf63a0695f891512342d5fa72de29064c025a2bdab33",
+      "bytes": 564920
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderFogTest",
+      "sha256": "7cd0a5a6945e2b571530722c19bbc1e8a4e31648d0e3dbebdf4b9ada3cfdc441",
+      "bytes": 33464
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderFragmentPolicyTest",
+      "sha256": "f8a835fafc87dade7aef48797f46d99ccec41de33a679152680a0e089e0a87e2",
+      "bytes": 144752
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderFrameCoreTest",
+      "sha256": "03d20bf20671c921c94fc89d7c1452fea34503c9133f0a2f95330001bd54a7ad",
+      "bytes": 159672
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderFrameReuseCoreTest",
+      "sha256": "b5018389e79298aa7aa68261d800b1f5deecb910b41f640d51228cd827a968f9",
+      "bytes": 166848
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderGateG0Test",
+      "sha256": "fb0c61b9056afa8dc80e9de390b8fb5e58d573e6aa0801fc54e5c61cf0da41f6",
+      "bytes": 55040
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderGateG1Test",
+      "sha256": "4f8c3b0a136a68f5e3220daa92e7d6304e1fcb5cb05ce21dd5a540ff7c41ed81",
+      "bytes": 30992
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderGateG2Test",
+      "sha256": "f8aac135655b086de1ae56c1d5f485e036ad0f699a9aa5451780a629aa92f123",
+      "bytes": 31360
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "sha256": "f86b02c2fd9970d75a7b8dc8abaeb5b462ebc6af928318fbeb8b2ccc04fbebf4",
+      "bytes": 139184
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderGouraudInterpolationTest",
+      "sha256": "b627678e25307400e4602af89b5c91b7ffc401480129913ba94527a011a8e82a",
+      "bytes": 39568
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderIndexedFastPathTest",
+      "sha256": "21680b77a8ef71513dfe077f293580df3965e8d7ec597cd2cf7c95345aa1b8d6",
+      "bytes": 53912
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderIndexedGeometryCoreTest",
+      "sha256": "53717794153fe83787ccbfd52108bdbfe643f67a14435c62e965985d2c320764",
+      "bytes": 25928
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderLightingTest",
+      "sha256": "2aca16f3c40cb01c8711fc88fdcbbbc4903fd98f687d44fae077cd5998b5b865",
+      "bytes": 50552
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderMarkerSetTest",
+      "sha256": "f101acd8dcef063b09ca896e23402bb1aa689920a85c4597015351f7607ec16b",
+      "bytes": 150632
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderMultiTargetTest",
+      "sha256": "3093b691b3504453e81e9109bb5ea4cbcc6f5ec9e86d5fedf5312e08a10944fd",
+      "bytes": 33240
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderMultitextureTest",
+      "sha256": "b2a0fa71421ac08e1e409548082f818de5d5222760c28cdceb5938e863f5e464",
+      "bytes": 60536
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderNodeInventoryTest",
+      "sha256": "ed38a934e0d76d1c05cc9dbb2ab878472261ef311493bc128decfd97321885cf",
+      "bytes": 123680
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderOffscreenTest",
+      "sha256": "41f58a8d4bb9b2ce2031517aa92da51fd51a9a74e33ffc75728e3f05716a7cd5",
+      "bytes": 44856
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/bin/CoinRenderPeelingTest",
+      "sha256": "520214ce696a814e341c5aeeac22bd9e0d079c145cf69e34462e1048807f598a",
+      "bytes": 96680
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib/libCoin.so.80.0.10",
+      "sha256": "765b36970128c21cca8e900ecc1b404b7683d9bb74228a1fd89f20fd99e87877",
+      "bytes": 12036456
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/build-bgfx/lib/libCoinRender.so",
+      "sha256": "6a2a870a561e82ec2c6e4747ed82659d01bbcfcf8eccc547bbd645e35dd6d90c",
+      "bytes": 7129912
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/bin/FreeCAD",
+      "sha256": "26977d9126fa6270bbff321c184721c2d9d6fe2d8e478ebb21b1a4451c920c27",
+      "bytes": 157184
+    },
+    {
+      "path": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-host/build/lib/libFreeCADGui.so",
+      "sha256": "63bb88374fc2913f02e4bb3987ab02492defffbb443d7592215c47cfe412e553",
+      "bytes": 48495120
+    }
+  ],
+  "limitation": "Final runtime frozen after adapter-name and GL receipt/window-geometry diagnostic rebuilds. Original performance cohorts used f9e606d4c3021bad9aaeebc67b9be632c9b25ac8. Its shared-library ELF hashes were not frozen before rebuilding the diagnostic; these final hashes do not certify historical f9 runtime."
+}

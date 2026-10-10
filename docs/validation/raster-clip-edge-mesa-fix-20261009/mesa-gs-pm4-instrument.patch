@@ -1,0 +1,25 @@
+--- a/src/gallium/drivers/radeonsi/si_state_draw.cpp
++++ b/src/gallium/drivers/radeonsi/si_state_draw.cpp
+@@ -16,6 +16,8 @@
+ #include "ac_rtld.h"
+ #include "si_build_pm4.h"
+ #include "si_tracepoints.h"
++#include <cstdio>
++#include <cstdlib>
+ 
+ #if (GFX_VER == 6)
+ #define GFX(name) name##GFX6
+@@ -2444,6 +2446,13 @@
+                         HAS_SH_PAIRS_PACKED, ALT_HIZ_LOGIC>
+          (sctx, info, drawid_offset, indirect, draws, num_draws, indexbuf,
+           index_size, index_offset, instance_count);
++   if (std::getenv("COIN_TRACE_PM4")) {
++      std::fprintf(stderr, "COIN_PM4_DRAW id=%u gs=%u ngg=%u stages=0x%x ge_cntl=0x%x vs=%p gs_shader=%p mode=0x%x\n",
++                   sctx->num_draw_calls, HAS_GS, NGG, sctx->vgt_shader_stages_en,
++                   sctx->ge_cntl, (void*)sctx->queued.named.vs, (void*)sctx->queued.named.gs,
++                   sctx->queued.named.vs ? sctx->queued.named.vs->vs.vgt_gs_mode : 0);
++      si_print_current_ib(sctx, stderr);
++   }
+    /* <-- CUs start to get busy here if we waited. */
+ 
+    /* Start prefetches after the draw has been started. Both will run

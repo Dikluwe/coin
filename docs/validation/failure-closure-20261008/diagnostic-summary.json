@@ -1,0 +1,26 @@
+[
+  {
+    "test": "sampler-state",
+    "gpu": "amd",
+    "exit": 0,
+    "log": "sampler-state-amd.log"
+  },
+  {
+    "test": "sampler-state",
+    "gpu": "nvidia",
+    "exit": 77,
+    "log": "sampler-state-nvidia.log"
+  },
+  {
+    "test": "unsnapped-interpolation",
+    "api": "gl",
+    "exit": 1,
+    "log": "unsnapped-wgpu-amd-gl.log"
+  },
+  {
+    "test": "unsnapped-interpolation",
+    "api": "vulkan",
+    "exit": 1,
+    "log": "unsnapped-wgpu-amd-vulkan.log"
+  }
+]

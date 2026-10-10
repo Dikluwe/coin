@@ -1,0 +1,47 @@
+[
+  {
+    "command": [
+      "C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+      "run_visual.py",
+      "visual-static-control",
+      "2",
+      "1",
+      "city-40000",
+      "bgfx,wgpu",
+      "static"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+      "analyze_visual.py",
+      "visual-million"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+      "analyze_visual.py",
+      "visual-static-control"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+      "compare_visual.py",
+      "visual-million"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "C:\\Users\\Diklu\\AppData\\Local\\Programs\\Python\\Python313\\python.exe",
+      "compare_visual.py",
+      "visual-static-control"
+    ],
+    "exit": 0
+  }
+]

@@ -1,0 +1,120 @@
+[
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build_sdk.py",
+      "--tag",
+      "query-resize",
+      "--backend",
+      "bgfx",
+      "--bgfx-prefix",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-install"
+    ],
+    "exit": 0,
+    "seconds": 25.23598599433899
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build_windows_fronts.py"
+    ],
+    "exit": 0,
+    "seconds": 6.784716844558716
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\run_native_removal.py",
+      "native-removal-query-resize-final",
+      "3"
+    ],
+    "exit": 0,
+    "seconds": 21.145352840423584
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "sdk",
+      "--name",
+      "sdk-query-resize-final"
+    ],
+    "exit": 0,
+    "seconds": 19.415356636047363
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "npot",
+      "--backend",
+      "bgfx",
+      "--name",
+      "npot-query-resize-final"
+    ],
+    "exit": 0,
+    "seconds": 76.28765916824341
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\analyze_npot_history.py",
+      "npot-query-resize-final"
+    ],
+    "exit": 0,
+    "seconds": 0.349315881729126
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "sampling",
+      "--backend",
+      "bgfx",
+      "--cases",
+      "api,advanced,deep,direct,viewport,rtt",
+      "--name",
+      "sampling-final"
+    ],
+    "exit": 0,
+    "seconds": 144.9019069671631
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "window",
+      "--name",
+      "window-final"
+    ],
+    "exit": 0,
+    "seconds": 9.501351118087769
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "policy-window",
+      "--name",
+      "policy-window-final"
+    ],
+    "exit": 0,
+    "seconds": 17.48368239402771
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\run_window_campaign.py",
+      "window-campaign-quiet-final",
+      "600",
+      "60"
+    ],
+    "exit": 0,
+    "seconds": 2580.8398089408875
+  }
+]

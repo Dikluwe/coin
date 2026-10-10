@@ -1,0 +1,12 @@
+SHIM GL=3.3 (Compatibility Profile) Mesa 25.2.8 renderer=softpipe
+CPU CASE=user
+SHIM before polygon
+COIN_CPU_CLIP plane=6 user=1 n=3 mask=0x40
+COIN_CPU_CLIP_TRI flags=0xc v0=(0.800,0.800) e=1 v1=(0.000,0.000) e=1 v2=(0.800,-0.800) e=1
+COIN_CPU_UNFILLED flags=0xc v0e=1 v1e=1 v2e=1
+COIN_CPU_CLIP_TRI flags=0x3 v0=(0.000,0.000) e=1 v1=(0.000,-0.800) e=1 v2=(0.800,-0.800) e=1
+COIN_CPU_UNFILLED flags=0x3 v0e=1 v1e=1 v2e=1
+COIN_CPU_CLIP plane=6 user=1 n=3 mask=0x40
+COIN_CPU_CLIP_TRI flags=0xd v0=(0.000,0.800) e=1 v1=(0.000,0.000) e=1 v2=(0.800,0.800) e=1
+COIN_CPU_UNFILLED flags=0xd v0e=1 v1e=1 v2e=1
+SHIM after polygon error=0

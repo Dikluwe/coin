@@ -1,0 +1,115 @@
+# Real FreeCAD viewer and screen-content contracts, with explicit per-view policy.
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_screen_content.FCMacro').read_text())
+report['test'] = 'freecad-sampling-policy'
+policy = int(os.environ.get('COIN_TEST_PORTABLE_SAMPLING', '1'))
+report['sampling_policy'] = policy
+original_axes_baseline = axes_baseline
+original_capture = capture
+
+# This automated content fixture drives camera and picking through the API.
+# Discard interactive input in this private host process so a cursor gesture or
+# toolbar shortcut cannot mutate its camera/document between screen captures.
+class SamplingFixtureInputGuard(QtCore.QObject):
+    blocked = {QtCore.QEvent.MouseButtonPress, QtCore.QEvent.MouseButtonRelease,
+               QtCore.QEvent.MouseButtonDblClick, QtCore.QEvent.MouseMove,
+               QtCore.QEvent.Wheel, QtCore.QEvent.KeyPress, QtCore.QEvent.KeyRelease,
+               QtCore.QEvent.ContextMenu, QtCore.QEvent.TouchBegin,
+               QtCore.QEvent.TouchUpdate, QtCore.QEvent.TouchEnd,
+               QtCore.QEvent.NativeGesture}
+    def eventFilter(self, obj, event):
+        if event.type() in self.blocked:
+            report['interactive_input_blocked'] = report.get('interactive_input_blocked', 0) + 1
+            return True
+        return False
+
+sampling_input_guard = SamplingFixtureInputGuard()
+QtWidgets.QApplication.instance().installEventFilter(sampling_input_guard)
+report['fixture_interactive_input'] = 'blocked in this host process'
+
+def axes_baseline():
+    widget = viewer_widget()
+    main = Gui.getMainWindow()
+    # EWMH changes stacking without recreating Qt's native surface.
+    import subprocess
+    subprocess.run(['wmctrl', '-i', '-r', hex(int(main.winId())), '-b',
+                    'add,above'], check=True, timeout=3)
+    main.raise_()
+    main.activateWindow()
+    report['fixture_window_stays_on_top'] = True
+    widget.setFocus()
+    widget.setProperty('coinRenderPortableSampling', bool(policy))
+    # Establish the same top camera before adapter recreation's first baseline.
+    # These explicit host redraws do not relax any image/change/removal gate.
+    view.viewTop()
+    for _ in range(2):
+        view.redraw()
+        Gui.updateGui()
+    report['prebaseline_redraws'] = 2
+    original_axes_baseline()
+
+def capture(name):
+    widget = viewer_widget()
+    Gui.getMainWindow().raise_()
+    # Dismiss only this test host's menus/tooltips, which otherwise occlude
+    # screen pixels and invalidate comparison with its bare viewport.
+    popup = QtWidgets.QApplication.activePopupWidget()
+    if popup is not None:
+        popup.close()
+        report['dismissed_popups'] = report.get('dismissed_popups', 0) + 1
+    QtWidgets.QToolTip.hideText()
+    # A synchronous host redraw establishes the current scene before reading
+    # screen pixels; GL presentation can otherwise expose the preceding frame.
+    view.redraw()
+    Gui.updateGui()
+    active = widget.property('coinRenderActiveSamplingPolicy')
+    if native and (active is None or int(active) != policy):
+        raise RuntimeError('explicit sampling policy was not admitted by the real host')
+    report['active_sampling_policy'] = int(active) if active is not None else None
+    # Qt redraw return does not fence the desktop compositor. Require two
+    # identical screen reads after event processing, with a bounded deadline.
+    # This waits for presentation; it does not change any image/removal gate.
+    deadline = time.monotonic() + 0.5
+    previous = None
+    attempt = 0
+    while time.monotonic() < deadline:
+        loop = QtCore.QEventLoop()
+        QtCore.QTimer.singleShot(60, loop.quit)
+        loop.exec()
+        image = original_capture(name)
+        attempt += 1
+        if previous is not None and image == previous:
+            report.setdefault('presentation_reads', {})[name] = attempt
+            return image
+        if previous is not None:
+            previous.save(str(artifacts / (name + '-presentation-' + str(attempt-1) + '.png')))
+        previous = image
+    raise RuntimeError('screen presentation did not settle within 0.5s: ' + name)
+
+# Bound queued cleanup work before measuring idle. The final 1.2s idle gate
+# remains exact; a perpetual frame loop never reaches this baseline.
+import time
+idle_deadline = None
+idle_last = None
+idle_stable_since = None
+original_idle_baseline = content_idle_baseline
+
+def content_idle_baseline():
+    global idle_deadline, idle_last, idle_stable_since
+    now = time.monotonic()
+    count = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if idle_deadline is None:
+        idle_deadline = now + 5.0
+        idle_last = count
+        idle_stable_since = now
+    if count != idle_last:
+        idle_last = count
+        idle_stable_since = now
+    if now - idle_stable_since >= 0.6:
+        report['idle_cleanup_settle_s'] = 5.0 - (idle_deadline-now)
+        original_idle_baseline()
+    elif now >= idle_deadline:
+        raise RuntimeError('cleanup did not settle within 5s')
+    else:
+        step(content_idle_baseline, 100)

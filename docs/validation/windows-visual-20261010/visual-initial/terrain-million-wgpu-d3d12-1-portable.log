@@ -1,0 +1,14 @@
+loaded_module name=Coin4.dll path=H:\Git\coin\build\sampling-win-20261010\install-wgpu\bin\Coin4.dll
+loaded_module name=CoinRender4.dll path=H:\Git\coin\build\sampling-win-20261010\install-wgpu\bin\CoinRender4.dll
+receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=terrain-million policy=portable extent=1280x960 dpi=96
+fixture terrain_vertices=501501 quads=500000 triangles=1000000 million_instances=0 lighting=directional elevation=sinusoidal
+scene nodes=0 triangles=1000000 textured=0
+
+thread '<unnamed>' (4632) panicked at C:\Users\Diklu\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\wgpu-24.0.5\src\backend\wgpu_core.rs:1928:18:
+Error in Buffer::get_mapped_range: Validation Error
+
+Caused by:
+  Buffer with 'Coin Uncached Vertex Buffer' label is invalid
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+render failed status=7 diagnostic=Rust bridge panic caught in coin_wgpu_surface_submit

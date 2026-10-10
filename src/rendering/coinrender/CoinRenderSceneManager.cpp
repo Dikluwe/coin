@@ -50,6 +50,37 @@ CoinRenderSceneManager::CoinRenderSceneManager(const CoinRenderNativeSurfaceDesc
   }
 }
 
+CoinRenderSceneManager::CoinRenderSceneManager(const SbVec2i32 & offscreenSize, const CoinRenderOptions & options)
+  : pimpl(new P)
+{
+  if (CoinRenderAction::getClassTypeId().isBad()) CoinRenderAction::initClass();
+  this->pimpl->target = CoinRenderTarget::createOffscreen(offscreenSize, options);
+  this->pimpl->action = new CoinRenderAction(SbViewportRegion(offscreenSize[0], offscreenSize[1]));
+  this->pimpl->action->setRenderTarget(this->pimpl->target);
+  if (this->pimpl->target->getStatus() != CoinRenderTarget::TARGET_READY) {
+    const CoinRenderActionDiagnostic diagnostic = CoinRenderDiagnosticShell::fromTarget(
+      this->pimpl->target->getStatus(), this->pimpl->target->getLastError());
+    this->pimpl->status = diagnostic.status;
+    this->pimpl->error = diagnostic.message;
+  }
+}
+
+CoinRenderSceneManager::CoinRenderSceneManager(const CoinRenderNativeSurfaceDescriptor & nativeWindow,
+                                       const SbVec2i32 & framebufferSize, const CoinRenderOptions & options)
+  : pimpl(new P)
+{
+  if (CoinRenderAction::getClassTypeId().isBad()) CoinRenderAction::initClass();
+  this->pimpl->target = CoinRenderTarget::createWindow(nativeWindow, framebufferSize, options);
+  this->pimpl->action = new CoinRenderAction(SbViewportRegion(framebufferSize[0], framebufferSize[1]));
+  this->pimpl->action->setRenderTarget(this->pimpl->target);
+  if (this->pimpl->target->getStatus() != CoinRenderTarget::TARGET_READY) {
+    const CoinRenderActionDiagnostic diagnostic = CoinRenderDiagnosticShell::fromTarget(
+      this->pimpl->target->getStatus(), this->pimpl->target->getLastError());
+    this->pimpl->status = diagnostic.status;
+    this->pimpl->error = diagnostic.message;
+  }
+}
+
 CoinRenderSceneManager::~CoinRenderSceneManager()
 {
   delete this->pimpl->action;

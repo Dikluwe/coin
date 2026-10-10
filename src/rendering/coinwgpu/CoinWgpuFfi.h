@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 50
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 51
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -295,7 +295,7 @@ typedef struct CoinWgpuFrameView {
   const CoinWgpuInstanceRange * instance_ranges;
   uint64_t instance_range_count;
   uint32_t texture_output_flags; /* bit 0=RGBA16F direct RTT; bit 1=generate full RTT mip chain */
-  uint32_t texture_output_reserved; /* zero */
+  uint32_t texture_sampling_policy; /* 0=native, 1=portable isotropic nearest/mip-linear */
 } CoinWgpuFrameView;
 
 typedef struct CoinWgpuTarget {

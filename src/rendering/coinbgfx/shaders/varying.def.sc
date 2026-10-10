@@ -39,3 +39,5 @@ vec4 i_data6 : TEXCOORD25;
 vec4 i_data7 : TEXCOORD24;
 vec4 i_data8 : TEXCOORD23;
 vec4 i_data9 : TEXCOORD22;
+
+vec2 v_coinClipDepth : TEXCOORD11;

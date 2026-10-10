@@ -1,9 +1,13 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
+#include "glue/GLUWrapper.h"
+#include "glue/simage_wrapper.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
@@ -16,6 +20,7 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureScalePolicy.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoTextureMatrixTransform.h>
 #include <Inventor/nodes/SoTextureUnit.h>
@@ -113,12 +118,12 @@ struct Harness {
   Harness(bool gpu)
       : action(SbViewportRegion(64, 64)), gpuAction(SbViewportRegion(64, 64)),
         gl(SbViewportRegion(64, 64)) {
-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+    cpu.reset(samplingTestOffscreen(SbVec2i32(64, 64)));
     capture = new Capture;
     cpu->getPimpl()->backend.reset(capture);
     action.setRenderTarget(cpu.get());
     if (gpu) {
-      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+      native.reset(samplingTestOffscreen(SbVec2i32(64, 64)));
       gpuAction.setRenderTarget(native.get());
     }
     action.setTransparencyType(CoinRenderAction::BLEND);
@@ -241,7 +246,381 @@ struct Harness {
   unsigned cases = 0, rejects = 0;
   bool reportedAdapter = false;
 };
+
+bool scalePolicyProbe()
+{
+  Harness h(true);
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  scene.root->insertChild(policy, 3);
+  std::vector<uint8_t> pixels(3 * 5 * 4, 255);
+  for (int y = 0; y < 5; ++y)
+    for (int x = 0; x < 3; ++x) {
+      const size_t at = size_t(y * 3 + x) * 4;
+      pixels[at] = x == 2 ? 255 : 0;
+      pixels[at + 1] = y == 4 ? 255 : 0;
+      pixels[at + 2] = ((x + y) & 1) ? 255 : 0;
+    }
+  scene.images[0]->image.setValue(SbVec2s(3, 5), 4, pixels.data());
+  for (int mode : {int(SoTextureScalePolicy::USE_TEXTURE_QUALITY),
+                   int(SoTextureScalePolicy::SCALE_DOWN),
+                   int(SoTextureScalePolicy::SCALE_UP)})
+    for (float quality : {0.3f, 0.8f}) {
+      policy->policy = mode;
+      scene.quality->textureQuality = quality;
+      if (!h.render(scene, "scale-policy-3x5-" + std::to_string(mode) +
+                           "-quality-" + std::to_string(quality), false))
+        return false;
+      if (!check(h.capture->frame.textures.size() == 1 &&
+                 h.capture->frame.textures[0].width == 3 &&
+                 h.capture->frame.textures[0].height == 5,
+                 "small NPOT remains at authored dimensions")) return false;
+    }
+  policy->policy = SoTextureScalePolicy::FRACTURE;
+  scene.quality->textureQuality = 0.3f;
+  if (!h.rejected(scene, "FRACTURE requires geometry clipping") ||
+      !check(h.action.getLastError().find("FRACTURE") >= 0,
+             "FRACTURE diagnostic")) return false;
+  scene.quality->textureQuality = 0.0f;
+  if (!h.render(scene, "inactive FRACTURE has no texture to fracture", false))
+    return false;
+  policy->policy = SoTextureScalePolicy::USE_TEXTURE_QUALITY;
+  scene.quality->textureQuality = 0.3f;
+  if (!h.render(scene, "FRACTURE rejection recovery", false)) return false;
+  auto * scoped = new SoSeparator;
+  auto * scopedPolicy = new SoTextureScalePolicy;
+  scopedPolicy->policy = SoTextureScalePolicy::FRACTURE;
+  scoped->addChild(scopedPolicy);
+  scene.root->insertChild(scoped, 4);
+  return h.render(scene, "FRACTURE in separate scope does not leak", false);
+}
+bool scalePolicyPotProbe()
+{
+  struct ImageCase { int width, height, downWidth, downHeight,
+                     upWidth, upHeight; };
+  const ImageCase cases[] = {
+      {17, 19, 16, 16, 32, 32},
+      {3, 5, 4, 8, 4, 8},
+      {31, 3, 16, 4, 32, 4}};
+  for (const auto &image : cases) {
+    for (int mode : {int(SoTextureScalePolicy::USE_TEXTURE_QUALITY),
+                     int(SoTextureScalePolicy::SCALE_DOWN),
+                     int(SoTextureScalePolicy::SCALE_UP)}) {
+    for (float scaleQuality : {.3f, .8f}) {
+      for (int components : {1, 2, 3, 4}) {
+        Harness h(true);
+        Scene scene(components, SoTexture2::REPLACE, 1, false, false);
+        auto * policy = new SoTextureScalePolicy;
+        policy->policy = mode;
+        policy->quality = scaleQuality;
+        scene.root->insertChild(policy, 3);
+        scene.quality->textureQuality = .3f;
+        std::vector<uint8_t> pixels(size_t(image.width) * image.height * components, 255);
+        for (int y = 0; y < image.height; ++y)
+          for (int x = 0; x < image.width; ++x) {
+            const size_t at = size_t(y * image.width + x) * components;
+            pixels[at] = uint8_t(x * 15);
+            if (components >= 2) pixels[at + 1] = uint8_t(y * 13);
+            if (components >= 3) pixels[at + 2] = uint8_t((x + y) * 7);
+            if (components == 4) pixels[at + 3] = uint8_t(120 + ((x + y) % 12) * 10);
+          }
+        scene.images[0]->image.setValue(SbVec2s(image.width, image.height),
+                                        components, pixels.data());
+        if (!h.render(scene, "POT-" + std::to_string(image.width) + "x" +
+                             std::to_string(image.height) + "-policy-" +
+                             std::to_string(mode) +
+                             "-scale-" + std::to_string(scaleQuality) +
+                             "-components-" + std::to_string(components), false))
+          return false;
+        const bool down = mode == int(SoTextureScalePolicy::SCALE_DOWN);
+        const uint32_t expectedWidth = down ? image.downWidth : image.upWidth;
+        const uint32_t expectedHeight = down ? image.downHeight : image.upHeight;
+        if (!check(h.capture->frame.textures.size() == 1 &&
+                   h.capture->frame.textures[0].width == expectedWidth &&
+                   h.capture->frame.textures[0].height == expectedHeight,
+                   "legacy policy selects POT dimensions")) return false;
+      }
+    }
+    }
+  }
+  return true;
+}
+bool scalePolicyPotCacheProbe()
+{
+  Harness h(true);
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .3f;
+  scene.root->insertChild(policy, 3);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+  for (int y = 0; y < 19; ++y)
+    for (int x = 0; x < 17; ++x) {
+      const size_t at = size_t(y * 17 + x) * 4;
+      pixels[at] = uint8_t(x * 15);
+      pixels[at + 1] = uint8_t(y * 13);
+      pixels[at + 2] = uint8_t((x + y) * 7);
+    }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  if (!h.render(scene, "POT cache first upload", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 32,
+             "POT cache first dimensions")) return false;
+  const auto first = h.capture->frame.textures[0].pixelsRgba;
+  scene.images[0]->enableCompressedTexture = TRUE;
+  if (!h.render(scene, "POT cache compression hint change", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].format == CoinRenderTextureFormat::RGBA8_LINEAR &&
+             h.capture->frame.textures[0].pixelsRgba == first,
+             "POT cache keeps the first compression choice")) return false;
+  scene.images[0]->enableCompressedTexture = FALSE;
+  scene.images[0]->model = SoTexture2::MODULATE;
+  if (!h.render(scene, "POT cache model change", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 32 &&
+             h.capture->frame.textures[0].pixelsRgba == first,
+             "POT cache ignores model change")) return false;
+  policy->policy = SoTextureScalePolicy::SCALE_DOWN;
+  policy->quality = .8f;
+  if (!h.render(scene, "POT cache policy and quality change", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 32 &&
+             h.capture->frame.textures[0].pixelsRgba == first,
+             "POT cache retains the first upload")) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  if (!h.render(scene, "POT cache wrap notification", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].width == 16,
+             "POT cache invalidates on wrap notification")) return false;
+  const auto afterWrap = h.capture->frame.textures[0].pixelsRgba;
+  pixels[0] = 255;
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  if (!h.render(scene, "POT cache image notification", false)) return false;
+  return check(h.capture->frame.textures.size() == 1 &&
+               h.capture->frame.textures[0].width == 16 &&
+               h.capture->frame.textures[0].pixelsRgba != afterWrap,
+               "POT cache invalidates on image notification");
+}
+bool scalePolicyPotCompressionProbe()
+{
+  Harness h(true);
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .3f;
+  scene.root->insertChild(policy, 3);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4);
+  for (size_t i = 0; i < pixels.size(); i += 4) {
+    pixels[i] = 255; pixels[i + 1] = 0;
+    pixels[i + 2] = 255; pixels[i + 3] = 255;
+  }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  scene.images[0]->enableCompressedTexture = TRUE;
+  if (!h.render(scene, "POT compression first upload", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
+             "POT compression first format")) return false;
+  scene.images[0]->enableCompressedTexture = FALSE;
+  if (!h.render(scene, "POT compression hint disabled", false)) return false;
+  if (!check(h.capture->frame.textures.size() == 1 &&
+             h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
+             "POT compression remains sticky")) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  if (!h.render(scene, "POT compression wrap notification", false)) return false;
+  return check(h.capture->frame.textures.size() == 1 &&
+               h.capture->frame.textures[0].format == CoinRenderTextureFormat::BC3_LINEAR,
+               "POT compression persists after reupload");
+}
+bool scalePolicyPotContextProbe()
+{
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  auto * policy = new SoTextureScalePolicy;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .3f;
+  scene.root->insertChild(policy, 3);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+  for (int y = 0; y < 19; ++y)
+    for (int x = 0; x < 17; ++x) {
+      const size_t at = size_t(y * 17 + x) * 4;
+      pixels[at] = uint8_t(x * 15);
+      pixels[at + 1] = uint8_t(y * 13);
+      pixels[at + 2] = uint8_t((x + y) * 7);
+    }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  Harness first(true);
+  if (!first.render(scene, "POT context first upload", false)) return false;
+  Harness unchanged(true);
+  if (!unchanged.render(scene, "POT context unchanged policy", false)) return false;
+  policy->policy = SoTextureScalePolicy::SCALE_DOWN;
+  Harness second(true);
+  if (!second.render(scene, "POT context policy ignored", false) ||
+      !check(second.capture->frame.textures.size() == 1 &&
+             second.capture->frame.textures[0].width == 32,
+             "POT context keeps the valid first upload")) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness third(true);
+  if (!third.render(scene, "POT context wrap reupload", false) ||
+      !check(third.capture->frame.textures.size() == 1 &&
+             third.capture->frame.textures[0].width == 16,
+             "POT context applies the new scale-down flag")) return false;
+  policy->policy = SoTextureScalePolicy::SCALE_UP;
+  policy->quality = .8f;
+  Harness fourth(true);
+  if (!fourth.render(scene, "POT context sticky scale-down high quality", false) ||
+      !check(fourth.capture->frame.textures.size() == 1 &&
+             fourth.capture->frame.textures[0].width == 16,
+             "POT context keeps scale-down across renderers")) return false;
+  scene.quality->textureQuality = .1f;
+  Harness changedQuality(true);
+  if (!changedQuality.render(scene, "POT context textureQuality change", false))
+    return false;
+  scene.quality->textureQuality = .8f;
+  if (!changedQuality.render(scene, "POT context second textureQuality change", false))
+    return false;
+  scene.images[0]->wrapT = SoTexture2::CLAMP;
+  Harness refreshedQuality(true);
+  if (!refreshedQuality.render(scene, "POT context textureQuality reupload", false) ||
+      !check(refreshedQuality.capture->frame.samplers.size() == 1 &&
+             refreshedQuality.capture->frame.samplers[0].filter ==
+                 CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR,
+             "POT context applies textureQuality on reupload")) return false;
+
+  Scene threshold(4, SoTexture2::REPLACE, 1, false, false);
+  auto * thresholdPolicy = new SoTextureScalePolicy;
+  thresholdPolicy->policy = SoTextureScalePolicy::USE_TEXTURE_QUALITY;
+  thresholdPolicy->quality = .3f;
+  threshold.root->insertChild(thresholdPolicy, 3);
+  threshold.quality->textureQuality = .3f;
+  std::vector<uint8_t> large(300 * 300 * 4, 255);
+  for (int y = 0; y < 300; ++y)
+    for (int x = 0; x < 300; ++x) {
+      const size_t at = size_t(y * 300 + x) * 4;
+      large[at] = uint8_t(x * 255 / 299);
+      large[at + 1] = uint8_t(y * 255 / 299);
+      large[at + 2] = uint8_t((x + y) * 255 / 598);
+    }
+  threshold.images[0]->image.setValue(SbVec2s(300, 300), 4, large.data());
+  Harness thresholdFirst(true);
+  if (!thresholdFirst.render(threshold, "POT context quality threshold first", false) ||
+      !check(thresholdFirst.capture->frame.textures.size() == 1 &&
+             thresholdFirst.capture->frame.textures[0].width == 256,
+             "POT context low quality chooses 256")) return false;
+  threshold.quality->textureQuality = .8f;
+  Harness thresholdHeld(true);
+  if (!thresholdHeld.render(threshold, "POT context quality threshold held", false) ||
+      !check(thresholdHeld.capture->frame.textures.size() == 1 &&
+             thresholdHeld.capture->frame.textures[0].width == 256,
+             "POT context valid upload retains 256")) return false;
+  threshold.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness thresholdRefreshed(true);
+  if (!thresholdRefreshed.render(threshold, "POT context quality threshold reupload", false) ||
+      !check(thresholdRefreshed.capture->frame.textures.size() == 1 &&
+             thresholdRefreshed.capture->frame.textures[0].width == 512,
+             "POT context new upload chooses 512")) return false;
+
+  Scene compressed(4, SoTexture2::REPLACE, 1, false, false);
+  auto * compressionPolicy = new SoTextureScalePolicy;
+  compressionPolicy->policy = SoTextureScalePolicy::SCALE_UP;
+  compressionPolicy->quality = .3f;
+  compressed.root->insertChild(compressionPolicy, 3);
+  compressed.quality->textureQuality = .3f;
+  std::vector<uint8_t> solid(17 * 19 * 4);
+  for (size_t i = 0; i < solid.size(); i += 4) {
+    solid[i] = 255; solid[i + 1] = 0;
+    solid[i + 2] = 255; solid[i + 3] = 255;
+  }
+  compressed.images[0]->image.setValue(SbVec2s(17, 19), 4, solid.data());
+  compressed.images[0]->enableCompressedTexture = TRUE;
+  Harness compressedFirst(true);
+  if (!compressedFirst.render(compressed, "POT context first compressed upload", false))
+    return false;
+  compressed.images[0]->enableCompressedTexture = FALSE;
+  Harness compressedSecond(true);
+  if (!compressedSecond.render(compressed, "POT context persistent compression", false) ||
+      !check(compressedSecond.capture->frame.textures.size() == 1 &&
+             compressedSecond.capture->frame.textures[0].format ==
+                 CoinRenderTextureFormat::BC3_LINEAR,
+             "POT context keeps BC3 across renderers")) return false;
+  compressed.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness compressedThird(true);
+  return compressedThird.render(compressed, "POT context compressed reupload", false) &&
+         check(compressedThird.capture->frame.textures.size() == 1 &&
+               compressedThird.capture->frame.textures[0].format ==
+                   CoinRenderTextureFormat::BC3_LINEAR,
+               "POT context keeps BC3 after notification");
+}
+bool textureQualityCacheProbe()
+{
+  Scene scene(4, SoTexture2::REPLACE, 1, false, false);
+  scene.quality->textureQuality = .3f;
+  std::vector<uint8_t> pixels(17 * 19 * 4, 255);
+  for (int y = 0; y < 19; ++y)
+    for (int x = 0; x < 17; ++x) {
+      const size_t at = size_t(y * 17 + x) * 4;
+      pixels[at] = uint8_t(x * 15);
+      pixels[at + 1] = uint8_t(y * 13);
+      pixels[at + 2] = uint8_t((x + y) * 7);
+    }
+  scene.images[0]->image.setValue(SbVec2s(17, 19), 4, pixels.data());
+  Harness portableOnly(false);
+  portableOnly.action.apply(scene.root);
+  if (!check(portableOnly.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+             portableOnly.capture->frame.samplers.size() == 1 &&
+             portableOnly.capture->frame.samplers[0].filter == CoinRenderTextureFilter::LINEAR,
+             "NPOT portable first quality")) return false;
+  scene.quality->textureQuality = .1f;
+  portableOnly.action.apply(scene.root);
+  if (!check(portableOnly.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+             portableOnly.capture->frame.samplers.size() == 1 &&
+             portableOnly.capture->frame.samplers[0].filter == CoinRenderTextureFilter::LINEAR,
+             "NPOT portable quality persists without CoinGL")) return false;
+  scene.quality->textureQuality = .3f;
+  Harness first(true);
+  if (!first.render(scene, "NPOT quality first upload", false)) return false;
+  scene.quality->textureQuality = .1f;
+  Harness second(true);
+  if (!second.render(scene, "NPOT quality valid upload", false)) return false;
+  scene.images[0]->wrapS = SoTexture2::CLAMP;
+  Harness refreshed(true);
+  if (!refreshed.render(scene, "NPOT quality wrap reupload", false)) return false;
+  Scene invalid(4, SoTexture2::REPLACE, 1, false, false);
+  invalid.quality->textureQuality = 1.01f;
+  Harness recovery(false);
+  if (!recovery.rejected(invalid, "NPOT invalid first quality")) return false;
+  invalid.quality->textureQuality = .3f;
+  recovery.action.apply(invalid.root);
+  return check(recovery.action.getLastStatus() == CoinRenderAction::SUCCESS &&
+               recovery.capture->frame.samplers.size() == 1 &&
+               recovery.capture->frame.samplers[0].filter == CoinRenderTextureFilter::LINEAR,
+               "NPOT first valid quality after rejection");
+}
 bool core() {
+  if (!check(CoinRenderTextureSamplingCore::legacyPotExtent(17, true, false, .3f) == 16 &&
+             CoinRenderTextureSamplingCore::legacyPotExtent(17, false, false, .3f) == 32 &&
+             CoinRenderTextureSamplingCore::legacyPotExtent(300, false, true, .3f) == 256 &&
+             CoinRenderTextureSamplingCore::legacyPotExtent(300, false, true, .8f) == 512,
+             "legacy POT policy and quality threshold")) return false;
+  CoinRenderTextureImageSnapshot resized;
+  resized.width = 3; resized.height = 1;
+  resized.pixelsRgba = {10, 0, 0, 255, 20, 0, 0, 255, 30, 0, 0, 255};
+  if (!check(CoinRenderTextureSamplingCore::legacyResizeNearest(resized, 4, 1) &&
+             resized.pixelsRgba == std::vector<uint8_t>({10, 0, 0, 255, 10, 0, 0, 255,
+                                                         20, 0, 0, 255, 30, 0, 0, 255}),
+             "legacy nearest resize texels")) return false;
+  CoinRenderTextureImageSnapshot glu;
+  glu.width = 2; glu.height = 1;
+  glu.pixelsRgba = {10, 0, 0, 255, 30, 0, 0, 255};
+  if (!check(CoinRenderTextureSamplingCore::legacyResizeGlu(glu, 4, 1) &&
+             glu.pixelsRgba == std::vector<uint8_t>({15, 0, 0, 255, 15, 0, 0, 255,
+                                                     25, 0, 0, 255, 25, 0, 0, 255}),
+             "legacy GLU box interpolation and wrapped edge")) return false;
+  const auto gluBefore = glu.pixelsRgba;
+  if (!check(!CoinRenderTextureSamplingCore::legacyResizeGlu(glu, 8193, 1) &&
+             glu.width == 4 && glu.pixelsRgba == gluBefore,
+             "legacy GLU resize rejects invalid dimensions atomically")) return false;
   CoinRenderTextureImageSnapshot image;
   image.width = image.height = 2;
   image.pixelsRgba = {0, 10, 20, 255, 1, 11, 21, 255,
@@ -428,6 +807,7 @@ bool run(bool gpu) {
 }
 } // namespace
 int main(int argc, char **argv) {
+  configureSamplingTest(argc, argv);
   SoDB::init();
   CoinRenderAction::initClass();
   if (argc > 1 && std::string(argv[1]) == "--reject-config") {
@@ -440,5 +820,23 @@ int main(int argc, char **argv) {
     Harness h(true);
     return projective(h, true) ? 0 : 1;
   }
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-probe")
+    return scalePolicyProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-probe")
+    return scalePolicyPotProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-glu-probe") {
+    if (!check(!simage_wrapper()->available && GLUWrapper()->available,
+               "GLU POT probe requires GLU and no simage")) return 1;
+    return scalePolicyPotProbe() ? 0 : 1;
+  }
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-cache-probe")
+    return scalePolicyPotCacheProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--scale-policy-pot-compression-probe")
+    return scalePolicyPotCompressionProbe() ? 0 : 1;
+  if (argc > 1 && (std::string(argv[1]) == "--scale-policy-pot-context-probe" ||
+                   std::string(argv[1]) == "--scale-policy-pot-context-study"))
+    return scalePolicyPotContextProbe() ? 0 : 1;
+  if (argc > 1 && std::string(argv[1]) == "--texture-quality-cache-probe")
+    return textureQualityCacheProbe() ? 0 : 1;
   return run(argc > 1 && std::string(argv[1]) == "--gpu") ? 0 : 1;
 }

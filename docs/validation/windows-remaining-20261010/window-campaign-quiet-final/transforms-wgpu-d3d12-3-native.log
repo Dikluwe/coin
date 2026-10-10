@@ -1,0 +1,9 @@
+loaded_module name=Coin4.dll path=H:\Git\coin\build\sampling-win-20261010\install-wgpu\bin\Coin4.dll
+loaded_module name=CoinRender4.dll path=H:\Git\coin\build\sampling-win-20261010\install-wgpu\bin\CoinRender4.dll
+receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=transforms policy=native extent=640x480 dpi=96
+scene nodes=2500 triangles=30000 textured=0
+visible_coverage=84100 of=307200
+surface_oracle stage=initial rgb_max=0 exact=1 gdi=0 outside_measurement=1
+visible_coverage=84100 of=307200
+surface_oracle stage=final rgb_max=0 exact=1 gdi=0 outside_measurement=1
+window_campaign result=1 frames=600 warmup=60 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=PostMessage event_count=0

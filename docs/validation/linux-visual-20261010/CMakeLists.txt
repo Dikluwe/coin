@@ -1,0 +1,8 @@
+cmake_minimum_required(VERSION 3.20)
+project(coin_linux_visual_campaign LANGUAGES CXX)
+find_package(Coin REQUIRED)
+find_package(CoinRender REQUIRED)
+find_package(X11 REQUIRED)
+add_executable(coin_linux_visual_campaign main.cpp)
+target_compile_features(coin_linux_visual_campaign PRIVATE cxx_std_17)
+target_link_libraries(coin_linux_visual_campaign PRIVATE CoinRender::CoinRender Coin::Coin X11::X11)

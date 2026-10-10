@@ -1,0 +1,8 @@
+receipt renderer=1 vendor=10de device=2560 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) workload=city-million policy=portable extent=1280x960
+fixture buildings=1000000 triangles=12000000 million_instances=1 shared_shape_nodes=8 lighting=directional palette=8
+scene cube_instances=1000000 counted_triangles=12000000 primitive_triangle_count_known=1 textured=0 camera_static=0
+visible_coverage=324818 of=1228800
+surface_oracle stage=initial rgb_max=0 exact=1 xgetimage=0 outside_measurement=1
+visible_coverage=324785 of=1228800
+surface_oracle stage=final rgb_max=112 exact=0 xgetimage=0 outside_measurement=1
+window_campaign result=0 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=6

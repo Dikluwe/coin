@@ -1,0 +1,5 @@
+window_startup_detail arguments_output_ms=0.401237 coin_init_ms=3.162182 scene_load_fit_ms=26.098705 legacy_material_search_ms=0.000160 animation_prepare_ms=0.017182 prepared_since_main_ms=29.679466
+Invalid value (0) for DRI_PRIME. Should be > 0
+window_geometry_detail requested=1280x720 actual=1280x720 size_policy=wm-fixed-request origin=50,82 origin_available=1 screen=1920x1080 workarea=1920x1040+0+0 partially_outside_workarea=0
+window_prepare_detail backend=wgpu-opengl capability_probe_ms=58.942788 native_surface_context_ms=21.223186 manager_target_setup_ms=0.327820 before_loop_since_main_ms=110.240355 lazy_gpu_prepare=in_first_render_present
+Native frame failed: Benchmark requested no-vsync, but surface supports neither Immediate nor Mailbox

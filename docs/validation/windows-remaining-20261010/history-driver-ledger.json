@@ -1,0 +1,69 @@
+[
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build_sdk.py",
+      "--tag",
+      "query-history",
+      "--backend",
+      "bgfx",
+      "--bgfx-prefix",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-install"
+    ],
+    "exit": 0,
+    "seconds": 37.18432354927063
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build_windows_fronts.py"
+    ],
+    "exit": 0,
+    "seconds": 6.773555278778076
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\run_native_removal.py",
+      "native-removal-history-final",
+      "3"
+    ],
+    "exit": 0,
+    "seconds": 21.556601762771606
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "sdk",
+      "--name",
+      "sdk-history-final"
+    ],
+    "exit": 0,
+    "seconds": 19.09183168411255
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\qualify.py",
+      "--phase",
+      "npot",
+      "--backend",
+      "bgfx",
+      "--name",
+      "npot-history-final"
+    ],
+    "exit": 0,
+    "seconds": 76.83278894424438
+  },
+  {
+    "command": [
+      "python",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\analyze_npot_history.py",
+      "npot-history-final"
+    ],
+    "exit": 1,
+    "seconds": 0.35784053802490234
+  }
+]

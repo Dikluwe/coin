@@ -1,0 +1,6691 @@
+[
+  {
+    "label": "static-bgfx-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.002,
+      "max": 0.1138
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0268,
+      "max": 0.2229
+    },
+    "render_present_ms": {
+      "median": 5.54655,
+      "p95": 6.8003,
+      "max": 14.24
+    },
+    "total_ms": {
+      "median": 5.5656,
+      "p95": 6.819,
+      "max": 14.2585
+    },
+    "clock_samples": 6,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0021,
+      "max": 0.034
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0263,
+      "max": 0.4095
+    },
+    "render_present_ms": {
+      "median": 5.605,
+      "p95": 7.1815,
+      "max": 9.633
+    },
+    "total_ms": {
+      "median": 5.624549999999999,
+      "p95": 7.2013,
+      "max": 9.6518
+    },
+    "clock_samples": 6,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0021,
+      "max": 2.6543
+    },
+    "update_ms": {
+      "median": 0.0174,
+      "p95": 0.0299,
+      "max": 0.3522
+    },
+    "render_present_ms": {
+      "median": 5.77325,
+      "p95": 8.0688,
+      "max": 14.5433
+    },
+    "total_ms": {
+      "median": 5.7995,
+      "p95": 8.1391,
+      "max": 14.5623
+    },
+    "clock_samples": 6,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.002,
+      "max": 0.0214
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0263,
+      "max": 0.206
+    },
+    "render_present_ms": {
+      "median": 5.5470500000000005,
+      "p95": 6.7605,
+      "max": 7.6517
+    },
+    "total_ms": {
+      "median": 5.57045,
+      "p95": 6.7805,
+      "max": 7.6708
+    },
+    "clock_samples": 6,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0038,
+      "p95": 0.0057,
+      "max": 3.4604
+    },
+    "update_ms": {
+      "median": 0.0191,
+      "p95": 0.0213,
+      "max": 0.2463
+    },
+    "render_present_ms": {
+      "median": 8.8798,
+      "p95": 10.4177,
+      "max": 17.2081
+    },
+    "total_ms": {
+      "median": 8.9083,
+      "p95": 10.4422,
+      "max": 17.2312
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1506 MHz",
+        " 1974 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0037,
+      "p95": 0.0063,
+      "max": 3.9478
+    },
+    "update_ms": {
+      "median": 0.0189,
+      "p95": 0.0227,
+      "max": 0.4416
+    },
+    "render_present_ms": {
+      "median": 9.19745,
+      "p95": 10.6756,
+      "max": 12.7952
+    },
+    "total_ms": {
+      "median": 9.22475,
+      "p95": 10.6974,
+      "max": 12.8191
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1632 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0038,
+      "p95": 0.0062,
+      "max": 0.0439
+    },
+    "update_ms": {
+      "median": 0.019,
+      "p95": 0.0225,
+      "max": 2.0121
+    },
+    "render_present_ms": {
+      "median": 9.244299999999999,
+      "p95": 10.8592,
+      "max": 37.4229
+    },
+    "total_ms": {
+      "median": 9.266449999999999,
+      "p95": 10.912,
+      "max": 37.4416
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1632 MHz",
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0032,
+      "p95": 0.0054,
+      "max": 0.0372
+    },
+    "update_ms": {
+      "median": 0.0186,
+      "p95": 0.0215,
+      "max": 2.3585
+    },
+    "render_present_ms": {
+      "median": 8.7996,
+      "p95": 10.3068,
+      "max": 19.7587
+    },
+    "total_ms": {
+      "median": 8.82735,
+      "p95": 10.3517,
+      "max": 19.7805
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.002,
+      "max": 0.2484
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0211,
+      "max": 1.168
+    },
+    "render_present_ms": {
+      "median": 5.624549999999999,
+      "p95": 7.2539,
+      "max": 11.6903
+    },
+    "total_ms": {
+      "median": 5.6529,
+      "p95": 7.2728,
+      "max": 11.7104
+    },
+    "clock_samples": 5,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0022,
+      "max": 0.872
+    },
+    "update_ms": {
+      "median": 0.0174,
+      "p95": 0.0216,
+      "max": 1.0875
+    },
+    "render_present_ms": {
+      "median": 5.5301,
+      "p95": 7.1573,
+      "max": 52.0297
+    },
+    "total_ms": {
+      "median": 5.5488,
+      "p95": 7.2146,
+      "max": 52.0488
+    },
+    "clock_samples": 5,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.002,
+      "max": 0.4025
+    },
+    "update_ms": {
+      "median": 0.0174,
+      "p95": 0.0273,
+      "max": 2.724
+    },
+    "render_present_ms": {
+      "median": 6.0471,
+      "p95": 9.8276,
+      "max": 43.8711
+    },
+    "total_ms": {
+      "median": 6.07,
+      "p95": 10.0296,
+      "max": 43.8899
+    },
+    "clock_samples": 6,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-bgfx-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0022,
+      "max": 0.0385
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0207,
+      "max": 1.5172
+    },
+    "render_present_ms": {
+      "median": 5.549300000000001,
+      "p95": 7.1703,
+      "max": 9.8958
+    },
+    "total_ms": {
+      "median": 5.5679,
+      "p95": 7.1926,
+      "max": 9.9176
+    },
+    "clock_samples": 5,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0229
+    },
+    "update_ms": {
+      "median": 0.0047,
+      "p95": 0.0084,
+      "max": 0.0789
+    },
+    "render_present_ms": {
+      "median": 16.6613,
+      "p95": 17.1975,
+      "max": 18.9151
+    },
+    "total_ms": {
+      "median": 16.6655,
+      "p95": 17.2055,
+      "max": 18.92
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.0268
+    },
+    "update_ms": {
+      "median": 0.0045,
+      "p95": 0.0086,
+      "max": 0.1147
+    },
+    "render_present_ms": {
+      "median": 16.63335,
+      "p95": 17.2914,
+      "max": 25.6061
+    },
+    "total_ms": {
+      "median": 16.63945,
+      "p95": 17.3006,
+      "max": 25.6106
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 44",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.097
+    },
+    "update_ms": {
+      "median": 0.0044,
+      "p95": 0.0091,
+      "max": 0.0984
+    },
+    "render_present_ms": {
+      "median": 16.63445,
+      "p95": 17.2478,
+      "max": 20.0241
+    },
+    "total_ms": {
+      "median": 16.64005,
+      "p95": 17.253,
+      "max": 20.0337
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0157
+    },
+    "update_ms": {
+      "median": 0.005,
+      "p95": 0.0089,
+      "max": 0.2586
+    },
+    "render_present_ms": {
+      "median": 16.6318,
+      "p95": 17.2412,
+      "max": 18.4482
+    },
+    "total_ms": {
+      "median": 16.6367,
+      "p95": 17.2455,
+      "max": 18.4562
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0008,
+      "max": 0.0165
+    },
+    "update_ms": {
+      "median": 0.0037,
+      "p95": 0.0081,
+      "max": 0.02
+    },
+    "render_present_ms": {
+      "median": 7.59765,
+      "p95": 50.5087,
+      "max": 52.3611
+    },
+    "total_ms": {
+      "median": 7.6043,
+      "p95": 50.5128,
+      "max": 52.3653
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0534
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0081,
+      "max": 0.2849
+    },
+    "render_present_ms": {
+      "median": 1.69935,
+      "p95": 50.264,
+      "max": 80.2593
+    },
+    "total_ms": {
+      "median": 1.7079,
+      "p95": 50.2683,
+      "max": 80.2649
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0008,
+      "max": 0.0174
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0084,
+      "max": 0.2497
+    },
+    "render_present_ms": {
+      "median": 7.3027,
+      "p95": 50.2304,
+      "max": 54.8359
+    },
+    "total_ms": {
+      "median": 7.3112,
+      "p95": 50.2395,
+      "max": 54.8399
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 21.6506
+    },
+    "update_ms": {
+      "median": 0.0045,
+      "p95": 0.0075,
+      "max": 0.1285
+    },
+    "render_present_ms": {
+      "median": 2.2497,
+      "p95": 50.2435,
+      "max": 52.7891
+    },
+    "total_ms": {
+      "median": 6.3473,
+      "p95": 50.248,
+      "max": 52.804
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0006,
+      "max": 0.0537
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0042,
+      "max": 0.3786
+    },
+    "render_present_ms": {
+      "median": 16.64665,
+      "p95": 16.9779,
+      "max": 86.8224
+    },
+    "total_ms": {
+      "median": 16.65165,
+      "p95": 16.9821,
+      "max": 86.8266
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz",
+        " 999 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0006,
+      "max": 0.4175
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0042,
+      "max": 0.4064
+    },
+    "render_present_ms": {
+      "median": 16.64495,
+      "p95": 17.0614,
+      "max": 26.0378
+    },
+    "total_ms": {
+      "median": 16.6497,
+      "p95": 17.0654,
+      "max": 26.0419
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0383
+    },
+    "update_ms": {
+      "median": 0.0038,
+      "p95": 0.0043,
+      "max": 0.0965
+    },
+    "render_present_ms": {
+      "median": 16.6451,
+      "p95": 16.8817,
+      "max": 23.5805
+    },
+    "total_ms": {
+      "median": 16.64965,
+      "p95": 16.889,
+      "max": 23.5848
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "static-wgpu-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0246
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0042,
+      "max": 0.0482
+    },
+    "render_present_ms": {
+      "median": 16.646949999999997,
+      "p95": 16.857,
+      "max": 20.6181
+    },
+    "total_ms": {
+      "median": 16.65155,
+      "p95": 16.8614,
+      "max": 20.6224
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.03505,
+      "p95": 0.0577,
+      "max": 0.2931
+    },
+    "update_ms": {
+      "median": 0.0172,
+      "p95": 0.026,
+      "max": 0.1536
+    },
+    "render_present_ms": {
+      "median": 9.01745,
+      "p95": 10.3852,
+      "max": 14.1813
+    },
+    "total_ms": {
+      "median": 9.072,
+      "p95": 10.4415,
+      "max": 14.2334
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1151 MHz",
+        " 1594 MHz",
+        " 607 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.035,
+      "p95": 0.0489,
+      "max": 0.676
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.021,
+      "max": 0.1601
+    },
+    "render_present_ms": {
+      "median": 9.07095,
+      "p95": 10.1577,
+      "max": 11.779
+    },
+    "total_ms": {
+      "median": 9.12395,
+      "p95": 10.2134,
+      "max": 11.8392
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1189 MHz",
+        " 1366 MHz",
+        " 1594 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0348,
+      "p95": 0.0484,
+      "max": 0.2049
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0248,
+      "max": 0.1931
+    },
+    "render_present_ms": {
+      "median": 9.0352,
+      "p95": 10.1781,
+      "max": 11.7378
+    },
+    "total_ms": {
+      "median": 9.09025,
+      "p95": 10.2318,
+      "max": 11.7892
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1189 MHz",
+        " 1366 MHz",
+        " 1594 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0351,
+      "p95": 0.0528,
+      "max": 1.2959
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0203,
+      "max": 0.201
+    },
+    "render_present_ms": {
+      "median": 9.02115,
+      "p95": 10.5904,
+      "max": 19.9966
+    },
+    "total_ms": {
+      "median": 9.07705,
+      "p95": 10.6735,
+      "max": 20.0642
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1177 MHz",
+        " 1189 MHz",
+        " 1594 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0862,
+      "p95": 0.1693,
+      "max": 1.7937
+    },
+    "update_ms": {
+      "median": 0.0192,
+      "p95": 0.026,
+      "max": 0.3809
+    },
+    "render_present_ms": {
+      "median": 12.0896,
+      "p95": 13.4232,
+      "max": 15.1861
+    },
+    "total_ms": {
+      "median": 12.2038,
+      "p95": 13.5375,
+      "max": 15.657
+    },
+    "clock_samples": 10,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0887,
+      "p95": 0.1205,
+      "max": 0.8338
+    },
+    "update_ms": {
+      "median": 0.0192,
+      "p95": 0.0226,
+      "max": 1.8962
+    },
+    "render_present_ms": {
+      "median": 12.3748,
+      "p95": 13.7405,
+      "max": 16.9338
+    },
+    "total_ms": {
+      "median": 12.4907,
+      "p95": 13.8566,
+      "max": 17.0404
+    },
+    "clock_samples": 10,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 52",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.08985,
+      "p95": 0.1328,
+      "max": 0.8807
+    },
+    "update_ms": {
+      "median": 0.0192,
+      "p95": 0.0217,
+      "max": 0.1563
+    },
+    "render_present_ms": {
+      "median": 12.6319,
+      "p95": 14.2032,
+      "max": 26.5482
+    },
+    "total_ms": {
+      "median": 12.7414,
+      "p95": 14.3174,
+      "max": 26.6688
+    },
+    "clock_samples": 10,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.08505,
+      "p95": 0.1529,
+      "max": 1.941
+    },
+    "update_ms": {
+      "median": 0.0192,
+      "p95": 0.0229,
+      "max": 0.4624
+    },
+    "render_present_ms": {
+      "median": 12.22305,
+      "p95": 15.6156,
+      "max": 49.323
+    },
+    "total_ms": {
+      "median": 12.343599999999999,
+      "p95": 15.7186,
+      "max": 49.4062
+    },
+    "clock_samples": 10,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.03125,
+      "p95": 0.052,
+      "max": 1.3381
+    },
+    "update_ms": {
+      "median": 0.0174,
+      "p95": 0.0201,
+      "max": 0.1254
+    },
+    "render_present_ms": {
+      "median": 8.9043,
+      "p95": 10.3021,
+      "max": 13.2019
+    },
+    "total_ms": {
+      "median": 8.9587,
+      "p95": 10.3572,
+      "max": 13.4258
+    },
+    "clock_samples": 7,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0318,
+      "p95": 0.0519,
+      "max": 0.7858
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0184,
+      "max": 1.1158
+    },
+    "render_present_ms": {
+      "median": 8.819700000000001,
+      "p95": 10.3256,
+      "max": 16.9126
+    },
+    "total_ms": {
+      "median": 8.877849999999999,
+      "p95": 10.4104,
+      "max": 16.9671
+    },
+    "clock_samples": 7,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1202 MHz",
+        " 1594 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.032,
+      "p95": 0.051,
+      "max": 0.3605
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.018,
+      "max": 0.1959
+    },
+    "render_present_ms": {
+      "median": 8.8696,
+      "p95": 10.3107,
+      "max": 13.9232
+    },
+    "total_ms": {
+      "median": 8.930499999999999,
+      "p95": 10.3682,
+      "max": 13.9717
+    },
+    "clock_samples": 7,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1050 MHz",
+        " 1594 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-bgfx-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0316,
+      "p95": 0.0589,
+      "max": 1.2294
+    },
+    "update_ms": {
+      "median": 0.0173,
+      "p95": 0.0192,
+      "max": 0.2893
+    },
+    "render_present_ms": {
+      "median": 9.157250000000001,
+      "p95": 11.2871,
+      "max": 32.3914
+    },
+    "total_ms": {
+      "median": 9.20495,
+      "p95": 11.34,
+      "max": 32.4417
+    },
+    "clock_samples": 8,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1050 MHz",
+        " 1594 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.03015,
+      "p95": 0.0562,
+      "max": 0.2717
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0086,
+      "max": 0.0159
+    },
+    "render_present_ms": {
+      "median": 16.6036,
+      "p95": 17.2219,
+      "max": 25.0662
+    },
+    "total_ms": {
+      "median": 16.64125,
+      "p95": 17.2696,
+      "max": 25.0959
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0289,
+      "p95": 0.0443,
+      "max": 0.2679
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0075,
+      "max": 0.02
+    },
+    "render_present_ms": {
+      "median": 16.6216,
+      "p95": 17.0473,
+      "max": 38.7126
+    },
+    "total_ms": {
+      "median": 16.6575,
+      "p95": 17.0777,
+      "max": 38.7429
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0279,
+      "p95": 0.0448,
+      "max": 0.2006
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0052,
+      "max": 0.0442
+    },
+    "render_present_ms": {
+      "median": 16.60845,
+      "p95": 17.0127,
+      "max": 18.7097
+    },
+    "total_ms": {
+      "median": 16.64245,
+      "p95": 17.0442,
+      "max": 18.7509
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.03195,
+      "p95": 0.0547,
+      "max": 0.4553
+    },
+    "update_ms": {
+      "median": 0.0049,
+      "p95": 0.0086,
+      "max": 0.0672
+    },
+    "render_present_ms": {
+      "median": 16.6055,
+      "p95": 17.0758,
+      "max": 19.6776
+    },
+    "total_ms": {
+      "median": 16.64725,
+      "p95": 17.1387,
+      "max": 19.7201
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0301,
+      "p95": 0.076,
+      "max": 0.3036
+    },
+    "update_ms": {
+      "median": 0.0048,
+      "p95": 0.0085,
+      "max": 0.0716
+    },
+    "render_present_ms": {
+      "median": 6.94515,
+      "p95": 50.2304,
+      "max": 52.1961
+    },
+    "total_ms": {
+      "median": 6.99845,
+      "p95": 50.2709,
+      "max": 52.2319
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0294,
+      "p95": 0.0773,
+      "max": 0.3001
+    },
+    "update_ms": {
+      "median": 0.0051,
+      "p95": 0.0084,
+      "max": 0.371
+    },
+    "render_present_ms": {
+      "median": 6.28415,
+      "p95": 50.2158,
+      "max": 52.8442
+    },
+    "total_ms": {
+      "median": 6.3776,
+      "p95": 50.2456,
+      "max": 52.8945
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.027950000000000003,
+      "p95": 0.0582,
+      "max": 0.2881
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0077,
+      "max": 0.0424
+    },
+    "render_present_ms": {
+      "median": 2.4217000000000004,
+      "p95": 50.3272,
+      "max": 78.5791
+    },
+    "total_ms": {
+      "median": 2.4797000000000002,
+      "p95": 50.3628,
+      "max": 78.6092
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0296,
+      "p95": 0.0803,
+      "max": 0.7904
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0085,
+      "max": 0.3431
+    },
+    "render_present_ms": {
+      "median": 2.7083500000000003,
+      "p95": 50.1607,
+      "max": 89.5326
+    },
+    "total_ms": {
+      "median": 2.75085,
+      "p95": 50.2055,
+      "max": 89.5689
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0274,
+      "p95": 0.0642,
+      "max": 0.337
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0042,
+      "max": 0.0916
+    },
+    "render_present_ms": {
+      "median": 16.615650000000002,
+      "p95": 16.8357,
+      "max": 127.322
+    },
+    "total_ms": {
+      "median": 16.6499,
+      "p95": 16.8672,
+      "max": 127.355
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0274,
+      "p95": 0.064,
+      "max": 0.3881
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0043,
+      "max": 0.246
+    },
+    "render_present_ms": {
+      "median": 16.61625,
+      "p95": 16.9021,
+      "max": 18.2303
+    },
+    "total_ms": {
+      "median": 16.651600000000002,
+      "p95": 16.9369,
+      "max": 18.2609
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0279,
+      "p95": 0.066,
+      "max": 0.3297
+    },
+    "update_ms": {
+      "median": 0.0039,
+      "p95": 0.0043,
+      "max": 0.1786
+    },
+    "render_present_ms": {
+      "median": 16.6143,
+      "p95": 16.9191,
+      "max": 22.38
+    },
+    "total_ms": {
+      "median": 16.646250000000002,
+      "p95": 16.9867,
+      "max": 22.4119
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "camera-events-wgpu-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0278,
+      "p95": 0.067,
+      "max": 0.4219
+    },
+    "update_ms": {
+      "median": 0.004,
+      "p95": 0.0043,
+      "max": 0.0225
+    },
+    "render_present_ms": {
+      "median": 16.6139,
+      "p95": 16.9764,
+      "max": 19.2224
+    },
+    "total_ms": {
+      "median": 16.6491,
+      "p95": 17.0293,
+      "max": 19.254
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0042,
+      "p95": 0.0083,
+      "max": 0.0948
+    },
+    "update_ms": {
+      "median": 0.81855,
+      "p95": 1.3012,
+      "max": 15.643
+    },
+    "render_present_ms": {
+      "median": 33.2677,
+      "p95": 39.3466,
+      "max": 185.732
+    },
+    "total_ms": {
+      "median": 34.0818,
+      "p95": 39.7447,
+      "max": 186.556
+    },
+    "clock_samples": 25,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1974 MHz",
+        " 607 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 405 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 50",
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0067,
+      "max": 0.491
+    },
+    "update_ms": {
+      "median": 0.6385000000000001,
+      "p95": 1.1861,
+      "max": 3.1339
+    },
+    "render_present_ms": {
+      "median": 32.94435,
+      "p95": 39.6063,
+      "max": 51.444
+    },
+    "total_ms": {
+      "median": 33.6126,
+      "p95": 40.2708,
+      "max": 51.8432
+    },
+    "clock_samples": 24,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0041,
+      "p95": 0.0098,
+      "max": 0.9656
+    },
+    "update_ms": {
+      "median": 0.81215,
+      "p95": 1.4129,
+      "max": 3.3076
+    },
+    "render_present_ms": {
+      "median": 33.421350000000004,
+      "p95": 38.5057,
+      "max": 101.002
+    },
+    "total_ms": {
+      "median": 34.24485,
+      "p95": 39.1896,
+      "max": 101.382
+    },
+    "clock_samples": 25,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0038,
+      "p95": 0.0097,
+      "max": 0.3486
+    },
+    "update_ms": {
+      "median": 0.80255,
+      "p95": 1.3396,
+      "max": 2.7952
+    },
+    "render_present_ms": {
+      "median": 33.4717,
+      "p95": 37.1867,
+      "max": 91.4097
+    },
+    "total_ms": {
+      "median": 34.2932,
+      "p95": 38.034,
+      "max": 92.2258
+    },
+    "clock_samples": 24,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0026,
+      "p95": 0.0041,
+      "max": 0.3813
+    },
+    "update_ms": {
+      "median": 0.604,
+      "p95": 1.0626,
+      "max": 6.002
+    },
+    "render_present_ms": {
+      "median": 35.47955,
+      "p95": 43.2623,
+      "max": 87.9667
+    },
+    "total_ms": {
+      "median": 36.170100000000005,
+      "p95": 44.3386,
+      "max": 88.5304
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0028,
+      "p95": 0.0041,
+      "max": 0.1771
+    },
+    "update_ms": {
+      "median": 0.6013,
+      "p95": 0.9999,
+      "max": 3.2921
+    },
+    "render_present_ms": {
+      "median": 35.56205,
+      "p95": 38.1942,
+      "max": 51.8901
+    },
+    "total_ms": {
+      "median": 36.204800000000006,
+      "p95": 38.8154,
+      "max": 52.4819
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0027,
+      "p95": 0.0039,
+      "max": 0.1158
+    },
+    "update_ms": {
+      "median": 0.6069,
+      "p95": 1.0668,
+      "max": 3.7084
+    },
+    "render_present_ms": {
+      "median": 35.4354,
+      "p95": 39.6793,
+      "max": 149.583
+    },
+    "total_ms": {
+      "median": 36.12165,
+      "p95": 40.2409,
+      "max": 150.207
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0027,
+      "p95": 0.0045,
+      "max": 0.2819
+    },
+    "update_ms": {
+      "median": 0.5951,
+      "p95": 1.1066,
+      "max": 18.0304
+    },
+    "render_present_ms": {
+      "median": 35.22055,
+      "p95": 37.7635,
+      "max": 118.693
+    },
+    "total_ms": {
+      "median": 35.897949999999994,
+      "p95": 38.7222,
+      "max": 119.291
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0066,
+      "max": 0.0611
+    },
+    "update_ms": {
+      "median": 0.3496,
+      "p95": 0.4189,
+      "max": 0.7505
+    },
+    "render_present_ms": {
+      "median": 42.9675,
+      "p95": 45.7139,
+      "max": 138.412
+    },
+    "total_ms": {
+      "median": 43.325900000000004,
+      "p95": 46.0776,
+      "max": 138.771
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0061,
+      "max": 0.1783
+    },
+    "update_ms": {
+      "median": 0.352,
+      "p95": 0.4388,
+      "max": 1.0461
+    },
+    "render_present_ms": {
+      "median": 43.398700000000005,
+      "p95": 50.8445,
+      "max": 455.38
+    },
+    "total_ms": {
+      "median": 43.741150000000005,
+      "p95": 51.2069,
+      "max": 455.847
+    },
+    "clock_samples": 31,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0053,
+      "max": 0.0329
+    },
+    "update_ms": {
+      "median": 0.34404999999999997,
+      "p95": 0.4574,
+      "max": 1.1667
+    },
+    "render_present_ms": {
+      "median": 42.6948,
+      "p95": 45.0825,
+      "max": 168.833
+    },
+    "total_ms": {
+      "median": 43.06375,
+      "p95": 45.4377,
+      "max": 169.172
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-bgfx-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0061,
+      "max": 0.0707
+    },
+    "update_ms": {
+      "median": 0.3439,
+      "p95": 0.4467,
+      "max": 0.8288
+    },
+    "render_present_ms": {
+      "median": 42.77875,
+      "p95": 45.1787,
+      "max": 173.385
+    },
+    "total_ms": {
+      "median": 43.16265,
+      "p95": 45.5474,
+      "max": 173.748
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.1111
+    },
+    "update_ms": {
+      "median": 0.3575,
+      "p95": 0.5147,
+      "max": 0.8902
+    },
+    "render_present_ms": {
+      "median": 16.277749999999997,
+      "p95": 16.7443,
+      "max": 18.5619
+    },
+    "total_ms": {
+      "median": 16.645899999999997,
+      "p95": 17.0861,
+      "max": 18.9945
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1974 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0165
+    },
+    "update_ms": {
+      "median": 0.35325,
+      "p95": 0.5086,
+      "max": 0.7493
+    },
+    "render_present_ms": {
+      "median": 16.283250000000002,
+      "p95": 16.8083,
+      "max": 40.6856
+    },
+    "total_ms": {
+      "median": 16.65345,
+      "p95": 17.1561,
+      "max": 41.1099
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 2.9003
+    },
+    "update_ms": {
+      "median": 0.35485,
+      "p95": 0.5158,
+      "max": 0.8252
+    },
+    "render_present_ms": {
+      "median": 16.269750000000002,
+      "p95": 16.7117,
+      "max": 25.7701
+    },
+    "total_ms": {
+      "median": 16.64615,
+      "p95": 17.0912,
+      "max": 26.1091
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.00045,
+      "p95": 0.0007,
+      "max": 0.0631
+    },
+    "update_ms": {
+      "median": 0.35615,
+      "p95": 0.4937,
+      "max": 1.0179
+    },
+    "render_present_ms": {
+      "median": 16.27525,
+      "p95": 16.6754,
+      "max": 17.7481
+    },
+    "total_ms": {
+      "median": 16.65585,
+      "p95": 17.0462,
+      "max": 18.1201
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0538
+    },
+    "update_ms": {
+      "median": 0.32545,
+      "p95": 0.5275,
+      "max": 0.823
+    },
+    "render_present_ms": {
+      "median": 6.4358,
+      "p95": 47.5603,
+      "max": 49.8761
+    },
+    "total_ms": {
+      "median": 6.84845,
+      "p95": 47.9208,
+      "max": 50.178
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.00045,
+      "p95": 0.0006,
+      "max": 0.125
+    },
+    "update_ms": {
+      "median": 0.3286,
+      "p95": 0.5641,
+      "max": 1.0556
+    },
+    "render_present_ms": {
+      "median": 6.9892,
+      "p95": 43.7668,
+      "max": 49.4653
+    },
+    "total_ms": {
+      "median": 7.3486,
+      "p95": 44.1357,
+      "max": 50.2116
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.033
+    },
+    "update_ms": {
+      "median": 0.32430000000000003,
+      "p95": 0.5605,
+      "max": 1.1894
+    },
+    "render_present_ms": {
+      "median": 6.9544999999999995,
+      "p95": 44.4165,
+      "max": 49.1465
+    },
+    "total_ms": {
+      "median": 7.39875,
+      "p95": 44.7393,
+      "max": 49.4478
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 810 MHz",
+        " 974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0901
+    },
+    "update_ms": {
+      "median": 0.31665,
+      "p95": 0.5709,
+      "max": 1.6813
+    },
+    "render_present_ms": {
+      "median": 6.0916,
+      "p95": 48.7982,
+      "max": 50.4762
+    },
+    "total_ms": {
+      "median": 6.475899999999999,
+      "p95": 49.107,
+      "max": 50.9642
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 46"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.1905
+    },
+    "update_ms": {
+      "median": 0.37195,
+      "p95": 0.5028,
+      "max": 0.8769
+    },
+    "render_present_ms": {
+      "median": 16.2578,
+      "p95": 16.453,
+      "max": 24.9581
+    },
+    "total_ms": {
+      "median": 16.6465,
+      "p95": 16.8316,
+      "max": 25.2995
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 810 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0268
+    },
+    "update_ms": {
+      "median": 0.35455000000000003,
+      "p95": 0.5274,
+      "max": 0.9469
+    },
+    "render_present_ms": {
+      "median": 16.28365,
+      "p95": 16.3832,
+      "max": 25.6603
+    },
+    "total_ms": {
+      "median": 16.648049999999998,
+      "p95": 16.7637,
+      "max": 26.1198
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.1252
+    },
+    "update_ms": {
+      "median": 0.4173,
+      "p95": 0.6109,
+      "max": 1.1679
+    },
+    "render_present_ms": {
+      "median": 16.23305,
+      "p95": 16.4578,
+      "max": 33.0498
+    },
+    "total_ms": {
+      "median": 16.6476,
+      "p95": 16.8733,
+      "max": 33.4914
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "transforms-wgpu-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.3129
+    },
+    "update_ms": {
+      "median": 0.3813,
+      "p95": 0.6342,
+      "max": 1.1195
+    },
+    "render_present_ms": {
+      "median": 16.2463,
+      "p95": 16.48,
+      "max": 17.8396
+    },
+    "total_ms": {
+      "median": 16.646949999999997,
+      "p95": 16.862,
+      "max": 18.2608
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0078,
+      "max": 0.0777
+    },
+    "update_ms": {
+      "median": 0.36225,
+      "p95": 0.516,
+      "max": 0.8578
+    },
+    "render_present_ms": {
+      "median": 142.8945,
+      "p95": 160.373,
+      "max": 558.46
+    },
+    "total_ms": {
+      "median": 143.2625,
+      "p95": 160.725,
+      "max": 558.819
+    },
+    "clock_samples": 96,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1468 MHz",
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0078,
+      "max": 0.0288
+    },
+    "update_ms": {
+      "median": 0.3641,
+      "p95": 0.5238,
+      "max": 0.9966
+    },
+    "render_present_ms": {
+      "median": 146.727,
+      "p95": 165.639,
+      "max": 567.342
+    },
+    "total_ms": {
+      "median": 147.111,
+      "p95": 166.138,
+      "max": 567.926
+    },
+    "clock_samples": 97,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1341 MHz",
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 44",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.008,
+      "max": 0.0867
+    },
+    "update_ms": {
+      "median": 0.3675,
+      "p95": 0.5317,
+      "max": 1.0124
+    },
+    "render_present_ms": {
+      "median": 145.9995,
+      "p95": 164.123,
+      "max": 509.952
+    },
+    "total_ms": {
+      "median": 146.469,
+      "p95": 164.488,
+      "max": 510.382
+    },
+    "clock_samples": 97,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0077,
+      "max": 0.1505
+    },
+    "update_ms": {
+      "median": 0.3633,
+      "p95": 0.5181,
+      "max": 1.5151
+    },
+    "render_present_ms": {
+      "median": 143.417,
+      "p95": 162.713,
+      "max": 556.025
+    },
+    "total_ms": {
+      "median": 143.805,
+      "p95": 163.083,
+      "max": 556.409
+    },
+    "clock_samples": 96,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1151 MHz",
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0251,
+      "max": 7.5696
+    },
+    "update_ms": {
+      "median": 0.9273,
+      "p95": 1.6623,
+      "max": 14.4911
+    },
+    "render_present_ms": {
+      "median": 56.48155,
+      "p95": 61.8001,
+      "max": 112.898
+    },
+    "total_ms": {
+      "median": 57.5927,
+      "p95": 62.8549,
+      "max": 113.653
+    },
+    "clock_samples": 36,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1771 MHz",
+        " 1949 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0017,
+      "p95": 0.0132,
+      "max": 2.8368
+    },
+    "update_ms": {
+      "median": 0.83135,
+      "p95": 1.7757,
+      "max": 9.8608
+    },
+    "render_present_ms": {
+      "median": 37.2085,
+      "p95": 47.1563,
+      "max": 119.695
+    },
+    "total_ms": {
+      "median": 38.1238,
+      "p95": 48.5886,
+      "max": 120.499
+    },
+    "clock_samples": 28,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1974 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0094,
+      "max": 2.2145
+    },
+    "update_ms": {
+      "median": 0.852,
+      "p95": 1.4794,
+      "max": 4.9555
+    },
+    "render_present_ms": {
+      "median": 36.5986,
+      "p95": 39.5594,
+      "max": 79.5243
+    },
+    "total_ms": {
+      "median": 37.591499999999996,
+      "p95": 40.607,
+      "max": 80.6078
+    },
+    "clock_samples": 27,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 797 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0017,
+      "p95": 0.0146,
+      "max": 0.6107
+    },
+    "update_ms": {
+      "median": 0.83935,
+      "p95": 1.7388,
+      "max": 12.6825
+    },
+    "render_present_ms": {
+      "median": 36.70685,
+      "p95": 57.4941,
+      "max": 93.0836
+    },
+    "total_ms": {
+      "median": 37.6326,
+      "p95": 58.6861,
+      "max": 93.9118
+    },
+    "clock_samples": 28,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50",
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0027,
+      "max": 4.6136
+    },
+    "update_ms": {
+      "median": 0.4078,
+      "p95": 0.8029,
+      "max": 4.1167
+    },
+    "render_present_ms": {
+      "median": 32.070750000000004,
+      "p95": 34.5851,
+      "max": 143.576
+    },
+    "total_ms": {
+      "median": 32.52185,
+      "p95": 35.2379,
+      "max": 143.964
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 797 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0015,
+      "p95": 0.0056,
+      "max": 0.218
+    },
+    "update_ms": {
+      "median": 0.3997,
+      "p95": 0.8486,
+      "max": 3.7572
+    },
+    "render_present_ms": {
+      "median": 31.988,
+      "p95": 34.4518,
+      "max": 39.9067
+    },
+    "total_ms": {
+      "median": 32.4548,
+      "p95": 35.0821,
+      "max": 40.2779
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.0029,
+      "max": 0.0387
+    },
+    "update_ms": {
+      "median": 0.39065,
+      "p95": 0.7574,
+      "max": 3.0896
+    },
+    "render_present_ms": {
+      "median": 31.501649999999998,
+      "p95": 34.8554,
+      "max": 132.255
+    },
+    "total_ms": {
+      "median": 31.979599999999998,
+      "p95": 35.2851,
+      "max": 132.673
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1493 MHz",
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "materials-bgfx-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0016,
+      "p95": 0.003,
+      "max": 1.2775
+    },
+    "update_ms": {
+      "median": 0.4017,
+      "p95": 0.6922,
+      "max": 2.5892
+    },
+    "render_present_ms": {
+      "median": 31.758,
+      "p95": 34.5658,
+      "max": 126.696
+    },
+    "total_ms": {
+      "median": 32.197050000000004,
+      "p95": 35.1342,
+      "max": 127.045
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 797 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0394
+    },
+    "update_ms": {
+      "median": 0.3641,
+      "p95": 0.485,
+      "max": 0.6707
+    },
+    "render_present_ms": {
+      "median": 16.2848,
+      "p95": 16.7125,
+      "max": 17.5617
+    },
+    "total_ms": {
+      "median": 16.649250000000002,
+      "p95": 17.0766,
+      "max": 17.8919
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.1882
+    },
+    "update_ms": {
+      "median": 0.3619,
+      "p95": 0.5094,
+      "max": 0.688
+    },
+    "render_present_ms": {
+      "median": 16.28435,
+      "p95": 16.7234,
+      "max": 23.0967
+    },
+    "total_ms": {
+      "median": 16.658099999999997,
+      "p95": 17.1123,
+      "max": 23.4199
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.051
+    },
+    "update_ms": {
+      "median": 0.36075,
+      "p95": 0.5348,
+      "max": 5.9687
+    },
+    "render_present_ms": {
+      "median": 16.27675,
+      "p95": 16.8307,
+      "max": 43.5904
+    },
+    "total_ms": {
+      "median": 16.646,
+      "p95": 17.2165,
+      "max": 43.9676
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0161
+    },
+    "update_ms": {
+      "median": 0.35735,
+      "p95": 0.5182,
+      "max": 0.695
+    },
+    "render_present_ms": {
+      "median": 16.2768,
+      "p95": 16.7239,
+      "max": 18.1493
+    },
+    "total_ms": {
+      "median": 16.64205,
+      "p95": 17.072,
+      "max": 18.4865
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0473
+    },
+    "update_ms": {
+      "median": 0.3237,
+      "p95": 0.5227,
+      "max": 0.7551
+    },
+    "render_present_ms": {
+      "median": 15.8542,
+      "p95": 27.3751,
+      "max": 28.2733
+    },
+    "total_ms": {
+      "median": 16.2642,
+      "p95": 27.6776,
+      "max": 28.5727
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0564
+    },
+    "update_ms": {
+      "median": 0.32605,
+      "p95": 0.5494,
+      "max": 0.8642
+    },
+    "render_present_ms": {
+      "median": 6.819850000000001,
+      "p95": 46.5713,
+      "max": 48.472
+    },
+    "total_ms": {
+      "median": 7.1793499999999995,
+      "p95": 46.9044,
+      "max": 48.8512
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0197
+    },
+    "update_ms": {
+      "median": 0.3399,
+      "p95": 0.5621,
+      "max": 0.8567
+    },
+    "render_present_ms": {
+      "median": 16.00505,
+      "p95": 27.0998,
+      "max": 28.5265
+    },
+    "total_ms": {
+      "median": 16.3904,
+      "p95": 27.4205,
+      "max": 29.0339
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0198
+    },
+    "update_ms": {
+      "median": 0.33240000000000003,
+      "p95": 0.5514,
+      "max": 1.4051
+    },
+    "render_present_ms": {
+      "median": 8.3256,
+      "p95": 43.1908,
+      "max": 51.274
+    },
+    "total_ms": {
+      "median": 8.66865,
+      "p95": 43.5139,
+      "max": 51.6039
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.1938
+    },
+    "update_ms": {
+      "median": 0.36455000000000004,
+      "p95": 0.6198,
+      "max": 1.0719
+    },
+    "render_present_ms": {
+      "median": 16.2777,
+      "p95": 16.5146,
+      "max": 19.6575
+    },
+    "total_ms": {
+      "median": 16.6475,
+      "p95": 16.933,
+      "max": 20.1246
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.6997
+    },
+    "update_ms": {
+      "median": 0.36035,
+      "p95": 0.5608,
+      "max": 0.9367
+    },
+    "render_present_ms": {
+      "median": 16.2759,
+      "p95": 16.4471,
+      "max": 23.8443
+    },
+    "total_ms": {
+      "median": 16.645699999999998,
+      "p95": 16.8339,
+      "max": 24.334
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.1699
+    },
+    "update_ms": {
+      "median": 0.36815,
+      "p95": 0.5958,
+      "max": 1.1878
+    },
+    "render_present_ms": {
+      "median": 16.2621,
+      "p95": 16.4345,
+      "max": 25.7379
+    },
+    "total_ms": {
+      "median": 16.64745,
+      "p95": 16.863,
+      "max": 26.107
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "materials-wgpu-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.2443
+    },
+    "update_ms": {
+      "median": 0.3664,
+      "p95": 0.5593,
+      "max": 0.9432
+    },
+    "render_present_ms": {
+      "median": 16.2677,
+      "p95": 16.5377,
+      "max": 33.3512
+    },
+    "total_ms": {
+      "median": 16.64855,
+      "p95": 16.939,
+      "max": 33.8916
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0041,
+      "p95": 0.009,
+      "max": 10.9459
+    },
+    "update_ms": {
+      "median": 0.7944,
+      "p95": 1.3782,
+      "max": 3.6467
+    },
+    "render_present_ms": {
+      "median": 34.6922,
+      "p95": 40.1881,
+      "max": 131.205
+    },
+    "total_ms": {
+      "median": 35.4874,
+      "p95": 41.0851,
+      "max": 131.566
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1974 MHz",
+        " 607 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 405 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.00415,
+      "p95": 0.0083,
+      "max": 0.1375
+    },
+    "update_ms": {
+      "median": 0.7939,
+      "p95": 1.314,
+      "max": 1.9642
+    },
+    "render_present_ms": {
+      "median": 34.689750000000004,
+      "p95": 37.5355,
+      "max": 93.5721
+    },
+    "total_ms": {
+      "median": 35.4826,
+      "p95": 38.3042,
+      "max": 95.1159
+    },
+    "clock_samples": 25,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0042,
+      "p95": 0.0079,
+      "max": 0.0537
+    },
+    "update_ms": {
+      "median": 0.7963,
+      "p95": 1.3324,
+      "max": 38.3866
+    },
+    "render_present_ms": {
+      "median": 35.066100000000006,
+      "p95": 39.7961,
+      "max": 116.456
+    },
+    "total_ms": {
+      "median": 35.8925,
+      "p95": 40.5191,
+      "max": 154.844
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0041,
+      "p95": 0.0079,
+      "max": 0.0671
+    },
+    "update_ms": {
+      "median": 0.7942,
+      "p95": 1.3799,
+      "max": 3.0173
+    },
+    "render_present_ms": {
+      "median": 34.40305,
+      "p95": 37.4862,
+      "max": 72.204
+    },
+    "total_ms": {
+      "median": 35.2118,
+      "p95": 38.2786,
+      "max": 72.9178
+    },
+    "clock_samples": 25,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0026,
+      "p95": 0.0038,
+      "max": 0.0911
+    },
+    "update_ms": {
+      "median": 0.60055,
+      "p95": 1.1792,
+      "max": 3.848
+    },
+    "render_present_ms": {
+      "median": 35.4572,
+      "p95": 38.8971,
+      "max": 88.9562
+    },
+    "total_ms": {
+      "median": 36.12905,
+      "p95": 39.6636,
+      "max": 89.4557
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0028,
+      "p95": 0.0038,
+      "max": 0.0331
+    },
+    "update_ms": {
+      "median": 0.6056,
+      "p95": 1.0865,
+      "max": 3.126
+    },
+    "render_present_ms": {
+      "median": 35.7665,
+      "p95": 38.2099,
+      "max": 57.2278
+    },
+    "total_ms": {
+      "median": 36.4285,
+      "p95": 38.8776,
+      "max": 59.8554
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0027,
+      "p95": 0.0038,
+      "max": 0.0432
+    },
+    "update_ms": {
+      "median": 0.5902000000000001,
+      "p95": 1.0833,
+      "max": 3.6996
+    },
+    "render_present_ms": {
+      "median": 36.291650000000004,
+      "p95": 39.3272,
+      "max": 109.0
+    },
+    "total_ms": {
+      "median": 36.948350000000005,
+      "p95": 39.9991,
+      "max": 110.484
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0027,
+      "p95": 0.0038,
+      "max": 0.041
+    },
+    "update_ms": {
+      "median": 0.60445,
+      "p95": 1.0599,
+      "max": 7.7754
+    },
+    "render_present_ms": {
+      "median": 35.46645,
+      "p95": 38.053,
+      "max": 61.2009
+    },
+    "total_ms": {
+      "median": 36.1348,
+      "p95": 38.7039,
+      "max": 61.8342
+    },
+    "clock_samples": 26,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0023,
+      "max": 0.0193
+    },
+    "update_ms": {
+      "median": 0.3551,
+      "p95": 0.4313,
+      "max": 1.0982
+    },
+    "render_present_ms": {
+      "median": 42.77485,
+      "p95": 45.1896,
+      "max": 133.682
+    },
+    "total_ms": {
+      "median": 43.1472,
+      "p95": 45.6168,
+      "max": 134.076
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0059,
+      "max": 0.0246
+    },
+    "update_ms": {
+      "median": 0.3537,
+      "p95": 0.4298,
+      "max": 0.7222
+    },
+    "render_present_ms": {
+      "median": 43.0273,
+      "p95": 44.9917,
+      "max": 50.211
+    },
+    "total_ms": {
+      "median": 43.394499999999994,
+      "p95": 45.3605,
+      "max": 50.5788
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0061,
+      "max": 0.0805
+    },
+    "update_ms": {
+      "median": 0.35814999999999997,
+      "p95": 0.4616,
+      "max": 0.7741
+    },
+    "render_present_ms": {
+      "median": 42.8724,
+      "p95": 45.1423,
+      "max": 194.138
+    },
+    "total_ms": {
+      "median": 43.2404,
+      "p95": 45.4996,
+      "max": 194.495
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "geometry-bgfx-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0014,
+      "p95": 0.0057,
+      "max": 0.0345
+    },
+    "update_ms": {
+      "median": 0.35845,
+      "p95": 0.4352,
+      "max": 0.9933
+    },
+    "render_present_ms": {
+      "median": 42.8954,
+      "p95": 44.9165,
+      "max": 90.3752
+    },
+    "total_ms": {
+      "median": 43.254999999999995,
+      "p95": 45.2865,
+      "max": 91.1373
+    },
+    "clock_samples": 30,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 28.7606
+    },
+    "update_ms": {
+      "median": 0.33940000000000003,
+      "p95": 0.486,
+      "max": 0.8234
+    },
+    "render_present_ms": {
+      "median": 16.28225,
+      "p95": 16.7927,
+      "max": 28.4339
+    },
+    "total_ms": {
+      "median": 16.642400000000002,
+      "p95": 17.1749,
+      "max": 39.299
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1139 MHz",
+        " 1974 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0173
+    },
+    "update_ms": {
+      "median": 0.34204999999999997,
+      "p95": 0.4881,
+      "max": 0.9553
+    },
+    "render_present_ms": {
+      "median": 16.30365,
+      "p95": 16.8217,
+      "max": 18.3219
+    },
+    "total_ms": {
+      "median": 16.65325,
+      "p95": 17.1407,
+      "max": 18.7463
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0195
+    },
+    "update_ms": {
+      "median": 0.332,
+      "p95": 0.4554,
+      "max": 0.7493
+    },
+    "render_present_ms": {
+      "median": 16.30875,
+      "p95": 16.7505,
+      "max": 17.8689
+    },
+    "total_ms": {
+      "median": 16.65375,
+      "p95": 17.0888,
+      "max": 18.2261
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.1292
+    },
+    "update_ms": {
+      "median": 0.3399,
+      "p95": 0.4757,
+      "max": 0.7645
+    },
+    "render_present_ms": {
+      "median": 16.292749999999998,
+      "p95": 16.7542,
+      "max": 17.5535
+    },
+    "total_ms": {
+      "median": 16.65615,
+      "p95": 17.0643,
+      "max": 17.9188
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0006,
+      "max": 0.0194
+    },
+    "update_ms": {
+      "median": 0.30915,
+      "p95": 0.5202,
+      "max": 1.0451
+    },
+    "render_present_ms": {
+      "median": 7.4590499999999995,
+      "p95": 45.5442,
+      "max": 65.817
+    },
+    "total_ms": {
+      "median": 7.839650000000001,
+      "p95": 45.8326,
+      "max": 66.1407
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.022
+    },
+    "update_ms": {
+      "median": 0.31275,
+      "p95": 0.5121,
+      "max": 79.5686
+    },
+    "render_present_ms": {
+      "median": 7.1418,
+      "p95": 45.7574,
+      "max": 105.791
+    },
+    "total_ms": {
+      "median": 7.487,
+      "p95": 46.0731,
+      "max": 106.116
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 46"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0007,
+      "max": 0.0193
+    },
+    "update_ms": {
+      "median": 0.31285,
+      "p95": 0.4692,
+      "max": 0.7656
+    },
+    "render_present_ms": {
+      "median": 8.4896,
+      "p95": 42.4295,
+      "max": 46.0006
+    },
+    "total_ms": {
+      "median": 8.8032,
+      "p95": 42.7206,
+      "max": 46.2935
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 810 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 45",
+        " 46"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0197
+    },
+    "update_ms": {
+      "median": 0.30110000000000003,
+      "p95": 0.4815,
+      "max": 1.1985
+    },
+    "render_present_ms": {
+      "median": 7.0306999999999995,
+      "p95": 46.0265,
+      "max": 46.9808
+    },
+    "total_ms": {
+      "median": 7.37485,
+      "p95": 46.3357,
+      "max": 47.2853
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0227
+    },
+    "update_ms": {
+      "median": 0.34625,
+      "p95": 0.4674,
+      "max": 0.7214
+    },
+    "render_present_ms": {
+      "median": 16.291800000000002,
+      "p95": 16.4239,
+      "max": 32.8913
+    },
+    "total_ms": {
+      "median": 16.649050000000003,
+      "p95": 16.7857,
+      "max": 33.3161
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0167
+    },
+    "update_ms": {
+      "median": 0.3394,
+      "p95": 0.4061,
+      "max": 0.9722
+    },
+    "render_present_ms": {
+      "median": 16.308750000000003,
+      "p95": 16.4786,
+      "max": 22.4776
+    },
+    "total_ms": {
+      "median": 16.65025,
+      "p95": 16.82,
+      "max": 22.8716
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0282
+    },
+    "update_ms": {
+      "median": 0.345,
+      "p95": 0.4522,
+      "max": 0.6611
+    },
+    "render_present_ms": {
+      "median": 16.295099999999998,
+      "p95": 16.4479,
+      "max": 20.7476
+    },
+    "total_ms": {
+      "median": 16.6511,
+      "p95": 16.8012,
+      "max": 21.06
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "geometry-wgpu-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.2229
+    },
+    "update_ms": {
+      "median": 0.3467,
+      "p95": 0.5396,
+      "max": 0.8785
+    },
+    "render_present_ms": {
+      "median": 16.291600000000003,
+      "p95": 16.425,
+      "max": 17.897
+    },
+    "total_ms": {
+      "median": 16.6487,
+      "p95": 16.8144,
+      "max": 18.4119
+    },
+    "clock_samples": 12,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 607 MHz",
+        " 797 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0013,
+      "p95": 0.0017,
+      "max": 18.951
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.0005
+    },
+    "render_present_ms": {
+      "median": 4.909800000000001,
+      "p95": 5.6484,
+      "max": 33.4053
+    },
+    "total_ms": {
+      "median": 4.91345,
+      "p95": 5.6941,
+      "max": 33.4071
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1961 MHz",
+        " 1974 MHz",
+        " 607 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 405 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50",
+        " 51",
+        " 52",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0012,
+      "p95": 0.0016,
+      "max": 15.3936
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.0005
+    },
+    "render_present_ms": {
+      "median": 4.8988499999999995,
+      "p95": 5.5423,
+      "max": 41.6617
+    },
+    "total_ms": {
+      "median": 4.90325,
+      "p95": 5.5454,
+      "max": 41.6631
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51",
+        " 52",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0012,
+      "p95": 0.0016,
+      "max": 0.0491
+    },
+    "update_ms": {
+      "median": 0.0002,
+      "p95": 0.0003,
+      "max": 0.0087
+    },
+    "render_present_ms": {
+      "median": 4.89175,
+      "p95": 5.5312,
+      "max": 6.4511
+    },
+    "total_ms": {
+      "median": 4.892950000000001,
+      "p95": 5.5318,
+      "max": 6.4524
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0013,
+      "p95": 0.0017,
+      "max": 2.0787
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.0045
+    },
+    "render_present_ms": {
+      "median": 4.90335,
+      "p95": 5.434,
+      "max": 8.7261
+    },
+    "total_ms": {
+      "median": 4.90885,
+      "p95": 5.4479,
+      "max": 8.7281
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0011,
+      "p95": 0.0018,
+      "max": 0.0484
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.0004
+    },
+    "render_present_ms": {
+      "median": 4.6265,
+      "p95": 5.0362,
+      "max": 5.7097
+    },
+    "total_ms": {
+      "median": 4.6274,
+      "p95": 5.0373,
+      "max": 5.7114
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 53"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0012,
+      "p95": 0.0016,
+      "max": 0.0747
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.0004
+    },
+    "render_present_ms": {
+      "median": 4.62005,
+      "p95": 5.0136,
+      "max": 5.4674
+    },
+    "total_ms": {
+      "median": 4.62185,
+      "p95": 5.0149,
+      "max": 5.468
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53",
+        " 54"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0011,
+      "p95": 0.0015,
+      "max": 0.0559
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0003,
+      "max": 0.0666
+    },
+    "render_present_ms": {
+      "median": 4.6539,
+      "p95": 5.058,
+      "max": 5.9421
+    },
+    "total_ms": {
+      "median": 4.6576,
+      "p95": 5.0648,
+      "max": 5.9426
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53",
+        " 54"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0013,
+      "p95": 0.0018,
+      "max": 0.2759
+    },
+    "update_ms": {
+      "median": 0.0002,
+      "p95": 0.0003,
+      "max": 0.0006
+    },
+    "render_present_ms": {
+      "median": 4.62245,
+      "p95": 5.4859,
+      "max": 51.2657
+    },
+    "total_ms": {
+      "median": 4.6236999999999995,
+      "p95": 5.4877,
+      "max": 51.267
+    },
+    "clock_samples": 13,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53",
+        " 54"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0012,
+      "p95": 0.0017,
+      "max": 0.0181
+    },
+    "update_ms": {
+      "median": 0.0002,
+      "p95": 0.0003,
+      "max": 0.0091
+    },
+    "render_present_ms": {
+      "median": 6.5972,
+      "p95": 7.3898,
+      "max": 17.9175
+    },
+    "total_ms": {
+      "median": 6.6011500000000005,
+      "p95": 7.3912,
+      "max": 17.9191
+    },
+    "clock_samples": 14,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1936 MHz",
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53",
+        " 54"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0012,
+      "p95": 0.0017,
+      "max": 8.9799
+    },
+    "update_ms": {
+      "median": 0.0002,
+      "p95": 0.0003,
+      "max": 0.0089
+    },
+    "render_present_ms": {
+      "median": 6.50135,
+      "p95": 7.5088,
+      "max": 17.6889
+    },
+    "total_ms": {
+      "median": 6.50595,
+      "p95": 7.5106,
+      "max": 17.6905
+    },
+    "clock_samples": 15,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53",
+        " 54",
+        " 55"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0013,
+      "p95": 0.002,
+      "max": 0.0159
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.009
+    },
+    "render_present_ms": {
+      "median": 6.5126,
+      "p95": 7.3595,
+      "max": 16.0092
+    },
+    "total_ms": {
+      "median": 6.51415,
+      "p95": 7.3611,
+      "max": 16.0108
+    },
+    "clock_samples": 14,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 54",
+        " 55"
+      ]
+    }
+  },
+  {
+    "label": "million-bgfx-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0012,
+      "p95": 0.0016,
+      "max": 0.027
+    },
+    "update_ms": {
+      "median": 0.0001,
+      "p95": 0.0002,
+      "max": 0.0089
+    },
+    "render_present_ms": {
+      "median": 6.606949999999999,
+      "p95": 7.4541,
+      "max": 15.3262
+    },
+    "total_ms": {
+      "median": 6.6083,
+      "p95": 7.4546,
+      "max": 15.3276
+    },
+    "clock_samples": 14,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 51",
+        " 52",
+        " 53",
+        " 54",
+        " 55"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-d3d12-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.0343
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 26.240850000000002,
+      "p95": 29.307,
+      "max": 111.396
+    },
+    "total_ms": {
+      "median": 26.241349999999997,
+      "p95": 29.3076,
+      "max": 111.397
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz",
+        " 797 MHz",
+        " 987 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50",
+        " 51",
+        " 52"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-d3d12-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0715
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 26.1893,
+      "p95": 27.827,
+      "max": 33.5774
+    },
+    "total_ms": {
+      "median": 26.190150000000003,
+      "p95": 27.8296,
+      "max": 33.5778
+    },
+    "clock_samples": 22,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1961 MHz",
+        " 797 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-d3d12-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0678
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 26.152900000000002,
+      "p95": 28.2325,
+      "max": 80.7802
+    },
+    "total_ms": {
+      "median": 26.1533,
+      "p95": 28.2331,
+      "max": 80.7806
+    },
+    "clock_samples": 22,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-d3d12-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.049
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 26.298099999999998,
+      "p95": 30.737,
+      "max": 118.795
+    },
+    "total_ms": {
+      "median": 26.303350000000002,
+      "p95": 30.7376,
+      "max": 118.796
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1657 MHz",
+        " 1961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-vulkan-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.001,
+      "max": 0.0415
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 25.768549999999998,
+      "p95": 27.4764,
+      "max": 77.0856
+    },
+    "total_ms": {
+      "median": 25.76905,
+      "p95": 27.4769,
+      "max": 77.0863
+    },
+    "clock_samples": 21,
+    "clock_columns": {
+      " pstate": [
+        " P0"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1657 MHz",
+        " 1746 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-vulkan-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0009,
+      "max": 0.2642
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 25.85425,
+      "p95": 29.5036,
+      "max": 69.629
+    },
+    "total_ms": {
+      "median": 25.854999999999997,
+      "p95": 29.5043,
+      "max": 69.6296
+    },
+    "clock_samples": 22,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1746 MHz",
+        " 1974 MHz",
+        " 607 MHz",
+        " 784 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48",
+        " 49"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-vulkan-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0005,
+      "p95": 0.0008,
+      "max": 0.0285
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 25.964399999999998,
+      "p95": 29.2749,
+      "max": 94.9013
+    },
+    "total_ms": {
+      "median": 25.96495,
+      "p95": 29.2754,
+      "max": 94.902
+    },
+    "clock_samples": 22,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1759 MHz",
+        " 607 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 405 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-vulkan-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0309
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 25.7138,
+      "p95": 27.2156,
+      "max": 29.9843
+    },
+    "total_ms": {
+      "median": 25.714199999999998,
+      "p95": 27.2161,
+      "max": 29.9847
+    },
+    "clock_samples": 21,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2",
+        " P5",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1759 MHz",
+        " 607 MHz",
+        " 784 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz",
+        " 405 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-opengl-0-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0147
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 29.023000000000003,
+      "p95": 31.7316,
+      "max": 266.93
+    },
+    "total_ms": {
+      "median": 29.02335,
+      "p95": 31.7379,
+      "max": 266.93
+    },
+    "clock_samples": 24,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P8"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1974 MHz",
+        " 607 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 405 MHz"
+      ],
+      " temperature.gpu": [
+        " 46",
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-opengl-1-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0003,
+      "p95": 0.0006,
+      "max": 0.0144
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 28.8174,
+      "p95": 30.4428,
+      "max": 43.5444
+    },
+    "total_ms": {
+      "median": 28.81935,
+      "p95": 30.4431,
+      "max": 43.545
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-opengl-2-portable",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0004,
+      "p95": 0.0007,
+      "max": 0.0244
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 28.7972,
+      "p95": 30.5318,
+      "max": 39.6521
+    },
+    "total_ms": {
+      "median": 28.7977,
+      "p95": 30.5325,
+      "max": 39.6525
+    },
+    "clock_samples": 23,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P5"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1594 MHz",
+        " 1974 MHz",
+        " 784 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 4006 MHz",
+        " 810 MHz"
+      ],
+      " temperature.gpu": [
+        " 47",
+        " 48",
+        " 49",
+        " 50"
+      ]
+    }
+  },
+  {
+    "label": "million-wgpu-opengl-3-native",
+    "pass_gate": true,
+    "measured_frames": 600,
+    "event_ms": {
+      "median": 0.0003,
+      "p95": 0.0007,
+      "max": 0.0658
+    },
+    "update_ms": {
+      "median": 0.0,
+      "p95": 0.0001,
+      "max": 0.0001
+    },
+    "render_present_ms": {
+      "median": 28.865099999999998,
+      "p95": 32.0373,
+      "max": 237.894
+    },
+    "total_ms": {
+      "median": 28.86535,
+      "p95": 32.0378,
+      "max": 237.895
+    },
+    "clock_samples": 24,
+    "clock_columns": {
+      " pstate": [
+        " P0",
+        " P2"
+      ],
+      " clocks.current.graphics [MHz]": [
+        " 1974 MHz",
+        " 961 MHz"
+      ],
+      " clocks.current.memory [MHz]": [
+        " 3802 MHz",
+        " 4006 MHz"
+      ],
+      " temperature.gpu": [
+        " 50",
+        " 51"
+      ]
+    }
+  }
+]

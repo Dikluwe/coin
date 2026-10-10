@@ -1,3 +1,6 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
+#include "CoinRenderTestEnvironment.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -161,15 +164,16 @@ static bool center(const std::vector<uint8_t> &pixels, const int expected[3],
   return check(ok && maximum <= tolerance, label);
 }
 int main(int argc, char **argv) {
+  configureSamplingTest(argc, argv);
   SoDB::init();
   CoinRenderAction::initClass();
   bool gpu = argc > 1 && std::string(argv[1]) == "--gpu";
   bool ok = numeric();
   Scene scene;
-  CoinRenderOptions options;
+  CoinRenderOptions options = samplingTestOptions();
   options.storedTextureColorSpace = COIN_RENDER_TEXTURE_SRGB;
   std::unique_ptr<CoinRenderTarget> captureTarget(
-      CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), options));
+      samplingTestOffscreen(SbVec2i32(32, 32), options));
   auto *capture = new Capture;
   captureTarget->getPimpl()->backend.reset(capture);
   CoinRenderAction action(SbViewportRegion(32, 32));
@@ -180,11 +184,12 @@ int main(int argc, char **argv) {
               "authored SRGB opt-in capture");
   CoinRenderFramePlan base = capture->plan;
   CoinRenderTargetP cpu(SbVec2i32(32, 32));
+  cpu.options.textureSamplingPolicy = samplingTestPolicy;
   cpu.backend.reset(new CoinRenderCpuReferenceBackend);
   CoinRenderRenderer selectedRenderer = COIN_RENDER_RENDERER_UNKNOWN;
   std::unique_ptr<CoinRenderTarget> native;
   if (gpu) {
-    native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(32, 32)));
+    native.reset(samplingTestOffscreen(SbVec2i32(32, 32)));
     CoinRenderCapabilities caps{};
     coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
                                    sizeof(caps));
@@ -215,6 +220,203 @@ int main(int argc, char **argv) {
     }
     return passed;
   };
+  if (argc > 2 && std::string(argv[2]) == "--sampling-rtt-study") {
+    // Public SoSceneTexture2 always uses linear/trilinear. This explicitly
+    // authored private consumer tests filter2 against a direct GPU resource.
+    CoinRenderOptions directOptions = samplingTestOptions();directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    directOptions.renderer=selectedRenderer;
+    std::unique_ptr<CoinRenderTarget> direct(samplingTestOffscreen(SbVec2i32(32,32),directOptions));
+    unsigned cases=0;
+    for(F format : {F::RGBA8_LINEAR,F::RGBA16_FLOAT}) for(unsigned unit : {0u,7u})
+    for(auto size : {SbVec2i32(512,128),SbVec2i32(1024,64),SbVec2i32(128,256),SbVec2i32(512,128)})
+    for(float step : {1.f/16384,1.f/16,3.f/32}) {
+      auto root=base;
+      auto &image=root.textures[0];image.width=size[0];image.height=size[1];image.format=format;
+      image.pixelsRgba.clear();image.mipmapsRgba.clear();image.mipmapped=true;image.producerId=1;
+      root.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+      for(auto &vertex:root.vertices) {
+        vertex.texcoord[0]=.49999237060546875f+((vertex.position[0]+1)*16-15.5f)*step;
+        vertex.texcoord[1]=.53125f;
+        if(unit)for(unsigned c=0;c<2;++c)vertex.extraTexcoords[6][c]=vertex.texcoord[c];
+      }
+      for(auto &state:root.renderStates)if(unit) {
+        auto layer=coin_render_texture_unit(state,0);state.hasTexture=false;state.extraTextures[6]=layer;
+      }
+      CoinRenderRttProducer producer;producer.sourceRevision=++revision;
+      producer.size=size;producer.format=format;producer.plan=base;producer.plan.revision=revision;
+      for(auto &draw:producer.plan.draws)draw.sourceRevision=revision;
+      for(auto &viewport:producer.plan.viewports){viewport.width=size[0];viewport.height=size[1];}
+      // Captured square projection and clip-space quad deliberately fill the
+      // rectangular target. This isolates sampling from camera aspect policy.
+      auto &source=producer.plan.textures[0];source.width=128;source.height=16;source.format=F::RGBA8_LINEAR;
+      source.mipmapped=false;source.mipmapsRgba.clear();source.pixelsRgba.assign(128*16*4,255);
+      for(unsigned y=0;y<16;++y)for(unsigned x=0;x<128;++x)for(unsigned c=0;c<3;++c)
+        source.pixelsRgba[(y*128+x)*4+c]=x<64?40:160;
+      producer.plan.samplers[0].filter=CoinRenderTextureFilter::NEAREST;
+      CoinRenderRttPlan graph(COIN_RENDER_SCENE_TEXTURE_DIRECT);uint64_t id;std::string diagnostic;
+      ok &= check(graph.append(producer,id,diagnostic),"direct half-band capture "+diagnostic);
+      CoinRenderRttExecution execution(direct->getPimpl().operator->(),directOptions);CoinRenderFramePlan resolved;
+      auto result=execution.prepare(graph,root,resolved);
+      ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,"direct half-band prepare "+result.diagnostic);
+      if(result.status!=CoinRenderBackendStatus::SUCCESS)continue;
+      resolved.revision=++revision;for(auto &draw:resolved.draws)draw.sourceRevision=revision;
+      result=direct->getPimpl()->executeFrame(resolved);
+      ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,"direct half-band consumer "+result.diagnostic);
+      std::vector<uint8_t> pixels;direct->readbackRGBA(pixels);
+      double mae=0;int maximum=0;unsigned samples=0;
+      if(pixels.size()==32*32*4)for(int y=2;y<30;++y)for(int x=2;x<30;++x)for(int c=0;c<3;++c) {
+        const double uv=.49999237060546875+(x-15)*double(step);const double wrapped=uv-std::floor(uv);
+        double expected=wrapped<.5?40:160;
+        if(step==1.f/16384) {
+          const double at=wrapped*size[0]-.5;const int left=int(std::floor(at));const double f=at-left;
+          const auto band=[&](int at){at=(at%size[0]+size[0])%size[0];return at<size[0]/2?40.:160.;};
+          expected=band(left)+(band(left+1)-band(left))*f;
+        }
+        const int delta=std::abs(int(pixels[(y*32+x)*4+c])-int(std::lround(expected)));
+        mae+=delta;maximum=std::max(maximum,delta);++samples;
+      }
+      if(samples)mae/=samples;
+      const std::string label="direct-filter2/"+std::to_string(size[0])+"x"+std::to_string(size[1])+"/format-"+
+        std::to_string(unsigned(format))+"/unit-"+std::to_string(unit)+"/step-"+std::to_string(step);
+      std::cout<<label<<" samples="<<samples<<" mae="<<mae<<" maximum="<<maximum<<'\n';
+      ok &= check(samples==28*28*3 && mae<=1.5 && maximum<=4,label+" scalar oracle");++cases;
+    }
+    std::cout<<"direct filter2 sampling cases="<<cases<<" controls="<<controls<<" result="<<(ok?"PASS":"FAIL")<<'\n';
+    return ok?0:1;
+  }
+  const bool viewportStudy=argc>2 && std::string(argv[2])=="--sampling-viewport-study";
+  if (viewportStudy || (argc > 2 && std::string(argv[2]) == "--sampling-deep-study")) {
+    // Independent half-band oracle at integer/fractional deep LOD. Original UV
+    // derivatives select LOD8 at width4096; source coordinates lie just below
+    // the half-texture boundary. Native AMD rounding chose the opposite band.
+    unsigned cases = 0;
+    for (auto size : {std::pair<unsigned,unsigned>{128,128}, {512,512},
+                     {4096,4096}, {4096,128}, {511,257}})
+    for (F format : {F::RGBA8_LINEAR, F::RGBA8_SRGB, F::RGBA16_FLOAT,
+                     F::BC3_LINEAR, F::BC3_SRGB}) {
+      // The larger square is the precision regression, typed formats use the
+      // rectangular control to bound memory while preserving the same LOD.
+      if (format != F::RGBA8_LINEAR && size != std::make_pair(4096u,128u)) continue;
+      if(viewportStudy && (format!=F::RGBA8_LINEAR || (size!=std::make_pair(4096u,128u) && size!=std::make_pair(511u,257u))))continue;
+      auto authored = base;
+      auto &image = authored.textures[0];
+      image.width=size.first; image.height=size.second; image.format=format;
+      image.mipmapped=false; image.mipmapsRgba.clear();
+      image.pixelsRgba.assign(Format::levelBytes(image.width,image.height,format),0);
+      const auto fill = [&](std::vector<uint8_t> &bytes,unsigned width,unsigned height) {
+        if (Format::compressed(format)) {
+          // Independently authored BC3 blocks: opaque RGB565 endpoints and
+          // selector zero; each mip is explicit, with no encode dependency.
+          for(unsigned y=0;y<(height+3)/4;++y) for(unsigned x=0;x<(width+3)/4;++x) {
+            auto *b=bytes.data()+(y*((width+3)/4)+x)*16;
+            b[0]=255; Format::write16(b+8,x*4<width/2?0x2800:0xa000);
+          }
+        } else for(unsigned y=0;y<height;++y) for(unsigned x=0;x<width;++x) {
+          const uint8_t band=x<width/2?40:160;
+          const size_t i=size_t(y)*width+x;
+          if(format==F::RGBA16_FLOAT) {
+            for(unsigned c=0;c<4;++c) Format::write16(bytes.data()+i*8+c*2,
+              Format::toHalf(c==3?1.f:float(band)/255.f));
+          } else {
+            for(unsigned c=0;c<3;++c) bytes[i*4+c]=band;
+            bytes[i*4+3]=255;
+          }
+        }
+      };
+      fill(image.pixelsRgba,image.width,image.height);
+      if (Format::compressed(format)) {
+        unsigned w=image.width,h=image.height;
+        while(w>1 || h>1) {
+          w=std::max(1u,w/2);h=std::max(1u,h/2);
+          std::vector<uint8_t> level(Format::levelBytes(w,h,format),0);
+          fill(level,w,h);image.mipmapsRgba.insert(image.mipmapsRgba.end(),level.begin(),level.end());
+        }
+        image.mipmapped=true;
+      } else ok &= check(Sampling::generate(image),"deep authored complete chain");
+      for(float step : {1.f/16384,1.f/16,3.f/32}) for(unsigned unit : {0u,7u,8u})
+      for(CoinRenderTextureWrap wrap : {CoinRenderTextureWrap::REPEAT,CoinRenderTextureWrap::CLAMP}) {
+        auto frame=authored;
+        if(viewportStudy)for(auto &viewport:frame.viewports){viewport.x=4;viewport.y=5;viewport.width=24;viewport.height=18;}
+        const unsigned x0=viewportStudy?6:2,x1=viewportStudy?26:30;
+        const unsigned y0=viewportStudy?11:2,y1=viewportStudy?25:30;
+        frame.samplers[0].filter=CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+        frame.samplers[0].wrapS=frame.samplers[0].wrapT=wrap;
+        frame.samplers[0].maxAnisotropy=1;
+        for(auto &vertex:frame.vertices) {
+          vertex.texcoord[0]=.49999237060546875f+((vertex.position[0]+1)*16-15.5f)*step;
+          vertex.texcoord[1]=.53125f;
+          if(unit) for(unsigned c=0;c<2;++c) vertex.extraTexcoords[6][c]=vertex.texcoord[c];
+        }
+        for(auto &state:frame.renderStates) if(unit) {
+          auto layer=coin_render_texture_unit(state,0);
+          state.hasTexture=unit==8;state.extraTextures[6]=layer;
+        }
+        frame.revision=++revision;for(auto &draw:frame.draws) draw.sourceRevision=frame.revision;
+        const std::string label=std::string(viewportStudy?"viewport-inset/":"deep/")+std::to_string(size.first)+"x"+std::to_string(size.second)+
+          "/format-"+std::to_string(unsigned(format))+"/step-"+std::to_string(step)+
+          "/unit-"+std::to_string(unit)+"/wrap-"+std::to_string(unsigned(wrap));
+        auto result=cpu.executeFrame(frame);
+        ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,label+" CPU "+result.diagnostic);
+        if(size.first==4096 && step>=1.f/16 && cpu.colorBuffer.size()==32*32*4) {
+          const int expected = format==F::RGBA8_SRGB?5 : format==F::BC3_SRGB?6 : format==F::BC3_LINEAR?41:40;
+          ok &= check(std::abs(int(cpu.colorBuffer[(16*32+15)*4])-expected)<=1,
+            label+" independent low-band oracle at boundary pixel");
+        }
+        if(native) {
+          result=native->getPimpl()->executeFrame(frame);
+          ok &= check(result.status==CoinRenderBackendStatus::SUCCESS,label+" GPU "+result.diagnostic);
+          std::vector<uint8_t> pixels;native->readbackRGBA(pixels);
+          double mae=0;int maximum=0;unsigned samples=0;
+          if(pixels.size()==cpu.colorBuffer.size() && pixels.size()==32*32*4)
+            for(unsigned y=y0;y<y1;++y) for(unsigned x=x0;x<x1;++x) for(unsigned c=0;c<4;++c) {
+              const auto i=(y*32+x)*4+c;const int delta=std::abs(int(pixels[i])-int(cpu.colorBuffer[i]));
+              mae+=delta;maximum=std::max(maximum,delta);++samples;
+            }
+          if(samples) mae/=samples;
+          std::cout<<label<<" samples="<<samples<<" mae="<<mae<<" maximum="<<maximum<<'\n';
+          ok &= check(samples==(x1-x0)*(y1-y0)*4 && mae<=1.5 && maximum<=4,label+" CPU/GPU strict interior");
+        }
+        ++cases;
+      }
+    }
+    std::cout<<"deep sampling cases="<<cases<<" controls="<<controls<<" result="<<(ok?"PASS":"FAIL")<<'\n';
+    return ok?0:1;
+  }
+  // Independent alpha oracle: constant byte 128 must remain exact across
+  // fractional/projective mip blends. This does not depend on CoinGL clamping.
+  using Alpha = CoinRenderAlphaTestFunction;
+  for (unsigned filter = 0; filter < 4; ++filter) for (unsigned unit : {0u, 7u}) {
+    auto frame = base;
+    frame.clearColor = SbColor4f(0, 0, 0, 1);
+    auto & image = frame.textures[0];
+    image.width = image.height = 64; image.format = F::RGBA8_LINEAR;
+    image.mipmapsRgba.clear(); image.mipmapped = false;
+    image.pixelsRgba.assign(64 * 64 * 4, 0);
+    for (size_t i = 0; i < 64 * 64; ++i) {
+      image.pixelsRgba[i * 4] = 255; image.pixelsRgba[i * 4 + 3] = 128;
+    }
+    frame.samplers[0].filter = CoinRenderTextureFilter(filter);
+    if (filter >= 2) ok &= check(Sampling::generate(image), "alpha authored mip chain");
+    for (auto & vertex : frame.vertices) if (unit)
+      for (unsigned c = 0; c < 2; ++c) vertex.extraTexcoords[unit - 1][c] = vertex.texcoord[c];
+    for (auto & state : frame.renderStates) {
+      state.transparencyType = SoGLRenderAction::BLEND;
+      state.textureMatrix[0][3] = .3f;
+      if (unit) {
+        auto layer = coin_render_texture_unit(state, 0);
+        state.hasTexture = false; state.extraTextures[unit - 1] = layer;
+      }
+    }
+    for (Alpha function : {Alpha::EQUAL, Alpha::NOTEQUAL, Alpha::LESS, Alpha::GREATER, Alpha::GEQUAL}) {
+      for (auto & state : frame.renderStates) {
+        state.alphaTestFunction = function; state.alphaTestReference = 128.f / 255.f;
+      }
+      const bool visible = function == Alpha::EQUAL || function == Alpha::GEQUAL;
+      const int expected[] = {visible ? 128 : 0, 0, 0};
+      ok &= render(frame, expected, "portable alpha/filter-" + std::to_string(filter) +
+          "/unit-" + std::to_string(unit) + "/function-" + std::to_string(unsigned(function)));
+    }
+  }
   const int srgbExpected[] = {55, 55, 55};
   ok &= render(base, srgbExpected, "SRGB 128 decodes to linear 55");
   auto plan = base;
@@ -355,8 +557,16 @@ int main(int argc, char **argv) {
     ok &= render(frame, expected,
                  "linear alpha in format " + std::to_string(uint32_t(format)));
   }
+  const auto firstUploadFilter = capture->plan.samplers[0].filter;
   scene.texture->enableCompressedTexture = TRUE;
   scene.quality->textureQuality = .8f;
+  action.apply(scene.root);
+  ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                  capture->plan.samplers[0].filter == firstUploadFilter,
+              "quality hint without image notification retains first upload filter");
+  // The current upload contract retains quality until image/wrap notification.
+  // Reupload identical bytes before requiring the newly requested mip chain.
+  scene.texture->image.touch();
   action.apply(scene.root);
   ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
                   capture->plan.textures[0].format == F::BC3_SRGB &&
@@ -378,7 +588,13 @@ int main(int argc, char **argv) {
                   capture->plan.textures[0].width == 3 &&
                   capture->plan.textures[0].height == 5,
               "NPOT recovery preserves native extent");
+  const auto priorUploadAnisotropy = capture->plan.samplers[0].maxAnisotropy;
   scene.quality->textureQuality = .9f;
+  action.apply(scene.root);
+  ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                  capture->plan.samplers[0].maxAnisotropy == priorUploadAnisotropy,
+              "anisotropy hint without image notification retains first upload sampler");
+  scene.texture->image.touch();
   action.apply(scene.root);
   ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
                   capture->plan.samplers[0].maxAnisotropy == 16,
@@ -421,32 +637,107 @@ int main(int argc, char **argv) {
     }
   }
   const int mixedExpected[] = {0, 0, 128};
+  ok &= render(
+      mixed, mixedExpected,
+      "base-only and mip consumer share one image without LOD contamination");
 #ifdef HAVE_COIN_BGFX
   if (native && selectedRenderer == COIN_RENDER_RENDERER_OPENGL) {
     mixed.revision = ++revision;
     for (auto &draw : mixed.draws)
       draw.sourceRevision = mixed.revision;
-    ok &= check(cpu.executeFrame(mixed).status ==
-                    CoinRenderBackendStatus::SUCCESS,
-                "CPU mixed sampler profile");
-    ok &= center(cpu.colorBuffer, mixedExpected,
-                 "CPU mixed sampler independent color");
-    std::vector<uint8_t> before, after;
-    native->readbackRGBA(before);
-    const auto serial = native->getPimpl()->lastSubmissionSerial;
-    auto result = native->getPimpl()->executeFrame(mixed);
-    native->readbackRGBA(after);
-    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED &&
-                    result.diagnostic.find("mix") != std::string::npos &&
-                    before == after &&
-                    serial == native->getPimpl()->lastSubmissionSerial,
-                "BGFX GL mixed samplers reject without LOD contamination or "
-                "publication");
-  } else
+    for (int replay = 0; replay < 2; ++replay) {
+      auto result = native->getPimpl()->executeFrame(mixed);
+      ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                  "BGFX GL mixed sampler replay status");
+      std::vector<uint8_t> pixels;
+      native->readbackRGBA(pixels);
+      ok &= center(pixels, mixedExpected,
+                   "BGFX GL mixed sampler replay color");
+    }
+    CoinRenderOptions directOptions = samplingTestOptions();
+    directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+    directOptions.renderer = selectedRenderer;
+    std::unique_ptr<CoinRenderTarget> direct(
+        samplingTestOffscreen(SbVec2i32(32, 32), directOptions));
+    auto root = mixed;
+    root.textures[0].pixelsRgba.clear();
+    root.textures[0].mipmapsRgba.clear();
+    root.textures[0].producerId = 1;
+    CoinRenderRttProducer producer;
+    producer.sourceRevision = ++revision;
+    producer.size = SbVec2i32(4, 4);
+    producer.format = F::RGBA8_LINEAR;
+    producer.plan = base;
+    producer.plan.revision = revision;
+    producer.plan.textures[0] = shared;
+    producer.plan.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
+    for (auto &draw : producer.plan.draws) draw.sourceRevision = revision;
+    for (auto &viewport : producer.plan.viewports) {
+      viewport.width = 4;
+      viewport.height = 4;
+    }
+    CoinRenderRttPlan graph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    uint64_t id = 0;
+    std::string diagnostic;
+    ok &= check(graph.append(producer, id, diagnostic),
+                "BGFX GL mixed direct graph " + diagnostic);
+    CoinRenderRttExecution execution(direct->getPimpl().operator->(), directOptions);
+    CoinRenderFramePlan resolved;
+    auto result = execution.prepare(graph, root, resolved);
+    ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                "BGFX GL mixed direct prepare " + result.diagnostic);
+    if (result.status == CoinRenderBackendStatus::SUCCESS) {
+      resolved.revision = ++revision;
+      for (auto &draw : resolved.draws) draw.sourceRevision = resolved.revision;
+      for (int replay = 0; replay < 2; ++replay) {
+        result = direct->getPimpl()->executeFrame(resolved);
+        ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                    "BGFX GL mixed direct consumer " + result.diagnostic);
+        std::vector<uint8_t> pixels;
+        direct->readbackRGBA(pixels);
+        ok &= center(pixels, mixedExpected, "BGFX GL mixed direct color");
+      }
+    }
+    CoinRenderRttPlan nested(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    ok &= check(nested.append(producer, id, diagnostic),
+                "BGFX GL nested mixed first producer " + diagnostic);
+    CoinRenderRttProducer second;
+    second.sourceRevision = ++revision;
+    second.size = SbVec2i32(4, 4);
+    second.format = F::RGBA8_LINEAR;
+    second.plan = root;
+    second.plan.revision = revision;
+    for (auto &draw : second.plan.draws) draw.sourceRevision = revision;
+    for (auto &viewport : second.plan.viewports) {
+      viewport.width = 4;
+      viewport.height = 4;
+    }
+    ok &= check(nested.append(second, id, diagnostic),
+                "BGFX GL nested mixed second producer " + diagnostic);
+    auto nestedRoot = base;
+    nestedRoot.textures[0].pixelsRgba.clear();
+    nestedRoot.textures[0].mipmapsRgba.clear();
+    nestedRoot.textures[0].format = F::RGBA8_LINEAR;
+    nestedRoot.textures[0].producerId = 2;
+    nestedRoot.textures[0].mipmapped = false;
+    nestedRoot.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
+    CoinRenderRttExecution nestedExecution(direct->getPimpl().operator->(), directOptions);
+    CoinRenderFramePlan nestedResolved;
+    result = nestedExecution.prepare(nested, nestedRoot, nestedResolved);
+    ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                "BGFX GL nested mixed prepare " + result.diagnostic);
+    if (result.status == CoinRenderBackendStatus::SUCCESS) {
+      nestedResolved.revision = ++revision;
+      for (auto &draw : nestedResolved.draws) draw.sourceRevision = revision;
+      result = direct->getPimpl()->executeFrame(nestedResolved);
+      ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                  "BGFX GL nested mixed consumer " + result.diagnostic);
+      std::vector<uint8_t> pixels;
+      direct->readbackRGBA(pixels);
+      ok &= center(pixels, mixedExpected, "BGFX GL nested mixed color");
+    }
+  }
 #endif
-    ok &= render(
-        mixed, mixedExpected,
-        "base-only and mip consumer share one image without LOD contamination");
   // A long X footprint must retain Y stripes rather than blur both axes.
   auto stripes = base;
   auto &striped = stripes.textures[0];
@@ -524,11 +815,11 @@ int main(int argc, char **argv) {
                   prior == cpu.colorBuffer,
               "invalid anisotropy preserves publication");
   if (gpu) {
-    CoinRenderOptions directOptions;
+    CoinRenderOptions directOptions = samplingTestOptions();
     directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
     directOptions.renderer = selectedRenderer;
     std::unique_ptr<CoinRenderTarget> direct(
-        CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), directOptions));
+        samplingTestOffscreen(SbVec2i32(32, 32), directOptions));
     auto hdrRoot = base;
     hdrRoot.textures[0].pixelsRgba.clear();
     hdrRoot.textures[0].mipmapsRgba.clear();
@@ -545,6 +836,7 @@ int main(int argc, char **argv) {
     producer.format = F::RGBA16_FLOAT;
     producer.plan = base;
     producer.plan = CoinRenderFramePlan();
+    producer.plan.textureSamplingPolicy = samplingTestPolicy;
     producer.plan.clearColor = SbColor4f(2, .5f, .25f, 1);
     uint64_t id;
     std::string diagnostic;
@@ -578,76 +870,155 @@ int main(int argc, char **argv) {
                    mips ? "HDR direct GPU mips"
                         : "HDR direct base retains values above 1");
     }
-    // Nonconstant NPOT producer: exact area reduction must include column 2.
-    auto npotRoot = base;
-    npotRoot.textures[0].format = F::RGBA8_LINEAR;
-    npotRoot.textures[0].pixelsRgba.clear();
-    npotRoot.textures[0].producerId = 1;
-    npotRoot.textures[0].width = 3;
-    npotRoot.textures[0].height = 5;
-    npotRoot.textures[0].mipmapped = true;
-    npotRoot.samplers[0].filter = CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
-    for (auto &vertex : npotRoot.vertices) {
-      vertex.texcoord[0] *= 128;
-      vertex.texcoord[1] *= 128;
+    // The final level must include every odd row/column, even for 1xN/Nx1.
+    const int npotExtents[][3] = {
+      {3, 5, 1}, {1, 5, 1}, {5, 1, 1}, {5, 7, 1},
+      {129, 127, 43}, {2047, 2047, 682}
+    };
+    for (const auto &extent : npotExtents) {
+      const int oddWidth = extent[0], oddHeight = extent[1];
+      const int stripeWidth = extent[2];
+      const std::string npotLabel = std::to_string(oddWidth) + "x" +
+                                    std::to_string(oddHeight);
+      auto npotRoot = base;
+      npotRoot.textures[0].format = F::RGBA8_LINEAR;
+      npotRoot.textures[0].pixelsRgba.clear();
+      npotRoot.textures[0].producerId = 1;
+      npotRoot.textures[0].width = oddWidth;
+      npotRoot.textures[0].height = oddHeight;
+      npotRoot.textures[0].mipmapped = true;
+      npotRoot.samplers[0].filter = CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+      for (auto &vertex : npotRoot.vertices) {
+        vertex.texcoord[0] *= 128;
+        vertex.texcoord[1] *= 128;
+      }
+      auto oddProducer = producer;
+      oddProducer.format = F::RGBA8_LINEAR;
+      oddProducer.size = SbVec2i32(oddWidth, oddHeight);
+      oddProducer.sourceRevision = 456 + oddWidth * 100 + oddHeight;
+      oddProducer.plan = base;
+      oddProducer.plan.revision = ++revision;
+      for (auto &draw : oddProducer.plan.draws)
+        draw.sourceRevision = oddProducer.plan.revision;
+      for (auto &viewport : oddProducer.plan.viewports) {
+        viewport.width = oddWidth;
+        viewport.height = oddHeight;
+      }
+      auto &oddImage = oddProducer.plan.textures[0];
+      oddImage.width = oddWidth;
+      oddImage.height = oddHeight;
+      oddImage.format = F::RGBA8_LINEAR;
+      oddImage.pixelsRgba.assign(oddWidth * oddHeight * 4, 255);
+      for (int y = 0; y < oddHeight; ++y)
+        for (int x = 0; x < oddWidth; ++x)
+          for (unsigned c = 0; c < 3; ++c)
+            oddImage.pixelsRgba[(y * oddWidth + x) * 4 + c] =
+              (oddWidth > 1 ? x >= oddWidth - stripeWidth :
+                              y >= oddHeight - stripeWidth) ? 255 : 0;
+      oddProducer.plan.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
+      CoinRenderRttPlan oddGraph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+      ok &= check(oddGraph.append(oddProducer, id, diagnostic),
+                  "NPOT producer graph " + npotLabel);
+      uint64_t successfulToken = 0;
+      {
+        CoinRenderRttExecution execution(direct->getPimpl().operator->(),
+                                         directOptions);
+        CoinRenderFramePlan resolved;
+        std::vector<uint8_t> before;
+        direct->readbackRGBA(before);
+        const auto priorSerial = direct->getPimpl()->lastSubmissionSerial;
+#ifdef HAVE_COIN_BGFX
+        if (oddWidth == 3) {
+          coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", "1");
+          const auto failed = execution.prepare(oddGraph, npotRoot, resolved);
+          coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", nullptr);
+          ok &= check(failed.status == CoinRenderBackendStatus::OUT_OF_MEMORY,
+                      "BGFX NPOT mip allocation fault is reported");
+          std::vector<uint8_t> after;
+          direct->readbackRGBA(after);
+          ok &= check(before == after &&
+                        priorSerial == direct->getPimpl()->lastSubmissionSerial,
+                      "BGFX NPOT mip fault retains pixels/serial");
+        }
+#endif
+        auto result = execution.prepare(oddGraph, npotRoot, resolved);
+        ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
+                    "NPOT direct mip prepare " + npotLabel + " " + result.diagnostic);
+        if (result.status == CoinRenderBackendStatus::SUCCESS) {
+          successfulToken = resolved.textures[0].gpuToken;
+          resolved.revision = ++revision;
+          ok &= check(direct->getPimpl()->executeFrame(resolved).status ==
+                          CoinRenderBackendStatus::SUCCESS,
+                      "NPOT direct mip consumer " + npotLabel);
+        }
+        std::vector<uint8_t> pixels;
+        direct->readbackRGBA(pixels);
+        const int value = int(std::lround(255.0 * stripeWidth /
+          (oddWidth > 1 ? oddWidth : oddHeight)));
+        const int expected[] = {value, value, value};
+        ok &= center(pixels, expected,
+                     "NPOT direct final mip independent area oracle " + npotLabel);
+      }
+#ifdef HAVE_COIN_BGFX
+      if (oddWidth == 3 && successfulToken) {
+        // A failed replacement must leave the previously published token alive.
+        CoinRenderRttExecution replacement(direct->getPimpl().operator->(),
+                                           directOptions);
+        CoinRenderFramePlan resolved;
+        std::vector<uint8_t> before, after;
+        direct->readbackRGBA(before);
+        const auto priorSerial = direct->getPimpl()->lastSubmissionSerial;
+        coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", "1");
+        const auto failed = replacement.prepare(oddGraph, npotRoot, resolved);
+        coinRenderTestSetEnvironment("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE", nullptr);
+        direct->readbackRGBA(after);
+        ok &= check(failed.status == CoinRenderBackendStatus::OUT_OF_MEMORY &&
+                      priorSerial == direct->getPimpl()->lastSubmissionSerial &&
+                      before == after,
+                    "BGFX NPOT cached replacement fault keeps publication");
+        const auto recovered = replacement.prepare(oddGraph, npotRoot, resolved);
+        ok &= check(recovered.status == CoinRenderBackendStatus::SUCCESS &&
+                      resolved.textures[0].gpuToken == successfulToken,
+                    "BGFX NPOT cached token recovers after failed replacement");
+        if (recovered.status == CoinRenderBackendStatus::SUCCESS) {
+          resolved.revision = ++revision;
+          ok &= check(direct->getPimpl()->executeFrame(resolved).status ==
+                          CoinRenderBackendStatus::SUCCESS,
+                      "BGFX NPOT cached replacement consumer");
+          direct->readbackRGBA(after);
+          ok &= check(after == before,
+                      "BGFX NPOT cached replacement reproduces pixels");
+        }
+      }
+#endif
     }
-    auto oddProducer = producer;
-    oddProducer.format = F::RGBA8_LINEAR;
-    oddProducer.size = SbVec2i32(3, 5);
-    oddProducer.sourceRevision = 456;
-    oddProducer.plan = base;
-    oddProducer.plan.revision = ++revision;
-    for (auto &draw : oddProducer.plan.draws)
-      draw.sourceRevision = oddProducer.plan.revision;
-    for (auto &viewport : oddProducer.plan.viewports) {
-      viewport.width = 3;
-      viewport.height = 5;
-    }
-    auto &oddImage = oddProducer.plan.textures[0];
-    oddImage.width = 3;
-    oddImage.height = 5;
-    oddImage.format = F::RGBA8_LINEAR;
-    oddImage.pixelsRgba.assign(3 * 5 * 4, 255);
-    for (unsigned y = 0; y < 5; ++y)
-      for (unsigned x = 0; x < 3; ++x)
-        for (unsigned c = 0; c < 3; ++c)
-          oddImage.pixelsRgba[(y * 3 + x) * 4 + c] = x == 2 ? 255 : 0;
-    oddProducer.plan.samplers[0].filter = CoinRenderTextureFilter::NEAREST;
-    CoinRenderRttPlan oddGraph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
-    ok &= check(oddGraph.append(oddProducer, id, diagnostic),
-                "NPOT producer graph");
+    // Float output must keep HDR values through every NPOT reduction level.
+    auto npotHdrRoot = hdrRoot;
+    npotHdrRoot.textures[0].width = 3;
+    npotHdrRoot.textures[0].height = 5;
+    npotHdrRoot.textures[0].mipmapped = true;
+    auto npotHdrProducer = producer;
+    npotHdrProducer.size = SbVec2i32(3, 5);
+    npotHdrProducer.sourceRevision = 777;
+    CoinRenderRttPlan npotHdrGraph(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    ok &= check(npotHdrGraph.append(npotHdrProducer, id, diagnostic),
+                "NPOT HDR producer graph");
     {
       CoinRenderRttExecution execution(direct->getPimpl().operator->(),
                                        directOptions);
       CoinRenderFramePlan resolved;
-      std::vector<uint8_t> before;
-      direct->readbackRGBA(before);
-      const auto priorSerial = direct->getPimpl()->lastSubmissionSerial;
-      auto result = execution.prepare(oddGraph, npotRoot, resolved);
-#ifdef HAVE_COIN_BGFX
-      ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED &&
-                      result.diagnostic.find("POT") != std::string::npos,
-                  "BGFX refuses NPOT direct mips before producer publication");
-      std::vector<uint8_t> after;
-      direct->readbackRGBA(after);
-      ok &= check(before == after &&
-                      priorSerial == direct->getPimpl()->lastSubmissionSerial,
-                  "BGFX NPOT mip rejection retains pixels/serial");
-#else
+      auto result = execution.prepare(npotHdrGraph, npotHdrRoot, resolved);
       ok &= check(result.status == CoinRenderBackendStatus::SUCCESS,
-                  "NPOT direct mip prepare " + result.diagnostic);
+                  "NPOT HDR direct mip prepare " + result.diagnostic);
       if (result.status == CoinRenderBackendStatus::SUCCESS) {
         resolved.revision = ++revision;
         ok &= check(direct->getPimpl()->executeFrame(resolved).status ==
                         CoinRenderBackendStatus::SUCCESS,
-                    "NPOT direct mip consumer");
+                    "NPOT HDR direct mip consumer");
       }
       std::vector<uint8_t> pixels;
       direct->readbackRGBA(pixels);
-      const int expected[] = {85, 85, 85};
-      ok &= center(pixels, expected,
-                   "NPOT direct final mip independent area oracle");
-#endif
+      ok &= center(pixels, hdrExpected, "NPOT HDR mips retain value above one");
     }
     CoinRenderRttPlan stagedHdr = graph;
     stagedHdr.mode = COIN_RENDER_SCENE_TEXTURE_STAGED;

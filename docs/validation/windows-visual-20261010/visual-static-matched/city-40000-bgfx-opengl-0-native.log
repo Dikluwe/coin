@@ -1,0 +1,10 @@
+loaded_module name=Coin4.dll path=H:\Git\coin\build\sampling-win-20261010\install-bgfx\bin\Coin4.dll
+loaded_module name=CoinRender4.dll path=H:\Git\coin\build\sampling-win-20261010\install-bgfx\bin\CoinRender4.dll
+receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=city-40000 policy=native extent=1280x960 dpi=96
+fixture buildings=40000 triangles=480000 million_instances=0 lighting=directional palette=8
+scene cube_instances=40000 counted_triangles=480000 primitive_triangle_count_known=1 textured=0 camera_static=1
+visible_coverage=307001 of=1228800
+surface_oracle stage=initial rgb_max=1 exact=0 gdi=0 outside_measurement=1
+visible_coverage=307001 of=1228800
+surface_oracle stage=final rgb_max=1 exact=0 gdi=0 outside_measurement=1
+window_campaign result=0 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=PostMessage event_count=0

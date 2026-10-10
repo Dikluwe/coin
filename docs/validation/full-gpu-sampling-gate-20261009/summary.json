@@ -1,0 +1,144 @@
+{
+  "binary": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderTextureSamplingTest",
+  "binary_sha256": "5c5f44afd27e24ff5a619f10ab79e04231b35151cbe61aaf755939d85c662ac3",
+  "mesa_prefix": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install",
+  "mesa_gallium_sha256": "440268c843b34cbafb756f1add24c3d90a2ecba7faa7671b0e705d9f9b560f41",
+  "results": [
+    {
+      "gpu": "amd",
+      "api": "vulkan",
+      "policy": "native",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) renderer=1 vendor=4098 device=5688",
+      "gl_adapter": "",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "amd-vulkan-native.log",
+      "log_sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b"
+    },
+    {
+      "gpu": "amd",
+      "api": "vulkan",
+      "policy": "portable",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) renderer=1 vendor=4098 device=5688",
+      "gl_adapter": "",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "amd-vulkan-portable.log",
+      "log_sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b"
+    },
+    {
+      "gpu": "amd",
+      "api": "opengl",
+      "policy": "native",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0",
+      "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "amd-opengl-native.log",
+      "log_sha256": "287b121e3d7d902417860df74f06cb181d93884d153723f1307ad007672edbd7"
+    },
+    {
+      "gpu": "amd",
+      "api": "opengl",
+      "policy": "portable",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0",
+      "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "amd-opengl-portable.log",
+      "log_sha256": "287b121e3d7d902417860df74f06cb181d93884d153723f1307ad007672edbd7"
+    },
+    {
+      "gpu": "nvidia",
+      "api": "vulkan",
+      "policy": "native",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) renderer=1 vendor=4318 device=9568",
+      "gl_adapter": "",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "nvidia-vulkan-native.log",
+      "log_sha256": "a111eefff833cff1989b37b2745c9668ae559053085c17f1ab48a643e2409bd5"
+    },
+    {
+      "gpu": "nvidia",
+      "api": "vulkan",
+      "policy": "portable",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) renderer=1 vendor=4318 device=9568",
+      "gl_adapter": "",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "nvidia-vulkan-portable.log",
+      "log_sha256": "a111eefff833cff1989b37b2745c9668ae559053085c17f1ab48a643e2409bd5"
+    },
+    {
+      "gpu": "nvidia",
+      "api": "opengl",
+      "policy": "native",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0",
+      "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.3.0 NVIDIA 615.71.09",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "nvidia-opengl-native.log",
+      "log_sha256": "523f99baa2d405ee49e0c54758ee52989cdef5d27ae53aa0971e3f82cb7a829b"
+    },
+    {
+      "gpu": "nvidia",
+      "api": "opengl",
+      "policy": "portable",
+      "exit": 0,
+      "pass_gate": true,
+      "adapter": "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0",
+      "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.3.0 NVIDIA 615.71.09",
+      "projective": [
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GPU samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/CPU-GL samples=300 mae=0 max=0",
+        "projective mip footprint/quality-0.500000/offset-0.000000/GPU-GL samples=300 mae=0 max=0"
+      ],
+      "finish": "P07 sampling cases=234 rejected=4 GPU=1",
+      "log": "nvidia-opengl-portable.log",
+      "log_sha256": "523f99baa2d405ee49e0c54758ee52989cdef5d27ae53aa0971e3f82cb7a829b"
+    }
+  ]
+}

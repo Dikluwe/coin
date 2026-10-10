@@ -1,0 +1,48 @@
+[
+  {
+    "profile": "wgpu-amd-vulkan",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "wgpu-amd-vulkan.log",
+    "binary_sha256": "58fa4b85e64876fa744469f54320f647c3ecbf6b39d1adfd4f63ee15fb6b8089",
+    "log_sha256": "c6e60e8bdda446b504919cdecb582865833f9e91daa7f5045c26d75a67ef9ef5",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderSamplingPolicyTest",
+      "--gpu"
+    ],
+    "log": "bgfx-amd-vulkan.log",
+    "binary_sha256": "e8319e1c1622ee001bb8d2f98a8c2be4e641aeec87ce88a4514e60b026889faa",
+    "log_sha256": "4d9de17d2ecd912550a7fa984573371cbe571b0c2b3bf7d1cc072687e647f73b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json"
+    }
+  }
+]

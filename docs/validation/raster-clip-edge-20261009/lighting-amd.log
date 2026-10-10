@@ -1,0 +1,15 @@
+Probe: CoinRenderGeometryViewportTest --probe-lighting MODE
+GLX: __GLX_VENDOR_LIBRARY_NAME=mesa COIN_GLXGLUE_NO_PBUFFERS=1 COIN_GLX_PIXMAP_DIRECT_RENDERING=1
+MODE                 CPU/GPU max  CPU/CoinGL max  GPU/CoinGL max
+all                  1            11               not reached (strict gate)
+base                 1            18               not reached (strict gate)
+uniform-normal       1            11               not reached (strict gate)
+directional-only     1            7                not reached (strict gate)
+point-only           1            3                3
+spot-only            1            3                3
+overall-material     1            4                5
+overall-normal       1            11               not reached (strict gate)
+ambient-only         0            1                1
+affine-material      1            3                4
+all worst=17,30 source=57,110,67 reference=68,103,74
+base worst=46,31 source=166,126,153 reference=184,112,163

@@ -1,0 +1,87 @@
+[
+  {
+    "name": "crlf-fix-wgpu-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_BUILD_TESTS=ON",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON",
+      "-DCOIN_BUILD_RENDER_BENCHMARKS=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=ON",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu",
+      "-DCOIN_BUILD_MSVC_MP=OFF",
+      "-DCMAKE_CXX_FLAGS=/MP2",
+      "-DCOIN_BUILD_AWESOME_DOCUMENTATION=OFF",
+      "-DCOIN_BUILD_DOCUMENTATION=OFF",
+      "-DCOIN_RENDER_BACKEND=RUST_BRIDGE"
+    ],
+    "exit": 0,
+    "seconds": 14.931179523468018
+  },
+  {
+    "name": "crlf-fix-wgpu-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 20.103410482406616
+  },
+  {
+    "name": "crlf-fix-wgpu-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu",
+      "--config",
+      "Release"
+    ],
+    "exit": 0,
+    "seconds": 5.491931915283203
+  },
+  {
+    "name": "crlf-fix-wgpu-consumer-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin\\examples\\coinrender\\sdk-consumer",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-wgpu",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu"
+    ],
+    "exit": 0,
+    "seconds": 0.23511505126953125
+  },
+  {
+    "name": "crlf-fix-wgpu-consumer-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-wgpu",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 1.5204381942749023
+  }
+]

@@ -10,6 +10,7 @@
 class SoNode;
 class SoRenderManager;
 class CoinRenderSceneManager;
+struct CoinRenderOptions;
 struct CoinRenderNativeSurfaceDescriptor;
 
 /**
@@ -31,6 +32,12 @@ public:
   CoinRenderManagerAdapter(SoRenderManager & source,
                              const CoinRenderNativeSurfaceDescriptor & nativeWindow,
                              const SbVec2i32 & framebufferSize);
+  // Hosts select target policy explicitly at adapter construction.
+  CoinRenderManagerAdapter(SoRenderManager & source, const SbVec2i32 & offscreenSize,
+                          const CoinRenderOptions & options);
+  CoinRenderManagerAdapter(SoRenderManager & source,
+                          const CoinRenderNativeSurfaceDescriptor & nativeWindow,
+                          const SbVec2i32 & framebufferSize, const CoinRenderOptions & options);
   ~CoinRenderManagerAdapter();
 
   CoinRenderManagerAdapter(const CoinRenderManagerAdapter &) = delete;

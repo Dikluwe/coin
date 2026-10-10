@@ -1,0 +1,26 @@
+[
+  {
+    "test": "CoinRenderProceduralTextureTest",
+    "api": "gl",
+    "exit": 0,
+    "log": "snap-wgpu-amd-gl-CoinRenderProceduralTextureTest.log"
+  },
+  {
+    "test": "CoinRenderGeometryViewportTest",
+    "api": "gl",
+    "exit": 1,
+    "log": "snap-wgpu-amd-gl-CoinRenderGeometryViewportTest.log"
+  },
+  {
+    "test": "CoinRenderProceduralTextureTest",
+    "api": "vulkan",
+    "exit": 0,
+    "log": "snap-wgpu-amd-vulkan-CoinRenderProceduralTextureTest.log"
+  },
+  {
+    "test": "CoinRenderGeometryViewportTest",
+    "api": "vulkan",
+    "exit": 1,
+    "log": "snap-wgpu-amd-vulkan-CoinRenderGeometryViewportTest.log"
+  }
+]

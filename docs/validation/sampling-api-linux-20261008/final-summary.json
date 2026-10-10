@@ -1,0 +1,104 @@
+[
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/run.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "window-final",
+      "--cases",
+      "window,api,selection,publication,ownership"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/run.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "stock-portable-final",
+      "--modes",
+      "portable",
+      "--cases",
+      "deep,direct,viewport,procedural"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-cpu-final",
+      "--frames",
+      "90",
+      "--warmup",
+      "30"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-gpu",
+      "--kind",
+      "gpu",
+      "--workloads",
+      "texture-1,texture-4,texture-8,npot-8",
+      "--frames",
+      "45",
+      "--warmup",
+      "15"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-baseline",
+      "--baseline",
+      "--frames",
+      "90",
+      "--warmup",
+      "30"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/qualify_freecad_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux"
+    ],
+    "exit": 1
+  },
+  {
+    "command": [
+      "python3",
+      "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/reproducers/sampling-api/qualify_freecad_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "freecad-dpr2",
+      "--scale",
+      "2",
+      "--policies",
+      "portable"
+    ],
+    "exit": 1
+  }
+]

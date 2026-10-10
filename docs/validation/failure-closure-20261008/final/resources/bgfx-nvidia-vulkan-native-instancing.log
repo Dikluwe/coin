@@ -1,0 +1,17 @@
+affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+uniform LEQUAL PHONG max_rgb_error=1 mean_rgb_error=4.34028e-06 changed_pixels=1 pixels_over_3=0 worst_xy=259,196 instanced_rgb=35,112,25 general_rgb=35,111,25
+LEQUAL coplanar materials max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar last occurrence must win max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+coplanar first-vs-last reference pixels_over_20=48
+outside viewport depth readback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+outside viewport depth readback max_depth_error=0
+return from outside viewport with depth max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=0,0,0 general_rgb=0,0,0
+return from outside viewport with depth max_depth_error=5.96046e-08
+CoinBgfxInstancingTest passed

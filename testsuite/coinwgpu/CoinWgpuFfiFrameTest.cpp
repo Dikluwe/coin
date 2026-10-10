@@ -1850,9 +1850,10 @@ main()
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 50 && sizeof(CoinWgpuVertex) == 164 &&
+  if (!check(first.abi_version == 51 && sizeof(CoinWgpuFrameView) == 456 &&
+             first.texture_sampling_policy == 0 && sizeof(CoinWgpuVertex) == 164 &&
              sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
-             "projective private protocol and vertex stride")) return 1;
+             "sampling/projective private protocol and frame/vertex layout")) return 1;
   for (size_t unit = 0; unit < 8; ++unit) {
     const float * packedUv = unit ? first.vertices[0].extra_texcoords[unit - 1] : first.vertices[0].texcoord;
     const float * sourceUv = unit ? frame.vertices[0].extraTexcoords[unit - 1] : frame.vertices[0].texcoord;

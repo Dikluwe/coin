@@ -5,6 +5,7 @@ use super::CoinWgpuUniforms;
 // u32 dynamic-offset range; the binding itself covers exactly one record.
 pub(super) struct UniformArena {
     stride: usize,
+    record_size: usize,
     records_per_chunk: usize,
     remaining: usize,
     chunks: Vec<Chunk>,
@@ -17,14 +18,14 @@ struct Chunk {
 }
 
 impl UniformArena {
-    pub(super) fn new(device: &wgpu::Device, records: usize) -> Self {
+    pub(super) fn new(device: &wgpu::Device, records: usize, record_size: usize) -> Self {
         let limits = device.limits();
-        let size = std::mem::size_of::<CoinWgpuUniforms>();
+        let size = record_size;
         let alignment = limits.min_uniform_buffer_offset_alignment as usize;
         let stride = size.div_ceil(alignment) * alignment;
         let chunk_bytes = limits.max_buffer_size.min(64 * 1024 * 1024)
             .min(u64::from(u32::MAX)) as usize;
-        Self { stride, records_per_chunk: chunk_bytes / stride,
+        Self { stride, record_size, records_per_chunk: chunk_bytes / stride,
             remaining: records, chunks: Vec::new() }
     }
 
@@ -47,7 +48,7 @@ impl UniformArena {
         let chunk = &mut self.chunks[chunk_index];
         let offset = chunk.bytes.len();
         chunk.bytes.resize(offset + self.stride, 0);
-        let bytes = bytemuck::bytes_of(uniforms);
+        let bytes = &bytemuck::bytes_of(uniforms)[..self.record_size];
         chunk.bytes[offset..offset + bytes.len()].copy_from_slice(bytes);
         (chunk_index, offset as u32)
     }

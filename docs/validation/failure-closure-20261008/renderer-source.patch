@@ -1,0 +1,178 @@
+diff --git a/src/rendering/coinbgfx/shaders/fs_base_color.sc b/src/rendering/coinbgfx/shaders/fs_base_color.sc
+index 28ffccdd4b..9c04dae2e5 100644
+--- a/src/rendering/coinbgfx/shaders/fs_base_color.sc
++++ b/src/rendering/coinbgfx/shaders/fs_base_color.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ #include "coin_depth.sh"
+@@ -6,6 +6,6 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
+ 
+ void main()
+ {
+-  gl_FragDepth = coinWindowDepth(gl_FragCoord.z);
++  gl_FragDepth = coinWindowDepth(v_coinClipDepth.x / v_coinClipDepth.y);
+   gl_FragColor = coinSurfaceColor(gl_FragCoord.xy, v_color0, v_texcoord0, v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1);
+ }
+diff --git a/src/rendering/coinbgfx/shaders/fs_composite.sc b/src/rendering/coinbgfx/shaders/fs_composite.sc
+index c952954f47..3a18c095d3 100644
+--- a/src/rendering/coinbgfx/shaders/fs_composite.sc
++++ b/src/rendering/coinbgfx/shaders/fs_composite.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ 
+diff --git a/src/rendering/coinbgfx/shaders/fs_depth_readback.sc b/src/rendering/coinbgfx/shaders/fs_depth_readback.sc
+index fa302f8fb7..259571b346 100644
+--- a/src/rendering/coinbgfx/shaders/fs_depth_readback.sc
++++ b/src/rendering/coinbgfx/shaders/fs_depth_readback.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ SAMPLER2D(s_readDepth, 0);
+diff --git a/src/rendering/coinbgfx/shaders/fs_peel_next.sc b/src/rendering/coinbgfx/shaders/fs_peel_next.sc
+index 1f05037f70..bbec80de2b 100644
+--- a/src/rendering/coinbgfx/shaders/fs_peel_next.sc
++++ b/src/rendering/coinbgfx/shaders/fs_peel_next.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ #include "coin_depth.sh"
+@@ -9,7 +9,7 @@ uniform vec4 u_depthInfo;
+ 
+ void main()
+ {
+-  float windowDepth = coinWindowDepth(gl_FragCoord.z);
++  float windowDepth = coinWindowDepth(v_coinClipDepth.x / v_coinClipDepth.y);
+   gl_FragDepth = windowDepth;
+   vec2 uv = gl_FragCoord.xy * u_depthInfo.xy;
+   float previousDepth = texture2D(s_prevDepth, uv).x;
+diff --git a/src/rendering/coinbgfx/shaders/fs_solid_color.sc b/src/rendering/coinbgfx/shaders/fs_solid_color.sc
+index 5e2403f43b..7114945b76 100644
+--- a/src/rendering/coinbgfx/shaders/fs_solid_color.sc
++++ b/src/rendering/coinbgfx/shaders/fs_solid_color.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ #include "coin_depth.sh"
+@@ -11,6 +11,6 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
+ void main()
+ {
+   coinAlphaTest(v_color0.a);
+-  gl_FragDepth = coinWindowDepth(gl_FragCoord.z);
++  gl_FragDepth = coinWindowDepth(v_coinClipDepth.x / v_coinClipDepth.y);
+   gl_FragColor = v_color0;
+ }
+diff --git a/src/rendering/coinbgfx/shaders/fs_weighted_composite.sc b/src/rendering/coinbgfx/shaders/fs_weighted_composite.sc
+index 5eb4764237..e925765ab3 100644
+--- a/src/rendering/coinbgfx/shaders/fs_weighted_composite.sc
++++ b/src/rendering/coinbgfx/shaders/fs_weighted_composite.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ 
+diff --git a/src/rendering/coinbgfx/shaders/fs_weighted_oit.sc b/src/rendering/coinbgfx/shaders/fs_weighted_oit.sc
+index cf8c4ae826..a20bfba233 100644
+--- a/src/rendering/coinbgfx/shaders/fs_weighted_oit.sc
++++ b/src/rendering/coinbgfx/shaders/fs_weighted_oit.sc
+@@ -1,4 +1,4 @@
+-$input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ #include "coin_depth.sh"
+@@ -7,7 +7,7 @@ $input v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition,
+ 
+ void main()
+ {
+-  float windowDepth = coinWindowDepth(gl_FragCoord.z);
++  float windowDepth = coinWindowDepth(v_coinClipDepth.x / v_coinClipDepth.y);
+   gl_FragDepth = windowDepth;
+   vec4 color = coinSurfaceColor(gl_FragCoord.xy, v_color0, v_texcoord0, v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1);
+   float alpha = clamp(color.a, 0.0, 1.0);
+diff --git a/src/rendering/coinbgfx/shaders/varying.def.sc b/src/rendering/coinbgfx/shaders/varying.def.sc
+index 4f1ae45471..4be413ff82 100644
+--- a/src/rendering/coinbgfx/shaders/varying.def.sc
++++ b/src/rendering/coinbgfx/shaders/varying.def.sc
+@@ -39,3 +39,5 @@ vec4 i_data6 : TEXCOORD25;
+ vec4 i_data7 : TEXCOORD24;
+ vec4 i_data8 : TEXCOORD23;
+ vec4 i_data9 : TEXCOORD22;
++
++vec2 v_coinClipDepth : TEXCOORD11;
+diff --git a/src/rendering/coinbgfx/shaders/vs_base_color.sc b/src/rendering/coinbgfx/shaders/vs_base_color.sc
+index f615307800..a6df589344 100644
+--- a/src/rendering/coinbgfx/shaders/vs_base_color.sc
++++ b/src/rendering/coinbgfx/shaders/vs_base_color.sc
+@@ -1,5 +1,5 @@
+ $input a_position, a_color0, a_color1, a_color2, a_color3, a_texcoord0, a_texcoord1, a_texcoord2, a_texcoord3, a_texcoord4, a_texcoord5, a_texcoord6, a_texcoord7, a_tangent, a_bitangent
+-$output v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
++$output v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_textureQ0, v_textureQ1
+ 
+ #include <bgfx_shader.sh>
+ #include "coin_lighting.sh"
+@@ -7,6 +7,14 @@ $output v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition
+ void main()
+ {
+   gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0)) * (a_texcoord3.z > 0.0 ? a_texcoord3.z : 1.0);
++  // Carry clip depth through the attribute interpolator. Dividing the
++  // perspective-interpolated pair recovers affine window depth without the
++  // OpenGL rasterizer's gl_FragCoord depth round trip.
++#if BGFX_SHADER_LANGUAGE_GLSL
++  v_coinClipDepth = vec2(gl_Position.z * 0.5 + gl_Position.w * 0.5, gl_Position.w);
++#else
++  v_coinClipDepth = gl_Position.zw;
++#endif
+   v_color0 = coinMaterialColor(a_color0, a_color1, a_color2, a_color3,
+                               a_texcoord1, a_texcoord2, a_texcoord3.xy);
+   v_ambient = a_color1;
+diff --git a/src/rendering/coinrender/CoinRenderStrokeCore.h b/src/rendering/coinrender/CoinRenderStrokeCore.h
+index 4baff5b326..add033618c 100644
+--- a/src/rendering/coinrender/CoinRenderStrokeCore.h
++++ b/src/rendering/coinrender/CoinRenderStrokeCore.h
+@@ -344,6 +344,14 @@ inline bool coin_render_expand_strokes(CoinRenderFramePlan& plan, std::string& d
+         auto &vertex = plan.vertices[expanded.geometry.firstVertex + i];
+         vertex.position[0] -= dx;
+         vertex.position[1] += dy;
++        // Publish the same eight-bit window grid used for CPU coverage.
++        // GPU interpolation must consume these positions too, rather than
++        // keeping unsnapped planes behind quantized coverage endpoints.
++        for (int axis = 0; axis < 2; ++axis) {
++          const float dimension = axis == 0 ? float(viewport.width) : float(viewport.height);
++          const float pixel = (vertex.position[axis] + 1.0f) * 0.5f * dimension;
++          vertex.position[axis] = std::round(pixel * 256.0f) / 256.0f * 2.0f / dimension - 1.0f;
++        }
+       }
+     }
+     // A coplanar line/point range has exactly constant mapped depth. Express
+diff --git a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+index 4f20ff84f1..4cecc8627a 100644
+--- a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+@@ -263,10 +263,10 @@ struct Harness {
+       for (int c=0;c<3;++c) {
+         const int d=std::abs(int(a[(y*size+x)*4+c])-int(b[(y*size+x)*channels+c]));
+         sum+=d;
+-        if (d > maximum && d > 3 && channels == 3) {
+-          std::cerr << "junction x=" << x << " y=" << y << " channel=" << c
+-                    << " CPU=" << int(a[(y*size+x)*4+c]) << " GL=" << int(b[(y*size+x)*channels+c])
+-                    << " depth=" << cpu->getPimpl()->depthBuffer[y*size+x] << '\n';
++        if (d > maximum && d > 3 && (channels == 3 || std::getenv("COIN_PROCEDURAL_DIAGNOSTIC"))) {
++          std::cerr << "junction " << label << " x=" << x << " y=" << y << " channel=" << c
++                    << " CPU=" << int(a[(y*size+x)*4+c]) << " reference=" << int(b[(y*size+x)*channels+c])
++                    << " depth=" << std::setprecision(10) << cpu->getPimpl()->depthBuffer[y*size+x] << " gpuDepth=" << (native && native->getPimpl()->depthBuffer.size()==size*size ? native->getPimpl()->depthBuffer[y*size+x] : -1) << '\n';
+         }
+         maximum=std::max(maximum,d);
+       }

@@ -1,0 +1,26 @@
+[
+  {
+    "api": "opengl",
+    "mode": "native",
+    "exit": 1,
+    "log": "varying-bgfx-opengl-native-procedural.log"
+  },
+  {
+    "api": "opengl",
+    "mode": "fine_uniform",
+    "exit": 1,
+    "log": "varying-bgfx-opengl-fine_uniform-procedural.log"
+  },
+  {
+    "api": "vulkan",
+    "mode": "native",
+    "exit": 1,
+    "log": "varying-bgfx-vulkan-native-procedural.log"
+  },
+  {
+    "api": "vulkan",
+    "mode": "fine_uniform",
+    "exit": 1,
+    "log": "varying-bgfx-vulkan-fine_uniform-procedural.log"
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "PASS",
+  "nodes": {},
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "fixture_interactive_input": "blocked in this host process",
+  "fixture_window_state": "_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE, _NET_WM_STATE_FOCUSED",
+  "fixture_window_stays_on_top": true,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "projective_sampling_fixture": {
+    "dimensions": [
+      256,
+      256
+    ],
+    "quality": 0.5,
+    "filter": "NEAREST_MIPMAP_LINEAR",
+    "unit": 0
+  },
+  "cold_border_diagnostic": "hidden-mutation",
+  "qualification_scope": "cold border diagnostic only",
+  "cold_start_qualified": false,
+  "active_sampling_policy": 1,
+  "presentation_reads": {
+    "cold-before": 2,
+    "cold-after-text-mutation": 2
+  },
+  "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+  "backend": "wgpu",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-20261008/amd-portable-hidden-mutation/vulkan-object-opaque-1x-freecad-sampling-policy"
+}

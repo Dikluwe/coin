@@ -459,6 +459,31 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderCameraReuseReferenceTest COMMAND CoinRenderCameraReuseReferenceTest)
 	set_tests_properties(CoinRenderCameraReuseReferenceTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
 
+	add_executable(CoinRenderSamplingPolicyTest coinrender/CoinRenderSamplingPolicyTest.cpp)
+	set_target_properties(CoinRenderSamplingPolicyTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderSamplingPolicyTest CoinRender Coin)
+	target_include_directories(CoinRenderSamplingPolicyTest PRIVATE
+		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	if(UNIX AND NOT APPLE AND X11_FOUND)
+		target_compile_definitions(CoinRenderSamplingPolicyTest PRIVATE COIN_SAMPLING_X11)
+		target_link_libraries(CoinRenderSamplingPolicyTest ${X11_LIBRARIES})
+		target_include_directories(CoinRenderSamplingPolicyTest PRIVATE ${X11_INCLUDE_DIR})
+		add_test(NAME CoinRenderSamplingPolicyWindowTest COMMAND CoinRenderSamplingPolicyTest --window)
+		set_tests_properties(CoinRenderSamplingPolicyWindowTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
+			ENVIRONMENT "COIN_SAMPLING_STUDY=fetch")
+	endif()
+	if(WIN32)
+		target_compile_definitions(CoinRenderSamplingPolicyTest PRIVATE _WIN32_WINNT=0x0A00)
+		target_link_libraries(CoinRenderSamplingPolicyTest user32 gdi32)
+		add_test(NAME CoinRenderSamplingPolicyWindowTest COMMAND CoinRenderSamplingPolicyTest --window)
+		set_tests_properties(CoinRenderSamplingPolicyWindowTest PROPERTIES TIMEOUT 120)
+	endif()
+	add_test(NAME CoinRenderSamplingPolicyTest COMMAND CoinRenderSamplingPolicyTest)
+	add_test(NAME CoinRenderSamplingPolicyGpuTest COMMAND CoinRenderSamplingPolicyTest --gpu)
+	set_tests_properties(CoinRenderSamplingPolicyGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
+		ENVIRONMENT "COIN_SAMPLING_STUDY=fetch")
+
 	add_executable(CoinRenderSelectionTest coinrender/CoinRenderSelectionTest.cpp)
 	set_target_properties(CoinRenderSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderSelectionTest CoinRender Coin)
@@ -907,12 +932,40 @@ if(COIN_BUILD_RENDER)
 	set_tests_properties(CoinRenderTextureTest PROPERTIES TIMEOUT 30)
 
 	add_executable(CoinRenderTextureSamplingTest coinrender/CoinRenderTextureSamplingTest.cpp)
+	if(WIN32 OR APPLE OR (UNIX AND NOT ANDROID))
+		add_executable(CoinRenderGluNativeOracle coinrender/CoinRenderGluNativeOracle.cpp)
+		target_compile_definitions(CoinRenderGluNativeOracle PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+		target_include_directories(CoinRenderGluNativeOracle PRIVATE
+			${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+			${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src)
+		target_link_libraries(CoinRenderGluNativeOracle PRIVATE OpenGL::GL)
+		if(TARGET OpenGL::GLU)
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE OpenGL::GLU)
+		else()
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE ${OPENGL_glu_LIBRARY})
+		endif()
+		if(WIN32)
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE Coin gdi32 user32)
+		elseif(NOT APPLE)
+			find_package(GLUT REQUIRED)
+			target_link_libraries(CoinRenderGluNativeOracle PRIVATE GLUT::GLUT)
+		endif()
+		add_test(NAME CoinRenderGluNativeOracleTest COMMAND CoinRenderGluNativeOracle)
+		set_tests_properties(CoinRenderGluNativeOracleTest PROPERTIES TIMEOUT 20)
+	endif()
 	target_compile_definitions(CoinRenderTextureSamplingTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
 	target_link_libraries(CoinRenderTextureSamplingTest CoinRender Coin)
 	target_include_directories(CoinRenderTextureSamplingTest PRIVATE
 		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
 	add_test(NAME CoinRenderTextureSamplingCaptureTest COMMAND CoinRenderTextureSamplingTest)
+	if(NOT SIMAGE_RUNTIME_LINKING AND NOT HAVE_LIBSIMAGE)
+		add_test(NAME CoinRenderTextureSamplingGluFallbackTest
+			COMMAND CoinRenderTextureSamplingTest --scale-policy-pot-glu-probe)
+		set_tests_properties(CoinRenderTextureSamplingGluFallbackTest PROPERTIES
+			TIMEOUT 120
+			ENVIRONMENT "COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES=1;COIN_GLX_PIXMAP_DIRECT_RENDERING=1;COIN_GLXGLUE_NO_PBUFFERS=1")
+	endif()
 	add_test(NAME CoinRenderTextureSamplingConfigLimitTest COMMAND CoinRenderTextureSamplingTest --reject-config)
 	set_tests_properties(CoinRenderTextureSamplingConfigLimitTest PROPERTIES TIMEOUT 60 ENVIRONMENT "COIN_TEX2_LINEAR_LIMIT=0.4")
 	set_tests_properties(CoinRenderTextureSamplingCaptureTest PROPERTIES TIMEOUT 120)

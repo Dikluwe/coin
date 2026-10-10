@@ -77,6 +77,10 @@
 #include <Inventor/details/SoLineDetail.h>
 #include <Inventor/elements/SoMultiTextureMatrixElement.h>
 #include <Inventor/elements/SoTextureQualityElement.h>
+#include "elements/SoTextureScalePolicyElement.h"
+#include "elements/SoTextureScaleQualityElement.h"
+#include "glue/simage_wrapper.h"
+#include "glue/GLUWrapper.h"
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoMultiTextureCoordinateElement.h>
 #include <Inventor/elements/SoTextureCoordinateBindingElement.h>
@@ -201,6 +205,7 @@ CoinRenderFramePlanBuilder::reset()
   this->builderError.clear();
   this->sceneTextures.clear();
   this->authoredTextureImages.clear(); this->compressedTextureImages.clear();
+  this->authoredTextureSources.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
   this->lightCaptureScratch.clear();
@@ -745,6 +750,34 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     rs.samplerSlot = 0;
     return true;
   }
+  CoinRenderTextureFilter currentFilter;
+  if (!CoinRenderTextureSamplingCore::quality(quality, currentFilter)) {
+    this->isUnsupported = true;
+    this->builderError = "Texture quality must be finite in [0,1]";
+    if (outError) *outError = this->builderError;
+    return false;
+  }
+  // The GL image stores textureQuality at setData() time. A new GL context
+  // rebuilds its texture from that value without refreshing the upload.
+  const char * disableNpot = std::getenv("COIN_GLGLUE_DISABLE_NON_POWER_OF_TWO_TEXTURES");
+  const bool legacyPotOverride = disableNpot && std::atoi(disableNpot) != 0;
+  const auto authored = this->authoredTextureSources.find(rawBytes);
+  const SoTexture2 * sourceNode = authored == this->authoredTextureSources.end() ?
+    nullptr : authored->second.node;
+  const SbUniqueId sourceRevision = sourceNode ? authored->second.revision : 0;
+  SbBool glUploadValid = FALSE, glScaleDown = FALSE, glCompressed = FALSE;
+  float glQuality = quality;
+  const bool glImageExists = sourceNode &&
+    sourceNode->getGLImageUploadHints(glUploadValid, glScaleDown, glCompressed, glQuality);
+  if (sourceNode) quality = glQuality;
+  if (SoTextureScalePolicyElement::get(state) ==
+      SoTextureScalePolicyElement::FRACTURE) {
+    this->isUnsupported = true;
+    this->builderError =
+      "SoTextureScalePolicy FRACTURE requires subtexture geometry clipping";
+    if (outError) *outError = this->builderError;
+    return false;
+  }
   if (SoMultiTextureCoordinateElement::getType(state, unit) == SoMultiTextureCoordinateElement::FUNCTION)
     this->coordinateFunctionsCaptured = true;
 
@@ -871,9 +904,6 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     }
   }
 
-  // 8. Content digest & Image deduplication
-  uint64_t digest =
-      isSceneTexture ? sceneTexture->second.producerId : CoinRenderImageCore::rgba8Digest(rgba);
   CoinRenderTextureImageSnapshot tSnap;
   tSnap.width = w; tSnap.height = h; tSnap.components = 4;
   tSnap.format=!isSceneTexture && this->storedTextureColorSpace==COIN_RENDER_TEXTURE_SRGB?
@@ -881,9 +911,116 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   if(isSceneTexture)tSnap.format=sceneTexture->second.format;
   tSnap.sceneTransparencyFunction = isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
   tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
-  tSnap.contentDigest = digest;
   tSnap.producerId = isSceneTexture ? sceneTexture->second.producerId : 0;
   tSnap.pixelsRgba = std::move(rgba);
+  // The legacy GL override makes POT resizing observable even on NPOT hardware.
+  // Match its nearest, simage and GLU fallback paths.
+  bool useCompressedTexture = !isSceneTexture && this->compressedTextureImages.count(rawBytes);
+  const SoTexture2 * pendingPotNode = nullptr;
+  LegacyPotImage pendingPotImage{};
+  if (!isSceneTexture && legacyPotOverride) {
+    if (const char * scaleLimit = std::getenv("COIN_TEX2_SCALEUP_LIMIT")) {
+      if (static_cast<float>(std::atof(scaleLimit)) != .7f) {
+        this->isUnsupported = true;
+        this->builderError = "Legacy POT resize requires the default scale-up limit";
+        if (outError) *outError = this->builderError;
+        return false;
+      }
+    }
+    auto cached = sourceNode ? this->legacyPotImages.find(sourceNode) :
+                               this->legacyPotImages.end();
+    bool priorCompression = false;
+    if (cached != this->legacyPotImages.end() &&
+        cached->second.revision != sourceRevision) {
+      priorCompression = cached->second.compressed;
+      this->legacyPotBytes -= cached->second.pixels.size();
+      this->legacyPotImages.erase(cached);
+      cached = this->legacyPotImages.end();
+    }
+    if (cached != this->legacyPotImages.end()) {
+      tSnap.width = cached->second.width;
+      tSnap.height = cached->second.height;
+      tSnap.pixelsRgba = cached->second.pixels;
+      useCompressedTexture = cached->second.compressed;
+    } else {
+      useCompressedTexture = useCompressedTexture || priorCompression;
+      const auto policy = SoTextureScalePolicyElement::get(state);
+      // With a valid upload, SoTexture2 skips setData() in a new context:
+      // current hints are ignored and only persistent SoGLImage flags apply.
+      // After notification, setData() ORs the new hints into those flags.
+      const bool down = glUploadValid ? bool(glScaleDown) :
+          (policy == SoTextureScalePolicyElement::SCALE_DOWN || glScaleDown);
+      useCompressedTexture = glUploadValid ? bool(glCompressed) :
+          (useCompressedTexture || (glImageExists && glCompressed));
+      // SoGLImage starts with USE_QUALITY_VALUE, including for SCALE_UP.
+      const bool useQuality = !down;
+      const uint32_t newWidth = CoinRenderTextureSamplingCore::legacyPotExtent(
+          w, down, useQuality, quality);
+      const uint32_t newHeight = CoinRenderTextureSamplingCore::legacyPotExtent(
+          h, down, useQuality, quality);
+      if (newWidth != w || newHeight != h) {
+        if (SoTextureScaleQualityElement::get(state) < .5f) {
+          if (!CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight)) {
+            this->isUnsupported = true;
+            this->builderError = "Legacy POT nearest resize exceeds image limits";
+            if (outError) *outError = this->builderError;
+            return false;
+          }
+        } else {
+          const auto * simage = simage_wrapper();
+          if (simage->available && simage->versionMatchesAtLeast(1, 1, 1) &&
+              simage->simage_resize && simage->simage_free_image) {
+            if (size_t(newWidth) * newHeight * 4 > 128u * 1024u * 1024u) {
+              this->isUnsupported = true;
+              this->builderError = "Legacy high-quality POT resize exceeds image limits";
+              if (outError) *outError = this->builderError;
+              return false;
+            }
+            unsigned char * resized = simage->simage_resize(
+                tSnap.pixelsRgba.data(), int(w), int(h), 4, int(newWidth), int(newHeight));
+            if (!resized) {
+              this->isUnsupported = true;
+              this->builderError = "Legacy high-quality POT resize failed";
+              if (outError) *outError = this->builderError;
+              return false;
+            }
+            std::vector<uint8_t> pixels(resized, resized + size_t(newWidth) * newHeight * 4);
+            simage->simage_free_image(resized);
+            tSnap.width = newWidth;
+            tSnap.height = newHeight;
+            tSnap.pixelsRgba.swap(pixels);
+          } else {
+            const bool resized = GLUWrapper()->available
+                ? CoinRenderTextureSamplingCore::legacyResizeGlu(tSnap, newWidth, newHeight)
+                : CoinRenderTextureSamplingCore::legacyResizeNearest(tSnap, newWidth, newHeight);
+            if (!resized) {
+              this->isUnsupported = true;
+              this->builderError = "Legacy fallback POT resize exceeds image limits";
+              if (outError) *outError = this->builderError;
+              return false;
+            }
+          }
+        }
+        if (sourceNode) {
+          constexpr size_t cacheLimit = 128u * 1024u * 1024u;
+          if (this->legacyPotBytes > cacheLimit ||
+              tSnap.pixelsRgba.size() > cacheLimit - this->legacyPotBytes) {
+            this->isUnsupported = true;
+            this->builderError = "Legacy POT upload cache exceeds 128 MiB";
+            if (outError) *outError = this->builderError;
+            return false;
+          }
+          pendingPotNode = sourceNode;
+          pendingPotImage = {sourceRevision, tSnap.width, tSnap.height,
+                             useCompressedTexture,
+                             tSnap.pixelsRgba};
+        }
+      }
+    }
+  }
+  // 8. Content digest & Image deduplication
+  tSnap.contentDigest = isSceneTexture ? sceneTexture->second.producerId
+                                     : CoinRenderImageCore::rgba8Digest(tSnap.pixelsRgba);
   if (isSceneTexture) {
     // SoSceneTexture2's FBO sampler is always linear, and becomes trilinear
     // strictly above 0.5 (unlike stored SoTexture2 quality thresholds).
@@ -900,11 +1037,15 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     if(outError)*outError=this->builderError;return false;
   }
 
-  if(!isSceneTexture && this->compressedTextureImages.count(rawBytes) && !CoinRenderTextureSamplingCore::compress(tSnap)) {
+  if(useCompressedTexture && !CoinRenderTextureSamplingCore::compress(tSnap)) {
     this->isUnsupported=true;this->builderError="BC3 stored textures require block-aligned base dimensions and RGBA8 input";
     if(outError)*outError=this->builderError;return false;
   }
   const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
+  if (pendingPotNode) {
+    this->legacyPotBytes += pendingPotImage.pixels.size();
+    this->legacyPotImages.emplace(pendingPotNode, std::move(pendingPotImage));
+  }
 
   // 9. Sampler deduplication
   CoinRenderSamplerSnapshot sampSnap;

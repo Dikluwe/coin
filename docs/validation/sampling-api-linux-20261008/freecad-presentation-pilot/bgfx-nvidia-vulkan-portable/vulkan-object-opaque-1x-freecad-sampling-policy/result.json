@@ -1,0 +1,26 @@
+{
+  "test": "freecad-sampling-policy",
+  "native": true,
+  "reference_gl": false,
+  "status": "FAIL",
+  "nodes": {},
+  "profile": "screen-content",
+  "sampling_policy": 1,
+  "prebaseline_redraws": 2,
+  "marker_descriptor": {
+    "coords": 3,
+    "num_points": 3,
+    "start": 0
+  },
+  "reason": "Internal C++ object (PySide6.QtWidgets.QGraphicsView) already deleted.",
+  "adapter": "bgfx vulkan vendor 0x10de device 0x2560",
+  "backend": "bgfx",
+  "renderer": "vulkan",
+  "mode": "object",
+  "alpha": "opaque",
+  "scale": 1,
+  "hardware_gpu": true,
+  "gpu_submitted": true,
+  "gpu_execution": "hardware",
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-presentation-pilot/bgfx-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy"
+}

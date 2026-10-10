@@ -1,0 +1,27 @@
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.gtk.vfs.Daemon' requested by ':1.1' (uid=1000 pid=1891145 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.a11y.Bus' requested by ':1.3' (uid=1000 pid=1891145 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[1891197]: Activating service name='org.a11y.atspi.Registry' requested by ':1.0' (uid=1000 pid=1891145 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1891197]: Successfully activated service 'org.a11y.atspi.Registry'
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.freedesktop.portal.Desktop' requested by ':1.10' (uid=1000 pid=1891234 comm="/mnt/Laranja/Git/externos/coin-portable-sampling-a" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.freedesktop.impl.portal.PermissionStore' requested by ':1.11' (uid=1000 pid=1891238 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.freedesktop.impl.portal.PermissionStore'
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.freedesktop.portal.Documents' requested by ':1.11' (uid=1000 pid=1891238 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.freedesktop.portal.Documents'
+Ignoring invalid max threads value 4294967295 > max (100000).
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.freedesktop.impl.portal.desktop.xapp' requested by ':1.11' (uid=1000 pid=1891238 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.freedesktop.impl.portal.desktop.xapp'
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.freedesktop.impl.portal.desktop.gtk' requested by ':1.11' (uid=1000 pid=1891238 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.freedesktop.impl.portal.desktop.gtk'
+
+(/usr/libexec/xdg-desktop-portal:1891238): xdg-desktop-portal-WARNING **: 20:33:52.912: Failed connect to PipeWire: Couldn't connect to PipeWire
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Activating service name='org.freedesktop.secrets' requested by ':1.11' (uid=1000 pid=1891238 comm="/usr/libexec/xdg-desktop-portal" label="chatgpt (unconfined)")
+** Message: 20:33:52.934: couldn't access control socket: /tmp/coin-isolated-x-tdbkqlg9/runtime/keyring/control: No such file or directory
+discover_other_daemon: 0dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.freedesktop.secrets'
+dbus-daemon[1891108]: [session uid=1000 pid=1891108] Successfully activated service 'org.freedesktop.portal.Desktop'
+PASS        vulkan-object-opaque-1x-freecad-sampling-policy: 
+{"PASS": 1, "REFERENCE_PASS": 0, "SKIP": 0, "UNSUPPORTED": 0, "FAIL": 0}
+X connection to :1 broken (explicit kill or server shutdown).
+A connection to the bus can't be made

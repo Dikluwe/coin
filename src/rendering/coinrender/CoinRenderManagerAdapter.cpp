@@ -50,6 +50,28 @@ CoinRenderManagerAdapter::CoinRenderManagerAdapter(
   this->syncFromRenderManager();
 }
 
+CoinRenderManagerAdapter::CoinRenderManagerAdapter(
+  SoRenderManager & source, const SbVec2i32 & offscreenSize, const CoinRenderOptions & options)
+  : pimpl(new P)
+{
+  ensureWgpuRenderActionInitialized();
+  this->pimpl->source = &source;
+  this->pimpl->renderer = new CoinRenderSceneManager(offscreenSize, options);
+  this->syncFromRenderManager();
+}
+
+CoinRenderManagerAdapter::CoinRenderManagerAdapter(
+  SoRenderManager & source,
+  const CoinRenderNativeSurfaceDescriptor & nativeWindow,
+  const SbVec2i32 & framebufferSize, const CoinRenderOptions & options)
+  : pimpl(new P)
+{
+  ensureWgpuRenderActionInitialized();
+  this->pimpl->source = &source;
+  this->pimpl->renderer = new CoinRenderSceneManager(nativeWindow, framebufferSize, options);
+  this->syncFromRenderManager();
+}
+
 CoinRenderManagerAdapter::~CoinRenderManagerAdapter()
 {
   if (this->pimpl->sceneGraphOverride) this->pimpl->sceneGraphOverride->unref();

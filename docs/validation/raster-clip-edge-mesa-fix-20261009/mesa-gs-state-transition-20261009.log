@@ -1,0 +1,33 @@
+Mesa 25.2.8 private build; RadeonSI Renoir; 2026-10-09.
+System Mesa was not modified. The saved experimental patch was applied only to
+private Mesa sources. A private libgallium was compiled and its load verified
+with strace openat. DISPLAY=:0 reported direct rendering on radeonsi Renoir.
+
+Restricted full oracle, MESA_EXPERIMENTAL_CLIP_BOUNDARY=1:
+  process exit 134, "The CS has cancelled because the context is lost";
+  kernel 19:10:03 ring gfx timeout, process coin-raster-cli, GPU reset(1).
+  stdout was buffered, so this run alone does not identify the draw.
+
+Instrumented single GL_POLYGON/GL_LINE draw, patch enabled:
+  mode=9, count=4, clip plane 1, boundary GS selected.
+  AMD_DEBUG=nongg: x16=18/18, GL error=0, exit 0.
+  Default NGG:    x16=18/18, GL error=0, exit 0.
+
+Instrumented two-draw sequence, patch enabled, AMD_DEBUG=nongg:
+  first GL_POLYGON/GL_LINE: boundary GS selected, x16=18/18, error=0.
+  next GL_TRIANGLES/GL_LINE: mode=4, count=6, boundary GS NOT selected.
+  glFinish for the second draw took approximately 11 seconds;
+  kernel 19:20:14 ring gfx timeout, process coin-raster-cli, GPU reset(2).
+  After recovery, second draw readback x16=0/18, x45=0, GL error=0.
+  This establishes the timeout on the draw following the supplemental GS,
+  including with NGG disabled. It does not establish the exact driver cause.
+
+Control with lower_ucp enabled but supplemental GS disabled:
+  two draws completed; polygon x16=0/18, triangles x16=1/18;
+  no additional ring gfx timeout or reset in journalctl.
+
+An initial AMD_DEBUG=nongg run accidentally omitted the experiment variable;
+its x16=0/18 result is discarded as a patch comparison.
+
+After these runs, all three private Mesa source files and the private
+libgallium were restored byte-for-byte from pretest backups, verified by SHA256.

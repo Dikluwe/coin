@@ -1,0 +1,1034 @@
+DRM_IOCTL_GET_CAP: unhandled 0x10
+SHIM GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.49, 6.17.0-42-generic)
+SHIM before polygon
+shader: MESA_SHADER_VERTEX
+name: ff-vs
+internal: true
+num_ubos: 1
+inputs_read: 0
+outputs_written: 0
+subgroup_size: 0
+bit_sizes_float: 0x20
+first_ubo_is_default_ubo: true
+separate_shader: true
+flrp_lowered: true
+io_lowered: true
+inputs: 1
+outputs: 1
+uniforms: 4
+decl_var ubo INTERP_MODE_NONE none vec4[4] uniform_0 (0, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:       // preds:
+    con 32     %0 = load_const (0x00000000)
+    con 32x4   %1 = @load_ubo (%0 (0x0), %0 (0x0)) (access=none, align_mul=1073741824, align_offset=0, range_base=0, range=16)
+    con 32     %2 = load_const (0x00000010 = 16)
+    con 32x4   %3 = @load_ubo (%0 (0x0), %2 (0x10)) (access=none, align_mul=1073741824, align_offset=16, range_base=16, range=16)
+    con 32     %4 = load_const (0x00000020 = 32)
+    con 32x4   %5 = @load_ubo (%0 (0x0), %4 (0x20)) (access=none, align_mul=1073741824, align_offset=32, range_base=32, range=16)
+    con 32     %6 = load_const (0x00000030 = 48)
+    con 32x4   %7 = @load_ubo (%0 (0x0), %6 (0x30)) (access=none, align_mul=1073741824, align_offset=48, range_base=48, range=16)
+    div 32x4   %8 = @load_input (%0 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VERT_ATTRIB_POS slots=1)
+    div 32     %9 = fmul %1.x, %8.x
+    div 32    %10 = fmul %1.y, %8.x
+    div 32    %11 = fmul %1.z, %8.x
+    div 32    %12 = fmul %1.w, %8.x
+    div 32    %13 = fmul %3.x, %8.y
+    div 32    %14 = fmul %3.y, %8.y
+    div 32    %15 = fmul %3.z, %8.y
+    div 32    %16 = fmul %3.w, %8.y
+    div 32    %17 = fadd %13, %9
+    div 32    %18 = fadd %14, %10
+    div 32    %19 = fadd %15, %11
+    div 32    %20 = fadd %16, %12
+    div 32    %21 = fmul %5.x, %8.z
+    div 32    %22 = fmul %5.y, %8.z
+    div 32    %23 = fmul %5.z, %8.z
+    div 32    %24 = fmul %5.w, %8.z
+    div 32    %25 = fadd %21, %17
+    div 32    %26 = fadd %22, %18
+    div 32    %27 = fadd %23, %19
+    div 32    %28 = fadd %24, %20
+    div 32    %29 = fmul %7.x, %8.w
+    div 32    %30 = fmul %7.y, %8.w
+    div 32    %31 = fmul %7.z, %8.w
+    div 32    %32 = fmul %7.w, %8.w
+    div 32    %33 = fadd %29, %25
+    div 32    %34 = fadd %30, %26
+    div 32    %35 = fadd %31, %27
+    div 32    %36 = fadd %32, %28
+                    @store_output (%33, %0 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    @store_output (%34, %0 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    @store_output (%35, %0 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    @store_output (%36, %0 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    // succs: b1
+    block b1:
+}
+
+shader: MESA_SHADER_VERTEX
+name: ff-vs
+internal: true
+num_ubos: 2
+inputs_read: 0
+outputs_written: 0,17
+subgroup_size: 0
+clip_distance_array_size: 1
+bit_sizes_float: 0x20
+first_ubo_is_default_ubo: true
+separate_shader: true
+flrp_lowered: true
+io_lowered: true
+inputs: 1
+outputs: 1
+uniforms: 12
+decl_var ubo INTERP_MODE_NONE none vec4[4] uniform_0 (0, 0, 0)
+decl_var ubo INTERP_MODE_NONE none vec4[12] uniform_0#0 (0, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:       // preds:
+    con 32     %0 = load_const (0x00000000)
+    con 32x4   %1 = @load_ubo (%0 (0x0), %0 (0x0)) (access=none, align_mul=1073741824, align_offset=0, range_base=0, range=16)
+    con 32     %2 = load_const (0x00000010 = 16)
+    con 32x4   %3 = @load_ubo (%0 (0x0), %2 (0x10)) (access=none, align_mul=1073741824, align_offset=16, range_base=16, range=16)
+    con 32     %4 = load_const (0x00000020 = 32)
+    con 32x4   %5 = @load_ubo (%0 (0x0), %4 (0x20)) (access=none, align_mul=1073741824, align_offset=32, range_base=32, range=16)
+    con 32     %6 = load_const (0x00000030 = 48)
+    con 32x4   %7 = @load_ubo (%0 (0x0), %6 (0x30)) (access=none, align_mul=1073741824, align_offset=48, range_base=48, range=16)
+    div 32x4   %8 = @load_input (%0 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VERT_ATTRIB_POS slots=1)
+    div 32     %9 = fmul %1.x, %8.x
+    div 32    %10 = fmul %1.y, %8.x
+    div 32    %11 = fmul %1.z, %8.x
+    div 32    %12 = fmul %1.w, %8.x
+    div 32    %13 = fmul %3.x, %8.y
+    div 32    %14 = fmul %3.y, %8.y
+    div 32    %15 = fmul %3.z, %8.y
+    div 32    %16 = fmul %3.w, %8.y
+    div 32    %17 = fadd %13, %9
+    div 32    %18 = fadd %14, %10
+    div 32    %19 = fadd %15, %11
+    div 32    %20 = fadd %16, %12
+    div 32    %21 = fmul %5.x, %8.z
+    div 32    %22 = fmul %5.y, %8.z
+    div 32    %23 = fmul %5.z, %8.z
+    div 32    %24 = fmul %5.w, %8.z
+    div 32    %25 = fadd %21, %17
+    div 32    %26 = fadd %22, %18
+    div 32    %27 = fadd %23, %19
+    div 32    %28 = fadd %24, %20
+    div 32    %29 = fmul %7.x, %8.w
+    div 32    %30 = fmul %7.y, %8.w
+    div 32    %31 = fmul %7.z, %8.w
+    div 32    %32 = fmul %7.w, %8.w
+    div 32    %33 = fadd %29, %25
+    div 32    %34 = fadd %30, %26
+    div 32    %35 = fadd %31, %27
+    div 32    %36 = fadd %32, %28
+                    @store_output (%33, %0 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    @store_output (%34, %0 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    @store_output (%35, %0 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+                    @store_output (%36, %0 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())
+    con 32    %37 = load_const (0x00000040 = 64)
+    con 32x4  %38 = @load_ubo (%0 (0x0), %37 (0x40)) (access=none, align_mul=1073741824, align_offset=64, range_base=64, range=16)
+    div 32    %39 = fmul %38.w, %36
+    div 32    %40 = fmul %38.z, %35
+    div 32    %41 = fadd %39, %40
+    div 32    %42 = fmul %38.y, %34
+    div 32    %43 = fadd %41, %42
+    div 32    %44 = fmul %38.x, %33
+    div 32    %45 = fadd %43, %44
+                    @store_output (%45, %0 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1, xfb(), xfb2())
+                    // succs: b1
+    block b1:
+}
+
+shader: MESA_SHADER_GEOMETRY
+name: experimental clip boundary GS
+internal: true
+inputs_read: 0-1,17
+outputs_written: 0-1,17
+subgroup_size: 0
+clip_distance_array_size: 1
+bit_sizes_float: 0x20
+bit_sizes_int: 0x21
+first_ubo_is_default_ubo: true
+separate_shader: true
+flrp_lowered: true
+io_lowered: true
+output_primitive: LINE_STRIP
+input_primitive: LINES_ADJACENCY
+vertices_out: 2
+invocations: 1
+vertices_in: 4
+uses_end_primitive: true
+active_stream_mask: 0x01
+inputs: 3
+outputs: 3
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:        // preds:
+    con 32      %0 = undefined
+    con 32      %1 = undefined
+    con 32      %2 = undefined
+    con 32      %3 = undefined
+    con 32      %4 = undefined
+    con 32      %5 = undefined
+    con 32      %6 = undefined
+    con 32      %7 = undefined
+    con 32      %8 = undefined
+    con 32      %9 = undefined
+    con 32     %10 = undefined
+    con 32     %11 = undefined
+    con 32     %12 = undefined
+    con 32     %13 = load_const (0x00000000 = 0.000000)
+    div 32x4   %14 = @load_per_vertex_input (%13 (0x0), %13 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    con 32     %15 = load_const (0x00000001)
+    div 32x4   %16 = @load_per_vertex_input (%15 (0x1), %13 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %17 = @load_per_vertex_input (%13 (0x0), %13 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 32     %18 = @load_per_vertex_input (%15 (0x1), %13 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %19 = flt %18, %13 (0.000000)
+    div 1      %20 = flt %17, %13 (0.000000)
+    div 1      %21 = ixor %20, %19
+                     // succs: b1 b2
+    if %21 {
+        div block b1:        // preds: b0
+        div 32     %22 = fsub %17, %18
+        div 32     %23 = frcp %22
+        div 32     %24 = fmul %17, %23
+        div 32     %25 = fsub %16.x, %14.x
+        div 32     %26 = fsub %16.y, %14.y
+        div 32     %27 = fsub %16.z, %14.z
+        div 32     %28 = fsub %16.w, %14.w
+        div 32     %29 = fmul %25, %24
+        div 32     %30 = fmul %26, %24
+        div 32     %31 = fmul %27, %24
+        div 32     %32 = fmul %28, %24
+        div 32     %33 = fadd %29, %14.x
+        div 32     %34 = fadd %30, %14.y
+        div 32     %35 = fadd %31, %14.z
+        div 32     %36 = fadd %32, %14.w
+        div 32x4   %37 = @load_per_vertex_input (%13 (0x0), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4   %38 = @load_per_vertex_input (%15 (0x1), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32     %39 = fsub %38.x, %37.x
+        div 32     %40 = fsub %38.y, %37.y
+        div 32     %41 = fsub %38.z, %37.z
+        div 32     %42 = fsub %38.w, %37.w
+        div 32     %43 = fmul %39, %24
+        div 32     %44 = fmul %40, %24
+        div 32     %45 = fmul %41, %24
+        div 32     %46 = fmul %42, %24
+        div 32     %47 = fadd %43, %37.x
+        div 32     %48 = fadd %44, %37.y
+        div 32     %49 = fadd %45, %37.z
+        div 32     %50 = fadd %46, %37.w
+                         @store_output (%33, %13 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%34, %13 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%35, %13 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%36, %13 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%47, %13 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%48, %13 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%49, %13 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%50, %13 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%13 (0.000000), %13 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @emit_vertex_with_counter (%13 (0x0), %12) (stream_id=0)
+                         // succs: b3
+    } else {
+        div block b2:  // preds: b0, succs: b3
+    }
+    con block b3:        // preds: b1 b2
+    div 32     %51 = phi b1: %15 (0x1), b2: %13 (0x0)
+    con 32     %52 = load_const (0x00000002)
+    div 32x4   %53 = @load_per_vertex_input (%52 (0x2), %13 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %54 = @load_per_vertex_input (%52 (0x2), %13 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %55 = flt %54, %13 (0.000000)
+    div 1      %56 = ixor %19, %55
+                     // succs: b4 b8
+    if %56 {
+        div block b4:        // preds: b3
+        div 32     %57 = fsub %18, %54
+        div 32     %58 = frcp %57
+        div 32     %59 = fmul %18, %58
+        div 32     %60 = fsub %53.x, %16.x
+        div 32     %61 = fsub %53.y, %16.y
+        div 32     %62 = fsub %53.z, %16.z
+        div 32     %63 = fsub %53.w, %16.w
+        div 32     %64 = fmul %60, %59
+        div 32     %65 = fmul %61, %59
+        div 32     %66 = fmul %62, %59
+        div 32     %67 = fmul %63, %59
+        div 32     %68 = fadd %64, %16.x
+        div 32     %69 = fadd %65, %16.y
+        div 32     %70 = fadd %66, %16.z
+        div 32     %71 = fadd %67, %16.w
+        div 32x4   %72 = @load_per_vertex_input (%15 (0x1), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4   %73 = @load_per_vertex_input (%52 (0x2), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32     %74 = fsub %73.x, %72.x
+        div 32     %75 = fsub %73.y, %72.y
+        div 32     %76 = fsub %73.z, %72.z
+        div 32     %77 = fsub %73.w, %72.w
+        div 32     %78 = fmul %74, %59
+        div 32     %79 = fmul %75, %59
+        div 32     %80 = fmul %76, %59
+        div 32     %81 = fmul %77, %59
+        div 32     %82 = fadd %78, %72.x
+        div 32     %83 = fadd %79, %72.y
+        div 32     %84 = fadd %80, %72.z
+        div 32     %85 = fadd %81, %72.w
+                         @store_output (%68, %13 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%69, %13 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%70, %13 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%71, %13 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%82, %13 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%83, %13 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%84, %13 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%85, %13 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%13 (0.000000), %13 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1      %86 = ilt %51, %52 (0x2)
+                         // succs: b5 b6
+        if %86 {
+            div block b5:        // preds: b4
+                             @emit_vertex_with_counter (%51, %11) (stream_id=0)
+            div 32     %87 = iadd %51, %15 (0x1)
+                             // succs: b7
+        } else {
+            div block b6:  // preds: b4, succs: b7
+        }
+        div block b7:        // preds: b5 b6
+        div 32     %88 = phi b5: %87, b6: %51
+                         // succs: b9
+    } else {
+        div block b8:  // preds: b3, succs: b9
+    }
+    con block b9:        // preds: b7 b8
+    div 32     %89 = phi b7: %88, b8: %51
+    con 32     %90 = load_const (0x00000003 = 0.000000)
+    div 32x4   %91 = @load_per_vertex_input (%90 (0x3), %13 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %92 = @load_per_vertex_input (%90 (0x3), %13 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %93 = flt %92, %13 (0.000000)
+    div 1      %94 = ixor %55, %93
+                     // succs: b10 b14
+    if %94 {
+        div block b10:       // preds: b9
+        div 32     %95 = fsub %54, %92
+        div 32     %96 = frcp %95
+        div 32     %97 = fmul %54, %96
+        div 32     %98 = fsub %91.x, %53.x
+        div 32     %99 = fsub %91.y, %53.y
+        div 32    %100 = fsub %91.z, %53.z
+        div 32    %101 = fsub %91.w, %53.w
+        div 32    %102 = fmul %98, %97
+        div 32    %103 = fmul %99, %97
+        div 32    %104 = fmul %100, %97
+        div 32    %105 = fmul %101, %97
+        div 32    %106 = fadd %102, %53.x
+        div 32    %107 = fadd %103, %53.y
+        div 32    %108 = fadd %104, %53.z
+        div 32    %109 = fadd %105, %53.w
+        div 32x4  %110 = @load_per_vertex_input (%52 (0x2), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4  %111 = @load_per_vertex_input (%90 (0x3), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32    %112 = fsub %111.x, %110.x
+        div 32    %113 = fsub %111.y, %110.y
+        div 32    %114 = fsub %111.z, %110.z
+        div 32    %115 = fsub %111.w, %110.w
+        div 32    %116 = fmul %112, %97
+        div 32    %117 = fmul %113, %97
+        div 32    %118 = fmul %114, %97
+        div 32    %119 = fmul %115, %97
+        div 32    %120 = fadd %116, %110.x
+        div 32    %121 = fadd %117, %110.y
+        div 32    %122 = fadd %118, %110.z
+        div 32    %123 = fadd %119, %110.w
+                         @store_output (%106, %13 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%107, %13 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%108, %13 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%109, %13 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%120, %13 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%121, %13 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%122, %13 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%123, %13 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%13 (0.000000), %13 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1     %124 = ilt %89, %52 (0x2)
+                         // succs: b11 b12
+        if %124 {
+            div block b11:       // preds: b10
+                             @emit_vertex_with_counter (%89, %10) (stream_id=0)
+            div 32    %125 = iadd %89, %15 (0x1)
+                             // succs: b13
+        } else {
+            div block b12:  // preds: b10, succs: b13
+        }
+        div block b13:       // preds: b11 b12
+        div 32    %126 = phi b11: %125, b12: %89
+                         // succs: b15
+    } else {
+        div block b14:  // preds: b9, succs: b15
+    }
+    con block b15:       // preds: b13 b14
+    div 32    %127 = phi b13: %126, b14: %89
+    div 1     %128 = ixor %93, %20
+                     // succs: b16 b20
+    if %128 {
+        div block b16:       // preds: b15
+        div 32    %129 = fsub %92, %17
+        div 32    %130 = frcp %129
+        div 32    %131 = fmul %92, %130
+        div 32    %132 = fsub %14.x, %91.x
+        div 32    %133 = fsub %14.y, %91.y
+        div 32    %134 = fsub %14.z, %91.z
+        div 32    %135 = fsub %14.w, %91.w
+        div 32    %136 = fmul %132, %131
+        div 32    %137 = fmul %133, %131
+        div 32    %138 = fmul %134, %131
+        div 32    %139 = fmul %135, %131
+        div 32    %140 = fadd %136, %91.x
+        div 32    %141 = fadd %137, %91.y
+        div 32    %142 = fadd %138, %91.z
+        div 32    %143 = fadd %139, %91.w
+        div 32x4  %144 = @load_per_vertex_input (%90 (0x3), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4  %145 = @load_per_vertex_input (%13 (0x0), %13 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32    %146 = fsub %145.x, %144.x
+        div 32    %147 = fsub %145.y, %144.y
+        div 32    %148 = fsub %145.z, %144.z
+        div 32    %149 = fsub %145.w, %144.w
+        div 32    %150 = fmul %146, %131
+        div 32    %151 = fmul %147, %131
+        div 32    %152 = fmul %148, %131
+        div 32    %153 = fmul %149, %131
+        div 32    %154 = fadd %150, %144.x
+        div 32    %155 = fadd %151, %144.y
+        div 32    %156 = fadd %152, %144.z
+        div 32    %157 = fadd %153, %144.w
+                         @store_output (%140, %13 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%141, %13 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%142, %13 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%143, %13 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%154, %13 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%155, %13 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%156, %13 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%157, %13 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%13 (0.000000), %13 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1     %158 = ilt %127, %52 (0x2)
+                         // succs: b17 b18
+        if %158 {
+            div block b17:       // preds: b16
+                             @emit_vertex_with_counter (%127, %9) (stream_id=0)
+            div 32    %159 = iadd %127, %15 (0x1)
+                             // succs: b19
+        } else {
+            div block b18:  // preds: b16, succs: b19
+        }
+        div block b19:       // preds: b17 b18
+        div 32    %160 = phi b17: %159, b18: %127
+                         // succs: b21
+    } else {
+        div block b20:  // preds: b15, succs: b21
+    }
+    con block b21:       // preds: b19 b20
+    div 32    %161 = phi b19: %160, b20: %127
+                     @end_primitive_with_counter (%161, %8) (stream_id=0)
+                     @set_vertex_and_primitive_count (%161, %7, %6) (stream_id=0)
+                     @set_vertex_and_primitive_count (%13 (0x0), %5, %4) (stream_id=1)
+                     @set_vertex_and_primitive_count (%13 (0x0), %3, %2) (stream_id=2)
+                     @set_vertex_and_primitive_count (%13 (0x0), %1, %0) (stream_id=3)
+                     // succs: b22
+    block b22:
+}
+
+SHIM after polygon error=0
+SHIM before triangles
+shader: MESA_SHADER_GEOMETRY
+name: experimental clip boundary GS
+internal: true
+inputs_read: 0-1,17
+outputs_written: 0-1,17
+subgroup_size: 0
+clip_distance_array_size: 1
+bit_sizes_float: 0x20
+bit_sizes_int: 0x21
+first_ubo_is_default_ubo: true
+separate_shader: true
+flrp_lowered: true
+io_lowered: true
+output_primitive: LINE_STRIP
+input_primitive: TRIANGLES
+vertices_out: 2
+invocations: 1
+vertices_in: 3
+uses_end_primitive: true
+active_stream_mask: 0x01
+inputs: 3
+outputs: 3
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:        // preds:
+    con 32      %0 = undefined
+    con 32      %1 = undefined
+    con 32      %2 = undefined
+    con 32      %3 = undefined
+    con 32      %4 = undefined
+    con 32      %5 = undefined
+    con 32      %6 = undefined
+    con 32      %7 = undefined
+    con 32      %8 = undefined
+    con 32      %9 = undefined
+    con 32     %10 = undefined
+    con 32     %11 = undefined
+    con 32     %12 = load_const (0x00000000 = 0.000000)
+    div 32x4   %13 = @load_per_vertex_input (%12 (0x0), %12 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    con 32     %14 = load_const (0x00000001)
+    div 32x4   %15 = @load_per_vertex_input (%14 (0x1), %12 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %16 = @load_per_vertex_input (%12 (0x0), %12 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 32     %17 = @load_per_vertex_input (%14 (0x1), %12 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %18 = flt %17, %12 (0.000000)
+    div 1      %19 = flt %16, %12 (0.000000)
+    div 1      %20 = ixor %19, %18
+                     // succs: b1 b2
+    if %20 {
+        div block b1:        // preds: b0
+        div 32     %21 = fsub %16, %17
+        div 32     %22 = frcp %21
+        div 32     %23 = fmul %16, %22
+        div 32     %24 = fsub %15.x, %13.x
+        div 32     %25 = fsub %15.y, %13.y
+        div 32     %26 = fsub %15.z, %13.z
+        div 32     %27 = fsub %15.w, %13.w
+        div 32     %28 = fmul %24, %23
+        div 32     %29 = fmul %25, %23
+        div 32     %30 = fmul %26, %23
+        div 32     %31 = fmul %27, %23
+        div 32     %32 = fadd %28, %13.x
+        div 32     %33 = fadd %29, %13.y
+        div 32     %34 = fadd %30, %13.z
+        div 32     %35 = fadd %31, %13.w
+        div 32x4   %36 = @load_per_vertex_input (%12 (0x0), %12 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4   %37 = @load_per_vertex_input (%14 (0x1), %12 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32     %38 = fsub %37.x, %36.x
+        div 32     %39 = fsub %37.y, %36.y
+        div 32     %40 = fsub %37.z, %36.z
+        div 32     %41 = fsub %37.w, %36.w
+        div 32     %42 = fmul %38, %23
+        div 32     %43 = fmul %39, %23
+        div 32     %44 = fmul %40, %23
+        div 32     %45 = fmul %41, %23
+        div 32     %46 = fadd %42, %36.x
+        div 32     %47 = fadd %43, %36.y
+        div 32     %48 = fadd %44, %36.z
+        div 32     %49 = fadd %45, %36.w
+                         @store_output (%32, %12 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%33, %12 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%34, %12 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%35, %12 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%46, %12 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%47, %12 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%48, %12 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%49, %12 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%12 (0.000000), %12 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @emit_vertex_with_counter (%12 (0x0), %11) (stream_id=0)
+                         // succs: b3
+    } else {
+        div block b2:  // preds: b0, succs: b3
+    }
+    con block b3:        // preds: b1 b2
+    div 32     %50 = phi b1: %14 (0x1), b2: %12 (0x0)
+    con 32     %51 = load_const (0x00000002)
+    div 32x4   %52 = @load_per_vertex_input (%51 (0x2), %12 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %53 = @load_per_vertex_input (%51 (0x2), %12 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %54 = flt %53, %12 (0.000000)
+    div 1      %55 = ixor %18, %54
+                     // succs: b4 b8
+    if %55 {
+        div block b4:        // preds: b3
+        div 32     %56 = fsub %17, %53
+        div 32     %57 = frcp %56
+        div 32     %58 = fmul %17, %57
+        div 32     %59 = fsub %52.x, %15.x
+        div 32     %60 = fsub %52.y, %15.y
+        div 32     %61 = fsub %52.z, %15.z
+        div 32     %62 = fsub %52.w, %15.w
+        div 32     %63 = fmul %59, %58
+        div 32     %64 = fmul %60, %58
+        div 32     %65 = fmul %61, %58
+        div 32     %66 = fmul %62, %58
+        div 32     %67 = fadd %63, %15.x
+        div 32     %68 = fadd %64, %15.y
+        div 32     %69 = fadd %65, %15.z
+        div 32     %70 = fadd %66, %15.w
+        div 32x4   %71 = @load_per_vertex_input (%14 (0x1), %12 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4   %72 = @load_per_vertex_input (%51 (0x2), %12 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32     %73 = fsub %72.x, %71.x
+        div 32     %74 = fsub %72.y, %71.y
+        div 32     %75 = fsub %72.z, %71.z
+        div 32     %76 = fsub %72.w, %71.w
+        div 32     %77 = fmul %73, %58
+        div 32     %78 = fmul %74, %58
+        div 32     %79 = fmul %75, %58
+        div 32     %80 = fmul %76, %58
+        div 32     %81 = fadd %77, %71.x
+        div 32     %82 = fadd %78, %71.y
+        div 32     %83 = fadd %79, %71.z
+        div 32     %84 = fadd %80, %71.w
+                         @store_output (%67, %12 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%68, %12 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%69, %12 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%70, %12 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%81, %12 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%82, %12 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%83, %12 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%84, %12 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%12 (0.000000), %12 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1      %85 = ilt %50, %51 (0x2)
+                         // succs: b5 b6
+        if %85 {
+            div block b5:        // preds: b4
+                             @emit_vertex_with_counter (%50, %10) (stream_id=0)
+            div 32     %86 = iadd %50, %14 (0x1)
+                             // succs: b7
+        } else {
+            div block b6:  // preds: b4, succs: b7
+        }
+        div block b7:        // preds: b5 b6
+        div 32     %87 = phi b5: %86, b6: %50
+                         // succs: b9
+    } else {
+        div block b8:  // preds: b3, succs: b9
+    }
+    con block b9:        // preds: b7 b8
+    div 32     %88 = phi b7: %87, b8: %50
+    div 1      %89 = ixor %54, %19
+                     // succs: b10 b14
+    if %89 {
+        div block b10:       // preds: b9
+        div 32     %90 = fsub %53, %16
+        div 32     %91 = frcp %90
+        div 32     %92 = fmul %53, %91
+        div 32     %93 = fsub %13.x, %52.x
+        div 32     %94 = fsub %13.y, %52.y
+        div 32     %95 = fsub %13.z, %52.z
+        div 32     %96 = fsub %13.w, %52.w
+        div 32     %97 = fmul %93, %92
+        div 32     %98 = fmul %94, %92
+        div 32     %99 = fmul %95, %92
+        div 32    %100 = fmul %96, %92
+        div 32    %101 = fadd %97, %52.x
+        div 32    %102 = fadd %98, %52.y
+        div 32    %103 = fadd %99, %52.z
+        div 32    %104 = fadd %100, %52.w
+        div 32x4  %105 = @load_per_vertex_input (%51 (0x2), %12 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4  %106 = @load_per_vertex_input (%12 (0x0), %12 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32    %107 = fsub %106.x, %105.x
+        div 32    %108 = fsub %106.y, %105.y
+        div 32    %109 = fsub %106.z, %105.z
+        div 32    %110 = fsub %106.w, %105.w
+        div 32    %111 = fmul %107, %92
+        div 32    %112 = fmul %108, %92
+        div 32    %113 = fmul %109, %92
+        div 32    %114 = fmul %110, %92
+        div 32    %115 = fadd %111, %105.x
+        div 32    %116 = fadd %112, %105.y
+        div 32    %117 = fadd %113, %105.z
+        div 32    %118 = fadd %114, %105.w
+                         @store_output (%101, %12 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%102, %12 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%103, %12 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%104, %12 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%115, %12 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%116, %12 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%117, %12 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%118, %12 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%12 (0.000000), %12 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1     %119 = ilt %88, %51 (0x2)
+                         // succs: b11 b12
+        if %119 {
+            div block b11:       // preds: b10
+                             @emit_vertex_with_counter (%88, %9) (stream_id=0)
+            div 32    %120 = iadd %88, %14 (0x1)
+                             // succs: b13
+        } else {
+            div block b12:  // preds: b10, succs: b13
+        }
+        div block b13:       // preds: b11 b12
+        div 32    %121 = phi b11: %120, b12: %88
+                         // succs: b15
+    } else {
+        div block b14:  // preds: b9, succs: b15
+    }
+    con block b15:       // preds: b13 b14
+    div 32    %122 = phi b13: %121, b14: %88
+                     @end_primitive_with_counter (%122, %8) (stream_id=0)
+                     @set_vertex_and_primitive_count (%122, %7, %6) (stream_id=0)
+                     @set_vertex_and_primitive_count (%12 (0x0), %5, %4) (stream_id=1)
+                     @set_vertex_and_primitive_count (%12 (0x0), %3, %2) (stream_id=2)
+                     @set_vertex_and_primitive_count (%12 (0x0), %1, %0) (stream_id=3)
+                     // succs: b16
+    block b16:
+}
+
+SHIM after triangles error=0
+SHIM before polygon-point
+shader: MESA_SHADER_GEOMETRY
+name: experimental clip boundary GS
+internal: true
+inputs_read: 0-1,17
+outputs_written: 0-1,17
+subgroup_size: 0
+clip_distance_array_size: 1
+bit_sizes_float: 0x20
+bit_sizes_int: 0x21
+first_ubo_is_default_ubo: true
+separate_shader: true
+flrp_lowered: true
+io_lowered: true
+output_primitive: POINTS
+input_primitive: LINES_ADJACENCY
+vertices_out: 2
+invocations: 1
+vertices_in: 4
+active_stream_mask: 0x01
+inputs: 3
+outputs: 3
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:        // preds:
+    con 32      %0 = undefined
+    con 32      %1 = undefined
+    con 32      %2 = undefined
+    con 32      %3 = undefined
+    con 32      %4 = load_const (0x00000000 = 0.000000)
+    div 32x4    %5 = @load_per_vertex_input (%4 (0x0), %4 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    con 32      %6 = load_const (0x00000001)
+    div 32x4    %7 = @load_per_vertex_input (%6 (0x1), %4 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32      %8 = @load_per_vertex_input (%4 (0x0), %4 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 32      %9 = @load_per_vertex_input (%6 (0x1), %4 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %10 = flt %9, %4 (0.000000)
+    div 1      %11 = flt %8, %4 (0.000000)
+    div 1      %12 = ixor %11, %10
+                     // succs: b1 b2
+    if %12 {
+        div block b1:        // preds: b0
+        div 32     %13 = fsub %8, %9
+        div 32     %14 = frcp %13
+        div 32     %15 = fmul %8, %14
+        div 32     %16 = fsub %7.x, %5.x
+        div 32     %17 = fsub %7.y, %5.y
+        div 32     %18 = fsub %7.z, %5.z
+        div 32     %19 = fsub %7.w, %5.w
+        div 32     %20 = fmul %16, %15
+        div 32     %21 = fmul %17, %15
+        div 32     %22 = fmul %18, %15
+        div 32     %23 = fmul %19, %15
+        div 32     %24 = fadd %20, %5.x
+        div 32     %25 = fadd %21, %5.y
+        div 32     %26 = fadd %22, %5.z
+        div 32     %27 = fadd %23, %5.w
+        div 32x4   %28 = @load_per_vertex_input (%4 (0x0), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4   %29 = @load_per_vertex_input (%6 (0x1), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32     %30 = fsub %29.x, %28.x
+        div 32     %31 = fsub %29.y, %28.y
+        div 32     %32 = fsub %29.z, %28.z
+        div 32     %33 = fsub %29.w, %28.w
+        div 32     %34 = fmul %30, %15
+        div 32     %35 = fmul %31, %15
+        div 32     %36 = fmul %32, %15
+        div 32     %37 = fmul %33, %15
+        div 32     %38 = fadd %34, %28.x
+        div 32     %39 = fadd %35, %28.y
+        div 32     %40 = fadd %36, %28.z
+        div 32     %41 = fadd %37, %28.w
+                         @store_output (%24, %4 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%25, %4 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%26, %4 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%27, %4 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%38, %4 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%39, %4 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%40, %4 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%41, %4 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%4 (0.000000), %4 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @emit_vertex_with_counter (%4 (0x0), %4 (0x0)) (stream_id=0)
+                         // succs: b3
+    } else {
+        div block b2:  // preds: b0, succs: b3
+    }
+    con block b3:        // preds: b1 b2
+    div 32     %42 = phi b1: %6 (0x1), b2: %4 (0x0)
+    con 32     %43 = load_const (0x00000002)
+    div 32x4   %44 = @load_per_vertex_input (%43 (0x2), %4 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %45 = @load_per_vertex_input (%43 (0x2), %4 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %46 = flt %45, %4 (0.000000)
+    div 1      %47 = ixor %10, %46
+                     // succs: b4 b8
+    if %47 {
+        div block b4:        // preds: b3
+        div 32     %48 = fsub %9, %45
+        div 32     %49 = frcp %48
+        div 32     %50 = fmul %9, %49
+        div 32     %51 = fsub %44.x, %7.x
+        div 32     %52 = fsub %44.y, %7.y
+        div 32     %53 = fsub %44.z, %7.z
+        div 32     %54 = fsub %44.w, %7.w
+        div 32     %55 = fmul %51, %50
+        div 32     %56 = fmul %52, %50
+        div 32     %57 = fmul %53, %50
+        div 32     %58 = fmul %54, %50
+        div 32     %59 = fadd %55, %7.x
+        div 32     %60 = fadd %56, %7.y
+        div 32     %61 = fadd %57, %7.z
+        div 32     %62 = fadd %58, %7.w
+        div 32x4   %63 = @load_per_vertex_input (%6 (0x1), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4   %64 = @load_per_vertex_input (%43 (0x2), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32     %65 = fsub %64.x, %63.x
+        div 32     %66 = fsub %64.y, %63.y
+        div 32     %67 = fsub %64.z, %63.z
+        div 32     %68 = fsub %64.w, %63.w
+        div 32     %69 = fmul %65, %50
+        div 32     %70 = fmul %66, %50
+        div 32     %71 = fmul %67, %50
+        div 32     %72 = fmul %68, %50
+        div 32     %73 = fadd %69, %63.x
+        div 32     %74 = fadd %70, %63.y
+        div 32     %75 = fadd %71, %63.z
+        div 32     %76 = fadd %72, %63.w
+                         @store_output (%59, %4 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%60, %4 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%61, %4 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%62, %4 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%73, %4 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%74, %4 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%75, %4 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%76, %4 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%4 (0.000000), %4 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1      %77 = ilt %42, %43 (0x2)
+                         // succs: b5 b6
+        if %77 {
+            div block b5:        // preds: b4
+                             @emit_vertex_with_counter (%42, %4 (0x0)) (stream_id=0)
+            div 32     %78 = iadd %42, %6 (0x1)
+                             // succs: b7
+        } else {
+            div block b6:  // preds: b4, succs: b7
+        }
+        div block b7:        // preds: b5 b6
+        div 32     %79 = phi b5: %78, b6: %42
+                         // succs: b9
+    } else {
+        div block b8:  // preds: b3, succs: b9
+    }
+    con block b9:        // preds: b7 b8
+    div 32     %80 = phi b7: %79, b8: %42
+    con 32     %81 = load_const (0x00000003 = 0.000000)
+    div 32x4   %82 = @load_per_vertex_input (%81 (0x3), %4 (0x0)) (base=0, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_POS slots=1)
+    div 32     %83 = @load_per_vertex_input (%81 (0x3), %4 (0x0)) (base=2, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1)
+    div 1      %84 = flt %83, %4 (0.000000)
+    div 1      %85 = ixor %46, %84
+                     // succs: b10 b14
+    if %85 {
+        div block b10:       // preds: b9
+        div 32     %86 = fsub %45, %83
+        div 32     %87 = frcp %86
+        div 32     %88 = fmul %45, %87
+        div 32     %89 = fsub %82.x, %44.x
+        div 32     %90 = fsub %82.y, %44.y
+        div 32     %91 = fsub %82.z, %44.z
+        div 32     %92 = fsub %82.w, %44.w
+        div 32     %93 = fmul %89, %88
+        div 32     %94 = fmul %90, %88
+        div 32     %95 = fmul %91, %88
+        div 32     %96 = fmul %92, %88
+        div 32     %97 = fadd %93, %44.x
+        div 32     %98 = fadd %94, %44.y
+        div 32     %99 = fadd %95, %44.z
+        div 32    %100 = fadd %96, %44.w
+        div 32x4  %101 = @load_per_vertex_input (%43 (0x2), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4  %102 = @load_per_vertex_input (%81 (0x3), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32    %103 = fsub %102.x, %101.x
+        div 32    %104 = fsub %102.y, %101.y
+        div 32    %105 = fsub %102.z, %101.z
+        div 32    %106 = fsub %102.w, %101.w
+        div 32    %107 = fmul %103, %88
+        div 32    %108 = fmul %104, %88
+        div 32    %109 = fmul %105, %88
+        div 32    %110 = fmul %106, %88
+        div 32    %111 = fadd %107, %101.x
+        div 32    %112 = fadd %108, %101.y
+        div 32    %113 = fadd %109, %101.z
+        div 32    %114 = fadd %110, %101.w
+                         @store_output (%97, %4 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%98, %4 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%99, %4 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%100, %4 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%111, %4 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%112, %4 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%113, %4 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%114, %4 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%4 (0.000000), %4 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1     %115 = ilt %80, %43 (0x2)
+                         // succs: b11 b12
+        if %115 {
+            div block b11:       // preds: b10
+                             @emit_vertex_with_counter (%80, %4 (0x0)) (stream_id=0)
+            div 32    %116 = iadd %80, %6 (0x1)
+                             // succs: b13
+        } else {
+            div block b12:  // preds: b10, succs: b13
+        }
+        div block b13:       // preds: b11 b12
+        div 32    %117 = phi b11: %116, b12: %80
+                         // succs: b15
+    } else {
+        div block b14:  // preds: b9, succs: b15
+    }
+    con block b15:       // preds: b13 b14
+    div 32    %118 = phi b13: %117, b14: %80
+    div 1     %119 = ixor %84, %11
+                     // succs: b16 b20
+    if %119 {
+        div block b16:       // preds: b15
+        div 32    %120 = fsub %83, %8
+        div 32    %121 = frcp %120
+        div 32    %122 = fmul %83, %121
+        div 32    %123 = fsub %5.x, %82.x
+        div 32    %124 = fsub %5.y, %82.y
+        div 32    %125 = fsub %5.z, %82.z
+        div 32    %126 = fsub %5.w, %82.w
+        div 32    %127 = fmul %123, %122
+        div 32    %128 = fmul %124, %122
+        div 32    %129 = fmul %125, %122
+        div 32    %130 = fmul %126, %122
+        div 32    %131 = fadd %127, %82.x
+        div 32    %132 = fadd %128, %82.y
+        div 32    %133 = fadd %129, %82.z
+        div 32    %134 = fadd %130, %82.w
+        div 32x4  %135 = @load_per_vertex_input (%81 (0x3), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32x4  %136 = @load_per_vertex_input (%4 (0x0), %4 (0x0)) (base=1, range=0, component=0, dest_type=float32, io location=VARYING_SLOT_COL0 slots=1)
+        div 32    %137 = fsub %136.x, %135.x
+        div 32    %138 = fsub %136.y, %135.y
+        div 32    %139 = fsub %136.z, %135.z
+        div 32    %140 = fsub %136.w, %135.w
+        div 32    %141 = fmul %137, %122
+        div 32    %142 = fmul %138, %122
+        div 32    %143 = fmul %139, %122
+        div 32    %144 = fmul %140, %122
+        div 32    %145 = fadd %141, %135.x
+        div 32    %146 = fadd %142, %135.y
+        div 32    %147 = fadd %143, %135.z
+        div 32    %148 = fadd %144, %135.w
+                         @store_output (%131, %4 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%132, %4 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%133, %4 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%134, %4 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%145, %4 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%146, %4 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%147, %4 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%148, %4 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1 gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+                         @store_output (%4 (0.000000), %4 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1 no_sysval_output gs_streams(x=0 y=0 z=0 w=0), xfb(), xfb2())
+        div 1     %149 = ilt %118, %43 (0x2)
+                         // succs: b17 b18
+        if %149 {
+            div block b17:       // preds: b16
+                             @emit_vertex_with_counter (%118, %4 (0x0)) (stream_id=0)
+            div 32    %150 = iadd %118, %6 (0x1)
+                             // succs: b19
+        } else {
+            div block b18:  // preds: b16, succs: b19
+        }
+        div block b19:       // preds: b17 b18
+        div 32    %151 = phi b17: %150, b18: %118
+                         // succs: b21
+    } else {
+        div block b20:  // preds: b15, succs: b21
+    }
+    con block b21:       // preds: b19 b20
+    div 32    %152 = phi b19: %151, b20: %118
+                     @set_vertex_and_primitive_count (%152, %152, %3) (stream_id=0)
+                     @set_vertex_and_primitive_count (%4 (0x0), %4 (0x0), %2) (stream_id=1)
+                     @set_vertex_and_primitive_count (%4 (0x0), %4 (0x0), %1) (stream_id=2)
+                     @set_vertex_and_primitive_count (%4 (0x0), %4 (0x0), %0) (stream_id=3)
+                     // succs: b22
+    block b22:
+}
+
+SHIM after polygon-point error=0
+shader: MESA_SHADER_VERTEX
+source_blake3: {0x8993dcc5, 0x202d8e31, 0xdd29269c, 0x7736fd3a, 0x28b870fe, 0xdaa04dd7, 0x6753fa91, 0x98312ad8}
+name: GLSL3
+next_stage: MESA_SHADER_FRAGMENT
+num_ubos: 1
+inputs_read: 0,2
+outputs_written: 0-1,17
+subgroup_size: 1
+clip_distance_array_size: 1
+bit_sizes_float: 0x20
+bit_sizes_int: 0x20
+first_ubo_is_default_ubo: true
+flrp_lowered: true
+io_lowered: true
+inputs: 2
+outputs: 3
+uniforms: 4
+decl_var ubo INTERP_MODE_NONE none vec4[4] uniform_0 (0, 0, 0)
+decl_function main () (entrypoint)
+
+impl main {
+    con block b0:       // preds:
+    con 32     %0 = load_const (0x00000000)
+    con 32x4   %1 = @load_ubo (%0 (0x0), %0 (0x0)) (access=none, align_mul=4, align_offset=0, range_base=0, range=64)
+    div 32x4   %2 = @load_input (%0 (0x0)) (base=0, range=1, component=0, dest_type=float32, io location=VERT_ATTRIB_POS slots=1)  // gl_Vertex
+    div 32     %3 = fmul %1.x, %2.x
+    div 32     %4 = fmul %1.y, %2.x
+    div 32     %5 = fmul %1.z, %2.x
+    div 32     %6 = fmul %1.w, %2.x
+    con 32     %7 = load_const (0x00000010 = 16)
+    con 32x4   %8 = @load_ubo (%0 (0x0), %7 (0x10)) (access=none, align_mul=4, align_offset=0, range_base=0, range=64)
+    div 32     %9 = fmul %8.x, %2.y
+    div 32    %10 = fmul %8.y, %2.y
+    div 32    %11 = fmul %8.z, %2.y
+    div 32    %12 = fmul %8.w, %2.y
+    div 32    %13 = fadd %3, %9
+    div 32    %14 = fadd %4, %10
+    div 32    %15 = fadd %5, %11
+    div 32    %16 = fadd %6, %12
+    con 32    %17 = load_const (0x00000020 = 32)
+    con 32x4  %18 = @load_ubo (%0 (0x0), %17 (0x20)) (access=none, align_mul=4, align_offset=0, range_base=0, range=64)
+    div 32    %19 = fmul %18.x, %2.z
+    div 32    %20 = fmul %18.y, %2.z
+    div 32    %21 = fmul %18.z, %2.z
+    div 32    %22 = fmul %18.w, %2.z
+    div 32    %23 = fadd %13, %19
+    div 32    %24 = fadd %14, %20
+    div 32    %25 = fadd %15, %21
+    div 32    %26 = fadd %16, %22
+    con 32    %27 = load_const (0x00000030 = 48)
+    con 32x4  %28 = @load_ubo (%0 (0x0), %27 (0x30)) (access=none, align_mul=4, align_offset=0, range_base=0, range=64)
+    div 32    %29 = fmul %28.x, %2.w
+    div 32    %30 = fmul %28.y, %2.w
+    div 32    %31 = fmul %28.z, %2.w
+    div 32    %32 = fmul %28.w, %2.w
+    div 32    %33 = fadd %23, %29
+    div 32    %34 = fadd %24, %30
+    div 32    %35 = fadd %25, %31
+    div 32    %36 = fadd %26, %32
+    div 32x4  %37 = @load_input (%0 (0x0)) (base=1, range=1, component=0, dest_type=float32, io location=VERT_ATTRIB_COLOR0 slots=1)  // gl_Color
+                    @store_output (%33, %0 (0x0)) (base=0, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())  // gl_Position
+                    @store_output (%34, %0 (0x0)) (base=0, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())  // gl_Position
+                    @store_output (%35, %0 (0x0)) (base=0, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())  // gl_Position
+                    @store_output (%36, %0 (0x0)) (base=0, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_POS slots=1, xfb(), xfb2())  // gl_Position
+    div 32    %38 = mov %37.x
+                    @store_output (%38, %0 (0x0)) (base=1, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_COL0 slots=1, xfb(), xfb2())  // gl_FrontColor
+    div 32    %39 = mov %37.y
+                    @store_output (%39, %0 (0x0)) (base=1, range=0, wrmask=x, component=1, src_type=float32, io location=VARYING_SLOT_COL0 slots=1, xfb(), xfb2())  // gl_FrontColor
+    div 32    %40 = mov %37.z
+                    @store_output (%40, %0 (0x0)) (base=1, range=0, wrmask=x, component=2, src_type=float32, io location=VARYING_SLOT_COL0 slots=1, xfb(), xfb2())  // gl_FrontColor
+    div 32    %41 = mov %37.w
+                    @store_output (%41, %0 (0x0)) (base=1, range=0, wrmask=x, component=3, src_type=float32, io location=VARYING_SLOT_COL0 slots=1, xfb(), xfb2())  // gl_FrontColor
+    div 32    %42 = mov %2.x
+                    @store_output (%42, %0 (0x0)) (base=2, range=0, wrmask=x, component=0, src_type=float32, io location=VARYING_SLOT_CLIP_DIST0 slots=1, xfb(), xfb2())  // gl_ClipDistanceMESA
+                    // succs: b1
+    block b1:
+}
+
+SHIM shader link=1
+SHIM before shader polygon-line
+SHIM after shader polygon-line error=0

@@ -1,0 +1,16 @@
+dbus-daemon[1768930]: [session uid=1000 pid=1768930] Activating service name='org.gtk.vfs.Daemon' requested by ':1.1' (uid=1000 pid=1768966 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1768930]: [session uid=1000 pid=1768930] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[1768930]: [session uid=1000 pid=1768930] Activating service name='org.a11y.Bus' requested by ':1.3' (uid=1000 pid=1768966 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1768930]: [session uid=1000 pid=1768930] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[1769018]: Activating service name='org.a11y.atspi.Registry' requested by ':1.0' (uid=1000 pid=1768966 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1769018]: Successfully activated service 'org.a11y.atspi.Registry'
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+usage: run.py [-h] --harness HARNESS --artifacts ARTIFACTS
+              [--backend {bgfx,wgpu}] [--renderer {vulkan,opengl}]
+              [--mode {object,weighted_oit}] [--scale {1,2}]
+              [--case {rtt-window,first-expose,frame-coalescing,idle,resize,maximize,minimize,panel,dpr,recreate,wheel-rotation,two-viewports,freecad-multi,freecad-viewport,freecad-screen-content,freecad-sampling-policy,freecad-overlays,freecad-legacy-polyline,freecad-flags,freecad-delayed-overlays,freecad-grid,freecad-path-selection,freecad-mouse-picking,freecad-mouse-elements,freecad-mouse-links,freecad-mouse-link-topology,freecad-selection-menu,retained-rejection,colorbar,navicube,depth,polygon-offset,annotation,foregroundroot,decorationroot,axis-cross,rubber-band,hover}]
+              [--freecad FREECAD] [--timeout TIMEOUT] [--require-hardware]
+              [--reference-gl]
+run.py: error: unrecognized arguments: --alpha opaque
+X connection to :1 broken (explicit kill or server shutdown).
+A connection to the bus can't be made

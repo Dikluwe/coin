@@ -1,0 +1,114 @@
+{
+  "driver": "NVIDIA 615.71.09",
+  "gpu": "RTX 3060 Laptop 0x10de:0x2560",
+  "scene": "city-1000000, 1,000,001 instances, one draw, no texture units",
+  "scene_sha256": "b52a2ce714bf94129d3ddf7a02f910ffacadf915a72b61c8c86acb40ed72ab19",
+  "final_state_digest": "0x33d99c7f4d6c3900",
+  "profiles": {
+    "bgfx-nvidia-vulkan": {
+      "process_medians_ms": {
+        "native": [
+          11.973793,
+          11.958047
+        ],
+        "portable": [
+          11.979004499999999,
+          11.9920095
+        ]
+      },
+      "median_of_process_medians_ms": {
+        "native": 11.96592,
+        "portable": 11.985506999999998
+      },
+      "portable_minus_native_percent": 0.16368987925707845,
+      "frames_measured_per_process": 8,
+      "warmup_frames_per_process": 3
+    },
+    "wgpu-nvidia-vulkan": {
+      "process_medians_ms": {
+        "native": [
+          10.063925000000001,
+          9.2305915
+        ],
+        "portable": [
+          9.37821,
+          9.260842
+        ]
+      },
+      "median_of_process_medians_ms": {
+        "native": 9.64725825,
+        "portable": 9.319526
+      },
+      "portable_minus_native_percent": -3.397154315838913,
+      "frames_measured_per_process": 120,
+      "warmup_frames_per_process": 30
+    }
+  },
+  "bgfx_replay_traces": {
+    "native": [
+      {
+        "lower_ms": 503.227428,
+        "upload_ms": 130.60362,
+        "resource_cache_hit": 0,
+        "geometry_buffer_reused": 0
+      },
+      {
+        "lower_ms": 0.053199,
+        "upload_ms": 0.000972,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      },
+      {
+        "lower_ms": 0.033583,
+        "upload_ms": 0.0002,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      },
+      {
+        "lower_ms": 0.032831,
+        "upload_ms": 0.000181,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      },
+      {
+        "lower_ms": 0.036638,
+        "upload_ms": 0.000662,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      }
+    ],
+    "portable": [
+      {
+        "lower_ms": 491.080096,
+        "upload_ms": 126.493027,
+        "resource_cache_hit": 0,
+        "geometry_buffer_reused": 0
+      },
+      {
+        "lower_ms": 0.062557,
+        "upload_ms": 0.000861,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      },
+      {
+        "lower_ms": 0.03216,
+        "upload_ms": 0.00012,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      },
+      {
+        "lower_ms": 0.031339,
+        "upload_ms": 0.00015,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      },
+      {
+        "lower_ms": 0.037179,
+        "upload_ms": 0.001203,
+        "resource_cache_hit": 1,
+        "geometry_buffer_reused": 1
+      }
+    ]
+  },
+  "artifact_source": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/benchmark-nvidia-after-driver-20261008"
+}

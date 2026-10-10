@@ -331,6 +331,7 @@ SoMultiTextureImageElement::getImage(SoState * const state,
 }
 
 
+
 //! FIXME: write doc.
 
 SbBool

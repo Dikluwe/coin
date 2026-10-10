@@ -1,0 +1,24 @@
+[
+  {
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-build",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0
+  },
+  {
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-build",
+      "--config",
+      "Release"
+    ],
+    "exit": 0
+  }
+]

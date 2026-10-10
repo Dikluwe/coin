@@ -1,0 +1,28 @@
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index 43c4fa2aae..93b2e1bf67 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -3676,6 +3676,23 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+       if (traceNpotGpu) {
+         mipFrames.emplace(mipFrame, unsigned(level));
+         captureMipGpu();
++        // BGFX retains only the newest timer result per view. Resolve each
++        // submitted reduction before reusing its view for another mip level.
++        // This serialization belongs only to the opt-in GPU cost trace.
++        for (unsigned drain = 0; drain < 16 &&
++             (mipGpuMilliseconds.count(level) == 0 ||
++              mipFrameMilliseconds.count(level) == 0); ++drain) {
++          captureMipGpu();
++          std::this_thread::sleep_for(std::chrono::milliseconds(1));
++          bgfx::resetView(reduceView);
++          bgfx::setViewName(reduceView, "rtt_npot_level_drain");
++          bgfx::setViewFrameBuffer(reduceView, mipBuffer);
++          bgfx::setViewRect(reduceView, 0, 0, 1, 1);
++          bgfx::setViewClear(reduceView, BGFX_CLEAR_NONE);
++          bgfx::touch(reduceView);
++          bgfx::frame();
++          captureMipGpu();
++        }
+       }
+       runtimeStatus = this->checkRuntimeFailure("BGFX NPOT mip area reduction failed");
+       bgfx::destroy(mipBuffer);

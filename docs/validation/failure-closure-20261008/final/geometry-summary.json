@@ -1,0 +1,330 @@
+[
+  {
+    "profile": "wgpu-amd-vulkan",
+    "mode": "native",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "wgpu-amd-vulkan-native-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "mode": "fine_uniform",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "wgpu-amd-vulkan-fine_uniform-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "mode": "native",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "wgpu-nvidia-vulkan-native-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "mode": "native",
+    "case": "full-geometry",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "wgpu-nvidia-vulkan-native-full-geometry.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "mode": "fine_uniform",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "wgpu-nvidia-vulkan-fine_uniform-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "mode": "fine_uniform",
+    "case": "full-geometry",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "wgpu-nvidia-vulkan-fine_uniform-full-geometry.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "mode": "native",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "wgpu-amd-gl-native-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "mode": "fine_uniform",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "wgpu-amd-gl-fine_uniform-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/lib",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "mode": "native",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "bgfx-amd-vulkan-native-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "mode": "fine_uniform",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "bgfx-amd-vulkan-fine_uniform-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "mode": "native",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "bgfx-nvidia-vulkan-native-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "mode": "native",
+    "case": "full-geometry",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "bgfx-nvidia-vulkan-native-full-geometry.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "mode": "fine_uniform",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "bgfx-nvidia-vulkan-fine_uniform-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "mode": "fine_uniform",
+    "case": "full-geometry",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--gpu"
+    ],
+    "exit": 0,
+    "log": "bgfx-nvidia-vulkan-fine_uniform-full-geometry.log",
+    "environment": {
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "mode": "native",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "bgfx-amd-gl-native-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "COIN_SAMPLING_STUDY": "native"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "mode": "fine_uniform",
+    "case": "curved",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderGeometryViewportTest",
+      "--study-curved-styles"
+    ],
+    "exit": 0,
+    "log": "bgfx-amd-gl-fine_uniform-curved.log",
+    "environment": {
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/lib",
+      "COIN_SAMPLING_STUDY": "fine_uniform"
+    }
+  }
+]

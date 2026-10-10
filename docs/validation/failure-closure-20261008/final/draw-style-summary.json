@@ -1,0 +1,38 @@
+[
+  {
+    "backend": "wgpu",
+    "api": "vulkan",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderDrawStyleTest"
+    ],
+    "exit": 0,
+    "log": "wgpu-vulkan-draw-style.log"
+  },
+  {
+    "backend": "wgpu",
+    "api": "gl",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-wgpu/bin/CoinRenderDrawStyleTest"
+    ],
+    "exit": 0,
+    "log": "wgpu-gl-draw-style.log"
+  },
+  {
+    "backend": "bgfx",
+    "api": "vulkan",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderDrawStyleTest"
+    ],
+    "exit": 0,
+    "log": "bgfx-vulkan-draw-style.log"
+  },
+  {
+    "backend": "bgfx",
+    "api": "gl",
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/build-bgfx/bin/CoinRenderDrawStyleTest"
+    ],
+    "exit": 0,
+    "log": "bgfx-gl-draw-style.log"
+  }
+]

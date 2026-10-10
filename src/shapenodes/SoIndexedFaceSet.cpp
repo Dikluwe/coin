@@ -183,6 +183,7 @@
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 
 #include <cassert>
+#include <cstring>
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -200,7 +201,9 @@
 #include <Inventor/details/SoFaceDetail.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/elements/SoCoordinateElement.h>
+#include <Inventor/elements/SoClipPlaneElement.h>
 #include <Inventor/elements/SoCreaseAngleElement.h>
+#include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoGLCacheContextElement.h>
 #include <Inventor/elements/SoGLLazyElement.h>
 #include <Inventor/elements/SoGLVBOElement.h>
@@ -547,6 +550,7 @@ SoIndexedFaceSet::GLRender(SoGLRenderAction * action)
   SoVBO * colorvbo = NULL;
 
   SbBool didrenderasvbo = FALSE;
+  SbBool doattribs = FALSE;
   if (dova && (mbind != OVERALL)) {
     dova = FALSE;
     if ((mbind == PER_VERTEX_INDEXED) && ((mindices == cindices) || (mindices == NULL))) {
@@ -620,7 +624,7 @@ SoIndexedFaceSet::GLRender(SoGLRenderAction * action)
   }
   else {
     SoVertexAttributeBundle vab(action, TRUE);
-    SbBool doattribs = vab.doAttributes();
+    doattribs = vab.doAttributes();
 
     SoVertexAttributeBindingElement::Binding attribbind = 
       SoVertexAttributeBindingElement::get(state);
@@ -646,6 +650,81 @@ SoIndexedFaceSet::GLRender(SoGLRenderAction * action)
                         (int)attribbind,
                         doTextures ? 1 : 0,
                         doattribs ? 1 : 0);
+  }
+  // Mesa 25.2.8 on Renoir can omit a boundary introduced by a user clip plane
+  // in polygon-line and polygon-point modes. Keep the native contour and add
+  // only the missing plane intersections for the simple quad profile below.
+  const SoClipPlaneElement * clip = SoClipPlaneElement::getInstance(state);
+  const bool lineStyle = SoDrawStyleElement::get(state) == SoDrawStyleElement::LINES;
+  const bool pointStyle = SoDrawStyleElement::get(state) == SoDrawStyleElement::POINTS;
+  if (!convexcacheused && !doattribs &&
+      (lineStyle || pointStyle) && clip->getNum() > 0 &&
+      numindices == 5 && cindices[4] < 0 && mbind == OVERALL &&
+      (nbind == OVERALL ||
+       (pointStyle && nbind == PER_VERTEX_INDEXED && normals && nindices)) &&
+      ((lineStyle && mb.isColorOnly() && !doTextures) ||
+       (pointStyle && !tb.isFunction() &&
+        (!doTextures || tbind == PER_VERTEX_INDEXED)))) {
+    int lastTextureUnit = -1;
+    SoMultiTextureEnabledElement::getEnabledUnits(state, lastTextureUnit);
+    const char * renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
+    const char * version = reinterpret_cast<const char *>(glGetString(GL_VERSION));
+    if (renderer && version && std::strstr(renderer, "radeonsi, renoir") &&
+        std::strstr(version, "Mesa 25.2.8") &&
+        (!pointStyle || !doTextures || lastTextureUnit == 0)) {
+      const SbMatrix & model = SoModelMatrixElement::get(state);
+      SbVec3f object[4], world[4];
+      bool valid = true;
+      for (int i = 0; i < 4; ++i) {
+        valid = valid && cindices[i] >= 0 && cindices[i] < coords->getNum();
+        if (!valid) break;
+        object[i] = coords->get3(cindices[i]);
+        model.multVecMatrix(object[i], world[i]);
+      }
+      if (valid) for (int p = 0; p < clip->getNum(); ++p) {
+        const SbPlane & plane = clip->get(p, TRUE);
+        SbVec3f intersections[2];
+        SbVec4f texcoords[2];
+        SbVec3f pointnormals[2];
+        int count = 0;
+        for (int i = 0; i < 4; ++i) {
+          const int j = (i + 1) % 4;
+          const float a = plane.getDistance(world[i]);
+          const float b = plane.getDistance(world[j]);
+          if ((a < 0 && b > 0) || (a > 0 && b < 0)) {
+            const float t = a / (a - b);
+            if (count < 2) {
+              intersections[count] = object[i] + (object[j] - object[i]) * t;
+              if (pointStyle && doTextures) {
+                const int ti = tindices ? tindices[i] : cindices[i];
+                const int tj = tindices ? tindices[j] : cindices[j];
+                // get() may reuse a conversion buffer for 2D coordinates.
+                const SbVec4f from = tb.get(ti);
+                const SbVec4f to = tb.get(tj);
+                texcoords[count] = from + (to - from) * t;
+              }
+              if (pointStyle && nbind == PER_VERTEX_INDEXED) {
+                pointnormals[count] = normals[nindices[i]] +
+                  (normals[nindices[j]] - normals[nindices[i]]) * t;
+                pointnormals[count].normalize();
+              }
+            }
+            ++count;
+          }
+        }
+        if (count == 2) {
+          glPushAttrib(GL_CURRENT_BIT);
+          glBegin(lineStyle ? GL_LINES : GL_POINTS);
+          for (int k = 0; k < 2; ++k) {
+            if (pointStyle && doTextures) glTexCoord4fv(texcoords[k].getValue());
+            if (pointStyle && nbind == PER_VERTEX_INDEXED) glNormal3fv(pointnormals[k].getValue());
+            glVertex3fv(intersections[k].getValue());
+          }
+          glEnd();
+          glPopAttrib();
+        }
+      }
+    }
   }
   if (normalCacheUsed) {
     this->readUnlockNormalCache();

@@ -1,0 +1,302 @@
+[
+  {
+    "label": "city-40000-bgfx-d3d12-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-d3d12-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-vulkan-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-vulkan-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-opengl-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 1,
+        "different_pixels": 2,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 2,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-opengl-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 1,
+        "different_pixels": 2,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 2,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-d3d12-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-d3d12-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-vulkan-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-vulkan-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-opengl-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-opengl-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 0,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  }
+]

@@ -1,0 +1,27 @@
+--- a/src/compiler/glsl/gl_nir_linker.c
++++ b/src/compiler/glsl/gl_nir_linker.c
+@@ -1586,0 +1587,24 @@
++
++   /* Private experiment: a GS bound after GLSL linking needs the clip distance
++    * as a varying, even though this program was linked without a GS. */
++   if (debug_get_bool_option("MESA_EXPERIMENTAL_CLIP_BOUNDARY", false) &&
++       prog->_LinkedShaders[MESA_SHADER_VERTEX] &&
++       !prog->_LinkedShaders[MESA_SHADER_GEOMETRY]) {
++      nir_shader *vs = prog->_LinkedShaders[MESA_SHADER_VERTEX]->Program->nir;
++      nir_foreach_function_impl(impl, vs) {
++         nir_foreach_block(block, impl) {
++            nir_foreach_instr(instr, block) {
++               if (instr->type != nir_instr_type_intrinsic)
++                  continue;
++               nir_intrinsic_instr *intr = nir_instr_as_intrinsic(instr);
++               if (intr->intrinsic != nir_intrinsic_store_output)
++                  continue;
++               nir_io_semantics sem = nir_intrinsic_io_semantics(intr);
++               if (sem.location == VARYING_SLOT_CLIP_DIST0 && sem.no_varying) {
++                  sem.no_varying = false;
++                  nir_intrinsic_set_io_semantics(intr, sem);
++               }
++            }
++         }
++      }
++   }

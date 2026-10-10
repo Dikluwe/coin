@@ -1,0 +1,19 @@
+[0/1] Re-running CMake...
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes
+-- /usr/include
+-- /usr/lib/x86_64-linux-gnu/libSM.so;/usr/lib/x86_64-linux-gnu/libICE.so;/usr/lib/x86_64-linux-gnu/libX11.so;/usr/lib/x86_64-linux-gnu/libXext.so;OpenGL::EGL;OpenGL::GL;Threads::Threads
+-- Configuring done (1.3s)
+-- Generating done (0.9s)
+-- Build files have been written to: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-bgfx
+[1/97] Building CXX object testsuite/CMakeFiles/CoinRenderTextureSamplingTest.dir/coinrender/CoinRenderTextureSamplingTest.cpp.o
+FAILED: testsuite/CMakeFiles/CoinRenderTextureSamplingTest.dir/coinrender/CoinRenderTextureSamplingTest.cpp.o 
+/usr/bin/c++ -DBGFX_CONFIG_DEBUG_ANNOTATION=0 -DBGFX_CONFIG_MAX_FRAME_BUFFERS=1024 -DBGFX_CONFIG_MAX_SHADERS=4096 -DBGFX_CONFIG_MAX_VIEWS=1024 -DBGFX_CONFIG_MULTITHREADED=1 -DBGFX_CONFIG_SORT_KEY_NUM_BITS_PROGRAM=12 -DBX_CONFIG_DEBUG=0 -DCOIN_INTERNAL -DHAVE_CONFIG_H -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/experimental/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/include -I/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/src -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-bgfx/include -I/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007/build-bgfx/src -isystem /mnt/Laranja/Git/externos/coin/build-bgfx-recovery/bgfx-prefix/include -Wsuggest-override -O3 -DNDEBUG -std=gnu++11 -fPIE -MD -MT testsuite/CMakeFiles/CoinRenderTextureSamplingTest.dir/coinrender/CoinRenderTextureSamplingTest.cpp.o -MF testsuite/CMakeFiles/CoinRenderTextureSamplingTest.dir/coinrender/CoinRenderTextureSamplingTest.cpp.o.d -o testsuite/CMakeFiles/CoinRenderTextureSamplingTest.dir/coinrender/CoinRenderTextureSamplingTest.cpp.o -c /home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp:2:10: fatal error: coinrender/CoinRenderSamplingTestOptions.h: No such file or directory
+    2 | #include "coinrender/CoinRenderSamplingTestOptions.h"
+      |          ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+compilation terminated.
+[2/97] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderCapabilities.cpp.o
+[3/97] Building CXX object testsuite/CMakeFiles/CoinRenderSamplingPolicyTest.dir/coinrender/CoinRenderSamplingPolicyTest.cpp.o
+[4/97] Building CXX object src/rendering/coinrender/CMakeFiles/CoinRender.dir/CoinRenderRttExecution.cpp.o
+ninja: build stopped: subcommand failed.

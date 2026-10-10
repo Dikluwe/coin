@@ -1,0 +1,722 @@
+[
+  {
+    "profile": "wgpu-amd-vulkan",
+    "policy": "portable",
+    "case": "projective",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--projective-study",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-vulkan-projective.log",
+    "binary_sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+    "log_sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "policy": "portable",
+    "case": "sampling",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-vulkan-sampling.log",
+    "binary_sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+    "log_sha256": "7dbc9f00e28a4546c443a077007d40d80301f83f500018972659daa0b99373f6",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "policy": "portable",
+    "case": "advanced",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-vulkan-advanced.log",
+    "binary_sha256": "3c4ece29c36385ca4ab9a532424209ec04f37e3be7287d06f0cbf0415c61814c",
+    "log_sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "policy": "portable",
+    "case": "rtt",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-vulkan-rtt.log",
+    "binary_sha256": "77bf614d0ef40890d3751ab3446f63d15d87192b0ff8a595c5a488f3b2c7c90a",
+    "log_sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "policy": "portable",
+    "case": "projective",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--projective-study",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-nvidia-vulkan-projective.log",
+    "binary_sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+    "log_sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "policy": "portable",
+    "case": "sampling",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-nvidia-vulkan-sampling.log",
+    "binary_sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+    "log_sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "policy": "portable",
+    "case": "advanced",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-nvidia-vulkan-advanced.log",
+    "binary_sha256": "3c4ece29c36385ca4ab9a532424209ec04f37e3be7287d06f0cbf0415c61814c",
+    "log_sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "policy": "portable",
+    "case": "rtt",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-nvidia-vulkan-rtt.log",
+    "binary_sha256": "77bf614d0ef40890d3751ab3446f63d15d87192b0ff8a595c5a488f3b2c7c90a",
+    "log_sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "policy": "portable",
+    "case": "projective",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--projective-study",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-gl-projective.log",
+    "binary_sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+    "log_sha256": "cff244b4a67a909d41fccf22b2a75381592cbee48950723840d7f1676f41113b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "policy": "portable",
+    "case": "sampling",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderTextureSamplingTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-gl-sampling.log",
+    "binary_sha256": "bbedf6468200b565ce6c72fb15422168b1dedcbbc6f646c83a653b17ded5cd12",
+    "log_sha256": "2337bf8bcda77c8ceb377931d9132123e385883d8a64ce4633b468779aff1f07",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "policy": "portable",
+    "case": "advanced",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-gl-advanced.log",
+    "binary_sha256": "3c4ece29c36385ca4ab9a532424209ec04f37e3be7287d06f0cbf0415c61814c",
+    "log_sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "policy": "portable",
+    "case": "rtt",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "log": "wgpu-amd-gl-rtt.log",
+    "binary_sha256": "77bf614d0ef40890d3751ab3446f63d15d87192b0ff8a595c5a488f3b2c7c90a",
+    "log_sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "policy": "portable",
+    "case": "projective",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "--projective-study",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-vulkan-projective.log",
+    "binary_sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+    "log_sha256": "a226d1c05fb503202e857ce6db62ec944ff67956dd72c2391b0aee4c975fbb69",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "policy": "portable",
+    "case": "sampling",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-vulkan-sampling.log",
+    "binary_sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+    "log_sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "policy": "portable",
+    "case": "advanced",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-vulkan-advanced.log",
+    "binary_sha256": "9ca6653495fba0154959dfc5d348b1a331a0865b9eceb4ea94131c3e709d3fea",
+    "log_sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "policy": "portable",
+    "case": "rtt",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-vulkan-rtt.log",
+    "binary_sha256": "fc2c86888b05813d21e15d34456b7a594af86ca0d226f71562134e25e3a9f241",
+    "log_sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "policy": "portable",
+    "case": "projective",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "--projective-study",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-nvidia-vulkan-projective.log",
+    "binary_sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+    "log_sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "policy": "portable",
+    "case": "sampling",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-nvidia-vulkan-sampling.log",
+    "binary_sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+    "log_sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "policy": "portable",
+    "case": "advanced",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-nvidia-vulkan-advanced.log",
+    "binary_sha256": "9ca6653495fba0154959dfc5d348b1a331a0865b9eceb4ea94131c3e709d3fea",
+    "log_sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "policy": "portable",
+    "case": "rtt",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-nvidia-vulkan-rtt.log",
+    "binary_sha256": "fc2c86888b05813d21e15d34456b7a594af86ca0d226f71562134e25e3a9f241",
+    "log_sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__NV_PRIME_RENDER_OFFLOAD": "1",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "policy": "portable",
+    "case": "projective",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "--projective-study",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-gl-projective.log",
+    "binary_sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+    "log_sha256": "c4e2aedabaf0e07917f237e79da97bed2236445e7a45817ddd7b436729c407d5",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "policy": "portable",
+    "case": "sampling",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderTextureSamplingTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-gl-sampling.log",
+    "binary_sha256": "88c2ee6ed9666cd9c38d13eca9cf8dc93149b96284f34b9303ffc42659bc084d",
+    "log_sha256": "85f4ca3b5894331ba72ef4fe2edf63db294c5443218903382b2be02002a52cde",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "policy": "portable",
+    "case": "advanced",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-gl-advanced.log",
+    "binary_sha256": "9ca6653495fba0154959dfc5d348b1a331a0865b9eceb4ea94131c3e709d3fea",
+    "log_sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "policy": "portable",
+    "case": "rtt",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "log": "bgfx-amd-gl-rtt.log",
+    "binary_sha256": "fc2c86888b05813d21e15d34456b7a594af86ca0d226f71562134e25e3a9f241",
+    "log_sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1",
+    "environment": {
+      "XAUTHORITY": "/home/dikluwe/.Xauthority",
+      "DISPLAY": ":0",
+      "LD_LIBRARY_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx/lib:/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu",
+      "WGPU_BACKEND": "gl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "COIN_SAMPLING_STUDY": "fetch",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/glvnd/egl_vendor.d/50_mesa.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "VK_DRIVER_FILES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "LIBGL_DRIVERS_PATH": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri",
+      "COIN_MESA_MIXED_FILTER_STUDY": "1",
+      "MESA_SHADER_CACHE_DISABLE": "true",
+      "NIR_DEBUG": "validate",
+      "VK_ICD_FILENAMES": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/share/vulkan/icd.d/radeon_icd.x86_64.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    }
+  }
+]

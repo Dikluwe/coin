@@ -51,6 +51,7 @@ using Clock = std::chrono::steady_clock;
 
 struct Options {
   std::string backend;
+  std::string samplingPolicy = "native";
   std::string transparency;
   std::string scenePath;
   std::string animation;
@@ -64,6 +65,7 @@ struct Options {
   bool materialDynamic;
   bool captureWindow;
   bool animationSpecified;
+  bool allowVsync = false;
   int animatedPercent;
   int animationStep;
   Options() : backend("bgfx-vulkan"), transparency("object"),
@@ -98,9 +100,9 @@ struct GlxWindow {
 void usage()
 {
   std::cerr << "Usage: coin_render_window_benchmark"
-               " --backend coin-gl|bgfx-opengl|bgfx-vulkan|wgpu-vulkan"
+               " --backend coin-gl|bgfx-opengl|bgfx-vulkan|wgpu-vulkan|wgpu-opengl"
                " --transparency object|weighted_oit|sorted_layers"
-               " [--scene normalized.iv]"
+               " [--sampling-policy native|portable] [--allow-vsync] [--scene normalized.iv]"
                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
                " [--animation static|camera|transforms|materials|geometry]"
                " [--animated-percent 1..100] [--animation-step 1] [--samples-output frames.csv]"
@@ -123,6 +125,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc)
       options.backend = argv[++i];
+    else if (std::strcmp(argv[i], "--sampling-policy") == 0 && i + 1 < argc)
+      options.samplingPolicy = argv[++i];
     else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc)
       options.transparency = argv[++i];
     else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc)
@@ -151,6 +155,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.dynamic = true;
     else if (std::strcmp(argv[i], "--material-dynamic") == 0)
       options.materialDynamic = true;
+    else if (std::strcmp(argv[i], "--allow-vsync") == 0)
+      options.allowVsync = true;
     else if (std::strcmp(argv[i], "--capture-window") == 0)
       options.captureWindow = true;
     else if (std::strcmp(argv[i], "--image-output") == 0 && i + 1 < argc)
@@ -159,12 +165,13 @@ bool parseOptions(int argc, char ** argv, Options & options)
   }
   const bool backend = options.backend == "coin-gl" ||
     options.backend == "bgfx-opengl" || options.backend == "bgfx-vulkan" ||
-    options.backend == "wgpu-vulkan";
+    options.backend == "wgpu-vulkan" || options.backend == "wgpu-opengl";
   const bool transparency = options.transparency == "object" ||
     options.transparency == "weighted_oit" ||
     options.transparency == "sorted_layers";
   CoinRenderBenchmarkAnimation::Mode animationMode;
-  if (!backend || !transparency ||
+  if (!backend || !transparency || (options.samplingPolicy != "native" && options.samplingPolicy != "portable") ||
+      (options.backend == "coin-gl" && options.samplingPolicy != "native") ||
       !CoinRenderBenchmarkAnimation::parseMode(options.animation, animationMode) ||
       options.animatedPercent < 1 || options.animatedPercent > 100 || options.animationStep < 1 ||
       (!options.imageOutput.empty() && !options.captureWindow) ||
@@ -175,7 +182,7 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.warmup > 100000 || options.frames < 1 || options.frames > 1000000)
     return false;
   // The wgpu bridge explicitly rejects weighted OIT on translucent geometry.
-  return (options.backend != "coin-gl" && options.backend != "wgpu-vulkan") ||
+  return (options.backend != "coin-gl" && options.backend != "wgpu-vulkan" && options.backend != "wgpu-opengl") ||
     options.transparency != "weighted_oit";
 }
 
@@ -520,7 +527,7 @@ void report(const Options & options, const std::vector<FrameSample> & samples,
   const TimingStats renderStats = timingStats(renderMs);
   const bool coinGl = options.backend == "coin-gl";
   std::cout << std::fixed << std::setprecision(6)
-    << "window_benchmark backend=" << options.backend
+    << "window_benchmark backend=" << options.backend << " sampling_policy=" << options.samplingPolicy
     << " transparency=" << options.transparency
     << " size=" << options.width << 'x' << options.height
     << " warmup=" << options.warmup << " frames=" << options.frames
@@ -540,7 +547,7 @@ void report(const Options & options, const std::vector<FrameSample> & samples,
     << " readback=" << (options.captureWindow ? "rgba-on-request" : "none")
     << " adapter=\"" << adapter << "\""
     << " vendor_id=0x" << std::hex << vendor << " device_id=0x" << device << std::dec
-    << " present_policy=off-requested"
+    << " present_policy=" << (options.allowVsync ? "surface-default" : "off-requested")
     << " timing_scope=cpu-update-and-render-present-call"
     << " display_latency_measured=0 gpu_duration_measured=0"
     << " final_sync=" << (coinGl ? "glFinish" : "none-public-api")
@@ -660,8 +667,16 @@ int runNative(const Options & options, SoSeparator * root,
             CoinRenderBenchmarkAnimation & animator, Clock::time_point mainBegin,
             std::ostream * samplesOutput)
 {
-  const bool wgpu = options.backend == "wgpu-vulkan";
-  if (wgpu) setenv("COIN_RENDER_BENCH_NO_VSYNC", "1", 1);
+  const bool wgpu = options.backend == "wgpu-vulkan" || options.backend == "wgpu-opengl";
+  CoinRenderOptions targetOptions;
+  targetOptions.renderer = options.backend.find("opengl") != std::string::npos ?
+    COIN_RENDER_RENDERER_OPENGL : COIN_RENDER_RENDERER_VULKAN;
+  targetOptions.transparency = options.transparency == "weighted_oit" ? COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT :
+    options.transparency == "sorted_layers" ? COIN_RENDER_TRANSPARENCY_PEELING : COIN_RENDER_TRANSPARENCY_OBJECT;
+  targetOptions.textureSamplingPolicy = options.samplingPolicy == "portable" ?
+    COIN_RENDER_SAMPLING_PORTABLE : COIN_RENDER_SAMPLING_NATIVE;
+  if (wgpu && !options.allowVsync) setenv("COIN_RENDER_BENCH_NO_VSYNC", "1", 1);
+  else if(wgpu) unsetenv("COIN_RENDER_BENCH_NO_VSYNC");
   if (!wgpu)
     setenv("COIN_BGFX_RENDERER",
       options.backend == "bgfx-opengl" ? "opengl" : "vulkan", 1);
@@ -669,13 +684,16 @@ int runNative(const Options & options, SoSeparator * root,
   const Clock::time_point probeBegin = Clock::now();
   CoinRenderCapabilities caps;
   std::memset(&caps, 0, sizeof(caps));
-  if (coin_render_query_capabilities(
-        COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW, &caps, sizeof(caps)) != 0 ||
+  if (coin_render_query_capabilities_for_renderer(
+        COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW, targetOptions.renderer, &caps, sizeof(caps)) != 0 ||
       caps.backend != (wgpu ? COIN_RENDER_EXPERIMENTAL_RUST :
                        COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION) ||
       !caps.gpu_available) {
     std::cerr << "Requested Xlib window backend unavailable: " << caps.diagnostic << '\n';
     return 2;
+  }
+  if (coin_render_select_sampling_policy(&caps, targetOptions.textureSamplingPolicy, 0).reason != COIN_RENDER_SELECTION_SUPPORTED) {
+    std::cerr << "Requested sampling policy unavailable\n"; return 2;
   }
   const Clock::time_point probed = Clock::now();
   Display * display = XOpenDisplay(NULL);
@@ -699,7 +717,7 @@ int runNative(const Options & options, SoSeparator * root,
   const Clock::time_point windowPrepared = Clock::now();
   int exitCode = 0;
   {
-    CoinRenderSceneManager manager(surface, SbVec2i32(options.width, options.height));
+    CoinRenderSceneManager manager(surface, SbVec2i32(options.width, options.height), targetOptions);
     if (manager.getRenderTarget()->getStatus() == CoinRenderTarget::TARGET_ERROR) {
       std::cerr << "Cannot create native target: "
                 << manager.getLastError().getString() << '\n';

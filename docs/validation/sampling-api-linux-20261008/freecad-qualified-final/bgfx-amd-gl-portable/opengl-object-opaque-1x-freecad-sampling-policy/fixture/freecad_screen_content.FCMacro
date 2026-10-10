@@ -1,0 +1,345 @@
+# Cold-start native Coin nodes in the real FreeCAD viewer, with no GL warmup.
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_overlays.FCMacro').read_text())
+from pivy import coin
+import numpy as np
+report['test'] = 'freecad-screen-content'
+report['nodes'] = {}
+retained = os.environ.get('COIN_TEST_RETAINED_NODES') == '1'
+report['profile'] = 'retained-linux' if retained else 'screen-content'
+report['reference_gl'] = not native
+if not native:
+    report['status'] = 'REFERENCE_PASS'
+
+def rgb_array(image):
+    rgba = image.convertToFormat(QtGui.QImage.Format_RGBA8888)
+    rows = np.frombuffer(rgba.constBits(), dtype=np.uint8).reshape(rgba.height(),rgba.bytesPerLine())
+    return rows[:,:rgba.width()*4].reshape(rgba.height(),rgba.width(),4)[:,:,:3].copy()
+
+def changes(a,b,rect):
+    if a.size()!=b.size(): raise RuntimeError('capture size changed')
+    # Inspect every sample. A 2x2 grid can miss an entire thin marker bitmap.
+    aa,bb = rgb_array(a),rgb_array(b)
+    region = np.any(aa!=bb,axis=2)[rect.top():rect.bottom()+1,rect.left():rect.right()+1]
+    return int(np.count_nonzero(region))
+
+def finish(error=None):
+    if error:
+        report.update(status='FAIL', reason=str(error))
+        os.write(2, traceback.format_exc().encode())
+    else:
+        report['status'] = 'PASS' if native else 'REFERENCE_PASS'
+    (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    os._exit(0 if report['status'] in ('PASS','REFERENCE_PASS') else 1)
+
+def axes_baseline():
+    global content, stages, stage_index, bare
+    view.viewTop()
+    content = coin.SoSeparator()
+    Gui.activeDocument().activeView().getSceneGraph().addChild(content)
+    stages = []
+    names = ('string-label','datum-label','control-points','bbox','shape-scale','dragger','polygon','mesh-grid') if retained else ('text', 'image', 'colorbar-label', 'frame-label', 'alpha-test', 'projective-uv', 'complexity-box', 'markers')
+    selected=os.environ.get('COIN_TEST_RETAINED_FILTER')
+    if selected: names=tuple(n for n in names if n in selected.split(','))
+    if retained:
+        import MeshGui
+    for name in names:
+        group = coin.SoSeparator()
+        depth = coin.SoDepthBuffer(); depth.test = False; depth.write = False
+        group.addChild(depth)
+        picking = coin.SoPickStyle(); picking.style = coin.SoPickStyle.SHAPE if name == 'dragger' else coin.SoPickStyle.UNPICKABLE
+        group.addChild(picking)
+        material = coin.SoMaterial()
+        material.diffuseColor = (1, 1, 0) if name in ('text','colorbar-label','frame-label') else (1, 0, 1)
+        group.addChild(material)
+        anchor = coin.SoTranslation(); anchor.translation = (5, 5, 5)
+        group.addChild(anchor)
+        if retained:
+            specs = {
+                'string-label': ('SoStringLabel','string "Retained Linux" size 24 textColor 1 1 0'),
+                'datum-label': ('SoDatumLabel','string "25 mm" size 16 textColor 1 1 0 pnts [0 0 0, 2 0 0] param1 1'),
+                'control-points': ('SoFCControlPoints','numPolesU 2 numPolesV 2 lineColor 1 1 0'),
+                'bbox': ('SoFCBoundingBox','minBounds -1 -1 -.5 maxBounds 1 1 .5 coordsOn TRUE dimensionsOn TRUE'),
+                'shape-scale': ('SoShapeScale','active 0 scaleFactor 20 shape Cube { width 2 height 2 depth 1 }'),
+                'dragger': ('SoTransformDragger','translation 0 0 0'),
+                'polygon': ('SoPolygon','numVertices 4'),
+                'mesh-grid': ('SoFCMeshGridNode','minGrid -1 -1 -.5 maxGrid 1 1 .5 lenGrid 2 2 2')}
+            if name in ('control-points','polygon'):
+                points=coin.SoCoordinate3(); points.point.setValues(0,[(-1,-1,0),(1,-1,0),(-1,1,0),(1,1,0)])
+                group.addChild(points)
+            type_name,fields=specs[name]
+            iv=coin.SoInput(); iv.setBuffer('#Inventor V2.1 ascii\nSeparator { '+type_name+' { '+fields+' } }')
+            parsed=coin.SoDB.readAll(iv)
+            if not parsed or parsed.getNumChildren()!=1: raise RuntimeError('actual node unavailable: '+type_name)
+            node=parsed.getChild(0)
+        elif name == 'text':
+            font = coin.SoFont(); font.size = 24; group.addChild(font)
+            node = coin.SoText2(); node.string.setValues(0, ['FreeCAD P03', 'Coin Render'])
+        elif name == 'image':
+            node = coin.SoImage()
+            node.image.setValue(coin.SbVec2s(24,16), 4,
+                                bytes([0,255,255,255] * (24*16)))
+        elif name in ('alpha-test','projective-uv','complexity-box'):
+            lighting = coin.SoLightModel(); lighting.model = coin.SoLightModel.BASE_COLOR
+            group.addChild(lighting)
+            if name == 'complexity-box':
+                complexity = coin.SoComplexity(); complexity.type = coin.SoComplexity.BOUNDING_BOX
+                group.addChild(complexity)
+                node = coin.SoCube(); node.width = 2; node.height = 2; node.depth = 2
+            else:
+                if name == 'alpha-test':
+                    node = coin.SoAlphaTest(); node.function = coin.SoAlphaTest.GREATER; node.value = .5
+                    group.addChild(node)
+                    material.transparency = .2
+                else:
+                    iv = coin.SoInput()
+                    iv.setBuffer('#Inventor V2.1 ascii\nSeparator { TextureMatrixTransform { matrix 2 0 0 1 0 2 0 0 0 0 1 0 0 0 0 1 } }')
+                    parsed_matrix = coin.SoDB.readAll(iv)
+                    if not parsed_matrix: raise RuntimeError('native texture matrix unavailable')
+                    node = parsed_matrix.getChild(0)
+                    uv = coin.SoTextureCoordinate2()
+                    uv.point.setValues(0,[(0,0),(1,0),(1,1),(0,1)])
+                    group.addChild(uv)
+                    texture = coin.SoTexture2()
+                    pattern = bytes([255,255,0,255, 0,255,255,255, 255,128,0,255, 0,128,255,255])
+                    texture.image.setValue(coin.SbVec2s(2,2),4,pattern)
+                    texture.model = coin.SoTexture2.REPLACE
+                    group.addChild(texture)
+                    quality = coin.SoComplexity(); quality.textureQuality = .3; group.addChild(quality)
+                    group.addChild(node)
+                points = coin.SoCoordinate3(); points.point.setValues(0,[(-1,-1,0),(1,-1,0),(1,1,0),(-1,1,0)])
+                group.addChild(points)
+                face = coin.SoIndexedFaceSet(); face.coordIndex.setValues(0,[0,1,2,3,-1]); group.addChild(face)
+        elif name in ('colorbar-label','frame-label'):
+            font = coin.SoFont(); font.size = 24; group.addChild(font)
+            type_name = 'SoColorBarLabel' if name == 'colorbar-label' else 'SoFrameLabel'
+            fields = 'string "FreeCAD host label"'
+            if name == 'frame-label': fields += ' size 24 textColor 1 1 0 backgroundColor .1 .1 .1 backgroundUseBaseColor FALSE textUseBaseColor FALSE frame FALSE border FALSE'
+            iv = coin.SoInput()
+            iv.setBuffer('#Inventor V2.1 ascii\nSeparator { '+type_name+' { '+fields+' } }')
+            parsed = coin.SoDB.readAll(iv)
+            if not parsed or parsed.getNumChildren() != 1:
+                raise RuntimeError('actual FreeCAD node unavailable: '+type_name)
+            node = parsed.getChild(0)
+        else:
+            points = coin.SoCoordinate3()
+            points.point.setValues(0,[(0,0,0),(.8,0,0),(1.6,0,0)])
+            group.addChild(points)
+            node = coin.SoMarkerSet(); node.numPoints = 3
+            node.markerIndex.setValues(0,[0,5,15])
+            report['marker_descriptor'] = {'coords': points.point.getNum(),
+                'num_points': node.numPoints.getValue(), 'start': node.startIndex.getValue()}
+        if name not in ('alpha-test','projective-uv'): group.addChild(node)
+        switch = coin.SoSwitch(); switch.whichChild = coin.SO_SWITCH_NONE
+        switch.addChild(group); content.addChild(switch)
+        stages.append((name,switch,node,anchor))
+    stage_index = 0
+    step(baseline_ready)
+
+def baseline_ready():
+    global bare
+    bare = capture('screen-bare')
+    stages[stage_index][1].whichChild = coin.SO_SWITCH_ALL
+    step(content_visible)
+
+def content_visible():
+    global last_visible
+    name,switch,node,anchor = stages[stage_index]
+    image = capture('screen-'+name)
+    rect = QtCore.QRect(0,0,image.width()-1,image.height()-1)
+    count = changes(bare,image,rect)
+    report['nodes'].setdefault(name, []).append({'visible_changes': count, 'resized': bool(report.get('resize_retested'))})
+    if name == 'markers':
+        mask = np.any(rgb_array(bare)!=rgb_array(image),axis=2)
+        report['nodes'][name][-1]['coarse_2x2_changes'] = int(np.count_nonzero(mask[::2,::2]))
+    if name in ('text','colorbar-label','frame-label','string-label','datum-label'):
+        rgb = rgb_array(image)
+        glyph_pixels = int(np.count_nonzero((rgb[:,:,0]>180)&(rgb[:,:,1]>160)&(rgb[:,:,2]<100)))
+        report['nodes'][name][-1]['glyph_pixels'] = glyph_pixels
+        if glyph_pixels < (20 if retained else 100): raise RuntimeError(name+' glyphs missing (background does not count)')
+    if name == 'polygon':
+        witness=[]
+        probe=coin.SoCallbackAction()
+        probe.addLineSegmentCallback(coin.SoShape.getClassTypeId(),lambda data,action,a,b: witness.append(tuple(a.getPoint())),None)
+        probe.apply(switch)
+        report['nodes'][name][-1]['primitive_lines']=len(witness)
+        report['nodes'][name][-1]['primitive_points']=witness
+    if count < (20 if retained else 10 if name == 'markers' else 30 if name == 'complexity-box' else 80):
+        raise RuntimeError(name+' missing in actual viewport')
+    # Picking the document still works while the raster nodes are present.
+    picked = view.getObjectInfo((int(viewer_widget().viewport().width()*viewer_widget().devicePixelRatioF()/2),
+                                int(viewer_widget().viewport().height()*viewer_widget().devicePixelRatioF()/2)))
+    report['nodes'][name][-1]['document_pick'] = bool(picked)
+    if name == 'dragger':
+        viewport=viewer_widget().viewport(); ratio=viewer_widget().devicePixelRatioF()
+        pick_scene=coin.SoSeparator(); pick_scene.addChild(view.getCameraNode()); pick_scene.addChild(view.getSceneGraph())
+        mask=np.any(rgb_array(bare)!=rgb_array(image),axis=2)
+        ys,xs=np.nonzero(mask)
+        handle_hit=False
+        # Handles need not cross the document's center ray. Sample visible
+        # manipulator pixels and retain a real logical picked path as evidence.
+        for index in np.linspace(0,len(xs)-1,min(64,len(xs)),dtype=int):
+            picker=coin.SoRayPickAction(coin.SbViewportRegion(image.width(),image.height()))
+            picker.setPoint(coin.SbVec2s(int(xs[index]),int(image.height()-1-ys[index])))
+            picker.setRadius(5*ratio); picker.setPickAll(True); picker.apply(pick_scene)
+            hits=picker.getPickedPointList()
+            length=hits.getLength() if hasattr(hits,'getLength') else len(hits)
+            if any(hits[i].getPath().containsNode(node) for i in range(length)):
+                handle_hit=True
+                report['nodes'][name][-1]['dragger_pick_pixel']=[int(xs[index]),int(ys[index])]
+                break
+        report['nodes'][name][-1]['dragger_pick']=handle_hit
+        if not handle_hit: raise RuntimeError('dragger missing from logical picking')
+    elif not picked:
+        raise RuntimeError('document picking lost with '+name)
+    last_visible = image
+    if name != 'projective-uv':
+        anchor.translation = (3,6,5) if report.get('resize_retested') else (7,6,5)
+    if retained:
+        mutations={'string-label':'string \"Updated retained Linux\"','datum-label':'string \"42 mm\" param1 2','control-points':'numPolesU 1 numPolesV 4','bbox':'maxBounds 2 1 .5','shape-scale':'active 1 scaleFactor 30','dragger':'translation 1 0 0','polygon':'numVertices 3','mesh-grid':'lenGrid 3 3 3'}
+        if name == 'shape-scale':
+            if not node.getField('active').set('1') or not node.getField('scaleFactor').set('30'): raise RuntimeError('kit field mutation rejected')
+        elif name == 'dragger':
+            if not node.getField('translation').set('1 0 0'): raise RuntimeError('dragger field mutation rejected')
+        elif not node.set(mutations[name]): raise RuntimeError('field mutation rejected: '+name)
+    elif name == 'text': node.string.setValues(0, ['Resized P03' if report.get('resize_retested') else 'Updated P03'])
+    elif name == 'image':
+        node.image.setValue(coin.SbVec2s(24,16),4,bytes(([0,255,255,255] if report.get('resize_retested') else [255,128,0,255])*(24*16)))
+    elif name == 'alpha-test': node.value = .99 if not report.get('resize_retested') else .1
+    elif name == 'projective-uv':
+        node.set('matrix '+('2 0 0 1 0 2 0 0 0 0 1 0 0 0 0 1' if report.get('resize_retested') else '1 0 0 -.5 0 1 0 0 0 0 1 0 0 0 0 1'))
+    elif name == 'complexity-box': node.width = 3 if not report.get('resize_retested') else 1
+    elif name in ('colorbar-label','frame-label'):
+        node.set('string "'+('Resized host label' if report.get('resize_retested') else 'Updated host label')+'"')
+    else: node.markerIndex.setValues(0,[coin.SoMarkerSet.CIRCLE_FILLED_9_9]*3 if report.get('resize_retested') else [coin.SoMarkerSet.DIAMOND_FILLED_9_9]*3)
+    step(content_updated)
+
+def content_updated():
+    name,switch,node,anchor = stages[stage_index]
+    image = capture('screen-'+name+'-updated')
+    rect = QtCore.QRect(0,0,image.width()-1,image.height()-1)
+    count = changes(last_visible,image,rect)
+    report['nodes'][name][-1]['mutation_changes'] = count
+    if count < 30: raise RuntimeError(name+' mutation did not reach viewport')
+    if name == 'alpha-test' and not report.get('resize_retested') and changes(bare,image,rect) > 30:
+        raise RuntimeError('alpha comparison did not discard rejected fragments')
+    switch.whichChild = coin.SO_SWITCH_NONE
+    step(content_removed)
+
+def content_removed():
+    global stage_index
+    name = stages[stage_index][0]
+    image = capture('screen-'+name+'-removed')
+    rect = QtCore.QRect(0,0,image.width()-1,image.height()-1)
+    count = changes(bare,image,rect)
+    report['nodes'][name][-1]['remaining_changes'] = count
+    if count > 30: raise RuntimeError(name+' removal left pixels')
+    stage_index += 1
+    if stage_index < len(stages):
+        stages[stage_index][1].whichChild = coin.SO_SWITCH_ALL
+        step(content_visible)
+    else:
+        # Repeat cold raster placement at a new viewport size and camera.
+        viewer_widget().window().resize(1000,700)
+        view.viewAxonometric()
+        step(resized_baseline)
+
+def resized_baseline():
+    global stage_index, bare
+    if report.get('resize_retested'):
+        Gui.activeDocument().activeView().getSceneGraph().removeChild(content)
+        step(content_idle_baseline,600)
+        return
+    report['resize_retested'] = True
+    stage_index = 0
+    bare = capture('screen-resized-bare')
+    for name,switch,node,anchor in stages:
+        if name == 'alpha-test': node.value = .5
+    stages[0][1].whichChild = coin.SO_SWITCH_ALL
+    step(content_visible)
+
+def content_idle_baseline():
+    # Removal can queue a final sensor update; measure only after it settles.
+    report['idle_start'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(content_idle,1200)
+
+def content_idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if native and report['idle_end'] != report['idle_start']:
+        raise RuntimeError('screen content caused continuous redraw')
+    finish()
+
+# Opt-in real Part consumer; kept separate from the eight-node viewport matrix.
+if os.environ.get('COIN_TEST_SPLINE_CONSUMER') == '1':
+    report['profile']='part-spline-consumer'
+    def spline_setup():
+        os.write(1,b'SPLINE_PHASE setup_begin\n')
+        global spline, curve
+        import Part
+        shape_kind=os.environ.get('COIN_TEST_SPLINE_KIND','bezier')
+        if shape_kind=='bspline-curve':
+            curve=Part.BSplineCurve()
+            curve.buildFromPolesMultsKnots([App.Vector(2,2,12),App.Vector(2,9,12),App.Vector(5,5,13),App.Vector(9,2,12),App.Vector(9,9,12)],[4,1,4],[0,.5,1],False,3)
+        elif shape_kind=='bspline-surface':
+            curve=Part.BSplineSurface()
+            poles=[[App.Vector(2+1.75*u,2+2.333333*v,12+.4*((u+v)%2)) for v in range(4)] for u in range(5)]
+            curve.buildFromPolesMultsKnots(poles,[4,1,4],[4,4],[0,.5,1],[0,1],False,False,3,3)
+        else:
+            curve=Part.BezierCurve()
+            curve.setPoles([App.Vector(2,2,12),App.Vector(2,9,12),App.Vector(9,2,12),App.Vector(9,9,12)])
+        report['spline_kind']=shape_kind
+        spline=App.ActiveDocument.addObject('Part::Spline','RetainedSpline')
+        spline.Shape=curve.toShape(); spline.ViewObject.ControlPoints=False
+        App.ActiveDocument.recompute(); view.viewTop()
+        os.write(1,b'SPLINE_PHASE setup_ready\n')
+        step(spline_hidden)
+    def spline_hidden():
+        os.write(1,b'SPLINE_PHASE hidden_capture\n')
+        global spline_bare
+        spline_bare=capture('spline-hidden')
+        spline.ViewObject.ControlPoints=True
+        step(spline_visible)
+    def spline_visible():
+        os.write(1,b'SPLINE_PHASE controls_capture\n')
+        global spline_first
+        image=capture('spline-controls')
+        count=changes(spline_bare,image,QtCore.QRect(0,0,image.width()-1,image.height()-1))
+        if count<20: raise RuntimeError('Part spline ControlPoints omitted')
+        search=coin.SoSearchAction(); search.setType(coin.SoType.fromName('SoFCControlPoints'),False)
+        search.setInterest(coin.SoSearchAction.ALL); search.apply(spline.ViewObject.RootNode)
+        paths=search.getPaths(); size=paths.getLength() if hasattr(paths,'getLength') else len(paths)
+        if not size: raise RuntimeError('Part spline did not create actual SoFCControlPoints')
+        control=paths[0].getTail()
+        dimensions=[int(control.getField('numPolesU').getValue()),int(control.getField('numPolesV').getValue())]
+        expected={'bezier':[4,1],'bspline-curve':[5,1],'bspline-surface':[5,4]}[report['spline_kind']]
+        if dimensions!=expected: raise RuntimeError('Part consumer control dimensions mismatch')
+        report['consumer']={'type':'Part::Spline','control_nodes':size,'pole_dimensions':dimensions,'visible_changes':count}
+        spline_first=image
+        if report['spline_kind']=='bspline-surface': curve.setPole(2,2,App.Vector(4,5,13))
+        else: curve.setPole(2,App.Vector(4,9,12))
+        spline.Shape=curve.toShape()
+        spline.ViewObject.ControlPoints=False; App.ActiveDocument.recompute()
+        step(spline_mutated_hidden)
+    def spline_mutated_hidden():
+        global spline_bare
+        spline_bare=capture('spline-mutated-hidden')
+        spline.ViewObject.ControlPoints=True
+        step(spline_mutated_visible)
+    def spline_mutated_visible():
+        image=capture('spline-mutated-controls')
+        count=changes(spline_bare,image,QtCore.QRect(0,0,image.width()-1,image.height()-1))
+        mutation=changes(spline_first,image,QtCore.QRect(0,0,image.width()-1,image.height()-1))
+        if count<20 or mutation<30: raise RuntimeError('Part spline controls did not regenerate')
+        report['consumer'].update(regenerated_changes=count,mutation_changes=mutation)
+        spline.ViewObject.ControlPoints=False
+        step(spline_removed)
+    def spline_removed():
+        image=capture('spline-controls-removed')
+        count=changes(spline_bare,image,QtCore.QRect(0,0,image.width()-1,image.height()-1))
+        report['consumer']['remaining_changes']=count
+        if count>30: raise RuntimeError('Part spline controls remained after property toggle')
+        App.ActiveDocument.removeObject(spline.Name); App.ActiveDocument.recompute()
+        step(content_idle_baseline,600)
+    axes_baseline=spline_setup

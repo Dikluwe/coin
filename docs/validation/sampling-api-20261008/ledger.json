@@ -1,0 +1,109 @@
+{
+  "source_commit": "a5e5a1c7782f128adaf2d4aaac8c302c202b0146",
+  "baseline_commit": "43f00b0e18830ba79fe8fd19020d1f8ececa4983",
+  "artifact_root": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api",
+  "rust_final_command": "CARGO_TARGET_DIR=/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/rust-target cargo test --offline --manifest-path src/rendering/coinwgpu/rust_bridge/Cargo.toml",
+  "build_commands": [
+    "cmake --build /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-wgpu",
+    "cmake --build /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api/build-bgfx"
+  ],
+  "cohorts": [
+    {
+      "name": "api-cpu-final",
+      "qualified": true,
+      "processes": 2,
+      "exit_counts": {
+        "0": 2
+      }
+    },
+    {
+      "name": "api-capabilities-final",
+      "qualified": true,
+      "processes": 12,
+      "exit_counts": {
+        "0": 12
+      }
+    },
+    {
+      "name": "stock-portable",
+      "qualified": true,
+      "processes": 24,
+      "exit_counts": {
+        "0": 24
+      }
+    },
+    {
+      "name": "native-core-regression",
+      "qualified": true,
+      "processes": 30,
+      "exit_counts": {
+        "0": 30
+      }
+    },
+    {
+      "name": "mesa-public-portable",
+      "qualified": true,
+      "processes": 24,
+      "exit_counts": {
+        "0": 24
+      }
+    },
+    {
+      "name": "mesa-public-native",
+      "qualified": true,
+      "processes": 48,
+      "exit_counts": {
+        "0": 48
+      }
+    },
+    {
+      "name": "native-resources-shadows",
+      "qualified": true,
+      "processes": 30,
+      "exit_counts": {
+        "0": 30
+      }
+    },
+    {
+      "name": "api-cpu",
+      "qualified": false,
+      "processes": 2,
+      "exit_counts": {
+        "0": 2
+      }
+    },
+    {
+      "name": "api-final",
+      "qualified": false,
+      "processes": 6,
+      "exit_counts": {
+        "0": 6
+      }
+    },
+    {
+      "name": "api-gpu",
+      "qualified": false,
+      "processes": 6,
+      "exit_counts": {
+        "0": 4,
+        "77": 2
+      }
+    },
+    {
+      "name": "api-gpu-repair",
+      "qualified": false,
+      "processes": 2,
+      "exit_counts": {
+        "0": 2
+      }
+    }
+  ],
+  "qualified_process_executions": 170,
+  "notes": [
+    "Broad sampling cohorts precede a capabilities-only BGFX derivative correction; pre-information-fix-runtimes.json identifies that revision. Sampling code unchanged. Final API/selection/resources/shadows use corrected metadata.",
+    "Build trees are reused/mutable. Baseline copy is immutable and not included as binary data in Git.",
+    "Original campaign 28 failures closed conditionally in previous report; new native CoinGL comparison cohorts use external Mesa. Stock portable CPU/GPU cohorts require no driver patch.",
+    "Initial AMD Vulkan API skips used a nonexistent ICD filename. Corrected trials retained; no SKIP contributes to qualified totals.",
+    "Historical selector is absent from the new renderer; legacy-guard.log is an expected rejection before measurement."
+  ]
+}

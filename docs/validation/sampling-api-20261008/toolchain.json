@@ -1,0 +1,37 @@
+{
+  "system": "Linux-6.17.0-42-generic-x86_64-with-glibc2.39",
+  "tools": [
+    {
+      "command": [
+        "cmake",
+        "--version"
+      ],
+      "exit": 0,
+      "output": "cmake version 3.28.3\n\nCMake suite maintained and supported by Kitware (kitware.com/cmake).\n"
+    },
+    {
+      "command": [
+        "cargo",
+        "--version"
+      ],
+      "exit": 0,
+      "output": "cargo 1.92.0 (344c4567c 2025-10-21)\n"
+    },
+    {
+      "command": [
+        "rustc",
+        "--version"
+      ],
+      "exit": 0,
+      "output": "rustc 1.92.0 (ded5c06cf 2025-12-08)\n"
+    },
+    {
+      "command": [
+        "c++",
+        "--version"
+      ],
+      "exit": 0,
+      "output": "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0\nCopyright (C) 2023 Free Software Foundation, Inc.\nThis is free software; see the source for copying conditions.  There is NO\nwarranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n\n"
+    }
+  ]
+}

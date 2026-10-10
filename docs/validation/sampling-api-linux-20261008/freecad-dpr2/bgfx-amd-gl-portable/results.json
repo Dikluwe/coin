@@ -1,0 +1,61 @@
+[
+  {
+    "test": "freecad-sampling-policy",
+    "native": true,
+    "reference_gl": false,
+    "status": "FAIL",
+    "nodes": {
+      "text": [
+        {
+          "visible_changes": 119716,
+          "resized": false,
+          "glyph_pixels": 700,
+          "document_pick": true,
+          "mutation_changes": 119934,
+          "remaining_changes": 0
+        }
+      ],
+      "image": [
+        {
+          "visible_changes": 119716,
+          "resized": false,
+          "document_pick": true,
+          "mutation_changes": 1464,
+          "remaining_changes": 119716
+        }
+      ]
+    },
+    "profile": "screen-content",
+    "sampling_policy": 1,
+    "prebaseline_redraws": 2,
+    "marker_descriptor": {
+      "coords": 3,
+      "num_points": 3,
+      "start": 0
+    },
+    "active_sampling_policy": 1,
+    "reason": "image removal left pixels",
+    "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+    "backend_gl_contexts": [
+      [
+        "AMD",
+        "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+        "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ],
+      [
+        "AMD",
+        "AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",
+        "4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4"
+      ]
+    ],
+    "backend": "bgfx",
+    "renderer": "opengl",
+    "mode": "object",
+    "alpha": "opaque",
+    "scale": 2,
+    "hardware_gpu": true,
+    "gpu_submitted": true,
+    "gpu_execution": "hardware",
+    "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-dpr2/bgfx-amd-gl-portable/opengl-object-opaque-2x-freecad-sampling-policy"
+  }
+]

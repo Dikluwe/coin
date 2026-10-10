@@ -1,0 +1,45 @@
+{
+  "source_commit": "e34181556eef346a38ec4776e93d39f84f61a7fc",
+  "branch": "codex/linux-windows-visual-20261010",
+  "prefixes": {
+    "bgfx": "/mnt/Laranja/Git/externos/coin/build-linux-visual-20261010/bgfx",
+    "wgpu": "/mnt/Laranja/Git/externos/coin/build-linux-visual-20261010/wgpu"
+  },
+  "artifacts": {
+    "bgfx_installed_coinrender": {
+      "path": "/mnt/Laranja/Git/externos/coin/build-linux-visual-20261010/bgfx/lib/libCoinRender.so",
+      "sha256": "5f62ac5a78bfede0a6d16a5afb995b36e7acacc577d9499ecb66e69d95c856f7",
+      "bytes": 7153568
+    },
+    "wgpu_installed_coinrender": {
+      "path": "/mnt/Laranja/Git/externos/coin/build-linux-visual-20261010/wgpu/lib/libCoinRender.so",
+      "sha256": "fa12c0383cd46fd1fb806ac7ad0aa991f2b7a28453f7e41150ff2871d91c3ab1",
+      "bytes": 15901752
+    },
+    "bgfx_installed_coin": {
+      "path": "/mnt/Laranja/Git/externos/coin/build-linux-visual-20261010/bgfx/lib/libCoin.so.80.0.10",
+      "sha256": "2ae5b9b87048a9c071c528ceeebb036737ac123a53ee2b9a30891e21a37b605e",
+      "bytes": 12036768
+    },
+    "wgpu_installed_coin": {
+      "path": "/mnt/Laranja/Git/externos/coin/build-linux-visual-20261010/wgpu/lib/libCoin.so.80.0.10",
+      "sha256": "2ae5b9b87048a9c071c528ceeebb036737ac123a53ee2b9a30891e21a37b605e",
+      "bytes": 12036768
+    },
+    "fixture_source": {
+      "path": "/tmp/coin-linux-visual-fixture/main.cpp",
+      "sha256": "c235a26c66d118317c4d4081d1f704115e9ca038b72286d54c024f604d90760e",
+      "bytes": 12494
+    },
+    "bgfx_consumer": {
+      "path": "/tmp/coin-linux-visual-installed-bgfx-build/coin_linux_visual_campaign",
+      "sha256": "a24a383311ed07baa81a14d1e1b5a762143e36c84e65f2c0f2bf2bca7f86bcab",
+      "bytes": 56936
+    },
+    "wgpu_consumer": {
+      "path": "/tmp/coin-linux-visual-installed-wgpu-build/coin_linux_visual_campaign",
+      "sha256": "88a568b3a29e89ae16a7ea3499db79f8fb0380e86c13201a918f9bb714614d00",
+      "bytes": 56936
+    }
+  }
+}

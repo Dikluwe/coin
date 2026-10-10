@@ -1,0 +1,166 @@
+{
+  "driver": "615.71.09",
+  "gpu": "NVIDIA RTX 3060 Laptop 10de:2560",
+  "weston_shell": "desktop-shell.so",
+  "diagnostics": [
+    {
+      "policy": "portable",
+      "scenario": "visible-no-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 1,
+      "captures": [
+        {
+          "name": "cold-after-hide",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        },
+        {
+          "name": "cold-text-visible",
+          "different_pixels": 700,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "portable",
+      "scenario": "visible-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 1,
+      "captures": [
+        {
+          "name": "cold-after-hide",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        },
+        {
+          "name": "cold-after-text-mutation",
+          "different_pixels": 712,
+          "historic_border_pixels": 0
+        },
+        {
+          "name": "cold-text-visible",
+          "different_pixels": 700,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "portable",
+      "scenario": "hidden-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 1,
+      "captures": [
+        {
+          "name": "cold-after-text-mutation",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "portable",
+      "scenario": "hidden-image-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 1,
+      "captures": [
+        {
+          "name": "cold-after-image-mutation",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "native",
+      "scenario": "visible-no-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 0,
+      "captures": [
+        {
+          "name": "cold-after-hide",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        },
+        {
+          "name": "cold-text-visible",
+          "different_pixels": 700,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "native",
+      "scenario": "visible-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 0,
+      "captures": [
+        {
+          "name": "cold-after-hide",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        },
+        {
+          "name": "cold-after-text-mutation",
+          "different_pixels": 712,
+          "historic_border_pixels": 0
+        },
+        {
+          "name": "cold-text-visible",
+          "different_pixels": 700,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "native",
+      "scenario": "hidden-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 0,
+      "captures": [
+        {
+          "name": "cold-after-text-mutation",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        }
+      ]
+    },
+    {
+      "policy": "native",
+      "scenario": "hidden-image-mutation",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "active_sampling_policy": 0,
+      "captures": [
+        {
+          "name": "cold-after-image-mutation",
+          "different_pixels": 0,
+          "historic_border_pixels": 0
+        }
+      ]
+    }
+  ],
+  "standard": [
+    {
+      "policy": "portable",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "startup_root_changes": 0,
+      "cold_start_qualified": false
+    },
+    {
+      "policy": "native",
+      "status": "PASS",
+      "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+      "startup_root_changes": 0,
+      "cold_start_qualified": false
+    }
+  ],
+  "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-after-driver-20261008"
+}

@@ -1,0 +1,18 @@
+{
+  "command": [
+    "cargo",
+    "test",
+    "--locked",
+    "--release",
+    "--manifest-path",
+    "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin\\src\\rendering\\coinwgpu\\rust_bridge\\Cargo.toml",
+    "native_profiles_restore_uniform_layout_and_all_fragment_contracts",
+    "--",
+    "--nocapture"
+  ],
+  "exit": 101,
+  "environment": {
+    "CARGO_TARGET_DIR": "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu\\rust_target",
+    "CARGO_BUILD_JOBS": "2"
+  }
+}

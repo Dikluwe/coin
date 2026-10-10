@@ -1,0 +1,3187 @@
+[
+  {
+    "path": ".gitattributes",
+    "size": 9,
+    "sha256": "8b9c3028d6467ff3be7c793141927841d70f47f52d0590677438f488ca154992"
+  },
+  {
+    "path": "bgfx-device-loss-installed-hashes.json",
+    "size": 1640,
+    "sha256": "caeed21d8993af5e84ea4593e29938a79f1d83e789502a59e0041435c804305e"
+  },
+  {
+    "path": "hardware.json",
+    "size": 758,
+    "sha256": "02b126b62e723708cd18209406d6bf49a69ff2cc3171cb0292f0519974d07be1"
+  },
+  {
+    "path": "provenance.json",
+    "size": 1955,
+    "sha256": "135419246163075f199bb7adb79ffa8728b3d1e597b074df889b0b09a76aff36"
+  },
+  {
+    "path": "query-resize-driver-ledger.json",
+    "size": 2625,
+    "sha256": "110338914d03b943cbaf9748d6b44e43298c635498deb21a9a5a29fb9a6fb4cf"
+  },
+  {
+    "path": "scripts/analyze_visual.py",
+    "size": 2306,
+    "sha256": "5bec83af70f08d60eb83409c5324829f3310aae473767f4f4bf979a1bbb35473"
+  },
+  {
+    "path": "scripts/build_visual.py",
+    "size": 852,
+    "sha256": "e492f2950437d3a3875a68df460ab5fea339a77fc309c5eb61a680bd7c7cd483"
+  },
+  {
+    "path": "scripts/compare_visual.py",
+    "size": 944,
+    "sha256": "cb973bdb017a346d41487b7690ca73e99c19dc0719f811e7ca43e019836639d0"
+  },
+  {
+    "path": "scripts/extend_visual.py",
+    "size": 2401,
+    "sha256": "8fa7c85d0758eee477cd1c078a51f8f0d06fc2bc6f718d41c199e20bf123cd13"
+  },
+  {
+    "path": "scripts/finish_visual.py",
+    "size": 855,
+    "sha256": "39d08b29932945d1b4f03d12f63a993e14d8a1ba0be21b312ded1174a23b8f3c"
+  },
+  {
+    "path": "scripts/match_visual_control.py",
+    "size": 796,
+    "sha256": "a5aabf786350a4a16697affc990adc727765e50a9736691d359e9eb0cbeda78f"
+  },
+  {
+    "path": "scripts/package_visual.py",
+    "size": 2242,
+    "sha256": "300c324c125568e3cf27a3b1751b645747e619900b1add16c8ef8c47e9f61432"
+  },
+  {
+    "path": "scripts/prepare_visual.py",
+    "size": 6748,
+    "sha256": "90269995872addb58e5d825d4544708bcd2988cbc1d6795d400780b73d8611b0"
+  },
+  {
+    "path": "scripts/report_visual.py",
+    "size": 9655,
+    "sha256": "44205847834a4c87eb1a7bbc27552f4ee50b945911ea08b5647f1f7d2e90dd9a"
+  },
+  {
+    "path": "scripts/run_visual.py",
+    "size": 3335,
+    "sha256": "bc67ba77f4ad501808da503b5b8983430cb444ec7066e1066c1ca8f059568cda"
+  },
+  {
+    "path": "visual-bgfx-build-normalized.log",
+    "size": 193,
+    "sha256": "77e80d2421af3d1327efc164e900cd08391b56028c5fdc80537d4db0663fe11a"
+  },
+  {
+    "path": "visual-bgfx-configure-normalized.log",
+    "size": 218,
+    "sha256": "7b8cc2ea927e5dcd8e1ba70fe1281a14f9c6f64b04ca06ba2f85f898496a76d2"
+  },
+  {
+    "path": "visual-build-ledger.json",
+    "size": 1515,
+    "sha256": "652e02354b46a7f3df92121e12692e0f0efb42edc439ec91f35780b167bcbfab"
+  },
+  {
+    "path": "visual-finish-ledger.json",
+    "size": 1042,
+    "sha256": "f098326ad691d1e4ea8c9875bc710c8e947c14d7535649635e69a71b69a15ae7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-clocks.csv",
+    "size": 775,
+    "sha256": "56c98b2da110fa48a20740c4cb65db60896e89016b64eb76192d5985bdc38275"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-final-difference-mask.png",
+    "size": 1395,
+    "sha256": "f863abd92156e56b90ba699ed82914db37617a63bfe922fa53afe5d960df0084"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-final-offscreen.png",
+    "size": 138196,
+    "sha256": "90181b15818db05e230c7cc7672660f6b0887b2e82c7ecbdd3ad480a728b8d4e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-final-window.png",
+    "size": 138195,
+    "sha256": "94c9c302041b76e428ff99d60e22eaabf1894d97b8f25c5e6bb124ea7ac0517e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native.csv",
+    "size": 172,
+    "sha256": "c479147291d0e4b902ffc4fce24a22abb53a478bd023025223a785d3a9c522af"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-0-native.log",
+    "size": 926,
+    "sha256": "09343515ab7709d57f9b0825ce77b75dfb2f700413ea8d2487065a4b75a4b40a"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-clocks.csv",
+    "size": 777,
+    "sha256": "ee018207f5a5b7931497d4031895f8f3220e0a99854e97b1691812fd7f2e4211"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-final-difference-mask.png",
+    "size": 1395,
+    "sha256": "f863abd92156e56b90ba699ed82914db37617a63bfe922fa53afe5d960df0084"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-final-offscreen.png",
+    "size": 138196,
+    "sha256": "90181b15818db05e230c7cc7672660f6b0887b2e82c7ecbdd3ad480a728b8d4e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-final-window.png",
+    "size": 138195,
+    "sha256": "94c9c302041b76e428ff99d60e22eaabf1894d97b8f25c5e6bb124ea7ac0517e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable.csv",
+    "size": 175,
+    "sha256": "f4124b57500d36cc7a36bc4d71abbf4a38c184552e326c5c2120beb4d9814ea0"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-d3d12-1-portable.log",
+    "size": 928,
+    "sha256": "5f1567ebfb19a365875dcacd5a7d738994b6eb7ef412b6f0cb8f2fa2e8aa8328"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-0-native-clocks.csv",
+    "size": 656,
+    "sha256": "d8130921ad7f1ad089a06fd2d67a34a96c24ab880a5db9e10f20f5b55127ca23"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-0-native-initial-difference-mask.png",
+    "size": 1308,
+    "sha256": "9919ce735234896afb8374951e73c3982f5b594e2a9f34b05f1570b2fd9189fd"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-0-native-initial-offscreen.png",
+    "size": 159472,
+    "sha256": "1e3bc25137239d93658976630cde36ced7c122b8ca315d6020f09659e9cbf458"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-0-native-initial-window.png",
+    "size": 159472,
+    "sha256": "4ec2e751b36256b71d90b8299682d4bc82b1cb1fd1d7411260b99356287af931"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-0-native.log",
+    "size": 624,
+    "sha256": "b72e970abf51b955765bda8fc874fcb98b0923f74cf402033c7e239ced680a9b"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-1-portable-clocks.csv",
+    "size": 533,
+    "sha256": "2ec0ec5de5bc45a10406bd9cb36a4a59b5a75a911fa9fb03e3033d62962e340c"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-1-portable-initial-difference-mask.png",
+    "size": 1308,
+    "sha256": "9919ce735234896afb8374951e73c3982f5b594e2a9f34b05f1570b2fd9189fd"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-1-portable-initial-offscreen.png",
+    "size": 159472,
+    "sha256": "1e3bc25137239d93658976630cde36ced7c122b8ca315d6020f09659e9cbf458"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-1-portable-initial-window.png",
+    "size": 159472,
+    "sha256": "4ec2e751b36256b71d90b8299682d4bc82b1cb1fd1d7411260b99356287af931"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-opengl-1-portable.log",
+    "size": 626,
+    "sha256": "6e042eec90e9e1cb26bbb1f0b25e76e1d3a64936acfe214aaaccc221d1c0fd58"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-clocks.csv",
+    "size": 779,
+    "sha256": "9d1e85b1c0144dd950aeac5abce48f8bebe89278e29f93282f40612822a8fdcf"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-final-difference-mask.png",
+    "size": 1395,
+    "sha256": "f863abd92156e56b90ba699ed82914db37617a63bfe922fa53afe5d960df0084"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-final-offscreen.png",
+    "size": 138196,
+    "sha256": "90181b15818db05e230c7cc7672660f6b0887b2e82c7ecbdd3ad480a728b8d4e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-final-window.png",
+    "size": 138195,
+    "sha256": "94c9c302041b76e428ff99d60e22eaabf1894d97b8f25c5e6bb124ea7ac0517e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native.csv",
+    "size": 174,
+    "sha256": "8380cd44e780f8c596ec55d6c78fb02737bdb82ce2a5b2154e28c866e54e754e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-0-native.log",
+    "size": 921,
+    "sha256": "4a32005dfbbfbfb482d215a99c23f07e2475df12e437850c9991ab7b6726dce2"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-clocks.csv",
+    "size": 777,
+    "sha256": "6d351dac0a1d41ad4de8cfb7aa272d5c2b108ba8b4ef349888eebd640cfe384f"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-final-difference-mask.png",
+    "size": 1395,
+    "sha256": "f863abd92156e56b90ba699ed82914db37617a63bfe922fa53afe5d960df0084"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-final-offscreen.png",
+    "size": 138196,
+    "sha256": "90181b15818db05e230c7cc7672660f6b0887b2e82c7ecbdd3ad480a728b8d4e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-final-window.png",
+    "size": 138195,
+    "sha256": "94c9c302041b76e428ff99d60e22eaabf1894d97b8f25c5e6bb124ea7ac0517e"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable.csv",
+    "size": 174,
+    "sha256": "f1d9a66ff03042f28a9ef5b9a6fbae016ce770dd61d9e5e31db29d1e803fb19f"
+  },
+  {
+    "path": "visual-initial/city-40000-bgfx-vulkan-1-portable.log",
+    "size": 923,
+    "sha256": "b620d8755cc83aebf3d747a01495f74c2f7e25fb170aad0784fb5bbee470ae41"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-clocks.csv",
+    "size": 778,
+    "sha256": "49ca3de6b3b87243d0c08b1f417b14a2104ba0a2e2d80e43ecd2169897e8f65a"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-final-difference-mask.png",
+    "size": 1400,
+    "sha256": "fed0eaba285966e9dc184c51518ccd845405109ff76d6aad97145f926fbca9b6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-final-offscreen.png",
+    "size": 138216,
+    "sha256": "8a9b0e4e4a7a618d4b72b4f577a31a57a7e485b3bb7f2d4d20df55cea3cd947b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-final-window.png",
+    "size": 138191,
+    "sha256": "9d4cda7606466966ab9165c16ec5c3b9c88bb2bdb0e22ed75585d052a73c11aa"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native.csv",
+    "size": 179,
+    "sha256": "f20032c946a760313935a995175c999ce51fd49a4725a048c8dba8ce8ab4bd43"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-0-native.log",
+    "size": 906,
+    "sha256": "c44da4d227b2f1882b33c1eb3eb198222557bf64954b3dfb0fcb26229eda2f42"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-clocks.csv",
+    "size": 777,
+    "sha256": "643affd838957c6b29f56ec9b15c896e134295659deb0702c9c62314c49dea53"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-final-difference-mask.png",
+    "size": 1400,
+    "sha256": "fed0eaba285966e9dc184c51518ccd845405109ff76d6aad97145f926fbca9b6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-final-offscreen.png",
+    "size": 138216,
+    "sha256": "8a9b0e4e4a7a618d4b72b4f577a31a57a7e485b3bb7f2d4d20df55cea3cd947b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-final-window.png",
+    "size": 138191,
+    "sha256": "9d4cda7606466966ab9165c16ec5c3b9c88bb2bdb0e22ed75585d052a73c11aa"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable.csv",
+    "size": 176,
+    "sha256": "1a0030709851e562927e587c33d124f41373d12ff8adb4f59d6ea36592ebc773"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-d3d12-1-portable.log",
+    "size": 908,
+    "sha256": "cf0ef67029a7a947fe4388ac860716082d772cd452d598070fb5a682c03fb3db"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "18cda6da2d5367f7b75a9e639bcc6bb730a17c75316e2bf319e5e9c7e9bd3488"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-final-difference-mask.png",
+    "size": 1400,
+    "sha256": "fed0eaba285966e9dc184c51518ccd845405109ff76d6aad97145f926fbca9b6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-final-offscreen.png",
+    "size": 138216,
+    "sha256": "8a9b0e4e4a7a618d4b72b4f577a31a57a7e485b3bb7f2d4d20df55cea3cd947b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-final-window.png",
+    "size": 138191,
+    "sha256": "9d4cda7606466966ab9165c16ec5c3b9c88bb2bdb0e22ed75585d052a73c11aa"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native.csv",
+    "size": 179,
+    "sha256": "5e80d4027acabd2bb32ac5fd280a3985eadd3c2146a0fc3935e3a595be6927e9"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-0-native.log",
+    "size": 911,
+    "sha256": "2edc7317aac3522d68dd826af17e9272ed7aa43c2365ec1beb9d5904a3fe2c23"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "d743e673efdcabf547b2d61a6f4dbbe7155a37a88d7571e878eeb596f1f7da1e"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-final-difference-mask.png",
+    "size": 1400,
+    "sha256": "fed0eaba285966e9dc184c51518ccd845405109ff76d6aad97145f926fbca9b6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-final-offscreen.png",
+    "size": 138216,
+    "sha256": "8a9b0e4e4a7a618d4b72b4f577a31a57a7e485b3bb7f2d4d20df55cea3cd947b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-final-window.png",
+    "size": 138191,
+    "sha256": "9d4cda7606466966ab9165c16ec5c3b9c88bb2bdb0e22ed75585d052a73c11aa"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable.csv",
+    "size": 176,
+    "sha256": "fc2bfa39d4cc019f7af22d8957fdafb7df00e273ef0d89ec21a7259524801ced"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-opengl-1-portable.log",
+    "size": 913,
+    "sha256": "9c65ea9d9d9c62b02267b14451b393da3f65960deed8344d79446c6747370bba"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "435860016d2a9c11a0d9717ad05c3ce7bef760c10e294be228db1afae9e3a018"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-final-difference-mask.png",
+    "size": 1400,
+    "sha256": "fed0eaba285966e9dc184c51518ccd845405109ff76d6aad97145f926fbca9b6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-final-offscreen.png",
+    "size": 138216,
+    "sha256": "8a9b0e4e4a7a618d4b72b4f577a31a57a7e485b3bb7f2d4d20df55cea3cd947b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-final-window.png",
+    "size": 138191,
+    "sha256": "9d4cda7606466966ab9165c16ec5c3b9c88bb2bdb0e22ed75585d052a73c11aa"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native.csv",
+    "size": 179,
+    "sha256": "dc066ff55066a34b82378ec536c974ec3c3e96768796eed6a46663c3bc19f7eb"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-0-native.log",
+    "size": 908,
+    "sha256": "90d4be80b15e1b3cfaec9098baf2863ca2212860797c5f75b32670b01ddcb6cd"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "7f9f257d14eda17e7c4615a8b6d04dba40ed29bc81d29137059b5311a5b59b8d"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-final-difference-mask.png",
+    "size": 1400,
+    "sha256": "fed0eaba285966e9dc184c51518ccd845405109ff76d6aad97145f926fbca9b6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-final-offscreen.png",
+    "size": 138216,
+    "sha256": "8a9b0e4e4a7a618d4b72b4f577a31a57a7e485b3bb7f2d4d20df55cea3cd947b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-final-window.png",
+    "size": 138191,
+    "sha256": "9d4cda7606466966ab9165c16ec5c3b9c88bb2bdb0e22ed75585d052a73c11aa"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable.csv",
+    "size": 178,
+    "sha256": "71af2ae9f8cd7ceb01d379ee905330873de627c7d893fcd42477667f3aa8f8a6"
+  },
+  {
+    "path": "visual-initial/city-40000-wgpu-vulkan-1-portable.log",
+    "size": 910,
+    "sha256": "0df4f32a7b8a2b6ba8e2b29fe7d0fc6644a75ba939228acd82ec4383c261a1ce"
+  },
+  {
+    "path": "visual-initial/pixel-analysis.json",
+    "size": 22349,
+    "sha256": "4918209e4df27d7cb3fbf5aec2896000237a55bea25d94c62438cc2eafa64ddd"
+  },
+  {
+    "path": "visual-initial/pixel-manifest.json",
+    "size": 51683,
+    "sha256": "e0fbdf2bfff51a7f7bb03977f0fcfa693a76a6870e0ea2bcd0b664f8febd709b"
+  },
+  {
+    "path": "visual-initial/policy-pixel-comparison.json",
+    "size": 5905,
+    "sha256": "537f93dd12066c72af14bededb424ccb339a8ac03c46cc8ac6b6833ac0dc8b12"
+  },
+  {
+    "path": "visual-initial/results.xml",
+    "size": 8735,
+    "sha256": "265faa262e0d897fb0449c227f37e4fa62c09bdd8764ee33b5a3653c3e467892"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-clocks.csv",
+    "size": 533,
+    "sha256": "68d0334685dde2f8cb248071a2abd25f43bd6dafb02a84c90646655ebd8f3258"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-final-offscreen.png",
+    "size": 130601,
+    "sha256": "fd32669f019e510affc9121cb17f7cf951c72b62c48ee1a19ba8d57a4963eede"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-final-window.png",
+    "size": 130601,
+    "sha256": "fd32669f019e510affc9121cb17f7cf951c72b62c48ee1a19ba8d57a4963eede"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-initial-offscreen.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native-initial-window.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native.csv",
+    "size": 178,
+    "sha256": "794bd29bebe5dd13799a9ca9decc149b7c069336bae4b46e62325b3ea7e88dc9"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-0-native.log",
+    "size": 904,
+    "sha256": "a8ba89b104eee5535e655a9a977a9587beb65621c88446828fe3b20169418985"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-clocks.csv",
+    "size": 533,
+    "sha256": "8dfcf4693537af54019194326bea8cd37f29775b3c68de130d411220e38d7ef8"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-final-offscreen.png",
+    "size": 131527,
+    "sha256": "b54b1288f5df9cfe917f685749d33600337a3bf7b051669595ac8b5a27ae6161"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-final-window.png",
+    "size": 131527,
+    "sha256": "b54b1288f5df9cfe917f685749d33600337a3bf7b051669595ac8b5a27ae6161"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-initial-offscreen.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable-initial-window.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable.csv",
+    "size": 177,
+    "sha256": "c56e095190d49b31c9610e6a786d52453ad6305b1585b091096805277a6bc525"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-d3d12-1-portable.log",
+    "size": 906,
+    "sha256": "a5bfa6fcfc3893e5b0ad3432b1876428d6293ff5bede2d84378709194f6e5cc3"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-0-native-clocks.csv",
+    "size": 412,
+    "sha256": "5bf9f7ff7738b103643f4add2cbc83d0a2224a8f20d4c7a27f8b8aa5b2949af7"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-0-native-initial-difference-mask.png",
+    "size": 1276,
+    "sha256": "a3ed880f48246a1f25ef1f6384017c3cb38988ec19925f5a35b5a133649e7524"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-0-native-initial-offscreen.png",
+    "size": 128288,
+    "sha256": "28f70f9471099bbb76e689875a9210bf6dea40cc0a6870ef170a9b127220e865"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-0-native-initial-window.png",
+    "size": 128292,
+    "sha256": "98aa4c64459afb8a478ac713f803499690e5c5db00df22de0efe857e4299792c"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-0-native.log",
+    "size": 604,
+    "sha256": "c5e1e7a03c81af400489bae730f217f2d9334853ee564a2aba2a13469d7e7b5d"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-1-portable-clocks.csv",
+    "size": 412,
+    "sha256": "8e7526c78dde32cc80155cf932301d4c8c51ff01e83a519ba013270bd743257d"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-1-portable-initial-difference-mask.png",
+    "size": 1276,
+    "sha256": "a3ed880f48246a1f25ef1f6384017c3cb38988ec19925f5a35b5a133649e7524"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-1-portable-initial-offscreen.png",
+    "size": 128181,
+    "sha256": "7aabf509b88bcf8bb35b18fc95c7e5281909b5f8daa110043573bed173869ac3"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-1-portable-initial-window.png",
+    "size": 128185,
+    "sha256": "5ae8f6c413a842447a933f58b651068d652532e46a28bcf0c3e7430cf43b8301"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-opengl-1-portable.log",
+    "size": 606,
+    "sha256": "07328e5af263c092882fa047eaa257ed99002f70e9e12326d8c1b26ad4148f54"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-clocks.csv",
+    "size": 533,
+    "sha256": "3f9acbf4702c65c4b1ae1fa6a5a54533ff3595b062b0c79042f09222955c9408"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-final-offscreen.png",
+    "size": 130601,
+    "sha256": "fd32669f019e510affc9121cb17f7cf951c72b62c48ee1a19ba8d57a4963eede"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-final-window.png",
+    "size": 130601,
+    "sha256": "fd32669f019e510affc9121cb17f7cf951c72b62c48ee1a19ba8d57a4963eede"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-initial-offscreen.png",
+    "size": 128284,
+    "sha256": "8fc9a067d2ec6e0a3c04e4c2c35da96c80e97d32941ce1647e08efa02a77e558"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native-initial-window.png",
+    "size": 128284,
+    "sha256": "8fc9a067d2ec6e0a3c04e4c2c35da96c80e97d32941ce1647e08efa02a77e558"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native.csv",
+    "size": 178,
+    "sha256": "18a5b8f3e54a113d96280226b85336be94a2c80a2623dacd9852711e30be09d0"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-0-native.log",
+    "size": 899,
+    "sha256": "a35b454fdab8d1c2f2c412a9ebb586880cacdea28af66a081ddf4fc72700d36e"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-clocks.csv",
+    "size": 534,
+    "sha256": "9a6e929aa9dba8561e21fa6452903ff7804b76474ecdd244f40ce4bbe5ead194"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-final-offscreen.png",
+    "size": 131525,
+    "sha256": "2b4d8d715e0563030b87d49b6433dcd7ae9e003486644d00545c62874355277e"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-final-window.png",
+    "size": 131525,
+    "sha256": "2b4d8d715e0563030b87d49b6433dcd7ae9e003486644d00545c62874355277e"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-initial-offscreen.png",
+    "size": 128179,
+    "sha256": "556368696fa996988479fffc44ab2f7bcbf8975b5fd63c525e2fd138b1970cf3"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable-initial-window.png",
+    "size": 128179,
+    "sha256": "556368696fa996988479fffc44ab2f7bcbf8975b5fd63c525e2fd138b1970cf3"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable.csv",
+    "size": 178,
+    "sha256": "47250236fc5d8da99beb37cbb73b131e4a68fdcbc9f468a5cd61fadef4e69286"
+  },
+  {
+    "path": "visual-initial/solids-bgfx-vulkan-1-portable.log",
+    "size": 901,
+    "sha256": "605b98cda0608a34823bdf3ba19ea3663d443820eb7fbaf4635a4a075b7ba32c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-clocks.csv",
+    "size": 1140,
+    "sha256": "d6ae13d31c72f747d792b045131242dce1d66f4e43218d1ab741f5120f3e2b9b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-final-offscreen.png",
+    "size": 130601,
+    "sha256": "b3e48da8ddea5f020c24e093ba6f1377721ec2a5f639f2d4ffc9717e71999560"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-final-window.png",
+    "size": 130601,
+    "sha256": "b3e48da8ddea5f020c24e093ba6f1377721ec2a5f639f2d4ffc9717e71999560"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-initial-offscreen.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native-initial-window.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native.csv",
+    "size": 179,
+    "sha256": "48570c208e77d02315d78cc6defe25bb15f35e4e32b07f5013460e77fb60e80d"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-0-native.log",
+    "size": 884,
+    "sha256": "1366c8f1442ee5964d9ed2d63c944555f53e8d569d47957ef961ce536ce655d3"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-clocks.csv",
+    "size": 1258,
+    "sha256": "b93b81b1f021c19c00500d6062a793bc40ebba1cc8530c6ca36b13173c2480e9"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-final-offscreen.png",
+    "size": 131525,
+    "sha256": "ff796ca44a1cd2369d10b6f502bb6c935bbc5b5fff67c221dd169d80058ed45c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-final-window.png",
+    "size": 131525,
+    "sha256": "ff796ca44a1cd2369d10b6f502bb6c935bbc5b5fff67c221dd169d80058ed45c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-initial-offscreen.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable-initial-window.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable.csv",
+    "size": 178,
+    "sha256": "24cdd1941ea820c781479e746e82305532aade18991895c123a41ca1adfe04b5"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-d3d12-1-portable.log",
+    "size": 886,
+    "sha256": "b4a8564dd2cc2d305cc23ae25e65c8170bed97b8bbca6bb4c03856c8d58df110"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-clocks.csv",
+    "size": 533,
+    "sha256": "5cda9e22130037da1a537e00bfbb23822f2dcaa28a229dbed45b06434122a9d8"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-final-offscreen.png",
+    "size": 130601,
+    "sha256": "b3e48da8ddea5f020c24e093ba6f1377721ec2a5f639f2d4ffc9717e71999560"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-final-window.png",
+    "size": 130601,
+    "sha256": "b3e48da8ddea5f020c24e093ba6f1377721ec2a5f639f2d4ffc9717e71999560"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-initial-offscreen.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native-initial-window.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native.csv",
+    "size": 179,
+    "sha256": "b831fbb304e2f6326c4f5cbc96b922f822354a49016de96d60ed5c0952ee9360"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-0-native.log",
+    "size": 889,
+    "sha256": "df7a510201b4adc65db02465cb325219121f83c73607769ad13a2ab31d6eb8a6"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-clocks.csv",
+    "size": 532,
+    "sha256": "67c51664c7de6b373afe080ba5ffb4847eb9fc18430493089a07b77136fdd524"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-final-offscreen.png",
+    "size": 131525,
+    "sha256": "ff796ca44a1cd2369d10b6f502bb6c935bbc5b5fff67c221dd169d80058ed45c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-final-window.png",
+    "size": 131525,
+    "sha256": "ff796ca44a1cd2369d10b6f502bb6c935bbc5b5fff67c221dd169d80058ed45c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-initial-offscreen.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable-initial-window.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable.csv",
+    "size": 179,
+    "sha256": "2cccfb85fafc932b1bf8116a1d07ee535d8d68948bfc675a2997f1a0073e7c88"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-opengl-1-portable.log",
+    "size": 891,
+    "sha256": "43070cfeb9fb8422fb1d9f385093bcb3d5897ba9a214df084c5d008416294729"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-clocks.csv",
+    "size": 532,
+    "sha256": "c4e64560156d49357f8289b1e5fb0a691e00ff20cc1b231e44c2141d43024f66"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-final-offscreen.png",
+    "size": 130601,
+    "sha256": "b3e48da8ddea5f020c24e093ba6f1377721ec2a5f639f2d4ffc9717e71999560"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-final-window.png",
+    "size": 130601,
+    "sha256": "b3e48da8ddea5f020c24e093ba6f1377721ec2a5f639f2d4ffc9717e71999560"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-initial-offscreen.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native-initial-window.png",
+    "size": 128289,
+    "sha256": "5a6f8ebbffb274b9a1fa4a0c6c4e4a0ef112c95daee341430aac505757b3ecab"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native.csv",
+    "size": 179,
+    "sha256": "321d69208c42dde998e779cc07ee1b0dcb7eb5c47910b33df34a8f278a3e6d95"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-0-native.log",
+    "size": 886,
+    "sha256": "b50fa92d7ddd1c6b096c5a4684c83261756ee6815ec9b7bc67442e93ac92df76"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-clocks.csv",
+    "size": 533,
+    "sha256": "a50a9584f808dea8e53a0a1d974573bf76a7f417a70f67b7e6adaa9a26a30082"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-final-offscreen.png",
+    "size": 131525,
+    "sha256": "ff796ca44a1cd2369d10b6f502bb6c935bbc5b5fff67c221dd169d80058ed45c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-final-window.png",
+    "size": 131525,
+    "sha256": "ff796ca44a1cd2369d10b6f502bb6c935bbc5b5fff67c221dd169d80058ed45c"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-initial-offscreen.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable-initial-window.png",
+    "size": 128182,
+    "sha256": "94f39050a8d3cb82b7e3b8e9dcea03fa6eb2c7eafb3933415b9edc67c8e9a361"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable.csv",
+    "size": 178,
+    "sha256": "602e5c7a6932494dff0e084415a9e68d9a7c195fd9afe81c4d78b5e13c9027df"
+  },
+  {
+    "path": "visual-initial/solids-wgpu-vulkan-1-portable.log",
+    "size": 888,
+    "sha256": "779fcd844b857792f785b8b52e1728e10987de8b4fb68bfbb6585f1a6cf9337a"
+  },
+  {
+    "path": "visual-initial/summary.json",
+    "size": 122394,
+    "sha256": "4558778e587de8657855c6d7d9fb804323e765bdd9a59f0ee31f5daaf1e0f51c"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-clocks.csv",
+    "size": 2496,
+    "sha256": "e6c74b273116bce1e30313d1167054419adfe1481b3c3a872c4d223d69613f78"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-final-difference-mask.png",
+    "size": 1289,
+    "sha256": "b2a5f2c5242f1f377b5b10f815cb5c9b635098495edbbe7b0f9dffe5cd403617"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-final-offscreen.png",
+    "size": 181215,
+    "sha256": "cf0fe1d847d5c69b2567fc187bd08ea90490e073a007e46b4ea44a1ccdbddb62"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-final-window.png",
+    "size": 181218,
+    "sha256": "0ea511764855c297661dfbb4a77ef2130eeb826b5e9ae9fe65ce079bb8348b3e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-initial-offscreen.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native-initial-window.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native.csv",
+    "size": 179,
+    "sha256": "957391df841645d410ba09f8ba50e5593ec94e834efd7c1e69bbd55bcced2d05"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-0-native.log",
+    "size": 959,
+    "sha256": "96774f945da5e5489acc25155c9605a62bced41d709a1927d31bb69ef78665a1"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-clocks.csv",
+    "size": 2496,
+    "sha256": "e7c3ca4d06f6a9fef410b57e9e8f195f58307cea123c486760b0127d84a4a0bb"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-final-difference-mask.png",
+    "size": 1289,
+    "sha256": "b2a5f2c5242f1f377b5b10f815cb5c9b635098495edbbe7b0f9dffe5cd403617"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-final-offscreen.png",
+    "size": 181215,
+    "sha256": "cf0fe1d847d5c69b2567fc187bd08ea90490e073a007e46b4ea44a1ccdbddb62"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-final-window.png",
+    "size": 181218,
+    "sha256": "0ea511764855c297661dfbb4a77ef2130eeb826b5e9ae9fe65ce079bb8348b3e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-initial-offscreen.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable-initial-window.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable.csv",
+    "size": 178,
+    "sha256": "b1a6e828e81990527b92f26af0692e5177d552111dcb72cbe55b8adc10d914d9"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-d3d12-1-portable.log",
+    "size": 961,
+    "sha256": "1eb1de7a99068240306a098853648e0bf0ae19ff381b421be8825a25db95a167"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-clocks.csv",
+    "size": 2613,
+    "sha256": "532b1d1039f703f687a53891070d49fed52f96e4325ebbcf7b87094e324de18d"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-final-difference-mask.png",
+    "size": 1289,
+    "sha256": "b2a5f2c5242f1f377b5b10f815cb5c9b635098495edbbe7b0f9dffe5cd403617"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-final-offscreen.png",
+    "size": 181231,
+    "sha256": "2e6feccf3f037b92da883b660fb6ac1ae2fef863a63168b6c4c180901416d126"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-final-window.png",
+    "size": 181234,
+    "sha256": "6b39766c96d305c0f075460210b42da375f93d7e2ee4b602bae17264df798951"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-initial-offscreen.png",
+    "size": 189064,
+    "sha256": "ce99cbea5c676b313a5b9c033d98b1c3ced2fae84f5df452adde6633a15066d3"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native-initial-window.png",
+    "size": 189064,
+    "sha256": "ce99cbea5c676b313a5b9c033d98b1c3ced2fae84f5df452adde6633a15066d3"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native.csv",
+    "size": 178,
+    "sha256": "e3d0ace56921925d889ade9fb2107d3ec0bdb7d27489ced490c142caaf74508e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-0-native.log",
+    "size": 951,
+    "sha256": "a965e53fe3b4eb7b7f004ea9032c672184c6fe490b509ebf3f7c2d1f78096642"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-clocks.csv",
+    "size": 2612,
+    "sha256": "921cfbaf06f2e615ada5f363b178b2fc8cc299f81bdcf381e02540646cf5f109"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-final-difference-mask.png",
+    "size": 1289,
+    "sha256": "b2a5f2c5242f1f377b5b10f815cb5c9b635098495edbbe7b0f9dffe5cd403617"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-final-offscreen.png",
+    "size": 181231,
+    "sha256": "2e6feccf3f037b92da883b660fb6ac1ae2fef863a63168b6c4c180901416d126"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-final-window.png",
+    "size": 181234,
+    "sha256": "6b39766c96d305c0f075460210b42da375f93d7e2ee4b602bae17264df798951"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-initial-offscreen.png",
+    "size": 189064,
+    "sha256": "ce99cbea5c676b313a5b9c033d98b1c3ced2fae84f5df452adde6633a15066d3"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable-initial-window.png",
+    "size": 189064,
+    "sha256": "ce99cbea5c676b313a5b9c033d98b1c3ced2fae84f5df452adde6633a15066d3"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable.csv",
+    "size": 178,
+    "sha256": "1672cb30f94c48433bb8ec70992fae202ded26d43a581a2b099e0c4bbe7c62b7"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-opengl-1-portable.log",
+    "size": 953,
+    "sha256": "79fd33bc015f26ad0eec8d2e481c2ccd3857fcf34e9ced7a13bd2b80403b67d3"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-clocks.csv",
+    "size": 2496,
+    "sha256": "1ecfc93d593777831fd053d7a78952d2d5d1f8d212331037701da8180f1a4146"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-final-difference-mask.png",
+    "size": 1294,
+    "sha256": "c94ff33dd52ccfe5f1ddb6357980ffffae5ec24aeae32f741b2f38dd0693601e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-final-offscreen.png",
+    "size": 181215,
+    "sha256": "1b4b63ab86e757b444cf25bcf21499bbfa732b84edf936b87c03983f5c1ba4c8"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-final-window.png",
+    "size": 181218,
+    "sha256": "0ea511764855c297661dfbb4a77ef2130eeb826b5e9ae9fe65ce079bb8348b3e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-initial-offscreen.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native-initial-window.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native.csv",
+    "size": 177,
+    "sha256": "b1a443065459f16b585d01c40f917ff538e011eaab99f80666b3cf15d75de9f3"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-0-native.log",
+    "size": 954,
+    "sha256": "f10971c946681bbf881b2354262a8e7f3e7cc072fe9e771ab0bb63a9fda73dd6"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-clocks.csv",
+    "size": 2496,
+    "sha256": "7d764ed7c9825552c5380f02a57fbd13f421f63101947f7834440c4981f8cb8c"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-final-difference-mask.png",
+    "size": 1294,
+    "sha256": "c94ff33dd52ccfe5f1ddb6357980ffffae5ec24aeae32f741b2f38dd0693601e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-final-offscreen.png",
+    "size": 181215,
+    "sha256": "1b4b63ab86e757b444cf25bcf21499bbfa732b84edf936b87c03983f5c1ba4c8"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-final-window.png",
+    "size": 181218,
+    "sha256": "0ea511764855c297661dfbb4a77ef2130eeb826b5e9ae9fe65ce079bb8348b3e"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-initial-offscreen.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable-initial-window.png",
+    "size": 189069,
+    "sha256": "bdb72623bcb092f1d5b30f79591dee5e5533ab897e764c3f21c3f3ec728f151b"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable.csv",
+    "size": 178,
+    "sha256": "3b111e9ac2a02addaa083bd98d0e31a38a553372d69f91270f0528cf34ccb698"
+  },
+  {
+    "path": "visual-initial/terrain-million-bgfx-vulkan-1-portable.log",
+    "size": 956,
+    "sha256": "3add56db420677a9042eedc1530abb6937bd9f0aaeeba7357c5226146d900cc2"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-d3d12-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "ece1338f3c5c9629800ee375ac1e58a11dac4211e8be51eab7d50e3f1b4ed7fe"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-d3d12-0-native.log",
+    "size": 981,
+    "sha256": "f8e1339c92a36ebf1a2fc7fdac4a715a65d9816a225a9e46df91f490984e02ab"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-d3d12-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "c10abe8d97952e6bf7ced0938d840ee9b48ae817b05d1ba0fe96260c049289f7"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-d3d12-1-portable.log",
+    "size": 982,
+    "sha256": "32e117a70dde45dbdf8f66aea35ab5e2233e34ed9e6dc86e420b6a9a400fcfe2"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-opengl-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "a8f996a594593447ee8ff9dff605411f0910f7c99a53f202781ac13cc3c2ab6a"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-opengl-0-native.log",
+    "size": 986,
+    "sha256": "288d10d9aebe6b47003286c8dcdb218bfe747395f6bf6b60a4ce802b1c304df5"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-opengl-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "73672df751030d06f6ed7edffba0e894cf9cf21da7b0dfb6b39dbda98404a4f8"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-opengl-1-portable.log",
+    "size": 988,
+    "sha256": "51d23cab52ada7a0cfa14718bcebf297f2c1b0c951189c7a7ed26cb94723e6db"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-vulkan-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "dd773fd7c2cd3197f956f8ab6a7b341afd9c4368fa4d15efc98b6c03112555f3"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-vulkan-0-native.log",
+    "size": 983,
+    "sha256": "13a959076c279ae1ff1d3e89647856e8b376a03b25b071b2d52f3be271cb1a49"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-vulkan-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "0a01bbca34f1d5bb431e97b9800803f1987974aa1df0b64db498304e8465d6f6"
+  },
+  {
+    "path": "visual-initial/terrain-million-wgpu-vulkan-1-portable.log",
+    "size": 985,
+    "sha256": "ad541ecec8a187c0f5be300ed88ca356a4e329c9de35ec28dbfadddd55fabbc5"
+  },
+  {
+    "path": "visual-initial-source/CMakeLists.txt",
+    "size": 527,
+    "sha256": "265ed26a3e4b774070e5035ac3e89874624e6f81e3f49d15a169d48fb65c0061"
+  },
+  {
+    "path": "visual-initial-source/main.cpp",
+    "size": 11587,
+    "sha256": "ef932f560931b13154d51e7b82b1b26b8850fb4f3cfbe6e7678ca9b9942020d3"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-clocks.csv",
+    "size": 5043,
+    "sha256": "9207bdbde70fd6d2203430f71f957bf3ae72fe8847edb99ba5a8421a801b94eb"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-final-difference-mask.png",
+    "size": 1570,
+    "sha256": "f0c88903cd8e45243393e744bf5910dba41e5de6e6cfdc19be156c2bc4369ff2"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-final-offscreen.png",
+    "size": 126303,
+    "sha256": "1ba89becf90d0174edd6efb7858a594d8d1c186af9a28b119585440c45aed097"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-final-window.png",
+    "size": 126292,
+    "sha256": "83b030d66dd0055fe1f384cd418cf2aac365a899e983f75a23cc037eb0149a86"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-initial-offscreen.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native-initial-window.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native.csv",
+    "size": 179,
+    "sha256": "4b7bec2974fd36a873beab765416a2dbaea28670c443195f8a3a7f9f33636a21"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-0-native.log",
+    "size": 1023,
+    "sha256": "8ef8eb8cf0aa07a453a60b37ed0ee393a185a1f1b6f57f28c71143c5b2b42bac"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-clocks.csv",
+    "size": 4553,
+    "sha256": "05cd1ed27f2f47bba458556b835506984c36a3bc5ec6b54a9eb367b289622ac6"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-final-difference-mask.png",
+    "size": 1570,
+    "sha256": "f0c88903cd8e45243393e744bf5910dba41e5de6e6cfdc19be156c2bc4369ff2"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-final-offscreen.png",
+    "size": 126303,
+    "sha256": "1ba89becf90d0174edd6efb7858a594d8d1c186af9a28b119585440c45aed097"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-final-window.png",
+    "size": 126292,
+    "sha256": "83b030d66dd0055fe1f384cd418cf2aac365a899e983f75a23cc037eb0149a86"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-initial-offscreen.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable-initial-window.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable.csv",
+    "size": 179,
+    "sha256": "6a4af138f33e71526dc41b16e57543b6d13f8defc7997d95b642a2a11753095f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-d3d12-1-portable.log",
+    "size": 1025,
+    "sha256": "289575e5c48f13d78a0650b911af279e6929737626009fe8f83f16ad6c660126"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-clocks.csv",
+    "size": 4192,
+    "sha256": "73704bfdf90d080445dab064a1499ca2c685d0137ebd794c27e4692212262169"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-final-difference-mask.png",
+    "size": 1565,
+    "sha256": "221f24565a8394770f39346401f5f972283ecc3a5865600486388aaf99a21b72"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-final-offscreen.png",
+    "size": 126315,
+    "sha256": "45c75c44afc0e2ff808c2d92df72aad0990da47957f8cccd54a47fa5eda878a5"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-final-window.png",
+    "size": 126299,
+    "sha256": "ef063544189273a5b73ddb9adf2c42a8d1c27ef31d4d5052e24df4284c4b99f9"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-initial-difference-mask.png",
+    "size": 1430,
+    "sha256": "5f388ce6f1a759f38bdddb5a6bc210ebe5ef00b5d2bdf04df1087891f809bd26"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-initial-offscreen.png",
+    "size": 168010,
+    "sha256": "b2f31f6653e2e7a8be892ed87dcbc04d926bb6e359d0837f4d4547a8a001cf23"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native-initial-window.png",
+    "size": 168036,
+    "sha256": "9247fd02edd4192a1b5c844f95f83b795659faa0a9a144c01e5d8f73efb6e220"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native.csv",
+    "size": 179,
+    "sha256": "74c23aadca506320f9cc4da1cf3a5ce2cd92d896bd9ce4cdd4aef6b6299e4330"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-0-native.log",
+    "size": 1017,
+    "sha256": "1cdcf0aa70be2a812b9ecba5ba4ce716ffc5a5458476bc4e557b3cd41fa7feb1"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-clocks.csv",
+    "size": 4073,
+    "sha256": "17b2d745b81bd79b7b36a987a474c30afcf389634c03c2730a7b308480501a62"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-final-difference-mask.png",
+    "size": 1565,
+    "sha256": "221f24565a8394770f39346401f5f972283ecc3a5865600486388aaf99a21b72"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-final-offscreen.png",
+    "size": 126315,
+    "sha256": "45c75c44afc0e2ff808c2d92df72aad0990da47957f8cccd54a47fa5eda878a5"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-final-window.png",
+    "size": 126299,
+    "sha256": "ef063544189273a5b73ddb9adf2c42a8d1c27ef31d4d5052e24df4284c4b99f9"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-initial-difference-mask.png",
+    "size": 1430,
+    "sha256": "5f388ce6f1a759f38bdddb5a6bc210ebe5ef00b5d2bdf04df1087891f809bd26"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-initial-offscreen.png",
+    "size": 168010,
+    "sha256": "b2f31f6653e2e7a8be892ed87dcbc04d926bb6e359d0837f4d4547a8a001cf23"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable-initial-window.png",
+    "size": 168036,
+    "sha256": "9247fd02edd4192a1b5c844f95f83b795659faa0a9a144c01e5d8f73efb6e220"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable.csv",
+    "size": 179,
+    "sha256": "56ab02fb969613b04541185fe04357c1a168b88d428d4765d38b6c9444bd6adb"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-opengl-1-portable.log",
+    "size": 1019,
+    "sha256": "d151e4ae6a9471012d4e5a92502974f4483ff031a4f747229eed7b95767752a2"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-clocks.csv",
+    "size": 4073,
+    "sha256": "1ae63e4254733f9ff57dd195874a4a05429b887b951f031bf6d95eba730a8a43"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-final-difference-mask.png",
+    "size": 1580,
+    "sha256": "4dd6b812ec2b0e575380b91f3d7fcd51df6bc4ee8b0f1fe66445803c01e4adbc"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-final-offscreen.png",
+    "size": 126303,
+    "sha256": "1ba89becf90d0174edd6efb7858a594d8d1c186af9a28b119585440c45aed097"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-final-window.png",
+    "size": 126292,
+    "sha256": "0f48448a8251669247da431994418edc206e20f3ebe4c495a7311ce70d8474ce"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-initial-offscreen.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native-initial-window.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native.csv",
+    "size": 179,
+    "sha256": "ecaddb52ac8395f3a3068de39ec0dc5b2d88bceb0a443afd8d50405f51300db4"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-0-native.log",
+    "size": 1018,
+    "sha256": "6f5f0e88032615c826318deef9bc6c1c368c463f24f8425275c472a91ab7e0bd"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-clocks.csv",
+    "size": 4064,
+    "sha256": "61d538e49252a8fc7f8dce6aa8dad3bc18ca1a69b4701134bb50e6e0e42bba80"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-final-difference-mask.png",
+    "size": 1580,
+    "sha256": "4dd6b812ec2b0e575380b91f3d7fcd51df6bc4ee8b0f1fe66445803c01e4adbc"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-final-offscreen.png",
+    "size": 126303,
+    "sha256": "1ba89becf90d0174edd6efb7858a594d8d1c186af9a28b119585440c45aed097"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-final-window.png",
+    "size": 126292,
+    "sha256": "0f48448a8251669247da431994418edc206e20f3ebe4c495a7311ce70d8474ce"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-initial-offscreen.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable-initial-window.png",
+    "size": 168027,
+    "sha256": "1b1a60907925012ee43c46d4417d42e14c22c05e6470df87c0ea86dea1d5007f"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable.csv",
+    "size": 177,
+    "sha256": "1f8f97a64d42611bff3d606a8d89dcc504007faa82912a7818959a25ced88d63"
+  },
+  {
+    "path": "visual-million/city-million-bgfx-vulkan-1-portable.log",
+    "size": 1020,
+    "sha256": "3d294d89235735b0f8f42f2e782587d8bdec09fe1a9725d7f0c37362b21c7e3f"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-clocks.csv",
+    "size": 4922,
+    "sha256": "986df2799c830e08592dfac44671e3f7d113f4ef032cb392a19aa7d3eed4f7d2"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-final-difference-mask.png",
+    "size": 1526,
+    "sha256": "cb320dee6ab7d68d90a03871d7c79d2354171aef00ef8d59bcd7fc48afdeea3a"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-final-offscreen.png",
+    "size": 126291,
+    "sha256": "6433e80165d957d5af2d6ba050efa36997ba4db0879670c2bae363b62eae5c06"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-final-window.png",
+    "size": 126221,
+    "sha256": "31d869cb65b3cf589910d115ffd5d3324e89c9be09acc8a57bc06c9016436fb7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-initial-offscreen.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native-initial-window.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native.csv",
+    "size": 179,
+    "sha256": "f1fa88dcf0609d9cdf16fcc4d20b3ad20b2f649a86721af136cca98d0ba5aedf"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-0-native.log",
+    "size": 1003,
+    "sha256": "833a077964ce15635e995e5354b56d835347a0f7a08355577b7a6bfb1bb1c398"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-clocks.csv",
+    "size": 4674,
+    "sha256": "2b2081daba759f3d1cf5e29ab367542d4edc5f4dd3b7b92e9f50cd33115b4d91"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-final-difference-mask.png",
+    "size": 1526,
+    "sha256": "cb320dee6ab7d68d90a03871d7c79d2354171aef00ef8d59bcd7fc48afdeea3a"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-final-offscreen.png",
+    "size": 126291,
+    "sha256": "6433e80165d957d5af2d6ba050efa36997ba4db0879670c2bae363b62eae5c06"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-final-window.png",
+    "size": 126221,
+    "sha256": "31d869cb65b3cf589910d115ffd5d3324e89c9be09acc8a57bc06c9016436fb7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-initial-offscreen.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable-initial-window.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable.csv",
+    "size": 177,
+    "sha256": "8bcce36a8a48eed40b12bbfe60e3705d5d47a9bb57f37061fa3e8729d85a4b64"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-d3d12-1-portable.log",
+    "size": 1005,
+    "sha256": "c423dd26801391262fbe0557e13fb54d97472b9e9392ee7234c9b49c62bbaaec"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-clocks.csv",
+    "size": 4306,
+    "sha256": "d49749fcb749052d5bc6df6c856aa94804c37455c9ff4c6582d400d41f1418ed"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-final-difference-mask.png",
+    "size": 1526,
+    "sha256": "cb320dee6ab7d68d90a03871d7c79d2354171aef00ef8d59bcd7fc48afdeea3a"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-final-offscreen.png",
+    "size": 126291,
+    "sha256": "6433e80165d957d5af2d6ba050efa36997ba4db0879670c2bae363b62eae5c06"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-final-window.png",
+    "size": 126221,
+    "sha256": "31d869cb65b3cf589910d115ffd5d3324e89c9be09acc8a57bc06c9016436fb7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-initial-offscreen.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native-initial-window.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native.csv",
+    "size": 177,
+    "sha256": "8245ac6115d192e2d5467dcae2d8487095b514fb9ef20dfa201a4d8c5f02a74b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-0-native.log",
+    "size": 1008,
+    "sha256": "26064f14f85b2d3b2c93f5fd2774acd425c8abb5c267e187ec36c64c7200d7ee"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-clocks.csv",
+    "size": 4193,
+    "sha256": "4dbf428b499551717a19b0116bfd801ecd24c7dbdfd29e10f394fda4b31f0249"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-final-difference-mask.png",
+    "size": 1526,
+    "sha256": "cb320dee6ab7d68d90a03871d7c79d2354171aef00ef8d59bcd7fc48afdeea3a"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-final-offscreen.png",
+    "size": 126291,
+    "sha256": "6433e80165d957d5af2d6ba050efa36997ba4db0879670c2bae363b62eae5c06"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-final-window.png",
+    "size": 126221,
+    "sha256": "31d869cb65b3cf589910d115ffd5d3324e89c9be09acc8a57bc06c9016436fb7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-initial-offscreen.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable-initial-window.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable.csv",
+    "size": 177,
+    "sha256": "9767a5bb6465a9364480ba0401b403207797f4e5cd685abfc3d540c7e3d77cc8"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-opengl-1-portable.log",
+    "size": 1010,
+    "sha256": "55715112e9e7591a70e3cf4445a4d17be96c6b1e68d5a7a3abe8219afc60e926"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-clocks.csv",
+    "size": 4560,
+    "sha256": "0893285315370cdf6178ba65da5f9daa089a238b94a4c289d3a740066c63b9c0"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-final-difference-mask.png",
+    "size": 1526,
+    "sha256": "cb320dee6ab7d68d90a03871d7c79d2354171aef00ef8d59bcd7fc48afdeea3a"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-final-offscreen.png",
+    "size": 126291,
+    "sha256": "6433e80165d957d5af2d6ba050efa36997ba4db0879670c2bae363b62eae5c06"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-final-window.png",
+    "size": 126221,
+    "sha256": "31d869cb65b3cf589910d115ffd5d3324e89c9be09acc8a57bc06c9016436fb7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-initial-offscreen.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native-initial-window.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native.csv",
+    "size": 179,
+    "sha256": "61895c67df0dfcaf5ff668c43ef8c050adf4cafebc2fc2b199e27b6ad82c1d12"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-0-native.log",
+    "size": 1005,
+    "sha256": "0f13d943fe78ee4f971ae25521b9cd3f9b68cc63263d6f55116334d8a988b504"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-clocks.csv",
+    "size": 4548,
+    "sha256": "fc46ef2e4013833ba4a877816f135655db2b72bd7dcf797a2f8a7046aa8c8f68"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-final-difference-mask.png",
+    "size": 1526,
+    "sha256": "cb320dee6ab7d68d90a03871d7c79d2354171aef00ef8d59bcd7fc48afdeea3a"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-final-offscreen.png",
+    "size": 126291,
+    "sha256": "6433e80165d957d5af2d6ba050efa36997ba4db0879670c2bae363b62eae5c06"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-final-window.png",
+    "size": 126221,
+    "sha256": "31d869cb65b3cf589910d115ffd5d3324e89c9be09acc8a57bc06c9016436fb7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-initial-offscreen.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable-initial-window.png",
+    "size": 168135,
+    "sha256": "c388941f9b42ebd6406b9b05666d4bf939c47243793783c42e567f462c1b38d7"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable.csv",
+    "size": 179,
+    "sha256": "0209974f7fae1b0d55b32588613af3b9710bfee602779429c9f4752297d4afd0"
+  },
+  {
+    "path": "visual-million/city-million-wgpu-vulkan-1-portable.log",
+    "size": 1007,
+    "sha256": "a522ac66efae6b1ffe42954d871a663d8b797618422ce318e8f15fff9ae4a133"
+  },
+  {
+    "path": "visual-million/pixel-analysis.json",
+    "size": 8565,
+    "sha256": "a8a0ade892649ef0d2c2a1469da1be517e4ba9c90652dec17c9bf923af235a01"
+  },
+  {
+    "path": "visual-million/pixel-manifest.json",
+    "size": 22387,
+    "sha256": "2a3e1f858c9c1c3578d89db26bef63c6f1eadac4a76a6d25087dee4b5775289e"
+  },
+  {
+    "path": "visual-million/policy-pixel-comparison.json",
+    "size": 2543,
+    "sha256": "66a95405a286907347e8f9ab906359164179ecdece63c13290046118b343e370"
+  },
+  {
+    "path": "visual-million/results.xml",
+    "size": 3117,
+    "sha256": "d8398d1cc9d3a18527e6ad57f099cbce4acdf18e4d93594a03de0dcc5687af8d"
+  },
+  {
+    "path": "visual-million/summary.json",
+    "size": 40882,
+    "sha256": "c1707cad5126ff6aa7f282627fe65f32842735aeafed99e6b577c40ae35ea46a"
+  },
+  {
+    "path": "visual-million-source/CMakeLists.txt",
+    "size": 527,
+    "sha256": "265ed26a3e4b774070e5035ac3e89874624e6f81e3f49d15a169d48fb65c0061"
+  },
+  {
+    "path": "visual-million-source/main.cpp",
+    "size": 12658,
+    "sha256": "274d414dd9bedc47bd4728a7e795eb1cc1755dbe13113db108efca04f186c6f0"
+  },
+  {
+    "path": "visual-src/CMakeLists.txt",
+    "size": 527,
+    "sha256": "265ed26a3e4b774070e5035ac3e89874624e6f81e3f49d15a169d48fb65c0061"
+  },
+  {
+    "path": "visual-src/main.cpp",
+    "size": 12659,
+    "sha256": "ca4bedaa768539511f1fe747be666bb5c2020f056a97815577cd0c781bbf657e"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-clocks.csv",
+    "size": 779,
+    "sha256": "6bea51850cc349c448818cc6c6cb89f52473d265a108488d731bb3e3f38ebefe"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-final-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-final-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-initial-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native-initial-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native.csv",
+    "size": 171,
+    "sha256": "07918c93786ee483f575065b547fbeb81fbbafe05f3f4f292e5ec735832e0a94"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-0-native.log",
+    "size": 990,
+    "sha256": "449e75b539a83de46c63f3820426b353de4070e82ff7caec682231b0e4646640"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "5f22d6b3694102d5b2b0038e4e5c36c284800ec97057e7d1c874d38ae2556bb7"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-final-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-final-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-initial-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable-initial-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable.csv",
+    "size": 172,
+    "sha256": "3aaac76cf1d4fde0c864ab67bf6552c6b7339012149733478bf20357ef26a2f2"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-d3d12-1-portable.log",
+    "size": 992,
+    "sha256": "f10931d91e4d510c0a751d227e9243e85facd046dd9b162f421d09541be99f6e"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "de72df23984141cf23d92c4d05924baa33032c8fba893a768ea2848fd0113b0d"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-final-difference-mask.png",
+    "size": 1281,
+    "sha256": "2c0619f055e4d6c10ffe0165a2a169abef2267d16195ad43306b667183962c08"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-final-offscreen.png",
+    "size": 144238,
+    "sha256": "97a43b3953fa74ea2f914a59b5dfe40bd3de0dab0bb4daacda1daa59ac377464"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-final-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-initial-difference-mask.png",
+    "size": 1281,
+    "sha256": "2c0619f055e4d6c10ffe0165a2a169abef2267d16195ad43306b667183962c08"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-initial-offscreen.png",
+    "size": 144238,
+    "sha256": "97a43b3953fa74ea2f914a59b5dfe40bd3de0dab0bb4daacda1daa59ac377464"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native-initial-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native.csv",
+    "size": 171,
+    "sha256": "6e17cf705efcd518af58ccdce1b06c82c9f7f4bdad1ef429876fe1df19debd44"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-0-native.log",
+    "size": 982,
+    "sha256": "650b270b897c24397e2a80c66c29a87efb9e7752f80e15df18cf80fa05777dfb"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "27edf5c1d6701ba8b3762ef12cd0b4e7d8110b5e00435a85496e0426fac8db8c"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-final-difference-mask.png",
+    "size": 1281,
+    "sha256": "2c0619f055e4d6c10ffe0165a2a169abef2267d16195ad43306b667183962c08"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-final-offscreen.png",
+    "size": 144238,
+    "sha256": "97a43b3953fa74ea2f914a59b5dfe40bd3de0dab0bb4daacda1daa59ac377464"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-final-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-initial-difference-mask.png",
+    "size": 1281,
+    "sha256": "2c0619f055e4d6c10ffe0165a2a169abef2267d16195ad43306b667183962c08"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-initial-offscreen.png",
+    "size": 144238,
+    "sha256": "97a43b3953fa74ea2f914a59b5dfe40bd3de0dab0bb4daacda1daa59ac377464"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable-initial-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable.csv",
+    "size": 171,
+    "sha256": "980659dccf31846b27aa9b3a4b0860caa807d51b7db5779dc7626395975656b7"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-opengl-1-portable.log",
+    "size": 984,
+    "sha256": "aea52443820a34fd67819d0b73622e4f09f7be2a1c2e1c43f4582cd732434d64"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-clocks.csv",
+    "size": 776,
+    "sha256": "e2de380e2a105513d0299e66ec90062b165074ad284b82f615af9e92073f31e0"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-final-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-final-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-initial-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native-initial-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native.csv",
+    "size": 171,
+    "sha256": "49430d100f0754c65a3fe578cb3240c03fed73385d18f8661ae9025897f12898"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-0-native.log",
+    "size": 985,
+    "sha256": "a6fb6def5dae7f0d6ed007ad51dc97bf3ffa881173b2bfbcb6cb3a246fd525db"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-clocks.csv",
+    "size": 777,
+    "sha256": "5e3f21dea0c32f721af881cf90179fffa8d3ac07ca4dd41bdee853bd656d096f"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-final-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-final-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-initial-offscreen.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable-initial-window.png",
+    "size": 144228,
+    "sha256": "22834a57f8ebf87cc25dd0c7a023ad1cadb355466307febbaf18770fe450f5b1"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable.csv",
+    "size": 173,
+    "sha256": "39569470501352125897bea4b1a6af44ef8080bd58d288e04d8e70779ab01ec9"
+  },
+  {
+    "path": "visual-static-control/city-40000-bgfx-vulkan-1-portable.log",
+    "size": 987,
+    "sha256": "f888f7a6a0f2f371fab98d258f39290f58824c9126bc5d1af1ea3c0a8eb4c4e4"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-clocks.csv",
+    "size": 777,
+    "sha256": "c288ce9c1b7f3e2870ff3224800546dd3979e5698a0721e4ee3897a1674c0ad2"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-final-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-final-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-initial-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native-initial-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native.csv",
+    "size": 173,
+    "sha256": "d1abf8cac9acd6c21445fd95536d301bd331efed07731425ea363752c4e7e646"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-0-native.log",
+    "size": 970,
+    "sha256": "283c731268a2092208a0036308544bd6ffd62deb53224ed03a68421709c644c4"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-clocks.csv",
+    "size": 778,
+    "sha256": "edcad15c047a275249cfe6999a18c90e5abe3df3b58cd55eaa1ea44279ccf918"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-final-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-final-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-initial-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable-initial-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable.csv",
+    "size": 169,
+    "sha256": "f8acd0f6eaa4d8442efa84d71e8b6e1e4f861fff5557f5e59426e2036d0b9a71"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-d3d12-1-portable.log",
+    "size": 972,
+    "sha256": "863b860a8e1159e1ea7d59d6bbf01504b217bdf4bb5dad43a302278df0b60c1f"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "cac01cee03c345f16263980324d353041471cc41adcc2d1683e3dcc1f76d0f60"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-final-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-final-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-initial-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native-initial-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native.csv",
+    "size": 179,
+    "sha256": "12e37e8455099401d6c329ca34f8c884c03938d915ed8ceafe5a34c8e650b59c"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-0-native.log",
+    "size": 975,
+    "sha256": "d383400fbee7545a9c07ce18336d28b620b820eeb5329ccdc2e2e8a211e04d12"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "998d9276cb7f2f4e4a2a98360b51adb974b767849ecb9cc8367b9210b2934873"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-final-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-final-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-initial-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable-initial-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable.csv",
+    "size": 175,
+    "sha256": "671a49604ddec03ef2ef27508e891a950ad6aa662617eebd36ecf1352e98ec8a"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-opengl-1-portable.log",
+    "size": 977,
+    "sha256": "5c5e38e63acf8b33be1f6addebec8fc80d17a967da97d3243f48c932d0a5dd0a"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "594a5aa5cd4d04286e4058786a23453c467e0c2d24d1656967deb9dd6a44c2ea"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-final-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-final-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-initial-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native-initial-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native.csv",
+    "size": 173,
+    "sha256": "2e5c8d5cfe9cce0be00211a0c1c66cda4ef8d07349c16857862bc949231634d8"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-0-native.log",
+    "size": 972,
+    "sha256": "bed345f3f9961f2b1798f8e7a092ef0a33bd8a1136d241db6d12e6292a390797"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "7ad02e8a8c6f6eddde7e5d752990c2f9cb770cd945ed2135931ae969c3654687"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-final-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-final-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-initial-offscreen.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable-initial-window.png",
+    "size": 144255,
+    "sha256": "7aba5fb2ef10ef7a83ac3e6aa21c4a2ec353c16d6d414acf8d5c0a84827f7786"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable.csv",
+    "size": 173,
+    "sha256": "197b92c599d4d793b2c8c84578640cbf428ff4a2e143d10cc93f27ead606c510"
+  },
+  {
+    "path": "visual-static-control/city-40000-wgpu-vulkan-1-portable.log",
+    "size": 974,
+    "sha256": "08ecc829af7132646b57d6bdcb7944b829632ec0ab7a0741d3a9431789ccf080"
+  },
+  {
+    "path": "visual-static-control/pixel-analysis.json",
+    "size": 8393,
+    "sha256": "11710834610779a3fb4f600c39a7d58113401b0cfa13312b3e1c9c8a3a0e0da4"
+  },
+  {
+    "path": "visual-static-control/pixel-manifest.json",
+    "size": 22195,
+    "sha256": "f871fac22a868f072876003732f07f5ff31e5d1668f2a40dfe57d3913fa40db6"
+  },
+  {
+    "path": "visual-static-control/policy-pixel-comparison.json",
+    "size": 2519,
+    "sha256": "37c2a1ccc39ecde81c39d94350de8e9738e502ff1192b48e4c926f73df312007"
+  },
+  {
+    "path": "visual-static-control/results.xml",
+    "size": 2794,
+    "sha256": "ac4dfc3acbdf0a98a60706706968025634a7f89a0f53ba5ee6d55ad4d33dd939"
+  },
+  {
+    "path": "visual-static-control/summary.json",
+    "size": 41351,
+    "sha256": "278ea63023fe2103463693e8ca2e36b42513eaf1ac2927889889eb25590bce8e"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-clocks.csv",
+    "size": 776,
+    "sha256": "137c0693fbbe7dec95efbb383aac4ea7f5cea00543b302fdfd83b43fd2c82778"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-final-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-final-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native.csv",
+    "size": 172,
+    "sha256": "16d58f4219ff3db42ae3cee7cc00e2cda3c6bed5b034e70d61c7bab90f9fe3b0"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-0-native.log",
+    "size": 990,
+    "sha256": "2751c64790379b686e419e2c8d570e3387625e8fb4a86496465feeac9ff122be"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-clocks.csv",
+    "size": 764,
+    "sha256": "90e32b4ffed0071c529b7b7a85ff641a5348e74c81e9e92b4d65c02b6cf304e2"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-final-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-final-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable.csv",
+    "size": 172,
+    "sha256": "11809ac7491cef783f2ae0e1cf41b36a739f0795b4a612ab14c34872814d7fec"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-d3d12-1-portable.log",
+    "size": 992,
+    "sha256": "c578641d303010b0f00c65a5d2c4e9b54d3c4aefadeab9a3e48def2ad5286501"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "133ed85626369904ee495fd99d64f78ac968426c3094d3ab34c52ad43b951011"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-final-difference-mask.png",
+    "size": 1308,
+    "sha256": "9919ce735234896afb8374951e73c3982f5b594e2a9f34b05f1570b2fd9189fd"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-final-offscreen.png",
+    "size": 159472,
+    "sha256": "1e3bc25137239d93658976630cde36ced7c122b8ca315d6020f09659e9cbf458"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-final-window.png",
+    "size": 159472,
+    "sha256": "4ec2e751b36256b71d90b8299682d4bc82b1cb1fd1d7411260b99356287af931"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-initial-difference-mask.png",
+    "size": 1308,
+    "sha256": "9919ce735234896afb8374951e73c3982f5b594e2a9f34b05f1570b2fd9189fd"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-initial-offscreen.png",
+    "size": 159472,
+    "sha256": "1e3bc25137239d93658976630cde36ced7c122b8ca315d6020f09659e9cbf458"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native-initial-window.png",
+    "size": 159472,
+    "sha256": "4ec2e751b36256b71d90b8299682d4bc82b1cb1fd1d7411260b99356287af931"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native.csv",
+    "size": 173,
+    "sha256": "627b9b451c587c5751f48a7988db30a6273c07156c4cf3526c8be78c251216b6"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-0-native.log",
+    "size": 982,
+    "sha256": "4d41a8c3e99774642e175c9776482b25a293fa6893cfd85b89d5c08400c3bafd"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "80e857ce3ac828f53903f5fa8e7365fe47337de4f0a96364505d29d165e76109"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-final-difference-mask.png",
+    "size": 1308,
+    "sha256": "9919ce735234896afb8374951e73c3982f5b594e2a9f34b05f1570b2fd9189fd"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-final-offscreen.png",
+    "size": 159472,
+    "sha256": "1e3bc25137239d93658976630cde36ced7c122b8ca315d6020f09659e9cbf458"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-final-window.png",
+    "size": 159472,
+    "sha256": "4ec2e751b36256b71d90b8299682d4bc82b1cb1fd1d7411260b99356287af931"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-initial-difference-mask.png",
+    "size": 1308,
+    "sha256": "9919ce735234896afb8374951e73c3982f5b594e2a9f34b05f1570b2fd9189fd"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-initial-offscreen.png",
+    "size": 159472,
+    "sha256": "1e3bc25137239d93658976630cde36ced7c122b8ca315d6020f09659e9cbf458"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable-initial-window.png",
+    "size": 159472,
+    "sha256": "4ec2e751b36256b71d90b8299682d4bc82b1cb1fd1d7411260b99356287af931"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable.csv",
+    "size": 172,
+    "sha256": "9f861be062afa2719fc4b3090aa6a5f014c305dd5bb7e30e09a370b3c0ac87d6"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-opengl-1-portable.log",
+    "size": 984,
+    "sha256": "f0f07d3acc7b438c7dea63ea33368c90a11ce00c1408358f1b7d8c000b3d9829"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-clocks.csv",
+    "size": 776,
+    "sha256": "d5d00ba12a7553c9e4322673477b5ab4a2d83124eb00b1cf81bad34660b48033"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-final-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-final-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native.csv",
+    "size": 173,
+    "sha256": "5de1abe198736c321088d984a29cc28df9da4c26200831562cf12b7fa98f3a09"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-0-native.log",
+    "size": 985,
+    "sha256": "6fd8d775769750db6911e87023937d5233a8389790908cd48e6c1cd8cc9f7648"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-clocks.csv",
+    "size": 777,
+    "sha256": "88298c5bcd485c8bd400012d383e370b9d1a02dc25263670497686244342ac2d"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-final-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-final-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-initial-offscreen.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable-initial-window.png",
+    "size": 159478,
+    "sha256": "0820ac4ffcef2a191b05236418f757800399c99c6e58d4bd496aedb96dd193a7"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable.csv",
+    "size": 172,
+    "sha256": "a7fa353f85412479b439c1ba4ea5d5288a91e9a24b2dad15cbf16ccfe6a778a8"
+  },
+  {
+    "path": "visual-static-matched/city-40000-bgfx-vulkan-1-portable.log",
+    "size": 987,
+    "sha256": "98b616043d1ec750c5091838be28248f6a7daedf00762e557ada9c40553f77d3"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-clocks.csv",
+    "size": 778,
+    "sha256": "55b7bfd59f8ea2ff6d36814153864257f2788362428944b3667a1ac03bf41be9"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-final-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-final-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native.csv",
+    "size": 172,
+    "sha256": "3452c0537aac0fb5a2096554292b972bfa9977d6a8125bde0000b34dc1ff992d"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-0-native.log",
+    "size": 970,
+    "sha256": "fe21d1d17accc02eee4339e340f07f4bd3642e30a3b238546f34986a167c2852"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-clocks.csv",
+    "size": 778,
+    "sha256": "a27e7768cfb7719cb2a85d40218b203b7073265ab73d9c6df0d2743188b8f467"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-final-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-final-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable.csv",
+    "size": 172,
+    "sha256": "185edfb73e6c9e1f7494e0a3a435238d1bc8ef66039880a500997291d08e0ce4"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-d3d12-1-portable.log",
+    "size": 972,
+    "sha256": "9f67d8b456d2a6cd550d6d53e9dfce51874eaefb18f0925f3de82c2654a9ee92"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "c8f72af30203877d98565c927e141f346ae2514a57450150dc1df1f9c8da36ee"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-final-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-final-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native.csv",
+    "size": 179,
+    "sha256": "3d5999d77af3e9b1f91b65abcd35fbf6848f3ece95b879ebb50346b2b861a811"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-0-native.log",
+    "size": 975,
+    "sha256": "1c0fee2bb1d4cb49ec39ee3daf5c3fd831ad277e0b28126bdf39ae4e0ac3ee39"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-clocks.csv",
+    "size": 656,
+    "sha256": "f2071fc50972fc1abb1142679e89a8e62843b70926bd0150e82bfadeac795b07"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-final-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-final-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable.csv",
+    "size": 175,
+    "sha256": "5766daf4e20e46fdf6fde107f67872eed85cbabf839070d78c1ca3057b2c05e5"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-opengl-1-portable.log",
+    "size": 977,
+    "sha256": "c1f3d2d26eadc2659acdee1e0c72a89ea6037c80459a3b85ac96f8993317beda"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-clocks.csv",
+    "size": 655,
+    "sha256": "550589831390c7e37c37bcab5ba3ab1cc2d43f826f8ebe92b155e0f8e77a9302"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-final-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-final-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native.csv",
+    "size": 173,
+    "sha256": "a381cd530028600e4be4c600bf2dd03c279d49c182723cb38265db047db236aa"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-0-native.log",
+    "size": 972,
+    "sha256": "5695d2b817bd4575d2edb462643e237e3db32cf463bbeec416745f160e51c582"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-clocks.csv",
+    "size": 655,
+    "sha256": "279fd7fc8f2450082ad1181248cc1c4a73f06b91c681abaac162e06e818d9997"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-final-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-final-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-final-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-initial-difference-mask.png",
+    "size": 1272,
+    "sha256": "c8b03e3c2ee86b8009144ddb463d17afb1528c2875644c67cd525e68c77d941b"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-initial-offscreen.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable-initial-window.png",
+    "size": 159503,
+    "sha256": "5e7d2bd4d1c2cda5555998c5ea1236a4be3baf4c84962a4ba9bb0b8a318afdcc"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable.csv",
+    "size": 171,
+    "sha256": "0952e052bab854b263dde8fb71b32a69364dab6f6862b932fef9043e5038a9ba"
+  },
+  {
+    "path": "visual-static-matched/city-40000-wgpu-vulkan-1-portable.log",
+    "size": 974,
+    "sha256": "470069fee0f3e12b3b5e31418945e4285fe081761dcbef7a84d56b51eb8e61df"
+  },
+  {
+    "path": "visual-static-matched/pixel-analysis.json",
+    "size": 8393,
+    "sha256": "33d264178146b9f0a98aa02689990402897285145ba2930005dbefd2c8a48c49"
+  },
+  {
+    "path": "visual-static-matched/pixel-manifest.json",
+    "size": 22195,
+    "sha256": "28e961a336b4f8d622f1ba0937c4c4b2636f0699cc65a2627a19a0effeb2a596"
+  },
+  {
+    "path": "visual-static-matched/policy-pixel-comparison.json",
+    "size": 2519,
+    "sha256": "37c2a1ccc39ecde81c39d94350de8e9738e502ff1192b48e4c926f73df312007"
+  },
+  {
+    "path": "visual-static-matched/results.xml",
+    "size": 2795,
+    "sha256": "fef49c9ccedb0712dd971c968eebd3af4313899a5c8551749d85cb49a7171725"
+  },
+  {
+    "path": "visual-static-matched/summary.json",
+    "size": 41352,
+    "sha256": "f198641bd9e5205ea66679d3e749494993d67cf4cdfaba9796d1182e2d210b4b"
+  },
+  {
+    "path": "visual-wgpu-build-normalized.log",
+    "size": 193,
+    "sha256": "e777973c223e8fb3037c22ed6949cc97f34186ef3f2b285f048a53b9462813b0"
+  },
+  {
+    "path": "visual-wgpu-configure-normalized.log",
+    "size": 218,
+    "sha256": "9aeb9df9d2b3b6a2182ed58819aaa236b4a66c2df4262d8d9600c02cefcf5416"
+  }
+]

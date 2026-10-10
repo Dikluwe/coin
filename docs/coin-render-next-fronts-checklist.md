@@ -1,6 +1,6 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-07, incluindo a continuação Windows, com a entrega
+Atualizada em 2026-10-10, incluindo a API de sampling, Windows e Linux, com a entrega
 P03/P15/P16/P24/P28 após o fechamento
 P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
@@ -44,17 +44,82 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   admissão nativa do GPU e referência numérica independente.
 - [x] HDR RGBA16F em produtor RTT direto e consumidor, sem clamp para RGBA8
   antes da composição; staged/HDR32 recusados, com recuperação.
-- [x] Mipmaps RTT gerados dentro do GPU: wgpu POT/NPOT e BGFX POT.
+- [x] Mipmaps RTT gerados dentro do GPU: wgpu POT/NPOT e BGFX POT/NPOT no Linux.
   OpenGL/wgpu usa cópias internas GPU para isolar views; orçamento conservador,
   tokens tipados, falha sem publicação e recuperação.
-- [ ] Views independentes para samplers base/mips da mesma imagem em BGFX/OpenGL;
-  alias de LOD diagnosticado e combinação recusada sem publicação.
-- [ ] Redução por área NPOT direta no BGFX: autogeração nativa divergente
-  diagnosticada e recusada antes dos produtores.
+- [x] Views independentes para samplers base/mips da mesma imagem armazenada em
+  BGFX/OpenGL: duplicação apenas do nível base, sem alias de LOD, inclusive
+  replay do cache; [controle AMD](coin-render-advanced-textures-mixed-views-20261008.md).
+- [x] Views independentes para tokens RTT diretos compartilhados por samplers
+  base/mips em BGFX/OpenGL: cópia do nível base no GPU, sem readback e com
+  [controle AMD nativo/portátil](coin-render-advanced-textures-direct-views-20261008.md).
+- [ ] Fechar a qualificação da redução NPOT direta no BGFX: implementação GPU
+  por área e 16/16 processos Linux PASS em AMD/NVIDIA Vulkan/OpenGL, com
+  dimensões até 2047², HDR e rollback de token. O cenário combinado de oito
+  sombras, transparência e mips NPOT passou em oito perfis AMD/NVIDIA
+  Vulkan/OpenGL; NVIDIA/OpenGL exige EGL surfaceless neste PC. O custo de
+  captura sincronizada NPOT sem/com mips foi medido exploratoriamente.
+  O custo dos cinco frames GPU de mips foi isolado em 8/8 perfis, com mediana
+  0,0477–0,1558 ms neste fixture; [método e ledger](coin-render-bgfx-npot-mip-gpu-20261009.md).
+  Windows passou funcionalmente em D3D12/Vulkan/OpenGL, oito sombras e
+  peeling/weighted OIT. A continuação fechou 6/6 custos GPU no fixture native
+  63×47: cinco níveis e cinco frames em todas as 30 amostras medidas por
+  processo, com história de consultas D3D12 ligada a frame/view exatos.
+  Falhas iniciais e limites estão na [continuação Windows](coin-render-windows-remaining-gates-20261010.md).
+  Não generaliza HDR/2047² no Windows nem a combinação completa portátil.
+  O seletor não oferece D3D11: dx11 é o nome do shader DXBC usado pelo
+  D3D12, e sua compilação não qualifica execução D3D11.
+  [Implementação](coin-render-bgfx-npot-direct-mips-plan-20261008.md) e
+  [continuação do gate](coin-render-bgfx-npot-shadow-oit-20261009.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
   ETC2/ASTC/BC1/BC5/BC7, saída HDR/tone mapping, Windows/Android/FreeCAD.
+  O perfil NPOT pequeno de `USE_TEXTURE_QUALITY`/`SCALE_DOWN`/`SCALE_UP`
+  passou 4/4 processos AMD/NVIDIA Vulkan/OpenGL; `FRACTURE` agora é recusada
+  sem publicação quando a textura está ativa. Rescaling completo e recorte de
+  subtexturas continuam abertos. Sob o override legado que desativa NPOT,
+  resize POT por vizinho para qualidade de escala <0,5 passou a sonda 17×19
+  em Vulkan AMD/NVIDIA e OpenGL NVIDIA/Mesa; qualidade alta usa a mesma
+  `simage_resize` do CoinGL quando disponível, com erro máximo de 1 canal nas
+  mesmas rotas e em imagens de 1 a 4 componentes (24 comparações por rota).
+  O primeiro resize agora fica em cache por revisão de upload de `SoTexture2`;
+  mudança de `model`, transição de política/qualidade e notificações de wrap/imagem
+  passaram em AMD/NVIDIA Vulkan e OpenGL NVIDIA/Mesa, com erro máximo de 1
+  canal. A dica `enableCompressedTexture` agora segue a escolha do primeiro
+  upload e o estado BC3 persistente após notificação de wrap; as sondas
+  passaram em AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL com erro GPU/CoinGL
+  zero. A captura agora consulta validade e flags persistentes do `SoGLImage`
+  no nó; a sonda de troca de contexto com política, qualidade de escala,
+  notificação de wrap e compressão passou em AMD/NVIDIA Vulkan e
+  NVIDIA/Mesa OpenGL. `textureQuality` alterada sem notificação agora conserva
+  a qualidade do upload para filtro e extensão POT; a sonda 300×300 cobre
+  256×256 antes da notificação e 512×512 após ela (máximo 2 para
+  escala/qualidade, 0 para compressão). No caminho NPOT nativo, a qualidade
+  do primeiro upload agora também persiste sem CoinGL e entre contextos:
+  sonda 0,3→0,1 com reupload após wrap passou nos quatro perfis locais
+  (GPU/CoinGL máximo 1). O fallback GLU 2D agora usa reamostragem CPU por
+  interpolação linear e caixa. Com simage oculto, a sonda POT passou em
+  AMD/NVIDIA Vulkan e NVIDIA/Mesa OpenGL (24 combinações por perfil,
+  GPU/CoinGL máximo 2); sem simage nem GLU, o fallback por vizinho passou
+  em AMD/Vulkan (máximo 1).
+  O oráculo nativo compara `legacyResizeGlu` com GLU em RGBA 17×19 para
+  16×16 e 32×32, além do vetor de borda. Os quatro jobs do
+  [gate multiplataforma](coin-render-texture-pot-resize-20261009.md)
+  passaram em Ubuntu, Windows e macOS ARM/Intel. A integração CoinGL
+  completa nos runners macOS segue bloqueada pelo contexto CGL offscreen;
+  o runtime estático Windows excedeu o timeout da captura anterior.
+  A ampliação Linux verificou 12 redimensionamentos GLU nativos (máximo 1)
+  e 72 comparações GPU/CoinGL em cada perfil AMD/NVIDIA Vulkan/OpenGL
+  (máximo 2), incluindo texturas pequenas e não quadradas; o
+  [ledger](validation/glu-pot-expanded-20261009/summary.json) guarda os logs.
+  Os 12 redimensionamentos também passaram no
+  [CI Windows/macOS](https://github.com/Dikluwe/coin/actions/runs/37968646516).
+  [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
+  [resize POT](coin-render-texture-pot-resize-20261009.md).
 - [x] Isolar o sampling projetivo AMD: GPU/CoinGL idênticos em wgpu e BGFX Vulkan;
   quantização nearest e footprint explicam o diagnóstico, com contracontrole NVIDIA.
+  O gate GPU completo de sampling passou 8/8 processos BGFX AMD/NVIDIA
+  Vulkan/OpenGL, native/portable, com o Mesa privado corrigido. O Mesa instalado
+  ainda diverge; [gate, runner e condição](coin-render-full-gpu-sampling-gate-20261009.md).
 - [x] Testar LOD explícito + fetch/centro como estudo isolado: nearest CPU–GPU
   MAE0/max0 em AMD/NVIDIA e wgpu/BGFX, oracle EGL sem Coin, alpha independente,
   texturas avançadas e benchmarks GPU/janela, incluindo cidades40mil/1milhão.
@@ -77,10 +142,94 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   extra AMD/wgpu removido nesta amostra;36 controles válidos do milhão e144 hashes/
   timestamps de diagnóstico não reproduzem regressão persistente do seletor.
   Coin original e código de produção intactos; política pública continua pendente.
-- [ ] Promover política comum nearest portátil com API/capacidades e limites
-  explícitos: substituir seletor/packing de laboratório, qualificar derivadas,
-  perspectiva/viewport/NPOT/HDR, Windows/Android/FreeCAD e custo do native.
-  Sampling CoinGL AMD continua divergente; gate MAE≤1,5/max≤4 preservado.
+- [x] Tratar as 28 falhas da campanha original no estudo: quatro corrigidas em
+  strokes/profundidade BGFX e 24 passam com workaround Mesa **externo e isolado**;
+  campanha original162/162 PASS, gates preservados.
+  [Correções, ledger e condições](coin-render-failure-closure-20261008.md).
+  Driver instalado e código de produção continuam sem essa correção de sampling.
+- [x] Fechar o gate estrito CoinGL AMD no Renoir/Mesa 25.2.8:
+  oito FAIL de estilos estritos também no baseline; contrato portátil8/8 PASS.
+  [Sonda da borda de plano de usuário](coin-render-raster-amd-followup-20261008.md):
+  preenchimento e borda original presentes, borda nova ausente em CoinGL
+  mesmo com deslocamentos do plano. O controle OpenGL sem Coin reproduziu
+  a ausência somente no radeonsi AMD: NVIDIA e llvmpipe desenham a borda;
+  na AMD, o polígono pré-recortado e a linha explícita também a desenham.
+  `gl_ClipDistance` no shader confirma a mesma perda na AMD, enquanto llvmpipe
+  preserva a borda. CoinGL agora complementa a borda ou os pontos criados pelo
+  recorte nesse perfil de driver e quad; o gate estrito completo passou em
+  CPU e BGFX/Vulkan AMD, com llvmpipe como controle. A fase do stipple é
+  verificada separadamente para cada polígono, conforme a especificação GL.
+  [Correção e evidência](coin-render-raster-amd-strict-gate-20261009.md).
+  A diferença de iluminação da célula de geometria completa
+  foi atribuída à triangulação: CoinRender usa diagonal 0–2; `GL_QUADS` no
+  radeonsi Renoir usa 1–3, confirmado por oracle de cores não afins. Sondas de
+  luz/material isoladas sustentam essa causa. A regra interna do clipper/flags
+  de aresta do radeonsi ainda precisa de correção comprovada no Mesa; o contrato
+  portátil continua obrigatório. O
+  [oracle Mesa estrito e os ensaios de registradores](coin-render-mesa-clip-boundary-20261009.md)
+  mostram a borda e os pontos ausentes no radeonsi, com controle llvmpipe;
+  o protótipo de geometry shader gera 18/18 pixels de borda e 4+4 pixels nas
+  extremidades, para plano fixo e `gl_ClipDistance`. Com o quad inteiro como
+  entrada, elimina o ponto da diagonal interna. Um patch NIR experimental no
+  Mesa privado fez o caso isolado `GL_POLYGON`/`LINE` passar na AMD. A
+  primeira variante `GL_TRIANGLES` causou reset de GPU; após corrigir a
+  transição GS→NULL, a variante restrita a seis vértices e `LINE` passou em
+  quatro ensaios físicos sem reset. A variante `POLYGON`/`POINT` também
+  passou em GPU física; as três variantes combinadas passaram com e sem
+  `AMD_DEBUG=nongg`. O shader do aplicativo marcava `CLIP_DIST0` como
+  `no_varying` porque foi ligado sem GS; um patch NIR experimental preservou
+  essa saída para o GS suplementar. Com ele, o oracle OpenGL isolado passou
+  completo na AMD física nos dois caminhos do radeonsi, sem reset. A
+  integração geral e a validação CoinGL original no Mesa candidato continuam
+  abertas, com [patches e limites registrados](coin-render-mesa-clip-boundary-20261009.md).
+  Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
+- [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
+  retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,
+  herdar política em RTT e recusar incompatibilidade sem publicação. Linux offscreen:
+  170/170 processos PASS, Rust46/46 e C11 PASS; driver instalado qualifica portátil,
+  comparações CoinGL AMD delimitam uso do Mesa externo.
+  [Contrato, API e ledger](coin-render-texture-sampling-api.md).
+- [x] Qualificar a API em janela Xlib Linux neste PC: 30/30 processos
+  janela/API/ownership e 24/24 portátil stock; Rust46/46, runnerQt81/81 e C11 PASS.
+  Opções por manager/adapter e GPU física comprovada. [Continuação Linux e limites](coin-render-sampling-api-linux-20261008.md).
+- [x] Qualificar FreeCAD Linux aquecido: DPR1 native/portable 12/12 PASS e
+  portátil DPR2 6/6 PASS. Recibos físicos, picking, minificação, resize, remoção
+  e idle preservados. SKIPs anteriores ficam separados; cold start não qualificado.
+- [x] Medir native/portable sem readback e custo GPU separadamente: 144 processos
+  CPU, 96 GPU/4.320 timestamps e 120 A/B native/baseline válidos. Corrigir varredura
+  desnecessária da geometria; um milhão wgpu portátil ~100→10–19 ms por chamada.
+  Oito texturas portáteis custam 1,48–3,30× GPU no fixture; native segue padrão.
+- [ ] Estudar a transição inicial da borda do documento no FreeCAD/NVIDIA/wgpu
+  portable: matriz sem aquecimento de texto 11/12 PASS, um FAIL de 1.476 pixels
+  de borda, sem glyphs restantes. O [recorte do diff e os controles](coin-render-freecad-cold-border-study-20261008.md)
+  isolam a moldura de 370×370 e a transição após mutar SoText2; a causa
+  permanece aberta. Quatro controles AMD físicos tiveram diff final zero;
+  a primeira tentativa NVIDIA ficou sem adaptador por incompatibilidade do
+  driver. Após reinicialização, NVIDIA 615.71.09 e BGFX/Vulkan físico 380/380
+  PASS. O shell `kiosk-shell.so` derrubou o Weston ao abrir o FreeCAD; com
+  `desktop-shell.so`, oito controles frios NVIDIA native/portable e dois gates
+  padrão passaram, sem diferença na borda. A transição histórica não reapareceu
+  e o gate ainda registra `cold_start_qualified=false` ([ledger e limites](coin-render-freecad-cold-border-study-20261008.md)).
+- [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
+  CPU de 128 MiB; plano não retido, lowering ~1,025 s e upload ~126 ms repetidos,
+  apesar de reuso dos buffers GPU. Native e portable têm o mesmo gargalo.
+- [x] Otimizar payload/replay BGFX mantendo orçamento explícito: após upload,
+  liberar as instâncias CPU que impediam retenção; replay/cache hit no milhão
+  em AMD/Vulkan native/portable. [Código, gates e A/B delimitado](coin-render-bgfx-million-replay-20261008.md).
+- [ ] Estudar variação NVIDIA/wgpu (coorte longa ~25%, repetição isolada ~1,3%)
+  e ampliar o replay BGFX a outras GPUs/cargas. [Novo A/B após o driver](coin-render-nvidia-million-after-driver-20261008.md):
+  oito processos físicos wgpu/BGFX Vulkan válidos; a diferença de 25% não
+  reapareceu e a variação wgpu dentro da mesma política excedeu a diferença
+  agregada. Traces confirmam replay BGFX na NVIDIA, native/portable. Outras
+  cargas e a causa da variação seguem abertas; não prometer FPS universal.
+- [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
+  avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
+  funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
+  publicação e recuperação. Perfil geral Windows e promoção permanecem
+  pendentes; a consulta estrita continua UNQUALIFIED_PROFILE. Ver a [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md). Sampling CoinGL AMD instalado continua
+  divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
+  [Decisão de 2026-10-08](coin-render-sampling-promotion-decision-20261008.md):
+  manter native padrão e a API na branch de estudo até fechar os gates listados.
 - [x] Reconciliar LargeBindings/MultiDevice: 25.600 draws independentes com clipping
   aceitando toda a geometria; upload exato GPU 96 bytes/instância, imagens/depth e
   reuso preservados; nove passes AMD Vulkan/OpenGL e NVIDIA Vulkan, incluindo stress.
@@ -244,10 +393,42 @@ qualificados por este fechamento.
   234 processos de medição qualificados e regressões de p95 registradas.
 - [ ] Ampliar Windows para janela sem readback e campanha de latência maior,
   controlando variação do host/clocks e investigando as regressões observadas.
+  Em 2026-10-10, fixture 64×64 passou 24/24 ABBA, 60 warmup + 600 frames
+  medidos por processo, com clocks/P-state registrados e sem readback no
+  trecho medido. A continuação 640×480 abaixo amplia os workloads; controle
+  completo do host/clocks, investigação de caudas e latência de display
+  permanecem abertos. Ver o [controle 64×64](coin-render-sampling-api-windows-20261010.md) e a [continuação](coin-render-windows-remaining-gates-20261010.md).
 
 O [relatório Windows](coin-render-windows-continuation-validation-20261007.md)
 preserva dados, exclusões e limites do piloto; não demonstra ganho uniforme
 nem encerra uma campanha completa de desempenho Windows.
+
+- [x] Executar a campanha maior Win32 640×480 sem readback medido: 144/144
+  processos ABBA, 60 warmup + 600 frames, cenas de 2.500 cubos e malha de
+  um milhão de triângulos, com câmera por eventos sintéticos, transforms,
+  materiais e geometria. Pixels janela/offscreen RGB máximo 0; wgpu/OpenGL
+  usa GDI fora da medição. CPU render/present e clocks/P-state preservados
+  na [continuação Windows](coin-render-windows-remaining-gates-20261010.md).
+  Não fecha clock fixado, latência de display, cidade40mil/milhão de instâncias,
+  consumidores FreeCAD ou a investigação completa das caudas observadas.
+
+- [x] Executar cenas visuais Win32 1280×960 em BGFX/wgpu e três APIs,
+  native/portable: cidades de 40.000 e 1.000.000 de instâncias, terreno com
+  um milhão de triângulos e sólidos com textura NPOT/transparência.
+  72 processos, 30 passes e 42 falhas preservadas, sem ampliar
+  tolerância. Controle de câmera fixa, PNGs/máscaras, DLLs, logs/XML e escopo
+  no [relatório visual Windows](coin-render-windows-visual-scenes-20261010.md).
+- [x] Repetir as mesmas quatro cenas e dois controles em X11/Linux, BGFX/wgpu
+  × Vulkan/OpenGL × native/portable, com código Windows atualizado em SDKs
+  isolados: 48 processos, 16 passes e 32 falhas no gate RGB exato. NVIDIA
+  física em Vulkan e AMD física em OpenGL; 88 capturas conferidas dos PPMs.
+  O [relatório Linux](validation/linux-visual-20261010/README.md) separa as
+  divergências e a primeira captura preta intermitente de wgpu/OpenGL.
+- [ ] Resolver as divergências janela/offscreen das cidades sob movimento,
+  os casos BGFX/OpenGL e o buffer inválido do terreno iluminado wgpu;
+  qualificar a primeira apresentação/captura X11 de wgpu/OpenGL; depois
+  repetir os gates exatos. Os testes executados não encerram qualificação
+  visual independente ou desempenho das cidades e não representam FreeCAD.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
@@ -290,8 +471,19 @@ nem encerra uma campanha completa de desempenho Windows.
   recriações reais de HWND, seriais isolados e ticket offscreen sobrevivente.
   Pixels janela/offscreen iguais nas três APIs BGFX e em wgpu D3D12/Vulkan;
   wgpu/OpenGL qualifica apresentação/rejeição de captura, sem comparar a janela.
-- [ ] Fechar Windows com DPI físico distinto entre monitores, captura visual
-  wgpu/OpenGL sem COPY_SRC e perda real de dispositivo em campanha controlada.
+- [x] Capturar visualmente o fixture de sampling Win32 wgpu/OpenGL sem COPY_SRC:
+  GDI dos pixels apresentados, native/portable, resize/remap/manager, mesmo
+  oracle de mip e limite RGB 1. Gates de janela: 6/6 smokes + 6/6 sampling na
+  [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md); não generaliza todos os consumidores visuais.
+- [x] Qualificar remoção real do device D3D12 BGFX por RemoveDevice no processo:
+  12/12 native/portable × offscreen/janela × três repetições; DEVICE_LOST sem
+  publicação, peer TARGET_LOST, recuperação explícita e pixels exatos.
+  Exige o SDK BGFX corrigido que libera swapchains secundários; patch, hashes,
+  falhas iniciais e comandos na [continuação Windows](coin-render-windows-remaining-gates-20261010.md).
+  Não conta como reset físico do adaptador ou TDR do driver.
+- [ ] Fechar Windows com DPI físico distinto entre monitores e demais perfis de
+  perda real: os dois monitores ainda retornam 96 DPI. Wgpu/Vulkan/OpenGL e
+  campanha de driver/TDR permanecem abertos; injeção simulada não os fecha.
 - [ ] Qualificar AppKit/Metal e Wayland em compositor físico, escala fracionária,
   mudança de monitor, formato de swapchain e demais perfis visuais; BGFX/Wayland
   continua sem mecanismo neste conector.
@@ -339,9 +531,11 @@ detalha pré-requisitos, APIs, gates e prioridades para a continuação no outro
 - [x] Ampliar Linux com SDKs relocados BGFX/wgpu e consumidor público portátil:
   sete células offscreen com RGB igual ao CoinGL, seleção explícita de API,
   rejeição sem fallback e sem dependência BGFX no cliente instalado.
-- [ ] Recompilar os SDKs Windows após o ajuste do export compartilhado e
-  executar o novo consumidor portátil; a campanha Windows anterior continua
-  preservada e não qualifica esse ajuste CMake posterior.
+- [x] Recompilar os SDKs Windows após o ajuste do export compartilhado e
+  executar o consumidor público native/portable: 12/12 processos físicos em
+  BGFX/wgpu × D3D12/Vulkan/OpenGL na GTX 1060, mais 2/2 sondas C11, DLLs
+  carregadas dos prefixes isolados e hashes coincidentes. Falhas iniciais e
+  pixels preservados na [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md). A campanha anterior permanece separada.
 
 [Integração e evidência Linux própria](coin-render-windows-integration-linux-20261007.md).
 Os estudos e limites acima permanecem abertos.

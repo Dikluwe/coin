@@ -1,3 +1,5 @@
+#include <Inventor/rendering/CoinRenderTarget.h>
+#include "CoinRenderSamplingTestOptions.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -150,6 +152,7 @@ public:
   }
 };
 struct Scene {
+  std::vector<SoTexture2*> textures;
   Scene(int shape = 0) {
     root = new SoSeparator; root->ref();
     auto * camera = new SoOrthographicCamera;
@@ -202,7 +205,7 @@ struct Scene {
       pixels[i]=unit == 0 ? 80+8*x : 220+2*x;
       pixels[i+1]=unit == 0 ? 80+8*y : 220+2*y; pixels[i+2]=unit == 0 ? 160 : 240;
     }
-    image->image.setValue(SbVec2s(16,16),3,pixels.data()); stages->addChild(image);
+    image->image.setValue(SbVec2s(16,16),3,pixels.data()); stages->addChild(image); textures.push_back(image);
     return function;
   }
   SoSeparator * root;
@@ -222,9 +225,9 @@ bool close(const SbVec4f & a, const SbVec4f & b) {
 }
 struct Harness {
   Harness(bool gpu) : action(SbViewportRegion(size,size)), gpuAction(SbViewportRegion(size,size)) {
-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size)));
+    cpu.reset(samplingTestOffscreen(SbVec2i32(size,size)));
     capture = new CaptureBackend; cpu->getPimpl()->backend.reset(capture); action.setRenderTarget(cpu.get());
-    if (gpu) { native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
+    if (gpu) { native.reset(samplingTestOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
     action.setBackgroundColor(SbColor4f(0,0,0,1)); gpuAction.setBackgroundColor(SbColor4f(0,0,0,1));
     action.setTransparencyType(CoinRenderAction::BLEND);gpuAction.setTransparencyType(CoinRenderAction::BLEND);
   }
@@ -263,10 +266,10 @@ struct Harness {
       for (int c=0;c<3;++c) {
         const int d=std::abs(int(a[(y*size+x)*4+c])-int(b[(y*size+x)*channels+c]));
         sum+=d;
-        if (d > maximum && d > 3 && channels == 3) {
-          std::cerr << "junction x=" << x << " y=" << y << " channel=" << c
-                    << " CPU=" << int(a[(y*size+x)*4+c]) << " GL=" << int(b[(y*size+x)*channels+c])
-                    << " depth=" << cpu->getPimpl()->depthBuffer[y*size+x] << '\n';
+        if (d > maximum && d > 3 && (channels == 3 || std::getenv("COIN_PROCEDURAL_DIAGNOSTIC"))) {
+          std::cerr << "junction " << label << " x=" << x << " y=" << y << " channel=" << c
+                    << " CPU=" << int(a[(y*size+x)*4+c]) << " reference=" << int(b[(y*size+x)*channels+c])
+                    << " depth=" << std::setprecision(10) << cpu->getPimpl()->depthBuffer[y*size+x] << " gpuDepth=" << (native && native->getPimpl()->depthBuffer.size()==size*size ? native->getPimpl()->depthBuffer[y*size+x] : -1) << '\n';
         }
         maximum=std::max(maximum,d);
       }
@@ -421,7 +424,13 @@ bool run(bool gpu) {
   // Quality > .85 now requests anisotropy in the advanced profile. Retain
   // the publication rejection checks with an out-of-range value,
   // and require the newly admitted procedural combination to render first.
+  const auto priorSampler = h.capture->frame.samplers[0];
   scene.quality->textureQuality=.95f;
+  if (!h.render(scene,"quality-hint-retains-upload",true)) return false;
+  if (!check(h.capture->frame.samplers[0].filter==priorSampler.filter &&
+      h.capture->frame.samplers[0].maxAnisotropy==priorSampler.maxAnisotropy,
+      "procedural quality hint preserves uploaded sampler before notification")) return false;
+  for (auto* texture : scene.textures) texture->image.touch();
   if (!h.render(scene,"anisotropic-procedural-profile",true)) return false;
   if (!check(!h.capture->frame.samplers.empty() &&
       h.capture->frame.samplers[0].maxAnisotropy==16 &&
@@ -456,6 +465,7 @@ bool run(bool gpu) {
 }
 }
 int main(int argc,char ** argv) {
+  configureSamplingTest(argc, argv);
   SoDB::init(); CoinRenderAction::initClass(); ProceduralCoordinates::initClass(); ProceduralFaces::initClass(); EnabledEmptyTexture::initClass();
   // Opt-in reproducers for the open textured contour junctions. These are
   // intentionally outside the qualified CTest profile; thresholds stay intact.

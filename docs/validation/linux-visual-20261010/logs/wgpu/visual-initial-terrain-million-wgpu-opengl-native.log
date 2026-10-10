@@ -1,0 +1,14 @@
+receipt renderer=2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=terrain-million policy=native extent=1280x960
+fixture terrain_vertices=501501 quads=500000 triangles=1000000 million_instances=0 lighting=directional elevation=sinusoidal
+scene cube_instances=0 counted_triangles=1000000 primitive_triangle_count_known=1 textured=0 camera_static=0
+
+thread '<unnamed>' (1265526) panicked at /home/dikluwe/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/wgpu-24.0.5/src/backend/wgpu_core.rs:1928:18:
+Error in Buffer::get_mapped_range: Validation Error
+
+Caused by:
+  Buffer with 'Coin Uncached Vertex Buffer' label is invalid
+
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+render failed status=7 diagnostic=Rust bridge panic caught in coin_wgpu_surface_submit
+render failed status=7 diagnostic=Rust bridge panic caught in coin_wgpu_surface_submit
+window_campaign result=0 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=6

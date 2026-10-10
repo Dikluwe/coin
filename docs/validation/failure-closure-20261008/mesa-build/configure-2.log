@@ -1,0 +1,351 @@
+The Meson build system
+Version: 1.4.2
+Source dir: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8
+Build dir: /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build
+Build type: native build
+Project name: mesa
+Project version: 25.2.8
+C compiler for the host machine: /usr/bin/cc (gcc 13.3.0 "cc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C linker for the host machine: /usr/bin/cc ld.bfd 2.42
+C++ compiler for the host machine: /usr/bin/c++ (gcc 13.3.0 "c++ (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0")
+C++ linker for the host machine: /usr/bin/c++ ld.bfd 2.42
+Host machine cpu family: x86_64
+Host machine cpu: x86_64
+Checking for size of "void*" : 8 
+Checking if "-mtls-dialect=gnu2" runs: YES
+Checking if "split TLSDESC" : links: YES 
+Found pkg-config: YES (/usr/bin/pkg-config) 1.8.1
+Run-time dependency libglvnd found: YES 1.7.0
+Dependency vdpau skipped: feature gallium-vdpau disabled
+Program glslangValidator found: YES (/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/dependencies/usr/bin/glslangValidator)
+Dependency libva skipped: feature gallium-va disabled
+Program python3 found: YES 3.12.3 3.12.3 (/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/build-tools/bin/python3)
+Fetching value of define "ETIME" : 62 
+Compiler for C supports arguments -gsplit-dwarf: YES 
+Compiler for C supports link arguments -Wl,--gdb-index: NO 
+Checking for function "bswap32" : YES 
+Checking for function "bswap64" : YES 
+Checking for function "clz" : YES 
+Checking for function "clzll" : YES 
+Checking for function "ctz" : YES 
+Checking for function "expect" : YES 
+Checking for function "ffs" : YES 
+Checking for function "ffsll" : YES 
+Checking for function "popcount" : YES 
+Checking for function "popcountll" : YES 
+Checking for function "unreachable" : YES 
+Checking for function "types_compatible_p" : YES 
+Compiler for C supports function attribute const: YES 
+Compiler for C supports function attribute flatten: YES 
+Compiler for C supports function attribute malloc: YES 
+Compiler for C supports function attribute pure: YES 
+Compiler for C supports function attribute unused: YES 
+Compiler for C supports function attribute warn_unused_result: YES 
+Compiler for C supports function attribute weak: YES 
+Compiler for C supports function attribute format: YES 
+Compiler for C supports function attribute packed: YES 
+Compiler for C supports function attribute returns_nonnull: YES 
+Compiler for C supports function attribute alias: YES 
+Compiler for C supports function attribute noreturn: YES 
+Compiler for C supports function attribute optimize: YES 
+Compiler for C supports function attribute visibility:hidden: YES 
+Checking if "__uint128_t" compiles: YES 
+Checking for function "reallocarray" : YES 
+Checking for function "fmemopen" : YES 
+Checking if "gc-sections" : links: YES 
+Compiler for C supports arguments -Werror=implicit-function-declaration: YES 
+Compiler for C supports arguments -Werror=missing-prototypes: YES 
+Compiler for C supports arguments -Werror=return-type: YES 
+Compiler for C supports arguments -Werror=empty-body: YES 
+Compiler for C supports arguments -Werror=incompatible-pointer-types: YES 
+Compiler for C supports arguments -Werror=int-conversion: YES 
+Compiler for C supports arguments -Wimplicit-fallthrough: YES 
+Compiler for C supports arguments -Wmisleading-indentation: YES 
+Compiler for C supports arguments -Wno-missing-field-initializers: YES 
+Compiler for C supports arguments -Wno-format-truncation: YES 
+Compiler for C supports arguments -Wno-nonnull-compare: YES 
+Compiler for C supports arguments -fno-math-errno: YES 
+Compiler for C supports arguments -fno-trapping-math: YES 
+Compiler for C supports arguments -Qunused-arguments: NO 
+Compiler for C supports arguments -fno-common: YES 
+Compiler for C supports arguments -Wno-unknown-pragmas: YES 
+Compiler for C supports arguments -Wno-microsoft-enum-value: NO 
+Compiler for C supports arguments -Wno-unused-function: YES 
+Compiler for C supports arguments -Werror=format: YES 
+Compiler for C supports arguments -Wformat-security: YES 
+Compiler for C supports arguments -Werror=thread-safety: NO 
+Compiler for C supports arguments -ffunction-sections: YES 
+Compiler for C supports arguments -fdata-sections: YES 
+Compiler for C supports arguments -Wno-unused-variable: YES 
+Compiler for C supports arguments -Wno-unused-but-set-variable: YES 
+Compiler for C supports arguments /wd4189: NO 
+Compiler for C++ supports arguments -Werror=return-type: YES 
+Compiler for C++ supports arguments -Werror=empty-body: YES 
+Compiler for C++ supports arguments -Wmisleading-indentation: YES 
+Compiler for C++ supports arguments -Wno-non-virtual-dtor: YES 
+Compiler for C++ supports arguments -Wno-missing-field-initializers: YES 
+Compiler for C++ supports arguments -Wno-format-truncation: YES 
+Compiler for C++ supports arguments -fno-math-errno: YES 
+Compiler for C++ supports arguments -fno-trapping-math: YES 
+Compiler for C++ supports arguments -Qunused-arguments: NO 
+Compiler for C++ supports arguments -flifetime-dse=1: YES 
+Compiler for C++ supports arguments -Wno-unknown-pragmas: YES 
+Compiler for C++ supports arguments -Wno-microsoft-enum-value: NO 
+Compiler for C++ supports arguments -Werror=format: YES 
+Compiler for C++ supports arguments -Wformat-security: YES 
+Compiler for C++ supports arguments -ffunction-sections: YES 
+Compiler for C++ supports arguments -fdata-sections: YES 
+Compiler for C++ supports arguments -Wno-unused-variable: YES 
+Compiler for C++ supports arguments -Wno-unused-but-set-variable: YES 
+Compiler for C++ supports arguments /wd4189: NO 
+Compiler for C supports arguments -Wno-override-init: YES 
+Compiler for C supports arguments -Wno-initializer-overrides: NO 
+Compiler for C supports arguments -Werror=pointer-arith: YES 
+Compiler for C supports arguments -Werror=vla: YES 
+Compiler for C supports arguments -Werror=gnu-empty-initializer: NO 
+Compiler for C++ supports arguments -Werror=pointer-arith: YES 
+Compiler for C++ supports arguments -Werror=vla: YES 
+Compiler for C++ supports arguments -Werror=gnu-empty-initializer: NO 
+Checking for function "__builtin_ia32_clflushopt" : YES 
+Checking if "GCC atomic builtins" compiles: YES 
+Checking if "GCC atomic builtins required -latomic" : links: YES 
+Checking if "GCC 64bit atomics" with dependency : links: YES 
+Library ws2_32 found: NO
+Header "sys/sysmacros.h" has symbol "major" : YES 
+Header "sys/sysmacros.h" has symbol "minor" : YES 
+Header "sys/sysmacros.h" has symbol "makedev" : YES 
+Header "sys/mkdev.h" has symbol "major" : NO 
+Check usable header "sched.h" : YES 
+Checking for function "sched_getaffinity" : YES 
+Check usable header "xlocale.h" : NO 
+Check usable header "linux/futex.h" : YES 
+Check usable header "endian.h" : YES 
+Check usable header "dlfcn.h" : YES 
+Check usable header "sys/shm.h" : YES 
+Check usable header "cet.h" : YES 
+Check usable header "pthread_np.h" : NO 
+Check usable header "sys/inotify.h" : YES 
+Check usable header "linux/udmabuf.h" : YES 
+Checking for function "strtof" : YES 
+Checking for function "mkostemp" : YES 
+Checking for function "memfd_create" : YES 
+Checking for function "random_r" : YES 
+Checking for function "flock" : YES 
+Checking for function "strtok_r" : YES 
+Checking for function "getrandom" : YES 
+Checking for function "qsort_s" : NO 
+Checking for function "posix_fallocate" : YES 
+Checking for function "secure_getenv" : YES 
+Checking if "GNU qsort_r" : links: YES 
+Header "time.h" has symbol "struct timespec" : YES 
+Checking for function "thrd_create" : YES 
+Header "errno.h" has symbol "program_invocation_name" : YES 
+Header "math.h" has symbol "issignaling" : YES 
+Checking for function "posix_memalign" : YES 
+Checking whether type "struct dirent" has member "d_type" : YES 
+Checking if "strtod has locale support" : links: YES 
+Checking if "Bsymbolic" : links: YES 
+Checking if "version-script" : links: YES 
+Checking if "dynamic-list" : links: YES 
+Compiler for C supports link arguments -Wl,--build-id=sha1: YES 
+Checking for function "dlopen" : YES 
+Checking for function "dladdr" with dependency : YES 
+Checking for function "dl_iterate_phdr" : YES 
+Checking for function "clock_gettime" : YES 
+Run-time dependency zlib found: YES 1.3
+Run-time dependency libzstd found: YES 1.5.5
+Run-time dependency threads found: YES
+Checking for function "pthread_setaffinity_np" with dependency threads: YES 
+Run-time dependency expat found: YES 2.6.1
+Library m found: YES
+Message: libdrm 2.4.121 needed because amdgpu has the highest requirement
+Run-time dependency libdrm_amdgpu found: YES 2.4.125
+Run-time dependency libdrm found: YES 2.4.125
+Run-time dependency libudev found: YES 255
+Dependency llvm (modules: bitwriter, engine, mcdisassembler, mcjit, core, executionengine, scalaropts, transformutils, instcombine, amdgpu, bitreader, ipo) skipped: feature llvm disabled
+Run-time dependency spirv-tools found: YES 2025.1.1
+Found CMake: /usr/bin/cmake (3.28.3)
+Run-time dependency lua54 found: NO (tried pkgconfig and cmake)
+Run-time dependency lua5.4 found: NO (tried pkgconfig and cmake)
+Run-time dependency lua-5.4 found: NO (tried pkgconfig and cmake)
+Run-time dependency lua53 found: YES 5.3.6
+Run-time dependency libelf found: YES 0.190
+Run-time dependency valgrind found: NO (tried pkgconfig)
+Program bison found: YES (/usr/bin/bison)
+Program bison found: YES 3.8.2 3.8.2 (/usr/bin/bison)
+Program flex found: YES (/usr/bin/flex)
+Run-time dependency libunwind found: NO (tried pkgconfig and cmake)
+Run-time dependency OpenMP found: YES 4.5
+Run-time dependency xcb found: YES 1.15
+Run-time dependency xcb-randr found: YES 1.15
+Run-time dependency x11 found: YES 1.8.7
+Run-time dependency xext found: YES 1.3.4
+Run-time dependency xcb-glx found: YES 1.15
+Run-time dependency xcb-shm found: YES 1.15
+Dependency xcb found: YES 1.15 (cached)
+Run-time dependency xcb-keysyms found: YES 0.4.0
+Run-time dependency x11-xcb found: YES 1.8.7
+Run-time dependency xcb-dri3 found: YES 1.15
+Run-time dependency xcb-present found: YES 1.15
+Dependency xcb-shm found: YES 1.15 (cached)
+Run-time dependency xcb-sync found: YES 1.15
+Run-time dependency xshmfence found: YES 1.3
+Run-time dependency glproto found: YES 1.4.17
+Run-time dependency xxf86vm found: YES 1.1.4
+Run-time dependency xcb-xfixes found: YES 1.15
+Dependency xcb-dri3 found: YES 1.15 (cached)
+Dependency xcb-present found: YES 1.15 (cached)
+Dependency xcb-shm found: YES 1.15 (cached)
+Dependency xshmfence found: YES 1.3 (cached)
+Dependency xcb-randr found: YES 1.15 (cached)
+Run-time dependency xrandr found: YES 1.5.2
+Library sensors found: NO
+Program nm found: YES (/usr/bin/nm)
+Program symbols-check.py found: YES (/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8/bin/symbols-check.py)
+Program install_megadrivers.py found: YES (/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8/bin/install_megadrivers.py)
+Checking for size of "void *" : 8 
+Compiler for C supports arguments -Wno-misleading-indentation: YES 
+Program decode.py found: YES (/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8/src/compiler/isaspec/decode.py)
+Program encode.py found: YES (/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/mesa-25.2.8/src/compiler/isaspec/encode.py)
+Compiler for C++ supports arguments -Wno-unused-variable: YES (cached)
+Compiler for C++ supports arguments -Wno-unused-local-typedefs: YES 
+Compiler for C++ supports arguments -Wno-unused-but-set-variable: YES (cached)
+Compiler for C++ supports arguments -Wno-maybe-uninitialized: YES 
+Compiler for C++ supports arguments -Wno-self-assign: NO 
+Compiler for C++ supports arguments /wd4189: NO (cached)
+Compiler for C++ supports arguments -Wno-uninitialized: YES 
+Compiler for C++ supports arguments -fno-exceptions: YES 
+Compiler for C++ supports arguments -fno-rtti: YES 
+Compiler for C++ supports arguments -Wimplicit-fallthrough: YES 
+Compiler for C++ supports arguments -Wshadow: YES 
+Compiler for C supports arguments -Wimplicit-fallthrough: YES (cached)
+Compiler for C supports arguments -Wshadow: YES 
+Compiler for C supports arguments -Wall: YES 
+Compiler for C supports arguments -Wextra: YES 
+Compiler for C supports arguments -Wno-unused: YES 
+Compiler for C supports arguments -Wno-unused-parameter: YES 
+Compiler for C supports arguments -Wno-unused-command-line-argument: NO 
+Compiler for C supports arguments -Wno-ignored-qualifiers: YES 
+Compiler for C supports arguments -Wno-missing-field-initializers: YES (cached)
+Compiler for C supports arguments -Wno-self-assign: NO 
+Compiler for C supports arguments -Wno-implicit-fallthrough: YES 
+Compiler for C supports arguments -Werror=comment: YES 
+Compiler for C supports arguments -Werror=missing-braces: YES 
+Compiler for C supports arguments -Werror=override-init: YES 
+Compiler for C supports arguments -Werror=enum-conversion: YES 
+Compiler for C supports arguments -Werror=enum-compare: YES 
+Compiler for C supports arguments -Werror=maybe-uninitialized: YES 
+Compiler for C supports arguments -Werror=parentheses: YES 
+Compiler for C supports arguments -Wall: YES (cached)
+Compiler for C supports arguments -Wextra: YES (cached)
+Compiler for C supports arguments -Wno-unused: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-unused-command-line-argument: NO (cached)
+Compiler for C supports arguments -Wno-ignored-qualifiers: YES (cached)
+Compiler for C supports arguments -Wno-missing-field-initializers: YES (cached)
+Compiler for C supports arguments -Wno-self-assign: NO (cached)
+Compiler for C supports arguments -Wno-implicit-fallthrough: YES (cached)
+Compiler for C supports arguments -Werror=comment: YES (cached)
+Compiler for C supports arguments -Werror=missing-braces: YES (cached)
+Compiler for C supports arguments -Werror=override-init: YES (cached)
+Compiler for C supports arguments -Werror=enum-conversion: YES (cached)
+Compiler for C supports arguments -Werror=enum-compare: YES (cached)
+Compiler for C supports arguments -Werror=maybe-uninitialized: YES (cached)
+Compiler for C supports arguments -Wall: YES (cached)
+Compiler for C supports arguments -Wextra: YES (cached)
+Compiler for C supports arguments -Wno-unused: YES (cached)
+Compiler for C supports arguments -Wno-unused-parameter: YES (cached)
+Compiler for C supports arguments -Wno-unused-command-line-argument: NO (cached)
+Compiler for C supports arguments -Wno-ignored-qualifiers: YES (cached)
+Compiler for C supports arguments -Wno-missing-field-initializers: YES (cached)
+Compiler for C supports arguments -Wno-self-assign: NO (cached)
+Compiler for C supports arguments -Wno-implicit-fallthrough: YES (cached)
+Compiler for C supports arguments -Werror=comment: YES (cached)
+Compiler for C supports arguments -Werror=missing-braces: YES (cached)
+Compiler for C supports arguments -Werror=override-init: YES (cached)
+Compiler for C supports arguments -Werror=enum-conversion: YES (cached)
+Compiler for C supports arguments -Werror=enum-compare: YES (cached)
+Compiler for C supports arguments -Werror=maybe-uninitialized: YES (cached)
+Compiler for C supports link arguments -Wl,--default-symver: YES 
+Configuring dri.sym using configuration
+Checking for function "mincore" : YES 
+Configuring 50_mesa.json using configuration
+Configuring devenv_glvnd_egl.json using configuration
+Program sphinx-build skipped: feature html-docs disabled
+Build targets in project: 186
+
+mesa 25.2.8
+
+  Directories
+    prefix           : /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install
+    libdir           : lib/x86_64-linux-gnu
+    includedir       : include
+
+  Common C and C++ arguments
+    c_cpp_args       : -mtls-dialect=gnu2
+
+  OpenGL
+    OpenGL           : YES
+    ES1              : YES
+    ES2              : YES
+    GLVND            : YES
+
+  DRI
+    Platform         : drm
+    Driver dir       : /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install/lib/x86_64-linux-gnu/dri
+
+  GLX
+    Enabled          : YES
+    Provider         : dri
+
+  EGL
+    Enabled          : YES
+    Drivers          : builtin:egl_dri2 builtin:egl_dri3
+    Platforms        : x11 surfaceless xcb
+
+  GBM
+    Enabled          : NO
+
+  Vulkan
+    Drivers          : amd
+    Platforms        : x11 surfaceless xcb
+    ICD dir          : share/vulkan/icd.d
+    Intel Ray tracing: NO
+
+  Video
+    Codecs           : NO
+    APIs             : vulkan
+
+  LLVM
+    Required         : disabled
+
+  Gallium
+    Enabled          : YES
+    Drivers          : radeonsi
+    Platforms        : x11 surfaceless xcb
+    Frontends        : mesa
+    HUD lm-sensors   : NO
+
+  Perfetto
+    Enabled          : NO
+
+  Teflon (TensorFlow Lite delegate)
+    Enabled          : NO
+
+  User defined options
+    buildtype        : release
+    prefix           : /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install
+    amd-use-llvm     : false
+    build-tests      : false
+    egl              : enabled
+    gallium-drivers  : radeonsi
+    gallium-va       : disabled
+    gallium-vdpau    : disabled
+    gbm              : disabled
+    glx              : dri
+    llvm             : disabled
+    platforms        : x11
+    video-codecs     : 
+    vulkan-drivers   : amd
+
+Found ninja-1.11.1 at /usr/bin/ninja

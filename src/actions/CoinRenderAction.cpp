@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderSamplingCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -1439,6 +1440,11 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       light.mapSceneCaptured = true;
     }
   }
+  if (!coin_render_valid_sampling(plan, err)) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
+    return;
+  }
   if (!this->shadowSceneCaptures.empty() && !plan.isValid(&err)) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
@@ -1638,7 +1644,9 @@ CoinRenderActionP::textureImagePreCB(void * userdata, SoCallbackAction *, const 
   // static pending-filename dummy. Reading this field does not traverse/mutate
   // the node or affect pre-callback PRUNE/override behavior.
   if(size[0]>0 && size[1]>0 && components>0)
-    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(bytes,texture->enableCompressedTexture.getValue());
+    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredTextureImage(
+      bytes, texture->enableCompressedTexture.getValue(), texture,
+      texture->getImageUploadRevision());
   return SoCallbackAction::CONTINUE;
 }
 

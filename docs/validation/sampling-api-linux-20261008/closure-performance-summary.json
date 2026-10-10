@@ -1,0 +1,19 @@
+[
+  {
+    "index": 3,
+    "command": [
+      "python3",
+      "testsuite/reproducers/sampling-api/benchmark_linux.py",
+      "--artifacts",
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux",
+      "--name",
+      "benchmark-gl-proof",
+      "--profiles",
+      "bgfx-amd-gl"
+    ],
+    "exit": 1,
+    "start": 1791504385.3392112,
+    "duration_s": 184.7265305519104,
+    "log": "closure-performance-3.log"
+  }
+]

@@ -1,0 +1,2309 @@
+diff --git a/experimental/include/Inventor/rendering/CoinRenderCapabilities.h b/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
+index da3216ac06..17e52f949e 100644
+--- a/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
++++ b/experimental/include/Inventor/rendering/CoinRenderCapabilities.h
+@@ -5,7 +5,7 @@
+ #include <stddef.h>
+ #include <stdint.h>
+ 
+-#define COIN_RENDER_CAPABILITIES_VERSION 3u
++#define COIN_RENDER_CAPABILITIES_VERSION 4u
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -50,6 +50,39 @@ enum CoinRenderFeature {
+   COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS = UINT64_C(1) << 18
+ };
+ 
++/** Sampling policy is immutable per target. PORTABLE reconstructs isotropic
++ * NEAREST_MIPMAP_LINEAR only; the other filters retain native semantics.
++ * Neither policy promises identical rasterization or LOD at every boundary. */
++enum CoinRenderTextureSamplingPolicy {
++  COIN_RENDER_SAMPLING_NATIVE = 0,
++  COIN_RENDER_SAMPLING_PORTABLE = 1
++};
++enum CoinRenderSamplingPolicyBit {
++  COIN_RENDER_SAMPLING_POLICY_NATIVE = UINT64_C(1) << COIN_RENDER_SAMPLING_NATIVE,
++  COIN_RENDER_SAMPLING_POLICY_PORTABLE = UINT64_C(1) << COIN_RENDER_SAMPLING_PORTABLE
++};
++/** Compiled portable image formats; selected-device format admission still applies. */
++enum CoinRenderSamplingFormat {
++  COIN_RENDER_SAMPLING_FORMAT_RGBA8 = UINT32_C(1) << 0,
++  COIN_RENDER_SAMPLING_FORMAT_SRGB8 = UINT32_C(1) << 1,
++  COIN_RENDER_SAMPLING_FORMAT_RGBA16F = UINT32_C(1) << 2,
++  COIN_RENDER_SAMPLING_FORMAT_BC3 = UINT32_C(1) << 3,
++  COIN_RENDER_SAMPLING_FORMAT_BC3_SRGB = UINT32_C(1) << 4
++};
++enum CoinRenderSamplingDerivative {
++  COIN_RENDER_SAMPLING_DERIVATIVE_UNKNOWN = 0,
++  COIN_RENDER_SAMPLING_DERIVATIVE_ANALYTIC = 1,
++  COIN_RENDER_SAMPLING_DERIVATIVE_FINE = 2,
++  COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT = 3
++};
++
++struct CoinRenderSamplingSelection {
++  uint32_t policy;
++  uint32_t reason;
++  uint32_t qualified_profile;
++  uint32_t reserved;
++};
++
+ enum CoinRenderProbeStatus {
+   COIN_RENDER_PROBE_NOT_RUN = 0,
+   COIN_RENDER_PROBE_AVAILABLE = 1,
+@@ -178,6 +211,18 @@ typedef struct CoinRenderCapabilities {
+   uint64_t qualified_profiles;
+   uint32_t max_peel_layers;
+   uint32_t reserved;
++  /* Version 4: implementation/availability/evidence are distinct. Portable
++   * filter mask uses bits 0..3 in the existing NEAREST/LINEAR/mipmap order.
++   * It describes reconstructed filters, not all filters accepted by the target.
++   * Existing texture format/unit/RTT features and device admission still apply. */
++  uint64_t implemented_sampling_policies;
++  uint64_t available_sampling_policies;
++  uint64_t qualified_sampling_policies;
++  uint64_t max_texture_mip_chain_bytes;
++  uint32_t portable_sampling_filter_mask;
++  uint32_t portable_sampling_max_anisotropy;
++  uint32_t portable_sampling_derivatives;
++  uint32_t portable_sampling_formats;
+ } CoinRenderCapabilities;
+ 
+ /**
+@@ -188,7 +233,9 @@ typedef struct CoinRenderCapabilities {
+  * runtime probe and reports renderer, adapter IDs, selected format flags and
+  * runtime feature bits. A caller compiled with the exact version 1 struct size
+  * is still accepted and receives the compatible prefix with version set to 1.
+- * Exact version 2 size is also accepted. Version 3 separates known hardware
++ * Exact version 2 and version 3 sizes are also accepted, with no write beyond
++ * their prefix. Version 4 adds sampling policies and bounded portable limits.
++ * Version 3 separates known hardware
+  * facts, implemented/available mechanisms, and bounded qualified profiles.
+  * Window queries probe an adapter, not a real presentation surface.
+  * This is an experimental contract, not an addition to libCoin's public ABI.
+@@ -202,6 +249,13 @@ COIN_RENDER_DLL_API int32_t coin_render_query_capabilities(
+ COIN_RENDER_DLL_API int32_t coin_render_query_capabilities_for_renderer(
+     uint32_t target, enum CoinRenderRenderer renderer, void* output, size_t output_size);
+ 
++/** Pure sampling selection; requires the version 4 prefix. No fallback,
++ * runtime initialization or environment access. Qualification is bounded
++ * Linux offscreen evidence, not certification of the current driver. */
++COIN_RENDER_DLL_API struct CoinRenderSamplingSelection coin_render_select_sampling_policy(
++    const CoinRenderCapabilities* capabilities, enum CoinRenderTextureSamplingPolicy policy,
++    uint32_t require_qualified_profile);
++
+ /** Pure selection; never initializes a runtime or selects a fallback. */
+ COIN_RENDER_DLL_API CoinRenderSelection
+ coin_render_select_mechanism(const CoinRenderCapabilities* capabilities, uint64_t mechanism,
+diff --git a/experimental/include/Inventor/rendering/CoinRenderOptions.h b/experimental/include/Inventor/rendering/CoinRenderOptions.h
+index 1a9d6032d5..4ab7cb7ffe 100644
+--- a/experimental/include/Inventor/rendering/CoinRenderOptions.h
++++ b/experimental/include/Inventor/rendering/CoinRenderOptions.h
+@@ -23,6 +23,10 @@ struct CoinRenderOptions {
+   // Explicit interpretation of stored SoTexture2 RGB, alpha remains linear.
+   CoinRenderStoredTextureColorSpace storedTextureColorSpace = COIN_RENDER_TEXTURE_LINEAR;
+   uint32_t maxTextureAnisotropy = 16; // q>0.85 requests this limit; no effect below it.
++  // Native is the default. Portable reconstructs nearest/mip-linear using
++  // original UV derivatives, POT active-mip centering, and two NPOT centers.
++  // Active nearest/mip-linear samplers with anisotropy >1 are rejected.
++  CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
+ };
+ 
+ #endif
+diff --git a/src/actions/CoinRenderAction.cpp b/src/actions/CoinRenderAction.cpp
+index 26da0ca9a2..e12346d597 100644
+--- a/src/actions/CoinRenderAction.cpp
++++ b/src/actions/CoinRenderAction.cpp
+@@ -1,3 +1,4 @@
++#include "rendering/coinrender/CoinRenderSamplingCore.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #else
+@@ -1439,6 +1440,11 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
+       light.mapSceneCaptured = true;
+     }
+   }
++  if (!coin_render_valid_sampling(plan, err)) {
++    this->setDiagnostic(CoinRenderDiagnosticShell::action(
++      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
++    return;
++  }
+   if (!this->shadowSceneCaptures.empty() && !plan.isValid(&err)) {
+     this->setDiagnostic(CoinRenderDiagnosticShell::action(
+       CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index 122a76907c..10c65da7a7 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -56,31 +56,31 @@
+ #include "coin_bgfx_fs_shadow_oit_spirv.h"
+ #include "rendering/coinrender/CoinRenderShadowCore.h"
+ 
+-#include "coin_bgfx_fs_study_glsl.h"
+-#include "coin_bgfx_fs_peel_next_study_glsl.h"
+-#include "coin_bgfx_fs_weighted_oit_study_glsl.h"
+-#include "coin_bgfx_fs_shadow_receiver_study_glsl.h"
+-#include "coin_bgfx_fs_shadow_receiver4_study_glsl.h"
+-#include "coin_bgfx_fs_shadow_receiver8_study_glsl.h"
+-#include "coin_bgfx_fs_shadow_peel_study_glsl.h"
+-#include "coin_bgfx_fs_shadow_oit_study_glsl.h"
+-#include "coin_bgfx_fs_study_spirv.h"
+-#include "coin_bgfx_fs_peel_next_study_spirv.h"
+-#include "coin_bgfx_fs_weighted_oit_study_spirv.h"
+-#include "coin_bgfx_fs_shadow_receiver_study_spirv.h"
+-#include "coin_bgfx_fs_shadow_receiver4_study_spirv.h"
+-#include "coin_bgfx_fs_shadow_receiver8_study_spirv.h"
+-#include "coin_bgfx_fs_shadow_peel_study_spirv.h"
+-#include "coin_bgfx_fs_shadow_oit_study_spirv.h"
++#include "coin_bgfx_fs_portable_glsl.h"
++#include "coin_bgfx_fs_peel_next_portable_glsl.h"
++#include "coin_bgfx_fs_weighted_oit_portable_glsl.h"
++#include "coin_bgfx_fs_shadow_receiver_portable_glsl.h"
++#include "coin_bgfx_fs_shadow_receiver4_portable_glsl.h"
++#include "coin_bgfx_fs_shadow_receiver8_portable_glsl.h"
++#include "coin_bgfx_fs_shadow_peel_portable_glsl.h"
++#include "coin_bgfx_fs_shadow_oit_portable_glsl.h"
++#include "coin_bgfx_fs_portable_spirv.h"
++#include "coin_bgfx_fs_peel_next_portable_spirv.h"
++#include "coin_bgfx_fs_weighted_oit_portable_spirv.h"
++#include "coin_bgfx_fs_shadow_receiver_portable_spirv.h"
++#include "coin_bgfx_fs_shadow_receiver4_portable_spirv.h"
++#include "coin_bgfx_fs_shadow_receiver8_portable_spirv.h"
++#include "coin_bgfx_fs_shadow_peel_portable_spirv.h"
++#include "coin_bgfx_fs_shadow_oit_portable_spirv.h"
+ #ifdef _WIN32
+-#include "coin_bgfx_fs_study_dx11.h"
+-#include "coin_bgfx_fs_peel_next_study_dx11.h"
+-#include "coin_bgfx_fs_weighted_oit_study_dx11.h"
+-#include "coin_bgfx_fs_shadow_receiver_study_dx11.h"
+-#include "coin_bgfx_fs_shadow_receiver4_study_dx11.h"
+-#include "coin_bgfx_fs_shadow_receiver8_study_dx11.h"
+-#include "coin_bgfx_fs_shadow_peel_study_dx11.h"
+-#include "coin_bgfx_fs_shadow_oit_study_dx11.h"
++#include "coin_bgfx_fs_portable_dx11.h"
++#include "coin_bgfx_fs_peel_next_portable_dx11.h"
++#include "coin_bgfx_fs_weighted_oit_portable_dx11.h"
++#include "coin_bgfx_fs_shadow_receiver_portable_dx11.h"
++#include "coin_bgfx_fs_shadow_receiver4_portable_dx11.h"
++#include "coin_bgfx_fs_shadow_receiver8_portable_dx11.h"
++#include "coin_bgfx_fs_shadow_peel_portable_dx11.h"
++#include "coin_bgfx_fs_shadow_oit_portable_dx11.h"
+ #endif
+ #include <algorithm>
+ #include <atomic>
+@@ -709,14 +709,6 @@ void releaseAsync(uint64_t token, bool failed = false)
+ }
+ }
+ 
+-static const std::string & coinBgfxSamplingStudy() {
+-  static const std::string mode=[]{const char *p=std::getenv("COIN_SAMPLING_STUDY");return std::string(p?p:"");}();
+-  return mode;
+-}
+-static bool coinBgfxSamplingStudyEnabled() {
+-  static const bool active=[]{const auto &m=coinBgfxSamplingStudy();return m=="nearest" || m=="fetch" || m=="center" || m=="fine" || m=="fine_uniform";}();
+-  return active;
+-}
+ // Direct3D12 consumes the DXBC shader binaries generated by shaderc.
+ #ifdef _WIN32
+ #define COIN_BGFX_SHADER_DATA(name) (bgfx::getRendererType() == bgfx::RendererType::Direct3D12 ? name##_dx11 : bgfx::getRendererType() == bgfx::RendererType::OpenGL ? name##_glsl : name##_spirv)
+@@ -726,8 +718,8 @@ static bool coinBgfxSamplingStudyEnabled() {
+ #define COIN_BGFX_SHADER_SIZE(name) (bgfx::getRendererType() == bgfx::RendererType::OpenGL ? sizeof(name##_glsl) : sizeof(name##_spirv))
+ #endif
+ 
+-#define COIN_BGFX_SURFACE_DATA(name) (coinBgfxSamplingStudyEnabled() ? COIN_BGFX_SHADER_DATA(name##_study) : COIN_BGFX_SHADER_DATA(name))
+-#define COIN_BGFX_SURFACE_SIZE(name) (coinBgfxSamplingStudyEnabled() ? COIN_BGFX_SHADER_SIZE(name##_study) : COIN_BGFX_SHADER_SIZE(name))
++#define COIN_BGFX_SURFACE_DATA(name) (this->portableSampling ? COIN_BGFX_SHADER_DATA(name##_portable) : COIN_BGFX_SHADER_DATA(name))
++#define COIN_BGFX_SURFACE_SIZE(name) (this->portableSampling ? COIN_BGFX_SHADER_SIZE(name##_portable) : COIN_BGFX_SHADER_SIZE(name))
+ 
+ CoinBgfxBackend::CoinBgfxBackend()
+   : status(CoinRenderBackendStatus::NOT_READY), viewBase(0), nativeDisplay(nullptr),
+@@ -764,7 +756,7 @@ CoinBgfxBackend::CoinBgfxBackend()
+     alphaTestUniform(BGFX_INVALID_HANDLE),
+     clipMetaUniform(BGFX_INVALID_HANDLE), clipPlanesUniform(BGFX_INVALID_HANDLE),
+     textureSampler(BGFX_INVALID_HANDLE), fogColorModeUniform(BGFX_INVALID_HANDLE),
+-    fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE), studyTextureSizesUniform(BGFX_INVALID_HANDLE),
++    fogRangeUniform(BGFX_INVALID_HANDLE), textureParamsUniform(BGFX_INVALID_HANDLE), samplingTextureSizesUniform(BGFX_INVALID_HANDLE),
+     textureBlendUniform(BGFX_INVALID_HANDLE), textureCombineUniform(BGFX_INVALID_HANDLE),
+     ambientLightUniform(BGFX_INVALID_HANDLE), lightCountUniform(BGFX_INVALID_HANDLE),
+     lightPositionTypeUniform(BGFX_INVALID_HANDLE),
+@@ -928,7 +920,7 @@ CoinBgfxBackend::checkRuntimeFailure(const char * operation)
+ void
+ CoinBgfxBackend::destroyResources()
+ {
+-  this->studyBoundTextureSizes.clear();
++  this->samplingBoundTextureSizes.clear();
+   if (!this->initialized) return;
+   // Handles are no longer trustworthy after a fatal renderer/device error.
+   // bgfx::shutdown() owns their final release in that case.
+@@ -963,7 +955,7 @@ CoinBgfxBackend::destroyResources()
+     if (bgfx::isValid(handle)) bgfx::destroy(handle);
+   if (bgfx::isValid(this->fogColorModeUniform)) bgfx::destroy(this->fogColorModeUniform);
+   if (bgfx::isValid(this->fogRangeUniform)) bgfx::destroy(this->fogRangeUniform);
+-  if (bgfx::isValid(this->studyTextureSizesUniform)) bgfx::destroy(this->studyTextureSizesUniform);
++  if (bgfx::isValid(this->samplingTextureSizesUniform)) bgfx::destroy(this->samplingTextureSizesUniform);
+   if (bgfx::isValid(this->textureParamsUniform)) bgfx::destroy(this->textureParamsUniform);
+   if (bgfx::isValid(this->textureBlendUniform)) bgfx::destroy(this->textureBlendUniform);
+   if (bgfx::isValid(this->textureCombineUniform)) bgfx::destroy(this->textureCombineUniform);
+@@ -1085,6 +1077,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
+       this->lastError = target.optionsDiagnostic;
+     return CoinRenderBackendStatus::UNSUPPORTED;
+   }
++  this->portableSampling = target.options.textureSamplingPolicy == COIN_RENDER_SAMPLING_PORTABLE;
+   switch (target.options.transparency) {
+   case COIN_RENDER_TRANSPARENCY_COIN:
+     this->transparencyMode = CoinBgfxTransparencyMode::AUTO;
+@@ -1305,7 +1298,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
+   }
+   this->fogColorModeUniform = bgfx::createUniform("u_fogColorMode", bgfx::UniformType::Vec4);
+   this->fogRangeUniform = bgfx::createUniform("u_fogRange", bgfx::UniformType::Vec4);
+-  if (coinBgfxSamplingStudyEnabled()) this->studyTextureSizesUniform = bgfx::createUniform("u_studyTextureSizes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
++  if (this->portableSampling) this->samplingTextureSizesUniform = bgfx::createUniform("u_coinSamplingSizes", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
+   this->textureParamsUniform = bgfx::createUniform("u_texParams", bgfx::UniformType::Vec4, COIN_RENDER_MAX_TEXTURE_UNITS);
+   this->screenDoorUniform = bgfx::createUniform("u_screenDoor", bgfx::UniformType::Vec4);
+   this->alphaTestUniform = bgfx::createUniform("u_alphaTest", bgfx::UniformType::Vec4);
+@@ -1330,7 +1323,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
+   if (!textureUniformsValid || !bgfx::isValid(this->textureSampler) ||
+       !bgfx::isValid(this->coinDepthUniform) ||
+       !bgfx::isValid(this->alphaTestUniform) ||
+-      (coinBgfxSamplingStudyEnabled() && !bgfx::isValid(this->studyTextureSizesUniform)) || !bgfx::isValid(this->textureParamsUniform) ||
++      (this->portableSampling && !bgfx::isValid(this->samplingTextureSizesUniform)) || !bgfx::isValid(this->textureParamsUniform) ||
+       !bgfx::isValid(this->textureBlendUniform) ||
+       !bgfx::isValid(this->textureCombineUniform) ||
+       !bgfx::isValid(this->ambientLightUniform) ||
+@@ -1700,8 +1693,7 @@ CoinBgfxBackend::bindDrawTexture(
+   float params[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
+   float blend[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
+   float sizes[COIN_RENDER_MAX_TEXTURE_UNITS][4] = {};
+-  const bool studyEnabled=coinBgfxSamplingStudyEnabled();
+-  const auto &study=coinBgfxSamplingStudy();
++  const bool portableEnabled=this->portableSampling;
+   for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+     CoinBgfxDraw::TextureLayer layer;
+     if (unit == 0) {
+@@ -1713,9 +1705,9 @@ CoinBgfxBackend::bindDrawTexture(
+     bgfx::TextureHandle texture = this->defaultTexture;
+     if (layer.enabled && layer.slot < textures.size() && bgfx::isValid(textures[layer.slot]))
+       texture = textures[layer.slot];
+-    if(study=="fine_uniform" && layer.enabled) {
+-      const auto extent=this->studyBoundTextureSizes.find(texture.idx);
+-      if(extent!=this->studyBoundTextureSizes.end()) {sizes[unit][0]=float(extent->second.first);sizes[unit][1]=float(extent->second.second);}
++    if(portableEnabled && layer.enabled) {
++      const auto extent=this->samplingBoundTextureSizes.find(texture.idx);
++      if(extent!=this->samplingBoundTextureSizes.end()) {sizes[unit][0]=float(extent->second.first);sizes[unit][1]=float(extent->second.second);}
+     }
+     uint32_t flags = BGFX_SAMPLER_NONE;
+     if (layer.wrapS == CoinRenderTextureWrap::CLAMP) flags |= BGFX_SAMPLER_U_CLAMP;
+@@ -1732,9 +1724,9 @@ CoinBgfxBackend::bindDrawTexture(
+       }
+     }
+     params[unit][0] = layer.enabled ? 1.0f : 0.0f;
+-    if (studyEnabled && layer.enabled && layer.maxAnisotropy == 1 &&
+-        (study == "fetch" || ((study == "nearest" || study == "center" || study == "fine" || study == "fine_uniform") && layer.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR)))
+-      params[unit][0] = float(1 + 2 * (1 + unsigned(layer.filter) + 4 * unsigned(layer.wrapS) + 8 * unsigned(layer.wrapT) + (study == "fine_uniform" ? 112 : study == "fine" ? 48 : study == "center" ? 16 : 0)));
++    sizes[unit][2] = float(layer.filter);
++    sizes[unit][3] = float(unsigned(layer.wrapS) + 2 * unsigned(layer.wrapT));
++
+ 
+     params[unit][1] = static_cast<float>(layer.model);
+     params[unit][2] = directRenderTarget && !bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f;
+@@ -1744,7 +1736,7 @@ CoinBgfxBackend::bindDrawTexture(
+       unit == 0 ? this->textureSampler : this->extraTextureSamplers[unit - 1], texture, 0, 1, 0,
+       CoinRenderTextureSamplingCore::mipFilter(layer.filter) ? UINT8_MAX : 1, flags);
+   }
+-  if(studyEnabled) bgfx::setUniform(this->studyTextureSizesUniform, sizes, COIN_RENDER_MAX_TEXTURE_UNITS);
++  if(portableEnabled) bgfx::setUniform(this->samplingTextureSizesUniform, sizes, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureParamsUniform, params, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureBlendUniform, blend, COIN_RENDER_MAX_TEXTURE_UNITS);
+   bgfx::setUniform(this->textureCombineUniform, draw.textureCombines, COIN_RENDER_MAX_TEXTURE_UNITS * 4);
+@@ -2492,8 +2484,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
+     }
+     textureOwned[textureIndex] = true;
+   }
+-  if(coinBgfxSamplingStudy()=="fine_uniform") for(size_t i=0;i<textures.size();++i)
+-    this->studyBoundTextureSizes[textures[i].idx]={plan->textures[i].width,plan->textures[i].height};
++  if(this->portableSampling) for(size_t i=0;i<textures.size();++i)
++    this->samplingBoundTextureSizes[textures[i].idx]={plan->textures[i].width,plan->textures[i].height};
+   bool texturesRetained = textureCacheHit;
+   if (!textureCacheHit && retained && !hasDirectTextures) {
+     this->cachedTextures = textures;
+@@ -3282,8 +3274,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+     }
+   }
+ 
+-  if(coinBgfxSamplingStudy()=="fine_uniform") for(size_t i=0;i<textures.size();++i)
+-    this->studyBoundTextureSizes[textures[i].idx]={plan.textures[i].width,plan.textures[i].height};
++  if(this->portableSampling) for(size_t i=0;i<textures.size();++i)
++    this->samplingBoundTextureSizes[textures[i].idx]={plan.textures[i].width,plan.textures[i].height};
+   const auto cleanupDirect = [&]() {
+     for (size_t i = 0; i < textures.size(); ++i)
+       if (owned[i] && bgfx::isValid(textures[i])) bgfx::destroy(textures[i]);
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.h b/src/rendering/coinbgfx/CoinBgfxBackend.h
+index 827a138f4e..f6b35733b2 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.h
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.h
+@@ -65,6 +65,7 @@ public:
+   const std::string & getLastError() const override { return lastError; }
+ 
+ private:
++  bool portableSampling = false; // Immutable policy of the owning target.
+   struct ReadbackSlot {
+     bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
+     bgfx::TextureHandle depthTexture = BGFX_INVALID_HANDLE;
+@@ -216,8 +217,8 @@ private:
+   bgfx::UniformHandle fogColorModeUniform;
+   bgfx::UniformHandle fogRangeUniform;
+   bgfx::UniformHandle textureParamsUniform;
+-  std::map<uint16_t, std::pair<uint32_t, uint32_t>> studyBoundTextureSizes;
+-  bgfx::UniformHandle studyTextureSizesUniform;
++  std::map<uint16_t, std::pair<uint32_t, uint32_t>> samplingBoundTextureSizes;
++  bgfx::UniformHandle samplingTextureSizesUniform;
+   bgfx::UniformHandle textureBlendUniform;
+   bgfx::UniformHandle textureCombineUniform;
+   bgfx::UniformHandle ambientLightUniform;
+diff --git a/src/rendering/coinbgfx/shaders/coin_surface.sh b/src/rendering/coinbgfx/shaders/coin_surface.sh
+index 8cb9ca5fdd..f6b8499c7f 100644
+--- a/src/rendering/coinbgfx/shaders/coin_surface.sh
++++ b/src/rendering/coinbgfx/shaders/coin_surface.sh
+@@ -12,8 +12,8 @@ SAMPLER2D(s_texColor6, 8);
+ SAMPLER2D(s_texColor7, 9);
+ #endif
+ uniform vec4 u_texParams[8];
+-#ifdef COIN_SAMPLING_STUDY_SHADER
+-uniform vec4 u_studyTextureSizes[8];
++#ifdef COIN_PORTABLE_SAMPLING_SHADER
++uniform vec4 u_coinSamplingSizes[8];
+ #endif
+ uniform vec4 u_texBlend[8];
+ uniform vec4 u_texCombine[32];
+@@ -24,55 +24,31 @@ uniform vec4 u_clipMeta;
+ uniform vec4 u_clipPlanes[8];
+ #include "coin_alpha.sh"
+ 
+-#ifdef COIN_SAMPLING_STUDY_SHADER
+-vec4 studyLerp(vec4 a,vec4 b,float w){return a+(b-a)*w;}
+-// Isolated sampling study. GLSL 330 exposes ordinary derivatives, not fine control.
+-vec4 studyFetch(sampler2D t, ivec2 at, int level, int flags) {
+-  ivec2 n = ivec2(textureSize(t, level));
+-  ivec2 p = ivec2(at.x<0?at.x+n.x:at.x>=n.x?at.x-n.x:at.x, at.y<0?at.y+n.y:at.y>=n.y?at.y-n.y:at.y);
+-  if (mod(floor(float(flags)/4.0), 2.0) > 0.5) p.x = clamp(at.x, 0, n.x-1);
+-  if (mod(floor(float(flags)/8.0), 2.0) > 0.5) p.y = clamp(at.y, 0, n.y-1);
+-  return texelFetch(t, p, level);
+-}
+-vec4 studyLevel(sampler2D t, vec2 uv, int level, bool linearFilter, int flags) {
+-  vec2 at = uv * vec2(textureSize(t, level));
+-  if (!linearFilter) return studyFetch(t, ivec2(floor(at)), level, flags);
+-  ivec2 lo = ivec2(floor(at-0.5)); vec2 f = fract(at-0.5);
+-  return studyLerp(studyLerp(studyFetch(t, lo, level, flags), studyFetch(t, lo+ivec2(1,0), level, flags), f.x),
+-             studyLerp(studyFetch(t, lo+ivec2(0,1), level, flags), studyFetch(t, lo+ivec2(1,1), level, flags), f.x), f.y);
+-}
+-vec4 studySample(sampler2D t, vec2 uv, float enabled, vec4 suppliedSize) {
+-  if (enabled < 1.5) return texture2D(t, uv);
+-  int flags = int(enabled/2.0)-1, filterKind = int(mod(float(flags),4.0));
+-  bool supplied = flags >= 64;
++#ifdef COIN_PORTABLE_SAMPLING_SHADER
++vec4 coinPortableLerp(vec4 a,vec4 b,float w){return a+(b-a)*w;}
++// Dimensions/filter/wrap describe the actual bound resource. GLSL330 uses
++// ordinary derivatives; the public capability reports DEFAULT, not FINE.
++vec4 coinPortableSample(sampler2D t, vec2 uv, vec4 suppliedSize) {
++  if (suppliedSize.z != 2.0) return texture2D(t, uv);
+   vec2 n = suppliedSize.xy;
+-  if (!supplied) n = vec2(textureSize(t, 0));
+   vec2 gx = dFdx(uv)*n, gy = dFdy(uv)*n;
+-  vec2 boundedUv = fract(uv);
+-  if (mod(floor(float(flags)/4.0),2.0)>0.5) boundedUv.x=clamp(uv.x,0.0,1.0);
+-  if (mod(floor(float(flags)/8.0),2.0)>0.5) boundedUv.y=clamp(uv.y,0.0,1.0);
+-  if (filterKind < 2) return studyLevel(t, boundedUv, 0, filterKind == 1, flags);
+   int maximum = int(floor(log2(max(n.x,n.y))));
+   float lod = clamp(log2(max(max(length(gx),length(gy)),0.000001)),0.0,float(maximum));
+-  bool linearFilter = filterKind == 3 || lod <= 0.0;
+-  int lo = int(floor(lod));
+-  int hi=min(lo+1,maximum);
+-  if (flags>=16) {
+-    if(lod<=0.0)return texture2DLod(t,uv,0.0);
+-    ivec2 ni = ivec2(n);
+-    vec2 a = vec2(max(ni >> lo, ivec2(1)));
+-    if (!supplied) a = vec2(textureSize(t,lo));
+-    bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
+-    bool fine = mod(floor(float(flags)/32.0),2.0) > 0.5;
+-    if(fine && pot) return texture2DLod(t,(floor(boundedUv*a)+0.5)/a,lod);
+-    vec2 b = vec2(max(ni >> hi, ivec2(1)));
+-    if (!supplied) b = vec2(textureSize(t,hi));
+-    return studyLerp(texture2DLod(t,(floor(boundedUv*a)+0.5)/a,float(lo)),texture2DLod(t,(floor(boundedUv*b)+0.5)/b,float(hi)),fract(lod));
+-  }
+-  return studyLerp(studyLevel(t,boundedUv,lo,linearFilter,flags),studyLevel(t,boundedUv,hi,linearFilter,flags),fract(lod));
++  if(lod<=0.0)return texture2DLod(t,uv,0.0);
++  int flags = int(suppliedSize.w);
++  vec2 bounded = fract(uv);
++  if (mod(float(flags),2.0)>0.5) bounded.x=clamp(uv.x,0.0,1.0);
++  if (flags>=2) bounded.y=clamp(uv.y,0.0,1.0);
++  int lo = int(floor(lod)), hi = min(lo+1,maximum);
++  ivec2 ni = ivec2(n);
++  vec2 a = vec2(max(ni >> lo, ivec2(1)));
++  bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
++  if(pot)return texture2DLod(t,(floor(bounded*a)+0.5)/a,lod);
++  vec2 b = vec2(max(ni >> hi, ivec2(1)));
++  return coinPortableLerp(texture2DLod(t,(floor(bounded*a)+0.5)/a,float(lo)),
++                          texture2DLod(t,(floor(bounded*b)+0.5)/b,float(hi)),fract(lod));
+ }
+-
+-#define COIN_SURFACE_SAMPLE(t, uv, enabled, unit) studySample(t, uv, enabled, u_studyTextureSizes[unit])
++#define COIN_SURFACE_SAMPLE(t, uv, enabled, unit) coinPortableSample(t, uv, u_coinSamplingSizes[unit])
+ #else
+ #define COIN_SURFACE_SAMPLE(t, uv, enabled, unit) texture2D(t, uv)
+ #endif
+diff --git a/src/rendering/coinrender/CMakeLists.txt b/src/rendering/coinrender/CMakeLists.txt
+index ed60da7f18..81e8c3eed2 100644
+--- a/src/rendering/coinrender/CMakeLists.txt
++++ b/src/rendering/coinrender/CMakeLists.txt
+@@ -139,8 +139,8 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+ 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
+ 		endforeach()
+ 	endforeach()
+-	# The laboratory builds separate fragment binaries. Native never declares
+-	# the study uniform or compiles its sampling/flag branches.
++	# Native and portable use separate fragment binaries. Native never declares
++	# the portable uniform or compiles reconstructed sampling.
+ 	foreach(_surface fs fs_peel_next fs_weighted_oit fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_peel fs_shadow_oit)
+ 		if(_surface STREQUAL "fs")
+ 			set(_surface_file fs_base_color)
+@@ -157,14 +157,14 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+ 			else()
+ 				set(_shader_profile 330)
+ 			endif()
+-			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_surface}_study_${_renderer}.h)
++			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_surface}_portable_${_renderer}.h)
+ 			add_custom_command(OUTPUT ${_shader_output}
+ 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
+ 					-f ${_coin_bgfx_shader_dir}/${_surface_file}.sc -o ${_shader_output}
+ 					--type fragment --platform ${_shader_platform} --profile ${_shader_profile}
+-					--define COIN_SAMPLING_STUDY_SHADER=1
++					--define COIN_PORTABLE_SAMPLING_SHADER=1
+ 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
+-					--bin2c coin_bgfx_${_surface}_study_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
++					--bin2c coin_bgfx_${_surface}_portable_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+ 				DEPENDS ${_coin_bgfx_shader_dir}/${_surface_file}.sc
+ 					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
+ 					${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/coin_lighting.sh
+diff --git a/src/rendering/coinrender/CoinRenderCapabilities.cpp b/src/rendering/coinrender/CoinRenderCapabilities.cpp
+index 19e17788ad..83b5cd8c24 100644
+--- a/src/rendering/coinrender/CoinRenderCapabilities.cpp
++++ b/src/rendering/coinrender/CoinRenderCapabilities.cpp
+@@ -28,6 +28,7 @@ namespace {
+ const size_t capabilitiesV1Size =
+   offsetof(CoinRenderCapabilities, probe_status);
+ const size_t capabilitiesV2Size = offsetof(CoinRenderCapabilities, known_hardware_facts);
++const size_t capabilitiesV3Size = offsetof(CoinRenderCapabilities, implemented_sampling_policies);
+ 
+ void
+ setDiagnostic(CoinRenderCapabilities & result, const std::string & text)
+@@ -176,7 +177,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+                                                                void* output, size_t output_size) {
+   const bool legacyV1 = output_size == capabilitiesV1Size;
+   const bool legacyV2 = output_size == capabilitiesV2Size;
+-  if (!output || (!legacyV1 && !legacyV2 && output_size < sizeof(CoinRenderCapabilities)))
++  const bool legacyV3 = output_size == capabilitiesV3Size;
++  if (!output || (!legacyV1 && !legacyV2 && !legacyV3 && output_size < sizeof(CoinRenderCapabilities)))
+     return 2;
+   if (renderer != COIN_RENDER_RENDERER_UNKNOWN && renderer != COIN_RENDER_RENDERER_VULKAN &&
+       renderer != COIN_RENDER_RENDERER_OPENGL && renderer != COIN_RENDER_RENDERER_D3D12 &&
+@@ -184,6 +186,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+     return 2;
+   const size_t copySize = legacyV1   ? capabilitiesV1Size
+                           : legacyV2 ? capabilitiesV2Size
++                          : legacyV3 ? capabilitiesV3Size
+                                      : sizeof(CoinRenderCapabilities);
+   if (target != COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
+       target != COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW &&
+@@ -215,7 +218,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+ 
+   CoinRenderCapabilities result{};
+   result.struct_size = static_cast<uint32_t>(copySize);
+-  result.version = legacyV1 ? 1u : legacyV2 ? 2u : COIN_RENDER_CAPABILITIES_VERSION;
++  result.version = legacyV1 ? 1u : legacyV2 ? 2u : legacyV3 ? 3u : COIN_RENDER_CAPABILITIES_VERSION;
+   result.target = target;
+   result.probe_status = COIN_RENDER_PROBE_NOT_RUN;
+ 
+@@ -369,6 +372,34 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+     if (result.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION)
+       result.qualified_profiles |= COIN_RENDER_PROFILE_P10_BGFX_WEIGHTED_OIT;
+   }
++  if (result.features & COIN_RENDER_FEATURE_TEXTURE_2D) {
++    result.implemented_sampling_policies = COIN_RENDER_SAMPLING_POLICY_NATIVE;
++#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX) || (!defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE))
++    result.implemented_sampling_policies |= COIN_RENDER_SAMPLING_POLICY_PORTABLE;
++    result.portable_sampling_filter_mask = 1u << 2; // NEAREST_MIPMAP_LINEAR
++    result.portable_sampling_max_anisotropy = 1;
++    result.portable_sampling_formats = COIN_RENDER_SAMPLING_FORMAT_RGBA8 |
++        COIN_RENDER_SAMPLING_FORMAT_SRGB8 | COIN_RENDER_SAMPLING_FORMAT_RGBA16F |
++        COIN_RENDER_SAMPLING_FORMAT_BC3 | COIN_RENDER_SAMPLING_FORMAT_BC3_SRGB;
++    result.max_texture_mip_chain_bytes = UINT64_C(128) * 1024 * 1024;
++    result.portable_sampling_derivatives = result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING
++        ? COIN_RENDER_SAMPLING_DERIVATIVE_ANALYTIC
++        : result.backend == COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION ||
++          result.renderer == COIN_RENDER_RENDERER_OPENGL
++          ? COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT
++          : result.renderer == COIN_RENDER_RENDERER_UNKNOWN
++            ? COIN_RENDER_SAMPLING_DERIVATIVE_UNKNOWN : COIN_RENDER_SAMPLING_DERIVATIVE_FINE;
++#endif
++    if (result.gpu_available || (result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING &&
++                                renderer == COIN_RENDER_RENDERER_UNKNOWN))
++      result.available_sampling_policies = result.implemented_sampling_policies;
++#if defined(__linux__) && !defined(__ANDROID__)
++    if (target == COIN_RENDER_EXPERIMENTAL_OFFSCREEN &&
++        (result.backend == COIN_RENDER_EXPERIMENTAL_RECORDING ||
++         result.renderer == COIN_RENDER_RENDERER_VULKAN || result.renderer == COIN_RENDER_RENDERER_OPENGL))
++      result.qualified_sampling_policies = result.implemented_sampling_policies & COIN_RENDER_SAMPLING_POLICY_PORTABLE;
++#endif
++  }
+   std::memcpy(output, &result, copySize);
+   return 0;
+ }
+@@ -388,7 +419,7 @@ extern "C" int32_t coin_render_query_capabilities(uint32_t target, void* output,
+ extern "C" CoinRenderSelection coin_render_select_mechanism(const CoinRenderCapabilities* caps,
+                                                             uint64_t mechanism,
+                                                             uint32_t require_qualified_profile) {
+-  if (!caps || caps->version < 3 || caps->struct_size < sizeof(CoinRenderCapabilities) ||
++  if (!caps || caps->version < 3 || caps->struct_size < capabilitiesV3Size ||
+       require_qualified_profile > 1) {
+     CoinRenderSelection result{};
+     result.mechanism = mechanism;
+@@ -413,3 +444,24 @@ extern "C" CoinRenderSelection coin_render_select_mechanism(const CoinRenderCapa
+   }
+   return selection;
+ }
++
++extern "C" CoinRenderSamplingSelection coin_render_select_sampling_policy(
++    const CoinRenderCapabilities* caps, CoinRenderTextureSamplingPolicy policy,
++    uint32_t requireQualified) {
++  CoinRenderSamplingSelection result{};
++  result.policy = uint32_t(policy);
++  if (!caps || caps->version < 4 || caps->struct_size < sizeof(CoinRenderCapabilities) ||
++      requireQualified > 1 || (policy != COIN_RENDER_SAMPLING_NATIVE && policy != COIN_RENDER_SAMPLING_PORTABLE)) {
++    result.reason = COIN_RENDER_SELECTION_INVALID_REQUEST;
++    return result;
++  }
++  const uint64_t bit = UINT64_C(1) << uint32_t(policy);
++  result.qualified_profile = (caps->qualified_sampling_policies & bit) != 0;
++  if (!(caps->implemented_sampling_policies & bit)) result.reason = COIN_RENDER_SELECTION_NOT_IMPLEMENTED;
++  else if (caps->backend != COIN_RENDER_EXPERIMENTAL_RECORDING &&
++           (caps->probe_status == COIN_RENDER_PROBE_BUSY || caps->probe_status == COIN_RENDER_PROBE_NOT_RUN))
++    result.reason = COIN_RENDER_SELECTION_RUNTIME_NOT_READY;
++  else if (!(caps->available_sampling_policies & bit)) result.reason = COIN_RENDER_SELECTION_HARDWARE_UNAVAILABLE;
++  else if (requireQualified && !result.qualified_profile) result.reason = COIN_RENDER_SELECTION_UNQUALIFIED_PROFILE;
++  return result;
++}
+diff --git a/src/rendering/coinrender/CoinRenderFramePlan.cpp b/src/rendering/coinrender/CoinRenderFramePlan.cpp
+index 591a2aff35..599500f240 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlan.cpp
++++ b/src/rendering/coinrender/CoinRenderFramePlan.cpp
+@@ -92,7 +92,8 @@ sameCameras(const std::vector<CoinRenderCameraSnapshot> & a,
+ bool
+ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
+ {
+-  if (this->legacyBlendAlpha != other.legacyBlendAlpha ||
++  if (this->textureSamplingPolicy != other.textureSamplingPolicy ||
++      this->legacyBlendAlpha != other.legacyBlendAlpha ||
+       !coin_render_same_transparency_options(this->transparency, other.transparency))
+     return false;
+   for (int i = 0; i < 4; ++i) {
+diff --git a/src/rendering/coinrender/CoinRenderFramePlan.h b/src/rendering/coinrender/CoinRenderFramePlan.h
+index 43e1441b39..c1328810e9 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlan.h
++++ b/src/rendering/coinrender/CoinRenderFramePlan.h
+@@ -366,6 +366,7 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
+  */
+ struct CoinRenderFramePlan {
+   uint64_t revision = 0;
++  CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
+   CoinRenderTextureFormat outputColorFormat = CoinRenderTextureFormat::RGBA8_LINEAR;
+   bool outputMipmaps = false; // Execution-owned RTT request, never an implicit root fallback.
+   // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.
+diff --git a/src/rendering/coinrender/CoinRenderFramePlanBuilder.h b/src/rendering/coinrender/CoinRenderFramePlanBuilder.h
+index 7852989f75..02706956b8 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlanBuilder.h
++++ b/src/rendering/coinrender/CoinRenderFramePlanBuilder.h
+@@ -54,7 +54,7 @@ public:
+   void endForeground();
+   void endAnnotation();
+ 
+-  void configureTextures(const CoinRenderOptions& options) { storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
++  void configureTextures(const CoinRenderOptions& options) { currentPlan.textureSamplingPolicy=options.textureSamplingPolicy; storedTextureColorSpace=options.storedTextureColorSpace; maxTextureAnisotropy=options.maxTextureAnisotropy; }
+   void registerAuthoredTextureImage(const unsigned char * bytes,bool compressed=false) {
+     if(bytes) { authoredTextureImages.insert(bytes); if(compressed) compressedTextureImages.insert(bytes); else compressedTextureImages.erase(bytes); }
+   }
+diff --git a/src/rendering/coinrender/CoinRenderRttExecution.cpp b/src/rendering/coinrender/CoinRenderRttExecution.cpp
+index f050b4b19c..e1ce27f599 100644
+--- a/src/rendering/coinrender/CoinRenderRttExecution.cpp
++++ b/src/rendering/coinrender/CoinRenderRttExecution.cpp
+@@ -1,3 +1,4 @@
++#include "rendering/coinrender/CoinRenderSamplingCore.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+@@ -50,8 +51,13 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan&
+             "Scene texture consumer target is suspended or has zero size"};
+   if (!graph.validate(root, diagnostic))
+     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
++  if (root.textureSamplingPolicy != options.textureSamplingPolicy || !coin_render_valid_sampling(root, diagnostic))
++    return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic.empty() ? "RTT root sampling policy differs from target policy" : diagnostic};
+   const bool staged = graph.mode == COIN_RENDER_SCENE_TEXTURE_STAGED;
+   for (const auto& producer : graph.producers) {
++    if (producer.plan.textureSamplingPolicy != root.textureSamplingPolicy ||
++        !coin_render_valid_sampling(producer.plan, diagnostic))
++      return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic.empty() ? "RTT producer sampling policy differs from consumer policy" : diagnostic};
+     auto check = CoinRenderTargetP::validateProfile(producer.plan, producer.size, staged);
+     if (check.status != CoinRenderBackendStatus::SUCCESS)
+       return check;
+diff --git a/src/rendering/coinrender/CoinRenderSamplingCore.h b/src/rendering/coinrender/CoinRenderSamplingCore.h
+new file mode 100644
+index 0000000000..4eb6b5da61
+--- /dev/null
++++ b/src/rendering/coinrender/CoinRenderSamplingCore.h
+@@ -0,0 +1,23 @@
++#ifndef COIN_RENDER_SAMPLING_CORE_H
++#define COIN_RENDER_SAMPLING_CORE_H
++#include "rendering/coinrender/CoinRenderFramePlan.h"
++
++inline bool coin_render_valid_sampling(const CoinRenderFramePlan& frame, std::string& diagnostic) {
++  if (frame.textureSamplingPolicy != COIN_RENDER_SAMPLING_NATIVE &&
++      frame.textureSamplingPolicy != COIN_RENDER_SAMPLING_PORTABLE) {
++    diagnostic = "Invalid texture sampling policy; no fallback was applied";
++    return false;
++  }
++  if (frame.textureSamplingPolicy == COIN_RENDER_SAMPLING_NATIVE) return true;
++  for (const auto& state : frame.renderStates) for (size_t unit=0; unit<COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
++    const auto layer = coin_render_texture_unit(state, unit);
++    if (!layer.enabled || layer.samplerSlot >= frame.samplers.size()) continue;
++    const auto& sampler = frame.samplers[layer.samplerSlot];
++    if (sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR && sampler.maxAnisotropy != 1) {
++      diagnostic = "Portable nearest/mip-linear requires isotropic anisotropy 1; no fallback was applied";
++      return false;
++    }
++  }
++  return true;
++}
++#endif
+diff --git a/src/rendering/coinrender/CoinRenderSelectionCore.h b/src/rendering/coinrender/CoinRenderSelectionCore.h
+index 43afd4da61..6dd72d6401 100644
+--- a/src/rendering/coinrender/CoinRenderSelectionCore.h
++++ b/src/rendering/coinrender/CoinRenderSelectionCore.h
+@@ -5,6 +5,11 @@
+ #include <string>
+ 
+ inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
++  if (options.textureSamplingPolicy != COIN_RENDER_SAMPLING_NATIVE &&
++      options.textureSamplingPolicy != COIN_RENDER_SAMPLING_PORTABLE) {
++    diagnostic = "Invalid texture sampling policy; no fallback was applied";
++    return false;
++  }
+   if(uint32_t(options.storedTextureColorSpace)>1 || !options.maxTextureAnisotropy ||
+      options.maxTextureAnisotropy>16 || (options.maxTextureAnisotropy&(options.maxTextureAnisotropy-1))) {
+     diagnostic="Stored texture color space must be LINEAR/SRGB and anisotropy a power of two in 1..16";return false;
+diff --git a/src/rendering/coinrender/CoinRenderTarget.cpp b/src/rendering/coinrender/CoinRenderTarget.cpp
+index 23edc0bdac..52ea7baf58 100644
+--- a/src/rendering/coinrender/CoinRenderTarget.cpp
++++ b/src/rendering/coinrender/CoinRenderTarget.cpp
+@@ -1,3 +1,4 @@
++#include "rendering/coinrender/CoinRenderSamplingCore.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #else
+@@ -599,6 +600,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
+     return CoinRenderFrameExecutionResult(
+         CoinRenderBackendStatus::UNSUPPORTED,
+         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
++  if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy ||
++      !coin_render_valid_sampling(frame, this->lastError)) {
++    if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy)
++      this->lastError = "Frame sampling policy differs from the immutable target policy";
++    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
++  }
+   if (outTicket && this->kind != KIND_OFFSCREEN) {
+     return CoinRenderFrameExecutionResult(CoinRenderBackendStatus::UNSUPPORTED,
+                                 "applyAsync() requires an offscreen target");
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfi.h b/src/rendering/coinwgpu/CoinWgpuFfi.h
+index b9aeb115f9..583917b1ca 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfi.h
++++ b/src/rendering/coinwgpu/CoinWgpuFfi.h
+@@ -8,7 +8,7 @@
+ extern "C" {
+ #endif
+ 
+-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 50
++#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 51
+ #define COIN_WGPU_FFI_MAX_LIGHTS 8
+ #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
+ 
+@@ -295,7 +295,7 @@ typedef struct CoinWgpuFrameView {
+   const CoinWgpuInstanceRange * instance_ranges;
+   uint64_t instance_range_count;
+   uint32_t texture_output_flags; /* bit 0=RGBA16F direct RTT; bit 1=generate full RTT mip chain */
+-  uint32_t texture_output_reserved; /* zero */
++  uint32_t texture_sampling_policy; /* 0=native, 1=portable isotropic nearest/mip-linear */
+ } CoinWgpuFrameView;
+ 
+ typedef struct CoinWgpuTarget {
+diff --git a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+index 25bc93398b..04e00d51a2 100644
+--- a/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
++++ b/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+@@ -1646,6 +1646,7 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
+   this->view.abi_version = COIN_WGPU_ABI_VERSION;
+   this->view.struct_size = sizeof(CoinWgpuFrameView);
+   this->view.frame_revision = frame.revision;
++  this->view.texture_sampling_policy = uint32_t(frame.textureSamplingPolicy);
+   this->view.vertices = this->vertices.empty() ? NULL : this->vertices.data();
+   this->view.vertex_count = static_cast<uint64_t>(this->vertices.size());
+   this->view.indices = this->indices.empty() ? NULL : this->indices.data();
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/lib.rs b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+index df8b7182b9..5db533b8c1 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/lib.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/lib.rs
+@@ -33,7 +33,7 @@ mod instancing;
+ #[cfg(target_os = "android")]
+ mod android_log;
+ 
+-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 50;
++pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 51;
+ pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
+ 
+ const _: () = {
+@@ -188,31 +188,18 @@ pub struct CoinWgpuTexture {
+     pub pixel_bytes_len: u64,
+ }
+ 
+-// Experimental study only: pack mode metadata into the GPU has-texture value.
+-// The CPU ABI and native default remain unchanged. Anisotropic samplers stay native.
++// Explicit per-frame policy; never reads a process environment selector.
+ #[derive(Clone, Copy, Debug, PartialEq)]
+-enum SamplingStudy { Native, Nearest, Fetch, Center, Fine, FineUniform }
+-fn parse_sampling_study(mode: &str) -> SamplingStudy {
+-    match mode { "nearest" => SamplingStudy::Nearest, "fetch" => SamplingStudy::Fetch,
+-        "center" => SamplingStudy::Center, "fine" => SamplingStudy::Fine,
+-        "fine_uniform" => SamplingStudy::FineUniform, _ => SamplingStudy::Native }
+-}
+-fn sampling_study() -> SamplingStudy {
+-    static MODE: std::sync::OnceLock<SamplingStudy> = std::sync::OnceLock::new();
+-    *MODE.get_or_init(|| parse_sampling_study(&std::env::var("COIN_SAMPLING_STUDY").unwrap_or_default()))
+-}
+-fn study_sampler_flag(enabled: u32, s: &CoinWgpuSampler) -> f32 {
+-    if enabled == 0 { return 0.0; }
+-    let mode = sampling_study();
+-    if mode == SamplingStudy::Native || s.reserved > 0 || (mode != SamplingStudy::Fetch && s.filter != 2) { return 1.0; }
+-    let flags = match mode { SamplingStudy::FineUniform =>112, SamplingStudy::Fine =>48,
+-        SamplingStudy::Center =>16, _ =>0 };
+-    (1 + 2 * (1 + s.filter + 4 * s.wrap_s + 8 * s.wrap_t + flags)) as f32
+-}
+-// Native/instance pipelines bind the original prefix, not the study appendix.
+-const NATIVE_UNIFORM_BYTES: usize = std::mem::offset_of!(CoinWgpuUniforms, study_texture_sizes);
+-fn uniform_binding_bytes(instanced: bool) -> usize {
+-    if instanced || sampling_study() == SamplingStudy::Native { NATIVE_UNIFORM_BYTES }
++enum SamplingPolicy { Native, Portable }
++impl SamplingPolicy {
++    fn from_raw(value: u32) -> Result<Self, (CoinWgpuStatus, String)> {
++        match value { 0 => Ok(Self::Native), 1 => Ok(Self::Portable),
++            _ => Err((CoinWgpuStatus::InvalidArgument, "Invalid texture sampling policy".into())) }
++    }
++}
++const NATIVE_UNIFORM_BYTES: usize = std::mem::offset_of!(CoinWgpuUniforms, sampling_texture_sizes);
++fn uniform_binding_bytes(instanced: bool, policy: SamplingPolicy) -> usize {
++    if instanced || policy == SamplingPolicy::Native { NATIVE_UNIFORM_BYTES }
+     else { std::mem::size_of::<CoinWgpuUniforms>() }
+ }
+ 
+@@ -284,7 +271,7 @@ pub struct CoinWgpuUniforms {
+     pub shadow_falloff_fourth: [f32; 4],
+     pub alpha_test: [f32; 4],
+     // Private GPU block, never part of the transported C ABI. Actual bound extents.
+-    pub study_texture_sizes: [[f32; 4]; 8],
++    pub sampling_texture_sizes: [[f32; 4]; 8],
+ }
+ 
+ #[repr(C)]
+@@ -768,7 +755,7 @@ pub struct CoinWgpuFrameView {
+     pub instance_ranges: *const CoinWgpuInstanceRange,
+     pub instance_range_count: u64,
+     pub texture_output_flags: u32,
+-    pub texture_output_reserved: u32,
++    pub texture_sampling_policy: u32,
+ }
+ 
+ #[repr(C)]
+@@ -1462,11 +1449,8 @@ mod camera_scene_tests {
+     }
+ }
+ 
+-struct DeviceState {
+-    adapter: wgpu::Adapter,
+-    adapter_name: String,
+-    device: wgpu::Device,
+-    queue: wgpu::Queue,
++struct SurfaceSamplingProfile {
++    policy: SamplingPolicy,
+     shader_module: wgpu::ShaderModule,
+     instanced_shader: wgpu::ShaderModule,
+     instanced_bind_group_layout: wgpu::BindGroupLayout,
+@@ -1482,6 +1466,213 @@ struct DeviceState {
+     bind_group_layout: wgpu::BindGroupLayout,
+     pipeline_layout: wgpu::PipelineLayout,
+     pipelines: Mutex<HashMap<PipelineKey, wgpu::RenderPipeline>>,
++}
++
++fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapter,
++                                   policy: SamplingPolicy) -> SurfaceSamplingProfile {
++    let gl_depth_loads = adapter.get_info().backend == wgpu::Backend::Gl;
++    let shader_source = |source: &str| shader_profile::depth_load_profile(
++        &shader_profile::texture_specialization(&shader_profile::sampling_profile(source,
++            policy != SamplingPolicy::Native)), gl_depth_loads);
++    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++        label: Some("coin_standard.wgsl"),
++        source: wgpu::ShaderSource::Wgsl(shader_source(
++            &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
++    });
++
++    let instanced_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++        label: Some("Coin opaque instances"),
++        source: wgpu::ShaderSource::Wgsl(shader_source(
++            &format!("{}{}", shader_profile::sampling_profile(&instancing::shader_source(), false), weighted::FRAGMENT)).into()),
++    });
++
++    let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++        label: Some("Coin quality shadow receivers"),
++        source: wgpu::ShaderSource::Wgsl(shader_source(
++            &format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT)).into()),
++    });
++    let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++        label: Some("Coin eight shadow receivers"),
++        source: wgpu::ShaderSource::Wgsl(shader_source(
++            &format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT)).into()),
++    });
++    let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++        label: Some("coin_line.wgsl"),
++        source: wgpu::ShaderSource::Wgsl(shader_source(
++            &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
++    });
++
++    let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
++        label: Some("coin_point.wgsl"),
++        source: wgpu::ShaderSource::Wgsl(shader_source(
++            &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
++    });
++
++    let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {
++        wgpu::ShaderStages::VERTEX_FRAGMENT
++    } else {
++        wgpu::ShaderStages::FRAGMENT
++    };
++
++    let mut layout_entries = vec![
++        wgpu::BindGroupLayoutEntry { binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
++            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
++                has_dynamic_offset: true,
++                min_binding_size: std::num::NonZeroU64::new(uniform_binding_bytes(false, policy) as u64) }, count: None },
++        wgpu::BindGroupLayoutEntry { binding: 1, visibility: storage_visibility,
++            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
++                has_dynamic_offset: false, min_binding_size: None }, count: None },
++    ];
++    for unit in 0..8 {
++        layout_entries.push(wgpu::BindGroupLayoutEntry { binding: 2 + 2 * unit,
++            visibility: wgpu::ShaderStages::FRAGMENT,
++            ty: wgpu::BindingType::Texture {
++                sample_type: wgpu::TextureSampleType::Float { filterable: true },
++                view_dimension: wgpu::TextureViewDimension::D2,
++                multisampled: false,
++            },
++            count: None,
++        });
++        layout_entries.push(wgpu::BindGroupLayoutEntry {
++            binding: 3 + 2 * unit,
++            visibility: wgpu::ShaderStages::FRAGMENT,
++            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
++            count: None,
++        });
++    }
++    for binding in [18, 19] {
++        layout_entries.push(wgpu::BindGroupLayoutEntry {
++            binding,
++            visibility: wgpu::ShaderStages::FRAGMENT,
++            ty: wgpu::BindingType::Texture {
++                sample_type: if gl_depth_loads { wgpu::TextureSampleType::Float { filterable: false } }
++                    else { wgpu::TextureSampleType::Depth },
++                view_dimension: wgpu::TextureViewDimension::D2,
++                multisampled: false,
++            },
++            count: None,
++        });
++    }
++    layout_entries.push(wgpu::BindGroupLayoutEntry {
++        binding: 20,
++        visibility: wgpu::ShaderStages::FRAGMENT,
++        ty: wgpu::BindingType::Texture {
++            sample_type: wgpu::TextureSampleType::Float { filterable: false },
++            view_dimension: wgpu::TextureViewDimension::D2,
++            multisampled: false,
++        },
++        count: None,
++    });
++    layout_entries.push(wgpu::BindGroupLayoutEntry {
++        binding: 21,
++        visibility: wgpu::ShaderStages::FRAGMENT,
++        ty: wgpu::BindingType::Texture {
++            sample_type: wgpu::TextureSampleType::Float { filterable: false },
++            view_dimension: wgpu::TextureViewDimension::D2,
++            multisampled: false,
++        },
++        count: None,
++    });
++    layout_entries.push(wgpu::BindGroupLayoutEntry {
++        binding: 22, visibility: wgpu::ShaderStages::FRAGMENT,
++        ty: wgpu::BindingType::Texture {
++            sample_type: wgpu::TextureSampleType::Float { filterable: false },
++            view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
++        }, count: None,
++    });
++    layout_entries.push(wgpu::BindGroupLayoutEntry {
++        binding: 23, visibility: wgpu::ShaderStages::FRAGMENT,
++        ty: wgpu::BindingType::Texture {
++            sample_type: wgpu::TextureSampleType::Float { filterable: false },
++            view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
++        }, count: None,
++    });
++    let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("Coin eight-unit texture program"),
++        entries: &layout_entries,
++    });
++
++    let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
++        label: Some("Coin Pipeline Layout"),
++        bind_group_layouts: &[&bind_group_layout],
++        push_constant_ranges: &[],
++    });
++
++    let mut instanced_entries = layout_entries.clone();
++    instanced_entries[0].ty = wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
++        has_dynamic_offset: true, min_binding_size: std::num::NonZeroU64::new(NATIVE_UNIFORM_BYTES as u64) };
++    instanced_entries.push(wgpu::BindGroupLayoutEntry {
++        binding: 24, visibility: wgpu::ShaderStages::VERTEX,
++        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
++            has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(144) },
++        count: None,
++    });
++    let instanced_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("Coin opaque instance bindings"), entries: &instanced_entries,
++    });
++    let instanced_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
++        label: Some("Coin opaque instance pipeline"), bind_group_layouts: &[&instanced_bind_group_layout],
++        push_constant_ranges: &[],
++    });
++
++    let eight_entries: Vec<_> = layout_entries.iter().copied()
++        .filter(|entry| !(10..18).contains(&entry.binding)).collect();
++    let shadow_eight_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("Coin bounded eight-map scene bindings"), entries: &eight_entries,
++    });
++    let mut extra_entries = vec![wgpu::BindGroupLayoutEntry {
++        binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
++        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
++            has_dynamic_offset: false, min_binding_size: None }, count: None,
++    }];
++    for binding in 1..5 {
++        extra_entries.push(wgpu::BindGroupLayoutEntry {
++            binding, visibility: wgpu::ShaderStages::FRAGMENT,
++            ty: wgpu::BindingType::Texture {
++                sample_type: wgpu::TextureSampleType::Float { filterable: false },
++                view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
++            }, count: None,
++        });
++    }
++    let shadow_extra_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
++        label: Some("Coin extra four shadow maps"), entries: &extra_entries,
++    });
++    let shadow_eight_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
++        label: Some("Coin eight shadow pipeline"),
++        bind_group_layouts: &[&shadow_eight_layout, &shadow_extra_layout], push_constant_ranges: &[],
++    });
++
++    SurfaceSamplingProfile {
++        policy,
++        shader_module: shader,
++        instanced_shader, instanced_bind_group_layout, instanced_pipeline_layout,
++        shadow_shader, shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
++        line_shader_module: line_shader,
++        point_shader_module: point_shader,
++        bind_group_layout,
++        pipeline_layout,
++        pipelines: Mutex::new(HashMap::new()),
++        untextured_shaders: Mutex::new(HashMap::new()),
++    }
++}
++
++impl DeviceState {
++    fn surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
++        match policy {
++            SamplingPolicy::Native => &self.surface_native,
++            SamplingPolicy::Portable => self.surface_portable.get_or_init(||
++                create_surface_sampling_profile(&self.device, &self.adapter, policy)),
++        }
++    }
++}
++
++struct DeviceState {
++    adapter: wgpu::Adapter,
++    adapter_name: String,
++    device: wgpu::Device,
++    queue: wgpu::Queue,
++    surface_native: SurfaceSamplingProfile,
++    surface_portable: OnceLock<SurfaceSamplingProfile>,
+     annotation_depth_pipeline: Mutex<Option<wgpu::RenderPipeline>>,
+     depth_readback: Mutex<Option<depth_transfer::DepthTransfer>>,
+     depth_snapshot: Mutex<Option<depth_transfer::DepthTransfer>>,
+@@ -2204,177 +2395,7 @@ fn get_or_init_device_impl<'a>(
+         }));
+     }
+ 
+-    let gl_depth_loads = adapter.get_info().backend == wgpu::Backend::Gl;
+-    let shader_source = |source: &str| shader_profile::depth_load_profile(
+-        &shader_profile::texture_specialization(&shader_profile::sampling_profile(source,
+-            sampling_study() != SamplingStudy::Native)), gl_depth_loads);
+-    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+-        label: Some("coin_standard.wgsl"),
+-        source: wgpu::ShaderSource::Wgsl(shader_source(
+-            &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
+-    });
+-
+-    let instanced_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+-        label: Some("Coin opaque instances"),
+-        source: wgpu::ShaderSource::Wgsl(shader_source(
+-            &format!("{}{}", shader_profile::sampling_profile(&instancing::shader_source(), false), weighted::FRAGMENT)).into()),
+-    });
+-
+-    let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+-        label: Some("Coin quality shadow receivers"),
+-        source: wgpu::ShaderSource::Wgsl(shader_source(
+-            &format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT)).into()),
+-    });
+-    let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+-        label: Some("Coin eight shadow receivers"),
+-        source: wgpu::ShaderSource::Wgsl(shader_source(
+-            &format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT)).into()),
+-    });
+-    let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+-        label: Some("coin_line.wgsl"),
+-        source: wgpu::ShaderSource::Wgsl(shader_source(
+-            &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
+-    });
+-
+-    let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+-        label: Some("coin_point.wgsl"),
+-        source: wgpu::ShaderSource::Wgsl(shader_source(
+-            &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
+-    });
+-
+-    let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {
+-        wgpu::ShaderStages::VERTEX_FRAGMENT
+-    } else {
+-        wgpu::ShaderStages::FRAGMENT
+-    };
+-
+-    let mut layout_entries = vec![
+-        wgpu::BindGroupLayoutEntry { binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+-            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
+-                has_dynamic_offset: true,
+-                min_binding_size: std::num::NonZeroU64::new(uniform_binding_bytes(false) as u64) }, count: None },
+-        wgpu::BindGroupLayoutEntry { binding: 1, visibility: storage_visibility,
+-            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
+-                has_dynamic_offset: false, min_binding_size: None }, count: None },
+-    ];
+-    for unit in 0..8 {
+-        layout_entries.push(wgpu::BindGroupLayoutEntry { binding: 2 + 2 * unit,
+-            visibility: wgpu::ShaderStages::FRAGMENT,
+-            ty: wgpu::BindingType::Texture {
+-                sample_type: wgpu::TextureSampleType::Float { filterable: true },
+-                view_dimension: wgpu::TextureViewDimension::D2,
+-                multisampled: false,
+-            },
+-            count: None,
+-        });
+-        layout_entries.push(wgpu::BindGroupLayoutEntry {
+-            binding: 3 + 2 * unit,
+-            visibility: wgpu::ShaderStages::FRAGMENT,
+-            ty: wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),
+-            count: None,
+-        });
+-    }
+-    for binding in [18, 19] {
+-        layout_entries.push(wgpu::BindGroupLayoutEntry {
+-            binding,
+-            visibility: wgpu::ShaderStages::FRAGMENT,
+-            ty: wgpu::BindingType::Texture {
+-                sample_type: if gl_depth_loads { wgpu::TextureSampleType::Float { filterable: false } }
+-                    else { wgpu::TextureSampleType::Depth },
+-                view_dimension: wgpu::TextureViewDimension::D2,
+-                multisampled: false,
+-            },
+-            count: None,
+-        });
+-    }
+-    layout_entries.push(wgpu::BindGroupLayoutEntry {
+-        binding: 20,
+-        visibility: wgpu::ShaderStages::FRAGMENT,
+-        ty: wgpu::BindingType::Texture {
+-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+-            view_dimension: wgpu::TextureViewDimension::D2,
+-            multisampled: false,
+-        },
+-        count: None,
+-    });
+-    layout_entries.push(wgpu::BindGroupLayoutEntry {
+-        binding: 21,
+-        visibility: wgpu::ShaderStages::FRAGMENT,
+-        ty: wgpu::BindingType::Texture {
+-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+-            view_dimension: wgpu::TextureViewDimension::D2,
+-            multisampled: false,
+-        },
+-        count: None,
+-    });
+-    layout_entries.push(wgpu::BindGroupLayoutEntry {
+-        binding: 22, visibility: wgpu::ShaderStages::FRAGMENT,
+-        ty: wgpu::BindingType::Texture {
+-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+-            view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
+-        }, count: None,
+-    });
+-    layout_entries.push(wgpu::BindGroupLayoutEntry {
+-        binding: 23, visibility: wgpu::ShaderStages::FRAGMENT,
+-        ty: wgpu::BindingType::Texture {
+-            sample_type: wgpu::TextureSampleType::Float { filterable: false },
+-            view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
+-        }, count: None,
+-    });
+-    let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+-        label: Some("Coin eight-unit texture program"),
+-        entries: &layout_entries,
+-    });
+-
+-    let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+-        label: Some("Coin Pipeline Layout"),
+-        bind_group_layouts: &[&bind_group_layout],
+-        push_constant_ranges: &[],
+-    });
+-
+-    let mut instanced_entries = layout_entries.clone();
+-    instanced_entries[0].ty = wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
+-        has_dynamic_offset: true, min_binding_size: std::num::NonZeroU64::new(NATIVE_UNIFORM_BYTES as u64) };
+-    instanced_entries.push(wgpu::BindGroupLayoutEntry {
+-        binding: 24, visibility: wgpu::ShaderStages::VERTEX,
+-        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
+-            has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(144) },
+-        count: None,
+-    });
+-    let instanced_bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+-        label: Some("Coin opaque instance bindings"), entries: &instanced_entries,
+-    });
+-    let instanced_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+-        label: Some("Coin opaque instance pipeline"), bind_group_layouts: &[&instanced_bind_group_layout],
+-        push_constant_ranges: &[],
+-    });
+-
+-    let eight_entries: Vec<_> = layout_entries.iter().copied()
+-        .filter(|entry| !(10..18).contains(&entry.binding)).collect();
+-    let shadow_eight_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+-        label: Some("Coin bounded eight-map scene bindings"), entries: &eight_entries,
+-    });
+-    let mut extra_entries = vec![wgpu::BindGroupLayoutEntry {
+-        binding: 0, visibility: wgpu::ShaderStages::VERTEX_FRAGMENT,
+-        ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
+-            has_dynamic_offset: false, min_binding_size: None }, count: None,
+-    }];
+-    for binding in 1..5 {
+-        extra_entries.push(wgpu::BindGroupLayoutEntry {
+-            binding, visibility: wgpu::ShaderStages::FRAGMENT,
+-            ty: wgpu::BindingType::Texture {
+-                sample_type: wgpu::TextureSampleType::Float { filterable: false },
+-                view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
+-            }, count: None,
+-        });
+-    }
+-    let shadow_extra_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
+-        label: Some("Coin extra four shadow maps"), entries: &extra_entries,
+-    });
+-    let shadow_eight_pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
+-        label: Some("Coin eight shadow pipeline"),
+-        bind_group_layouts: &[&shadow_eight_layout, &shadow_extra_layout], push_constant_ranges: &[],
+-    });
++    let surface_native = create_surface_sampling_profile(&device, &adapter, SamplingPolicy::Native);
+ 
+     if !isolated {
+         DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
+@@ -2447,15 +2468,8 @@ fn get_or_init_device_impl<'a>(
+         adapter_name,
+         device,
+         queue,
+-        shader_module: shader,
+-        instanced_shader, instanced_bind_group_layout, instanced_pipeline_layout,
+-        shadow_shader, shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
+-        line_shader_module: line_shader,
+-        point_shader_module: point_shader,
+-        bind_group_layout,
+-        pipeline_layout,
+-        pipelines: Mutex::new(HashMap::new()),
+-        untextured_shaders: Mutex::new(HashMap::new()),
++        surface_native,
++        surface_portable: OnceLock::new(),
+         annotation_depth_pipeline: Mutex::new(None),
+         depth_readback: Mutex::new(None),
+         depth_snapshot: Mutex::new(None),
+@@ -2873,6 +2887,7 @@ fn annotation_depth_clear_pipeline(device: &wgpu::Device) -> wgpu::RenderPipelin
+ 
+ fn get_or_create_pipeline<'a>(
+     ctx: &'a DeviceState,
++    profile: &SurfaceSamplingProfile,
+     topology: u32,
+     color_format: wgpu::TextureFormat,
+     depth_format: wgpu::TextureFormat,
+@@ -2892,14 +2907,14 @@ fn get_or_create_pipeline<'a>(
+     textured: bool,
+     instanced: bool,
+ ) -> Result<wgpu::RenderPipeline, String> {
+-    let mut map = ctx.pipelines.lock().map_err(|e| e.to_string())?;
++    let mut map = profile.pipelines.lock().map_err(|e| e.to_string())?;
+ 
+     // Lines and Points have culling disabled by specification
+     let (primitive_topology, selected_shader, effective_cull) = match topology {
+-        1 => (wgpu::PrimitiveTopology::LineList, &ctx.line_shader_module, None),
+-        2 => (wgpu::PrimitiveTopology::PointList, &ctx.point_shader_module, None),
++        1 => (wgpu::PrimitiveTopology::LineList, &profile.line_shader_module, None),
++        2 => (wgpu::PrimitiveTopology::PointList, &profile.point_shader_module, None),
+         _ => (wgpu::PrimitiveTopology::TriangleList,
+-            if instanced { &ctx.instanced_shader } else if eight_shadows { &ctx.shadow_eight_shader } else if shadow_profile { &ctx.shadow_shader } else { &ctx.shader_module }, cull_face),
++            if instanced { &profile.instanced_shader } else if eight_shadows { &profile.shadow_eight_shader } else if shadow_profile { &profile.shadow_shader } else { &profile.shader_module }, cull_face),
+     };
+ 
+     let key = PipelineKey {
+@@ -3026,7 +3041,7 @@ fn get_or_create_pipeline<'a>(
+     // override constants. Give textured/untextured variants distinct modules
+     // so switching profiles cannot reuse the first profile's GL program.
+     let selected_shader = if !instanced && !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+-        let mut profiles = ctx.untextured_shaders.lock().map_err(|e| e.to_string())?;
++        let mut profiles = profile.untextured_shaders.lock().map_err(|e| e.to_string())?;
+         profiles.entry((topology, shadow_profile, eight_shadows)).or_insert_with(|| {
+             let source = match topology {
+                 1 => WGSL_LINE_SHADER.to_owned(),
+@@ -3039,7 +3054,7 @@ fn get_or_create_pipeline<'a>(
+                 label: Some("Coin untextured shader profile"),
+                 source: wgpu::ShaderSource::Wgsl(shader_profile::depth_load_profile(
+                     &shader_profile::texture_specialization(
+-                        &shader_profile::sampling_profile(&format!("{}{}", source, weighted::FRAGMENT), sampling_study() != SamplingStudy::Native)), true).into()),
++                        &shader_profile::sampling_profile(&format!("{}{}", source, weighted::FRAGMENT), profile.policy != SamplingPolicy::Native)), true).into()),
+             })
+         }).clone()
+     } else { selected_shader.clone() };
+@@ -3048,7 +3063,7 @@ fn get_or_create_pipeline<'a>(
+         .device
+         .create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+             label: Some(pipeline_label),
+-            layout: Some(if instanced { &ctx.instanced_pipeline_layout } else if eight_shadows { &ctx.shadow_eight_pipeline_layout } else { &ctx.pipeline_layout }),
++            layout: Some(if instanced { &profile.instanced_pipeline_layout } else if eight_shadows { &profile.shadow_eight_pipeline_layout } else { &profile.pipeline_layout }),
+             vertex: wgpu::VertexState {
+                 module: &selected_shader,
+                 entry_point: Some("vs_main"),
+@@ -3197,6 +3212,7 @@ fn encode_frame(
+     depth_view: &wgpu::TextureView,
+     depth_texture: &wgpu::Texture,
+     peel_passes: u32,
++    requested_sampling_policy: u32,
+ ) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
+     use wgpu::util::DeviceExt;
+     if !states_slice.iter().all(valid_alpha_test) {
+@@ -3210,6 +3226,13 @@ fn encode_frame(
+         return Err((CoinWgpuStatus::Unsupported, "Active alpha test requires alpha-aware shadow-map casters".into()));
+     }
+     let instanced = !instances_slice.is_empty();
++    let requested_policy = SamplingPolicy::from_raw(requested_sampling_policy)?;
++    // Non-textured/instanced frames retain the original native prefix and pipelines.
++    let policy = if instanced || !samplers_slice.iter().any(|s| s.filter == 2) {
++        SamplingPolicy::Native
++    } else { requested_policy };
++    let profile = ctx.surface_profile(policy);
++
+     if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
+         || instancing::gpu_bytes(instances_slice.len())
+             > u64::from(ctx.device.limits().max_storage_buffer_binding_size)) {
+@@ -3678,7 +3701,7 @@ fn encode_frame(
+         && !materials_slice.is_empty()
+         && draws_slice.len() <= 512
+         && mat_buffer_size.saturating_add(draws_slice.len()
+-            .saturating_mul(uniform_binding_bytes(instanced))) <= 4 * 1024 * 1024
++            .saturating_mul(uniform_binding_bytes(instanced, policy))) <= 4 * 1024 * 1024
+     });
+     let mut camera_bindings = ctx.camera_bindings.lock().unwrap();
+     if !camera_binding_geometry.is_some_and(|geometry| camera_bindings.as_ref()
+@@ -4062,7 +4085,7 @@ fn encode_frame(
+     let uniform_records = draw_order.iter().try_fold(0usize, |count, item| {
+         count.checked_add(if item.peel { peel_passes as usize } else { 1 })
+     }).ok_or_else(|| (CoinWgpuStatus::InvalidArgument, "Draw uniform count overflow".into()))?;
+-    let uniform_size = uniform_binding_bytes(instanced);
++    let uniform_size = uniform_binding_bytes(instanced, policy);
+     let sampling_audit = std::env::var_os("COIN_SAMPLING_AUDIT").is_some();
+     let mut uniform_arena = uniform_arena::UniformArena::new(&ctx.device, uniform_records, uniform_size);
+     // Resources are stable while the texture/RTT caches are locked. A disabled
+@@ -4272,7 +4295,7 @@ fn encode_frame(
+                 };
+                 let eight_shadows = shadow_frame.is_some_and(|s| !s.extra.is_empty());
+                 let pipeline = match get_or_create_pipeline(
+-                    ctx,
++                    ctx, profile,
+                     draw.topology,
+                     if is_peel || is_weighted {
+                         wgpu::TextureFormat::Rgba16Float
+@@ -4353,12 +4376,12 @@ fn encode_frame(
+                         let (view, width, height) = if t.format == 1 {
+                             let resource = rtt_cache.active.get(&t.content_digest)
+                                 .expect("RTT token preflighted before encoding");
+-                            (&resource.view, if sampling_study()==SamplingStudy::FineUniform {resource.width} else {1}, if sampling_study()==SamplingStudy::FineUniform {resource.height} else {1})
++                            (&resource.view, if policy == SamplingPolicy::Portable {resource.width} else {1}, if policy == SamplingPolicy::Portable {resource.height} else {1})
+                         } else if let Some(entry) = tex_cache.entries.get(&tk) {
+-                            (&entry.view, if sampling_study()==SamplingStudy::FineUniform {entry.texture.width()} else {1}, if sampling_study()==SamplingStudy::FineUniform {entry.texture.height()} else {1})
++                            (&entry.view, if policy == SamplingPolicy::Portable {entry.texture.width()} else {1}, if policy == SamplingPolicy::Portable {entry.texture.height()} else {1})
+                         } else { (&ctx.default_texture_view, 1, 1) };
+                         (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
+-                         [width as f32, height as f32, 0.0, 0.0])
++                         [width as f32, height as f32, s.filter as f32, (s.wrap_s + 2 * s.wrap_t) as f32])
+                     })
+                     .collect();
+                 let extra_texture_matrices = std::array::from_fn(|unit| {
+@@ -4369,7 +4392,7 @@ fn encode_frame(
+                 let extra_tex_params = std::array::from_fn(|unit| {
+                     let t = st.extra_textures[unit];
+                     [
+-                        if t.enabled != 0 { study_sampler_flag(t.enabled, &samplers_slice[t.sampler_slot as usize]) } else { 0.0 },
++                        if t.enabled != 0 { t.enabled as f32 } else { 0.0 },
+                         t.model as f32,
+                         if t.enabled != 0 && textures_slice[t.texture_slot as usize].format == 1 {
+                             1.0
+@@ -4411,7 +4434,7 @@ fn encode_frame(
+                 });
+                 let uniforms = CoinWgpuUniforms {
+                     alpha_test: [st.alpha_test_function as f32, st.alpha_test_reference, 0.0, 0.0],
+-                    study_texture_sizes: std::array::from_fn(|unit| texture_bindings[unit].2),
++                    sampling_texture_sizes: std::array::from_fn(|unit| texture_bindings[unit].2),
+                     model_view_projection: mvp,
+                     model_view: mv,
+                     normal_matrix: nm,
+@@ -4449,7 +4472,7 @@ fn encode_frame(
+                         if st.depth_test != 0 && st.depth_write != 0 { 1.0 } else { 0.0 },
+                     ],
+                     tex_params: [
+-                        if st.has_texture != 0 { study_sampler_flag(st.has_texture, &samplers_slice[st.sampler_slot as usize]) } else { 0.0 },
++                        if st.has_texture != 0 { st.has_texture as f32 } else { 0.0 },
+                         st.texture_model as f32,
+                         if st.has_texture != 0
+                             && textures_slice[st.texture_slot as usize].format == 1
+@@ -4631,7 +4654,7 @@ fn encode_frame(
+                     }
+                     ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+                         label: Some("Coin shared draw texture bindings"),
+-                        layout: if instanced { &ctx.instanced_bind_group_layout } else if eight_shadows { &ctx.shadow_eight_layout } else { &ctx.bind_group_layout },
++                        layout: if instanced { &profile.instanced_bind_group_layout } else if eight_shadows { &profile.shadow_eight_layout } else { &profile.bind_group_layout },
+                         entries: &entries,
+                     })
+                 };
+@@ -4662,7 +4685,7 @@ fn encode_frame(
+                             resource: wgpu::BindingResource::TextureView(view) });
+                     }
+                     let binding = ctx.device.create_bind_group(&wgpu::BindGroupDescriptor {
+-                        label: Some("Coin extra shadow receiver binding"), layout: &ctx.shadow_extra_layout, entries: &entries,
++                        label: Some("Coin extra shadow receiver binding"), layout: &profile.shadow_extra_layout, entries: &entries,
+                     });
+                     pass.set_bind_group(1, &binding, &[]);
+                 }
+@@ -4673,7 +4696,7 @@ fn encode_frame(
+                     let hash=bytemuck::bytes_of(&uniforms)[..uniform_size].iter()
+                         .fold(0xcbf29ce484222325u64,|h,b|(h^u64::from(*b)).wrapping_mul(0x100000001b3));
+                     eprintln!("COIN_SAMPLING_AUDIT mode={:?} revision={} instanced={} instances={} draws={} texture_units={} uniform_bytes={} uniform_hash={:016x}",
+-                        sampling_study(),frame_revision,instanced,instances_slice.len(),draws_slice.len(),
++                        policy,frame_revision,instanced,instances_slice.len(),draws_slice.len(),
+                         layers.iter().filter(|x|x.enabled!=0).count(),uniform_size,hash);
+                 }
+                 let (chunk, uniform_offset) = uniform_arena.push(&ctx.device, &uniforms);
+@@ -5432,7 +5455,7 @@ fn coin_wgpu_surface_submit_internal(
+         }
+ 
+         let f = unsafe { &*frame };
+-        if f.texture_output_flags!=0 || f.texture_output_reserved!=0 {
++        if f.texture_output_flags!=0 || f.texture_sampling_policy>1 {
+             set_error(error_buf,error_buf_len,"Surface submits do not accept RTT output flags");
+             return CoinWgpuStatus::InvalidArgument;
+         }
+@@ -5992,6 +6015,7 @@ fn coin_wgpu_surface_submit_internal(
+             depth_view,
+             record.depth_texture.as_ref().unwrap(),
+             f.sorted_layers_passes,
++            f.texture_sampling_policy,
+         ) {
+             Ok(cmd) => cmd,
+             Err((status, msg)) => {
+@@ -6997,7 +7021,7 @@ fn coin_wgpu_submit_internal(
+             set_error(error_buf, error_buf_len, "Too many active RTT textures");
+             return CoinWgpuStatus::OutOfMemory;
+         }
+-        if f.texture_output_reserved!=0 || f.texture_output_flags&!3!=0 ||
++        if f.texture_sampling_policy>1 || f.texture_output_flags&!3!=0 ||
+            (f.texture_output_flags!=0 && out_texture.is_null()) {
+             set_error(error_buf,error_buf_len,"Advanced output flags require a direct RTT destination");
+             return CoinWgpuStatus::InvalidArgument;
+@@ -7105,6 +7129,7 @@ fn coin_wgpu_submit_internal(
+             &depth_view,
+             &depth_texture,
+             f.sorted_layers_passes,
++            f.texture_sampling_policy,
+         ) {
+             Ok(cmd) => cmd,
+             Err((status, msg)) => {
+@@ -8071,10 +8096,15 @@ pub extern "C" fn coin_wgpu_get_performance_stats(stats: *mut CoinWgpuPerformanc
+                     out.texture_active_entries = cache.entries.len() as u64;
+                     out.texture_retired_entries = cache.retired.len() as u64;
+                 }
+-                if let Ok(pipelines) = dev.pipelines.lock() {
++                if let Ok(pipelines) = dev.surface_native.pipelines.lock() {
+                     out.pipeline_compilations = dev.pipeline_compilations.load(Ordering::Relaxed);
+                     out.pipeline_active_entries = pipelines.len() as u64;
+                 }
++                if let Some(profile) = dev.surface_portable.get() {
++                    if let Ok(pipelines) = profile.pipelines.lock() {
++                        out.pipeline_active_entries += pipelines.len() as u64;
++                    }
++                }
+                 out.pipeline_hits = dev.pipeline_hits.load(Ordering::Relaxed);
+             }
+         }
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs b/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
+index f87dd9e2d7..9096098852 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
+@@ -1,15 +1,15 @@
+-// Native compilation removes study functions and its private uniform appendix.
++// Native compilation removes portable functions and its uniform appendix.
+ // Both vertex and fragment stages therefore use the original binding prefix.
+-pub(super) fn sampling_profile(source: &str, study: bool) -> String {
+-    if study || !source.contains("fn study_sample(") { return source.to_owned(); }
++pub(super) fn sampling_profile(source: &str, portable: bool) -> String {
++    if portable || !source.contains("fn coin_portable_sample(") { return source.to_owned(); }
+     let mut source = source.to_owned();
+-    let start = source.find("fn study_lerp(").unwrap();
++    let start = source.find("fn coin_portable_lerp(").unwrap();
+     let end = source[start..].find("fn projected_uv(").unwrap() + start;
+     source.replace_range(start..end, "");
+-    source = source.replace("    study_texture_sizes: array<vec4<f32>, 8>,\n", "");
+-    source = source.replace(", u.tex_params.x, u.study_texture_sizes[0]", "");
+-    for unit in 1..8 { source = source.replace(&format!(", params.x, u.study_texture_sizes[{unit}]"), ""); }
+-    source.replace("study_sample(", "textureSample(")
++    source = source.replace("    sampling_texture_sizes: array<vec4<f32>, 8>,\n", "");
++    source = source.replace(", u.tex_params.x, u.sampling_texture_sizes[0]", "");
++    for unit in 1..8 { source = source.replace(&format!(", params.x, u.sampling_texture_sizes[{unit}]"), ""); }
++    source.replace("coin_portable_sample(", "textureSample(")
+ }
+ 
+ // Keep the transported uniform ABI intact. Specialization only removes work
+@@ -82,7 +82,7 @@ pub(super) mod tests {
+             super::super::shadow_receiver::four_map_source(), super::super::shadow_receiver::eight_map_source(),
+             super::super::instancing::shader_source()] {
+             let source = texture_specialization(&format!("{}{}", sampling_profile(&source, false), super::super::weighted::FRAGMENT));
+-            assert!(!source.contains("study_texture_sizes") && !source.contains("fn study_") && !source.contains("dpdxFine"));
++            assert!(!source.contains("sampling_texture_sizes") && !source.contains("fn coin_portable_") && !source.contains("dpdxFine"));
+             let module = naga::front::wgsl::parse_str(&source).expect("native profile parse");
+             Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module).expect("native profile validate");
+             let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
+diff --git a/src/rendering/coinwgpu/shaders/coin_standard.wgsl b/src/rendering/coinwgpu/shaders/coin_standard.wgsl
+index f854f2e6a7..c8cd10a713 100644
+--- a/src/rendering/coinwgpu/shaders/coin_standard.wgsl
++++ b/src/rendering/coinwgpu/shaders/coin_standard.wgsl
+@@ -54,7 +54,7 @@ struct Uniforms {
+     shadow_meta_fourth: vec4<f32>,
+     shadow_falloff_fourth: vec4<f32>,
+     alpha_test: vec4<f32>, // semantic function, clamped reference
+-    study_texture_sizes: array<vec4<f32>, 8>,
++    sampling_texture_sizes: array<vec4<f32>, 8>,
+ };
+ 
+ struct GpuMaterial {
+@@ -269,60 +269,32 @@ fn vs_main(input: VertexInput) -> VertexOutput {
+ 
+ // Coin's active shadow shader samples transformed ST without Q division.
+ // Other paths preserve Q through interpolation and keep ordinary q=1 UV fast.
+-fn study_lerp(a: vec4<f32>, b: vec4<f32>, w: f32) -> vec4<f32> { return a + (b-a)*w; }
+-// Study implementation: floor-selected texels and fine max-vector footprint.
+-fn study_fetch(t: texture_2d<f32>, at: vec2<i32>, level: i32, flags: u32) -> vec4<f32> {
+-    let n = vec2<i32>(textureDimensions(t, level));
+-    let repeat_at = select(select(at, at - n, at >= n), at + n, at < vec2<i32>(0));
+-    let clamp_at = clamp(at, vec2<i32>(0), n - vec2<i32>(1));
+-    let pos = vec2<i32>(select(repeat_at.x, clamp_at.x, (flags & 4u) != 0u),
+-                        select(repeat_at.y, clamp_at.y, (flags & 8u) != 0u));
+-    return textureLoad(t, pos, level);
+-}
+-fn study_level(t: texture_2d<f32>, uv: vec2<f32>, level: i32, linear_filter: bool, flags: u32) -> vec4<f32> {
+-    let at = uv * vec2<f32>(textureDimensions(t, level));
+-    if !linear_filter { return study_fetch(t, vec2<i32>(floor(at)), level, flags); }
+-    let lo = vec2<i32>(floor(at - vec2<f32>(0.5)));
+-    let f = fract(at - vec2<f32>(0.5));
+-    return study_lerp(study_lerp(study_fetch(t, lo, level, flags), study_fetch(t, lo + vec2<i32>(1,0), level, flags), f.x),
+-               study_lerp(study_fetch(t, lo + vec2<i32>(0,1), level, flags), study_fetch(t, lo + vec2<i32>(1,1), level, flags), f.x), f.y);
+-}
+-fn study_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32, supplied_size: vec4<f32>) -> vec4<f32> {
+-    if enabled < 1.5 { return textureSample(t, s, uv); }
+-    let flags = u32(enabled / 2.0) - 1u;
+-    var n = supplied_size.xy;
+-    if (flags & 64u) == 0u { n = vec2<f32>(textureDimensions(t, 0)); }
++fn coin_portable_lerp(a: vec4<f32>, b: vec4<f32>, w: f32) -> vec4<f32> { return a + (b-a)*w; }
++// supplied_size.xy = dimensions of the bound resource; z = filter; w = wrap bits.
++// Derivatives use original UV, before repeat/clamp and texel centering.
++fn coin_portable_sample(t: texture_2d<f32>, s: sampler, uv: vec2<f32>, enabled: f32, supplied_size: vec4<f32>) -> vec4<f32> {
++    if supplied_size.z != 2.0 { return textureSample(t, s, uv); }
++    let n = supplied_size.xy;
+     let gx = dpdxFine(uv) * n;
+     let gy = dpdyFine(uv) * n;
+-    let wrapped = fract(uv);
+-    let clamped = clamp(uv, vec2<f32>(0.0), vec2<f32>(1.0));
+-    let bounded_uv = vec2<f32>(select(wrapped.x, clamped.x, (flags & 4u) != 0u),
+-                               select(wrapped.y, clamped.y, (flags & 8u) != 0u));
+-    let filter_kind = flags & 3u;
+-    if filter_kind < 2u { return study_level(t, bounded_uv, 0, filter_kind == 1u, flags); }
+     let maximum = i32(floor(log2(max(n.x, n.y))));
+     let lod = clamp(log2(max(max(length(gx), length(gy)), 0.000001)), 0.0, f32(maximum));
+-    // Coin filter_kind 2 has linear magnification, nearest minification.
+-    let linear_filter = filter_kind == 3u || lod <= 0.0;
+-    let lo = i32(floor(lod));
+-    let hi = min(lo + 1, maximum);
+-    if (flags & 16u) != 0u {
+-        if lod <= 0.0 { return textureSampleLevel(t, s, uv, 0.0); }
+-        var a = vec2<f32>(max(vec2<u32>(n) >> vec2<u32>(u32(lo)), vec2<u32>(1u)));
+-        if (flags & 64u) == 0u { a = vec2<f32>(textureDimensions(t, lo)); }
+-        let ni = vec2<u32>(n);
+-        let pot = (ni.x & (ni.x - 1u)) == 0u && (ni.y & (ni.y - 1u)) == 0u;
+-        if (flags & 32u) != 0u && pot {
+-            return textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, lod);
+-        }
+-        var b = vec2<f32>(max(vec2<u32>(n) >> vec2<u32>(u32(hi)), vec2<u32>(1u)));
+-        if (flags & 64u) == 0u { b = vec2<f32>(textureDimensions(t, hi)); }
+-        return study_lerp(textureSampleLevel(t, s, (floor(bounded_uv*a)+vec2<f32>(0.5))/a, f32(lo)),
+-                   textureSampleLevel(t, s, (floor(bounded_uv*b)+vec2<f32>(0.5))/b, f32(hi)), fract(lod));
+-    }
+-    return study_lerp(study_level(t, bounded_uv, lo, linear_filter, flags), study_level(t, bounded_uv, hi, linear_filter, flags), fract(lod));
++    if lod <= 0.0 { return textureSampleLevel(t, s, uv, 0.0); }
++    let flags = u32(supplied_size.w);
++    let wrapped = fract(uv);
++    let clamped = clamp(uv, vec2<f32>(0.0), vec2<f32>(1.0));
++    let bounded = vec2<f32>(select(wrapped.x, clamped.x, (flags & 1u) != 0u),
++                           select(wrapped.y, clamped.y, (flags & 2u) != 0u));
++    let lo = u32(floor(lod));
++    let hi = min(lo + 1u, u32(maximum));
++    let ni = vec2<u32>(n);
++    let a = vec2<f32>(max(ni >> vec2<u32>(lo), vec2<u32>(1u)));
++    let pot = (ni.x & (ni.x-1u)) == 0u && (ni.y & (ni.y-1u)) == 0u;
++    if pot { return textureSampleLevel(t, s, (floor(bounded*a)+0.5)/a, lod); }
++    let b = vec2<f32>(max(ni >> vec2<u32>(hi), vec2<u32>(1u)));
++    return coin_portable_lerp(textureSampleLevel(t, s, (floor(bounded*a)+0.5)/a, f32(lo)),
++                              textureSampleLevel(t, s, (floor(bounded*b)+0.5)/b, f32(hi)), fract(lod));
+ }
+-
+ fn projected_uv(value: vec3<f32>, projection: f32) -> vec2<f32> {
+     if (projection > 0.5 || value.z == 1.0) { return value.xy; }
+     return value.xy / value.z;
+@@ -472,28 +444,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
+     if (u.tex_params.x > 0.5) {
+         let projected = projected_uv(input.texcoord, u.tex_params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), u.tex_params.z > 0.5);
+-        let tex_col = study_sample(t_diffuse, s_diffuse, uv, u.tex_params.x, u.study_texture_sizes[0]);
++        let tex_col = coin_portable_sample(t_diffuse, s_diffuse, uv, u.tex_params.x, u.sampling_texture_sizes[0]);
+         base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
+     }
+     if (u.extra_tex_params[0].x > 0.5) {
+         let params = u.extra_tex_params[0];
+         let projected = projected_uv(input.uv1, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture1, s_texture1, uv, params.x, u.study_texture_sizes[1]);
++        let tex = coin_portable_sample(t_texture1, s_texture1, uv, params.x, u.sampling_texture_sizes[1]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
+     }
+     if (u.extra_tex_params[1].x > 0.5) {
+         let params = u.extra_tex_params[1];
+         let projected = projected_uv(input.uv2, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture2, s_texture2, uv, params.x, u.study_texture_sizes[2]);
++        let tex = coin_portable_sample(t_texture2, s_texture2, uv, params.x, u.sampling_texture_sizes[2]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
+     }
+     if (u.extra_tex_params[2].x > 0.5) {
+         let params = u.extra_tex_params[2];
+         let projected = projected_uv(input.uv3, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture3, s_texture3, uv, params.x, u.study_texture_sizes[3]);
++        let tex = coin_portable_sample(t_texture3, s_texture3, uv, params.x, u.sampling_texture_sizes[3]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
+     }
+     // COIN_UPPER_TEXTURE_UNITS_BEGIN
+@@ -501,28 +473,28 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
+         let params = u.extra_tex_params[3];
+         let projected = projected_uv(input.uv4, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture4, s_texture4, uv, params.x, u.study_texture_sizes[4]);
++        let tex = coin_portable_sample(t_texture4, s_texture4, uv, params.x, u.sampling_texture_sizes[4]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
+     }
+     if (u.extra_tex_params[4].x > 0.5) {
+         let params = u.extra_tex_params[4];
+         let projected = projected_uv(input.uv5, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture5, s_texture5, uv, params.x, u.study_texture_sizes[5]);
++        let tex = coin_portable_sample(t_texture5, s_texture5, uv, params.x, u.sampling_texture_sizes[5]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
+     }
+     if (u.extra_tex_params[5].x > 0.5) {
+         let params = u.extra_tex_params[5];
+         let projected = projected_uv(input.uv6, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture6, s_texture6, uv, params.x, u.study_texture_sizes[6]);
++        let tex = coin_portable_sample(t_texture6, s_texture6, uv, params.x, u.sampling_texture_sizes[6]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
+     }
+     if (u.extra_tex_params[6].x > 0.5) {
+         let params = u.extra_tex_params[6];
+         let projected = projected_uv(input.uv7, params.w);
+         let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
+-        let tex = study_sample(t_texture7, s_texture7, uv, params.x, u.study_texture_sizes[7]);
++        let tex = coin_portable_sample(t_texture7, s_texture7, uv, params.x, u.sampling_texture_sizes[7]);
+         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
+     }
+     // COIN_UPPER_TEXTURE_UNITS_END
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index 8ff4b15237..ac129b31da 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -459,6 +459,17 @@ if(COIN_BUILD_RENDER)
+ 	add_test(NAME CoinRenderCameraReuseReferenceTest COMMAND CoinRenderCameraReuseReferenceTest)
+ 	set_tests_properties(CoinRenderCameraReuseReferenceTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77)
+ 
++	add_executable(CoinRenderSamplingPolicyTest coinrender/CoinRenderSamplingPolicyTest.cpp)
++	set_target_properties(CoinRenderSamplingPolicyTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
++	target_link_libraries(CoinRenderSamplingPolicyTest CoinRender Coin)
++	target_include_directories(CoinRenderSamplingPolicyTest PRIVATE
++		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
++		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
++	add_test(NAME CoinRenderSamplingPolicyTest COMMAND CoinRenderSamplingPolicyTest)
++	add_test(NAME CoinRenderSamplingPolicyGpuTest COMMAND CoinRenderSamplingPolicyTest --gpu)
++	set_tests_properties(CoinRenderSamplingPolicyGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
++		ENVIRONMENT "COIN_SAMPLING_STUDY=fetch")
++
+ 	add_executable(CoinRenderSelectionTest coinrender/CoinRenderSelectionTest.cpp)
+ 	set_target_properties(CoinRenderSelectionTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+ 	target_link_libraries(CoinRenderSelectionTest CoinRender Coin)
+diff --git a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+index c73977ba6d..22c98724d3 100644
+--- a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+@@ -1,3 +1,5 @@
++#include <Inventor/rendering/CoinRenderTarget.h>
++#include "CoinRenderSamplingTestOptions.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+@@ -161,15 +163,16 @@ static bool center(const std::vector<uint8_t> &pixels, const int expected[3],
+   return check(ok && maximum <= tolerance, label);
+ }
+ int main(int argc, char **argv) {
++  configureSamplingTest(argc, argv);
+   SoDB::init();
+   CoinRenderAction::initClass();
+   bool gpu = argc > 1 && std::string(argv[1]) == "--gpu";
+   bool ok = numeric();
+   Scene scene;
+-  CoinRenderOptions options;
++  CoinRenderOptions options = samplingTestOptions();
+   options.storedTextureColorSpace = COIN_RENDER_TEXTURE_SRGB;
+   std::unique_ptr<CoinRenderTarget> captureTarget(
+-      CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), options));
++      samplingTestOffscreen(SbVec2i32(32, 32), options));
+   auto *capture = new Capture;
+   captureTarget->getPimpl()->backend.reset(capture);
+   CoinRenderAction action(SbViewportRegion(32, 32));
+@@ -180,11 +183,12 @@ int main(int argc, char **argv) {
+               "authored SRGB opt-in capture");
+   CoinRenderFramePlan base = capture->plan;
+   CoinRenderTargetP cpu(SbVec2i32(32, 32));
++  cpu.options.textureSamplingPolicy = samplingTestPolicy;
+   cpu.backend.reset(new CoinRenderCpuReferenceBackend);
+   CoinRenderRenderer selectedRenderer = COIN_RENDER_RENDERER_UNKNOWN;
+   std::unique_ptr<CoinRenderTarget> native;
+   if (gpu) {
+-    native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(32, 32)));
++    native.reset(samplingTestOffscreen(SbVec2i32(32, 32)));
+     CoinRenderCapabilities caps{};
+     coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
+                                    sizeof(caps));
+@@ -218,9 +222,9 @@ int main(int argc, char **argv) {
+   if (argc > 2 && std::string(argv[2]) == "--sampling-rtt-study") {
+     // Public SoSceneTexture2 always uses linear/trilinear. This explicitly
+     // authored private consumer tests filter2 against a direct GPU resource.
+-    CoinRenderOptions directOptions;directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
++    CoinRenderOptions directOptions = samplingTestOptions();directOptions.sceneTexture=COIN_RENDER_SCENE_TEXTURE_DIRECT;
+     directOptions.renderer=selectedRenderer;
+-    std::unique_ptr<CoinRenderTarget> direct(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),directOptions));
++    std::unique_ptr<CoinRenderTarget> direct(samplingTestOffscreen(SbVec2i32(32,32),directOptions));
+     unsigned cases=0;
+     for(F format : {F::RGBA8_LINEAR,F::RGBA16_FLOAT}) for(unsigned unit : {0u,7u})
+     for(auto size : {SbVec2i32(512,128),SbVec2i32(1024,64),SbVec2i32(128,256),SbVec2i32(512,128)})
+@@ -721,11 +725,11 @@ int main(int argc, char **argv) {
+                   prior == cpu.colorBuffer,
+               "invalid anisotropy preserves publication");
+   if (gpu) {
+-    CoinRenderOptions directOptions;
++    CoinRenderOptions directOptions = samplingTestOptions();
+     directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
+     directOptions.renderer = selectedRenderer;
+     std::unique_ptr<CoinRenderTarget> direct(
+-        CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), directOptions));
++        samplingTestOffscreen(SbVec2i32(32, 32), directOptions));
+     auto hdrRoot = base;
+     hdrRoot.textures[0].pixelsRgba.clear();
+     hdrRoot.textures[0].mipmapsRgba.clear();
+@@ -742,6 +746,7 @@ int main(int argc, char **argv) {
+     producer.format = F::RGBA16_FLOAT;
+     producer.plan = base;
+     producer.plan = CoinRenderFramePlan();
++    producer.plan.textureSamplingPolicy = samplingTestPolicy;
+     producer.plan.clearColor = SbColor4f(2, .5f, .25f, 1);
+     uint64_t id;
+     std::string diagnostic;
+diff --git a/testsuite/coinrender/CoinRenderLightingTest.cpp b/testsuite/coinrender/CoinRenderLightingTest.cpp
+index e96158b133..cdeef5cd6a 100644
+--- a/testsuite/coinrender/CoinRenderLightingTest.cpp
++++ b/testsuite/coinrender/CoinRenderLightingTest.cpp
+@@ -34,8 +34,8 @@
+ #include <string>
+ #include <vector>
+ 
+-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 50,
+-              "Shadow, opaque-instance, alpha-test and projective-UV bridge protocol");
++static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 51,
++              "Shadow, opaque-instance, alpha-test, projective-UV and sampling-policy bridge protocol");
+ static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
+ static_assert(sizeof(CoinWgpuRenderState) == 2292, "Texture projection policy bridge layout");
+ static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection policy bridge tail");
+diff --git a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+index 4cecc8627a..6fc58d15ba 100644
+--- a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+@@ -1,3 +1,5 @@
++#include <Inventor/rendering/CoinRenderTarget.h>
++#include "CoinRenderSamplingTestOptions.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+@@ -222,9 +224,9 @@ bool close(const SbVec4f & a, const SbVec4f & b) {
+ }
+ struct Harness {
+   Harness(bool gpu) : action(SbViewportRegion(size,size)), gpuAction(SbViewportRegion(size,size)) {
+-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size)));
++    cpu.reset(samplingTestOffscreen(SbVec2i32(size,size)));
+     capture = new CaptureBackend; cpu->getPimpl()->backend.reset(capture); action.setRenderTarget(cpu.get());
+-    if (gpu) { native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
++    if (gpu) { native.reset(samplingTestOffscreen(SbVec2i32(size,size))); gpuAction.setRenderTarget(native.get()); }
+     action.setBackgroundColor(SbColor4f(0,0,0,1)); gpuAction.setBackgroundColor(SbColor4f(0,0,0,1));
+     action.setTransparencyType(CoinRenderAction::BLEND);gpuAction.setTransparencyType(CoinRenderAction::BLEND);
+   }
+@@ -456,6 +458,7 @@ bool run(bool gpu) {
+ }
+ }
+ int main(int argc,char ** argv) {
++  configureSamplingTest(argc, argv);
+   SoDB::init(); CoinRenderAction::initClass(); ProceduralCoordinates::initClass(); ProceduralFaces::initClass(); EnabledEmptyTexture::initClass();
+   // Opt-in reproducers for the open textured contour junctions. These are
+   // intentionally outside the qualified CTest profile; thresholds stay intact.
+diff --git a/testsuite/coinrender/CoinRenderRttProfileTest.cpp b/testsuite/coinrender/CoinRenderRttProfileTest.cpp
+index e06947d766..e8068c342c 100644
+--- a/testsuite/coinrender/CoinRenderRttProfileTest.cpp
++++ b/testsuite/coinrender/CoinRenderRttProfileTest.cpp
+@@ -1,3 +1,5 @@
++#include <Inventor/rendering/CoinRenderTarget.h>
++#include "CoinRenderSamplingTestOptions.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+@@ -50,6 +52,7 @@ static void quad(SoSeparator * root) {
+   face->coordIndex.setValues(0,5,indices); root->addChild(face);
+ }
+ int main(int argc, char ** argv) {
++  configureSamplingTest(argc, argv);
+   if (!std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) return 77;
+   SoDB::init(); CoinRenderAction::initClass();
+   const bool mipOnly = argc>1 && (std::string(argv[1])=="--mips" || std::string(argv[1])=="--mips-direct");
+@@ -57,8 +60,9 @@ int main(int argc, char ** argv) {
+   std::string optionError;
+   CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionError);
+   if (!optionError.empty()) { std::cerr<<optionError<<'\n'; return 1; }
++  options.textureSamplingPolicy = samplingTestPolicy;
+   options.sceneTexture = direct ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
+-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(32,32),options));
++  std::unique_ptr<CoinRenderTarget> target(samplingTestOffscreen(SbVec2i32(32,32),options));
+   CoinRenderAction action(SbViewportRegion(32,32)); action.setRenderTarget(target.get());
+   action.setTransparencyType(CoinRenderAction::BLEND);
+   action.setBackgroundColor(SbColor4f(.1f,.2f,.3f,1));
+diff --git a/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp b/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
+new file mode 100644
+index 0000000000..041f4e0b8e
+--- /dev/null
++++ b/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
+@@ -0,0 +1,158 @@
++#ifdef HAVE_CONFIG_H
++#include "config.h"
++#endif
++#include <Inventor/SoDB.h>
++#include <Inventor/actions/CoinRenderAction.h>
++#include <Inventor/nodes/SoComplexity.h>
++#include <Inventor/nodes/SoCoordinate3.h>
++#include <Inventor/nodes/SoIndexedFaceSet.h>
++#include <Inventor/nodes/SoLightModel.h>
++#include <Inventor/nodes/SoOrthographicCamera.h>
++#include <Inventor/nodes/SoSeparator.h>
++#include <Inventor/nodes/SoTexture2.h>
++#include <Inventor/nodes/SoTextureCoordinate2.h>
++#include <Inventor/nodes/SoTextureUnit.h>
++#include <Inventor/rendering/CoinRenderTarget.h>
++#include "actions/CoinRenderActionP.h"
++#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
++#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
++#include "rendering/coinrender/CoinRenderSelectionCore.h"
++#include "rendering/coinrender/CoinRenderTargetP.h"
++#include <algorithm>
++#include <array>
++#include <cstring>
++#include <iostream>
++#include <memory>
++#include <thread>
++#include <chrono>
++
++static bool check(bool value, const char* label) {
++  if (!value) std::cerr << "FAIL " << label << '\n';
++  return value;
++}
++static bool selection(bool gpu) {
++  CoinRenderCapabilities caps{};
++  caps.version=4;caps.struct_size=sizeof(caps);caps.backend=COIN_RENDER_EXPERIMENTAL_RUST;
++  caps.probe_status=COIN_RENDER_PROBE_AVAILABLE;
++  caps.implemented_sampling_policies=COIN_RENDER_SAMPLING_POLICY_NATIVE|COIN_RENDER_SAMPLING_POLICY_PORTABLE;
++  caps.available_sampling_policies=caps.implemented_sampling_policies;
++  caps.qualified_sampling_policies=COIN_RENDER_SAMPLING_POLICY_PORTABLE;
++  bool ok=check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,1).reason==COIN_RENDER_SELECTION_SUPPORTED,"qualified portable selection");
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_NATIVE,1).reason==COIN_RENDER_SELECTION_UNQUALIFIED_PROFILE,"native does not advertise portable parity evidence");
++  caps.available_sampling_policies=COIN_RENDER_SAMPLING_POLICY_NATIVE;
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,0).reason==COIN_RENDER_SELECTION_HARDWARE_UNAVAILABLE,"no silent fallback to native");
++  caps.probe_status=COIN_RENDER_PROBE_BUSY;
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,0).reason==COIN_RENDER_SELECTION_RUNTIME_NOT_READY,"unknown runtime is not unsupported or available");
++  caps.version=3;
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,0).reason==COIN_RENDER_SELECTION_INVALID_REQUEST,"v3 cannot invent v4 sampling facts");
++  caps.version=4;caps.struct_size=offsetof(CoinRenderCapabilities,implemented_sampling_policies);
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,0).reason==COIN_RENDER_SELECTION_INVALID_REQUEST,"truncated capabilities reject sampling selection");
++  caps.struct_size=sizeof(caps);
++  ok &= check(coin_render_select_sampling_policy(&caps,static_cast<CoinRenderTextureSamplingPolicy>(99),0).reason==COIN_RENDER_SELECTION_INVALID_REQUEST,"invalid policy rejected before shift");
++  CoinRenderOptions options;std::string diagnostic;
++  ok &= check(options.textureSamplingPolicy==COIN_RENDER_SAMPLING_NATIVE,"source-compatible native default");
++  options.textureSamplingPolicy=static_cast<CoinRenderTextureSamplingPolicy>(99);
++  ok &= check(!coin_render_valid_options(options,diagnostic),"invalid target policy rejected");
++  if (!gpu) return ok;
++  if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"v4 runtime capabilities")) return false;
++  ok &= check(caps.version==4 && (caps.implemented_sampling_policies&COIN_RENDER_SAMPLING_POLICY_PORTABLE) && caps.portable_sampling_filter_mask==(1u<<2) && caps.portable_sampling_max_anisotropy==1 && caps.max_texture_mip_chain_bytes==UINT64_C(128)*1024*1024,"explicit portable profile and limits");
++  ok &= check(caps.portable_sampling_formats==31,"five explicit compiled image formats");
++#ifdef HAVE_COIN_BGFX
++  ok &= check(caps.portable_sampling_derivatives==COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT,"BGFX reports ordinary shader derivatives for every renderer");
++#else
++  ok &= check(caps.portable_sampling_derivatives==(caps.renderer==COIN_RENDER_RENDERER_OPENGL ?
++      COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT : COIN_RENDER_SAMPLING_DERIVATIVE_FINE),"wgpu reports GL fallback versus fine Vulkan derivatives");
++#endif
++  for (auto old : {std::pair<size_t,uint32_t>{offsetof(CoinRenderCapabilities,probe_status),1},
++                  {offsetof(CoinRenderCapabilities,known_hardware_facts),2},
++                  {offsetof(CoinRenderCapabilities,implemented_sampling_policies),3}}) {
++    std::array<unsigned char,sizeof(CoinRenderCapabilities)+16> buffer;buffer.fill(0xa5);
++    ok &= check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,buffer.data(),old.first)==0,"legacy query accepts exact prefix");
++    uint32_t version=0;std::memcpy(&version,buffer.data()+4,4);
++    ok &= check(version==old.second && std::all_of(buffer.begin()+old.first,buffer.end(),[](unsigned char c){return c==0xa5;}),"legacy version and all trailing bytes preserved");
++  }
++  std::cout<<"adapter="<<caps.adapter_name<<" renderer="<<caps.renderer<<" derivative="<<caps.portable_sampling_derivatives<<'\n';
++  return ok;
++}
++int main(int argc,char**argv) {
++  SoDB::init();CoinRenderAction::initClass();
++  const bool gpu=argc>1 && std::string(argv[1])=="--gpu";
++  bool ok=selection(gpu);
++  if (gpu && !CoinRenderAction::isGpuBackendAvailable()) return 77;
++  std::string diagnostic;auto nativeOptions=CoinRenderDiagnosticShell::renderOptions(diagnostic);
++  if (!diagnostic.empty()) {std::cerr<<diagnostic<<'\n';return 1;}
++  auto portableOptions=nativeOptions;portableOptions.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
++  std::unique_ptr<CoinRenderTarget> native(CoinRenderTarget::createOffscreen(SbVec2i32(64,64),nativeOptions));
++  std::unique_ptr<CoinRenderTarget> portable(CoinRenderTarget::createOffscreen(SbVec2i32(64,64),portableOptions));
++  if (!gpu) {native->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);portable->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);}
++  SoSeparator* root=new SoSeparator;root->ref();
++  auto* camera=new SoOrthographicCamera;camera->height=2;camera->position=SbVec3f(0,0,3);root->addChild(camera);
++  auto* light=new SoLightModel;light->model=SoLightModel::BASE_COLOR;root->addChild(light);
++  auto* quality=new SoComplexity;quality->textureQuality=.5f;root->addChild(quality);
++  auto* unit=new SoTextureUnit;root->addChild(unit);
++  auto* texture=new SoTexture2;texture->model=SoTexture2::REPLACE;root->addChild(texture);
++  std::vector<unsigned char> bytes(128*128*4,255);
++  for(int y=0;y<128;++y)for(int x=0;x<128;++x)for(int c=0;c<3;++c)bytes[(y*128+x)*4+c]=x<64?40:160;
++  texture->image.setValue(SbVec2s(128,128),4,bytes.data());
++  auto* coords=new SoCoordinate3;const SbVec3f positions[]={{-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}};coords->point.setValues(0,4,positions);root->addChild(coords);
++  auto* uv=new SoTextureCoordinate2;const SbVec2f st[]={{-1.46875f,.53125f},{2.53125f,.53125f},{2.53125f,.53125f},{-1.46875f,.53125f}};uv->point.setValues(0,4,st);root->addChild(uv);
++  auto* face=new SoIndexedFaceSet;const int32_t indices[]={0,1,2,3,-1};face->coordIndex.setValues(0,5,indices);root->addChild(face);
++  CoinRenderAction action(SbViewportRegion(64,64)), nativeAction(SbViewportRegion(64,64));
++  action.setRenderTarget(portable.get());nativeAction.setRenderTarget(native.get());
++  std::vector<uint8_t> nativeFirst,nativeAgain,portablePixels;
++  auto render=[&](CoinRenderTarget* target) {
++    auto& selected = target==native.get() ? nativeAction : action;
++    selected.apply(root);
++    return check(selected.getLastStatus()==CoinRenderAction::SUCCESS,"explicit-policy frame renders");
++  };
++  ok &= render(native.get());native->readbackRGBA(nativeFirst);
++  for(int textureUnit : {0,7,0}) {
++    unit->unit=textureUnit;
++    ok &= render(portable.get());portable->readbackRGBA(portablePixels);
++    ok &= check(action.getPimpl()->lastValidPlan.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE,"captured plan owns selected policy");
++    if(portablePixels.size()!=64*64*4){ok=false;break;}
++    // Independent floor oracle: original du/dx=1/16, texture128 => LOD3.
++    // x30 -> u0.4375, texel7 (40); x31 -> u0.5, texel8 (160).
++    for(int y=8;y<56;++y)for(int x : {30,31})for(int c=0;c<3;++c)
++      ok &= check(std::abs(int(portablePixels[(y*64+x)*4+c])-(x==30?40:160))<=1,"portable active-mip floor oracle");
++    auto valid=action.getPimpl()->lastValidPlan;
++    const uint64_t serial=portable->getLastSubmissionSerial();std::size_t borrowedBytes=0;
++    const uint8_t* borrowed=portable->borrowRGBA(borrowedBytes);
++    auto invalid=valid;const auto layer=coin_render_texture_unit(invalid.renderStates[0],textureUnit);
++    invalid.samplers[layer.samplerSlot].maxAnisotropy=4;invalid.revision+=100000;
++    const auto rejected=portable->getPimpl()->executeFrame(invalid);
++    std::vector<uint8_t> retained;portable->readbackRGBA(retained);std::size_t retainedBytes=0;
++    ok &= check(rejected.status==CoinRenderBackendStatus::UNSUPPORTED && rejected.diagnostic.find("isotropic")!=std::string::npos && retained==portablePixels && portable->getLastSubmissionSerial()==serial && portable->borrowRGBA(retainedBytes)==borrowed && retainedBytes==borrowedBytes,"unsupported combination preserves pixels, serial and borrowed pointer");
++    valid.revision+=200000;
++    ok &= check(portable->getPimpl()->executeFrame(valid).status==CoinRenderBackendStatus::SUCCESS,"recovery after rejected sampler");
++  }
++  unit->unit=0;
++  ok &= render(native.get());native->readbackRGBA(nativeAgain);
++  ok &= check(nativeAgain==nativeFirst,"portable target cannot contaminate native shader/cache");
++  quality->textureQuality=0;ok &= render(portable.get());
++  quality->textureQuality=.5f;ok &= render(portable.get());
++  if (gpu) {
++    CoinRenderReadbackTicket ticket;action.applyAsync(root,ticket);
++    ok &= check(action.getLastStatus()==CoinRenderAction::SUCCESS && ticket.token!=0,"portable asynchronous submission");
++    std::vector<uint8_t> asyncPixels;std::vector<float> asyncDepth;
++    CoinRenderTarget::ReadbackStatus status=CoinRenderTarget::READBACK_NOT_READY;
++    for(int attempt=0;ticket.token && attempt<2000 && status==CoinRenderTarget::READBACK_NOT_READY;++attempt) {
++      status=CoinRenderTarget::pollReadback(ticket,asyncPixels,asyncDepth);
++      if(status==CoinRenderTarget::READBACK_NOT_READY)std::this_thread::sleep_for(std::chrono::milliseconds(1));
++    }
++    ok &= check(status==CoinRenderTarget::READBACK_READY && asyncPixels.size()==64*64*4 &&
++                std::abs(int(asyncPixels.empty()?0:asyncPixels[(32*64+31)*4])-160)<=1,"async path preserves portable sampling oracle");
++    if(status!=CoinRenderTarget::READBACK_READY && ticket.token)CoinRenderTarget::cancelReadback(ticket);
++  }
++  ok &= check(native->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_NATIVE && portable->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE,"target policies stay immutable and independent of experimental environment");
++  if(gpu)ok &= check(native->getPimpl()->backend->resourceDomain().device==portable->getPimpl()->backend->resourceDomain().device,"policies share device resources");
++  ok &= check(portable->resize(SbVec2i32(128,128)),"portable target resize");
++  action.setViewportRegion(SbViewportRegion(128,128));ok &= render(portable.get());
++  portable->readbackRGBA(portablePixels);
++  if (portablePixels.size()==128*128*4) {
++    for(int x : {62,63}) ok &= check(std::abs(int(portablePixels[(64*128+x)*4])-(x==62?40:160))<=1,"resized derivative footprint oracle");
++  } else ok=false;
++  action.setRenderTarget(nullptr);nativeAction.setRenderTarget(nullptr);root->unref();
++  std::cout<<"Sampling API CPU="<<!gpu<<" result="<<(ok?"PASS":"FAIL")<<'\n';
++  return ok?0:1;
++}
+diff --git a/testsuite/coinrender/CoinRenderSamplingTestOptions.h b/testsuite/coinrender/CoinRenderSamplingTestOptions.h
+new file mode 100644
+index 0000000000..dfc1e4505b
+--- /dev/null
++++ b/testsuite/coinrender/CoinRenderSamplingTestOptions.h
+@@ -0,0 +1,24 @@
++#ifndef COIN_RENDER_SAMPLING_TEST_OPTIONS_H
++#define COIN_RENDER_SAMPLING_TEST_OPTIONS_H
++#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
++#include <string>
++static CoinRenderTextureSamplingPolicy samplingTestPolicy = COIN_RENDER_SAMPLING_NATIVE;
++static void configureSamplingTest(int argc, char** argv) {
++  for (int i=1; i<argc; ++i) if (std::string(argv[i]) == "--portable-sampling")
++    samplingTestPolicy = COIN_RENDER_SAMPLING_PORTABLE;
++}
++static CoinRenderOptions samplingTestOptions() {
++  std::string diagnostic;
++  auto options = CoinRenderDiagnosticShell::renderOptions(diagnostic);
++  if (!diagnostic.empty()) options.renderer = static_cast<CoinRenderRenderer>(999);
++  options.textureSamplingPolicy = samplingTestPolicy;
++  return options;
++}
++static CoinRenderTarget* samplingTestOffscreen(const SbVec2i32& size) {
++  return CoinRenderTarget::createOffscreen(size, samplingTestOptions());
++}
++static CoinRenderTarget* samplingTestOffscreen(const SbVec2i32& size, CoinRenderOptions options) {
++  options.textureSamplingPolicy = samplingTestPolicy;
++  return CoinRenderTarget::createOffscreen(size, options);
++}
++#endif
+diff --git a/testsuite/coinrender/CoinRenderSelectionTest.cpp b/testsuite/coinrender/CoinRenderSelectionTest.cpp
+index 6dba11616f..f2a462ecdb 100644
+--- a/testsuite/coinrender/CoinRenderSelectionTest.cpp
++++ b/testsuite/coinrender/CoinRenderSelectionTest.cpp
+@@ -239,7 +239,7 @@ bool probe() {
+   CoinRenderCapabilities caps{};
+   if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN, &caps,
+                                             sizeof(caps)) == 0 &&
+-                 caps.version == 3 && caps.max_texture_units == 8 && caps.max_peel_layers == 8 &&
++                 caps.version == COIN_RENDER_CAPABILITIES_VERSION && caps.max_texture_units == 8 && caps.max_peel_layers == 8 &&
+                  (caps.implemented_mechanisms & COIN_RENDER_MECHANISM_PEELING),
+              "current compiled profile"))
+     return false;
+diff --git a/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp b/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+index ecf307b726..4714152cba 100644
+--- a/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
++++ b/testsuite/coinrender/CoinRenderTextureSamplingTest.cpp
+@@ -1,3 +1,5 @@
++#include <Inventor/rendering/CoinRenderTarget.h>
++#include "CoinRenderSamplingTestOptions.h"
+ #ifdef HAVE_CONFIG_H
+ #include "config.h"
+ #endif
+@@ -113,12 +115,12 @@ struct Harness {
+   Harness(bool gpu)
+       : action(SbViewportRegion(64, 64)), gpuAction(SbViewportRegion(64, 64)),
+         gl(SbViewportRegion(64, 64)) {
+-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
++    cpu.reset(samplingTestOffscreen(SbVec2i32(64, 64)));
+     capture = new Capture;
+     cpu->getPimpl()->backend.reset(capture);
+     action.setRenderTarget(cpu.get());
+     if (gpu) {
+-      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
++      native.reset(samplingTestOffscreen(SbVec2i32(64, 64)));
+       gpuAction.setRenderTarget(native.get());
+     }
+     action.setTransparencyType(CoinRenderAction::BLEND);
+@@ -428,6 +430,7 @@ bool run(bool gpu) {
+ }
+ } // namespace
+ int main(int argc, char **argv) {
++  configureSamplingTest(argc, argv);
+   SoDB::init();
+   CoinRenderAction::initClass();
+   if (argc > 1 && std::string(argv[1]) == "--reject-config") {
+diff --git a/testsuite/reproducers/portable-sampling-study/.gitignore b/testsuite/reproducers/portable-sampling-study/.gitignore
+new file mode 100644
+index 0000000000..c18dd8d83c
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/.gitignore
+@@ -0,0 +1 @@
++__pycache__/
+diff --git a/testsuite/reproducers/portable-sampling-study/README.md b/testsuite/reproducers/portable-sampling-study/README.md
+index 2d83a92ffd..34e0536e9d 100644
+--- a/testsuite/reproducers/portable-sampling-study/README.md
++++ b/testsuite/reproducers/portable-sampling-study/README.md
+@@ -1,3 +1,10 @@
++> Esta revisão usa a API pública de sampling por alvo. Os comandos históricos
++> abaixo exigem fontes/runtimes congelados em `43f00b0e` ou anteriores: a variável
++> `COIN_SAMPLING_STUDY` não seleciona mais o renderer. Os runners rejeitam
++> runtimes incompatíveis para evitar medições rotuladas incorretamente.
++> Para esta revisão, use `../sampling-api/run.py` e
++> `docs/coin-render-texture-sampling-api.md`. As sondas EGL independentes continuam válidas.
++
+ # Sampling portátil — laboratório isolado, 2026-10-07
+ 
+ Branch `codex/coin-portable-sampling-study`, base `f94a6c2898582d6dfd5796771392c38a541f4fb2`.
+diff --git a/testsuite/reproducers/portable-sampling-study/benchmark.py b/testsuite/reproducers/portable-sampling-study/benchmark.py
+index f3a3cc5c20..08efca430a 100644
+--- a/testsuite/reproducers/portable-sampling-study/benchmark.py
++++ b/testsuite/reproducers/portable-sampling-study/benchmark.py
+@@ -1,7 +1,11 @@
+ #!/usr/bin/env python3
+ import argparse,os,subprocess,json,hashlib,re
+ from pathlib import Path
+-ap=argparse.ArgumentParser();ap.add_argument('--artifacts',type=Path,required=True);ap.add_argument('--kind',choices=['gpu','window'],required=True);ap.add_argument("--optimized",action="store_true");ap.add_argument("--workloads",default="");a=ap.parse_args();out=a.artifacts/('benchmark-'+a.kind+('-optimized' if a.optimized else ''));out.mkdir(exist_ok=True);runs=[]
++ap=argparse.ArgumentParser();ap.add_argument('--artifacts',type=Path,required=True);ap.add_argument('--kind',choices=['gpu','window'],required=True);ap.add_argument("--optimized",action="store_true");ap.add_argument("--workloads",default="");a=ap.parse_args()
++if a.kind == 'window':
++ from legacy_runtime import require_legacy_sampling
++ require_legacy_sampling(a.artifacts/'build-wgpu')
++out=a.artifacts/('benchmark-'+a.kind+('-optimized' if a.optimized else ''));out.mkdir(exist_ok=True);runs=[]
+ for gpu in ['amd','nvidia']:
+  env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',WGPU_BACKEND='vulkan',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1');env['VK_DRIVER_FILES']=env['VK_ICD_FILENAMES']='/usr/share/vulkan/icd.d/'+('nvidia_icd.json' if gpu=='nvidia' else 'radeon_icd.json');env['__GLX_VENDOR_LIBRARY_NAME']='nvidia' if gpu=='nvidia' else 'mesa';env['__EGL_VENDOR_LIBRARY_FILENAMES']='/usr/share/glvnd/egl_vendor.d/'+('10_nvidia.json' if gpu=='nvidia' else '50_mesa.json')
+  if gpu=='nvidia':env['__NV_PRIME_RENDER_OFFLOAD']='1'
+diff --git a/testsuite/reproducers/portable-sampling-study/benchmark_fine.py b/testsuite/reproducers/portable-sampling-study/benchmark_fine.py
+index 83b6bcf88d..92fffc3ccf 100644
+--- a/testsuite/reproducers/portable-sampling-study/benchmark_fine.py
++++ b/testsuite/reproducers/portable-sampling-study/benchmark_fine.py
+@@ -6,6 +6,9 @@ p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True
+ p.add_argument('--kind',choices=['gpu','window','city'],required=True)
+ p.add_argument('--gpus',default='amd,nvidia');p.add_argument('--backends',default='wgpu,bgfx')
+ p.add_argument('--resume',action='store_true');p.add_argument('--modes',default='');p.add_argument('--workloads',default='');a=p.parse_args()
++if a.kind != 'gpu':
++ from legacy_runtime import require_legacy_sampling
++ for backend in a.backends.split(','):require_legacy_sampling(a.artifacts/('build-'+backend))
+ out=a.artifacts/('benchmark-fine-'+a.kind);out.mkdir(exist_ok=True)
+ runs=json.loads((out/'summary.json').read_text()) if (out/'summary.json').exists() else []
+ modes=['native','center','fine','fine_uniform'];codes={'native':0,'center':3,'fine':5,'fine_uniform':6}
+diff --git a/testsuite/reproducers/portable-sampling-study/investigate_native.py b/testsuite/reproducers/portable-sampling-study/investigate_native.py
+index 81d1011524..4519170602 100644
+--- a/testsuite/reproducers/portable-sampling-study/investigate_native.py
++++ b/testsuite/reproducers/portable-sampling-study/investigate_native.py
+@@ -3,6 +3,8 @@
+ import argparse,csv,hashlib,itertools,json,os,statistics,subprocess,time
+ from pathlib import Path
+ p=argparse.ArgumentParser();p.add_argument('--artifacts',type=Path,required=True);p.add_argument('--phase',default='before');p.add_argument('--candidate-build',type=Path);p.add_argument('--short',action='store_true');p.add_argument('--resume',action='store_true');a=p.parse_args()
++from legacy_runtime import require_legacy_sampling
++require_legacy_sampling(a.candidate_build or a.artifacts/'original-study')
+ out=a.artifacts/('million-'+a.phase);out.mkdir(exist_ok=True);runs=json.loads((out/'summary.json').read_text()) if a.resume and (out/'summary.json').exists() else []
+ env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',WGPU_BACKEND='vulkan',VK_DRIVER_FILES='/usr/share/vulkan/icd.d/nvidia_icd.json',VK_ICD_FILENAMES='/usr/share/vulkan/icd.d/nvidia_icd.json',__NV_PRIME_RENDER_OFFLOAD='1',__GLX_VENDOR_LIBRARY_NAME='nvidia',__EGL_VENDOR_LIBRARY_FILENAMES='/usr/share/glvnd/egl_vendor.d/10_nvidia.json',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1')
+ for k in ['COIN_RENDER_TRACE_PHASES','COIN_WGPU_TRACE_PHASES','COIN_WGPU_GPU_TIMESTAMPS']:env.pop(k,None)
+diff --git a/testsuite/reproducers/portable-sampling-study/legacy_runtime.py b/testsuite/reproducers/portable-sampling-study/legacy_runtime.py
+new file mode 100644
+index 0000000000..1ec1a0b240
+--- /dev/null
++++ b/testsuite/reproducers/portable-sampling-study/legacy_runtime.py
+@@ -0,0 +1,9 @@
++"""Reject historical environment-driven measurements against the new public API."""
++from pathlib import Path
++
++def require_legacy_sampling(build):
++    library = Path(build) / 'lib/libCoinRender.so'
++    if not library.is_file() or b'COIN_SAMPLING_STUDY' not in library.read_bytes():
++        raise SystemExit('This runner needs a frozen environment-driven study runtime (commit 43f00b0e). '
++                         'This API revision uses explicit target options; use sampling-api/run.py. '
++                         'No measurement was started.')
+diff --git a/testsuite/reproducers/portable-sampling-study/run.py b/testsuite/reproducers/portable-sampling-study/run.py
+index 86158251b8..0d036c6d11 100644
+--- a/testsuite/reproducers/portable-sampling-study/run.py
++++ b/testsuite/reproducers/portable-sampling-study/run.py
+@@ -2,6 +2,10 @@
+ import os, json, subprocess, hashlib, argparse, re
+ from pathlib import Path
+ ap=argparse.ArgumentParser(); ap.add_argument('--artifacts',type=Path,required=True); ap.add_argument('--profiles',default='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-amd-gl'); ap.add_argument('--extra',action='store_true');ap.add_argument('--alpha',action='store_true');ap.add_argument('--deep',action='store_true');ap.add_argument('--rtt-study',action='store_true');ap.add_argument('--viewport-study',action='store_true');ap.add_argument('--resources',action='store_true');ap.add_argument('--shadow',action='store_true');ap.add_argument('--modes',default='native,nearest,fetch');ap.add_argument('--output-name',default='quality'); args=ap.parse_args()
++if any(mode != 'native' for mode in args.modes.split(',')):
++    from legacy_runtime import require_legacy_sampling
++    for backend in sorted({profile.split('-')[0] for profile in args.profiles.split(',')}):
++        require_legacy_sampling(args.artifacts/('build-'+backend))
+ out=args.artifacts/args.output_name;out.mkdir(exist_ok=True);runs=json.loads((out/'summary.json').read_text()) if (out/'summary.json').exists() else []
+ for profile in args.profiles.split(','):
+     backend,gpu,api=profile.split('-'); env=dict(os.environ,DISPLAY=':0',XAUTHORITY='/home/dikluwe/.Xauthority',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1',COIN_RENDER_REQUIRE_GL_REFERENCE='1',WGPU_BACKEND='gl' if api=='gl' else 'vulkan',COIN_BGFX_RENDERER='opengl' if api=='gl' else 'vulkan')
+diff --git a/testsuite/reproducers/sampling-api/.gitignore b/testsuite/reproducers/sampling-api/.gitignore
+new file mode 100644
+index 0000000000..c18dd8d83c
+--- /dev/null
++++ b/testsuite/reproducers/sampling-api/.gitignore
+@@ -0,0 +1 @@
++__pycache__/
+diff --git a/testsuite/reproducers/sampling-api/README.md b/testsuite/reproducers/sampling-api/README.md
+new file mode 100644
+index 0000000000..8b0c81dfcc
+--- /dev/null
++++ b/testsuite/reproducers/sampling-api/README.md
+@@ -0,0 +1,44 @@
++# Qualificação da API pública de sampling
++
++`run.py` usa opções explícitas native/portable dos testes públicos, executa GPU
++sequencialmente e grava comando, ambiente, hashes, código de saída e log. Qualquer
++FAIL/SKIP produz saída não zero; o ledger preserva ambos. Requer Linux com display
++acessível, builds wgpu/BGFX e bibliotecas em `build-{backend}/{bin,lib}` sob o root
++de artefatos. `XAUTHORITY` é herdado. Os perfis padrão são AMD Vulkan/OpenGL e
++NVIDIA Vulkan para ambos os backends; use `--profiles` para restringir hardware.
++
++```sh
++root=/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api
++python3 testsuite/reproducers/sampling-api/run.py --artifacts "$root" \
++  --name stock-portable-repeat --modes portable \
++  --cases api,deep,direct,viewport,procedural
++python3 testsuite/reproducers/sampling-api/run.py --artifacts "$root" \
++  --name native-resources-repeat --cases selection,publication,ownership,large,devices,stress,instancing,shadow-eight,shadow-viewport,shadow-alpha
++```
++
++`api` exercita as duas políticas no mesmo processo; seleção/publicação/ownership,
++recursos/instancing/sombras são controles nativos independentes. Casos exclusivos
++wgpu/BGFX são filtrados. `COIN_SAMPLING_STUDY=fetch` é injetado como conflito
++intencional: a nova API deve ignorar o antigo seletor de laboratório.
++
++Quando for necessária a comparação com CoinGL AMD corrigido apenas no laboratório:
++
++```sh
++python3 testsuite/reproducers/sampling-api/run.py --artifacts "$root" \
++  --name mesa-public-repeat --modes native,portable \
++  --cases projective,sampling,advanced,rtt \
++  --mesa-prefix /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes/mesa-study/install
++```
++
++O prefixo Mesa é opcional, externo ao renderer, altera somente o ambiente dos
++processos AMD e desativa cache para o estudo. Compare coortes de driver instalado
++e driver de estudo separadamente. Não interpretar uma referência CoinGL corrigida
++como conserto do driver instalado. Preserve o ambiente, builds e ICDs efetivos.
++
++Runners antigos em `portable-sampling-study` recusam a nova API para impedir que
++uma medição rotulada fetch/fine execute silenciosamente native. Use o baseline
++congelado da revisão `43f00b0e18830ba79fe8fd19020d1f8ececa4983` para reproduzir
++histórico e este runner para a política pública. Builds são mutáveis; logs de cada
++coorte identificam os binários realmente usados.
++
++Contrato, limites e ledger: [API](../../../docs/coin-render-texture-sampling-api.md).
+diff --git a/testsuite/reproducers/sampling-api/run.py b/testsuite/reproducers/sampling-api/run.py
+new file mode 100644
+index 0000000000..3f7323c8fb
+--- /dev/null
++++ b/testsuite/reproducers/sampling-api/run.py
+@@ -0,0 +1,59 @@
++#!/usr/bin/env python3
++"""Sequential Linux sampling API qualification; keep every PASS/FAIL/SKIP."""
++import argparse, hashlib, json, os, subprocess
++from pathlib import Path
++p=argparse.ArgumentParser(description=__doc__)
++p.add_argument('--artifacts',required=True,type=Path)
++p.add_argument('--name',default='api-qualification')
++p.add_argument('--profiles',default='wgpu-amd-vulkan,wgpu-nvidia-vulkan,wgpu-amd-gl,bgfx-amd-vulkan,bgfx-nvidia-vulkan,bgfx-amd-gl')
++p.add_argument('--modes',default='native,portable')
++p.add_argument('--cases',default='api,deep,direct,viewport,procedural')
++p.add_argument('--mesa-prefix',type=Path,help='optional external Mesa profile for the CoinGL comparison only')
++a=p.parse_args();root=a.artifacts.resolve();out=root/a.name;out.mkdir(parents=True,exist_ok=True)
++cases={'api':['CoinRenderSamplingPolicyTest','--gpu'],'selection':['CoinRenderSelectionTest'],
++ 'publication':['CoinRenderPublicationTest'],'ownership':['CoinRenderRttOwnershipTest'],
++ 'projective':['CoinRenderTextureSamplingTest','--projective-study'],'sampling':['CoinRenderTextureSamplingTest','--gpu'],
++ 'advanced':['CoinRenderAdvancedTextureTest','--gpu'],'procedural':['CoinRenderProceduralTextureTest','--gpu'],
++ 'rtt':['CoinRenderRttProfileTest','--mips-direct'],'deep':['CoinRenderAdvancedTextureTest','--gpu','--sampling-deep-study'],
++ 'direct':['CoinRenderAdvancedTextureTest','--gpu','--sampling-rtt-study'],
++ 'viewport':['CoinRenderAdvancedTextureTest','--gpu','--sampling-viewport-study'],
++ 'large':['CoinWgpuLargeBindingsTest'],'devices':['CoinWgpuMultiDeviceTest'],
++ 'stress':['CoinWgpuMultiDeviceTest','--stress'],'instancing':['CoinBgfxInstancingTest'],
++ 'shadow-eight':['CoinRenderShadowEightMapTest'],'shadow-viewport':['CoinRenderShadowReferenceTest','--viewport'],
++ 'shadow-alpha':['CoinRenderShadowReferenceTest','--alpha-rtt']}
++requested=a.cases.split(',');modes=a.modes.split(',')
++if any(c not in cases for c in requested) or any(m not in ['native','portable'] for m in modes):p.error('unknown case or mode')
++rows=[]
++for profile in a.profiles.split(','):
++ backend,gpu,api=profile.split('-');build=root/('build-'+backend)
++ env=dict(os.environ,DISPLAY=os.environ.get('DISPLAY',':0'),LD_LIBRARY_PATH=str(build/'lib'),
++  WGPU_BACKEND='gl' if api=='gl' else 'vulkan',COIN_BGFX_RENDERER='opengl' if api=='gl' else 'vulkan',
++  COIN_SAMPLING_STUDY='fetch',COIN_RENDER_REQUIRE_GL_REFERENCE='1',COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU='1',COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU='1',COIN_GLX_PIXMAP_DIRECT_RENDERING='1',COIN_GLXGLUE_NO_PBUFFERS='1')
++ for key in ['COIN_MESA_MIXED_FILTER_STUDY','LIBGL_DRIVERS_PATH','AMD_DEBUG','AMD_FORCE_SHADER_USE_ACO','__NV_PRIME_RENDER_OFFLOAD']:env.pop(key,None)
++ vendor='nvidia' if gpu=='nvidia' else 'mesa'
++ env.update(__EGL_VENDOR_LIBRARY_FILENAMES='/usr/share/glvnd/egl_vendor.d/'+('10_nvidia.json' if gpu=='nvidia' else '50_mesa.json'),
++  __GLX_VENDOR_LIBRARY_NAME=vendor,VK_DRIVER_FILES='/usr/share/vulkan/icd.d/'+('nvidia_icd.json' if gpu=='nvidia' else 'radeon_icd.json'))
++ if gpu=='nvidia':env['__NV_PRIME_RENDER_OFFLOAD']='1'
++ if a.mesa_prefix and gpu=='amd':
++  mesa=a.mesa_prefix.resolve();lib=mesa/'lib/x86_64-linux-gnu'
++  env.update(LD_LIBRARY_PATH=str(build/'lib')+':'+str(lib),LIBGL_DRIVERS_PATH=str(lib/'dri'),
++   __EGL_VENDOR_LIBRARY_FILENAMES=str(mesa/'share/glvnd/egl_vendor.d/50_mesa.json'),
++   VK_DRIVER_FILES=str(mesa/'share/vulkan/icd.d/radeon_icd.x86_64.json'),COIN_MESA_MIXED_FILTER_STUDY='1',MESA_SHADER_CACHE_DISABLE='true',NIR_DEBUG='validate')
++ env['VK_ICD_FILENAMES']=env['VK_DRIVER_FILES']
++ for case in requested:
++  if (case in ['large','devices','stress'] and backend!='wgpu') or (case=='instancing' and backend!='bgfx'):continue
++  selected=['both'] if case=='api' else ['native'] if case in ['selection','publication','ownership','large','devices','stress','instancing','shadow-eight','shadow-viewport','shadow-alpha'] else modes
++  for mode in selected:
++   cmd=[str(build/'bin'/cases[case][0]),*cases[case][1:]]
++   if mode=='portable':cmd.append('--portable-sampling')
++   log=out/f'{profile}-{mode}-{case}.log'
++   with log.open('w') as f:
++    try:code=subprocess.run(cmd,env=env,stdout=f,stderr=subprocess.STDOUT,timeout=240,cwd=out).returncode
++    except subprocess.TimeoutExpired:code=124
++   rows.append(dict(profile=profile,policy=mode,case=case,exit=code,command=cmd,log=log.name,
++    binary_sha256=hashlib.sha256(Path(cmd[0]).read_bytes()).hexdigest(),log_sha256=hashlib.sha256(log.read_bytes()).hexdigest(),
++    environment={k:v for k,v in env.items() if k in ['DISPLAY','XAUTHORITY','LD_LIBRARY_PATH','WGPU_BACKEND','COIN_BGFX_RENDERER','COIN_SAMPLING_STUDY','COIN_RENDER_REQUIRE_GL_REFERENCE','COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU','COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU','VK_DRIVER_FILES','VK_ICD_FILENAMES','__EGL_VENDOR_LIBRARY_FILENAMES','__GLX_VENDOR_LIBRARY_NAME','__NV_PRIME_RENDER_OFFLOAD','LIBGL_DRIVERS_PATH','COIN_MESA_MIXED_FILTER_STUDY','MESA_SHADER_CACHE_DISABLE','NIR_DEBUG']}))
++   (out/'summary.json').write_text(json.dumps(rows,indent=2));print(profile,mode,case,code,flush=True)
++
++# Preserve SKIP/FAIL in the ledger and propagate incomplete qualification to callers.
++raise SystemExit(0 if all(row["exit"] == 0 for row in rows) else 1)

@@ -1,0 +1,10 @@
+COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+receipt renderer=2 vendor=0 device=0 adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) workload=solids policy=native extent=1280x960
+fixture solids=24 translucent=6 textured=6 texture_extent=63x47 lighting=directional
+scene cube_instances=0 counted_triangles=0 primitive_triangle_count_known=0 textured=1 camera_static=0
+COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4
+visible_coverage=128766 of=1228800
+surface_oracle stage=initial rgb_max=1 exact=0 xgetimage=0 outside_measurement=1
+visible_coverage=125837 of=1228800
+surface_oracle stage=final rgb_max=7 exact=0 xgetimage=0 outside_measurement=1
+window_campaign result=0 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=6

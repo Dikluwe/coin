@@ -1,0 +1,154 @@
+-- Selecting Windows SDK version 10.0.26100.0 to target Windows 10.0.19045.
+-- The C compiler identification is MSVC 19.44.35229.0
+-- The CXX compiler identification is MSVC 19.44.35229.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2022/BuildTools/VC/Tools/MSVC/14.44.35207/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Setting C++ standard: '11', which is the minimum needed to compile Coin.
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Found Threads: TRUE
+-- Looking for C++ include thread
+-- Looking for C++ include thread - found
+-- Found OpenGL: opengl32
+-- 
+-- OpenGL::GL;Threads::Threads
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of int8_t
+-- Check size of int8_t - done
+-- Check size of uint8_t
+-- Check size of uint8_t - done
+-- Check size of int16_t
+-- Check size of int16_t - done
+-- Check size of uint16_t
+-- Check size of uint16_t - done
+-- Check size of int32_t
+-- Check size of int32_t - done
+-- Check size of uint32_t
+-- Check size of uint32_t - done
+-- Check size of int64_t
+-- Check size of int64_t - done
+-- Check size of uint64_t
+-- Check size of uint64_t - done
+-- Check size of intptr_t
+-- Check size of intptr_t - done
+-- Check size of uintptr_t
+-- Check size of uintptr_t - done
+-- Build against dynamic Microsoft Visual C runtime library
+-- Looking for inttypes.h
+-- Looking for inttypes.h - found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Looking for sys/time.h
+-- Looking for sys/time.h - not found
+-- Looking for sys/timeb.h
+-- Looking for sys/timeb.h - found
+-- Looking for sys/stat.h
+-- Looking for sys/stat.h - found
+-- Looking for sys/param.h
+-- Looking for sys/param.h - not found
+-- Looking for io.h
+-- Looking for io.h - found
+-- Looking for ieeefp.h
+-- Looking for ieeefp.h - not found
+-- Looking for time.h
+-- Looking for time.h - found
+-- Looking for 4 include files stdlib.h, ..., float.h
+-- Looking for 4 include files stdlib.h, ..., float.h - found
+-- Looking for windows.h
+-- Looking for windows.h - found
+-- Looking for direct.h
+-- Looking for direct.h - found
+-- Looking for include files windows.h, tlhelp32.h
+-- Looking for include files windows.h, tlhelp32.h - found
+-- Looking for _fpclass
+-- Looking for _fpclass - found
+-- Looking for _splitpath
+-- Looking for _splitpath - found
+-- Looking for LoadLibrary
+-- Looking for LoadLibrary - found
+-- Looking for GetEnvironmentVariable
+-- Looking for GetEnvironmentVariable - found
+-- Looking for QueryPerformanceCounter
+-- Looking for QueryPerformanceCounter - found
+-- Performing Test HAVE_WGL
+-- Performing Test HAVE_WGL - Success
+-- Looking for va_copy
+-- Looking for va_copy - found
+-- Looking for strncasecmp
+-- Looking for strncasecmp - not found
+-- Looking for memmove
+-- Looking for memmove - found
+-- Looking for bcopy
+-- Looking for bcopy - not found
+-- Looking for fstat
+-- Looking for fstat - found
+-- Looking for localtime_s
+-- Looking for localtime_s - found
+-- Looking for localtime_r
+-- Looking for localtime_r - not found
+-- Looking for ftime
+-- Looking for ftime - found
+-- Looking for getcwd
+-- Looking for getcwd - not found
+-- Looking for _getcwd
+-- Looking for _getcwd - found
+-- Looking for isinf
+-- Looking for isinf - found
+-- Looking for isnan
+-- Looking for isnan - found
+-- Looking for finite
+-- Looking for finite - not found
+-- Looking for _finite
+-- Looking for _finite - found
+-- Looking for ilogb
+-- Looking for ilogb - found
+-- Looking for vsnprintf
+-- Looking for vsnprintf - found
+-- Looking for __builtin_expect
+-- Looking for __builtin_expect - not found
+-- Performing Test HAVE___BUILTIN_UNREACHABLE
+-- Performing Test HAVE___BUILTIN_UNREACHABLE - Failed
+-- Looking for __func__
+-- Looking for __func__ - found
+-- Looking for __PRETTY_FUNCTION__
+-- Looking for __PRETTY_FUNCTION__ - not found
+-- Looking for __FUNCTION__
+-- Looking for __FUNCTION__ - found
+-- Performing Test HAVE_PTHREAD_TIMESPEC_NSEC
+-- Performing Test HAVE_PTHREAD_TIMESPEC_NSEC - Failed
+-- Check size of ((struct timeval*)0)->tv_sec
+-- Check size of ((struct timeval*)0)->tv_sec - done
+-- Check size of time_t
+-- Check size of time_t - done
+-- Check size of long
+-- Check size of long - done
+-- Check size of ((struct timeval*)0)->tv_usec
+-- Check size of ((struct timeval*)0)->tv_usec - done
+-- Check size of suseconds_t
+-- Check size of suseconds_t - failed
+-- Performing Test HAVE_HASH_QUOTING
+-- Performing Test HAVE_HASH_QUOTING - Success
+-- Performing Test COIN_PRIVATE_CORE_GL_HEADER_COMPILES
+-- Performing Test COIN_PRIVATE_CORE_GL_HEADER_COMPILES - Success
+-- Performing Test DISABLE_WARNING_TAUTOLOGCOMPARE
+-- Performing Test DISABLE_WARNING_TAUTOLOGCOMPARE - Failed
+-- Configuring done (71.0s)
+-- Generating done (2.7s)
+-- Build files have been written to: H:/Git/coin/build/sampling-win-20261010/build-wgpu

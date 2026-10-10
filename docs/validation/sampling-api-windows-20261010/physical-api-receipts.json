@@ -1,0 +1,305 @@
+{
+  "base_revision": "b86404cafc9ec13e91d0bac67f2e875f2b206a07",
+  "receipts": [
+    {
+      "log": "npot/bgfx-d3d12-npot-1.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "NPOT combined adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=4318 device=7171"
+      ],
+      "pass": true
+    },
+    {
+      "log": "npot/bgfx-d3d12-npot-2.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "NPOT combined adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=4318 device=7171"
+      ],
+      "pass": true
+    },
+    {
+      "log": "npot/bgfx-opengl-npot-1.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "NPOT combined adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0"
+      ],
+      "pass": true
+    },
+    {
+      "log": "npot/bgfx-opengl-npot-2.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "NPOT combined adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0"
+      ],
+      "pass": true
+    },
+    {
+      "log": "npot/bgfx-vulkan-npot-1.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "NPOT combined adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 vendor=4318 device=7171"
+      ],
+      "pass": true
+    },
+    {
+      "log": "npot/bgfx-vulkan-npot-2.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "NPOT combined adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 vendor=4318 device=7171"
+      ],
+      "pass": true
+    },
+    {
+      "log": "policy-window/bgfx-d3d12-policy-window.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "policy-window/bgfx-opengl-policy-window.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "policy-window/bgfx-vulkan-policy-window.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "policy-window/wgpu-d3d12-policy-window.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 derivative=2"
+      ],
+      "pass": true
+    },
+    {
+      "log": "policy-window/wgpu-opengl-policy-window.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) renderer=2 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "policy-window/wgpu-vulkan-policy-window.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) renderer=1 derivative=2"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sampling/bgfx-d3d12-both-api.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sampling/bgfx-opengl-both-api.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sampling/bgfx-vulkan-both-api.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sampling/wgpu-d3d12-both-api.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 derivative=2"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sampling/wgpu-opengl-both-api.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) renderer=2 derivative=3"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sampling/wgpu-vulkan-both-api.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) renderer=1 derivative=2"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/bgfx-d3d12-sdk-native.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/bgfx-d3d12-sdk-portable.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/bgfx-opengl-sdk-native.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/bgfx-opengl-sdk-portable.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/bgfx-vulkan-sdk-native.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/bgfx-vulkan-sdk-portable.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/wgpu-d3d12-sdk-native.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/wgpu-d3d12-sdk-portable.log",
+      "requested_api": "d3d12",
+      "observed_renderer_ordinal": 4,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/wgpu-opengl-sdk-native.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/wgpu-opengl-sdk-portable.log",
+      "requested_api": "opengl",
+      "observed_renderer_ordinal": 2,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/wgpu-vulkan-sdk-native.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) pixels_ok=1"
+      ],
+      "pass": true
+    },
+    {
+      "log": "sdk-final/wgpu-vulkan-sdk-portable.log",
+      "requested_api": "vulkan",
+      "observed_renderer_ordinal": 1,
+      "physical_gpu": "NVIDIA GeForce GTX 1060 6GB",
+      "receipts": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) pixels_ok=1"
+      ],
+      "pass": true
+    }
+  ]
+}

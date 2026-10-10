@@ -1,0 +1,335 @@
+diff --git a/examples/coinrender/sdk-consumer/CMakeLists.txt b/examples/coinrender/sdk-consumer/CMakeLists.txt
+index 286c671802..3fddcfa40c 100644
+--- a/examples/coinrender/sdk-consumer/CMakeLists.txt
++++ b/examples/coinrender/sdk-consumer/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ cmake_minimum_required(VERSION 3.16)
+-project(CoinRenderSdkConsumer LANGUAGES CXX)
++project(CoinRenderSdkConsumer LANGUAGES C CXX)
+ find_package(Coin CONFIG REQUIRED)
+ find_package(CoinRender CONFIG REQUIRED)
+ find_package(OpenGL REQUIRED)
+@@ -7,3 +7,7 @@ add_executable(coin-render-sdk-consumer main.cpp)
+ target_compile_features(coin-render-sdk-consumer PRIVATE cxx_std_17)
+ target_compile_definitions(coin-render-sdk-consumer PRIVATE $<$<PLATFORM_ID:Windows>:NOMINMAX>)
+ target_link_libraries(coin-render-sdk-consumer PRIVATE CoinRender::CoinRender Coin::Coin OpenGL::GL)
++
++add_executable(coin-render-sdk-capabilities-c capabilities.c)
++set_target_properties(coin-render-sdk-capabilities-c PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED YES)
++target_link_libraries(coin-render-sdk-capabilities-c PRIVATE CoinRender::CoinRender Coin::Coin)
+diff --git a/examples/coinrender/sdk-consumer/main.cpp b/examples/coinrender/sdk-consumer/main.cpp
+index 21a677264f..eb8a8e4215 100644
+--- a/examples/coinrender/sdk-consumer/main.cpp
++++ b/examples/coinrender/sdk-consumer/main.cpp
+@@ -4,6 +4,11 @@
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/nodes/SoCallback.h>
+ #include <Inventor/nodes/SoCube.h>
++#include <Inventor/nodes/SoComplexity.h>
++#include <Inventor/nodes/SoCoordinate3.h>
++#include <Inventor/nodes/SoIndexedFaceSet.h>
++#include <Inventor/nodes/SoTexture2.h>
++#include <Inventor/nodes/SoTextureCoordinate2.h>
+ #include <Inventor/nodes/SoLightModel.h>
+ #include <Inventor/nodes/SoMaterial.h>
+ #include <Inventor/nodes/SoOrthographicCamera.h>
+@@ -17,6 +22,11 @@
+ #include <iostream>
+ #include <memory>
+ #include <vector>
++#include <fstream>
++#include <string>
++#ifdef _WIN32
++#include <windows.h>
++#endif
+ 
+ static void inspectGl(void *, SoAction * action) {
+   if (!action->isOfType(SoGLRenderAction::getClassTypeId())) return;
+@@ -27,9 +37,58 @@ static void inspectGl(void *, SoAction * action) {
+             << " texture_coords=" << coords << " fragment_samplers=" << samplers << '\n';
+ }
+ 
++
++static void savePixels(const std::string & path, const std::vector<uint8_t> & pixels, int side) {
++  if (path.empty() || pixels.size()!=size_t(side*side*4)) return;
++  std::ofstream out(path, std::ios::binary);
++  out << "P6\n" << side << ' ' << side << "\n255\n";
++  for(size_t i=0;i<pixels.size();i+=4) out.write(reinterpret_cast<const char*>(pixels.data()+i),3);
++}
++
++static bool samplingOracle(CoinRenderOptions options, const std::string & prefix) {
++  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64),options));
++  if(!target || target->getStatus()!=CoinRenderTarget::TARGET_READY) return false;
++  auto* root=new SoSeparator; root->ref();
++  auto* camera=new SoOrthographicCamera; camera->height=2; camera->position=SbVec3f(0,0,3); root->addChild(camera);
++  auto* light=new SoLightModel; light->model=SoLightModel::BASE_COLOR; root->addChild(light);
++  auto* quality=new SoComplexity; quality->textureQuality=.5f; root->addChild(quality);
++  auto* texture=new SoTexture2; texture->model=SoTexture2::REPLACE;
++  std::vector<unsigned char> bytes(128*128*4,255);
++  for(int y=0;y<128;++y)for(int x=0;x<128;++x)for(int c=0;c<3;++c)bytes[(y*128+x)*4+c]=x<64?40:160;
++  texture->image.setValue(SbVec2s(128,128),4,bytes.data()); root->addChild(texture);
++  auto* coords=new SoCoordinate3; const SbVec3f positions[]={{-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}};
++  coords->point.setValues(0,4,positions); root->addChild(coords);
++  auto* uv=new SoTextureCoordinate2; const SbVec2f st[]={{-1.46875f,.53125f},{2.53125f,.53125f},{2.53125f,.53125f},{-1.46875f,.53125f}};
++  uv->point.setValues(0,4,st); root->addChild(uv);
++  auto* face=new SoIndexedFaceSet; const int32_t indices[]={0,1,2,3,-1};face->coordIndex.setValues(0,5,indices);root->addChild(face);
++  CoinRenderAction action(SbViewportRegion(64,64)); action.setRenderTarget(target.get());action.apply(root);
++  std::vector<uint8_t> pixels;target->readbackRGBA(pixels);
++  bool ok=action.getLastStatus()==CoinRenderAction::SUCCESS && pixels.size()==64*64*4;
++  int maximum=0;
++  if(ok && options.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE) {
++    for(int y=8;y<56;++y)for(int x:{30,31})for(int c=0;c<3;++c)
++      maximum=std::max(maximum,std::abs(int(pixels[(y*64+x)*4+c])-(x==30?40:160)));
++    ok=maximum<=1;
++  }
++  if(!prefix.empty())savePixels(prefix+"-mip.ppm",pixels,64);
++  std::cout << "sdk_sampling policy=" << options.textureSamplingPolicy << " serial=" << target->getLastSubmissionSerial()
++            << " floor_oracle=" << (options.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE)
++            << " maximumRGB=" << maximum << " result=" << ok << '\n';
++  if(!ok)std::cerr << action.getLastError().getString() << '\n';
++  action.setRenderTarget(nullptr);root->unref();return ok;
++}
++
+ int main(int argc, char ** argv) {
+-  if (argc != 2) {
+-    std::cerr << "Usage: coin-render-sdk-consumer d3d12|vulkan|opengl\n"; return 2;
++  std::cout << std::unitbuf;
++#ifdef _WIN32
++  for(const char* name:{"Coin4.dll","CoinRender4.dll"}) {
++    const HMODULE module=GetModuleHandleA(name);char path[32768]{};
++    if(!module || !GetModuleFileNameA(module,path,sizeof(path)))return 6;
++    std::cout << "sdk_loaded_module name=" << name << " path=" << path << '\n';
++  }
++#endif
++  if (argc < 2 || argc > 4) {
++    std::cerr << "Usage: coin-render-sdk-consumer d3d12|vulkan|opengl [native|portable] [pixel-prefix]\n"; return 2;
+   }
+   CoinRenderRenderer renderer;
+   if (!std::strcmp(argv[1], "d3d12")) renderer=COIN_RENDER_RENDERER_D3D12;
+@@ -43,6 +102,16 @@ int main(int argc, char ** argv) {
+     std::cerr << "Requested renderer unavailable: " << caps.diagnostic << '\n'; return 3;
+   }
+   CoinRenderOptions options; options.renderer=renderer;
++  if(argc>=3) {
++    if(!std::strcmp(argv[2],"portable")) options.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
++    else if(std::strcmp(argv[2],"native")) return 2;
++  }
++  const std::string prefix=argc==4 ? argv[3] : "";
++  const auto selection=coin_render_select_sampling_policy(&caps,options.textureSamplingPolicy,0);
++  const auto strict=coin_render_select_sampling_policy(&caps,options.textureSamplingPolicy,1);
++  std::cout << "sdk_policy=" << options.textureSamplingPolicy << " available_selection=" << selection.reason
++            << " qualified_selection=" << strict.reason << '\n';
++  if(selection.reason!=COIN_RENDER_SELECTION_SUPPORTED)return 3;
+   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(32,32), options));
+   if (!target || target->getStatus()!=CoinRenderTarget::TARGET_READY) return 4;
+   auto * root=new SoSeparator; root->ref();
+@@ -74,7 +143,9 @@ int main(int argc, char ** argv) {
+   std::cout << "installed_sdk renderer=" << caps.renderer << " vendor_id=0x" << std::hex
+             << caps.vendor_id << " device_id=0x" << caps.device_id << std::dec
+             << " adapter=" << caps.adapter_name << " pixels_ok=" << ok << '\n';
++  if(!prefix.empty())savePixels(prefix+"-cube.ppm",pixels,32);
+   action.setRenderTarget(nullptr);
+   root->unref();
++  ok=samplingOracle(options,prefix) && ok;
+   return ok ? 0 : 5;
+ }
+diff --git a/include/Inventor/system/gl-fallbacks.h b/include/Inventor/system/gl-fallbacks.h
+index 3bec060c00..7fb6a92ac3 100644
+--- a/include/Inventor/system/gl-fallbacks.h
++++ b/include/Inventor/system/gl-fallbacks.h
+@@ -1200,6 +1200,10 @@
+ #ifndef GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB
+ #define GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB 0x862E
+ #endif /* GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB */
++#ifndef GL_SAMPLES
++#define GL_SAMPLES 0x80A9
++#endif /* GL_SAMPLES */
++
+ #ifndef GL_MAX_TEXTURE_COORDS_ARB
+ #define GL_MAX_TEXTURE_COORDS_ARB 0x8871
+ #endif /* GL_MAX_TEXTURE_COORDS_ARB */
+diff --git a/src/elements/SoTextureScalePolicyElement.h b/src/elements/SoTextureScalePolicyElement.h
+index d47b6999b1..dc37cd224a 100644
+--- a/src/elements/SoTextureScalePolicyElement.h
++++ b/src/elements/SoTextureScalePolicyElement.h
+@@ -62,7 +62,7 @@ public:
+   static  void set(SoState * const state, SoNode * const node,
+                    const Policy policy);
+   static  void set(SoState * const state, const Policy policy);
+-  static Policy get(SoState * const state);
++  static COIN_DLL_API Policy get(SoState * const state);
+   static Policy getDefault(void);
+ 
+ };
+diff --git a/src/elements/SoTextureScaleQualityElement.h b/src/elements/SoTextureScaleQualityElement.h
+index 04c0bbe112..f38c67601e 100644
+--- a/src/elements/SoTextureScaleQualityElement.h
++++ b/src/elements/SoTextureScaleQualityElement.h
+@@ -52,7 +52,7 @@ protected:
+ public:
+   void init(SoState * state) override;
+   static void set(SoState * state, SoNode * node, const float quality);
+-  static float get(SoState * state);
++  static COIN_DLL_API float get(SoState * state);
+   static float getDefault(void);
+ };
+ 
+diff --git a/src/glue/GLUWrapper.h b/src/glue/GLUWrapper.h
+index e442dcf5f4..00c9fc9494 100644
+--- a/src/glue/GLUWrapper.h
++++ b/src/glue/GLUWrapper.h
+@@ -37,6 +37,8 @@
+ #error this is a private header file
+ #endif
+ 
++#include <Inventor/C/basic.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif /* HAVE_CONFIG_H */
+@@ -156,7 +158,7 @@ typedef struct {
+ } GLUWrapper_t;
+ 
+ 
+-const GLUWrapper_t * GLUWrapper(void);
++COIN_DLL_API const GLUWrapper_t * GLUWrapper(void);
+ 
+ 
+ #ifdef __cplusplus
+diff --git a/src/glue/simage_wrapper.h b/src/glue/simage_wrapper.h
+index 2b71dda939..418c952bb4 100644
+--- a/src/glue/simage_wrapper.h
++++ b/src/glue/simage_wrapper.h
+@@ -37,6 +37,8 @@
+ #error this is a private header file
+ #endif
+ 
++#include <Inventor/C/basic.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif /* HAVE_CONFIG_H */
+@@ -171,7 +173,7 @@ extern "C" {
+ 
+   } simage_wrapper_t;
+ 
+-  const simage_wrapper_t * simage_wrapper(void);
++  COIN_DLL_API const simage_wrapper_t * simage_wrapper(void);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/src/rendering/coinbgfx/shaders/coin_surface.sh b/src/rendering/coinbgfx/shaders/coin_surface.sh
+index f6b8499c7f..ccd66a7f2d 100644
+--- a/src/rendering/coinbgfx/shaders/coin_surface.sh
++++ b/src/rendering/coinbgfx/shaders/coin_surface.sh
+@@ -41,10 +41,10 @@ vec4 coinPortableSample(sampler2D t, vec2 uv, vec4 suppliedSize) {
+   if (flags>=2) bounded.y=clamp(uv.y,0.0,1.0);
+   int lo = int(floor(lod)), hi = min(lo+1,maximum);
+   ivec2 ni = ivec2(n);
+-  vec2 a = vec2(max(ni >> lo, ivec2(1)));
++  vec2 a = vec2(max(ni >> lo, ivec2(1, 1)));
+   bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
+   if(pot)return texture2DLod(t,(floor(bounded*a)+0.5)/a,lod);
+-  vec2 b = vec2(max(ni >> hi, ivec2(1)));
++  vec2 b = vec2(max(ni >> hi, ivec2(1, 1)));
+   return coinPortableLerp(texture2DLod(t,(floor(bounded*a)+0.5)/a,float(lo)),
+                           texture2DLod(t,(floor(bounded*b)+0.5)/b,float(hi)),fract(lod));
+ }
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs b/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
+index 9096098852..02446a61cb 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
+@@ -1,6 +1,10 @@
+ // Native compilation removes portable functions and its uniform appendix.
+ // Both vertex and fragment stages therefore use the original binding prefix.
+ pub(super) fn sampling_profile(source: &str, portable: bool) -> String {
++    // include_str! preserves Git checkout line endings on Windows.
++    // Canonicalize before removing the portable-only uniform appendix.
++    let canonical = source.replace("\r\n", "\n");
++    let source = canonical.as_str();
+     if portable || !source.contains("fn coin_portable_sample(") { return source.to_owned(); }
+     let mut source = source.to_owned();
+     let start = source.find("fn coin_portable_lerp(").unwrap();
+@@ -76,6 +80,28 @@ pub(super) mod tests {
+             .write().expect("translate GLSL profile");
+     }
+ 
++    #[test]
++    fn sampling_profiles_preserve_uniform_abi_with_lf_and_crlf_inputs() {
++        for source in [include_str!("../../shaders/coin_standard.wgsl").to_owned(),
++            super::super::shadow_receiver::four_map_source(),
++            super::super::shadow_receiver::eight_map_source(),
++            super::super::instancing::shader_source()] {
++            let lf = source.replace("\r\n", "\n");
++            for input in [lf.clone(), lf.replace("\n", "\r\n")] {
++                for portable in [false, true] {
++                    let profile = sampling_profile(&input, portable);
++                    let module = naga::front::wgsl::parse_str(&profile).expect("sampling line-ending profile");
++                    Validator::new(ValidationFlags::all(), Capabilities::all())
++                        .validate(&module).expect("sampling uniform contract");
++                    let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
++                    if let naga::TypeInner::Struct {span,..}=uniform.inner {
++                        assert_eq!(span, if portable {3168} else {3040});
++                    } else {panic!("uniform is not a struct");}
++                }
++            }
++        }
++    }
++
+     #[test]
+     fn native_profiles_restore_uniform_layout_and_all_fragment_contracts() {
+         for source in [without_shadows(include_str!("../../shaders/coin_standard.wgsl")),
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index 5a06d5f145..9b97b6d9e7 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -939,7 +939,6 @@ if(COIN_BUILD_RENDER)
+ 			target_link_libraries(CoinRenderGluNativeOracle PRIVATE ${OPENGL_glu_LIBRARY})
+ 		endif()
+ 		if(WIN32)
+-			target_compile_definitions(CoinRenderGluNativeOracle PRIVATE COIN_NOT_DLL)
+ 			target_link_libraries(CoinRenderGluNativeOracle PRIVATE Coin gdi32 user32)
+ 		elseif(NOT APPLE)
+ 			find_package(GLUT REQUIRED)
+diff --git a/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp b/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
+index 8eac51b8ee..9fe17c139e 100644
+--- a/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
++++ b/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
+@@ -124,6 +124,7 @@ static bool selection(bool gpu, bool window = false) {
+   return ok;
+ }
+ int main(int argc,char**argv) {
++  std::cout << std::unitbuf;
+   SoDB::init();CoinRenderAction::initClass();
+   const bool window=argc>1 && std::string(argv[1])=="--window";
+   const bool gpu=window || (argc>1 && std::string(argv[1])=="--gpu");
+diff --git a/testsuite/coinrender/CoinRenderSamplingTestOptions.h b/testsuite/coinrender/CoinRenderSamplingTestOptions.h
+index dfc1e4505b..6f068bd219 100644
+--- a/testsuite/coinrender/CoinRenderSamplingTestOptions.h
++++ b/testsuite/coinrender/CoinRenderSamplingTestOptions.h
+@@ -2,10 +2,13 @@
+ #define COIN_RENDER_SAMPLING_TEST_OPTIONS_H
+ #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+ #include <string>
++#include <iostream>
+ static CoinRenderTextureSamplingPolicy samplingTestPolicy = COIN_RENDER_SAMPLING_NATIVE;
+ static void configureSamplingTest(int argc, char** argv) {
++  std::cout << std::unitbuf;
+   for (int i=1; i<argc; ++i) if (std::string(argv[i]) == "--portable-sampling")
+     samplingTestPolicy = COIN_RENDER_SAMPLING_PORTABLE;
++  std::cout << "sampling_test_policy=" << samplingTestPolicy << '\n';
+ }
+ static CoinRenderOptions samplingTestOptions() {
+   std::string diagnostic;
+diff --git a/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp b/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
+index 949c528acd..c777e7cac0 100644
+--- a/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
++++ b/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
+@@ -1548,6 +1548,7 @@ bool shadowViewportCrop(SoSeparator *root, SoShadowGroup *group) {
+ 
+ int main(int argc, char ** argv)
+ {
++  std::cout << std::unitbuf;
+   SoDB::init();
+   CoinRenderAction::initClass();
+ 

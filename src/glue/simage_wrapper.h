@@ -37,6 +37,8 @@
 #error this is a private header file
 #endif
 
+#include <Inventor/C/basic.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -171,7 +173,7 @@ extern "C" {
 
   } simage_wrapper_t;
 
-  const simage_wrapper_t * simage_wrapper(void);
+  COIN_DLL_API const simage_wrapper_t * simage_wrapper(void);
 
 #ifdef __cplusplus
 }

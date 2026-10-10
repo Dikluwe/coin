@@ -1,0 +1,58 @@
+[
+  {
+    "test": "freecad-sampling-policy",
+    "native": true,
+    "reference_gl": false,
+    "status": "FAIL",
+    "nodes": {
+      "text": [
+        {
+          "visible_changes": 700,
+          "resized": false,
+          "glyph_pixels": 700,
+          "document_pick": true,
+          "mutation_changes": 2869,
+          "remaining_changes": 1476
+        }
+      ]
+    },
+    "profile": "screen-content",
+    "sampling_policy": 1,
+    "fixture_interactive_input": "blocked in this host process",
+    "fixture_window_state": "_NET_WM_STATE(ATOM) = _NET_WM_STATE_ABOVE, _NET_WM_STATE_FOCUSED",
+    "fixture_window_stays_on_top": true,
+    "prebaseline_redraws": 2,
+    "marker_descriptor": {
+      "coords": 3,
+      "num_points": 3,
+      "start": 0
+    },
+    "projective_sampling_fixture": {
+      "dimensions": [
+        256,
+        256
+      ],
+      "quality": 0.5,
+      "filter": "NEAREST_MIPMAP_LINEAR",
+      "unit": 0
+    },
+    "active_sampling_policy": 1,
+    "presentation_reads": {
+      "screen-bare": 2,
+      "screen-text": 2,
+      "screen-text-updated": 2,
+      "screen-text-removed": 2
+    },
+    "reason": "text removal left pixels",
+    "adapter": "wgpu vulkan vendor 0x10de device 0x2560",
+    "backend": "wgpu",
+    "renderer": "vulkan",
+    "mode": "object",
+    "alpha": "opaque",
+    "scale": 1,
+    "hardware_gpu": true,
+    "gpu_submitted": true,
+    "gpu_execution": "hardware",
+    "artifacts": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy"
+  }
+]

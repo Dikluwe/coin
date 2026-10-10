@@ -1,0 +1,362 @@
+[
+  {
+    "profile": "bgfx-amd-gl",
+    "workload": "npot-8",
+    "native_ms": 0.08874,
+    "native_range_ms": [
+      0.08736,
+      0.09012
+    ],
+    "portable_ms": 0.21748,
+    "portable_range_ms": [
+      0.20972,
+      0.22524
+    ],
+    "portable_over_native": 2.450755014649538
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "workload": "texture-1",
+    "native_ms": 0.23526,
+    "native_range_ms": [
+      0.235,
+      0.23552
+    ],
+    "portable_ms": 0.24524,
+    "portable_range_ms": [
+      0.24512,
+      0.24536
+    ],
+    "portable_over_native": 1.0424211510669048
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "workload": "texture-4",
+    "native_ms": 0.23926,
+    "native_range_ms": [
+      0.23892,
+      0.2396
+    ],
+    "portable_ms": 0.5484800000000001,
+    "portable_range_ms": [
+      0.54468,
+      0.55228
+    ],
+    "portable_over_native": 2.292401571512163
+  },
+  {
+    "profile": "bgfx-amd-gl",
+    "workload": "texture-8",
+    "native_ms": 0.30504,
+    "native_range_ms": [
+      0.305,
+      0.30508
+    ],
+    "portable_ms": 0.9452,
+    "portable_range_ms": [
+      0.94044,
+      0.94996
+    ],
+    "portable_over_native": 3.0986100183582486
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "workload": "npot-8",
+    "native_ms": 0.07350000000000001,
+    "native_range_ms": [
+      0.0734,
+      0.0736
+    ],
+    "portable_ms": 0.19912000000000002,
+    "portable_range_ms": [
+      0.19892,
+      0.19932
+    ],
+    "portable_over_native": 2.7091156462585033
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "workload": "texture-1",
+    "native_ms": 0.19146,
+    "native_range_ms": [
+      0.19004,
+      0.19288
+    ],
+    "portable_ms": 0.19496,
+    "portable_range_ms": [
+      0.1928,
+      0.19712
+    ],
+    "portable_over_native": 1.0182805808001671
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "workload": "texture-4",
+    "native_ms": 0.1963,
+    "native_range_ms": [
+      0.19588,
+      0.19672
+    ],
+    "portable_ms": 0.48706,
+    "portable_range_ms": [
+      0.48688,
+      0.48724
+    ],
+    "portable_over_native": 2.481202241467142
+  },
+  {
+    "profile": "bgfx-amd-vulkan",
+    "workload": "texture-8",
+    "native_ms": 0.27080000000000004,
+    "native_range_ms": [
+      0.27044,
+      0.27116
+    ],
+    "portable_ms": 0.89286,
+    "portable_range_ms": [
+      0.8928,
+      0.89292
+    ],
+    "portable_over_native": 3.2971196454948295
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "workload": "npot-8",
+    "native_ms": 0.229184,
+    "native_range_ms": [
+      0.22784,
+      0.230528
+    ],
+    "portable_ms": 0.467008,
+    "portable_range_ms": [
+      0.460416,
+      0.4736
+    ],
+    "portable_over_native": 2.037698966769059
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "workload": "texture-1",
+    "native_ms": 0.527712,
+    "native_range_ms": [
+      0.527072,
+      0.528352
+    ],
+    "portable_ms": 0.5331520000000001,
+    "portable_range_ms": [
+      0.532768,
+      0.533536
+    ],
+    "portable_over_native": 1.0103086532047785
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "workload": "texture-4",
+    "native_ms": 0.532128,
+    "native_range_ms": [
+      0.531904,
+      0.532352
+    ],
+    "portable_ms": 1.020032,
+    "portable_range_ms": [
+      1.019008,
+      1.021056
+    ],
+    "portable_over_native": 1.9168921763184796
+  },
+  {
+    "profile": "bgfx-nvidia-vulkan",
+    "workload": "texture-8",
+    "native_ms": 0.7496160000000001,
+    "native_range_ms": [
+      0.749312,
+      0.74992
+    ],
+    "portable_ms": 1.7967520000000001,
+    "portable_range_ms": [
+      1.796512,
+      1.796992
+    ],
+    "portable_over_native": 2.3968965443640475
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "workload": "npot-8",
+    "native_ms": 0.26034,
+    "native_range_ms": [
+      0.26008,
+      0.2606
+    ],
+    "portable_ms": 0.811525,
+    "portable_range_ms": [
+      0.77076,
+      0.85229
+    ],
+    "portable_over_native": 3.1171736959360836
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "workload": "texture-1",
+    "native_ms": 0.6026849999999999,
+    "native_range_ms": [
+      0.602,
+      0.60337
+    ],
+    "portable_ms": 0.5244,
+    "portable_range_ms": [
+      0.35184,
+      0.69696
+    ],
+    "portable_over_native": 0.8701062744219618
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "workload": "texture-4",
+    "native_ms": 0.7764150000000001,
+    "native_range_ms": [
+      0.76058,
+      0.79225
+    ],
+    "portable_ms": 0.897085,
+    "portable_range_ms": [
+      0.57344,
+      1.22073
+    ],
+    "portable_over_native": 1.1554194599537617
+  },
+  {
+    "profile": "wgpu-amd-gl",
+    "workload": "texture-8",
+    "native_ms": 0.5369349999999999,
+    "native_range_ms": [
+      0.34822,
+      0.72565
+    ],
+    "portable_ms": 1.2902900000000002,
+    "portable_range_ms": [
+      1.26217,
+      1.31841
+    ],
+    "portable_over_native": 2.4030655479713565
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "workload": "npot-8",
+    "native_ms": 0.17952,
+    "native_range_ms": [
+      0.08196,
+      0.27708
+    ],
+    "portable_ms": 0.47648,
+    "portable_range_ms": [
+      0.45122,
+      0.50174
+    ],
+    "portable_over_native": 2.6541889483065955
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "workload": "texture-1",
+    "native_ms": 0.48258,
+    "native_range_ms": [
+      0.475,
+      0.49016
+    ],
+    "portable_ms": 0.34274499999999997,
+    "portable_range_ms": [
+      0.17944,
+      0.50605
+    ],
+    "portable_over_native": 0.7102345725061129
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "workload": "texture-4",
+    "native_ms": 0.35672,
+    "native_range_ms": [
+      0.19692,
+      0.51652
+    ],
+    "portable_ms": 0.91875,
+    "portable_range_ms": [
+      0.91794,
+      0.91956
+    ],
+    "portable_over_native": 2.5755494505494507
+  },
+  {
+    "profile": "wgpu-amd-vulkan",
+    "workload": "texture-8",
+    "native_ms": 0.869525,
+    "native_range_ms": [
+      0.82305,
+      0.916
+    ],
+    "portable_ms": 1.288665,
+    "portable_range_ms": [
+      1.22381,
+      1.35352
+    ],
+    "portable_over_native": 1.4820332940398493
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "workload": "npot-8",
+    "native_ms": 0.153088,
+    "native_range_ms": [
+      0.152576,
+      0.1536
+    ],
+    "portable_ms": 0.347648,
+    "portable_range_ms": [
+      0.347136,
+      0.34816
+    ],
+    "portable_over_native": 2.270903010033445
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "workload": "texture-1",
+    "native_ms": 0.391168,
+    "native_range_ms": [
+      0.391168,
+      0.391168
+    ],
+    "portable_ms": 0.436736,
+    "portable_range_ms": [
+      0.436224,
+      0.437248
+    ],
+    "portable_over_native": 1.1164921465968587
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "workload": "texture-4",
+    "native_ms": 0.413696,
+    "native_range_ms": [
+      0.413696,
+      0.413696
+    ],
+    "portable_ms": 0.90112,
+    "portable_range_ms": [
+      0.90112,
+      0.90112
+    ],
+    "portable_over_native": 2.1782178217821784
+  },
+  {
+    "profile": "wgpu-nvidia-vulkan",
+    "workload": "texture-8",
+    "native_ms": 0.70144,
+    "native_range_ms": [
+      0.70144,
+      0.70144
+    ],
+    "portable_ms": 1.559552,
+    "portable_range_ms": [
+      1.559552,
+      1.559552
+    ],
+    "portable_over_native": 2.223357664233577
+  }
+]

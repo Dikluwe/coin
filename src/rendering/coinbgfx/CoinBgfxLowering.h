@@ -133,6 +133,8 @@ struct CoinBgfxTexture {
   uint32_t width = 0;
   uint32_t height = 0;
   uint64_t gpuToken = 0;
+  // A generated base-only GL view copied from another plan texture on GPU.
+  size_t gpuCopySourceSlot = SIZE_MAX;
   std::vector<uint8_t> pixelsRgba;
 };
 
@@ -153,10 +155,14 @@ struct CoinBgfxPlan {
   // Counts survive releasing CPU geometry after its GPU upload.
   size_t uploadedVertexCount = 0;
   size_t uploadedIndexCount = 0;
+  size_t uploadedInstanceCount = 0;
   size_t vertexCount() const {
     if (usesInstancing) return instancedVertices.empty() ? uploadedVertexCount : instancedVertices.size();
     if (usesCompactVertices) return packedVertices.empty() ? uploadedVertexCount : packedVertices.size();
     return vertices.empty() ? uploadedVertexCount : vertices.size();
+  }
+  size_t instanceCount() const {
+    return instances.empty() ? uploadedInstanceCount : instances.size();
   }
 };
 
@@ -173,7 +179,8 @@ public:
   // Oversized metadata is rejected; small plans retain material patch inputs.
   static bool retainForReuse(CoinBgfxPlan & plan,
                             uint64_t geometryBudget = 32u * 1024u * 1024u,
-                            uint64_t metadataBudget = 128u * 1024u * 1024u);
+                            uint64_t metadataBudget = 128u * 1024u * 1024u,
+                            bool instancesUploaded = false);
   // Clip the scissor only; preserve the original viewport for projection and camera reuse.
   // False means the viewport does not intersect the target.
   static bool clipViewport(const int32_t viewport[4], int width, int height,

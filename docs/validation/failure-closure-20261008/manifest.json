@@ -1,0 +1,2779 @@
+{
+  "renderer_commit": "69ba9d0a90134b3190dbe26b7efd473d5f29c837",
+  "external_laboratory_commit": "436fd35aaf487e1300ebe6d398b1976f7ce0238a",
+  "main_unchanged": "1f8c9a49b94fda10a19dbc0c49ef3614afd37269",
+  "original_coin_unchanged": "01b360af322ac873cd4d1c4262315673aa1ad3c8",
+  "mesa_tar_sha256": "097842f3e49d996868b38688db87b006f7d4541e93ce86d2f341d8b3e7be7c93",
+  "artifacts_root": "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-failure-fixes",
+  "system_install": false,
+  "published": false,
+  "original_failure_ledger": 28,
+  "original_campaign": {
+    "processes": 162,
+    "passed": 162,
+    "failed": 0
+  },
+  "expanded_campaign": {
+    "processes": 186,
+    "passed": 178,
+    "failed": 8
+  },
+  "separate_portable_styles": {
+    "processes": 8,
+    "passed": 8,
+    "failed": 0
+  },
+  "excluded_trials": [
+    "final/deep: GPU overlap trial, replaced by final/deep-serial",
+    "cpu-final-CoinRenderDrawStyleTest: also uses GPU, overlap trial",
+    "initial compiler crash: repaired before qualification",
+    "LLVM vertex/ACO fragment variant: sampling pass, clipping difference unchanged"
+  ],
+  "files": [
+    {
+      "path": "baseline-coingl-styles/summary.json",
+      "size": 522,
+      "sha256": "23aa0ba6ce700b998a3d27199352f26a60db177247b92fdd6fc25cd84a469351"
+    },
+    {
+      "path": "baseline-coingl-styles/wgpu-vulkan-frozen-runtime.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "baseline-wgpu-amd-gl-geometry.log",
+      "size": 15107,
+      "sha256": "2a11ea3965b0d92f6232e817f792e4196d3e55254bc6016b552f005a2d3ec737"
+    },
+    {
+      "path": "baseline-wgpu-amd-vulkan-geometry.log",
+      "size": 15107,
+      "sha256": "2a11ea3965b0d92f6232e817f792e4196d3e55254bc6016b552f005a2d3ec737"
+    },
+    {
+      "path": "build-bgfx-d32.log",
+      "size": 230,
+      "sha256": "bc304cd76178463cf31efbbefdfaf593a75d44c5c553a49ef01be07d827717b6"
+    },
+    {
+      "path": "build-bgfx-depth-interface.log",
+      "size": 841,
+      "sha256": "e245d9228829b173ce0ab4d79d1bce140961f96f796a04aefd7c983ce33f2ad3"
+    },
+    {
+      "path": "build-bgfx-depth-varying.log",
+      "size": 3875,
+      "sha256": "c4a17c1ee0c01e7e39490088d06b6020cd5071e562c662866af92c16e04acf47"
+    },
+    {
+      "path": "build-final-bgfx.log",
+      "size": 538,
+      "sha256": "75c134fb9a9afb4efdbcab74bbffa549d52c9021453dc6bdad597aa906d337c6"
+    },
+    {
+      "path": "build-final-wgpu.log",
+      "size": 293,
+      "sha256": "6403ce2499dde0def671af197a19d83548aeabcf798fa61389a6124e6214123b"
+    },
+    {
+      "path": "build-geometry-baseline.log",
+      "size": 228,
+      "sha256": "92665e56e7bd9eb15985fb5a0c622b2c2659761dbd3716e984c4e17fd6ec34a7"
+    },
+    {
+      "path": "build-probe-wgpu.log",
+      "size": 197,
+      "sha256": "d30894d478419eafa54030ab2170ef09644da9c3d7779dcf6ed36f0a222faff5"
+    },
+    {
+      "path": "build-snap.log",
+      "size": 406,
+      "sha256": "336d2122be3ec9bf41edd312f0784fabfaa549db587176fe5dec1d8bb6a36152"
+    },
+    {
+      "path": "build-unsnapped.log",
+      "size": 232,
+      "sha256": "ca5b7086cbf119b855acaf08c2a9ff7aad02d562ea009a7b61d234adabac5d30"
+    },
+    {
+      "path": "build-validated-bgfx.log",
+      "size": 5100,
+      "sha256": "a3e06d73e4cc0a07818b406f14387a40524316a0f0935e5c80f586a68a30b9bd"
+    },
+    {
+      "path": "build-validated-wgpu.log",
+      "size": 5582,
+      "sha256": "217dc7fd8cb56f4234fb9db5652b8817dd1a3fde121f5fdc94e3ea0f9d93a237"
+    },
+    {
+      "path": "cpu-final-CoinRenderDrawStyleTest.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "cpu-final-CoinRenderGeometryViewportTest.log",
+      "size": 35,
+      "sha256": "ee67b6f4f3113767135d937b3e6533748e12f579121ecdf1038deb3b6f4beb90"
+    },
+    {
+      "path": "cpu-final-CoinRenderProceduralTextureTest.log",
+      "size": 41,
+      "sha256": "af4d3c10ab45ea490e397513113a2615d54ec5db29d94dcbc33199eb3f940e83"
+    },
+    {
+      "path": "cpu-final-summary.json",
+      "size": 374,
+      "sha256": "14a42ee21534c712a57d0203f13d77fb8805a25d1433bce00f67d27ae1b871d2"
+    },
+    {
+      "path": "d32-bgfx-gl-fine_uniform-procedural.log",
+      "size": 14862,
+      "sha256": "71c43168347d3623c5c44842929d27e9f4b7edb9016e5763953e83255d19a249"
+    },
+    {
+      "path": "d32-bgfx-gl-native-procedural.log",
+      "size": 14862,
+      "sha256": "71c43168347d3623c5c44842929d27e9f4b7edb9016e5763953e83255d19a249"
+    },
+    {
+      "path": "d32-summary.json",
+      "size": 200,
+      "sha256": "7ece7bafeb0b59f4cf4e5fee20ae6b63123f030b15a93d17aa1e18cd2fff189d"
+    },
+    {
+      "path": "depth-interface-bgfx-opengl-fine_uniform-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "depth-interface-bgfx-opengl-native-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "depth-interface-bgfx-vulkan-fine_uniform-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "depth-interface-bgfx-vulkan-native-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "depth-interface-summary.json",
+      "size": 546,
+      "sha256": "98d5499cb3293ee8dc8d590e9cf1c70a33f5546fe3b0724c98ecc9e43f39b48f"
+    },
+    {
+      "path": "diagnostic-summary.json",
+      "size": 467,
+      "sha256": "b09e81cd7094f7143a984c32213d81679960b6a140e27a35ff95822b8277c8b6"
+    },
+    {
+      "path": "external-laboratory-source.patch",
+      "size": 34061,
+      "sha256": "c51ddf5446e0b3ce3c30916891e2ac067edc15acac94902a47b2022696a2d91c"
+    },
+    {
+      "path": "final/bgfx-amd-gl-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/bgfx-amd-gl-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/bgfx-amd-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/bgfx-amd-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/bgfx-gl-draw-style.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "final/bgfx-nvidia-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/bgfx-nvidia-vulkan-fine_uniform-full-geometry.log",
+      "size": 241416,
+      "sha256": "08cda294ef2407d5b8ad3dc5979216653f21b28a72b1af027bb569f44c72f884"
+    },
+    {
+      "path": "final/bgfx-nvidia-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/bgfx-nvidia-vulkan-native-full-geometry.log",
+      "size": 241416,
+      "sha256": "08cda294ef2407d5b8ad3dc5979216653f21b28a72b1af027bb569f44c72f884"
+    },
+    {
+      "path": "final/bgfx-vulkan-draw-style.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "final/deep-serial/bgfx-amd-gl-fine_uniform-deep.log",
+      "size": 13462,
+      "sha256": "70defb76fdba167ebcba70ccd01166d28049226fcff01d1ebe3d2191fe149d2a"
+    },
+    {
+      "path": "final/deep-serial/bgfx-amd-gl-native-deep.log",
+      "size": 22009,
+      "sha256": "d087fafdeb8d298c093041b5d763993599814e8a1242f27d5d8e7741ffcde99c"
+    },
+    {
+      "path": "final/deep-serial/bgfx-amd-vulkan-fine_uniform-deep.log",
+      "size": 13457,
+      "sha256": "1f97e410f76044e20f5cd80ea3fa6d7767c1cdaf3d284e5775770a139cb798c3"
+    },
+    {
+      "path": "final/deep-serial/bgfx-amd-vulkan-native-deep.log",
+      "size": 22004,
+      "sha256": "17050ba1ca456b29476f9b1c7d0d07546e3c73bfdc106b4f26a8e67baec4a76f"
+    },
+    {
+      "path": "final/deep-serial/bgfx-nvidia-vulkan-fine_uniform-deep.log",
+      "size": 13430,
+      "sha256": "6c85b5afd4f05b72c7ec67d51658ec81e6d91e22334ddf20201893b17c6fb017"
+    },
+    {
+      "path": "final/deep-serial/bgfx-nvidia-vulkan-native-deep.log",
+      "size": 13430,
+      "sha256": "6c85b5afd4f05b72c7ec67d51658ec81e6d91e22334ddf20201893b17c6fb017"
+    },
+    {
+      "path": "final/deep-serial/summary.json",
+      "size": 193844,
+      "sha256": "42bcd5f5419806f33988193693e6d57d676da2a1aad75860940f204d56787729"
+    },
+    {
+      "path": "final/deep-serial/wgpu-amd-gl-fine_uniform-deep.log",
+      "size": 13485,
+      "sha256": "2062d616e0c2af6d661e927af06bc422e311a37647b5c653d6fab21247ddbf69"
+    },
+    {
+      "path": "final/deep-serial/wgpu-amd-gl-native-deep.log",
+      "size": 22032,
+      "sha256": "3fe8620c25d56f9cd08e496dd1ba3628d83042eb07ac024a36df7ad34e99cd25"
+    },
+    {
+      "path": "final/deep-serial/wgpu-amd-vulkan-fine_uniform-deep.log",
+      "size": 13453,
+      "sha256": "728ce849d9ccf66d2a2d4ba18dd832029b65a3c0720e49a2decb68c34ec57ab9"
+    },
+    {
+      "path": "final/deep-serial/wgpu-amd-vulkan-native-deep.log",
+      "size": 22000,
+      "sha256": "42588e499d781626d7b313014d0b79f531ad4bc04ecd61615482c80a54607963"
+    },
+    {
+      "path": "final/deep-serial/wgpu-nvidia-vulkan-fine_uniform-deep.log",
+      "size": 13424,
+      "sha256": "23b12a355f9bab0e3a577a1540e9df87ebe7819adbb1a3340e2d2e0f03b06318"
+    },
+    {
+      "path": "final/deep-serial/wgpu-nvidia-vulkan-native-deep.log",
+      "size": 13424,
+      "sha256": "23b12a355f9bab0e3a577a1540e9df87ebe7819adbb1a3340e2d2e0f03b06318"
+    },
+    {
+      "path": "final/direct/bgfx-amd-gl-fine_uniform-rtt-study.log",
+      "size": 4225,
+      "sha256": "1462fb715e3e2d2f3d623dff001bc65e24a42a0e92e2caf5454a920534e517b2"
+    },
+    {
+      "path": "final/direct/bgfx-amd-gl-native-rtt-study.log",
+      "size": 6785,
+      "sha256": "7ce3eedfc44da4fa7db809a3e0eefb83a709d7c458ca781aed2960447b19e30c"
+    },
+    {
+      "path": "final/direct/bgfx-amd-vulkan-fine_uniform-rtt-study.log",
+      "size": 4220,
+      "sha256": "8fe7a8f5297c693507a2eff2ea8447a1d2d77773fca6104ec50c24bdf56f756d"
+    },
+    {
+      "path": "final/direct/bgfx-amd-vulkan-native-rtt-study.log",
+      "size": 6780,
+      "sha256": "33041dc458b2572c6236025166e679bdc108a7fda26362a1fa9e8119ec9d4a90"
+    },
+    {
+      "path": "final/direct/bgfx-nvidia-vulkan-fine_uniform-rtt-study.log",
+      "size": 4177,
+      "sha256": "6116e8f195354163ad20e15c272b441782384758042a845fd4c703df308abc6e"
+    },
+    {
+      "path": "final/direct/bgfx-nvidia-vulkan-native-rtt-study.log",
+      "size": 4177,
+      "sha256": "6116e8f195354163ad20e15c272b441782384758042a845fd4c703df308abc6e"
+    },
+    {
+      "path": "final/direct/summary.json",
+      "size": 69080,
+      "sha256": "fcac8bfa8d1af0cecacfd7fd10a6b4e258bb92014554c64dc4b187565ee51ec9"
+    },
+    {
+      "path": "final/direct/wgpu-amd-gl-fine_uniform-rtt-study.log",
+      "size": 4248,
+      "sha256": "bcc025d45942459e17f22ff7291ca17f41e4cd1420df68686d459b8ac8a54249"
+    },
+    {
+      "path": "final/direct/wgpu-amd-gl-native-rtt-study.log",
+      "size": 6808,
+      "sha256": "b24609d659773f7835069d950339bc3de75aa0c3e4882a3ea0f9cbd8f9a52aed"
+    },
+    {
+      "path": "final/direct/wgpu-amd-vulkan-fine_uniform-rtt-study.log",
+      "size": 4216,
+      "sha256": "a7b3fafeac7620a4c4d29498e603745b077620a9cf4f3fb75939e667ce95ef8e"
+    },
+    {
+      "path": "final/direct/wgpu-amd-vulkan-native-rtt-study.log",
+      "size": 6776,
+      "sha256": "c3aa19dc7498f17caa3e60248320c412e721119c02d70572611c909e9384a064"
+    },
+    {
+      "path": "final/direct/wgpu-nvidia-vulkan-fine_uniform-rtt-study.log",
+      "size": 4171,
+      "sha256": "7436331da0d7458dd39b7aef3e3d5797df741485c21d2ef53531300ba2d60c46"
+    },
+    {
+      "path": "final/direct/wgpu-nvidia-vulkan-native-rtt-study.log",
+      "size": 4171,
+      "sha256": "7436331da0d7458dd39b7aef3e3d5797df741485c21d2ef53531300ba2d60c46"
+    },
+    {
+      "path": "final/draw-style-summary.json",
+      "size": 1030,
+      "sha256": "1c31007b05ccbf77d309a4c69a2b880c3849659a8e4ef65cba4473f01c9422e8"
+    },
+    {
+      "path": "final/geometry-summary.json",
+      "size": 13258,
+      "sha256": "282a114af2f3ccad66aa4b32588e9587d17e036a76b02fcc5654bb0b5b57f52d"
+    },
+    {
+      "path": "final/pilot/bgfx-amd-gl-fine_uniform-alpha.log",
+      "size": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    {
+      "path": "final/pilot/bgfx-amd-gl-native-alpha.log",
+      "size": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    {
+      "path": "final/pilot/bgfx-amd-vulkan-fine_uniform-alpha.log",
+      "size": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    {
+      "path": "final/pilot/bgfx-amd-vulkan-native-alpha.log",
+      "size": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    {
+      "path": "final/pilot/bgfx-nvidia-vulkan-fine_uniform-alpha.log",
+      "size": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    {
+      "path": "final/pilot/bgfx-nvidia-vulkan-native-alpha.log",
+      "size": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    {
+      "path": "final/pilot/summary.json",
+      "size": 13880,
+      "sha256": "f7abfa70580b06d0b0264d9d109805f40046db697742e5ef14edaaa1ee81ecbe"
+    },
+    {
+      "path": "final/pilot/wgpu-amd-gl-fine_uniform-alpha.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "final/pilot/wgpu-amd-gl-native-alpha.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "final/pilot/wgpu-amd-vulkan-fine_uniform-alpha.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "final/pilot/wgpu-amd-vulkan-native-alpha.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "final/pilot/wgpu-nvidia-vulkan-fine_uniform-alpha.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "final/pilot/wgpu-nvidia-vulkan-native-alpha.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-fine_uniform-advanced.log",
+      "size": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-fine_uniform-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-fine_uniform-projective.log",
+      "size": 4188,
+      "sha256": "84227e4d6cfd8744da8598a7c4a7d02284566cd2914f575514eafba987d48ccb"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-fine_uniform-sampling.log",
+      "size": 54792,
+      "sha256": "b0ec451bf7c0a63ee9858fa7ce96ba7f065689f0f5de3b68767c224debb6af5a"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-native-advanced.log",
+      "size": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-native-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-native-projective.log",
+      "size": 4208,
+      "sha256": "8a1f44785623ed05b16ba4703c4164b9f377a482522e69bc9c5b5741006d641e"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/bgfx-amd-gl-native-sampling.log",
+      "size": 54807,
+      "sha256": "b954a4d7e2347de6ff25cc08d0360845611fc1ea6aaa9acefc01c57527821f2a"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-fine_uniform-advanced.log",
+      "size": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-fine_uniform-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-fine_uniform-projective.log",
+      "size": 4174,
+      "sha256": "3f9808db4ae41385e903492168c9fcda9bf18c6e5754cc0d7fb3aea31c87d982"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-fine_uniform-sampling.log",
+      "size": 54784,
+      "sha256": "775e7b427bf32af9c3bbeafd194becab117c14bfc4bfe3d4c47089a68f4ffbfa"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-native-advanced.log",
+      "size": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-native-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-native-projective.log",
+      "size": 4188,
+      "sha256": "36ac47a3a81d493c70ac4972854c4322d895bca0b7e6aee57f63be9f6442c271"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/bgfx-amd-vulkan-native-sampling.log",
+      "size": 54796,
+      "sha256": "76e6e672555ee111909de665d4b84e5b2a39bfa324cc5604a69a65ce1b3159e7"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-fine_uniform-advanced.log",
+      "size": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-fine_uniform-procedural.log",
+      "size": 31337,
+      "sha256": "f67874cf50fec3e4fe63376768b008bc89c15b10f48a5207c1761be12c9fd49f"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-fine_uniform-projective.log",
+      "size": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-fine_uniform-sampling.log",
+      "size": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-native-advanced.log",
+      "size": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-native-procedural.log",
+      "size": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-native-projective.log",
+      "size": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/bgfx-nvidia-vulkan-native-sampling.log",
+      "size": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    {
+      "path": "final/quality/summary.json",
+      "size": 791153,
+      "sha256": "7f87ad14704b7077790cb1cc1fa923764e58ffa9ecb0eba6ce308b16e95266d1"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-fine_uniform-advanced.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-fine_uniform-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-fine_uniform-projective.log",
+      "size": 4202,
+      "sha256": "655a16081d241bc64002e9043b1af21cfd646ae1172d0a672e13536c2ae85e4c"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-fine_uniform-sampling.log",
+      "size": 54812,
+      "sha256": "4cdfb306ab8333b85c6d2c30c08e46a17ae7cbc994e536783dd6296b9753092a"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-native-advanced.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-native-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-native-projective.log",
+      "size": 4216,
+      "sha256": "ed4af38dbf090c6b00f9cb7acdca6fe4332b32030586335864ad1d9a65fb6e5e"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/wgpu-amd-gl-native-sampling.log",
+      "size": 54824,
+      "sha256": "40ada83de372046c0cf075bc4760b2ab37d847cac459c3b75918b6e37e3ef68e"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-fine_uniform-advanced.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-fine_uniform-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-fine_uniform-projective.log",
+      "size": 4170,
+      "sha256": "4ef1546d555212da54fcc96f35663bac2a3c0621fa34b75109342ce63c0c86fe"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-fine_uniform-sampling.log",
+      "size": 54780,
+      "sha256": "7b32593052523e8c0d02c6ea88942b4b84cfc2ad1012f196554375e064bfe547"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-native-advanced.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-native-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-native-projective.log",
+      "size": 4184,
+      "sha256": "49c9c66a2838998c4f841ef62bff64e3bb1de89fa74153d72062b83e4b8672e8"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "final/quality/wgpu-amd-vulkan-native-sampling.log",
+      "size": 54792,
+      "sha256": "2042c8c079434b9f6665eb897a78a5c38bb2cfd481d4883f37d26c612d43f3db"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-fine_uniform-advanced.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-fine_uniform-procedural.log",
+      "size": 31337,
+      "sha256": "f67874cf50fec3e4fe63376768b008bc89c15b10f48a5207c1761be12c9fd49f"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-fine_uniform-projective.log",
+      "size": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-fine_uniform-rtt.log",
+      "size": 146,
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-fine_uniform-sampling.log",
+      "size": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-native-advanced.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-native-procedural.log",
+      "size": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-native-projective.log",
+      "size": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-native-rtt.log",
+      "size": 146,
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8"
+    },
+    {
+      "path": "final/quality/wgpu-nvidia-vulkan-native-sampling.log",
+      "size": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    {
+      "path": "final/resources/bgfx-amd-gl-fine_uniform-instancing.log",
+      "size": 2147,
+      "sha256": "762f504ca1d3b3b4309c63ddcb002ec00ee09f0e3874df963c2a77291514b83a"
+    },
+    {
+      "path": "final/resources/bgfx-amd-gl-native-instancing.log",
+      "size": 2147,
+      "sha256": "762f504ca1d3b3b4309c63ddcb002ec00ee09f0e3874df963c2a77291514b83a"
+    },
+    {
+      "path": "final/resources/bgfx-amd-vulkan-fine_uniform-instancing.log",
+      "size": 2074,
+      "sha256": "b2ebaa29cd9eb5060573552e9bb942869762701aca27aaeaefdd9eaa8fbc15ee"
+    },
+    {
+      "path": "final/resources/bgfx-amd-vulkan-native-instancing.log",
+      "size": 2074,
+      "sha256": "b2ebaa29cd9eb5060573552e9bb942869762701aca27aaeaefdd9eaa8fbc15ee"
+    },
+    {
+      "path": "final/resources/bgfx-nvidia-vulkan-fine_uniform-instancing.log",
+      "size": 2147,
+      "sha256": "afc13af8a679c4ea138cca5e6881314f670d9d84f51f73ad020b7838af42bb3d"
+    },
+    {
+      "path": "final/resources/bgfx-nvidia-vulkan-native-instancing.log",
+      "size": 2147,
+      "sha256": "afc13af8a679c4ea138cca5e6881314f670d9d84f51f73ad020b7838af42bb3d"
+    },
+    {
+      "path": "final/resources/summary.json",
+      "size": 26736,
+      "sha256": "6241770d73736a12d545834f489b2d7c0fcd791757f4f08a45e96870570d80f4"
+    },
+    {
+      "path": "final/resources/wgpu-amd-gl-fine_uniform-large-bindings.log",
+      "size": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    {
+      "path": "final/resources/wgpu-amd-gl-fine_uniform-multi-device.log",
+      "size": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    {
+      "path": "final/resources/wgpu-amd-gl-fine_uniform-stress.log",
+      "size": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    {
+      "path": "final/resources/wgpu-amd-gl-native-large-bindings.log",
+      "size": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    {
+      "path": "final/resources/wgpu-amd-gl-native-multi-device.log",
+      "size": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    {
+      "path": "final/resources/wgpu-amd-gl-native-stress.log",
+      "size": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    {
+      "path": "final/resources/wgpu-amd-vulkan-fine_uniform-large-bindings.log",
+      "size": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    {
+      "path": "final/resources/wgpu-amd-vulkan-fine_uniform-multi-device.log",
+      "size": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    {
+      "path": "final/resources/wgpu-amd-vulkan-fine_uniform-stress.log",
+      "size": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    {
+      "path": "final/resources/wgpu-amd-vulkan-native-large-bindings.log",
+      "size": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    {
+      "path": "final/resources/wgpu-amd-vulkan-native-multi-device.log",
+      "size": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    {
+      "path": "final/resources/wgpu-amd-vulkan-native-stress.log",
+      "size": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    {
+      "path": "final/resources/wgpu-nvidia-vulkan-fine_uniform-large-bindings.log",
+      "size": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    {
+      "path": "final/resources/wgpu-nvidia-vulkan-fine_uniform-multi-device.log",
+      "size": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    {
+      "path": "final/resources/wgpu-nvidia-vulkan-fine_uniform-stress.log",
+      "size": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    {
+      "path": "final/resources/wgpu-nvidia-vulkan-native-large-bindings.log",
+      "size": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    {
+      "path": "final/resources/wgpu-nvidia-vulkan-native-multi-device.log",
+      "size": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    {
+      "path": "final/resources/wgpu-nvidia-vulkan-native-stress.log",
+      "size": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-gl-fine_uniform-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-gl-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-gl-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-gl-native-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-gl-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-gl-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-vulkan-fine_uniform-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-vulkan-native-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "final/shadow/bgfx-amd-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "final/shadow/bgfx-nvidia-vulkan-fine_uniform-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "a560faf7ce6ae0c97c1b28378ef951328d34bbab93a256ca1f47f1ef122a8323"
+    },
+    {
+      "path": "final/shadow/bgfx-nvidia-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "54288a51c4a1882fecfa6b737240d1a1c7d7cdc8875f8b31caaf93d68c3665d2"
+    },
+    {
+      "path": "final/shadow/bgfx-nvidia-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "final/shadow/bgfx-nvidia-vulkan-native-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "a560faf7ce6ae0c97c1b28378ef951328d34bbab93a256ca1f47f1ef122a8323"
+    },
+    {
+      "path": "final/shadow/bgfx-nvidia-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "54288a51c4a1882fecfa6b737240d1a1c7d7cdc8875f8b31caaf93d68c3665d2"
+    },
+    {
+      "path": "final/shadow/bgfx-nvidia-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "final/shadow/summary.json",
+      "size": 39902,
+      "sha256": "dfa4069e765a5d47906a8d60fbf08bf44020c3c163a6d3c34ae2d3fd621d99b2"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-gl-fine_uniform-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-gl-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "1c66fd4ca2948037a59ccac121e696f4285890bdd9fab8512095b7879670889b"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-gl-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-gl-native-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-gl-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "1c66fd4ca2948037a59ccac121e696f4285890bdd9fab8512095b7879670889b"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-gl-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-vulkan-fine_uniform-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "5b71cf529208f2f206356f7ee69e07479f243a6cc0c8842f7b483b01ff0694f9"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-vulkan-native-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "5b71cf529208f2f206356f7ee69e07479f243a6cc0c8842f7b483b01ff0694f9"
+    },
+    {
+      "path": "final/shadow/wgpu-amd-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "final/shadow/wgpu-nvidia-vulkan-fine_uniform-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "845fef323c56430c2cf3f757f2ad654417625136a15572a84bb532da94d84be4"
+    },
+    {
+      "path": "final/shadow/wgpu-nvidia-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "a3883c74fe08842401759629918ba458ade0312dbf4e98e5c9d00058c1f22ded"
+    },
+    {
+      "path": "final/shadow/wgpu-nvidia-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "final/shadow/wgpu-nvidia-vulkan-native-shadow-alpha-rtt.log",
+      "size": 12216,
+      "sha256": "845fef323c56430c2cf3f757f2ad654417625136a15572a84bb532da94d84be4"
+    },
+    {
+      "path": "final/shadow/wgpu-nvidia-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "a3883c74fe08842401759629918ba458ade0312dbf4e98e5c9d00058c1f22ded"
+    },
+    {
+      "path": "final/shadow/wgpu-nvidia-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "final/viewport/bgfx-amd-gl-fine_uniform-viewport-study.log",
+      "size": 3435,
+      "sha256": "283fbdc18143310a8ae1bb58806ff5683c8fcc3072f543bcaa09eee8a15f4d3f"
+    },
+    {
+      "path": "final/viewport/bgfx-amd-gl-native-viewport-study.log",
+      "size": 3435,
+      "sha256": "283fbdc18143310a8ae1bb58806ff5683c8fcc3072f543bcaa09eee8a15f4d3f"
+    },
+    {
+      "path": "final/viewport/bgfx-amd-vulkan-fine_uniform-viewport-study.log",
+      "size": 3430,
+      "sha256": "f235f2662a203a27e1aebf340626739a2e9798896bf399f6f195da30685bfe18"
+    },
+    {
+      "path": "final/viewport/bgfx-amd-vulkan-native-viewport-study.log",
+      "size": 3430,
+      "sha256": "f235f2662a203a27e1aebf340626739a2e9798896bf399f6f195da30685bfe18"
+    },
+    {
+      "path": "final/viewport/bgfx-nvidia-vulkan-fine_uniform-viewport-study.log",
+      "size": 3433,
+      "sha256": "e0d57784819386fcb0987f5bf511dcbf46d856d26fd34988a0681ec891aa8cd4"
+    },
+    {
+      "path": "final/viewport/bgfx-nvidia-vulkan-native-viewport-study.log",
+      "size": 3433,
+      "sha256": "e0d57784819386fcb0987f5bf511dcbf46d856d26fd34988a0681ec891aa8cd4"
+    },
+    {
+      "path": "final/viewport/summary.json",
+      "size": 57764,
+      "sha256": "264b47abfefff56499691ed5d84b0313e5b2683db5d6b2c4bdd448c7ba93fb65"
+    },
+    {
+      "path": "final/viewport/wgpu-amd-gl-fine_uniform-viewport-study.log",
+      "size": 3458,
+      "sha256": "1553f9b973f3560540afb3fa081ce9eddd135a6585594a88b3d6bc1b13a11c21"
+    },
+    {
+      "path": "final/viewport/wgpu-amd-gl-native-viewport-study.log",
+      "size": 3458,
+      "sha256": "1553f9b973f3560540afb3fa081ce9eddd135a6585594a88b3d6bc1b13a11c21"
+    },
+    {
+      "path": "final/viewport/wgpu-amd-vulkan-fine_uniform-viewport-study.log",
+      "size": 3426,
+      "sha256": "042a07a996890043e8b6218e94b056ae8d23cf8643c75252a97451fc0e233920"
+    },
+    {
+      "path": "final/viewport/wgpu-amd-vulkan-native-viewport-study.log",
+      "size": 3426,
+      "sha256": "042a07a996890043e8b6218e94b056ae8d23cf8643c75252a97451fc0e233920"
+    },
+    {
+      "path": "final/viewport/wgpu-nvidia-vulkan-fine_uniform-viewport-study.log",
+      "size": 3427,
+      "sha256": "72253c65e77793c8ee863a37ad0b77dfc7f49612de92d22301348b6c9a574e13"
+    },
+    {
+      "path": "final/viewport/wgpu-nvidia-vulkan-native-viewport-study.log",
+      "size": 3427,
+      "sha256": "72253c65e77793c8ee863a37ad0b77dfc7f49612de92d22301348b6c9a574e13"
+    },
+    {
+      "path": "final/wgpu-amd-gl-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/wgpu-amd-gl-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/wgpu-amd-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/wgpu-amd-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/wgpu-gl-draw-style.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "final/wgpu-nvidia-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/wgpu-nvidia-vulkan-fine_uniform-full-geometry.log",
+      "size": 241416,
+      "sha256": "08cda294ef2407d5b8ad3dc5979216653f21b28a72b1af027bb569f44c72f884"
+    },
+    {
+      "path": "final/wgpu-nvidia-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "final/wgpu-nvidia-vulkan-native-full-geometry.log",
+      "size": 241416,
+      "sha256": "08cda294ef2407d5b8ad3dc5979216653f21b28a72b1af027bb569f44c72f884"
+    },
+    {
+      "path": "final/wgpu-vulkan-draw-style.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "generated-shader-hashes.json",
+      "size": 15215,
+      "sha256": "83e0750dc47c80ff3ed32ce65e42f8b2818238a71e9b79b0b1ea618a74eba13c"
+    },
+    {
+      "path": "geometry-baseline-summary.json",
+      "size": 186,
+      "sha256": "b787cc078501bd2a2d894c4a7fb497d5640a5fca068dcea1a468f8a5b626f844"
+    },
+    {
+      "path": "initial-procedural-summary.json",
+      "size": 1810,
+      "sha256": "54ea2b9bbb01d6d503cc0f0f08f521182295e86b5e73496abe57955031cda4c4"
+    },
+    {
+      "path": "initial-wgpu-amd-gl-fetch-procedural.log",
+      "size": 13958,
+      "sha256": "036e7a289881fd6ac8c5446f934fac1d578c26dbbbb73424369f891f8478dee8"
+    },
+    {
+      "path": "initial-wgpu-amd-gl-fine_uniform-procedural.log",
+      "size": 13880,
+      "sha256": "c1231117a21a5cb4bce5841e74921031ef8d028f38c2771e475310472f274de6"
+    },
+    {
+      "path": "initial-wgpu-amd-gl-native-procedural.log",
+      "size": 13880,
+      "sha256": "c1231117a21a5cb4bce5841e74921031ef8d028f38c2771e475310472f274de6"
+    },
+    {
+      "path": "initial-wgpu-amd-vulkan-fetch-procedural.log",
+      "size": 31388,
+      "sha256": "6d1cc0566ce8e641de15e51bed6d6e6d6a939d29283a18abb227d37cbb3623e6"
+    },
+    {
+      "path": "initial-wgpu-amd-vulkan-fine_uniform-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "initial-wgpu-amd-vulkan-native-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "mesa-build/aco-libEGL_mesa.so-ldd.log",
+      "size": 1329,
+      "sha256": "828325ef669992b88de751f68b96fe3a9b4bd2c07f4e8809fec25e923387dda4"
+    },
+    {
+      "path": "mesa-build/aco-libGLX_mesa.so-ldd.log",
+      "size": 1473,
+      "sha256": "3c261fa223d61b4dfbb58b452a163a0b43037e917e4a08f0efecdcc4ada576a8"
+    },
+    {
+      "path": "mesa-build/aco-libgallium-25.2.8.so-ldd.log",
+      "size": 1673,
+      "sha256": "caf2d069946a90a56c2115f653cc7b25af40473f96df82112cb07be2e6c4cbcb"
+    },
+    {
+      "path": "mesa-build/aco-libvulkan_radeon.so-ldd.log",
+      "size": 2062,
+      "sha256": "e777e1cfcc92855de7d3b8fca6ce673de21b4e3af530d36123f879c536104480"
+    },
+    {
+      "path": "mesa-build/bgfx-libCoin.so-ldd.log",
+      "size": 1106,
+      "sha256": "32f607bbafcdcd72ba30d5f1375dc6e66ed71f96c17cb3dd757b6ccfaef46c1e"
+    },
+    {
+      "path": "mesa-build/bgfx-libCoinRender.so-ldd.log",
+      "size": 1242,
+      "sha256": "61b3c434cf65b55012fa492bc843b70a88f390cb845528f917d6a6358f2cb4a2"
+    },
+    {
+      "path": "mesa-build/build-2.log",
+      "size": 15265,
+      "sha256": "ae7e22cd4b20bce3ff0d82fc24393b1a6f794d667c1590fa2be00b270a04f5a7"
+    },
+    {
+      "path": "mesa-build/build-3.log",
+      "size": 66539,
+      "sha256": "df55fa2a77ca565553ecc0f7585bd1fce56cf7f152108c28cd28b23dc2fff9bd"
+    },
+    {
+      "path": "mesa-build/build-4.log",
+      "size": 58492,
+      "sha256": "844ed617e62839c43ee93fa0df450332cd9a454ab1467b2999b3f78d4ec726b6"
+    },
+    {
+      "path": "mesa-build/build-intro-buildoptions.json",
+      "size": 35602,
+      "sha256": "44a8947b1bbf3a28d1d3f75b68308152a21c730f2f8bbd73de51e5184c149242"
+    },
+    {
+      "path": "mesa-build/build-intro-dependencies.json",
+      "size": 32120,
+      "sha256": "b368440106b1519f4082cfbb9d069ad6195bef9977eafc66f2c50bcb2a1f3a74"
+    },
+    {
+      "path": "mesa-build/build-intro-install_plan.json",
+      "size": 2805,
+      "sha256": "d0d1b92eef7eaae9bdaafcd82b59e388b3ff44429dd3a695f6d8d01afc75c6c5"
+    },
+    {
+      "path": "mesa-build/build-llvm-intro-buildoptions.json",
+      "size": 35605,
+      "sha256": "1a0c87c1e541c4f8a655d1cebfe133b4d872498635083b5c7b2771d3728dc6f3"
+    },
+    {
+      "path": "mesa-build/build-llvm-intro-dependencies.json",
+      "size": 32842,
+      "sha256": "7d6680ae340b4a5298ddabba884f31793b15bdf56963df861366602c7267c5f7"
+    },
+    {
+      "path": "mesa-build/build-llvm-intro-install_plan.json",
+      "size": 2840,
+      "sha256": "9a2ebae068623979319d858ccfcde955304928ff2570dc1b486279af9b194ec4"
+    },
+    {
+      "path": "mesa-build/build-llvm.log",
+      "size": 137183,
+      "sha256": "2173558f78ac484afb2a7faca0129ce11f2ad40d6a4d5641b451b163f5a3b3ad"
+    },
+    {
+      "path": "mesa-build/build-repair-nir.log",
+      "size": 644,
+      "sha256": "4d16ba44d430f361aff5cf089278361c330f1a696d8fc140b10b1bfd4f979acd"
+    },
+    {
+      "path": "mesa-build/build-tools.log",
+      "size": 2150,
+      "sha256": "2a418b00aa8ba639e2ffb8ff6c7a979a09542aa59abef25ba5d3921778e756f4"
+    },
+    {
+      "path": "mesa-build/build.log",
+      "size": 10312,
+      "sha256": "66fd51f953e3f778bd8ad7f5f98aa1cf666fbf56ce9fc7fd72c769334d875cf4"
+    },
+    {
+      "path": "mesa-build/compile-probe-2.log",
+      "size": 445,
+      "sha256": "0abe9133a64930a0b4dd7c0d5d57e1deeed7bb4a1ec1fb73cd1f3c43031f914a"
+    },
+    {
+      "path": "mesa-build/compile-probe.log",
+      "size": 10476,
+      "sha256": "4fad16f81d7aa7b4bdf819cb0ed19b72c0089fef99be239be251dd3261ccc502"
+    },
+    {
+      "path": "mesa-build/configure-2.log",
+      "size": 17664,
+      "sha256": "ca705e2d127f3d8047704f2c9eee35881a8ac8ff231ff7a3248ad58ff7ef4ea9"
+    },
+    {
+      "path": "mesa-build/configure-command.json",
+      "size": 1556,
+      "sha256": "9e238276822ae3337cea9efd353bbcc2d7243ba1c304e6d6aa594a4b9ebf4adf"
+    },
+    {
+      "path": "mesa-build/configure-llvm-command.json",
+      "size": 1610,
+      "sha256": "571f08fa5647408a197eab9dec8339d9bb6d10a5e9b4aef9eec577646cb667ca"
+    },
+    {
+      "path": "mesa-build/configure-llvm.log",
+      "size": 17788,
+      "sha256": "0c505826ae43e85ee14df82143a35f7602e38e5e24521fcc5bfb89bec04c42a1"
+    },
+    {
+      "path": "mesa-build/configure.log",
+      "size": 1337,
+      "sha256": "6f6eb61eeb856e09c6714db01951a70e3cf750cf0e571a2018d33cf3720201d4"
+    },
+    {
+      "path": "mesa-build/configure.py",
+      "size": 1266,
+      "sha256": "2bf2868cb12c82cbd4ccb283701342bd561751e5df50f4547d5cd557a1fa62a3"
+    },
+    {
+      "path": "mesa-build/crash-backtrace.log",
+      "size": 17351,
+      "sha256": "c0e000577f6958a3935905c02c5faf49fa9697143065da62d88a449e47928844"
+    },
+    {
+      "path": "mesa-build/dependencies.json",
+      "size": 305,
+      "sha256": "81832f1d7e1a448ab2976b53b02d486821282d9aee088ea7cd4a21b36911a849"
+    },
+    {
+      "path": "mesa-build/dependency-download-2.log",
+      "size": 491,
+      "sha256": "bed5eb0b699bbd5e3d51fbcaa1f58ecd59acc6ebafaf6aca6f12e55a9653e88e"
+    },
+    {
+      "path": "mesa-build/dependency-download-3.log",
+      "size": 243,
+      "sha256": "4f3f8838571ce1a28c2888d251bb85eb5a918d20d09491ce2ab3fed8143e8d44"
+    },
+    {
+      "path": "mesa-build/dependency-download-4.log",
+      "size": 133,
+      "sha256": "d333abb692d333e2c1f0baba9d23842483e2b30e2087267e7d0663f8c46aa1e2"
+    },
+    {
+      "path": "mesa-build/dependency-download.log",
+      "size": 1212,
+      "sha256": "65b71dce7cc0ff4fa3621656f1b7668ca50742f7542f7d4411c3129e944827aa"
+    },
+    {
+      "path": "mesa-build/dependency-packages.json",
+      "size": 4318,
+      "sha256": "930731b3cd3807a97a277219a6c5339c0295c9d4b0e811cfdc1744e269bea982"
+    },
+    {
+      "path": "mesa-build/install-llvm-plan-verified.json",
+      "size": 4221,
+      "sha256": "877e44fd736c0a4ccbfcc5bdad1c955e38f1dd10a472f48dc2d0b1c5760be74f"
+    },
+    {
+      "path": "mesa-build/install-llvm.log",
+      "size": 3556,
+      "sha256": "07d80bf9182a9072f6cb8c7b2ea7ae29320abbd69e2b1dc088a7f2ab08482ae3"
+    },
+    {
+      "path": "mesa-build/install-repair-nir.log",
+      "size": 3466,
+      "sha256": "e0b03fecf01b00c882f481bb18a40080a3fbe82b68a30806951c006937ded748"
+    },
+    {
+      "path": "mesa-build/install.log",
+      "size": 3466,
+      "sha256": "e0b03fecf01b00c882f481bb18a40080a3fbe82b68a30806951c006937ded748"
+    },
+    {
+      "path": "mesa-build/llvm-experiment-libEGL_mesa.so-ldd.log",
+      "size": 1329,
+      "sha256": "2e2525cf8a6e8aac222a2ec1efbf97960d1c57accb1954c22c70524c5dd50b58"
+    },
+    {
+      "path": "mesa-build/llvm-experiment-libGLX_mesa.so-ldd.log",
+      "size": 1473,
+      "sha256": "2a6df15ae5eb875cca2d4b7e0923a813c968df9d6770700ccd07b208e422ccdc"
+    },
+    {
+      "path": "mesa-build/llvm-experiment-libgallium-25.2.8.so-ldd.log",
+      "size": 2275,
+      "sha256": "1730714f4a2467561ebfc644a7d093b941bd3b87957b283c774999bb3ebe2c91"
+    },
+    {
+      "path": "mesa-build/llvm-experiment-libvulkan_radeon.so-ldd.log",
+      "size": 2664,
+      "sha256": "501449dfb34fa10960c515849fe334945fd1ce7cca524e1569877375d8ce7d5c"
+    },
+    {
+      "path": "mesa-build/mesa_25.2.8-0ubuntu0.24.04.4.dsc",
+      "size": 5358,
+      "sha256": "8703280401d59a28abc6503461e1cb167bffcd967c7cf8309f00749d125f406f"
+    },
+    {
+      "path": "mesa-build/run_cases.py",
+      "size": 4350,
+      "sha256": "7c59e57aac5e2c03388f1a93a0e9e1c5b78b7a99bc9c9da6f89e029a32a7ad85"
+    },
+    {
+      "path": "mesa-build/source.json",
+      "size": 236,
+      "sha256": "a269f56854a934b2827564052a72036dc41c77e11b2778c35e9c0ceb4fa62efa"
+    },
+    {
+      "path": "mesa-build/ubuntu-rules.txt",
+      "size": 10192,
+      "sha256": "f92e468edf35a32205e59fcb2996e5471a5f0efc731f1afaac138444e25473f8"
+    },
+    {
+      "path": "mesa-build/ubuntu-series.txt",
+      "size": 206,
+      "sha256": "8251a008de4748429a79b0a46a659a427e20dee8299ac29904374eca4a7319fe"
+    },
+    {
+      "path": "mesa-build/wgpu-libCoin.so-ldd.log",
+      "size": 1106,
+      "sha256": "8a8b3a2d9bb4e0e8a1a0f5b721b7814a574defe8ee2a62276a321296c8dfa3c7"
+    },
+    {
+      "path": "mesa-build/wgpu-libCoinRender.so-ldd.log",
+      "size": 1242,
+      "sha256": "7eb2d1881c1900c339ff9ddaaf435d71655fee090e5c6c6fdea8ae27075b1d44"
+    },
+    {
+      "path": "mesa-deep-direct/bgfx-amd-gl-native-deep.log",
+      "size": 13462,
+      "sha256": "70defb76fdba167ebcba70ccd01166d28049226fcff01d1ebe3d2191fe149d2a"
+    },
+    {
+      "path": "mesa-deep-direct/bgfx-amd-gl-native-direct.log",
+      "size": 4225,
+      "sha256": "1462fb715e3e2d2f3d623dff001bc65e24a42a0e92e2caf5454a920534e517b2"
+    },
+    {
+      "path": "mesa-deep-direct/bgfx-amd-vulkan-native-deep.log",
+      "size": 13457,
+      "sha256": "1f97e410f76044e20f5cd80ea3fa6d7767c1cdaf3d284e5775770a139cb798c3"
+    },
+    {
+      "path": "mesa-deep-direct/bgfx-amd-vulkan-native-direct.log",
+      "size": 4220,
+      "sha256": "8fe7a8f5297c693507a2eff2ea8447a1d2d77773fca6104ec50c24bdf56f756d"
+    },
+    {
+      "path": "mesa-deep-direct/summary.json",
+      "size": 14216,
+      "sha256": "3a08a1181dad9d73c344d19e4c0a63a5e5a85e8787fe9aaab61284ba7a794b3b"
+    },
+    {
+      "path": "mesa-deep-direct/wgpu-amd-gl-native-deep.log",
+      "size": 13485,
+      "sha256": "2062d616e0c2af6d661e927af06bc422e311a37647b5c653d6fab21247ddbf69"
+    },
+    {
+      "path": "mesa-deep-direct/wgpu-amd-gl-native-direct.log",
+      "size": 4248,
+      "sha256": "bcc025d45942459e17f22ff7291ca17f41e4cd1420df68686d459b8ac8a54249"
+    },
+    {
+      "path": "mesa-deep-direct/wgpu-amd-vulkan-native-deep.log",
+      "size": 13453,
+      "sha256": "728ce849d9ccf66d2a2d4ba18dd832029b65a3c0720e49a2decb68c34ec57ab9"
+    },
+    {
+      "path": "mesa-deep-direct/wgpu-amd-vulkan-native-direct.log",
+      "size": 4216,
+      "sha256": "a7b3fafeac7620a4c4d29498e603745b077620a9cf4f3fb75939e667ce95ef8e"
+    },
+    {
+      "path": "mesa-disabled-control/summary.json",
+      "size": 3287,
+      "sha256": "ba84faac3c78ad2086cb8bdedfafa917b7b320741ccca691d5c4bedc74ec3291"
+    },
+    {
+      "path": "mesa-disabled-control/wgpu-amd-vulkan-native-projective.log",
+      "size": 4184,
+      "sha256": "49c9c66a2838998c4f841ef62bff64e3bb1de89fa74153d72062b83e4b8672e8"
+    },
+    {
+      "path": "mesa-disabled-control/wgpu-amd-vulkan-native-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-gl-fine_uniform-deep.log",
+      "size": 13462,
+      "sha256": "70defb76fdba167ebcba70ccd01166d28049226fcff01d1ebe3d2191fe149d2a"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-gl-fine_uniform-direct.log",
+      "size": 4225,
+      "sha256": "1462fb715e3e2d2f3d623dff001bc65e24a42a0e92e2caf5454a920534e517b2"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-gl-fine_uniform-viewport.log",
+      "size": 3435,
+      "sha256": "283fbdc18143310a8ae1bb58806ff5683c8fcc3072f543bcaa09eee8a15f4d3f"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-gl-native-deep.log",
+      "size": 13462,
+      "sha256": "70defb76fdba167ebcba70ccd01166d28049226fcff01d1ebe3d2191fe149d2a"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-gl-native-direct.log",
+      "size": 4225,
+      "sha256": "1462fb715e3e2d2f3d623dff001bc65e24a42a0e92e2caf5454a920534e517b2"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-gl-native-viewport.log",
+      "size": 3435,
+      "sha256": "283fbdc18143310a8ae1bb58806ff5683c8fcc3072f543bcaa09eee8a15f4d3f"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-vulkan-fine_uniform-deep.log",
+      "size": 13457,
+      "sha256": "1f97e410f76044e20f5cd80ea3fa6d7767c1cdaf3d284e5775770a139cb798c3"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-vulkan-fine_uniform-direct.log",
+      "size": 4220,
+      "sha256": "8fe7a8f5297c693507a2eff2ea8447a1d2d77773fca6104ec50c24bdf56f756d"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-vulkan-fine_uniform-viewport.log",
+      "size": 3430,
+      "sha256": "f235f2662a203a27e1aebf340626739a2e9798896bf399f6f195da30685bfe18"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-vulkan-native-deep.log",
+      "size": 13457,
+      "sha256": "1f97e410f76044e20f5cd80ea3fa6d7767c1cdaf3d284e5775770a139cb798c3"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-vulkan-native-direct.log",
+      "size": 4220,
+      "sha256": "8fe7a8f5297c693507a2eff2ea8447a1d2d77773fca6104ec50c24bdf56f756d"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-amd-vulkan-native-viewport.log",
+      "size": 3430,
+      "sha256": "f235f2662a203a27e1aebf340626739a2e9798896bf399f6f195da30685bfe18"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-nvidia-vulkan-fine_uniform-deep.log",
+      "size": 13430,
+      "sha256": "6c85b5afd4f05b72c7ec67d51658ec81e6d91e22334ddf20201893b17c6fb017"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-nvidia-vulkan-fine_uniform-direct.log",
+      "size": 4177,
+      "sha256": "6116e8f195354163ad20e15c272b441782384758042a845fd4c703df308abc6e"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-nvidia-vulkan-fine_uniform-viewport.log",
+      "size": 3433,
+      "sha256": "e0d57784819386fcb0987f5bf511dcbf46d856d26fd34988a0681ec891aa8cd4"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-nvidia-vulkan-native-deep.log",
+      "size": 13430,
+      "sha256": "6c85b5afd4f05b72c7ec67d51658ec81e6d91e22334ddf20201893b17c6fb017"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-nvidia-vulkan-native-direct.log",
+      "size": 4177,
+      "sha256": "6116e8f195354163ad20e15c272b441782384758042a845fd4c703df308abc6e"
+    },
+    {
+      "path": "mesa-final-deep/bgfx-nvidia-vulkan-native-viewport.log",
+      "size": 3433,
+      "sha256": "e0d57784819386fcb0987f5bf511dcbf46d856d26fd34988a0681ec891aa8cd4"
+    },
+    {
+      "path": "mesa-final-deep/summary.json",
+      "size": 58748,
+      "sha256": "a248d8171496bf884d94e4a6565926893cde7b52d9871a1e87e29864d4d02333"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-gl-fine_uniform-deep.log",
+      "size": 13485,
+      "sha256": "2062d616e0c2af6d661e927af06bc422e311a37647b5c653d6fab21247ddbf69"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-gl-fine_uniform-direct.log",
+      "size": 4248,
+      "sha256": "bcc025d45942459e17f22ff7291ca17f41e4cd1420df68686d459b8ac8a54249"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-gl-fine_uniform-viewport.log",
+      "size": 3458,
+      "sha256": "1553f9b973f3560540afb3fa081ce9eddd135a6585594a88b3d6bc1b13a11c21"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-gl-native-deep.log",
+      "size": 13485,
+      "sha256": "2062d616e0c2af6d661e927af06bc422e311a37647b5c653d6fab21247ddbf69"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-gl-native-direct.log",
+      "size": 4248,
+      "sha256": "bcc025d45942459e17f22ff7291ca17f41e4cd1420df68686d459b8ac8a54249"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-gl-native-viewport.log",
+      "size": 3458,
+      "sha256": "1553f9b973f3560540afb3fa081ce9eddd135a6585594a88b3d6bc1b13a11c21"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-vulkan-fine_uniform-deep.log",
+      "size": 13453,
+      "sha256": "728ce849d9ccf66d2a2d4ba18dd832029b65a3c0720e49a2decb68c34ec57ab9"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-vulkan-fine_uniform-direct.log",
+      "size": 4216,
+      "sha256": "a7b3fafeac7620a4c4d29498e603745b077620a9cf4f3fb75939e667ce95ef8e"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-vulkan-fine_uniform-viewport.log",
+      "size": 3426,
+      "sha256": "042a07a996890043e8b6218e94b056ae8d23cf8643c75252a97451fc0e233920"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-vulkan-native-deep.log",
+      "size": 13453,
+      "sha256": "728ce849d9ccf66d2a2d4ba18dd832029b65a3c0720e49a2decb68c34ec57ab9"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-vulkan-native-direct.log",
+      "size": 4216,
+      "sha256": "a7b3fafeac7620a4c4d29498e603745b077620a9cf4f3fb75939e667ce95ef8e"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-amd-vulkan-native-viewport.log",
+      "size": 3426,
+      "sha256": "042a07a996890043e8b6218e94b056ae8d23cf8643c75252a97451fc0e233920"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-nvidia-vulkan-fine_uniform-deep.log",
+      "size": 13424,
+      "sha256": "23b12a355f9bab0e3a577a1540e9df87ebe7819adbb1a3340e2d2e0f03b06318"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-nvidia-vulkan-fine_uniform-direct.log",
+      "size": 4171,
+      "sha256": "7436331da0d7458dd39b7aef3e3d5797df741485c21d2ef53531300ba2d60c46"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-nvidia-vulkan-fine_uniform-viewport.log",
+      "size": 3427,
+      "sha256": "72253c65e77793c8ee863a37ad0b77dfc7f49612de92d22301348b6c9a574e13"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-nvidia-vulkan-native-deep.log",
+      "size": 13424,
+      "sha256": "23b12a355f9bab0e3a577a1540e9df87ebe7819adbb1a3340e2d2e0f03b06318"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-nvidia-vulkan-native-direct.log",
+      "size": 4171,
+      "sha256": "7436331da0d7458dd39b7aef3e3d5797df741485c21d2ef53531300ba2d60c46"
+    },
+    {
+      "path": "mesa-final-deep/wgpu-nvidia-vulkan-native-viewport.log",
+      "size": 3427,
+      "sha256": "72253c65e77793c8ee863a37ad0b77dfc7f49612de92d22301348b6c9a574e13"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-gl-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-gl-fine_uniform-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-gl-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-gl-native-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-vulkan-fine_uniform-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-amd-vulkan-native-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-nvidia-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-nvidia-vulkan-fine_uniform-styles.log",
+      "size": 2600,
+      "sha256": "1081645827d03b6a5685b44eaf28f4ccd2f577b9524b73baab9497071eabae51"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-nvidia-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/bgfx-nvidia-vulkan-native-styles.log",
+      "size": 2600,
+      "sha256": "1081645827d03b6a5685b44eaf28f4ccd2f577b9524b73baab9497071eabae51"
+    },
+    {
+      "path": "mesa-final-geometry/summary.json",
+      "size": 35762,
+      "sha256": "375655f3f6f6da7d1afaef230bc169ecb8d16eec634bb7345a5c2d2db560a9bd"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-gl-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-gl-fine_uniform-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-gl-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-gl-native-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-vulkan-fine_uniform-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-amd-vulkan-native-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-nvidia-vulkan-fine_uniform-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-nvidia-vulkan-fine_uniform-styles.log",
+      "size": 2600,
+      "sha256": "1081645827d03b6a5685b44eaf28f4ccd2f577b9524b73baab9497071eabae51"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-nvidia-vulkan-native-curved.log",
+      "size": 5637,
+      "sha256": "ccd30dc3c080d04e5d8be08a86869d7fc0bc7631ec4736afb5fde89cc369848f"
+    },
+    {
+      "path": "mesa-final-geometry/wgpu-nvidia-vulkan-native-styles.log",
+      "size": 2600,
+      "sha256": "1081645827d03b6a5685b44eaf28f4ccd2f577b9524b73baab9497071eabae51"
+    },
+    {
+      "path": "mesa-final-pilot/summary.json",
+      "size": 11346,
+      "sha256": "7a3778b56bb071b2006e7b7fc64bf59a80808bbc5acd84d9001cc79758a936e5"
+    },
+    {
+      "path": "mesa-final-pilot/wgpu-amd-gl-fine_uniform-advanced.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "mesa-final-pilot/wgpu-amd-gl-native-advanced.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "mesa-final-pilot/wgpu-amd-vulkan-fine_uniform-advanced.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "mesa-final-pilot/wgpu-amd-vulkan-native-advanced.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "mesa-final-pilot/wgpu-nvidia-vulkan-fine_uniform-advanced.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "mesa-final-pilot/wgpu-nvidia-vulkan-native-advanced.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-fine_uniform-advanced.log",
+      "size": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-fine_uniform-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-fine_uniform-projective.log",
+      "size": 1736,
+      "sha256": "c4e2aedabaf0e07917f237e79da97bed2236445e7a45817ddd7b436729c407d5"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-fine_uniform-sampling.log",
+      "size": 52686,
+      "sha256": "85f4ca3b5894331ba72ef4fe2edf63db294c5443218903382b2be02002a52cde"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-native-advanced.log",
+      "size": 8665,
+      "sha256": "f91fded2909a29d7c23922c4384189e87f9434bcb55ceacf08e0ee3e059695f3"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-native-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-native-projective.log",
+      "size": 1736,
+      "sha256": "c4e2aedabaf0e07917f237e79da97bed2236445e7a45817ddd7b436729c407d5"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-gl-native-sampling.log",
+      "size": 52686,
+      "sha256": "85f4ca3b5894331ba72ef4fe2edf63db294c5443218903382b2be02002a52cde"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-fine_uniform-advanced.log",
+      "size": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-fine_uniform-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-fine_uniform-projective.log",
+      "size": 1722,
+      "sha256": "a226d1c05fb503202e857ce6db62ec944ff67956dd72c2391b0aee4c975fbb69"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-fine_uniform-sampling.log",
+      "size": 52678,
+      "sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-native-advanced.log",
+      "size": 8783,
+      "sha256": "cd02729035f9eff86f2e9310e2083e66b32c226b7bc0b195b073961fc229f36b"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-native-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-native-projective.log",
+      "size": 1722,
+      "sha256": "a226d1c05fb503202e857ce6db62ec944ff67956dd72c2391b0aee4c975fbb69"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-amd-vulkan-native-sampling.log",
+      "size": 52678,
+      "sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-fine_uniform-advanced.log",
+      "size": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-fine_uniform-procedural.log",
+      "size": 31337,
+      "sha256": "f67874cf50fec3e4fe63376768b008bc89c15b10f48a5207c1761be12c9fd49f"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-fine_uniform-projective.log",
+      "size": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-fine_uniform-sampling.log",
+      "size": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-native-advanced.log",
+      "size": 8786,
+      "sha256": "46eda574e2fea1b37d40bb413077d63a19751f54b3711d72291d0f5c0f94c472"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-native-procedural.log",
+      "size": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-native-projective.log",
+      "size": 1725,
+      "sha256": "7d856f3613e35678c02c760f973381da75e648a5186e4dd31d1c6c53cd08e34f"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/bgfx-nvidia-vulkan-native-sampling.log",
+      "size": 51666,
+      "sha256": "bfe71fb1347552cba1feb1b6be78e6027a45cb4bffe8e479498b9e1982efc453"
+    },
+    {
+      "path": "mesa-final-quality/summary.json",
+      "size": 93452,
+      "sha256": "144639be997559632dcbda4d4a942bf498df73dba92e2fd99a612acb594a9e1a"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-fine_uniform-advanced.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-fine_uniform-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-fine_uniform-projective.log",
+      "size": 1750,
+      "sha256": "cff244b4a67a909d41fccf22b2a75381592cbee48950723840d7f1676f41113b"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-fine_uniform-sampling.log",
+      "size": 52706,
+      "sha256": "2337bf8bcda77c8ceb377931d9132123e385883d8a64ce4633b468779aff1f07"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-native-advanced.log",
+      "size": 9005,
+      "sha256": "6c2578f667a58795adf08d247449e9f2f6d0e9f63ec2c427fb9559295aef0b75"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-native-procedural.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-native-projective.log",
+      "size": 1750,
+      "sha256": "cff244b4a67a909d41fccf22b2a75381592cbee48950723840d7f1676f41113b"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-gl-native-sampling.log",
+      "size": 52706,
+      "sha256": "2337bf8bcda77c8ceb377931d9132123e385883d8a64ce4633b468779aff1f07"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-fine_uniform-advanced.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-fine_uniform-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-fine_uniform-projective.log",
+      "size": 1718,
+      "sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-fine_uniform-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-fine_uniform-sampling.log",
+      "size": 52674,
+      "sha256": "7dbc9f00e28a4546c443a077007d40d80301f83f500018972659daa0b99373f6"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-native-advanced.log",
+      "size": 8973,
+      "sha256": "19f6c6bf02415c5787bfefd7a38199914ea18bfec0f15c497344f1fe3254c17a"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-native-procedural.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-native-projective.log",
+      "size": 1718,
+      "sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-native-rtt.log",
+      "size": 139,
+      "sha256": "77a9643edaa350520fc3c65b1f064b5ca1eb3b0c32e29403a61100fb92d51fb1"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-amd-vulkan-native-sampling.log",
+      "size": 52674,
+      "sha256": "7dbc9f00e28a4546c443a077007d40d80301f83f500018972659daa0b99373f6"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-fine_uniform-advanced.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-fine_uniform-procedural.log",
+      "size": 31337,
+      "sha256": "f67874cf50fec3e4fe63376768b008bc89c15b10f48a5207c1761be12c9fd49f"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-fine_uniform-projective.log",
+      "size": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-fine_uniform-rtt.log",
+      "size": 146,
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-fine_uniform-sampling.log",
+      "size": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-native-advanced.log",
+      "size": 8974,
+      "sha256": "9629a380ac91bbd0e01af418903bd9d706953683282c32aa17c136f79085ced7"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-native-procedural.log",
+      "size": 31333,
+      "sha256": "a8500d8bb16101aa427038fd75e8c14e5b041dabf139e778537e6705b4a4ecad"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-native-projective.log",
+      "size": 1719,
+      "sha256": "be8c1d700cadba558768041c80c29b2b1ed9fc09f00e7a0e8c8df08cbcd345f2"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-native-rtt.log",
+      "size": 146,
+      "sha256": "1ec1a15b04d5b7e2e64b5fc550b03edf33b0f87947eb0fc306284bd68c11a5e8"
+    },
+    {
+      "path": "mesa-final-quality/wgpu-nvidia-vulkan-native-sampling.log",
+      "size": 51660,
+      "sha256": "847ac345b364e5d8aa4474b00af78d96b1ff334a1d4ea833a88314b968b0f20b"
+    },
+    {
+      "path": "mesa-final-resources/bgfx-amd-gl-fine_uniform-instancing.log",
+      "size": 2147,
+      "sha256": "762f504ca1d3b3b4309c63ddcb002ec00ee09f0e3874df963c2a77291514b83a"
+    },
+    {
+      "path": "mesa-final-resources/bgfx-amd-gl-native-instancing.log",
+      "size": 2147,
+      "sha256": "762f504ca1d3b3b4309c63ddcb002ec00ee09f0e3874df963c2a77291514b83a"
+    },
+    {
+      "path": "mesa-final-resources/bgfx-amd-vulkan-fine_uniform-instancing.log",
+      "size": 2074,
+      "sha256": "b2ebaa29cd9eb5060573552e9bb942869762701aca27aaeaefdd9eaa8fbc15ee"
+    },
+    {
+      "path": "mesa-final-resources/bgfx-amd-vulkan-native-instancing.log",
+      "size": 2074,
+      "sha256": "b2ebaa29cd9eb5060573552e9bb942869762701aca27aaeaefdd9eaa8fbc15ee"
+    },
+    {
+      "path": "mesa-final-resources/bgfx-nvidia-vulkan-fine_uniform-instancing.log",
+      "size": 2147,
+      "sha256": "afc13af8a679c4ea138cca5e6881314f670d9d84f51f73ad020b7838af42bb3d"
+    },
+    {
+      "path": "mesa-final-resources/bgfx-nvidia-vulkan-native-instancing.log",
+      "size": 2147,
+      "sha256": "afc13af8a679c4ea138cca5e6881314f670d9d84f51f73ad020b7838af42bb3d"
+    },
+    {
+      "path": "mesa-final-resources/summary.json",
+      "size": 37160,
+      "sha256": "89f2a3cba1515df0290bf86a99323ec0e93a2eb5c43e47d4b27c887446095cc3"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-gl-fine_uniform-devices.log",
+      "size": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-gl-fine_uniform-large.log",
+      "size": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-gl-fine_uniform-stress.log",
+      "size": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-gl-native-devices.log",
+      "size": 371,
+      "sha256": "7b7de2ab3ddd36d490a41968eaeae7750595a1cd623f9379964e1c1189d4b67d"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-gl-native-large.log",
+      "size": 189,
+      "sha256": "942d3094a7ba820c1af1bdaa7dbefb59720e283f3910af945fdc59b9a190f6f5"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-gl-native-stress.log",
+      "size": 158,
+      "sha256": "48d312625fdd99b30695c7c1dde7e72292c93744d12192a36026a07667918485"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-vulkan-fine_uniform-devices.log",
+      "size": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-vulkan-fine_uniform-large.log",
+      "size": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-vulkan-fine_uniform-stress.log",
+      "size": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-vulkan-native-devices.log",
+      "size": 339,
+      "sha256": "7e54a9c4602627bee61b6fd6bd502cf6052e5038234ea212b8a5540773cdcfe8"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-vulkan-native-large.log",
+      "size": 157,
+      "sha256": "ff998c7dd8220763914faab21a817573b037902b9f29e608aab68e1d4e922ae4"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-amd-vulkan-native-stress.log",
+      "size": 126,
+      "sha256": "b8b717aac17993abe4eb72c3504b38b96cb8801e024385f1930d8720d4cc962b"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-nvidia-vulkan-fine_uniform-devices.log",
+      "size": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-nvidia-vulkan-fine_uniform-large.log",
+      "size": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-nvidia-vulkan-fine_uniform-stress.log",
+      "size": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-nvidia-vulkan-native-devices.log",
+      "size": 340,
+      "sha256": "f2e03bf803697525ba28a88429bbd3de3c30c839ac9dde93dba20c9ca8d677d6"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-nvidia-vulkan-native-large.log",
+      "size": 158,
+      "sha256": "8c0db1376e1f8e9931a61c57d592f5fe173f784b07f284304c04f86b99e9eb30"
+    },
+    {
+      "path": "mesa-final-resources/wgpu-nvidia-vulkan-native-stress.log",
+      "size": 127,
+      "sha256": "f631ba1ec00d5cb75e342db5d21236ef601f8cd8461840882d66b6d74c246aa0"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-gl-fine_uniform-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-gl-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-gl-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-gl-native-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-gl-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-gl-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-vulkan-fine_uniform-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-vulkan-native-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "8f41bcb599a098972040f40f22ad94861454c5620bc7c8c678b53fb49a4587f3"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "65b97a4ebc1975e9ca647160790ffa62854f1f8fd6818fd9e434a50911bb2903"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-amd-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-nvidia-vulkan-fine_uniform-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "a560faf7ce6ae0c97c1b28378ef951328d34bbab93a256ca1f47f1ef122a8323"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-nvidia-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "54288a51c4a1882fecfa6b737240d1a1c7d7cdc8875f8b31caaf93d68c3665d2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-nvidia-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-nvidia-vulkan-native-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "a560faf7ce6ae0c97c1b28378ef951328d34bbab93a256ca1f47f1ef122a8323"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-nvidia-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "54288a51c4a1882fecfa6b737240d1a1c7d7cdc8875f8b31caaf93d68c3665d2"
+    },
+    {
+      "path": "mesa-final-shadows/bgfx-nvidia-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "162f5bd6543f5b769b74a3afe2a4c3192e9360b6444c4b0d670fa02f79c633b2"
+    },
+    {
+      "path": "mesa-final-shadows/summary.json",
+      "size": 54158,
+      "sha256": "f6bc1cca1d6ff7bf826b6e7dcaa66d2f4a0ed9717fa118d2197581d9c5bab63f"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-gl-fine_uniform-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-gl-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "1c66fd4ca2948037a59ccac121e696f4285890bdd9fab8512095b7879670889b"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-gl-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-gl-native-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-gl-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "1c66fd4ca2948037a59ccac121e696f4285890bdd9fab8512095b7879670889b"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-gl-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-vulkan-fine_uniform-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "5b71cf529208f2f206356f7ee69e07479f243a6cc0c8842f7b483b01ff0694f9"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-vulkan-native-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "072c3c1470b0f29114dd647b041d63661d2f75097c4a8b4e21638962524d0fc7"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "5b71cf529208f2f206356f7ee69e07479f243a6cc0c8842f7b483b01ff0694f9"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-amd-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-nvidia-vulkan-fine_uniform-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "845fef323c56430c2cf3f757f2ad654417625136a15572a84bb532da94d84be4"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-nvidia-vulkan-fine_uniform-shadow-eight.log",
+      "size": 190,
+      "sha256": "a3883c74fe08842401759629918ba458ade0312dbf4e98e5c9d00058c1f22ded"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-nvidia-vulkan-fine_uniform-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-nvidia-vulkan-native-shadow-alpha.log",
+      "size": 12216,
+      "sha256": "845fef323c56430c2cf3f757f2ad654417625136a15572a84bb532da94d84be4"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-nvidia-vulkan-native-shadow-eight.log",
+      "size": 190,
+      "sha256": "a3883c74fe08842401759629918ba458ade0312dbf4e98e5c9d00058c1f22ded"
+    },
+    {
+      "path": "mesa-final-shadows/wgpu-nvidia-vulkan-native-shadow-viewport.log",
+      "size": 141,
+      "sha256": "24bb4ad90870667790ad70dee0b73bb362da65c8661e17098939c600218efef8"
+    },
+    {
+      "path": "mesa-hybrid-pilot/summary.json",
+      "size": 4195,
+      "sha256": "cfb0d7cc463980351c6f801d0450a0be8b671c2275600be1dc60b88371f86d9f"
+    },
+    {
+      "path": "mesa-hybrid-pilot/wgpu-amd-vulkan-native-projective.log",
+      "size": 1718,
+      "sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d"
+    },
+    {
+      "path": "mesa-hybrid-pilot/wgpu-amd-vulkan-native-styles.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "mesa-portable-styles/bgfx-amd-gl-fine_uniform-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/bgfx-amd-gl-native-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/bgfx-amd-vulkan-fine_uniform-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/bgfx-amd-vulkan-native-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/summary.json",
+      "size": 15330,
+      "sha256": "c2ccb551ecdcbf1b95cc546af2243199c19ec47af33a7b4bc25c1f43d291ccbe"
+    },
+    {
+      "path": "mesa-portable-styles/wgpu-amd-gl-fine_uniform-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/wgpu-amd-gl-native-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/wgpu-amd-vulkan-fine_uniform-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-portable-styles/wgpu-amd-vulkan-native-portable-styles.log",
+      "size": 58,
+      "sha256": "fa003dcd06b08d430f98ece49e3098ec9f6707104bb0fc91cb63994d3940823b"
+    },
+    {
+      "path": "mesa-projective/bgfx-amd-gl-fine_uniform-projective.log",
+      "size": 1736,
+      "sha256": "c4e2aedabaf0e07917f237e79da97bed2236445e7a45817ddd7b436729c407d5"
+    },
+    {
+      "path": "mesa-projective/bgfx-amd-gl-native-projective.log",
+      "size": 1736,
+      "sha256": "c4e2aedabaf0e07917f237e79da97bed2236445e7a45817ddd7b436729c407d5"
+    },
+    {
+      "path": "mesa-projective/bgfx-amd-vulkan-fine_uniform-projective.log",
+      "size": 1722,
+      "sha256": "a226d1c05fb503202e857ce6db62ec944ff67956dd72c2391b0aee4c975fbb69"
+    },
+    {
+      "path": "mesa-projective/bgfx-amd-vulkan-native-projective.log",
+      "size": 1722,
+      "sha256": "a226d1c05fb503202e857ce6db62ec944ff67956dd72c2391b0aee4c975fbb69"
+    },
+    {
+      "path": "mesa-projective/summary.json",
+      "size": 14100,
+      "sha256": "98a46bdc638e60661017b73a34f78501240b07986dc589652ee44c63df6b0fe0"
+    },
+    {
+      "path": "mesa-projective/wgpu-amd-gl-fine_uniform-projective.log",
+      "size": 1750,
+      "sha256": "cff244b4a67a909d41fccf22b2a75381592cbee48950723840d7f1676f41113b"
+    },
+    {
+      "path": "mesa-projective/wgpu-amd-gl-native-projective.log",
+      "size": 1750,
+      "sha256": "cff244b4a67a909d41fccf22b2a75381592cbee48950723840d7f1676f41113b"
+    },
+    {
+      "path": "mesa-projective/wgpu-amd-vulkan-fine_uniform-projective.log",
+      "size": 1718,
+      "sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d"
+    },
+    {
+      "path": "mesa-projective/wgpu-amd-vulkan-native-projective.log",
+      "size": 1718,
+      "sha256": "23b683065dae2083518900fd8e374cf48c6c0702c0ef7d4f4afc8b77eabf371d"
+    },
+    {
+      "path": "mesa-sampling/bgfx-amd-gl-fine_uniform-sampling.log",
+      "size": 52686,
+      "sha256": "85f4ca3b5894331ba72ef4fe2edf63db294c5443218903382b2be02002a52cde"
+    },
+    {
+      "path": "mesa-sampling/bgfx-amd-gl-native-sampling.log",
+      "size": 52686,
+      "sha256": "85f4ca3b5894331ba72ef4fe2edf63db294c5443218903382b2be02002a52cde"
+    },
+    {
+      "path": "mesa-sampling/bgfx-amd-vulkan-fine_uniform-sampling.log",
+      "size": 52678,
+      "sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b"
+    },
+    {
+      "path": "mesa-sampling/bgfx-amd-vulkan-native-sampling.log",
+      "size": 52678,
+      "sha256": "c44537ff244f208d97adb732dc8191ad80e751bf1268f199e53367d166496c8b"
+    },
+    {
+      "path": "mesa-sampling/summary.json",
+      "size": 13964,
+      "sha256": "d0428131ce319b673ce4ca3e7b4fcccd2b0f036654c585ef3d510dec95c45126"
+    },
+    {
+      "path": "mesa-sampling/wgpu-amd-gl-fine_uniform-sampling.log",
+      "size": 52706,
+      "sha256": "2337bf8bcda77c8ceb377931d9132123e385883d8a64ce4633b468779aff1f07"
+    },
+    {
+      "path": "mesa-sampling/wgpu-amd-gl-native-sampling.log",
+      "size": 52706,
+      "sha256": "2337bf8bcda77c8ceb377931d9132123e385883d8a64ce4633b468779aff1f07"
+    },
+    {
+      "path": "mesa-sampling/wgpu-amd-vulkan-fine_uniform-sampling.log",
+      "size": 52674,
+      "sha256": "7dbc9f00e28a4546c443a077007d40d80301f83f500018972659daa0b99373f6"
+    },
+    {
+      "path": "mesa-sampling/wgpu-amd-vulkan-native-sampling.log",
+      "size": 52674,
+      "sha256": "7dbc9f00e28a4546c443a077007d40d80301f83f500018972659daa0b99373f6"
+    },
+    {
+      "path": "original-28-ledger.json",
+      "size": 14310,
+      "sha256": "ec0f6af2e05ec12873e7ec1088c115871e6048b59316906b74fb349b19deae8e"
+    },
+    {
+      "path": "qualified-results.json",
+      "size": 301771,
+      "sha256": "cb77f91bcf472319cf1a22218ac246b176facf1c81be1cb9681a7407e784e75e"
+    },
+    {
+      "path": "renderer-source.patch",
+      "size": 11223,
+      "sha256": "1aa2e7f4845238d20401843ed168c0f9d35f87ff1b2a49bbff3a1e5ba3410bfa"
+    },
+    {
+      "path": "runtime-hashes.json",
+      "size": 5185,
+      "sha256": "ae49a5b49c016cd21f203873e1c8f706c22c081bd8f3acb6bd6e8aaa47165282"
+    },
+    {
+      "path": "sampler-mesa-False.log",
+      "size": 1603,
+      "sha256": "6bd461fdc781ee824a824b76b722971f2edcf5d30bedecf0fda0e51027b7a0e8"
+    },
+    {
+      "path": "sampler-mesa-True.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "sampler-mesa-repair-False.log",
+      "size": 1603,
+      "sha256": "6bd461fdc781ee824a824b76b722971f2edcf5d30bedecf0fda0e51027b7a0e8"
+    },
+    {
+      "path": "sampler-mesa-repair-True.log",
+      "size": 1590,
+      "sha256": "55b59cd17aa8bae413fbf6635092d269bec3009167df9390cb04a305d94191ff"
+    },
+    {
+      "path": "sampler-mesa-repair-summary.json",
+      "size": 1667,
+      "sha256": "c265d3a43220c5bcee06c7d8d96d153b33ac2ed29f235ca680478056b1f34a65"
+    },
+    {
+      "path": "sampler-mesa-summary.json",
+      "size": 1799,
+      "sha256": "770227e35bdff75ebdc257cb584ecf89997b24775bc5408ecbe296c1f42016ce"
+    },
+    {
+      "path": "sampler-state-amd-descriptor.log",
+      "size": 7005,
+      "sha256": "20aa0e3ca673a70cef97c8762df5ccc47fb578d2113e56465c9a44a46f8449ac"
+    },
+    {
+      "path": "sampler-state-amd.log",
+      "size": 1620,
+      "sha256": "13a233be99ef564b24c075241a460b045b068da460ed387ef04505ed5965469e"
+    },
+    {
+      "path": "sampler-state-nvidia-prime.log",
+      "size": 1539,
+      "sha256": "461beee27a5142a2918d81b86427b3f7411344ff8eb58bbf0825d3b243190ab2"
+    },
+    {
+      "path": "sampler-state-nvidia.log",
+      "size": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "snap-summary.json",
+      "size": 630,
+      "sha256": "9d9403537c51ee4be3b016237c65092fb61535c47a336920fad8ad2abb95bf79"
+    },
+    {
+      "path": "snap-wgpu-amd-gl-CoinRenderGeometryViewportTest.log",
+      "size": 15107,
+      "sha256": "2a11ea3965b0d92f6232e817f792e4196d3e55254bc6016b552f005a2d3ec737"
+    },
+    {
+      "path": "snap-wgpu-amd-gl-CoinRenderProceduralTextureTest.log",
+      "size": 31305,
+      "sha256": "a8d06750cc7bd8b67d7805b44fe355e24e73a3be8ec7fa638ac22ffb4d352327"
+    },
+    {
+      "path": "snap-wgpu-amd-vulkan-CoinRenderGeometryViewportTest.log",
+      "size": 15107,
+      "sha256": "2a11ea3965b0d92f6232e817f792e4196d3e55254bc6016b552f005a2d3ec737"
+    },
+    {
+      "path": "snap-wgpu-amd-vulkan-CoinRenderProceduralTextureTest.log",
+      "size": 31325,
+      "sha256": "a55f250dfed533aa4bc0f6101b8ff14e82114c326514db3e2711c4e7a188bd00"
+    },
+    {
+      "path": "stock-coingl-styles/bgfx-gl.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "stock-coingl-styles/bgfx-vulkan.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "stock-coingl-styles/summary.json",
+      "size": 2870,
+      "sha256": "ea3c96b079a94250f428fa3b7945c4a730979ec66c1c36facbb7ca4ea7f61831"
+    },
+    {
+      "path": "stock-coingl-styles/wgpu-gl.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "stock-coingl-styles/wgpu-vulkan.log",
+      "size": 2611,
+      "sha256": "8133c5e6b38aaa01d12d92120231bcac2e6125227052a1bbc690119b4eca2cce"
+    },
+    {
+      "path": "unsnapped-wgpu-amd-gl.log",
+      "size": 15829,
+      "sha256": "84e72eb47e11e2ca79351ebe885891c61ff73d89989d44681c50890501f22e16"
+    },
+    {
+      "path": "unsnapped-wgpu-amd-vulkan.log",
+      "size": 23863,
+      "sha256": "1f37a85845a2a797208c21e0bdc50c212b20a113460f3eee3183106ce053a181"
+    },
+    {
+      "path": "varying-bgfx-opengl-fine_uniform-procedural.log",
+      "size": 100,
+      "sha256": "973c198037cc61042a4a8eed707d106429c49ed9e4c7d6186f7e3b7e05fabc28"
+    },
+    {
+      "path": "varying-bgfx-opengl-native-procedural.log",
+      "size": 100,
+      "sha256": "973c198037cc61042a4a8eed707d106429c49ed9e4c7d6186f7e3b7e05fabc28"
+    },
+    {
+      "path": "varying-bgfx-vulkan-fine_uniform-procedural.log",
+      "size": 100,
+      "sha256": "973c198037cc61042a4a8eed707d106429c49ed9e4c7d6186f7e3b7e05fabc28"
+    },
+    {
+      "path": "varying-bgfx-vulkan-native-procedural.log",
+      "size": 100,
+      "sha256": "973c198037cc61042a4a8eed707d106429c49ed9e4c7d6186f7e3b7e05fabc28"
+    },
+    {
+      "path": "varying-summary.json",
+      "size": 514,
+      "sha256": "ae918336dadc7f975747581913fc797dfa89f041582304e1c523644574846c12"
+    }
+  ]
+}

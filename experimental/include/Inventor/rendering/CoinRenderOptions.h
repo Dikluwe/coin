@@ -23,6 +23,10 @@ struct CoinRenderOptions {
   // Explicit interpretation of stored SoTexture2 RGB, alpha remains linear.
   CoinRenderStoredTextureColorSpace storedTextureColorSpace = COIN_RENDER_TEXTURE_LINEAR;
   uint32_t maxTextureAnisotropy = 16; // q>0.85 requests this limit; no effect below it.
+  // Native is the default. Portable reconstructs nearest/mip-linear using
+  // original UV derivatives, POT active-mip centering, and two NPOT centers.
+  // Active nearest/mip-linear samplers with anisotropy >1 are rejected.
+  CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
 };
 
 #endif

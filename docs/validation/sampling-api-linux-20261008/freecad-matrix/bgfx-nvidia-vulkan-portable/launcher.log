@@ -1,0 +1,16 @@
+dbus-daemon[1833854]: [session uid=1000 pid=1833854] Activating service name='org.gtk.vfs.Daemon' requested by ':1.1' (uid=1000 pid=1833865 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1833854]: [session uid=1000 pid=1833854] Successfully activated service 'org.gtk.vfs.Daemon'
+dbus-daemon[1833854]: [session uid=1000 pid=1833854] Activating service name='org.a11y.Bus' requested by ':1.3' (uid=1000 pid=1833865 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1833854]: [session uid=1000 pid=1833854] Successfully activated service 'org.a11y.Bus'
+dbus-daemon[1833898]: Activating service name='org.a11y.atspi.Registry' requested by ':1.0' (uid=1000 pid=1833865 comm="/usr/bin/metacity --sm-disable --no-composite" label="chatgpt (unconfined)")
+dbus-daemon[1833898]: Successfully activated service 'org.a11y.atspi.Registry'
+SpiRegistry daemon is running with well-known name - org.a11y.atspi.Registry
+X connection to :1 broken (explicit kill or server shutdown).
+Traceback (most recent call last):
+  File "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run_isolated.py", line 240, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/dikluwe/.codex/worktrees/coin-portable-sampling/coin/testsuite/qt-quarter/run_isolated.py", line 197, in main
+    raise RuntimeError('private WM exited; inspect window-manager.log')
+RuntimeError: private WM exited; inspect window-manager.log
+A connection to the bus can't be made

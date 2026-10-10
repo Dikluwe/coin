@@ -1,0 +1,774 @@
+[
+  {
+    "label": "city-40000-bgfx-d3d12-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 38,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-d3d12-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 38,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-vulkan-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 38,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-vulkan-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 38,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-opengl-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 1,
+        "different_pixels": 9,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-bgfx-opengl-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 1,
+        "different_pixels": 9,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-d3d12-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 42,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-d3d12-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 42,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-vulkan-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 42,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-vulkan-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 42,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-opengl-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 42,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=city-40000 policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "city-40000-wgpu-opengl-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 136,
+        "different_pixels": 42,
+        "total_pixels": 1228800,
+        "window_colors": 32,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 331498,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=city-40000 policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-bgfx-d3d12-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 930,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 4,
+        "total_pixels": 1228800,
+        "window_colors": 866,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 447814,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=terrain-million policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-bgfx-d3d12-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 930,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 4,
+        "total_pixels": 1228800,
+        "window_colors": 866,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 447814,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=terrain-million policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-bgfx-vulkan-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 930,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 5,
+        "total_pixels": 1228800,
+        "window_colors": 866,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 447814,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=terrain-million policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-bgfx-vulkan-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 930,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 5,
+        "total_pixels": 1228800,
+        "window_colors": 866,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 447814,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=terrain-million policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-bgfx-opengl-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 930,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 4,
+        "total_pixels": 1228800,
+        "window_colors": 866,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 447814,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=terrain-million policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-bgfx-opengl-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 930,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 1,
+        "different_pixels": 4,
+        "total_pixels": 1228800,
+        "window_colors": 866,
+        "equal": false
+      }
+    },
+    "camera_changed_pixels": 447814,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=terrain-million policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-wgpu-d3d12-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {},
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=terrain-million policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-wgpu-d3d12-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {},
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=terrain-million policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-wgpu-vulkan-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {},
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=terrain-million policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-wgpu-vulkan-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {},
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=terrain-million policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-wgpu-opengl-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {},
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=terrain-million policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "terrain-million-wgpu-opengl-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {},
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=terrain-million policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-bgfx-d3d12-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6506,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6170,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148594,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=solids policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-bgfx-d3d12-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6513,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6275,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148595,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) workload=solids policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-bgfx-vulkan-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6506,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6170,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148594,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=solids policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-bgfx-vulkan-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6513,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6275,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148595,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=solids policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-bgfx-opengl-0-native",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 1,
+        "different_pixels": 1,
+        "total_pixels": 1228800,
+        "window_colors": 6507,
+        "equal": false
+      }
+    },
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=solids policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-bgfx-opengl-1-portable",
+    "process_gate": false,
+    "exit": 1,
+    "stages": {
+      "initial": {
+        "rgb_max": 1,
+        "different_pixels": 1,
+        "total_pixels": 1228800,
+        "window_colors": 6512,
+        "equal": false
+      }
+    },
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) workload=solids policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-wgpu-d3d12-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6506,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6170,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148594,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=solids policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-wgpu-d3d12-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6513,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6275,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148595,
+    "renderer_receipt": [
+      "receipt renderer=4 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) workload=solids policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-wgpu-vulkan-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6506,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6170,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148594,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=solids policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-wgpu-vulkan-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6513,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6275,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148595,
+    "renderer_receipt": [
+      "receipt renderer=1 vendor=10de device=1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) workload=solids policy=portable extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-wgpu-opengl-0-native",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6506,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6170,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148594,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=solids policy=native extent=1280x960 dpi=96"
+    ]
+  },
+  {
+    "label": "solids-wgpu-opengl-1-portable",
+    "process_gate": true,
+    "exit": 0,
+    "stages": {
+      "initial": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6513,
+        "equal": true
+      },
+      "final": {
+        "rgb_max": 0,
+        "different_pixels": 0,
+        "total_pixels": 1228800,
+        "window_colors": 6275,
+        "equal": true
+      }
+    },
+    "camera_changed_pixels": 148595,
+    "renderer_receipt": [
+      "receipt renderer=2 vendor=10de device=0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) workload=solids policy=portable extent=1280x960 dpi=96"
+    ]
+  }
+]

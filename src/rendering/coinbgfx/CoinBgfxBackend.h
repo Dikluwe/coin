@@ -8,6 +8,8 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <bgfx/bgfx.h>
 #include <memory>
+#include <map>
+#include <utility>
 #include <thread>
 
 struct CoinRenderShadowPlan;
@@ -63,6 +65,7 @@ public:
   const std::string & getLastError() const override { return lastError; }
 
 private:
+  bool portableSampling = false; // Immutable policy of the owning target.
   struct ReadbackSlot {
     bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
     bgfx::TextureHandle depthTexture = BGFX_INVALID_HANDLE;
@@ -91,6 +94,7 @@ private:
                           CoinBgfxTransparencyStrategy strategy,
                           bool instanced = false);
   bool prepareFullscreenResources();
+  bool prepareNpotMipProgram();
   bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);
   bool prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy);
@@ -194,11 +198,14 @@ private:
   bgfx::FrameBufferHandle depthReadFrameBuffer;
   bgfx::ProgramHandle peelNextProgram;
   bgfx::ProgramHandle compositeProgram;
+  bgfx::ProgramHandle npotMipProgram;
   bgfx::ProgramHandle weightedOitProgram;
   bgfx::ProgramHandle weightedCompositeProgram;
   bgfx::UniformHandle previousDepthSampler;
   bgfx::UniformHandle previousColorSampler;
   bgfx::UniformHandle layerSampler;
+  bgfx::UniformHandle npotMipSampler;
+  bgfx::UniformHandle npotMipExtentUniform;
   bgfx::UniformHandle oitAccumSampler;
   bgfx::UniformHandle oitRevealSampler;
   bgfx::UniformHandle depthInfoUniform;
@@ -214,6 +221,8 @@ private:
   bgfx::UniformHandle fogColorModeUniform;
   bgfx::UniformHandle fogRangeUniform;
   bgfx::UniformHandle textureParamsUniform;
+  std::map<uint16_t, std::pair<uint32_t, uint32_t>> samplingBoundTextureSizes;
+  bgfx::UniformHandle samplingTextureSizesUniform;
   bgfx::UniformHandle textureBlendUniform;
   bgfx::UniformHandle textureCombineUniform;
   bgfx::UniformHandle ambientLightUniform;

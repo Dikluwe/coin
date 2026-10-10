@@ -1,0 +1,64 @@
+[
+  {
+    "backend": "bgfx",
+    "command": [
+      "cmake",
+      "-S",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-src",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx"
+    ],
+    "exit": 0,
+    "log": "visual-bgfx-configure-normalized.log"
+  },
+  {
+    "backend": "bgfx",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-bgfx",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "log": "visual-bgfx-build-normalized.log"
+  },
+  {
+    "backend": "wgpu",
+    "command": [
+      "cmake",
+      "-S",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-src",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu"
+    ],
+    "exit": 0,
+    "log": "visual-wgpu-configure-normalized.log"
+  },
+  {
+    "backend": "wgpu",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\visual-wgpu",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "log": "visual-wgpu-build-normalized.log"
+  }
+]

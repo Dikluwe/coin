@@ -1,0 +1,10 @@
+{
+  "command": [
+    "vulkaninfo",
+    "--summary"
+  ],
+  "exit": 0,
+  "environment": {
+    "VK_LOADER_DEBUG": "error,warn,driver"
+  }
+}

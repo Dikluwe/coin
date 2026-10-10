@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderSamplingCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -50,8 +51,13 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
             "Scene texture consumer target is suspended or has zero size"};
   if (!graph.validate(root, diagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+  if (root.textureSamplingPolicy != options.textureSamplingPolicy || !coin_render_valid_sampling(root, diagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic.empty() ? "RTT root sampling policy differs from target policy" : diagnostic};
   const bool staged = graph.mode == COIN_RENDER_SCENE_TEXTURE_STAGED;
   for (const auto& producer : graph.producers) {
+    if (producer.plan.textureSamplingPolicy != root.textureSamplingPolicy ||
+        !coin_render_valid_sampling(producer.plan, diagnostic))
+      return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic.empty() ? "RTT producer sampling policy differs from consumer policy" : diagnostic};
     auto check = CoinRenderTargetP::validateProfile(producer.plan, producer.size, staged);
     if (check.status != CoinRenderBackendStatus::SUCCESS)
       return check;

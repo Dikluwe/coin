@@ -1,0 +1,495 @@
+[
+  {
+    "name": "nvidia-vulkan-native-advanced",
+    "gpu": "nvidia",
+    "renderer": "vulkan",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
+    },
+    "adapter": "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) renderer=1 vendor=4318 device=9568 features=523775",
+    "gl_adapter": null,
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=411 GPU=1 result=PASS",
+    "failures": [],
+    "log": "nvidia-vulkan-native-advanced.log",
+    "log_sha256": "b801d6c9a1d4461f5457fcc6cded183e2a90996d45c40154f9395d89bb971384",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "nvidia-vulkan-portable-advanced",
+    "gpu": "nvidia",
+    "renderer": "vulkan",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
+    },
+    "adapter": "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) renderer=1 vendor=4318 device=9568 features=523775",
+    "gl_adapter": null,
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=411 GPU=1 result=PASS",
+    "failures": [],
+    "log": "nvidia-vulkan-portable-advanced.log",
+    "log_sha256": "b801d6c9a1d4461f5457fcc6cded183e2a90996d45c40154f9395d89bb971384",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-vulkan-native-advanced",
+    "gpu": "amd",
+    "renderer": "vulkan",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+    },
+    "adapter": "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) renderer=1 vendor=4098 device=5688 features=523775",
+    "gl_adapter": null,
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=411 GPU=1 result=PASS",
+    "failures": [],
+    "log": "amd-vulkan-native-advanced.log",
+    "log_sha256": "0726aeda9267544ca135a3ebbd33d99a8740193efe5c7fe1bcb13ed2b9eb9621",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-vulkan-portable-advanced",
+    "gpu": "amd",
+    "renderer": "vulkan",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+    },
+    "adapter": "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) renderer=1 vendor=4098 device=5688 features=523775",
+    "gl_adapter": null,
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=411 GPU=1 result=PASS",
+    "failures": [],
+    "log": "amd-vulkan-portable-advanced.log",
+    "log_sha256": "0726aeda9267544ca135a3ebbd33d99a8740193efe5c7fe1bcb13ed2b9eb9621",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-opengl-native-advanced",
+    "gpu": "amd",
+    "renderer": "opengl",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "opengl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+    },
+    "adapter": "adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0 features=523775",
+    "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=426 GPU=1 result=PASS",
+    "failures": [],
+    "log": "amd-opengl-native-advanced.log",
+    "log_sha256": "32305d6a6226a89c730e2128dd126d3517ac869284e7597620bd57eb5264e63a",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-opengl-portable-advanced",
+    "gpu": "amd",
+    "renderer": "opengl",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "opengl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+    },
+    "adapter": "adapter=BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000) renderer=2 vendor=0 device=0 features=523775",
+    "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=426 GPU=1 result=PASS",
+    "failures": [],
+    "log": "amd-opengl-portable-advanced.log",
+    "log_sha256": "32305d6a6226a89c730e2128dd126d3517ac869284e7597620bd57eb5264e63a",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "nvidia-opengl-native-advanced",
+    "gpu": "nvidia",
+    "renderer": "opengl",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "opengl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
+    },
+    "adapter": "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0 features=523775",
+    "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.3.0 NVIDIA 615.71.09",
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=426 GPU=1 result=PASS",
+    "failures": [],
+    "log": "nvidia-opengl-native-advanced.log",
+    "log_sha256": "77d7cdbcc4c2bad244e60938d65b03393f1fb92ffd0ed2a2e43529a1056d5978",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "nvidia-opengl-portable-advanced",
+    "gpu": "nvidia",
+    "renderer": "opengl",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest",
+      "--gpu",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "opengl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "nvidia",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/10_nvidia.json"
+    },
+    "adapter": "adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0 features=523775",
+    "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=NVIDIA Corporation renderer=NVIDIA GeForce RTX 3060 Laptop GPU/PCIe/SSE2 version=4.3.0 NVIDIA 615.71.09",
+    "npot": [
+      "NPOT direct final mip independent area oracle 3x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 1x5 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x1 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 5x7 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 129x127 maximumRGB=0",
+      "NPOT direct final mip independent area oracle 2047x2047 maximumRGB=0",
+      "NPOT HDR mips retain value above one maximumRGB=1"
+    ],
+    "result": "Advanced textures controls=426 GPU=1 result=PASS",
+    "failures": [],
+    "log": "nvidia-opengl-portable-advanced.log",
+    "log_sha256": "77d7cdbcc4c2bad244e60938d65b03393f1fb92ffd0ed2a2e43529a1056d5978",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-vulkan-native-rtt",
+    "gpu": "amd",
+    "renderer": "vulkan",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips-direct"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": null,
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "amd-vulkan-native-rtt.log",
+    "log_sha256": "7557fe916afa32a1ceb264277939a0741deb77b8a3f5f496bec51e28b060a29c",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-vulkan-portable-rtt",
+    "gpu": "amd",
+    "renderer": "vulkan",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": null,
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "amd-vulkan-portable-rtt.log",
+    "log_sha256": "7557fe916afa32a1ceb264277939a0741deb77b8a3f5f496bec51e28b060a29c",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-opengl-native-rtt",
+    "gpu": "amd",
+    "renderer": "opengl",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips-direct"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "opengl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "amd-opengl-native-rtt.log",
+    "log_sha256": "2aaffd24719c8cce375f60ed3613d96eef4161d98b6a02940ef206e204b44fa4",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-opengl-portable-rtt",
+    "gpu": "amd",
+    "renderer": "opengl",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "opengl",
+      "COIN_BGFX_RENDERER": "opengl",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": "COIN_RENDER_PHASE bgfx_gl_adapter vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Core Profile) Mesa 25.2.8-0ubuntu0.24.04.4",
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "amd-opengl-portable-rtt.log",
+    "log_sha256": "2aaffd24719c8cce375f60ed3613d96eef4161d98b6a02940ef206e204b44fa4",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "nvidia-vulkan-native-rtt",
+    "gpu": "nvidia",
+    "renderer": "vulkan",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips-direct"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": null,
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0.666667; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "nvidia-vulkan-native-rtt.log",
+    "log_sha256": "730fdd82497affd7e59546e7cb35b5549b8be440c483ef7ffd48f75b81b229bc",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "nvidia-vulkan-portable-rtt",
+    "gpu": "nvidia",
+    "renderer": "vulkan",
+    "policy": "portable",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips-direct",
+      "--portable-sampling"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/nvidia_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": null,
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0.666667; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "nvidia-vulkan-portable-rtt.log",
+    "log_sha256": "730fdd82497affd7e59546e7cb35b5549b8be440c483ef7ffd48f75b81b229bc",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-vulkan-native-staged",
+    "gpu": "amd",
+    "renderer": "vulkan",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderRttProfileTest",
+      "--mips"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1"
+    },
+    "adapter": null,
+    "gl_adapter": null,
+    "npot": [],
+    "result": "RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed",
+    "failures": [],
+    "log": "amd-vulkan-native-staged.log",
+    "log_sha256": "7557fe916afa32a1ceb264277939a0741deb77b8a3f5f496bec51e28b060a29c",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  },
+  {
+    "name": "amd-vulkan-native-core",
+    "gpu": "amd",
+    "renderer": "vulkan",
+    "policy": "native",
+    "exit": 0,
+    "command": [
+      "/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build/bin/CoinRenderAdvancedTextureTest"
+    ],
+    "environment": {
+      "COIN_RENDER_RENDERER": "vulkan",
+      "COIN_BGFX_RENDERER": "vulkan",
+      "VK_ICD_FILENAMES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+      "__GLX_VENDOR_LIBRARY_NAME": "mesa",
+      "__EGL_VENDOR_LIBRARY_FILENAMES": "/usr/share/glvnd/egl_vendor.d/50_mesa.json"
+    },
+    "adapter": null,
+    "gl_adapter": null,
+    "npot": [],
+    "result": "Advanced textures controls=198 GPU=0 result=PASS",
+    "failures": [],
+    "log": "amd-vulkan-native-core.log",
+    "log_sha256": "9d1c3e29caee8a3bf2dabdf9eb626e3afc4c4c16fa2b94952fc3285897e59174",
+    "libCoinRender_sha256": "c57672fb1e02ffd5f51cfcd0f7adc576cad66b45f48e2254fecadc78918b6a0d"
+  }
+]

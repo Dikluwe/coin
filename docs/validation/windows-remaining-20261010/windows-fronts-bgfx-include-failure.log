@@ -1,0 +1,20 @@
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  1>Checking Build System
+  Building Custom Rule H:/Git/coin/build/sampling-win-20261010/windows-fronts-src/CMakeLists.txt
+  main.cpp
+  Building Custom Rule H:/Git/coin/build/sampling-win-20261010/windows-fronts-src/CMakeLists.txt
+  removal.cpp
+H:\Git\coin\build\sampling-win-20261010\windows-fronts-src\main.cpp(3,10): error C1083: Não é possível abrir arquivo incluir: 'Inventor/rendering/CoinRenderAction.h': No such file or directory [H:\Git\coin\build\sampling-win-20261010\windows-fronts-bgfx\coin_win32_campaign.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\__msvc_ostream.hpp(862,9): warning C4530: manipulador de exceção de C++ usado, mas semântica de liberação não está habilitada. Especifique /EHsc [H:\Git\coin\build\sampling-win-20261010\windows-fronts-bgfx\d3d12_removal_probe.vcxproj]
+  (compilando o arquivo fonte '../windows-fronts-src/removal.cpp')
+      C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\__msvc_ostream.hpp(862,9):
+      o contexto de instanciação do modelo (o mais antigo primeiro) é
+          H:\Git\coin\build\sampling-win-20261010\windows-fronts-src\removal.cpp(10,181):
+          consulte a referência à instanciação 'std::basic_ostream<wchar_t,std::char_traits<wchar_t>> &std::operator <<<wchar_t,std::char_traits<wchar_t>>(std::basic_ostream<wchar_t,std::char_traits<wchar_t>> &,const _Elem *)' do modelo que está sendo compilada
+          with
+          [
+              _Elem=wchar_t
+          ]
+  
+  d3d12_removal_probe.vcxproj -> H:\Git\coin\build\sampling-win-20261010\windows-fronts-bgfx\Release\d3d12_removal_probe.exe
