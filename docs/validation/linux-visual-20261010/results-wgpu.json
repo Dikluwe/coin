@@ -1,0 +1,582 @@
+[
+  {
+    "name": "visual-initial-city-40000-wgpu-vulkan-native",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "native",
+    "scene": "city-40000",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 3.09,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "136",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-40000 policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-city-40000-wgpu-vulkan-portable",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "portable",
+    "scene": "city-40000",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 3.02,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "136",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-40000 policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-city-40000-wgpu-opengl-native",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "native",
+    "scene": "city-40000",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 2.92,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "146",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-city-40000-wgpu-opengl-portable",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "portable",
+    "scene": "city-40000",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 2.78,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "146",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-terrain-million-wgpu-vulkan-native",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "native",
+    "scene": "terrain-million",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 5.49,
+    "oracle": [],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=terrain-million policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-terrain-million-wgpu-vulkan-portable",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "portable",
+    "scene": "terrain-million",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 5.5,
+    "oracle": [],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=terrain-million policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-terrain-million-wgpu-opengl-native",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "native",
+    "scene": "terrain-million",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 5.09,
+    "oracle": [],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=terrain-million policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-terrain-million-wgpu-opengl-portable",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "portable",
+    "scene": "terrain-million",
+    "cohort": "visual-initial",
+    "exit": 1,
+    "seconds": 5.28,
+    "oracle": [],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=terrain-million policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-initial-solids-wgpu-vulkan-native",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "native",
+    "scene": "solids",
+    "cohort": "visual-initial",
+    "exit": 0,
+    "seconds": 1.35,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=solids policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-initial-solids-wgpu-vulkan-portable",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "portable",
+    "scene": "solids",
+    "cohort": "visual-initial",
+    "exit": 0,
+    "seconds": 1.43,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=solids policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-initial-solids-wgpu-opengl-native",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "native",
+    "scene": "solids",
+    "cohort": "visual-initial",
+    "exit": 0,
+    "seconds": 0.95,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=solids policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-initial-solids-wgpu-opengl-portable",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "portable",
+    "scene": "solids",
+    "cohort": "visual-initial",
+    "exit": 0,
+    "seconds": 0.93,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=solids policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-million-city-million-wgpu-vulkan-native",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "native",
+    "scene": "city-million",
+    "cohort": "visual-million",
+    "exit": 1,
+    "seconds": 28.47,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "118",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-million policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-million-city-million-wgpu-vulkan-portable",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "portable",
+    "scene": "city-million",
+    "cohort": "visual-million",
+    "exit": 1,
+    "seconds": 28.41,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "118",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-million policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-million-city-million-wgpu-opengl-native",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "native",
+    "scene": "city-million",
+    "cohort": "visual-million",
+    "exit": 1,
+    "seconds": 28.1,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "146",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-million policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-million-city-million-wgpu-opengl-portable",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "portable",
+    "scene": "city-million",
+    "cohort": "visual-million",
+    "exit": 1,
+    "seconds": 28.09,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "146",
+        "0"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-million policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-static-control-city-40000-wgpu-vulkan-native",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "native",
+    "scene": "city-40000",
+    "cohort": "visual-static-control",
+    "exit": 0,
+    "seconds": 3.02,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-40000 policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-static-control-city-40000-wgpu-vulkan-portable",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "portable",
+    "scene": "city-40000",
+    "cohort": "visual-static-control",
+    "exit": 0,
+    "seconds": 2.99,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-40000 policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-static-control-city-40000-wgpu-opengl-native",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "native",
+    "scene": "city-40000",
+    "cohort": "visual-static-control",
+    "exit": 1,
+    "seconds": 5.54,
+    "oracle": [
+      [
+        "initial",
+        "208",
+        "0"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-static-control-city-40000-wgpu-opengl-portable",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "portable",
+    "scene": "city-40000",
+    "cohort": "visual-static-control",
+    "exit": 1,
+    "seconds": 6.0,
+    "oracle": [
+      [
+        "initial",
+        "208",
+        "0"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-static-matched-city-40000-wgpu-vulkan-native",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "native",
+    "scene": "city-40000",
+    "cohort": "visual-static-matched",
+    "exit": 0,
+    "seconds": 3.01,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-40000 policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-static-matched-city-40000-wgpu-vulkan-portable",
+    "backend": "wgpu",
+    "api": "vulkan",
+    "policy": "portable",
+    "scene": "city-40000",
+    "cohort": "visual-static-matched",
+    "exit": 0,
+    "seconds": 3.0,
+    "oracle": [
+      [
+        "initial",
+        "0",
+        "1"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=city-40000 policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": true
+  },
+  {
+    "name": "visual-static-matched-city-40000-wgpu-opengl-native",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "native",
+    "scene": "city-40000",
+    "cohort": "visual-static-matched",
+    "exit": 1,
+    "seconds": 6.01,
+    "oracle": [
+      [
+        "initial",
+        "208",
+        "0"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=native extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  },
+  {
+    "name": "visual-static-matched-city-40000-wgpu-opengl-portable",
+    "backend": "wgpu",
+    "api": "opengl",
+    "policy": "portable",
+    "scene": "city-40000",
+    "cohort": "visual-static-matched",
+    "exit": 1,
+    "seconds": 5.98,
+    "oracle": [
+      [
+        "initial",
+        "208",
+        "0"
+      ],
+      [
+        "final",
+        "0",
+        "1"
+      ]
+    ],
+    "qualified_gpu": true,
+    "receipt": "2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=portable extent=1280x960",
+    "gl_adapter": null,
+    "pass": false
+  }
+]

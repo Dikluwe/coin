@@ -1,0 +1,8 @@
+receipt renderer=1 vendor=10de device=2560 adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) workload=solids policy=portable extent=1280x960
+fixture solids=24 translucent=6 textured=6 texture_extent=63x47 lighting=directional
+scene cube_instances=0 counted_triangles=0 primitive_triangle_count_known=0 textured=1 camera_static=0
+visible_coverage=128763 of=1228800
+surface_oracle stage=initial rgb_max=0 exact=1 xgetimage=0 outside_measurement=1
+visible_coverage=125837 of=1228800
+surface_oracle stage=final rgb_max=0 exact=1 xgetimage=0 outside_measurement=1
+window_campaign result=1 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=6

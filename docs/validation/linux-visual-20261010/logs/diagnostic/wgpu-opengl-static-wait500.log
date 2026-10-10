@@ -1,0 +1,8 @@
+receipt renderer=2 vendor=1002 device=0 adapter=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) (Gl) workload=city-40000 policy=native extent=1280x960
+fixture buildings=40000 triangles=480000 million_instances=0 lighting=directional palette=8
+scene cube_instances=40000 counted_triangles=480000 primitive_triangle_count_known=1 textured=0 camera_static=1
+visible_coverage=0 of=1228800
+surface_oracle stage=initial rgb_max=208 exact=0 xgetimage=1 outside_measurement=1
+visible_coverage=306994 of=1228800
+surface_oracle stage=final rgb_max=0 exact=1 xgetimage=1 outside_measurement=1
+window_campaign result=0 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=5
