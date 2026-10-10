@@ -1,0 +1,250 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -167,7 +167,8 @@
+ 
+ static void
+ st_clip_polygon_plane(nir_builder *b, nir_variable **a, nir_variable **next,
+-                      const bool *enabled, nir_variable *count, nir_def *plane)
++                      const bool *enabled, const uint8_t *noperspective_components,
++                      nir_variable *count, nir_def *plane)
+ {
+    nir_variable *out_count =
+       nir_local_variable_create(b->impl, glsl_int_type(), "clip_out_count");
+@@ -208,13 +209,35 @@
+       nir_if *cross = nir_push_if(b, nir_ixor(b, a_out, c_out));
+       {
+          nir_def *t = nir_fdiv(b, da, nir_fsub(b, da, dc));
++         nir_def *screen_t = t;
++         bool any_noperspective = false;
++         for (unsigned slot = 0; slot < 32; ++slot)
++            any_noperspective |= noperspective_components[slot] != 0;
++         if (any_noperspective) {
++            nir_def *w0 = nir_channel(b, nir_load_array_var(b, a[ST_CLIP_POS], idx), 3);
++            nir_def *w1 = nir_channel(b, nir_load_array_var(b, a[ST_CLIP_POS], j), 3);
++            nir_def *w = nir_fadd(b, nir_fmul(b, nir_fsub(b, nir_imm_float(b, 1), t), w0),
++                                  nir_fmul(b, t, w1));
++            screen_t = nir_fdiv(b, nir_fmul(b, t, w1), w);
++         }
+          nir_def *out = nir_load_var(b, out_count);
+          for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
+             if (!enabled[k])
+                continue;
+             nir_def *v0 = nir_load_array_var(b, a[k], idx);
+             nir_def *v1 = nir_load_array_var(b, a[k], j);
+-            nir_def *v = nir_fadd(b, v0, nir_fmul(b, nir_fsub(b, v1, v0), t));
++            nir_def *fraction = t;
++            if (st_clip_slots[k] >= VARYING_SLOT_VAR0) {
++               uint8_t mask = noperspective_components[st_clip_slots[k] - VARYING_SLOT_VAR0];
++               if (mask) {
++                  nir_def *components[4];
++                  for (unsigned component = 0; component < 4; ++component)
++                     components[component] = (mask & (1u << component)) ? screen_t : t;
++                  fraction = nir_vec4(b, components[0], components[1],
++                                      components[2], components[3]);
++               }
++            }
++            nir_def *v = nir_fadd(b, v0, nir_fmul(b, nir_fsub(b, v1, v0), fraction));
+             nir_store_array_var(b, next[k], out, v, 0xf);
+          }
+          nir_store_var(b, out_count, nir_iadd_imm(b, out, 1), 1);
+@@ -263,7 +286,8 @@
+ 
+ static void *
+ st_create_clip_polygon_gs(struct st_context *st, unsigned active,
+-                          bool points, uint64_t varying_mask)
++                          bool points, uint64_t varying_mask,
++                          const uint8_t *noperspective_components)
+ {
+    const nir_shader_compiler_options *options =
+       st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
+@@ -318,7 +342,8 @@
+       nir_def *bit = nir_ishl(b, nir_imm_int(b, 1), idx);
+       nir_if *is_active = nir_push_if(b,
+          nir_ine_imm(b, nir_iand(b, nir_imm_int(b, active), bit), 0));
+-      st_clip_polygon_plane(b, a, next, enabled, count, idx);
++      st_clip_polygon_plane(b, a, next, enabled, noperspective_components,
++                            count, idx);
+       nir_pop_if(b, is_active);
+    }
+    ST_CLIP_END_LOOP(active_plane)
+@@ -386,8 +411,8 @@
+ /* Unlower a serialized copy so the linked IO type and FS interpolation
+  * qualifiers can be checked even after the live program's NIR was consumed. */
+ static bool
+-st_clip_generic_smooth_io(struct st_context *st, struct gl_program *prog,
+-                          uint64_t slots, bool fragment)
++st_clip_generic_io(struct st_context *st, struct gl_program *prog,
++                   uint64_t slots, bool fragment, uint8_t *noperspective_components)
+ {
+    if (!prog || !prog->serialized_nir)
+       return false;
+@@ -399,11 +424,64 @@
+       st_get_nir_compiler_options(st, prog->info.stage), &reader);
+    if (!shader)
+       return false;
++   uint64_t interpolation_seen = 0;
++   bool safe = true;
++   if (fragment) {
++      nir_foreach_function(function, shader) {
++         if (!function->impl)
++            continue;
++         nir_foreach_block(block, function->impl) {
++            nir_foreach_instr(instr, block) {
++               if (instr->type != nir_instr_type_intrinsic)
++                  continue;
++               nir_intrinsic_instr *intr = nir_instr_as_intrinsic(instr);
++               if (intr->intrinsic != nir_intrinsic_load_interpolated_input &&
++                   intr->intrinsic != nir_intrinsic_load_input)
++                  continue;
++               unsigned slot = nir_intrinsic_io_semantics(intr).location;
++               if (slot < VARYING_SLOT_VAR0 || slot >= 64 ||
++                   !(slots & BITFIELD64_BIT(slot)))
++                  continue;
++               if (intr->intrinsic == nir_intrinsic_load_input ||
++                   nir_intrinsic_dest_type(intr) != nir_type_float32) {
++                  safe = false;
++                  continue;
++               }
++               nir_instr *bary_instr = intr->src[0].ssa->parent_instr;
++               if (bary_instr->type != nir_instr_type_intrinsic) {
++                  safe = false;
++                  continue;
++               }
++               nir_intrinsic_instr *bary = nir_instr_as_intrinsic(bary_instr);
++               if (!nir_intrinsic_has_interp_mode(bary)) {
++                  safe = false;
++                  continue;
++               }
++               enum glsl_interp_mode mode = nir_intrinsic_interp_mode(bary);
++               if (mode != INTERP_MODE_SMOOTH && mode != INTERP_MODE_NONE &&
++                   mode != INTERP_MODE_NOPERSPECTIVE) {
++                  safe = false;
++                  continue;
++               }
++               unsigned component = nir_intrinsic_component(intr);
++               if (component + intr->def.num_components > 4) {
++                  safe = false;
++                  continue;
++               }
++               interpolation_seen |= BITFIELD64_BIT(slot);
++               if (mode == INTERP_MODE_NOPERSPECTIVE) {
++                  for (unsigned c = 0; c < intr->def.num_components; ++c)
++                     noperspective_components[slot - VARYING_SLOT_VAR0] |=
++                        1u << (component + c);
++               }
++            }
++         }
++      }
++   }
+    if (shader->info.io_lowered)
+       st_nir_unlower_io_to_vars(shader);
+ 
+    uint64_t seen = 0;
+-   bool safe = true;
+    nir_foreach_variable_with_modes(var, shader,
+                                    fragment ? nir_var_shader_in : nir_var_shader_out) {
+       unsigned slot = var->data.location;
+@@ -413,20 +491,20 @@
+       if (!glsl_type_is_vector_or_scalar(var->type) ||
+           glsl_get_base_type(var->type) != GLSL_TYPE_FLOAT ||
+           glsl_get_bit_size(var->type) != 32 ||
+-          var->data.location_frac || var->data.compact ||
+-          (fragment && var->data.interpolation != INTERP_MODE_SMOOTH &&
+-           var->data.interpolation != INTERP_MODE_NONE)) {
++          var->data.location_frac || var->data.compact) {
+          safe = false;
+          break;
+       }
+       seen |= BITFIELD64_BIT(slot);
+    }
+    ralloc_free(shader);
+-   return safe && seen == slots;
++   return safe && seen == slots &&
++      (!fragment || interpolation_seen == slots);
+ }
+ 
+ static bool
+-st_clip_polygon_unsupported_varyings(struct st_context *st)
++st_clip_polygon_unsupported_varyings(struct st_context *st,
++                                     uint8_t *noperspective_components)
+ {
+    if (!st->vp)
+       return true;
+@@ -447,8 +525,10 @@
+        st->fp->info.inputs_read_indirectly & generic ||
+        st->vp->info.outputs_written_16bit || st->fp->info.inputs_read_16bit)
+       return true;
+-   return !st_clip_generic_smooth_io(st, st->vp, generic, false) ||
+-          !st_clip_generic_smooth_io(st, st->fp, generic, true);
++   return !st_clip_generic_io(st, st->vp, generic, false,
++                              noperspective_components) ||
++          !st_clip_generic_io(st, st->fp, generic, true,
++                              noperspective_components);
+ }
+ 
+ static bool
+@@ -491,12 +571,13 @@
+ {
+    struct st_context *st = st_context(ctx);
+    unsigned active = ctx->Transform.ClipPlanesEnabled;
++   uint8_t noperspective_components[32] = {0};
+    if (!st->clip_boundary_experiment || num_draws != 1 || info->index_size ||
+        ctx->GeometryProgram._Current || ctx->TessCtrlProgram._Current ||
+        ctx->TessEvalProgram._Current || !active || (active & ~0xffu) ||
+        ctx->Polygon.FrontMode != ctx->Polygon.BackMode ||
+        st_clip_boundary_unsafe_state(ctx) ||
+-       st_clip_polygon_unsupported_varyings(st) ||
++       st_clip_polygon_unsupported_varyings(st, noperspective_components) ||
+        !((info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) &&
+          draws[0].count == 4))
+       return false;
+@@ -521,14 +602,18 @@
+       struct st_clip_polygon_gs_entry *entry;
+       for (entry = st->clip_polygon_extra_gs; entry; entry = entry->next) {
+          if (entry->active == active && entry->points == points &&
+-             entry->varying_mask == varying_mask)
++             entry->varying_mask == varying_mask &&
++             memcmp(entry->noperspective_components,
++                    noperspective_components, 32) == 0)
+             break;
+       }
+       if (!entry) {
+          entry = CALLOC_STRUCT(st_clip_polygon_gs_entry);
+          if (!entry)
+             return false;
+-         entry->gs = st_create_clip_polygon_gs(st, active, points, varying_mask);
++         entry->gs = st_create_clip_polygon_gs(st, active, points,
++                                                varying_mask,
++                                                noperspective_components);
+          if (!entry->gs) {
+             FREE(entry);
+             return false;
+@@ -536,6 +621,8 @@
+          entry->active = active;
+          entry->points = points;
+          entry->varying_mask = varying_mask;
++         memcpy(entry->noperspective_components,
++                noperspective_components, 32);
+          entry->next = st->clip_polygon_extra_gs;
+          st->clip_polygon_extra_gs = entry;
+       }
+@@ -543,7 +630,8 @@
+    } else {
+       if (!st->clip_polygon_gs[key])
+          st->clip_polygon_gs[key] =
+-            st_create_clip_polygon_gs(st, active, points, varying_mask);
++            st_create_clip_polygon_gs(st, active, points, varying_mask,
++                                      noperspective_components);
+       gs = st->clip_polygon_gs[key];
+    }
+    if (!gs)
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -83,6 +83,7 @@
+ struct st_clip_polygon_gs_entry {
+    struct st_clip_polygon_gs_entry *next;
+    uint64_t varying_mask;
++   uint8_t noperspective_components[32];
+    unsigned active;
+    bool points;
+    void *gs;

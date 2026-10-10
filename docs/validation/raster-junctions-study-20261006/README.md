@@ -38,3 +38,31 @@ comandos completos, API/driver e imagens por execução antes de comparar
 abordagens ou medir desempenho.
 
 Decisão e roteiro: [estudo de raster](../../coin-render-raster-junctions-study.md).
+
+## Sondas de alpha em endpoints — 2026-10-10
+
+`witness-50-alpha-20261010.cpp` e `witness-36-alpha-20261010.cpp` isolam
+os segmentos autorais das bordas 50/1 e 36/1 em EGL/OpenGL.
+`alpha-endpoints-manifest-20261010.json` registra SHA-256, seleção EGL,
+renderizador e os seis logs Radeon/NVIDIA/llvmpipe. Compilar com
+`g++ -std=c++17 -O2 <fonte> -o <binário> -lEGL -lGL`; usar
+`EGL_PLATFORM=surfaceless` e o arquivo EGL vendor indicado no manifesto.
+São controles de cobertura e blend, não aprovação do contrato portátil.
+
+## Par CoinRender transparente — 2026-10-10
+
+`portable-alpha-20261010/CoinRenderJunctionAlphaStudy.cpp` é uma variante
+manual da sonda `CoinRenderRasterStudy`, compilada contra os builds wgpu/BGFX
+congelados de 2026-10-07 e contra o build BGFX deste checkout de 2026-10-09.
+`summary.json` lista 32 execuções nas duas GPUs; `summary-current-bgfx.json`
+lista mais 16. Cada subdiretório guarda o log e `cpu/gpu/coin-gl.rgba8.gz`,
+com 80×80 RGBA8 top-down e SHA-256 no manifesto. Os modos 0–3 representam
+autoral, invertido, par no mesmo sentido e par oposto. O código foi ligado
+aos `libCoinRender.so`/`libCoin.so` dos builds indicados, com os includes do
+checkout `coin-portable-sampling-restored`; as bibliotecas são identificadas
+por SHA-256 nos manifestos. As execuções exigem display GLX para CoinGL,
+Vulkan físico selecionado por `VK_ICD_FILENAMES` e backend Vulkan.
+
+Leitura: RGB/cobertura portátil e CoinGL coincidem até 1; alpha CPU/GPU
+segue o contrato portátil e difere do CoinGL legado. Este é um diagnóstico
+manual, sem alteração de gates ou do renderizador.

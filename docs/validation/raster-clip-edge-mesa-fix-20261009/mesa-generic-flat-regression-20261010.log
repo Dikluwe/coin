@@ -1,0 +1,215 @@
+CASE texture-1-candidate exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+pci id for fd 4: 10de:2560, driver (null)
+kmsro: driver missing
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=1
+planes=1 error=0 vertical=17 horizontal=0 vgreen=17 hgreen=0
+
+CASE texture-2-candidate exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+pci id for fd 4: 10de:2560, driver (null)
+kmsro: driver missing
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=2
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+
+CASE texture-5-candidate exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+pci id for fd 4: 10de:2560, driver (null)
+kmsro: driver missing
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=5
+planes=5 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+
+CASE texture-8-candidate exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+pci id for fd 4: 10de:2560, driver (null)
+kmsro: driver missing
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=8
+planes=8 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+
+CASE fog-2-candidate exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+pci id for fd 4: 10de:2560, driver (null)
+kmsro: driver missing
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=2
+pixel 32,40=0,0,0,255
+pixel 40,32=85,170,0,255
+column 30 n=0 r=0 g=0
+column 31 n=17 r=2176 g=2176
+column 32 n=0 r=0 g=0
+column 33 n=0 r=0 g=0
+column 34 n=0 r=0 g=0
+row 30 n=0 r=0 g=0
+row 31 n=0 r=0 g=0
+row 32 n=17 r=1105 g=3230
+row 33 n=0 r=0 g=0
+row 34 n=0 r=0 g=0
+planes=2 error=0
+fog totals vertical=17,2176,2176 horizontal=17,1105,3230
+
+CASE strict-oracle-candidate exit=0 expected=0 result=PASS
+GL vendor=AMD renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) version=4.6 (Compatibility Profile) Mesa 25.2.8
+polygon-line clipped=1 triangles=0 mode=line x16=18 x17=0 x45=18 p16low=3 p16high=3 error=0 boundary=1
+triangles-line clipped=1 triangles=1 mode=line x16=18 x17=1 x45=18 p16low=3 p16high=2 error=0 boundary=1
+polygon-fill clipped=1 triangles=0 mode=fill x16=18 x17=18 x45=0 p16low=2 p16high=3 error=0 boundary=1
+polygon-point clipped=1 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+preclipped-polygon-point clipped=0 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+unclipped-line clipped=0 triangles=0 mode=line x16=0 x17=0 x45=18 p16low=1 p16high=1 error=0 boundary=1
+preclipped-polygon-line clipped=0 triangles=0 mode=line x16=18 x17=0 x45=18 p16low=3 p16high=3 error=0 boundary=1
+explicit-cut-edge clipped=0 triangles=0 mode=line x16=18 x17=0 x45=0 p16low=3 p16high=2 error=0 boundary=1
+explicit-cut-edge-clipped clipped=1 triangles=0 mode=line x16=18 x17=0 x45=0 p16low=3 p16high=2 error=0 boundary=1
+shader-status vertex=1 fragment=1 link=1
+shader-clip-distance-polygon-line clipped=1 triangles=0 mode=line x16=18 x17=0 x45=18 p16low=3 p16high=3 error=0 boundary=1
+shader-clip-distance-polygon-point clipped=1 triangles=0 mode=point x16=0 x17=0 x45=0 p16low=4 p16high=4 error=0 boundary=1
+shader-clip-distance-polygon-fill clipped=1 triangles=0 mode=fill x16=18 x17=18 x45=0 p16low=2 p16high=3 error=0 boundary=1
+
+CASE coingl-original-clip-probe exit=0 expected=0 result=PASS
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement 0
+Coin/GL clip 0 edge 2 phase displacement -121
+Coin/GL clip 0 edge 3 phase displacement 0
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -25
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -25
+Coin/GL clip 2 edge 2 phase displacement -77
+Coin/GL clip 3 edge 1 phase displacement -56
+Coin/GL clip 3 edge 2 phase displacement -104
+Coin/GL clip 3 edge 3 phase displacement -56
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -46
+Coin/GL clip 5 edge 3 phase displacement -46
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement -25
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL depth-plane cut 6 differs in 1944 samples; normative Core boundary tested separately
+Coin/GL clip 7 edge 0 phase displacement 0
+Coin/GL clip 7 edge 1 phase displacement -25
+Coin/GL clip 7 edge 2 phase displacement 0
+Coin/GL depth-plane cut 7 differs in 1944 samples; normative Core boundary tested separately
+Coin/GL clipped geometry and retained-edge stipple reference passed
+
+CASE texture-2-without-flag exit=1 expected=1 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+pci id for fd 4: 10de:2560, driver (null)
+kmsro: driver missing
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+libEGL warning: failed to get driver name for fd -1
+
+libEGL warning: MESA-LOADER: failed to retrieve device information
+
+libEGL warning: failed to get driver name for fd -1
+
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=2
+planes=2 error=0 vertical=0 horizontal=0 vgreen=0 hgreen=0
+
+CASE texture-2-llvmpipe-control exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 renderer=llvmpipe (LLVM 20.1.2, 256 bits) planes=2
+planes=2 error=0 vertical=17 horizontal=17 vgreen=17 hgreen=17
+
+CASE fog-2-llvmpipe-control exit=0 expected=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 renderer=llvmpipe (LLVM 20.1.2, 256 bits) planes=2
+pixel 32,40=0,0,0,255
+pixel 40,32=0,0,0,255
+column 30 n=0 r=0 g=0
+column 31 n=17 r=2176 g=2176
+column 32 n=0 r=0 g=0
+column 33 n=0 r=0 g=0
+column 34 n=0 r=0 g=0
+row 30 n=0 r=0 g=0
+row 31 n=17 r=1105 g=3230
+row 32 n=0 r=0 g=0
+row 33 n=0 r=0 g=0
+row 34 n=0 r=0 g=0
+planes=2 error=0
+fog totals vertical=17,2176,2176 horizontal=17,1105,3230
+

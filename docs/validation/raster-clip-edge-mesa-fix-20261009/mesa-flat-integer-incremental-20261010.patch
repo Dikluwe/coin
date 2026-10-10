@@ -1,0 +1,73 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -168,7 +168,7 @@
+ static void
+ st_clip_polygon_plane(nir_builder *b, nir_variable **a, nir_variable **next,
+                       const bool *enabled, const uint8_t *noperspective_components,
+-                      nir_variable *count, nir_def *plane)
++                      const uint8_t *flat_components, nir_variable *count, nir_def *plane)
+ {
+    nir_variable *out_count =
+       nir_local_variable_create(b->impl, glsl_int_type(), "clip_out_count");
+@@ -238,6 +238,18 @@
+                }
+             }
+             nir_def *v = nir_fadd(b, v0, nir_fmul(b, nir_fsub(b, v1, v0), fraction));
++            if (st_clip_slots[k] >= VARYING_SLOT_VAR0) {
++               uint8_t mask = flat_components[st_clip_slots[k] - VARYING_SLOT_VAR0];
++               if (mask == 0xf)
++                  v = v0;
++               else if (mask) {
++                  nir_def *components[4];
++                  for (unsigned c = 0; c < 4; ++c)
++                     components[c] = nir_channel(b, (mask & (1u << c)) ? v0 : v, c);
++                  v = nir_vec4(b, components[0], components[1],
++                               components[2], components[3]);
++               }
++            }
+             nir_store_array_var(b, next[k], out, v, 0xf);
+          }
+          nir_store_var(b, out_count, nir_iadd_imm(b, out, 1), 1);
+@@ -369,7 +381,7 @@
+       nir_if *is_active = nir_push_if(b,
+          nir_ine_imm(b, nir_iand(b, nir_imm_int(b, active), bit), 0));
+       st_clip_polygon_plane(b, a, next, enabled, noperspective_components,
+-                            count, idx);
++                            flat_components, count, idx);
+       nir_pop_if(b, is_active);
+    }
+    ST_CLIP_END_LOOP(active_plane)
+@@ -469,7 +481,10 @@
+                if (slot < VARYING_SLOT_VAR0 || slot >= 64 ||
+                    !(slots & BITFIELD64_BIT(slot)))
+                   continue;
+-               if (nir_intrinsic_dest_type(intr) != nir_type_float32) {
++               if (nir_intrinsic_dest_type(intr) != nir_type_float32 &&
++                   !(intr->intrinsic == nir_intrinsic_load_input &&
++                     (nir_intrinsic_dest_type(intr) == nir_type_int32 ||
++                      nir_intrinsic_dest_type(intr) == nir_type_uint32))) {
+                   safe = false;
+                   continue;
+                }
+@@ -521,12 +536,20 @@
+           !(slots & BITFIELD64_BIT(slot)))
+          continue;
+       if (!glsl_type_is_vector_or_scalar(var->type) ||
+-          glsl_get_base_type(var->type) != GLSL_TYPE_FLOAT ||
++          (glsl_get_base_type(var->type) != GLSL_TYPE_FLOAT &&
++           glsl_get_base_type(var->type) != GLSL_TYPE_INT &&
++           glsl_get_base_type(var->type) != GLSL_TYPE_UINT) ||
+           glsl_get_bit_size(var->type) != 32 ||
+           var->data.location_frac || var->data.compact) {
+          safe = false;
+          break;
+       }
++      if (fragment && glsl_get_base_type(var->type) != GLSL_TYPE_FLOAT &&
++          flat_components[slot - VARYING_SLOT_VAR0] !=
++             (1u << glsl_get_components(var->type)) - 1u) {
++         safe = false;
++         break;
++      }
+       seen |= BITFIELD64_BIT(slot);
+    }
+    ralloc_free(shader);

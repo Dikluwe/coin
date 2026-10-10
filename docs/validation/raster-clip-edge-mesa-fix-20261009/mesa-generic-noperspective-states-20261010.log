@@ -1,0 +1,55 @@
+point-8 exit=0 elapsed=2.39s
+planes=8 error=0 p00=25 p10=25 p11=25 p01=25
+depth-stencil-blend-0 exit=0 elapsed=0.23s
+pixel=31,40 rgb=128,0,0 alpha=255 depth=0.50000 stencil=1 error=0
+depth-stencil-blend-1 exit=0 elapsed=0.24s
+pixel=32,32 rgb=128,0,0 alpha=255 depth=0.50000 stencil=1 error=0
+cull-line-candidate exit=0 elapsed=0.03s
+planes=2 error=0 vertical=0 horizontal=0 vgreen=0 hgreen=0
+cull-line-native exit=0 elapsed=0.03s
+planes=2 error=0 vertical=0 horizontal=0 vgreen=0 hgreen=0
+cull-point-candidate exit=0 elapsed=0.03s
+planes=2 error=0 p00=0 p10=0 p11=0 p01=0
+cull-point-native exit=0 elapsed=0.03s
+planes=2 error=0 p00=0 p10=0 p11=0 p01=0
+flat-0-candidate exit=0 elapsed=0.04s
+mode=line shade=flat sample=32,32 rgb=0,0,0
+mode=line shade=flat sample=58,32 rgb=0,0,0
+mode=line shade=flat sample=58,58 rgb=0,0,0
+mode=line shade=flat sample=32,58 rgb=0,0,0
+mode=line shade=flat sample=32,45 rgb=0,0,0
+mode=line shade=flat sample=45,32 rgb=0,0,0
+error=0
+flat-0-native exit=0 elapsed=0.03s
+mode=line shade=flat sample=32,32 rgb=0,0,0
+mode=line shade=flat sample=58,32 rgb=0,0,0
+mode=line shade=flat sample=58,58 rgb=0,0,0
+mode=line shade=flat sample=32,58 rgb=0,0,0
+mode=line shade=flat sample=32,45 rgb=0,0,0
+mode=line shade=flat sample=45,32 rgb=0,0,0
+error=0
+flat-1-candidate exit=0 elapsed=0.03s
+mode=point shade=flat sample=32,32 rgb=0,0,0
+mode=point shade=flat sample=58,32 rgb=0,0,0
+mode=point shade=flat sample=58,58 rgb=255,255,0
+mode=point shade=flat sample=32,58 rgb=0,0,0
+mode=point shade=flat sample=32,45 rgb=0,0,0
+mode=point shade=flat sample=45,32 rgb=0,0,0
+error=0
+flat-1-native exit=0 elapsed=0.03s
+mode=point shade=flat sample=32,32 rgb=0,0,0
+mode=point shade=flat sample=58,32 rgb=0,0,0
+mode=point shade=flat sample=58,58 rgb=255,255,0
+mode=point shade=flat sample=32,58 rgb=0,0,0
+mode=point shade=flat sample=32,45 rgb=0,0,0
+mode=point shade=flat sample=45,32 rgb=0,0,0
+error=0
+edgeflag-candidate exit=1 elapsed=0.03s
+planes=2 error=0 vertical=0 horizontal=0 vgreen=0 hgreen=0
+edgeflag-native exit=1 elapsed=0.03s
+planes=2 error=0 vertical=0 horizontal=0 vgreen=0 hgreen=0
+primitives-query-candidate exit=0 elapsed=0.03s
+planes=2 error=0 generated=2 vertical=0 horizontal=0 vgreen=0 hgreen=0
+primitives-query-native exit=0 elapsed=0.03s
+planes=2 error=0 generated=2 vertical=0 horizontal=0 vgreen=0 hgreen=0
+CHECKS 9/9 PASS

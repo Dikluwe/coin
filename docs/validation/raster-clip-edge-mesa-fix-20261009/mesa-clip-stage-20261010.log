@@ -1,0 +1,102 @@
+CASE amd-vs exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+pci id for fd 4: 10de:2560, driver (null)
+pci id for fd 5: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) GL=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=0
+gs=0 x=29 lit=0
+gs=0 x=30 lit=0
+gs=0 x=31 lit=0
+gs=0 x=32 lit=0
+gs=0 x=33 lit=0
+gs=0 x=34 lit=0
+retained-edge left=0 right=22
+error=0
+
+CASE amd-gs exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+pci id for fd 4: 10de:2560, driver (null)
+pci id for fd 5: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) GL=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=1
+gs=1 x=29 lit=0
+gs=1 x=30 lit=0
+gs=1 x=31 lit=0
+gs=1 x=32 lit=0
+gs=1 x=33 lit=0
+gs=1 x=34 lit=0
+retained-edge left=0 right=22
+error=0
+
+CASE amd-one-pass exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+pci id for fd 4: 10de:2560, driver (null)
+pci id for fd 5: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) GL=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=1
+one-pass clipped quad vertical=17 horizontal=17
+error=0
+
+CASE amd-one-pass-points exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+pci id for fd 4: 10de:2560, driver (null)
+pci id for fd 5: 10de:2560, driver (null)
+libEGL warning: egl: failed to create dri2 screen
+libEGL warning: DRI2: failed to create screen
+renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) GL=4.6 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=1
+point 32,32 lit=16
+point 57,32 lit=16
+point 32,57 lit=16
+point 57,57 lit=16
+error=0
+
+CASE llvmpipe-vs exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=0
+gs=0 x=29 lit=0
+gs=0 x=30 lit=0
+gs=0 x=31 lit=33
+gs=0 x=32 lit=0
+gs=0 x=33 lit=0
+gs=0 x=34 lit=0
+retained-edge left=0 right=22
+error=0
+
+CASE llvmpipe-gs exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=1
+gs=1 x=29 lit=0
+gs=1 x=30 lit=0
+gs=1 x=31 lit=33
+gs=1 x=32 lit=0
+gs=1 x=33 lit=0
+gs=1 x=34 lit=0
+retained-edge left=0 right=22
+error=0
+
+CASE llvmpipe-one-pass exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=1
+one-pass clipped quad vertical=17 horizontal=17
+error=0
+
+CASE llvmpipe-one-pass-points exit=0 result=PASS
+libEGL warning: pci id for fd 3: 10de:2560, driver (null)
+
+renderer=llvmpipe (LLVM 20.1.2, 256 bits) GL=4.5 (Compatibility Profile) Mesa 25.2.8-0ubuntu0.24.04.4 gs=1
+point 32,32 lit=16
+point 57,32 lit=16
+point 32,57 lit=16
+point 57,57 lit=16
+error=0
+

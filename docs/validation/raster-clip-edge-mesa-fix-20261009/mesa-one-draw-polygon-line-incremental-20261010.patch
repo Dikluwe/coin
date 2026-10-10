@@ -1,0 +1,288 @@
+--- a/src/mesa/state_tracker/st_draw.c
++++ b/src/mesa/state_tracker/st_draw.c
+@@ -113,6 +113,242 @@
+    }
+ }
+ 
++/* Experimental single-draw polygon clipping for the four-vertex controls. */
++enum st_clip_varying {
++   ST_CLIP_POS,
++   ST_CLIP_COL0,
++   ST_CLIP_TEX0,
++   ST_CLIP_FOGC,
++   ST_CLIP_PSIZ,
++   ST_CLIP_DIST0,
++   ST_CLIP_DIST1,
++   ST_CLIP_VARYING_COUNT,
++};
++
++static const unsigned st_clip_slots[ST_CLIP_VARYING_COUNT] = {
++   VARYING_SLOT_POS, VARYING_SLOT_COL0, VARYING_SLOT_TEX0,
++   VARYING_SLOT_FOGC, VARYING_SLOT_PSIZ,
++   VARYING_SLOT_CLIP_DIST0, VARYING_SLOT_CLIP_DIST1,
++};
++
++#define ST_CLIP_BEGIN_LOOP(name, limit)                                      \
++   nir_variable *name##_index =                                             \
++      nir_local_variable_create(b->impl, glsl_int_type(), #name "_index");  \
++   nir_store_var(b, name##_index, nir_imm_int(b, 0), 1);                    \
++   nir_loop *name = nir_push_loop(b);                                       \
++   {                                                                        \
++      nir_def *idx = nir_load_var(b, name##_index);                         \
++      nir_if *name##_test = nir_push_if(b, nir_ilt(b, idx, limit));
++
++#define ST_CLIP_END_LOOP(name)                                               \
++      nir_store_var(b, name##_index, nir_iadd_imm(b, idx, 1), 1);          \
++      nir_push_else(b, name##_test);                                        \
++      nir_jump(b, nir_jump_break);                                          \
++      nir_pop_if(b, name##_test);                                           \
++   }                                                                        \
++   nir_pop_loop(b, name);
++
++static void
++st_clip_polygon_plane(nir_builder *b, nir_variable **a, nir_variable **next,
++                      const bool *enabled, nir_variable *count, unsigned plane)
++{
++   nir_variable *out_count =
++      nir_local_variable_create(b->impl, glsl_int_type(), "clip_out_count");
++   nir_store_var(b, out_count, nir_imm_int(b, 0), 1);
++   nir_def *num = nir_load_var(b, count);
++
++   ST_CLIP_BEGIN_LOOP(clip_edge, num)
++   {
++      nir_def *j = nir_bcsel(b, nir_ieq(b, idx, nir_iadd_imm(b, num, -1)),
++                            nir_imm_int(b, 0), nir_iadd_imm(b, idx, 1));
++      const unsigned dist_slot = plane < 4 ? ST_CLIP_DIST0 : ST_CLIP_DIST1;
++      nir_def *ad = nir_load_array_var(b, a[dist_slot], idx);
++      nir_def *cd = nir_load_array_var(b, a[dist_slot], j);
++      nir_def *da = nir_channel(b, ad, plane & 3);
++      nir_def *dc = nir_channel(b, cd, plane & 3);
++      nir_def *a_out = nir_flt_imm(b, da, 0);
++      nir_def *c_out = nir_flt_imm(b, dc, 0);
++
++      nir_if *keep = nir_push_if(b, nir_inot(b, a_out));
++      {
++         nir_def *out = nir_load_var(b, out_count);
++         for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++            if (enabled[k])
++               nir_store_array_var(b, next[k], out,
++                                   nir_load_array_var(b, a[k], idx), 0xf);
++         }
++         nir_store_var(b, out_count, nir_iadd_imm(b, out, 1), 1);
++      }
++      nir_pop_if(b, keep);
++
++      nir_if *cross = nir_push_if(b, nir_ixor(b, a_out, c_out));
++      {
++         nir_def *t = nir_fdiv(b, da, nir_fsub(b, da, dc));
++         nir_def *out = nir_load_var(b, out_count);
++         for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++            if (!enabled[k])
++               continue;
++            nir_def *v0 = nir_load_array_var(b, a[k], idx);
++            nir_def *v1 = nir_load_array_var(b, a[k], j);
++            nir_def *v = nir_fadd(b, v0, nir_fmul(b, nir_fsub(b, v1, v0), t));
++            nir_store_array_var(b, next[k], out, v, 0xf);
++         }
++         nir_store_var(b, out_count, nir_iadd_imm(b, out, 1), 1);
++      }
++      nir_pop_if(b, cross);
++   }
++   ST_CLIP_END_LOOP(clip_edge)
++
++   nir_def *new_count = nir_load_var(b, out_count);
++   nir_store_var(b, count, new_count, 1);
++   ST_CLIP_BEGIN_LOOP(copy_vertex, new_count)
++   {
++      for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++         if (enabled[k])
++            nir_store_array_var(b, a[k], idx,
++                                nir_load_array_var(b, next[k], idx), 0xf);
++      }
++   }
++   ST_CLIP_END_LOOP(copy_vertex)
++}
++
++static void *
++st_create_clip_polygon_gs(struct st_context *st, unsigned active,
++                          bool points, bool tex0, bool fogc, bool psize)
++{
++   const nir_shader_compiler_options *options =
++      st_get_nir_compiler_options(st, MESA_SHADER_GEOMETRY);
++   nir_builder builder = nir_builder_init_simple_shader(MESA_SHADER_GEOMETRY,
++                                                       options, "experimental clipped polygon GS");
++   nir_builder *b = &builder;
++   nir_shader *nir = b->shader;
++   nir->info.io_lowered = true;
++   nir->info.gs.input_primitive = MESA_PRIM_LINES_ADJACENCY;
++   nir->info.gs.output_primitive = points ? MESA_PRIM_POINTS : MESA_PRIM_LINE_STRIP;
++   nir->info.gs.vertices_in = 4;
++   nir->info.gs.vertices_out = 13;
++   nir->info.gs.invocations = 1;
++   nir->info.gs.active_stream_mask = 1;
++   unsigned num_planes = 0;
++   for (unsigned mask = active; mask; mask >>= 1)
++      ++num_planes;
++   nir->info.clip_distance_array_size = num_planes;
++   const unsigned n0 = MIN2(num_planes, 4);
++   const unsigned n1 = num_planes > 4 ? num_planes - 4 : 0;
++
++   bool enabled[ST_CLIP_VARYING_COUNT] = {true, true, tex0, fogc, psize, true, n1 > 0};
++   nir_variable *a[ST_CLIP_VARYING_COUNT] = {NULL};
++   nir_variable *next[ST_CLIP_VARYING_COUNT] = {NULL};
++   for (unsigned k = 0; k < ST_CLIP_VARYING_COUNT; ++k) {
++      if (!enabled[k])
++         continue;
++      a[k] = nir_local_variable_create(b->impl,
++                 glsl_array_type(glsl_vec4_type(), 12, 0), "clip_vertices");
++      next[k] = nir_local_variable_create(b->impl,
++                    glsl_array_type(glsl_vec4_type(), 12, 0), "clip_next");
++      for (unsigned i = 0; i < 4; ++i) {
++         unsigned comps = (k == ST_CLIP_FOGC || k == ST_CLIP_PSIZ) ? 1 :
++                          k == ST_CLIP_DIST0 ? n0 :
++                          k == ST_CLIP_DIST1 ? n1 : 4;
++         nir_def *input = nir_load_per_vertex_input(b, comps, 32,
++                                                     nir_imm_int(b, i), nir_imm_int(b, 0),
++                                                     .io_semantics.location = st_clip_slots[k]);
++         nir_store_array_var_imm(b, a[k], i, nir_pad_vector(b, input, 4), 0xf);
++      }
++   }
++
++   nir_variable *count = nir_local_variable_create(b->impl, glsl_int_type(),
++                                                     "clip_count");
++   nir_store_var(b, count, nir_imm_int(b, 4), 1);
++   for (unsigned plane = 0; plane < num_planes; ++plane) {
++      if (active & (1u << plane))
++         st_clip_polygon_plane(b, a, next, enabled, count, plane);
++   }
++
++   nir_def *num = nir_load_var(b, count);
++   nir_if *visible = nir_push_if(b, nir_inot(b, nir_ilt_imm(b, num, 2)));
++   {
++      nir_def *limit = points ? num : nir_iadd_imm(b, num, 1);
++      ST_CLIP_BEGIN_LOOP(emit_vertex, limit)
++      {
++         nir_def *src = points ? idx :
++            nir_bcsel(b, nir_ieq(b, idx, num), nir_imm_int(b, 0), idx);
++         nir_def *pos = nir_load_array_var(b, a[ST_CLIP_POS], src);
++         nir_def *color = nir_load_array_var(b, a[ST_CLIP_COL0], src);
++         nir_store_output(b, pos, nir_imm_int(b, 0),
++                          .io_semantics.location = VARYING_SLOT_POS);
++         nir_store_output(b, color, nir_imm_int(b, 0),
++                          .io_semantics.location = VARYING_SLOT_COL0);
++         if (tex0)
++            nir_store_output(b, nir_load_array_var(b, a[ST_CLIP_TEX0], src),
++                             nir_imm_int(b, 0), .io_semantics.location = VARYING_SLOT_TEX0);
++         if (fogc)
++            nir_store_output(b, nir_channel(b, nir_load_array_var(b, a[ST_CLIP_FOGC], src), 0),
++                             nir_imm_int(b, 0), .io_semantics.location = VARYING_SLOT_FOGC);
++         if (psize)
++            nir_store_output(b, nir_channel(b, nir_load_array_var(b, a[ST_CLIP_PSIZ], src), 0),
++                             nir_imm_int(b, 0), .io_semantics.location = VARYING_SLOT_PSIZ);
++         nir_store_output(b, nir_imm_vec4(b, 1, 1, 1, 1), nir_imm_int(b, 0),
++                          .write_mask = (1u << n0) - 1,
++                          .io_semantics.location = VARYING_SLOT_CLIP_DIST0);
++         if (n1)
++            nir_store_output(b, nir_imm_vec4(b, 1, 1, 1, 1), nir_imm_int(b, 0),
++                             .write_mask = (1u << n1) - 1,
++                             .io_semantics.location = VARYING_SLOT_CLIP_DIST1);
++         nir_emit_vertex(b, 0);
++         if (points)
++            nir_end_primitive(b, 0);
++      }
++      ST_CLIP_END_LOOP(emit_vertex)
++      if (!points)
++         nir_end_primitive(b, 0);
++   }
++   nir_pop_if(b, visible);
++   return st_nir_finish_builtin_shader(st, nir);
++}
++
++static bool
++st_draw_clip_polygon(struct gl_context *ctx, const struct pipe_draw_info *info,
++                     unsigned drawid_offset,
++                     const struct pipe_draw_start_count_bias *draws,
++                     unsigned num_draws)
++{
++   struct st_context *st = st_context(ctx);
++   unsigned active = ctx->Transform.ClipPlanesEnabled;
++   if (!st->clip_boundary_experiment || num_draws != 1 || info->index_size ||
++       ctx->GeometryProgram._Current || ctx->TessCtrlProgram._Current ||
++       ctx->TessEvalProgram._Current || !active || (active & ~0xffu) ||
++       ctx->Polygon.FrontMode != ctx->Polygon.BackMode ||
++       !((info->mode == MESA_PRIM_POLYGON || info->mode == MESA_PRIM_QUADS) &&
++         draws[0].count == 4))
++      return false;
++
++   bool points = ctx->Polygon.FrontMode == GL_POINT;
++   if (points || ctx->Polygon.FrontMode != GL_LINE)
++      return false;
++   bool tex0 = st->vp && (st->vp->info.outputs_written & VARYING_BIT_TEX0);
++   bool fogc = st->vp && (st->vp->info.outputs_written & VARYING_BIT_FOGC);
++   bool psize = st->vp && (st->vp->info.outputs_written & VARYING_BIT_PSIZ);
++   unsigned key = active * 16 + points * 8 + tex0 * 4 + fogc * 2 + psize;
++   if (!st->clip_polygon_gs[key])
++      st->clip_polygon_gs[key] =
++         st_create_clip_polygon_gs(st, active, points, tex0, fogc, psize);
++   if (!st->clip_polygon_gs[key])
++      return false;
++
++   struct pipe_draw_info clipped = *info;
++   clipped.mode = MESA_PRIM_LINES_ADJACENCY;
++   struct cso_context *cso = st->cso_context;
++   cso_save_state(cso, CSO_BIT_GEOMETRY_SHADER);
++   cso_set_geometry_shader_handle(cso, st->clip_polygon_gs[key]);
++   cso_draw_vbo(cso, &clipped, drawid_offset, NULL, draws, num_draws);
++   cso_restore_state(cso, 0);
++   return true;
++}
++
++#undef ST_CLIP_BEGIN_LOOP
++#undef ST_CLIP_END_LOOP
++
+ /* Private experiment: emit the boundary introduced by each enabled user
+  * clip plane. The hardware clips each emitted line against the other planes.
+  */
+@@ -295,6 +531,8 @@
+ 
+    struct st_context *st = st_context(ctx);
+ 
++   if (!indirect && st_draw_clip_polygon(ctx, info, drawid_offset, draws, num_draws))
++      return;
+    cso_draw_vbo(st->cso_context, info, drawid_offset, indirect, draws, num_draws);
+    if (!indirect)
+       st_draw_clip_boundary(ctx, info, drawid_offset, draws, num_draws);
+@@ -316,8 +554,10 @@
+    for (i = 0, first = 0; i <= num_draws; i++) {
+       if (i == num_draws || mode[i] != mode[first]) {
+          info->mode = mode[first];
+-         cso_draw_vbo(cso, info, 0, NULL, &draws[first], i - first);
+-         st_draw_clip_boundary(ctx, info, 0, &draws[first], i - first);
++         if (!st_draw_clip_polygon(ctx, info, 0, &draws[first], i - first)) {
++            cso_draw_vbo(cso, info, 0, NULL, &draws[first], i - first);
++            st_draw_clip_boundary(ctx, info, 0, &draws[first], i - first);
++         }
+          first = i;
+ 
+          /* We can pass the reference only once. st_buffer_object keeps
+@@ -465,6 +705,10 @@
+       if (st->clip_boundary_gs[i])
+          st->pipe->delete_gs_state(st->pipe, st->clip_boundary_gs[i]);
+    }
++   for (unsigned i = 0; i < ARRAY_SIZE(st->clip_polygon_gs); i++) {
++      if (st->clip_polygon_gs[i])
++         st->pipe->delete_gs_state(st->pipe, st->clip_polygon_gs[i]);
++   }
+    draw_destroy(st->draw);
+ }
+ 
+--- a/src/mesa/state_tracker/st_context.h
++++ b/src/mesa/state_tracker/st_context.h
+@@ -282,6 +282,7 @@
+    /* Private clip-boundary geometry shader experiment. */
+    bool clip_boundary_experiment;
+    void *clip_boundary_gs[8 * 8 * 4 * 4];
++   void *clip_polygon_gs[256 * 16];
+ 
+    struct {
+       struct pipe_resource *pixelmap_texture;

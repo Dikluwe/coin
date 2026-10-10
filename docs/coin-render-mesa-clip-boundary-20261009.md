@@ -443,9 +443,13 @@ interpolados, face/culling, depth, stipple e shaders do aplicativo. O
 na trilha de software; integrá-la ao caminho acelerado do radeonsi ou criar
 uma variante de geometry shader requer desenho e testes próprios. Alterar
 apenas os três bits acima não fecha o oracle. O candidato privado desta
-seção passa a fixture OpenGL isolada, mas ainda precisa de integração geral e
-de validação com a biblioteca CoinGL original. O tratamento restrito no Coin
-continua necessário com o Mesa instalado neste computador.
+seção passa a fixture OpenGL isolada. A
+[validação com CoinGL original](coin-render-mesa-coingl-validation-20261009.md)
+falhou porque CoinGL envia `GL_QUADS`, fora do guard do candidato. Uma extensão
+privada para `GL_QUADS` passou a sonda de um plano, mas o gate completo ainda
+falhou com dois planos. Integração geral e gate CoinGL completo continuam
+abertos. O tratamento restrito no Coin continua necessário com o Mesa
+instalado neste computador.
 
 Para repetir o oracle após compilar o Mesa privado:
 

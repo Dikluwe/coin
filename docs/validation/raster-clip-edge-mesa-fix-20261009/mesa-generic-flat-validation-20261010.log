@@ -1,0 +1,58 @@
+generic-flat-color radeon exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=2
+shader=1,1,1
+mode=point shade=smooth sample=32,32 rgb=255,255,0
+mode=point shade=smooth sample=58,32 rgb=255,255,0
+mode=point shade=smooth sample=32,58 rgb=255,255,0
+error=0
+generic-flat-color softpipe exit=0
+GL=3.3 (Compatibility Profile) Mesa 25.2.8 renderer=softpipe planes=2
+shader=1,1,1
+mode=point shade=smooth sample=32,32 rgb=255,255,0
+mode=point shade=smooth sample=58,32 rgb=255,255,0
+mode=point shade=smooth sample=32,58 rgb=255,255,0
+error=0
+generic-flat-first-query radeon exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=2
+shader=1,1,1
+pv=8e4d quads_follow=1
+mode=point shade=smooth sample=32,32 rgb=255,0,0
+mode=point shade=smooth sample=58,32 rgb=255,0,0
+mode=point shade=smooth sample=32,58 rgb=255,0,0
+error=0
+generic-flat-first-query softpipe exit=0
+GL=3.3 (Compatibility Profile) Mesa 25.2.8 renderer=softpipe planes=2
+shader=1,1,1
+pv=8e4d quads_follow=0
+mode=point shade=smooth sample=32,32 rgb=255,255,0
+mode=point shade=smooth sample=58,32 rgb=255,255,0
+mode=point shade=smooth sample=32,58 rgb=255,255,0
+error=0
+generic-flat-first-polygon radeon exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=2
+shader=1,1,1
+pv=8e4d quads_follow=1
+mode=point shade=smooth sample=32,32 rgb=255,0,0
+mode=point shade=smooth sample=58,32 rgb=255,0,0
+mode=point shade=smooth sample=32,58 rgb=255,0,0
+error=0
+generic-flat-first-polygon softpipe exit=0
+GL=3.3 (Compatibility Profile) Mesa 25.2.8 renderer=softpipe planes=2
+shader=1,1,1
+pv=8e4d quads_follow=0
+mode=point shade=smooth sample=32,32 rgb=255,0,0
+mode=point shade=smooth sample=58,32 rgb=255,0,0
+mode=point shade=smooth sample=32,58 rgb=255,0,0
+error=0
+generic-mixed-flat radeon exit=0
+GL=4.6 (Compatibility Profile) Mesa 25.2.8 renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic) planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,255,0
+mode=point shade=smooth sample=32,58 rgb=178,255,77
+error=0
+generic-mixed-flat softpipe exit=0
+GL=3.3 (Compatibility Profile) Mesa 25.2.8 renderer=softpipe planes=1
+shader=1,1,1
+mode=point shade=smooth sample=32,6 rgb=178,255,0
+mode=point shade=smooth sample=32,58 rgb=178,255,77
+error=0

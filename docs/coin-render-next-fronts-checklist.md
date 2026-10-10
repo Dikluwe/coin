@@ -180,9 +180,45 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   `no_varying` porque foi ligado sem GS; um patch NIR experimental preservou
   essa saída para o GS suplementar. Com ele, o oracle OpenGL isolado passou
   completo na AMD física nos dois caminhos do radeonsi, sem reset. A
-  integração geral e a validação CoinGL original no Mesa candidato continuam
-  abertas, com [patches e limites registrados](coin-render-mesa-clip-boundary-20261009.md).
-  Não promover o workaround Mesa sem avaliar custo, limites e esses estudos.
+  validação com a CoinGL original mostrou um limite novo: o candidato só
+  cobre `GL_POLYGON`/`GL_TRIANGLES`, enquanto CoinGL envia `GL_QUADS`; o gate
+  falha no primeiro plano. Uma extensão privada para `GL_QUADS` passou a sonda
+  de um plano (18/18), mas naquela versão o gate falhava com dois planos.
+  [Validação, logs e limites](coin-render-mesa-coingl-validation-20261009.md).
+  A [rodada privada de 2026-10-10](coin-render-mesa-candidate-20261010.md)
+  passou o oracle estrito e a sonda CoinGL original, inclusive com dois planos,
+  além de 1/2/5/8 planos com `TEX0` e fog com dois planos na AMD.
+  Integração geral e gate CoinGL agregado continuam abertos: o segundo draw ainda não preserva todos os
+  atributos, primitivas e efeitos dos estados GL. Não promover o workaround
+  Mesa sem resolver esses limites.
+  Um [controle de estágio](coin-render-mesa-candidate-20261010.md)
+  localizou a perda depois de VS ou GS de passagem: AMD recorta a aresta
+  original, mas perde a nova; llvmpipe desenha ambas. Uma prova de recorte
+  completo em um único draw desenhou as duas bordas e quatro pontos
+  novos na AMD, sem integrar ainda atributos/estados gerais.
+  A variante integrada posterior substitui o draw de `GL_POLYGON`/`GL_QUADS`
+  em `GL_LINE` na árvore privada Mesa e passou a campanha física com
+  1/2/5/8 planos, fog, oracle estrito e sonda CoinGL original.
+  `GL_POINT` também usa um draw para esses polígonos após trocar a emissão
+  indexada por índices estáticos no geometry shader. Passaram plano fixo,
+  `gl_ClipDistance`, 1/2/5/8 planos na Radeon e a campanha CoinGL isolada.
+  O laço NIR único reduziu o controle de oito planos a 5,59 s em POINT e
+  6,35 s em LINE sem cache; o gate CoinGL agregado passou. Guards preservam
+  culling, GL_FLAT, edge flags, feedback, consultas de primitivas, stencil
+  por face, entradas de face/ID e varyings não transportados no caminho
+  nativo. A integração geral de atributos, interpolação e estados permanece
+  aberta. `COL1` e `TEX1`–`TEX7` passaram em 19/19 controles físicos
+  adicionais para o polígono qualificado; `float32/smooth` genérico
+  também passou no oracle estrito. `noperspective` genérico passou com
+  `w` variável e componentes empacotados. `flat` genérico também passou
+  com primeiro/último vértice provocador. `GL_TRIANGLES` direto em `LINE`/`POINT`,
+  inclusive dois triângulos no mesmo desenho, também passou na Radeon física
+  e coincidiu com llvmpipe nos pixels de corte; a regressão 10/10 e os estados
+  9/9 passaram. Componentes genéricos `int32`/`uint32 flat` também
+  passaram nos quatro pontos recortados, com regressão 10/10, estados 9/9
+  e CoinGL agregado PASS. Outras primitivas, tipos e estados ainda impedem
+  fechar o Mesa geral.
+  [Patches, logs e limites](coin-render-mesa-candidate-20261010.md).
 - [x] Implementar API por alvo native/portable e capacidades v4 na branch de estudo:
   retirar seletor/packing experimental, declarar derivadas/formatos/anisotropia,
   herdar política em RTT e recusar incompatibilidade sem publicação. Linux offscreen:
@@ -210,6 +246,9 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   `desktop-shell.so`, oito controles frios NVIDIA native/portable e dois gates
   padrão passaram, sem diferença na borda. A transição histórica não reapareceu
   e o gate ainda registra `cold_start_qualified=false` ([ledger e limites](coin-render-freecad-cold-border-study-20261008.md)).
+  Quatro novos controles frios NVIDIA/wgpu native/portable não reproduziram a borda;
+  mudanças limitaram-se à área de texto e a qualificação fria segue falsa
+  ([diagnósticos de 2026-10-09](coin-render-local-diagnostics-20261009.md)).
 - [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
   CPU de 128 MiB; plano não retido, lowering ~1,025 s e upload ~126 ms repetidos,
   apesar de reuso dos buffers GPU. Native e portable têm o mesmo gargalo.
@@ -222,6 +261,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   reapareceu e a variação wgpu dentro da mesma política excedeu a diferença
   agregada. Traces confirmam replay BGFX na NVIDIA, native/portable. Outras
   cargas e a causa da variação seguem abertas; não prometer FPS universal.
+  Novo A/B 16 processos NVIDIA, 40 mil/milhão: BGFX portable +2,48%/+0,04%;
+  wgpu +0,40%/+9,26%, mas as duas repetições portable do milhão variaram
+  1,327 ms. Trace BGFX/NVIDIA de 40 mil confirmou plano e recurso reutilizados
+  após o quadro inicial ([recibos](coin-render-local-diagnostics-20261009.md)).
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
   funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
@@ -288,6 +331,13 @@ Melhoria futura, fora deste primeiro perfil:
   Gate procedural OpenGL da esfera/linhas/UV DEFAULT também reproduzido em
   `6c91ed26`: máximo 4 contra limite 3; conservar a falha e as
   [evidências de continuação](coin-render-sampling-instancing-validation-20261007.md).
+  Dois endpoints históricos da esfera foram reproduzidos com alpha 0,5 em
+  Radeon, NVIDIA e llvmpipe: inverter a linha remove a contribuição no pixel,
+  mudando RGB e alpha do par coincidente ([sonda isolada](coin-render-raster-junctions-study.md)).
+  Na sonda CoinRender do mesmo par, CPU/BGFX/wgpu em AMD/NVIDIA passaram
+  32 casos com máximo 1 RGBA entre rotas portáteis; 16 casos BGFX do checkout
+  atual confirmaram. CoinGL coincidiu em cobertura/RGB até 1, mas seu alpha
+  diferiu até 95 sob clear transparente.
   Comparar abordagens e custos antes de escolher a melhoria. Isso não dispensa
   diferenças CPU/BGFX/wgpu: as divergências portáteis encontradas nesta rodada
   recebem correção e gates completos, sem exclusão OpenGL ou tolerância ampliada.
@@ -325,6 +375,9 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
   Operações completas de edição e consumidores de outros workbenches seguem abertos.
 - [ ] Estudar os timeouts de Part::Spline/OpenGL DPR 1 com cache ativo;
   preservar a configuração qualificada e as duas tentativas sem captura.
+  Duas repetições com cache padrão e controle cache-off passaram no FreeCAD
+  BGFX/OpenGL DPR 1; os timeouts anteriores não foram reproduzidos nem
+  explicados ([recibos](coin-render-local-diagnostics-20261009.md)).
 - [x] Corrigir registro tardio de subclasses em SoCallbackAction sem duplicar
   callbacks/observadores; qualificar Polygon pelo generatePrimitives no viewport.
 - [ ] **Estudo:** bbox com geometric depth clamp; o perfil qualificado continua
@@ -453,6 +506,9 @@ nem encerra uma campanha completa de desempenho Windows.
   mantendo o gate atual. A [câmera branca foi diagnosticada](coin-render-raster-study-20261007.md)
   por quantização subpixel; validar snap comum em câmera/viewport/RTT e aplicar
   os controles à transparência P20 antes de declarar a mesma causa.
+  Os quatro pixels P20 offscreen AMD foram localizados e comparados com
+  CoinGL/BGFX OpenGL e a vizinhança; o achado ainda não isola quantização,
+  alpha ou ownership ([análise](coin-render-local-diagnostics-20261009.md)).
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
@@ -463,6 +519,10 @@ nem encerra uma campanha completa de desempenho Windows.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
 - [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
   utilizáveis; a expectativa portátil local não encerra essa célula.
+  AMD, NVIDIA e llvmpipe locais anunciam apenas oito unidades de coordenadas; o
+  controle nativo estrito com oito mapas falha exigindo nove. A reserva de
+  uma unidade de cena vem do CoinGL legado; nove não é um requisito geral de
+  renderizar oito mapas ([histórico e recibos](coin-render-local-diagnostics-20261009.md)).
 - [x] Recompilar MSVC BGFX/wgpu na revisão atual, instalar SDKs experimentais
   isolados e executar consumidores públicos nas três APIs de cada backend.
 - [x] Repetir os gates Windows BGFX D3D12/Vulkan/OpenGL e wgpu dx12/Vulkan/gl,

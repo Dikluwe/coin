@@ -78,6 +78,78 @@ de zero. O estudo físico futuro deve separar essas correções comuns da
 reprodução específica do CoinGL. Os logs anteriores de falha são históricos,
 não uma dispensa de falhas portáteis na qualificação final.
 
+## Endpoints transparentes isolados — 2026-10-10
+
+Duas sondas EGL/OpenGL mínimas reutilizam as posições 3D das bordas **50/1** e
+**36/1** da esfera preservada no estudo de 2026-10-07. A projeção ortográfica
+(80×80), largura 4 e os pixels `(26,23)` e `(33,20)` correspondem aos
+testemunhos anteriores. Cada sonda desenha a borda autoral, a invertida e duas
+linhas coincidentes em mesma direção ou direções opostas, com vermelho/azul e
+alpha 0,5, `SRC_ALPHA/ONE_MINUS_SRC_ALPHA`. Depth, textura, iluminação,
+multisampling e smoothing ficam desligados para isolar cobertura e blend.
+
+| Pixel e renderer | Autoral | Invertida | Par mesmo sentido | Par oposto |
+| --- | --- | --- | --- | --- |
+| `(26,23)` e `(33,20)`, Radeon e llvmpipe | `(128,0,0,64)` | `(0,0,0,0)` | `(64,0,128,96)` | `(128,0,0,64)` |
+| `(26,23)` e `(33,20)`, NVIDIA | `(127,0,0,63)` | `(0,0,0,0)` | `(64,0,127,95)` | `(127,0,0,63)` |
+
+Os dois pixels têm o mesmo padrão nos três renderizadores. O segundo traço
+oposto não cobre o endpoint amostrado; portanto, nesse pixel o par oposto
+conserva apenas a contribuição vermelha, enquanto o par no mesmo sentido
+acumula azul e altera alpha. Isso demonstra um efeito de cobertura do sentido
+de emissão sobre a mistura, sem depender de LOD, depth ou CoinRender. Não
+identifica ainda qual política portátil é desejável para uma junção completa
+em uma cena com materiais, depth e texturas.
+
+[Fixtures, seis logs e hashes](validation/raster-junctions-study-20261006/alpha-endpoints-manifest-20261010.json).
+A sonda usa EGL surfaceless e o driver Mesa instalado ou NVIDIA 615.71.09;
+não usa o candidato Mesa privado. A medição não é uma campanha de custo nem um
+gate CPU/BGFX/wgpu. A próxima prova necessária é renderizar o mesmo par
+semitransparente nas três rotas portáteis, com ordem de submissão, depth e UV
+controlados, antes de escolher entre orientação autoral, junção explícita ou
+perfil de compatibilidade CoinGL.
+
+## Par semitransparente no contrato portátil — 2026-10-10
+
+A [sonda CoinRender](validation/raster-junctions-study-20261006/portable-alpha-20261010/CoinRenderJunctionAlphaStudy.cpp)
+renderiza as mesmas duas bordas históricas como `SoLineSet`, em quatro modos:
+linha autoral, invertida, par no mesmo sentido e par em sentidos opostos.
+Cada linha tem material vermelho ou azul com transparência 0,5. A cena usa
+`SORTED_OBJECT_BLEND`, largura 4, alvo 80×80, clear transparente e depth
+desligado. CPU, GPU e CoinGL recebem a mesma cena. Para CoinGL, a imagem é
+lida **após** a passagem transparente diferida do `SoOffscreenRenderer` e
+convertida da origem inferior para top-down; a leitura antecipada ou sem essa
+conversão dá um resultado falso.
+
+Foram executados [32 casos físicos](validation/raster-junctions-study-20261006/portable-alpha-20261010/summary.json):
+CPU/wgpu e CPU/BGFX, cada um em AMD Renoir e NVIDIA RTX 3060, com dois
+endpoints × quatro modos. Os binários GPU são do build congelado de 2026-10-07,
+identificado por hashes no manifesto. Em todos os casos, CPU/GPU tiveram
+**diferença máxima de 1** por canal RGBA no quadro completo; GPU/CoinGL
+tiveram cobertura RGB idêntica e diferença RGB máxima de 1.
+
+A campanha foi repetida no [build BGFX do checkout atual](validation/raster-junctions-study-20261006/portable-alpha-20261010/summary-current-bgfx.json):
+16 casos físicos AMD/NVIDIA, duas bordas × quatro modos. CPU/BGFX continuaram
+com máximo **1 RGBA**; BGFX/CoinGL coincidiram em cobertura e tiveram máximo
+**1 RGB**. As imagens RGBA top-down completas, logs e hashes estão junto dos
+manifestos. Esta é uma sonda manual, não um novo gate CTest nem uma medição de
+latência.
+
+No endpoint de um traço, a saída BGFX AMD é `(128,0,0,128)` e a CoinGL é
+`(128,0,0,64)`; no par no mesmo sentido, BGFX dá `(64,0,128,191)` e CoinGL
+`(64,0,128,96)`. CPU difere da GPU em até 1 por arredondamento. A diferença
+de alpha ocorre também fora do pixel testemunha, com máximo 95 no quadro;
+corresponde à composição alpha convencional do contrato portátil versus o
+blend alpha observado no CoinGL legado. A orientação do par altera a cobertura
+e o RGB de ambos, mas **não** introduziu divergência de cobertura entre as
+três rotas nesta cena reduzida. A decisão de compatibilidade alpha requer
+tratar separadamente o contrato portátil e a referência CoinGL.
+
+O teste comprova esses endpoints sem textura, depth ou iluminação. A cena
+completa de esfera/LineSet com UV, depth e materiais heterogêneos ainda pode
+selecionar outra borda vencedora. As alternativas e seu custo de preparação,
+expansão e submissão continuam sem benchmark comparável.
+
 ## Perguntas e próximos experimentos
 
 - Identificar a borda e o polígono que fornecem cor, UV e profundidade em cada
