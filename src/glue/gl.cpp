@@ -1840,13 +1840,23 @@ glglue_resolve_symbols(cc_glglue * w)
      programming). This would demand a different combinations of
      extensions (and thus; a different codepath in
      SoGLRenderAction). (20031124 handegar) */
-  w->can_do_sortedlayersblend =
-    (w->has_nv_register_combiners &&
+  // Both implementations activate GL_TEXTURE3. The ARB program also
+  // samples texture[3], so check its image-unit limit separately.
+  GLint fixedtextureunits = 1;
+  GLint fragmenttextureunits = 0;
+  if (w->glActiveTexture) {
+    glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &fixedtextureunits);
+  }
+  if (w->has_arb_fragment_program) {
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &fragmenttextureunits);
+  }
+  w->can_do_sortedlayersblend = fixedtextureunits >= 4 &&
+    ((w->has_nv_register_combiners &&
      w->has_ext_texture_rectangle &&
      w->has_nv_texture_shader &&
      w->has_depth_texture &&
      w->has_shadow) ||
-    w->has_arb_fragment_program;
+    (w->has_arb_fragment_program && fragmenttextureunits >= 4));
   
   if (cc_glglue_glext_supported(w, "GL_ARB_framebuffer_object") ||
       cc_glglue_glversion_matches_at_least(w, 3, 0, 0)) {
