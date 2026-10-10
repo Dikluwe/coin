@@ -2,18 +2,18 @@
   "base_commit": "b86404cafc9ec13e91d0bac67f2e875f2b206a07",
   "branch": "codex/coingl-eight-shadow-maps",
   "build": "Release; BGFX; CoinGL GLX/EGL; strict native eight-map oracle",
-  "build_binary_sha256": "9b4bdb6e10188887a2248d829fbd5e47f490a5c483ad6246a3928153667adf90",
-  "coin_library_sha256": "290847b034466489d6b73386eb764002188c24f8df524b365a89a2f277ba6de1",
+  "build_binary_sha256": "35c0f1bed54baa77398c6f2a1737b8e3f151fad167a223795fec05b91264508e",
+  "coin_library_sha256": "b99192699df71977ba6c4fbfb3c9b227c7de29d38128c166ef124200f6d7b11c",
   "source_sha256": {
-    "src/shadows/SoShadowGroup.cpp": "e2bebd3932691d6b662cc0147900caa789d0d39bc0344147f12fe5eef643bffd",
-    "testsuite/coinrender/CoinRenderShadowReferenceTest.cpp": "aeb34baf44b8b7745292267d2fab4c72ef40cae9d0f003cd8b5c20f5ec697f17"
+    "src/shadows/SoShadowGroup.cpp": "c37851ef0a91dff194ac5ebd3d1c117b7146b08a469848ad8e5eee654d837a4d",
+    "testsuite/coinrender/CoinRenderShadowReferenceTest.cpp": "e20cf7a481cd699a9ab386f3dbc7e201cace076ea9531e107262710b593f2c5d"
   },
   "profiles": [
     {
       "gpu": "amd",
       "case": "capacity",
       "exit": 0,
-      "seconds": 0.1,
+      "seconds": 0.09,
       "log": "amd-capacity.log",
       "incremental": []
     },
@@ -21,7 +21,7 @@
       "gpu": "amd",
       "case": "transparent",
       "exit": 0,
-      "seconds": 6.64,
+      "seconds": 6.82,
       "log": "amd-transparent.log",
       "incremental": [
         "native eighth shadow incremental=20 qualified=1",
@@ -34,7 +34,7 @@
       "gpu": "amd",
       "case": "peeling",
       "exit": 0,
-      "seconds": 1.19,
+      "seconds": 1.11,
       "log": "amd-peeling.log",
       "incremental": [
         "native eighth shadow incremental=20 qualified=1",
@@ -47,7 +47,7 @@
       "gpu": "amd",
       "case": "weighted",
       "exit": 0,
-      "seconds": 1.17,
+      "seconds": 1.1,
       "log": "amd-weighted.log",
       "incremental": [
         "native eighth shadow incremental=6 qualified=1",
@@ -60,7 +60,7 @@
       "gpu": "amd",
       "case": "quality",
       "exit": 0,
-      "seconds": 1.05,
+      "seconds": 0.97,
       "log": "amd-quality.log",
       "incremental": []
     },
@@ -68,7 +68,7 @@
       "gpu": "amd",
       "case": "alpha-object",
       "exit": 0,
-      "seconds": 3.67,
+      "seconds": 3.55,
       "log": "amd-alpha-object.log",
       "incremental": [
         "native eighth shadow incremental=16 qualified=1",
@@ -79,7 +79,7 @@
       "gpu": "amd",
       "case": "alpha-peeling",
       "exit": 0,
-      "seconds": 0.71,
+      "seconds": 0.76,
       "log": "amd-alpha-peeling.log",
       "incremental": [
         "native eighth shadow incremental=16 qualified=1",
@@ -101,7 +101,7 @@
       "gpu": "nvidia",
       "case": "capacity",
       "exit": 0,
-      "seconds": 0.17,
+      "seconds": 0.16,
       "log": "nvidia-capacity.log",
       "incremental": []
     },
@@ -109,7 +109,7 @@
       "gpu": "nvidia",
       "case": "transparent",
       "exit": 0,
-      "seconds": 7.76,
+      "seconds": 7.68,
       "log": "nvidia-transparent.log",
       "incremental": [
         "native eighth shadow incremental=20 qualified=1",
@@ -122,7 +122,7 @@
       "gpu": "nvidia",
       "case": "peeling",
       "exit": 0,
-      "seconds": 1.93,
+      "seconds": 1.9,
       "log": "nvidia-peeling.log",
       "incremental": [
         "native eighth shadow incremental=20 qualified=1",
@@ -148,7 +148,7 @@
       "gpu": "nvidia",
       "case": "quality",
       "exit": 0,
-      "seconds": 1.2,
+      "seconds": 1.18,
       "log": "nvidia-quality.log",
       "incremental": []
     },
@@ -156,7 +156,7 @@
       "gpu": "nvidia",
       "case": "alpha-object",
       "exit": 0,
-      "seconds": 4.34,
+      "seconds": 4.36,
       "log": "nvidia-alpha-object.log",
       "incremental": [
         "native eighth shadow incremental=17 qualified=1",
@@ -167,7 +167,7 @@
       "gpu": "nvidia",
       "case": "alpha-peeling",
       "exit": 0,
-      "seconds": 1.13,
+      "seconds": 1.15,
       "log": "nvidia-alpha-peeling.log",
       "incremental": [
         "native eighth shadow incremental=17 qualified=1",
@@ -178,7 +178,7 @@
       "gpu": "nvidia",
       "case": "alpha-weighted",
       "exit": 0,
-      "seconds": 1.17,
+      "seconds": 1.1,
       "log": "nvidia-alpha-weighted.log",
       "incremental": [
         "native eighth shadow incremental=5 qualified=1",

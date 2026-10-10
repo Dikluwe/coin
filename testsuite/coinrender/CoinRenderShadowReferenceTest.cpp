@@ -98,6 +98,7 @@ struct GlShadowCapacity {
   int fixedUnits = 0;
   int fragmentSamplers = 0;
   int combinedSamplers = 0;
+  int maxLights = 0;
   bool nativeEight = false;
 };
 
@@ -108,9 +109,10 @@ void captureGlTextureUnits(void * data, SoGLRenderAction * action)
     cc_glglue_instance(action->getCacheContext()));
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &capacity.fragmentSamplers);
   glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &capacity.combinedSamplers);
-  capacity.nativeEight = capacity.fixedUnits >= 9 ||
-    (capacity.fixedUnits == 8 && capacity.fragmentSamplers >= 9 &&
-     capacity.combinedSamplers >= 9);
+  glGetIntegerv(GL_MAX_LIGHTS, &capacity.maxLights);
+  capacity.nativeEight = capacity.fixedUnits >= 2 &&
+    capacity.fragmentSamplers >= 9 && capacity.combinedSamplers >= 9 &&
+    capacity.maxLights >= 8;
 }
 
 void captureGlCapacity(void * data, SoGLRenderAction * action)
@@ -121,7 +123,8 @@ void captureGlCapacity(void * data, SoGLRenderAction * action)
             << "\" vendor=\"" << glGetString(GL_VENDOR)
             << "\" texture_coords=" << capacity.fixedUnits
             << " fragment_samplers=" << capacity.fragmentSamplers
-            << " combined_samplers=" << capacity.combinedSamplers << '\n';
+            << " combined_samplers=" << capacity.combinedSamplers
+            << " max_lights=" << capacity.maxLights << '\n';
 }
 
 bool render(SoOffscreenRenderer & gl, SoNode * root,
@@ -134,10 +137,12 @@ bool render(SoOffscreenRenderer & gl, SoNode * root,
   if (requireEight) gl.getGLRenderAction()->removePreRenderCallback(captureGlTextureUnits,&capacity);
   if (!rendered) return false;
   if (requireEight && !capacity.nativeEight) {
-    std::cerr << "Native eight-map Coin/GL reference needs nine fixed units or "
-              << "eight fixed plus nine fragment samplers; context provides "
-              << capacity.fixedUnits << " fixed and " << capacity.fragmentSamplers
-              << " fragment samplers\n";
+    std::cerr << "Native eight-map Coin/GL reference needs at least two coordinate "
+              << "units, nine fragment and combined samplers, and eight lights; "
+              << "context provides " << capacity.fixedUnits << " coordinates, "
+              << capacity.fragmentSamplers << " fragment samplers, "
+              << capacity.combinedSamplers << " combined samplers and "
+              << capacity.maxLights << " lights\n";
     return false;
   }
   const unsigned char * data = gl.getBuffer();
