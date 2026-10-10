@@ -480,10 +480,15 @@ nem encerra uma campanha completa de desempenho Windows.
   O [relatório Linux](validation/linux-visual-20261010/README.md) separa as
   divergências e a primeira captura preta intermitente de wgpu/OpenGL.
 - [ ] Resolver as divergências janela/offscreen das cidades sob movimento,
-  os casos BGFX/OpenGL e o buffer inválido do terreno iluminado wgpu;
+  os casos BGFX/OpenGL e a diferença final do terreno iluminado wgpu;
   qualificar a primeira apresentação/captura X11 de wgpu/OpenGL; depois
-  repetir os gates exatos. Os testes executados não encerram qualificação
-  visual independente ou desempenho das cidades e não representam FreeCAD.
+  repetir os gates exatos. O buffer inválido wgpu do terreno foi corrigido
+  neste Linux: 492 MB de vértices excediam o limite de 256 MiB por buffer;
+  o upload dividido em 20 draws passou nas quatro combinações wgpu, mas a
+  captura final ainda difere em 6–8 pixels por até 1 canal
+  ([correção e recibos](coin-render-wgpu-terrain-buffer-20261010.md)).
+  Os testes executados não encerram qualificação visual independente ou
+  desempenho das cidades e não representam FreeCAD.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 

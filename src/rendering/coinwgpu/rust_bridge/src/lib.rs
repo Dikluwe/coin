@@ -3675,7 +3675,16 @@ fn encode_frame(
     let material_byte_len = mat_buffer_size.max(std::mem::size_of::<GpuMaterial>());
     let geometry_bytes = (std::mem::size_of_val(vertices_slice) as u64)
         .saturating_add(std::mem::size_of_val(indices_slice) as u64);
-    let retain_frame = !instanced && frame_revision != 0 && !vertices_slice.is_empty()
+    let max_buffer_size = ctx.device.limits().max_buffer_size;
+    let split_uncached = draws_slice.iter().any(|draw| draw.stable_node_id == 0 && draw.index_count > 0)
+        && ((std::mem::size_of_val(vertices_slice) as u64) > max_buffer_size
+            || (std::mem::size_of_val(indices_slice) as u64) > max_buffer_size);
+    if split_uncached && trace_materials {
+        eprintln!("COIN_RENDER_PHASE rust_uncached_split vertex_bytes={} index_bytes={} max_buffer_size={} draws={}",
+            std::mem::size_of_val(vertices_slice), std::mem::size_of_val(indices_slice),
+            max_buffer_size, draws_slice.iter().filter(|draw| draw.stable_node_id == 0 && draw.index_count > 0).count());
+    }
+    let retain_frame = !split_uncached && !instanced && frame_revision != 0 && !vertices_slice.is_empty()
         && !indices_slice.is_empty() && !draws_slice.is_empty()
         && draws_slice.iter().all(|draw| draw.stable_node_id == 0)
         && geometry_bytes.saturating_add(material_byte_len as u64) <= 256 * 1024 * 1024;
@@ -3791,7 +3800,9 @@ fn encode_frame(
     }
 
     // 2. Prepare uncached fallback buffers if there are any legacy/uncached draws
-    let uncached_v_buffer = if geometry_hit {
+    let uncached_v_buffer = if split_uncached {
+        None
+    } else if geometry_hit {
         Some(previous_instances.as_ref().unwrap().vertex_buffer.clone())
     } else if let Some(entry) = frame_buffers.as_ref() {
         Some(entry.vertex_buffer.clone())
@@ -3808,7 +3819,9 @@ fn encode_frame(
         None
     };
 
-    let uncached_i_buffer = if geometry_hit {
+    let uncached_i_buffer = if split_uncached {
+        None
+    } else if geometry_hit {
         Some(previous_instances.as_ref().unwrap().index_buffer.clone())
     } else if let Some(entry) = frame_buffers.as_ref() {
         Some(entry.index_buffer.clone())
@@ -3826,6 +3839,47 @@ fn encode_frame(
     } else {
         None
     };
+
+    // A frame can exceed WebGPU's per-buffer limit even though each draw is
+    // small. Keep the shared-buffer path for smaller frames and rebase only
+    // the oversized frame's uncached draws into bounded buffers.
+    let mut split_uncached_buffers: Vec<Option<(wgpu::Buffer, wgpu::Buffer)>> =
+        if split_uncached { (0..draws_slice.len()).map(|_| None).collect() }
+        else { Vec::new() };
+    if split_uncached {
+        for (draw_index, draw) in draws_slice.iter().enumerate() {
+            if draw.stable_node_id != 0 || draw.index_count == 0 { continue; }
+            let first_vertex = draw.first_vertex as usize;
+            let vertex_end = first_vertex + draw.vertex_count as usize;
+            let first_index = draw.first_index as usize;
+            let index_end = first_index + draw.index_count as usize;
+            let draw_vertices = &vertices_slice[first_vertex..vertex_end];
+            let vertex_bytes = std::mem::size_of_val(draw_vertices) as u64;
+            let index_bytes = (draw.index_count as u64) * std::mem::size_of::<u32>() as u64;
+            if vertex_bytes > max_buffer_size || index_bytes > max_buffer_size {
+                return Err((CoinWgpuStatus::Unsupported,
+                    format!("Draw {} exceeds device max_buffer_size of {} bytes (vertices {}, indices {})",
+                        draw_index, max_buffer_size, vertex_bytes, index_bytes)));
+            }
+            let local_indices: Vec<u32> = indices_slice[first_index..index_end].iter()
+                .map(|&index| index.checked_sub(draw.first_vertex)
+                    .filter(|&local| local < draw.vertex_count)
+                    .ok_or_else(|| (CoinWgpuStatus::Unsupported,
+                        format!("Draw {} references vertices outside its range; cannot split oversized frame", draw_index))))
+                .collect::<Result<_, _>>()?;
+            let vertex_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Coin Split Uncached Vertex Buffer"),
+                contents: bytemuck::cast_slice(draw_vertices),
+                usage: wgpu::BufferUsages::VERTEX,
+            });
+            let index_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                label: Some("Coin Split Uncached Index Buffer"),
+                contents: bytemuck::cast_slice(&local_indices),
+                usage: wgpu::BufferUsages::INDEX,
+            });
+            split_uncached_buffers[draw_index] = Some((vertex_buffer, index_buffer));
+        }
+    }
 
     if frame_buffer_hit {
         cache.cumulative_hits += 1;
@@ -4770,19 +4824,27 @@ fn encode_frame(
                         }
                     }
                 } else {
-                    if let Some(vb) = &uncached_v_buffer {
-                        pass.set_vertex_buffer(0, vb.slice(..));
-                    }
-                    if let Some(ib) = &uncached_i_buffer {
-                        pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
-                    }
-                    let start_idx = draw.first_index;
-                    let end_idx = start_idx + draw.index_count;
                     let instance_range = if instanced {
                         let range = &instance_ranges[item.draw_index];
                         range.first_instance..range.first_instance + range.instance_count
                     } else { 0..1 };
-                    pass.draw_indexed(start_idx..end_idx, 0, instance_range);
+                    if split_uncached {
+                        if let Some((vb, ib)) = &split_uncached_buffers[item.draw_index] {
+                            pass.set_vertex_buffer(0, vb.slice(..));
+                            pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                            pass.draw_indexed(0..draw.index_count, 0, instance_range);
+                        }
+                    } else {
+                        if let Some(vb) = &uncached_v_buffer {
+                            pass.set_vertex_buffer(0, vb.slice(..));
+                        }
+                        if let Some(ib) = &uncached_i_buffer {
+                            pass.set_index_buffer(ib.slice(..), wgpu::IndexFormat::Uint32);
+                        }
+                        let start_idx = draw.first_index;
+                        let end_idx = start_idx + draw.index_count;
+                        pass.draw_indexed(start_idx..end_idx, 0, instance_range);
+                    }
                 }
 
             }
