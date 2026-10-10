@@ -6,6 +6,8 @@ P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
 precisam de ampliação ou qualificação apenas nos escopos indicados.
 O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
+O [guia da branch](coin-render-branch-guide.md) aponta código, testes,
+evidências e a preparação necessária para o PR.
 
 O checkout de continuação deste PC fica em
 `/mnt/Laranja/Git/externos/coin-render`, na branch `codex/coin-render`.
