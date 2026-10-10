@@ -843,14 +843,19 @@ SoShadowGroup::init(void)
 SbBool
 SoShadowGroup::isSupported(void)
 {
-  static int supp = -1;
-  if (supp != -1) { return supp ? true : false; }
-
+  // The offscreen context may use a different GPU after the application
+  // changes displays or drivers. A process-wide cached answer goes stale.
   void * glctx = cc_glglue_context_create_offscreen(256, 256);
+  if (!glctx) {
+    SoDebugError::postWarning("SoShadowGroupP::isSupported",
+                              "Could not create an OpenGL context.");
+    return false;
+  }
   SbBool ok = cc_glglue_context_make_current(glctx);
   if (!ok) {
     SoDebugError::postWarning("SoShadowGroupP::isSupported",
                               "Could not open an OpenGL context.");
+    cc_glglue_context_destruct(glctx);
     return false;
   }
 
@@ -858,7 +863,6 @@ SoShadowGroup::isSupported(void)
 
   SbString unused;
   const bool supported = SoShadowGroupP::supported(glue, unused);
-  supp = supported ? 1 : 0;
 
   cc_glglue_context_reinstate_previous(glctx);
   cc_glglue_context_destruct(glctx);
