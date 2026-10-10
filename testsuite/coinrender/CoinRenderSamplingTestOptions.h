@@ -2,10 +2,13 @@
 #define COIN_RENDER_SAMPLING_TEST_OPTIONS_H
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include <string>
+#include <iostream>
 static CoinRenderTextureSamplingPolicy samplingTestPolicy = COIN_RENDER_SAMPLING_NATIVE;
 static void configureSamplingTest(int argc, char** argv) {
+  std::cout << std::unitbuf;
   for (int i=1; i<argc; ++i) if (std::string(argv[i]) == "--portable-sampling")
     samplingTestPolicy = COIN_RENDER_SAMPLING_PORTABLE;
+  std::cout << "sampling_test_policy=" << samplingTestPolicy << '\n';
 }
 static CoinRenderOptions samplingTestOptions() {
   std::string diagnostic;

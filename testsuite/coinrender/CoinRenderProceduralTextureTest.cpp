@@ -152,6 +152,7 @@ public:
   }
 };
 struct Scene {
+  std::vector<SoTexture2*> textures;
   Scene(int shape = 0) {
     root = new SoSeparator; root->ref();
     auto * camera = new SoOrthographicCamera;
@@ -204,7 +205,7 @@ struct Scene {
       pixels[i]=unit == 0 ? 80+8*x : 220+2*x;
       pixels[i+1]=unit == 0 ? 80+8*y : 220+2*y; pixels[i+2]=unit == 0 ? 160 : 240;
     }
-    image->image.setValue(SbVec2s(16,16),3,pixels.data()); stages->addChild(image);
+    image->image.setValue(SbVec2s(16,16),3,pixels.data()); stages->addChild(image); textures.push_back(image);
     return function;
   }
   SoSeparator * root;
@@ -423,7 +424,13 @@ bool run(bool gpu) {
   // Quality > .85 now requests anisotropy in the advanced profile. Retain
   // the publication rejection checks with an out-of-range value,
   // and require the newly admitted procedural combination to render first.
+  const auto priorSampler = h.capture->frame.samplers[0];
   scene.quality->textureQuality=.95f;
+  if (!h.render(scene,"quality-hint-retains-upload",true)) return false;
+  if (!check(h.capture->frame.samplers[0].filter==priorSampler.filter &&
+      h.capture->frame.samplers[0].maxAnisotropy==priorSampler.maxAnisotropy,
+      "procedural quality hint preserves uploaded sampler before notification")) return false;
+  for (auto* texture : scene.textures) texture->image.touch();
   if (!h.render(scene,"anisotropic-procedural-profile",true)) return false;
   if (!check(!h.capture->frame.samplers.empty() &&
       h.capture->frame.samplers[0].maxAnisotropy==16 &&

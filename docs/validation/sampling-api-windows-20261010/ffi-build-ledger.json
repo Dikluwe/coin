@@ -1,0 +1,17 @@
+{
+  "base_revision": "b86404cafc9ec13e91d0bac67f2e875f2b206a07",
+  "command": [
+    "cmake",
+    "--build",
+    "build-wgpu",
+    "--config",
+    "Release",
+    "--target",
+    "CoinWgpuFfiFrameTest",
+    "--parallel",
+    "2"
+  ],
+  "exit": 0,
+  "log": "ffi-fix-build.log",
+  "log_sha256": "1ce2197288e29dd757d13769e0eaa18c9029d55070cf596af09d5fd7dc3c8d44"
+}

@@ -27,3 +27,27 @@ prova hardware: rejeitar adapter de software na qualificação e registrar hashe
 dos executáveis, bibliotecas carregadas, headers e prefix de instalação. Não
 misturar DLLs/bibliotecas de builds ou revisões diferentes. SDK sem referência
 GL ou API indisponível não pode ser contado como equivalência de pixels.
+
+## Sampling explícito e ABI C11
+
+O segundo argumento opcional é `native` ou `portable`; omiti-lo conserva
+`native`. O terceiro argumento opcional é um prefixo de arquivos PPM. Exemplo:
+
+```sh
+coin-render-sdk-consumer d3d12 portable artifacts/sdk-d3d12-portable
+coin-render-sdk-capabilities-c
+```
+
+Além do cubo e da comparação CoinGL, o consumidor renderiza uma imagem
+128×128 minificada em 64×64. Em `portable`, exige o oracle independente de
+NEAREST_MIPMAP_LINEAR: canais 40/160 nas colunas 30/31, com erro máximo 1.
+Em `native`, exige render e pixels completos sem impor o oracle portátil.
+Os arquivos `*-cube.ppm` e `*-mip.ppm` conservam os pixels efetivos.
+
+A disponibilidade da política é consultada sem exigir perfil publicado;
+a consulta estrita é registrada separadamente. Windows permanece
+`UNQUALIFIED_PROFILE` na consulta estrita desta revisão. Aprovar os smokes
+em uma GPU identificada não publica automaticamente um perfil geral Windows.
+No Windows, os caminhos de Coin4.dll/CoinRender4.dll carregados são impressos;
+compare seus hashes com a instalação. A sonda C11 verifica capabilities v4
+com 584 bytes, prefixo v3 com 536 bytes e ordinal nativo zero.

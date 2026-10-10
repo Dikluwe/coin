@@ -52,7 +52,7 @@ protected:
 public:
   void init(SoState * state) override;
   static void set(SoState * state, SoNode * node, const float quality);
-  static float get(SoState * state);
+  static COIN_DLL_API float get(SoState * state);
   static float getDefault(void);
 };
 

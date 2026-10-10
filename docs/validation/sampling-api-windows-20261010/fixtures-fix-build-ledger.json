@@ -1,0 +1,175 @@
+[
+  {
+    "name": "fixtures-fix-bgfx-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_BUILD_TESTS=ON",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON",
+      "-DCOIN_BUILD_RENDER_BENCHMARKS=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=ON",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx",
+      "-DCOIN_BUILD_MSVC_MP=OFF",
+      "-DCMAKE_CXX_FLAGS=/MP2",
+      "-DCOIN_BUILD_AWESOME_DOCUMENTATION=OFF",
+      "-DCOIN_BUILD_DOCUMENTATION=OFF",
+      "-DCOIN_RENDER_BACKEND=BGFX",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\bgfx-windows-install",
+      "-DCOIN_BGFX_SHADERC_EXECUTABLE=H:\\Git\\coin\\build\\bgfx-windows-install\\bin\\shaderc.exe",
+      "-DCOIN_BGFX_SHADER_INCLUDE_DIR=H:\\Git\\coin\\build\\bgfx-windows-install\\include\\bgfx"
+    ],
+    "exit": 0,
+    "seconds": 10.058290243148804
+  },
+  {
+    "name": "fixtures-fix-bgfx-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 189.88215589523315
+  },
+  {
+    "name": "fixtures-fix-bgfx-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx",
+      "--config",
+      "Release"
+    ],
+    "exit": 0,
+    "seconds": 4.266652345657349
+  },
+  {
+    "name": "fixtures-fix-bgfx-consumer-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin\\examples\\coinrender\\sdk-consumer",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-bgfx",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx"
+    ],
+    "exit": 0,
+    "seconds": 0.24872803688049316
+  },
+  {
+    "name": "fixtures-fix-bgfx-consumer-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-bgfx",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 1.3087308406829834
+  },
+  {
+    "name": "fixtures-fix-wgpu-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_BUILD_TESTS=ON",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON",
+      "-DCOIN_BUILD_RENDER_BENCHMARKS=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=ON",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu",
+      "-DCOIN_BUILD_MSVC_MP=OFF",
+      "-DCMAKE_CXX_FLAGS=/MP2",
+      "-DCOIN_BUILD_AWESOME_DOCUMENTATION=OFF",
+      "-DCOIN_BUILD_DOCUMENTATION=OFF",
+      "-DCOIN_RENDER_BACKEND=RUST_BRIDGE"
+    ],
+    "exit": 0,
+    "seconds": 73.85838437080383
+  },
+  {
+    "name": "fixtures-fix-wgpu-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 689.3118658065796
+  },
+  {
+    "name": "fixtures-fix-wgpu-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-wgpu",
+      "--config",
+      "Release"
+    ],
+    "exit": 0,
+    "seconds": 1.9835257530212402
+  },
+  {
+    "name": "fixtures-fix-wgpu-consumer-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin\\examples\\coinrender\\sdk-consumer",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-wgpu",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\sampling-win-20261010\\install-wgpu"
+    ],
+    "exit": 0,
+    "seconds": 4.672318696975708
+  },
+  {
+    "name": "fixtures-fix-wgpu-consumer-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-wgpu",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 3.452509880065918
+  }
+]

@@ -29,6 +29,8 @@
 #include <memory>
 #include <thread>
 #include <chrono>
+#include <fstream>
+#include <cstdlib>
 
 #ifdef COIN_SAMPLING_X11
 #include <X11/Xlib.h>
@@ -74,10 +76,75 @@ struct SamplingWindows {
 };
 #endif
 
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+struct SamplingWindows {
+  HWND native=nullptr, portable=nullptr;
+  static LRESULT CALLBACK proc(HWND h,UINT m,WPARAM w,LPARAM l) {
+    if(m==WM_DPICHANGED) {
+      const auto* r=reinterpret_cast<const RECT*>(l);
+      SetWindowPos(h,nullptr,r->left,r->top,r->right-r->left,r->bottom-r->top,SWP_NOZORDER|SWP_NOACTIVATE);
+      return 0;
+    }
+    return DefWindowProcW(h,m,w,l);
+  }
+  static void pump() {MSG m{};while(PeekMessageW(&m,nullptr,0,0,PM_REMOVE)){TranslateMessage(&m);DispatchMessageW(&m);}}
+  bool open() {
+    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
+    WNDCLASSW c{};c.lpfnWndProc=proc;c.hInstance=GetModuleHandleW(nullptr);c.lpszClassName=L"CoinSamplingQualification";
+    if(!RegisterClassW(&c) && GetLastError()!=ERROR_CLASS_ALREADY_EXISTS)return false;
+    native=CreateWindowW(c.lpszClassName,L"Sampling native",WS_POPUP,50,50,64,64,nullptr,nullptr,c.hInstance,nullptr);
+    portable=CreateWindowW(c.lpszClassName,L"Sampling portable",WS_POPUP,150,50,64,64,nullptr,nullptr,c.hInstance,nullptr);
+    if(!native || !portable)return false;
+    ShowWindow(native,SW_SHOWNOACTIVATE);ShowWindow(portable,SW_SHOWNOACTIVATE);pump();return true;
+  }
+  void size(HWND w,int n) {SetWindowPos(w,HWND_TOPMOST,0,0,n,n,SWP_NOMOVE|SWP_NOACTIVATE);pump();}
+  CoinRenderNativeSurfaceDescriptor descriptor(HWND w) const {
+    CoinRenderNativeSurfaceDescriptor d{};d.abiVersion=COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;d.structSize=sizeof(d);
+    d.type=COIN_RENDER_SURFACE_WIN32;d.native.win32.hinstance=GetModuleHandleW(nullptr);d.native.win32.hwnd=w;return d;
+  }
+  static bool capture(HWND w,int n,std::vector<uint8_t>& pixels) {
+    pump();std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    HDC dc=GetDC(w),mem=dc ? CreateCompatibleDC(dc) : nullptr;
+    BITMAPINFO info{};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);info.bmiHeader.biWidth=n;info.bmiHeader.biHeight=-n;
+    info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;info.bmiHeader.biCompression=BI_RGB;
+    void* data=nullptr;HBITMAP bitmap=dc ? CreateDIBSection(dc,&info,DIB_RGB_COLORS,&data,nullptr,0) : nullptr;
+    HGDIOBJ old=bitmap && mem ? SelectObject(mem,bitmap) : nullptr;
+    bool ok=old && BitBlt(mem,0,0,n,n,dc,0,0,SRCCOPY|CAPTUREBLT);GdiFlush();pixels.clear();
+    if(ok) {
+      pixels.resize(size_t(n*n*4));const auto* b=static_cast<const uint8_t*>(data);
+      for(size_t i=0;i<pixels.size();i+=4){pixels[i]=b[i+2];pixels[i+1]=b[i+1];pixels[i+2]=b[i];pixels[i+3]=255;}
+    }
+    if(old)SelectObject(mem,old);if(bitmap)DeleteObject(bitmap);if(mem)DeleteDC(mem);if(dc)ReleaseDC(w,dc);
+    return ok;
+  }
+  ~SamplingWindows(){if(native)DestroyWindow(native);if(portable)DestroyWindow(portable);}
+};
+#endif
+
 static bool check(bool value, const char* label) {
   if (!value) std::cerr << "FAIL " << label << '\n';
   return value;
 }
+#ifdef _WIN32
+static constexpr auto samplingWindowBackend=COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW;
+#else
+static constexpr auto samplingWindowBackend=COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW;
+#endif
+
+static void saveEvidence(const std::vector<uint8_t>& pixels,int side,const char* stage) {
+  const char* prefix=std::getenv("COIN_RENDER_SAMPLING_PIXEL_PREFIX");
+  if(!prefix || pixels.size()!=size_t(side*side*4))return;
+  std::ofstream out(std::string(prefix)+"-"+stage+".ppm",std::ios::binary);
+  out << "P6\n" << side << ' ' << side << "\n255\n";
+  for(size_t i=0;i<pixels.size();i+=4)out.write(reinterpret_cast<const char*>(pixels.data()+i),3);
+}
+
 static bool selection(bool gpu, bool window = false) {
   CoinRenderCapabilities caps{};
   caps.version=4;caps.struct_size=sizeof(caps);caps.backend=COIN_RENDER_EXPERIMENTAL_RUST;
@@ -102,9 +169,14 @@ static bool selection(bool gpu, bool window = false) {
   options.textureSamplingPolicy=static_cast<CoinRenderTextureSamplingPolicy>(99);
   ok &= check(!coin_render_valid_options(options,diagnostic),"invalid target policy rejected");
   if (!gpu) return ok;
-  if (!check(coin_render_query_capabilities(window ? COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"v4 runtime capabilities")) return false;
+  if (!check(coin_render_query_capabilities(window ? samplingWindowBackend : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"v4 runtime capabilities")) return false;
   ok &= check(caps.version==4 && (caps.implemented_sampling_policies&COIN_RENDER_SAMPLING_POLICY_PORTABLE) && caps.portable_sampling_filter_mask==(1u<<2) && caps.portable_sampling_max_anisotropy==1 && caps.max_texture_mip_chain_bytes==UINT64_C(128)*1024*1024,"explicit portable profile and limits");
+  #ifdef _WIN32
+  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,0).reason==COIN_RENDER_SELECTION_SUPPORTED,"Windows admits explicit portable policy without fallback");
+  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,1).reason==COIN_RENDER_SELECTION_UNQUALIFIED_PROFILE,"Windows does not invent a qualified profile from Linux evidence");
+#else
   ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,1).reason==COIN_RENDER_SELECTION_SUPPORTED,"bounded Linux offscreen/Xlib portable qualification");
+#endif
   ok &= check(caps.portable_sampling_formats==31,"five explicit compiled image formats");
 #ifdef HAVE_COIN_BGFX
   ok &= check(caps.portable_sampling_derivatives==COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT,"BGFX reports ordinary shader derivatives for every renderer");
@@ -124,10 +196,11 @@ static bool selection(bool gpu, bool window = false) {
   return ok;
 }
 int main(int argc,char**argv) {
+  std::cout << std::unitbuf;
   SoDB::init();CoinRenderAction::initClass();
   const bool window=argc>1 && std::string(argv[1])=="--window";
   const bool gpu=window || (argc>1 && std::string(argv[1])=="--gpu");
-#ifdef COIN_SAMPLING_X11
+#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
   SamplingWindows windows;
   if (window && !windows.open()) return 77;
 #else
@@ -139,7 +212,7 @@ int main(int argc,char**argv) {
   if (!diagnostic.empty()) {std::cerr<<diagnostic<<'\n';return 1;}
   if(gpu && nativeOptions.renderer==COIN_RENDER_RENDERER_UNKNOWN) {
     CoinRenderCapabilities runtime{};
-    if(coin_render_query_capabilities(window ? COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&runtime,sizeof(runtime))!=0) return 1;
+    if(coin_render_query_capabilities(window ? samplingWindowBackend : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&runtime,sizeof(runtime))!=0) return 1;
     nativeOptions.renderer=static_cast<CoinRenderRenderer>(runtime.renderer);
   }
   bool externalCapture = false;
@@ -163,12 +236,18 @@ int main(int argc,char**argv) {
       XDestroyImage(image);return;
     }
 #endif
+#ifdef _WIN32
+    if(externalCapture && target->getPimpl()->kind==CoinRenderTargetP::KIND_WINDOW) {
+      const auto n=target->getSize();
+      SamplingWindows::capture(static_cast<HWND>(target->getPimpl()->nativeDesc.native.win32.hwnd),n[0],pixels);return;
+    }
+#endif
     target->readbackRGBA(pixels);
   };
   auto portableOptions=nativeOptions;portableOptions.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
   auto createTarget = [&](bool isPortable) {
     const auto& options = isPortable ? portableOptions : nativeOptions;
-#ifdef COIN_SAMPLING_X11
+#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
     if (window) return CoinRenderTarget::createWindow(windows.descriptor(isPortable ? windows.portable : windows.native), SbVec2i32(64,64), options);
 #endif
     return CoinRenderTarget::createOffscreen(SbVec2i32(64,64), options);
@@ -197,12 +276,13 @@ int main(int argc,char**argv) {
     if(selected.getLastStatus()!=CoinRenderAction::SUCCESS) std::cerr << "render size=" << target->getSize()[0] << " policy=" << target->getOptions().textureSamplingPolicy << " status=" << selected.getLastStatus() << " diagnostic=" << selected.getLastError().getString() << "\n";
     return check(selected.getLastStatus()==CoinRenderAction::SUCCESS,"explicit-policy frame renders");
   };
-  ok &= render(native.get());readPixels(native.get(),nativeFirst);
+  ok &= render(native.get());readPixels(native.get(),nativeFirst);saveEvidence(nativeFirst,64,"native-first");
   for(int textureUnit : {0,7,0}) {
     unit->unit=textureUnit;
     ok &= render(portable.get());readPixels(portable.get(),portablePixels);
     ok &= check(action.getPimpl()->lastValidPlan.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE,"captured plan owns selected policy");
     if(portablePixels.size()!=64*64*4){ok=false;break;}
+    saveEvidence(portablePixels,64,("portable-unit-"+std::to_string(textureUnit)).c_str());
     // Independent floor oracle: original du/dx=1/16, texture128 => LOD3.
     // x30 -> u0.4375, texel7 (40); x31 -> u0.5, texel8 (160).
     for(int y=8;y<56;++y)for(int x : {30,31})for(int c=0;c<3;++c)
@@ -241,25 +321,34 @@ int main(int argc,char**argv) {
   }
   ok &= check(native->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_NATIVE && portable->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE,"target policies stay immutable and independent of experimental environment");
   if(gpu)ok &= check(native->getPimpl()->backend->resourceDomain().device==portable->getPimpl()->backend->resourceDomain().device,"policies share device resources");
-#ifdef COIN_SAMPLING_X11
+#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
   if(window) windows.size(windows.portable,128);
 #endif
   ok &= check(portable->resize(SbVec2i32(128,128)),"portable target resize");
   action.setViewportRegion(SbViewportRegion(128,128));ok &= render(portable.get());
   readPixels(portable.get(),portablePixels);
+  saveEvidence(portablePixels,128,"portable-resized");
   if (portablePixels.size()==128*128*4) {
     for(int x : {62,63}) ok &= check(std::abs(int(portablePixels[(64*128+x)*4])-(x==62?40:160))<=1,"resized derivative footprint oracle");
   } else ok=false;
-#ifdef COIN_SAMPLING_X11
+#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
   if(window) {
+#ifdef _WIN32
+    ShowWindow(windows.portable,SW_HIDE);SamplingWindows::pump();
+#else
     XUnmapWindow(windows.display, windows.portable); XSync(windows.display,False);
+#endif
     ok &= check(portable->resize(SbVec2i32(0,0)),"suspend portable window");
     action.apply(root);
     ok &= check(action.getLastStatus()==CoinRenderAction::NOT_READY,"suspended window rejects submission");
     ok &= render(native.get());readPixels(native.get(),nativeAgain);
     ok &= check(nativeAgain==nativeFirst,"suspended portable window leaves native sibling intact");
+#ifdef _WIN32
+    ShowWindow(windows.portable,SW_SHOWNOACTIVATE);SamplingWindows::pump();
+#else
     XMapWindow(windows.display,windows.portable);XSync(windows.display,False);
     XEvent mapped;do {XWindowEvent(windows.display,windows.portable,StructureNotifyMask,&mapped);} while(mapped.type!=MapNotify);
+#endif
     windows.size(windows.portable,128);
 
     ok &= check(portable->resize(SbVec2i32(128,128)),"resume portable window");
@@ -283,6 +372,31 @@ int main(int argc,char**argv) {
     target->readbackRGBA(portablePixels);
     ok &= check(target->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE && portablePixels.size()==64*64*4 && std::abs(int(portablePixels[(32*64+31)*4])-160)<=1,"host adapter portable image oracle");
   }
+
+#ifdef _WIN32
+  if(window && argc==5 && std::string(argv[2])=="--benchmark-no-readback") {
+    const std::string policy=argv[3];
+    ok &= check(policy=="native" || policy=="portable","benchmark explicit policy");
+    windows.size(windows.portable,64);
+    nativeAction.setRenderTarget(nullptr);native.reset();
+    std::unique_ptr<CoinRenderTarget> measured(createTarget(policy=="portable"));
+    CoinRenderAction timed(SbViewportRegion(64,64));timed.setRenderTarget(measured.get());
+    std::ofstream csv(argv[4]);csv << "frame,warmup,render_present_ms,serial\n";
+    bool admitted=measured && measured->getStatus()==CoinRenderTarget::TARGET_READY;
+    for(int i=-60;admitted && i<600;++i) {
+      SamplingWindows::pump();const auto before=measured->getLastSubmissionSerial();
+      const auto start=std::chrono::steady_clock::now();timed.apply(root);const auto finish=std::chrono::steady_clock::now();
+      admitted=timed.getLastStatus()==CoinRenderAction::SUCCESS && measured->getLastSubmissionSerial()>before;
+      csv << i << ',' << (i<0) << ',' << std::chrono::duration<double,std::milli>(finish-start).count()
+          << ',' << measured->getLastSubmissionSerial() << '\n';
+    }
+    csv.flush();ok &= check(admitted && bool(csv),"window timing frames publish with no readback calls");
+    std::cout << "window_timing policy=" << policy << " frames=600 warmup=60 readback=none extent=64x64"
+              << " metric=CPU_render_present_return includes_backpressure=1 gpu_completion=0 display_latency=0 result=" << admitted << '\n';
+    timed.setRenderTarget(nullptr);
+  }
+#endif
+
   action.setRenderTarget(nullptr);nativeAction.setRenderTarget(nullptr);root->unref();
   std::cout<<"Sampling API window="<<window<<" CPU="<<!gpu<<" result="<<(ok?"PASS":"FAIL")<<'\n';
   return ok?0:1;

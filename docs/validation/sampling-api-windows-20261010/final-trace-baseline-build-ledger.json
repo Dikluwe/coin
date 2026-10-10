@@ -1,0 +1,90 @@
+[
+  {
+    "name": "final-trace-baseline-bgfx-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_BUILD_TESTS=ON",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=ON",
+      "-DCOIN_BUILD_RENDER_BENCHMARKS=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=ON",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx",
+      "-DCOIN_BUILD_MSVC_MP=OFF",
+      "-DCMAKE_CXX_FLAGS=/MP2",
+      "-DCOIN_BUILD_AWESOME_DOCUMENTATION=OFF",
+      "-DCOIN_BUILD_DOCUMENTATION=OFF",
+      "-DCOIN_RENDER_BACKEND=BGFX",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\bgfx-windows-install",
+      "-DCOIN_BGFX_SHADERC_EXECUTABLE=H:\\Git\\coin\\build\\bgfx-windows-install\\bin\\shaderc.exe",
+      "-DCOIN_BGFX_SHADER_INCLUDE_DIR=H:\\Git\\coin\\build\\bgfx-windows-install\\include\\bgfx"
+    ],
+    "exit": 0,
+    "seconds": 9.980965375900269
+  },
+  {
+    "name": "final-trace-baseline-bgfx-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 17.14649748802185
+  },
+  {
+    "name": "final-trace-baseline-bgfx-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx",
+      "--config",
+      "Release"
+    ],
+    "exit": 0,
+    "seconds": 0.40337085723876953
+  },
+  {
+    "name": "final-trace-baseline-bgfx-consumer-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\sampling-win-20261010\\coin\\examples\\coinrender\\sdk-consumer",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-bgfx",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCMAKE_PREFIX_PATH=H:\\Git\\coin\\build\\sampling-win-20261010\\install-bgfx"
+    ],
+    "exit": 0,
+    "seconds": 0.2593989372253418
+  },
+  {
+    "name": "final-trace-baseline-bgfx-consumer-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\consumer-bgfx",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 1.0953147411346436
+  }
+]

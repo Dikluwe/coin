@@ -1,0 +1,339 @@
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  SoAction.cpp
+  SoGLRenderAction.cpp
+  SoReorganizeAction.cpp
+  SoToVRML2Action.cpp
+  SoToVRMLAction.cpp
+  SbGLUTessellator.cpp
+  SoMaterialBundle.cpp
+  SoTextureCoordinateBundle.cpp
+  SoConvexDataCache.cpp
+  SoGLCacheList.cpp
+  SoGLRenderCache.cpp
+  SoPrimitiveVertexCache.cpp
+  SoVBOCache.cpp
+  SoGLCacheContextElement.cpp
+  SoGLClipPlaneElement.cpp
+  SoGLColorIndexElement.cpp
+  SoGLCoordinateElement.cpp
+  SoGLDepthBufferElement.cpp
+  SoGLDisplayList.cpp
+  SoGLDrawStyleElement.cpp
+  SoGLEnvironmentElement.cpp
+  SoGLLazyElement.cpp
+  SoGLLightIdElement.cpp
+  SoGLLinePatternElement.cpp
+  SoGLLineWidthElement.cpp
+  SoGLModelMatrixElement.cpp
+  SoGLMultiTextureCoordinateElement.cpp
+  SoGLMultiTextureEnabledElement.cpp
+  SoGLMultiTextureImageElement.cpp
+  SoGLMultiTextureMatrixElement.cpp
+  SoGLNormalElement.cpp
+  SoGLPointSizeElement.cpp
+  SoGLPolygonOffsetElement.cpp
+  SoGLProjectionMatrixElement.cpp
+  SoGLShapeHintsElement.cpp
+  SoGLUpdateAreaElement.cpp
+  SoGLVBOElement.cpp
+  SoGLVertexAttributeElement.cpp
+  SoGLViewingMatrixElement.cpp
+  SoGLViewportRegionElement.cpp
+  SoElement.cpp
+  SoTextureCombineElement.cpp
+  SoVertexAttributeElement.cpp
+  coretext.cpp
+  win32.cpp
+  GLUWrapper.cpp
+  gl.cpp
+  gl_agl.cpp
+  gl_cgl.cpp
+  gl_egl.cpp
+  gl_glx.cpp
+  gl_wgl.cpp
+  normalization_cubemap.cpp
+  SoContextHandler.cpp
+  SoDB.cpp
+  SoSceneManager.cpp
+  SoSceneManagerP.cpp
+  SoState.cpp
+  SoAlphaTest.cpp
+  SoAnnotation.cpp
+  SoBaseColor.cpp
+  SoBumpMap.cpp
+  SoCamera.cpp
+  SoCoordinate3.cpp
+  SoCoordinate4.cpp
+  SoDepthBuffer.cpp
+  SoDirectionalLight.cpp
+  SoExtSelection.cpp
+  SoGroup.cpp
+  SoLOD.cpp
+  SoLightModel.cpp
+  SoMaterial.cpp
+  SoNode.cpp
+  SoNormal.cpp
+  SoNurbsProfile.cpp
+  SoPackedColor.cpp
+  SoPointLight.cpp
+  SoSceneTexture2.cpp
+  SoSceneTextureCubeMap.cpp
+  SoSeparator.cpp
+  SoSpotLight.cpp
+  SoTexture2.cpp
+  SoTexture2Transform.cpp
+  SoTexture3.cpp
+  SoTexture3Transform.cpp
+  SoTextureCombine.cpp
+  SoTextureCoordinate2.cpp
+  SoTextureCoordinate3.cpp
+  SoTextureCoordinateCube.cpp
+  SoTextureCoordinateCylinder.cpp
+  SoTextureCoordinateEnvironment.cpp
+  SoTextureCoordinateNormalMap.cpp
+  SoTextureCoordinateObject.cpp
+  SoTextureCoordinatePlane.cpp
+  SoTextureCoordinateReflectionMap.cpp
+  SoTextureCoordinateSphere.cpp
+  SoTextureCubeMap.cpp
+  SoTextureMatrixTransform.cpp
+  SoTextureUnit.cpp
+  SoVertexAttribute.cpp
+  SoVertexProperty.cpp
+  SoWWWInline.cpp
+  SoProfilerOverlayKit.cpp
+  CoinOffscreenGLCanvas.cpp
+  SoGL.cpp
+  SoGLBigImage.cpp
+  SoGLCubeMapImage.cpp
+  SoGLDriverDatabase.cpp
+  SoGLImage.cpp
+  SoGLNurbs.cpp
+  SoOffscreenRenderer.cpp
+  SoRenderManager.cpp
+  SoRenderManagerP.cpp
+  SoVBO.cpp
+  SoVertexArrayIndexer.cpp
+  SoFragmentShader.cpp
+  SoGLARBShaderObject.cpp
+  SoGLARBShaderParameter.cpp
+  SoGLARBShaderProgram.cpp
+  SoGLCgShaderObject.cpp
+  SoGLCgShaderParameter.cpp
+  SoGLCgShaderProgram.cpp
+  SoGLSLShaderObject.cpp
+  SoGLSLShaderParameter.cpp
+  SoGLSLShaderProgram.cpp
+  SoGLShaderObject.cpp
+  SoGLShaderParameter.cpp
+  SoGLShaderProgram.cpp
+  SoGLShaderProgramElement.cpp
+  SoGeometryShader.cpp
+  SoShader.cpp
+  SoShaderObject.cpp
+  SoShaderParameter.cpp
+  SoShaderProgram.cpp
+  SoVertexShader.cpp
+  SoGLShadowCullingElement.cpp
+  SoShadowCulling.cpp
+  SoShadowGroup.cpp
+  SoShadowStyle.cpp
+  SoAsciiText.cpp
+  SoCone.cpp
+  SoCube.cpp
+  SoCylinder.cpp
+  SoFaceSet.cpp
+  SoImage.cpp
+  SoIndexedFaceSet.cpp
+  SoIndexedLineSet.cpp
+  SoIndexedMarkerSet.cpp
+  SoIndexedNurbsCurve.cpp
+  SoIndexedNurbsSurface.cpp
+  SoIndexedPointSet.cpp
+  SoIndexedTriangleStripSet.cpp
+  SoLineSet.cpp
+  SoMarkerSet.cpp
+  SoNurbsCurve.cpp
+  SoNurbsSurface.cpp
+  SoPointSet.cpp
+  SoQuadMesh.cpp
+  SoShape.cpp
+  SoSphere.cpp
+  SoText2.cpp
+  SoText3.cpp
+  SoTriangleStripSet.cpp
+  soshape_bigtexture.cpp
+  soshape_bumprender.cpp
+  soshape_primdata.cpp
+  soshape_trianglesort.cpp
+  Appearance.cpp
+  Background.cpp
+  Billboard.cpp
+  Box.cpp
+  Collision.cpp
+  Color.cpp
+  Cone.cpp
+  Coordinate.cpp
+  Cylinder.cpp
+  DirectionalLight.cpp
+  ElevationGrid.cpp
+  Extrusion.cpp
+  Group.cpp
+  IndexedFaceSet.cpp
+  IndexedLineSet.cpp
+  Inline.cpp
+  LOD.cpp
+  Material.cpp
+  Normal.cpp
+  PointLight.cpp
+  PointSet.cpp
+  Shape.cpp
+  Sphere.cpp
+  SpotLight.cpp
+  Text.cpp
+  TextureCoordinate.cpp
+  freetype.cpp
+     Criando biblioteca H:/Git/coin/build/sampling-win-20261010/build-bgfx/lib/Coin4.lib e objeto H:/Git/coin/build/sampling-win-20261010/build-bgfx/lib/Coin4.exp
+  Coin.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\Coin4.dll
+  CoinCHeapHeaderCompileTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinCHeapHeaderCompileTest.dir\Release\CoinCHeapHeaderCompileTest.lib
+  FailureTest.cpp
+  CoinProfilerInitTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinProfilerInitTest.exe
+  CoinRenderAction.cpp
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderBenchmarkAnimationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderBenchmarkAnimationTest.exe
+  CoinRenderGluNativeOracle.cpp
+  CoinRenderGluNativeOracle.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderGluNativeOracle.exe
+  CoinBumpProgramTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBumpProgramTest.exe
+  CoinRenderTransformCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderTransformCoreTest.exe
+  CoinSensorSchedulingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinSensorSchedulingTest.exe
+  shadersSoFragmentShaderTest.cpp
+  shadersSoGeometryShaderTest.cpp
+  RenderManagerFramePreparationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\RenderManagerFramePreparationTest.exe
+  SoPathAssignmentAuditorTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\SoPathAssignmentAuditorTest.exe
+  SoPathAuditorCallbackTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\SoPathAuditorCallbackTest.exe
+  shadersSoVertexShaderTest.cpp
+  SoPathChildAppendTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\SoPathChildAppendTest.exe
+     Criando biblioteca H:/Git/coin/build/sampling-win-20261010/build-bgfx/lib/CoinRender4.lib e objeto H:/Git/coin/build/sampling-win-20261010/build-bgfx/lib/CoinRender4.exp
+  CoinRender.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRender4.dll
+  SoPathLegacyAccessorBoundsTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\SoPathLegacyAccessorBoundsTest.exe
+  SoPathRangeTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\SoPathRangeTest.exe
+  SoTempPathReplaceTailTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\SoTempPathReplaceTailTest.exe
+  XmlCApiTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCApiTest.exe
+  XmlCHeaderAttributeTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderAttributeTest.exe
+  CoinBgfxCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxCoreTest.exe
+  XmlCHeaderDocumentTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderDocumentTest.exe
+  CoinRenderTransparencyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderTransparencyTest.exe
+  CoinWgpuCacheTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinWgpuCacheTest.exe
+  CoinRenderTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderTextureTest.exe
+  CoinRenderTextureSamplingTest.cpp
+  CoinRenderScreenContentTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderScreenContentTest.exe
+  CoinRenderSceneTextureBudgetTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderSceneTextureBudgetTest.exe
+  CoinRenderRuntimeBoundaryTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderRuntimeBoundaryTest.exe
+  CoinRenderGeometryViewportTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderGeometryViewportTest.exe
+  CoinRenderGateG1Test.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderGateG1Test.exe
+  CoinRenderFrameReuseCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderFrameReuseCoreTest.exe
+  CoinRenderFragmentPolicyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderFragmentPolicyTest.exe
+  CoinTests.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinTests.exe
+  CoinRenderStabilizationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderStabilizationTest.exe
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderShadowReferenceTest.cpp
+  CoinRenderTextureSamplingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderTextureSamplingTest.exe
+  CoinRenderShadowEightMapTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderShadowEightMapTest.exe
+  CoinRenderSelectionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderSelectionTest.exe
+  CoinRenderSceneTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderSceneTextureTest.exe
+  CoinRenderSamplingPolicyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderSamplingPolicyTest.exe
+  CoinRenderRttProfileTest.cpp
+  CoinRenderRttOwnershipTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderRttOwnershipTest.exe
+  CoinRenderRttMatrixTest.cpp
+  CoinRenderRttProfileTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderRttProfileTest.exe
+  CoinRenderRasterStudy.cpp
+  CoinRenderRttMatrixTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderRttMatrixTest.exe
+  CoinRenderPublicationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderPublicationTest.exe
+  CoinRenderProjectiveUvTest.cpp
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244: 'inicializando': conversão de '_Ty' para '_Ty1', possível perda de dados [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:         with [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:         [ [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:             _Ty=int [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:         ] [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:         and [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:         [ [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:             _Ty1=float [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16): warning C4244:         ] [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+  (compilando o arquivo fonte 'C:/Users/Diklu/.codex/worktrees/sampling-win-20261010/coin/testsuite/coinrender/CoinRenderProjectiveUvTest.cpp')
+      C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,16):
+      o contexto de instanciação do modelo (o mais antigo primeiro) é
+          C:\Users\Diklu\.codex\worktrees\sampling-win-20261010\coin\testsuite\coinrender\CoinRenderProjectiveUvTest.cpp(1042,73):
+          consulte a referência à instanciação 'std::pair<float,float>::pair<int,int,0>(_Other1 &&,_Other2 &&) noexcept' do modelo que está sendo compilada
+          with
+          [
+              _Other1=int,
+              _Other2=int
+          ]
+              C:\Users\Diklu\.codex\worktrees\sampling-win-20261010\coin\testsuite\coinrender\CoinRenderProjectiveUvTest.cpp(1042,71):
+              veja a primeira referência a 'std::pair<float,float>::pair' em '`anonymous-namespace'::rejectionAndRecovery'
+  
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244: 'inicializando': conversão de '_Ty' para '_Ty2', possível perda de dados [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:         with [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:         [ [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:             _Ty=int [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:         ] [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:         and [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:         [ [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:             _Ty2=float [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\VC\Tools\MSVC\14.44.35207\include\utility(274,54): warning C4244:         ] [H:\Git\coin\build\sampling-win-20261010\build-bgfx\testsuite\CoinRenderProjectiveUvTest.vcxproj]
+  (compilando o arquivo fonte 'C:/Users/Diklu/.codex/worktrees/sampling-win-20261010/coin/testsuite/coinrender/CoinRenderProjectiveUvTest.cpp')
+  
+  CoinRenderRasterStudy.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderRasterStudy.exe
+  CoinRenderDrawStyleTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderDrawStyleTest.exe
+  CoinRenderProjectiveUvTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderProjectiveUvTest.exe
+  CoinRenderProductTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderProductTest.exe
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderProceduralTextureTest.cpp
+  CoinRenderProceduralTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderProceduralTextureTest.exe
+  CoinRenderPlanAssemblyCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderPlanAssemblyCoreTest.exe
+  CoinRenderPeelingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderPeelingTest.exe
+  CoinRenderOffscreenTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderOffscreenTest.exe
+  CoinRenderNodeInventoryTest.cpp
+  CoinRenderNodeInventoryTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderNodeInventoryTest.exe
+  CoinRenderDepthContractTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderDepthContractTest.exe
+  CoinRenderMultitextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderMultitextureTest.exe
+  CoinRenderMultiTargetTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderMultiTargetTest.exe
+  CoinRenderMarkerSetTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderMarkerSetTest.exe
+  CoinRenderFramePlanBuilder.cpp
+  CoinRenderLightingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderLightingTest.exe
+  CoinRenderIndexedGeometryCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderIndexedGeometryCoreTest.exe
+  CoinRenderIndexedFastPathTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderIndexedFastPathTest.exe
+  CoinRenderGouraudInterpolationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderGouraudInterpolationTest.exe
+  CoinRenderGateG2Test.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderGateG2Test.exe
+  CoinRenderGateG0Test.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderGateG0Test.exe
+  CoinRenderFrameCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderFrameCoreTest.exe
+  CoinRenderFogTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderFogTest.exe
+  CoinRenderDiagnosticShellTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderDiagnosticShellTest.exe
+  CoinRenderCompositionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderCompositionTest.exe
+  CoinRenderCameraReuseReferenceTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderCameraReuseReferenceTest.exe
+  CoinRenderBoundingBoxTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderBoundingBoxTest.exe
+  CoinRenderBackendContractTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderBackendContractTest.exe
+  CoinRenderBackendBoundaryTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderBackendBoundaryTest.exe
+  CoinRenderAdvancedTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderAdvancedTextureTest.exe
+  CoinRenderActionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderActionTest.exe
+  CoinBgfxTransparencyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxTransparencyTest.exe
+  CoinBgfxSurfaceFeaturesTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxSurfaceFeaturesTest.exe
+  CoinBgfxReadbackModesTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxReadbackModesTest.exe
+  CoinBgfxProgramSelectionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxProgramSelectionTest.exe
+  CoinBgfxOffscreenTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxOffscreenTest.exe
+  CoinBgfxInstancingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinBgfxInstancingTest.exe
+  XmlCHeaderElementTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderElementTest.exe
+  XmlCHeaderEntityTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderEntityTest.exe
+  XmlCHeaderParserTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderParserTest.exe
+  XmlCHeaderPathTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderPathTest.exe
+  XmlCHeaderTypesTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderTypesTest.exe
+  XmlCHeaderWorldTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeaderWorldTest.exe
+  XmlCHeadersAggregateTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlCHeadersAggregateTest.exe
+  XmlLegacyPathDocumentCxxAbiTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\XmlLegacyPathDocumentCxxAbiTest.exe
+  coin_render_freecad_compare.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\coin_render_freecad_compare.exe
+  coin_render_gl_benchmark.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\coin_render_gl_benchmark.exe
+  coin_render_win32_smoke.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\coin_render_win32_smoke.exe
+  CoinRenderClipPlaneTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderClipPlaneTest.exe
+  CoinRenderShadowReferenceTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-bgfx\bin\CoinRenderShadowReferenceTest.exe
+  Building Custom Rule C:/Users/Diklu/.codex/worktrees/sampling-win-20261010/coin/CMakeLists.txt

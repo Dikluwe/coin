@@ -1,0 +1,732 @@
+diff --git a/examples/coinrender/sdk-consumer/CMakeLists.txt b/examples/coinrender/sdk-consumer/CMakeLists.txt
+index 286c671802..3fddcfa40c 100644
+--- a/examples/coinrender/sdk-consumer/CMakeLists.txt
++++ b/examples/coinrender/sdk-consumer/CMakeLists.txt
+@@ -1,5 +1,5 @@
+ cmake_minimum_required(VERSION 3.16)
+-project(CoinRenderSdkConsumer LANGUAGES CXX)
++project(CoinRenderSdkConsumer LANGUAGES C CXX)
+ find_package(Coin CONFIG REQUIRED)
+ find_package(CoinRender CONFIG REQUIRED)
+ find_package(OpenGL REQUIRED)
+@@ -7,3 +7,7 @@ add_executable(coin-render-sdk-consumer main.cpp)
+ target_compile_features(coin-render-sdk-consumer PRIVATE cxx_std_17)
+ target_compile_definitions(coin-render-sdk-consumer PRIVATE $<$<PLATFORM_ID:Windows>:NOMINMAX>)
+ target_link_libraries(coin-render-sdk-consumer PRIVATE CoinRender::CoinRender Coin::Coin OpenGL::GL)
++
++add_executable(coin-render-sdk-capabilities-c capabilities.c)
++set_target_properties(coin-render-sdk-capabilities-c PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED YES)
++target_link_libraries(coin-render-sdk-capabilities-c PRIVATE CoinRender::CoinRender Coin::Coin)
+diff --git a/examples/coinrender/sdk-consumer/README.md b/examples/coinrender/sdk-consumer/README.md
+index 1ce3d4db10..ddd950bce2 100644
+--- a/examples/coinrender/sdk-consumer/README.md
++++ b/examples/coinrender/sdk-consumer/README.md
+@@ -27,3 +27,27 @@ prova hardware: rejeitar adapter de software na qualificação e registrar hashe
+ dos executáveis, bibliotecas carregadas, headers e prefix de instalação. Não
+ misturar DLLs/bibliotecas de builds ou revisões diferentes. SDK sem referência
+ GL ou API indisponível não pode ser contado como equivalência de pixels.
++
++## Sampling explícito e ABI C11
++
++O segundo argumento opcional é `native` ou `portable`; omiti-lo conserva
++`native`. O terceiro argumento opcional é um prefixo de arquivos PPM. Exemplo:
++
++```sh
++coin-render-sdk-consumer d3d12 portable artifacts/sdk-d3d12-portable
++coin-render-sdk-capabilities-c
++```
++
++Além do cubo e da comparação CoinGL, o consumidor renderiza uma imagem
++128×128 minificada em 64×64. Em `portable`, exige o oracle independente de
++NEAREST_MIPMAP_LINEAR: canais 40/160 nas colunas 30/31, com erro máximo 1.
++Em `native`, exige render e pixels completos sem impor o oracle portátil.
++Os arquivos `*-cube.ppm` e `*-mip.ppm` conservam os pixels efetivos.
++
++A disponibilidade da política é consultada sem exigir perfil publicado;
++a consulta estrita é registrada separadamente. Windows permanece
++`UNQUALIFIED_PROFILE` na consulta estrita desta revisão. Aprovar os smokes
++em uma GPU identificada não publica automaticamente um perfil geral Windows.
++No Windows, os caminhos de Coin4.dll/CoinRender4.dll carregados são impressos;
++compare seus hashes com a instalação. A sonda C11 verifica capabilities v4
++com 584 bytes, prefixo v3 com 536 bytes e ordinal nativo zero.
+diff --git a/examples/coinrender/sdk-consumer/capabilities.c b/examples/coinrender/sdk-consumer/capabilities.c
+new file mode 100644
+index 0000000000..b393391a7a
+--- /dev/null
++++ b/examples/coinrender/sdk-consumer/capabilities.c
+@@ -0,0 +1,11 @@
++#include <Inventor/rendering/CoinRenderCapabilities.h>
++#include <stddef.h>
++#include <stdio.h>
++_Static_assert(COIN_RENDER_SAMPLING_NATIVE == 0, "native policy ordinal stays zero");
++_Static_assert(sizeof(CoinRenderCapabilities) == 584, "v4 public capability ABI");
++_Static_assert(offsetof(CoinRenderCapabilities, implemented_sampling_policies) == 536, "v3 prefix ABI");
++int main(void) {
++  printf("installed_C11_capabilities_v4_size=%zu v3_prefix=%zu native_policy=%d\n",
++    sizeof(CoinRenderCapabilities), offsetof(CoinRenderCapabilities, implemented_sampling_policies), COIN_RENDER_SAMPLING_NATIVE);
++  return 0;
++}
+diff --git a/examples/coinrender/sdk-consumer/main.cpp b/examples/coinrender/sdk-consumer/main.cpp
+index 21a677264f..eb8a8e4215 100644
+--- a/examples/coinrender/sdk-consumer/main.cpp
++++ b/examples/coinrender/sdk-consumer/main.cpp
+@@ -4,6 +4,11 @@
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/nodes/SoCallback.h>
+ #include <Inventor/nodes/SoCube.h>
++#include <Inventor/nodes/SoComplexity.h>
++#include <Inventor/nodes/SoCoordinate3.h>
++#include <Inventor/nodes/SoIndexedFaceSet.h>
++#include <Inventor/nodes/SoTexture2.h>
++#include <Inventor/nodes/SoTextureCoordinate2.h>
+ #include <Inventor/nodes/SoLightModel.h>
+ #include <Inventor/nodes/SoMaterial.h>
+ #include <Inventor/nodes/SoOrthographicCamera.h>
+@@ -17,6 +22,11 @@
+ #include <iostream>
+ #include <memory>
+ #include <vector>
++#include <fstream>
++#include <string>
++#ifdef _WIN32
++#include <windows.h>
++#endif
+ 
+ static void inspectGl(void *, SoAction * action) {
+   if (!action->isOfType(SoGLRenderAction::getClassTypeId())) return;
+@@ -27,9 +37,58 @@ static void inspectGl(void *, SoAction * action) {
+             << " texture_coords=" << coords << " fragment_samplers=" << samplers << '\n';
+ }
+ 
++
++static void savePixels(const std::string & path, const std::vector<uint8_t> & pixels, int side) {
++  if (path.empty() || pixels.size()!=size_t(side*side*4)) return;
++  std::ofstream out(path, std::ios::binary);
++  out << "P6\n" << side << ' ' << side << "\n255\n";
++  for(size_t i=0;i<pixels.size();i+=4) out.write(reinterpret_cast<const char*>(pixels.data()+i),3);
++}
++
++static bool samplingOracle(CoinRenderOptions options, const std::string & prefix) {
++  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64),options));
++  if(!target || target->getStatus()!=CoinRenderTarget::TARGET_READY) return false;
++  auto* root=new SoSeparator; root->ref();
++  auto* camera=new SoOrthographicCamera; camera->height=2; camera->position=SbVec3f(0,0,3); root->addChild(camera);
++  auto* light=new SoLightModel; light->model=SoLightModel::BASE_COLOR; root->addChild(light);
++  auto* quality=new SoComplexity; quality->textureQuality=.5f; root->addChild(quality);
++  auto* texture=new SoTexture2; texture->model=SoTexture2::REPLACE;
++  std::vector<unsigned char> bytes(128*128*4,255);
++  for(int y=0;y<128;++y)for(int x=0;x<128;++x)for(int c=0;c<3;++c)bytes[(y*128+x)*4+c]=x<64?40:160;
++  texture->image.setValue(SbVec2s(128,128),4,bytes.data()); root->addChild(texture);
++  auto* coords=new SoCoordinate3; const SbVec3f positions[]={{-1,-1,0},{1,-1,0},{1,1,0},{-1,1,0}};
++  coords->point.setValues(0,4,positions); root->addChild(coords);
++  auto* uv=new SoTextureCoordinate2; const SbVec2f st[]={{-1.46875f,.53125f},{2.53125f,.53125f},{2.53125f,.53125f},{-1.46875f,.53125f}};
++  uv->point.setValues(0,4,st); root->addChild(uv);
++  auto* face=new SoIndexedFaceSet; const int32_t indices[]={0,1,2,3,-1};face->coordIndex.setValues(0,5,indices);root->addChild(face);
++  CoinRenderAction action(SbViewportRegion(64,64)); action.setRenderTarget(target.get());action.apply(root);
++  std::vector<uint8_t> pixels;target->readbackRGBA(pixels);
++  bool ok=action.getLastStatus()==CoinRenderAction::SUCCESS && pixels.size()==64*64*4;
++  int maximum=0;
++  if(ok && options.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE) {
++    for(int y=8;y<56;++y)for(int x:{30,31})for(int c=0;c<3;++c)
++      maximum=std::max(maximum,std::abs(int(pixels[(y*64+x)*4+c])-(x==30?40:160)));
++    ok=maximum<=1;
++  }
++  if(!prefix.empty())savePixels(prefix+"-mip.ppm",pixels,64);
++  std::cout << "sdk_sampling policy=" << options.textureSamplingPolicy << " serial=" << target->getLastSubmissionSerial()
++            << " floor_oracle=" << (options.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE)
++            << " maximumRGB=" << maximum << " result=" << ok << '\n';
++  if(!ok)std::cerr << action.getLastError().getString() << '\n';
++  action.setRenderTarget(nullptr);root->unref();return ok;
++}
++
+ int main(int argc, char ** argv) {
+-  if (argc != 2) {
+-    std::cerr << "Usage: coin-render-sdk-consumer d3d12|vulkan|opengl\n"; return 2;
++  std::cout << std::unitbuf;
++#ifdef _WIN32
++  for(const char* name:{"Coin4.dll","CoinRender4.dll"}) {
++    const HMODULE module=GetModuleHandleA(name);char path[32768]{};
++    if(!module || !GetModuleFileNameA(module,path,sizeof(path)))return 6;
++    std::cout << "sdk_loaded_module name=" << name << " path=" << path << '\n';
++  }
++#endif
++  if (argc < 2 || argc > 4) {
++    std::cerr << "Usage: coin-render-sdk-consumer d3d12|vulkan|opengl [native|portable] [pixel-prefix]\n"; return 2;
+   }
+   CoinRenderRenderer renderer;
+   if (!std::strcmp(argv[1], "d3d12")) renderer=COIN_RENDER_RENDERER_D3D12;
+@@ -43,6 +102,16 @@ int main(int argc, char ** argv) {
+     std::cerr << "Requested renderer unavailable: " << caps.diagnostic << '\n'; return 3;
+   }
+   CoinRenderOptions options; options.renderer=renderer;
++  if(argc>=3) {
++    if(!std::strcmp(argv[2],"portable")) options.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
++    else if(std::strcmp(argv[2],"native")) return 2;
++  }
++  const std::string prefix=argc==4 ? argv[3] : "";
++  const auto selection=coin_render_select_sampling_policy(&caps,options.textureSamplingPolicy,0);
++  const auto strict=coin_render_select_sampling_policy(&caps,options.textureSamplingPolicy,1);
++  std::cout << "sdk_policy=" << options.textureSamplingPolicy << " available_selection=" << selection.reason
++            << " qualified_selection=" << strict.reason << '\n';
++  if(selection.reason!=COIN_RENDER_SELECTION_SUPPORTED)return 3;
+   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(32,32), options));
+   if (!target || target->getStatus()!=CoinRenderTarget::TARGET_READY) return 4;
+   auto * root=new SoSeparator; root->ref();
+@@ -74,7 +143,9 @@ int main(int argc, char ** argv) {
+   std::cout << "installed_sdk renderer=" << caps.renderer << " vendor_id=0x" << std::hex
+             << caps.vendor_id << " device_id=0x" << caps.device_id << std::dec
+             << " adapter=" << caps.adapter_name << " pixels_ok=" << ok << '\n';
++  if(!prefix.empty())savePixels(prefix+"-cube.ppm",pixels,32);
+   action.setRenderTarget(nullptr);
+   root->unref();
++  ok=samplingOracle(options,prefix) && ok;
+   return ok ? 0 : 5;
+ }
+diff --git a/include/Inventor/system/gl-fallbacks.h b/include/Inventor/system/gl-fallbacks.h
+index 3bec060c00..7fb6a92ac3 100644
+--- a/include/Inventor/system/gl-fallbacks.h
++++ b/include/Inventor/system/gl-fallbacks.h
+@@ -1200,6 +1200,10 @@
+ #ifndef GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB
+ #define GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB 0x862E
+ #endif /* GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB */
++#ifndef GL_SAMPLES
++#define GL_SAMPLES 0x80A9
++#endif /* GL_SAMPLES */
++
+ #ifndef GL_MAX_TEXTURE_COORDS_ARB
+ #define GL_MAX_TEXTURE_COORDS_ARB 0x8871
+ #endif /* GL_MAX_TEXTURE_COORDS_ARB */
+diff --git a/src/elements/SoTextureScalePolicyElement.h b/src/elements/SoTextureScalePolicyElement.h
+index d47b6999b1..dc37cd224a 100644
+--- a/src/elements/SoTextureScalePolicyElement.h
++++ b/src/elements/SoTextureScalePolicyElement.h
+@@ -62,7 +62,7 @@ public:
+   static  void set(SoState * const state, SoNode * const node,
+                    const Policy policy);
+   static  void set(SoState * const state, const Policy policy);
+-  static Policy get(SoState * const state);
++  static COIN_DLL_API Policy get(SoState * const state);
+   static Policy getDefault(void);
+ 
+ };
+diff --git a/src/elements/SoTextureScaleQualityElement.h b/src/elements/SoTextureScaleQualityElement.h
+index 04c0bbe112..f38c67601e 100644
+--- a/src/elements/SoTextureScaleQualityElement.h
++++ b/src/elements/SoTextureScaleQualityElement.h
+@@ -52,7 +52,7 @@ protected:
+ public:
+   void init(SoState * state) override;
+   static void set(SoState * state, SoNode * node, const float quality);
+-  static float get(SoState * state);
++  static COIN_DLL_API float get(SoState * state);
+   static float getDefault(void);
+ };
+ 
+diff --git a/src/glue/GLUWrapper.h b/src/glue/GLUWrapper.h
+index e442dcf5f4..00c9fc9494 100644
+--- a/src/glue/GLUWrapper.h
++++ b/src/glue/GLUWrapper.h
+@@ -37,6 +37,8 @@
+ #error this is a private header file
+ #endif
+ 
++#include <Inventor/C/basic.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif /* HAVE_CONFIG_H */
+@@ -156,7 +158,7 @@ typedef struct {
+ } GLUWrapper_t;
+ 
+ 
+-const GLUWrapper_t * GLUWrapper(void);
++COIN_DLL_API const GLUWrapper_t * GLUWrapper(void);
+ 
+ 
+ #ifdef __cplusplus
+diff --git a/src/glue/simage_wrapper.h b/src/glue/simage_wrapper.h
+index 2b71dda939..418c952bb4 100644
+--- a/src/glue/simage_wrapper.h
++++ b/src/glue/simage_wrapper.h
+@@ -37,6 +37,8 @@
+ #error this is a private header file
+ #endif
+ 
++#include <Inventor/C/basic.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif /* HAVE_CONFIG_H */
+@@ -171,7 +173,7 @@ extern "C" {
+ 
+   } simage_wrapper_t;
+ 
+-  const simage_wrapper_t * simage_wrapper(void);
++  COIN_DLL_API const simage_wrapper_t * simage_wrapper(void);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/src/rendering/coinbgfx/shaders/coin_surface.sh b/src/rendering/coinbgfx/shaders/coin_surface.sh
+index f6b8499c7f..ccd66a7f2d 100644
+--- a/src/rendering/coinbgfx/shaders/coin_surface.sh
++++ b/src/rendering/coinbgfx/shaders/coin_surface.sh
+@@ -41,10 +41,10 @@ vec4 coinPortableSample(sampler2D t, vec2 uv, vec4 suppliedSize) {
+   if (flags>=2) bounded.y=clamp(uv.y,0.0,1.0);
+   int lo = int(floor(lod)), hi = min(lo+1,maximum);
+   ivec2 ni = ivec2(n);
+-  vec2 a = vec2(max(ni >> lo, ivec2(1)));
++  vec2 a = vec2(max(ni >> lo, ivec2(1, 1)));
+   bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
+   if(pot)return texture2DLod(t,(floor(bounded*a)+0.5)/a,lod);
+-  vec2 b = vec2(max(ni >> hi, ivec2(1)));
++  vec2 b = vec2(max(ni >> hi, ivec2(1, 1)));
+   return coinPortableLerp(texture2DLod(t,(floor(bounded*a)+0.5)/a,float(lo)),
+                           texture2DLod(t,(floor(bounded*b)+0.5)/b,float(hi)),fract(lod));
+ }
+diff --git a/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs b/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
+index 9096098852..02446a61cb 100644
+--- a/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
++++ b/src/rendering/coinwgpu/rust_bridge/src/shader_profile.rs
+@@ -1,6 +1,10 @@
+ // Native compilation removes portable functions and its uniform appendix.
+ // Both vertex and fragment stages therefore use the original binding prefix.
+ pub(super) fn sampling_profile(source: &str, portable: bool) -> String {
++    // include_str! preserves Git checkout line endings on Windows.
++    // Canonicalize before removing the portable-only uniform appendix.
++    let canonical = source.replace("\r\n", "\n");
++    let source = canonical.as_str();
+     if portable || !source.contains("fn coin_portable_sample(") { return source.to_owned(); }
+     let mut source = source.to_owned();
+     let start = source.find("fn coin_portable_lerp(").unwrap();
+@@ -76,6 +80,28 @@ pub(super) mod tests {
+             .write().expect("translate GLSL profile");
+     }
+ 
++    #[test]
++    fn sampling_profiles_preserve_uniform_abi_with_lf_and_crlf_inputs() {
++        for source in [include_str!("../../shaders/coin_standard.wgsl").to_owned(),
++            super::super::shadow_receiver::four_map_source(),
++            super::super::shadow_receiver::eight_map_source(),
++            super::super::instancing::shader_source()] {
++            let lf = source.replace("\r\n", "\n");
++            for input in [lf.clone(), lf.replace("\n", "\r\n")] {
++                for portable in [false, true] {
++                    let profile = sampling_profile(&input, portable);
++                    let module = naga::front::wgsl::parse_str(&profile).expect("sampling line-ending profile");
++                    Validator::new(ValidationFlags::all(), Capabilities::all())
++                        .validate(&module).expect("sampling uniform contract");
++                    let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
++                    if let naga::TypeInner::Struct {span,..}=uniform.inner {
++                        assert_eq!(span, if portable {3168} else {3040});
++                    } else {panic!("uniform is not a struct");}
++                }
++            }
++        }
++    }
++
+     #[test]
+     fn native_profiles_restore_uniform_layout_and_all_fragment_contracts() {
+         for source in [without_shadows(include_str!("../../shaders/coin_standard.wgsl")),
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index 5a06d5f145..61e8e55ee1 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -473,6 +473,12 @@ if(COIN_BUILD_RENDER)
+ 		set_tests_properties(CoinRenderSamplingPolicyWindowTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
+ 			ENVIRONMENT "COIN_SAMPLING_STUDY=fetch")
+ 	endif()
++	if(WIN32)
++		target_compile_definitions(CoinRenderSamplingPolicyTest PRIVATE _WIN32_WINNT=0x0A00)
++		target_link_libraries(CoinRenderSamplingPolicyTest user32 gdi32)
++		add_test(NAME CoinRenderSamplingPolicyWindowTest COMMAND CoinRenderSamplingPolicyTest --window)
++		set_tests_properties(CoinRenderSamplingPolicyWindowTest PROPERTIES TIMEOUT 120)
++	endif()
+ 	add_test(NAME CoinRenderSamplingPolicyTest COMMAND CoinRenderSamplingPolicyTest)
+ 	add_test(NAME CoinRenderSamplingPolicyGpuTest COMMAND CoinRenderSamplingPolicyTest --gpu)
+ 	set_tests_properties(CoinRenderSamplingPolicyGpuTest PROPERTIES TIMEOUT 120 SKIP_RETURN_CODE 77
+@@ -939,7 +945,6 @@ if(COIN_BUILD_RENDER)
+ 			target_link_libraries(CoinRenderGluNativeOracle PRIVATE ${OPENGL_glu_LIBRARY})
+ 		endif()
+ 		if(WIN32)
+-			target_compile_definitions(CoinRenderGluNativeOracle PRIVATE COIN_NOT_DLL)
+ 			target_link_libraries(CoinRenderGluNativeOracle PRIVATE Coin gdi32 user32)
+ 		elseif(NOT APPLE)
+ 			find_package(GLUT REQUIRED)
+diff --git a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+index 944041047f..8656ec5463 100644
+--- a/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderAdvancedTextureTest.cpp
+@@ -557,9 +557,17 @@ int main(int argc, char **argv) {
+     ok &= render(frame, expected,
+                  "linear alpha in format " + std::to_string(uint32_t(format)));
+   }
++  const auto firstUploadFilter = capture->plan.samplers[0].filter;
+   scene.texture->enableCompressedTexture = TRUE;
+   scene.quality->textureQuality = .8f;
+   action.apply(scene.root);
++  ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
++                  capture->plan.samplers[0].filter == firstUploadFilter,
++              "quality hint without image notification retains first upload filter");
++  // The current upload contract retains quality until image/wrap notification.
++  // Reupload identical bytes before requiring the newly requested mip chain.
++  scene.texture->image.touch();
++  action.apply(scene.root);
+   ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                   capture->plan.textures[0].format == F::BC3_SRGB &&
+                   capture->plan.textures[0].mipmapsRgba.size() == 32,
+@@ -580,8 +588,14 @@ int main(int argc, char **argv) {
+                   capture->plan.textures[0].width == 3 &&
+                   capture->plan.textures[0].height == 5,
+               "NPOT recovery preserves native extent");
++  const auto priorUploadAnisotropy = capture->plan.samplers[0].maxAnisotropy;
+   scene.quality->textureQuality = .9f;
+   action.apply(scene.root);
++  ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
++                  capture->plan.samplers[0].maxAnisotropy == priorUploadAnisotropy,
++              "anisotropy hint without image notification retains first upload sampler");
++  scene.texture->image.touch();
++  action.apply(scene.root);
+   ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                   capture->plan.samplers[0].maxAnisotropy == 16,
+               "anisotropy capture has explicit limit");
+diff --git a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+index 6fc58d15ba..111d9b6314 100644
+--- a/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
++++ b/testsuite/coinrender/CoinRenderProceduralTextureTest.cpp
+@@ -152,6 +152,7 @@ public:
+   }
+ };
+ struct Scene {
++  std::vector<SoTexture2*> textures;
+   Scene(int shape = 0) {
+     root = new SoSeparator; root->ref();
+     auto * camera = new SoOrthographicCamera;
+@@ -204,7 +205,7 @@ struct Scene {
+       pixels[i]=unit == 0 ? 80+8*x : 220+2*x;
+       pixels[i+1]=unit == 0 ? 80+8*y : 220+2*y; pixels[i+2]=unit == 0 ? 160 : 240;
+     }
+-    image->image.setValue(SbVec2s(16,16),3,pixels.data()); stages->addChild(image);
++    image->image.setValue(SbVec2s(16,16),3,pixels.data()); stages->addChild(image); textures.push_back(image);
+     return function;
+   }
+   SoSeparator * root;
+@@ -423,7 +424,13 @@ bool run(bool gpu) {
+   // Quality > .85 now requests anisotropy in the advanced profile. Retain
+   // the publication rejection checks with an out-of-range value,
+   // and require the newly admitted procedural combination to render first.
++  const auto priorSampler = h.capture->frame.samplers[0];
+   scene.quality->textureQuality=.95f;
++  if (!h.render(scene,"quality-hint-retains-upload",true)) return false;
++  if (!check(h.capture->frame.samplers[0].filter==priorSampler.filter &&
++      h.capture->frame.samplers[0].maxAnisotropy==priorSampler.maxAnisotropy,
++      "procedural quality hint preserves uploaded sampler before notification")) return false;
++  for (auto* texture : scene.textures) texture->image.touch();
+   if (!h.render(scene,"anisotropic-procedural-profile",true)) return false;
+   if (!check(!h.capture->frame.samplers.empty() &&
+       h.capture->frame.samplers[0].maxAnisotropy==16 &&
+diff --git a/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp b/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
+index 8eac51b8ee..462f9e545d 100644
+--- a/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
++++ b/testsuite/coinrender/CoinRenderSamplingPolicyTest.cpp
+@@ -29,6 +29,8 @@
+ #include <memory>
+ #include <thread>
+ #include <chrono>
++#include <fstream>
++#include <cstdlib>
+ 
+ #ifdef COIN_SAMPLING_X11
+ #include <X11/Xlib.h>
+@@ -74,10 +76,75 @@ struct SamplingWindows {
+ };
+ #endif
+ 
++
++#ifdef _WIN32
++#define WIN32_LEAN_AND_MEAN
++#ifndef NOMINMAX
++#define NOMINMAX
++#endif
++#include <windows.h>
++struct SamplingWindows {
++  HWND native=nullptr, portable=nullptr;
++  static LRESULT CALLBACK proc(HWND h,UINT m,WPARAM w,LPARAM l) {
++    if(m==WM_DPICHANGED) {
++      const auto* r=reinterpret_cast<const RECT*>(l);
++      SetWindowPos(h,nullptr,r->left,r->top,r->right-r->left,r->bottom-r->top,SWP_NOZORDER|SWP_NOACTIVATE);
++      return 0;
++    }
++    return DefWindowProcW(h,m,w,l);
++  }
++  static void pump() {MSG m{};while(PeekMessageW(&m,nullptr,0,0,PM_REMOVE)){TranslateMessage(&m);DispatchMessageW(&m);}}
++  bool open() {
++    SetProcessDpiAwarenessContext(DPI_AWARENESS_CONTEXT_PER_MONITOR_AWARE_V2);
++    WNDCLASSW c{};c.lpfnWndProc=proc;c.hInstance=GetModuleHandleW(nullptr);c.lpszClassName=L"CoinSamplingQualification";
++    if(!RegisterClassW(&c) && GetLastError()!=ERROR_CLASS_ALREADY_EXISTS)return false;
++    native=CreateWindowW(c.lpszClassName,L"Sampling native",WS_POPUP,50,50,64,64,nullptr,nullptr,c.hInstance,nullptr);
++    portable=CreateWindowW(c.lpszClassName,L"Sampling portable",WS_POPUP,150,50,64,64,nullptr,nullptr,c.hInstance,nullptr);
++    if(!native || !portable)return false;
++    ShowWindow(native,SW_SHOWNOACTIVATE);ShowWindow(portable,SW_SHOWNOACTIVATE);pump();return true;
++  }
++  void size(HWND w,int n) {SetWindowPos(w,HWND_TOPMOST,0,0,n,n,SWP_NOMOVE|SWP_NOACTIVATE);pump();}
++  CoinRenderNativeSurfaceDescriptor descriptor(HWND w) const {
++    CoinRenderNativeSurfaceDescriptor d{};d.abiVersion=COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;d.structSize=sizeof(d);
++    d.type=COIN_RENDER_SURFACE_WIN32;d.native.win32.hinstance=GetModuleHandleW(nullptr);d.native.win32.hwnd=w;return d;
++  }
++  static bool capture(HWND w,int n,std::vector<uint8_t>& pixels) {
++    pump();std::this_thread::sleep_for(std::chrono::milliseconds(50));
++    HDC dc=GetDC(w),mem=dc ? CreateCompatibleDC(dc) : nullptr;
++    BITMAPINFO info{};info.bmiHeader.biSize=sizeof(BITMAPINFOHEADER);info.bmiHeader.biWidth=n;info.bmiHeader.biHeight=-n;
++    info.bmiHeader.biPlanes=1;info.bmiHeader.biBitCount=32;info.bmiHeader.biCompression=BI_RGB;
++    void* data=nullptr;HBITMAP bitmap=dc ? CreateDIBSection(dc,&info,DIB_RGB_COLORS,&data,nullptr,0) : nullptr;
++    HGDIOBJ old=bitmap && mem ? SelectObject(mem,bitmap) : nullptr;
++    bool ok=old && BitBlt(mem,0,0,n,n,dc,0,0,SRCCOPY|CAPTUREBLT);GdiFlush();pixels.clear();
++    if(ok) {
++      pixels.resize(size_t(n*n*4));const auto* b=static_cast<const uint8_t*>(data);
++      for(size_t i=0;i<pixels.size();i+=4){pixels[i]=b[i+2];pixels[i+1]=b[i+1];pixels[i+2]=b[i];pixels[i+3]=255;}
++    }
++    if(old)SelectObject(mem,old);if(bitmap)DeleteObject(bitmap);if(mem)DeleteDC(mem);if(dc)ReleaseDC(w,dc);
++    return ok;
++  }
++  ~SamplingWindows(){if(native)DestroyWindow(native);if(portable)DestroyWindow(portable);}
++};
++#endif
++
+ static bool check(bool value, const char* label) {
+   if (!value) std::cerr << "FAIL " << label << '\n';
+   return value;
+ }
++#ifdef _WIN32
++static constexpr auto samplingWindowBackend=COIN_RENDER_EXPERIMENTAL_WIN32_WINDOW;
++#else
++static constexpr auto samplingWindowBackend=COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW;
++#endif
++
++static void saveEvidence(const std::vector<uint8_t>& pixels,int side,const char* stage) {
++  const char* prefix=std::getenv("COIN_RENDER_SAMPLING_PIXEL_PREFIX");
++  if(!prefix || pixels.size()!=size_t(side*side*4))return;
++  std::ofstream out(std::string(prefix)+"-"+stage+".ppm",std::ios::binary);
++  out << "P6\n" << side << ' ' << side << "\n255\n";
++  for(size_t i=0;i<pixels.size();i+=4)out.write(reinterpret_cast<const char*>(pixels.data()+i),3);
++}
++
+ static bool selection(bool gpu, bool window = false) {
+   CoinRenderCapabilities caps{};
+   caps.version=4;caps.struct_size=sizeof(caps);caps.backend=COIN_RENDER_EXPERIMENTAL_RUST;
+@@ -102,9 +169,14 @@ static bool selection(bool gpu, bool window = false) {
+   options.textureSamplingPolicy=static_cast<CoinRenderTextureSamplingPolicy>(99);
+   ok &= check(!coin_render_valid_options(options,diagnostic),"invalid target policy rejected");
+   if (!gpu) return ok;
+-  if (!check(coin_render_query_capabilities(window ? COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"v4 runtime capabilities")) return false;
++  if (!check(coin_render_query_capabilities(window ? samplingWindowBackend : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0,"v4 runtime capabilities")) return false;
+   ok &= check(caps.version==4 && (caps.implemented_sampling_policies&COIN_RENDER_SAMPLING_POLICY_PORTABLE) && caps.portable_sampling_filter_mask==(1u<<2) && caps.portable_sampling_max_anisotropy==1 && caps.max_texture_mip_chain_bytes==UINT64_C(128)*1024*1024,"explicit portable profile and limits");
++  #ifdef _WIN32
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,0).reason==COIN_RENDER_SELECTION_SUPPORTED,"Windows admits explicit portable policy without fallback");
++  ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,1).reason==COIN_RENDER_SELECTION_UNQUALIFIED_PROFILE,"Windows does not invent a qualified profile from Linux evidence");
++#else
+   ok &= check(coin_render_select_sampling_policy(&caps,COIN_RENDER_SAMPLING_PORTABLE,1).reason==COIN_RENDER_SELECTION_SUPPORTED,"bounded Linux offscreen/Xlib portable qualification");
++#endif
+   ok &= check(caps.portable_sampling_formats==31,"five explicit compiled image formats");
+ #ifdef HAVE_COIN_BGFX
+   ok &= check(caps.portable_sampling_derivatives==COIN_RENDER_SAMPLING_DERIVATIVE_DEFAULT,"BGFX reports ordinary shader derivatives for every renderer");
+@@ -124,10 +196,11 @@ static bool selection(bool gpu, bool window = false) {
+   return ok;
+ }
+ int main(int argc,char**argv) {
++  std::cout << std::unitbuf;
+   SoDB::init();CoinRenderAction::initClass();
+   const bool window=argc>1 && std::string(argv[1])=="--window";
+   const bool gpu=window || (argc>1 && std::string(argv[1])=="--gpu");
+-#ifdef COIN_SAMPLING_X11
++#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
+   SamplingWindows windows;
+   if (window && !windows.open()) return 77;
+ #else
+@@ -139,7 +212,7 @@ int main(int argc,char**argv) {
+   if (!diagnostic.empty()) {std::cerr<<diagnostic<<'\n';return 1;}
+   if(gpu && nativeOptions.renderer==COIN_RENDER_RENDERER_UNKNOWN) {
+     CoinRenderCapabilities runtime{};
+-    if(coin_render_query_capabilities(window ? COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&runtime,sizeof(runtime))!=0) return 1;
++    if(coin_render_query_capabilities(window ? samplingWindowBackend : COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&runtime,sizeof(runtime))!=0) return 1;
+     nativeOptions.renderer=static_cast<CoinRenderRenderer>(runtime.renderer);
+   }
+   bool externalCapture = false;
+@@ -162,13 +235,19 @@ int main(int argc,char**argv) {
+       }
+       XDestroyImage(image);return;
+     }
++#endif
++#ifdef _WIN32
++    if(externalCapture && target->getPimpl()->kind==CoinRenderTargetP::KIND_WINDOW) {
++      const auto n=target->getSize();
++      SamplingWindows::capture(static_cast<HWND>(target->getPimpl()->nativeDesc.native.win32.hwnd),n[0],pixels);return;
++    }
+ #endif
+     target->readbackRGBA(pixels);
+   };
+   auto portableOptions=nativeOptions;portableOptions.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
+   auto createTarget = [&](bool isPortable) {
+     const auto& options = isPortable ? portableOptions : nativeOptions;
+-#ifdef COIN_SAMPLING_X11
++#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
+     if (window) return CoinRenderTarget::createWindow(windows.descriptor(isPortable ? windows.portable : windows.native), SbVec2i32(64,64), options);
+ #endif
+     return CoinRenderTarget::createOffscreen(SbVec2i32(64,64), options);
+@@ -197,12 +276,13 @@ int main(int argc,char**argv) {
+     if(selected.getLastStatus()!=CoinRenderAction::SUCCESS) std::cerr << "render size=" << target->getSize()[0] << " policy=" << target->getOptions().textureSamplingPolicy << " status=" << selected.getLastStatus() << " diagnostic=" << selected.getLastError().getString() << "\n";
+     return check(selected.getLastStatus()==CoinRenderAction::SUCCESS,"explicit-policy frame renders");
+   };
+-  ok &= render(native.get());readPixels(native.get(),nativeFirst);
++  ok &= render(native.get());readPixels(native.get(),nativeFirst);saveEvidence(nativeFirst,64,"native-first");
+   for(int textureUnit : {0,7,0}) {
+     unit->unit=textureUnit;
+     ok &= render(portable.get());readPixels(portable.get(),portablePixels);
+     ok &= check(action.getPimpl()->lastValidPlan.textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE,"captured plan owns selected policy");
+     if(portablePixels.size()!=64*64*4){ok=false;break;}
++    saveEvidence(portablePixels,64,("portable-unit-"+std::to_string(textureUnit)).c_str());
+     // Independent floor oracle: original du/dx=1/16, texture128 => LOD3.
+     // x30 -> u0.4375, texel7 (40); x31 -> u0.5, texel8 (160).
+     for(int y=8;y<56;++y)for(int x : {30,31})for(int c=0;c<3;++c)
+@@ -241,25 +321,34 @@ int main(int argc,char**argv) {
+   }
+   ok &= check(native->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_NATIVE && portable->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE,"target policies stay immutable and independent of experimental environment");
+   if(gpu)ok &= check(native->getPimpl()->backend->resourceDomain().device==portable->getPimpl()->backend->resourceDomain().device,"policies share device resources");
+-#ifdef COIN_SAMPLING_X11
++#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
+   if(window) windows.size(windows.portable,128);
+ #endif
+   ok &= check(portable->resize(SbVec2i32(128,128)),"portable target resize");
+   action.setViewportRegion(SbViewportRegion(128,128));ok &= render(portable.get());
+   readPixels(portable.get(),portablePixels);
++  saveEvidence(portablePixels,128,"portable-resized");
+   if (portablePixels.size()==128*128*4) {
+     for(int x : {62,63}) ok &= check(std::abs(int(portablePixels[(64*128+x)*4])-(x==62?40:160))<=1,"resized derivative footprint oracle");
+   } else ok=false;
+-#ifdef COIN_SAMPLING_X11
++#if defined(COIN_SAMPLING_X11) || defined(_WIN32)
+   if(window) {
++#ifdef _WIN32
++    ShowWindow(windows.portable,SW_HIDE);SamplingWindows::pump();
++#else
+     XUnmapWindow(windows.display, windows.portable); XSync(windows.display,False);
++#endif
+     ok &= check(portable->resize(SbVec2i32(0,0)),"suspend portable window");
+     action.apply(root);
+     ok &= check(action.getLastStatus()==CoinRenderAction::NOT_READY,"suspended window rejects submission");
+     ok &= render(native.get());readPixels(native.get(),nativeAgain);
+     ok &= check(nativeAgain==nativeFirst,"suspended portable window leaves native sibling intact");
++#ifdef _WIN32
++    ShowWindow(windows.portable,SW_SHOWNOACTIVATE);SamplingWindows::pump();
++#else
+     XMapWindow(windows.display,windows.portable);XSync(windows.display,False);
+     XEvent mapped;do {XWindowEvent(windows.display,windows.portable,StructureNotifyMask,&mapped);} while(mapped.type!=MapNotify);
++#endif
+     windows.size(windows.portable,128);
+ 
+     ok &= check(portable->resize(SbVec2i32(128,128)),"resume portable window");
+@@ -283,6 +372,31 @@ int main(int argc,char**argv) {
+     target->readbackRGBA(portablePixels);
+     ok &= check(target->getOptions().textureSamplingPolicy==COIN_RENDER_SAMPLING_PORTABLE && portablePixels.size()==64*64*4 && std::abs(int(portablePixels[(32*64+31)*4])-160)<=1,"host adapter portable image oracle");
+   }
++
++#ifdef _WIN32
++  if(window && argc==5 && std::string(argv[2])=="--benchmark-no-readback") {
++    const std::string policy=argv[3];
++    ok &= check(policy=="native" || policy=="portable","benchmark explicit policy");
++    windows.size(windows.portable,64);
++    nativeAction.setRenderTarget(nullptr);native.reset();
++    std::unique_ptr<CoinRenderTarget> measured(createTarget(policy=="portable"));
++    CoinRenderAction timed(SbViewportRegion(64,64));timed.setRenderTarget(measured.get());
++    std::ofstream csv(argv[4]);csv << "frame,warmup,render_present_ms,serial\n";
++    bool admitted=measured && measured->getStatus()==CoinRenderTarget::TARGET_READY;
++    for(int i=-60;admitted && i<600;++i) {
++      SamplingWindows::pump();const auto before=measured->getLastSubmissionSerial();
++      const auto start=std::chrono::steady_clock::now();timed.apply(root);const auto finish=std::chrono::steady_clock::now();
++      admitted=timed.getLastStatus()==CoinRenderAction::SUCCESS && measured->getLastSubmissionSerial()>before;
++      csv << i << ',' << (i<0) << ',' << std::chrono::duration<double,std::milli>(finish-start).count()
++          << ',' << measured->getLastSubmissionSerial() << '\n';
++    }
++    csv.flush();ok &= check(admitted && bool(csv),"window timing frames publish with no readback calls");
++    std::cout << "window_timing policy=" << policy << " frames=600 warmup=60 readback=none extent=64x64"
++              << " metric=CPU_render_present_return includes_backpressure=1 gpu_completion=0 display_latency=0 result=" << admitted << '\n';
++    timed.setRenderTarget(nullptr);
++  }
++#endif
++
+   action.setRenderTarget(nullptr);nativeAction.setRenderTarget(nullptr);root->unref();
+   std::cout<<"Sampling API window="<<window<<" CPU="<<!gpu<<" result="<<(ok?"PASS":"FAIL")<<'\n';
+   return ok?0:1;
+diff --git a/testsuite/coinrender/CoinRenderSamplingTestOptions.h b/testsuite/coinrender/CoinRenderSamplingTestOptions.h
+index dfc1e4505b..6f068bd219 100644
+--- a/testsuite/coinrender/CoinRenderSamplingTestOptions.h
++++ b/testsuite/coinrender/CoinRenderSamplingTestOptions.h
+@@ -2,10 +2,13 @@
+ #define COIN_RENDER_SAMPLING_TEST_OPTIONS_H
+ #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+ #include <string>
++#include <iostream>
+ static CoinRenderTextureSamplingPolicy samplingTestPolicy = COIN_RENDER_SAMPLING_NATIVE;
+ static void configureSamplingTest(int argc, char** argv) {
++  std::cout << std::unitbuf;
+   for (int i=1; i<argc; ++i) if (std::string(argv[i]) == "--portable-sampling")
+     samplingTestPolicy = COIN_RENDER_SAMPLING_PORTABLE;
++  std::cout << "sampling_test_policy=" << samplingTestPolicy << '\n';
+ }
+ static CoinRenderOptions samplingTestOptions() {
+   std::string diagnostic;
+diff --git a/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp b/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
+index 949c528acd..26cbb0fe66 100644
+--- a/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
++++ b/testsuite/coinrender/CoinRenderShadowReferenceTest.cpp
+@@ -57,6 +57,7 @@
+ #include <algorithm>
+ #include <chrono>
+ #include <iostream>
++#include <fstream>
+ #include <vector>
+ #include <memory>
+ 
+@@ -1101,6 +1102,17 @@ bool qualifyNpotShadowTransparency(SoSeparator * source, int mechanism,
+     group->removeChild(ninth);
+     qualified = capture(recovered) && qualified && recovered == shadowed;
+   }
++
++  if (const char* prefix=std::getenv("COIN_RENDER_NPOT_PIXEL_PREFIX")) {
++    const std::vector<unsigned char>* stages[]={&shadowed,&clear,&opaque,&retained,&recovered};
++    const char* names[]={"shadowed","clear","opaque","retained","recovered"};
++    for(int i=0;i<5;++i)if(stages[i]->size()==size_t(side*side*4)) {
++      std::ofstream out(std::string(prefix)+"-"+names[i]+".ppm",std::ios::binary);
++      out << "P6\n" << side << ' ' << side << "\n255\n";
++      for(size_t j=0;j<stages[i]->size();j+=4)out.write(reinterpret_cast<const char*>(stages[i]->data()+j),3);
++    }
++  }
++
+   if (qualified && benchmark) {
+     typedef std::chrono::steady_clock Clock;
+     auto measure = [&](int extent, float textureQuality) {
+@@ -1548,6 +1560,7 @@ bool shadowViewportCrop(SoSeparator *root, SoShadowGroup *group) {
+ 
+ int main(int argc, char ** argv)
+ {
++  std::cout << std::unitbuf;
+   SoDB::init();
+   CoinRenderAction::initClass();
+ 
+diff --git a/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp b/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
+index 0c903daf5f..d157042708 100644
+--- a/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
++++ b/testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp
+@@ -1850,9 +1850,10 @@ main()
+       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
+ 
+   const CoinWgpuFrameView & first = packed.getView();
+-  if (!check(first.abi_version == 50 && sizeof(CoinWgpuVertex) == 164 &&
++  if (!check(first.abi_version == 51 && sizeof(CoinWgpuFrameView) == 456 &&
++             first.texture_sampling_policy == 0 && sizeof(CoinWgpuVertex) == 164 &&
+              sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
+-             "projective private protocol and vertex stride")) return 1;
++             "sampling/projective private protocol and frame/vertex layout")) return 1;
+   for (size_t unit = 0; unit < 8; ++unit) {
+     const float * packedUv = unit ? first.vertices[0].extra_texcoords[unit - 1] : first.vertices[0].texcoord;
+     const float * sourceUv = unit ? frame.vertices[0].extraTexcoords[unit - 1] : frame.vertices[0].texcoord;

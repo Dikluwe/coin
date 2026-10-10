@@ -27,7 +27,8 @@ Não reutilizar os passes Windows anteriores como prova deste código novo.
   cadeia POT staged, orçamento, NPOT recusado e recuperação no perfil anterior.
 - [ ] Qualificar em Windows NPOT armazenado/staged, SRGB, BC3, anisotropia,
   HDR16 direto e mips diretos do [perfil avançado](coin-render-advanced-textures-profile.md);
-  mip NPOT direto BGFX continua recusado explicitamente.
+  Na campanha C++ de 2026-10-10, NPOT direto BGFX passou em D3D12/Vulkan/
+  OpenGL; isso não qualifica o consumidor FreeCAD ainda ausente.
 - [ ] Repetir ColorBar frio em três ranges/precisões, com câmera foreground
   height 10, glifos presentes e comparação CoinGL.
 - [ ] Repetir cinco entradas inválidas dos tipos Part/Mesh no mesmo target,
@@ -54,3 +55,15 @@ wgpu instalada. O pbuffer WGL precisou usar a imagem armazenada para
 construir mipmaps acima de qualidade 0,5; a referência CoinGL passou depois
 da correção, sem aumentar tolerâncias. Esses passes C++ não encerram os
 consumidores FreeCAD e os requisitos de eventos/DPI listados acima.
+
+Na [campanha sampling Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md),
+Coin/CoinRender e SDKs BGFX/wgpu foram recompilados a partir da branch de
+estudo, revisão b86404cafc, com protocolo privado 51. O cliente instalado
+native/portable passou nas seis combinações de backend/API, com hashes das
+DLLs carregadas, pixels e oracle de mip preservados. Captura de sampling de
+janela wgpu/OpenGL foi comprovada por GDI, sem COPY_SRC.
+
+O FreeCAD encontrado nesta máquina é 1.0 com Coin legado, sem CoinRender
+integrado. Part::Spline, Mesh/FEM, ColorBar, arraste e RTT do host permanecem
+pendentes; os passes C++ acima não encerram esses itens. Os dois monitores
+retornaram DPI 96, e não houve campanha de perda física de device.

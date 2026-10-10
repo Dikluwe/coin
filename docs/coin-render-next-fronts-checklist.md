@@ -61,7 +61,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   captura sincronizada NPOT sem/com mips foi medido exploratoriamente.
   O custo dos cinco frames GPU de mips foi isolado em 8/8 perfis, com mediana
   0,0477–0,1558 ms neste fixture; [método e ledger](coin-render-bgfx-npot-mip-gpu-20261009.md).
-  Falta qualificar Windows/DX11.
+  Windows passou funcionalmente em D3D12/Vulkan/OpenGL, oito sombras e
+  peeling/weighted OIT; custo GPU completo passou em Vulkan/OpenGL. Falta
+  coletar todos os cinco timestamps por cadeia em D3D12, conforme a [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md).
+  O seletor não oferece D3D11: dx11 é o nome do shader DXBC usado pelo
+  D3D12, e sua compilação não qualifica execução D3D11.
   [Implementação](coin-render-bgfx-npot-direct-mips-plan-20261008.md) e
   [continuação do gate](coin-render-bgfx-npot-shadow-oit-20261009.md).
 - [ ] Rescaling/SoTextureScalePolicy legado, codec de melhor qualidade,
@@ -216,7 +220,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   agregada. Traces confirmam replay BGFX na NVIDIA, native/portable. Outras
   cargas e a causa da variação seguem abertas; não prometer FPS universal.
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
-  avaliar promoção para coin-render. Sampling CoinGL AMD instalado continua
+  avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
+  funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
+  publicação e recuperação. Perfil geral Windows e promoção permanecem
+  pendentes; a consulta estrita continua UNQUALIFIED_PROFILE. Ver a [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md). Sampling CoinGL AMD instalado continua
   divergente; gate MAE≤1,5/max≤4 preservado, estudos de raster abertos.
   [Decisão de 2026-10-08](coin-render-sampling-promotion-decision-20261008.md):
   manter native padrão e a API na branch de estudo até fechar os gates listados.
@@ -383,6 +390,10 @@ qualificados por este fechamento.
   234 processos de medição qualificados e regressões de p95 registradas.
 - [ ] Ampliar Windows para janela sem readback e campanha de latência maior,
   controlando variação do host/clocks e investigando as regressões observadas.
+  Em 2026-10-10, fixture 64×64 passou 24/24 ABBA, 60 warmup + 600 frames
+  medidos por processo, com clocks/P-state registrados e sem readback no
+  trecho medido. Retorno CPU render/present; não fecha workloads maiores,
+  clock fixado ou latência de display. Ver a [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md).
 
 O [relatório Windows](coin-render-windows-continuation-validation-20261007.md)
 preserva dados, exclusões e limites do piloto; não demonstra ganho uniforme
@@ -429,8 +440,13 @@ nem encerra uma campanha completa de desempenho Windows.
   recriações reais de HWND, seriais isolados e ticket offscreen sobrevivente.
   Pixels janela/offscreen iguais nas três APIs BGFX e em wgpu D3D12/Vulkan;
   wgpu/OpenGL qualifica apresentação/rejeição de captura, sem comparar a janela.
-- [ ] Fechar Windows com DPI físico distinto entre monitores, captura visual
-  wgpu/OpenGL sem COPY_SRC e perda real de dispositivo em campanha controlada.
+- [x] Capturar visualmente o fixture de sampling Win32 wgpu/OpenGL sem COPY_SRC:
+  GDI dos pixels apresentados, native/portable, resize/remap/manager, mesmo
+  oracle de mip e limite RGB 1. Gates de janela: 6/6 smokes + 6/6 sampling na
+  [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md); não generaliza todos os consumidores visuais.
+- [ ] Fechar Windows com DPI físico distinto entre monitores e perda real de
+  dispositivo em campanha controlada. Em 2026-10-10 ambos retornaram 96 DPI;
+  fault injection não foi contado como perda física real.
 - [ ] Qualificar AppKit/Metal e Wayland em compositor físico, escala fracionária,
   mudança de monitor, formato de swapchain e demais perfis visuais; BGFX/Wayland
   continua sem mecanismo neste conector.
@@ -478,9 +494,11 @@ detalha pré-requisitos, APIs, gates e prioridades para a continuação no outro
 - [x] Ampliar Linux com SDKs relocados BGFX/wgpu e consumidor público portátil:
   sete células offscreen com RGB igual ao CoinGL, seleção explícita de API,
   rejeição sem fallback e sem dependência BGFX no cliente instalado.
-- [ ] Recompilar os SDKs Windows após o ajuste do export compartilhado e
-  executar o novo consumidor portátil; a campanha Windows anterior continua
-  preservada e não qualifica esse ajuste CMake posterior.
+- [x] Recompilar os SDKs Windows após o ajuste do export compartilhado e
+  executar o consumidor público native/portable: 12/12 processos físicos em
+  BGFX/wgpu × D3D12/Vulkan/OpenGL na GTX 1060, mais 2/2 sondas C11, DLLs
+  carregadas dos prefixes isolados e hashes coincidentes. Falhas iniciais e
+  pixels preservados na [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md). A campanha anterior permanece separada.
 
 [Integração e evidência Linux própria](coin-render-windows-integration-linux-20261007.md).
 Os estudos e limites acima permanecem abertos.

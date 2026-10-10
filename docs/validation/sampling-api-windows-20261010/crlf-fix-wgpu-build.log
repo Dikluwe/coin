@@ -1,0 +1,151 @@
+Versão do MSBuild 17.14.60+43b635718 para .NET Framework
+
+  1>Checking Build System
+  1>Building Rust WebGPU bridge library (release)...
+     Compiling coin_wgpu_rust_bridge v0.1.0 (C:\Users\Diklu\.codex\worktrees\sampling-win-20261010\coin\src\rendering\coinwgpu\rust_bridge)
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0. [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:2420:15
+       |
+  2420 |         wgpu::ImageCopyTexture {
+       |               ^^^^^^^^^^^^^^^^
+       |
+       = note: `#[warn(deprecated)]` on by default
+  
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0. [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:2427:15
+       |
+  2427 |         wgpu::ImageDataLayout {
+       |               ^^^^^^^^^^^^^^^
+  
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageCopyTexture`: This has been renamed to `TexelCopyTextureInfo`, and will be removed in 25.0.0. [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:3521:19
+       |
+  3521 |             wgpu::ImageCopyTexture {
+       |                   ^^^^^^^^^^^^^^^^
+  
+CUSTOMBUILD : warning : use of deprecated type alias `wgpu::ImageDataLayout`: This has been renamed to `TexelCopyBufferLayout`, and will be removed in 25.0.0. [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:3528:19
+       |
+  3528 |             wgpu::ImageDataLayout {
+       |                   ^^^^^^^^^^^^^^^
+  
+CUSTOMBUILD : warning : use of deprecated method `std::sync::atomic::Atomic::<i32>::fetch_update`: renamed to `try_update` for consistency [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:6268:68
+       |
+  6268 |         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+       |                                                                    ^^^^^^^^^^^^
+       |
+  help: replace the use of the deprecated method
+       |
+  6268 -         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.fetch_update(
+  6268 +         let delayed = requested_device == 0 && FAULT_AFTER_SUBMITS.try_update(
+       |
+  
+CUSTOMBUILD : warning : field `default_texture` is never read [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      --> src\lib.rs:1682:5
+       |
+  1669 | struct DeviceState {
+       |        ----------- field in this struct
+  ...
+  1682 |     default_texture: wgpu::Texture,
+       |     ^^^^^^^^^^^^^^^
+       |
+       = note: `#[warn(dead_code)]` (part of `#[warn(unused)]`) on by default
+  
+CUSTOMBUILD : warning : `coin_wgpu_rust_bridge` (lib) generated 6 warnings (run `cargo fix --lib -p coin_wgpu_rust_bridge` to apply 1 suggestion) [H:\Git\coin\build\sampling-win-20261010\build-wgpu\coin_wgpu_rust_bridge_build.vcxproj]
+      Finished `release` profile [optimized] target(s) in 12.25s
+  Building Custom Rule C:/Users/Diklu/.codex/worktrees/sampling-win-20261010/coin/CMakeLists.txt
+  Coin.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\Coin4.dll
+  CoinCHeapHeaderCompileTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\testsuite\CoinCHeapHeaderCompileTest.dir\Release\CoinCHeapHeaderCompileTest.lib
+  CoinProfilerInitTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinProfilerInitTest.exe
+  CoinBumpProgramTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinBumpProgramTest.exe
+  CoinRenderBenchmarkAnimationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderBenchmarkAnimationTest.exe
+     Criando biblioteca H:/Git/coin/build/sampling-win-20261010/build-wgpu/lib/CoinRender4.lib e objeto H:/Git/coin/build/sampling-win-20261010/build-wgpu/lib/CoinRender4.exp
+  CoinRenderFrameReuseBenchmark.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderFrameReuseBenchmark.exe
+  CoinRenderGluNativeOracle.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderGluNativeOracle.exe
+  CoinRender.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRender4.dll
+  CoinBgfxCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinBgfxCoreTest.exe
+  CoinRenderGateG2Test.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderGateG2Test.exe
+  CoinRenderLightingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderLightingTest.exe
+  CoinRenderIndexedFastPathTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderIndexedFastPathTest.exe
+  CoinRenderBackendContractTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderBackendContractTest.exe
+  CoinRenderMarkerSetTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderMarkerSetTest.exe
+  CoinRenderAsyncActionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderAsyncActionTest.exe
+  CoinRenderIndexedGeometryCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderIndexedGeometryCoreTest.exe
+  CoinRenderAdvancedTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderAdvancedTextureTest.exe
+  CoinRenderGouraudInterpolationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderGouraudInterpolationTest.exe
+  CoinRenderGeometryViewportTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderGeometryViewportTest.exe
+  CoinRenderActionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderActionTest.exe
+  CoinRenderGateG1Test.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderGateG1Test.exe
+  CoinRenderMaterialTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderMaterialTest.exe
+  CoinRenderGateG0Test.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderGateG0Test.exe
+  CoinRenderFrameReuseCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderFrameReuseCoreTest.exe
+  CoinRenderMultiTargetTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderMultiTargetTest.exe
+  CoinRenderFrameCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderFrameCoreTest.exe
+  CoinRenderFragmentPolicyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderFragmentPolicyTest.exe
+  CoinRenderMultitextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderMultitextureTest.exe
+  CoinRenderFogTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderFogTest.exe
+  CoinRenderDrawStyleTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderDrawStyleTest.exe
+  CoinRenderNodeInventoryTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderNodeInventoryTest.exe
+  CoinRenderDiagnosticShellTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderDiagnosticShellTest.exe
+  CoinRenderOffscreenTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderOffscreenTest.exe
+  CoinRenderDepthContractTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderDepthContractTest.exe
+  CoinRenderCompositionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderCompositionTest.exe
+  CoinRenderPeelingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderPeelingTest.exe
+  CoinRenderClipPlaneTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderClipPlaneTest.exe
+  CoinRenderCameraReuseReferenceTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderCameraReuseReferenceTest.exe
+  CoinRenderPerformanceTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderPerformanceTest.exe
+  CoinRenderBoundingBoxTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderBoundingBoxTest.exe
+  CoinRenderPlanAssemblyCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderPlanAssemblyCoreTest.exe
+  CoinRenderBackendBoundaryTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderBackendBoundaryTest.exe
+  CoinRenderAsyncReadbackTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderAsyncReadbackTest.exe
+  CoinRenderProceduralTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderProceduralTextureTest.exe
+  CoinBgfxProgramSelectionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinBgfxProgramSelectionTest.exe
+  CoinRenderProductTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderProductTest.exe
+  CoinRenderProjectiveUvTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderProjectiveUvTest.exe
+  CoinRenderPublicationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderPublicationTest.exe
+  CoinRenderRasterStudy.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderRasterStudy.exe
+  CoinRenderRttMatrixTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderRttMatrixTest.exe
+  CoinRenderRttOwnershipTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderRttOwnershipTest.exe
+  CoinRenderRttProfileTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderRttProfileTest.exe
+  CoinRenderRuntimeBoundaryTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderRuntimeBoundaryTest.exe
+  CoinRenderSceneTextureBudgetTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderSceneTextureBudgetTest.exe
+  CoinRenderSamplingPolicyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderSamplingPolicyTest.exe
+  CoinRenderSceneTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderSceneTextureTest.exe
+  CoinRenderScreenContentTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderScreenContentTest.exe
+  CoinRenderSelectionTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderSelectionTest.exe
+  CoinRenderShadowEightMapTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderShadowEightMapTest.exe
+  CoinRenderShadowReferenceTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderShadowReferenceTest.exe
+  CoinRenderStabilizationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderStabilizationTest.exe
+  CoinRenderTextureSamplingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderTextureSamplingTest.exe
+  CoinRenderTextureTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderTextureTest.exe
+  CoinRenderTransformCoreTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderTransformCoreTest.exe
+  CoinRenderTransparencyTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinRenderTransparencyTest.exe
+  CoinSensorSchedulingTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinSensorSchedulingTest.exe
+  CoinWgpuCacheTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinWgpuCacheTest.exe
+  CoinWgpuFfiFrameTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinWgpuFfiFrameTest.exe
+  CoinWgpuLargeBindingsTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinWgpuLargeBindingsTest.exe
+  CoinWgpuMultiDeviceTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinWgpuMultiDeviceTest.exe
+  CoinTests.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\CoinTests.exe
+  RenderManagerFramePreparationTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\RenderManagerFramePreparationTest.exe
+  SoPathAuditorCallbackTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\SoPathAuditorCallbackTest.exe
+  SoPathAssignmentAuditorTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\SoPathAssignmentAuditorTest.exe
+  SoPathChildAppendTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\SoPathChildAppendTest.exe
+  SoPathLegacyAccessorBoundsTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\SoPathLegacyAccessorBoundsTest.exe
+  SoTempPathReplaceTailTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\SoTempPathReplaceTailTest.exe
+  SoPathRangeTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\SoPathRangeTest.exe
+  XmlCHeaderAttributeTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderAttributeTest.exe
+  XmlCApiTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCApiTest.exe
+  XmlCHeaderDocumentTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderDocumentTest.exe
+  XmlCHeaderElementTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderElementTest.exe
+  XmlCHeaderEntityTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderEntityTest.exe
+  XmlCHeaderParserTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderParserTest.exe
+  XmlCHeaderPathTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderPathTest.exe
+  XmlCHeaderTypesTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderTypesTest.exe
+  XmlCHeaderWorldTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeaderWorldTest.exe
+  XmlCHeadersAggregateTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlCHeadersAggregateTest.exe
+  XmlLegacyPathDocumentCxxAbiTest.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\XmlLegacyPathDocumentCxxAbiTest.exe
+  coin_render_freecad_compare.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\coin_render_freecad_compare.exe
+  coin_render_gl_benchmark.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\coin_render_gl_benchmark.exe
+  coin_render_win32_smoke.vcxproj -> H:\Git\coin\build\sampling-win-20261010\build-wgpu\bin\coin_render_win32_smoke.exe
+  Building Custom Rule C:/Users/Diklu/.codex/worktrees/sampling-win-20261010/coin/CMakeLists.txt

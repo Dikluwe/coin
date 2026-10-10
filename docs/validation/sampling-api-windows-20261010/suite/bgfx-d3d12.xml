@@ -1,0 +1,2777 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="308"
+	failures="0"
+	disabled="0"
+	skipped="1"
+	hostname=""
+	time="1392"
+	timestamp="2026-10-10T14:31:59"
+	>
+	<testcase name="CoinRenderWin32D3D12Smoke" classname="CoinRenderWin32D3D12Smoke" time="1.26386" status="run">
+		<properties/>
+		<system-out>window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_offscreen fixture=recreated max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+hwnd_recreation cycle=1 survivor_unchanged=1 detached_ticket_exact=1 survivor_serial_isolated=1 pixel_comparison_enabled=1
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_offscreen fixture=recreated max_channel_delta=0 tolerance=3
+window_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderWin32VulkanSmoke" classname="CoinRenderWin32VulkanSmoke" time="1.17758" status="run">
+		<properties/>
+		<system-out>window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_rgba_fnv64=0xaaf954c6ab53b0cd size=504x351 dpi=96
+window_offscreen fixture=opaque max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0x5dbd5ccf10be2a4d size=504x351 dpi=96
+window_offscreen fixture=transparent max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_offscreen fixture=recreated max_channel_delta=0 tolerance=3
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+hwnd_recreation cycle=1 survivor_unchanged=1 detached_ticket_exact=1 survivor_serial_isolated=1 pixel_comparison_enabled=1
+window_rgba_fnv64=0xd1e2ceae0632aca5 size=344x241 dpi=96
+window_offscreen fixture=recreated max_channel_delta=0 tolerance=3
+window_...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="BumpProgramFailuresAndLifetime" classname="BumpProgramFailuresAndLifetime" time="0.350937" status="run">
+		<properties/>
+		<system-out>Running cold_registry_allocation_case
+Running failure_cases
+Running deferred_cases
+Running stale_initializer_case
+Running lifetime_cases
+Running diffuse_and_context_cases
+Running error_handler_cases
+Running redraw_lifetime_cases
+Running multiple_root_redraw_case
+Running queue_changed_lifetime_cases
+Running concurrent_cases
+Running allocation_failure_cases
+Running owned_allocation_cases
+Running dependency_failure_boundary_cases
+Running registry_cleanup_allocation_case
+Running token_exhaustion_cases
+Bump program failure, allocation, cache, deferred initialization and lifetime tests passed.
+</system-out>
+	</testcase>
+	<testcase name="CoinTests" classname="CoinTests" time="7.40561" status="run">
+		<properties/>
+		<system-out>Coin info in cc_dict_print_stat(): Used buckets 0 of 2 (0 elements), avg chain length: 0.00, max chain length: 0
+
+Coin info in cc_hash_print_stat(): Used buckets 0 of 2 (0 elements), avg chain length: 0.00, max chain length: 0
+
+Coin warning in SoVRMLScript::initialize(): No script language evaluation engine available.
+[OK] 416 tests, 309069 checks
+</system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_valid_sentinel" classname="SoTempPathReplaceTail_valid_sentinel" time="0.205729" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_valid_replacement" classname="SoTempPathReplaceTail_valid_replacement" time="0.252324" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_empty_noop" classname="SoTempPathReplaceTail_empty_noop" time="0.136453" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathRange" classname="SoPathRange" time="0.225612" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_node" classname="SoPathLegacyAccessorBounds_node" time="0.177105" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_node-tail" classname="SoPathLegacyAccessorBounds_node-tail" time="0.329562" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_index" classname="SoPathLegacyAccessorBounds_index" time="0.170353" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_index-tail" classname="SoPathLegacyAccessorBounds_index-tail" time="0.179493" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_valid" classname="SoPathLegacyAccessorBounds_valid" time="0.119801" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_visibility" classname="SoPathLegacyAccessorBounds_visibility" time="0.14455" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_reassign" classname="SoPathAssignmentAuditor_reassign" time="0.120591" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_self-assign" classname="SoPathAssignmentAuditor_self-assign" time="0.114359" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_copy-construct" classname="SoPathAssignmentAuditor_copy-construct" time="0.10841" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_empty" classname="SoPathAuditorCallback_empty" time="0.150168" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_foreign-parent" classname="SoPathAuditorCallback_foreign-parent" time="0.0991976" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_negative-index" classname="SoPathAuditorCallback_negative-index" time="0.107163" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_null-replacement" classname="SoPathAuditorCallback_null-replacement" time="0.0957428" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_valid-callbacks" classname="SoPathAuditorCallback_valid-callbacks" time="0.0866101" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathChildAppend" classname="SoPathChildAppend" time="0.109471" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinConfigCompatibility" classname="CoinConfigCompatibility" time="1.76679" status="run">
+		<properties/>
+		<system-out>-- Coin config compatibility matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterExact" classname="CoinTestsFilterExact" time="0.0768293" status="run">
+		<properties/>
+		<system-out>[OK] 1 tests, 103 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterWildcard" classname="CoinTestsFilterWildcard" time="0.0788768" status="run">
+		<properties/>
+		<system-out>[OK] 1 tests, 103 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterSuite" classname="CoinTestsFilterSuite" time="0.07889" status="run">
+		<properties/>
+		<system-out>[OK] 5 tests, 151 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterCombined" classname="CoinTestsFilterCombined" time="0.131673" status="run">
+		<properties/>
+		<system-out>[OK] 3 tests, 111 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterRepeated" classname="CoinTestsFilterRepeated" time="0.0976101" status="run">
+		<properties/>
+		<system-out>[OK] 2 tests, 107 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterNoMatch" classname="CoinTestsFilterNoMatch" time="0.0770501" status="run">
+		<properties/>
+		<system-out>[FAIL] no tests matched the requested filters
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterMissingValue" classname="CoinTestsFilterMissingValue" time="0.0758487" status="run">
+		<properties/>
+		<system-out>[FAIL] --run_test requires a non-empty filter
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterEmptyValue" classname="CoinTestsFilterEmptyValue" time="0.0770709" status="run">
+		<properties/>
+		<system-out>[FAIL] --run_test requires a non-empty filter
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_unset" classname="ProfilerInit_unset" time="0.186578" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_off" classname="ProfilerInit_off" time="0.125842" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_0" classname="ProfilerInit_0" time="0.118467" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_on" classname="ProfilerInit_on" time="0.126605" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_1" classname="ProfilerInit_1" time="0.121189" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_syncgl" classname="ProfilerInit_syncgl" time="0.12567" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_invalid" classname="ProfilerInit_invalid" time="0.123136" status="run">
+		<properties/>
+		<system-out>Coin warning in SoProfilerP::parseCoinProfilerVariable(): invalid token 'pr717_invalid_token'
+enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="RenderManagerFramePreparationTest" classname="RenderManagerFramePreparationTest" time="0.113615" status="run">
+		<properties/>
+		<system-out>frames=2 gl_traversals=0 sensors=1 callbacks=2 autoclip=updated
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderActionTest" classname="CoinRenderActionTest" time="2.28963" status="run">
+		<properties/>
+		<system-out>Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendBoundaryTest" classname="CoinRenderBackendBoundaryTest" time="0.123721" status="run">
+		<properties/>
+		<system-out>Common action, manager, shadow admission and reuse dispatch passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRuntimeBoundaryTest" classname="CoinRenderRuntimeBoundaryTest" time="0.105695" status="run">
+		<properties/>
+		<system-out>Independent runtime surface lifetime, descriptor validation, telemetry, depth and detach passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPlanAssemblyCoreTest" classname="CoinRenderPlanAssemblyCoreTest" time="0.166586" status="run">
+		<properties/>
+		<system-out>Captured values, image conversion, deduplication and bounded cube ranges passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransformCoreTest" classname="CoinRenderTransformCoreTest" time="0.0961541" status="run">
+		<properties/>
+		<system-out>Shared depth, normal, viewport and scissor transforms passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCameraReuseReferenceTest" classname="CoinRenderCameraReuseReferenceTest" time="0.105913" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSamplingPolicyWindowTest" classname="CoinRenderSamplingPolicyWindowTest" time="2.43879" status="run">
+		<properties/>
+		<system-out>adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 derivative=3
+remap capture bytes=65536 x62=40 x63=160
+Sampling API window=1 CPU=0 result=PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSamplingPolicyTest" classname="CoinRenderSamplingPolicyTest" time="0.12368" status="run">
+		<properties/>
+		<system-out>Sampling API window=0 CPU=1 result=PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSamplingPolicyGpuTest" classname="CoinRenderSamplingPolicyGpuTest" time="2.28643" status="run">
+		<properties/>
+		<system-out>adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 derivative=3
+Sampling API window=0 CPU=0 result=PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSelectionTest" classname="CoinRenderSelectionTest" time="5.85143" status="run">
+		<properties/>
+		<system-out>P11 typed selection and capability matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSelection_vulkan" classname="CoinRenderSelection_vulkan" time="4.06779" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSelection_opengl" classname="CoinRenderSelection_opengl" time="4.1515" status="run">
+		<properties/>
+		<system-out>P11 typed selection and capability matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSelection_d3d12" classname="CoinRenderSelection_d3d12" time="4.03022" status="run">
+		<properties/>
+		<system-out>P11 typed selection and capability matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProductTest" classname="CoinRenderProductTest" time="1.63008" status="run">
+		<properties/>
+		<system-out>COIN_WGPU_CAPABILITIES backend=3 probe_status=1 renderer=4 vendor_id=0x10de device_id=0x1c03 max_framebuffer_attachments=8 runtime_features=0xf rgba8=0x1f d24s8=0x7 d32f=0x7 rgba16f=0x1f r16f=0x1f adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) diagnostic=BGFX Direct3D 12 probe succeeded; MRT=1 (max attachments=8), independent blend=1, compute=1, timestamps=1; framebuffer formats RGBA8=0x1f D24S8=0x7 D32F=0x7 RGBA16F=0x1f R16F=0x1f
+CoinRenderProductTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendContractTest" classname="CoinRenderBackendContractTest" time="1.51093" status="run">
+		<properties/>
+		<system-out>Shared offscreen rendering contract passed for backend 3
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOffscreenTest" classname="CoinRenderOffscreenTest" time="0.134596" status="run">
+		<properties/>
+		<system-out>Running CoinRenderOffscreenTest...
+Testing zero-size target behavior...
+Testing culling and winding via SoShapeHints...
+All CoinRenderOffscreen tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGateG0Test" classname="CoinRenderGateG0Test" time="0.232223" status="run">
+		<properties/>
+		<system-out>Running CoinRenderGateG0Test (Onda 2A Saneamento)...
+-&gt; Test G0.1: Multi-root SoPathList accumulation (B02)...
+   [PASS] G0.1 Multi-root accumulation
+-&gt; Test G0.2: PER_VERTEX material binding preservation (B03)...
+   [PASS] G0.2 PER_VERTEX material binding
+-&gt; Test G0.3: Directional light view space transform (B04)...
+   [PASS] G0.3 Directional light in view space
+-&gt; Test G0.4: 32-bit arithmetic overflow protection (B05)...
+   [PASS] G0.4 32-bit overflow protection
+-&gt; Test G0.5: Target dimension overflow &amp; OOM protection (B06)...
+   [PASS] G0.5 Target overflow protection
+-&gt; Test G0.6: Backend GPU availability isolation (B07)...
+   [PASS] G0.6 GPU availability query
+-&gt; Test G0.7: Reentrancy protection and terminal error preservation (B08)...
+   [PASS] G0.7 Reentrancy error preservation
+-&gt; Test G0.8: Near plane frustum clipping robustness (B09)...
+   [PASS] G0.8 Near plane clipping robustness
+
+=======================================================
+All CoinRenderGateG0Test test suites PASSED successfully!
+======...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameCoreTest" classname="CoinRenderFrameCoreTest" time="0.182646" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_vulkan" classname="CoinBgfxReadbackModes_vulkan" time="4.09225" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_opengl" classname="CoinBgfxReadbackModes_opengl" time="3.05445" status="run">
+		<properties/>
+		<system-out>Coin transparency modes, GPU depth, async lifetime and public action passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxReadbackModes_d3d12" classname="CoinBgfxReadbackModes_d3d12" time="3.45261" status="run">
+		<properties/>
+		<system-out>Coin transparency modes, GPU depth, async lifetime and public action passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_vulkan_object" classname="CoinBgfxSurface_vulkan_object" time="17.0779" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_vulkan_weighted_oit" classname="CoinBgfxSurface_vulkan_weighted_oit" time="15.5954" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_vulkan_sorted_layers" classname="CoinBgfxSurface_vulkan_sorted_layers" time="17.0745" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_object" classname="CoinBgfxSurface_opengl_object" time="10.0417" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_weighted_oit" classname="CoinBgfxSurface_opengl_weighted_oit" time="11.3851" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_opengl_sorted_layers" classname="CoinBgfxSurface_opengl_sorted_layers" time="10.3842" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_d3d12_object" classname="CoinBgfxSurface_d3d12_object" time="15.8897" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_d3d12_weighted_oit" classname="CoinBgfxSurface_d3d12_weighted_oit" time="16.0366" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSurface_d3d12_sorted_layers" classname="CoinBgfxSurface_d3d12_sorted_layers" time="16.0445" status="run">
+		<properties/>
+		<system-out>CoinBgfxSurfaceFeaturesTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.769589" status="run">
+		<properties/>
+		<system-out>CoinBgfxCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxProgramSelectionTest" classname="CoinBgfxProgramSelectionTest" time="0.0405416" status="run">
+		<properties/>
+		<system-out>CoinBgfxProgramSelectionTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractTest" classname="CoinRenderDepthContractTest" time="0.313523" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractVulkanTest" classname="CoinRenderDepthContractVulkanTest" time="1.08557" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractOpenGLTest" classname="CoinRenderDepthContractOpenGLTest" time="1.35154" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderProductOpenGLTest" classname="CoinRenderProductOpenGLTest" time="1.11666" status="run">
+		<properties/>
+		<system-out>COIN_WGPU_CAPABILITIES backend=3 probe_status=1 renderer=2 vendor_id=0x10de device_id=0x0000 max_framebuffer_attachments=8 runtime_features=0xf rgba8=0x1f d24s8=0x7 d32f=0x7 rgba16f=0x1f r16f=0x1f adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) diagnostic=BGFX OpenGL probe succeeded; MRT=1 (max attachments=8), independent blend=1, compute=1, timestamps=1; framebuffer formats RGBA8=0x1f D24S8=0x7 D32F=0x7 RGBA16F=0x1f R16F=0x1f
+CoinRenderProductTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxOffscreenTest" classname="CoinBgfxOffscreenTest" time="3.66815" status="run">
+		<properties/>
+		<system-out>CoinBgfxOffscreenTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxOpenGLTest" classname="CoinBgfxOpenGLTest" time="3.24359" status="run">
+		<properties/>
+		<system-out>CoinBgfxOffscreenTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxInstancingTest" classname="CoinBgfxInstancingTest" time="1.05197" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinBgfxInstancingOpenGLTest" classname="CoinBgfxInstancingOpenGLTest" time="1.51409" status="run">
+		<properties/>
+		<system-out>affine PHONG directional+point max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified camera update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+classified material update max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+resized target max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+fog fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from fog max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+clip fallback max_rgb_error=0 mean_rgb_error=0 changed_pixels=0 pixels_over_3=0 worst_xy=0,0 instanced_rgb=8,11,17 general_rgb=8,11,17
+return from clip max_rgb_error=0 mea...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendContractOpenGLTest" classname="CoinRenderBackendContractOpenGLTest" time="1.47765" status="run">
+		<properties/>
+		<system-out>Shared offscreen rendering contract passed for backend 3
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxTransparencyTest" classname="CoinBgfxTransparencyTest" time="3.27298" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxTransparencyOpenGLTest" classname="CoinBgfxTransparencyOpenGLTest" time="2.66778" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(64,127,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=0 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=5508
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSortedLayersTest" classname="CoinBgfxSortedLayersTest" time="2.51968" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxSortedLayersOpenGLTest" classname="CoinBgfxSortedLayersOpenGLTest" time="2.31796" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(127,64,64) right=(127,64,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=0
+crossing: BGFX left=(127,64,64) right=(64,127,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=5202 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=612
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxWeightedOitTest" classname="CoinBgfxWeightedOitTest" time="5.64799" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxWeightedOitOpenGLTest" classname="CoinBgfxWeightedOitOpenGLTest" time="4.00158" status="run">
+		<properties/>
+		<system-out>layered: BGFX left=(109,82,64) right=(109,82,64) Coin/GL left=(128,64,63) right=(128,64,63) different_pixels=10404
+crossing: BGFX left=(109,82,64) right=(82,109,64) Coin/GL left=(64,128,63) right=(64,128,63) different_pixels=10404 Coin/GL layers-or-fallback left=(128,64,63) right=(64,128,63) different_pixels=10404
+occluded: BGFX left=(0,0,255) right=(0,0,255) Coin/GL left=(0,0,255) right=(0,0,255) different_pixels=0
+weighted stress: 32 crossing lit layers, max order delta=0, outside max=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="1.22727" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameReuseCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDiagnosticShellTest" classname="CoinRenderDiagnosticShellTest" time="0.205404" status="run">
+		<properties/>
+		<system-out>CoinRenderDiagnosticShellTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedGeometryCoreTest" classname="CoinRenderIndexedGeometryCoreTest" time="0.105669" status="run">
+		<properties/>
+		<system-out>CoinRenderIndexedGeometryCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGateG1Test" classname="CoinRenderGateG1Test" time="2.11809" status="run">
+		<properties/>
+		<system-out>Running CoinRenderGateG1Test (Onda 2B Backend WebGPU Real)...
+-&gt; Test G1.1: WebGPU backend availability query...
+   [PASS] G1.1 WebGPU backend availability
+-&gt; Test G1.2: Triangle offscreen color and depth readback...
+   [PASS] G1.2 Triangle offscreen color and depth readback
+-&gt; Test G1.3: Depth buffer occlusion ordering...
+   [PASS] G1.3 Depth buffer occlusion ordering
+-&gt; Test G1.4: Monotonic submission serials...
+   [PASS] G1.4 Monotonic submission serials
+-&gt; Test G1.5: Status distinction and DEVICE_LOST recovery...
+   [PASS] G1.5 Status distinction and recovery
+
+=======================================================
+All CoinRenderGateG1Test test suites PASSED successfully!
+=======================================================
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGateG2Test" classname="CoinRenderGateG2Test" time="2.04007" status="run">
+		<properties/>
+		<system-out>Running CoinRenderGateG2Test (Onda 2C Native Topologies: Lines and Points)...
+-&gt; Test G2.1: Native unit line rendering and readback (SoLineSet)...
+   [PASS] G2.1 Native unit line rendering and readback
+-&gt; Test G2.2: Native unit point rendering and readback (SoPointSet)...
+   [PASS] G2.2 Native unit point rendering and readback
+-&gt; Test G2.3: Cross-topology depth occlusion (Line vs Triangle)...
+   [PASS] G2.3 Cross-topology depth occlusion
+-&gt; Test G2.4: Wide/patterned lines and sized points...
+   [PASS] G2.4 Wide/patterned lines and sized points
+
+=======================================================
+All CoinRenderGateG2Test test suites PASSED successfully!
+=======================================================
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedFastPathTest" classname="CoinRenderIndexedFastPathTest" time="2.98663" status="run">
+		<properties/>
+		<system-out>Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-&gt; Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-&gt; Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-&gt; Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-&gt; Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-&gt; Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-&gt; Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-&gt; Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+   [PASS] Test 7: Strict pixel and depth equivalence verified
+-&gt; Test 8: Generated normals at hard and smooth edges...
+   [PASS] Test 8: Hard and smooth generated normals verified
+
+ALL 8 TESTS IN CoinRenderIndexedFastPathTest PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuCacheTest" classname="CoinWgpuCacheTest" time="0.107195" status="run">
+		<properties/>
+		<system-out>Running CoinWgpuCacheTest (Onda 2E GPU Resource Cache &amp; Safe Retirement)...
+WGPU Rust bridge not enabled, skipping test.
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderStabilizationTest" classname="CoinRenderStabilizationTest" time="0.10861" status="run">
+		<properties/>
+		<system-out>Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash &amp; Budget)...
+WGPU Rust bridge not enabled, skipping test.
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBenchmarkAnimationTest" classname="CoinRenderBenchmarkAnimationTest" time="0.123936" status="run">
+		<properties/>
+		<system-out>Benchmark animation selection, isolated mutations, deterministic replay and lifetime passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureTest" classname="CoinRenderTextureTest" time="7.39636" status="run">
+		<properties/>
+		<system-out>========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-&gt; Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-&gt; Test 2: MODULATE model color verification...
+-&gt; Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-&gt; Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-&gt; Test 5: Texture transformation and wrap modes...
+-&gt; Test 6: Multiple draws with different textures in same frame...
+-&gt; Test 7: Texture image deduplication with different samplers...
+-&gt; Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGluNativeOracleTest" classname="CoinRenderGluNativeOracleTest" time="0.338227" status="run">
+		<properties/>
+		<system-out>GL=NVIDIA Corporation GLU=1.2.2.0 Microsoft Corporation resize=0 red=15,15,25,25
+17x19-&gt;16x16 max=1 mae=0.225586
+17x19-&gt;32x32 max=1 mae=0.194824
+3x5-&gt;2x4 max=1 mae=0.1875
+3x5-&gt;4x8 max=1 mae=0.15625
+1x7-&gt;1x4 max=1 mae=0.1875
+1x7-&gt;1x8 max=1 mae=0.15625
+7x1-&gt;4x1 max=1 mae=0.1875
+7x1-&gt;8x1 max=1 mae=0.15625
+31x3-&gt;16x2 max=1 mae=0.3125
+31x3-&gt;32x4 max=1 mae=0.197266
+2x2-&gt;1x1 max=0 mae=0
+2x2-&gt;4x4 max=1 mae=0.25
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSamplingCaptureTest" classname="CoinRenderTextureSamplingCaptureTest" time="0.533374" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+P07 sampling cases=234 rejected=4 GPU=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSamplingConfigLimitTest" classname="CoinRenderTextureSamplingConfigLimitTest" time="0.0749611" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSampling_vulkan" classname="CoinRenderTextureSampling_vulkan" time="1.92646" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 vendor=4318 device=7171
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.1000...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSampling_opengl" classname="CoinRenderTextureSampling_opengl" time="1.75438" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSampling_d3d12" classname="CoinRenderTextureSampling_d3d12" time="2.79093" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=4318 device=7171
+quality-0.100000/nc-1/model-8448/units-1/CPU-GPU samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/CPU-GL samples=3888 mae=0.333333 max=1
+quality-0.100000/nc-1/model-8448/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-8448/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-1/GPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GPU samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/CPU-GL samples=3888 mae=0 max=0
+quality-0.100000/nc-1/model-7681/units-2/GPU-GL samples=3888 mae=0 max=0
+quality-0...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAdvancedTextureCoreTest" classname="CoinRenderAdvancedTextureCoreTest" time="0.158466" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+portable alpha/filter-0/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-6 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-1/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-1/unit-7/function-8 CPU maximumRGB=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAdvancedTexture_vulkan" classname="CoinRenderAdvancedTexture_vulkan" time="1.26898" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 vendor=4318 device=7171 features=523775
+portable alpha/filter-0/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-5 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-3 CPU maximumRGB=0
+portabl...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAdvancedTexture_opengl" classname="CoinRenderAdvancedTexture_opengl" time="0.987551" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0 features=523775
+portable alpha/filter-0/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-5 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-3 CPU maximumRGB=0
+portable a...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAdvancedTexture_d3d12" classname="CoinRenderAdvancedTexture_d3d12" time="1.47636" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=4318 device=7171 features=523775
+portable alpha/filter-0/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-5 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 GPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 GPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-3 CPU maximumRGB=0
+po...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileStaged_vulkan" classname="CoinRenderRttProfileStaged_vulkan" time="3.4318" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT extended staged: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileDirect_vulkan" classname="CoinRenderRttProfileDirect_vulkan" time="2.93553" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT extended direct: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMips_vulkan" classname="CoinRenderRttProfileMips_vulkan" time="0.883912" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0.666667; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsDirect_vulkan" classname="CoinRenderRttProfileMipsDirect_vulkan" time="0.877927" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsPbuffer_vulkan" classname="CoinRenderRttProfileMipsPbuffer_vulkan" time="0.915761" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileStaged_opengl" classname="CoinRenderRttProfileStaged_opengl" time="3.80512" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT extended staged: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileDirect_opengl" classname="CoinRenderRttProfileDirect_opengl" time="2.98203" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT extended direct: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMips_opengl" classname="CoinRenderRttProfileMips_opengl" time="0.865865" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0.666667; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsDirect_opengl" classname="CoinRenderRttProfileMipsDirect_opengl" time="1.20761" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsPbuffer_opengl" classname="CoinRenderRttProfileMipsPbuffer_opengl" time="1.24631" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileStaged_d3d12" classname="CoinRenderRttProfileStaged_d3d12" time="8.53899" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT extended staged: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileDirect_d3d12" classname="CoinRenderRttProfileDirect_d3d12" time="5.63159" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT extended direct: 288 controls (144 native CoinGL, 144 scalar higher-unit expectations), rejection and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMips_d3d12" classname="CoinRenderRttProfileMips_d3d12" time="1.07206" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0.666667; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsDirect_d3d12" classname="CoinRenderRttProfileMipsDirect_d3d12" time="1.06236" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttProfileMipsPbuffer_d3d12" classname="CoinRenderRttProfileMipsPbuffer_d3d12" time="1.1157" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+RTT mip transitions: 7 controls; maximum RGB MAE 0; NPOT direct capture, invalid-size rejection/publication and recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixCaptureTest" classname="CoinRenderRttMatrixCaptureTest" time="4.87121" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportCaptureTest" classname="CoinRenderRttViewportCaptureTest" time="4.94376" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportFboTest" classname="CoinRenderRttViewportFboTest" time="0.893542" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportPbufferTest" classname="CoinRenderRttViewportPbufferTest" time="1.30536" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixGpuTest" classname="CoinRenderRttMatrixGpuTest" time="7.93977" status="run">
+		<properties/>
+		<system-out>RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixDirectTest" classname="CoinRenderRttMatrixDirectTest" time="3.46068" status="run">
+		<properties/>
+		<system-out>RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportGpuTest" classname="CoinRenderRttViewportGpuTest" time="7.74411" status="run">
+		<properties/>
+		<system-out>RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=0 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportDirectTest" classname="CoinRenderRttViewportDirectTest" time="3.50523" status="run">
+		<properties/>
+		<system-out>RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+RTT matrix backend=1 status=0 Tx=0.25 error=
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixFboTest" classname="CoinRenderRttMatrixFboTest" time="0.871691" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixPbufferTest" classname="CoinRenderRttMatrixPbufferTest" time="1.23789" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGeometryViewportCaptureTest" classname="CoinRenderGeometryViewportCaptureTest" time="1.37253" status="run">
+		<properties/>
+		<system-out>Geometry/viewport cases=1290 GPU=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGeometryViewport_vulkan" classname="CoinRenderGeometryViewport_vulkan" time="66.755" status="run">
+		<properties/>
+		<system-out>viewport/64/0,0/style-0 CPU/GPU covered=1760 max=0
+viewport/64/0,0/style-0 CPU/CoinGL covered=1760 max=1
+viewport/64/0,0/style-0 GPU/CoinGL covered=1760 max=1
+viewport/64/0,0/style-1 CPU/GPU covered=768 max=0
+viewport/64/0,0/style-1 CPU/CoinGL covered=768 max=1
+viewport/64/0,0/style-1 GPU/CoinGL covered=768 max=1
+viewport/64/0,0/style-2 CPU/GPU covered=200 max=0
+viewport/64/0,0/style-2 CPU/CoinGL covered=200 max=1
+viewport/64/0,0/style-2 GPU/CoinGL covered=200 max=1
+viewport/64/-16,0/style-0 CPU/GPU covered=1320 max=0
+viewport/64/-16,0/style-0 CPU/CoinGL covered=1320 max=1
+viewport/64/-16,0/style-0 GPU/CoinGL covered=1320 max=1
+viewport/64/-16,0/style-1 CPU/GPU covered=574 max=0
+viewport/64/-16,0/style-1 CPU/CoinGL covered=574 max=1
+viewport/64/-16,0/style-1 GPU/CoinGL covered=574 max=1
+viewport/64/-16,0/style-2 CPU/GPU covered=150 max=0
+viewport/64/-16,0/style-2 CPU/CoinGL covered=150 max=1
+viewport/64/-16,0/style-2 GPU/CoinGL covered=150 max=1
+viewport/64/16,0/style-0 CPU/GPU covered=1320 max=0
+viewport/64/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGeometryViewport_opengl" classname="CoinRenderGeometryViewport_opengl" time="66.7244" status="run">
+		<properties/>
+		<system-out>viewport/64/0,0/style-0 CPU/GPU covered=1760 max=0
+viewport/64/0,0/style-0 CPU/CoinGL covered=1760 max=1
+viewport/64/0,0/style-0 GPU/CoinGL covered=1760 max=1
+viewport/64/0,0/style-1 CPU/GPU covered=768 max=0
+viewport/64/0,0/style-1 CPU/CoinGL covered=768 max=1
+viewport/64/0,0/style-1 GPU/CoinGL covered=768 max=1
+viewport/64/0,0/style-2 CPU/GPU covered=200 max=0
+viewport/64/0,0/style-2 CPU/CoinGL covered=200 max=1
+viewport/64/0,0/style-2 GPU/CoinGL covered=200 max=1
+viewport/64/-16,0/style-0 CPU/GPU covered=1320 max=0
+viewport/64/-16,0/style-0 CPU/CoinGL covered=1320 max=1
+viewport/64/-16,0/style-0 GPU/CoinGL covered=1320 max=1
+viewport/64/-16,0/style-1 CPU/GPU covered=574 max=0
+viewport/64/-16,0/style-1 CPU/CoinGL covered=574 max=1
+viewport/64/-16,0/style-1 GPU/CoinGL covered=574 max=1
+viewport/64/-16,0/style-2 CPU/GPU covered=150 max=0
+viewport/64/-16,0/style-2 CPU/CoinGL covered=150 max=1
+viewport/64/-16,0/style-2 GPU/CoinGL covered=150 max=1
+viewport/64/16,0/style-0 CPU/GPU covered=1320 max=0
+viewport/64/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGeometryViewport_d3d12" classname="CoinRenderGeometryViewport_d3d12" time="68.4233" status="run">
+		<properties/>
+		<system-out>viewport/64/0,0/style-0 CPU/GPU covered=1760 max=0
+viewport/64/0,0/style-0 CPU/CoinGL covered=1760 max=1
+viewport/64/0,0/style-0 GPU/CoinGL covered=1760 max=1
+viewport/64/0,0/style-1 CPU/GPU covered=768 max=0
+viewport/64/0,0/style-1 CPU/CoinGL covered=768 max=1
+viewport/64/0,0/style-1 GPU/CoinGL covered=768 max=1
+viewport/64/0,0/style-2 CPU/GPU covered=200 max=0
+viewport/64/0,0/style-2 CPU/CoinGL covered=200 max=1
+viewport/64/0,0/style-2 GPU/CoinGL covered=200 max=1
+viewport/64/-16,0/style-0 CPU/GPU covered=1320 max=0
+viewport/64/-16,0/style-0 CPU/CoinGL covered=1320 max=1
+viewport/64/-16,0/style-0 GPU/CoinGL covered=1320 max=1
+viewport/64/-16,0/style-1 CPU/GPU covered=574 max=0
+viewport/64/-16,0/style-1 CPU/CoinGL covered=574 max=1
+viewport/64/-16,0/style-1 GPU/CoinGL covered=574 max=1
+viewport/64/-16,0/style-2 CPU/GPU covered=150 max=0
+viewport/64/-16,0/style-2 CPU/CoinGL covered=150 max=1
+viewport/64/-16,0/style-2 GPU/CoinGL covered=150 max=1
+viewport/64/16,0/style-0 CPU/GPU covered=1320 max=0
+viewport/64/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProceduralTextureCaptureTest" classname="CoinRenderProceduralTextureCaptureTest" time="2.06548" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+P07 passed cases=313 CoinGL_references=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProceduralTexture_vulkan" classname="CoinRenderProceduralTexture_vulkan" time="8.05528" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.131579 max=1
+native/CPU-CoinGL pixels=1140 mae=0.131579 max=1
+native/GPU-CoinGL pixels=114...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProceduralTexture_opengl" classname="CoinRenderProceduralTexture_opengl" time="7.79768" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.131579 max=1
+native/CPU-CoinGL pixels=1140 mae=0.131579 max=1
+native/GPU-CoinGL pixels=114...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProceduralTexture_d3d12" classname="CoinRenderProceduralTexture_d3d12" time="9.03277" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-0/CPU-GPU pixels=1380 mae=0.108696 max=1
+native/CPU-CoinGL pixels=1380 mae=0.108696 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-1/CPU-GPU pixels=1380 mae=0.113527 max=1
+native/CPU-CoinGL pixels=1380 mae=0.113527 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-0/mode-3/CPU-GPU pixels=1380 mae=0.323913 max=1
+native/CPU-CoinGL pixels=1380 mae=0.323913 max=1
+native/GPU-CoinGL pixels=1380 mae=0 max=0
+shape-1/mode-0/CPU-GPU pixels=1140 mae=0.131579 max=1
+native/CPU-CoinGL pixels=1140 mae=0.131579 max=1
+native/GPU-CoinGL pixels=114...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderLightingTest" classname="CoinRenderLightingTest" time="19.9348" status="run">
+		<properties/>
+		<system-out>Coin/GL reference active; directional CPU=71 GL=71; two lights CPU=142 GL=143
+Gouraud oracle PASS: curved normals: specular before interpolation
+Gouraud oracle PASS: broad point-light face: vertex distance
+Gouraud oracle PASS: spot cone misses vertices: no fragment relighting
+Gouraud oracle PASS: spot drop-off: vertex cone factor
+Gouraud oracle PASS: negative N.H: no artificial specular floor
+Curved sphere Gouraud PASS: light=0
+Curved sphere Gouraud PASS: light=1
+Curved sphere Gouraud PASS: light=2
+Ambient CPU=[25,51,12] GL=[25,51,13]
+Point constant CPU=133 GL=133; linear CPU=54 GL=54
+Spot inside CPU=161 GL=162; outside CPU=0 GL=0
+Spot dropoff hard CPU=162 GL=162; soft CPU=84 GL=84
+Nonuniform normal CPU=69 GL=69
+CoinRenderLightingTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraudInterpolationTest" classname="CoinRenderGouraudInterpolationTest" time="1.77453" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_vulkan_object" classname="CoinRenderGouraud_vulkan_object" time="1.51723" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_vulkan_weighted_oit" classname="CoinRenderGouraud_vulkan_weighted_oit" time="1.47472" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_vulkan_sorted_layers" classname="CoinRenderGouraud_vulkan_sorted_layers" time="1.87003" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_opengl_object" classname="CoinRenderGouraud_opengl_object" time="1.6419" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_opengl_weighted_oit" classname="CoinRenderGouraud_opengl_weighted_oit" time="1.67014" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_opengl_sorted_layers" classname="CoinRenderGouraud_opengl_sorted_layers" time="1.85685" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_d3d12_object" classname="CoinRenderGouraud_d3d12_object" time="1.30248" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_d3d12_weighted_oit" classname="CoinRenderGouraud_d3d12_weighted_oit" time="1.95222" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraud_d3d12_sorted_layers" classname="CoinRenderGouraud_d3d12_sorted_layers" time="1.73116" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFogTest" classname="CoinRenderFogTest" time="16.8017" status="run">
+		<properties/>
+		<system-out>CoinRenderFogTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlaneTest" classname="CoinRenderClipPlaneTest" time="2.04438" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_vulkan_object" classname="CoinRenderClipPlane_vulkan_object" time="1.66068" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_vulkan_weighted_oit" classname="CoinRenderClipPlane_vulkan_weighted_oit" time="1.99538" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_vulkan_sorted_layers" classname="CoinRenderClipPlane_vulkan_sorted_layers" time="1.88514" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_opengl_object" classname="CoinRenderClipPlane_opengl_object" time="1.79766" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_opengl_weighted_oit" classname="CoinRenderClipPlane_opengl_weighted_oit" time="1.78427" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_opengl_sorted_layers" classname="CoinRenderClipPlane_opengl_sorted_layers" time="1.79099" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_d3d12_object" classname="CoinRenderClipPlane_d3d12_object" time="1.9988" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_d3d12_weighted_oit" classname="CoinRenderClipPlane_d3d12_weighted_oit" time="2.26845" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlane_d3d12_sorted_layers" classname="CoinRenderClipPlane_d3d12_sorted_layers" time="1.9319" status="run">
+		<properties/>
+		<system-out>Coin/GL reference passed
+ClipPlane capture/Core/CPU/GPU contracts passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyleTest" classname="CoinRenderDrawStyleTest" time="24.677" status="run">
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyle_vulkan" classname="CoinRenderDrawStyle_vulkan" time="23.8803" status="run">
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyle_opengl" classname="CoinRenderDrawStyle_opengl" time="26.1133" status="run">
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyle_d3d12" classname="CoinRenderDrawStyle_d3d12" time="40.0052" status="run">
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitextureTest" classname="CoinRenderMultitextureTest" time="6.01831" status="run">
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitexture_vulkan" classname="CoinRenderMultitexture_vulkan" time="4.18886" status="run">
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitexture_opengl" classname="CoinRenderMultitexture_opengl" time="4.03737" status="run">
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitexture_d3d12" classname="CoinRenderMultitexture_d3d12" time="5.60674" status="run">
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+P08 Coin GL reference passed (CPU=0)
+P08 multitexture/combine and textured strokes passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPeelingTest" classname="CoinRenderPeelingTest" time="3.34467" status="run">
+		<properties/>
+		<system-out>P10 bounded peeling CPU/GPU matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPeeling_vulkan" classname="CoinRenderPeeling_vulkan" time="2.50908" status="run">
+		<properties/>
+		<system-out>P10 bounded peeling CPU/GPU matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOit_vulkan" classname="CoinRenderOit_vulkan" time="1.65015" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderPeeling_opengl" classname="CoinRenderPeeling_opengl" time="2.31258" status="run">
+		<properties/>
+		<system-out>P10 bounded peeling CPU/GPU matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOit_opengl" classname="CoinRenderOit_opengl" time="0.922334" status="run">
+		<properties/>
+		<system-out>weighted-OIT numeric matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPeeling_d3d12" classname="CoinRenderPeeling_d3d12" time="2.48044" status="run">
+		<properties/>
+		<system-out>P10 bounded peeling CPU/GPU matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOit_d3d12" classname="CoinRenderOit_d3d12" time="0.929008" status="run">
+		<properties/>
+		<system-out>weighted-OIT numeric matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparencyTest" classname="CoinRenderTransparencyTest" time="7.98915" status="run">
+		<properties/>
+		<system-out>CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparency_vulkan" classname="CoinRenderTransparency_vulkan" time="7.40891" status="run">
+		<properties/>
+		<system-out>CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparency_opengl" classname="CoinRenderTransparency_opengl" time="6.32459" status="run">
+		<properties/>
+		<system-out>CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparency_d3d12" classname="CoinRenderTransparency_d3d12" time="6.84869" status="run">
+		<properties/>
+		<system-out>CPU transparency matrices
+P09 eleven-mode action matrix passed, CPU and GPU
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCompositionTest" classname="CoinRenderCompositionTest" time="8.52645" status="run">
+		<properties/>
+		<system-out>CoinRenderCompositionTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAnnotation_vulkan" classname="CoinRenderAnnotation_vulkan" time="2.31954" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderAnnotation_opengl" classname="CoinRenderAnnotation_opengl" time="2.00043" status="run">
+		<properties/>
+		<system-out>Annotation GPU regressions passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderNodeInventoryDiscoveryTest" classname="CoinRenderNodeInventoryDiscoveryTest" time="0.530585" status="run">
+		<properties/>
+		<system-out>...
+----------------------------------------------------------------------
+Ran 3 tests in 0.056s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderNodeInventoryTest" classname="CoinRenderNodeInventoryTest" time="0.115848" status="run">
+		<properties/>
+		<system-out>P15/P25: GL-only characterization, native raster, delegation, effect gates and subclass callbacks characterized
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderScreenContentCaptureTest" classname="CoinRenderScreenContentCaptureTest" time="0.374992" status="run">
+		<properties/>
+		<system-out>CoinRenderScreenContentTest capture/CPU passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderScreenContent_vulkan" classname="CoinRenderScreenContent_vulkan" time="9.16385" status="run">
+		<properties/>
+		<system-out>image/components-1/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-1/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-2/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.552381 max=1 pixels_over3=0
+image/components-2/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-3/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-3/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-4/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.514286 max=1 pixels_over3=0
+image/components-4/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/repeated/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.514286 max=1 pixels_over3=0
+image/repeated/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/align...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderScreenContent_opengl" classname="CoinRenderScreenContent_opengl" time="5.74569" status="run">
+		<properties/>
+		<system-out>image/components-1/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-1/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-2/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.552381 max=1 pixels_over3=0
+image/components-2/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-3/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-3/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-4/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.514286 max=1 pixels_over3=0
+image/components-4/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/repeated/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.514286 max=1 pixels_over3=0
+image/repeated/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/align...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderScreenContent_d3d12" classname="CoinRenderScreenContent_d3d12" time="8.21932" status="run">
+		<properties/>
+		<system-out>image/components-1/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-1/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-2/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.552381 max=1 pixels_over3=0
+image/components-2/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-3/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-3/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/components-4/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.514286 max=1 pixels_over3=0
+image/components-4/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/repeated/CPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0.514286 max=1 pixels_over3=0
+image/repeated/GPU-CoinGL effect_pixels=35 checked_pixels=35 rgb_roi_mae=0 max=0 pixels_over3=0
+image/align...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFragmentPolicyCaptureTest" classname="CoinRenderFragmentPolicyCaptureTest" time="0.266572" status="run">
+		<properties/>
+		<system-out>depth/off-write-on color/depth restoration passed; GPU depth readback=not requested
+alpha/weighted profile requires --gpu; CPU capture does not claim OIT execution
+alpha/RTT execution requires --gpu; temporary producer targets are not CPU mocks
+CoinRenderFragmentPolicyTest capture/CPU passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthDisabledCaptureTest" classname="CoinRenderDepthDisabledCaptureTest" time="0.196804" status="run">
+		<properties/>
+		<system-out>depth/off-write-on color/depth restoration passed; GPU depth readback=not requested
+CoinRenderFragmentPolicyTest depth-only capture/CPU passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFragmentPolicy_vulkan" classname="CoinRenderFragmentPolicy_vulkan" time="13.1092" status="run">
+		<properties/>
+		<system-out>depth/off-write-on-three-quads/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-three-quads/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-restored/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthDisabled_vulkan" classname="CoinRenderDepthDisabled_vulkan" time="1.18349" status="run">
+		<properties/>
+		<system-out>depth/off-write-on-three-quads/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-three-quads/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-restored/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFragmentPolicy_opengl" classname="CoinRenderFragmentPolicy_opengl" time="11.5481" status="run">
+		<properties/>
+		<system-out>depth/off-write-on-three-quads/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-three-quads/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-restored/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthDisabled_opengl" classname="CoinRenderDepthDisabled_opengl" time="1.05197" status="run">
+		<properties/>
+		<system-out>depth/off-write-on-three-quads/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-three-quads/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-restored/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFragmentPolicy_d3d12" classname="CoinRenderFragmentPolicy_d3d12" time="11.4676" status="run">
+		<properties/>
+		<system-out>depth/off-write-on-three-quads/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-three-quads/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-restored/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthDisabled_d3d12" classname="CoinRenderDepthDisabled_d3d12" time="1.2214" status="run">
+		<properties/>
+		<system-out>depth/off-write-on-three-quads/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-three-quads/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-unchanged-reuse/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-off-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-never-ignored/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/CPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/on-write-on-control/GPU gl_pixels=3584 actual_pixels=3584 roi_mae=0 max=0 pixels_over3=0
+depth/off-write-on-restored/...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProjectiveUvCaptureTest" classname="CoinRenderProjectiveUvCaptureTest" time="1.04517" status="run">
+		<properties/>
+		<system-out>units/all-eight-independent-Q/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.497037 max=1 pixels_over3=0
+units/all-eight-fallback/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.497037 max=1 pixels_over3=0
+units/unit-0/B/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.501481 max=1 pixels_over3=0
+units/unit-0/A-restored/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.497037 max=1 pixels_over3=0
+units/unit-0/eight-active-isolated-projective-control/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.496852 max=1 pixels_over3=0
+units/unit-0/eight-active-predivided-counterfactual/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.49713 max=1 pixels_over3=0
+units/unit-0/eight-active-isolated-A-restored/CPU oracle=independent-eight-stage-analyt...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProjectiveUv_vulkan" classname="CoinRenderProjectiveUv_vulkan" time="16.5531" status="run">
+		<properties/>
+		<system-out>uv2/identity-control/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.455926 max=1 pixels_over3=0
+uv2/identity-control/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/affine-control/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.453704 max=1 pixels_over3=0
+uv2/affine-control/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/projective-fragment-divide/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464815 max=1 pixels_over3=0
+uv2/projective-fragment-divide/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/unchanged-reuse/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464815 max=1 pixels_over3=0
+uv2/unchanged-reuse/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/callback-fallback/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProjectiveUv_opengl" classname="CoinRenderProjectiveUv_opengl" time="14.8522" status="run">
+		<properties/>
+		<system-out>uv2/identity-control/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.455926 max=1 pixels_over3=0
+uv2/identity-control/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/affine-control/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.453704 max=1 pixels_over3=0
+uv2/affine-control/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/projective-fragment-divide/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464815 max=1 pixels_over3=0
+uv2/projective-fragment-divide/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/unchanged-reuse/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464815 max=1 pixels_over3=0
+uv2/unchanged-reuse/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/callback-fallback/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProjectiveUv_d3d12" classname="CoinRenderProjectiveUv_d3d12" time="14.5271" status="run">
+		<properties/>
+		<system-out>uv2/identity-control/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.455926 max=1 pixels_over3=0
+uv2/identity-control/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/affine-control/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.453704 max=1 pixels_over3=0
+uv2/affine-control/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/projective-fragment-divide/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464815 max=1 pixels_over3=0
+uv2/projective-fragment-divide/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/unchanged-reuse/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464815 max=1 pixels_over3=0
+uv2/unchanged-reuse/GPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0 max=0 pixels_over3=0
+uv2/callback-fallback/CPU oracle=CoinGL reference_pixels=3600 actual_pixels=3600 roi_mae=0.464...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBoundingBoxCaptureTest" classname="CoinRenderBoundingBoxCaptureTest" time="0.196168" status="run">
+		<properties/>
+		<system-out>shadow-map/original-caster-profile requires actual GPU; not certified by CPU capture mode
+CoinRenderBoundingBoxTest capture/CPU passed native_gl_comparisons=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBoundingBox_vulkan" classname="CoinRenderBoundingBox_vulkan" time="11.9608" status="run">
+		<properties/>
+		<system-out>type/bounding-box-original/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/bounding-box-original/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/unchanged-reuse/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/unchanged-reuse/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/normal-triangle-control/GPU oracle=CoinGL reference_pixels=768 actual_pixels=768 roi_mae=0.333333 max=1 pixels_over3=0
+type/normal-triangle-control/CPU oracle=CoinGL reference_pixels=768 actual_pixels=768 roi_mae=0.333333 max=1 pixels_over3=0
+type/bounding-box-restored/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/bounding-box-restored/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/ignored-tessellation-value/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBoundingBox_opengl" classname="CoinRenderBoundingBox_opengl" time="7.64754" status="run">
+		<properties/>
+		<system-out>type/bounding-box-original/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/bounding-box-original/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/unchanged-reuse/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/unchanged-reuse/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/normal-triangle-control/GPU oracle=CoinGL reference_pixels=768 actual_pixels=768 roi_mae=0.333333 max=1 pixels_over3=0
+type/normal-triangle-control/CPU oracle=CoinGL reference_pixels=768 actual_pixels=768 roi_mae=0.333333 max=1 pixels_over3=0
+type/bounding-box-restored/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/bounding-box-restored/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/ignored-tessellation-value/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBoundingBox_d3d12" classname="CoinRenderBoundingBox_d3d12" time="11.4997" status="run">
+		<properties/>
+		<system-out>type/bounding-box-original/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/bounding-box-original/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/unchanged-reuse/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/unchanged-reuse/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/normal-triangle-control/GPU oracle=CoinGL reference_pixels=768 actual_pixels=768 roi_mae=0.333333 max=1 pixels_over3=0
+type/normal-triangle-control/CPU oracle=CoinGL reference_pixels=768 actual_pixels=768 roi_mae=0.333333 max=1 pixels_over3=0
+type/bounding-box-restored/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/bounding-box-restored/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+type/ignored-tessellation-value/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMarkerSetCaptureTest" classname="CoinRenderMarkerSetCaptureTest" time="0.249972" status="run">
+		<properties/>
+		<system-out>indexed/short-list-safe-extension complete-list-equivalence passed (no unsafe CoinGL execution)
+markers/subclass-user-callback passed (callback semantics; no native bitmap parity claim)
+markers/degenerate-perspective-volume explicit transactional rejection passed
+markers/start-outside-coordinates explicit transactional rejection passed
+markers/count-outside-coordinates explicit transactional rejection passed
+markers/invalid-negative-marker explicit transactional rejection passed
+markers/nonfinite-coordinate explicit transactional rejection passed
+indexed/invalid-coordinate-index explicit transactional rejection passed
+indexed/builtin-native-stride-incompatibility explicit transactional rejection passed
+CoinRenderMarkerSetTest capture/CPU passed reference_pairs=0 safe_extension_checks=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMarkerSet_vulkan" classname="CoinRenderMarkerSet_vulkan" time="16.8046" status="run">
+		<properties/>
+		<system-out>markers/all-90-builtins/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/repeat/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/repeat/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/none/CPU native_pixels=0 gl_pixels=0 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/none/GPU native_pixels=0 gl_pixels=0 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/restore/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/restore/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/repeat/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/repeat/GPU native_p...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMarkerSet_opengl" classname="CoinRenderMarkerSet_opengl" time="14.1857" status="run">
+		<properties/>
+		<system-out>markers/all-90-builtins/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/repeat/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/repeat/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/none/CPU native_pixels=0 gl_pixels=0 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/none/GPU native_pixels=0 gl_pixels=0 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/restore/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/restore/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/repeat/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/repeat/GPU native_p...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMarkerSet_d3d12" classname="CoinRenderMarkerSet_d3d12" time="15.7689" status="run">
+		<properties/>
+		<system-out>markers/all-90-builtins/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/repeat/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/repeat/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/none/CPU native_pixels=0 gl_pixels=0 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/none/GPU native_pixels=0 gl_pixels=0 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/restore/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+markers/all-90-builtins/restore/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/GPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/repeat/CPU native_pixels=1757 gl_pixels=1757 rgb_roi_mae=0 rgb_max=0
+indexed/all-90-builtins/repeat/GPU native_p...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowEightMapTest" classname="CoinRenderShadowEightMapTest" time="1.02175" status="run">
+		<properties/>
+		<system-out>eight-map intensity conservation rgb_mae=0 max=0
+eighth-light pixels=10242 shadow pixels=2132
+ninth-light rejection status=4 serial_preserved=1 pixels_preserved=1
+eight-map recovery_exact=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowReferenceTest" classname="CoinRenderShadowReferenceTest" time="56.0641" status="run">
+		<properties/>
+		<system-out>smoothBorder Coin/GL/GPU unchanged=1
+low-quality spot Coin/GL/GPU delta=480/480
+clipped caster Coin/GL/GPU delta=531/531
+active/inactive sibling Coin/GL/GPU delta=486/474
+sibling groups Coin/GL/GPU delta=486/474
+distinct sibling VSM Coin/GL/GPU delta=138/165
+staged RTT distinct VSM Coin/GL/GPU delta=108/132
+direct RTT distinct VSM Coin/GL/GPU delta=108/132
+inherited directional with shadow group Coin/GL/GPU delta=152/152
+ordinary light inside active group GL/GPU unchanged=1
+inherited point with shadow group Coin/GL/GPU delta=594/594
+ordinary point inside active group GL/GPU unchanged=1
+opaque textured shadow receiver Coin/GL/GPU delta=485/485
+five lights textured receiver Coin/GL/GPU delta=81/81
+three lights Coin/GL/BGFX delta=666/666
+four lights Coin/GL/BGFX delta=228/228
+five lights Coin/GL/BGFX delta=291/291
+eight lights Coin/GL/BGFX delta=117/174
+eight lights staged RTT Coin/GL/BGFX delta=225/225
+eight lights direct RTT Coin/GL/BGFX delta=225/225
+fifth spot Coin/GL/BGFX delta=162/162
+sixth spot Coin/GL/BG...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowWiringTest" classname="CoinRenderShadowWiringTest" time="0.927982" status="run">
+		<properties/>
+		<system-out>shadow path sample GPU=126/126 GL=126/126
+shadow path ground_only=0 qualified=1
+partial shadow capture draws=3 passes=1 casters=1
+shadow path sample GPU=126/126 GL=126/126
+shadow path ground_only=1 qualified=1
+override stable texture=0 GPU=1 GL=1 qualified=1
+override removed texture=0 GPU=1 GL=1 status=0
+shadow override texture=0 qualified=1
+override stable texture=1 GPU=1 GL=1 qualified=1
+override removed texture=1 GPU=1 GL=1 status=0
+shadow override texture=1 qualified=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowViewportTest" classname="CoinRenderShadowViewportTest" time="0.579422" status="run">
+		<properties/>
+		<system-out>shadow external viewport active=0 samples=8742 max=0
+shadow external viewport active=1 samples=8742 max=0
+shadow control changed pixels=2138
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowViewportOpenGLTest" classname="CoinRenderShadowViewportOpenGLTest" time="0.538902" status="run">
+		<properties/>
+		<system-out>shadow external viewport active=0 samples=8742 max=0
+shadow external viewport active=1 samples=8742 max=0
+shadow control changed pixels=2138
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency5Test" classname="CoinRenderShadowTransparency5Test" time="26.9127" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=5 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shad...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency6Test" classname="CoinRenderShadowTransparency6Test" time="28.2165" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=6 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shad...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency7Test" classname="CoinRenderShadowTransparency7Test" time="31.3138" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=7 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shad...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency8Test" classname="CoinRenderShadowTransparency8Test" time="31.7224" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=0 Coin/GL/GPU delta=474/474 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=1 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=2 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=3 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=4 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=5 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/120 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=7 Coin/GL/GPU delta=237/237 qualified=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=8 Coin/GL/GPU delta=237/237 qualified=1
+transparent shad...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest1_0Test" classname="CoinRenderShadowAlphaTest1_0Test" time="8.71001" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest1_1Test" classname="CoinRenderShadowAlphaTest1_1Test" time="2.40892" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=1 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=0 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=1 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 p...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest1_2Test" classname="CoinRenderShadowAlphaTest1_2Test" time="2.31859" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=1 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=1 rtt=0 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=0 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=1 rtt=1 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+al...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest4_0Test" classname="CoinRenderShadowAlphaTest4_0Test" time="11.9345" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest4_1Test" classname="CoinRenderShadowAlphaTest4_1Test" time="2.90228" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=4 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=0 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=4 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 p...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest4_2Test" classname="CoinRenderShadowAlphaTest4_2Test" time="2.83311" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=4 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=4 rtt=0 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=0 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=4 rtt=1 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+al...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest5_0Test" classname="CoinRenderShadowAlphaTest5_0Test" time="15.5146" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest5_1Test" classname="CoinRenderShadowAlphaTest5_1Test" time="3.21888" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=5 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=5 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=5 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=5 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=5 rtt=0 qualified=1
+transparent shadow receiver maps=5 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=5 rtt=1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=5 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest5_2Test" classname="CoinRenderShadowAlphaTest5_2Test" time="3.13961" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=5 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=5 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=5 rtt=0 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=5 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=5 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=5 rtt=0 qualified=1
+transparent shadow receiver maps=5 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=5 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=5 rtt=1 alpha_texture=1 mode=6 delta=28 qualified=1
+transpar...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest6_0Test" classname="CoinRenderShadowAlphaTest6_0Test" time="16.7218" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest6_1Test" classname="CoinRenderShadowAlphaTest6_1Test" time="3.4063" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=6 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=6 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=6 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=6 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=6 rtt=0 qualified=1
+transparent shadow receiver maps=6 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=6 rtt=1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=6 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest6_2Test" classname="CoinRenderShadowAlphaTest6_2Test" time="3.25885" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=6 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=6 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=6 rtt=0 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=6 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=6 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=6 rtt=0 qualified=1
+transparent shadow receiver maps=6 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=6 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=6 rtt=1 alpha_texture=1 mode=6 delta=28 qualified=1
+transpar...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest7_0Test" classname="CoinRenderShadowAlphaTest7_0Test" time="18.3274" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest7_1Test" classname="CoinRenderShadowAlphaTest7_1Test" time="3.52288" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=7 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=7 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=7 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=7 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=7 rtt=0 qualified=1
+transparent shadow receiver maps=7 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=7 rtt=1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=7 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest7_2Test" classname="CoinRenderShadowAlphaTest7_2Test" time="3.4649" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=7 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=7 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=7 rtt=0 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=7 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=7 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=7 rtt=0 qualified=1
+transparent shadow receiver maps=7 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=7 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent shadow RTT producer maps=7 rtt=1 alpha_texture=1 mode=6 delta=28 qualified=1
+transpar...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_0Test" classname="CoinRenderShadowAlphaTest8_0Test" time="19.3952" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/81 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver m...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_1Test" classname="CoinRenderShadowAlphaTest8_1Test" time="3.68862" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=10 max_error=0 l...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_2Test" classname="CoinRenderShadowAlphaTest8_2Test" time="3.52994" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=6 delta=28 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowQuality1Test" classname="CoinRenderShadowQuality1Test" time="2.92675" status="run">
+		<properties/>
+		<system-out>shadow quality maps=1 directional=0 q=0 textured=0 GL/GPU mean/max=0.126748/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.2999 textured=0 GL/GPU mean/max=0.126748/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.3 textured=0 GL/GPU mean/max=0.14092/1 transition=26 qualified=1
+shadow quality maps=1 directional=0 q=0.3001 textured=0 GL/GPU mean/max=0.14092/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.7 textured=0 GL/GPU mean/max=0.14092/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.7001 textured=0 GL/GPU mean/max=0.158211/1 transition=22 qualified=1
+shadow quality maps=1 directional=0 q=1 textured=0 GL/GPU mean/max=0.158211/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0 textured=1 GL/GPU mean/max=0.0352419/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.2999 textured=1 GL/GPU mean/max=0.0352419/1 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.3 textured=1 GL/GPU mean/max=0.0...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit1_1Test" classname="CoinRenderShadowOit1_1Test" time="3.801" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=1 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=1 mode=10 delta=47 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=1 rtt=0 al...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers1_1Test" classname="CoinRenderShadowLayers1_1Test" time="1.21219" status="run">
+		<properties/>
+		<system-out>shadow numeric layers/occlusion/order maps=1 weighted=0 passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit1_2Test" classname="CoinRenderShadowOit1_2Test" time="3.78806" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/180 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=0 mode=6 delta=48 qualified=1
+shadow additive after compositor maps=1 mechanism=2 delta=79 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/129 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=1 mode=6 delta=36 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=1 rtt=0 alpha_textur...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers1_2Test" classname="CoinRenderShadowLayers1_2Test" time="1.16508" status="run">
+		<properties/>
+		<system-out>shadow numeric layers/occlusion/order maps=1 weighted=1 passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowQuality4Test" classname="CoinRenderShadowQuality4Test" time="3.71798" status="run">
+		<properties/>
+		<system-out>shadow quality maps=4 directional=0 q=0 textured=0 GL/GPU mean/max=0.126748/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.2999 textured=0 GL/GPU mean/max=0.126748/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.3 textured=0 GL/GPU mean/max=0.14092/1 transition=26 qualified=1
+shadow quality maps=4 directional=0 q=0.3001 textured=0 GL/GPU mean/max=0.14092/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.7 textured=0 GL/GPU mean/max=0.14092/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.7001 textured=0 GL/GPU mean/max=0.158163/1 transition=22 qualified=1
+shadow quality maps=4 directional=0 q=1 textured=0 GL/GPU mean/max=0.158163/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0 textured=1 GL/GPU mean/max=0.0352419/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.2999 textured=1 GL/GPU mean/max=0.0352419/1 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.3 textured=1 GL/GPU mean/max=0.0...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit4_1Test" classname="CoinRenderShadowOit4_1Test" time="4.64251" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=4 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=1 mode=10 delta=47 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=4 rtt=0 al...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers4_1Test" classname="CoinRenderShadowLayers4_1Test" time="1.3779" status="run">
+		<properties/>
+		<system-out>shadow numeric layers/occlusion/order maps=4 weighted=0 passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit4_2Test" classname="CoinRenderShadowOit4_2Test" time="4.47514" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/180 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=0 mode=6 delta=48 qualified=1
+shadow additive after compositor maps=4 mechanism=2 delta=79 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/129 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=1 mode=6 delta=36 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=4 rtt=0 alpha_textur...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers4_2Test" classname="CoinRenderShadowLayers4_2Test" time="1.20368" status="run">
+		<properties/>
+		<system-out>shadow numeric layers/occlusion/order maps=4 weighted=1 passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowQuality8Test" classname="CoinRenderShadowQuality8Test" time="4.28336" status="run">
+		<properties/>
+		<system-out>shadow quality maps=8 directional=0 q=0 textured=0 GL/GPU mean/max=0.0746882/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.2999 textured=0 GL/GPU mean/max=0.0746882/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.3 textured=0 GL/GPU mean/max=0.0910336/1 transition=26 qualified=1
+shadow quality maps=8 directional=0 q=0.3001 textured=0 GL/GPU mean/max=0.0910336/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.7 textured=0 GL/GPU mean/max=0.0910336/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.7001 textured=0 GL/GPU mean/max=0.0910336/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=1 textured=0 GL/GPU mean/max=0.0910336/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0 textured=1 GL/GPU mean/max=0.0203609/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.2999 textured=1 GL/GPU mean/max=0.0203609/1 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.3 textured=1 GL/GPU mea...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit8_1Test" classname="CoinRenderShadowOit8_1Test" time="5.95579" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=0 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=8 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native ei...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers8_1Test" classname="CoinRenderShadowLayers8_1Test" time="1.62942" status="run">
+		<properties/>
+		<system-out>shadow numeric layers/occlusion/order maps=8 weighted=0 passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit8_2Test" classname="CoinRenderShadowOit8_2Test" time="5.83665" status="run">
+		<properties/>
+		<system-out>transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/180 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=0 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=0 mode=6 delta=48 qualified=1
+shadow additive after compositor maps=8 mechanism=2 delta=79 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/129 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers8_2Test" classname="CoinRenderShadowLayers8_2Test" time="1.37559" status="run">
+		<properties/>
+		<system-out>shadow numeric layers/occlusion/order maps=8 weighted=1 passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetTest" classname="CoinRenderMultiTargetTest" time="1.9903" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetDirectTest" classname="CoinRenderMultiTargetDirectTest" time="1.242" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetStagedOpenGLTest" classname="CoinRenderMultiTargetStagedOpenGLTest" time="1.64617" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetOpenGLTest" classname="CoinRenderMultiTargetOpenGLTest" time="0.785669" status="run">
+		<properties/>
+		<system-out>multi-target RTT, queues, resize, destruction and shared recovery passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPublicationTest" classname="CoinRenderPublicationTest" time="0.0979632" status="run">
+		<properties/>
+		<system-out>CoinRenderPublicationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnershipTest" classname="CoinRenderRttOwnershipTest" time="0.566607" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnership_vulkan" classname="CoinRenderRttOwnership_vulkan" time="0.578053" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnership_opengl" classname="CoinRenderRttOwnership_opengl" time="0.516843" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnership_d3d12" classname="CoinRenderRttOwnership_d3d12" time="0.548693" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureTest" classname="CoinRenderSceneTextureTest" time="2.70499" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudgetTest" classname="CoinRenderSceneTextureBudgetTest" time="1.2422" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_vulkan_staged" classname="CoinRenderSceneTexture_vulkan_staged" time="2.79437" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_vulkan_staged" classname="CoinRenderSceneTextureBudget_vulkan_staged" time="1.13753" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_vulkan_direct" classname="CoinRenderSceneTexture_vulkan_direct" time="2.56413" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_vulkan_direct" classname="CoinRenderSceneTextureBudget_vulkan_direct" time="0.588619" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_staged" classname="CoinRenderSceneTexture_opengl_staged" time="2.29915" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_staged" classname="CoinRenderSceneTextureBudget_opengl_staged" time="1.07197" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_opengl_direct" classname="CoinRenderSceneTexture_opengl_direct" time="1.42885" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_opengl_direct" classname="CoinRenderSceneTextureBudget_opengl_direct" time="0.496169" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_d3d12_staged" classname="CoinRenderSceneTexture_d3d12_staged" time="2.40892" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_d3d12_staged" classname="CoinRenderSceneTextureBudget_d3d12_staged" time="1.15414" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTexture_d3d12_direct" classname="CoinRenderSceneTexture_d3d12_direct" time="2.17025" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudget_d3d12_direct" classname="CoinRenderSceneTextureBudget_d3d12_direct" time="0.665191" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_alarm_cancel" classname="SensorScheduling_alarm_cancel" time="0.107626" status="run">
+		<properties/>
+		<system-out>alarm_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_recurring_cancel" classname="SensorScheduling_recurring_cancel" time="0.0759995" status="run">
+		<properties/>
+		<system-out>recurring_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_alarm_reschedule" classname="SensorScheduling_alarm_reschedule" time="0.0779039" status="run">
+		<properties/>
+		<system-out>alarm_reschedule: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timeout_change_cancel" classname="SensorScheduling_timeout_change_cancel" time="0.0793114" status="run">
+		<properties/>
+		<system-out>timeout_change_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_zero_repeat" classname="SensorScheduling_zero_repeat" time="0.0759899" status="run">
+		<properties/>
+		<system-out>zero_repeat: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_zero_nonidle" classname="SensorScheduling_zero_nonidle" time="0.0749934" status="run">
+		<properties/>
+		<system-out>zero_nonidle: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_nonzero_timeout" classname="SensorScheduling_nonzero_timeout" time="0.0777228" status="run">
+		<properties/>
+		<system-out>nonzero_timeout: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_node_detach" classname="SensorScheduling_node_detach" time="0.0744752" status="run">
+		<properties/>
+		<system-out>node_detach: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_reentry" classname="SensorScheduling_delay_reentry" time="0.076243" status="run">
+		<properties/>
+		<system-out>delay_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_timeout_reentry" classname="SensorScheduling_delay_timeout_reentry" time="0.0765784" status="run">
+		<properties/>
+		<system-out>delay_timeout_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_reentry" classname="SensorScheduling_timer_reentry" time="0.0770579" status="run">
+		<properties/>
+		<system-out>timer_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_changed_exception" classname="SensorScheduling_delay_changed_exception" time="0.0784562" status="run">
+		<properties/>
+		<system-out>delay_changed_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_changed_exception" classname="SensorScheduling_timer_changed_exception" time="0.103723" status="run">
+		<properties/>
+		<system-out>timer_changed_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_remove_reentry" classname="SensorScheduling_delay_remove_reentry" time="0.0843206" status="run">
+		<properties/>
+		<system-out>delay_remove_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_remove_reentry" classname="SensorScheduling_timer_remove_reentry" time="0.0828714" status="run">
+		<properties/>
+		<system-out>timer_remove_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_exception" classname="SensorScheduling_timer_exception" time="0.0755346" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_exception" classname="SensorScheduling_delay_exception" time="0.0755828" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_cancel_exception" classname="SensorScheduling_timer_cancel_exception" time="0.0785238" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_cancel_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_deferred_exception" classname="SensorScheduling_delay_deferred_exception" time="0.0776779" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_deferred_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_absolute_deadline" classname="SensorScheduling_absolute_deadline" time="0.0758078" status="run">
+		<properties/>
+		<system-out>absolute_deadline: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_changed_during_dispatch" classname="SensorScheduling_changed_during_dispatch" time="0.0773135" status="run">
+		<properties/>
+		<system-out>changed_during_dispatch: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_immediate_notification" classname="SensorScheduling_immediate_notification" time="0.0779084" status="run">
+		<properties/>
+		<system-out>immediate_notification: passed
+</system-out>
+	</testcase>
+	<testcase name="XmlCHeaderAttributeTest" classname="XmlCHeaderAttributeTest" time="0.0359102" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderDocumentTest" classname="XmlCHeaderDocumentTest" time="0.0359435" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderElementTest" classname="XmlCHeaderElementTest" time="0.0338528" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderEntityTest" classname="XmlCHeaderEntityTest" time="0.0336956" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderParserTest" classname="XmlCHeaderParserTest" time="0.0320211" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderPathTest" classname="XmlCHeaderPathTest" time="0.0332523" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderTypesTest" classname="XmlCHeaderTypesTest" time="0.0319515" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderWorldTest" classname="XmlCHeaderWorldTest" time="0.0330789" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeadersAggregateTest" classname="XmlCHeadersAggregateTest" time="0.0333373" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCApiTest" classname="XmlCApiTest" time="0.0913048" status="run">
+		<properties/>
+		<system-out>root[0]
+</system-out>
+	</testcase>
+	<testcase name="XmlLegacyPathDocumentCxxAbiTest" classname="XmlLegacyPathDocumentCxxAbiTest" time="0.0935671" status="run">
+		<properties/>
+		<system-out>legacy
+</system-out>
+	</testcase>
+</testsuite>

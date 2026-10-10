@@ -1,0 +1,3711 @@
+{
+  "base_revision": "b86404cafc9ec13e91d0bac67f2e875f2b206a07",
+  "artifact_root": "H:\\Git\\coin\\build\\sampling-win-20261010",
+  "files": [
+    {
+      "path": ".gitattributes",
+      "bytes": 8,
+      "sha256": "705fd4d6451a31d36b3df7de96f83f30ac976c9b4a6d1e51671d8e2f33e2d0da"
+    },
+    {
+      "path": "analyze_latency.py",
+      "bytes": 1218,
+      "sha256": "3b3559f370a8a65961bfb104d73dc8b31279b6caeef81a6706257370ea359e31"
+    },
+    {
+      "path": "analyze_npot.py",
+      "bytes": 2352,
+      "sha256": "ff5a3fe14ff2d1887b2562eb8a32dca57839cd4b02d9729081ffa0acdd7ed6e7"
+    },
+    {
+      "path": "bgfx-build.log",
+      "bytes": 47252,
+      "sha256": "7fd3ed000c1dd9e5eff12c674dd567d206066d5c9468d18d067fafb5c767b871"
+    },
+    {
+      "path": "bgfx-configure.log",
+      "bytes": 5753,
+      "sha256": "18fc309a520d60ff1d49aceb06df035a8b97ac9593c1d1b33e44b1530499e73c"
+    },
+    {
+      "path": "build-ledger.json",
+      "bytes": 1467,
+      "sha256": "71c2c8038e93e491e0860ab715372715dd0017f13e184d68a5fbe4f44af0ff56"
+    },
+    {
+      "path": "build_sdk.py",
+      "bytes": 3007,
+      "sha256": "9b81be84983a849de7a6830e534c4c394e337ca7f422effccdad7ef8eb8b4ae8"
+    },
+    {
+      "path": "camera/bgfx-d3d12-camera.log",
+      "bytes": 3696,
+      "sha256": "3ae11d51f807a1cc5b26717861ec728f79178e1e2a9abab46833a402c3d212ec"
+    },
+    {
+      "path": "camera/bgfx-opengl-camera.log",
+      "bytes": 3708,
+      "sha256": "4a6cea2ddf6228f9efa828a137ed8c04896536a3d22affb5f59d454ffb5766a4"
+    },
+    {
+      "path": "camera/bgfx-vulkan-camera.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "camera/results.xml",
+      "bytes": 1256,
+      "sha256": "fb43029c1dc7ac181b5f76f57db31208606b57027d537f40cc2c6f83a8ce8ea7"
+    },
+    {
+      "path": "camera/summary.json",
+      "bytes": 19775,
+      "sha256": "30ad330d75e3e2801a6bd4f345f9833955f6bed2f1950308302295b7477f5096"
+    },
+    {
+      "path": "camera/wgpu-d3d12-camera.log",
+      "bytes": 3710,
+      "sha256": "2d5f0c725642c2bb74ebad045db49e11069128f03d1eccc33661f6da8d09112a"
+    },
+    {
+      "path": "camera/wgpu-opengl-camera.log",
+      "bytes": 3698,
+      "sha256": "6cc4f8258a9956ce941ca666b0d6bfaeb1849b29f2d4631eac612a26e8d3be79"
+    },
+    {
+      "path": "camera/wgpu-vulkan-camera.log",
+      "bytes": 3709,
+      "sha256": "ee83a0f75e65d2dc390b8a90c99080418ff5cdd74a635b6993962b2c6b76047e"
+    },
+    {
+      "path": "crlf-fix-build-ledger.json",
+      "bytes": 2308,
+      "sha256": "ca1e63545bf051061864fadb81cc452ff8c8193645835b8b775c7dd82b58dd82"
+    },
+    {
+      "path": "crlf-fix-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "crlf-fix-source.diff",
+      "bytes": 16160,
+      "sha256": "837611ae8bb0c100cd6090a30823ab60e6e87e399f1216ae09ee09c6a6f7ed4f"
+    },
+    {
+      "path": "crlf-fix-wgpu-build.log",
+      "bytes": 15098,
+      "sha256": "e1e51e690a8f81da272a7e7d71d815b08a85fc34a52b1202f071f17618c97c9e"
+    },
+    {
+      "path": "crlf-fix-wgpu-configure.log",
+      "bytes": 389,
+      "sha256": "145dc8b8acbf75b7def6d475a8c7868dfd5ee4509fd1470745c67cf14974d6df"
+    },
+    {
+      "path": "crlf-fix-wgpu-consumer-build.log",
+      "bytes": 753,
+      "sha256": "48859e273572ff2906e37fb97a7b31afc4132014adc0b6f5fd7ee0732b3d54d0"
+    },
+    {
+      "path": "crlf-fix-wgpu-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "f64acfaed4c4baadf65f7614f02aede3c1d8835ab266780a79069d0db6aa3cb6"
+    },
+    {
+      "path": "crlf-fix-wgpu-install.log",
+      "bytes": 110791,
+      "sha256": "20643540dd14c66dd541b4acce329c95028f1568a55f4e3cc363581a9a6f1af1"
+    },
+    {
+      "path": "early-bgfx-consumer-build.log",
+      "bytes": 492,
+      "sha256": "6517dca9d32aac70748582d37dd77cd3fbf6d87c16384cabc4ce33b00b1d8a37"
+    },
+    {
+      "path": "early-bgfx-consumer-configure.log",
+      "bytes": 612,
+      "sha256": "a435db41ae826e47e027f17fff57ec8431406e645fdfe2071954caf09890daf1"
+    },
+    {
+      "path": "early-bgfx-install.log",
+      "bytes": 110660,
+      "sha256": "6c9ecca98c442523b387c223b034e56ab22d878866035dd58adfacb0cbf4481b"
+    },
+    {
+      "path": "early-sdk-ledger.json",
+      "bytes": 973,
+      "sha256": "b80fdf18b88e793c1ef84578d14f706cb9f67424e606bebf22112bcc726c993f"
+    },
+    {
+      "path": "exports-fix-bgfx-build.log",
+      "bytes": 37209,
+      "sha256": "59ce5eca0216ef3f394c4d1bce6fcd893fd7c7183ab57394e401747ebf6afda6"
+    },
+    {
+      "path": "exports-fix-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "f2d6ba5a062cbedefb1b0c4c840f209bb625316bcd48b69fa2b878265c059786"
+    },
+    {
+      "path": "exports-fix-build-ledger.json",
+      "bytes": 1492,
+      "sha256": "083ff34905fea8733202cec672c22686b7a1f6ddd87639da9668d21dc73f941e"
+    },
+    {
+      "path": "extend_sampling_evidence.py",
+      "bytes": 4313,
+      "sha256": "d4f2c4b0600580db43f58ba58ba20a375e5ac6e8262bc47017259a6ae40fe21f"
+    },
+    {
+      "path": "extend_sampling_windows.py",
+      "bytes": 7006,
+      "sha256": "f4b778b0a08b55c5a152826566f46c9d6737b780502b2eb39a73e17f5a422b74"
+    },
+    {
+      "path": "extend_sdk.py",
+      "bytes": 4840,
+      "sha256": "f103b3ed46729f5a3dd79bbfabf08b54e8a64a3d1466448f4f3e158636a44963"
+    },
+    {
+      "path": "ffi-build-ledger.json",
+      "bytes": 375,
+      "sha256": "84e4bb6e43b9d07a43c99dcf34890be6775201776edf7849aea09eaaeecf7fd7"
+    },
+    {
+      "path": "ffi-fix-build.log",
+      "bytes": 390,
+      "sha256": "1ce2197288e29dd757d13769e0eaa18c9029d55070cf596af09d5fd7dc3c8d44"
+    },
+    {
+      "path": "ffi-recovery/d3d12-last-test.log",
+      "bytes": 866,
+      "sha256": "19193a25b2ed7ed4b42e97f291d558d014ab468c0d0169a50d5083a04ead3ce3"
+    },
+    {
+      "path": "ffi-recovery/d3d12.log",
+      "bytes": 343,
+      "sha256": "1fffe354d77bbf13ff4dd1c159e309ff2a61543daac73746388bf470a7e18314"
+    },
+    {
+      "path": "ffi-recovery/d3d12.xml",
+      "bytes": 391,
+      "sha256": "42d0559ffb6cdce12f76e93807e7548b30e013dea955691d3eb295c3d042b5e4"
+    },
+    {
+      "path": "ffi-recovery/initial-effective-wgpu.xml",
+      "bytes": 57738,
+      "sha256": "23e6e59cb5c0a60a32d89c1e15dd03ac710ef1e4b8803cc9447894e3a96dacf3"
+    },
+    {
+      "path": "ffi-recovery/opengl-last-test.log",
+      "bytes": 866,
+      "sha256": "01f1d58c250ae678f6f359bc8d4902968e5cca158475812346bc3ee62d68183c"
+    },
+    {
+      "path": "ffi-recovery/opengl.log",
+      "bytes": 343,
+      "sha256": "e8889eff4391a9d9fd7ce3464fa6a9db07a4c28f17f11245e1dc9d1f19afd50f"
+    },
+    {
+      "path": "ffi-recovery/opengl.xml",
+      "bytes": 391,
+      "sha256": "3d9e23715af6e2a1b19a1d1d0d9dd1829d3c1ccb5f9378fc1c083e57f61d02f6"
+    },
+    {
+      "path": "ffi-recovery/summary.json",
+      "bytes": 9325,
+      "sha256": "89c67fa68c9b106adbf91828f36f2ce3ced223382ccad156ec8cf7f5274df717"
+    },
+    {
+      "path": "ffi-recovery/vulkan-last-test.log",
+      "bytes": 866,
+      "sha256": "b475438653c2001df3d485bf31e4ca8a26d111e851dcf9ec401790f33b495d2c"
+    },
+    {
+      "path": "ffi-recovery/vulkan.log",
+      "bytes": 343,
+      "sha256": "32d4420b70e862ce4730f76dfe4ad712ef5359f7899abf905e08aaf713087205"
+    },
+    {
+      "path": "ffi-recovery/vulkan.xml",
+      "bytes": 391,
+      "sha256": "39a32a5abf54ee06abd23db94b0934692b02c27e55aba98311d61d35ae94183d"
+    },
+    {
+      "path": "final-trace-baseline-bgfx-build.log",
+      "bytes": 11278,
+      "sha256": "024e9a75ce5f502ad57e98db643c3933847252e1a2fc1856a5fab27b86a2d68c"
+    },
+    {
+      "path": "final-trace-baseline-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "68bdfc361e8f4633921064d746d994310a9955e0e5c8f4d43bd342699409317a"
+    },
+    {
+      "path": "final-trace-baseline-bgfx-consumer-build.log",
+      "bytes": 333,
+      "sha256": "0baa4eed7d8f85a329bb4a50b738d4c18de4bbd0840fbaff569e9b55c9fb8555"
+    },
+    {
+      "path": "final-trace-baseline-bgfx-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "6884a09d2e39d1dba71905b361afcb28a512ae33af0efcef0c3839e29a593d40"
+    },
+    {
+      "path": "final-trace-baseline-bgfx-install.log",
+      "bytes": 110791,
+      "sha256": "f8cacb834ab9018043019085882eb030b3d1d99a5a5410989865c18aa40bd6af"
+    },
+    {
+      "path": "final-trace-baseline-build-ledger.json",
+      "bytes": 2634,
+      "sha256": "7188c1007cd6fd497542a0984a299f1054c92a5db4f4fcc0f0e7054c2869d62d"
+    },
+    {
+      "path": "final-trace-baseline-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "final-trace-baseline-source.diff",
+      "bytes": 35386,
+      "sha256": "ef3e4950765087bc5a10cb8a868c5f28896d27eb6f591abaf64b000e5776f5b7"
+    },
+    {
+      "path": "fix_upload_fixtures.py",
+      "bytes": 3036,
+      "sha256": "0619ce72653a2245bb89430f50716a76ad78af150830fa50737a37d22d1744ba"
+    },
+    {
+      "path": "fix_windows_fixtures.py",
+      "bytes": 661,
+      "sha256": "296ea670d44f178782ad24a3af9978cfdb5fdcad8422977c7e30889c5ae0a2fb"
+    },
+    {
+      "path": "fixtures-fix-bgfx-build.log",
+      "bytes": 22155,
+      "sha256": "a2b982cd7cbe3b710fed2e3dc4d8105f923ef0dbc335e0506e410d2550bf2e56"
+    },
+    {
+      "path": "fixtures-fix-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "2004979988bf9ae3e336d87c2c4c11007e60133bf0b42b72f1ddfeadc0cf288a"
+    },
+    {
+      "path": "fixtures-fix-bgfx-consumer-build.log",
+      "bytes": 480,
+      "sha256": "e85d8d7a11284debd23e56b93bd68850cd974344d488a460ec92f89322ef9c8d"
+    },
+    {
+      "path": "fixtures-fix-bgfx-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "6884a09d2e39d1dba71905b361afcb28a512ae33af0efcef0c3839e29a593d40"
+    },
+    {
+      "path": "fixtures-fix-bgfx-install.log",
+      "bytes": 110660,
+      "sha256": "e1cc355f4dd3d311b079ac3deca6e625d83ccf1ca2f31c9b98ab686f8589cf86"
+    },
+    {
+      "path": "fixtures-fix-build-ledger.json",
+      "bytes": 4916,
+      "sha256": "ff364a26cf1f7d55de2f35f19a6494f2dfb3529d1949893aa804dc1b98251633"
+    },
+    {
+      "path": "fixtures-fix-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "fixtures-fix-source.diff",
+      "bytes": 4176,
+      "sha256": "75042ba8b120bcc03d932ac2d33614b3c59d83e95fdfd2b6d180108451afe534"
+    },
+    {
+      "path": "fixtures-fix-wgpu-build.log",
+      "bytes": 72016,
+      "sha256": "f52c9868a2086aecd279370de755f57807ffb3ceb653a609be982904fe062e05"
+    },
+    {
+      "path": "fixtures-fix-wgpu-configure.log",
+      "bytes": 5613,
+      "sha256": "a5a1486ba340dbd2e4aa0ca12e584d7e1b12425a44831fa17b903c73b768dba1"
+    },
+    {
+      "path": "fixtures-fix-wgpu-consumer-build.log",
+      "bytes": 783,
+      "sha256": "05ddc47d7fe504c120131b1a0ac3ae51a839dd317b6a62c0abdccc731529cffd"
+    },
+    {
+      "path": "fixtures-fix-wgpu-consumer-configure.log",
+      "bytes": 966,
+      "sha256": "597a88c78a2b4314f7be82410385fae82fa66720cebddb3671f925f93739a919"
+    },
+    {
+      "path": "fixtures-fix-wgpu-install.log",
+      "bytes": 110791,
+      "sha256": "8329d954d84187247442344489fd0e1d93675d895414dfb9cda408fb21a72b46"
+    },
+    {
+      "path": "freecad-inventory.json",
+      "bytes": 885,
+      "sha256": "ecba715474eb16471be5e3098db3d46606786e8ae3a1431c4eda8f9283c363da"
+    },
+    {
+      "path": "hardware.json",
+      "bytes": 758,
+      "sha256": "02b126b62e723708cd18209406d6bf49a69ff2cc3171cb0292f0519974d07be1"
+    },
+    {
+      "path": "initial-bgfx/bgfx-d3d12-sampling-api.log",
+      "bytes": 187,
+      "sha256": "3495062844580a9b9892003078725444c87507ad77121c0fdd570f0f65493986"
+    },
+    {
+      "path": "initial-bgfx/bgfx-d3d12-sdk-native.log",
+      "bytes": 268,
+      "sha256": "72cd671bab9a4114fcedf328c56804aa5b1df566717950451d3ba3c68f33dccb"
+    },
+    {
+      "path": "initial-bgfx/bgfx-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "43c9778c525df162d5bc3e13d47ec4167e8688fa08ede7565717e8e0df9e9db8"
+    },
+    {
+      "path": "initial-bgfx/bgfx-opengl-sampling-api.log",
+      "bytes": 182,
+      "sha256": "d3b83160530e66cd7e5a28161aed4860cd00d52c9b9b08e6c1f0c634e37a7c3f"
+    },
+    {
+      "path": "initial-bgfx/bgfx-opengl-sdk-native.log",
+      "bytes": 260,
+      "sha256": "831240ba7f6b8be950cc0a407761aa30b1ad0b714e11bd7749e0be88ee8b062d"
+    },
+    {
+      "path": "initial-bgfx/bgfx-vulkan-sampling-api.log",
+      "bytes": 58,
+      "sha256": "3d0b8c525306dfb79bb619c1f8c279447d5681838a0ee80bd0ce9219fdc2b2c8"
+    },
+    {
+      "path": "initial-bgfx/bgfx-vulkan-sdk-native.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "initial-bgfx/results.xml",
+      "bytes": 1405,
+      "sha256": "a1fb5c000c83c7f513d642964902554ac3a83fb8ba75f8e88ae41a911c24d3f1"
+    },
+    {
+      "path": "initial-bgfx/summary.json",
+      "bytes": 19778,
+      "sha256": "7a4bc23208c47fe2f9caa468b0592257b538472912b8312f083ae7d14d0b8b88"
+    },
+    {
+      "path": "initial-wgpu/results.xml",
+      "bytes": 1660,
+      "sha256": "7f05fc02a22d24e65fe7823ac63a80c1e2f963203af25486344f032300605e5d"
+    },
+    {
+      "path": "initial-wgpu/summary.json",
+      "bytes": 20009,
+      "sha256": "749c6d184bc94472de7fa88ca186f33c9ce534686be6ef3c8374d0dcf3c4de16"
+    },
+    {
+      "path": "initial-wgpu/wgpu-d3d12-sampling-api.log",
+      "bytes": 2538,
+      "sha256": "1b1f7bfaa577b60cbab960d881728f0da753e4d047b3af77dff77e228d4346e1"
+    },
+    {
+      "path": "initial-wgpu/wgpu-d3d12-sdk-native.log",
+      "bytes": 1089,
+      "sha256": "b440bca523879b76350cdb4eda7aed88f83b2a3a5aa9cfbdeaf6dff9cecaee6e"
+    },
+    {
+      "path": "initial-wgpu/wgpu-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "c69cf812453983e967629fb635fdcf0eda8ed5674955939dc78a883d717dbf1e"
+    },
+    {
+      "path": "initial-wgpu/wgpu-opengl-sampling-api.log",
+      "bytes": 2546,
+      "sha256": "a11a6edd735dba959ea545a9179af0c31931631d9371f29bc5d441777d912ece"
+    },
+    {
+      "path": "initial-wgpu/wgpu-opengl-sdk-native.log",
+      "bytes": 1094,
+      "sha256": "5254c047074f0c111b08540a3415e4c97428ed88d9f244305d81172b482cb736"
+    },
+    {
+      "path": "initial-wgpu/wgpu-vulkan-sampling-api.log",
+      "bytes": 2540,
+      "sha256": "ea95448495905e3d9baa3f33ac4042f7351a5f585887d41ecc27a54a1f53dab7"
+    },
+    {
+      "path": "initial-wgpu/wgpu-vulkan-sdk-native.log",
+      "bytes": 1091,
+      "sha256": "38c3e02c7c234cb9923fbd0e809445ca840ff11b1a6bb66b642dca4151414183"
+    },
+    {
+      "path": "initial-wgpu-inputs/checkout-eol.txt",
+      "bytes": 89,
+      "sha256": "8df678340f96126438b34d30ea7e39637bbe66bb848475265a3d9b92109c7386"
+    },
+    {
+      "path": "initial-wgpu-inputs/coin_standard.wgsl",
+      "bytes": 26270,
+      "sha256": "f51fff0baca7f153442e8590d04985b23d6723c6c09e6dde0080101203c2848d"
+    },
+    {
+      "path": "initial-wgpu-inputs/shader_profile.rs",
+      "bytes": 7460,
+      "sha256": "149a900be2cc40196685dda87a8cd4d2ec9911f24737d51f63ef4516634a8ec9"
+    },
+    {
+      "path": "latency/bgfx-d3d12-0-native-clocks.csv",
+      "bytes": 655,
+      "sha256": "20743009999e10077a8cefea480b0be5632dc050372ca4452ea3effc99446203"
+    },
+    {
+      "path": "latency/bgfx-d3d12-0-native.csv",
+      "bytes": 11612,
+      "sha256": "3f087e9544214ddc7714073aeac57a8fb456fd1ad7d8f6db58842dcc0d17d8e7"
+    },
+    {
+      "path": "latency/bgfx-d3d12-0-native.log",
+      "bytes": 349,
+      "sha256": "20f6e3e13a137f723f79b1907690f83516bc87b4988b5d7e9f010e2541767d85"
+    },
+    {
+      "path": "latency/bgfx-d3d12-1-portable-clocks.csv",
+      "bytes": 657,
+      "sha256": "b819cd33cb1f93f10ea1a58f4d498f2cc88cef4088cecc7e943d778588c7af5c"
+    },
+    {
+      "path": "latency/bgfx-d3d12-1-portable.csv",
+      "bytes": 11625,
+      "sha256": "a241c1cac0ccde999a1dc0e4fc3af1b529e7deec2f6393abd2dda18e30e2444f"
+    },
+    {
+      "path": "latency/bgfx-d3d12-1-portable.log",
+      "bytes": 351,
+      "sha256": "38dae26ce2e634ee1987f364c3e3e33d62f9280b8a2215d4da10c8807ea0d1b6"
+    },
+    {
+      "path": "latency/bgfx-d3d12-2-portable-clocks.csv",
+      "bytes": 533,
+      "sha256": "42558f58400fe981752001a7f4eb77aed8ca4325c754a7e95bed464668eb68bc"
+    },
+    {
+      "path": "latency/bgfx-d3d12-2-portable.csv",
+      "bytes": 11625,
+      "sha256": "1967a98d5d9420a92e86de479be7006cedfbaa56de000913fbea2de2bd55a0b7"
+    },
+    {
+      "path": "latency/bgfx-d3d12-2-portable.log",
+      "bytes": 351,
+      "sha256": "38dae26ce2e634ee1987f364c3e3e33d62f9280b8a2215d4da10c8807ea0d1b6"
+    },
+    {
+      "path": "latency/bgfx-d3d12-3-native-clocks.csv",
+      "bytes": 657,
+      "sha256": "affc937e7020509cd5c4c0917933d4401805d5328be44d0c680effc9316dda1a"
+    },
+    {
+      "path": "latency/bgfx-d3d12-3-native.csv",
+      "bytes": 11635,
+      "sha256": "3fe1b978a476fbb20248bffe4a00b4262cfa7149e6206a6f3bf4cc105011f501"
+    },
+    {
+      "path": "latency/bgfx-d3d12-3-native.log",
+      "bytes": 349,
+      "sha256": "20f6e3e13a137f723f79b1907690f83516bc87b4988b5d7e9f010e2541767d85"
+    },
+    {
+      "path": "latency/bgfx-opengl-0-native-clocks.csv",
+      "bytes": 535,
+      "sha256": "08cccfdc45bf376a35897b7278f6523eeb2a021b94d1e369e021ac9c84cd06c6"
+    },
+    {
+      "path": "latency/bgfx-opengl-0-native.csv",
+      "bytes": 11610,
+      "sha256": "04189bd0f554ff04a90e72c44efb45af8624311d546dbf0142bff201920022b7"
+    },
+    {
+      "path": "latency/bgfx-opengl-0-native.log",
+      "bytes": 344,
+      "sha256": "45c7b66c7250eac8120d44a4551c529f52de003ec31cd0e2a641523b05e0166c"
+    },
+    {
+      "path": "latency/bgfx-opengl-1-portable-clocks.csv",
+      "bytes": 536,
+      "sha256": "acc0ac26ed1e01c7f607b839eddf934bec0646b39e303f235738067c0ca181cd"
+    },
+    {
+      "path": "latency/bgfx-opengl-1-portable.csv",
+      "bytes": 11614,
+      "sha256": "8bfd26d5ede6afbefbddb949be30aaf8d983747440d41dac553dc7e3c12c1b94"
+    },
+    {
+      "path": "latency/bgfx-opengl-1-portable.log",
+      "bytes": 346,
+      "sha256": "81182a01b1b974ac3b0d6ae7e653c9db95550e6bddd3e37272e846bb57bdf935"
+    },
+    {
+      "path": "latency/bgfx-opengl-2-portable-clocks.csv",
+      "bytes": 535,
+      "sha256": "a622d5346f3b52b78dfcfb16773b05a5c4cc928ad64d16e7546251db84e227e3"
+    },
+    {
+      "path": "latency/bgfx-opengl-2-portable.csv",
+      "bytes": 11627,
+      "sha256": "bc12c708207eafcca1235e385be0224047425cd4bfe15f54210807e511e915dd"
+    },
+    {
+      "path": "latency/bgfx-opengl-2-portable.log",
+      "bytes": 346,
+      "sha256": "81182a01b1b974ac3b0d6ae7e653c9db95550e6bddd3e37272e846bb57bdf935"
+    },
+    {
+      "path": "latency/bgfx-opengl-3-native-clocks.csv",
+      "bytes": 535,
+      "sha256": "03ad8da358f9bb6f78607b81117a7cfd1995e1681dc1e0599d52fd8361a3f14e"
+    },
+    {
+      "path": "latency/bgfx-opengl-3-native.csv",
+      "bytes": 11625,
+      "sha256": "6f121c511b93302135869ed5b798ab6355584a047363ab47ae0de987010a2fbf"
+    },
+    {
+      "path": "latency/bgfx-opengl-3-native.log",
+      "bytes": 344,
+      "sha256": "45c7b66c7250eac8120d44a4551c529f52de003ec31cd0e2a641523b05e0166c"
+    },
+    {
+      "path": "latency/bgfx-vulkan-0-native-clocks.csv",
+      "bytes": 659,
+      "sha256": "645d8bc10c0b76dee93f9299b19f5609e3803d7861ddb72577e9fab8529ef8c7"
+    },
+    {
+      "path": "latency/bgfx-vulkan-0-native.csv",
+      "bytes": 11627,
+      "sha256": "78b3b8bd4f87d944c90ab86e05c4df8045737a77a7b8127f29cc580dfc621f5f"
+    },
+    {
+      "path": "latency/bgfx-vulkan-0-native.log",
+      "bytes": 344,
+      "sha256": "f5bd454bc9952a845ef94b9f0fbc5c12c33a28197c0d986e5bc878fe475b3181"
+    },
+    {
+      "path": "latency/bgfx-vulkan-1-portable-clocks.csv",
+      "bytes": 536,
+      "sha256": "9fcdd087f507d1029a451d3b79b2b3558122aaed0e4f704624cf3972cfe794a9"
+    },
+    {
+      "path": "latency/bgfx-vulkan-1-portable.csv",
+      "bytes": 11630,
+      "sha256": "3251c0cd934bc5b010a660a69a0f9e18efaed4c9542511addf0887144e023da4"
+    },
+    {
+      "path": "latency/bgfx-vulkan-1-portable.log",
+      "bytes": 346,
+      "sha256": "37e81792a299eb8fcafb4e91347cba48fcc82068033e6283403e82c5bec5b84b"
+    },
+    {
+      "path": "latency/bgfx-vulkan-2-portable-clocks.csv",
+      "bytes": 536,
+      "sha256": "aedc94d8e0de219026280382c5984db1521d7236c91e5373459dec4b5f167fc3"
+    },
+    {
+      "path": "latency/bgfx-vulkan-2-portable.csv",
+      "bytes": 11621,
+      "sha256": "f8323365d493851676b8bb50aa071051b7270c01a18ebf1084acc6e42bb96411"
+    },
+    {
+      "path": "latency/bgfx-vulkan-2-portable.log",
+      "bytes": 346,
+      "sha256": "37e81792a299eb8fcafb4e91347cba48fcc82068033e6283403e82c5bec5b84b"
+    },
+    {
+      "path": "latency/bgfx-vulkan-3-native-clocks.csv",
+      "bytes": 536,
+      "sha256": "8c2a3145acbb0b76b2281720b0cb2fde6903179b9cc3f7f0b55c043f2da50b90"
+    },
+    {
+      "path": "latency/bgfx-vulkan-3-native.csv",
+      "bytes": 11612,
+      "sha256": "43d631aeaf4e9703bc1f75eb73f6a894bd4444ddf49ee6b9e4ad4cef228c4221"
+    },
+    {
+      "path": "latency/bgfx-vulkan-3-native.log",
+      "bytes": 344,
+      "sha256": "f5bd454bc9952a845ef94b9f0fbc5c12c33a28197c0d986e5bc878fe475b3181"
+    },
+    {
+      "path": "latency/results.xml",
+      "bytes": 4841,
+      "sha256": "b05b7b42a4fc10443258d14836b0e26f71652d41aec8793c8d61e69fee705246"
+    },
+    {
+      "path": "latency/summary.json",
+      "bytes": 89482,
+      "sha256": "2e8dbde65787c9322b991011c1298dd6da60aaca47757760a189d4389914272d"
+    },
+    {
+      "path": "latency/timing-summary.json",
+      "bytes": 8624,
+      "sha256": "cd04b1acb4ad80a98a15969f490a97450b0a9e3c76f9e14465ca0c2cc800a2cf"
+    },
+    {
+      "path": "latency/wgpu-d3d12-0-native-clocks.csv",
+      "bytes": 2592,
+      "sha256": "cb6c0ec173f4ec9a9080479a7be1cb98ec952f951765884918e92621b3ef5cb7"
+    },
+    {
+      "path": "latency/wgpu-d3d12-0-native.csv",
+      "bytes": 12294,
+      "sha256": "8b2721b1b8c6889dc79e5b3e62369940585cbfefd5a7cb6637667802fc084f91"
+    },
+    {
+      "path": "latency/wgpu-d3d12-0-native.log",
+      "bytes": 329,
+      "sha256": "eb8a9603f3955cf2242bf0acc165252d4a477192c8529f499dbe853acf096a0d"
+    },
+    {
+      "path": "latency/wgpu-d3d12-1-portable-clocks.csv",
+      "bytes": 2469,
+      "sha256": "7187f00a7684e3e2ebd4ed6fdf1f10107aee5fae5d00bdc9420850330df6ff7b"
+    },
+    {
+      "path": "latency/wgpu-d3d12-1-portable.csv",
+      "bytes": 12305,
+      "sha256": "d3b55244a37cc82a287c69aa37f39ae6c15cac011dad90228f86f0682e83e92d"
+    },
+    {
+      "path": "latency/wgpu-d3d12-1-portable.log",
+      "bytes": 331,
+      "sha256": "fe9097c48776bbf7e6b685281134c4af9c2f6b236a0b711a0c0d7e35a3f992a6"
+    },
+    {
+      "path": "latency/wgpu-d3d12-2-portable-clocks.csv",
+      "bytes": 2468,
+      "sha256": "6a040d67e332368c93e8efb80eb5798892e52eb3d8701d47aeccd2d850dafc55"
+    },
+    {
+      "path": "latency/wgpu-d3d12-2-portable.csv",
+      "bytes": 12298,
+      "sha256": "8bf60802b8ed55486838f936b1b88ea07eff9cbf3e85fbef2557a87967d3d901"
+    },
+    {
+      "path": "latency/wgpu-d3d12-2-portable.log",
+      "bytes": 331,
+      "sha256": "fe9097c48776bbf7e6b685281134c4af9c2f6b236a0b711a0c0d7e35a3f992a6"
+    },
+    {
+      "path": "latency/wgpu-d3d12-3-native-clocks.csv",
+      "bytes": 2468,
+      "sha256": "77eecd544c4adfb9359a81bead777813f9a789a041251d1229b0e3c3bae72227"
+    },
+    {
+      "path": "latency/wgpu-d3d12-3-native.csv",
+      "bytes": 12299,
+      "sha256": "f7cb6796ca9dcb28517979c6320989aafa4cbc66e7e9cf35874d3da4f38fa61e"
+    },
+    {
+      "path": "latency/wgpu-d3d12-3-native.log",
+      "bytes": 329,
+      "sha256": "eb8a9603f3955cf2242bf0acc165252d4a477192c8529f499dbe853acf096a0d"
+    },
+    {
+      "path": "latency/wgpu-opengl-0-native-clocks.csv",
+      "bytes": 1748,
+      "sha256": "f453ed2c05b887496f7731ca791f75a7f3718ec8f02a8a34a8fd983bd23575e4"
+    },
+    {
+      "path": "latency/wgpu-opengl-0-native.csv",
+      "bytes": 12310,
+      "sha256": "064ca605fde8c884270cde064351c09fecb5697b2a7ec23dea2f0dfc76513c6d"
+    },
+    {
+      "path": "latency/wgpu-opengl-0-native.log",
+      "bytes": 337,
+      "sha256": "7f5ac0797a045bb102f0c4f71a5c52729814e2eff37a3ee870b60446c2ec4309"
+    },
+    {
+      "path": "latency/wgpu-opengl-1-portable-clocks.csv",
+      "bytes": 1746,
+      "sha256": "263cfea34a499d7b28fbd693072eadec4d1a5fec944300d14aaa2429a35dc325"
+    },
+    {
+      "path": "latency/wgpu-opengl-1-portable.csv",
+      "bytes": 12302,
+      "sha256": "d014654abfb199658ac97c38acd4997a65b1be92bac3a009c4bee18adde3483a"
+    },
+    {
+      "path": "latency/wgpu-opengl-1-portable.log",
+      "bytes": 339,
+      "sha256": "84971fb5e08c248636b0cb62c44547c005162416cdb543353fab5434439b3dae"
+    },
+    {
+      "path": "latency/wgpu-opengl-2-portable-clocks.csv",
+      "bytes": 1746,
+      "sha256": "a2d8a7f0993ba65f2f9b46d02f41597ffa8d75a8e666469bee3b8861cf10064a"
+    },
+    {
+      "path": "latency/wgpu-opengl-2-portable.csv",
+      "bytes": 12299,
+      "sha256": "5594138c0a9680a1d3531a6d06293eddb197f352c66f9a508f0b6b9aecff0ade"
+    },
+    {
+      "path": "latency/wgpu-opengl-2-portable.log",
+      "bytes": 339,
+      "sha256": "84971fb5e08c248636b0cb62c44547c005162416cdb543353fab5434439b3dae"
+    },
+    {
+      "path": "latency/wgpu-opengl-3-native-clocks.csv",
+      "bytes": 1749,
+      "sha256": "32d1b467a66af2504c9bb59d1e335d61d58717c0468b617641cd94481f9cd28a"
+    },
+    {
+      "path": "latency/wgpu-opengl-3-native.csv",
+      "bytes": 12305,
+      "sha256": "c7b261796bc907ca97edbb2dda1b54174007d6ec24e3d9de1c72460a78387385"
+    },
+    {
+      "path": "latency/wgpu-opengl-3-native.log",
+      "bytes": 337,
+      "sha256": "7f5ac0797a045bb102f0c4f71a5c52729814e2eff37a3ee870b60446c2ec4309"
+    },
+    {
+      "path": "latency/wgpu-vulkan-0-native-clocks.csv",
+      "bytes": 1626,
+      "sha256": "e2da4f630da0a0e291574752418441576e2d0d408b28bcf87bbe8aeca0a4195a"
+    },
+    {
+      "path": "latency/wgpu-vulkan-0-native.csv",
+      "bytes": 11970,
+      "sha256": "11dfd510bef2a263391f43ea96dc8045b9b12119fb75b664ecb38d38f691c885"
+    },
+    {
+      "path": "latency/wgpu-vulkan-0-native.log",
+      "bytes": 331,
+      "sha256": "b7f7ef609f6b0f446c21df7b475c81bee0519c6edec47a79e1591df7e128a929"
+    },
+    {
+      "path": "latency/wgpu-vulkan-1-portable-clocks.csv",
+      "bytes": 1622,
+      "sha256": "5f300436dcc44ca4a7d9908f8c1223baf3783aaada4ceca20c0420ebf7456da2"
+    },
+    {
+      "path": "latency/wgpu-vulkan-1-portable.csv",
+      "bytes": 11963,
+      "sha256": "1237cbaf8564b0183fa8d5b974aa62eb78e5563b3f066b724b9e8fb7010f0210"
+    },
+    {
+      "path": "latency/wgpu-vulkan-1-portable.log",
+      "bytes": 333,
+      "sha256": "35019ae578db136a323017eed108538482a34c67a1b13c773e29c99e46817c07"
+    },
+    {
+      "path": "latency/wgpu-vulkan-2-portable-clocks.csv",
+      "bytes": 1624,
+      "sha256": "eed4259d5651216facb407ec546fd0ea85d33fcf56e9a27b6f80f5a2f0e2acf9"
+    },
+    {
+      "path": "latency/wgpu-vulkan-2-portable.csv",
+      "bytes": 11967,
+      "sha256": "5f27989d684f9049747966f7ac3881692687fabdcbbf4cda6184d59d8bdd946d"
+    },
+    {
+      "path": "latency/wgpu-vulkan-2-portable.log",
+      "bytes": 333,
+      "sha256": "35019ae578db136a323017eed108538482a34c67a1b13c773e29c99e46817c07"
+    },
+    {
+      "path": "latency/wgpu-vulkan-3-native-clocks.csv",
+      "bytes": 1625,
+      "sha256": "ddcd45f29eeff5fdc0ce23217d0a43e0a253ac8784b22921cddc59c8c5802062"
+    },
+    {
+      "path": "latency/wgpu-vulkan-3-native.csv",
+      "bytes": 11957,
+      "sha256": "8ea86e78629085ddefcfe7da9673e667d3c6250fd22477881715df59799fe671"
+    },
+    {
+      "path": "latency/wgpu-vulkan-3-native.log",
+      "bytes": 331,
+      "sha256": "b7f7ef609f6b0f446c21df7b475c81bee0519c6edec47a79e1591df7e128a929"
+    },
+    {
+      "path": "modules-c11-bgfx-consumer-build.log",
+      "bytes": 1720,
+      "sha256": "25c584947266b8369479cfc2552797d74e05924a4a55de8efeaccd241759bdae"
+    },
+    {
+      "path": "monitors.json",
+      "bytes": 423,
+      "sha256": "0d869b247de981a28db5a5f9ad93dbdce11dd45fe02071061ffa85f86d23c5ab"
+    },
+    {
+      "path": "monitors.py",
+      "bytes": 952,
+      "sha256": "d3d3df2754fdf478159b9072f1b77576f955f6461e9011d11c8900c1fa3cca76"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1-clocks.csv",
+      "bytes": 1024,
+      "sha256": "33821e757d7100aa1f9f1fe55b60894748e963daded7531ac2d329cbe7147b78"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-1.log",
+      "bytes": 1153181,
+      "sha256": "4704935ee6282e7af3f382aad2bcb72341209fa77bb6f2b70bb396065047089b"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2-clocks.csv",
+      "bytes": 904,
+      "sha256": "fffc97e186d26e17d577b182a523f20c2e24d615c3c5e2810c4f8f38d0faa58b"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot/bgfx-d3d12-npot-2.log",
+      "bytes": 1153835,
+      "sha256": "f5563cb142508e5e69ba16f9172d7c518f3eb9915e272657ee66caf224694055"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1-clocks.csv",
+      "bytes": 1025,
+      "sha256": "f5055008fa7cc469cfaa8bc2919f8f07063af3427b55439108f3bc805a98f039"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-1.log",
+      "bytes": 1152586,
+      "sha256": "20dcc7e215772082be802d3006b1b5074c14d70720b0db99c8494401b16b20d5"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2-clocks.csv",
+      "bytes": 658,
+      "sha256": "6574d32a02e3ba61d365eed402751b10e58687ba1d0b6d6417b9d44d7718869d"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot/bgfx-opengl-npot-2.log",
+      "bytes": 1153155,
+      "sha256": "ace88b8dcbf1341241ad2ef190b64d6e8395ceec68a9bbd598f5a6b2cc6d0017"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1-clocks.csv",
+      "bytes": 779,
+      "sha256": "37af8010baa8c4e56bfdad9c38d682170375450259abce31e21020d9acaab400"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-1.log",
+      "bytes": 1153125,
+      "sha256": "7ccc1ce0c5f57c4f6823d3cef38807c7dbd4990c0f9885ece749924003ee3363"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2-clocks.csv",
+      "bytes": 781,
+      "sha256": "7a648489d1a4e34ca6f64c8d1faf6497a348079190273ddbd8c59413983251c8"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot/bgfx-vulkan-npot-2.log",
+      "bytes": 1153694,
+      "sha256": "8aa49fac04ad2cb678509fa9524f1bbfcd974defda698d8c40c938eae33f5fdc"
+    },
+    {
+      "path": "npot/gpu-summary.json",
+      "bytes": 89754,
+      "sha256": "e9199206796c4a17ad40c22f5a154f7080c45277df92c346cd16810764f413e9"
+    },
+    {
+      "path": "npot/results.xml",
+      "bytes": 1251,
+      "sha256": "e04819a85c89254dda0d28269ba45928ec25fe3eb17981c5cba94b53d862868a"
+    },
+    {
+      "path": "npot/summary.json",
+      "bytes": 22806,
+      "sha256": "911739f4c00a3e7664117a4ca35c26c3a33f7e00102b28781f341df7771be323"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1-clocks.csv",
+      "bytes": 903,
+      "sha256": "971e753414743e9b321872cb9cf1eb6c59cb435620472727b492c17538c2edd8"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-1.log",
+      "bytes": 1153249,
+      "sha256": "600795128fab01639b35f84bef70e9b3b6b9626371134c7c432500782498deac"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2-clocks.csv",
+      "bytes": 903,
+      "sha256": "152d2274a04481775f8ebe4251a7fb738e1e40f82ea0f2902fdf5b456a3439b9"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-d3d12-npot-2.log",
+      "bytes": 1153418,
+      "sha256": "8159654719e0beda36d26e6101cf32b84d90ef6cc80160d98011b38cd8fd14ef"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1-clocks.csv",
+      "bytes": 659,
+      "sha256": "f2bdfe50bc6aa8fe1250b68d2257054088a6c0ac26103f55f4a17e004abd46a8"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-1.log",
+      "bytes": 1152557,
+      "sha256": "f908b45262c399232ce18cc6fc658e14696f48b50592976d91f29cc127cf85dd"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2-clocks.csv",
+      "bytes": 659,
+      "sha256": "78e93fa57528a6c164771fa5867194dc8c153d67f4dde5c589b9ac13329e571d"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-opengl-npot-2.log",
+      "bytes": 1153214,
+      "sha256": "5201dc9c7e60dae61ab88b83a77fd4cc38e956dabd3d33886e35b8abf9973ca2"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1-clocks.csv",
+      "bytes": 659,
+      "sha256": "5db0de2f4dcc0277b57fafdd1e3f36e46da89be2ed45419140ebd2c0b361030c"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-1.log",
+      "bytes": 1153135,
+      "sha256": "1ed33a3659c7bb3c990db89282276a7f1102ccedebf5ce701ad9e6d03f8e93e9"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2-clocks.csv",
+      "bytes": 659,
+      "sha256": "88361d6574687f2a4d88cbfbc96b271e91a0142404e6580e0599f72e64489366"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-drain-recovery/bgfx-vulkan-npot-2.log",
+      "bytes": 1153739,
+      "sha256": "3151a1fa28a65069dd631b9a9d954224437de4ad30c4e643f79f3384c84fb47b"
+    },
+    {
+      "path": "npot-drain-recovery/gpu-summary.json",
+      "bytes": 88776,
+      "sha256": "82895f8385bea96bb2ba2d8714dd84029c806165382974af68b853ab19542e85"
+    },
+    {
+      "path": "npot-drain-recovery/results.xml",
+      "bytes": 1249,
+      "sha256": "d458dada1c81649d074478810996c25d029f204f7d04d7cd4a5b307312915cce"
+    },
+    {
+      "path": "npot-drain-recovery/summary.json",
+      "bytes": 22894,
+      "sha256": "361429577992a3acc1db7e9afdf566dd69b38b3e477ca1f69fc38c89c2a51e2c"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1-clocks.csv",
+      "bytes": 1752,
+      "sha256": "0021977a1c3265f9b5c2a379c7bf227a3ede541b8a408c50e88b50b3c404c0f4"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-1.log",
+      "bytes": 1153272,
+      "sha256": "2126c9882d57f7956165d21f404d5ee1dff42d2aa914734bb478be3af2df7f6f"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2-clocks.csv",
+      "bytes": 1753,
+      "sha256": "40244cd0fb0acce7bba2e5b250bf41cb225232f108564803a8142ca8f312799a"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-d3d12-npot-2.log",
+      "bytes": 1153893,
+      "sha256": "173625db62f94545c27fbcd365bbfc0c82f1078d353396e6bb92689b5350f8df"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1-clocks.csv",
+      "bytes": 659,
+      "sha256": "e7bd8c03bb444a78c6bf764f274f45fc34f1b548f60d74268277f3c744aeec3c"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-1.log",
+      "bytes": 1152538,
+      "sha256": "7b00663e51b330f24560d11443cadd1da1cff4fa959c00f1b171095298484fc6"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2-clocks.csv",
+      "bytes": 659,
+      "sha256": "fb90940c147783fd57d143ce4818849ddfc79f16a97541d343e0d27e9cfe501d"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-opengl-npot-2.log",
+      "bytes": 1153183,
+      "sha256": "784458c414a5b6b472c8aec85b121d4238c213cda0b842e9d02b83289af9f8e6"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1-clear.ppm",
+      "bytes": 49167,
+      "sha256": "33573eaf4471c6362a962b22020cd07e1177237bfbaf06e631430057d22b0dae"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1-clocks.csv",
+      "bytes": 657,
+      "sha256": "bc6d6d3014e30283e5d6edef29f447de148d2ba0755f6dfc475342716f496f1b"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "8b72b4bc282be22fcef563a349b8d14fc337f5a0f586a43a52a8506b9b886050"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-1.log",
+      "bytes": 1153122,
+      "sha256": "e8bd0bc56a27ea1ad84f2f7debb070df2c65cce9c6911542a7d7967c607d5fa2"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2-clear.ppm",
+      "bytes": 49167,
+      "sha256": "fce711b26fff256693f04712ebbcb653067a910cdc153279993bce2c8509e6eb"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2-clocks.csv",
+      "bytes": 659,
+      "sha256": "1058b7f835c7a2255035b25511756a7c2eaa099feca18bbdb8855bc1af02d648"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2-opaque.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2-recovered.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2-retained.ppm",
+      "bytes": 49167,
+      "sha256": "0d0656bda48e9dc1b75621fc3cb2d2fdc9f3b871b2c9defa27d5610bd816bb12"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2-shadowed.ppm",
+      "bytes": 49167,
+      "sha256": "f16850f602d71a2fa0e003c5ad67edfcf9a460481ba2385fec3be4af67b98794"
+    },
+    {
+      "path": "npot-settle-recovery/bgfx-vulkan-npot-2.log",
+      "bytes": 1153653,
+      "sha256": "95dd4666957bd8d685f7ffa526b560c31f5c8cca7b606e592eaa54a4271d38c3"
+    },
+    {
+      "path": "npot-settle-recovery/gpu-summary.json",
+      "bytes": 89746,
+      "sha256": "db630137042efb636b187b23e57bda55c8afdf8201c641bc01d4ad6c2bca5864"
+    },
+    {
+      "path": "npot-settle-recovery/results.xml",
+      "bytes": 1253,
+      "sha256": "a9a442352a41f80641b2b305f790e99a5ad41f8bf113289aa47ed76319db2957"
+    },
+    {
+      "path": "npot-settle-recovery/summary.json",
+      "bytes": 22904,
+      "sha256": "dcd82334ebc58a1d132664ddf2e6d1cd322da997ba47c93b5e60b633fe80f937"
+    },
+    {
+      "path": "package_evidence.py",
+      "bytes": 2007,
+      "sha256": "cf1fce289edbb0a9a2ee84440dfa44af9b54803baaf9ed9afb4c97b9b92065f8"
+    },
+    {
+      "path": "physical-api-receipts.json",
+      "bytes": 10837,
+      "sha256": "6e70b1ad08aacc858afe4b65c15571dc359c4cd34bf089e42880cc74a6c13e09"
+    },
+    {
+      "path": "policy-window/bgfx-d3d12-policy-window.log",
+      "bytes": 171,
+      "sha256": "c5ebea25ae9d6480b695960dfa614afa1a531af8041c9ac1b5afe87662f1f75a"
+    },
+    {
+      "path": "policy-window/bgfx-d3d12-window-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-d3d12-window-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "policy-window/bgfx-d3d12-window-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-d3d12-window-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-opengl-policy-window.log",
+      "bytes": 166,
+      "sha256": "fe5a3b6fd9b83cdb17f8d9f4f547ee6fdba2f012888409d09b62386b52ac5283"
+    },
+    {
+      "path": "policy-window/bgfx-opengl-window-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-opengl-window-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "policy-window/bgfx-opengl-window-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-opengl-window-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-vulkan-policy-window.log",
+      "bytes": 166,
+      "sha256": "ef6f301e2677d41dc5a64e927c455054ba5713f841608811f995eb18c8f6389c"
+    },
+    {
+      "path": "policy-window/bgfx-vulkan-window-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-vulkan-window-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "policy-window/bgfx-vulkan-window-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/bgfx-vulkan-window-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/results.xml",
+      "bytes": 1348,
+      "sha256": "310d24dbee77ac0f7658c55b5f6509e6e12ea6e9511c82fa71acbe38439629f9"
+    },
+    {
+      "path": "policy-window/summary.json",
+      "bytes": 20692,
+      "sha256": "ecd8fc041f526dc736793418b8472b2e47ae96ca60ddc75459dbcedf0529ff90"
+    },
+    {
+      "path": "policy-window/wgpu-d3d12-policy-window.log",
+      "bytes": 151,
+      "sha256": "b1069bd7f16d0512313d94dfeab3e15bf2995a7f3c1c4ead35a86b7f8e5645b5"
+    },
+    {
+      "path": "policy-window/wgpu-d3d12-window-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-d3d12-window-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "policy-window/wgpu-d3d12-window-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-d3d12-window-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-opengl-policy-window.log",
+      "bytes": 159,
+      "sha256": "37e915d67660ecaf414f78d4bb2d6a1dead35a0ee2114c8bb2bd62aceafa0da8"
+    },
+    {
+      "path": "policy-window/wgpu-opengl-window-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-opengl-window-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "policy-window/wgpu-opengl-window-portable-unit-0.png",
+      "bytes": 199,
+      "sha256": "01dc393b264e8040d62f9b9d2078afb51f37a94becfd1ea4e4d5e20e049b129b"
+    },
+    {
+      "path": "policy-window/wgpu-opengl-window-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-opengl-window-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-vulkan-policy-window.log",
+      "bytes": 153,
+      "sha256": "1665eb34940fe7dedc99dfc682f51989a9d4802ba76a207cb6cb940de8c44f60"
+    },
+    {
+      "path": "policy-window/wgpu-vulkan-window-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-vulkan-window-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "policy-window/wgpu-vulkan-window-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "policy-window/wgpu-vulkan-window-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "portable-bgfx-consumer-build.log",
+      "bytes": 203,
+      "sha256": "aa617efe05d23b3fc83bdb15e87ade7f1311c351cfdb69a7f4910d0394953153"
+    },
+    {
+      "path": "qualify.py",
+      "bytes": 8464,
+      "sha256": "69e8006c0168102801a479b6f039bf0d3ba66d76b2845454a16d90dd4e65d4dd"
+    },
+    {
+      "path": "recover_ffi.py",
+      "bytes": 1929,
+      "sha256": "dde528eb2501d93d6f3498a928d277cb9d2ba6a7e71edfc6316952dfb1166488"
+    },
+    {
+      "path": "retained-skips.json",
+      "bytes": 740,
+      "sha256": "9660212ece1be9fb118040f882a8f476ddb31312f150f10d82e5fc0791cf8c8e"
+    },
+    {
+      "path": "retained-skips.xml",
+      "bytes": 817,
+      "sha256": "7b099f6a67fe22c8c2c3c179738c47e3fcf9c0549c25bd1ac7496e853d917d24"
+    },
+    {
+      "path": "rust-native-layout-initial.json",
+      "bytes": 507,
+      "sha256": "92bd8c0d9f95f35d725f07ccc67810b87563939eee571080ef41fa008669a2b3"
+    },
+    {
+      "path": "rust-native-layout-initial.log",
+      "bytes": 4039,
+      "sha256": "124e64d0151ec7a71e19d8938ce9377918d8a7ea578a35c84991e0a26ca8052e"
+    },
+    {
+      "path": "rust-tests-crlf-fix.json",
+      "bytes": 400,
+      "sha256": "b7f2fa25b01952de76eb175f6d427284f50bf96de35a0356e2b21c68b655adbc"
+    },
+    {
+      "path": "rust-tests-crlf-fix.log",
+      "bytes": 7563,
+      "sha256": "f9bbf6e01a82568303e755a122d7d12b973ddb3360dfe21b32580c64d0a5a6cd"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-both-api-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-both-api-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-both-api-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-both-api-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-both-api.log",
+      "bytes": 129,
+      "sha256": "f1fd2a28857474de22e7148509a80943904aad64154b0ceca2ddf400db742c16"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-advanced.log",
+      "bytes": 9522,
+      "sha256": "00637bc1d60afbd8156961f4e94db17032ae83405a4e8764e67f602b30edd990"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-deep.log",
+      "bytes": 13623,
+      "sha256": "e2feb26e817029cfce19bbe33fe217f9570c7ffdffc79bab89145ddc1755621e"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-direct.log",
+      "bytes": 4256,
+      "sha256": "5a69d31d8e047df2cc33522304a05cf0715276a5d7c39fd1b90534b1e7c521e3"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-procedural.log",
+      "bytes": 31783,
+      "sha256": "f5e7bdf0a2576b96c6654509de5fabe57614c017c93d8f147890685adabe933f"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-projective.log",
+      "bytes": 1773,
+      "sha256": "a5dd8d01774a9d84dcaa24e4fb729904afeb792ff244c82664ed9470a810c0ed"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-rtt.log",
+      "bytes": 153,
+      "sha256": "91df36d31230af34b667f67a588667e81350cbd129aee27d6eb8c86cb634b5ea"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-sampling.log",
+      "bytes": 52399,
+      "sha256": "06ca5d2120f783ed2153bb94742608c39ca293f383ef6451601066a9f9881f86"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-native-viewport.log",
+      "bytes": 3500,
+      "sha256": "1e3e8926556e268873355a32debfae1b1c1dfb1ed10d8e2368857f639fe15f03"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-advanced.log",
+      "bytes": 9522,
+      "sha256": "df3cf6d298f11bfafd2b30c5c03a291b82fa8536d48079a1d6a084912f42ffef"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-deep.log",
+      "bytes": 13623,
+      "sha256": "1f0c43cd81f5bb2c987d9facb724323bd6a30d9d06dd4365412c8f656f7df25a"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-direct.log",
+      "bytes": 4256,
+      "sha256": "6a906305a1cce936e62d21a03bdcaa6cbe64ae2dc37623f746158ee227e7402a"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-procedural.log",
+      "bytes": 31787,
+      "sha256": "251d4a46d6833886445b38462ff466601261cb4ee893d3eb2a858dfc7a2321bf"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-projective.log",
+      "bytes": 1773,
+      "sha256": "fcb6b60e02c7789c300b75060df4582cd23a8ceefd68de954c53ad7b1daad1bb"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-rtt.log",
+      "bytes": 153,
+      "sha256": "0439114d5478e91664e58bce23bd8ce08cbdabc47c6c645161d34004ea50322c"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-sampling.log",
+      "bytes": 52399,
+      "sha256": "be9bb0ae4fd146e063dd9d343aeeae5b339fd02ea97311d836b1cfcd9f707c22"
+    },
+    {
+      "path": "sampling/bgfx-d3d12-portable-viewport.log",
+      "bytes": 3500,
+      "sha256": "725dec6d2fadb1c2344816186bad9d9c2a719c868dce362bb82e388807046566"
+    },
+    {
+      "path": "sampling/bgfx-opengl-both-api-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-opengl-both-api-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "sampling/bgfx-opengl-both-api-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-opengl-both-api-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-opengl-both-api.log",
+      "bytes": 124,
+      "sha256": "0413068a9e8e6c8306f604d5a3e85047488a0eb8953d011aac010f4eee07bcac"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-advanced.log",
+      "bytes": 9735,
+      "sha256": "be0f1938382027572f2ab652312ac89723078bd6432246c8cfeb9d3c2636fe11"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-deep.log",
+      "bytes": 13615,
+      "sha256": "1cf2e414f27ed45800be9da7726ddbed0269fec0ac4ce45aee631e35e025269b"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-direct.log",
+      "bytes": 4248,
+      "sha256": "3409e2b0412bec39082eb90d0d4c48afed7571c14a74e26b0d71696f01549c2a"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-procedural.log",
+      "bytes": 31767,
+      "sha256": "b01f979e64d6c37205f9ad796cb3bf24989a0e3f88aa4c440e0aa5b8bc097a34"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-projective.log",
+      "bytes": 1774,
+      "sha256": "4f9eab8265dfe6ba6cf0e2ac499cb4308df6257b7451e9a3325a2f8cf3d557d7"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-rtt.log",
+      "bytes": 153,
+      "sha256": "91df36d31230af34b667f67a588667e81350cbd129aee27d6eb8c86cb634b5ea"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-sampling.log",
+      "bytes": 52394,
+      "sha256": "af87da08f1b816007f48759148b1380e325241f83879884c8a7c758eff5118ed"
+    },
+    {
+      "path": "sampling/bgfx-opengl-native-viewport.log",
+      "bytes": 3492,
+      "sha256": "216932bf3b41ed51d79db5b5237a2ba5d308e63f7848ae7f20a05dac97987715"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-advanced.log",
+      "bytes": 9735,
+      "sha256": "b05351cfe7db7ce6de3adb1a59c20cca9c1f7d0966e04acc6f6c5eb39935ddd9"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-deep.log",
+      "bytes": 13615,
+      "sha256": "79bd69b2e60345499967865a61c2f87668030f8fee06ddad584b56407f96fd18"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-direct.log",
+      "bytes": 4248,
+      "sha256": "d5017038dea662f4090fd78450c881073d10c8ebf339578dfa886525e7fa8647"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-procedural.log",
+      "bytes": 31771,
+      "sha256": "e819823dcf07e486594dbdc1e7f18907502f9550e47193f99e3c31fbc5455a54"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-projective.log",
+      "bytes": 1774,
+      "sha256": "576f068f1b9fd2d6bdca25476a3e26948568277b2129d702b9c279a84bbb096b"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-rtt.log",
+      "bytes": 153,
+      "sha256": "0439114d5478e91664e58bce23bd8ce08cbdabc47c6c645161d34004ea50322c"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-sampling.log",
+      "bytes": 52394,
+      "sha256": "77639792c5175c33c66e421ec6cc76e06d5ec7a3197061de75cd00c1c8fd0384"
+    },
+    {
+      "path": "sampling/bgfx-opengl-portable-viewport.log",
+      "bytes": 3492,
+      "sha256": "cb82a3b5ab7ffc4de1e2c8515176db21595070bdcabd4a9a62ffe21df8a1353e"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-both-api-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-both-api-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-both-api-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-both-api-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-both-api.log",
+      "bytes": 124,
+      "sha256": "3170de59438d709a881175e66c20b2c54b86d055154a75c0a048a103a7152d1e"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-advanced.log",
+      "bytes": 9517,
+      "sha256": "aa8ae07b739531ab14ef35256103c75588b57f5b973d4466a50960936d1082fb"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-deep.log",
+      "bytes": 13618,
+      "sha256": "f14cbc9f6cca276554ebf2b99f2533dd3b399a7c2ee6c910c9f03f1c776239d0"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-direct.log",
+      "bytes": 4251,
+      "sha256": "7621156cf8b48387b5de0c5cf145f66cb835ff9f5a670794e185b50c91148c90"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-procedural.log",
+      "bytes": 31783,
+      "sha256": "f5e7bdf0a2576b96c6654509de5fabe57614c017c93d8f147890685adabe933f"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-projective.log",
+      "bytes": 1768,
+      "sha256": "389f00557032e14aaa28c365f0e911801cd726a420f84ab5c2bdec2cc8ed2431"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-rtt.log",
+      "bytes": 153,
+      "sha256": "91df36d31230af34b667f67a588667e81350cbd129aee27d6eb8c86cb634b5ea"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-sampling.log",
+      "bytes": 52394,
+      "sha256": "2f86119d01a0b419e3737d9fd1b5b2d4474a00219617e3e89b349beb2e075c6b"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-native-viewport.log",
+      "bytes": 3495,
+      "sha256": "746efbeb7b9624fd32b64b88f5daacca53b4472b08191bbff7eacf23dc2ce58f"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-advanced.log",
+      "bytes": 9517,
+      "sha256": "9948e3b4bb1ceff1dc6dd05ebdd318f8761fc2c453030ca8a7bcb78ae93881ba"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-deep.log",
+      "bytes": 13618,
+      "sha256": "eed30ddd4ebe1b6d129f08ae68af6a6178e3bc34e33e6828457c717a48aedcf4"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-direct.log",
+      "bytes": 4251,
+      "sha256": "b2ea4faa6a89e77547b8b8520029ad44457ce75a9e18fd4e0c229bb45a087a75"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-procedural.log",
+      "bytes": 31787,
+      "sha256": "251d4a46d6833886445b38462ff466601261cb4ee893d3eb2a858dfc7a2321bf"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-projective.log",
+      "bytes": 1768,
+      "sha256": "f8bf43e8ba2f103fffc57de3b463c1b711e136a757de9860a681390ebc24fe44"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-rtt.log",
+      "bytes": 153,
+      "sha256": "0439114d5478e91664e58bce23bd8ce08cbdabc47c6c645161d34004ea50322c"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-sampling.log",
+      "bytes": 52394,
+      "sha256": "7e90d738a044f89f4348f4e99cce889e1e8b3ed10007753e2943f4838d45d1e5"
+    },
+    {
+      "path": "sampling/bgfx-vulkan-portable-viewport.log",
+      "bytes": 3495,
+      "sha256": "5f697db09051065142048c00ab0dc5c7f9e1c5d4fd59f536c832fc8707a2ab7f"
+    },
+    {
+      "path": "sampling/results.xml",
+      "bytes": 22741,
+      "sha256": "9b10ad70aaae087510f02a50b442b8973ae57d49393528dc4deb0363e329aeaf"
+    },
+    {
+      "path": "sampling/summary.json",
+      "bytes": 355115,
+      "sha256": "c5ff0bf6f43d4809919ee6955802cb10b0ed02b27c3ede974dc87d3d470525a4"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-both-api-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-both-api-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-both-api-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-both-api-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-both-api.log",
+      "bytes": 109,
+      "sha256": "bc9aa9c3bcf92d61de5b44c53eb3d6a5f75c2d81ef39a45cbccd6977ce0ac5e8"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-advanced.log",
+      "bytes": 9640,
+      "sha256": "0f4da0069536f2f5b3789951b2675d848bc03af46badfd7fda7441a8ebaef6b8"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-deep.log",
+      "bytes": 13603,
+      "sha256": "1b67a26429dcb0c74c649e1600cb45f08e32816185eaa5e2c44a7c3ccb6bdcc1"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-direct.log",
+      "bytes": 4236,
+      "sha256": "d07e54cbd7f6999f6cd7e8e3719776373f1cbbedf4c613a941f51944935a001a"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-procedural.log",
+      "bytes": 31783,
+      "sha256": "f5e7bdf0a2576b96c6654509de5fabe57614c017c93d8f147890685adabe933f"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-projective.log",
+      "bytes": 1753,
+      "sha256": "5ae090c44513e31797c5cb6103a5db1c5ae2fa9535298e3bb84ba91877d4a967"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-rtt.log",
+      "bytes": 160,
+      "sha256": "5bfe856f6a479d5bdf54325339604b8f818bb4d190744a3bdb03e7a925b00d34"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-sampling.log",
+      "bytes": 52379,
+      "sha256": "6f8e6afb75f7c7c370c4fee2d7126db79ade429a9e8db49317ea99e9cf940207"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-native-viewport.log",
+      "bytes": 3480,
+      "sha256": "32fc6b508cc8c432b90f6c623674d90302bcfd5415fc234576c40942fc6a522b"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-advanced.log",
+      "bytes": 9640,
+      "sha256": "cddc85bb0e782f96061cce0993a0d5972a21612035eebdd3bc2956e0926fa332"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-deep.log",
+      "bytes": 13603,
+      "sha256": "602c7cfa2e4f4b26d13a8c20aa706901f8625abf610a41c0a18462a9bc58df7b"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-direct.log",
+      "bytes": 4236,
+      "sha256": "aa7189cfde9ab916ea4a32263e487bebfb167f6bfdcd5a59e039727ed28dc610"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-procedural.log",
+      "bytes": 31787,
+      "sha256": "251d4a46d6833886445b38462ff466601261cb4ee893d3eb2a858dfc7a2321bf"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-projective.log",
+      "bytes": 1753,
+      "sha256": "666beca2ea5c73e1950f3de27164a9bb9e8facb7cad6400cd63200694cb4b880"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-rtt.log",
+      "bytes": 160,
+      "sha256": "d7955d734be1b01da809c3d46e058791317f7b49b091b64b196f9381429e2392"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-sampling.log",
+      "bytes": 52379,
+      "sha256": "b0338c1642b2f07dc7993064e31f4cf96912142d2bc2e9ec1e0558254409a2dd"
+    },
+    {
+      "path": "sampling/wgpu-d3d12-portable-viewport.log",
+      "bytes": 3480,
+      "sha256": "5445f308e0d9451e666c5a0d15f889c52477f3192c1d269e343b0ac2e2bd8dbb"
+    },
+    {
+      "path": "sampling/wgpu-opengl-both-api-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-opengl-both-api-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "sampling/wgpu-opengl-both-api-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-opengl-both-api-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-opengl-both-api.log",
+      "bytes": 117,
+      "sha256": "1cd881336fd459eb03c17221fdb9d82cc2efa7705fd396c6ed68ce8c9530d6c1"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-advanced.log",
+      "bytes": 9645,
+      "sha256": "710f7f31d15ae87870cec4997953634d5b809d0efe02a7078597f1a7e19fe64e"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-deep.log",
+      "bytes": 13608,
+      "sha256": "158a279d4e2cf7d53721ed98c3f423368da8862fca51a1dc27916cee55caac21"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-direct.log",
+      "bytes": 4241,
+      "sha256": "b9f2aa54a6dc5640f5946c406b35640134bc2d57e1eeb34bf5d69b82af544866"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-procedural.log",
+      "bytes": 31783,
+      "sha256": "f5e7bdf0a2576b96c6654509de5fabe57614c017c93d8f147890685adabe933f"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-projective.log",
+      "bytes": 1758,
+      "sha256": "3ce3fd5c342260d989204aa9397d0261e57de5a5f31b77ead7b0c5eb4ce7fcc0"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-rtt.log",
+      "bytes": 160,
+      "sha256": "5bfe856f6a479d5bdf54325339604b8f818bb4d190744a3bdb03e7a925b00d34"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-sampling.log",
+      "bytes": 52384,
+      "sha256": "16151a5afd70d761a8427cc2f2331951605ffc116a17f71db0dc384e09ffac88"
+    },
+    {
+      "path": "sampling/wgpu-opengl-native-viewport.log",
+      "bytes": 3485,
+      "sha256": "0e18b6f5caac825c14027fbfffde59b8b34662a88a0aaf24259ba1f3c1b36446"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-advanced.log",
+      "bytes": 9645,
+      "sha256": "ea20b7356640cb9097b1c56a62786f796caa7a0dbc4deb70fdf30c24b87461bf"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-deep.log",
+      "bytes": 13608,
+      "sha256": "84727ff3b7e00ec9f35f4d4e13de19caec1e27085fea6dbc7c51e6ea8b76e9a7"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-direct.log",
+      "bytes": 4241,
+      "sha256": "56efaa8165e22389c858f6e1bb7fa2e18114052ee34eefa37000cee09c8b85bf"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-procedural.log",
+      "bytes": 31787,
+      "sha256": "251d4a46d6833886445b38462ff466601261cb4ee893d3eb2a858dfc7a2321bf"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-projective.log",
+      "bytes": 1758,
+      "sha256": "ad32fed5cefbb41118abd29203f7dbb5a598c1a76ab0086e450989ae86aab206"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-rtt.log",
+      "bytes": 160,
+      "sha256": "d7955d734be1b01da809c3d46e058791317f7b49b091b64b196f9381429e2392"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-sampling.log",
+      "bytes": 52384,
+      "sha256": "234fef89ee186edce1e060a162254d4662be7a97c8b524ad7c5d0b3ed6583e25"
+    },
+    {
+      "path": "sampling/wgpu-opengl-portable-viewport.log",
+      "bytes": 3485,
+      "sha256": "d0a6bbd5a7b44107d935930f069aaaf00e7d817be3873d316a57a10d28c38ed8"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-both-api-native-first.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-both-api-portable-resized.ppm",
+      "bytes": 49167,
+      "sha256": "7d60777031229afeefe05b45465d200ae07003238a8612c2e7a43ab1eb4dafc8"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-both-api-portable-unit-0.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-both-api-portable-unit-7.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-both-api.log",
+      "bytes": 111,
+      "sha256": "ab098616574240bc91cd340aa31c3c0120925f4334d70d0317bf957fbf16b698"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-advanced.log",
+      "bytes": 9642,
+      "sha256": "3d778946d373d5cf4c552635c2a9ff443d75fd2dd12faedb08ff521731695645"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-deep.log",
+      "bytes": 13605,
+      "sha256": "312103276608c70a644cb1d6b99efa5d02bdb6e7c7d0a9b3416aca600455f50a"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-direct.log",
+      "bytes": 4238,
+      "sha256": "757616c0b388c7f5f425f27683850e1b91a8bd3cc0e02cf3585806b26a5b9949"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-procedural.log",
+      "bytes": 31783,
+      "sha256": "f5e7bdf0a2576b96c6654509de5fabe57614c017c93d8f147890685adabe933f"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-projective.log",
+      "bytes": 1755,
+      "sha256": "c0f786e39076a1d33d3a2f4e50cabbd46a7b7bd2e515a3452e45e2229d851dea"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-rtt.log",
+      "bytes": 160,
+      "sha256": "5bfe856f6a479d5bdf54325339604b8f818bb4d190744a3bdb03e7a925b00d34"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-sampling.log",
+      "bytes": 52381,
+      "sha256": "67fc5fb0041ff08e0f7d0a0fd924c6d87165ddf41d1f23170ff060811d8bdcd4"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-native-viewport.log",
+      "bytes": 3482,
+      "sha256": "879fbd752eaeb2b082bed7591e2f1bf9fd0a93eb294f9891374a9c0832e1323d"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-advanced.log",
+      "bytes": 9642,
+      "sha256": "43485e015563bd48ed3916433870ed54ec1eeda1ff23406e0bdc332e3256ec0e"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-deep.log",
+      "bytes": 13605,
+      "sha256": "6263479efdfc1f9ecb76ea9e0c18f3530a25d33341e644ea20afc0965082b721"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-direct.log",
+      "bytes": 4238,
+      "sha256": "76ee885fb1fc312bf48b491b8f8e979278528f98daa7d3c4bec8e9bf5cdcb4c0"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-procedural.log",
+      "bytes": 31787,
+      "sha256": "251d4a46d6833886445b38462ff466601261cb4ee893d3eb2a858dfc7a2321bf"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-projective.log",
+      "bytes": 1755,
+      "sha256": "0927c4d1d1a3f72fb3d47b1d9466692fe64543b309931514d392df61b705417f"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-rtt.log",
+      "bytes": 160,
+      "sha256": "d7955d734be1b01da809c3d46e058791317f7b49b091b64b196f9381429e2392"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-sampling.log",
+      "bytes": 52381,
+      "sha256": "6d407fd8e8450ff04f74d2ac5181888337289d7f52e1fe3775998dd841ecf857"
+    },
+    {
+      "path": "sampling/wgpu-vulkan-portable-viewport.log",
+      "bytes": 3482,
+      "sha256": "91a661ff3529d4fd2ef6bf0feed17793218f1b93fca9cf802aa4841b013c0624"
+    },
+    {
+      "path": "sampling-effective-summary.json",
+      "bytes": 363960,
+      "sha256": "84bfc22934dd0824f4bba13ca6328f92aed1077830753ebd755b509d38d2365f"
+    },
+    {
+      "path": "sampling-effective.xml",
+      "bytes": 22689,
+      "sha256": "a73d1eca3587b37a44bb0cf0eceefdcbf5459a20c0dff2fd6e6409cde0209f8b"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-d3d12-native-advanced.log",
+      "bytes": 9427,
+      "sha256": "613b47027b75cb869d0c3608334bccd9ff3ae8760eef836ba9a8db945e9ec38a"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-d3d12-native-procedural.log",
+      "bytes": 31875,
+      "sha256": "531a7d4ffaa20099b8e165690e57fdffd3e0ffcead176290399bea659760876c"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-d3d12-portable-advanced.log",
+      "bytes": 9427,
+      "sha256": "ba4f9971fd33be3c09083d36ada009fd59dfd801ab79b785931d08eaff30132b"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-d3d12-portable-procedural.log",
+      "bytes": 31879,
+      "sha256": "048171a0bef690b396797545dee26c9eb106795bd9f86fae473fec0bfaec67c0"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-opengl-native-advanced.log",
+      "bytes": 9640,
+      "sha256": "868d801edafdd76a893af36c6f15ac0b07e1fe8f106251cee2546f30a3ad7018"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-opengl-native-procedural.log",
+      "bytes": 31859,
+      "sha256": "6eaad53862d348175e913afcbab61133771ab22d8a2f56d0d57debc934b61029"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-opengl-portable-advanced.log",
+      "bytes": 9640,
+      "sha256": "31943642843eb418835560b802db7cd14f875b4e7e0f868013d9898576b7b488"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-opengl-portable-procedural.log",
+      "bytes": 31863,
+      "sha256": "95414dd5575975be54dd8779349d15d0126faab926015c6188197f034a1c65c5"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-vulkan-native-advanced.log",
+      "bytes": 9422,
+      "sha256": "d099d137e13f9405bbae2358f6ae01729bb19c8e420e7ddace6a7a999c494d1d"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-vulkan-native-procedural.log",
+      "bytes": 31875,
+      "sha256": "531a7d4ffaa20099b8e165690e57fdffd3e0ffcead176290399bea659760876c"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-vulkan-portable-advanced.log",
+      "bytes": 9422,
+      "sha256": "7526dc54c2be1f2fbdaf8b4786c5e1a55bb3b96410a50620f5de9e88af81d253"
+    },
+    {
+      "path": "sampling-upload-recovery/bgfx-vulkan-portable-procedural.log",
+      "bytes": 31879,
+      "sha256": "048171a0bef690b396797545dee26c9eb106795bd9f86fae473fec0bfaec67c0"
+    },
+    {
+      "path": "sampling-upload-recovery/results.xml",
+      "bytes": 5222,
+      "sha256": "995252e863a441625985fca92217daa3eb2ab539a04ab4d9d6fcfe090ba6d5f8"
+    },
+    {
+      "path": "sampling-upload-recovery/summary.json",
+      "bytes": 83814,
+      "sha256": "98b1252743d888579c96fb6b24bbbf55fbcb539d5d70f0d452c0fe60f1d061ae"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-d3d12-native-advanced.log",
+      "bytes": 9545,
+      "sha256": "614f17b8490ef011f163f59d55205af60127efe08ad412662778f94494a21f95"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-d3d12-native-procedural.log",
+      "bytes": 31875,
+      "sha256": "531a7d4ffaa20099b8e165690e57fdffd3e0ffcead176290399bea659760876c"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-d3d12-portable-advanced.log",
+      "bytes": 9545,
+      "sha256": "daa779401aecdf032908ab8d9b10c36885392b7922a6fe7f01b7a722818015a3"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-d3d12-portable-procedural.log",
+      "bytes": 31879,
+      "sha256": "048171a0bef690b396797545dee26c9eb106795bd9f86fae473fec0bfaec67c0"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-opengl-native-advanced.log",
+      "bytes": 9550,
+      "sha256": "114acc9585b31d8ce9eff4cfa7f67ddeb5c36b288db66e158f0ea01506e04f2f"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-opengl-native-procedural.log",
+      "bytes": 31875,
+      "sha256": "531a7d4ffaa20099b8e165690e57fdffd3e0ffcead176290399bea659760876c"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-opengl-portable-advanced.log",
+      "bytes": 9550,
+      "sha256": "49cbf6d92354cd875d1879442ec1275679776195a0ecda2aa2f989bdac52f3ca"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-opengl-portable-procedural.log",
+      "bytes": 31879,
+      "sha256": "048171a0bef690b396797545dee26c9eb106795bd9f86fae473fec0bfaec67c0"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-vulkan-native-advanced.log",
+      "bytes": 9547,
+      "sha256": "fa1c58d94f8ea29ece07e7185b9363fba1e89802ecc41a5390b89d01b21a8112"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-vulkan-native-procedural.log",
+      "bytes": 31875,
+      "sha256": "531a7d4ffaa20099b8e165690e57fdffd3e0ffcead176290399bea659760876c"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-vulkan-portable-advanced.log",
+      "bytes": 9547,
+      "sha256": "cb839f1194112b28f1b3c157c2ee02bbceb3ed3d6dcadd7d10f16a54718877b3"
+    },
+    {
+      "path": "sampling-upload-recovery/wgpu-vulkan-portable-procedural.log",
+      "bytes": 31879,
+      "sha256": "048171a0bef690b396797545dee26c9eb106795bd9f86fae473fec0bfaec67c0"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-d3d12-sdk-native.log",
+      "bytes": 395,
+      "sha256": "da6bc5d88d9e82aa4e8f8b223c302ff40886b6baa3e8e208e373b4e420124d8a"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-d3d12-sdk-portable.log",
+      "bytes": 395,
+      "sha256": "fc1c8ed62c54463b30f919d90a21a6efbd342aeace9bafa46bb8fb09c07811b9"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "deea5e69e57a3b60ba9e7c1a074d8db084722cba392b4b094fbb23ef81ba1128"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-opengl-sdk-native.log",
+      "bytes": 387,
+      "sha256": "6c821ecf1748a5f2d572b57e679234084419bee954db429ee887171c4870b53c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-opengl-sdk-portable.log",
+      "bytes": 387,
+      "sha256": "e064e5677126ce9bd54eedfdad5d4e908f4270bd4820ed37b273d3d3a1228cd3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-vulkan-sdk-native.log",
+      "bytes": 390,
+      "sha256": "dad600b47e096134b7ecda3ecff3cd9973b97cd7251bcb932101ac9a77a5abf8"
+    },
+    {
+      "path": "sdk-bgfx/bgfx-vulkan-sdk-portable.log",
+      "bytes": 390,
+      "sha256": "403319abb8c797627a64b218fb254575c4b09a9f6a7a32c2a451764430b5ce90"
+    },
+    {
+      "path": "sdk-bgfx/results.xml",
+      "bytes": 1314,
+      "sha256": "8b67962e21ca68f848e076884e598986ea1016ee1f7b7bb54ba1f056990ccf6a"
+    },
+    {
+      "path": "sdk-bgfx/summary.json",
+      "bytes": 20708,
+      "sha256": "a1ac12851c2ef8b441214dc429be2181b1438e47c3154605ffa4eca8321b2e26"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-d3d12-sdk-native.log",
+      "bytes": 619,
+      "sha256": "4eec489d7a9219f57eec278eeec04d632d0ad557980d2531b62fd2685398c7a3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-d3d12-sdk-portable.log",
+      "bytes": 619,
+      "sha256": "e1444817e03880d5ae0e97b72eaf0d9a75d4be946fcbb68e79c46c1f48c26af5"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "deea5e69e57a3b60ba9e7c1a074d8db084722cba392b4b094fbb23ef81ba1128"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-opengl-sdk-native.log",
+      "bytes": 611,
+      "sha256": "4d1490edc02e904dc8c19673dcb86a3e947c946e4680ca9d2b953b4df0433276"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-opengl-sdk-portable.log",
+      "bytes": 611,
+      "sha256": "5340ad330903cbe254040365859b031886e7c50927063cc6b459288a11e6dbf4"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-vulkan-sdk-native.log",
+      "bytes": 614,
+      "sha256": "4f3d3c259ac603faa4869db16eff21c1da92f97e0a302ab86d82333d348dd836"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/bgfx-vulkan-sdk-portable.log",
+      "bytes": 614,
+      "sha256": "99f7a5c2ff2e36228c3c579d23a23af11edaa947ba796632bbc2ecbb7f693d21"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/results.xml",
+      "bytes": 1495,
+      "sha256": "99a66791fd86f89cd121c77592a7c89d8e3625fa5937f9b51ade5961134bdf90"
+    },
+    {
+      "path": "sdk-bgfx-modules-c11/summary.json",
+      "bytes": 23770,
+      "sha256": "8229f49135cba70a868524609706454af83636053ecf3114f0cebb36de1aca33"
+    },
+    {
+      "path": "sdk-capabilities-source.c",
+      "bytes": 614,
+      "sha256": "7c6017f3f76c9a70db3bfcacde3886764f672339ad83293c5a1f8d3ecc6a216b"
+    },
+    {
+      "path": "sdk-final/bgfx-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/bgfx-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/bgfx-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/bgfx-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/bgfx-d3d12-sdk-native.log",
+      "bytes": 619,
+      "sha256": "4eec489d7a9219f57eec278eeec04d632d0ad557980d2531b62fd2685398c7a3"
+    },
+    {
+      "path": "sdk-final/bgfx-d3d12-sdk-portable.log",
+      "bytes": 619,
+      "sha256": "e1444817e03880d5ae0e97b72eaf0d9a75d4be946fcbb68e79c46c1f48c26af5"
+    },
+    {
+      "path": "sdk-final/bgfx-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "deea5e69e57a3b60ba9e7c1a074d8db084722cba392b4b094fbb23ef81ba1128"
+    },
+    {
+      "path": "sdk-final/bgfx-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/bgfx-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/bgfx-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/bgfx-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/bgfx-opengl-sdk-native.log",
+      "bytes": 611,
+      "sha256": "4d1490edc02e904dc8c19673dcb86a3e947c946e4680ca9d2b953b4df0433276"
+    },
+    {
+      "path": "sdk-final/bgfx-opengl-sdk-portable.log",
+      "bytes": 611,
+      "sha256": "5340ad330903cbe254040365859b031886e7c50927063cc6b459288a11e6dbf4"
+    },
+    {
+      "path": "sdk-final/bgfx-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-final/bgfx-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/bgfx-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/bgfx-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/bgfx-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/bgfx-vulkan-sdk-native.log",
+      "bytes": 614,
+      "sha256": "4f3d3c259ac603faa4869db16eff21c1da92f97e0a302ab86d82333d348dd836"
+    },
+    {
+      "path": "sdk-final/bgfx-vulkan-sdk-portable.log",
+      "bytes": 614,
+      "sha256": "99f7a5c2ff2e36228c3c579d23a23af11edaa947ba796632bbc2ecbb7f693d21"
+    },
+    {
+      "path": "sdk-final/results.xml",
+      "bytes": 2885,
+      "sha256": "8c2eb8328a2aeb58a3c2049eeaa467eca1cf858f0cf017a8b19249d58119e362"
+    },
+    {
+      "path": "sdk-final/summary.json",
+      "bytes": 47408,
+      "sha256": "4ce7ef191813ac95b592aa455c0111630860c0b72b215387d28876700e3eb777"
+    },
+    {
+      "path": "sdk-final/wgpu-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/wgpu-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/wgpu-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/wgpu-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/wgpu-d3d12-sdk-native.log",
+      "bytes": 599,
+      "sha256": "2ea3aa0233adbbac053056776051bf6d64c449232b239136b4aea9aa646d78a1"
+    },
+    {
+      "path": "sdk-final/wgpu-d3d12-sdk-portable.log",
+      "bytes": 599,
+      "sha256": "437ed8eeeda4e34836d0df1e3fcc125e0fd05f8c75eb8c2a6877e4db1557a0ca"
+    },
+    {
+      "path": "sdk-final/wgpu-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "b8af175a1832cd9083404232be2c705c065a72ae8e29e457f6608d89fdfd3d4d"
+    },
+    {
+      "path": "sdk-final/wgpu-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/wgpu-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/wgpu-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/wgpu-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/wgpu-opengl-sdk-native.log",
+      "bytes": 604,
+      "sha256": "090a4de1af5e1bafd0d493cc47501629a5fef16a9ce6f6cd3199df7795c114a8"
+    },
+    {
+      "path": "sdk-final/wgpu-opengl-sdk-portable.log",
+      "bytes": 604,
+      "sha256": "b943ac790dc8a982489b27601a71535ce1954a90ba93f86aea3af8e15abe76bf"
+    },
+    {
+      "path": "sdk-final/wgpu-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-final/wgpu-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/wgpu-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/wgpu-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final/wgpu-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final/wgpu-vulkan-sdk-native.log",
+      "bytes": 601,
+      "sha256": "591f47552d6229525144ae2748d471c5ead1d0a69574c930bf5d104ad1ba9283"
+    },
+    {
+      "path": "sdk-final/wgpu-vulkan-sdk-portable.log",
+      "bytes": 601,
+      "sha256": "410d82eebb3d22a5bde863b83312dfe9c18bb242affa1adc365de55c8877a459"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-d3d12-sdk-native.log",
+      "bytes": 619,
+      "sha256": "4eec489d7a9219f57eec278eeec04d632d0ad557980d2531b62fd2685398c7a3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-d3d12-sdk-portable.log",
+      "bytes": 619,
+      "sha256": "e1444817e03880d5ae0e97b72eaf0d9a75d4be946fcbb68e79c46c1f48c26af5"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "0a410da6f4be668e38d93ff1e3b96dd4714744bdc863bd6a897123aa113bd6da"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-opengl-sdk-native.log",
+      "bytes": 611,
+      "sha256": "4d1490edc02e904dc8c19673dcb86a3e947c946e4680ca9d2b953b4df0433276"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-opengl-sdk-portable.log",
+      "bytes": 611,
+      "sha256": "5340ad330903cbe254040365859b031886e7c50927063cc6b459288a11e6dbf4"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-vulkan-sdk-native.log",
+      "bytes": 614,
+      "sha256": "4f3d3c259ac603faa4869db16eff21c1da92f97e0a302ab86d82333d348dd836"
+    },
+    {
+      "path": "sdk-final-drain/bgfx-vulkan-sdk-portable.log",
+      "bytes": 614,
+      "sha256": "99f7a5c2ff2e36228c3c579d23a23af11edaa947ba796632bbc2ecbb7f693d21"
+    },
+    {
+      "path": "sdk-final-drain/results.xml",
+      "bytes": 2885,
+      "sha256": "4f8dd3916a7c5daa31739d60179d21fa6fdc2eb50d0983e07029326ba461e24a"
+    },
+    {
+      "path": "sdk-final-drain/summary.json",
+      "bytes": 46108,
+      "sha256": "9647f946a62f77694fafae6f5d32bdf7add2aa915784683e3781f18f4155f1f3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-d3d12-sdk-native.log",
+      "bytes": 599,
+      "sha256": "2ea3aa0233adbbac053056776051bf6d64c449232b239136b4aea9aa646d78a1"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-d3d12-sdk-portable.log",
+      "bytes": 599,
+      "sha256": "437ed8eeeda4e34836d0df1e3fcc125e0fd05f8c75eb8c2a6877e4db1557a0ca"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "b8af175a1832cd9083404232be2c705c065a72ae8e29e457f6608d89fdfd3d4d"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-opengl-sdk-native.log",
+      "bytes": 604,
+      "sha256": "090a4de1af5e1bafd0d493cc47501629a5fef16a9ce6f6cd3199df7795c114a8"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-opengl-sdk-portable.log",
+      "bytes": 604,
+      "sha256": "b943ac790dc8a982489b27601a71535ce1954a90ba93f86aea3af8e15abe76bf"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-vulkan-sdk-native.log",
+      "bytes": 601,
+      "sha256": "591f47552d6229525144ae2748d471c5ead1d0a69574c930bf5d104ad1ba9283"
+    },
+    {
+      "path": "sdk-final-drain/wgpu-vulkan-sdk-portable.log",
+      "bytes": 601,
+      "sha256": "410d82eebb3d22a5bde863b83312dfe9c18bb242affa1adc365de55c8877a459"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/results.xml",
+      "bytes": 1497,
+      "sha256": "7404def9602ac11db84e2e19fd918cdf7ed1cbc0d488f5e4c94282c7ce115a75"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/summary.json",
+      "bytes": 23754,
+      "sha256": "30420176d5d78f508c8d8abb29892e403e14f111f3864af5367bbf6d7ba2c8a8"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-d3d12-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-d3d12-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-d3d12-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-d3d12-sdk-native.log",
+      "bytes": 599,
+      "sha256": "2ea3aa0233adbbac053056776051bf6d64c449232b239136b4aea9aa646d78a1"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-d3d12-sdk-portable.log",
+      "bytes": 599,
+      "sha256": "437ed8eeeda4e34836d0df1e3fcc125e0fd05f8c75eb8c2a6877e4db1557a0ca"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "b8af175a1832cd9083404232be2c705c065a72ae8e29e457f6608d89fdfd3d4d"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-opengl-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-opengl-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-opengl-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-opengl-sdk-native.log",
+      "bytes": 604,
+      "sha256": "090a4de1af5e1bafd0d493cc47501629a5fef16a9ce6f6cd3199df7795c114a8"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-opengl-sdk-portable.log",
+      "bytes": 604,
+      "sha256": "b943ac790dc8a982489b27601a71535ce1954a90ba93f86aea3af8e15abe76bf"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-vulkan-native-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-vulkan-native-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-vulkan-portable-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-vulkan-sdk-native.log",
+      "bytes": 601,
+      "sha256": "591f47552d6229525144ae2748d471c5ead1d0a69574c930bf5d104ad1ba9283"
+    },
+    {
+      "path": "sdk-wgpu-crlf-fix/wgpu-vulkan-sdk-portable.log",
+      "bytes": 601,
+      "sha256": "410d82eebb3d22a5bde863b83312dfe9c18bb242affa1adc365de55c8877a459"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/results.xml",
+      "bytes": 1840,
+      "sha256": "d190d0c8f6237387e833713fe498a8bd916adda9999e37da5343ef5131a81253"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/summary.json",
+      "bytes": 23785,
+      "sha256": "5571d4d862a4d15cc02eea1be3445189e9d04ea8b4411e07cea652b36d61a114"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-d3d12-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-d3d12-sdk-native.log",
+      "bytes": 1089,
+      "sha256": "b440bca523879b76350cdb4eda7aed88f83b2a3a5aa9cfbdeaf6dff9cecaee6e"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-d3d12-sdk-portable.log",
+      "bytes": 599,
+      "sha256": "e901e7dbcd65c04d4ab3d3cd648a2f614b7835d6cf019ee710c310f1ac8fe519"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-dll-hashes.json",
+      "bytes": 391,
+      "sha256": "c69cf812453983e967629fb635fdcf0eda8ed5674955939dc78a883d717dbf1e"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-opengl-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-opengl-sdk-native.log",
+      "bytes": 1094,
+      "sha256": "5254c047074f0c111b08540a3415e4c97428ed88d9f244305d81172b482cb736"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-opengl-sdk-portable.log",
+      "bytes": 604,
+      "sha256": "80ccf4598f32babaa34620fe1543e3269fa4b0ee617c3ad879ec3e5176b9536b"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-sdk-c11.log",
+      "bytes": 70,
+      "sha256": "bcadb281e92bfe463bc6401e32b4551e4ea7974ce551ac199f0fba4f864c71b9"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-vulkan-portable-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-vulkan-sdk-native.log",
+      "bytes": 1091,
+      "sha256": "38c3e02c7c234cb9923fbd0e809445ca840ff11b1a6bb66b642dca4151414183"
+    },
+    {
+      "path": "sdk-wgpu-modules-c11/wgpu-vulkan-sdk-portable.log",
+      "bytes": 601,
+      "sha256": "bce4852f839d43df13d7c8fed5391fc10f4fb9983a74cbc380c0f9196dd22858"
+    },
+    {
+      "path": "shader-fix-bgfx-build.log",
+      "bytes": 13004,
+      "sha256": "35316c74c9a196189bb4bc8782c675162caf478f5759ad5cd70156e5e398f5b1"
+    },
+    {
+      "path": "shader-fix-bgfx-configure.log",
+      "bytes": 529,
+      "sha256": "494a3b4cd667d255331117f3120f184418d7eb2904ce36da0d815262a95c8247"
+    },
+    {
+      "path": "shader-fix-build-ledger.json",
+      "bytes": 1491,
+      "sha256": "66ab14fdbe45420e2fe076adf207d64ba18a69c2298b2328da5d0b12fb9dd328"
+    },
+    {
+      "path": "suite/bgfx-d3d12-ctest.log",
+      "bytes": 42499,
+      "sha256": "51cf8ebe2a3003fe4a68a449aba4ce231cceec4058b0a24dd5ee2c1c84efacd3"
+    },
+    {
+      "path": "suite/bgfx-d3d12-last-test.log",
+      "bytes": 1966667,
+      "sha256": "ed38f07978449f4352152cf427bc43b9bfd12c8070725dd2f46daef968247287"
+    },
+    {
+      "path": "suite/bgfx-d3d12.xml",
+      "bytes": 166211,
+      "sha256": "e8ec366453e3dc87957f2cacce911c195577d7bb511c4d6700578e7fcf3f1a65"
+    },
+    {
+      "path": "suite/results.xml",
+      "bytes": 545,
+      "sha256": "f6c6f2cc12efa1caf5b98fc7bcf9af513910c4bb5636157f008aa829cb8f8a7e"
+    },
+    {
+      "path": "suite/summary.json",
+      "bytes": 6719,
+      "sha256": "ee7d5d31c809897bf2ab677c5e5a4b3cb28ce574a98547ccc1396998904aea4b"
+    },
+    {
+      "path": "suite/wgpu-d3d12-ctest.log",
+      "bytes": 19563,
+      "sha256": "0b23d06070df5b729d4877cb4647db5216b452679789ef303488c8d2860d99f8"
+    },
+    {
+      "path": "suite-effective-wgpu.xml",
+      "bytes": 57664,
+      "sha256": "023348bf6a54cc6bfb0d0fad8500a8e9fba952d6f959a51090e1741f26bf5b15"
+    },
+    {
+      "path": "suite-recovery/summary.json",
+      "bytes": 3545,
+      "sha256": "754d03a8ef4c1c47eaa076e03dded0d1e615f51567070d4c1b09f7afbd5a3149"
+    },
+    {
+      "path": "suite-recovery/wgpu-tail-last-test.log",
+      "bytes": 89555,
+      "sha256": "8481160394f6f7ffe7f0a6885dcd6e39ab9fe07071fc80f0d7fbad69e65f0ccc"
+    },
+    {
+      "path": "suite-recovery/wgpu-tail.log",
+      "bytes": 9304,
+      "sha256": "4b605940d52c1664d8fedef0039d16cb4fbe60e38b9e39f141963952376b4746"
+    },
+    {
+      "path": "suite-recovery/wgpu-tail.xml",
+      "bytes": 29206,
+      "sha256": "e062f8e27f5e497e0b573f95e90d9709d72f3bb85cda5c8e6913973e5b0ae362"
+    },
+    {
+      "path": "suite_recovery.py",
+      "bytes": 3234,
+      "sha256": "65f3db89a9006f10b238254efcb8c16968fb6d7b74b0cc95eb3cb84f7c61a868"
+    },
+    {
+      "path": "tested-source.diff",
+      "bytes": 39217,
+      "sha256": "5cff15fdac751564ff8f709b187c743cd8d941e2fb45a5544806c5b9d4965d74"
+    },
+    {
+      "path": "timestamp-drain-bgfx-build.log",
+      "bytes": 11278,
+      "sha256": "e633c9da7ab1efdc9d2465bc660eb9d5b3ff76c98654bdddda3c092a76ff4324"
+    },
+    {
+      "path": "timestamp-drain-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "c6e58236cd71f7dc23cb383bc08cc641399c82dc35a5635d2671310e2653676f"
+    },
+    {
+      "path": "timestamp-drain-bgfx-consumer-build.log",
+      "bytes": 333,
+      "sha256": "0baa4eed7d8f85a329bb4a50b738d4c18de4bbd0840fbaff569e9b55c9fb8555"
+    },
+    {
+      "path": "timestamp-drain-bgfx-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "6884a09d2e39d1dba71905b361afcb28a512ae33af0efcef0c3839e29a593d40"
+    },
+    {
+      "path": "timestamp-drain-bgfx-install.log",
+      "bytes": 110791,
+      "sha256": "f8cacb834ab9018043019085882eb030b3d1d99a5a5410989865c18aa40bd6af"
+    },
+    {
+      "path": "timestamp-drain-build-ledger.json",
+      "bytes": 2609,
+      "sha256": "1247dc14ac0b6b85230405a3acc95c1cf4341deff925c76ad034d5824f4e757b"
+    },
+    {
+      "path": "timestamp-drain-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "timestamp-drain-source.diff",
+      "bytes": 37139,
+      "sha256": "244549f9ea9678b4ae248c0471a48bb54eaa0015158e610ea175bbb14bd64639"
+    },
+    {
+      "path": "timestamp-settle-bgfx-build.log",
+      "bytes": 11278,
+      "sha256": "491cb07ba4cd35b6a925e09db0af9355811b206e31dfba5de88bdc59cec52d80"
+    },
+    {
+      "path": "timestamp-settle-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "27428fd0a8d935927c00a24a6c5c04cf6d5ccba1ac126b8137abeb330e5412da"
+    },
+    {
+      "path": "timestamp-settle-bgfx-consumer-build.log",
+      "bytes": 333,
+      "sha256": "0baa4eed7d8f85a329bb4a50b738d4c18de4bbd0840fbaff569e9b55c9fb8555"
+    },
+    {
+      "path": "timestamp-settle-bgfx-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "6884a09d2e39d1dba71905b361afcb28a512ae33af0efcef0c3839e29a593d40"
+    },
+    {
+      "path": "timestamp-settle-bgfx-install.log",
+      "bytes": 110791,
+      "sha256": "f8cacb834ab9018043019085882eb030b3d1d99a5a5410989865c18aa40bd6af"
+    },
+    {
+      "path": "timestamp-settle-build-ledger.json",
+      "bytes": 2613,
+      "sha256": "792675418f8cbe1c121910614a244c9b1d7cd5ac8a0c74e7806903b750be11bb"
+    },
+    {
+      "path": "timestamp-settle-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "timestamp-settle-source.diff",
+      "bytes": 37566,
+      "sha256": "f88cc31c7f6da5b19f911703ec0a6afec5cceb4dec6888f4eb386ba47a35fa7b"
+    },
+    {
+      "path": "toolchain.json",
+      "bytes": 1521,
+      "sha256": "14f5eaae00d0e6bf623af50255dfcfa0cecde187d1d34f2c1a03d47e6ced5c3b"
+    },
+    {
+      "path": "upload-fixtures-bgfx-build.log",
+      "bytes": 14388,
+      "sha256": "ac643affaadab667de36ad32727ff29c5cc771a8781911b9597b0f9eb6380932"
+    },
+    {
+      "path": "upload-fixtures-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "921ab3397565e2bad827d5462004ddcba9fb43e469d7e73d5e7dac08d4edd145"
+    },
+    {
+      "path": "upload-fixtures-bgfx-consumer-build.log",
+      "bytes": 333,
+      "sha256": "0baa4eed7d8f85a329bb4a50b738d4c18de4bbd0840fbaff569e9b55c9fb8555"
+    },
+    {
+      "path": "upload-fixtures-bgfx-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "62444ceadfd7d23b96c0b8f311202279ed944851f60bfb5e9c661def587c877d"
+    },
+    {
+      "path": "upload-fixtures-bgfx-install.log",
+      "bytes": 110791,
+      "sha256": "055aaa66169a7ce261b498ced0b00c0b73220ab7589788ac41193db27e91981f"
+    },
+    {
+      "path": "upload-fixtures-build-ledger.json",
+      "bytes": 4948,
+      "sha256": "070932d9449f87368329bf2029bcee32c2e89db38b04c7106e9dab7762264257"
+    },
+    {
+      "path": "upload-fixtures-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "upload-fixtures-source.diff",
+      "bytes": 35386,
+      "sha256": "ef3e4950765087bc5a10cb8a868c5f28896d27eb6f591abaf64b000e5776f5b7"
+    },
+    {
+      "path": "upload-fixtures-wgpu-build.log",
+      "bytes": 14773,
+      "sha256": "75cddd9396cd08181059ed3f5ed93b40d3dbae817971fc49419ca665106d076b"
+    },
+    {
+      "path": "upload-fixtures-wgpu-configure.log",
+      "bytes": 388,
+      "sha256": "90c97fd616f265a892d55d19f50d7a1716b390bdf32297ea5521fd6f3da7350f"
+    },
+    {
+      "path": "upload-fixtures-wgpu-consumer-build.log",
+      "bytes": 333,
+      "sha256": "26e459854b3ecfd61ab36dfc7cbbb28bbca4aeeb5cd86745038c014b8caf03c2"
+    },
+    {
+      "path": "upload-fixtures-wgpu-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "f64acfaed4c4baadf65f7614f02aede3c1d8835ab266780a79069d0db6aa3cb6"
+    },
+    {
+      "path": "upload-fixtures-wgpu-install.log",
+      "bytes": 110791,
+      "sha256": "9316208fce3396aecf220cc833e9f0c72ee17739c2db82efe4a711d55e4b46e4"
+    },
+    {
+      "path": "vulkan-sdk-control-cube.ppm",
+      "bytes": 3085,
+      "sha256": "f12895a80dad03ef0debccc51de1a8075cf3345b0c2a534636444f64fb7793d3"
+    },
+    {
+      "path": "vulkan-sdk-control-mip.ppm",
+      "bytes": 12301,
+      "sha256": "0a0911896e2131f4563807f2cbdc428b5fd22ae0dc1e755034bd2d955a4d804c"
+    },
+    {
+      "path": "vulkan-sdk-flush-control.log",
+      "bytes": 9507,
+      "sha256": "5acfca0a0a5f5ef4357130cc263fa352d144725c5c82cd503fb9e36751148477"
+    },
+    {
+      "path": "vulkaninfo-initial.json",
+      "bytes": 145,
+      "sha256": "6b94d31cf2cc25cf19e27f64d11ef460622675e99dee5b23b92e924963a7e3c9"
+    },
+    {
+      "path": "vulkaninfo-initial.log",
+      "bytes": 8293,
+      "sha256": "1e1be08ee7d567121f06757b6c7fe06a25bee92b5b602be28824fa1225352abd"
+    },
+    {
+      "path": "window/bgfx-d3d12-window.log",
+      "bytes": 2150,
+      "sha256": "566bf8e9f23d40fa729b0f317037c202911034d64234fd71e83033ce28b19ee8"
+    },
+    {
+      "path": "window/bgfx-opengl-window.log",
+      "bytes": 2142,
+      "sha256": "91d7166ebeaa3bc7060f2a01e49c496242f964e43bb5575f03c31e3beeabdc17"
+    },
+    {
+      "path": "window/bgfx-vulkan-window.log",
+      "bytes": 2145,
+      "sha256": "974429dd25a7bf87c1090190593ebe28618db32d7c343cc50180eb3bfbec6f53"
+    },
+    {
+      "path": "window/results.xml",
+      "bytes": 1259,
+      "sha256": "c907d542cb76f553e8d62a990f2f4c8f2310a9533c9860ccea92e781d8cacc06"
+    },
+    {
+      "path": "window/summary.json",
+      "bytes": 19826,
+      "sha256": "8a771d586d8e3ab4b97798345428550730aa50a308071cf377263ec0146b802a"
+    },
+    {
+      "path": "window/wgpu-d3d12-window.log",
+      "bytes": 2130,
+      "sha256": "b0bec44eafe1b83177f142eefcc38f49c48cbe96c1d056ede0fe07619963b2d1"
+    },
+    {
+      "path": "window/wgpu-opengl-window.log",
+      "bytes": 1209,
+      "sha256": "b21b340e5ebf5832f1221473858c7054a5d2e314b34f0a076b94635c3bb7b11e"
+    },
+    {
+      "path": "window/wgpu-vulkan-window.log",
+      "bytes": 2132,
+      "sha256": "0361f20f382810b13b50e6ae6fafb2be54a05031d49085ad23289c971439fa23"
+    },
+    {
+      "path": "windows-fixtures-bgfx-build.log",
+      "bytes": 14530,
+      "sha256": "48fdb2af6769d98f834bc35a1c68dcda09326dd70b545baf19dfb3945bb290f0"
+    },
+    {
+      "path": "windows-fixtures-bgfx-configure.log",
+      "bytes": 528,
+      "sha256": "23f202714a7b5530e93ba6c82535633e174bf490ef8e13fac2df3c9453e52918"
+    },
+    {
+      "path": "windows-fixtures-bgfx-consumer-build.log",
+      "bytes": 753,
+      "sha256": "3a8f30fe2fabb8c29fa48bf3523004ed23460e45efd55cce4d4be2864288fe4c"
+    },
+    {
+      "path": "windows-fixtures-bgfx-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "6884a09d2e39d1dba71905b361afcb28a512ae33af0efcef0c3839e29a593d40"
+    },
+    {
+      "path": "windows-fixtures-bgfx-install.log",
+      "bytes": 110791,
+      "sha256": "08aa6d2d214f8414c154d3dca92228ed60688a872d43dd685cce7871e941d47e"
+    },
+    {
+      "path": "windows-fixtures-build-ledger.json",
+      "bytes": 4958,
+      "sha256": "7607310e29ddef0a4974d4711644a69df1aee7d5149a5a255c62287ac3b8b172"
+    },
+    {
+      "path": "windows-fixtures-source-sha.txt",
+      "bytes": 41,
+      "sha256": "4cfaacc901546c7da82d4f454cb2e6ff8ae4d63145b30dd3fef9e5af902ebe88"
+    },
+    {
+      "path": "windows-fixtures-source.diff",
+      "bytes": 31348,
+      "sha256": "ae786a1704cc16c3aea899834bab1cb1d1f18eedd8470e276b92ad9930add149"
+    },
+    {
+      "path": "windows-fixtures-wgpu-build.log",
+      "bytes": 11537,
+      "sha256": "b4ff67818fa370c03ba4d1cb6886c477d08396041f1061ffeb2769c01d470844"
+    },
+    {
+      "path": "windows-fixtures-wgpu-configure.log",
+      "bytes": 388,
+      "sha256": "927290da9bde1c679f60e840d77b8ce59ac629f5ceaf651f41fdf9956cd39401"
+    },
+    {
+      "path": "windows-fixtures-wgpu-consumer-build.log",
+      "bytes": 333,
+      "sha256": "26e459854b3ecfd61ab36dfc7cbbb28bbca4aeeb5cd86745038c014b8caf03c2"
+    },
+    {
+      "path": "windows-fixtures-wgpu-consumer-configure.log",
+      "bytes": 220,
+      "sha256": "8dcc27db967c1eaa3e9fd6ad8f86ffb2f32afef0d937d5d88d380afee756e404"
+    },
+    {
+      "path": "windows-fixtures-wgpu-install.log",
+      "bytes": 110791,
+      "sha256": "9316208fce3396aecf220cc833e9f0c72ee17739c2db82efe4a711d55e4b46e4"
+    },
+    {
+      "path": "write_report.py",
+      "bytes": 12962,
+      "sha256": "0c842c67a4ef41142d334d561225300b07d2ec13735f29482adf9dded6798acb"
+    }
+  ]
+}

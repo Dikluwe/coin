@@ -1,0 +1,148 @@
+Internal ctest changing into directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu
+Test project H:/Git/coin/build/sampling-win-20261010/build-wgpu
+      Start 145: CoinRenderShadowAlphaTest8_0Test
+ 1/68 Test #145: CoinRenderShadowAlphaTest8_0Test ............   Passed  143.71 sec
+      Start 146: CoinRenderShadowAlphaTest8_1Test
+ 2/68 Test #146: CoinRenderShadowAlphaTest8_1Test ............   Passed   31.57 sec
+      Start 147: CoinRenderShadowAlphaTest8_2Test
+ 3/68 Test #147: CoinRenderShadowAlphaTest8_2Test ............   Passed   32.37 sec
+      Start 148: CoinRenderShadowQuality1Test
+ 4/68 Test #148: CoinRenderShadowQuality1Test ................   Passed   11.39 sec
+      Start 149: CoinRenderShadowOit1_1Test
+ 5/68 Test #149: CoinRenderShadowOit1_1Test ..................   Passed   18.64 sec
+      Start 150: CoinRenderShadowLayers1_1Test
+ 6/68 Test #150: CoinRenderShadowLayers1_1Test ...............   Passed    6.74 sec
+      Start 151: CoinRenderShadowOit1_2Test
+ 7/68 Test #151: CoinRenderShadowOit1_2Test ..................   Passed   17.32 sec
+      Start 152: CoinRenderShadowLayers1_2Test
+ 8/68 Test #152: CoinRenderShadowLayers1_2Test ...............   Passed    6.22 sec
+      Start 153: CoinRenderShadowQuality4Test
+ 9/68 Test #153: CoinRenderShadowQuality4Test ................   Passed   14.84 sec
+      Start 154: CoinRenderShadowOit4_1Test
+10/68 Test #154: CoinRenderShadowOit4_1Test ..................   Passed   23.24 sec
+      Start 155: CoinRenderShadowLayers4_1Test
+11/68 Test #155: CoinRenderShadowLayers4_1Test ...............   Passed    7.46 sec
+      Start 156: CoinRenderShadowOit4_2Test
+12/68 Test #156: CoinRenderShadowOit4_2Test ..................   Passed   22.41 sec
+      Start 157: CoinRenderShadowLayers4_2Test
+13/68 Test #157: CoinRenderShadowLayers4_2Test ...............   Passed    7.07 sec
+      Start 158: CoinRenderShadowQuality8Test
+14/68 Test #158: CoinRenderShadowQuality8Test ................   Passed   25.08 sec
+      Start 159: CoinRenderShadowOit8_1Test
+15/68 Test #159: CoinRenderShadowOit8_1Test ..................   Passed   53.11 sec
+      Start 160: CoinRenderShadowLayers8_1Test
+16/68 Test #160: CoinRenderShadowLayers8_1Test ...............   Passed   14.76 sec
+      Start 161: CoinRenderShadowOit8_2Test
+17/68 Test #161: CoinRenderShadowOit8_2Test ..................   Passed   49.89 sec
+      Start 162: CoinRenderShadowLayers8_2Test
+18/68 Test #162: CoinRenderShadowLayers8_2Test ...............   Passed   15.10 sec
+      Start 163: CoinRenderMultiTargetTest
+19/68 Test #163: CoinRenderMultiTargetTest ...................   Passed    5.67 sec
+      Start 164: CoinRenderMultiTargetDirectTest
+20/68 Test #164: CoinRenderMultiTargetDirectTest .............   Passed    5.59 sec
+      Start 165: CoinRenderPublicationTest
+21/68 Test #165: CoinRenderPublicationTest ...................   Passed    0.11 sec
+      Start 166: CoinRenderRttOwnershipTest
+22/68 Test #166: CoinRenderRttOwnershipTest ..................   Passed    0.64 sec
+      Start 167: CoinRenderSceneTextureTest
+23/68 Test #167: CoinRenderSceneTextureTest ..................   Passed    5.24 sec
+      Start 168: CoinRenderSceneTextureBudgetTest
+24/68 Test #168: CoinRenderSceneTextureBudgetTest ............   Passed    1.40 sec
+      Start 169: CoinRenderSceneTextureDirectTest
+25/68 Test #169: CoinRenderSceneTextureDirectTest ............   Passed   29.52 sec
+      Start 170: CoinRenderSceneTextureBudgetDirectTest
+26/68 Test #170: CoinRenderSceneTextureBudgetDirectTest ......   Passed    0.65 sec
+      Start 171: CoinWgpuFfiFrameTest
+27/68 Test #171: CoinWgpuFfiFrameTest ........................***Failed    1.27 sec
+CoinWgpuFfiFrameTest: projective private protocol and vertex stride
+
+      Start 172: CoinWgpuLargeBindingsTest
+28/68 Test #172: CoinWgpuLargeBindingsTest ...................   Passed    2.29 sec
+      Start 173: CoinRenderPerformanceTest
+29/68 Test #173: CoinRenderPerformanceTest ...................   Passed    3.52 sec
+      Start 174: CoinRenderAsyncReadbackTest
+30/68 Test #174: CoinRenderAsyncReadbackTest .................   Passed    1.23 sec
+      Start 175: CoinWgpuMultiDeviceTest
+31/68 Test #175: CoinWgpuMultiDeviceTest .....................   Passed   17.69 sec
+      Start 176: WgpuMultiDeviceStressTest
+32/68 Test #176: WgpuMultiDeviceStressTest ...................   Passed    6.87 sec
+      Start 177: CoinRenderAsyncActionTest
+33/68 Test #177: CoinRenderAsyncActionTest ...................   Passed    3.22 sec
+      Start 178: CoinRenderAsyncActionDirectTest
+34/68 Test #178: CoinRenderAsyncActionDirectTest .............   Passed    9.57 sec
+      Start 179: CoinRenderAsyncActionDirectStressTest
+35/68 Test #179: CoinRenderAsyncActionDirectStressTest .......   Passed   13.69 sec
+      Start 180: SensorScheduling_alarm_cancel
+36/68 Test #180: SensorScheduling_alarm_cancel ...............   Passed    0.11 sec
+      Start 181: SensorScheduling_recurring_cancel
+37/68 Test #181: SensorScheduling_recurring_cancel ...........   Passed    0.08 sec
+      Start 182: SensorScheduling_alarm_reschedule
+38/68 Test #182: SensorScheduling_alarm_reschedule ...........   Passed    0.08 sec
+      Start 183: SensorScheduling_timeout_change_cancel
+39/68 Test #183: SensorScheduling_timeout_change_cancel ......   Passed    0.07 sec
+      Start 184: SensorScheduling_zero_repeat
+40/68 Test #184: SensorScheduling_zero_repeat ................   Passed    0.08 sec
+      Start 185: SensorScheduling_zero_nonidle
+41/68 Test #185: SensorScheduling_zero_nonidle ...............   Passed    0.07 sec
+      Start 186: SensorScheduling_nonzero_timeout
+42/68 Test #186: SensorScheduling_nonzero_timeout ............   Passed    0.08 sec
+      Start 187: SensorScheduling_node_detach
+43/68 Test #187: SensorScheduling_node_detach ................   Passed    0.08 sec
+      Start 188: SensorScheduling_delay_reentry
+44/68 Test #188: SensorScheduling_delay_reentry ..............   Passed    0.07 sec
+      Start 189: SensorScheduling_delay_timeout_reentry
+45/68 Test #189: SensorScheduling_delay_timeout_reentry ......   Passed    0.10 sec
+      Start 190: SensorScheduling_timer_reentry
+46/68 Test #190: SensorScheduling_timer_reentry ..............   Passed    0.10 sec
+      Start 191: SensorScheduling_delay_changed_exception
+47/68 Test #191: SensorScheduling_delay_changed_exception ....   Passed    0.09 sec
+      Start 192: SensorScheduling_timer_changed_exception
+48/68 Test #192: SensorScheduling_timer_changed_exception ....   Passed    0.08 sec
+      Start 193: SensorScheduling_delay_remove_reentry
+49/68 Test #193: SensorScheduling_delay_remove_reentry .......   Passed    0.08 sec
+      Start 194: SensorScheduling_timer_remove_reentry
+50/68 Test #194: SensorScheduling_timer_remove_reentry .......   Passed    0.09 sec
+      Start 195: SensorScheduling_timer_exception
+51/68 Test #195: SensorScheduling_timer_exception ............   Passed    0.07 sec
+      Start 196: SensorScheduling_delay_exception
+52/68 Test #196: SensorScheduling_delay_exception ............   Passed    0.08 sec
+      Start 197: SensorScheduling_timer_cancel_exception
+53/68 Test #197: SensorScheduling_timer_cancel_exception .....   Passed    0.08 sec
+      Start 198: SensorScheduling_delay_deferred_exception
+54/68 Test #198: SensorScheduling_delay_deferred_exception ...   Passed    0.08 sec
+      Start 199: SensorScheduling_absolute_deadline
+55/68 Test #199: SensorScheduling_absolute_deadline ..........   Passed    0.08 sec
+      Start 200: SensorScheduling_changed_during_dispatch
+56/68 Test #200: SensorScheduling_changed_during_dispatch ....   Passed    0.08 sec
+      Start 201: SensorScheduling_immediate_notification
+57/68 Test #201: SensorScheduling_immediate_notification .....   Passed    0.08 sec
+      Start 202: XmlCHeaderAttributeTest
+58/68 Test #202: XmlCHeaderAttributeTest .....................   Passed    0.04 sec
+      Start 203: XmlCHeaderDocumentTest
+59/68 Test #203: XmlCHeaderDocumentTest ......................   Passed    0.03 sec
+      Start 204: XmlCHeaderElementTest
+60/68 Test #204: XmlCHeaderElementTest .......................   Passed    0.04 sec
+      Start 205: XmlCHeaderEntityTest
+61/68 Test #205: XmlCHeaderEntityTest ........................   Passed    0.04 sec
+      Start 206: XmlCHeaderParserTest
+62/68 Test #206: XmlCHeaderParserTest ........................   Passed    0.03 sec
+      Start 207: XmlCHeaderPathTest
+63/68 Test #207: XmlCHeaderPathTest ..........................   Passed    0.04 sec
+      Start 208: XmlCHeaderTypesTest
+64/68 Test #208: XmlCHeaderTypesTest .........................   Passed    0.03 sec
+      Start 209: XmlCHeaderWorldTest
+65/68 Test #209: XmlCHeaderWorldTest .........................   Passed    0.03 sec
+      Start 210: XmlCHeadersAggregateTest
+66/68 Test #210: XmlCHeadersAggregateTest ....................   Passed    0.04 sec
+      Start 211: XmlCApiTest
+67/68 Test #211: XmlCApiTest .................................   Passed    0.10 sec
+      Start 212: XmlLegacyPathDocumentCxxAbiTest
+68/68 Test #212: XmlLegacyPathDocumentCxxAbiTest .............   Passed    0.09 sec
+
+99% tests passed, 1 tests failed out of 68
+
+Total Test time (real) = 612.03 sec
+
+The following tests FAILED:
+	171 - CoinWgpuFfiFrameTest (Failed)
+Errors while running CTest

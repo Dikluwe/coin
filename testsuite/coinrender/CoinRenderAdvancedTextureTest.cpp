@@ -557,8 +557,16 @@ int main(int argc, char **argv) {
     ok &= render(frame, expected,
                  "linear alpha in format " + std::to_string(uint32_t(format)));
   }
+  const auto firstUploadFilter = capture->plan.samplers[0].filter;
   scene.texture->enableCompressedTexture = TRUE;
   scene.quality->textureQuality = .8f;
+  action.apply(scene.root);
+  ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                  capture->plan.samplers[0].filter == firstUploadFilter,
+              "quality hint without image notification retains first upload filter");
+  // The current upload contract retains quality until image/wrap notification.
+  // Reupload identical bytes before requiring the newly requested mip chain.
+  scene.texture->image.touch();
   action.apply(scene.root);
   ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
                   capture->plan.textures[0].format == F::BC3_SRGB &&
@@ -580,7 +588,13 @@ int main(int argc, char **argv) {
                   capture->plan.textures[0].width == 3 &&
                   capture->plan.textures[0].height == 5,
               "NPOT recovery preserves native extent");
+  const auto priorUploadAnisotropy = capture->plan.samplers[0].maxAnisotropy;
   scene.quality->textureQuality = .9f;
+  action.apply(scene.root);
+  ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
+                  capture->plan.samplers[0].maxAnisotropy == priorUploadAnisotropy,
+              "anisotropy hint without image notification retains first upload sampler");
+  scene.texture->image.touch();
   action.apply(scene.root);
   ok &= check(action.getLastStatus() == CoinRenderAction::SUCCESS &&
                   capture->plan.samplers[0].maxAnisotropy == 16,

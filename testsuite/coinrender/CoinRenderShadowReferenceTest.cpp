@@ -57,6 +57,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <memory>
 
@@ -1101,6 +1102,17 @@ bool qualifyNpotShadowTransparency(SoSeparator * source, int mechanism,
     group->removeChild(ninth);
     qualified = capture(recovered) && qualified && recovered == shadowed;
   }
+
+  if (const char* prefix=std::getenv("COIN_RENDER_NPOT_PIXEL_PREFIX")) {
+    const std::vector<unsigned char>* stages[]={&shadowed,&clear,&opaque,&retained,&recovered};
+    const char* names[]={"shadowed","clear","opaque","retained","recovered"};
+    for(int i=0;i<5;++i)if(stages[i]->size()==size_t(side*side*4)) {
+      std::ofstream out(std::string(prefix)+"-"+names[i]+".ppm",std::ios::binary);
+      out << "P6\n" << side << ' ' << side << "\n255\n";
+      for(size_t j=0;j<stages[i]->size();j+=4)out.write(reinterpret_cast<const char*>(stages[i]->data()+j),3);
+    }
+  }
+
   if (qualified && benchmark) {
     typedef std::chrono::steady_clock Clock;
     auto measure = [&](int extent, float textureQuality) {
@@ -1548,6 +1560,7 @@ bool shadowViewportCrop(SoSeparator *root, SoShadowGroup *group) {
 
 int main(int argc, char ** argv)
 {
+  std::cout << std::unitbuf;
   SoDB::init();
   CoinRenderAction::initClass();
 

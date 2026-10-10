@@ -62,7 +62,7 @@ public:
   static  void set(SoState * const state, SoNode * const node,
                    const Policy policy);
   static  void set(SoState * const state, const Policy policy);
-  static Policy get(SoState * const state);
+  static COIN_DLL_API Policy get(SoState * const state);
   static Policy getDefault(void);
 
 };

@@ -1,0 +1,1443 @@
+Start testing: Oct 10 15:25 Hora oficial do Brasil
+----------------------------------------------------------
+145/212 Testing: CoinRenderShadowAlphaTest8_0Test
+145/212 Test: CoinRenderShadowAlphaTest8_0Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--alpha-test" "8" "0"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowAlphaTest8_0Test" start time: Oct 10 15:25 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/78 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/78 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=0 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=1 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=2 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=3 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=4 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=5 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=7 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=8 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=9 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=0 delta=102 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=1 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=2 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=3 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=4 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=5 delta=22 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=6 delta=22 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=7 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=8 delta=37 qualified=1
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=9 delta=102 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=0 Coin/GL/GPU delta=381/381 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=1 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=2 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=3 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=4 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=5 Coin/GL/GPU delta=81/78 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/78 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=7 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=8 Coin/GL/GPU delta=138/138 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=9 Coin/GL/GPU delta=381/381 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=0 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=1 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=2 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=3 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=4 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=5 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=7 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=8 max_error=0 last_light_contributes=1 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=9 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=0 delta=102 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=1 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=2 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=3 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=4 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=5 delta=22 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=6 delta=22 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=7 delta=38 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=8 delta=37 qualified=1
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=9 delta=102 qualified=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=9 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=0 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=1 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=2 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=3 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=4 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=5 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=7 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=8 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=9 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=1 qualified=1
+<end of output>
+Test time = 143.71 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowAlphaTest8_0Test" end time: Oct 10 15:28 Hora oficial do Brasil
+"CoinRenderShadowAlphaTest8_0Test" time elapsed: 00:02:23
+----------------------------------------------------------
+
+146/212 Testing: CoinRenderShadowAlphaTest8_1Test
+146/212 Test: CoinRenderShadowAlphaTest8_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--alpha-test" "8" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowAlphaTest8_1Test" start time: Oct 10 15:28 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=1 qualified=1
+<end of output>
+Test time =  31.57 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowAlphaTest8_1Test" end time: Oct 10 15:28 Hora oficial do Brasil
+"CoinRenderShadowAlphaTest8_1Test" time elapsed: 00:00:31
+----------------------------------------------------------
+
+147/212 Testing: CoinRenderShadowAlphaTest8_2Test
+147/212 Test: CoinRenderShadowAlphaTest8_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--alpha-test" "8" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowAlphaTest8_2Test" start time: Oct 10 15:28 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=8 rtt=0 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=2 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha policy rejection status=4 serial=1 pixels=1
+alpha policy recovery qualified=1
+alpha policy fault status=5 serial=1 pixels=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=1 qualified=1
+<end of output>
+Test time =  32.37 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowAlphaTest8_2Test" end time: Oct 10 15:29 Hora oficial do Brasil
+"CoinRenderShadowAlphaTest8_2Test" time elapsed: 00:00:32
+----------------------------------------------------------
+
+148/212 Testing: CoinRenderShadowQuality1Test
+148/212 Test: CoinRenderShadowQuality1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--quality" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowQuality1Test" start time: Oct 10 15:29 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow quality maps=1 directional=0 q=0 textured=0 GL/GPU mean/max=0.246126/58 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.2999 textured=0 GL/GPU mean/max=0.246126/58 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.3 textured=0 GL/GPU mean/max=0.21438/39 transition=25 qualified=1
+shadow quality maps=1 directional=0 q=0.3001 textured=0 GL/GPU mean/max=0.21438/39 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.7 textured=0 GL/GPU mean/max=0.21438/39 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.7001 textured=0 GL/GPU mean/max=0.231954/39 transition=22 qualified=1
+shadow quality maps=1 directional=0 q=1 textured=0 GL/GPU mean/max=0.231954/39 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0 textured=1 GL/GPU mean/max=0.0841364/33 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.2999 textured=1 GL/GPU mean/max=0.0841364/33 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.3 textured=1 GL/GPU mean/max=0.0700113/20 transition=45 qualified=1
+shadow quality maps=1 directional=0 q=0.3001 textured=1 GL/GPU mean/max=0.0700113/20 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.7 textured=1 GL/GPU mean/max=0.0700113/20 transition=0 qualified=1
+shadow quality maps=1 directional=0 q=0.7001 textured=1 GL/GPU mean/max=0.0735072/20 transition=32 qualified=1
+shadow quality maps=1 directional=0 q=1 textured=1 GL/GPU mean/max=0.0735072/20 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0 textured=0 GL/GPU mean/max=0.208475/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.2999 textured=0 GL/GPU mean/max=0.208475/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.3 textured=0 GL/GPU mean/max=0.213577/1 transition=69 qualified=1
+shadow quality maps=1 directional=1 q=0.3001 textured=0 GL/GPU mean/max=0.213577/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.7 textured=0 GL/GPU mean/max=0.213577/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.7001 textured=0 GL/GPU mean/max=0.227277/1 transition=22 qualified=1
+shadow quality maps=1 directional=1 q=1 textured=0 GL/GPU mean/max=0.227277/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0 textured=1 GL/GPU mean/max=0.0591459/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.2999 textured=1 GL/GPU mean/max=0.0591459/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.3 textured=1 GL/GPU mean/max=0.0593821/1 transition=93 qualified=1
+shadow quality maps=1 directional=1 q=0.3001 textured=1 GL/GPU mean/max=0.0593821/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.7 textured=1 GL/GPU mean/max=0.0593821/1 transition=0 qualified=1
+shadow quality maps=1 directional=1 q=0.7001 textured=1 GL/GPU mean/max=0.0637755/1 transition=32 qualified=1
+shadow quality maps=1 directional=1 q=1 textured=1 GL/GPU mean/max=0.0637755/1 transition=0 qualified=1
+<end of output>
+Test time =  11.39 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowQuality1Test" end time: Oct 10 15:29 Hora oficial do Brasil
+"CoinRenderShadowQuality1Test" time elapsed: 00:00:11
+----------------------------------------------------------
+
+149/212 Testing: CoinRenderShadowOit1_1Test
+149/212 Test: CoinRenderShadowOit1_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--shadow-oit" "1" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowOit1_1Test" start time: Oct 10 15:29 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=1 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=1 mode=10 delta=47 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=1 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=0 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=1 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=1 qualified=1
+<end of output>
+Test time =  18.64 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowOit1_1Test" end time: Oct 10 15:29 Hora oficial do Brasil
+"CoinRenderShadowOit1_1Test" time elapsed: 00:00:18
+----------------------------------------------------------
+
+150/212 Testing: CoinRenderShadowLayers1_1Test
+150/212 Test: CoinRenderShadowLayers1_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPeelingTest.exe" "--shadow" "1" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowLayers1_1Test" start time: Oct 10 15:29 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow numeric layers/occlusion/order maps=1 weighted=0 passed
+<end of output>
+Test time =   6.74 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowLayers1_1Test" end time: Oct 10 15:29 Hora oficial do Brasil
+"CoinRenderShadowLayers1_1Test" time elapsed: 00:00:06
+----------------------------------------------------------
+
+151/212 Testing: CoinRenderShadowOit1_2Test
+151/212 Test: CoinRenderShadowOit1_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--shadow-oit" "1" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowOit1_2Test" start time: Oct 10 15:29 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/180 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=0 mode=6 delta=48 qualified=1
+shadow additive after compositor maps=1 mechanism=2 delta=79 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/129 qualified=1
+transparent shadow RTT producer maps=1 rtt=-1 alpha_texture=1 mode=6 delta=36 qualified=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=1 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=1 rtt=0 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=0 qualified=1
+transparent shadow receiver maps=1 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=1 rtt=1 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=1 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=1 rtt=1 qualified=1
+<end of output>
+Test time =  17.32 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowOit1_2Test" end time: Oct 10 15:30 Hora oficial do Brasil
+"CoinRenderShadowOit1_2Test" time elapsed: 00:00:17
+----------------------------------------------------------
+
+152/212 Testing: CoinRenderShadowLayers1_2Test
+152/212 Test: CoinRenderShadowLayers1_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPeelingTest.exe" "--shadow" "1" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowLayers1_2Test" start time: Oct 10 15:30 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow numeric layers/occlusion/order maps=1 weighted=1 passed
+<end of output>
+Test time =   6.22 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowLayers1_2Test" end time: Oct 10 15:30 Hora oficial do Brasil
+"CoinRenderShadowLayers1_2Test" time elapsed: 00:00:06
+----------------------------------------------------------
+
+153/212 Testing: CoinRenderShadowQuality4Test
+153/212 Test: CoinRenderShadowQuality4Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--quality" "4"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowQuality4Test" start time: Oct 10 15:30 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow quality maps=4 directional=0 q=0 textured=0 GL/GPU mean/max=0.246173/58 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.2999 textured=0 GL/GPU mean/max=0.246173/58 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.3 textured=0 GL/GPU mean/max=0.21438/39 transition=25 qualified=1
+shadow quality maps=4 directional=0 q=0.3001 textured=0 GL/GPU mean/max=0.21438/39 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.7 textured=0 GL/GPU mean/max=0.21438/39 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.7001 textured=0 GL/GPU mean/max=0.231954/39 transition=22 qualified=1
+shadow quality maps=4 directional=0 q=1 textured=0 GL/GPU mean/max=0.231954/39 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0 textured=1 GL/GPU mean/max=0.0841364/33 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.2999 textured=1 GL/GPU mean/max=0.0841364/33 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.3 textured=1 GL/GPU mean/max=0.0700586/20 transition=45 qualified=1
+shadow quality maps=4 directional=0 q=0.3001 textured=1 GL/GPU mean/max=0.0700586/20 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.7 textured=1 GL/GPU mean/max=0.0700586/20 transition=0 qualified=1
+shadow quality maps=4 directional=0 q=0.7001 textured=1 GL/GPU mean/max=0.0735072/20 transition=32 qualified=1
+shadow quality maps=4 directional=0 q=1 textured=1 GL/GPU mean/max=0.0735072/20 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0 textured=0 GL/GPU mean/max=0.208475/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.2999 textured=0 GL/GPU mean/max=0.208475/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.3 textured=0 GL/GPU mean/max=0.213577/1 transition=69 qualified=1
+shadow quality maps=4 directional=1 q=0.3001 textured=0 GL/GPU mean/max=0.213577/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.7 textured=0 GL/GPU mean/max=0.213577/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.7001 textured=0 GL/GPU mean/max=0.227277/1 transition=22 qualified=1
+shadow quality maps=4 directional=1 q=1 textured=0 GL/GPU mean/max=0.227277/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0 textured=1 GL/GPU mean/max=0.0591459/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.2999 textured=1 GL/GPU mean/max=0.0591459/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.3 textured=1 GL/GPU mean/max=0.0593821/1 transition=93 qualified=1
+shadow quality maps=4 directional=1 q=0.3001 textured=1 GL/GPU mean/max=0.0593821/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.7 textured=1 GL/GPU mean/max=0.0593821/1 transition=0 qualified=1
+shadow quality maps=4 directional=1 q=0.7001 textured=1 GL/GPU mean/max=0.0637755/1 transition=32 qualified=1
+shadow quality maps=4 directional=1 q=1 textured=1 GL/GPU mean/max=0.0637755/1 transition=0 qualified=1
+<end of output>
+Test time =  14.84 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowQuality4Test" end time: Oct 10 15:30 Hora oficial do Brasil
+"CoinRenderShadowQuality4Test" time elapsed: 00:00:14
+----------------------------------------------------------
+
+154/212 Testing: CoinRenderShadowOit4_1Test
+154/212 Test: CoinRenderShadowOit4_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--shadow-oit" "4" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowOit4_1Test" start time: Oct 10 15:30 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=4 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=1 mode=10 delta=47 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=4 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=0 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent shadow RTT producer maps=4 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=1 qualified=1
+<end of output>
+Test time =  23.24 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowOit4_1Test" end time: Oct 10 15:30 Hora oficial do Brasil
+"CoinRenderShadowOit4_1Test" time elapsed: 00:00:23
+----------------------------------------------------------
+
+155/212 Testing: CoinRenderShadowLayers4_1Test
+155/212 Test: CoinRenderShadowLayers4_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPeelingTest.exe" "--shadow" "4" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowLayers4_1Test" start time: Oct 10 15:30 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow numeric layers/occlusion/order maps=4 weighted=0 passed
+<end of output>
+Test time =   7.46 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowLayers4_1Test" end time: Oct 10 15:30 Hora oficial do Brasil
+"CoinRenderShadowLayers4_1Test" time elapsed: 00:00:07
+----------------------------------------------------------
+
+156/212 Testing: CoinRenderShadowOit4_2Test
+156/212 Test: CoinRenderShadowOit4_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--shadow-oit" "4" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowOit4_2Test" start time: Oct 10 15:30 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/180 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=0 mode=6 delta=48 qualified=1
+shadow additive after compositor maps=4 mechanism=2 delta=79 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/129 qualified=1
+transparent shadow RTT producer maps=4 rtt=-1 alpha_texture=1 mode=6 delta=36 qualified=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=4 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=4 rtt=0 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=0 qualified=1
+transparent shadow receiver maps=4 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent shadow RTT producer maps=4 rtt=1 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=4 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=4 rtt=1 qualified=1
+<end of output>
+Test time =  22.41 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowOit4_2Test" end time: Oct 10 15:31 Hora oficial do Brasil
+"CoinRenderShadowOit4_2Test" time elapsed: 00:00:22
+----------------------------------------------------------
+
+157/212 Testing: CoinRenderShadowLayers4_2Test
+157/212 Test: CoinRenderShadowLayers4_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPeelingTest.exe" "--shadow" "4" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowLayers4_2Test" start time: Oct 10 15:31 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow numeric layers/occlusion/order maps=4 weighted=1 passed
+<end of output>
+Test time =   7.07 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowLayers4_2Test" end time: Oct 10 15:31 Hora oficial do Brasil
+"CoinRenderShadowLayers4_2Test" time elapsed: 00:00:07
+----------------------------------------------------------
+
+158/212 Testing: CoinRenderShadowQuality8Test
+158/212 Test: CoinRenderShadowQuality8Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--quality" "8"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowQuality8Test" start time: Oct 10 15:31 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow quality maps=8 directional=0 q=0 textured=0 GL/GPU mean/max=0.194255/58 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.2999 textured=0 GL/GPU mean/max=0.194255/58 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.3 textured=0 GL/GPU mean/max=0.165202/39 transition=25 qualified=1
+shadow quality maps=8 directional=0 q=0.3001 textured=0 GL/GPU mean/max=0.165202/39 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.7 textured=0 GL/GPU mean/max=0.165202/39 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.7001 textured=0 GL/GPU mean/max=0.165202/39 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=1 textured=0 GL/GPU mean/max=0.165202/39 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0 textured=1 GL/GPU mean/max=0.0695389/33 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.2999 textured=1 GL/GPU mean/max=0.0695389/33 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.3 textured=1 GL/GPU mean/max=0.0557445/20 transition=45 qualified=1
+shadow quality maps=8 directional=0 q=0.3001 textured=1 GL/GPU mean/max=0.0557445/20 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.7 textured=1 GL/GPU mean/max=0.0557445/20 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=0.7001 textured=1 GL/GPU mean/max=0.0557445/20 transition=0 qualified=1
+shadow quality maps=8 directional=0 q=1 textured=1 GL/GPU mean/max=0.0557445/20 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0 textured=0 GL/GPU mean/max=0.157407/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.2999 textured=0 GL/GPU mean/max=0.157407/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.3 textured=0 GL/GPU mean/max=0.165816/1 transition=69 qualified=1
+shadow quality maps=8 directional=1 q=0.3001 textured=0 GL/GPU mean/max=0.165816/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.7 textured=0 GL/GPU mean/max=0.165816/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.7001 textured=0 GL/GPU mean/max=0.165816/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=1 textured=0 GL/GPU mean/max=0.165816/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0 textured=1 GL/GPU mean/max=0.0419501/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.2999 textured=1 GL/GPU mean/max=0.0419501/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.3 textured=1 GL/GPU mean/max=0.0439815/1 transition=93 qualified=1
+shadow quality maps=8 directional=1 q=0.3001 textured=1 GL/GPU mean/max=0.0439815/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.7 textured=1 GL/GPU mean/max=0.0439815/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=0.7001 textured=1 GL/GPU mean/max=0.0439815/1 transition=0 qualified=1
+shadow quality maps=8 directional=1 q=1 textured=1 GL/GPU mean/max=0.0439815/1 transition=0 qualified=1
+<end of output>
+Test time =  25.08 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowQuality8Test" end time: Oct 10 15:31 Hora oficial do Brasil
+"CoinRenderShadowQuality8Test" time elapsed: 00:00:25
+----------------------------------------------------------
+
+159/212 Testing: CoinRenderShadowOit8_1Test
+159/212 Test: CoinRenderShadowOit8_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--shadow-oit" "8" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowOit8_1Test" start time: Oct 10 15:31 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=10 Coin/GL/GPU delta=231/237 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=0 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=0 mode=10 delta=64 qualified=1
+shadow additive after compositor maps=8 mechanism=1 delta=79 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=165/171 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=1 mode=10 delta=47 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=0 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=1 alpha_texture=1 mode=10 Coin/GL/GPU delta=132/138 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=10 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=10 delta=37 qualified=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=10 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=10 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=1 qualified=1
+<end of output>
+Test time =  53.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowOit8_1Test" end time: Oct 10 15:32 Hora oficial do Brasil
+"CoinRenderShadowOit8_1Test" time elapsed: 00:00:53
+----------------------------------------------------------
+
+160/212 Testing: CoinRenderShadowLayers8_1Test
+160/212 Test: CoinRenderShadowLayers8_1Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPeelingTest.exe" "--shadow" "8" "1"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowLayers8_1Test" start time: Oct 10 15:32 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow numeric layers/occlusion/order maps=8 weighted=0 passed
+<end of output>
+Test time =  14.76 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowLayers8_1Test" end time: Oct 10 15:32 Hora oficial do Brasil
+"CoinRenderShadowLayers8_1Test" time elapsed: 00:00:14
+----------------------------------------------------------
+
+161/212 Testing: CoinRenderShadowOit8_2Test
+161/212 Test: CoinRenderShadowOit8_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderShadowReferenceTest.exe" "--shadow-oit" "8" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowOit8_2Test" start time: Oct 10 15:32 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=0 mode=6 Coin/GL/GPU delta=120/180 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=0 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=0 mode=6 delta=48 qualified=1
+shadow additive after compositor maps=8 mechanism=2 delta=79 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=0 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=-1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=102/129 qualified=1
+transparent lighting partition maps=8 rtt=-1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=-1 alpha_texture=1 mode=6 delta=36 qualified=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=-1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+transparent shadow receiver maps=8 rtt=0 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=8 rtt=0 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=0 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=0 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=0 qualified=1
+transparent shadow receiver maps=8 rtt=1 policy=1 alpha_texture=1 mode=6 Coin/GL/GPU delta=81/105 qualified=1
+transparent lighting partition maps=8 rtt=1 alpha_texture=1 mode=6 max_error=0 last_light_contributes=1 qualified=1
+eight-map GL oracle uses seven coincident maps at equal total intensity; native eight-map GL qualification remains external
+transparent shadow RTT producer maps=8 rtt=1 alpha_texture=1 mode=6 delta=29 qualified=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=0 mode=6 GL/GPU unchanged=1
+transparent shadow caster maps=8 rtt=1 alpha_texture=1 empty_maps=1 mode=6 GL/GPU unchanged=1
+alpha RTT policy/mutation/failure/recovery maps=8 rtt=1 qualified=1
+<end of output>
+Test time =  49.89 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowOit8_2Test" end time: Oct 10 15:33 Hora oficial do Brasil
+"CoinRenderShadowOit8_2Test" time elapsed: 00:00:49
+----------------------------------------------------------
+
+162/212 Testing: CoinRenderShadowLayers8_2Test
+162/212 Test: CoinRenderShadowLayers8_2Test
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPeelingTest.exe" "--shadow" "8" "2"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderShadowLayers8_2Test" start time: Oct 10 15:33 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+shadow numeric layers/occlusion/order maps=8 weighted=1 passed
+<end of output>
+Test time =  15.10 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderShadowLayers8_2Test" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderShadowLayers8_2Test" time elapsed: 00:00:15
+----------------------------------------------------------
+
+163/212 Testing: CoinRenderMultiTargetTest
+163/212 Test: CoinRenderMultiTargetTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderMultiTargetTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderMultiTargetTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   5.67 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderMultiTargetTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderMultiTargetTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+164/212 Testing: CoinRenderMultiTargetDirectTest
+164/212 Test: CoinRenderMultiTargetDirectTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderMultiTargetTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderMultiTargetDirectTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+multi-target RTT, queues, resize, destruction and shared recovery passed
+<end of output>
+Test time =   5.59 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderMultiTargetDirectTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderMultiTargetDirectTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+165/212 Testing: CoinRenderPublicationTest
+165/212 Test: CoinRenderPublicationTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPublicationTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderPublicationTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderPublicationTest passed
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderPublicationTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderPublicationTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+166/212 Testing: CoinRenderRttOwnershipTest
+166/212 Test: CoinRenderRttOwnershipTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderRttOwnershipTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderRttOwnershipTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderRttOwnershipTest passed
+<end of output>
+Test time =   0.64 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderRttOwnershipTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderRttOwnershipTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+167/212 Testing: CoinRenderSceneTextureTest
+167/212 Test: CoinRenderSceneTextureTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderSceneTextureTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderSceneTextureTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =   5.24 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderSceneTextureTest" time elapsed: 00:00:05
+----------------------------------------------------------
+
+168/212 Testing: CoinRenderSceneTextureBudgetTest
+168/212 Test: CoinRenderSceneTextureBudgetTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderSceneTextureBudgetTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderSceneTextureBudgetTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   1.40 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudgetTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderSceneTextureBudgetTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+169/212 Testing: CoinRenderSceneTextureDirectTest
+169/212 Test: CoinRenderSceneTextureDirectTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderSceneTextureTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderSceneTextureDirectTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureTest passed
+<end of output>
+Test time =  29.52 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureDirectTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderSceneTextureDirectTest" time elapsed: 00:00:29
+----------------------------------------------------------
+
+170/212 Testing: CoinRenderSceneTextureBudgetDirectTest
+170/212 Test: CoinRenderSceneTextureBudgetDirectTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderSceneTextureBudgetTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderSceneTextureBudgetDirectTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderSceneTextureBudgetTest passed
+<end of output>
+Test time =   0.65 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderSceneTextureBudgetDirectTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinRenderSceneTextureBudgetDirectTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+171/212 Testing: CoinWgpuFfiFrameTest
+171/212 Test: CoinWgpuFfiFrameTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinWgpuFfiFrameTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinWgpuFfiFrameTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinWgpuFfiFrameTest: projective private protocol and vertex stride
+<end of output>
+Test time =   1.27 sec
+----------------------------------------------------------
+Test Failed.
+"CoinWgpuFfiFrameTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinWgpuFfiFrameTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+172/212 Testing: CoinWgpuLargeBindingsTest
+172/212 Test: CoinWgpuLargeBindingsTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinWgpuLargeBindingsTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinWgpuLargeBindingsTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 vendor=4318 device=7171
+25,600 draw uniforms, static reuse, material and camera updates passed
+<end of output>
+Test time =   2.29 sec
+----------------------------------------------------------
+Test Passed.
+"CoinWgpuLargeBindingsTest" end time: Oct 10 15:34 Hora oficial do Brasil
+"CoinWgpuLargeBindingsTest" time elapsed: 00:00:02
+----------------------------------------------------------
+
+173/212 Testing: CoinRenderPerformanceTest
+173/212 Test: CoinRenderPerformanceTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderPerformanceTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderPerformanceTest" start time: Oct 10 15:34 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) resolution=64x64 frames=31 elapsed_ms=2627.84 texture_uploads=21 texture_hits=1 texture_uploaded_bytes=1764 texture_evictions=12 texture_active_after_mutation=9 texture_active_after_removal=0 pipeline_compilations=2 pipeline_hits=29 blend_pipeline_compilations=1 blend_pipeline_reuse_hits=1 staged_rtt_passes=2 staged_rtt_elapsed_ms=3.2403 staged_rtt_upload_bytes=4096 async_staging_bytes=32768 async_readback_poll_elapsed_ms=4.8984
+<end of output>
+Test time =   3.52 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderPerformanceTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"CoinRenderPerformanceTest" time elapsed: 00:00:03
+----------------------------------------------------------
+
+174/212 Testing: CoinRenderAsyncReadbackTest
+174/212 Test: CoinRenderAsyncReadbackTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderAsyncReadbackTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderAsyncReadbackTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderAsyncReadbackTest passed; adapter=NVIDIA GeForce GTX 1060 6GB (Dx12); two 64x64 RGBA8+Depth32 staging requests=65536 bytes; test roundtrip=626557 us (not an SLA)
+<end of output>
+Test time =   1.23 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderAsyncReadbackTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"CoinRenderAsyncReadbackTest" time elapsed: 00:00:01
+----------------------------------------------------------
+
+175/212 Testing: CoinWgpuMultiDeviceTest
+175/212 Test: CoinWgpuMultiDeviceTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinWgpuMultiDeviceTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinWgpuMultiDeviceTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 vendor=4318 device=7171
+instance/material update uploads=1 bytes=352 expected=352 geometry_hits=1
+instance/material update uploads=1 bytes=352 expected=352 geometry_hits=1
+instance/material update uploads=1 bytes=352 expected=352 geometry_hits=1
+CoinWgpuMultiDeviceTest passed
+<end of output>
+Test time =  17.69 sec
+----------------------------------------------------------
+Test Passed.
+"CoinWgpuMultiDeviceTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"CoinWgpuMultiDeviceTest" time elapsed: 00:00:17
+----------------------------------------------------------
+
+176/212 Testing: WgpuMultiDeviceStressTest
+176/212 Test: WgpuMultiDeviceStressTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinWgpuMultiDeviceTest.exe" "--stress"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"WgpuMultiDeviceStressTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 vendor=4318 device=7171
+CoinWgpuMultiDeviceTest passed (stress)
+<end of output>
+Test time =   6.87 sec
+----------------------------------------------------------
+Test Passed.
+"WgpuMultiDeviceStressTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"WgpuMultiDeviceStressTest" time elapsed: 00:00:06
+----------------------------------------------------------
+
+177/212 Testing: CoinRenderAsyncActionTest
+177/212 Test: CoinRenderAsyncActionTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderAsyncActionTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderAsyncActionTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderAsyncActionTest passed
+<end of output>
+Test time =   3.22 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderAsyncActionTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"CoinRenderAsyncActionTest" time elapsed: 00:00:03
+----------------------------------------------------------
+
+178/212 Testing: CoinRenderAsyncActionDirectTest
+178/212 Test: CoinRenderAsyncActionDirectTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderAsyncActionTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderAsyncActionDirectTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderAsyncActionTest passed
+<end of output>
+Test time =   9.57 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderAsyncActionDirectTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"CoinRenderAsyncActionDirectTest" time elapsed: 00:00:09
+----------------------------------------------------------
+
+179/212 Testing: CoinRenderAsyncActionDirectStressTest
+179/212 Test: CoinRenderAsyncActionDirectStressTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinRenderAsyncActionTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"CoinRenderAsyncActionDirectStressTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+CoinRenderAsyncActionTest passed
+<end of output>
+Test time =  13.69 sec
+----------------------------------------------------------
+Test Passed.
+"CoinRenderAsyncActionDirectStressTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"CoinRenderAsyncActionDirectStressTest" time elapsed: 00:00:13
+----------------------------------------------------------
+
+180/212 Testing: SensorScheduling_alarm_cancel
+180/212 Test: SensorScheduling_alarm_cancel
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "alarm_cancel"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_alarm_cancel" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+alarm_cancel: passed
+<end of output>
+Test time =   0.11 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_alarm_cancel" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_alarm_cancel" time elapsed: 00:00:00
+----------------------------------------------------------
+
+181/212 Testing: SensorScheduling_recurring_cancel
+181/212 Test: SensorScheduling_recurring_cancel
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "recurring_cancel"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_recurring_cancel" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+recurring_cancel: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_recurring_cancel" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_recurring_cancel" time elapsed: 00:00:00
+----------------------------------------------------------
+
+182/212 Testing: SensorScheduling_alarm_reschedule
+182/212 Test: SensorScheduling_alarm_reschedule
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "alarm_reschedule"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_alarm_reschedule" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+alarm_reschedule: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_alarm_reschedule" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_alarm_reschedule" time elapsed: 00:00:00
+----------------------------------------------------------
+
+183/212 Testing: SensorScheduling_timeout_change_cancel
+183/212 Test: SensorScheduling_timeout_change_cancel
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "timeout_change_cancel"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_timeout_change_cancel" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+timeout_change_cancel: passed
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_timeout_change_cancel" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_timeout_change_cancel" time elapsed: 00:00:00
+----------------------------------------------------------
+
+184/212 Testing: SensorScheduling_zero_repeat
+184/212 Test: SensorScheduling_zero_repeat
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "zero_repeat"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_zero_repeat" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+zero_repeat: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_zero_repeat" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_zero_repeat" time elapsed: 00:00:00
+----------------------------------------------------------
+
+185/212 Testing: SensorScheduling_zero_nonidle
+185/212 Test: SensorScheduling_zero_nonidle
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "zero_nonidle"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_zero_nonidle" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+zero_nonidle: passed
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_zero_nonidle" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_zero_nonidle" time elapsed: 00:00:00
+----------------------------------------------------------
+
+186/212 Testing: SensorScheduling_nonzero_timeout
+186/212 Test: SensorScheduling_nonzero_timeout
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "nonzero_timeout"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_nonzero_timeout" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+nonzero_timeout: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_nonzero_timeout" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_nonzero_timeout" time elapsed: 00:00:00
+----------------------------------------------------------
+
+187/212 Testing: SensorScheduling_node_detach
+187/212 Test: SensorScheduling_node_detach
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "node_detach"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_node_detach" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+node_detach: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_node_detach" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_node_detach" time elapsed: 00:00:00
+----------------------------------------------------------
+
+188/212 Testing: SensorScheduling_delay_reentry
+188/212 Test: SensorScheduling_delay_reentry
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "delay_reentry"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_delay_reentry" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+delay_reentry: passed
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_delay_reentry" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_delay_reentry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+189/212 Testing: SensorScheduling_delay_timeout_reentry
+189/212 Test: SensorScheduling_delay_timeout_reentry
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "delay_timeout_reentry"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_delay_timeout_reentry" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+delay_timeout_reentry: passed
+<end of output>
+Test time =   0.10 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_delay_timeout_reentry" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_delay_timeout_reentry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+190/212 Testing: SensorScheduling_timer_reentry
+190/212 Test: SensorScheduling_timer_reentry
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "timer_reentry"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_timer_reentry" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+timer_reentry: passed
+<end of output>
+Test time =   0.10 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_timer_reentry" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_timer_reentry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+191/212 Testing: SensorScheduling_delay_changed_exception
+191/212 Test: SensorScheduling_delay_changed_exception
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "delay_changed_exception"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_delay_changed_exception" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+delay_changed_exception: passed
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_delay_changed_exception" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_delay_changed_exception" time elapsed: 00:00:00
+----------------------------------------------------------
+
+192/212 Testing: SensorScheduling_timer_changed_exception
+192/212 Test: SensorScheduling_timer_changed_exception
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "timer_changed_exception"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_timer_changed_exception" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+timer_changed_exception: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_timer_changed_exception" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_timer_changed_exception" time elapsed: 00:00:00
+----------------------------------------------------------
+
+193/212 Testing: SensorScheduling_delay_remove_reentry
+193/212 Test: SensorScheduling_delay_remove_reentry
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "delay_remove_reentry"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_delay_remove_reentry" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+delay_remove_reentry: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_delay_remove_reentry" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_delay_remove_reentry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+194/212 Testing: SensorScheduling_timer_remove_reentry
+194/212 Test: SensorScheduling_timer_remove_reentry
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "timer_remove_reentry"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_timer_remove_reentry" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+timer_remove_reentry: passed
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_timer_remove_reentry" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_timer_remove_reentry" time elapsed: 00:00:00
+----------------------------------------------------------
+
+195/212 Testing: SensorScheduling_timer_exception
+195/212 Test: SensorScheduling_timer_exception
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "timer_exception"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_timer_exception" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_exception: passed
+<end of output>
+Test time =   0.07 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_timer_exception" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_timer_exception" time elapsed: 00:00:00
+----------------------------------------------------------
+
+196/212 Testing: SensorScheduling_delay_exception
+196/212 Test: SensorScheduling_delay_exception
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "delay_exception"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_delay_exception" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_exception: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_delay_exception" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_delay_exception" time elapsed: 00:00:00
+----------------------------------------------------------
+
+197/212 Testing: SensorScheduling_timer_cancel_exception
+197/212 Test: SensorScheduling_timer_cancel_exception
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "timer_cancel_exception"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_timer_cancel_exception" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_cancel_exception: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_timer_cancel_exception" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_timer_cancel_exception" time elapsed: 00:00:00
+----------------------------------------------------------
+
+198/212 Testing: SensorScheduling_delay_deferred_exception
+198/212 Test: SensorScheduling_delay_deferred_exception
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "delay_deferred_exception"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_delay_deferred_exception" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_deferred_exception: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_delay_deferred_exception" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_delay_deferred_exception" time elapsed: 00:00:00
+----------------------------------------------------------
+
+199/212 Testing: SensorScheduling_absolute_deadline
+199/212 Test: SensorScheduling_absolute_deadline
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "absolute_deadline"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_absolute_deadline" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+absolute_deadline: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_absolute_deadline" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_absolute_deadline" time elapsed: 00:00:00
+----------------------------------------------------------
+
+200/212 Testing: SensorScheduling_changed_during_dispatch
+200/212 Test: SensorScheduling_changed_during_dispatch
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "changed_during_dispatch"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_changed_during_dispatch" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+changed_during_dispatch: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_changed_during_dispatch" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_changed_during_dispatch" time elapsed: 00:00:00
+----------------------------------------------------------
+
+201/212 Testing: SensorScheduling_immediate_notification
+201/212 Test: SensorScheduling_immediate_notification
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/CoinSensorSchedulingTest.exe" "immediate_notification"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite
+"SensorScheduling_immediate_notification" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+immediate_notification: passed
+<end of output>
+Test time =   0.08 sec
+----------------------------------------------------------
+Test Passed.
+"SensorScheduling_immediate_notification" end time: Oct 10 15:35 Hora oficial do Brasil
+"SensorScheduling_immediate_notification" time elapsed: 00:00:00
+----------------------------------------------------------
+
+202/212 Testing: XmlCHeaderAttributeTest
+202/212 Test: XmlCHeaderAttributeTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderAttributeTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderAttributeTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderAttributeTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderAttributeTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+203/212 Testing: XmlCHeaderDocumentTest
+203/212 Test: XmlCHeaderDocumentTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderDocumentTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderDocumentTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderDocumentTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderDocumentTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+204/212 Testing: XmlCHeaderElementTest
+204/212 Test: XmlCHeaderElementTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderElementTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderElementTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderElementTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderElementTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+205/212 Testing: XmlCHeaderEntityTest
+205/212 Test: XmlCHeaderEntityTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderEntityTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderEntityTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderEntityTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderEntityTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+206/212 Testing: XmlCHeaderParserTest
+206/212 Test: XmlCHeaderParserTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderParserTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderParserTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderParserTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderParserTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+207/212 Testing: XmlCHeaderPathTest
+207/212 Test: XmlCHeaderPathTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderPathTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderPathTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderPathTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderPathTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+208/212 Testing: XmlCHeaderTypesTest
+208/212 Test: XmlCHeaderTypesTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderTypesTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderTypesTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderTypesTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderTypesTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+209/212 Testing: XmlCHeaderWorldTest
+209/212 Test: XmlCHeaderWorldTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeaderWorldTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeaderWorldTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.03 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeaderWorldTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeaderWorldTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+210/212 Testing: XmlCHeadersAggregateTest
+210/212 Test: XmlCHeadersAggregateTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCHeadersAggregateTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCHeadersAggregateTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+<end of output>
+Test time =   0.04 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCHeadersAggregateTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCHeadersAggregateTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+211/212 Testing: XmlCApiTest
+211/212 Test: XmlCApiTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlCApiTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlCApiTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+root[0]
+<end of output>
+Test time =   0.10 sec
+----------------------------------------------------------
+Test Passed.
+"XmlCApiTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlCApiTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+212/212 Testing: XmlLegacyPathDocumentCxxAbiTest
+212/212 Test: XmlLegacyPathDocumentCxxAbiTest
+Command: "H:/Git/coin/build/sampling-win-20261010/build-wgpu/bin/XmlLegacyPathDocumentCxxAbiTest.exe"
+Directory: H:/Git/coin/build/sampling-win-20261010/build-wgpu/testsuite/xml-c-api/c-headers
+"XmlLegacyPathDocumentCxxAbiTest" start time: Oct 10 15:35 Hora oficial do Brasil
+Output:
+----------------------------------------------------------
+legacy
+<end of output>
+Test time =   0.09 sec
+----------------------------------------------------------
+Test Passed.
+"XmlLegacyPathDocumentCxxAbiTest" end time: Oct 10 15:35 Hora oficial do Brasil
+"XmlLegacyPathDocumentCxxAbiTest" time elapsed: 00:00:00
+----------------------------------------------------------
+
+End testing: Oct 10 15:35 Hora oficial do Brasil

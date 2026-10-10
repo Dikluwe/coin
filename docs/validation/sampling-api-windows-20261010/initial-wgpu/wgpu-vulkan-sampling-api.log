@@ -1,0 +1,41 @@
+FAIL bounded Linux offscreen/Xlib portable qualification
+adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) renderer=1 derivative=2
+render size=64 policy=0 status=7 diagnostic=WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin Standard Render Pipeline'
+    Error matching ShaderStages(VERTEX) shader requirements against the pipeline
+      Shader global ResourceBinding { group: 0, binding: 0 } is not available in the pipeline layout
+        Buffer structure size 3168, added to one element of an unbound array, if it's the last field, ended up greater than the given `min_binding_size`, which is 3040
+
+FAIL explicit-policy frame renders
+render size=64 policy=0 status=7 diagnostic=WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin Standard Render Pipeline'
+    Error matching ShaderStages(VERTEX) shader requirements against the pipeline
+      Shader global ResourceBinding { group: 0, binding: 0 } is not available in the pipeline layout
+        Buffer structure size 3168, added to one element of an unbound array, if it's the last field, ended up greater than the given `min_binding_size`, which is 3040
+
+FAIL explicit-policy frame renders
+render size=64 policy=1 status=7 diagnostic=WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin Standard Render Pipeline'
+    Error matching ShaderStages(VERTEX) shader requirements against the pipeline
+      Shader global ResourceBinding { group: 0, binding: 0 } is not available in the pipeline layout
+        Buffer structure size 3168, added to one element of an unbound array, if it's the last field, ended up greater than the given `min_binding_size`, which is 3040
+
+FAIL explicit-policy frame renders
+render size=64 policy=1 status=7 diagnostic=WebGPU uncaptured error: Validation Error
+
+Caused by:
+  In Device::create_render_pipeline, label = 'Coin Standard Render Pipeline'
+    Error matching ShaderStages(VERTEX) shader requirements against the pipeline
+      Shader global ResourceBinding { group: 0, binding: 0 } is not available in the pipeline layout
+        Buffer structure size 3168, added to one element of an unbound array, if it's the last field, ended up greater than the given `min_binding_size`, which is 3040
+
+FAIL explicit-policy frame renders
+FAIL portable asynchronous submission
+FAIL async path preserves portable sampling oracle
+Sampling API window=0 CPU=0 result=FAIL

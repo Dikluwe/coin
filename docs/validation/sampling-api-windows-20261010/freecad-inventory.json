@@ -1,0 +1,27 @@
+{
+  "probe": "pathlib C:/Program Files/FreeCAD*/bin/{FreeCAD.exe,Coin4.dll,CoinRender4.dll}; SHA256 existing files",
+  "installations": [
+    {
+      "installation": "C:\\Program Files\\FreeCAD 1.0",
+      "files": [
+        {
+          "path": "C:\\Program Files\\FreeCAD 1.0\\bin\\FreeCAD.exe",
+          "exists": true,
+          "bytes": 235360,
+          "sha256": "d6da615c3271efd17c49a5d62b2b4837530cb41b6604a09fe886fc5f311d9c2a"
+        },
+        {
+          "path": "C:\\Program Files\\FreeCAD 1.0\\bin\\Coin4.dll",
+          "exists": true,
+          "bytes": 6428160,
+          "sha256": "8787a5c7451633087610d321700c302536ae60f85e1910ab43c98586a80cedb8"
+        },
+        {
+          "path": "C:\\Program Files\\FreeCAD 1.0\\bin\\CoinRender4.dll",
+          "exists": false
+        }
+      ],
+      "integrated_coinrender_dll": false
+    }
+  ]
+}

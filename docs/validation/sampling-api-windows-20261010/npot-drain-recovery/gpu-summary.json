@@ -1,0 +1,3784 @@
+[
+  {
+    "label": "bgfx-d3d12-npot-1",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "1"
+    ],
+    "exit": 0,
+    "functional_gate": true,
+    "gpu_cost_gate": false,
+    "receipt": "NPOT combined adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=4318 device=7171",
+    "finish": "NPOT shadow transparency maps=8 mechanism=1 size=63x47 mip=1 qualified=1",
+    "total_samples": 44,
+    "measured_samples": 30,
+    "samples": [
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 1.751936,
+        "frame_ms": 4.143936,
+        "per_level": {
+          "1": 1.453472,
+          "2": 0.056896,
+          "3": 0.073216,
+          "4": 0.081984,
+          "5": 0.086368
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.383392,
+        "frame_ms": 1.3368,
+        "per_level": {
+          "1": 0.07552,
+          "2": 0.083968,
+          "3": 0.069984,
+          "4": 0.067648,
+          "5": 0.086272
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "2": 0.104352,
+          "3": 0.073824,
+          "4": 0.072032,
+          "5": 0.081344
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.392736,
+        "frame_ms": 1.240928,
+        "per_level": {
+          "1": 0.076992,
+          "2": 0.069024,
+          "3": 0.07072,
+          "4": 0.103552,
+          "5": 0.072448
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.131104,
+          "2": 0.110848,
+          "4": 0.074336,
+          "5": 0.069024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.06512,
+          "2": 0.077728,
+          "3": 0.067392,
+          "5": 0.07024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.329728,
+        "frame_ms": 0.827808,
+        "per_level": {
+          "1": 0.06752,
+          "2": 0.068064,
+          "3": 0.06416,
+          "4": 0.063584,
+          "5": 0.0664
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.36176,
+        "frame_ms": 0.868672,
+        "per_level": {
+          "1": 0.075808,
+          "2": 0.066496,
+          "3": 0.0632,
+          "4": 0.064704,
+          "5": 0.091552
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.377408,
+        "frame_ms": 1.044992,
+        "per_level": {
+          "1": 0.098592,
+          "2": 0.068096,
+          "3": 0.06736,
+          "4": 0.067968,
+          "5": 0.075392
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.366176,
+        "frame_ms": 1.103264,
+        "per_level": {
+          "1": 0.075744,
+          "2": 0.068288,
+          "3": 0.066304,
+          "4": 0.068608,
+          "5": 0.087232
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.387072,
+        "frame_ms": 0.91392,
+        "per_level": {
+          "1": 0.07424,
+          "2": 0.07136,
+          "3": 0.105632,
+          "4": 0.069888,
+          "5": 0.065952
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.379072,
+        "frame_ms": 1.228608,
+        "per_level": {
+          "1": 0.067584,
+          "2": 0.072192,
+          "3": 0.067424,
+          "4": 0.073056,
+          "5": 0.098816
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.418592,
+        "frame_ms": 1.000608,
+        "per_level": {
+          "1": 0.139328,
+          "2": 0.079392,
+          "3": 0.064224,
+          "4": 0.069504,
+          "5": 0.066144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.576992,
+        "frame_ms": 1.188448,
+        "per_level": {
+          "1": 0.089152,
+          "2": 0.246432,
+          "3": 0.071616,
+          "4": 0.109824,
+          "5": 0.059968
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 1.69632,
+        "frame_ms": 2.403968,
+        "per_level": {
+          "1": 0.113344,
+          "2": 1.360896,
+          "3": 0.062048,
+          "4": 0.073088,
+          "5": 0.086944
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.374048,
+        "frame_ms": 0.825536,
+        "per_level": {
+          "1": 0.095968,
+          "2": 0.069152,
+          "3": 0.06464,
+          "4": 0.071456,
+          "5": 0.072832
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.330048,
+        "frame_ms": 0.784064,
+        "per_level": {
+          "1": 0.062304,
+          "2": 0.06592,
+          "3": 0.0672,
+          "4": 0.065536,
+          "5": 0.069088
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.390144,
+        "frame_ms": 1.058272,
+        "per_level": {
+          "1": 0.068224,
+          "2": 0.117824,
+          "3": 0.075232,
+          "4": 0.065824,
+          "5": 0.06304
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.343712,
+        "frame_ms": 0.9528,
+        "per_level": {
+          "1": 0.062048,
+          "2": 0.081632,
+          "3": 0.067168,
+          "4": 0.065056,
+          "5": 0.067808
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.34688,
+        "frame_ms": 0.80064,
+        "per_level": {
+          "1": 0.071744,
+          "2": 0.071264,
+          "3": 0.064128,
+          "4": 0.068032,
+          "5": 0.071712
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.644032,
+        "frame_ms": 1.223552,
+        "per_level": {
+          "1": 0.069952,
+          "2": 0.067936,
+          "3": 0.062752,
+          "4": 0.067904,
+          "5": 0.375488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.361184,
+        "frame_ms": 0.816768,
+        "per_level": {
+          "1": 0.090816,
+          "2": 0.067104,
+          "3": 0.068288,
+          "4": 0.06352,
+          "5": 0.071456
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.380544,
+        "frame_ms": 0.833888,
+        "per_level": {
+          "1": 0.065824,
+          "2": 0.06704,
+          "3": 0.06736,
+          "4": 0.108928,
+          "5": 0.071392
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.066528,
+          "2": 0.06736,
+          "3": 0.074656,
+          "4": 0.251488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.422144,
+        "frame_ms": 1.098848,
+        "per_level": {
+          "1": 0.067264,
+          "2": 0.12336,
+          "3": 0.10096,
+          "4": 0.068,
+          "5": 0.06256
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.380896,
+        "frame_ms": 0.847392,
+        "per_level": {
+          "1": 0.067232,
+          "2": 0.092064,
+          "3": 0.069568,
+          "4": 0.089664,
+          "5": 0.062368
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.330272,
+        "frame_ms": 0.736672,
+        "per_level": {
+          "1": 0.063392,
+          "2": 0.063296,
+          "3": 0.069568,
+          "4": 0.067904,
+          "5": 0.066112
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.463264,
+        "frame_ms": 0.95584,
+        "per_level": {
+          "1": 0.195424,
+          "2": 0.068608,
+          "3": 0.067264,
+          "4": 0.065984,
+          "5": 0.065984
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.423584,
+        "frame_ms": 1.319136,
+        "per_level": {
+          "1": 0.075392,
+          "2": 0.063264,
+          "3": 0.096896,
+          "4": 0.119232,
+          "5": 0.0688
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.34688,
+        "frame_ms": 0.873728,
+        "per_level": {
+          "1": 0.069472,
+          "2": 0.064288,
+          "3": 0.066816,
+          "4": 0.066272,
+          "5": 0.080032
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.419712,
+        "frame_ms": 0.97424,
+        "per_level": {
+          "1": 0.082976,
+          "2": 0.0928,
+          "3": 0.068576,
+          "4": 0.102752,
+          "5": 0.072608
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.408736,
+        "frame_ms": 0.968832,
+        "per_level": {
+          "1": 0.089952,
+          "2": 0.07216,
+          "3": 0.069248,
+          "4": 0.066752,
+          "5": 0.110624
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.36368,
+        "frame_ms": 0.888256,
+        "per_level": {
+          "1": 0.073792,
+          "2": 0.077312,
+          "3": 0.065344,
+          "4": 0.067712,
+          "5": 0.07952
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.402912,
+        "frame_ms": 0.93696,
+        "per_level": {
+          "1": 0.071488,
+          "2": 0.066496,
+          "3": 0.067744,
+          "4": 0.082624,
+          "5": 0.11456
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.333184,
+        "frame_ms": 0.89312,
+        "per_level": {
+          "1": 0.074336,
+          "2": 0.065952,
+          "3": 0.066112,
+          "4": 0.063104,
+          "5": 0.06368
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.377536,
+        "frame_ms": 0.904256,
+        "per_level": {
+          "1": 0.075072,
+          "2": 0.066848,
+          "3": 0.067104,
+          "4": 0.06128,
+          "5": 0.107232
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.362848,
+        "frame_ms": 0.859392,
+        "per_level": {
+          "1": 0.066528,
+          "2": 0.095872,
+          "3": 0.070048,
+          "4": 0.0632,
+          "5": 0.0672
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.349696,
+        "frame_ms": 0.86192,
+        "per_level": {
+          "1": 0.07568,
+          "2": 0.068608,
+          "3": 0.066496,
+          "4": 0.071392,
+          "5": 0.06752
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.388448,
+        "frame_ms": 0.868096,
+        "per_level": {
+          "1": 0.078816,
+          "2": 0.064768,
+          "3": 0.1008,
+          "4": 0.062592,
+          "5": 0.081472
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.479936,
+        "frame_ms": 1.10656,
+        "per_level": {
+          "1": 0.112576,
+          "2": 0.067104,
+          "3": 0.104704,
+          "4": 0.127712,
+          "5": 0.06784
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.591744,
+        "frame_ms": 1.346592,
+        "per_level": {
+          "1": 0.271296,
+          "2": 0.107808,
+          "3": 0.066784,
+          "4": 0.078848,
+          "5": 0.067008
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.380992,
+        "frame_ms": 0.939968,
+        "per_level": {
+          "1": 0.10784,
+          "2": 0.064416,
+          "3": 0.0736,
+          "4": 0.069472,
+          "5": 0.065664
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.383904,
+        "frame_ms": 0.934112,
+        "per_level": {
+          "1": 0.078048,
+          "2": 0.07296,
+          "3": 0.067904,
+          "4": 0.07024,
+          "5": 0.094752
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.351808,
+        "frame_ms": 0.899904,
+        "per_level": {
+          "1": 0.073024,
+          "2": 0.066336,
+          "3": 0.071104,
+          "4": 0.065344,
+          "5": 0.076
+        }
+      }
+    ],
+    "log_sha256": "600795128fab01639b35f84bef70e9b3b6b9626371134c7c432500782498deac"
+  },
+  {
+    "label": "bgfx-d3d12-npot-2",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "2"
+    ],
+    "exit": 0,
+    "functional_gate": true,
+    "gpu_cost_gate": false,
+    "receipt": "NPOT combined adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=4318 device=7171",
+    "finish": "NPOT shadow transparency maps=8 mechanism=2 size=63x47 mip=1 qualified=1",
+    "total_samples": 44,
+    "measured_samples": 30,
+    "samples": [
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 1.181792,
+          "2": 0.10288,
+          "3": 0.070336,
+          "5": 0.09616
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.083424,
+          "2": 0.091296,
+          "3": 0.102272,
+          "5": 0.068416
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.348096,
+        "frame_ms": 1.432064,
+        "per_level": {
+          "1": 0.065408,
+          "2": 0.064576,
+          "3": 0.078528,
+          "4": 0.06944,
+          "5": 0.070144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.112384,
+          "2": 0.083232,
+          "3": 0.091904,
+          "5": 0.066016
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.131072,
+          "2": 0.076,
+          "3": 0.100544,
+          "4": 0.068032
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "2": 0.067616,
+          "3": 0.06992,
+          "4": 0.066272,
+          "5": 0.06016
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.126688,
+          "2": 0.091552,
+          "3": 0.070112,
+          "5": 0.070816
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.770624,
+        "frame_ms": 1.236448,
+        "per_level": {
+          "1": 0.074176,
+          "2": 0.237312,
+          "3": 0.07088,
+          "4": 0.314592,
+          "5": 0.073664
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.597536,
+        "frame_ms": 1.085216,
+        "per_level": {
+          "1": 0.074976,
+          "2": 0.056384,
+          "3": 0.096896,
+          "4": 0.123104,
+          "5": 0.246176
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.074848,
+          "2": 0.066208,
+          "3": 0.066784,
+          "5": 0.096064
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.069344,
+          "2": 0.065632,
+          "3": 0.067072,
+          "5": 0.060384
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.136576,
+          "3": 0.115904,
+          "4": 0.070112,
+          "5": 0.069568
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.064384,
+          "2": 0.0696,
+          "3": 0.071808,
+          "5": 0.071232
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.090848,
+          "2": 0.120832,
+          "3": 0.098592,
+          "5": 0.072064
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.073088,
+          "2": 0.065664,
+          "3": 0.066912,
+          "5": 0.067424
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.07904,
+          "2": 0.067712,
+          "3": 0.065792,
+          "5": 0.108704
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.564288,
+        "frame_ms": 1.018272,
+        "per_level": {
+          "1": 0.259968,
+          "2": 0.084672,
+          "3": 0.068384,
+          "4": 0.067328,
+          "5": 0.083936
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.643744,
+        "frame_ms": 1.101792,
+        "per_level": {
+          "1": 0.073664,
+          "2": 0.093632,
+          "3": 0.326816,
+          "4": 0.062624,
+          "5": 0.087008
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.07344,
+          "2": 0.068928,
+          "3": 0.067968,
+          "5": 0.067232
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.45456,
+        "frame_ms": 1.141664,
+        "per_level": {
+          "1": 0.069216,
+          "2": 0.063104,
+          "3": 0.067264,
+          "4": 0.141728,
+          "5": 0.113248
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.0904,
+          "2": 0.085664,
+          "3": 0.092128,
+          "5": 0.256736
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.080032,
+          "2": 0.087168,
+          "3": 0.067296,
+          "5": 0.18176
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 3,
+        "frame_resolved": 3,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.074272,
+          "2": 0.09504,
+          "3": 0.066432
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.378496,
+        "frame_ms": 1.256192,
+        "per_level": {
+          "1": 0.072672,
+          "2": 0.070944,
+          "3": 0.095616,
+          "4": 0.061888,
+          "5": 0.077376
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.073024,
+          "2": 0.073952,
+          "4": 0.067808,
+          "5": 0.06512
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.117888,
+          "2": 0.068736,
+          "3": 0.08448,
+          "5": 0.066752
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.097856,
+          "2": 0.066528,
+          "3": 0.06656,
+          "5": 0.068352
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.076576,
+          "2": 0.081728,
+          "3": 0.065728,
+          "5": 0.066976
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.079008,
+          "2": 0.064,
+          "3": 0.070784,
+          "5": 0.073312
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.089248,
+          "2": 0.09504,
+          "3": 0.071392,
+          "5": 0.065792
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.111168,
+          "2": 0.097216,
+          "3": 0.06976,
+          "5": 0.100704
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.076544,
+          "2": 0.068928,
+          "3": 0.067424,
+          "5": 0.069632
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.0928,
+          "2": 0.067456,
+          "3": 0.067552,
+          "5": 0.06592
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.07568,
+          "2": 0.103328,
+          "3": 0.103488,
+          "5": 0.07168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.480288,
+        "frame_ms": 1.03872,
+        "per_level": {
+          "1": 0.172736,
+          "2": 0.064288,
+          "3": 0.0848,
+          "4": 0.068448,
+          "5": 0.090016
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.075488,
+          "2": 0.155776,
+          "3": 0.132544,
+          "5": 0.067392
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.144288,
+          "2": 0.064032,
+          "3": 0.068032,
+          "5": 0.0824
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.321216,
+          "2": 0.076864,
+          "3": 0.070016,
+          "5": 0.097248
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.07616,
+          "2": 0.065984,
+          "3": 0.120192,
+          "5": 0.07136
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.218304,
+          "3": 0.114944,
+          "4": 0.072064,
+          "5": 0.117184
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.6848,
+        "frame_ms": 1.170208,
+        "per_level": {
+          "1": 0.132544,
+          "2": 0.0944,
+          "3": 0.10464,
+          "4": 0.2792,
+          "5": 0.074016
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.448928,
+        "frame_ms": 1.016,
+        "per_level": {
+          "1": 0.075232,
+          "2": 0.097152,
+          "3": 0.101024,
+          "4": 0.085248,
+          "5": 0.090272
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 4,
+        "frame_resolved": 4,
+        "area_ms": null,
+        "frame_ms": null,
+        "per_level": {
+          "1": 0.073376,
+          "2": 0.238144,
+          "3": 0.099072,
+          "5": 0.071936
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.523392,
+        "frame_ms": 1.212992,
+        "per_level": {
+          "1": 0.242528,
+          "2": 0.075104,
+          "3": 0.068992,
+          "4": 0.064416,
+          "5": 0.072352
+        }
+      }
+    ],
+    "log_sha256": "8159654719e0beda36d26e6101cf32b84d90ef6cc80160d98011b38cd8fd14ef"
+  },
+  {
+    "label": "bgfx-vulkan-npot-1",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "1"
+    ],
+    "exit": 0,
+    "functional_gate": true,
+    "gpu_cost_gate": true,
+    "receipt": "NPOT combined adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 vendor=4318 device=7171",
+    "finish": "NPOT shadow transparency maps=8 mechanism=1 size=63x47 mip=1 qualified=1",
+    "total_samples": 44,
+    "measured_samples": 30,
+    "samples": [
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.082144,
+        "frame_ms": 0.207904,
+        "per_level": {
+          "1": 0.018784,
+          "2": 0.016128,
+          "3": 0.015712,
+          "4": 0.015936,
+          "5": 0.015584
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07584,
+        "frame_ms": 0.1952,
+        "per_level": {
+          "1": 0.014592,
+          "2": 0.014816,
+          "3": 0.015104,
+          "4": 0.015296,
+          "5": 0.016032
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079872,
+        "frame_ms": 0.194112,
+        "per_level": {
+          "1": 0.01632,
+          "2": 0.014432,
+          "3": 0.018016,
+          "4": 0.015328,
+          "5": 0.015776
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080256,
+        "frame_ms": 0.199616,
+        "per_level": {
+          "1": 0.016832,
+          "2": 0.01488,
+          "3": 0.016832,
+          "4": 0.016128,
+          "5": 0.015584
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078432,
+        "frame_ms": 0.197504,
+        "per_level": {
+          "1": 0.01488,
+          "2": 0.015296,
+          "3": 0.016544,
+          "4": 0.015712,
+          "5": 0.016
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.08112,
+        "frame_ms": 0.200928,
+        "per_level": {
+          "1": 0.016992,
+          "2": 0.015712,
+          "3": 0.018016,
+          "4": 0.015232,
+          "5": 0.015168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080512,
+        "frame_ms": 0.200256,
+        "per_level": {
+          "1": 0.01664,
+          "2": 0.016128,
+          "3": 0.015968,
+          "4": 0.016,
+          "5": 0.015776
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.082624,
+        "frame_ms": 0.208224,
+        "per_level": {
+          "1": 0.016928,
+          "2": 0.01648,
+          "3": 0.018048,
+          "4": 0.01568,
+          "5": 0.015488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078304,
+        "frame_ms": 0.198336,
+        "per_level": {
+          "1": 0.016096,
+          "2": 0.01488,
+          "3": 0.015648,
+          "4": 0.015616,
+          "5": 0.016064
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080608,
+        "frame_ms": 0.197696,
+        "per_level": {
+          "1": 0.016608,
+          "2": 0.015328,
+          "3": 0.016992,
+          "4": 0.015424,
+          "5": 0.016256
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079968,
+        "frame_ms": 0.199232,
+        "per_level": {
+          "1": 0.017184,
+          "2": 0.015232,
+          "3": 0.015904,
+          "4": 0.015776,
+          "5": 0.015872
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.081504,
+        "frame_ms": 0.198624,
+        "per_level": {
+          "1": 0.016256,
+          "2": 0.01472,
+          "3": 0.016608,
+          "4": 0.015744,
+          "5": 0.018176
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075712,
+        "frame_ms": 0.19648,
+        "per_level": {
+          "1": 0.016128,
+          "2": 0.014976,
+          "3": 0.015232,
+          "4": 0.0144,
+          "5": 0.014976
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079072,
+        "frame_ms": 0.204736,
+        "per_level": {
+          "1": 0.016192,
+          "2": 0.015616,
+          "3": 0.017056,
+          "4": 0.014624,
+          "5": 0.015584
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.077536,
+        "frame_ms": 0.197216,
+        "per_level": {
+          "1": 0.016,
+          "2": 0.014368,
+          "3": 0.016096,
+          "4": 0.015872,
+          "5": 0.0152
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078592,
+        "frame_ms": 0.197568,
+        "per_level": {
+          "1": 0.016352,
+          "2": 0.014784,
+          "3": 0.016704,
+          "4": 0.015424,
+          "5": 0.015328
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079712,
+        "frame_ms": 0.199616,
+        "per_level": {
+          "1": 0.015456,
+          "2": 0.014912,
+          "3": 0.017184,
+          "4": 0.015904,
+          "5": 0.016256
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.077888,
+        "frame_ms": 0.19648,
+        "per_level": {
+          "1": 0.017184,
+          "2": 0.015072,
+          "3": 0.015584,
+          "4": 0.014656,
+          "5": 0.015392
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080768,
+        "frame_ms": 0.201792,
+        "per_level": {
+          "1": 0.016352,
+          "2": 0.01536,
+          "3": 0.015808,
+          "4": 0.015968,
+          "5": 0.01728
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.077888,
+        "frame_ms": 0.197696,
+        "per_level": {
+          "1": 0.016576,
+          "2": 0.013856,
+          "3": 0.016672,
+          "4": 0.015328,
+          "5": 0.015456
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.077088,
+        "frame_ms": 0.19632,
+        "per_level": {
+          "1": 0.015616,
+          "2": 0.014912,
+          "3": 0.015168,
+          "4": 0.015264,
+          "5": 0.016128
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.08192,
+        "frame_ms": 0.199808,
+        "per_level": {
+          "1": 0.016416,
+          "2": 0.015104,
+          "3": 0.015968,
+          "4": 0.018336,
+          "5": 0.016096
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078144,
+        "frame_ms": 0.196736,
+        "per_level": {
+          "1": 0.015296,
+          "2": 0.015232,
+          "3": 0.015776,
+          "4": 0.015776,
+          "5": 0.016064
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079392,
+        "frame_ms": 0.194272,
+        "per_level": {
+          "1": 0.016384,
+          "2": 0.01488,
+          "3": 0.016128,
+          "4": 0.015936,
+          "5": 0.016064
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.077856,
+        "frame_ms": 0.196032,
+        "per_level": {
+          "1": 0.016416,
+          "2": 0.015008,
+          "3": 0.01616,
+          "4": 0.015168,
+          "5": 0.015104
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079264,
+        "frame_ms": 0.199136,
+        "per_level": {
+          "1": 0.015904,
+          "2": 0.015168,
+          "3": 0.016896,
+          "4": 0.015488,
+          "5": 0.015808
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07808,
+        "frame_ms": 0.196352,
+        "per_level": {
+          "1": 0.015744,
+          "2": 0.014944,
+          "3": 0.016192,
+          "4": 0.015168,
+          "5": 0.016032
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.082944,
+        "frame_ms": 0.201216,
+        "per_level": {
+          "1": 0.016608,
+          "2": 0.01488,
+          "3": 0.017824,
+          "4": 0.017664,
+          "5": 0.015968
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078528,
+        "frame_ms": 0.197536,
+        "per_level": {
+          "1": 0.016128,
+          "2": 0.0144,
+          "3": 0.01664,
+          "4": 0.01568,
+          "5": 0.01568
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078784,
+        "frame_ms": 0.196224,
+        "per_level": {
+          "1": 0.015904,
+          "2": 0.0152,
+          "3": 0.016096,
+          "4": 0.015712,
+          "5": 0.015872
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078304,
+        "frame_ms": 0.19696,
+        "per_level": {
+          "1": 0.01568,
+          "2": 0.015584,
+          "3": 0.016352,
+          "4": 0.015168,
+          "5": 0.01552
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078752,
+        "frame_ms": 0.198208,
+        "per_level": {
+          "1": 0.015744,
+          "2": 0.014848,
+          "3": 0.016672,
+          "4": 0.016096,
+          "5": 0.015392
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.08128,
+        "frame_ms": 0.202144,
+        "per_level": {
+          "1": 0.017792,
+          "2": 0.016096,
+          "3": 0.015232,
+          "4": 0.016256,
+          "5": 0.015904
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080032,
+        "frame_ms": 0.198304,
+        "per_level": {
+          "1": 0.016352,
+          "2": 0.015392,
+          "3": 0.01616,
+          "4": 0.01584,
+          "5": 0.016288
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07824,
+        "frame_ms": 0.198496,
+        "per_level": {
+          "1": 0.016,
+          "2": 0.015168,
+          "3": 0.015712,
+          "4": 0.015904,
+          "5": 0.015456
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079456,
+        "frame_ms": 0.202208,
+        "per_level": {
+          "1": 0.016576,
+          "2": 0.014848,
+          "3": 0.016736,
+          "4": 0.015424,
+          "5": 0.015872
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.081312,
+        "frame_ms": 0.210624,
+        "per_level": {
+          "1": 0.01616,
+          "2": 0.015392,
+          "3": 0.016544,
+          "4": 0.01792,
+          "5": 0.015296
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079168,
+        "frame_ms": 0.198144,
+        "per_level": {
+          "1": 0.01648,
+          "2": 0.015072,
+          "3": 0.016416,
+          "4": 0.015648,
+          "5": 0.015552
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.0784,
+        "frame_ms": 0.195968,
+        "per_level": {
+          "1": 0.016352,
+          "2": 0.01536,
+          "3": 0.01584,
+          "4": 0.015968,
+          "5": 0.01488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.082048,
+        "frame_ms": 0.207776,
+        "per_level": {
+          "1": 0.016,
+          "2": 0.018048,
+          "3": 0.015584,
+          "4": 0.016352,
+          "5": 0.016064
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078592,
+        "frame_ms": 0.197376,
+        "per_level": {
+          "1": 0.016448,
+          "2": 0.014784,
+          "3": 0.016736,
+          "4": 0.015424,
+          "5": 0.0152
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079456,
+        "frame_ms": 0.19824,
+        "per_level": {
+          "1": 0.01584,
+          "2": 0.015488,
+          "3": 0.016,
+          "4": 0.016352,
+          "5": 0.015776
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.077728,
+        "frame_ms": 0.198208,
+        "per_level": {
+          "1": 0.01472,
+          "2": 0.015328,
+          "3": 0.016032,
+          "4": 0.01568,
+          "5": 0.015968
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076384,
+        "frame_ms": 0.19552,
+        "per_level": {
+          "1": 0.016192,
+          "2": 0.014528,
+          "3": 0.015648,
+          "4": 0.014496,
+          "5": 0.01552
+        }
+      }
+    ],
+    "log_sha256": "1ed33a3659c7bb3c990db89282276a7f1102ccedebf5ce701ad9e6d03f8e93e9",
+    "area_ms_median": 0.07867199999999999,
+    "area_ms_p95": 0.082048,
+    "frame_ms_median": 0.19791999999999998,
+    "frame_ms_p95": 0.207776
+  },
+  {
+    "label": "bgfx-vulkan-npot-2",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "2"
+    ],
+    "exit": 0,
+    "functional_gate": true,
+    "gpu_cost_gate": true,
+    "receipt": "NPOT combined adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) renderer=1 vendor=4318 device=7171",
+    "finish": "NPOT shadow transparency maps=8 mechanism=2 size=63x47 mip=1 qualified=1",
+    "total_samples": 44,
+    "measured_samples": 30,
+    "samples": [
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.0768,
+        "frame_ms": 0.19856,
+        "per_level": {
+          "1": 0.018688,
+          "2": 0.014528,
+          "3": 0.014656,
+          "4": 0.014624,
+          "5": 0.014304
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073568,
+        "frame_ms": 0.190848,
+        "per_level": {
+          "1": 0.014848,
+          "2": 0.014336,
+          "3": 0.014976,
+          "4": 0.014624,
+          "5": 0.014784
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075552,
+        "frame_ms": 0.1896,
+        "per_level": {
+          "1": 0.016128,
+          "2": 0.014592,
+          "3": 0.014912,
+          "4": 0.014976,
+          "5": 0.014944
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075776,
+        "frame_ms": 0.202496,
+        "per_level": {
+          "1": 0.016704,
+          "2": 0.015584,
+          "3": 0.01472,
+          "4": 0.014496,
+          "5": 0.014272
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080256,
+        "frame_ms": 0.198944,
+        "per_level": {
+          "1": 0.01632,
+          "2": 0.014752,
+          "3": 0.015168,
+          "4": 0.017248,
+          "5": 0.016768
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.072864,
+        "frame_ms": 0.2048,
+        "per_level": {
+          "1": 0.01552,
+          "2": 0.0144,
+          "3": 0.015136,
+          "4": 0.013152,
+          "5": 0.014656
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073088,
+        "frame_ms": 0.190592,
+        "per_level": {
+          "1": 0.014848,
+          "2": 0.015616,
+          "3": 0.0144,
+          "4": 0.01456,
+          "5": 0.013664
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.074976,
+        "frame_ms": 0.18992,
+        "per_level": {
+          "1": 0.015328,
+          "2": 0.015104,
+          "3": 0.014912,
+          "4": 0.014144,
+          "5": 0.015488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076576,
+        "frame_ms": 0.191328,
+        "per_level": {
+          "1": 0.01648,
+          "2": 0.015328,
+          "3": 0.014944,
+          "4": 0.01504,
+          "5": 0.014784
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07568,
+        "frame_ms": 0.188896,
+        "per_level": {
+          "1": 0.01584,
+          "2": 0.01472,
+          "3": 0.015296,
+          "4": 0.01456,
+          "5": 0.015264
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078368,
+        "frame_ms": 0.190496,
+        "per_level": {
+          "1": 0.018848,
+          "2": 0.015008,
+          "3": 0.015328,
+          "4": 0.014816,
+          "5": 0.014368
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076576,
+        "frame_ms": 0.195936,
+        "per_level": {
+          "1": 0.016608,
+          "2": 0.015424,
+          "3": 0.01456,
+          "4": 0.014816,
+          "5": 0.015168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.074048,
+        "frame_ms": 0.18832,
+        "per_level": {
+          "1": 0.013472,
+          "2": 0.014208,
+          "3": 0.014528,
+          "4": 0.01712,
+          "5": 0.01472
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07712,
+        "frame_ms": 0.195136,
+        "per_level": {
+          "1": 0.017408,
+          "2": 0.015456,
+          "3": 0.01504,
+          "4": 0.01472,
+          "5": 0.014496
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075552,
+        "frame_ms": 0.204,
+        "per_level": {
+          "1": 0.016704,
+          "2": 0.015232,
+          "3": 0.013792,
+          "4": 0.01488,
+          "5": 0.014944
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.079584,
+        "frame_ms": 0.200064,
+        "per_level": {
+          "1": 0.015424,
+          "2": 0.015136,
+          "3": 0.016992,
+          "4": 0.017152,
+          "5": 0.01488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075488,
+        "frame_ms": 0.191328,
+        "per_level": {
+          "1": 0.016576,
+          "2": 0.014784,
+          "3": 0.013952,
+          "4": 0.015104,
+          "5": 0.015072
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075392,
+        "frame_ms": 0.19232,
+        "per_level": {
+          "1": 0.015584,
+          "2": 0.015552,
+          "3": 0.014816,
+          "4": 0.014944,
+          "5": 0.014496
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07584,
+        "frame_ms": 0.19552,
+        "per_level": {
+          "1": 0.016128,
+          "2": 0.015136,
+          "3": 0.014432,
+          "4": 0.015328,
+          "5": 0.014816
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075008,
+        "frame_ms": 0.191872,
+        "per_level": {
+          "1": 0.015648,
+          "2": 0.014688,
+          "3": 0.015008,
+          "4": 0.014176,
+          "5": 0.015488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.078016,
+        "frame_ms": 0.190912,
+        "per_level": {
+          "1": 0.018912,
+          "2": 0.0144,
+          "3": 0.015136,
+          "4": 0.014304,
+          "5": 0.015264
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075488,
+        "frame_ms": 0.194048,
+        "per_level": {
+          "1": 0.01648,
+          "2": 0.014976,
+          "3": 0.014272,
+          "4": 0.014592,
+          "5": 0.015168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076032,
+        "frame_ms": 0.192896,
+        "per_level": {
+          "1": 0.016704,
+          "2": 0.014688,
+          "3": 0.014848,
+          "4": 0.015392,
+          "5": 0.0144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073408,
+        "frame_ms": 0.186688,
+        "per_level": {
+          "1": 0.01456,
+          "2": 0.01472,
+          "3": 0.014464,
+          "4": 0.014688,
+          "5": 0.014976
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073184,
+        "frame_ms": 0.1864,
+        "per_level": {
+          "1": 0.01504,
+          "2": 0.013504,
+          "3": 0.014496,
+          "4": 0.015232,
+          "5": 0.014912
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076224,
+        "frame_ms": 0.199392,
+        "per_level": {
+          "1": 0.015104,
+          "2": 0.01632,
+          "3": 0.01536,
+          "4": 0.015008,
+          "5": 0.014432
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073376,
+        "frame_ms": 0.194464,
+        "per_level": {
+          "1": 0.014816,
+          "2": 0.01472,
+          "3": 0.01424,
+          "4": 0.014912,
+          "5": 0.014688
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.072032,
+        "frame_ms": 0.183424,
+        "per_level": {
+          "1": 0.015808,
+          "2": 0.014496,
+          "3": 0.01488,
+          "4": 0.01456,
+          "5": 0.012288
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.0768,
+        "frame_ms": 0.199232,
+        "per_level": {
+          "1": 0.01536,
+          "2": 0.014944,
+          "3": 0.016736,
+          "4": 0.014592,
+          "5": 0.015168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.072768,
+        "frame_ms": 0.187648,
+        "per_level": {
+          "1": 0.014336,
+          "2": 0.014592,
+          "3": 0.014528,
+          "4": 0.01488,
+          "5": 0.014432
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.074432,
+        "frame_ms": 0.19136,
+        "per_level": {
+          "1": 0.015072,
+          "2": 0.014944,
+          "3": 0.014336,
+          "4": 0.01488,
+          "5": 0.0152
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07216,
+        "frame_ms": 0.188928,
+        "per_level": {
+          "1": 0.014048,
+          "2": 0.014624,
+          "3": 0.01424,
+          "4": 0.014336,
+          "5": 0.014912
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.074816,
+        "frame_ms": 0.190176,
+        "per_level": {
+          "1": 0.015072,
+          "2": 0.015328,
+          "3": 0.014816,
+          "4": 0.015232,
+          "5": 0.014368
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073728,
+        "frame_ms": 0.197728,
+        "per_level": {
+          "1": 0.014368,
+          "2": 0.014368,
+          "3": 0.014848,
+          "4": 0.015264,
+          "5": 0.01488
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076992,
+        "frame_ms": 0.190336,
+        "per_level": {
+          "1": 0.01744,
+          "2": 0.015808,
+          "3": 0.014496,
+          "4": 0.014656,
+          "5": 0.014592
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.0744,
+        "frame_ms": 0.192352,
+        "per_level": {
+          "1": 0.015136,
+          "2": 0.015072,
+          "3": 0.014944,
+          "4": 0.014912,
+          "5": 0.014336
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.073152,
+        "frame_ms": 0.191488,
+        "per_level": {
+          "1": 0.013568,
+          "2": 0.014784,
+          "3": 0.01536,
+          "4": 0.014496,
+          "5": 0.014944
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.074432,
+        "frame_ms": 0.19328,
+        "per_level": {
+          "1": 0.014944,
+          "2": 0.015744,
+          "3": 0.014816,
+          "4": 0.014368,
+          "5": 0.01456
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076096,
+        "frame_ms": 0.19184,
+        "per_level": {
+          "1": 0.01584,
+          "2": 0.015776,
+          "3": 0.015008,
+          "4": 0.014624,
+          "5": 0.014848
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.074912,
+        "frame_ms": 0.19152,
+        "per_level": {
+          "1": 0.015552,
+          "2": 0.0136,
+          "3": 0.0136,
+          "4": 0.015008,
+          "5": 0.017152
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.075872,
+        "frame_ms": 0.19168,
+        "per_level": {
+          "1": 0.015584,
+          "2": 0.014944,
+          "3": 0.014816,
+          "4": 0.015392,
+          "5": 0.015136
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.07216,
+        "frame_ms": 0.187616,
+        "per_level": {
+          "1": 0.013376,
+          "2": 0.015136,
+          "3": 0.014656,
+          "4": 0.014464,
+          "5": 0.014528
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.080352,
+        "frame_ms": 0.193408,
+        "per_level": {
+          "1": 0.015264,
+          "2": 0.017536,
+          "3": 0.015296,
+          "4": 0.012704,
+          "5": 0.019552
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.076704,
+        "frame_ms": 0.191968,
+        "per_level": {
+          "1": 0.01696,
+          "2": 0.015232,
+          "3": 0.014624,
+          "4": 0.014752,
+          "5": 0.015136
+        }
+      }
+    ],
+    "log_sha256": "3151a1fa28a65069dd631b9a9d954224437de4ad30c4e643f79f3384c84fb47b",
+    "area_ms_median": 0.0752,
+    "area_ms_p95": 0.079584,
+    "frame_ms_median": 0.191856,
+    "frame_ms_p95": 0.200064
+  },
+  {
+    "label": "bgfx-opengl-npot-1",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "1"
+    ],
+    "exit": 0,
+    "functional_gate": true,
+    "gpu_cost_gate": true,
+    "receipt": "NPOT combined adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0",
+    "finish": "NPOT shadow transparency maps=8 mechanism=1 size=63x47 mip=1 qualified=1",
+    "total_samples": 44,
+    "measured_samples": 30,
+    "samples": [
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.050176,
+        "frame_ms": 0.07168,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.01024,
+          "5": 0.01024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.049152,
+        "frame_ms": 0.072704,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.01024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.047104,
+        "frame_ms": 0.073728,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.011264,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.049152,
+        "frame_ms": 0.07168,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.012288
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.038912,
+        "frame_ms": 0.06144,
+        "per_level": {
+          "1": 0.009216,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.006144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.039936,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.009216,
+          "3": 0.007168,
+          "4": 0.006144,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.01024,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.047104,
+        "frame_ms": 0.070656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.01024,
+          "3": 0.009216,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.070656,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.062464,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.009216,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.01024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.0512,
+        "frame_ms": 0.078848,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.01024,
+          "4": 0.009216,
+          "5": 0.013312
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.007168,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.039936,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.007168,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.04608,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.007168,
+          "4": 0.009216,
+          "5": 0.011264
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.006144,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.039936,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.009216,
+          "2": 0.006144,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.04096,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.009216,
+          "2": 0.008192,
+          "3": 0.007168,
+          "4": 0.009216,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.006144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.06144,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      }
+    ],
+    "log_sha256": "f908b45262c399232ce18cc6fc658e14696f48b50592976d91f29cc127cf85dd",
+    "area_ms_median": 0.043008,
+    "area_ms_p95": 0.047104,
+    "frame_ms_median": 0.06656,
+    "frame_ms_p95": 0.070656
+  },
+  {
+    "label": "bgfx-opengl-npot-2",
+    "command": [
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\build-bgfx\\bin\\CoinRenderShadowReferenceTest.exe",
+      "--npot-shadow-oit-bench",
+      "2"
+    ],
+    "exit": 0,
+    "functional_gate": true,
+    "gpu_cost_gate": true,
+    "receipt": "NPOT combined adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=4318 device=0",
+    "finish": "NPOT shadow transparency maps=8 mechanism=2 size=63x47 mip=1 qualified=1",
+    "total_samples": 44,
+    "measured_samples": 30,
+    "samples": [
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.006144,
+          "4": 0.008192,
+          "5": 0.01024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.009216,
+          "3": 0.009216,
+          "4": 0.007168,
+          "5": 0.006144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.009216,
+          "3": 0.007168,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.006144,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.049152,
+        "frame_ms": 0.072704,
+        "per_level": {
+          "1": 0.012288,
+          "2": 0.008192,
+          "3": 0.01024,
+          "4": 0.01024,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.006144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.007168,
+          "4": 0.009216,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.047104,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.013312,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.039936,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.006144,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.009216,
+          "2": 0.009216,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.04608,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.011264
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.04096,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.04096,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.007168,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.007168,
+          "4": 0.008192,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.041984,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.009216,
+          "2": 0.009216,
+          "3": 0.007168,
+          "4": 0.009216,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.047104,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.013312,
+          "2": 0.01024,
+          "3": 0.008192,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.01024,
+          "5": 0.009216
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.013312,
+          "2": 0.007168,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.045056,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.01024,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.038912,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.006144,
+          "3": 0.007168,
+          "4": 0.007168,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.067584,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.007168,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.047104,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.009216,
+          "3": 0.009216,
+          "4": 0.007168,
+          "5": 0.01024
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.068608,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.007168,
+          "3": 0.009216,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.069632,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.01024,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.065536,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.06656,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.008192,
+          "4": 0.008192,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.039936,
+        "frame_ms": 0.06144,
+        "per_level": {
+          "1": 0.011264,
+          "2": 0.008192,
+          "3": 0.007168,
+          "4": 0.007168,
+          "5": 0.006144
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.043008,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.008192,
+          "4": 0.009216,
+          "5": 0.008192
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.044032,
+        "frame_ms": 0.064512,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.008192,
+          "3": 0.009216,
+          "4": 0.009216,
+          "5": 0.007168
+        }
+      },
+      {
+        "levels": 5,
+        "area_resolved": 5,
+        "frame_resolved": 5,
+        "area_ms": 0.038912,
+        "frame_ms": 0.063488,
+        "per_level": {
+          "1": 0.01024,
+          "2": 0.007168,
+          "3": 0.007168,
+          "4": 0.006144,
+          "5": 0.008192
+        }
+      }
+    ],
+    "log_sha256": "5201dc9c7e60dae61ab88b83a77fd4cc38e956dabd3d33886e35b8abf9973ca2",
+    "area_ms_median": 0.043008,
+    "area_ms_p95": 0.047104,
+    "frame_ms_median": 0.066048,
+    "frame_ms_p95": 0.069632
+  }
+]

@@ -1,0 +1,114 @@
+diff --git a/include/Inventor/system/gl-fallbacks.h b/include/Inventor/system/gl-fallbacks.h
+index 3bec060c00..7fb6a92ac3 100644
+--- a/include/Inventor/system/gl-fallbacks.h
++++ b/include/Inventor/system/gl-fallbacks.h
+@@ -1200,6 +1200,10 @@
+ #ifndef GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB
+ #define GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB 0x862E
+ #endif /* GL_MAX_PROGRAM_MATRIX_STACK_DEPTH_ARB */
++#ifndef GL_SAMPLES
++#define GL_SAMPLES 0x80A9
++#endif /* GL_SAMPLES */
++
+ #ifndef GL_MAX_TEXTURE_COORDS_ARB
+ #define GL_MAX_TEXTURE_COORDS_ARB 0x8871
+ #endif /* GL_MAX_TEXTURE_COORDS_ARB */
+diff --git a/src/elements/SoTextureScalePolicyElement.h b/src/elements/SoTextureScalePolicyElement.h
+index d47b6999b1..dc37cd224a 100644
+--- a/src/elements/SoTextureScalePolicyElement.h
++++ b/src/elements/SoTextureScalePolicyElement.h
+@@ -62,7 +62,7 @@ public:
+   static  void set(SoState * const state, SoNode * const node,
+                    const Policy policy);
+   static  void set(SoState * const state, const Policy policy);
+-  static Policy get(SoState * const state);
++  static COIN_DLL_API Policy get(SoState * const state);
+   static Policy getDefault(void);
+ 
+ };
+diff --git a/src/elements/SoTextureScaleQualityElement.h b/src/elements/SoTextureScaleQualityElement.h
+index 04c0bbe112..f38c67601e 100644
+--- a/src/elements/SoTextureScaleQualityElement.h
++++ b/src/elements/SoTextureScaleQualityElement.h
+@@ -52,7 +52,7 @@ protected:
+ public:
+   void init(SoState * state) override;
+   static void set(SoState * state, SoNode * node, const float quality);
+-  static float get(SoState * state);
++  static COIN_DLL_API float get(SoState * state);
+   static float getDefault(void);
+ };
+ 
+diff --git a/src/glue/GLUWrapper.h b/src/glue/GLUWrapper.h
+index e442dcf5f4..00c9fc9494 100644
+--- a/src/glue/GLUWrapper.h
++++ b/src/glue/GLUWrapper.h
+@@ -37,6 +37,8 @@
+ #error this is a private header file
+ #endif
+ 
++#include <Inventor/C/basic.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif /* HAVE_CONFIG_H */
+@@ -156,7 +158,7 @@ typedef struct {
+ } GLUWrapper_t;
+ 
+ 
+-const GLUWrapper_t * GLUWrapper(void);
++COIN_DLL_API const GLUWrapper_t * GLUWrapper(void);
+ 
+ 
+ #ifdef __cplusplus
+diff --git a/src/glue/simage_wrapper.h b/src/glue/simage_wrapper.h
+index 2b71dda939..418c952bb4 100644
+--- a/src/glue/simage_wrapper.h
++++ b/src/glue/simage_wrapper.h
+@@ -37,6 +37,8 @@
+ #error this is a private header file
+ #endif
+ 
++#include <Inventor/C/basic.h>
++
+ #ifdef HAVE_CONFIG_H
+ #include <config.h>
+ #endif /* HAVE_CONFIG_H */
+@@ -171,7 +173,7 @@ extern "C" {
+ 
+   } simage_wrapper_t;
+ 
+-  const simage_wrapper_t * simage_wrapper(void);
++  COIN_DLL_API const simage_wrapper_t * simage_wrapper(void);
+ 
+ #ifdef __cplusplus
+ }
+diff --git a/src/rendering/coinbgfx/shaders/coin_surface.sh b/src/rendering/coinbgfx/shaders/coin_surface.sh
+index f6b8499c7f..ccd66a7f2d 100644
+--- a/src/rendering/coinbgfx/shaders/coin_surface.sh
++++ b/src/rendering/coinbgfx/shaders/coin_surface.sh
+@@ -41,10 +41,10 @@ vec4 coinPortableSample(sampler2D t, vec2 uv, vec4 suppliedSize) {
+   if (flags>=2) bounded.y=clamp(uv.y,0.0,1.0);
+   int lo = int(floor(lod)), hi = min(lo+1,maximum);
+   ivec2 ni = ivec2(n);
+-  vec2 a = vec2(max(ni >> lo, ivec2(1)));
++  vec2 a = vec2(max(ni >> lo, ivec2(1, 1)));
+   bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
+   if(pot)return texture2DLod(t,(floor(bounded*a)+0.5)/a,lod);
+-  vec2 b = vec2(max(ni >> hi, ivec2(1)));
++  vec2 b = vec2(max(ni >> hi, ivec2(1, 1)));
+   return coinPortableLerp(texture2DLod(t,(floor(bounded*a)+0.5)/a,float(lo)),
+                           texture2DLod(t,(floor(bounded*b)+0.5)/b,float(hi)),fract(lod));
+ }
+diff --git a/testsuite/CMakeLists.txt b/testsuite/CMakeLists.txt
+index 5a06d5f145..9b97b6d9e7 100644
+--- a/testsuite/CMakeLists.txt
++++ b/testsuite/CMakeLists.txt
+@@ -939,7 +939,6 @@ if(COIN_BUILD_RENDER)
+ 			target_link_libraries(CoinRenderGluNativeOracle PRIVATE ${OPENGL_glu_LIBRARY})
+ 		endif()
+ 		if(WIN32)
+-			target_compile_definitions(CoinRenderGluNativeOracle PRIVATE COIN_NOT_DLL)
+ 			target_link_libraries(CoinRenderGluNativeOracle PRIVATE Coin gdi32 user32)
+ 		elseif(NOT APPLE)
+ 			find_package(GLUT REQUIRED)

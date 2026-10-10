@@ -41,10 +41,10 @@ vec4 coinPortableSample(sampler2D t, vec2 uv, vec4 suppliedSize) {
   if (flags>=2) bounded.y=clamp(uv.y,0.0,1.0);
   int lo = int(floor(lod)), hi = min(lo+1,maximum);
   ivec2 ni = ivec2(n);
-  vec2 a = vec2(max(ni >> lo, ivec2(1)));
+  vec2 a = vec2(max(ni >> lo, ivec2(1, 1)));
   bool pot = (ni.x & (ni.x-1)) == 0 && (ni.y & (ni.y-1)) == 0;
   if(pot)return texture2DLod(t,(floor(bounded*a)+0.5)/a,lod);
-  vec2 b = vec2(max(ni >> hi, ivec2(1)));
+  vec2 b = vec2(max(ni >> hi, ivec2(1, 1)));
   return coinPortableLerp(texture2DLod(t,(floor(bounded*a)+0.5)/a,float(lo)),
                           texture2DLod(t,(floor(bounded*b)+0.5)/b,float(hi)),fract(lod));
 }
