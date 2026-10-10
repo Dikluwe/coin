@@ -487,7 +487,11 @@ nem encerra uma campanha completa de desempenho Windows.
   o upload dividido em 20 draws passou nas quatro combinações wgpu, mas a
   captura final ainda difere em 6–8 pixels por até 1 canal
   ([correção e recibos](coin-render-wgpu-terrain-buffer-20261010.md)).
-  Os testes executados não encerram qualificação visual independente ou
+  A cidade móvel ainda diverge no SDK atual; a sobreposição dos pixels
+  BGFX/wgpu aponta uma investigação no plano de cena/cobertura comum.
+  O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
+  primeira captura preta histórica. Os testes executados não encerram
+  qualificação visual independente ou
   desempenho das cidades e não representam FreeCAD.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27

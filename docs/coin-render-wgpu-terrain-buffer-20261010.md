@@ -44,3 +44,17 @@ consumidor ficam em `build-coinrender-terrain-sdk/` e
 do terreno **continua aberta**: os pixels finais diferentes não foram
 normalizados nem classificados como passe. A correção também precisa de
 revalidação Windows antes de atualizar a célula física daquela plataforma.
+
+## Próximo diagnóstico visual
+
+Na campanha anterior, 35 dos 38 pixels finais divergentes da cidade de 40 mil
+em BGFX/Vulkan coincidem em posição com os 42 de wgpu/Vulkan. Em OpenGL,
+7 dos 8 pixels BGFX coincidem com os 24 de wgpu. No milhão, a interseção foi
+55 pixels em Vulkan e 55 em OpenGL. Essa sobreposição entre backends sugere
+investigar primeiro o plano de cena, a geometria e as regras de cobertura
+compartilhadas; não demonstra ainda uma causa comum. O SDK atual repetiu a
+cidade 40 mil wgpu/Vulkan/native com 42 pixels diferentes e RGB máximo 136.
+
+O controle estático wgpu/OpenGL/native de height 140 passou 3/3 repetições
+nesta rodada (RGB 0 inicial e final). A primeira captura preta da campanha
+anterior permanece intermitente e não foi declarada corrigida.
