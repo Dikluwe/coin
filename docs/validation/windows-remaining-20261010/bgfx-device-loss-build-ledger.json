@@ -1,0 +1,48 @@
+[
+  {
+    "command": [
+      "cmake",
+      "-S",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-source",
+      "-B",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-build",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DBGFX_BUILD_EXAMPLES=OFF",
+      "-DBGFX_BUILD_TESTS=OFF",
+      "-DBGFX_BUILD_TOOLS=ON",
+      "-DBGFX_INSTALL=ON",
+      "-DBGFX_LIBRARY_TYPE=STATIC",
+      "-DBGFX_CONFIG_MAX_DRAW_CALLS=131072",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-install"
+    ],
+    "exit": 0,
+    "seconds": 7.7979090213775635
+  },
+  {
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-build",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 1491.1245050430298
+  },
+  {
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\sampling-win-20261010\\bgfx-device-loss-build",
+      "--config",
+      "Release"
+    ],
+    "exit": 0,
+    "seconds": 2.217989683151245
+  }
+]

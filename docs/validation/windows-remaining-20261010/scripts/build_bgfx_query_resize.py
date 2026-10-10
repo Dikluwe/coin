@@ -1,0 +1,7 @@
+import pathlib,difflib,subprocess,os,json,time
+r=pathlib.Path(r'H:\Git\coin\build\sampling-win-20261010');p=r/'bgfx-device-loss-source/bgfx/src/renderer_d3d12.cpp';s=p.read_text();lines='\t\tconst char* traceFilename = std::getenv("COIN_BGFX_D3D12_QUERY_LOG");\n\t\tm_traceFile = NULL != traceFilename ? std::fopen(traceFilename, "ab") : NULL;\n\t\tm_traceResults = NULL != m_traceFile;\n';assert s.count(lines)==1;s=s.replace(lines,'');marker='void TimerQueryD3D12::create()\n\t{\n';assert s.count(marker)==1;s=s.replace(marker,marker+lines);p.write_text(s,newline='\n');src=p.parent;orig=pathlib.Path(r'H:\Git\coin\build\bgfx-windows-source\bgfx\src');(r/'bgfx-device-loss.patch').write_text(''.join(''.join(difflib.unified_diff((orig/n).read_text().splitlines(True),(src/n).read_text().splitlines(True),fromfile='a/bgfx/src/'+n,tofile='b/bgfx/src/'+n)) for n in ['renderer_d3d12.cpp','renderer_d3d12.h']))
+e={k.upper():v for k,v in os.environ.items()};e['MSBUILDDISABLENODEREUSE']='1';rows=[]
+for name,cmd in [('build',['cmake','--build',str(r/'bgfx-device-loss-build'),'--config','Release','--parallel','2']),('install',['cmake','--install',str(r/'bgfx-device-loss-build'),'--config','Release'])]:
+ with (r/('bgfx-device-loss-query-resize-'+name+'.log')).open('w') as f:code=subprocess.run(cmd,env=e,stdout=f,stderr=subprocess.STDOUT).returncode
+ rows.append(dict(command=cmd,exit=code));(r/'bgfx-device-loss-query-resize-ledger.json').write_text(json.dumps(rows,indent=2));print(name,code,flush=True)
+ if code:raise SystemExit(code)

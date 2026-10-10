@@ -62,8 +62,11 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   O custo dos cinco frames GPU de mips foi isolado em 8/8 perfis, com mediana
   0,0477–0,1558 ms neste fixture; [método e ledger](coin-render-bgfx-npot-mip-gpu-20261009.md).
   Windows passou funcionalmente em D3D12/Vulkan/OpenGL, oito sombras e
-  peeling/weighted OIT; custo GPU completo passou em Vulkan/OpenGL. Falta
-  coletar todos os cinco timestamps por cadeia em D3D12, conforme a [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md).
+  peeling/weighted OIT. A continuação fechou 6/6 custos GPU no fixture native
+  63×47: cinco níveis e cinco frames em todas as 30 amostras medidas por
+  processo, com história de consultas D3D12 ligada a frame/view exatos.
+  Falhas iniciais e limites estão na [continuação Windows](coin-render-windows-remaining-gates-20261010.md).
+  Não generaliza HDR/2047² no Windows nem a combinação completa portátil.
   O seletor não oferece D3D11: dx11 é o nome do shader DXBC usado pelo
   D3D12, e sua compilação não qualifica execução D3D11.
   [Implementação](coin-render-bgfx-npot-direct-mips-plan-20261008.md) e
@@ -392,12 +395,22 @@ qualificados por este fechamento.
   controlando variação do host/clocks e investigando as regressões observadas.
   Em 2026-10-10, fixture 64×64 passou 24/24 ABBA, 60 warmup + 600 frames
   medidos por processo, com clocks/P-state registrados e sem readback no
-  trecho medido. Retorno CPU render/present; não fecha workloads maiores,
-  clock fixado ou latência de display. Ver a [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md).
+  trecho medido. A continuação 640×480 abaixo amplia os workloads; controle
+  completo do host/clocks, investigação de caudas e latência de display
+  permanecem abertos. Ver o [controle 64×64](coin-render-sampling-api-windows-20261010.md) e a [continuação](coin-render-windows-remaining-gates-20261010.md).
 
 O [relatório Windows](coin-render-windows-continuation-validation-20261007.md)
 preserva dados, exclusões e limites do piloto; não demonstra ganho uniforme
 nem encerra uma campanha completa de desempenho Windows.
+
+- [x] Executar a campanha maior Win32 640×480 sem readback medido: 144/144
+  processos ABBA, 60 warmup + 600 frames, cenas de 2.500 cubos e malha de
+  um milhão de triângulos, com câmera por eventos sintéticos, transforms,
+  materiais e geometria. Pixels janela/offscreen RGB máximo 0; wgpu/OpenGL
+  usa GDI fora da medição. CPU render/present e clocks/P-state preservados
+  na [continuação Windows](coin-render-windows-remaining-gates-20261010.md).
+  Não fecha clock fixado, latência de display, cidade40mil/milhão de instâncias,
+  consumidores FreeCAD ou a investigação completa das caudas observadas.
 
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
@@ -444,9 +457,15 @@ nem encerra uma campanha completa de desempenho Windows.
   GDI dos pixels apresentados, native/portable, resize/remap/manager, mesmo
   oracle de mip e limite RGB 1. Gates de janela: 6/6 smokes + 6/6 sampling na
   [campanha Windows de 2026-10-10](coin-render-sampling-api-windows-20261010.md); não generaliza todos os consumidores visuais.
-- [ ] Fechar Windows com DPI físico distinto entre monitores e perda real de
-  dispositivo em campanha controlada. Em 2026-10-10 ambos retornaram 96 DPI;
-  fault injection não foi contado como perda física real.
+- [x] Qualificar remoção real do device D3D12 BGFX por RemoveDevice no processo:
+  12/12 native/portable × offscreen/janela × três repetições; DEVICE_LOST sem
+  publicação, peer TARGET_LOST, recuperação explícita e pixels exatos.
+  Exige o SDK BGFX corrigido que libera swapchains secundários; patch, hashes,
+  falhas iniciais e comandos na [continuação Windows](coin-render-windows-remaining-gates-20261010.md).
+  Não conta como reset físico do adaptador ou TDR do driver.
+- [ ] Fechar Windows com DPI físico distinto entre monitores e demais perfis de
+  perda real: os dois monitores ainda retornam 96 DPI. Wgpu/Vulkan/OpenGL e
+  campanha de driver/TDR permanecem abertos; injeção simulada não os fecha.
 - [ ] Qualificar AppKit/Metal e Wayland em compositor físico, escala fracionária,
   mudança de monitor, formato de swapchain e demais perfis visuais; BGFX/Wayland
   continua sem mecanismo neste conector.

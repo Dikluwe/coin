@@ -1,0 +1,8 @@
+import pathlib,subprocess,time,json,os,sys
+r=pathlib.Path(__file__).resolve().parent;e={k.upper():v for k,v in os.environ.items()};e['MSBUILDDISABLENODEREUSE']='1';commands=[['python',str(r/'build_sdk.py'),'--tag','query-resize','--backend','bgfx','--bgfx-prefix',str(r/'bgfx-device-loss-install')],['python',str(r/'build_windows_fronts.py')],['python',str(r/'run_native_removal.py'),'native-removal-query-resize-final','3'],['python',str(r/'qualify.py'),'--phase','sdk','--name','sdk-query-resize-final'],['python',str(r/'qualify.py'),'--phase','npot','--backend','bgfx','--name','npot-query-resize-final'],['python',str(r/'analyze_npot_history.py'),'npot-query-resize-final'],['python',str(r/'qualify.py'),'--phase','sampling','--backend','bgfx','--cases','api,advanced,deep,direct,viewport,rtt','--name','sampling-final'],['python',str(r/'qualify.py'),'--phase','window','--name','window-final'],['python',str(r/'qualify.py'),'--phase','policy-window','--name','policy-window-final'],['python',str(r/'run_window_campaign.py'),'window-campaign-quiet-final','600','60']]
+ledger=[]
+for cmd in commands:
+ print('EXEC',cmd,flush=True);start=time.time();code=subprocess.run(cmd,cwd=r,env=e).returncode;ledger.append(dict(command=cmd,exit=code,seconds=time.time()-start));(r/'query-resize-driver-ledger.json').write_text(json.dumps(ledger,indent=2))
+ if code:raise SystemExit(code)
+ if 'run_native_removal.py' in cmd[1] and any(not v['pass_gate'] for v in json.loads((r/'native-removal-query-resize-final/summary.json').read_text())):raise SystemExit('native device recovery failed')
+print('ALL FINAL GATES FINISHED',flush=True)

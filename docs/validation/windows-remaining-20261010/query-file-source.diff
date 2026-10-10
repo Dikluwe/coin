@@ -1,0 +1,104 @@
+diff --git a/src/rendering/coinbgfx/CoinBgfxBackend.cpp b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+index 43c4fa2aae..6d0507df27 100644
+--- a/src/rendering/coinbgfx/CoinBgfxBackend.cpp
++++ b/src/rendering/coinbgfx/CoinBgfxBackend.cpp
+@@ -100,6 +100,7 @@
+ #include <dlfcn.h>
+ #endif
+ #ifdef _WIN32
++#include <d3d12.h>
+ #include "coin_bgfx_fs_depth_readback_dx11.h"
+ #include "coin_bgfx_fs_mip_area_dx11.h"
+ #include "coin_bgfx_vs_dx11.h"
+@@ -920,6 +921,42 @@ CoinRenderBackendStatus
+ CoinBgfxBackend::checkRuntimeFailure(const char * operation)
+ {
+   CoinBgfxCallback * cb = static_cast<CoinBgfxCallback *>(this->callback.get());
++#ifdef _WIN32
++  if (this->initialized && this->onApiThread() && cb && !cb->failed() &&
++      bgfx::getRendererType() == bgfx::RendererType::Direct3D12 &&
++      consumeTestFault("COIN_BGFX_TEST_REMOVE_NATIVE_DEVICE_ONCE")) {
++    // A controlled runtime removal of this process's real D3D12 device.
++    // It does not disable/reset the display adapter or emulate a driver TDR.
++    auto * device = static_cast<ID3D12Device *>(bgfx::getInternalData()->context);
++    ID3D12Device5 * removable = nullptr;
++    const HRESULT queried = device->QueryInterface(__uuidof(ID3D12Device5),
++                                                   reinterpret_cast<void **>(&removable));
++    if (FAILED(queried)) {
++      this->lastError = "D3D12 runtime removal interface unavailable";
++      return CoinRenderBackendStatus::UNSUPPORTED;
++    }
++    const HRESULT before = device->GetDeviceRemovedReason();
++    removable->RemoveDevice();
++    const HRESULT after = device->GetDeviceRemovedReason();
++    removable->Release();
++    std::fprintf(stderr, "COIN_NATIVE_DEVICE_REMOVAL api=d3d12 before=0x%08lx after=0x%08lx runtime_remove=1 adapter_reset=0\n",
++                 static_cast<unsigned long>(before), static_cast<unsigned long>(after));
++    if (SUCCEEDED(after)) {
++      this->lastError = "D3D12 RemoveDevice did not remove the device";
++      return CoinRenderBackendStatus::UNSUPPORTED;
++    }
++    // Let BGFX observe removal itself, including its native swapchains.
++    // Mirroring only the callback state can leave a removed window device
++    // alive in DXGI and prevent recreation of the explicitly selected API.
++    for (unsigned observe = 0; observe < 3 && !cb->failed(); ++observe)
++      bgfx::frame();
++    if (cb->failed()) return this->checkRuntimeFailure(operation);
++    char reason[96];
++    std::snprintf(reason, sizeof(reason), "Native D3D12 device removed, HRESULT 0x%08lx",
++                  static_cast<unsigned long>(after));
++    cb->fatal("D3D12 runtime RemoveDevice", 0, bgfx::Fatal::DeviceLost, reason);
++  }
++#endif
+   if (cb == nullptr || !cb->failed()) return CoinRenderBackendStatus::SUCCESS;
+   this->status = cb->deviceLost() ? CoinRenderBackendStatus::DEVICE_LOST :
+                                    CoinRenderBackendStatus::BACKEND_ERROR;
+@@ -3604,6 +3641,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+           double(stats->gpuTimeEnd - stats->gpuTimeBegin) * millisecondsPerTick);
+       for (uint16_t index = 0; index < stats->numViews; ++index) {
+         const bgfx::ViewStats & view = stats->viewStats[index];
++        if (view.view != this->viewBase + 1) continue;
+         // BGFX can reuse the view name before delayed timestamps arrive.
+         // The submitted frame number identifies this reduction level.
+         const auto found = mipFrames.find(view.gpuFrameNum);
+@@ -3614,6 +3652,13 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+           millisecondsPerTick);
+       }
+     };
++    if (traceNpotGpu) {
++      // Isolate timer queries from the base scene and its shadow/OIT views.
++      for (unsigned settle = 0; settle < 8; ++settle) {
++        std::this_thread::sleep_for(std::chrono::milliseconds(1));
++        bgfx::frame();
++      }
++    }
+     while (sourceWidth > 1 || sourceHeight > 1) {
+       const int destinationWidth = std::max(1, sourceWidth / 2);
+       const int destinationHeight = std::max(1, sourceHeight / 2);
+@@ -3675,7 +3720,26 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
+       const uint32_t mipFrame = bgfx::frame();
+       if (traceNpotGpu) {
+         mipFrames.emplace(mipFrame, unsigned(level));
++        std::fprintf(stderr, "COIN_RENDER_PHASE rtt_npot_mip_frame level=%u frame=%u reduce_view=%u\n",
++                     unsigned(level), mipFrame, unsigned(reduceView));
+         captureMipGpu();
++        // BGFX retains only the newest timer result per view. Resolve each
++        // submitted reduction before reusing its view for another mip level.
++        // This serialization belongs only to the opt-in GPU cost trace.
++        for (unsigned drain = 0; drain < 16 &&
++             (mipGpuMilliseconds.count(level) == 0 ||
++              mipFrameMilliseconds.count(level) == 0); ++drain) {
++          captureMipGpu();
++          std::this_thread::sleep_for(std::chrono::milliseconds(1));
++          bgfx::resetView(reduceView);
++          bgfx::setViewName(reduceView, "rtt_npot_level_drain");
++          bgfx::setViewFrameBuffer(reduceView, mipBuffer);
++          bgfx::setViewRect(reduceView, 0, 0, 1, 1);
++          bgfx::setViewClear(reduceView, BGFX_CLEAR_NONE);
++          bgfx::touch(reduceView);
++          bgfx::frame();
++          captureMipGpu();
++        }
+       }
+       runtimeStatus = this->checkRuntimeFailure("BGFX NPOT mip area reduction failed");
+       bgfx::destroy(mipBuffer);

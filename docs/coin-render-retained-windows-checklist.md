@@ -66,4 +66,8 @@ janela wgpu/OpenGL foi comprovada por GDI, sem COPY_SRC.
 O FreeCAD encontrado nesta máquina é 1.0 com Coin legado, sem CoinRender
 integrado. Part::Spline, Mesh/FEM, ColorBar, arraste e RTT do host permanecem
 pendentes; os passes C++ acima não encerram esses itens. Os dois monitores
-retornaram DPI 96, e não houve campanha de perda física de device.
+retornaram DPI 96. A [continuação Windows](coin-render-windows-remaining-gates-20261010.md)
+qualificou 12/12 remoções reais do device D3D12 BGFX no processo, com SDK
+corrigido, e 144/144 processos de janela 640×480 sem readback medido. São
+consumidores C++ públicos, sem integração FreeCAD; não encerram os itens
+do host acima nem equivalem a TDR/reset do adaptador.

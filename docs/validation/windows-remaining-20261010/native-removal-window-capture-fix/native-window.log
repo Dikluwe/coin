@@ -1,0 +1,7 @@
+receipt renderer=4 vendor=10de device=1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) mode=window policy=native
+COIN_NATIVE_DEVICE_REMOVAL api=d3d12 before=0x00000000 after=0x887a0005 runtime_remove=1 adapter_reset=0
+lost status=6 serial_before=1 serial_after=1 diagnostic=BGFX shared renderer failed before submission: BGFX fatal 4 at D3D12 runtime RemoveDevice:0: Native D3D12 device removed, HRESULT 0x887a0005
+peer_lost_before_resubmit=1 peer_serial_unchanged=1
+lost_no_publication=1 peer_lost=1 cached_pixels_retained=1 unavailable_pixels=0
+peer_auto_recovery=0 explicit_new_submission=1
+native_runtime_removal recovered=0 pixels_exact=0 result=0 adapter_reset=0 driver_tdr=0

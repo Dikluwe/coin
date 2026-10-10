@@ -1,0 +1,21 @@
+--- a/bgfx/src/renderer_d3d12.cpp
++++ b/bgfx/src/renderer_d3d12.cpp
+@@ -2117,6 +2117,18 @@
+ 
+ 			DX_RELEASE(m_zeroInitBuffer, 0);
+ 
++#if BX_PLATFORM_WINDOWS
++			// Device removal destroys the renderer before queued framebuffer teardown.
++			// Release secondary native swapchains so the removed device can die.
++			for (uint32_t ii = 0; ii < BX_COUNTOF(m_frameBuffers); ++ii)
++			{
++				if (ii != kMainFrameBufferIdx && NULL != m_frameBuffers[ii].m_swapChain)
++				{
++					m_frameBuffers[ii].destroy();
++				}
++			}
++#endif // BX_PLATFORM_WINDOWS
++
+ 			preReset();
+ 
+ 			m_gpuTimer.shutdown();

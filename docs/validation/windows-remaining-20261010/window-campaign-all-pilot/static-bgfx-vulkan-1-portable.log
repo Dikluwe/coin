@@ -1,0 +1,7 @@
+receipt renderer=1 vendor=10de device=1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) workload=static policy=portable extent=640x480 dpi=96
+scene nodes=2500 triangles=30000 textured=0
+visible_coverage=84100 of=307200
+surface_oracle stage=initial rgb_max=0 exact=1 gdi=0 outside_measurement=1
+visible_coverage=84100 of=307200
+surface_oracle stage=final rgb_max=0 exact=1 gdi=0 outside_measurement=1
+window_campaign result=1 frames=1 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=PostMessage event_count=0
