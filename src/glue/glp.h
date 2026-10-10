@@ -845,6 +845,7 @@ struct cc_glglue {
   char * rendererstr;
   char * extensionsstr;
   int maxtextureunits;
+  SbBool has_2d_proxy_textures;
   struct cc_glxglue glx;
   float max_anisotropy;
 

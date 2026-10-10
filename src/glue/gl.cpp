@@ -2361,6 +2361,22 @@ cc_glglue_instance(int contextid)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &gltmp);
     gi->max_texture_size = gltmp;
 
+    // A claimed proxy extension is not enough: some drivers do not
+    // update proxy level dimensions. Probe two sizes to catch stale data.
+    gi->has_2d_proxy_textures = FALSE;
+    if (cc_glglue_glversion_matches_at_least(gi, 1, 1, 0) ||
+        cc_glglue_glext_supported(gi, "GL_EXT_texture")) {
+      GLint width4 = 0;
+      GLint width8 = 0;
+      glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGBA, 4, 4, 0,
+                   GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+      glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width4);
+      glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGBA, 8, 8, 0,
+                   GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+      glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, &width8);
+      gi->has_2d_proxy_textures = width4 == 4 && width8 == 8;
+    }
+
     glGetIntegerv(GL_MAX_LIGHTS, &gltmp);
     gi->max_lights = (int) gltmp;
 
@@ -2740,19 +2756,7 @@ SbBool
 cc_glglue_has_2d_proxy_textures(const cc_glglue * w)
 {
   if (!glglue_allow_newer_opengl(w)) return FALSE;
-
-  // Our Proxy code seems to not be compatible with Intel drivers
-  // FIXME: should be handled by SoGLDriverDatabase
-  if (w->vendor_is_intel) return FALSE;
-
-  /* FIXME: there are differences between the 1.1 proxy mechanisms and
-     the GL_EXT_texture proxy extension; the 1.1 support considers
-     mipmaps. I think. Check documentation in the GL spec. If that is
-     correct, we can't really use them interchangeable versus each
-     other like we now do in Coin code. 20030121 mortene. */
-  return
-    cc_glglue_glversion_matches_at_least(w, 1, 1, 0) ||
-    cc_glglue_glext_supported(w, "GL_EXT_texture");
+  return w->has_2d_proxy_textures;
 }
 
 SbBool
@@ -4883,7 +4887,7 @@ proxy_mipmap_2d(int width, int height,
     glTexImage2D(GL_PROXY_TEXTURE_2D, level, internalFormat, width,
                  height, 0, format, type,
                  NULL);
-    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0,
+    glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, level,
                              GL_TEXTURE_WIDTH, &w);
     if (w == 0) return FALSE;
   }
@@ -4967,6 +4971,7 @@ coin_glglue_is_texture_size_legal(const cc_glglue * glw,
                                   SbBool mipmap)
  {
   if (zsize == 0) { /* 2D textures */
+    if (xsize > glw->max_texture_size || ysize > glw->max_texture_size) return FALSE;
     if (COIN_MAXIMUM_TEXTURE2_SIZE > 0) {
       if (xsize > COIN_MAXIMUM_TEXTURE2_SIZE) return FALSE;
       if (ysize > COIN_MAXIMUM_TEXTURE2_SIZE) return FALSE;
