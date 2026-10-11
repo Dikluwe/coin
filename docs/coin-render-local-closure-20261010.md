@@ -16,7 +16,7 @@ reclassificado por mera ausência de reprodução.
 | 260 — variação NVIDIA/wgpu | Local em curso | 16/16 A/B com clocks; associar amostras ao processo/frame antes de atribuir o outlier. |
 | 270 — sampling API | Parcial | AVD e consumidores Linux; Windows e outros dispositivos seguem separados. |
 | 331 — junções e endpoints | Concluído nesta rodada | Reprodução física, custo mínimo das alternativas e decisão de preservar o contrato portátil; melhorias futuras continuam separadas. |
-| 346 — bindings/shapes | Local em curso | Concavidade entrou no gate; acrescentar subclasses, UV/estado e contrato positivo ou rejeição de offset não planar. |
+| 346 — bindings/shapes | Concluído nesta rodada | 64 casos côncavos com subclasses/UV e 441 pares de binding em nove formas; correção de TriangleStripSet; 1.795 casos por rota. |
 | 348 — depth clamp/formatos | Local | Separar clipping geométrico, range, precisão e formatos. |
 | 351 — flat/sombras | Local em curso | QuadMesh preciso agora é recusado transacionalmente; implementar o fan central e qualificar flat com sombras/iluminação por fragmento. |
 | 353 — outros drivers/FreeCAD | Parcial | AMD/NVIDIA e FreeCAD Linux; Windows e outros drivers ficam externos. |
@@ -25,7 +25,7 @@ reclassificado por mera ausência de reprodução.
 | 388 — bbox/depth clamp | Concluído nesta rodada | Clipping e clamp distinguidos em sonda CoinGL; contrato portátil continua no item 348. |
 | 407 — mips/recursos | Local | Implementar células Linux com orçamento e rollback; outras APIs depois. |
 | 452 — desempenho Windows | Externo | Exige host Windows e controle de clocks/latência. |
-| 485 — igualdade janela/offscreen | Local em curso | 40/40 cidade/terreno passaram; capturar recorrência preta espontânea com leituras X11 repetidas. |
+| 485 — igualdade janela/offscreen | Parcial em curso | 40/40 cidade/terreno passaram; capturar recorrência preta espontânea com leituras X11 repetidas e repetir os gates Windows. |
 | 550 — bordas AMD/Vulkan | Local | Snap comum e testemunhos P20/câmera com alpha/ownership isolados. |
 | 560 — fontes GL no Coin base | Local | Inventariar símbolos/objetos restantes e remover em etapas com ABI verificada. |
 | 562 — Vulkan no AVD | Condicionado | Verificar imagem/driver; Goldfish atual falha no submit. |
@@ -138,14 +138,15 @@ independentes para impedir que uma triangulação em leque preencha o recorte.
 BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan na AMD física passaram 1306 casos por
 rota; as 48 comparações côncavas CPU/GPU/CoinGL por rota tiveram máximo RGB 1.
 O [recibo](validation/concave-geometry-20261010/summary.log) guarda identidades
-e contagens. O item 346 continua aberto para offset não planar, subclasses e
-UV/estado fora da matriz.
+e contagens. A expansão posterior com subclasses e UV consta da décima
+terceira frente abaixo.
 
 O gate já existente em `CoinRenderDrawStyleTest` passou novamente em
 BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan. Ele recusa o contorno não planar com
 `UNSUPPORTED`, preserva pixels/serial e recupera o mesmo alvo após restaurar a
 geometria. Portanto, a semântica **atual de rejeição** de offset não planar está
-verificada; aceitar tal offset ou combinar mais UV/estado permanece no item.
+verificada; o suporte positivo a offset não planar segue fora do contrato
+atual. Os cruzamentos com UV foram incluídos posteriormente.
 
 ## Sexta frente: iluminação precisa do QuadMesh
 
@@ -170,3 +171,114 @@ acionar as leituras diagnósticas extras. O
 [recibo](validation/wgpu-gl-first-capture-20261010/stress-40.log) conserva a
 contagem e o hash do CSV temporário. A falha intermitente histórica continua
 sem reprodução causal; o item 492 não foi fechado.
+
+## Oitava frente: cargas adicionais na NVIDIA
+
+O runner congelado repetiu A/B/B/A em wgpu e BGFX/Vulkan físicos, com oito
+texturas POT, oito NPOT, 40.000 e 1.000.000 de instâncias. Os **32/32
+processos** passaram a validação de GPU, quantidade de frames e ausência de
+readback. O [resumo por processo](validation/nvidia-variance-wide-20261010/summary.csv)
+inclui hashes dos binários e cenas; o `summary.json` bruto e os CSV de frames
+permanecem em
+`/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/benchmark-nvidia-wide-20261010`
+(SHA-256 do resumo `9261eb57dd1850838249cd8c1f6c9dfcf152fde12f3d3df33c6d227fdf699407`).
+
+As duas medianas BGFX por política diferiram no máximo **0,68%** entre
+repetições nas quatro cargas. No wgpu, a maior amplitude foi **3,32%** no
+milhão native (9,3107/9,6194 ms); o milhão portable foi 8,9979/8,9887 ms.
+As 48 amostras medidas do milhão wgpu e as 48 BGFX não tiveram quadros acima
+de 16,67 ms. Isso amplia as cargas sem reproduzir o salto histórico de 25%.
+Uma amostragem NVML de 100 ms cobriu somente parte da rodada e não está
+alinhada a cada frame; ela não permite atribuir causalidade aos clocks. O
+estudo de variação e o trace de replay BGFX por carga seguem abertos no item
+260; a ausência de pico nesta repetição não fecha a causa.
+
+## Nona frente: fallback do QuadMesh preciso
+
+O CoinGL só executa o fan central quando a coordenada é 3D, o material não
+é por vértice e a textura não é procedural. O builder portátil recusava
+todo QuadMesh com a variável ativa, inclusive os casos em que CoinGL usa
+triangulação comum. A condição de rejeição agora acompanha a escolha do
+CoinGL. O gate direcionado na NVIDIA/BGFX Vulkan confirmou rejeição
+transacional no caso centrado, recuperação e aceitação do material por vértice
+com CPU/GPU/CoinGL RGB máximo 1. A regressão completa passou 1306/1306 casos
+sem a variável. O fan central positivo e os cruzamentos flat/sombras ainda
+faltam; item 365 segue aberto.
+
+## Décima frente: zoom Android entre superfícies
+
+O host Android fazia `viewAll` a cada `INIT_WINDOW`, apagando o zoom ao
+retornar da HOME. O enquadramento agora ocorre somente na primeira superfície
+da Activity. O APK x86_64 foi recompilado, instalado e exercitado no AVD
+AMD/GLES: o gesto alterou a distância focal de 1880,807 para 2668,993; três
+recriações reais mantiveram 2668,993 no mesmo PID, com seriais e capturas
+offscreen crescentes. O [recibo](validation/android-zoom-20261010/summary.md)
+preserva APK, hash, gerações e limite. Duas janelas, AUTO e tickets/RTT entre
+threads continuam abertos no item 642.
+
+## Décima primeira frente: inventário GL do Coin base Android
+
+O build Android x86_64 com `COIN_BUILD_LEGACY_GL_RENDERER=OFF` continua com
+**112 símbolos GL indefinidos fracos** em `libCoin.so`; `libCoinRender.so`
+não contém nenhum desses símbolos. `libCoin.so` não traz `DT_NEEDED` para
+libGL/libGLES. A análise dos 926 objetos de `src` encontrou **81 objetos**
+com referências GL; os maiores grupos incluem `SoGLRenderAction` (43 símbolos),
+`SoExtSelection` (26), `SoRenderManager` (24) e `SoText2` (16). O cabeçalho
+compatível Android declara `GLAPI` como `extern __attribute__((weak))`, o que
+explica por que o link funciona sem resolver essas referências; não elimina
+o acoplamento residual. Esse inventário delimita o item 599: separar ou
+substituir os caminhos GL desses objetos mantendo a ABI e o teste de
+rejeição do renderer legado ainda requer trabalho. Não foi removido nenhum
+símbolo por exclusão cega de fontes.
+
+## Décima segunda frente: custo do arraste do milhão Android
+
+O trace do AVD de 8 GiB separou o arraste do quadro parado: dez patches de
+câmera da versão inicial gastaram mediana de 130,3 ms em `frame_plan_ms` e
+63,7 ms no backend; 537 quadros parados do trace reutilizaram o plano. O undo
+por estado copiava cerca de um milhão de matrizes de view/projeção e `fogEnd`
+para cada gesto. O undo compacto guarda só a câmera anterior e um bitset
+dos estados cujo `fogEnd` mudou. O teste de 70 estados verificou a fronteira
+de 64 bits e rollback exato; câmera na NVIDIA/BGFX Vulkan permaneceu RGB 0
+contra reconstrução e máximo 1 contra CoinGL.
+
+No mesmo AVD, 17 patches da variante nova tiveram `frame_plan_ms` mediano
+34,1 ms, com backend ainda em 64,3 ms. O pior grupo de dez frames próximo
+ao gesto foi de 10,15 FPS/98,5 ms, frente a 5,52 FPS/181,2 ms na rodada
+anterior. É um A/B curto, com contagem de eventos diferente; os traces isolam
+o ganho de CPU do plano, mas não fecham a campanha de caudas. Os
+[recibos e limites](validation/android-million-camera-20261010/summary.md)
+preservam APK, logs, memória e escopo. A frente 650 continua aberta.
+
+## Décima terceira frente: subclasses e UV côncavos
+
+As células côncavas agora incluem `SoFaceSet`, `SoIndexedFaceSet` e subclasses
+reais de ambos, cruzados com fast path, alpha, viewport externo e UV com textura
+2×2: **64 casos** por rota. Cada caso compara CPU/GPU/CoinGL e a amostra de
+notch verifica que o recorte côncavo não foi preenchido. BGFX/Vulkan,
+BGFX/OpenGL e wgpu/Vulkan físicos na NVIDIA passaram todos os 64 casos, máximo
+RGB 1. A rejeição
+transacional já existente de offset não planar passou nas mesmas três rotas.
+O [recibo](validation/geometry-subclasses-uv-20261011/summary.md) guarda
+comandos, adaptadores e hashes dos logs. A sonda posterior dos 49 pares de
+material/normal encontrou RGB 11 contra CoinGL no TriangleStripSet com
+material PER_FACE e normal PER_VERTEX. O callback normalizava o material por
+face nos três vértices, enquanto GL suavizado conserva o material dos dois
+vértices compartilhados. O builder agora reconstrói esses materiais pela
+ordem de callbacks de cada strip. Nove formas × 49 pares passaram em todas
+as três rotas, máximo RGB 1; a matriz integrada passou **1.795/1.795** por
+rota. [Falha anterior e logs finais](validation/geometry-subclasses-uv-20261011/summary.md).
+O item 358 está fechado dentro do contrato atual; offset não planar positivo
+segue fora do contrato.
+
+## Décima quarta frente: replay BGFX de textura nas duas GPUs
+
+Em AMD e NVIDIA físicas, BGFX/Vulkan passou oito processos de textura-8 e
+NPOT-8 sob native/portable, cada um com dois warmups e oito frames medidos.
+Todos construíram plano e recursos no primeiro quadro e reutilizaram plano,
+textura e buffer de geometria nos nove seguintes. A sonda não faz readback e
+usa a mesma fixture congelada do benchmark A/B. O
+[recibo](validation/replay-textures-dual-gpu-20261011/summary.md) traz hashes,
+adaptadores e logs. Isso amplia o replay a outras GPUs/cargas; a variação
+wgpu/NVIDIA observada historicamente ainda não tem causa isolada e o item 260
+permanece aberto.

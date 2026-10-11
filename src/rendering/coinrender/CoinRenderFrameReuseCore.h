@@ -32,18 +32,14 @@ struct CoinRenderFrameReuseDecision {
     : kind(k), baseRevision(base) {}
 };
 
-/** Only the camera-derived fields needed to restore a failed frame. */
-struct CoinRenderCameraStateUndo {
-  SbMatrix view = SbMatrix::identity();
-  SbMatrix projectionCoin = SbMatrix::identity();
-  float fogEnd = 0.0f;
-};
-
 /** Private transactional backup; never owns geometry or GPU resources. */
 struct CoinRenderCameraOverlayUndo {
   uint64_t revision = 0;
   CoinRenderCameraSnapshot camera;
-  std::vector<CoinRenderCameraStateUndo> states;
+  size_t stateCount = 0;
+  // Camera-overlay admission proves every state has the same view/projection.
+  // Only the states whose fogEnd was rewritten need per-state undo metadata.
+  std::vector<uint64_t> fogEndChanged;
   std::vector<CoinRenderLightingSnapshot> lighting;
   bool active = false;
 };

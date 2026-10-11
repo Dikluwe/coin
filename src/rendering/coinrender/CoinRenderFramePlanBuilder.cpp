@@ -49,6 +49,7 @@
 
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/SoPrimitiveVertex.h>
+#include <Inventor/bundles/SoTextureCoordinateBundle.h>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
@@ -188,6 +189,9 @@ CoinRenderFramePlanBuilder::reset()
   this->lineNode = nullptr;
   this->lineIndex = -1;
   this->lineStripId = this->nextLineStripId = 0;
+  this->stripMaterialNode = nullptr;
+  this->stripMaterialPart = -1;
+  this->stripMaterialNextFace = 0;
   this->nodeCounter = 0;
   this->captureReserveEstimate = 0;
   this->inFrame = false;
@@ -217,6 +221,9 @@ void
 CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode * node)
 {
   this->endShape();
+  this->stripMaterialNode = nullptr;
+  this->stripMaterialPart = -1;
+  this->stripMaterialNextFace = 0;
   if (!action || !node || polygonDrawStyle(action) != SoDrawStyleElement::FILLED) return;
   // These exact built-in generators do not modify render state between
   // triangles. Subclasses can override generation and must keep full capture.
@@ -2027,17 +2034,26 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v2)
 {
   if (!v0 || !v1 || !v2 || isShapeInvisible(action)) return;
-  // CoinGL's opt-in QuadMesh path adds a weighted center vertex and renders
-  // four triangles per quad. The ordinary primitive callback still supplies
-  // two triangles, so publishing it would silently change lighting and UVs.
-  // Keep this nonstandard mode transactional until it has its own capture.
+  // CoinGL only takes its centered QuadMesh path for 3D coordinates, a
+  // non-vertex material binding and nonprocedural texture coordinates. Other
+  // combinations keep the ordinary two-triangle path even when the switch is
+  // enabled, so they must remain available to the portable callback as well.
   if (action->getCurPathTail()->getTypeId() == SoQuadMesh::getClassTypeId()) {
     const char *precise = coin_getenv("COIN_QUADMESH_PRECISE_LIGHTING");
     if (precise && std::atoi(precise) > 0) {
-      this->isUnsupported = true;
-      this->builderError =
-          "UNSUPPORTED: COIN_QUADMESH_PRECISE_LIGHTING needs centered QuadMesh capture";
-      return;
+      const auto *coordinates = SoCoordinateElement::getInstance(action->getState());
+      const auto materialBinding = SoMaterialBindingElement::get(action->getState());
+      SoTextureCoordinateBundle texture(action, FALSE, FALSE);
+      const bool centered = coordinates->is3D() &&
+          materialBinding != SoMaterialBindingElement::PER_VERTEX &&
+          materialBinding != SoMaterialBindingElement::PER_VERTEX_INDEXED &&
+          !texture.isFunction();
+      if (centered) {
+        this->isUnsupported = true;
+        this->builderError =
+            "UNSUPPORTED: COIN_QUADMESH_PRECISE_LIGHTING needs centered QuadMesh capture";
+        return;
+      }
     }
   }
   if (polygonDrawStyle(action) != SoDrawStyleElement::FILLED) {
@@ -2056,6 +2072,42 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                 mb == SoMaterialBindingElement::PER_VERTEX_INDEXED;
     const bool vertexNormal = nb == SoNormalBindingElement::PER_VERTEX ||
                               nb == SoNormalBindingElement::PER_VERTEX_INDEXED;
+    SoPrimitiveVertex prior0, prior1;
+    if (faceMaterial && vertexNormal) {
+      const auto *rawDetail = v0->getDetail();
+      if (!rawDetail || !rawDetail->isOfType(SoFaceDetail::getClassTypeId())) {
+        this->hasError = true;
+        this->builderError = "Missing triangle strip face detail";
+        return;
+      }
+      const auto *detail = static_cast<const SoFaceDetail *>(rawDetail);
+      const int part = detail->getPartIndex();
+      const SoNode *node = action->getCurPathTail();
+      const int newest = v2->getMaterialIndex();
+      // FaceDetail::faceIndex advances after each shapeVertex callback in
+      // SoTriangleStripSet, so the second triangle still reports face zero.
+      // Count callbacks within the part instead of relying on that index.
+      const bool newStrip = this->stripMaterialNode != node ||
+                            this->stripMaterialPart != part;
+      const int face = newStrip ? 0 : this->stripMaterialNextFace;
+      if (newStrip) {
+        this->stripMaterialNode = node;
+        this->stripMaterialPart = part;
+        this->stripMaterialNextFace = 1;
+        this->stripMaterialOlder = newest;
+        this->stripMaterialNewer = newest;
+      } else {
+        prior0 = *v0;
+        prior1 = *v1;
+        prior0.setMaterialIndex((face & 1) ? this->stripMaterialNewer : this->stripMaterialOlder);
+        prior1.setMaterialIndex((face & 1) ? this->stripMaterialOlder : this->stripMaterialNewer);
+        v0 = &prior0;
+        v1 = &prior1;
+        this->stripMaterialOlder = this->stripMaterialNewer;
+        this->stripMaterialNewer = newest;
+        this->stripMaterialNextFace = face + 1;
+      }
+    }
     if ((faceNormal && !vertexMaterial) || (faceMaterial && !vertexNormal)) {
       uint32_t rsSlot = this->captureRenderState(action, v2->getMaterialIndex());
       auto rs = this->currentPlan.renderStates[rsSlot];

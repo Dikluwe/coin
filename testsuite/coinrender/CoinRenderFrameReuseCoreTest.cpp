@@ -530,6 +530,35 @@ bool testExactAuthoredLightOverlay() {
   return check(plan.hasSamePayload(original), "authored light rollback must restore the anchor exactly");
 }
 
+bool testCompactCameraUndo() {
+  SbMatrix view = SbMatrix::identity();
+  auto plan = phongReference(view, 1400);
+  plan.renderStates.resize(70, plan.renderStates[0]);
+  const float oldFar = plan.cameras[0].farDistance;
+  for (size_t i = 0; i < plan.renderStates.size(); ++i)
+    plan.renderStates[i].fogEnd =
+      (i == 0 || i == 63 || i == 64 || i == 69) ? oldFar : oldFar + 7.0f;
+  const auto original = plan;
+  CoinRenderCameraOverlayBasis basis;
+  if (!check(CoinRenderFrameReuseCore::prepareCameraOverlayBasis(plan, basis),
+             "uniform multi-state camera basis must qualify")) return false;
+  auto camera = plan.cameras[0];
+  camera.viewMatrix[3][0] += .25f;
+  camera.farDistance += 11.0f;
+  CoinRenderCameraOverlayUndo undo;
+  if (!check(CoinRenderFrameReuseCore::beginCameraOverlay(plan, camera, 1401, undo, basis) &&
+             undo.stateCount == 70 && undo.fogEndChanged.size() == 2 &&
+             plan.renderStates[0].fogEnd == camera.farDistance &&
+             plan.renderStates[63].fogEnd == camera.farDistance &&
+             plan.renderStates[64].fogEnd == camera.farDistance &&
+             plan.renderStates[69].fogEnd == camera.farDistance &&
+             plan.renderStates[1].fogEnd == oldFar + 7.0f,
+             "compact undo must update only matching fog ends across word boundaries")) return false;
+  CoinRenderFrameReuseCore::rollbackCameraOverlay(plan, undo);
+  return check(!undo.active && plan.hasSamePayload(original),
+               "compact camera rollback must restore all 70 states exactly");
+}
+
 bool testRigidCameraDelta() {
   bool ok = true;
   SbMatrix anchor;
@@ -745,7 +774,7 @@ main()
   SoDB::init();
   const bool paddingOk = testDrawPadding();
   bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
-    testExactAuthoredLightOverlay() &&
+    testExactAuthoredLightOverlay() && testCompactCameraUndo() &&
     testTranslationOverlay() && testObjectPayloadTransaction() && testGeometryIntervalValidation();
   CoinRenderTextureImageSnapshot alphaImage;
   alphaImage.width = alphaImage.height = 1;

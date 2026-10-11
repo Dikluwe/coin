@@ -384,20 +384,18 @@ CoinRenderFrameReuseCore::beginCameraOverlay(
   prepared.revision = plan.revision;
   prepared.camera = oldCamera;
   prepared.lighting = plan.lightingStates;
-  prepared.states.reserve(plan.renderStates.size());
-  for (const auto & rs : plan.renderStates) {
-    CoinRenderCameraStateUndo state;
-    state.view = rs.view;
-    state.projectionCoin = rs.projectionCoin;
-    state.fogEnd = rs.fogEnd;
-    prepared.states.push_back(state);
-  }
+  prepared.stateCount = plan.renderStates.size();
+  prepared.fogEndChanged.assign((prepared.stateCount + 63) / 64, 0);
   prepared.active = true;
   undo = std::move(prepared);
-  for (auto & rs : plan.renderStates) {
+  for (size_t i = 0; i < plan.renderStates.size(); ++i) {
+    auto & rs = plan.renderStates[i];
+    if (rs.fogEnd == oldCamera.farDistance) {
+      undo.fogEndChanged[i / 64] |= UINT64_C(1) << (i % 64);
+      rs.fogEnd = camera.farDistance;
+    }
     rs.view = camera.viewMatrix;
     rs.projectionCoin = camera.projectionMatrixCoin;
-    if (rs.fogEnd == oldCamera.farDistance) rs.fogEnd = camera.farDistance;
   }
   plan.lightingStates.swap(lighting);
   plan.cameras[0] = camera;
@@ -410,14 +408,15 @@ CoinRenderFrameReuseCore::rollbackCameraOverlay(
   CoinRenderFramePlan & plan, CoinRenderCameraOverlayUndo & undo)
 {
   if (!undo.active) return;
-  assert(plan.cameras.size() == 1 && plan.renderStates.size() == undo.states.size());
+  assert(plan.cameras.size() == 1 && plan.renderStates.size() == undo.stateCount);
   plan.revision = undo.revision;
   plan.cameras[0] = undo.camera;
   plan.lightingStates.swap(undo.lighting);
-  for (size_t i = 0; i < undo.states.size(); ++i) {
-    plan.renderStates[i].view = undo.states[i].view;
-    plan.renderStates[i].projectionCoin = undo.states[i].projectionCoin;
-    plan.renderStates[i].fogEnd = undo.states[i].fogEnd;
+  for (size_t i = 0; i < undo.stateCount; ++i) {
+    plan.renderStates[i].view = undo.camera.viewMatrix;
+    plan.renderStates[i].projectionCoin = undo.camera.projectionMatrixCoin;
+    if (undo.fogEndChanged[i / 64] & (UINT64_C(1) << (i % 64)))
+      plan.renderStates[i].fogEnd = undo.camera.farDistance;
   }
   undo.active = false;
 }

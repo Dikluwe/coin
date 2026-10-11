@@ -129,6 +129,13 @@ private:
   int lineIndex = -1;
   uint64_t lineStripId = 0;
   uint64_t nextLineStripId = 0;
+  // Coin's triangle callbacks normalize PER_FACE attributes across a whole
+  // triangle. Smooth GL strips retain the attributes of the two prior vertices.
+  const SoNode * stripMaterialNode = nullptr;
+  int stripMaterialPart = -1;
+  int stripMaterialNextFace = 0;
+  int stripMaterialOlder = 0;
+  int stripMaterialNewer = 0;
   SoNode * polygonNode = nullptr;
   std::vector<CoinRenderVertexSnapshot> polygonVertices;
   std::vector<SbVec3f> polygonPositions;

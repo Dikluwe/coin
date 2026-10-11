@@ -271,6 +271,15 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   uma repetição native wgpu/cidade variou 12,8%, enquanto clocks NVIDIA
   oscilaram na rodada, sem correlação causal por frame
   ([medidas](coin-render-local-closure-20261010.md)).
+  A ampliação para NPOT-8 e cidade de um milhão completou 32/32 processos
+  físicos em wgpu/BGFX; a maior amplitude entre repetições foi 3,32% no
+  milhão wgpu native. O salto histórico de 25% não reapareceu.
+  Replay BGFX de textura-8 e NPOT-8, native/portable em NVIDIA e AMD físicas,
+  passou 8/8 processos: o primeiro quadro constrói, os nove seguintes
+  reutilizam plano, textura e geometria
+  ([recibo](validation/replay-textures-dual-gpu-20261011/summary.md)).
+  A origem da variação wgpu ainda não foi identificada
+  ([resumo](validation/nvidia-variance-wide-20261010/summary.csv)).
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
   funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
@@ -350,15 +359,19 @@ Melhoria futura, fora deste primeiro perfil:
   ([estudo](coin-render-raster-junctions-study.md)). Isso não dispensa
   diferenças CPU/BGFX/wgpu: as divergências portáteis encontradas nesta rodada
   recebem correção e gates completos, sem exclusão OpenGL ou tolerância ampliada.
-- [ ] Ampliar os 49 cruzamentos de bindings, subclasses/shapes adicionais,
+- [x] Ampliar os 49 cruzamentos de bindings, subclasses/shapes adicionais,
   contornos côncavos, offset não planar e combinações de UV/estado além da matriz.
-  A célula côncava FaceSet/IndexedFaceSet agora é gate da regressão: 16
-  combinações de fast path, alpha e viewport passaram em BGFX/Vulkan e
-  wgpu/Vulkan físicos contra CoinGL, com notch verificado independentemente.
-  Offset não planar e os demais cruzamentos continuam abertos
-  ([rodada local](coin-render-local-closure-20261010.md)).
+  FaceSet/IndexedFaceSet e subclasses reais agora cobrem 64 combinações de
+  fast path, alpha, viewport e UV, com notch independente e CoinGL obrigatório.
+  As três rotas físicas BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan passaram 64/64
+  casos côncavos e 1.795/1.795 casos da matriz completa, máximo RGB 1.
   O gate existente recusa offset não planar sem publicação e recupera o alvo
-  em BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan; suporte positivo não foi prometido.
+  nas mesmas rotas; suporte positivo não faz parte deste contrato.
+  Os 49 pares de material/normal são gate em nove formas (441 células).
+  Uma divergência de RGB 11 no TriangleStripSet com material PER_FACE e normal
+  PER_VERTEX foi corrigida: a captura preserva o material dos vértices
+  compartilhados na ordem dos callbacks. Máximo RGB final 1.
+  [Recibo e limites](validation/geometry-subclasses-uv-20261011/summary.md).
 - [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
   mais combinações de transparência/sombras/RTT; clamp de range já implementado
   não equivale a GL_DEPTH_CLAMP.
@@ -371,6 +384,9 @@ Melhoria futura, fora deste primeiro perfil:
   BGFX/OpenGL e wgpu/Vulkan passaram rejeição, pixels/serial preservados e
   recuperação. A renderização positiva continua aberta
   ([recibo local](coin-render-local-closure-20261010.md)).
+  A exceção do CoinGL para material por vértice agora mantém a rota comum:
+  gate dirigido CPU/BGFX/CoinGL na NVIDIA teve RGB máximo 1 e a regressão
+  de geometria passou 1306/1306 casos. A rota centrada permanece aberta.
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após
@@ -598,6 +614,10 @@ nem encerra uma campanha completa de desempenho Windows.
   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
 - [ ] Remover completamente os fontes/referências GL remanescentes do Coin base;
   a primeira fronteira Android conserva ABI com referências fracas indisponíveis.
+  Inventário do build CPU Android atual: 112 símbolos GL fracos em `libCoin.so`,
+  distribuídos por 81 de 926 objetos; sem `DT_NEEDED` libGL/libGLES. A
+  separação por objetos e a ABI permanecem abertas
+  ([triagem local](coin-render-local-closure-20261010.md)).
 - [ ] Qualificar Vulkan nesta imagem Android: Goldfish é não conforme e a
   execução de diagnóstico falha em `vulkan.ranchu.so` no submit. Sem fallback.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
@@ -641,6 +661,11 @@ nem encerra uma campanha completa de desempenho Windows.
   epochs avançam e alvos/recursos externos vivos impedem esse teardown.
 - [ ] Ampliar Android para duas janelas, API automática, tickets/RTT entre threads
   de Activities e demais fixtures/formatos; preservar o zoom entre recriações.
+  O host agora enquadra a câmera apenas na primeira superfície da Activity:
+  zoom 2668,993 persistiu nas gerações 2/3/4 e no mesmo PID no AVD AMD/GLES,
+  com captura offscreen em cada retorno
+  ([recibo](validation/android-zoom-20261010/summary.md)). As outras células
+  desta frente ainda estão abertas.
 - [x] Perfilar e otimizar os 40.000 no AVD/GLES: duas rodadas A/B sem input,
   cerca de 1,1 → 60 FPS, cache de viewport/plano e SCREEN_DOOR realmente opaco.
 - [x] Apresentar 1.000.000 prédios reais + chão no AVD com 8 GiB temporários:
@@ -650,6 +675,12 @@ nem encerra uma campanha completa de desempenho Windows.
 - [ ] Estudo: reduzir estados CPU, abertura e custo durante arrastes do milhão;
   ampliar memória/caudas de latência e retomada. A cena parada chegou perto de
   30 FPS; interação varia e o AVD de 2 GiB não está qualificado.
+  O undo do overlay de câmera passou a guardar a câmera anterior e bitset de
+  fog em vez de copiar cada estado: no AVD de 8 GiB, `frame_plan_ms` mediano
+  no arraste caiu de 130,3 para 34,1 ms; o backend continuou perto de 64 ms.
+  Rollback exato e referência CoinGL passaram. Abertura, compactação do plano,
+  2 GiB e caudas longas seguem abertos
+  ([A/B e limites](validation/android-million-camera-20261010/summary.md)).
 - [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
   a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,

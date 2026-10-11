@@ -35,6 +35,8 @@
 #include <Inventor/nodes/SoSphere.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoSubNode.h>
+#include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -60,6 +62,24 @@ protected:
   ~FixtureViewport() override=default;
 };
 SO_NODE_SOURCE(FixtureViewport);
+class FixtureFaceSet : public SoFaceSet {
+  SO_NODE_HEADER(FixtureFaceSet);
+public:
+  static void initClass(){SO_NODE_INIT_CLASS(FixtureFaceSet,SoFaceSet,"FaceSet");}
+  FixtureFaceSet(){SO_NODE_CONSTRUCTOR(FixtureFaceSet);}
+protected:
+  ~FixtureFaceSet() override=default;
+};
+SO_NODE_SOURCE(FixtureFaceSet);
+class FixtureIndexedFaceSet : public SoIndexedFaceSet {
+  SO_NODE_HEADER(FixtureIndexedFaceSet);
+public:
+  static void initClass(){SO_NODE_INIT_CLASS(FixtureIndexedFaceSet,SoIndexedFaceSet,"IndexedFaceSet");}
+  FixtureIndexedFaceSet(){SO_NODE_CONSTRUCTOR(FixtureIndexedFaceSet);}
+protected:
+  ~FixtureIndexedFaceSet() override=default;
+};
+SO_NODE_SOURCE(FixtureIndexedFaceSet);
 namespace {
 bool check(bool v, const std::string & message) {
   if (!v) std::cerr << message << '\n';
@@ -156,17 +176,20 @@ struct Scene {
       auto *n = new SoPointSet;
       n->numPoints = 8;
       root->addChild(n);
-    } else if (primitive == 11 || primitive == 12) {
+    } else if (primitive >= 11 && primitive <= 14) {
       // One authored concave L contour. A fan would fill its upper-right notch.
       const SbVec3f contour[] = {{-.8f,-.8f,0},{.8f,-.8f,0},{.8f,-.2f,0},
                                  {-.2f,-.2f,0},{-.2f,.8f,0},{-.8f,.8f,0}};
       coords->point.setValues(0, 6, contour);
-      if (primitive == 11) {
-        auto *n = new SoFaceSet;
+      if (primitive == 11 || primitive == 13) {
+        SoFaceSet *n = primitive == 13 ? static_cast<SoFaceSet *>(new FixtureFaceSet)
+                                       : new SoFaceSet;
         n->numVertices.set1Value(0, 6);
         root->addChild(n);
       } else {
-        auto *n = new SoIndexedFaceSet;
+        SoIndexedFaceSet *n = primitive == 14
+                                  ? static_cast<SoIndexedFaceSet *>(new FixtureIndexedFaceSet)
+                                  : new SoIndexedFaceSet;
         const int32_t indices[] = {0,1,2,3,4,5,-1};
         n->coordIndex.setValues(0, 7, indices);
         root->addChild(n);
@@ -288,31 +311,69 @@ struct Harness {
   unsigned cases = 0;
 };
 bool concaveCases(Harness &h) {
-  for (int primitive : {11, 12})
+  for (int primitive : {11, 12, 13, 14})
     for (bool fast : {false, true})
       for (bool alpha : {false, true})
-        for (bool external : {false, true}) {
-          Scene scene(true, primitive);
-          scene.model->model = SoLightModel::PHONG;
-          if (alpha) scene.material->transparency.setValue(.35f);
-          SbViewportRegion vp(64, 64);
-          if (external) vp.setViewportPixels(-8, -8, 72, 72);
-          const std::string label = "concave/" + std::to_string(primitive) +
-                                    "/fast-" + std::to_string(fast) +
-                                    "/alpha-" + std::to_string(alpha) +
-                                    "/external-" + std::to_string(external);
-          if (!h.render(scene, vp, label, fast)) return false;
-          if (!external) {
-            std::vector<uint8_t> pixels;
-            h.cpu->readbackRGBA(pixels);
-            auto colored = [&](int x, int y) {
-              const size_t i = size_t((y * 64 + x) * 4);
-              return pixels[i] || pixels[i+1] || pixels[i+2];
-            };
-            if (!check(colored(16, 16) && !colored(48, 16) && colored(48, 48),
-                       label + ": independent L notch and body")) return false;
+        for (bool external : {false, true})
+          for (bool uv : {false, true}) {
+            Scene scene(true, primitive);
+            scene.model->model = SoLightModel::PHONG;
+            if (alpha) scene.material->transparency.setValue(.35f);
+            if (uv) {
+              auto *coordinates = new SoTextureCoordinate2;
+              const SbVec2f points[] = {{0,0},{1,0},{1,.4f},{.4f,.4f},{.4f,1},{0,1}};
+              coordinates->point.setValues(0, 6, points);
+              auto *texture = new SoTexture2;
+              const unsigned char pixels[] = {255,64,32,255, 32,255,64,255,
+                                              64,32,255,255, 255,255,64,255};
+              texture->image.setValue(SbVec2s(2,2), 4, pixels);
+              const int shapeIndex = scene.root->getNumChildren() - 1;
+              scene.root->insertChild(coordinates, shapeIndex);
+              scene.root->insertChild(texture, shapeIndex + 1);
+            }
+            SbViewportRegion vp(64, 64);
+            if (external) vp.setViewportPixels(-8, -8, 72, 72);
+            const std::string label = "concave/" + std::to_string(primitive) +
+                                      "/fast-" + std::to_string(fast) +
+                                      "/alpha-" + std::to_string(alpha) +
+                                      "/external-" + std::to_string(external) +
+                                      "/uv-" + std::to_string(uv);
+            if (!h.render(scene, vp, label, fast)) return false;
+            if (!external) {
+              std::vector<uint8_t> pixels;
+              h.cpu->readbackRGBA(pixels);
+              auto colored = [&](int x, int y) {
+                const size_t i = size_t((y * 64 + x) * 4);
+                return pixels[i] || pixels[i+1] || pixels[i+2];
+              };
+              if (!check(colored(16, 16) && !colored(48, 16) && colored(48, 48),
+                         label + ": independent L notch and body")) return false;
+            }
           }
-        }
+  return true;
+}
+bool bindingCrossCases(Harness &h) {
+  const int bindings[] = {SoMaterialBinding::OVERALL,
+                          SoMaterialBinding::PER_PART,
+                          SoMaterialBinding::PER_PART_INDEXED,
+                          SoMaterialBinding::PER_FACE,
+                          SoMaterialBinding::PER_FACE_INDEXED,
+                          SoMaterialBinding::PER_VERTEX,
+                          SoMaterialBinding::PER_VERTEX_INDEXED};
+  // -1 is the nonindexed FaceSet; 0 is the indexed counterpart.
+  for (int primitive : {-1, 0, 5, 6, 7, 11, 12, 13, 14})
+    for (int material : bindings)
+      for (int normal : bindings) {
+        Scene bound(primitive >= 0, primitive < 0 ? 0 : primitive);
+        bound.model->model = SoLightModel::PHONG;
+        bound.mb->value = material;
+        bound.nb->value = normal;
+        if (!h.render(bound, SbViewportRegion(64, 64),
+                      "binding-cross/primitive-" + std::to_string(primitive) +
+                          "/material-" + std::to_string(material) +
+                          "/normal-" + std::to_string(normal), true))
+          return false;
+      }
   return true;
 }
 bool run(bool gpu) {
@@ -506,10 +567,11 @@ bool run(bool gpu) {
       return false;
   }
   if (!concaveCases(h)) return false;
+  if (!bindingCrossCases(h)) return false;
   std::cout<<"Geometry/viewport cases="<<h.cases<<" GPU="<<gpu<<'\n';return true;
 }
 }
-int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();FixtureViewport::initClass();const bool gpu=argc>1&&std::string(argv[1])=="--gpu";
+int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();FixtureViewport::initClass();FixtureFaceSet::initClass();FixtureIndexedFaceSet::initClass();const bool gpu=argc>1&&std::string(argv[1])=="--gpu";
 #ifndef HAVE_COIN_BGFX
   if(gpu&&!CoinRenderAction::isGpuBackendAvailable())return 77;
 #endif
@@ -541,6 +603,14 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
                  "precise QuadMesh GPU rejection preserves publication")) return 1;
     }
     if (!h.render(baseline, SbViewportRegion(64,64), "precise/recovery", true)) return 1;
+    // CoinGL ignores the precise path with per-vertex materials, so the
+    // portable callback must keep accepting its ordinary QuadMesh triangles.
+    Scene fallback(true, 5);
+    fallback.model->model = SoLightModel::PHONG;
+    fallback.mb->value = SoMaterialBinding::PER_VERTEX;
+    fallback.nb->value = SoNormalBinding::PER_VERTEX;
+    if (!h.render(fallback, SbViewportRegion(64,64), "precise/per-vertex-fallback", true))
+      return 1;
     std::cout << "precise QuadMesh rejection and recovery passed GPU=" << bool(h.native) << '\n';
     return 0;
   }
@@ -554,6 +624,12 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
     Harness h(CoinRenderAction::isGpuBackendAvailable());
     if (!concaveCases(h)) return 1;
     std::cout << "concave cases=" << h.cases << '\n';
+    return 0;
+  }
+  if (argc > 1 && std::string(argv[1]) == "--probe-binding-cross") {
+    Harness h(CoinRenderAction::isGpuBackendAvailable());
+    if (!bindingCrossCases(h)) return 1;
+    std::cout << "binding crosses=" << h.cases << '\n';
     return 0;
   }
   if (argc > 1 && std::string(argv[1]) == "--probe-lighting") {

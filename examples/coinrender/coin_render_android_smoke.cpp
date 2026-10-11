@@ -109,6 +109,7 @@ struct Host {
   uint64_t surfaceGeneration = 0;
   CoinRenderRenderer renderer = COIN_ANDROID_SMOKE_RENDERER;
   SoPerspectiveCamera * cityCamera = nullptr;
+  bool cityCameraFramed = false;
   bool city = false;
   bool million = false;
   bool selectionSaved = false;
@@ -289,7 +290,18 @@ struct Host {
     }
     ++surfaceGeneration;
     action->setRenderTarget(target.get());
-    if (cityCamera) cityCamera->viewAll(scene, SbViewportRegion(size[0], size[1]), 1.15f);
+    if (cityCamera) {
+      // The camera belongs to this Activity, not to an ANativeWindow. A
+      // TERM_WINDOW/INIT_WINDOW pair must keep the user's orbit and zoom.
+      if (!cityCameraFramed) {
+        cityCamera->viewAll(scene, SbViewportRegion(size[0], size[1]), 1.15f);
+        cityCameraFramed = true;
+      }
+      __android_log_print(ANDROID_LOG_INFO, tag,
+        "camera_surface generation=%llu focal=%.3f",
+        static_cast<unsigned long long>(surfaceGeneration),
+        cityCamera->focalDistance.getValue());
+    }
     render();
     if (target->getLastSubmissionSerial() != 0) {
       if (city && !failed && !selectionSaved) {
