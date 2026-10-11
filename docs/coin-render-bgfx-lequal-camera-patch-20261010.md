@@ -41,10 +41,24 @@ Os [CSV e logs](validation/bgfx-lequal-camera-20261010/) guardam os recibos;
 os PPMs grandes permaneceram locais em `/tmp/bgfx-lequal-*.ppm`.
 
 `CoinBgfxCoreTest`, `CoinBgfxInstancingTest` e `CoinRenderDepthContractTest`
-passaram. Na seleção ampliada de 40 testes BGFX/câmera/depth, 37 passaram,
-um foi ignorado e dois controles `CoinRenderDepthDisabled_*` falharam porque
-o oracle CoinGL não conseguiu criar contexto GLX; o mesmo ocorreu com
-`DISPLAY=:0`. Essa falha não foi atribuída ao patch.
+passaram. A seleção ampliada de 40 testes BGFX/câmera/depth terminou com
+39 aprovados e um ignorado (`CoinRenderCameraReuseReferenceTest`). Os dois
+controles `CoinRenderDepthDisabled_*` usam `SoOffscreenRenderer` da rota
+CoinGL original como referência independente de pixels. Sem configuração
+GLX, o oracle não conseguiu criar contexto e os testes pararam antes da
+comparação. Neste X11, ambos passaram com:
+
+```sh
+DISPLAY=:0 XAUTHORITY=/home/dikluwe/.Xauthority \
+COIN_GLX_PIXMAP_DIRECT_RENDERING=1 COIN_GLXGLUE_NO_PBUFFERS=1 \
+ctest --test-dir build-coinrender-camera-bgfx -j 8 \
+  -R 'CoinBgfx|CoinRender(Camera|FrameReuse|Depth)' --output-on-failure
+```
+
+O primeiro ajuste permite contexto GLX direto em pixmap; o segundo evita a
+troca para pbuffer. A configuração já era usada em outras campanhas Linux
+do projeto. Ela é necessária para executar o oracle neste servidor X11;
+não altera o critério de comparação nem o backend testado.
 
 O frame de um milhão ainda gasta cerca de 0,30 s para remontar o payload
 de instâncias no lowering, além do custo do plano de cena; esta campanha
