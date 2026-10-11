@@ -5,6 +5,7 @@
 #include <Inventor/SoPrimitiveVertex.h>
 #if COIN_HAVE_LEGACY_GL_RENDERER
 #include <Inventor/SoOffscreenRenderer.h>
+#include <Inventor/system/gl.h>
 #endif
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoCallbackAction.h>
@@ -17,6 +18,7 @@
 #include <Inventor/elements/SoComplexityTypeElement.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoClipPlane.h>
+#include <Inventor/nodes/SoCallback.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -344,6 +346,69 @@ bool nearFarBoundingClip(bool gpu) {
   return renderExact("bbox-depth/restored") &&
     restored(test, baseCpu, baseNative, "bbox-depth/A-B-A");
 }
+#if COIN_HAVE_LEGACY_GL_RENDERER
+bool nativeGeometricDepthClampProbe() {
+  Scene scene;
+  scene.transform->rotation.setValue(SbVec3f(0, 1, 0), .6f);
+  auto * camera = static_cast<SoOrthographicCamera *>(scene.root->getChild(0));
+  SoOffscreenRenderer gl(SbViewportRegion(width, height));
+  gl.setComponents(SoOffscreenRenderer::RGB);
+  gl.setBackgroundColor(SbColor(0, 0, 0));
+  auto capture = [&]() {
+    std::vector<uint8_t> result;
+    if (gl.render(scene.root) && gl.getBuffer()) {
+      const uint8_t * data = gl.getBuffer();
+      result.assign(data, data + width * height * 3);
+    }
+    return result;
+  };
+  auto countColored = [](const std::vector<uint8_t> & data) {
+    size_t count = 0;
+    for (size_t i = 0; i < data.size(); i += 3)
+      count += data[i] > 3 || data[i + 1] > 3 || data[i + 2] > 3;
+    return count;
+  };
+
+  GLboolean previous = GL_FALSE;
+  auto * enable = new SoCallback;
+  enable->ref();
+  enable->setCallback([](void * user, SoAction * action) {
+    if (!action->isOfType(SoGLRenderAction::getClassTypeId())) return;
+    auto * prior = static_cast<GLboolean *>(user);
+    *prior = glIsEnabled(GL_DEPTH_CLAMP);
+    glEnable(GL_DEPTH_CLAMP);
+  }, &previous);
+  auto * restore = new SoCallback;
+  restore->ref();
+  restore->setCallback([](void * user, SoAction * action) {
+    if (!action->isOfType(SoGLRenderAction::getClassTypeId())) return;
+    if (!*static_cast<GLboolean *>(user)) glDisable(GL_DEPTH_CLAMP);
+  }, &previous);
+
+  for (const auto & caseName : {std::string("near"), std::string("far")}) {
+    camera->nearDistance = caseName == "near" ? 5.0f : 1.0f;
+    camera->farDistance = caseName == "near" ? 20.0f : 5.0f;
+    const auto clipped = capture();
+    if (!check(clipped.size() == width * height * 3, "native depth-clamp baseline unavailable")) return false;
+    scene.content->insertChild(enable, 0);
+    scene.content->addChild(restore);
+    const auto clamped = capture();
+    if (!check(clamped.size() == clipped.size(), "native depth-clamp capture unavailable")) return false;
+    size_t changedPixels = 0;
+    for (size_t i = 0; i < clipped.size(); i += 3)
+      changedPixels += clipped[i] != clamped[i] || clipped[i + 1] != clamped[i + 1] ||
+                       clipped[i + 2] != clamped[i + 2];
+    std::cout << "bbox-depth-clamp/" << caseName << " clipped_pixels=" << countColored(clipped)
+              << " clamped_pixels=" << countColored(clamped) << " changed_pixels=" << changedPixels << '\n';
+    if (!check(changedPixels >= 16, "GL_DEPTH_CLAMP must have a visible effect")) return false;
+    scene.content->removeChild(restore);
+    scene.content->removeChild(enable);
+  }
+  restore->unref();
+  enable->unref();
+  return true;
+}
+#endif
 bool bounds(const CoinRenderFramePlan & frame, const SbVec3f & expectedMin, const SbVec3f & expectedMax,
             const std::string & label) {
   if (!check(!frame.vertices.empty() && !frame.draws.empty(), label + ": no captured geometry")) return false;
@@ -995,12 +1060,13 @@ bool shadowMapGeometry(bool gpu) {
 } // namespace
 
 int main(int argc,char ** argv) {
-  bool gpu=false, depthProbe=false;
+  bool gpu=false, depthProbe=false, clampProbe=false;
   for(int i=1;i<argc;++i) {
     const std::string argument=argv[i];
     if(argument=="--gpu")gpu=true;else if(argument=="--capture")gpu=false;
     else if(argument=="--probe-depth-clip")depthProbe=true;
-    else {std::cerr<<"Usage: CoinRenderBoundingBoxTest --capture|--gpu [--probe-depth-clip]\n";return 2;}
+    else if(argument=="--probe-gl-depth-clamp")clampProbe=true;
+    else {std::cerr<<"Usage: CoinRenderBoundingBoxTest --capture|--gpu [--probe-depth-clip|--probe-gl-depth-clamp]\n";return 2;}
   }
   SoDB::init();CoinRenderAction::initClass();BoundingFixtureShape::initClass();
   if(gpu && !CoinRenderAction::isGpuBackendAvailable()) {
@@ -1008,6 +1074,9 @@ int main(int argc,char ** argv) {
   }
 #if !COIN_HAVE_LEGACY_GL_RENDERER
   if(gpu){std::cerr<<"CoinRenderBoundingBoxTest mandatory CoinGL oracle not compiled\n";return 1;}
+  if(clampProbe){std::cerr<<"CoinRenderBoundingBoxTest GL_DEPTH_CLAMP probe requires CoinGL\n";return 77;}
+#else
+  if (clampProbe) return nativeGeometricDepthClampProbe() ? 0 : 1;
 #endif
   if (depthProbe) return nearFarBoundingClip(gpu) ? 0 : 1;
   if(!nearFarBoundingClip(gpu) || !typeAndReuse(gpu) || !nativeShapeKinds(gpu) || !transformationsAndStyles(gpu) ||

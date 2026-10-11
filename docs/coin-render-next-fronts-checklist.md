@@ -385,12 +385,15 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
   5 testes BGFX/OpenGL de janela ([diagnóstico e limites](coin-render-bgfx-egl-spline-timeout-20261010.md)).
 - [x] Corrigir registro tardio de subclasses em SoCallbackAction sem duplicar
   callbacks/observadores; qualificar Polygon pelo generatePrimitives no viewport.
-- [ ] **Estudo:** bbox com geometric depth clamp; o perfil qualificado continua
+- [x] **Estudo:** bbox com geometric depth clamp; o perfil qualificado continua
   com os cantos no volume de profundidade.
   O controle near/far atravessando a caixa passou com RGB exato em CPU,
   BGFX/OpenGL, BGFX/Vulkan e wgpu/Vulkan contra CoinGL; rejeição total e
-  restauração A/B/A também passaram. Isto verifica clipping normal, ainda
-  não `GL_DEPTH_CLAMP` ([início da frente local](coin-render-local-closure-20261010.md)).
+  restauração A/B/A também passaram. A sonda CoinGL com `GL_DEPTH_CLAMP`
+  habilitado por callback mudou 192 pixels em cada plano: clipping normal e
+  clamp geométrico têm contratos distintos. O CoinRender continua sem estado
+  portátil de clamp; sua eventual implementação pertence ao item geral de
+  profundidade acima ([estudo e recibos](coin-render-local-closure-20261010.md)).
 - [x] Disponibilizar delegação comum para subclasses SoText2/SoImage, preservando
   callbacks/observadores e falha sem publicação; adaptar SoColorBarLabel e
   SoFrameLabel com preparo frio no host.

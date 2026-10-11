@@ -1,8 +1,9 @@
 # Frente de fechamento neste Linux
 
 Iniciada em 2026-10-10 na branch `codex/coin-render`. O
-[checklist](coin-render-next-fronts-checklist.md) contém 27 frentes abertas e
-cinco critérios recorrentes de entrega. A classificação abaixo indica o que
+[checklist](coin-render-next-fronts-checklist.md) tinha 27 frentes abertas e
+cinco critérios recorrentes de entrega no início desta rodada; o estudo da
+linha 388 foi concluído abaixo. A classificação indica o que
 este computador permite **executar**, não promete que uma investigação terá
 resultado suficiente para marcar a caixa. Nenhuma falha visual ou gate será
 reclassificado por mera ausência de reprodução.
@@ -21,7 +22,7 @@ reclassificado por mera ausência de reprodução.
 | 353 — outros drivers/FreeCAD | Parcial | AMD/NVIDIA e FreeCAD Linux; Windows e outros drivers ficam externos. |
 | 363 — workbenches | Parcial | Consumidores reais Linux; matriz Windows externa. |
 | 368 — arraste/workbenches | Parcial | Input e workbenches Linux; repetir adaptadores no Windows depois. |
-| 388 — bbox/depth clamp | Local | Medir `GL_DEPTH_CLAMP` além do controle near/far desta rodada. |
+| 388 — bbox/depth clamp | Concluído nesta rodada | Clipping e clamp distinguidos em sonda CoinGL; contrato portátil continua no item 348. |
 | 407 — mips/recursos | Local | Implementar células Linux com orçamento e rollback; outras APIs depois. |
 | 452 — desempenho Windows | Externo | Exige host Windows e controle de clocks/latência. |
 | 485 — igualdade janela/offscreen | Local | Isolar cidade em movimento e primeiro frame wgpu/OpenGL. |
@@ -48,11 +49,18 @@ e MAE foram zero nas 12 comparações por backend. A regressão completa passou
 com 143 comparações CoinGL em BGFX/OpenGL, BGFX/Vulkan e wgpu/Vulkan. Os
 [recibos](validation/bbox-depth-20261010/) registram as saídas.
 
-Este ensaio cobre clipping geométrico normal. `GL_DEPTH_CLAMP` altera a
-semântica do volume de profundidade e ainda não foi ativado/comparado; os
-itens 348 e 388 continuam abertos. A próxima sonda deve distinguir os pixels
-de borda gerados por clamp dos preservados por clipping, e só depois decidir
-se cabe contrato portátil ou rejeição explícita.
+Este ensaio cobre clipping geométrico normal. A sonda separada
+`--probe-gl-depth-clamp` habilitou `GL_DEPTH_CLAMP` apenas no CoinGL via
+`SoCallback`, restaurou o estado após a caixa e comparou com a mesma cena sem
+clamp. Near e far passaram de 1536 pixels sob clipping a 1728 sob clamp:
+**192 pixels alterados em cada plano**
+([log](validation/bbox-depth-20261010/coingl-depth-clamp.log)). Assim, o
+clamp não pode ser inferido de um `SoDepthBuffer` com range limitado ou de
+uma caixa que cruza o plano. O perfil atual de bounding box continua a usar
+clipping geométrico; não há estado CoinRender portátil que solicite
+`GL_DEPTH_CLAMP`. A implementação de tal estado, suas regras de rejeição e
+a qualificação em formatos/drivers permanecem no item 348. Isso encerra o
+**estudo específico da caixa**, não a funcionalidade geral de depth clamp.
 
 Para reproduzir a sonda curta, compilar `CoinRenderBoundingBoxTest` em cada
 build e executar `--capture --probe-depth-clip` e `--gpu --probe-depth-clip`.
@@ -60,4 +68,5 @@ As execuções GPU desta rodada usaram X11 `:0`, oráculo GLX NVIDIA com
 `__NV_PRIME_RENDER_OFFLOAD=1`, `__GLX_VENDOR_LIBRARY_NAME=nvidia` e
 `COIN_GLX_PIXMAP_DIRECT_RENDERING=1`; BGFX/OpenGL usou EGL Mesa AMD e as
 rotas Vulkan usaram o ICD Radeon. A regressão completa foi executada sem a
-opção de sonda.
+opção de sonda; a sonda `--probe-gl-depth-clamp` usa somente CoinGL e não é um
+gate de equivalência portátil.
