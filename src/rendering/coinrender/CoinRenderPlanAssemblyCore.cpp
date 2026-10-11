@@ -210,7 +210,8 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
         existing.lineWidth == rs.lineWidth &&
         existing.pointSize == rs.pointSize &&
         coin_render_same_texture_units(existing.extraTextures, rs.extraTextures) &&
-        std::memcmp(existing.textureCombines, rs.textureCombines, sizeof(rs.textureCombines)) == 0 &&
+        std::memcmp(existing.textureCombines.data(), rs.textureCombines.data(),
+                    sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) == 0 &&
         existing.hasTexture == rs.hasTexture &&
         existing.linePattern == rs.linePattern &&
         existing.linePatternScaleFactor == rs.linePatternScaleFactor &&

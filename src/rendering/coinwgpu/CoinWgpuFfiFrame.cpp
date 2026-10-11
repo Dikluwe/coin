@@ -188,7 +188,8 @@ bool sameOpaquePackedFields(const CoinRenderRenderStateSnapshot & a,
   if (std::memcmp(a.textureMatrix.getValue(), b.textureMatrix.getValue(), sizeof(float) * 16) ||
       a.alphaTestFunction != b.alphaTestFunction ||
       std::memcmp(&a.alphaTestReference, &b.alphaTestReference, sizeof(float)) ||
-      std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) ||
+      std::memcmp(a.textureCombines.data(), b.textureCombines.data(),
+                  sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) ||
       a.textureImageSlot != b.textureImageSlot || a.samplerSlot != b.samplerSlot ||
       a.textureModel != b.textureModel || a.textureProjection != b.textureProjection ||
       std::memcmp(a.textureBlendColor, b.textureBlendColor, sizeof(a.textureBlendColor)) ||
@@ -1491,7 +1492,7 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
   dst.front_face = static_cast<uint32_t>(src.frontFace);
   dst.light_model = static_cast<uint32_t>(src.lightModel);
   std::memcpy(dst.texture_matrix, src.textureMatrix.getValue(), sizeof(float) * 16);
-  std::memcpy(dst.texture_combines, src.textureCombines, sizeof(dst.texture_combines));
+  std::memcpy(dst.texture_combines, src.textureCombines.data(), sizeof(dst.texture_combines));
   for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
     const auto layer = coin_render_texture_unit(src, unit);
     auto& target = dst.extra_textures[unit - 1];

@@ -1010,7 +1010,8 @@ if(COIN_BUILD_RENDER)
 		add_test(NAME CoinRenderRttProfileMipsDirectTest COMMAND CoinRenderRttProfileTest --mips-direct)
 		add_test(NAME CoinRenderRttProfileMipsTest COMMAND CoinRenderRttProfileTest --mips)
 		add_test(NAME CoinRenderRttProfileMipsPbufferTest COMMAND CoinRenderRttProfileTest --mips)
-		set_tests_properties(CoinRenderRttProfileMipsTest CoinRenderRttProfileMipsPbufferTest PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)
+		set_tests_properties(CoinRenderRttProfileMipsDirectTest CoinRenderRttProfileMipsTest
+			CoinRenderRttProfileMipsPbufferTest PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)
 		set_tests_properties(CoinRenderRttProfileMipsPbufferTest PROPERTIES ENVIRONMENT "COIN_DONT_USE_FBO=1")
 		set_tests_properties(CoinRenderRttProfileStagedTest CoinRenderRttProfileDirectTest
 			CoinRenderRttProfilePbufferTest PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)

@@ -355,7 +355,11 @@ coin_render_append_shadow_scene(CoinRenderFramePlan & frame,
     state.materialSlot += materials; state.lightingSlot += lighting;
     state.cameraSlot += cameras; state.viewportSlot += viewports;
     if (state.hasTexture) { state.textureImageSlot += textures; state.samplerSlot += samplers; }
-    for (auto & unit : state.extraTextures) if (unit.enabled) { unit.imageSlot += textures; unit.samplerSlot += samplers; }
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++unit)
+      if (static_cast<const CoinRenderRenderStateSnapshot &>(state).extraTextures[unit].enabled) {
+        state.extraTextures[unit].imageSlot += textures;
+        state.extraTextures[unit].samplerSlot += samplers;
+      }
     state.shadowGroupSlot = frame.shadowLights[lightSlot - 1].groupSlot;
     // Map geometry is captured in group-local coordinates after GL resets
     // the model matrix. The common pass uses world coordinates.

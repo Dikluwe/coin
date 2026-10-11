@@ -845,7 +845,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.viewport[3] = viewport.height;
     lowered.renderLayer = draw.renderLayer;
     lowered.clearDepthBefore = draw.clearDepthBefore;
-    std::memcpy(lowered.textureCombines, state.textureCombines, sizeof(lowered.textureCombines));
+    std::memcpy(lowered.textureCombines, state.textureCombines.data(), sizeof(lowered.textureCombines));
     lowered.hasTexture = state.hasTexture;
     lowered.textureSlot = state.textureImageSlot;
     lowered.textureModel = state.textureModel;

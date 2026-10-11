@@ -648,7 +648,8 @@ bool projectiveTextureLowering(const CoinRenderFramePlan & base)
   textureMatrix[2][3] = .2f;
   textureMatrix[3][3] = 4.0f;
   state.textureMatrix = textureMatrix;
-  for (auto & layer : state.extraTextures) {
+  for (size_t unit = 0; unit < state.extraTextures.size(); ++unit) {
+    auto & layer = state.extraTextures[unit];
     layer.enabled = true;
     layer.matrix = textureMatrix;
   }
@@ -718,7 +719,8 @@ bool projectiveTextureLowering(const CoinRenderFramePlan & base)
   CoinRenderFramePlan direct = frame;
   direct.renderStates[0].textureProjection = CoinRenderTextureProjection::DIRECT_ST;
   direct.renderStates[0].textureMatrix = SbMatrix::identity();
-  for (auto & layer : direct.renderStates[0].extraTextures) layer.matrix = SbMatrix::identity();
+  for (size_t unit = 0; unit < direct.renderStates[0].extraTextures.size(); ++unit)
+    direct.renderStates[0].extraTextures[unit].matrix = SbMatrix::identity();
   for (size_t vertex = 0; vertex < direct.vertices.size(); ++vertex)
     for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
       direct.vertices[vertex].textureQ[unit] = vertex == 0 ? 0.0f : vertex == 1 ? -2.0f : 3.0f;

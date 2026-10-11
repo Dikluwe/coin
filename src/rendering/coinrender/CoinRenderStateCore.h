@@ -4,8 +4,8 @@
 #include <cstring>
 
 template <size_t N>
-inline bool coin_render_same_texture_units(const CoinRenderTextureUnitSnapshot (&a)[N],
-                                           const CoinRenderTextureUnitSnapshot (&b)[N])
+inline bool coin_render_same_texture_units_data(const CoinRenderTextureUnitSnapshot * a,
+                                                const CoinRenderTextureUnitSnapshot * b)
 {
   // Compare values, never the padding following the enabled flag.
   for (size_t i = 0; i < N; ++i) {
@@ -15,6 +15,20 @@ inline bool coin_render_same_texture_units(const CoinRenderTextureUnitSnapshot (
         a[i].matrix != b[i].matrix) return false;
   }
   return true;
+}
+
+template <size_t N>
+inline bool coin_render_same_texture_units(const CoinRenderSparseArray<CoinRenderTextureUnitSnapshot, N> & a,
+                                           const CoinRenderSparseArray<CoinRenderTextureUnitSnapshot, N> & b)
+{
+  return coin_render_same_texture_units_data<N>(a.data(), b.data());
+}
+
+template <size_t N>
+inline bool coin_render_same_texture_units(const CoinRenderTextureUnitSnapshot (&a)[N],
+                                           const CoinRenderTextureUnitSnapshot (&b)[N])
+{
+  return coin_render_same_texture_units_data<N>(a, b);
 }
 
 inline bool
@@ -52,7 +66,8 @@ coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
     a.preservePolygonEdgeDirection == b.preservePolygonEdgeDirection &&
     a.textureMatrix == b.textureMatrix &&
     coin_render_same_texture_units(a.extraTextures, b.extraTextures) &&
-    std::memcmp(a.textureCombines, b.textureCombines, sizeof(a.textureCombines)) == 0 &&
+    std::memcmp(a.textureCombines.data(), b.textureCombines.data(),
+                sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) == 0 &&
     a.hasTexture == b.hasTexture && a.textureImageSlot == b.textureImageSlot &&
     a.samplerSlot == b.samplerSlot && a.textureModel == b.textureModel &&
     std::memcmp(a.textureBlendColor, b.textureBlendColor,

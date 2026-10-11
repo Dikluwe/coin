@@ -15,6 +15,8 @@
 #include <vector>
 #include <string>
 #include <cstdint>
+#include <array>
+#include <memory>
 
 static const size_t COIN_RENDER_MAX_TEXTURE_UNITS = 8;
 
@@ -290,6 +292,36 @@ struct CoinRenderTextureUnitSnapshot {
   SbMatrix matrix = SbMatrix::identity();
 };
 
+// Most retained instances have no extra texture state. Share the immutable
+// default payload and detach on writes so plan copies remain transactional.
+template <typename T, size_t Count>
+class CoinRenderSparseArray {
+public:
+  const T & operator[](size_t index) const { return this->values()[index]; }
+  T & operator[](size_t index) { return this->writable()[index]; }
+  const T * data() const { return this->values().data(); }
+  const T * begin() const { return this->data(); }
+  const T * end() const { return this->data() + Count; }
+  static constexpr size_t size() { return Count; }
+  bool allocated() const { return bool(this->storage); }
+
+private:
+  static const std::array<T, Count> & defaults() {
+    static const std::array<T, Count> empty{};
+    return empty;
+  }
+  const std::array<T, Count> & values() const {
+    return this->storage ? *this->storage : defaults();
+  }
+  std::array<T, Count> & writable() {
+    if (!this->storage) this->storage = std::make_shared<std::array<T, Count>>(defaults());
+    else if (!this->storage.unique())
+      this->storage = std::make_shared<std::array<T, Count>>(*this->storage);
+    return *this->storage;
+  }
+  std::shared_ptr<std::array<T, Count>> storage;
+};
+
 struct CoinRenderRenderStateSnapshot {
   std::vector<SbPlane> clipPlanesWorld; // Captured at plane traversal, not shape traversal.
   SbMatrix model = SbMatrix::identity();
@@ -344,8 +376,8 @@ struct CoinRenderRenderStateSnapshot {
   float fogColor[3] = {1.0f, 1.0f, 1.0f};
   float fogStart = 0.0f;
   float fogEnd = 10.0f;
-  CoinRenderTextureUnitSnapshot extraTextures[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
-  CoinRenderTextureCombineSnapshot textureCombines[COIN_RENDER_MAX_TEXTURE_UNITS];
+  CoinRenderSparseArray<CoinRenderTextureUnitSnapshot, COIN_RENDER_MAX_TEXTURE_UNITS - 1> extraTextures;
+  CoinRenderSparseArray<CoinRenderTextureCombineSnapshot, COIN_RENDER_MAX_TEXTURE_UNITS> textureCombines;
 };
 
 inline bool coin_render_texture_unit_enabled(const CoinRenderRenderStateSnapshot & state, size_t unit) {

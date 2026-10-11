@@ -418,6 +418,25 @@ main()
 {
   SoDB::init();
   bool ok = true;
+  CoinRenderRenderStateSnapshot sparse;
+  ok &= check(!sparse.extraTextures.allocated() && !sparse.textureCombines.allocated() &&
+              !static_cast<const CoinRenderRenderStateSnapshot &>(sparse).extraTextures[0].enabled &&
+              !sparse.extraTextures.allocated(),
+              "unused texture state must stay sparse after a const read");
+  CoinRenderRenderStateSnapshot detached = sparse;
+  detached.extraTextures[0].enabled = true;
+  detached.textureCombines[0].instructions[3][2] = .75f;
+  ok &= check(!static_cast<const CoinRenderRenderStateSnapshot &>(sparse).extraTextures[0].enabled &&
+              static_cast<const CoinRenderRenderStateSnapshot &>(sparse).textureCombines[0].instructions[3][2] == 0 &&
+              detached.extraTextures.allocated() && detached.textureCombines.allocated(),
+              "texture writes must leave a copied plan unchanged");
+  CoinRenderRenderStateSnapshot secondCopy = detached;
+  secondCopy.extraTextures[0].enabled = false;
+  secondCopy.textureCombines[0].instructions[3][2] = .25f;
+  ok &= check(static_cast<const CoinRenderRenderStateSnapshot &>(detached).extraTextures[0].enabled &&
+              static_cast<const CoinRenderRenderStateSnapshot &>(detached).textureCombines[0].instructions[3][2] == .75f,
+              "materialized texture payload must detach on later writes");
+  std::cout << "render_state_stride=" << sizeof(CoinRenderRenderStateSnapshot) << '\n';
   ok &= testFiniteValidation();
   ok &= testCombineValidationMemo();
   ok &= testSubmissionPreflight();

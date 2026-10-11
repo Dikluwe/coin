@@ -675,11 +675,17 @@ nem encerra uma campanha completa de desempenho Windows.
 - [ ] Estudo: reduzir estados CPU, abertura e custo durante arrastes do milhão;
   ampliar memória/caudas de latência e retomada. A cena parada chegou perto de
   30 FPS; interação varia e o AVD de 2 GiB não está qualificado.
+  O payload de texturas não usado agora é disperso: o estado caiu de 1.648
+  para 496 B; no milhão Linux/AMD Vulkan o RSS máximo caiu de 4.410.844 para
+  3.263.360 KiB com digest idêntico. Testes Core, FFI, texturas e 219/219
+  CTests wgpu passaram. O AVD solicitou no mínimo 4 GiB e o emulador com GPU
+  host caiu no boot antes do app; a versão nova ainda não passou Android
+  ([recibo e limites](validation/sparse-state-million-20261011/summary.md)).
   O undo do overlay de câmera passou a guardar a câmera anterior e bitset de
   fog em vez de copiar cada estado: no AVD de 8 GiB, `frame_plan_ms` mediano
   no arraste caiu de 130,3 para 34,1 ms; o backend continuou perto de 64 ms.
-  Rollback exato e referência CoinGL passaram. Abertura, compactação do plano,
-  2 GiB e caudas longas seguem abertos
+  Rollback exato e referência CoinGL passaram. Abertura Android, redução
+  adicional de memória, 2 GiB e caudas longas seguem abertos
   ([A/B e limites](validation/android-million-camera-20261010/summary.md)).
 - [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
   a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
