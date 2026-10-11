@@ -24,6 +24,7 @@ struct CoinRenderResourceStamp {
 
 class CoinRenderRttPlan {
 public:
+  static constexpr int32_t maxExtent = 4096;
   explicit CoinRenderRttPlan(CoinRenderSceneTextureMode selected = COIN_RENDER_SCENE_TEXTURE_STAGED)
       : mode(selected) {}
   CoinRenderSceneTextureMode mode;
@@ -31,10 +32,16 @@ public:
   size_t chargedBytes = 0;
   std::vector<uint64_t> activeSources;
   static size_t budget() { return size_t(64) * 1024 * 1024; }
+  int32_t maxForMode() const {
+    return mode == COIN_RENDER_SCENE_TEXTURE_DIRECT ? maxExtent : 2048;
+  }
 
   bool enter(uint64_t source, const SbVec2i32& size, std::string& diagnostic) {
-    if (!source || size[0] <= 0 || size[1] <= 0 || size[0] > 2048 || size[1] > 2048) {
-      diagnostic = "SoSceneTexture2 requires a scene and dimensions in 1..2048";
+    if (!source || size[0] <= 0 || size[1] <= 0 ||
+        size[0] > maxForMode() || size[1] > maxForMode()) {
+      diagnostic = mode == COIN_RENDER_SCENE_TEXTURE_DIRECT
+                       ? "SoSceneTexture2 direct requires dimensions in 1..4096"
+                       : "SoSceneTexture2 staged requires dimensions in 1..2048";
       return false;
     }
     if (activeSources.size() >= 8 ||
@@ -54,7 +61,7 @@ public:
   bool append(CoinRenderRttProducer producer, uint64_t& id, std::string& diagnostic) {
     id = 0;
     if (!producer.sourceRevision || producer.size[0] <= 0 || producer.size[1] <= 0 ||
-        producer.size[0] > 2048 || producer.size[1] > 2048) {
+        producer.size[0] > maxForMode() || producer.size[1] > maxForMode()) {
       diagnostic = "Invalid scene texture producer descriptor";
       return false;
     }
@@ -90,7 +97,7 @@ public:
     for (size_t i = 0; i < producers.size(); ++i) {
       const auto& producer = producers[i];
       if (!producer.sourceRevision || producer.size[0] <= 0 || producer.size[1] <= 0 ||
-          producer.size[0] > 2048 || producer.size[1] > 2048) {
+          producer.size[0] > maxForMode() || producer.size[1] > maxForMode()) {
         diagnostic = "Invalid scene texture producer descriptor";
         return false;
       }
@@ -148,7 +155,8 @@ public:
   }
 private:
   bool charge(const SbVec2i32& size, std::string& diagnostic) {
-    if (size[0] <= 0 || size[1] <= 0 || size[0] > 2048 || size[1] > 2048) {
+    if (size[0] <= 0 || size[1] <= 0 ||
+        size[0] > maxForMode() || size[1] > maxForMode()) {
       diagnostic = "Invalid scene texture producer dimensions";
       return false;
     }
@@ -199,7 +207,8 @@ public:
   bool bind(uint64_t id, uint64_t producer, const CoinRenderResourceStamp& stamp,
             CoinRenderTextureImageSnapshot texture, std::string& diagnostic) {
     if (id != entries.size() + 1 || !producer || !stamp.owner || texture.producerId ||
-        !texture.width || !texture.height || texture.width > 2048 || texture.height > 2048 ||
+        !texture.width || !texture.height || texture.width > CoinRenderRttPlan::maxExtent ||
+        texture.height > CoinRenderRttPlan::maxExtent ||
         texture.components != 4 ||
         (texture.gpuToken && (!stamp.device || !stamp.deviceGeneration)) ||
         (texture.gpuToken && !texture.pixelsRgba.empty()) ||

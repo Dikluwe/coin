@@ -23,7 +23,7 @@ reclassificado por mera ausência de reprodução.
 | 363 — workbenches | Parcial | Consumidores reais Linux; matriz Windows externa. |
 | 368 — arraste/workbenches | Parcial | Input e workbenches Linux; repetir adaptadores no Windows depois. |
 | 388 — bbox/depth clamp | Concluído nesta rodada | Clipping e clamp distinguidos em sonda CoinGL; contrato portátil continua no item 348. |
-| 407 — mips/recursos | Local | Implementar células Linux com orçamento e rollback; outras APIs depois. |
+| 407 — mips/recursos | Concluído em 2026-10-11 | Mips GPU diretos RGBA8/RGBA16F e 4096×1024 sob 64 MiB; seis perfis Linux e recuperação após rejeição. [Recibo](validation/rtt-direct-mips-wide-20261011/summary.md). |
 | 452 — desempenho Windows | Externo | Exige host Windows e controle de clocks/latência. |
 | 485 — igualdade janela/offscreen | Parcial em curso | 40/40 cidade/terreno passaram; capturar recorrência preta espontânea com leituras X11 repetidas e repetir os gates Windows. |
 | 550 — bordas AMD/Vulkan | Local | Snap comum e testemunhos P20/câmera com alpha/ownership isolados. |
@@ -34,7 +34,7 @@ reclassificado por mera ausência de reprodução.
 | 589 — DPI/TDR Windows | Externo | Exige monitores com DPI distinto e host Windows. |
 | 592 — Metal/Wayland físico | Externo | Metal indisponível; compositor físico/escala fracionária requer outro perfil. |
 | 603 — Android duas janelas | Local | Ampliar o AVD x86_64 e preservar zoom/RTT. |
-| 611 — milhão no AVD | Local | Medir estados CPU, arraste e caudas de latência. |
+| 611 — milhão no AVD | Concluído como estudo em 2026-10-11 | Estado CPU 1.648→496 B; AVD 8 GiB passou interação/retomada, 4 GiB sofreu encerramento por falta de memória; 2 GiB não qualificado. [Recibo](validation/sparse-state-million-20261011/summary.md). |
 | 614 — layout GPU compacto | Parcial | Diferença AMD/Vulkan/CoinGL aqui; Metal/D3D12 fora. |
 | 616 — Android físico arm64 | Externo | Emulação x86_64 não substitui o dispositivo. |
 

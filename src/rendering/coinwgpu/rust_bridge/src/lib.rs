@@ -7094,6 +7094,12 @@ fn coin_wgpu_submit_internal(
         }
         let output_format=if f.texture_output_flags&1!=0 {wgpu::TextureFormat::Rgba16Float} else {wgpu::TextureFormat::Rgba8Unorm};
         let output_mips=if f.texture_output_flags&2!=0 {width.max(height).ilog2()+1} else {1};
+        if !out_texture.is_null() &&
+           (width > ctx.device.limits().max_texture_dimension_2d ||
+            height > ctx.device.limits().max_texture_dimension_2d) {
+            set_error(error_buf,error_buf_len,"Direct RTT exceeds the adapter texture dimension");
+            return CoinWgpuStatus::Unsupported;
+        }
         if !ctx.adapter.get_texture_format_features(output_format).allowed_usages.contains(
             wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|
               if output_mips>1 {wgpu::TextureUsages::STORAGE_BINDING} else {wgpu::TextureUsages::empty()}) {

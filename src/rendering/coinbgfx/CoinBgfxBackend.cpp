@@ -3333,13 +3333,17 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
 
   if (!this->initialized || !this->onApiThread() ||
       producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
-      size[0] > 2048 || size[1] > 2048) {
+      size[0] > CoinRenderRttPlan::maxExtent || size[1] > CoinRenderRttPlan::maxExtent) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY,
                         "BGFX direct RTT requires a prepared backend and valid extent");
   }
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
+  if (size[0] > runtimeCaps->limits.maxTextureSize ||
+      size[1] > runtimeCaps->limits.maxTextureSize)
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "BGFX direct RTT exceeds the adapter texture dimension"};
   if (traceNpotGpu) bgfx::setDebug(BGFX_DEBUG_PROFILER);
   const auto textureAdmission = bgfxTextureProfile(frame);
   if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;

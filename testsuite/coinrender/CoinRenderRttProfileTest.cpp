@@ -17,6 +17,7 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
@@ -161,7 +162,8 @@ int main(int argc, char ** argv) {
       const unsigned i=(y*16+x)*4; checker[i]=((x+y)&1)?255:0;
       checker[i+1]=0; checker[i+2]=((x+y)&1)?0:255;
     }
-    pattern->image.setValue(SbVec2s(16,16),4,checker.data()); child->addChild(pattern); quad(child);
+    pattern->image.setValue(SbVec2s(16,16),4,checker.data()); child->addChild(pattern);
+    auto * producerScale=new SoScale; child->addChild(producerScale); quad(child);
     auto * root=base(); root->ref(); auto * quality=static_cast<SoComplexity *>(root->getChild(2));
     auto * texture=new SoSceneTexture2; texture->scene=child; texture->size=SbVec2s(64,64);
     texture->model=SoSceneTexture2::REPLACE; root->addChild(texture); quad(root);
@@ -204,7 +206,40 @@ int main(int argc, char ** argv) {
     if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
     quality->textureQuality=.7f; action.apply(root);
     if(action.getLastStatus()!=CoinRenderAction::SUCCESS) return 1;
-    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae<<"; NPOT direct capture, invalid-size rejection/publication and recovery passed\n";
+    if (direct) {
+      std::vector<uint8_t> baseline, wide, retained, recovered;
+      target->readbackRGBA(baseline);
+      producerScale->scaleFactor.setValue(4,1,1);
+      texture->size=SbVec2s(4096,1024);
+      action.apply(root); target->readbackRGBA(wide);
+      if (action.getLastStatus()!=CoinRenderAction::SUCCESS || wide.size()!=32*32*4) {
+        std::cerr<<"4096x1024 direct mip capture failed: "
+                 <<action.getLastError().getString()<<'\n'; return 1;
+      }
+      for (unsigned i=0;i<32*32;++i)
+        if (std::abs(int(wide[i*4])-128)>3 || wide[i*4+1]>3 ||
+            std::abs(int(wide[i*4+2])-128)>3) {
+          std::cerr<<"4096x1024 direct mip average changed at "<<i<<": "
+                   <<int(wide[i*4])<<','<<int(wide[i*4+1])<<','
+                   <<int(wide[i*4+2])<<'\n'; return 1;
+        }
+      texture->size=SbVec2s(4096,4096);
+      action.apply(root); target->readbackRGBA(retained);
+      if (action.getLastStatus()!=CoinRenderAction::UNSUPPORTED || retained!=wide) {
+        std::cerr<<"over-budget direct mip capture published a frame\n"; return 1;
+      }
+      texture->size=SbVec2s(64,64);
+      producerScale->scaleFactor.setValue(1,1,1);
+      action.apply(root); target->readbackRGBA(recovered);
+      if (action.getLastStatus()!=CoinRenderAction::SUCCESS || recovered!=baseline) {
+        std::cerr<<"4096x1024 direct mip recovery failed: "
+                 <<action.getLastError().getString()<<'\n'; return 1;
+      }
+      ++passed;
+    }
+    root->unref(); std::cout<<"RTT mip transitions: "<<passed<<" controls; maximum RGB MAE "<<largestMae
+                            <<"; NPOT "<<(direct?"direct":"staged")
+                            <<" capture, invalid-size rejection/publication and recovery passed\n";
   }
   action.setRenderTarget(nullptr);
   if (!mipOnly) std::cout << "RTT extended " << (direct ? "direct" : "staged") << ": " << passed

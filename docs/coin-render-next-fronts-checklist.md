@@ -448,8 +448,15 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
   mutação/resize e rejeição/recuperação na mesma janela nas três rotas.
 - [x] Implementar mips staged RGBA8 POT no Core, orçamento 64 MiB e filtro
   linear/trilinear RTT; qualificar transições FBO/pbuffer e recuperação.
-- [ ] Implementar mips GPU diretos, formatos adicionais e dimensões maiores,
-  preservando orçamento, propriedade e publicação transacional.
+- [x] Implementar mips GPU diretos RGBA8/RGBA16F, inclusive NPOT, e ampliar
+  a rota direta para até 4096 por eixo sob orçamento de 64 MiB e limite do
+  adaptador. Staged permanece em 2048; SRGB/BC3 não são saídas RTT. O
+  produtor 4096×1024 passou em wgpu/BGFX × AMD/NVIDIA Vulkan, wgpu/OpenGL
+  AMD e BGFX/OpenGL; 4096² foi recusado sem publicação, com recuperação
+  exata. Mips diretos e staged passaram nos seis perfis Linux, e a política
+  portátil direta passou em quatro perfis Vulkan. Os FAILs preexistentes
+  de sampling projetivo AMD seguem registrados separadamente
+  ([recibo e limites](validation/rtt-direct-mips-wide-20261011/summary.md)).
 - [x] Definir o contrato portátil de shaders próprios antes de implementar
   tradução e recursos em BGFX/wgpu.
 - [x] Definir planos comuns para texturas 3D, cube maps e RTT de cubo.

@@ -289,6 +289,27 @@ int main() {
     CoinRenderRttPlan gpuOnly(COIN_RENDER_SCENE_TEXTURE_DIRECT);
     gpuOnly.append(producer(91,4),id,diagnostic);
     ok &= check(gpuOnly.validate(requested,diagnostic),"direct mip request is admitted before GPU work");
+    CoinRenderRttPlan wide(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    auto wideProducer=producer(95,4096);
+    wideProducer.size=SbVec2i32(4096,1024);
+    ok &= check(wide.append(wideProducer,id,diagnostic),
+                "direct producer above the old 2048 edge fits the graph budget");
+    auto wideConsumer=consumer(id,4096);
+    wideConsumer.textures[0].height=1024;
+    wideConsumer.textures[0].mipmapped=true;
+    ok &= check(wide.validate(wideConsumer,diagnostic),
+                "4096 by 1024 direct mip chain fits the 64 MiB graph budget");
+    wideProducer.size=SbVec2i32(4096,4096);
+    CoinRenderRttPlan oversized(COIN_RENDER_SCENE_TEXTURE_DIRECT);
+    ok &= check(!oversized.append(wideProducer,id,diagnostic),
+                "4096 square direct attachment is rejected by the budget");
+    wideProducer.size=SbVec2i32(4097,1);
+    ok &= check(!oversized.append(wideProducer,id,diagnostic),
+                "extent above 4096 is rejected before GPU allocation");
+    wideProducer.size=SbVec2i32(4096,1024);
+    CoinRenderRttPlan stagedWide(COIN_RENDER_SCENE_TEXTURE_STAGED);
+    ok &= check(!stagedWide.append(wideProducer,id,diagnostic),
+                "staged RTT retains its 2048 dimension profile");
     CoinRenderRttPlan full(COIN_RENDER_SCENE_TEXTURE_STAGED);
     for(unsigned source=1;source<=4;++source) full.append(producer(source,2048),id,diagnostic);
     auto extra=consumer(4,2048); extra.textures[0].mipmapped=true;
