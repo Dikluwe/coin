@@ -575,6 +575,36 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
 #ifndef HAVE_COIN_BGFX
   if(gpu&&!CoinRenderAction::isGpuBackendAvailable())return 77;
 #endif
+  if (argc > 1 && std::string(argv[1]) == "--probe-precise-gl-texture") {
+    if (!std::getenv("COIN_QUADMESH_PRECISE_LIGHTING") ||
+        std::atoi(std::getenv("COIN_QUADMESH_PRECISE_LIGHTING")) <= 0)
+      return 2;
+    Scene scene(true, 5);
+    scene.model->model = SoLightModel::PHONG;
+    auto *uv = new SoTextureCoordinate2;
+    const SbVec2f values[] = {{0,0},{.33f,0},{.67f,0},{1,0},
+                              {0,1},{.33f,1},{.67f,1},{1,1}};
+    uv->point.setValues(0, 8, values);
+    auto *texture = new SoTexture2;
+    const unsigned char pixels[] = {255,64,32,255, 32,255,64,255,
+                                    64,32,255,255, 255,255,64,255};
+    texture->image.setValue(SbVec2s(2,2), 4, pixels);
+    const int shape = scene.root->getNumChildren() - 1;
+    scene.root->insertChild(uv, shape);
+    scene.root->insertChild(texture, shape + 1);
+    SoOffscreenRenderer gl(SbViewportRegion(64,64));
+    gl.setComponents(SoOffscreenRenderer::RGB);
+    gl.setBackgroundColor(SbColor(0,0,0));
+    if (!check(gl.render(scene.root) && gl.getBuffer(),
+               "precise textured CoinGL render")) return 1;
+    const unsigned char *image = gl.getBuffer();
+    unsigned covered = 0;
+    for (int i = 0; i < 64*64*3; i += 3)
+      covered += image[i] || image[i+1] || image[i+2];
+    if (!check(covered > 1000, "precise textured CoinGL coverage")) return 1;
+    std::cout << "precise textured CoinGL covered=" << covered << '\n';
+    return 0;
+  }
   if (argc > 1 && std::string(argv[1]) == "--probe-precise-rejection") {
     if (!std::getenv("COIN_QUADMESH_PRECISE_LIGHTING") ||
         std::atoi(std::getenv("COIN_QUADMESH_PRECISE_LIGHTING")) <= 0)

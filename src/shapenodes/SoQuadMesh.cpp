@@ -516,6 +516,12 @@ namespace { namespace SoGL { namespace QuadMesh {
           n3 = &normals[curridx1];
           n4 = &normals[curridx2];
         }
+        // The first precise quad uses t3/t4 as its left edge. Initialize
+        // them before the inner loop, just as c3/c4 and n3/n4 are initialized.
+        if (TexturingEnabled == TRUE) {
+          t3 = &((SoTextureCoordinateBundle*)tb)->get(curridx1);
+          t4 = &((SoTextureCoordinateBundle*)tb)->get(curridx2);
+        }
         curridx1++;
         curridx2++;
 

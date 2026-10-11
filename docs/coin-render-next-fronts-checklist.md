@@ -408,6 +408,10 @@ Melhoria futura, fora deste primeiro perfil:
   A exceção do CoinGL para material por vértice agora mantém a rota comum:
   gate dirigido CPU/BGFX/CoinGL na NVIDIA teve RGB máximo 1 e a regressão
   de geometria passou 1306/1306 casos. A rota centrada permanece aberta.
+  Na investigação de 2026-10-11, o CoinGL texturizado falhou por acessar
+  coordenadas da primeira borda antes de inicializá-las. O reparo e um smoke
+  físico estão em [QuadMesh preciso com textura](coin-render-quadmesh-precise-texture-20261011.md).
+  Binding por face e textura ainda exigem paridade portátil positiva.
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após
