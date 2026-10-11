@@ -144,9 +144,11 @@ struct CoinBgfxPlan {
   bool usesCompactVertices = false;
   bool usesInstancing = false;
   bool instancedCameraPatchable = false;
+  bool instancedWorldSpace = false;
   SbMatrix instanceCameraAnchorView = SbMatrix::identity();
   std::vector<CoinBgfxInstancedVertex> instancedVertices;
   std::vector<CoinBgfxInstance> instances;
+  std::vector<std::array<float, 3>> instancePositionScales;
   std::vector<uint32_t> indices;
   std::vector<CoinBgfxDraw> draws;
   std::vector<CoinBgfxDraw> shadowDraws;
@@ -214,14 +216,15 @@ public:
                                   const CoinBgfxPlan & updated,
                                   std::vector<CoinBgfxVertexRange> & ranges);
   // Requires a validated CAMERA_PATCH relationship with the cached base.
-  // Recomputes only draw transforms/lighting; instanced geometry remains in
-  // the immutable anchor camera, including across consecutive camera patches.
-  // Geometry, material and clear remain owned
-  // by the base plan until the caller commits a successful frame.
+  // Recomputes draw transforms/lighting. World-space instances keep their
+  // immutable model data; eye-space instances reproduce the fresh model-view
+  // payload while reusing mesh and index buffers. The caller publishes the
+  // updated instance buffer and commits draws only after a successful frame.
   static bool patchCamera(const CoinRenderFramePlan & frame, int width, int height,
                           bool homogeneousDepth, const CoinBgfxPlan & base,
                           std::vector<CoinBgfxDraw> & output,
-                          std::string & diagnostic);
+                          std::string & diagnostic,
+                          std::vector<CoinBgfxInstance> * updatedInstances = nullptr);
 };
 
 #endif

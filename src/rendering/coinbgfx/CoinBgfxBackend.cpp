@@ -2425,10 +2425,11 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       (bgfx::isValid(this->cachedVertexBuffer) &&
        bgfx::isValid(this->cachedIndexBuffer)));
   std::vector<CoinBgfxDraw> cameraDraws;
+  std::vector<CoinBgfxInstance> cameraInstances;
   const bool cameraPatchUsed = cameraPatchEligible &&
     CoinBgfxLowering::patchCamera(frame, target.size[0], target.size[1],
                                 homogeneousDepth, this->cachedPlan,
-                                cameraDraws, this->lastError);
+                                cameraDraws, this->lastError, &cameraInstances);
   if (tracePhases && cameraPatchEligible && this->cachedPlan.usesInstancing && !cameraPatchUsed)
     std::fprintf(stderr, "COIN_RENDER_PHASE bgfx_instanced_camera_patch_declined reason=%s\n", this->lastError.c_str());
   CoinBgfxPlan freshPlan;
@@ -2535,6 +2536,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->cachedHomogeneousDepth = homogeneousDepth;
     plan = &this->cachedPlan;
   }
+  if (cameraPatchUsed && !cameraInstances.empty())
+    bgfx::update(instanceBuffer, 0, bgfx::copy(cameraInstances.data(),
+      static_cast<uint32_t>(cameraInstances.size() * sizeof(CoinBgfxInstance))));
   if (!retained) {
     if (!plan->draws.empty()) {
       const bool vertexPoolHit = bgfx::isValid(vb) &&
@@ -2945,6 +2949,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     destroyTextures();
     if (cameraPatchUsed) {
       this->cachedPlan.draws.swap(cameraDraws);
+      if (!cameraInstances.empty() && !this->cachedPlan.instances.empty())
+        this->cachedPlan.instances.swap(cameraInstances);
       this->cachedRevision = frame.revision;
     }
     if (!target.windowReadbackRequested) target.colorBuffer.clear();
@@ -3229,6 +3235,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const Clock::time_point readbackNormalized = Clock::now();
   if (cameraPatchUsed) {
     this->cachedPlan.draws.swap(cameraDraws);
+    if (!cameraInstances.empty() && !this->cachedPlan.instances.empty())
+      this->cachedPlan.instances.swap(cameraInstances);
     this->cachedRevision = frame.revision;
   }
   if (target.depthReadbackEnabled && this->readbackPipelineDepth != 1)

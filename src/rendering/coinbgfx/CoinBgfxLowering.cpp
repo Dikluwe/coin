@@ -288,13 +288,15 @@ CoinBgfxLowering::retainForReuse(CoinBgfxPlan & plan,
 {
   const uint64_t replayBytes = uint64_t(plan.draws.capacity() + plan.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
     uint64_t(plan.textures.capacity()) * sizeof(CoinBgfxTexture) +
-    uint64_t(plan.instances.capacity()) * sizeof(CoinBgfxInstance);
+    uint64_t(plan.instances.capacity()) * sizeof(CoinBgfxInstance) +
+    uint64_t(plan.instancePositionScales.capacity()) * sizeof(std::array<float, 3>);
   uint64_t metadataBytes = replayBytes;
   for (const auto & texture : plan.textures) metadataBytes += texture.pixelsRgba.capacity();
   if (metadataBytes > metadataBudget && instancesUploaded && plan.usesInstancing &&
       !plan.instances.empty()) {
-    // BGFX owns a copy in its dynamic instance buffer. The cached draw ranges
-    // need only the count, so release this CPU payload before budget admission.
+    // BGFX owns a copy in its dynamic instance buffer. Retain the small
+    // per-instance position scales for eye-space camera patches, while
+    // releasing the large CPU payload before budget admission.
     plan.uploadedInstanceCount = plan.instances.size();
     metadataBytes -= uint64_t(plan.instances.capacity()) * sizeof(CoinBgfxInstance);
     std::vector<CoinBgfxInstance>().swap(plan.instances);
@@ -358,12 +360,13 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   CoinBgfxDraw drawTemplate{};
   // LEQUAL coplanar instances depend on the exact old eye-space rounding to
   // select the last equal-depth material. Keep that qualified static profile.
-  const bool worldSpaceInstances = firstState.depthFunction == CoinRenderDepthFunction::LESS &&
-    CoinRenderTransformCore::cameraReuseView(firstState.view) &&
+  const bool patchableModels =
     std::all_of(frame.renderStates.begin(), frame.renderStates.end(), [](const CoinRenderRenderStateSnapshot & state) {
       const float determinant = state.model.det4();
       return std::isfinite(determinant) && std::abs(determinant) > 1.0e-9f;
     });
+  const bool worldSpaceInstances = firstState.depthFunction == CoinRenderDepthFunction::LESS &&
+    CoinRenderTransformCore::cameraReuseView(firstState.view) && patchableModels;
   std::memcpy(drawTemplate.mvp, mvp.getValue(), sizeof(drawTemplate.mvp));
   drawTemplate.cullMode = firstState.cullMode;
   drawTemplate.frontFace = firstState.frontFace;
@@ -395,10 +398,12 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   std::vector<uint32_t> remap;
   CoinBgfxPlan candidate;
   candidate.usesInstancing = true;
+  candidate.instancedWorldSpace = worldSpaceInstances;
   candidate.instanceCameraAnchorView = firstState.view;
-  candidate.instancedCameraPatchable = worldSpaceInstances && instancedMatrixMagnitude(firstState.view) &&
+  candidate.instancedCameraPatchable = patchableModels && instancedMatrixMagnitude(firstState.view) &&
     CoinRenderTransformCore::cameraReuseView(firstState.view);
   candidate.instances.reserve(frame.draws.size());
+  if (!worldSpaceInstances) candidate.instancePositionScales.reserve(frame.draws.size());
   candidate.draws.reserve(std::min<size_t>(frame.draws.size(), 256));
   uint32_t previousMesh = UINT32_MAX;
   for (size_t ordinal = 0; ordinal < order.size(); ++ordinal) {
@@ -475,8 +480,9 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
         mv[1][3] != 0.0f || mv[2][3] != 0.0f || mv[3][3] != 1.0f) return declineDraw("model-view coefficients/affinity");
     const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
     if (!instancedMatrixMagnitude(normalMatrix)) return declineDraw("normal matrix coefficient magnitude");
-    candidate.instancedCameraPatchable = candidate.instancedCameraPatchable &&
-      composableInstanceNormal(modelView, normalMatrix);
+    if (worldSpaceInstances)
+      candidate.instancedCameraPatchable = candidate.instancedCameraPatchable &&
+        composableInstanceNormal(modelView, normalMatrix);
 
     const SharedRangeKey key = {geometry.firstVertex, geometry.vertexCount,
                                geometry.firstIndex, geometry.indexCount};
@@ -578,6 +584,9 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
     std::memcpy(instance.data[9], material.emission, sizeof(material.emission));
     const uint32_t instanceSlot = static_cast<uint32_t>(candidate.instances.size());
     candidate.instances.push_back(instance);
+    if (!worldSpaceInstances)
+      candidate.instancePositionScales.push_back({range->second.positionScale[0],
+        range->second.positionScale[1], range->second.positionScale[2]});
     if (previousMesh == range->second.meshSlot && !candidate.draws.empty()) {
       ++candidate.draws.back().instanceCount;
     }
@@ -1206,7 +1215,8 @@ bool
 CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int height,
                             bool homogeneousDepth, const CoinBgfxPlan & base,
                             std::vector<CoinBgfxDraw> & output,
-                            std::string & diagnostic)
+                            std::string & diagnostic,
+                            std::vector<CoinBgfxInstance> * updatedInstances)
 {
   diagnostic.clear();
   if (base.usesInstancing) {
@@ -1215,6 +1225,10 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       return false;
     };
     if (!base.instancedCameraPatchable) return decline("unsafe anchor/model normal matrix");
+    if (!base.instancedWorldSpace &&
+        (!updatedInstances || base.instancePositionScales.size() != base.instanceCount() ||
+         (!base.instances.empty() && base.instances.size() != base.instanceCount())))
+      return decline("eye-space instance data unavailable");
     if (width <= 0 || height <= 0 || width > 16384 || height > 16384 ||
         frame.draws.empty() || frame.draws.size() != base.instanceCount() || base.draws.empty()) return decline("size/source count");
     if (!frame.shadowGroups.empty() || !frame.textures.empty()) return decline("shadow/texture resources");
@@ -1230,9 +1244,9 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       return decline("non-rigid/unsafe camera view");
     std::vector<CoinBgfxDraw> candidate = base.draws;
     size_t nextInstance = 0;
-    // CAMERA_PATCH is a validated relationship: geometry, models, materials
-    // and non-camera state remain identical to the cached source frame. Only
-    // representative batch uniforms need refreshing, not every occurrence.
+    // CAMERA_PATCH validates unchanged geometry, models, materials and
+    // non-camera state. Batch uniforms are refreshed here; eye-space instance
+    // matrices are rebuilt below without repeating mesh lowering.
     for (auto & draw : candidate) {
       if (draw.firstInstance != nextInstance || draw.sourceDrawSlot != nextInstance ||
           !draw.instanceCount || draw.instanceCount > base.instanceCount() - nextInstance)
@@ -1269,12 +1283,61 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       const SbMatrix mvp = projection * CoinRenderTransformCore::viewportTransform(viewport, width, height);
       if (!instancedMatrixMagnitude(mvp)) return decline("projection coefficient magnitude");
       std::memcpy(draw.mvp, mvp.getValue(), sizeof(draw.mvp));
-      writeInstanceCamera(draw.instanceCamera, firstState.view);
+      if (base.instancedWorldSpace)
+        writeInstanceCamera(draw.instanceCamera, firstState.view);
       const auto & lighting = frame.lightingStates[state.lightingSlot];
       if (lighting.lights.size() > COIN_RENDER_MAX_LIGHTS) return decline("light count");
       copyLighting(lighting, draw);
     }
     if (nextInstance != base.instanceCount()) return decline("incomplete instance batches");
+    if (!base.instancedWorldSpace) {
+      std::vector<CoinBgfxInstance> candidateInstances = base.instances;
+      if (candidateInstances.empty()) candidateInstances.resize(base.instanceCount());
+      for (size_t i = 0; i < frame.draws.size(); ++i) {
+        const auto & source = frame.draws[i];
+        if (source.renderStateSlot >= frame.renderStates.size()) return decline("instance render-state slot");
+        const auto & state = frame.renderStates[source.renderStateSlot];
+        if (std::memcmp(state.view.getValue(), firstState.view.getValue(), sizeof(SbMat)) != 0)
+          return decline("different instance view");
+        const SbMatrix modelView = state.model * state.view;
+        const auto mv = modelView.getValue();
+        if (!instancedMatrixMagnitude(modelView) || mv[0][3] != 0.0f ||
+            mv[1][3] != 0.0f || mv[2][3] != 0.0f || mv[3][3] != 1.0f)
+          return decline("instance model-view coefficients/affinity");
+        const SbMatrix normalMatrix = CoinRenderTransformCore::normalMatrix(modelView);
+        if (!instancedMatrixMagnitude(normalMatrix)) return decline("instance normal matrix magnitude");
+        SbMatrix positionModelView = modelView;
+        for (int row = 0; row < 3; ++row)
+          for (int column = 0; column < 4; ++column)
+            positionModelView[row][column] *= base.instancePositionScales[i][row];
+        if (!instancedMatrixMagnitude(positionModelView)) return decline("instance position matrix magnitude");
+        const auto position = positionModelView.getValue();
+        const auto normal = normalMatrix.getValue();
+        auto & instance = candidateInstances[i];
+        if (base.instances.empty()) {
+          if (source.geometry.firstIndex >= frame.indices.size()) return decline("instance index range");
+          const uint32_t vertexSlot = frame.indices[source.geometry.firstIndex];
+          if (vertexSlot >= frame.vertices.size()) return decline("instance vertex slot");
+          const uint32_t materialSlot = frame.vertices[vertexSlot].materialSlot;
+          if (materialSlot >= frame.materials.size()) return decline("instance material slot");
+          const auto & material = frame.materials[materialSlot];
+          instance.data[3][3] = material.shininess;
+          instance.data[4][3] = 1.0f;
+          std::memcpy(instance.data[6], material.diffuse, sizeof(material.diffuse));
+          std::memcpy(instance.data[7], material.ambient, sizeof(material.ambient));
+          std::memcpy(instance.data[8], material.specular, sizeof(material.specular));
+          std::memcpy(instance.data[9], material.emission, sizeof(material.emission));
+        }
+        for (int column = 0; column < 3; ++column) {
+          for (int row = 0; row < 3; ++row) {
+            instance.data[column][row] = position[row][column];
+            instance.data[column + 3][row] = normal[row][column];
+          }
+          instance.data[column][3] = mv[3][column];
+        }
+      }
+      updatedInstances->swap(candidateInstances);
+    }
     output.swap(candidate);
     return true;
   }

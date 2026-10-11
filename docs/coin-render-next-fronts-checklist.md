@@ -507,8 +507,15 @@ nem encerra uma campanha completa de desempenho Windows.
   inicial/final em native/portable, inclusive no controle XGetImage da cidade
   40 mil e do terreno em native; 32/32 testes BGFX passaram
   ([correção e recibos](coin-render-bgfx-opengl-window-parity-20261010.md)).
-  Ainda faltam a primeira captura wgpu/OpenGL, a qualificação de desempenho
-  BGFX/OpenGL e os demais gates antes de fechar a frente inteira.
+  As duas cidades BGFX/OpenGL voltaram a usar patch de câmera em `LEQUAL`,
+  mantendo instâncias em coordenadas de câmera e atualizando só seu buffer.
+  A cidade de 40 mil mediu 16,96–17,57 ms contra 89,21–90,57 ms de
+  reconstrução native; a de um milhão mediu 661–662 ms contra 1498–1509 ms.
+  Ambas passaram RGB 0 inicial/final em native e portable, com PPM final
+  idêntico à reconstrução
+  ([código e recibos](coin-render-bgfx-lequal-camera-patch-20261010.md)).
+  Ainda faltam a primeira captura wgpu/OpenGL, Windows e os demais gates
+  antes de fechar a frente inteira; um milhão mantém ~0,30 s de lowering.
   Na investigação wgpu/OpenGL, a superfície GL recusou `COPY_SRC`; sete
   repetições do terreno passaram RGB 0 nas duas capturas, sem reproduzir a
   imagem inicial preta histórica

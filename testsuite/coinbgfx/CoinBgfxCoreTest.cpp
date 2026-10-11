@@ -381,6 +381,34 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
     ok &= check(std::memcmp(coplanarInstances.instances[i].data[6], frame.materials[i % 2].diffuse,
                             sizeof(frame.materials[i % 2].diffuse)) == 0,
                 "coplanar alternating materials must retain traversal order");
+  CoinRenderFramePlan movedCoplanar = coplanar;
+  SbMatrix turnedView;
+  turnedView.setRotate(SbRotation(SbVec3f(0, 1, 0), 0.15f));
+  for (auto & state : movedCoplanar.renderStates) state.view = turnedView;
+  CoinBgfxPlan freshlyMovedCoplanar;
+  std::vector<CoinBgfxDraw> movedCoplanarDraws;
+  std::vector<CoinBgfxInstance> movedCoplanarInstances;
+  ok &= check(CoinBgfxLowering::lowerInstanced(movedCoplanar, 4, 4, false,
+                freshlyMovedCoplanar, diagnostic) &&
+              CoinBgfxLowering::patchCamera(movedCoplanar, 4, 4, false,
+                coplanarInstances, movedCoplanarDraws, diagnostic, &movedCoplanarInstances) &&
+              sameBytes(movedCoplanarInstances, freshlyMovedCoplanar.instances) &&
+              sameBytes(movedCoplanarDraws, freshlyMovedCoplanar.draws),
+              "LEQUAL camera patch must reproduce freshly lowered eye-space instances");
+  CoinBgfxPlan uploadedCoplanar = coplanarInstances;
+  const uint64_t coplanarMetadataBudget =
+    uint64_t(uploadedCoplanar.draws.capacity() + uploadedCoplanar.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
+    uint64_t(uploadedCoplanar.textures.capacity()) * sizeof(CoinBgfxTexture) +
+    uint64_t(uploadedCoplanar.instancePositionScales.capacity()) * sizeof(std::array<float, 3>) + 16;
+  std::vector<CoinBgfxDraw> uploadedCameraDraws;
+  std::vector<CoinBgfxInstance> uploadedCameraInstances;
+  ok &= check(CoinBgfxLowering::retainForReuse(uploadedCoplanar,
+                32u * 1024u * 1024u, coplanarMetadataBudget, true) &&
+              uploadedCoplanar.instances.empty() &&
+              CoinBgfxLowering::patchCamera(movedCoplanar, 4, 4, false,
+                uploadedCoplanar, uploadedCameraDraws, diagnostic, &uploadedCameraInstances) &&
+              sameBytes(uploadedCameraInstances, freshlyMovedCoplanar.instances),
+              "LEQUAL camera patch must rebuild released GPU instance payload exactly");
   frame.vertices[5].position[0] += 0.25f;
   ok &= check(CoinBgfxLowering::lowerInstanced(frame, 4, 4, false, instanced, diagnostic) &&
               instanced.instancedVertices.size() == 8 && instanced.draws.size() == 300,
