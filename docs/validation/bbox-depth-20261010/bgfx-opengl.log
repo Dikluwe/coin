@@ -1,0 +1,13 @@
+bbox-depth/base/GPU oracle=CoinGL reference_pixels=1728 actual_pixels=1728 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/base/CPU oracle=CoinGL reference_pixels=1728 actual_pixels=1728 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/near-crossing/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/near-crossing/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/near-rejected/GPU oracle=CoinGL reference_pixels=0 actual_pixels=0 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/near-rejected/CPU oracle=CoinGL reference_pixels=0 actual_pixels=0 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/far-crossing/GPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/far-crossing/CPU oracle=CoinGL reference_pixels=1536 actual_pixels=1536 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/far-rejected/GPU oracle=CoinGL reference_pixels=0 actual_pixels=0 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/far-rejected/CPU oracle=CoinGL reference_pixels=0 actual_pixels=0 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/restored/GPU oracle=CoinGL reference_pixels=1728 actual_pixels=1728 roi_mae=0 max=0 pixels_over3=0
+bbox-depth/restored/CPU oracle=CoinGL reference_pixels=1728 actual_pixels=1728 roi_mae=0 max=0 pixels_over3=0
+CoinRenderBoundingBoxTest GPU/CoinGL passed native_gl_comparisons=143

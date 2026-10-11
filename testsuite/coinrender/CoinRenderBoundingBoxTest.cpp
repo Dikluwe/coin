@@ -305,6 +305,45 @@ bool restored(Harness & test, const std::vector<uint8_t> & cpu, const std::vecto
               const std::string & label) {
   return check(test.lastCpu == cpu && (!test.gpu || test.lastNative == native), label + ": A/B/A image not restored");
 }
+bool nearFarBoundingClip(bool gpu) {
+  Scene scene;
+  Harness test(gpu);
+  scene.transform->rotation.setValue(SbVec3f(0, 1, 0), .6f);
+  auto * camera = static_cast<SoOrthographicCamera *>(scene.root->getChild(0));
+  auto renderExact = [&](const std::string & label, bool visible = true) {
+    if (!test.render(scene.root, label, visible)) return false;
+    if (!gpu) return true;
+    bool equal = true;
+    for (size_t i = 0; i < test.reference.size(); i += 4) {
+      for (int channel = 0; channel < 3; ++channel) {
+        equal &= test.lastCpu[i + channel] == test.reference[i + channel] &&
+                 test.lastNative[i + channel] == test.reference[i + channel];
+      }
+    }
+    return check(equal, label + ": near/far RGB differs from CoinGL");
+  };
+  if (!renderExact("bbox-depth/base")) return false;
+  const auto baseCpu = test.lastCpu, baseNative = test.lastNative;
+
+  camera->nearDistance = 5.0f; // near plane passes through the box center
+  if (!renderExact("bbox-depth/near-crossing") ||
+      !changed(baseCpu, test.lastCpu, "bbox-depth/near-crossing-cpu") ||
+      (gpu && !changed(baseNative, test.lastNative, "bbox-depth/near-crossing-gpu"))) return false;
+  camera->nearDistance = 6.0f; // entire box is in front of the near plane
+  if (!renderExact("bbox-depth/near-rejected", false)) return false;
+
+  camera->nearDistance = 1.0f;
+  camera->farDistance = 5.0f; // far plane passes through the box center
+  if (!renderExact("bbox-depth/far-crossing") ||
+      !changed(baseCpu, test.lastCpu, "bbox-depth/far-crossing-cpu") ||
+      (gpu && !changed(baseNative, test.lastNative, "bbox-depth/far-crossing-gpu"))) return false;
+  camera->farDistance = 4.0f; // entire box is beyond the far plane
+  if (!renderExact("bbox-depth/far-rejected", false)) return false;
+
+  camera->farDistance = 20.0f;
+  return renderExact("bbox-depth/restored") &&
+    restored(test, baseCpu, baseNative, "bbox-depth/A-B-A");
+}
 bool bounds(const CoinRenderFramePlan & frame, const SbVec3f & expectedMin, const SbVec3f & expectedMax,
             const std::string & label) {
   if (!check(!frame.vertices.empty() && !frame.draws.empty(), label + ": no captured geometry")) return false;
@@ -956,11 +995,12 @@ bool shadowMapGeometry(bool gpu) {
 } // namespace
 
 int main(int argc,char ** argv) {
-  bool gpu=false;
+  bool gpu=false, depthProbe=false;
   for(int i=1;i<argc;++i) {
     const std::string argument=argv[i];
     if(argument=="--gpu")gpu=true;else if(argument=="--capture")gpu=false;
-    else {std::cerr<<"Usage: CoinRenderBoundingBoxTest --capture|--gpu\n";return 2;}
+    else if(argument=="--probe-depth-clip")depthProbe=true;
+    else {std::cerr<<"Usage: CoinRenderBoundingBoxTest --capture|--gpu [--probe-depth-clip]\n";return 2;}
   }
   SoDB::init();CoinRenderAction::initClass();BoundingFixtureShape::initClass();
   if(gpu && !CoinRenderAction::isGpuBackendAvailable()) {
@@ -969,7 +1009,8 @@ int main(int argc,char ** argv) {
 #if !COIN_HAVE_LEGACY_GL_RENDERER
   if(gpu){std::cerr<<"CoinRenderBoundingBoxTest mandatory CoinGL oracle not compiled\n";return 1;}
 #endif
-  if(!typeAndReuse(gpu) || !nativeShapeKinds(gpu) || !transformationsAndStyles(gpu) ||
+  if (depthProbe) return nearFarBoundingClip(gpu) ? 0 : 1;
+  if(!nearFarBoundingClip(gpu) || !typeAndReuse(gpu) || !nativeShapeKinds(gpu) || !transformationsAndStyles(gpu) ||
      !materialAndTexture(gpu) || !unsupportedTextures(gpu) || !vertexPropertyScope(gpu) ||
      !scopeAndOverride(gpu) || !callbacks(gpu) || !degenerates(gpu) || !faceNormals(gpu) ||
      !specialDispatch(gpu) || !specialCallbackDispatch(gpu) || !boundingSortedTriangles(gpu) ||
