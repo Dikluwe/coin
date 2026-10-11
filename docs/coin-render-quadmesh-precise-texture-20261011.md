@@ -37,3 +37,10 @@ seis combinações sem textura e sem binding por face passaram, mas casos
 texturizados e com binding por face excederam o gate RGB 4. Portanto a rota
 portátil continua recusando a forma centrada, e este reparo CoinGL não fecha
 a frente de iluminação precisa.
+
+## Continuação
+
+A [qualificação posterior](validation/precise-quadmesh-20261011/summary.md)
+substituiu os quatro ponteiros UV por valores, implementou o fan centrado no
+callback portátil e fechou seu perfil de uma textura. Os limites e resultados
+acima descrevem a revisão anterior dessa investigação.

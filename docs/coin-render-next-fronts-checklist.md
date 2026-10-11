@@ -396,22 +396,20 @@ Melhoria futura, fora deste primeiro perfil:
 - [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
   mais combinações de transparência/sombras/RTT; clamp de range já implementado
   não equivale a GL_DEPTH_CLAMP.
-- [ ] Qualificar flat com sombras/iluminação por fragmento e o modo não padrão
-  `COIN_QUADMESH_PRECISE_LIGHTING`; manter extensões identificadas.
-  O modo preciso reproduz CPU/GPU máximo 1 e CPU/CoinGL máximo 6 no primeiro
-  QuadMesh iluminado em BGFX/Vulkan e wgpu/Vulkan; o gate 4 permanece. O
-  CoinGL insere vértice central no quad, a captura portátil não. O builder
-  agora recusa esse modo com `UNSUPPORTED` transacional; BGFX/Vulkan,
-  BGFX/OpenGL e wgpu/Vulkan passaram rejeição, pixels/serial preservados e
-  recuperação. A renderização positiva continua aberta
-  ([recibo local](coin-render-local-closure-20261010.md)).
-  A exceção do CoinGL para material por vértice agora mantém a rota comum:
-  gate dirigido CPU/BGFX/CoinGL na NVIDIA teve RGB máximo 1 e a regressão
-  de geometria passou 1306/1306 casos. A rota centrada permanece aberta.
-  Na investigação de 2026-10-11, o CoinGL texturizado falhou por acessar
-  coordenadas da primeira borda antes de inicializá-las. O reparo e um smoke
-  físico estão em [QuadMesh preciso com textura](coin-render-quadmesh-precise-texture-20261011.md).
-  Binding por face e textura ainda exigem paridade portátil positiva.
+- [x] Qualificar `COIN_QUADMESH_PRECISE_LIGHTING` em QuadMesh 3D com zero ou uma
+  textura: fan centrado, material OVERALL/PER_PART/PER_FACE, normal
+  OVERALL/PER_PART/PER_FACE/PER_VERTEX, BASE_COLOR/PHONG, malha 4×2 plana e
+  malha 3×3 não planar. Em 288 processos físicos BGFX/Vulkan, BGFX/OpenGL e
+  wgpu/Vulkan nas GPUs NVIDIA/AMD, CPU/GPU/CoinGL passaram com RGB máximo 2
+  (gate 4). A correção evita alias da coordenada UV temporária no CoinGL e
+  reproduz o vértice provocador flat de cada triângulo. Material por vértice
+  mantém a rota comum; unidade de textura adicional é recusada sem publicação
+  e recupera. Regressão de geometria com o modo ativo 1795/1795 em
+  BGFX/Vulkan e wgpu/Vulkan NVIDIA
+  ([matriz e limites](validation/precise-quadmesh-20261011/summary.md)).
+- [ ] Qualificar flat com sombras/iluminação por fragmento, multi-textura no
+  fan preciso e demais extensões fora do perfil acima. Repetir o modo preciso
+  em Windows/Android e consumidores reais junto da qualificação de plataforma.
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após

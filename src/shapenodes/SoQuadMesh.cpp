@@ -490,7 +490,7 @@ namespace { namespace SoGL { namespace QuadMesh {
       float w1,w2,w3,w4;
       const SbVec3f *n1,*n2,*n3,*n4;
       SbVec3f nc;
-      const SbVec4f *t1,*t2, * t3 = NULL, * t4 = NULL;
+      SbVec4f t1,t2,t3,t4;
       SbVec4f tc;
 
       int curridx1 = 0;
@@ -516,11 +516,11 @@ namespace { namespace SoGL { namespace QuadMesh {
           n3 = &normals[curridx1];
           n4 = &normals[curridx2];
         }
-        // The first precise quad uses t3/t4 as its left edge. Initialize
-        // them before the inner loop, just as c3/c4 and n3/n4 are initialized.
+        // get() may return the same conversion scratch for every 2D/3D UV.
+        // Keep values, not pointers, across calls and across adjacent quads.
         if (TexturingEnabled == TRUE) {
-          t3 = &((SoTextureCoordinateBundle*)tb)->get(curridx1);
-          t4 = &((SoTextureCoordinateBundle*)tb)->get(curridx2);
+          t3 = ((SoTextureCoordinateBundle*)tb)->get(curridx1);
+          t4 = ((SoTextureCoordinateBundle*)tb)->get(curridx2);
         }
         curridx1++;
         curridx2++;
@@ -607,12 +607,12 @@ namespace { namespace SoGL { namespace QuadMesh {
             t1 = t3;
             t2 = t4;
             if (!tb->isFunction()) {
-              t3 = &((SoTextureCoordinateBundle*)tb)->get(curridx1);
-              t4 = &((SoTextureCoordinateBundle*)tb)->get(curridx2);
+              t3 = ((SoTextureCoordinateBundle*)tb)->get(curridx1);
+              t4 = ((SoTextureCoordinateBundle*)tb)->get(curridx2);
             } else {
               assert(FALSE && "unimplemented");
             }
-            tc = ((*t1)*w1 + (*t2)*w2 + (*t3)*w3 + (*t4)*w4);
+            tc = (t1*w1 + t2*w2 + t3*w3 + t4*w4);
           }
 
           glBegin(GL_TRIANGLE_FAN);
@@ -1119,6 +1119,82 @@ SoQuadMesh::generatePrimitives(SoAction *action)
   SoFaceDetail faceDetail;
   SoPointDetail pointDetail;
   vertex.setDetail(&pointDetail);
+
+  // GLRender's precise path emits a center vertex and a four-triangle fan
+  // for each quad. The ordinary primitive callback emits two triangles, so
+  // portable renderers need the same fan when that legacy mode is enabled.
+  const char * preciseenv = coin_getenv("COIN_QUADMESH_PRECISE_LIGHTING");
+  const SbBool precise = preciseenv && atoi(preciseenv) > 0 &&
+    coords->is3D() && mbind != PER_VERTEX && !tb.isFunction();
+  if (precise) {
+    for (int row = 0; row < colsize - 1; ++row) {
+      for (int col = 0; col < rowsize - 1; ++col) {
+        const int idx[4] = {row * rowsize + col,
+                            (row + 1) * rowsize + col,
+                            row * rowsize + col + 1,
+                            (row + 1) * rowsize + col + 1};
+        SbVec3f points[4];
+        for (int k = 0; k < 4; ++k) points[k] = coords->get3(start + idx[k]);
+        const SbVec3f center = (points[0] + points[1] + points[2] + points[3]) * .25f;
+        const float d0 = (points[0] - center).sqrLength();
+        const float d1 = (points[1] - center).sqrLength();
+        const float d2 = (points[2] - center).sqrLength();
+        const float d3 = (points[3] - center).sqrLength();
+        const float w0 = qmeshGetWeight(d0 / d3) * .5f;
+        const float w1 = qmeshGetWeight(d1 / d2) * .5f;
+        const float weights[4] = {w0, w1, .5f - w1, .5f - w0};
+        SbVec3f quadnormals[4];
+        const int face = row * (rowsize - 1) + col;
+        const int normalindex = nbind == PER_FACE ? face :
+                                nbind == PER_ROW ? row : 0;
+        for (int k = 0; k < 4; ++k)
+          quadnormals[k] = normals ? normals[nbind == PER_VERTEX ? idx[k] : normalindex] :
+                            dummynormal;
+        SbVec3f centernormal = quadnormals[0];
+        if (nbind == PER_VERTEX) {
+          centernormal = quadnormals[0] * weights[0] + quadnormals[1] * weights[1] +
+                         quadnormals[2] * weights[2] + quadnormals[3] * weights[3];
+          const float length2 = quadnormals[0].sqrLength() + quadnormals[1].sqrLength() +
+                                quadnormals[2].sqrLength() + quadnormals[3].sqrLength();
+          if (!qmeshNormalize(centernormal, length2)) centernormal = quadnormals[0];
+        }
+        SbVec4f centertex(0, 0, 0, 1);
+        if (doTextures) {
+          centertex.setValue(0, 0, 0, 0);
+          for (int k = 0; k < 4; ++k)
+            centertex += tb.get(idx[k]) * weights[k];
+        }
+        const int materialindex = mbind == PER_FACE ? row * rowsize + col + 1 :
+                                  mbind == PER_ROW ? row : 0;
+        faceDetail.setPartIndex(row);
+        faceDetail.setFaceIndex(col);
+        this->beginShape(action, TRIANGLE_FAN, &faceDetail);
+        vertex.setMaterialIndex(materialindex);
+        vertex.setNormal(centernormal);
+        vertex.setPoint(center);
+        pointDetail.setCoordinateIndex(-1);
+        pointDetail.setNormalIndex(nbind == PER_VERTEX ? -1 : normalindex);
+        pointDetail.setMaterialIndex(materialindex);
+        pointDetail.setTextureCoordIndex(-1);
+        if (doTextures) vertex.setTextureCoords(centertex);
+        this->shapeVertex(&vertex);
+        for (int fan = 0; fan < 5; ++fan) {
+          const int k = fan == 4 ? 0 : (fan == 2 ? 3 : fan == 3 ? 2 : fan);
+          vertex.setPoint(points[k]);
+          vertex.setNormal(quadnormals[k]);
+          pointDetail.setCoordinateIndex(start + idx[k]);
+          pointDetail.setNormalIndex(nbind == PER_VERTEX ? idx[k] : normalindex);
+          pointDetail.setTextureCoordIndex(idx[k]);
+          if (doTextures) vertex.setTextureCoords(tb.get(idx[k]));
+          this->shapeVertex(&vertex);
+        }
+        this->endShape();
+      }
+    }
+    if (nc) this->readUnlockNormalCache();
+    if (this->vertexProperty.getValue()) state->pop();
+    return;
+  }
 
   if (nbind == OVERALL && needNormals) {
     vertex.setNormal(*currnormal);

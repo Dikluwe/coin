@@ -37,6 +37,7 @@
 #include <Inventor/nodes/SoSubNode.h>
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoTextureUnit.h>
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
@@ -146,6 +147,15 @@ struct Scene {
       auto *n = new SoQuadMesh;
       n->verticesPerRow = 4;
       n->verticesPerColumn = 2;
+      root->addChild(n);
+    } else if (primitive == 15) {
+      const SbVec3f grid[] = {{-.8f,-.7f,0}, {0,-.7f,.08f}, {.8f,-.7f,0},
+                              {-.8f,0,.04f}, {0,0,-.06f}, {.8f,0,.04f},
+                              {-.8f,.7f,0}, {0,.7f,.08f}, {.8f,.7f,0}};
+      coords->point.setValues(0, 9, grid);
+      auto *n = new SoQuadMesh;
+      n->verticesPerRow = 3;
+      n->verticesPerColumn = 3;
       root->addChild(n);
     } else if (primitive == 6 || primitive == 7) {
       const SbVec3f strips[] = {{-.8f, -.6f, 0}, {-.8f, .6f, 0}, {-.1f, -.6f, 0}, {-.1f, .6f, 0},
@@ -505,7 +515,15 @@ bool run(bool gpu) {
                                            : x < .3f ? 1
                                                      : 2)
                                         : (x > 0 ? 2 : 0) + (y > 0 ? 1 : 0);
-        const float expected[] = {.3f + .07f * face, .8f - .06f * face, .4f + .04f * face};
+        const bool centered = primitive == 5 &&
+            std::getenv("COIN_QUADMESH_PRECISE_LIGHTING") &&
+            std::atoi(std::getenv("COIN_QUADMESH_PRECISE_LIGHTING")) > 0;
+        // CoinGL's centered path selects curridx1 (1, 2, 3) as the material
+        // index; its ordinary strip uses the sequential face slots (0, 1, 2).
+        const int materialFace = face + (centered ? 1 : 0);
+        const float expected[] = {.3f + .07f * materialFace,
+                                  .8f - .06f * materialFace,
+                                  .4f + .04f * materialFace};
         for (int j = 0; j < 3; ++j) {
           const auto &v =
               h.capture->frame
@@ -605,7 +623,39 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
     std::cout << "precise textured CoinGL covered=" << covered << '\n';
     return 0;
   }
-  if (argc > 1 && std::string(argv[1]) == "--probe-precise-rejection") {
+  if ((argc == 6 || argc == 7 || argc == 8) &&
+      std::string(argv[1]) == "--probe-precise-positive") {
+    Harness h(CoinRenderAction::isGpuBackendAvailable());
+    const bool multirow = argc >= 7 && std::atoi(argv[6]) != 0;
+    Scene scene(true, multirow ? 15 : 5);
+    if (multirow) scene.normal->vector.set1Value(8, SbVec3f(.2f,0,1));
+    if (argc == 8 && std::atoi(argv[7])) scene.normal->vector.setNum(0);
+    scene.mb->value = std::atoi(argv[2]);
+    scene.nb->value = std::atoi(argv[3]);
+    scene.model->model = std::atoi(argv[5]) ? SoLightModel::PHONG : SoLightModel::BASE_COLOR;
+    if (std::atoi(argv[4])) {
+      auto *uv = new SoTextureCoordinate2;
+      const SbVec2f values[] = {{0,0},{.33f,0},{.67f,0},{1,0},
+                                {0,1},{.33f,1},{.67f,1},{1,1}};
+      if (multirow) {
+        const SbVec2f griduv[] = {{0,0},{.5f,0},{1,0},
+                                  {0,.5f},{.5f,.5f},{1,.5f},
+                                  {0,1},{.5f,1},{1,1}};
+        uv->point.setValues(0, 9, griduv);
+      } else uv->point.setValues(0, 8, values);
+      auto *texture = new SoTexture2;
+      const unsigned char pixels[] = {255,64,32,255, 32,255,64,255,
+                                      64,32,255,255, 255,255,64,255};
+      texture->image.setValue(SbVec2s(2,2), 4, pixels);
+      const int shape = scene.root->getNumChildren() - 1;
+      scene.root->insertChild(uv, shape);
+      scene.root->insertChild(texture, shape + 1);
+    }
+    if (!h.render(scene, SbViewportRegion(64,64), "precise/positive", true)) return 1;
+    std::cout << "precise indices=" << h.capture->frame.indices.size() << '\n';
+    return h.capture->frame.indices.size() == (multirow ? 48u : 36u) ? 0 : 1;
+  }
+  if (argc > 1 && std::string(argv[1]) == "--probe-precise-recovery") {
     if (!std::getenv("COIN_QUADMESH_PRECISE_LIGHTING") ||
         std::atoi(std::getenv("COIN_QUADMESH_PRECISE_LIGHTING")) <= 0)
       return 2;
@@ -613,25 +663,9 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
     Scene baseline(true, 11), precise(true, 5);
     precise.model->model = SoLightModel::PHONG;
     if (!h.render(baseline, SbViewportRegion(64,64), "precise/before", true)) return 1;
-    std::vector<uint8_t> cpuBefore, cpuAfter, gpuBefore, gpuAfter;
-    h.cpu->readbackRGBA(cpuBefore);
-    const auto cpuSerial = h.cpu->getLastSubmissionSerial();
-    if (h.native) h.native->readbackRGBA(gpuBefore);
-    const auto gpuSerial = h.native ? h.native->getLastSubmissionSerial() : 0;
-    h.action.apply(precise.root);
-    h.cpu->readbackRGBA(cpuAfter);
-    if (!check(h.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-                   h.action.getLastError().find("COIN_QUADMESH_PRECISE_LIGHTING") >= 0 &&
-                   h.cpu->getLastSubmissionSerial() == cpuSerial && cpuAfter == cpuBefore,
-               "precise QuadMesh CPU rejection preserves publication")) return 1;
-    if (h.native) {
-      h.gpuAction.apply(precise.root);
-      h.native->readbackRGBA(gpuAfter);
-      if (!check(h.gpuAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-                     h.gpuAction.getLastError().find("COIN_QUADMESH_PRECISE_LIGHTING") >= 0 &&
-                     h.native->getLastSubmissionSerial() == gpuSerial && gpuAfter == gpuBefore,
-                 "precise QuadMesh GPU rejection preserves publication")) return 1;
-    }
+    if (!h.render(precise, SbViewportRegion(64,64), "precise/centered", true)) return 1;
+    if (!check(h.capture->frame.indices.size() == 36,
+               "precise QuadMesh must emit four triangles per quad")) return 1;
     if (!h.render(baseline, SbViewportRegion(64,64), "precise/recovery", true)) return 1;
     // CoinGL ignores the precise path with per-vertex materials, so the
     // portable callback must keep accepting its ordinary QuadMesh triangles.
@@ -641,7 +675,69 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
     fallback.nb->value = SoNormalBinding::PER_VERTEX;
     if (!h.render(fallback, SbViewportRegion(64,64), "precise/per-vertex-fallback", true))
       return 1;
-    std::cout << "precise QuadMesh rejection and recovery passed GPU=" << bool(h.native) << '\n';
+    auto *uv = new SoTextureCoordinate2;
+    const SbVec2f values[] = {{0,0},{.33f,0},{.67f,0},{1,0},
+                              {0,1},{.33f,1},{.67f,1},{1,1}};
+    uv->point.setValues(0, 8, values);
+    auto *texture = new SoTexture2;
+    const unsigned char pixels[] = {255,64,32,255, 32,255,64,255,
+                                    64,32,255,255, 255,255,64,255};
+    texture->image.setValue(SbVec2s(2,2), 4, pixels);
+    const int shape = fallback.root->getNumChildren() - 1;
+    fallback.root->insertChild(uv, shape);
+    fallback.root->insertChild(texture, shape + 1);
+    if (!h.render(fallback, SbViewportRegion(64,64),
+                  "precise/per-vertex-textured-fallback", true)) return 1;
+    std::cout << "precise QuadMesh mode transition and fallback passed GPU=" << bool(h.native) << '\n';
+    return 0;
+  }
+  if (argc > 1 && std::string(argv[1]) == "--probe-precise-multitexture-rejection") {
+    if (!std::getenv("COIN_QUADMESH_PRECISE_LIGHTING") ||
+        std::atoi(std::getenv("COIN_QUADMESH_PRECISE_LIGHTING")) <= 0)
+      return 2;
+    Harness h(CoinRenderAction::isGpuBackendAvailable());
+    Scene baseline(true, 11), unsupported(true, 5);
+    unsupported.model->model = SoLightModel::PHONG;
+    const SbVec2f values[] = {{0,0},{.33f,0},{.67f,0},{1,0},
+                              {0,1},{.33f,1},{.67f,1},{1,1}};
+    const unsigned char pixels[] = {255,64,32,255, 32,255,64,255,
+                                    64,32,255,255, 255,255,64,255};
+    int shape = unsupported.root->getNumChildren() - 1;
+    for (int unit = 0; unit < 2; ++unit) {
+      auto *selected = new SoTextureUnit;
+      selected->unit = unit;
+      unsupported.root->insertChild(selected, shape++);
+      auto *uv = new SoTextureCoordinate2;
+      uv->point.setValues(0, 8, values);
+      unsupported.root->insertChild(uv, shape++);
+      auto *texture = new SoTexture2;
+      texture->image.setValue(SbVec2s(2,2), 4, pixels);
+      unsupported.root->insertChild(texture, shape++);
+    }
+    if (!h.render(baseline, SbViewportRegion(64,64), "precise/unsupported-before", true))
+      return 1;
+    std::vector<uint8_t> before, after;
+    h.cpu->readbackRGBA(before);
+    const auto serial = h.cpu->getLastSubmissionSerial();
+    h.action.apply(unsupported.root);
+    h.cpu->readbackRGBA(after);
+    if (!check(h.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+               h.action.getLastError().find("centered QuadMesh") >= 0 &&
+               h.cpu->getLastSubmissionSerial() == serial && after == before,
+               "precise multi-texture CPU rollback")) return 1;
+    if (h.native) {
+      h.native->readbackRGBA(before);
+      const auto gpuSerial = h.native->getLastSubmissionSerial();
+      h.gpuAction.apply(unsupported.root);
+      h.native->readbackRGBA(after);
+      if (!check(h.gpuAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                 h.gpuAction.getLastError().find("centered QuadMesh") >= 0 &&
+                 h.native->getLastSubmissionSerial() == gpuSerial && after == before,
+                 "precise multi-texture GPU rollback")) return 1;
+    }
+    if (!h.render(baseline, SbViewportRegion(64,64), "precise/unsupported-recovery", true))
+      return 1;
+    std::cout << "precise multi-texture rejected without publication and recovered\n";
     return 0;
   }
   if (argc > 1 && std::string(argv[1]) == "--probe-concave") {

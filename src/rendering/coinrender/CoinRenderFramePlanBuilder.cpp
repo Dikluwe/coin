@@ -2034,29 +2034,51 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v2)
 {
   if (!v0 || !v1 || !v2 || isShapeInvisible(action)) return;
-  // CoinGL only takes its centered QuadMesh path for 3D coordinates, a
-  // non-vertex material binding and nonprocedural texture coordinates. Other
-  // combinations keep the ordinary two-triangle path even when the switch is
-  // enabled, so they must remain available to the portable callback as well.
-  if (action->getCurPathTail()->getTypeId() == SoQuadMesh::getClassTypeId()) {
-    const char *precise = coin_getenv("COIN_QUADMESH_PRECISE_LIGHTING");
-    if (precise && std::atoi(precise) > 0) {
-      const auto *coordinates = SoCoordinateElement::getInstance(action->getState());
-      const auto materialBinding = SoMaterialBindingElement::get(action->getState());
+  const bool quadMesh = action->getCurPathTail()->getTypeId() == SoQuadMesh::getClassTypeId();
+  const char *precise = quadMesh ? coin_getenv("COIN_QUADMESH_PRECISE_LIGHTING") : nullptr;
+  bool centered = false;
+  if (precise && std::atoi(precise) > 0 &&
+      SoCoordinateElement::getInstance(action->getState())->is3D()) {
+    const auto mb = SoMaterialBindingElement::get(action->getState());
+    if (mb != SoMaterialBindingElement::PER_VERTEX &&
+        mb != SoMaterialBindingElement::PER_VERTEX_INDEXED) {
       SoTextureCoordinateBundle texture(action, FALSE, FALSE);
-      const bool centered = coordinates->is3D() &&
-          materialBinding != SoMaterialBindingElement::PER_VERTEX &&
-          materialBinding != SoMaterialBindingElement::PER_VERTEX_INDEXED &&
-          !texture.isFunction();
-      if (centered) {
+      centered = !texture.isFunction();
+    }
+  }
+  if (centered) {
+    for (int unit = 1; unit < int(COIN_RENDER_MAX_TEXTURE_UNITS); ++unit) {
+      if (SoMultiTextureEnabledElement::get(action->getState(), unit)) {
         this->isUnsupported = true;
         this->builderError =
-            "UNSUPPORTED: COIN_QUADMESH_PRECISE_LIGHTING needs centered QuadMesh capture";
+            "UNSUPPORTED: centered QuadMesh needs per-unit center texture coordinates";
         return;
       }
     }
   }
   if (polygonDrawStyle(action) != SoDrawStyleElement::FILLED) {
+    if (centered) {
+      // Polygon mode applies to each GL_TRIANGLE_FAN triangle, including its
+      // center spokes. Treat each callback triangle as its own styled polygon.
+      this->polygonNode = action->getCurPathTail();
+      this->polygonStyle = polygonDrawStyle(action);
+      this->polygonState = this->captureRenderState(action, v0->getMaterialIndex());
+      if (this->isUnsupported || this->hasError) {
+        this->polygonNode = nullptr;
+        return;
+      }
+      const auto state = this->currentPlan.renderStates[this->polygonState];
+      this->polygonVertices.clear();
+      for (const auto *source : {v0, v1, v2}) {
+        const uint32_t material = this->captureMaterial(action, source->getMaterialIndex());
+        this->polygonVertices.push_back(this->captureVertex(action, source, material, state));
+      }
+      if (!this->isUnsupported && !this->hasError)
+        this->emitStyledPolygon(action);
+      this->polygonNode = nullptr;
+      this->polygonVertices.clear();
+      return;
+    }
     this->addStyledTriangle(action, v0, v1, v2);
     return;
   }
@@ -2137,14 +2159,45 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
       return;
     }
   }
-  if (action->getCurPathTail()->getTypeId() == SoQuadMesh::getClassTypeId()) {
+  if (quadMesh) {
     const auto mb = SoMaterialBindingElement::get(action->getState());
     const auto nb = SoNormalBindingElement::get(action->getState());
     const bool faceMaterial = mb == SoMaterialBindingElement::PER_FACE ||
                               mb == SoMaterialBindingElement::PER_FACE_INDEXED;
     const bool faceNormal =
         nb == SoNormalBindingElement::PER_FACE || nb == SoNormalBindingElement::PER_FACE_INDEXED;
-    if (faceMaterial || faceNormal) {
+    if (centered && (faceMaterial || faceNormal)) {
+      // CoinGL enables GL_FLAT for either face binding. A precise QuadMesh
+      // draws a separate fan per quad, so each triangle takes its lit color
+      // from the final vertex rather than interpolating the corner colors.
+      uint32_t rsSlot = this->captureRenderState(action, v2->getMaterialIndex());
+      auto rs = this->currentPlan.renderStates[rsSlot];
+      const uint32_t sourceMaterial = this->captureMaterial(action, v2->getMaterialIndex());
+      CoinRenderVertexSnapshot provoking;
+      for (int c = 0; c < 3; ++c) {
+        provoking.position[c] = v2->getPoint()[c];
+        provoking.normal[c] = v2->getNormal()[c];
+      }
+      const uint32_t material = this->internMaterial(
+          coin_render_bake_vertex_material(provoking, this->currentPlan.materials[sourceMaterial],
+                                           rs, this->currentPlan.lightingStates[rs.lightingSlot]));
+      rs.lightModel = CoinRenderLightModel::BASE_COLOR;
+      rs.materialSlot = material;
+      rsSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
+      this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot,
+                             action->getCurPathTail());
+      this->captureSortingCenter(action);
+      for (const auto *source : {v0, v1, v2}) {
+        const uint32_t captured = this->addVertex(action, source, material);
+        this->currentPlan.indices.push_back(captured);
+      }
+      auto &draw = this->currentPlan.draws[this->currentDrawIndex];
+      draw.geometry.vertexCount =
+          static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
+      draw.geometry.indexCount += 3;
+      return;
+    }
+    if ((faceMaterial || faceNormal) && !centered) {
       // SoQuadMesh's GL_QUAD_STRIP uses flat primary color for these bindings.
       // Its callback shares vertices between quads; normalize the face's
       // attributes and retain the original quad provoking point for both triangles.
