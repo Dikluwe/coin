@@ -480,7 +480,7 @@ bool sameLightsWithinPrecision(const CoinRenderFramePlan & a, const CoinRenderFr
   return true;
 }
 
-CoinRenderFramePlan phongReference(const SbMatrix & view, uint64_t revision) {
+CoinRenderFramePlan phongReference(const SbMatrix & view, uint64_t revision, bool authored = false) {
   CoinRenderFramePlan plan=makePlan(revision);
   plan.cameras[0].viewMatrix=view;
   plan.renderStates[0].view=view;
@@ -495,11 +495,39 @@ CoinRenderFramePlan phongReference(const SbMatrix & view, uint64_t revision) {
     if(i!=0) {light.position[0]=1;light.position[1]=2;light.position[2]=-3;}
     if(i!=1) {light.direction[0]=.4f;light.direction[1]=-.8f;light.direction[2]=-.2f;}
     else light.direction[0]=light.direction[1]=light.direction[2]=0;
+    if (authored) {
+      light.sourceWorldModel = model;
+      std::memcpy(light.authoredDirection, light.direction, sizeof(light.direction));
+      std::memcpy(light.authoredPosition, light.position, sizeof(light.position));
+      light.hasAuthoredSource = true;
+    }
     light.attenuation[0]=.02f; light.attenuation[1]=.1f;
     CoinRenderPlanAssemblyCore::transformLight(light);
     plan.lightingStates[0].lights.push_back(light);
   }
   return plan;
+}
+
+bool testExactAuthoredLightOverlay() {
+  SbMatrix anchor;
+  anchor.setRotate(SbRotation(SbVec3f(1,2,3),.3f));
+  anchor[3][0]=-2;anchor[3][1]=1;anchor[3][2]=-7;
+  auto plan = phongReference(anchor, 400, true);
+  const auto original = plan;
+  CoinRenderCameraOverlayBasis basis;
+  if (!check(CoinRenderFrameReuseCore::prepareCameraOverlayBasis(plan, basis),
+             "authored light basis must qualify")) return false;
+  SbMatrix moved;
+  moved.setRotate(SbRotation(SbVec3f(-1,.4f,2),-.6f));
+  moved[3][0]=3;moved[3][1]=-4;moved[3][2]=-9;
+  auto camera = plan.cameras[0]; camera.viewMatrix = moved;
+  CoinRenderCameraOverlayUndo undo;
+  const auto expected = phongReference(moved, 401, true);
+  if (!check(CoinRenderFrameReuseCore::beginCameraOverlay(plan, camera, 401, undo, basis) &&
+             plan.hasSamePayload(expected),
+             "authored light overlay must equal every captured field of a fresh frame")) return false;
+  CoinRenderFrameReuseCore::rollbackCameraOverlay(plan, undo);
+  return check(plan.hasSamePayload(original), "authored light rollback must restore the anchor exactly");
 }
 
 bool testRigidCameraDelta() {
@@ -717,6 +745,7 @@ main()
   SoDB::init();
   const bool paddingOk = testDrawPadding();
   bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
+    testExactAuthoredLightOverlay() &&
     testTranslationOverlay() && testObjectPayloadTransaction() && testGeometryIntervalValidation();
   CoinRenderTextureImageSnapshot alphaImage;
   alphaImage.width = alphaImage.height = 1;

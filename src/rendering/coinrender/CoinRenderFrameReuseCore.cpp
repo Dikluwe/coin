@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderLightEqualityCore.h"
 #include "rendering/coinrender/CoinRenderDrawEqualityCore.h"
 #include "rendering/coinrender/CoinRenderStateCore.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
@@ -60,7 +61,7 @@ sameLighting(const std::vector<CoinRenderLightingSnapshot> & a,
     const CoinRenderLightingSnapshot & y = b[i];
     if (x.ambientIntensity != y.ambientIntensity ||
         std::memcmp(x.ambientColor, y.ambientColor, sizeof(x.ambientColor)) != 0 ||
-        !samePlainSnapshots(x.lights, y.lights)) return false;
+        !coin_render_same_lights(x.lights, y.lights)) return false;
   }
   return true;
 }
@@ -84,8 +85,11 @@ sameMatrix(const SbMatrix & a, const SbMatrix & b)
 bool finiteLight(const CoinRenderLightSourceSnapshot & light)
 {
   if (!CoinRenderTransformCore::finiteMatrix(light.sourceModel)) return false;
+  if (light.hasAuthoredSource && !CoinRenderTransformCore::finiteMatrix(light.sourceWorldModel)) return false;
   for (int i = 0; i < 3; ++i)
     if (!std::isfinite(light.position[i]) || !std::isfinite(light.direction[i])) return false;
+  if (light.hasAuthoredSource) for (int i = 0; i < 3; ++i)
+    if (!std::isfinite(light.authoredPosition[i]) || !std::isfinite(light.authoredDirection[i])) return false;
   return light.type == CoinRenderLightType::DIRECTIONAL ||
     light.type == CoinRenderLightType::POINT || light.type == CoinRenderLightType::SPOT;
 }
@@ -303,11 +307,17 @@ CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
   prepared.camera = camera;
   prepared.referenceLighting = plan.lightingStates;
   prepared.worldLighting = plan.lightingStates;
-  const SbMatrix viewInverse = camera.viewMatrix.inverse();
-  for (auto & lighting : prepared.worldLighting)
-    for (auto & light : lighting.lights)
-      if (!reusableLightCoordinates(light) || !transformLightFrame(light, viewInverse) ||
-          !reusableLightCoordinates(light)) return false;
+  bool exactSources = true;
+  for (const auto & lighting : prepared.referenceLighting)
+    for (const auto & light : lighting.lights)
+      exactSources = exactSources && light.hasAuthoredSource && reusableLightCoordinates(light);
+  if (!exactSources) {
+    const SbMatrix viewInverse = camera.viewMatrix.inverse();
+    for (auto & lighting : prepared.worldLighting)
+      for (auto & light : lighting.lights)
+        if (!reusableLightCoordinates(light) || !transformLightFrame(light, viewInverse) ||
+            !reusableLightCoordinates(light)) return false;
+  }
   basis = std::move(prepared);
   return true;
 }
@@ -341,20 +351,34 @@ CoinRenderFrameReuseCore::beginCameraOverlay(
   const auto oldCamera = plan.cameras[0];
   std::vector<CoinRenderLightingSnapshot> lighting = basis.referenceLighting;
   if (!sameMatrix(camera.viewMatrix, basis.camera.viewMatrix)) {
-    const bool unchangedOrientation =
-      std::memcmp(camera.viewMatrix.getValue(), basis.camera.viewMatrix.getValue(),
-                  sizeof(float) * 12) == 0;
-    SbMatrix delta, normalDelta;
-    if (!CoinRenderTransformCore::cameraDelta(
-          basis.camera.viewMatrix, camera.viewMatrix, delta, normalDelta)) return false;
-    // A pan/dolly cannot change a directional/spot direction. Preserve the
-    // captured bits and use the exact anchored translation for positions.
-    // Rotation starts from WORLD values, never the previous overlay.
-    if (!unchangedOrientation) lighting = basis.worldLighting;
-    for (auto & snapshot : lighting)
-      for (auto & light : snapshot.lights)
-        if (!transformLightFrame(light, unchangedOrientation ? delta : camera.viewMatrix,
-                                 unchangedOrientation) || !reusableLightCoordinates(light)) return false;
+    bool exactSources = true;
+    for (const auto & snapshot : lighting)
+      for (const auto & light : snapshot.lights)
+        exactSources = exactSources && light.hasAuthoredSource;
+    if (exactSources) {
+      for (auto & snapshot : lighting) for (auto & light : snapshot.lights) {
+        light.sourceModel = light.sourceWorldModel * camera.viewMatrix;
+        std::memcpy(light.position, light.authoredPosition, sizeof(light.position));
+        std::memcpy(light.direction, light.authoredDirection, sizeof(light.direction));
+        CoinRenderPlanAssemblyCore::transformLight(light);
+        if (!reusableLightCoordinates(light)) return false;
+      }
+    } else {
+      const bool unchangedOrientation =
+        std::memcmp(camera.viewMatrix.getValue(), basis.camera.viewMatrix.getValue(),
+                    sizeof(float) * 12) == 0;
+      SbMatrix delta, normalDelta;
+      if (!CoinRenderTransformCore::cameraDelta(
+            basis.camera.viewMatrix, camera.viewMatrix, delta, normalDelta)) return false;
+      // A pan/dolly cannot change a directional/spot direction. Preserve the
+      // captured bits and use the exact anchored translation for positions.
+      // Rotation starts from WORLD values, never the previous overlay.
+      if (!unchangedOrientation) lighting = basis.worldLighting;
+      for (auto & snapshot : lighting)
+        for (auto & light : snapshot.lights)
+          if (!transformLightFrame(light, unchangedOrientation ? delta : camera.viewMatrix,
+                                   unchangedOrientation) || !reusableLightCoordinates(light)) return false;
+    }
   }
   CoinRenderCameraOverlayUndo prepared;
   prepared.revision = plan.revision;

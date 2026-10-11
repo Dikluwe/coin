@@ -5,6 +5,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
+#include "rendering/coinrender/CoinRenderLightEqualityCore.h"
 #include "rendering/coinrender/CoinRenderDrawEqualityCore.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
@@ -123,7 +124,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan & other) const
     const CoinRenderLightingSnapshot & y = other.lightingStates[i];
     if (x.ambientIntensity != y.ambientIntensity ||
         std::memcmp(x.ambientColor, y.ambientColor, sizeof(x.ambientColor)) != 0 ||
-        !samePlainSnapshots(x.lights, y.lights)) return false;
+        !coin_render_same_lights(x.lights, y.lights)) return false;
   }
   for (size_t i = 0; i < this->textures.size(); ++i) {
     const CoinRenderTextureImageSnapshot & x = this->textures[i];

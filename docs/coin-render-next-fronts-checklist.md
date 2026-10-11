@@ -496,8 +496,14 @@ nem encerra uma campanha completa de desempenho Windows.
   `LEQUAL` conserva a rota antiga. BGFX/OpenGL ainda difere inclusive com
   câmera estática: um pixel na cidade 40 mil inicial/final
   ([correção e recibos](coin-render-bgfx-camera-world-20261010.md)).
-  Ainda faltam essa borda OpenGL, a diferença final do terreno e os demais
-  gates antes de fechar a frente inteira.
+  O overlay de luz passou a repetir a transformação da captura original:
+  o terreno iluminado em wgpu e BGFX/Vulkan, native e portable, passou RGB 0
+  inicial/final. Cidade 40 mil em Vulkan/native também permaneceu RGB 0.
+  Wgpu/OpenGL ainda apresentou primeira captura divergente e BGFX/OpenGL
+  divergiu nos dois frames do terreno
+  ([correção e recibos](coin-render-camera-light-overlay-20261010.md)).
+  Ainda faltam essas bordas OpenGL e os demais gates antes de fechar a frente
+  inteira.
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou

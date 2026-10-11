@@ -96,6 +96,12 @@ static const size_t COIN_RENDER_MAX_CLIP_PLANES = 8;
 struct CoinRenderLightSourceSnapshot {
   uint64_t sourceRevision = 0; // Matches a Coin shadow light captured at traversal.
   SbMatrix sourceModel = SbMatrix::identity(); // Distinguishes reused light nodes.
+  // Exact camera recapture is available only when the light traversal proved
+  // sourceModel == sourceWorldModel * capturedView.
+  SbMatrix sourceWorldModel = SbMatrix::identity();
+  float authoredDirection[3] = {0.0f, 0.0f, -1.0f};
+  float authoredPosition[3] = {0.0f, 0.0f, 0.0f};
+  bool hasAuthoredSource = false;
   CoinRenderLightType type = CoinRenderLightType::DIRECTIONAL;
   float color[3] = {1.0f, 1.0f, 1.0f};
   float intensity = 1.0f;

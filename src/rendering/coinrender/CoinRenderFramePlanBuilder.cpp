@@ -208,6 +208,7 @@ CoinRenderFramePlanBuilder::reset()
   this->authoredTextureSources.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
+  this->lightModelByIndex.clear();
   this->lightCaptureScratch.clear();
 }
 
@@ -525,9 +526,11 @@ CoinRenderFramePlanBuilder::recordLightAttenuation(SoCallbackAction * action)
   const size_t slot = static_cast<size_t>(index);
   if (this->lightAttenuationByIndex.size() <= slot) {
     this->lightAttenuationByIndex.resize(slot + 1, SbVec3f(0.0f, 0.0f, 1.0f));
+    this->lightModelByIndex.resize(slot + 1, SbMatrix::identity());
   }
   // The GL path fixes attenuation at the light node, before later SoEnvironment nodes.
   this->lightAttenuationByIndex[slot] = SoEnvironmentElement::getLightAttenuation(state);
+  this->lightModelByIndex[slot] = action->getModelMatrix();
 }
 
 uint32_t
@@ -1136,6 +1139,13 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
           this->isUnsupported = true;
           this->builderError = "Unsupported SoLight subtype";
           break;
+        }
+        if (static_cast<size_t>(i) < this->lightModelByIndex.size() &&
+            this->lightModelByIndex[static_cast<size_t>(i)] * action->getViewingMatrix() == lm) {
+          src.sourceWorldModel = this->lightModelByIndex[static_cast<size_t>(i)];
+          std::memcpy(src.authoredDirection, src.direction, sizeof(src.direction));
+          std::memcpy(src.authoredPosition, src.position, sizeof(src.position));
+          src.hasAuthoredSource = true;
         }
         CoinRenderPlanAssemblyCore::transformLight(src);
         lightSnap.lights.push_back(src);
