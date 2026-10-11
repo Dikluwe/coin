@@ -233,6 +233,7 @@ private:
   bgfx::UniformHandle instancedCameraUniform;
   bgfx::UniformHandle lightAttenuationDropUniform;
   bgfx::FrameBufferHandle frameBuffer;
+  bgfx::FrameBufferHandle windowSceneFrameBuffer;
   bgfx::FrameBufferHandle oitFrameBuffer;
   bgfx::FrameBufferHandle peelFrameBuffers[COIN_RENDER_MAX_PEEL_LAYERS];
   bgfx::TextureHandle readbackTexture;

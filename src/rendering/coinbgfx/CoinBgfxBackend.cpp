@@ -777,7 +777,8 @@ CoinBgfxBackend::CoinBgfxBackend()
     lightAttenuationDropUniform(BGFX_INVALID_HANDLE),
     fullscreenVertexBuffer(BGFX_INVALID_HANDLE),
     fullscreenIndexBuffer(BGFX_INVALID_HANDLE),
-    frameBuffer(BGFX_INVALID_HANDLE), oitFrameBuffer(BGFX_INVALID_HANDLE),
+    frameBuffer(BGFX_INVALID_HANDLE), windowSceneFrameBuffer(BGFX_INVALID_HANDLE),
+    oitFrameBuffer(BGFX_INVALID_HANDLE),
     readbackTexture(BGFX_INVALID_HANDLE), lastPublishedSequence(0),
     defaultTexture(BGFX_INVALID_HANDLE),
     cachedRevision(0), cachedWidth(0), cachedHeight(0),
@@ -1524,6 +1525,19 @@ bool
 CoinBgfxBackend::prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strategy)
 {
   if (strategy != CoinBgfxTransparencyStrategy::OBJECT && !this->prepareFullscreenResources()) return false;
+  if (this->presentToWindow && bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL) {
+    if (!this->prepareFullscreenResources()) return false;
+    if (!bgfx::isValid(this->compositeProgram))
+      this->compositeProgram = createLayerProgram(
+        COIN_BGFX_SHADER_DATA(coin_bgfx_vs), COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+        COIN_BGFX_SHADER_DATA(coin_bgfx_fs_composite), COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_composite));
+    if (!bgfx::isValid(this->layerSampler))
+      this->layerSampler = bgfx::createUniform("s_layer", bgfx::UniformType::Sampler);
+    if (!bgfx::isValid(this->compositeProgram) || !bgfx::isValid(this->layerSampler)) {
+      this->lastError = "BGFX OpenGL could not prepare window presentation";
+      return false;
+    }
+  }
   if (strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS) {
     const uint8_t * vertexShader = COIN_BGFX_SHADER_DATA(coin_bgfx_vs);
     const uint32_t vertexBytes = COIN_BGFX_SHADER_SIZE(coin_bgfx_vs);
@@ -1615,8 +1629,10 @@ CoinBgfxBackend::destroyFrameBuffers()
   this->readbackSequence = 0;
   this->lastPublishedSequence = 0;
   if (bgfx::isValid(this->frameBuffer)) bgfx::destroy(this->frameBuffer);
+  if (bgfx::isValid(this->windowSceneFrameBuffer)) bgfx::destroy(this->windowSceneFrameBuffer);
   this->readbackTexture = BGFX_INVALID_HANDLE;
   this->frameBuffer = BGFX_INVALID_HANDLE;
+  this->windowSceneFrameBuffer = BGFX_INVALID_HANDLE;
   this->width = this->height = 0;
 }
 
@@ -1661,6 +1677,27 @@ CoinBgfxBackend::resize(int newWidth, int newHeight)
       this->frameBuffer = bgfx::createFrameBuffer(swapChain);
       if (!bgfx::isValid(this->frameBuffer)) {
         this->lastError = "BGFX could not create the target window swapchain";
+        return false;
+      }
+    }
+    if (caps->rendererType == bgfx::RendererType::OpenGL) {
+      bgfx::TextureHandle color = bgfx::createTexture2D(
+        static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
+        false, 1, bgfx::TextureFormat::RGBA8, peelTextureFlags);
+      bgfx::TextureHandle depth = bgfx::createTexture2D(
+        static_cast<uint16_t>(newWidth), static_cast<uint16_t>(newHeight),
+        false, 1, depthFormat, peelTextureFlags);
+      if (!bgfx::isValid(color) || !bgfx::isValid(depth)) {
+        if (bgfx::isValid(color)) bgfx::destroy(color);
+        if (bgfx::isValid(depth)) bgfx::destroy(depth);
+        this->lastError = "BGFX OpenGL could not allocate the window scene target";
+        return false;
+      }
+      const bgfx::TextureHandle attachments[2] = {color, depth};
+      this->windowSceneFrameBuffer = bgfx::createFrameBuffer(2, attachments, true);
+      if (!bgfx::isValid(this->windowSceneFrameBuffer)) {
+        bgfx::destroy(color); bgfx::destroy(depth);
+        this->lastError = "BGFX OpenGL could not create the window scene target";
         return false;
       }
     }
@@ -2732,8 +2769,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
-  const bgfx::FrameBufferHandle windowFrameBuffer = this->frameBuffer;
-  bgfx::setViewFrameBuffer(opaqueView, this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
+  const bgfx::FrameBufferHandle sceneOutput = bgfx::isValid(this->windowSceneFrameBuffer)
+    ? this->windowSceneFrameBuffer : this->frameBuffer;
+  bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
   // The packed clear API quantizes Coin's float color before the GL clear.
   // Keep the float until the renderer converts it to its target format.
   bgfx::setPaletteColor(0, plan->clearColor);
@@ -2780,8 +2818,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::setViewRect(transparentView, 0, 0,
                       static_cast<uint16_t>(this->width),
                       static_cast<uint16_t>(this->height));
-    bgfx::setViewFrameBuffer(transparentView,
-      this->presentToWindow ? windowFrameBuffer : this->frameBuffer);
+    bgfx::setViewFrameBuffer(transparentView, sceneOutput);
     bgfx::setViewClear(transparentView, BGFX_CLEAR_NONE);
     bgfx::setViewTransform(transparentView, nullptr, nullptr);
     for (const CoinBgfxDraw & draw : draws) {
@@ -2800,13 +2837,13 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   } else if (useSortedLayers) {
     nextView = opaqueView + this->peelPassCount + 2;
     this->encodeSortedLayers(draws, vb, ib,
-      this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
+      sceneOutput,
       textures, opaqueView + 1, this->width, this->height, frame, shadowPlan, shadowMaps.buffers,
       std::vector<bgfx::FrameBufferHandle>(this->peelFrameBuffers, this->peelFrameBuffers + this->peelPassCount), this->oitFrameBuffer);
   } else if (useWeightedOit) {
     nextView = opaqueView + 3;
     this->encodeWeightedOit(draws, vb, ib,
-      this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
+      sceneOutput,
       textures, opaqueView + 1, this->width, this->height, frame, shadowPlan, shadowMaps.buffers,
       {}, this->oitFrameBuffer);
   }
@@ -2818,7 +2855,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::setViewName(nextView, "additive_transparency");
       bgfx::setViewMode(nextView, bgfx::ViewMode::Sequential);
       bgfx::setViewRect(nextView, 0, 0, this->width, this->height);
-      bgfx::setViewFrameBuffer(nextView, this->frameBuffer);
+      bgfx::setViewFrameBuffer(nextView, sceneOutput);
       bgfx::setViewClear(nextView, BGFX_CLEAR_NONE);
       bgfx::setViewTransform(nextView, nullptr, nullptr);
       for (const auto & draw : draws) {
@@ -2837,10 +2874,31 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
   }
   if (!this->encodeOverlayLayers(draws, vb, ib,
-        this->presentToWindow ? windowFrameBuffer : this->frameBuffer,
+        sceneOutput,
         textures, nextView, this->width, this->height, frame, shadowPlan, shadowMaps.buffers)) {
     destroyTextures();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+  }
+  if (bgfx::isValid(this->windowSceneFrameBuffer)) {
+    const bgfx::ViewId presentView = nextView++;
+    bgfx::setViewName(presentView, "window_scene_present");
+    bgfx::setViewMode(presentView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(presentView, 0, 0, this->width, this->height);
+    bgfx::setViewFrameBuffer(presentView, this->frameBuffer);
+    bgfx::setViewClear(presentView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(presentView, nullptr, nullptr);
+    const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    const float pixelSize[4] = {1.0f / this->width, 1.0f / this->height, 0, 0};
+    bgfx::setTransform(identity);
+    bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+    bgfx::setUniform(this->depthInfoUniform, pixelSize);
+    bgfx::setTexture(0, this->layerSampler,
+      bgfx::getTexture(this->windowSceneFrameBuffer, 0),
+      BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+      BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+    bgfx::submit(presentView, this->compositeProgram);
   }
   const Clock::time_point drawsEncoded = Clock::now();
   if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE")) {

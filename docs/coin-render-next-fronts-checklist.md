@@ -493,17 +493,22 @@ nem encerra uma campanha completa de desempenho Windows.
   byte a byte ([correção e recibos](coin-render-wgpu-camera-world-20261010.md)).
   O mesmo tratamento em BGFX passou as duas cidades × Vulkan × native/portable,
   com o custo curto da cidade 40 mil próximo ao anterior. O controle coplanar
-  `LEQUAL` conserva a rota antiga. BGFX/OpenGL ainda difere inclusive com
-  câmera estática: um pixel na cidade 40 mil inicial/final
-  ([correção e recibos](coin-render-bgfx-camera-world-20261010.md)).
+  `LEQUAL` conserva a rota antiga. O registro anterior encontrou um pixel
+  BGFX/OpenGL diferente mesmo com câmera estática
+  ([diagnóstico](coin-render-bgfx-camera-world-20261010.md)).
   O overlay de luz passou a repetir a transformação da captura original:
   o terreno iluminado em wgpu e BGFX/Vulkan, native e portable, passou RGB 0
   inicial/final. Cidade 40 mil em Vulkan/native também permaneceu RGB 0.
-  Wgpu/OpenGL ainda apresentou primeira captura divergente e BGFX/OpenGL
-  divergiu nos dois frames do terreno
-  ([correção e recibos](coin-render-camera-light-overlay-20261010.md)).
-  Ainda faltam essas bordas OpenGL e os demais gates antes de fechar a frente
-  inteira.
+  Wgpu/OpenGL ainda apresentou primeira captura divergente; o terreno
+  BGFX/OpenGL também divergia nos dois frames
+  ([diagnóstico](coin-render-camera-light-overlay-20261010.md)).
+  A janela BGFX/OpenGL passou a renderizar em alvo RGBA8/D24S8 equivalente
+  ao offscreen antes da apresentação: duas cidades e terreno passaram RGB 0
+  inicial/final em native/portable, inclusive no controle XGetImage da cidade
+  40 mil e do terreno em native; 32/32 testes BGFX passaram
+  ([correção e recibos](coin-render-bgfx-opengl-window-parity-20261010.md)).
+  Ainda faltam a primeira captura wgpu/OpenGL, a qualificação de desempenho
+  BGFX/OpenGL e os demais gates antes de fechar a frente inteira.
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou
