@@ -13,19 +13,19 @@ reclassificado por mera ausência de reprodução.
 | 58 — NPOT BGFX | Parcial | Repetir HDR/2047² e combinações Linux; D3D11 precisa de Windows. |
 | 76 — rescaling, formatos | Parcial | Ampliar estado/formatos e FreeCAD Linux; Windows/Android em campanhas próprias. |
 | 240 — borda fria FreeCAD | Local | Isolar a transição inicial sem alterar o critério de captura. |
-| 260 — variação NVIDIA/wgpu | Local | A/B mais longo, clocks e replay em outras cargas. |
+| 260 — variação NVIDIA/wgpu | Local em curso | 16/16 A/B com clocks; associar amostras ao processo/frame antes de atribuir o outlier. |
 | 270 — sampling API | Parcial | AVD e consumidores Linux; Windows e outros dispositivos seguem separados. |
 | 331 — junções e endpoints | Concluído nesta rodada | Reprodução física, custo mínimo das alternativas e decisão de preservar o contrato portátil; melhorias futuras continuam separadas. |
-| 346 — bindings/shapes | Local | Acrescentar cruzamentos com casos de falha e recuperação. |
+| 346 — bindings/shapes | Local em curso | Concavidade entrou no gate; acrescentar subclasses, UV/estado e contrato positivo ou rejeição de offset não planar. |
 | 348 — depth clamp/formatos | Local | Separar clipping geométrico, range, precisão e formatos. |
-| 351 — flat/sombras | Local | Fixture com iluminação por fragmento e QuadMesh preciso. |
+| 351 — flat/sombras | Local em curso | QuadMesh preciso agora é recusado transacionalmente; implementar o fan central e qualificar flat com sombras/iluminação por fragmento. |
 | 353 — outros drivers/FreeCAD | Parcial | AMD/NVIDIA e FreeCAD Linux; Windows e outros drivers ficam externos. |
 | 363 — workbenches | Parcial | Consumidores reais Linux; matriz Windows externa. |
 | 368 — arraste/workbenches | Parcial | Input e workbenches Linux; repetir adaptadores no Windows depois. |
 | 388 — bbox/depth clamp | Concluído nesta rodada | Clipping e clamp distinguidos em sonda CoinGL; contrato portátil continua no item 348. |
 | 407 — mips/recursos | Local | Implementar células Linux com orçamento e rollback; outras APIs depois. |
 | 452 — desempenho Windows | Externo | Exige host Windows e controle de clocks/latência. |
-| 485 — igualdade janela/offscreen | Local | Isolar cidade em movimento e primeiro frame wgpu/OpenGL. |
+| 485 — igualdade janela/offscreen | Local em curso | 40/40 cidade/terreno passaram; capturar recorrência preta espontânea com leituras X11 repetidas. |
 | 550 — bordas AMD/Vulkan | Local | Snap comum e testemunhos P20/câmera com alpha/ownership isolados. |
 | 560 — fontes GL no Coin base | Local | Inventariar símbolos/objetos restantes e remover em etapas com ABI verificada. |
 | 562 — Vulkan no AVD | Condicionado | Verificar imagem/driver; Goldfish atual falha no submit. |
