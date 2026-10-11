@@ -140,3 +140,33 @@ rota; as 48 comparações côncavas CPU/GPU/CoinGL por rota tiveram máximo RGB 
 O [recibo](validation/concave-geometry-20261010/summary.log) guarda identidades
 e contagens. O item 346 continua aberto para offset não planar, subclasses e
 UV/estado fora da matriz.
+
+O gate já existente em `CoinRenderDrawStyleTest` passou novamente em
+BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan. Ele recusa o contorno não planar com
+`UNSUPPORTED`, preserva pixels/serial e recupera o mesmo alvo após restaurar a
+geometria. Portanto, a semântica **atual de rejeição** de offset não planar está
+verificada; aceitar tal offset ou combinar mais UV/estado permanece no item.
+
+## Sexta frente: iluminação precisa do QuadMesh
+
+`COIN_QUADMESH_PRECISE_LIGHTING=1` reproduziu uma falha real no primeiro
+QuadMesh iluminado da matriz, igual em BGFX/Vulkan e wgpu/Vulkan: CPU/GPU
+máximo 1, CPU/CoinGL máximo 6 contra limite 4 no pixel (30,28). O CoinGL
+subdivide cada quad com um vértice central nesse modo, enquanto a captura
+portátil mantém a triangulação comum. O builder agora recusa QuadMesh sob
+essa variável com `UNSUPPORTED`, antes de publicar a triangulação diferente.
+Pixels e seriais permanecem intactos e a mesma action recupera ao renderizar
+uma cena sem QuadMesh: 3/3 rotas físicas passaram o teste de rejeição.
+O [recibo](validation/precise-lighting-20261010/summary.log) conserva a falha
+anterior e os passes posteriores. O modo positivo não padrão continua aberto
+no item 351. Sem essa variável, 1306 casos passaram em cada rota após a
+correção.
+
+## Sétima frente: repetição da primeira captura
+
+Mais 40 processos wgpu/OpenGL X11 native alternaram cidade em movimento e
+terreno de um milhão. Todos passaram RGB 0 em capturas inicial e final, sem
+acionar as leituras diagnósticas extras. O
+[recibo](validation/wgpu-gl-first-capture-20261010/stress-40.log) conserva a
+contagem e o hash do CSV temporário. A falha intermitente histórica continua
+sem reprodução causal; o item 492 não foi fechado.

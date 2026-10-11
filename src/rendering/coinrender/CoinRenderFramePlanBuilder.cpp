@@ -24,6 +24,7 @@
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "shapenodes/CoinRenderMarkerBridge.h"
 #include <Inventor/details/SoCylinderDetail.h>
+#include <Inventor/C/tidbits.h>
 #include <Inventor/elements/SoClipPlaneElement.h>
 #include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
@@ -2026,6 +2027,19 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
                                    const SoPrimitiveVertex * v2)
 {
   if (!v0 || !v1 || !v2 || isShapeInvisible(action)) return;
+  // CoinGL's opt-in QuadMesh path adds a weighted center vertex and renders
+  // four triangles per quad. The ordinary primitive callback still supplies
+  // two triangles, so publishing it would silently change lighting and UVs.
+  // Keep this nonstandard mode transactional until it has its own capture.
+  if (action->getCurPathTail()->getTypeId() == SoQuadMesh::getClassTypeId()) {
+    const char *precise = coin_getenv("COIN_QUADMESH_PRECISE_LIGHTING");
+    if (precise && std::atoi(precise) > 0) {
+      this->isUnsupported = true;
+      this->builderError =
+          "UNSUPPORTED: COIN_QUADMESH_PRECISE_LIGHTING needs centered QuadMesh capture";
+      return;
+    }
+  }
   if (polygonDrawStyle(action) != SoDrawStyleElement::FILLED) {
     this->addStyledTriangle(action, v0, v1, v2);
     return;

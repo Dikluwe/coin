@@ -357,11 +357,20 @@ Melhoria futura, fora deste primeiro perfil:
   wgpu/Vulkan físicos contra CoinGL, com notch verificado independentemente.
   Offset não planar e os demais cruzamentos continuam abertos
   ([rodada local](coin-render-local-closure-20261010.md)).
+  O gate existente recusa offset não planar sem publicação e recupera o alvo
+  em BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan; suporte positivo não foi prometido.
 - [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
   mais combinações de transparência/sombras/RTT; clamp de range já implementado
   não equivale a GL_DEPTH_CLAMP.
 - [ ] Qualificar flat com sombras/iluminação por fragmento e o modo não padrão
   `COIN_QUADMESH_PRECISE_LIGHTING`; manter extensões identificadas.
+  O modo preciso reproduz CPU/GPU máximo 1 e CPU/CoinGL máximo 6 no primeiro
+  QuadMesh iluminado em BGFX/Vulkan e wgpu/Vulkan; o gate 4 permanece. O
+  CoinGL insere vértice central no quad, a captura portátil não. O builder
+  agora recusa esse modo com `UNSUPPORTED` transacional; BGFX/Vulkan,
+  BGFX/OpenGL e wgpu/Vulkan passaram rejeição, pixels/serial preservados e
+  recuperação. A renderização positiva continua aberta
+  ([recibo local](coin-render-local-closure-20261010.md)).
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após
@@ -549,6 +558,10 @@ nem encerra uma campanha completa de desempenho Windows.
   O fixture passou a guardar quatro leituras X11 sem render adicional se a
   primeira vier preta; injeção controlada confirmou que o diagnóstico funciona
   e mantém a falha visível no gate. Falta reproduzir a ocorrência espontânea.
+  Mais 40 processos native com cidade em movimento/terreno passaram RGB 0 nas
+  duas capturas, sem reproduzir o primeiro quadro preto; a instrumentação
+  permanece pronta para a próxima ocorrência
+  ([recibo](validation/wgpu-gl-first-capture-20261010/stress-40.log)).
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou

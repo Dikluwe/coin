@@ -1,0 +1,17 @@
+Before explicit rejection, COIN_QUADMESH_PRECISE_LIGHTING=1
+CoinRenderGeometryViewportTest --gpu: BGFX/Vulkan AMD and wgpu/Vulkan AMD
+each exited 1 at the same first QuadMesh case:
+primitive-bindings/5/binding-2/fast-0/generated-0/alpha-0 CPU/GPU covered=1800 max=1
+primitive-bindings/5/binding-2/fast-0/generated-0/alpha-0 CPU/CoinGL covered=1800 max=6
+worst=30,28 source=48,125,64 reference=51,131,67
+Gate: RGB max <= 4; no tolerance change.
+Default mode, without this environment variable: 1306 cases passed per route.
+CoinGL's precise QuadMesh path inserts a center vertex and emits a triangle fan;
+the portable callback path retains the ordinary quad triangulation.
+
+After explicit rejection, --probe-precise-rejection with the variable set:
+BGFX/Vulkan, BGFX/OpenGL and wgpu/Vulkan: 3/3 PASS.
+CPU and GPU each return UNSUPPORTED before publication; pixels and serial are
+unchanged. A non-QuadMesh scene passes before and after rejection with CoinGL.
+Without the variable, full --gpu regression: 1306/1306 cases PASS in each of
+the same three routes. Positive precise QuadMesh rendering remains open.

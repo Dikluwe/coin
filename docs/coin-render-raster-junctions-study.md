@@ -165,7 +165,7 @@ contornos com stipple.
 | Expansão portátil atual | 8 vértices e 12 índices, quatro triângulos | Dois quads; atributos interpolados e alpha convencional preservados. Caps ou stipple podem subdividir cada segmento e ampliar esse número. |
 | Inverter/canonicalizar sentido | Mesmos 8 vértices e 12 índices | Uma comparação/troca por segmento; no endpoint isolado o segundo traço deixa de contribuir. A fase de stipple exige exceção. |
 | Acrescentar uma junção explícita como quad | Pelo menos mais 4 vértices, 6 índices e dois triângulos por junção | Pelo menos 50% mais vértices/índices no par curto; alpha 0,5 sobreposto acumula uma terceira contribuição. Evitar dupla mistura requer regra de ownership ou máscara adicional. |
-| Linha nativa CoinGL | 4 vértices e 4 índices de linha para o par | Menos geometria explícita, mas endpoints e caps dependem do raster nativo; não fornece o contrato portátil de largura/alpha e não é uma substituição geral em BGFX/wgpu. |
+| Linha nativa CoinGL | Quatro vértices submetidos em duas linhas | Menos geometria explícita, mas endpoints e caps dependem do raster nativo; não fornece o contrato portátil de largura/alpha e não é uma substituição geral em BGFX/wgpu. |
 
 As contagens são derivadas dos quatro vértices/seis índices emitidos por
 segmento ou quad em `CoinRenderStrokeCore.h`, e dos dois vértices por linha

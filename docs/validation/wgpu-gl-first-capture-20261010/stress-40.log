@@ -1,0 +1,7 @@
+wgpu/OpenGL X11 :0, native, two measured frames and one warmup per process.
+40/40 PASS: 20 city-40000 with camera motion, 20 terrain-million with camera motion.
+Every initial and final XGetImage matched offscreen exactly (RGB max 0).
+No spontaneous empty capture and no diagnostic XGetImage repeats were triggered.
+Temporary CSV: /tmp/coin-wgpu-first-stress-20261010.csv
+CSV SHA-256: 0897fcdd5b4b35d2ed07a4db4493438025d4d7744b608eb39e9a9b337e07e55a
+This does not reproduce or explain the historical first black capture.

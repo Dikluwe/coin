@@ -41,6 +41,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdlib>
 #include <iostream>
 #include <limits>
 #include <memory>
@@ -512,6 +513,37 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
 #ifndef HAVE_COIN_BGFX
   if(gpu&&!CoinRenderAction::isGpuBackendAvailable())return 77;
 #endif
+  if (argc > 1 && std::string(argv[1]) == "--probe-precise-rejection") {
+    if (!std::getenv("COIN_QUADMESH_PRECISE_LIGHTING") ||
+        std::atoi(std::getenv("COIN_QUADMESH_PRECISE_LIGHTING")) <= 0)
+      return 2;
+    Harness h(CoinRenderAction::isGpuBackendAvailable());
+    Scene baseline(true, 11), precise(true, 5);
+    precise.model->model = SoLightModel::PHONG;
+    if (!h.render(baseline, SbViewportRegion(64,64), "precise/before", true)) return 1;
+    std::vector<uint8_t> cpuBefore, cpuAfter, gpuBefore, gpuAfter;
+    h.cpu->readbackRGBA(cpuBefore);
+    const auto cpuSerial = h.cpu->getLastSubmissionSerial();
+    if (h.native) h.native->readbackRGBA(gpuBefore);
+    const auto gpuSerial = h.native ? h.native->getLastSubmissionSerial() : 0;
+    h.action.apply(precise.root);
+    h.cpu->readbackRGBA(cpuAfter);
+    if (!check(h.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                   h.action.getLastError().find("COIN_QUADMESH_PRECISE_LIGHTING") >= 0 &&
+                   h.cpu->getLastSubmissionSerial() == cpuSerial && cpuAfter == cpuBefore,
+               "precise QuadMesh CPU rejection preserves publication")) return 1;
+    if (h.native) {
+      h.gpuAction.apply(precise.root);
+      h.native->readbackRGBA(gpuAfter);
+      if (!check(h.gpuAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+                     h.gpuAction.getLastError().find("COIN_QUADMESH_PRECISE_LIGHTING") >= 0 &&
+                     h.native->getLastSubmissionSerial() == gpuSerial && gpuAfter == gpuBefore,
+                 "precise QuadMesh GPU rejection preserves publication")) return 1;
+    }
+    if (!h.render(baseline, SbViewportRegion(64,64), "precise/recovery", true)) return 1;
+    std::cout << "precise QuadMesh rejection and recovery passed GPU=" << bool(h.native) << '\n';
+    return 0;
+  }
   if (argc > 1 && std::string(argv[1]) == "--probe-concave") {
     CoinRenderCapabilities caps{};
     if (coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
