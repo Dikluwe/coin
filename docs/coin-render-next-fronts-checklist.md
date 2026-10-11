@@ -375,11 +375,14 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
 - [x] Ensaiar BSpline curva e superfície Part::Spline, com polos 5×1/5×4,
   regeneração/remoção, object/weighted OIT e DPR 1/2 nas três rotas físicas.
   Operações completas de edição e consumidores de outros workbenches seguem abertos.
-- [ ] Estudar os timeouts de Part::Spline/OpenGL DPR 1 com cache ativo;
+- [x] Estudar os timeouts de Part::Spline/OpenGL DPR 1 com cache ativo;
   preservar a configuração qualificada e as duas tentativas sem captura.
-  Duas repetições com cache padrão e controle cache-off passaram no FreeCAD
-  BGFX/OpenGL DPR 1; os timeouts anteriores não foram reproduzidos nem
-  explicados ([recibos](coin-render-local-diagnostics-20261009.md)).
+  O timeout foi reproduzido com cache ativo e desligado: a thread BGFX
+  aguardava em Mesa DRI3 ao configurar `eglSwapInterval(0)` após as primeiras
+  apresentações da swapchain secundária. O patch portável do SDK antecipa a
+  configuração e só a repete quando o valor muda. Passaram 20 execuções com
+  instrumentação, 8 no build final com cache ativo, 4 com cache desligado e
+  5 testes BGFX/OpenGL de janela ([diagnóstico e limites](coin-render-bgfx-egl-spline-timeout-20261010.md)).
 - [x] Corrigir registro tardio de subclasses em SoCallbackAction sem duplicar
   callbacks/observadores; qualificar Polygon pelo generatePrimitives no viewport.
 - [ ] **Estudo:** bbox com geometric depth clamp; o perfil qualificado continua

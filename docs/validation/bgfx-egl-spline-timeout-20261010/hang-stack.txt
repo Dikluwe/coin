@@ -1,0 +1,26 @@
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x750f595a6250, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007510a189b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5561c8905e88, cond=0x750f595a6228) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x750f595a6228, mutex=0x5561c8905e88) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007510a0991754 in xcb_wait_for_special_event () at /lib/x86_64-linux-gnu/libxcb.so.1
+#6  0x0000750f514f5941 in ??? () at /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so
+#7  0x0000750f514f6eea in loader_dri3_wait_for_sbc () at /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so
+#8  0x0000750f514f7bde in loader_dri3_swapbuffer_barrier () at /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so
+#9  0x0000750f514f7c1e in loader_dri3_set_swap_interval () at /lib/x86_64-linux-gnu/libgallium-25.2.8-0ubuntu0.24.04.4.so
+#10 0x000075104128244f in ??? () at /lib/x86_64-linux-gnu/libEGL_mesa.so.0
+#11 0x000075104127bf8b in ??? () at /lib/x86_64-linux-gnu/libEGL_mesa.so.0
+#12 0x0000751041271ad8 in ??? () at /lib/x86_64-linux-gnu/libEGL_mesa.so.0
+#13 0x00007510a0ff9e3e in bgfx::gl::RendererContextGL::submit(bgfx::Frame*, bgfx::ClearQuad const&, bgfx::MipGen const&, bgfx::TextVideoMemBlitter&) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#14 0x00007510a0f927bc in bgfx::Context::renderFrame(int) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#15 0x00007510a0f92906 in bgfx::renderFrame(int) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#16 0x00007510a0fa4ffa in bgfx::Context::renderThread(bx::Thread*, void*) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#17 0x00007510a10eaffd in bx::ThreadInternal::threadFunc(void*) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+Thread 1 (Thread 0x75109efbbe80 (LWP 1400488) "FreeCAD"):
+#0  0x00007510a1898e51 in __futex_abstimed_wait_common64 (private=1065353216, cancel=true, abstime=0x0, op=393, expected=0, futex_word=0x5561cc9a3c10) at ./nptl/futex-internal.c:57
+#1  __futex_abstimed_wait_common (cancel=true, private=1065353216, abstime=0x0, clockid=0, expected=0, futex_word=0x5561cc9a3c10) at ./nptl/futex-internal.c:87
+#2  __GI___futex_abstimed_wait_cancelable64 (futex_word=futex_word@entry=0x5561cc9a3c10, expected=expected@entry=0, clockid=clockid@entry=0, abstime=abstime@entry=0x0, private=private@entry=0) at ./nptl/futex-internal.c:139
+#3  0x00007510a189b8cd in __pthread_cond_wait_common (abstime=0x0, clockid=0, mutex=0x5561cc9a3bc0, cond=0x5561cc9a3be8) at ./nptl/pthread_cond_wait.c:503
+#4  ___pthread_cond_wait (cond=0x5561cc9a3be8, mutex=0x5561cc9a3bc0) at ./nptl/pthread_cond_wait.c:627
+#5  0x00007510a10e5de3 in bx::Semaphore::wait(int) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#6  0x00007510a0f93b4d in bgfx::Context::frame(unsigned char) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#7  0x00007510a0f72069 in CoinBgfxBackend::submitInternal(CoinRenderFramePlan const&, CoinRenderTargetP&, CoinRenderFrameReuseDecision const&, CoinRenderReadbackTicket*) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so
+#8  0x00007510a0f755e4 in CoinBgfxBackend::submit(CoinRenderFramePlan const&, CoinRenderTargetP&, CoinRenderFrameReuseDecision const&) () at /mnt/Laranja/Git/externos/coin/build-coinrender-camera-bgfx/lib/libCoinRender.so

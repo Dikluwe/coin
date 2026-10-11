@@ -1,0 +1,39 @@
+variant,run,status,hardware_gpu,visible_changes,regenerated_changes,reason
+baseline-cache-on,13,FAIL,True,,,timeout 45s; possible infinite frame loop
+baseline-cache-on,24,FAIL,True,,,timeout 45s; possible infinite frame loop
+baseline-cache-off,28,FAIL,True,,,timeout 45s; possible infinite frame loop
+track-per-surface,33,FAIL,True,,,timeout 45s; possible infinite frame loop
+track-plus-resize,46,FAIL,True,,,timeout 45s; possible infinite frame loop
+trace-before-prime,68,FAIL,True,,,timeout 45s; possible infinite frame loop
+interval-before-prime-instrumented,101,PASS,True,100,100,
+interval-before-prime-instrumented,102,PASS,True,100,100,
+interval-before-prime-instrumented,103,PASS,True,100,100,
+interval-before-prime-instrumented,104,PASS,True,100,100,
+interval-before-prime-instrumented,105,PASS,True,100,100,
+interval-before-prime-instrumented,106,PASS,True,100,100,
+interval-before-prime-instrumented,107,PASS,True,100,100,
+interval-before-prime-instrumented,108,PASS,True,100,100,
+interval-before-prime-instrumented,109,PASS,True,100,100,
+interval-before-prime-instrumented,110,PASS,True,100,100,
+interval-before-prime-instrumented,111,PASS,True,100,100,
+interval-before-prime-instrumented,112,PASS,True,100,100,
+interval-before-prime-instrumented,113,PASS,True,100,100,
+interval-before-prime-instrumented,114,PASS,True,100,100,
+interval-before-prime-instrumented,115,PASS,True,100,100,
+interval-before-prime-instrumented,116,PASS,True,100,100,
+interval-before-prime-instrumented,117,PASS,True,100,100,
+interval-before-prime-instrumented,118,PASS,True,100,100,
+interval-before-prime-instrumented,119,PASS,True,100,100,
+interval-before-prime-instrumented,120,PASS,True,100,100,
+interval-before-prime-clean,121,PASS,True,100,100,
+interval-before-prime-clean,122,PASS,True,100,100,
+interval-before-prime-clean,123,PASS,True,100,100,
+interval-before-prime-clean,124,PASS,True,100,100,
+interval-before-prime-clean,125,PASS,True,100,100,
+interval-before-prime-clean,126,PASS,True,100,100,
+interval-before-prime-clean,127,PASS,True,100,100,
+interval-before-prime-clean,128,PASS,True,100,100,
+interval-before-prime-clean-cache-off,131,PASS,True,100,100,
+interval-before-prime-clean-cache-off,132,PASS,True,100,100,
+interval-before-prime-clean-cache-off,133,PASS,True,100,100,
+interval-before-prime-clean-cache-off,134,PASS,True,100,100,

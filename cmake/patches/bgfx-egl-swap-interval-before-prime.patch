@@ -1,0 +1,109 @@
+diff --git a/src/glcontext_egl.cpp b/src/glcontext_egl.cpp
+index 6b0fc5404..5536dc26d 100644
+--- a/src/glcontext_egl.cpp
++++ b/src/glcontext_egl.cpp
+@@ -152,9 +152,10 @@ WL_EGL_IMPORT
+ 
+ 	struct SwapChainGL
+ 	{
+-		SwapChainGL(EGLDisplay _display, EGLConfig _config, EGLContext _context, EGLNativeWindowType _nwh, int32_t _width, int32_t _height)
++		SwapChainGL(EGLDisplay _display, EGLConfig _config, EGLContext _context, EGLNativeWindowType _nwh, int32_t _width, int32_t _height, int _swapInterval)
+ 			: m_nwh(_nwh)
+ 			, m_display(_display)
++			, m_appliedSwapInterval(-1)
+ #	if BX_PLATFORM_LINUX
+ 			, m_eglWindow(NULL)
+ #	endif
+@@ -188,6 +189,10 @@ WL_EGL_IMPORT
+ 			BX_ASSERT(NULL != m_context, "Create swap chain failed: %x", eglGetError() );
+ 
+ 			makeCurrent();
++			// Apply the interval before the two initial swaps. A later change can
++			// wait for outstanding Xwayland DRI3 presents indefinitely.
++			EGL_CHECK(eglSwapInterval(m_display, _swapInterval) );
++			m_appliedSwapInterval = _swapInterval;
+ 			GL_CHECK(glClearColor(0.0f, 0.0f, 0.0f, 0.0f) );
+ 			GL_CHECK(glClear(GL_COLOR_BUFFER_BIT) );
+ 			swapBuffers();
+@@ -230,6 +235,7 @@ WL_EGL_IMPORT
+ 		EGLContext m_context;
+ 		EGLDisplay m_display;
+ 		EGLSurface m_surface;
++		int m_appliedSwapInterval;
+ #	if BX_PLATFORM_LINUX
+ 		wl_egl_window *m_eglWindow;
+ #	endif
+@@ -637,6 +643,7 @@ WL_EGL_IMPORT
+ 
+ 			m_swapInterval = !!(_reset & BGFX_RESET_VSYNC) ? 1 : 0;
+ 			eglSwapInterval(m_display, m_swapInterval);
++			m_primaryAppliedSwapInterval = m_swapInterval;
+ 		}
+ 		else
+ 		{
+@@ -867,7 +874,13 @@ WL_EGL_IMPORT
+ 		if (NULL != m_display
+ 		&&  EGL_NO_SURFACE != m_surface)
+ 		{
+-			EGL_CHECK(eglSwapInterval(m_display, m_swapInterval) );
++			int& applied = NULL == m_current
++				? m_primaryAppliedSwapInterval : m_current->m_appliedSwapInterval;
++			if (applied != m_swapInterval)
++			{
++				EGL_CHECK(eglSwapInterval(m_display, m_swapInterval) );
++				applied = m_swapInterval;
++			}
+ 		}
+ 	}
+ 
+@@ -901,7 +914,7 @@ WL_EGL_IMPORT
+ 
+ 	SwapChainGL* GlContext::createSwapChain(void* _nwh, int32_t _width, int32_t _height)
+ 	{
+-		return BX_NEW(g_allocator, SwapChainGL)(m_display, m_config, m_context, (EGLNativeWindowType)_nwh, _width, _height);
++		return BX_NEW(g_allocator, SwapChainGL)(m_display, m_config, m_context, (EGLNativeWindowType)_nwh, _width, _height, m_swapInterval);
+ 	}
+ 
+ 	void GlContext::destroySwapChain(SwapChainGL* _swapChain)
+@@ -945,14 +958,17 @@ WL_EGL_IMPORT
+ 				_swapChain->makeCurrent();
+ 			}
+ 
+-			// eglSwapInterval is per-surface, so re-apply the cached interval every time a
+-			// different surface becomes current. Without this, secondary swap chains keep
+-			// their driver default (typically vsync ON) even after resize().
++			// eglSwapInterval is per-surface. The new swap chain receives its
++			// initial value before presenting; only reset changes need reapplying.
+ 			// eglSwapInterval raises EGL_BAD_SURFACE when no surface is bound.
++			int& applied = NULL == _swapChain
++				? m_primaryAppliedSwapInterval : _swapChain->m_appliedSwapInterval;
+ 			if (NULL != m_display
+-			&&  (NULL != _swapChain || EGL_NO_SURFACE != m_surface) )
++			&&  (NULL != _swapChain || EGL_NO_SURFACE != m_surface)
++			&&  applied != m_swapInterval)
+ 			{
+ 				EGL_CHECK(eglSwapInterval(m_display, m_swapInterval) );
++				applied = m_swapInterval;
+ 			}
+ 		}
+ 	}
+diff --git a/src/glcontext_egl.h b/src/glcontext_egl.h
+index 7ff538f39..85e41cdcf 100644
+--- a/src/glcontext_egl.h
++++ b/src/glcontext_egl.h
+@@ -54,6 +54,7 @@ namespace bgfx { namespace gl
+ 			, m_ownsContext(false)
+ 			, m_msaaContext(false)
+ 			, m_swapInterval(0)
++			, m_primaryAppliedSwapInterval(-1)
+ 		{
+ 		}
+ 
+@@ -93,6 +94,7 @@ namespace bgfx { namespace gl
+ 		bool m_ownsContext;
+ 		bool m_msaaContext;
+ 		int  m_swapInterval;
++		int  m_primaryAppliedSwapInterval;
+ 	};
+ } /* namespace gl */ } // namespace bgfx
+ 
