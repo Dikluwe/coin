@@ -5,6 +5,7 @@ exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_screen_content.FCMacro'
 report['test'] = 'freecad-sampling-policy'
 policy = int(os.environ.get('COIN_TEST_PORTABLE_SAMPLING', '1'))
 report['sampling_policy'] = policy
+cold_border_qualify = os.environ.get('COIN_TEST_COLD_BORDER_QUALIFY') == '1'
 original_axes_baseline = axes_baseline
 original_capture = capture
 
@@ -49,12 +50,14 @@ def axes_baseline():
     widget.setFocus()
     widget.setProperty('coinRenderPortableSampling', bool(policy))
     # Establish the same top camera before adapter recreation's first baseline.
-    # These explicit host redraws do not relax any image/change/removal gate.
+    # The cold-border qualification observes its first presented result without
+    # the two host redraws used by the steady profile.
     view.viewTop()
-    for _ in range(2):
-        view.redraw()
-        Gui.updateGui()
-    report['prebaseline_redraws'] = 2
+    if not cold_border_qualify:
+        for _ in range(2):
+            view.redraw()
+            Gui.updateGui()
+    report['prebaseline_redraws'] = 0 if cold_border_qualify else 2
     original_axes_baseline()
     # Exercise filter=2 in the real host as well as legacy raster content:
     # a 256-square texture on this small face reaches mip minification at DPR1
@@ -85,10 +88,12 @@ def capture(name):
         popup.close()
         report['dismissed_popups'] = report.get('dismissed_popups', 0) + 1
     QtWidgets.QToolTip.hideText()
-    # A synchronous host redraw establishes the current scene before reading
-    # screen pixels; GL presentation can otherwise expose the preceding frame.
-    view.redraw()
-    Gui.updateGui()
+    # The first cold baseline observes the presented viewport before any
+    # fixture-forced redraw. Later captures retain the steady-host fence.
+    first_cold = cold_border_qualify and name == 'cold-before'
+    if not first_cold:
+        view.redraw()
+        Gui.updateGui()
     active = widget.property('coinRenderActiveSamplingPolicy')
     if native and (active is None or int(active) != policy):
         raise RuntimeError('explicit sampling policy was not admitted by the real host')
@@ -100,7 +105,8 @@ def capture(name):
     previous = None
     attempt = 0
     while time.monotonic() < deadline:
-        view.redraw()
+        if not first_cold:
+            view.redraw()
         Gui.updateGui()
         loop = QtCore.QEventLoop()
         QtCore.QTimer.singleShot(60, loop.quit)
@@ -109,6 +115,9 @@ def capture(name):
         attempt += 1
         if previous is not None and image == previous:
             report.setdefault('presentation_reads', {})[name] = attempt
+            if first_cold:
+                report['cold_baseline_no_forced_redraw'] = True
+                report['cold_baseline_frame_count'] = int(widget.property('wgpuFrameCount') or 0)
             return image
         if previous is not None:
             previous.save(str(artifacts / (name + '-presentation-' + str(attempt-1) + '.png')))
@@ -148,6 +157,31 @@ def content_idle_baseline():
 original_sampling_baseline_ready = baseline_ready
 
 def baseline_ready():
+    if cold_border_qualify:
+        report['qualification_scope'] = 'first document border before text warmup'
+        before = capture('cold-before')
+        text_switch, text_node = stages[0][1:3]
+        text_switch.whichChild = coin.SO_SWITCH_ALL
+        visible = capture('cold-text-visible')
+        text_node.string.setValues(0, ['Updated P03'])
+        updated = capture('cold-after-text-mutation')
+        text_switch.whichChild = coin.SO_SWITCH_NONE
+        after = capture('cold-after-hide')
+        repeated = capture('cold-after-hide-repeat')
+        rect = QtCore.QRect(0,0,before.width()-1,before.height()-1)
+        report['cold_text_visible_changes'] = changes(before, visible, rect)
+        report['cold_text_mutation_changes'] = changes(visible, updated, rect)
+        report['cold_border_after_hide_changes'] = changes(before, after, rect)
+        report['cold_border_repeat_changes'] = changes(after, repeated, rect)
+        if not report.get('cold_baseline_no_forced_redraw') or report['cold_baseline_frame_count'] <= 0:
+            raise RuntimeError('first cold baseline did not observe a submitted native frame')
+        if report['cold_text_visible_changes'] < 100 or report['cold_text_mutation_changes'] < 50:
+            raise RuntimeError('cold border control did not exercise visible text and mutation')
+        if report['cold_border_after_hide_changes'] > 30 or report['cold_border_repeat_changes'] != 0:
+            raise RuntimeError('cold document border changed after text removal')
+        report['cold_start_qualified'] = True
+        finish()
+        return
     diagnostic = os.environ.get('COIN_TEST_COLD_BORDER_DIAGNOSTIC')
     if diagnostic:
         if diagnostic not in ('visible-no-mutation', 'hidden-mutation',

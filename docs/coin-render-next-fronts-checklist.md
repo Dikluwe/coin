@@ -237,7 +237,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   CPU, 96 GPU/4.320 timestamps e 120 A/B native/baseline válidos. Corrigir varredura
   desnecessária da geometria; um milhão wgpu portátil ~100→10–19 ms por chamada.
   Oito texturas portáteis custam 1,48–3,30× GPU no fixture; native segue padrão.
-- [ ] Estudar a transição inicial da borda do documento no FreeCAD/NVIDIA/wgpu
+- [x] Estudar a transição inicial da borda do documento no FreeCAD/NVIDIA/wgpu
   portable: matriz sem aquecimento de texto 11/12 PASS, um FAIL de 1.476 pixels
   de borda, sem glyphs restantes. O [recorte do diff e os controles](coin-render-freecad-cold-border-study-20261008.md)
   isolam a moldura de 370×370 e a transição após mutar SoText2; a causa
@@ -251,6 +251,13 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   Quatro novos controles frios NVIDIA/wgpu native/portable não reproduziram a borda;
   mudanças limitaram-se à área de texto e a qualificação fria segue falsa
   ([diagnósticos de 2026-10-09](coin-render-local-diagnostics-20261009.md)).
+  Gate frio explícito posterior: 12 processos portáteis e quatro nativos
+  independentes em NVIDIA física, sem redraw forçado antes da primeira captura,
+  todos PASS e `cold_start_qualified=true`; texto e mutação efetivamente
+  alteraram pixels, e a borda teve diff zero após remoção e repetição.
+  [Recibos e alcance](validation/freecad-cold-qualify-20261011/summary.md).
+  A causa do evento antigo não foi atribuída; este fechamento qualifica somente
+  o host e a sequência ensaiados, sem alegar correção geral.
 - [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
   CPU de 128 MiB; plano não retido, lowering ~1,025 s e upload ~126 ms repetidos,
   apesar de reuso dos buffers GPU. Native e portable têm o mesmo gargalo.

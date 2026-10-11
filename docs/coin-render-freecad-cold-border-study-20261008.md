@@ -127,3 +127,17 @@ Logs, resultados integrais e sondas desta sessão estão em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-after-driver-20261008`.
 O checkout original do estudo não persistiu após o reboot; a mesma branch foi
 restaurada em um novo worktree no commit `ff267411f6` para estas tentativas.
+
+## Qualificação fria posterior
+
+Em 2026-10-11, um gate explícito capturou a primeira borda do documento antes
+do primeiro uso de texto e sem redraw forçado pelo fixture. Em 16 processos
+FreeCAD novos na GPU NVIDIA física, 12 portáteis e quatro nativos, o texto e a
+mutação produziram alterações visíveis, mas a borda voltou exatamente ao
+baseline após ocultar o texto e permaneceu idêntica em segunda leitura.
+Todos registraram `cold_start_qualified=true`. [Runner, recibos e limites](validation/freecad-cold-qualify-20261011/summary.md).
+
+O resultado fecha a qualificação fria delimitada deste host. A transição
+histórica de 1.476 pixels continua documentada; como não foi reproduzida, sua
+causa original segue indeterminada. O gate pode detectar uma recorrência sem
+atribuir essa transição ao sampling, ao driver ou ao FreeCAD isoladamente.

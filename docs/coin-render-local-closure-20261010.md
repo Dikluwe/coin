@@ -12,7 +12,7 @@ reclassificado por mera ausência de reprodução.
 | --- | --- | --- |
 | 58 — NPOT BGFX | Parcial | Repetir HDR/2047² e combinações Linux; D3D11 precisa de Windows. |
 | 76 — rescaling, formatos | Parcial | Ampliar estado/formatos e FreeCAD Linux; Windows/Android em campanhas próprias. |
-| 240 — borda fria FreeCAD | Local | Isolar a transição inicial sem alterar o critério de captura. |
+| 240 — borda fria FreeCAD | Concluído como qualificação delimitada em 2026-10-11 | 12/12 processos portáteis e 4/4 nativos frios em NVIDIA física, sem redraw prévio pelo fixture; texto exercitado e diff final/repetido zero. Evento histórico não reproduzido nem atribuído. [Recibo](validation/freecad-cold-qualify-20261011/summary.md). |
 | 260 — variação NVIDIA/wgpu | Concluído como estudo em 2026-10-11 | A/B/B/A 8/8 em Weston/Xwayland privado: −0,51% portable/native, sem pausa >500 ms; outlier histórico não reproduzido nem atribuído. Replay BGFX qualificado em AMD/NVIDIA. [Recibo](validation/nvidia-variance-isolated-20261011/summary.md). |
 | 270 — sampling API | Parcial | AVD e consumidores Linux; Windows e outros dispositivos seguem separados. |
 | 331 — junções e endpoints | Concluído nesta rodada | Reprodução física, custo mínimo das alternativas e decisão de preservar o contrato portátil; melhorias futuras continuam separadas. |
@@ -118,7 +118,8 @@ entre 0,5770 e 0,5820 ms em wgpu. BGFX ficou entre 0,5809 e 0,5981 ms nas
 duas cargas. Amostras `nvidia-smi` a cada 250 ms durante a rodada registraram
 clock gráfico de 210–1762 MHz (mediana 1702), memória de 405–7001 MHz e
 temperatura de 53–57 °C. A amostragem agregada não associa cada frame ao
-clock; não prova que clocks causaram o outlier. A frente 260 fica aberta.
+clock; não prova que clocks causaram o outlier. Nesta etapa a frente 260
+continuava aberta; o ensaio isolado posterior está na tabela acima.
 
 Comando: `python3 testsuite/reproducers/sampling-api/benchmark_linux.py
 --artifacts /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux
@@ -190,8 +191,8 @@ As 48 amostras medidas do milhão wgpu e as 48 BGFX não tiveram quadros acima
 de 16,67 ms. Isso amplia as cargas sem reproduzir o salto histórico de 25%.
 Uma amostragem NVML de 100 ms cobriu somente parte da rodada e não está
 alinhada a cada frame; ela não permite atribuir causalidade aos clocks. O
-estudo de variação e o trace de replay BGFX por carga seguem abertos no item
-260; a ausência de pico nesta repetição não fecha a causa.
+estudo de variação e o trace de replay BGFX por carga continuavam abertos
+nesta etapa; o ensaio isolado posterior está na tabela acima.
 
 ## Nona frente: fallback do QuadMesh preciso
 
@@ -280,5 +281,16 @@ textura e buffer de geometria nos nove seguintes. A sonda não faz readback e
 usa a mesma fixture congelada do benchmark A/B. O
 [recibo](validation/replay-textures-dual-gpu-20261011/summary.md) traz hashes,
 adaptadores e logs. Isso amplia o replay a outras GPUs/cargas; a variação
-wgpu/NVIDIA observada historicamente ainda não tem causa isolada e o item 260
-permanece aberto.
+wgpu/NVIDIA observada historicamente ainda não tem causa isolada; o estudo
+delimitado posterior encerrou o item 260 conforme a tabela acima.
+
+## Qualificação fria da borda FreeCAD
+
+O gate `COIN_TEST_COLD_BORDER_QUALIFY=1` capturou a borda inicial antes do
+primeiro texto e sem redraw forçado pelo fixture. Em 16 processos FreeCAD
+independentes, 12 portáteis e quatro nativos, NVIDIA/wgpu/Vulkan físico,
+o texto visível mudou 700 pixels, sua mutação mudou 330, e o diff após ocultar
+e repetir foi zero em todos. Todos registraram `cold_start_qualified=true`.
+O [recibo](validation/freecad-cold-qualify-20261011/summary.md) guarda o script,
+os valores e os limites. A causa da transição histórica de 1.476 pixels não
+foi determinada porque ela não reapareceu nesta campanha.
