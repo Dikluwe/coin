@@ -280,6 +280,12 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   ([recibo](validation/replay-textures-dual-gpu-20261011/summary.md)).
   A origem da variação wgpu ainda não foi identificada
   ([resumo](validation/nvidia-variance-wide-20261010/summary.csv)).
+  Na sessão X11 de 2026-10-11, uma nova coorte foi interrompida: `present()`
+  NVIDIA/wgpu e `submit_frame_ms` NVIDIA/BGFX alternaram pausas de
+  750–1000 ms inclusive em texture-8, enquanto AMD/wgpu no mesmo X11 não
+  pausou. O milhão manteve `plan_cache_hit=1`; esta é uma instabilidade da
+  apresentação NVIDIA atual, sem atribuição causal ao outlier histórico
+  ([traces e limites](validation/nvidia-present-stall-20261011/summary.md)).
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
   funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
