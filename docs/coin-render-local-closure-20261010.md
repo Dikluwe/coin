@@ -13,7 +13,7 @@ reclassificado por mera ausência de reprodução.
 | 58 — NPOT BGFX | Parcial | Repetir HDR/2047² e combinações Linux; D3D11 precisa de Windows. |
 | 76 — rescaling, formatos | Parcial | Ampliar estado/formatos e FreeCAD Linux; Windows/Android em campanhas próprias. |
 | 240 — borda fria FreeCAD | Local | Isolar a transição inicial sem alterar o critério de captura. |
-| 260 — variação NVIDIA/wgpu | Local em curso | 16/16 A/B com clocks; associar amostras ao processo/frame antes de atribuir o outlier. |
+| 260 — variação NVIDIA/wgpu | Concluído como estudo em 2026-10-11 | A/B/B/A 8/8 em Weston/Xwayland privado: −0,51% portable/native, sem pausa >500 ms; outlier histórico não reproduzido nem atribuído. Replay BGFX qualificado em AMD/NVIDIA. [Recibo](validation/nvidia-variance-isolated-20261011/summary.md). |
 | 270 — sampling API | Parcial | AVD e consumidores Linux; Windows e outros dispositivos seguem separados. |
 | 331 — junções e endpoints | Concluído nesta rodada | Reprodução física, custo mínimo das alternativas e decisão de preservar o contrato portátil; melhorias futuras continuam separadas. |
 | 346 — bindings/shapes | Concluído nesta rodada | 64 casos côncavos com subclasses/UV e 441 pares de binding em nove formas; correção de TriangleStripSet; 1.795 casos por rota. |

@@ -257,7 +257,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
 - [x] Otimizar payload/replay BGFX mantendo orçamento explícito: após upload,
   liberar as instâncias CPU que impediam retenção; replay/cache hit no milhão
   em AMD/Vulkan native/portable. [Código, gates e A/B delimitado](coin-render-bgfx-million-replay-20261008.md).
-- [ ] Estudar variação NVIDIA/wgpu (coorte longa ~25%, repetição isolada ~1,3%)
+- [x] Estudar variação NVIDIA/wgpu (coorte longa ~25%, repetição isolada ~1,3%)
   e ampliar o replay BGFX a outras GPUs/cargas. [Novo A/B após o driver](coin-render-nvidia-million-after-driver-20261008.md):
   oito processos físicos wgpu/BGFX Vulkan válidos; a diferença de 25% não
   reapareceu e a variação wgpu dentro da mesma política excedeu a diferença
@@ -286,6 +286,14 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   pausou. O milhão manteve `plan_cache_hit=1`; esta é uma instabilidade da
   apresentação NVIDIA atual, sem atribuição causal ao outlier histórico
   ([traces e limites](validation/nvidia-present-stall-20261011/summary.md)).
+  Em Weston/Xwayland privado, 8/8 processos da cidade de um milhão na
+  mesma sessão passaram com GPU/digest idênticos e sem pausas >500 ms.
+  Medianas das medianas: native 15,272 ms, portable 15,194 ms
+  (−0,51%, menor que as amplitudes internas de 2,82%/3,85%).
+  O salto de 25% não se reproduziu; o estudo local termina sem atribuir
+  causa ao caso histórico nem prometer FPS universal. O replay BGFX já
+  passou no milhão e em textura POT/NPOT nas GPUs físicas AMD/NVIDIA
+  ([decisão e recibos](validation/nvidia-variance-isolated-20261011/summary.md)).
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
   funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
