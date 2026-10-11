@@ -530,6 +530,13 @@ nem encerra uma campanha completa de desempenho Windows.
   repetições do terreno passaram RGB 0 nas duas capturas, sem reproduzir a
   imagem inicial preta histórica
   ([recibos e limite do diagnóstico](coin-render-wgpu-opengl-first-present-20261010.md)).
+  Neste checkout reconstruído, mais 12 processos da cidade estática e um do
+  terreno native passaram RGB 0 inicial/final em AMD/OpenGL físico; a falha
+  intermitente continua sem causa e sem alteração do gate
+  ([resumo local](coin-render-local-closure-20261010.md)).
+  O fixture passou a guardar quatro leituras X11 sem render adicional se a
+  primeira vier preta; injeção controlada confirmou que o diagnóstico funciona
+  e mantém a falha visível no gate. Falta reproduzir a ocorrência espontânea.
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou

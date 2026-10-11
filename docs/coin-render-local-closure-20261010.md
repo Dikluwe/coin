@@ -70,3 +70,26 @@ As execuções GPU desta rodada usaram X11 `:0`, oráculo GLX NVIDIA com
 rotas Vulkan usaram o ICD Radeon. A regressão completa foi executada sem a
 opção de sonda; a sonda `--probe-gl-depth-clamp` usa somente CoinGL e não é um
 gate de equivalência portátil.
+
+## Segunda frente iniciada: primeira captura wgpu/OpenGL
+
+O SDK wgpu e o consumidor visual instalados foram reconstruídos nesta branch.
+No X11 `:0`, a AMD Renoir física executou doze processos da cidade estática
+40 mil e um do terreno com um milhão de triângulos, todos native, 1280×960,
+um warmup e dois frames. As **13 capturas iniciais e finais** tiveram RGB
+máximo zero contra o offscreen e cobertura visível não nula
+([CSV](validation/wgpu-gl-first-capture-20261010/summary.csv)). Isto não
+reproduz a [imagem inicial preta histórica](coin-render-wgpu-opengl-first-present-20261010.md)
+e não demonstra sua correção. A frente 485 segue aberta.
+
+O fixture agora preserva o primeiro resultado e, somente se uma leitura X11
+vier sem cobertura, registra quatro novas leituras e suas imagens sem render
+adicional. Uma injeção limitada ao fixture (`COIN_VISUAL_TEST_EMPTY_XGETIMAGE=1`)
+zerou a cópia da primeira leitura de propósito: as quatro leituras reais
+seguintes viram 250473 pixels, enquanto o gate continuou a reprovar a primeira
+captura. A execução sem injeção passou RGB zero nas duas capturas. O
+[diagnóstico controlado](validation/wgpu-gl-first-capture-20261010/diagnostic.log)
+valida a instrumentação, **não** reproduz a falha histórica. Na próxima
+ocorrência real, os registros distinguirão uma janela que se preenche sem
+render novo de uma falha persistente, e então poderemos direcionar o trace de
+apresentação do wgpu.

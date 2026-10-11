@@ -1,0 +1,14 @@
+Controlled fixture injection (COIN_VISUAL_TEST_EMPTY_XGETIMAGE=1):
+injected_empty_xgetimage stage=initial
+empty_xgetimage_repeat stage=initial attempt=1 coverage=250473 serial=2 no_new_render=1
+empty_xgetimage_repeat stage=initial attempt=2 coverage=250473 serial=2 no_new_render=1
+empty_xgetimage_repeat stage=initial attempt=3 coverage=250473 serial=2 no_new_render=1
+empty_xgetimage_repeat stage=initial attempt=4 coverage=250473 serial=2 no_new_render=1
+surface_oracle stage=initial rgb_max=208 exact=0 xgetimage=1 outside_measurement=1
+surface_oracle stage=final rgb_max=0 exact=1 xgetimage=1 outside_measurement=1
+window_campaign result=0 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=5
+
+Normal run (without injection):
+surface_oracle stage=initial rgb_max=0 exact=1 xgetimage=1 outside_measurement=1
+surface_oracle stage=final rgb_max=0 exact=1 xgetimage=1 outside_measurement=1
+window_campaign result=1 frames=2 warmup=1 readback_during_measurement=none metric=CPU_render_present_return display_latency=0 gpu_duration=0 event_source=X11 event_count=5

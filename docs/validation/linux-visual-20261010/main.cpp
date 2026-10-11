@@ -75,7 +75,24 @@ std::cout<<"fixture solids=24 translucent=6 textured=6 texture_extent=63x47 ligh
 }
 auto view=[&](float angle){float radius=work=="solids"?40:180;float y=work=="solids"?26:120;camera->position=SbVec3f(radius*std::sin(angle),y,radius*std::cos(angle));camera->pointAt(SbVec3f(0,0,0));};view(.65f);
 CoinRenderAction action(SbViewportRegion(W,H));action.setRenderTarget(target.get());auto render=[&](){auto old=target->getLastSubmissionSerial();action.apply(root);if(action.getLastStatus()!=CoinRenderAction::SUCCESS){std::cerr<<"render failed status="<<action.getLastStatus()<<" diagnostic="<<action.getLastError().getString()<<'\n';return false;}return target->getLastSubmissionSerial()>old;};
-const bool externalCapture=(api=="opengl" && std::string(caps.adapter_name).find("BGFX")==std::string::npos) || std::getenv("COIN_VISUAL_FORCE_XGETIMAGE");auto oracle=[&](const char*stage){if(!externalCapture)target->requestWindowReadbackRGBA();if(!render())return false;if(externalCapture && !render())return false;std::vector<unsigned char>a,b;target->readbackRGBA(a);bool gdi=a.empty();if(gdi && !capture(dpy,win,a))return false;std::unique_ptr<CoinRenderTarget>off(CoinRenderTarget::createOffscreen(SbVec2i32(W,H),options));CoinRenderAction ref(SbViewportRegion(W,H));ref.setRenderTarget(off.get());ref.apply(root);off->readbackRGBA(b);bool ok=ref.getLastStatus()==CoinRenderAction::SUCCESS && a.size()==W*H*4 && a.size()==b.size();int maximum=0;if(ok)for(size_t i=0;i<a.size();++i)if(i%4!=3)maximum=std::max(maximum,std::abs(int(a[i])-int(b[i])));size_t coverage=0;if(a.size()==W*H*4)for(size_t i=0;i<a.size();i+=4)if(a[i]||a[i+1]||a[i+2])++coverage;ok=ok&&maximum==0&&coverage>size_t(W*H/10);std::cout<<"visible_coverage="<<coverage<<" of="<<W*H<<'\n';ppm(prefix+"-"+stage+"-window.ppm",a);ppm(prefix+"-"+stage+"-offscreen.ppm",b);std::cout<<"surface_oracle stage="<<stage<<" rgb_max="<<maximum<<" exact="<<ok<<" xgetimage="<<gdi<<" outside_measurement=1\n";ref.setRenderTarget(nullptr);return ok;};
+const bool externalCapture=(api=="opengl" && std::string(caps.adapter_name).find("BGFX")==std::string::npos) || std::getenv("COIN_VISUAL_FORCE_XGETIMAGE");auto oracle=[&](const char*stage){if(!externalCapture)target->requestWindowReadbackRGBA();if(!render())return false;if(externalCapture && !render())return false;std::vector<unsigned char>a,b;target->readbackRGBA(a);bool gdi=a.empty();if(gdi && !capture(dpy,win,a))return false;
+if(gdi && std::getenv("COIN_VISUAL_TEST_EMPTY_XGETIMAGE") && std::string(stage)=="initial"){
+  std::fill(a.begin(),a.end(),0);
+  std::cout<<"injected_empty_xgetimage stage="<<stage<<"\n";
+}
+std::unique_ptr<CoinRenderTarget>off(CoinRenderTarget::createOffscreen(SbVec2i32(W,H),options));CoinRenderAction ref(SbViewportRegion(W,H));ref.setRenderTarget(off.get());ref.apply(root);off->readbackRGBA(b);bool ok=ref.getLastStatus()==CoinRenderAction::SUCCESS && a.size()==W*H*4 && a.size()==b.size();int maximum=0;if(ok)for(size_t i=0;i<a.size();++i)if(i%4!=3)maximum=std::max(maximum,std::abs(int(a[i])-int(b[i])));size_t coverage=0;if(a.size()==W*H*4)for(size_t i=0;i<a.size();i+=4)if(a[i]||a[i+1]||a[i+2])++coverage;if(gdi && coverage==0){
+  const uint64_t serial=target->getLastSubmissionSerial();
+  for(int attempt=1;attempt<=4;++attempt){
+    std::vector<unsigned char> again;
+    if(!capture(dpy,win,again))break;
+    size_t visible=0;
+    for(size_t i=0;i<again.size();i+=4)visible+=again[i]||again[i+1]||again[i+2];
+    ppm(prefix+"-"+stage+"-xgetimage-repeat-"+std::to_string(attempt)+".ppm",again);
+    std::cout<<"empty_xgetimage_repeat stage="<<stage<<" attempt="<<attempt
+             <<" coverage="<<visible<<" serial="<<serial<<" no_new_render=1\n";
+  }
+}
+ok=ok&&maximum==0&&coverage>size_t(W*H/10);std::cout<<"visible_coverage="<<coverage<<" of="<<W*H<<'\n';ppm(prefix+"-"+stage+"-window.ppm",a);ppm(prefix+"-"+stage+"-offscreen.ppm",b);std::cout<<"surface_oracle stage="<<stage<<" rgb_max="<<maximum<<" exact="<<ok<<" xgetimage="<<gdi<<" outside_measurement=1\n";ref.setRenderTarget(nullptr);return ok;};
 std::cout<<"scene cube_instances="<<(work=="city-million"?1000000:cubes.size())<<" counted_triangles="<<triangles<<" primitive_triangle_count_known="<<(work!="solids")<<" textured="<<(work=="solids")<<" camera_static="<<(std::getenv("COIN_VISUAL_STATIC_CAMERA")!=nullptr)<<"\n";bool initialOK=oracle("initial");
 std::ofstream csv(prefix+".csv");csv<<"frame,warmup,event_ms,update_ms,render_present_ms,total_ms,serial\n";bool ok=true;
 for(int i=-warmup;i<frames&&ok;++i){auto start=Clock::now();pump(dpy);auto eventDone=Clock::now();if(!std::getenv("COIN_VISUAL_STATIC_CAMERA"))view(.65f+.35f*float(i+warmup+1)/float(frames+warmup));auto updated=Clock::now();ok=render();auto end=Clock::now();XWindowAttributes attr{};XGetWindowAttributes(dpy,win,&attr);ok=ok&&attr.width==W&&attr.height==H;auto ms=[](auto a,auto b){return std::chrono::duration<double,std::milli>(b-a).count();};csv<<i<<','<<(i<0)<<','<<ms(start,eventDone)<<','<<ms(eventDone,updated)<<','<<ms(updated,end)<<','<<ms(start,end)<<','<<target->getLastSubmissionSerial()<<'\n';}
