@@ -672,20 +672,27 @@ nem encerra uma campanha completa de desempenho Windows.
   um draw instanciado, buffer GPU de 96 bytes por ocorrência, contagem real,
   giro/zoom, seleção persistente e captura com um plano CPU grande por vez;
   HOME com TERM_WINDOW real e retorno no mesmo PID, geração 1 → 2.
-- [ ] Estudo: reduzir estados CPU, abertura e custo durante arrastes do milhão;
-  ampliar memória/caudas de latência e retomada. A cena parada chegou perto de
-  30 FPS; interação varia e o AVD de 2 GiB não está qualificado.
+- [x] Estudo: reduzir estados CPU, abertura e custo durante arrastes do milhão;
+  ampliar memória/caudas de latência e retomada. O resultado é delimitado ao
+  AVD local de 8 GiB/GLES host AMD; Android físico e memória menor seguem sem
+  qualificação para esta cena.
   O payload de texturas não usado agora é disperso: o estado caiu de 1.648
   para 496 B; no milhão Linux/AMD Vulkan o RSS máximo caiu de 4.410.844 para
   3.263.360 KiB com digest idêntico. Testes Core, FFI, texturas e 219/219
-  CTests wgpu passaram. O AVD solicitou no mínimo 4 GiB e o emulador com GPU
-  host caiu no boot antes do app; a versão nova ainda não passou Android
+  CTests wgpu passaram. Com Vulkan da imagem desabilitado, o APK x86_64 passou
+  quatro arrastes e duas retomadas no AVD de 8 GiB/GLES host AMD, mantendo PID,
+  zoom, zero swap e 101 patches de câmera (`frame_plan_ms` P95 31,77 ms).
+  No AVD de 4 GiB, cinco superfícies passaram inicialmente, mas arrastes
+  adicionais causaram encerramento pelo `lowmemorykiller` após PSS de
+  3.831.269 KiB e swap PSS de 1.299.492 KiB. O AVD API 37 não permite 2 GiB
+  efetivos e o PSS medido excede esse orçamento
   ([recibo e limites](validation/sparse-state-million-20261011/summary.md)).
   O undo do overlay de câmera passou a guardar a câmera anterior e bitset de
   fog em vez de copiar cada estado: no AVD de 8 GiB, `frame_plan_ms` mediano
   no arraste caiu de 130,3 para 34,1 ms; o backend continuou perto de 64 ms.
-  Rollback exato e referência CoinGL passaram. Abertura Android, redução
-  adicional de memória, 2 GiB e caudas longas seguem abertos
+  Rollback exato e referência CoinGL passaram. O ensaio de 8 GiB mediu também
+  PSS de 3.845.081 KiB, zero swap e caudas de backend de câmera P95 43,62 ms;
+  otimização para aparelhos menores exige trabalho adicional
   ([A/B e limites](validation/android-million-camera-20261010/summary.md)).
 - [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
   a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
