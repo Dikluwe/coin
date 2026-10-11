@@ -400,7 +400,15 @@ Melhoria futura, fora deste primeiro perfil:
   [Recibo e limites](validation/geometry-subclasses-uv-20261011/summary.md).
 - [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
   mais combinações de transparência/sombras/RTT; clamp de range já implementado
-  não equivale a GL_DEPTH_CLAMP.
+  não equivale a GL_DEPTH_CLAMP. A herança de `SoDepthBuffer.range` ignorado
+  foi corrigida no CoinGL: o nó não altera mais seu próprio campo ao consultar
+  o estado anterior. O novo gate passou 1.800/1.800 casos em BGFX/OpenGL AMD,
+  BGFX/Vulkan NVIDIA e wgpu/Vulkan AMD, com RGB máximo 1 no caso novo.
+  A sonda nativa ainda mostra 192 pixels adicionais por plano near/far sob
+  `GL_DEPTH_CLAMP`; ambas as GPUs anunciam `depthClamp` em Vulkan, mas o
+  CoinRender não captura esse estado. Formatos, transparência, sombras e RTT
+  sob clamp geométrico continuam abertos
+  ([diagnóstico e limites](validation/depth-range-inheritance-20261011/summary.md)).
 - [x] Qualificar `COIN_QUADMESH_PRECISE_LIGHTING` em QuadMesh 3D com zero ou uma
   textura: fan centrado, material OVERALL/PER_PART/PER_FACE, normal
   OVERALL/PER_PART/PER_FACE/PER_VERTEX, BASE_COLOR/PHONG, malha 4×2 plana e

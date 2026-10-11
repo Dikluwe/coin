@@ -8,6 +8,7 @@
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/elements/SoDepthBufferElement.h>
 #include <Inventor/elements/SoViewportRegionElement.h>
 #include <Inventor/nodes/SoCone.h>
 #include <Inventor/nodes/SoCoordinate3.h>
@@ -63,6 +64,23 @@ protected:
   ~FixtureViewport() override=default;
 };
 SO_NODE_SOURCE(FixtureViewport);
+class FixtureDepthRange : public SoNode {
+  SO_NODE_HEADER(FixtureDepthRange);
+public:
+  static void initClass(){SO_NODE_INIT_CLASS(FixtureDepthRange,SoNode,"Node");}
+  FixtureDepthRange(){SO_NODE_CONSTRUCTOR(FixtureDepthRange);}
+  SbVec2f callbackRange = SbVec2f(-1,-1);
+  SbVec2f glRange = SbVec2f(-1,-1);
+  void callback(SoCallbackAction *a) override {
+    callbackRange = SoDepthBufferElement::getRange(a->getState());
+  }
+  void GLRender(SoGLRenderAction *a) override {
+    glRange = SoDepthBufferElement::getRange(a->getState());
+  }
+protected:
+  ~FixtureDepthRange() override=default;
+};
+SO_NODE_SOURCE(FixtureDepthRange);
 class FixtureFaceSet : public SoFaceSet {
   SO_NODE_HEADER(FixtureFaceSet);
 public:
@@ -425,6 +443,23 @@ bool explicitQuadDiagonalCase(Harness &h, bool diagonal02, bool alpha) {
                   "explicit-quad-diagonal/" + std::string(diagonal02 ? "0-2" : "1-3") +
                       "/alpha-" + std::to_string(alpha), false);
 }
+bool ignoredDepthRangeCase(Harness &h, bool gpu) {
+  Scene scene(true);
+  scene.depth->range.setValue(.2f, .8f);
+  auto *ignored = new SoDepthBuffer;
+  ignored->range.setValue(0, 1);
+  ignored->range.setIgnored(TRUE);
+  auto *probe = new FixtureDepthRange;
+  const int shapeIndex = scene.root->getNumChildren() - 1;
+  scene.root->insertChild(ignored, shapeIndex);
+  scene.root->insertChild(probe, shapeIndex + 1);
+  if (!h.render(scene, SbViewportRegion(64,64), "depth-range/ignored-inherits", false))
+    return false;
+  const SbVec2f inherited(.2f, .8f);
+  return check(probe->callbackRange == inherited && (!gpu || probe->glRange == inherited) &&
+                   ignored->range.isIgnored() && ignored->range.getValue() == SbVec2f(0,1),
+               "ignored depth range must inherit traversal state without mutating its field");
+}
 bool run(bool gpu) {
   Harness h(gpu);Scene scene;
   const std::array<int,4> rectangles[]={{0,0,64,64},{-16,0,64,64},{16,0,64,64},{0,-16,64,64},
@@ -631,10 +666,11 @@ bool run(bool gpu) {
   for (bool diagonal02 : {true, false})
     for (bool alpha : {false, true})
       if (!explicitQuadDiagonalCase(h, diagonal02, alpha)) return false;
+  if (!ignoredDepthRangeCase(h, gpu)) return false;
   std::cout<<"Geometry/viewport cases="<<h.cases<<" GPU="<<gpu<<'\n';return true;
 }
 }
-int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();FixtureViewport::initClass();FixtureFaceSet::initClass();FixtureIndexedFaceSet::initClass();const bool gpu=argc>1&&std::string(argv[1])=="--gpu";
+int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();FixtureViewport::initClass();FixtureDepthRange::initClass();FixtureFaceSet::initClass();FixtureIndexedFaceSet::initClass();const bool gpu=argc>1&&std::string(argv[1])=="--gpu";
 #ifndef HAVE_COIN_BGFX
   if(gpu&&!CoinRenderAction::isGpuBackendAvailable())return 77;
 #endif
