@@ -1,0 +1,14 @@
+CoinRenderGeometryViewportTest --probe-concave:
+BGFX/Vulkan: adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638); 16 cases PASS
+BGFX/OpenGL: GL callback vendor=AMD, renderer=AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic); 16 cases PASS
+wgpu/Vulkan: adapter=AMD Radeon Graphics (RADV RENOIR), vendor=0x1002, device=0x1638; 16 cases PASS
+
+CoinRenderGeometryViewportTest --gpu, full regression after addition:
+BGFX/Vulkan: 1306 cases PASS; 48 concave CPU/GPU/CoinGL comparisons, max RGB=1
+BGFX/OpenGL: 1306 cases PASS; 48 concave CPU/GPU/CoinGL comparisons, max RGB=1
+wgpu/Vulkan: 1306 cases PASS; 48 concave CPU/GPU/CoinGL comparisons, max RGB=1
+
+Fixture: authored L contour in FaceSet and IndexedFaceSet; fast path on/off,
+alpha 0/0.35, full/external viewport. Independent samples require upper-left
+and lower-right body pixels and an empty upper-right notch.
+CoinGL ran on NVIDIA GLX PRIME with direct GLX pixmap rendering.

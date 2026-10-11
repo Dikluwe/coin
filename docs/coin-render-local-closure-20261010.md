@@ -15,7 +15,7 @@ reclassificado por mera ausência de reprodução.
 | 240 — borda fria FreeCAD | Local | Isolar a transição inicial sem alterar o critério de captura. |
 | 260 — variação NVIDIA/wgpu | Local | A/B mais longo, clocks e replay em outras cargas. |
 | 270 — sampling API | Parcial | AVD e consumidores Linux; Windows e outros dispositivos seguem separados. |
-| 331 — junções e endpoints | Local | Concluir alternativas/custos e controles portáteis sem relaxar CoinGL. |
+| 331 — junções e endpoints | Concluído nesta rodada | Reprodução física, custo mínimo das alternativas e decisão de preservar o contrato portátil; melhorias futuras continuam separadas. |
 | 346 — bindings/shapes | Local | Acrescentar cruzamentos com casos de falha e recuperação. |
 | 348 — depth clamp/formatos | Local | Separar clipping geométrico, range, precisão e formatos. |
 | 351 — flat/sombras | Local | Fixture com iluminação por fragmento e QuadMesh preciso. |
@@ -93,3 +93,50 @@ valida a instrumentação, **não** reproduz a falha histórica. Na próxima
 ocorrência real, os registros distinguirão uma janela que se preenche sem
 render novo de uma falha persistente, e então poderemos direcionar o trace de
 apresentação do wgpu.
+
+## Terceira frente: junções CoinGL
+
+O [estudo das junções](coin-render-raster-junctions-study.md) foi concluído
+como decisão de arquitetura, com os testemunhos físicos já preservados e
+contagem de geometria por alternativa. A expansão portátil atual usa no
+mínimo quatro vértices e seis índices por segmento. Uma junção explícita por
+quad soma quatro vértices e seis índices e acrescenta mistura alpha no ponto
+compartilhado; inverter o segmento muda qual endpoint cobre o pixel. A decisão
+é manter o contrato atual, sem afrouxar gates ou prometer igualdade de alpha
+CoinGL. A melhoria de bordas P20 e a qualificação de outras geometrias seguem
+em itens próprios.
+
+## Quarta frente: variação NVIDIA/wgpu
+
+O `benchmark_linux.py` repetiu A/B/B/A em NVIDIA/Vulkan, wgpu e BGFX, com
+`texture-8` e `city-40000`: 16/16 processos válidos, sem readback. O
+[CSV versionado](validation/nvidia-variance-20261010/summary.csv) conserva
+as medianas de 90 frames após 30 aquecimentos. Em wgpu/cidade, as duas
+execuções **native** foram 0,6561 e 0,5817 ms, amplitude de 12,8% em relação
+à menor; portable foi 0,5789 e 0,5826 ms. Textura com oito unidades ficou
+entre 0,5770 e 0,5820 ms em wgpu. BGFX ficou entre 0,5809 e 0,5981 ms nas
+duas cargas. Amostras `nvidia-smi` a cada 250 ms durante a rodada registraram
+clock gráfico de 210–1762 MHz (mediana 1702), memória de 405–7001 MHz e
+temperatura de 53–57 °C. A amostragem agregada não associa cada frame ao
+clock; não prova que clocks causaram o outlier. A frente 260 fica aberta.
+
+Comando: `python3 testsuite/reproducers/sampling-api/benchmark_linux.py
+--artifacts /mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux
+--name benchmark-nvidia-next-20261010 --profiles wgpu-nvidia-vulkan,bgfx-nvidia-vulkan
+--workloads texture-8,city-40000 --frames 90 --warmup 30`. Foram usados os
+binários congelados dessa campanha, hashes `ec0673c5f8f8` (wgpu) e
+`5f7d58ffa436` (BGFX); a análise bruta permanece no diretório de artefatos,
+`summary.json` SHA-256
+`5a6f07a6ec16a1e70bfde0d3f2d2cb5f0ae63b7376fad744590ee1cbf2b72693`.
+
+## Quinta frente: contornos côncavos
+
+`CoinRenderGeometryViewportTest` passou a executar 16 cruzamentos de
+`SoFaceSet`/`SoIndexedFaceSet` côncavos, fast path, transparência e viewport
+externo como parte da regressão normal. A forma em “L” tem três amostras
+independentes para impedir que uma triangulação em leque preencha o recorte.
+BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan na AMD física passaram 1306 casos por
+rota; as 48 comparações côncavas CPU/GPU/CoinGL por rota tiveram máximo RGB 1.
+O [recibo](validation/concave-geometry-20261010/summary.log) guarda identidades
+e contagens. O item 346 continua aberto para offset não planar, subclasses e
+UV/estado fora da matriz.

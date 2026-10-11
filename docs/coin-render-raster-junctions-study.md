@@ -150,7 +150,35 @@ completa de esfera/LineSet com UV, depth e materiais heterogêneos ainda pode
 selecionar outra borda vencedora. As alternativas e seu custo de preparação,
 expansão e submissão continuam sem benchmark comparável.
 
-## Perguntas e próximos experimentos
+## Decisão do estudo local — 2026-10-10
+
+As imagens e os 16 casos BGFX do checkout atual acima estabelecem o custo
+semântico antes de trocar a geometria: o RGB do endpoint CoinGL e do contrato
+portátil já coincide a um nível, enquanto a composição alpha diverge até 95.
+Uma alteração de cobertura para perseguir CoinGL não corrige essa diferença
+de blend. A inversão de sentido retira o segundo traço do pixel testemunha;
+logo, canonicalizar todos os segmentos mudaria a cor do par e a fase dos
+contornos com stipple.
+
+| Abordagem para dois segmentos sólidos | Geometria mínima enviada | Custo e consequência observável |
+| --- | --- | --- |
+| Expansão portátil atual | 8 vértices e 12 índices, quatro triângulos | Dois quads; atributos interpolados e alpha convencional preservados. Caps ou stipple podem subdividir cada segmento e ampliar esse número. |
+| Inverter/canonicalizar sentido | Mesmos 8 vértices e 12 índices | Uma comparação/troca por segmento; no endpoint isolado o segundo traço deixa de contribuir. A fase de stipple exige exceção. |
+| Acrescentar uma junção explícita como quad | Pelo menos mais 4 vértices, 6 índices e dois triângulos por junção | Pelo menos 50% mais vértices/índices no par curto; alpha 0,5 sobreposto acumula uma terceira contribuição. Evitar dupla mistura requer regra de ownership ou máscara adicional. |
+| Linha nativa CoinGL | 4 vértices e 4 índices de linha para o par | Menos geometria explícita, mas endpoints e caps dependem do raster nativo; não fornece o contrato portátil de largura/alpha e não é uma substituição geral em BGFX/wgpu. |
+
+As contagens são derivadas dos quatro vértices/seis índices emitidos por
+segmento ou quad em `CoinRenderStrokeCore.h`, e dos dois vértices por linha
+na sonda. Elas representam tráfego de geometria **mínimo**, não duração GPU;
+os 80×80 pixels da sonda são pequenos demais para um benchmark de FPS. Para
+este perfil, a decisão é **conservar a expansão e o alpha portáteis** e rejeitar
+as duas mudanças globais acima. Uma junção explícita só poderá ser promovida
+com uma semântica de composição própria e gates de linha longa, stipple, UV,
+depth e transparência; compatibilidade CoinGL requer uma rota separada. O
+estudo de reprodução e escolha de abordagem termina aqui, sem declarar
+igualdade nativa geral ou fechar P20/alpha.
+
+## Perguntas para uma eventual implementação futura
 
 - Identificar a borda e o polígono que fornecem cor, UV e profundidade em cada
   pixel divergente, com testemunhos por segmento e captura de estado GL.

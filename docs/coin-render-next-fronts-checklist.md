@@ -267,6 +267,10 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   wgpu +0,40%/+9,26%, mas as duas repetições portable do milhão variaram
   1,327 ms. Trace BGFX/NVIDIA de 40 mil confirmou plano e recurso reutilizados
   após o quadro inicial ([recibos](coin-render-local-diagnostics-20261009.md)).
+  Mais 16/16 processos físicos A/B/B/A em textura-8 e cidade-40 mil passaram;
+  uma repetição native wgpu/cidade variou 12,8%, enquanto clocks NVIDIA
+  oscilaram na rodada, sem correlação causal por frame
+  ([medidas](coin-render-local-closure-20261010.md)).
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
   funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
@@ -328,7 +332,7 @@ Melhoria futura, fora deste primeiro perfil:
   preservar [sondas, imagens, métricas e alternativas](coin-render-raster-study-20261007.md).
   Essa conclusão fecha a investigação controlada desta rodada, não a melhoria
   de produção nem a igualdade nativa de todos os estilos.
-- [ ] **Estudo:** reprodução das junções curvas/coincidentes e endpoints
+- [x] **Estudo:** reprodução das junções curvas/coincidentes e endpoints
   transparentes do CoinGL, conforme o [roteiro e evidências](coin-render-raster-junctions-study.md).
   Gate procedural OpenGL da esfera/linhas/UV DEFAULT também reproduzido em
   `6c91ed26`: máximo 4 contra limite 3; conservar a falha e as
@@ -340,11 +344,19 @@ Melhoria futura, fora deste primeiro perfil:
   32 casos com máximo 1 RGBA entre rotas portáteis; 16 casos BGFX do checkout
   atual confirmaram. CoinGL coincidiu em cobertura/RGB até 1, mas seu alpha
   diferiu até 95 sob clear transparente.
-  Comparar abordagens e custos antes de escolher a melhoria. Isso não dispensa
+  As abordagens, contagens mínimas de geometria e custo de alpha foram
+  comparados; a decisão documentada conserva a expansão portátil e rejeita
+  inversão global e quad de junção sem ownership explícito
+  ([estudo](coin-render-raster-junctions-study.md)). Isso não dispensa
   diferenças CPU/BGFX/wgpu: as divergências portáteis encontradas nesta rodada
   recebem correção e gates completos, sem exclusão OpenGL ou tolerância ampliada.
 - [ ] Ampliar os 49 cruzamentos de bindings, subclasses/shapes adicionais,
   contornos côncavos, offset não planar e combinações de UV/estado além da matriz.
+  A célula côncava FaceSet/IndexedFaceSet agora é gate da regressão: 16
+  combinações de fast path, alpha e viewport passaram em BGFX/Vulkan e
+  wgpu/Vulkan físicos contra CoinGL, com notch verificado independentemente.
+  Offset não planar e os demais cruzamentos continuam abertos
+  ([rodada local](coin-render-local-closure-20261010.md)).
 - [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
   mais combinações de transparência/sombras/RTT; clamp de range já implementado
   não equivale a GL_DEPTH_CLAMP.

@@ -37,6 +37,7 @@
 #include <Inventor/nodes/SoSubNode.h>
 #include <Inventor/nodes/SoTriangleStripSet.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -154,6 +155,21 @@ struct Scene {
       auto *n = new SoPointSet;
       n->numPoints = 8;
       root->addChild(n);
+    } else if (primitive == 11 || primitive == 12) {
+      // One authored concave L contour. A fan would fill its upper-right notch.
+      const SbVec3f contour[] = {{-.8f,-.8f,0},{.8f,-.8f,0},{.8f,-.2f,0},
+                                 {-.2f,-.2f,0},{-.2f,.8f,0},{-.8f,.8f,0}};
+      coords->point.setValues(0, 6, contour);
+      if (primitive == 11) {
+        auto *n = new SoFaceSet;
+        n->numVertices.set1Value(0, 6);
+        root->addChild(n);
+      } else {
+        auto *n = new SoIndexedFaceSet;
+        const int32_t indices[] = {0,1,2,3,4,5,-1};
+        n->coordIndex.setValues(0, 7, indices);
+        root->addChild(n);
+      }
     } else if (indexed) {
       faces=new SoIndexedFaceSet;
       const int32_t ci[]={0,1,2,3,-1,4,5,6,7,-1}; faces->coordIndex.setValues(0,10,ci);
@@ -270,6 +286,34 @@ struct Harness {
   int size = 64;
   unsigned cases = 0;
 };
+bool concaveCases(Harness &h) {
+  for (int primitive : {11, 12})
+    for (bool fast : {false, true})
+      for (bool alpha : {false, true})
+        for (bool external : {false, true}) {
+          Scene scene(true, primitive);
+          scene.model->model = SoLightModel::PHONG;
+          if (alpha) scene.material->transparency.setValue(.35f);
+          SbViewportRegion vp(64, 64);
+          if (external) vp.setViewportPixels(-8, -8, 72, 72);
+          const std::string label = "concave/" + std::to_string(primitive) +
+                                    "/fast-" + std::to_string(fast) +
+                                    "/alpha-" + std::to_string(alpha) +
+                                    "/external-" + std::to_string(external);
+          if (!h.render(scene, vp, label, fast)) return false;
+          if (!external) {
+            std::vector<uint8_t> pixels;
+            h.cpu->readbackRGBA(pixels);
+            auto colored = [&](int x, int y) {
+              const size_t i = size_t((y * 64 + x) * 4);
+              return pixels[i] || pixels[i+1] || pixels[i+2];
+            };
+            if (!check(colored(16, 16) && !colored(48, 16) && colored(48, 48),
+                       label + ": independent L notch and body")) return false;
+          }
+        }
+  return true;
+}
 bool run(bool gpu) {
   Harness h(gpu);Scene scene;
   const std::array<int,4> rectangles[]={{0,0,64,64},{-16,0,64,64},{16,0,64,64},{0,-16,64,64},
@@ -460,6 +504,7 @@ bool run(bool gpu) {
     if (!h.render(recovery, SbViewportRegion(64, 64), "range-recovery", true))
       return false;
   }
+  if (!concaveCases(h)) return false;
   std::cout<<"Geometry/viewport cases="<<h.cases<<" GPU="<<gpu<<'\n';return true;
 }
 }
@@ -467,6 +512,18 @@ int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();Fixture
 #ifndef HAVE_COIN_BGFX
   if(gpu&&!CoinRenderAction::isGpuBackendAvailable())return 77;
 #endif
+  if (argc > 1 && std::string(argv[1]) == "--probe-concave") {
+    CoinRenderCapabilities caps{};
+    if (coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+                                       &caps, sizeof(caps)) != 0 || !caps.gpu_available)
+      return 77;
+    std::cout << "concave adapter=" << caps.adapter_name << " renderer=" << caps.renderer
+              << " vendor=" << caps.vendor_id << " device=" << caps.device_id << '\n';
+    Harness h(CoinRenderAction::isGpuBackendAvailable());
+    if (!concaveCases(h)) return 1;
+    std::cout << "concave cases=" << h.cases << '\n';
+    return 0;
+  }
   if (argc > 1 && std::string(argv[1]) == "--probe-lighting") {
     if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
     const std::string mode = argc > 2 ? argv[2] : "all";
