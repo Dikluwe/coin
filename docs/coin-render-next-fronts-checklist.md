@@ -509,6 +509,10 @@ nem encerra uma campanha completa de desempenho Windows.
   ([correção e recibos](coin-render-bgfx-opengl-window-parity-20261010.md)).
   Ainda faltam a primeira captura wgpu/OpenGL, a qualificação de desempenho
   BGFX/OpenGL e os demais gates antes de fechar a frente inteira.
+  Na investigação wgpu/OpenGL, a superfície GL recusou `COPY_SRC`; sete
+  repetições do terreno passaram RGB 0 nas duas capturas, sem reproduzir a
+  imagem inicial preta histórica
+  ([recibos e limite do diagnóstico](coin-render-wgpu-opengl-first-present-20261010.md)).
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou
