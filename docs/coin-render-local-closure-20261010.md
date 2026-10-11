@@ -26,7 +26,7 @@ reclassificado por mera ausência de reprodução.
 | 407 — mips/recursos | Concluído em 2026-10-11 | Mips GPU diretos RGBA8/RGBA16F e 4096×1024 sob 64 MiB; seis perfis Linux e recuperação após rejeição. [Recibo](validation/rtt-direct-mips-wide-20261011/summary.md). |
 | 452 — desempenho Windows | Externo | Exige host Windows e controle de clocks/latência. |
 | 485 — igualdade janela/offscreen | Parcial em curso | 40/40 cidade/terreno passaram; capturar recorrência preta espontânea com leituras X11 repetidas e repetir os gates Windows. |
-| 550 — bordas AMD/Vulkan | Local | Snap comum e testemunhos P20/câmera com alpha/ownership isolados. |
+| 550 — bordas AMD/Vulkan | Diagnóstico ampliado, aberto | Os quatro pixels P20 reproduziram; alfa não é causa única e os quads de cada borda foram isolados. Falta política comum validada em câmera/viewport/RTT. [Recibo](validation/p20-edge-controls-20261011/summary.md). |
 | 560 — fontes GL no Coin base | Local | Inventariar símbolos/objetos restantes e remover em etapas com ABI verificada. |
 | 562 — Vulkan no AVD | Condicionado | Verificar imagem/driver; Goldfish atual falha no submit. |
 | 564 — Intel física | Externo | Este host não oferece essa GPU. |

@@ -637,6 +637,12 @@ nem encerra uma campanha completa de desempenho Windows.
   Os quatro pixels P20 offscreen AMD foram localizados e comparados com
   CoinGL/BGFX OpenGL e a vizinhança; o achado ainda não isola quantização,
   alpha ou ownership ([análise](coin-render-local-diagnostics-20261009.md)).
+  Controle novo na AMD física reproduziu os quatro pontos com builds atuais;
+  opacidade total ainda divergiu, BGFX/OpenGL coincidiu com CoinGL dentro do
+  gate e os dois Vulkan permaneceram idênticos. Fundo e quads 24/30/39
+  associaram cada ponto a arestas específicas; a quantização/ownership exatos
+  e a política comum ainda precisam ser qualificados
+  ([recibos](validation/p20-edge-controls-20261011/summary.md)).
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
