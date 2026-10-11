@@ -640,8 +640,14 @@ nem encerra uma campanha completa de desempenho Windows.
   Controle novo na AMD física reproduziu os quatro pontos com builds atuais;
   opacidade total ainda divergiu, BGFX/OpenGL coincidiu com CoinGL dentro do
   gate e os dois Vulkan permaneceram idênticos. Fundo e quads 24/30/39
-  associaram cada ponto a arestas específicas; a quantização/ownership exatos
-  e a política comum ainda precisam ser qualificados
+  associaram cada ponto a arestas específicas. Projeção independente das quatro
+  arestas prevê exatamente a direção das capturas ao alternar grades de
+  1/256 e 1/4096 de pixel; a precisão explica esses quatro casos neste host.
+  Uma sonda 3× de centro de pixel passou em BGFX/wgpu Vulkan com RGB máximo 1
+  contra CoinGL, mas fatores maiores não foram monotônicos e o custo/escopo
+  não autorizam promovê-la diretamente à produção.
+  Uma política comum que preserve câmera/viewport/RTT e os demais oráculos
+  ainda precisa ser implementada e qualificada
   ([recibos](validation/p20-edge-controls-20261011/summary.md)).
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
