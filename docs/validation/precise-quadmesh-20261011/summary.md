@@ -67,10 +67,16 @@ dirigida acima cobre o estilo FILLED. O teste numérico de material por face
 usa os índices 1/2/3 da rota centrada do CoinGL, preservando 0/1/2 na rota
 comum.
 
-A regressão geral BGFX/OpenGL AMD falhou no mesmo caso de IndexedFaceSet
+A regressão geral BGFX/OpenGL AMD falhava no caso de **FaceSet sem índices**
 `bindings/0/7/generated-0/alpha-0/fast-0`, RGB máximo 11 entre CPU e
-CoinGL, **com e sem** o modo preciso. É uma divergência pré-existente fora
-do QuadMesh; os 48 casos dirigidos BGFX/OpenGL e 24 não planares da tabela
-passaram. O gate cobre um único estágio de textura, as duas malhas e as
+CoinGL, com e sem o modo preciso. Era uma divergência pré-existente fora do
+QuadMesh: os atributos não afins do quad revelavam as diagonais diferentes
+do `GL_QUADS` nativo na AMD (1–3) e do CoinRender (0–2). A cena geral agora
+usa atributos afins; quatro casos com triângulos explícitos preservam o gate
+de cor, normal e alpha não afins nas duas diagonais. Em 2026-10-11, a
+regressão completa BGFX/OpenGL AMD passou 1.799/1.799 com e sem o modo preciso.
+BGFX/Vulkan NVIDIA e wgpu/Vulkan AMD passaram 1.799/1.799 sem o modo. O gate
+RGB 4 não mudou. Os 48 casos dirigidos BGFX/OpenGL e 24 não planares da tabela
+também passaram. O gate cobre um único estágio de textura, as duas malhas e as
 GPUs/APIs da tabela; sombras, iluminação por fragmento, multi-textura do fan,
 Windows e Android permanecem frentes próprias.

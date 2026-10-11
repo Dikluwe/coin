@@ -162,7 +162,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   CPU e BGFX/Vulkan AMD, com llvmpipe como controle. A fase do stipple é
   verificada separadamente para cada polígono, conforme a especificação GL.
   [Correção e evidência](coin-render-raster-amd-strict-gate-20261009.md).
-  A diferença de iluminação da célula de geometria completa
+  A diferença de interpolação de cor e iluminação da célula de geometria completa
   foi atribuída à triangulação: CoinRender usa diagonal 0–2; `GL_QUADS` no
   radeonsi Renoir usa 1–3, confirmado por oracle de cores não afins. Sondas de
   luz/material isoladas sustentam essa causa. A regra interna do clipper/flags
@@ -385,7 +385,12 @@ Melhoria futura, fora deste primeiro perfil:
   FaceSet/IndexedFaceSet e subclasses reais agora cobrem 64 combinações de
   fast path, alpha, viewport e UV, com notch independente e CoinGL obrigatório.
   As três rotas físicas BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan passaram 64/64
-  casos côncavos e 1.795/1.795 casos da matriz completa, máximo RGB 1.
+  casos côncavos. A regressão completa atual passou 1.799/1.799 em
+  BGFX/OpenGL AMD, BGFX/Vulkan NVIDIA e wgpu/Vulkan AMD. A cena de `GL_QUADS`
+  usa cor, normal e alpha afins para reduzir a diferença da diagonal escolhida
+  pelo driver. Quatro casos adicionais mantêm atributos não afins e comparam
+  CPU/GPU/CoinGL nas diagonais explícitas 0–2 e 1–3, com e sem alpha (RGB
+  máximo 2). O gate RGB 4 não foi ampliado.
   O gate existente recusa offset não planar sem publicação e recupera o alvo
   nas mesmas rotas; suporte positivo não faz parte deste contrato.
   Os 49 pares de material/normal são gate em nove formas (441 células).
@@ -404,8 +409,9 @@ Melhoria futura, fora deste primeiro perfil:
   (gate 4). A correção evita alias da coordenada UV temporária no CoinGL e
   reproduz o vértice provocador flat de cada triângulo. Material por vértice
   mantém a rota comum; unidade de textura adicional é recusada sem publicação
-  e recupera. Regressão de geometria com o modo ativo 1795/1795 em
-  BGFX/Vulkan e wgpu/Vulkan NVIDIA
+  e recupera. Regressão de geometria com o modo ativo 1.799/1.799 em
+  BGFX/OpenGL AMD; a regressão sem o modo passou 1.799/1.799 em
+  BGFX/OpenGL AMD, BGFX/Vulkan NVIDIA e wgpu/Vulkan AMD
   ([matriz e limites](validation/precise-quadmesh-20261011/summary.md)).
 - [ ] Qualificar flat com sombras/iluminação por fragmento, multi-textura no
   fan preciso e demais extensões fora do perfil acima. Repetir o modo preciso

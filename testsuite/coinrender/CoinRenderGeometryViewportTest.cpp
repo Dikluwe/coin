@@ -214,6 +214,15 @@ struct Scene {
       node->numVertices.setValues(0, 2, counts);
       root->addChild(node);
     }
+    if (primitive == 0) {
+      // Affine vertex inputs avoid a large interpolation difference when
+      // native GL_QUADS chooses a different internal diagonal.
+      material->diffuseColor.set1Value(3, material->diffuseColor[1]);
+      material->diffuseColor.set1Value(7, material->diffuseColor[5]);
+      normal->vector.set1Value(3, normal->vector[1]);
+      normal->vector.set1Value(6, SbVec3f(.3f,0,1));
+      normal->vector.set1Value(7, normal->vector[5]);
+    }
   }
   ~Scene(){root->unref();}
   FixtureViewport * viewportNode; SoSeparator * root; SoIndexedFaceSet * faces=nullptr;
@@ -386,6 +395,36 @@ bool bindingCrossCases(Harness &h) {
       }
   return true;
 }
+bool explicitQuadDiagonalCase(Harness &h, bool diagonal02, bool alpha) {
+  Scene scene(false);
+  scene.model->model = SoLightModel::PHONG;
+  scene.mb->value = SoMaterialBinding::PER_VERTEX_INDEXED;
+  scene.nb->value = SoNormalBinding::PER_VERTEX_INDEXED;
+  // Restore the non-affine attributes of the original quad fixture. With
+  // explicit triangles their interpolation has one unambiguous meaning.
+  scene.material->diffuseColor.set1Value(3, SbColor(.51f,.62f,.52f));
+  scene.material->diffuseColor.set1Value(7, SbColor(.79f,.38f,.68f));
+  scene.normal->vector.set1Value(3, SbVec3f(0,0,1));
+  scene.normal->vector.set1Value(6, SbVec3f(0,0,1));
+  scene.normal->vector.set1Value(7, SbVec3f(.1f,0,1));
+  if (alpha)
+    for (int i = 0; i < 8; ++i)
+      scene.material->transparency.set1Value(i, .1f + .08f * i);
+  auto *triangles = new SoIndexedFaceSet;
+  const int32_t indices02[] = {0,1,2,-1, 0,2,3,-1,
+                               4,5,6,-1, 4,6,7,-1};
+  const int32_t indices13[] = {0,1,3,-1, 1,2,3,-1,
+                               4,5,7,-1, 5,6,7,-1};
+  const int32_t *indices = diagonal02 ? indices02 : indices13;
+  triangles->coordIndex.setValues(0, 16, indices);
+  triangles->materialIndex.setValues(0, 16, indices);
+  triangles->normalIndex.setValues(0, 16, indices);
+  scene.root->removeChild(scene.root->getNumChildren() - 1);
+  scene.root->addChild(triangles);
+  return h.render(scene, SbViewportRegion(64,64),
+                  "explicit-quad-diagonal/" + std::string(diagonal02 ? "0-2" : "1-3") +
+                      "/alpha-" + std::to_string(alpha), false);
+}
 bool run(bool gpu) {
   Harness h(gpu);Scene scene;
   const std::array<int,4> rectangles[]={{0,0,64,64},{-16,0,64,64},{16,0,64,64},{0,-16,64,64},
@@ -406,7 +445,10 @@ bool run(bool gpu) {
       binding==SoMaterialBinding::PER_FACE_INDEXED?SoNormalBinding::PER_FACE_INDEXED:
       binding==SoMaterialBinding::PER_VERTEX?SoNormalBinding::PER_VERTEX:SoNormalBinding::PER_VERTEX_INDEXED;
     if(generated)bound.normal->vector.setNum(0);
-    if(alpha)for(int i=0;i<8;++i)bound.material->transparency.set1Value(i,.1f+.08f*i);
+    if(alpha)for(int i=0;i<8;++i) {
+      const int affine = i == 3 ? 1 : i == 7 ? 5 : i;
+      bound.material->transparency.set1Value(i,.1f+.08f*affine);
+    }
     if(bound.faces){const int32_t perFace[]={1,0};const int32_t perVertex[]={3,2,1,0,-1,7,6,5,4,-1};
       bound.faces->materialIndex.setValues(0,binding==SoMaterialBinding::PER_FACE_INDEXED?2:10,binding==SoMaterialBinding::PER_FACE_INDEXED?perFace:perVertex);
       bound.faces->normalIndex.setValues(0,binding==SoMaterialBinding::PER_FACE_INDEXED?2:10,binding==SoMaterialBinding::PER_FACE_INDEXED?perFace:perVertex);}
@@ -586,6 +628,9 @@ bool run(bool gpu) {
   }
   if (!concaveCases(h)) return false;
   if (!bindingCrossCases(h)) return false;
+  for (bool diagonal02 : {true, false})
+    for (bool alpha : {false, true})
+      if (!explicitQuadDiagonalCase(h, diagonal02, alpha)) return false;
   std::cout<<"Geometry/viewport cases="<<h.cases<<" GPU="<<gpu<<'\n';return true;
 }
 }
