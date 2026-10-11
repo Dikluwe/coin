@@ -907,7 +907,22 @@ bool opaqueInstancingEquivalence(bool shared)
       fast.getView().vertices == vertices && fast.getView().instances == instances &&
       fast.getView().instance_ranges == ranges &&
       std::memcmp(instances,baseInstances.data(),256*sizeof(CoinWgpuInstance)) == 0,
-      "camera patches must update the shared delta while retaining immutable anchored instance matrices")) return false;
+      "camera patches must update the shared view while retaining immutable world instance matrices")) return false;
+  const uint64_t rotationBase = frame.revision++;
+  view.setRotate(SbRotation(SbVec3f(0,1,0), .52f));
+  view[3][0] = 2.75f; view[3][2] = -7.0f;
+  for (auto & state : frame.renderStates) state.view = view;
+  CoinWgpuFfiFrame freshRotated;
+  if (!check(freshRotated.prepare(frame,width,height,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD,0),b) &&
+      fast.prepare(frame,width,height,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,rotationBase),a) &&
+      fast.getView().camera_base_revision == rotationBase &&
+      std::memcmp(fast.getView().states,freshRotated.getView().states,
+                  sizeof(CoinWgpuRenderState)) == 0 &&
+      std::memcmp(fast.getView().instances,freshRotated.getView().instances,
+                  256*sizeof(CoinWgpuInstance)) == 0,
+      "rotated camera patch must match a fresh instanced state exactly")) return false;
   reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD,0);
   ++frame.revision; frame.renderStates[10].model[3][0] += .5f;
   if (!compare(true) || !check(!fast.getView().camera_base_revision,
@@ -1549,9 +1564,9 @@ bool diagonalMeshEquivalence()
   for (uint32_t v = 0; v < 24; ++v) for (int c = 0; c < 3; ++c)
     if (!check(std::abs(fast.getView().vertices[v].position[c]) == 1,
                "diagonal canonical positions must be exact unit extrema")) return false;
-  SbMatrix authoredNormal = CoinRenderTransformCore::normalMatrix(frame.renderStates[7].model * frame.renderStates[7].view);
+  SbMatrix authoredNormal = CoinRenderTransformCore::normalMatrix(frame.renderStates[7].model);
   if (!check(std::memcmp(fast.getView().instances[7].normal_matrix,authoredNormal.getValue(),sizeof(float)*16) == 0,
-             "factoring local positions must not rescale or renormalize authored normals")) return false;
+             "factoring local positions must not rescale or renormalize world normals")) return false;
   const auto sourcePositions = frame.vertices;
   // A material table edit plus reassignment of one exclusive source span must
   // preserve the new slot and table, even though geometry ignores material.

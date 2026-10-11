@@ -582,12 +582,18 @@ CoinWgpuFfiFrame::patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t 
   if (!this->packState(frame, first, width, height, updated, diagnostic)) return false;
   const auto key = opaqueCameraKey(updated);
   if (std::memcmp(&key, &this->opaqueCameraState, sizeof(key)) != 0) return false;
-  SbMatrix delta, normal;
-  if (!CoinRenderTransformCore::cameraDelta(this->opaqueCameraAnchor, first.view, delta, normal)) return false;
-  const SbMatrix mvp = delta * coinWgpuProjection(frame, first, width, height);
-  if (!CoinRenderTransformCore::finiteMatrix(delta) || !CoinRenderTransformCore::finiteMatrix(normal) ||
+  SbMatrix cameraTransform, normal;
+  if (this->opaqueInstanced) {
+    // Instances carry authored world matrices. Applying the current view
+    // directly avoids rounding a camera delta against an old eye-space anchor.
+    cameraTransform = first.view;
+    normal = CoinRenderTransformCore::normalMatrix(first.view);
+  } else if (!CoinRenderTransformCore::cameraDelta(
+               this->opaqueCameraAnchor, first.view, cameraTransform, normal)) return false;
+  const SbMatrix mvp = cameraTransform * coinWgpuProjection(frame, first, width, height);
+  if (!CoinRenderTransformCore::finiteMatrix(cameraTransform) || !CoinRenderTransformCore::finiteMatrix(normal) ||
       !CoinRenderTransformCore::finiteMatrix(mvp)) return false;
-  std::memcpy(updated.model_view, delta.getValue(), sizeof(updated.model_view));
+  std::memcpy(updated.model_view, cameraTransform.getValue(), sizeof(updated.model_view));
   std::memcpy(updated.normal_matrix, normal.getValue(), sizeof(updated.normal_matrix));
   std::memcpy(updated.model_view_projection, mvp.getValue(), sizeof(updated.model_view_projection));
   updated.material_slot = 0;
@@ -893,7 +899,6 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
     if (fastCommon && !sameOpaquePackedFields(first, state)) return false;
   }
   this->bakeMatrices.resize(frame.renderStates.size());
-  const SbMatrix identity = SbMatrix::identity();
   CoinWgpuRenderState common{};
   if (fastCommon) {
     ++this->opaqueMatricesCalculated;
@@ -941,19 +946,13 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
         ++this->opaqueMatrixCacheHits;
         continue;
       }
-      // Slot zero remains literal: packState above actually computed MV and
-      // normal even on a warm cache, and that work is counted as calculated.
+      // Slot zero still passes the ordinary packer on a warm cache; account
+      // for that validation even though instances retain world matrices.
       if (i) ++this->opaqueMatricesCalculated;
-      if (i == 0) {
-        modelView.setValue(common.model_view); normal.setValue(common.normal_matrix);
-      }
-      else {
-        // Every state is visited, including unreferenced states. Common source
-        // equality proves the ordinary packed key without rewriting 2292 bytes
-        // or computing an MVP which the instanced payload discards.
-        modelView = frame.renderStates[i].model * frame.renderStates[i].view;
-        normal = CoinRenderTransformCore::normalMatrix(modelView);
-      }
+      // The shared state supplies the current view. Keep immutable instance
+      // matrices in world space so camera patches need no relative transform.
+      modelView = frame.renderStates[i].model;
+      normal = CoinRenderTransformCore::normalMatrix(modelView);
     }
     else {
       // Literal pre-optimization path for controlled ablation.
@@ -961,16 +960,19 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       ++this->opaqueMatricesCalculated;
       if (!this->packState(frame, frame.renderStates[i], width, height, key, diagnostic)) return false;
       if (key.has_texture || key.fog_mode || key.clip_plane_count || key.polygon_offset_enabled) return false;
-      modelView.setValue(key.model_view); normal.setValue(key.normal_matrix);
+      modelView = frame.renderStates[i].model;
+      normal = CoinRenderTransformCore::normalMatrix(modelView);
       if (!validOpaqueAuthoredMatrices(modelView, normal)) return false;
       auto & matrices = this->bakeMatrices[i];
-      std::memcpy(matrices.modelView, key.model_view, sizeof(matrices.modelView));
-      std::memcpy(matrices.normal, key.normal_matrix, sizeof(matrices.normal));
+      std::memcpy(matrices.modelView, modelView.getValue(), sizeof(matrices.modelView));
+      std::memcpy(matrices.normal, normal.getValue(), sizeof(matrices.normal));
       key.material_slot = 0;
-      std::memcpy(key.model_view, identity.getValue(), sizeof(key.model_view));
-      std::memcpy(key.normal_matrix, identity.getValue(), sizeof(key.normal_matrix));
+      std::memcpy(key.model_view, first.view.getValue(), sizeof(key.model_view));
+      const SbMatrix viewNormal = CoinRenderTransformCore::normalMatrix(first.view);
+      std::memcpy(key.normal_matrix, viewNormal.getValue(), sizeof(key.normal_matrix));
       const SbMatrix projection = coinWgpuProjection(frame, frame.renderStates[i], width, height);
-      std::memcpy(key.model_view_projection, projection.getValue(), sizeof(key.model_view_projection));
+      const SbMatrix mvp = first.view * projection;
+      std::memcpy(key.model_view_projection, mvp.getValue(), sizeof(key.model_view_projection));
       if (i == 0) common = key;
       else if (std::memcmp(&common, &key, sizeof(key))) return false;
       continue;
@@ -997,15 +999,17 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
   }
   if (fastCommon) {
     common.material_slot = 0;
-    std::memcpy(common.model_view, identity.getValue(), sizeof(common.model_view));
-    std::memcpy(common.normal_matrix, identity.getValue(), sizeof(common.normal_matrix));
+    std::memcpy(common.model_view, first.view.getValue(), sizeof(common.model_view));
+    const SbMatrix viewNormal = CoinRenderTransformCore::normalMatrix(first.view);
+    std::memcpy(common.normal_matrix, viewNormal.getValue(), sizeof(common.normal_matrix));
     const SbMatrix projection = coinWgpuProjection(frame, first, width, height);
-    std::memcpy(common.model_view_projection, projection.getValue(), sizeof(common.model_view_projection));
+    const SbMatrix mvp = first.view * projection;
+    std::memcpy(common.model_view_projection, mvp.getValue(), sizeof(common.model_view_projection));
   }
   // Match Rust's conservative global bounds exactly: all canonical meshes
   // contribute to one coordinate/normal maximum, including mesh reuse across
   // different draws. No per-occurrence vertex expansion is needed.
-  double sourcePosition = 0, sourceNormal = 0, eyeBound = 0;
+  double sourcePosition = 0, sourceNormal = 0, worldBound = 0;
   for (const auto & mesh : canonicalMeshes) for (int c = 0; c < 3; ++c) {
     sourcePosition = std::max(sourcePosition, mesh.maxPosition[c]);
     sourceNormal = std::max(sourceNormal, mesh.maxNormal[c]);
@@ -1018,10 +1022,10 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
       const double position = instanceMatrixBound(transport, sourcePosition, c, true);
       const double normal = instanceMatrixBound(matrix.normal, sourceNormal, c, false);
       if (position > 1.0e30 || normal > double(1.0e18f)) return false;
-      eyeBound = std::max(eyeBound, position);
+      worldBound = std::max(worldBound, position);
     }
   }
-  if (!instanceCommonMatricesValid(common, eyeBound)) return false;
+  if (!instanceCommonMatricesValid(common, worldBound)) return false;
   uint64_t requiredBytes = 0;
   if (!coin_render_transparency_budget(width, height, frame.transparency, false, requiredBytes, diagnostic))
     return false;
@@ -1068,7 +1072,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
                               static_cast<uint32_t>(group.count), 0};
   }
   this->states.assign(1, common);
-  this->opaqueInstancePositionBound = eyeBound;
+  this->opaqueInstancePositionBound = worldBound;
   this->opaqueDiagonalLowered = diagonalSpans != 0;
   this->opaqueBatched = this->opaqueInstanced = this->opaqueGeometryPatchable = true;
   this->opaqueCommonStatesPacked = fastCommon ? 1 : frame.renderStates.size();
