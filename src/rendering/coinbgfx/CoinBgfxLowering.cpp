@@ -90,6 +90,22 @@ bool composableInstanceNormal(const SbMatrix & modelView, const SbMatrix & norma
   return true;
 }
 
+void writeInstanceCamera(float output[6][4], const SbMatrix & view)
+{
+  const SbMatrix normal = CoinRenderTransformCore::normalMatrix(view);
+  const auto values = view.getValue();
+  const auto normals = normal.getValue();
+  std::memset(output, 0, sizeof(float) * 24);
+  for (int column = 0; column < 3; ++column) {
+    for (int row = 0; row < 3; ++row) {
+      output[column][row] = values[row][column];
+      output[column + 3][row] = normals[row][column];
+    }
+    output[column][3] = values[3][column];
+  }
+  output[3][3] = 1.0f;
+}
+
 // Factor positions only. Captured normals remain authored attributes, rather
 // than normals inferred from a scaled transport matrix. Each axis must contain
 // both endpoints of a normal, positive scale, and every coordinate must round
@@ -340,6 +356,14 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   if (!instancedMatrixMagnitude(mvp)) return decline("projection coefficient magnitude");
 
   CoinBgfxDraw drawTemplate{};
+  // LEQUAL coplanar instances depend on the exact old eye-space rounding to
+  // select the last equal-depth material. Keep that qualified static profile.
+  const bool worldSpaceInstances = firstState.depthFunction == CoinRenderDepthFunction::LESS &&
+    CoinRenderTransformCore::cameraReuseView(firstState.view) &&
+    std::all_of(frame.renderStates.begin(), frame.renderStates.end(), [](const CoinRenderRenderStateSnapshot & state) {
+      const float determinant = state.model.det4();
+      return std::isfinite(determinant) && std::abs(determinant) > 1.0e-9f;
+    });
   std::memcpy(drawTemplate.mvp, mvp.getValue(), sizeof(drawTemplate.mvp));
   drawTemplate.cullMode = firstState.cullMode;
   drawTemplate.frontFace = firstState.frontFace;
@@ -348,6 +372,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   drawTemplate.alphaTestReference = firstState.alphaTestReference;
   drawTemplate.textureProjection = firstState.textureProjection;
   drawTemplate.alpha = 1.0f;
+  if (worldSpaceInstances) writeInstanceCamera(drawTemplate.instanceCamera, firstState.view);
   drawTemplate.viewport[0] = viewport.x; drawTemplate.viewport[1] = viewport.y;
   drawTemplate.viewport[2] = viewport.width; drawTemplate.viewport[3] = viewport.height;
   const auto & lighting = frame.lightingStates[firstState.lightingSlot];
@@ -371,7 +396,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   CoinBgfxPlan candidate;
   candidate.usesInstancing = true;
   candidate.instanceCameraAnchorView = firstState.view;
-  candidate.instancedCameraPatchable = instancedMatrixMagnitude(firstState.view) &&
+  candidate.instancedCameraPatchable = worldSpaceInstances && instancedMatrixMagnitude(firstState.view) &&
     CoinRenderTransformCore::cameraReuseView(firstState.view);
   candidate.instances.reserve(frame.draws.size());
   candidate.draws.reserve(std::min<size_t>(frame.draws.size(), 256));
@@ -439,9 +464,11 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
     for (const auto & texture : state.extraTextures) if (texture.enabled) return declineDraw("extra texture unit");
     const auto model = state.model.getValue();
     if (model[0][3] != 0.0f || model[1][3] != 0.0f || model[2][3] != 0.0f || model[3][3] != 1.0f) return declineDraw("projective model");
-    const SbMatrix modelView = state.model * state.view;
+    // LESS instances retain world transforms. LEQUAL keeps the original
+    // eye-space representation for coplanar depth ownership.
+    const SbMatrix modelView = worldSpaceInstances ? state.model : state.model * state.view;
     // normalMatrix uses an identity fallback at |det| <= 1e-12. A camera
-    // rotation cannot compose that fallback, so only cache a patchable anchor
+    // rotation cannot compose that fallback, so keep the patch qualification
     // well away from the boundary. Full lowering still supports these models.
     const auto mv = modelView.getValue();
     if (!instancedMatrixMagnitude(modelView) || mv[0][3] != 0.0f ||
@@ -1198,15 +1225,9 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
     if (firstSource.renderStateSlot >= frame.renderStates.size()) return decline("render-state slot");
     const auto & firstState = frame.renderStates[firstSource.renderStateSlot];
     if (!instancedMatrixMagnitude(firstState.view)) return decline("view coefficient magnitude");
-    SbMatrix delta, normalDelta;
-    if (!CoinRenderTransformCore::cameraDelta(base.instanceCameraAnchorView, firstState.view,
-                                             delta, normalDelta) ||
-        !instancedMatrixMagnitude(delta) || !instancedMatrixMagnitude(normalDelta))
-      return decline("non-rigid/unsafe camera delta");
-    const bool cameraChanged = std::memcmp(firstState.view.getValue(),
-      base.instanceCameraAnchorView.getValue(), sizeof(SbMat)) != 0;
-    const auto deltaValues = delta.getValue();
-    const auto normalValues = normalDelta.getValue();
+    if (!CoinRenderTransformCore::cameraReuseView(firstState.view) ||
+        !instancedMatrixMagnitude(CoinRenderTransformCore::normalMatrix(firstState.view)))
+      return decline("non-rigid/unsafe camera view");
     std::vector<CoinBgfxDraw> candidate = base.draws;
     size_t nextInstance = 0;
     // CAMERA_PATCH is a validated relationship: geometry, models, materials
@@ -1248,17 +1269,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       const SbMatrix mvp = projection * CoinRenderTransformCore::viewportTransform(viewport, width, height);
       if (!instancedMatrixMagnitude(mvp)) return decline("projection coefficient magnitude");
       std::memcpy(draw.mvp, mvp.getValue(), sizeof(draw.mvp));
-      std::memset(draw.instanceCamera, 0, sizeof(draw.instanceCamera));
-      if (cameraChanged) {
-        for (int column = 0; column < 3; ++column) {
-          for (int row = 0; row < 3; ++row) {
-            draw.instanceCamera[column][row] = deltaValues[row][column];
-            draw.instanceCamera[column + 3][row] = normalValues[row][column];
-          }
-          draw.instanceCamera[column][3] = deltaValues[3][column];
-        }
-        draw.instanceCamera[3][3] = 1.0f;
-      }
+      writeInstanceCamera(draw.instanceCamera, firstState.view);
       const auto & lighting = frame.lightingStates[state.lightingSlot];
       if (lighting.lights.size() > COIN_RENDER_MAX_LIGHTS) return decline("light count");
       copyLighting(lighting, draw);

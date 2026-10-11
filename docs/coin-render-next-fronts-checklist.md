@@ -491,8 +491,13 @@ nem encerra uma campanha completa de desempenho Windows.
   e final nas duas cidades × Vulkan/OpenGL × native/portable, mantendo a rota
   rápida de câmera. O teste de câmera rotacionada compara patch e reconstrução
   byte a byte ([correção e recibos](coin-render-wgpu-camera-world-20261010.md)).
-  Ainda faltam os casos BGFX, a diferença final do terreno e os demais gates
-  antes de fechar esta frente inteira.
+  O mesmo tratamento em BGFX passou as duas cidades × Vulkan × native/portable,
+  com o custo curto da cidade 40 mil próximo ao anterior. O controle coplanar
+  `LEQUAL` conserva a rota antiga. BGFX/OpenGL ainda difere inclusive com
+  câmera estática: um pixel na cidade 40 mil inicial/final
+  ([correção e recibos](coin-render-bgfx-camera-world-20261010.md)).
+  Ainda faltam essa borda OpenGL, a diferença final do terreno e os demais
+  gates antes de fechar a frente inteira.
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou

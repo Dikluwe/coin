@@ -200,10 +200,6 @@ bool instancedCamera(const CoinRenderFramePlan & frame, const CoinBgfxPlan & anc
                 sameBytes(anchor.instancedVertices, working.instancedVertices) &&
                 sameBytes(anchor.indices, working.indices) && patched.size() == anchor.draws.size(),
                 "camera patches must preserve instance/mesh payload and batch counts");
-    SbMatrix delta, normalDelta;
-    ok &= check(CoinRenderTransformCore::cameraDelta(anchor.instanceCameraAnchorView, camera, delta, normalDelta),
-                "camera delta rejected a rigid numerical fixture");
-    const bool changed = std::memcmp(camera.getValue(), anchor.instanceCameraAnchorView.getValue(), sizeof(SbMat)) != 0;
     for (size_t batch = 0; batch < patched.size(); ++batch) {
       const auto & draw = patched[batch];
       const auto & fresh = rebuilt.draws[batch];
@@ -214,33 +210,26 @@ bool instancedCamera(const CoinRenderFramePlan & frame, const CoinBgfxPlan & anc
                   std::memcmp(draw.lightDirectionCutoff, fresh.lightDirectionCutoff, sizeof(draw.lightDirectionCutoff)) == 0 &&
                   draw.firstInstance == anchor.draws[batch].firstInstance &&
                   draw.instanceCount == anchor.draws[batch].instanceCount &&
-                  draw.instanceCamera[3][3] == (changed ? 1.0f : 0.0f),
+                  std::memcmp(draw.instanceCamera, fresh.instanceCamera, sizeof(draw.instanceCamera)) == 0 &&
+                  draw.instanceCamera[3][3] == 1.0f,
                   "camera patch changed traversal or stale projection/PHONG lighting uniforms");
-      if (changed) for (int column = 0; column < 3; ++column) {
-        for (int row = 0; row < 3; ++row)
-          ok &= check(draw.instanceCamera[column][row] == delta[row][column] &&
-                      draw.instanceCamera[column + 3][row] == normalDelta[row][column],
-                      "camera uniform columns changed Coin delta or normal delta");
-        ok &= check(draw.instanceCamera[column][3] == delta[3][column], "camera uniform translation changed");
-      }
     }
     for (size_t i = 0; i < frame.draws.size(); ++i) {
       const auto & state = frame.renderStates[frame.draws[i].renderStateSlot];
-      const SbMatrix originalMv = state.model * anchor.instanceCameraAnchorView;
       const SbMatrix currentMv = state.model * camera;
       for (uint32_t j = 0; j < frame.draws[i].geometry.indexCount; ++j) {
         const auto & vertex = frame.vertices[frame.indices[frame.draws[i].geometry.firstIndex + j]];
-        SbVec3f anchoredPoint, actualPoint, expectedPoint, anchoredNormal, actualNormal, expectedNormal;
-        originalMv.multVecMatrix(SbVec3f(vertex.position), anchoredPoint);
-        delta.multVecMatrix(anchoredPoint, actualPoint);
+        SbVec3f worldPoint, actualPoint, expectedPoint, worldNormal, actualNormal, expectedNormal;
+        state.model.multVecMatrix(SbVec3f(vertex.position), worldPoint);
+        camera.multVecMatrix(worldPoint, actualPoint);
         currentMv.multVecMatrix(SbVec3f(vertex.position), expectedPoint);
-        CoinRenderTransformCore::normalMatrix(originalMv).multDirMatrix(SbVec3f(vertex.normal), anchoredNormal);
-        normalDelta.multDirMatrix(anchoredNormal, actualNormal);
+        CoinRenderTransformCore::normalMatrix(state.model).multDirMatrix(SbVec3f(vertex.normal), worldNormal);
+        CoinRenderTransformCore::normalMatrix(camera).multDirMatrix(worldNormal, actualNormal);
         CoinRenderTransformCore::normalMatrix(currentMv).multDirMatrix(SbVec3f(vertex.normal), expectedNormal);
         if (actualNormal.normalize() == 0.0f) actualNormal.setValue(0,0,1);
         if (expectedNormal.normalize() == 0.0f) expectedNormal.setValue(0,0,1);
         ok &= check(near(actualPoint, expectedPoint) && near(actualNormal, expectedNormal),
-                    "anchored camera transform differs from a fresh model-view/normal rebake");
+                    "world-space camera transform differs from a fresh model-view/normal rebake");
       }
     }
     working.draws.swap(patched); // Simulate successful commits without moving V0.
@@ -342,14 +331,14 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
   if (!ok) return false;
   for (uint32_t i = 0; i < 300; ++i) {
     const auto & instance = instanced.instances[i];
-    const SbMatrix mv = frame.renderStates[i].model * frame.renderStates[i].view;
+    const SbMatrix mv = frame.renderStates[i].model;
     const SbMatrix normal = CoinRenderTransformCore::normalMatrix(mv);
     const auto values = mv.getValue(); const auto normalValues = normal.getValue();
     for (int column = 0; column < 3; ++column) {
       for (int row = 0; row < 3; ++row)
         ok &= check(instance.data[column][row] == values[row][column] &&
                     instance.data[column + 3][row] == normalValues[row][column],
-                    "instance matrix columns changed Coin model-view or inverse-transpose values");
+                    "instance matrix columns changed Coin world model or inverse-transpose values");
       ok &= check(instance.data[column][3] == values[3][column], "instance translation column changed");
     }
     const auto & material = frame.materials[i % 2];
@@ -362,13 +351,16 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
     for (uint32_t j = 0; j < 6; ++j) {
       const auto & meshVertex = instanced.instancedVertices[instanced.indices[j]];
       const auto & reference = general.vertices[general.indices[i * 6 + j]];
-      SbVec3f position, viewNormal;
-      mv.multVecMatrix(SbVec3f(meshVertex.position), position);
-      normal.multDirMatrix(SbVec3f(meshVertex.normal), viewNormal);
+      SbVec3f worldPosition, position, worldNormal, viewNormal;
+      mv.multVecMatrix(SbVec3f(meshVertex.position), worldPosition);
+      frame.renderStates[i].view.multVecMatrix(worldPosition, position);
+      normal.multDirMatrix(SbVec3f(meshVertex.normal), worldNormal);
+      CoinRenderTransformCore::normalMatrix(frame.renderStates[i].view).multDirMatrix(worldNormal, viewNormal);
       if (viewNormal.normalize() == 0.0f) viewNormal.setValue(0,0,1);
-      ok &= check(std::memcmp(position.getValue(), reference.viewPosition, sizeof(reference.viewPosition)) == 0 &&
-                  std::memcmp(viewNormal.getValue(), reference.viewNormal, sizeof(reference.viewNormal)) == 0,
-                  "instance mesh/matrix reconstruction changed triangle position or normal bytes");
+      for (int axis = 0; axis < 3; ++axis)
+        ok &= check(std::abs(position[axis] - reference.viewPosition[axis]) <= 2.0e-5f &&
+                    std::abs(viewNormal[axis] - reference.viewNormal[axis]) <= 2.0e-5f,
+                    "instance mesh/matrix reconstruction changed triangle position or normal");
     }
   }
   ok &= instancedCamera(frame, instanced);
@@ -517,7 +509,7 @@ bool diagonalInstancing(const CoinRenderFramePlan & base)
   for (size_t occurrence = 0; occurrence < count; ++occurrence) {
     const auto & instance = factored.instances[occurrence];
     const auto & state = frame.renderStates[occurrence];
-    const SbMatrix authoredNormal = CoinRenderTransformCore::normalMatrix(state.model * state.view);
+    const SbMatrix authoredNormal = CoinRenderTransformCore::normalMatrix(state.model);
     SbMatrix position = SbMatrix::identity();
     for (int column = 0; column < 3; ++column) {
       for (int row = 0; row < 3; ++row) {
@@ -532,8 +524,9 @@ bool diagonalInstancing(const CoinRenderFramePlan & base)
     for (size_t index = 0; index < 36; ++index) {
       const auto & vertex = factored.instancedVertices[factored.indices[index]];
       const auto & reference = general.vertices[general.indices[occurrence * 36 + index]];
-      SbVec3f actual;
-      position.multVecMatrix(SbVec3f(vertex.position), actual);
+      SbVec3f world, actual;
+      position.multVecMatrix(SbVec3f(vertex.position), world);
+      state.view.multVecMatrix(world, actual);
       for (int axis = 0; axis < 3; ++axis)
         ok &= check(std::abs(actual[axis] - reference.viewPosition[axis]) <=
                       2.0e-5f * std::max(1.0f, std::abs(reference.viewPosition[axis])),
