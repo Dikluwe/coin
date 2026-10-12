@@ -1,0 +1,178 @@
+[
+  {
+    "cell": "amd-bgfx-opaque-interleaved-1x",
+    "reference": "amd-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) vendor_id=0x1002 device_id=0x1638 backend=bgfx size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 0,
+    "mae": 0.0,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "amd-bgfx-opaque-interleaved-3x",
+    "reference": "amd-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) vendor_id=0x1002 device_id=0x1638 backend=bgfx size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 146,
+    "mae": 0.004292805989583333,
+    "pixels_over3": 1,
+    "pass_gate": false
+  },
+  {
+    "cell": "amd-wgpu-opaque-interleaved-1x",
+    "reference": "amd-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) vendor_id=0x1002 device_id=0x1638 backend=wgpu size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 0,
+    "mae": 0.0,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "amd-wgpu-opaque-interleaved-3x",
+    "reference": "amd-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) vendor_id=0x1002 device_id=0x1638 backend=wgpu size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 146,
+    "mae": 0.004292805989583333,
+    "pixels_over3": 1,
+    "pass_gate": false
+  },
+  {
+    "cell": "amd-bgfx-transparent-overlap-1x",
+    "reference": "amd-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) vendor_id=0x1002 device_id=0x1638 backend=bgfx size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 17,
+    "mae": 0.13401285807291666,
+    "pixels_over3": 4,
+    "pass_gate": false
+  },
+  {
+    "cell": "amd-bgfx-transparent-overlap-3x",
+    "reference": "amd-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan AMD (vendor 0x1002, device 0x1638) vendor_id=0x1002 device_id=0x1638 backend=bgfx size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 1,
+    "mae": 0.133056640625,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "amd-wgpu-transparent-overlap-1x",
+    "reference": "amd-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) vendor_id=0x1002 device_id=0x1638 backend=wgpu size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 17,
+    "mae": 0.13401285807291666,
+    "pixels_over3": 4,
+    "pass_gate": false
+  },
+  {
+    "cell": "amd-wgpu-transparent-overlap-3x",
+    "reference": "amd-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=AMD Radeon Graphics (RADV RENOIR) (Vulkan) vendor_id=0x1002 device_id=0x1638 backend=wgpu size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 1,
+    "mae": 0.133056640625,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "nvidia-bgfx-opaque-interleaved-1x",
+    "reference": "nvidia-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 0,
+    "mae": 0.0,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "nvidia-bgfx-opaque-interleaved-3x",
+    "reference": "nvidia-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 146,
+    "mae": 0.004292805989583333,
+    "pixels_over3": 1,
+    "pass_gate": false
+  },
+  {
+    "cell": "nvidia-wgpu-opaque-interleaved-1x",
+    "reference": "nvidia-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 0,
+    "mae": 0.0,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "nvidia-wgpu-opaque-interleaved-3x",
+    "reference": "nvidia-gl-opaque-interleaved-1x",
+    "gpu_receipt": [
+      "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/opaque-interleaved.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 146,
+    "mae": 0.004292805989583333,
+    "pixels_over3": 1,
+    "pass_gate": false
+  },
+  {
+    "cell": "nvidia-bgfx-transparent-overlap-1x",
+    "reference": "nvidia-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 2,
+    "mae": 0.10268147786458333,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "nvidia-bgfx-transparent-overlap-3x",
+    "reference": "nvidia-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x2560) vendor_id=0x10de device_id=0x2560 backend=bgfx size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=1 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 19,
+    "mae": 0.10384114583333333,
+    "pixels_over3": 4,
+    "pass_gate": false
+  },
+  {
+    "cell": "nvidia-wgpu-transparent-overlap-1x",
+    "reference": "nvidia-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=128x128 physical_size=128x128 center_sample_scale=1 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 2,
+    "mae": 0.10268147786458333,
+    "pixels_over3": 0,
+    "pass_gate": true
+  },
+  {
+    "cell": "nvidia-wgpu-transparent-overlap-3x",
+    "reference": "nvidia-gl-transparent-overlap-1x",
+    "gpu_receipt": [
+      "adapter=NVIDIA GeForce RTX 3060 Laptop GPU (Vulkan) vendor_id=0x10de device_id=0x2560 backend=wgpu size=128x128 physical_size=384x384 center_sample_scale=3 warmup=1 scene=/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/fixtures/transparent-overlap.iv transparency=object mode=render+rgba-readback pipeline_depth=0 rgba_output=copy scene_update=static"
+    ],
+    "max_rgb": 19,
+    "mae": 0.10384114583333333,
+    "pixels_over3": 4,
+    "pass_gate": false
+  }
+]

@@ -108,6 +108,89 @@ mostrou que fatores ímpares maiores não melhoram monotonamente a cobertura;
 por isso a correção é opt-in para captura offscreen e a frente geral permanece
 aberta.
 
+## Matriz física AMD/NVIDIA e custo da opção — 2026-10-12
+
+O [runner de câmera](run_camera_matrix.py) repetiu o gate CoinGL estrito nas
+duas GPUs físicas e nos builds BGFX/wgpu. O teste passou a registrar o
+adaptador CoinRender e o renderer do contexto CoinGL; o runner recusa vendor
+incorreto. Para BGFX/OpenGL AMD, a sonda de capacidades retorna vendor `0`,
+então o runner exige o trace do contexto EGL corrente (`renderer=AMD Radeon`).
+Host: AMD Ryzen 7 5800H, Radeon `1002:1638` e NVIDIA RTX 3060 Laptop
+`10de:2560`, Linux `6.17.0-42-generic`. [Resultados por célula](camera-matrix-results.json).
+
+| GPU / API | 1× | 3× | Observação |
+| --- | --- | --- | --- |
+| AMD BGFX/Vulkan | FAIL, perspectiva frame 5 | PASS, 18 frames | 3× corrige este fixture |
+| AMD wgpu/Vulkan | FAIL, perspectiva frame 5 | PASS, 18 frames | 3× corrige este fixture |
+| AMD BGFX/OpenGL | PASS | PASS | contexto EGL AMD verificado |
+| AMD wgpu/OpenGL | PASS | PASS | adaptador AMD verificado |
+| NVIDIA BGFX/Vulkan | PASS | FAIL, perspectiva frame 5 | 3× eleva MAE a 0,148076 |
+| NVIDIA BGFX/OpenGL | PASS | FAIL, perspectiva frame 5 | mesmo desvio 3× |
+| NVIDIA wgpu/Vulkan | PASS | FAIL, perspectiva frame 5 | mesmo desvio 3× |
+| NVIDIA wgpu/OpenGL | indisponível | indisponível | sem adaptador WebGPU GL neste build |
+
+O [runner das cenas P20](run_p20_scene_matrix.py) comparou a cena opaca e a
+transparente em 128×128 contra CoinGL. O benchmark usa a API pública de
+amostra central para renderizar em 384×384 e publicar 128×128 no modo 3×.
+O gate pré-existente é RGB máximo ≤2 e MAE ≤1,0. BGFX e wgpu Vulkan
+produziram imagens idênticas entre si em cada GPU, cena e fator.
+[Resultados por cena](p20-scene-results.json).
+
+| GPU / cena P20 | 1×: RGB máximo, pixels >3 | 3×: RGB máximo, pixels >3 |
+| --- | ---: | ---: |
+| AMD / opaca | 0, 0 (PASS) | 146, 1 (FAIL) |
+| AMD / transparente | 17, 4 (FAIL) | 1, 0 (PASS) |
+| NVIDIA / opaca | 0, 0 (PASS) | 146, 1 (FAIL) |
+| NVIDIA / transparente | 2, 0 (PASS) | 19, 4 (FAIL) |
+
+Portanto, **3× não pode ser ativado automaticamente nem mesmo só por vendor,
+API ou tipo de alvo**: na AMD/Vulkan corrige a câmera e a transparência P20,
+mas regride a cena P20 opaca. O método público permanece uma opção explícita
+do consumidor para cenas qualificadas. Esses resultados também descartam usar
+3× como solução geral para janela ou RTT sem uma política adicional.
+
+O [piloto de custo](run_offscreen_cost.py) executou três processos por célula,
+cada um com 8 warmups e 60 frames, na cena transparente P20 em alvos 256×256
+e 768×768, usando a API pública para publicar 256×256 no modo 3×. A mediana
+abaixo é a mediana das medianas de tempo de `render+readback+publicação`,
+incluindo a cópia da amostra central, de cada processo. Não inclui criação do
+alvo. Os processos alternaram a ordem 1×/3×.
+[Resultados por processo](offscreen-cost-results.json).
+
+| GPU / backend Vulkan | 1× mediana | 3× mediana | Razão |
+| --- | ---: | ---: | ---: |
+| AMD / BGFX | 0,369 ms | 1,139 ms | 3,09× |
+| AMD / wgpu | 0,433 ms | 1,215 ms | 2,81× |
+| NVIDIA / BGFX | 0,317 ms | 1,038 ms | 3,27× |
+| NVIDIA / wgpu | 0,520 ms | 1,587 ms | 3,05× |
+
+O alvo RGBA8 físico exige 2,25 MiB em 768², contra 0,25 MiB em 256², além
+das demais alocações do backend. O pico RSS mediano dos processos aumentou
+aproximadamente 6,0–9,4 MiB conforme GPU/backend, incluindo inicialização
+e alocações do driver. O custo medido é local e específico da cena;
+não é previsão de FPS de janela. Logs/imagens integrais ficam em
+`/tmp/coin-render-camera-matrix-20261012`,
+`/tmp/coin-render-p20-center-api-20261012` e
+`/tmp/coin-render-offscreen-api-cost-20261012`.
+
+Reprodução, a partir da raiz do repositório, com builds BGFX e wgpu que
+incluam a API de amostra central:
+
+```sh
+python3 docs/validation/perspective-coverage-20261012/run_camera_matrix.py \
+  --bgfx-build /tmp/coin-render-closure-bgfx \
+  --wgpu-build /tmp/coin-render-closure-wgpu \
+  --output /tmp/coin-render-camera-matrix-20261012
+python3 docs/validation/perspective-coverage-20261012/run_p20_scene_matrix.py \
+  --bgfx-build /tmp/coin-render-closure-bgfx \
+  --wgpu-build /tmp/coin-render-closure-wgpu \
+  --output /tmp/coin-render-p20-center-api-20261012
+python3 docs/validation/perspective-coverage-20261012/run_offscreen_cost.py \
+  --bgfx-build /tmp/coin-render-closure-bgfx \
+  --wgpu-build /tmp/coin-render-closure-wgpu \
+  --output /tmp/coin-render-offscreen-api-cost-20261012
+```
+
 Reprodução do modelo, a partir da raiz do repositório (substituir `BUILD`
 pelo diretório do build wgpu ou BGFX):
 

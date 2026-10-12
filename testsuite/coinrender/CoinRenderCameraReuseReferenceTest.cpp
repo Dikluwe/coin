@@ -4,7 +4,10 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/system/gl.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoLightModel.h>
@@ -22,10 +25,23 @@
 #include <iostream>
 #include <fstream>
 #include <memory>
+#include <string>
 #include <vector>
 
 namespace {
 constexpr int side = 256;
+struct OracleIdentity {
+  std::string renderer;
+  std::string vendor;
+};
+void captureOracleIdentity(void * data, SoGLRenderAction *) {
+  OracleIdentity & identity = *static_cast<OracleIdentity *>(data);
+  if (!identity.renderer.empty()) return;
+  const char * renderer = reinterpret_cast<const char *>(glGetString(GL_RENDERER));
+  const char * vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
+  if (renderer) identity.renderer = renderer;
+  if (vendor) identity.vendor = vendor;
+}
 bool check(bool value, const char * message) {
   if (!value) std::cerr << "CoinRenderCameraReuseReferenceTest: " << message << '\n';
   return value;
@@ -154,6 +170,8 @@ bool run(bool perspective, bool requireGl) {
     fast.setRenderTarget(optimized.get()); full.setRenderTarget(rebuilt.get());
     SoOffscreenRenderer gl(SbViewportRegion(side, side));
     gl.setComponents(SoOffscreenRenderer::RGB);
+    OracleIdentity oracleIdentity;
+    if (requireGl) gl.getGLRenderAction()->addPreRenderCallback(captureOracleIdentity, &oracleIdentity);
     std::vector<uint8_t> anchorPixels;
     const void * anchorVertices = nullptr;
     for (int frame = 0; frame < 9 && ok; ++frame) {
@@ -174,6 +192,18 @@ bool run(bool perspective, bool requireGl) {
       if (!ok) break;
       const void * vertices = fast.getPimpl()->lastValidPlan.vertices.data();
       if (frame == 0) {
+        CoinRenderCapabilities caps{};
+        ok &= check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+                    &caps, sizeof(caps)) == 0 && caps.gpu_available,
+                    "GPU capability probe unavailable");
+        std::cout << "camera_gpu adapter=" << caps.adapter_name
+                  << " renderer=" << caps.renderer << " vendor=0x" << std::hex
+                  << caps.vendor_id << " device=0x" << caps.device_id << std::dec << '\n';
+        const char * expectedVendor = std::getenv("COIN_RENDER_CAMERA_REFERENCE_EXPECT_VENDOR");
+        if (expectedVendor) {
+          ok &= check(caps.vendor_id == std::strtoul(expectedVendor, nullptr, 0),
+                      "GPU vendor differs from requested physical device");
+        }
         anchorVertices = vertices;
         ok &= check(fast.getPimpl()->cachedCamera == camera, "scene did not qualify for camera overlay");
       } else {
@@ -196,6 +226,15 @@ bool run(bool perspective, bool requireGl) {
       if (requireGl) {
         ok &= check(gl.render(root) && gl.getBuffer(), "required Coin/GL reference unavailable");
         if (ok) {
+          if (frame == 0) {
+            std::cout << "camera_oracle renderer=" << oracleIdentity.renderer
+                      << " vendor=" << oracleIdentity.vendor << '\n';
+            const char * expectedOracle = std::getenv("COIN_RENDER_CAMERA_REFERENCE_EXPECT_GL_RENDERER");
+            if (expectedOracle) {
+              ok &= check(oracleIdentity.renderer.find(expectedOracle) != std::string::npos,
+                          "CoinGL oracle differs from requested physical device");
+            }
+          }
           const uint8_t * bytes = gl.getBuffer();
           std::vector<uint8_t> pixels(bytes, bytes + side * side * 3);
           // Compare the full traversal too: an oracle mismatch must not be

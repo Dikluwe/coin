@@ -772,8 +772,11 @@ nem encerra uma campanha completa de desempenho Windows.
   A captura offscreen opcional 3× com amostra central agora passa os 18 frames
   de câmera AMD/Vulkan em wgpu e BGFX contra CoinGL, incluindo perspectiva e
   ortográfica, sem deslocar a câmera. A API pública exige alvo e viewport 3×;
-  o custo é 9× pixels e a correção ainda não cobre janela/RTT nem qualifica os
-  demais oráculos e drivers ([recibo](validation/perspective-coverage-20261012/summary.md)).
+  o custo é 9× pixels. A matriz Linux AMD/NVIDIA confirmou que 3× regride a
+  câmera NVIDIA e a cena P20 opaca nas duas GPUs; só corrige os casos AMD
+  identificados. A correção geral ainda precisa de política de cobertura que
+  preserve janela/RTT e os outros oráculos
+  ([recibo](validation/perspective-coverage-20261012/summary.md)).
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 

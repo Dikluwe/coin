@@ -453,6 +453,11 @@ if(COIN_BUILD_RENDER)
 	add_executable(CoinRenderCameraReuseReferenceTest coinrender/CoinRenderCameraReuseReferenceTest.cpp)
 	set_target_properties(CoinRenderCameraReuseReferenceTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderCameraReuseReferenceTest CoinRender Coin)
+	if(TARGET OpenGL::GL)
+		target_link_libraries(CoinRenderCameraReuseReferenceTest OpenGL::GL)
+	else()
+		target_link_libraries(CoinRenderCameraReuseReferenceTest ${OPENGL_gl_LIBRARY})
+	endif()
 	target_include_directories(CoinRenderCameraReuseReferenceTest PRIVATE
 		${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
 		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})

@@ -155,8 +155,10 @@ public:
    * Read the center pixel of each odd-sized block from a CPU-readable
    * offscreen target. Render at size (logical width * scale, logical height *
    * scale), with the action viewport at that same physical size, then use
-   * this method to obtain the logical RGBA8 image. Scale 3 is qualified as
-   * an opt-in edge-coverage workaround; it renders nine times as many pixels.
+   * this method to obtain the logical RGBA8 image. Scale 3 passed selected
+   * AMD/Vulkan CoinGL comparisons, but can worsen other scenes and NVIDIA.
+   * It is an explicit per-scene workaround, not an automatic raster policy;
+   * it renders nine times as many pixels.
    * Returns FALSE and clears outPixels for invalid scale, target or readback.
    */
   SbBool readbackCenterSampledRGBA(unsigned int scale,

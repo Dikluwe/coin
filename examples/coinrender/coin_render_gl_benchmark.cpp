@@ -203,6 +203,7 @@ int main(int argc, char ** argv) {
   int warmup = 8;
   int side = 256;
   int asyncDepth = 0;
+  int centerSampleScale = 1;
   bool dynamic = false;
   bool materialDynamic = false;
   std::string backend = "both";
@@ -223,6 +224,8 @@ int main(int argc, char ** argv) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) frames = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--warmup") == 0 && i + 1 < argc) warmup = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--size") == 0 && i + 1 < argc) side = std::atoi(argv[++i]);
+    else if (std::strcmp(argv[i], "--center-sample-scale") == 0 && i + 1 < argc)
+      centerSampleScale = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--async-depth") == 0 && i + 1 < argc) asyncDepth = std::atoi(argv[++i]);
     else if (std::strcmp(argv[i], "--image-output") == 0 && i + 1 < argc) imageOutput = argv[++i];
     else if (std::strcmp(argv[i], "--animation") == 0 && i + 1 < argc) {
@@ -257,7 +260,7 @@ int main(int argc, char ** argv) {
     else if (std::strcmp(argv[i], "--rgba-output") == 0 && i + 1 < argc) rgbaOutput = argv[++i];
     else {
       std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8] [--image-output frame.ppm]"
-                   " [--size 256] [--scene normalized.iv] [--dynamic|--material-dynamic]"
+                   " [--size 256] [--center-sample-scale 1|3] [--scene normalized.iv] [--dynamic|--material-dynamic]"
                    " [--animation static|camera|transforms|materials|geometry] [--animated-percent 1..100]"
                    " [--animation-step 1] [--samples-output samples.csv]"
                    " [--capture-frames 0,60,120] [--capture-prefix path]"
@@ -282,6 +285,10 @@ int main(int argc, char ** argv) {
   }
   if (frames < 1 || frames > 10000 || warmup < 0 || warmup > 10000 ||
       side < 1 || side > 2048 || (dynamic && materialDynamic) ||
+      (centerSampleScale != 1 && centerSampleScale != 3) ||
+      (centerSampleScale == 3 && (side > 682 || backend == "gl" || backend == "both" ||
+                                  asyncDepth != 0 || readback != "color" ||
+                                  rgbaOutput != "copy" || animationEnabled)) ||
       (backend != "both" && backend != "wgpu" && backend != "bgfx" && backend != "gl") ||
       (readback != "color" && readback != "color-depth") ||
       (transparency != "object" && transparency != "weighted_oit" &&
@@ -403,7 +410,8 @@ int main(int argc, char ** argv) {
   const auto setupBegin = Clock::now();
   CoinRenderSceneManager * wgpu = NULL;
   if (runWgpu) {
-    wgpu = new CoinRenderSceneManager(SbVec2i32(side, side));
+    wgpu = new CoinRenderSceneManager(SbVec2i32(side * centerSampleScale,
+                                                side * centerSampleScale));
     wgpu->setSceneGraph(root);
     wgpu->setBackgroundColor(SbColor4f(0.1f, 0.1f, blue, 1.0f));
     wgpu->setTransparencyType(transparency == "sorted_layers" ?
@@ -587,7 +595,13 @@ int main(int argc, char ** argv) {
         return 1;
       }
     } else {
-      wgpu->getRenderTarget()->readbackRGBA(rgba);
+      if (centerSampleScale == 1) wgpu->getRenderTarget()->readbackRGBA(rgba);
+      else if (!wgpu->getRenderTarget()->readbackCenterSampledRGBA(
+                   unsigned(centerSampleScale), rgba)) {
+        std::cerr << "WebGPU center-sampled readback unavailable\n";
+        root->unref();
+        return 1;
+      }
       if (rgba.size() != size_t(side) * size_t(side) * 4u) {
         std::cerr << "WebGPU readback size mismatch\n";
         root->unref();
@@ -730,6 +744,8 @@ int main(int argc, char ** argv) {
             << " vendor_id=0x" << std::hex << (runWgpu ? caps.vendor_id : 0)
             << " device_id=0x" << (runWgpu ? caps.device_id : 0) << std::dec
             << " backend=" << backend << " size=" << side << 'x' << side
+            << " physical_size=" << side * centerSampleScale << 'x'
+            << side * centerSampleScale << " center_sample_scale=" << centerSampleScale
             << " warmup=" << warmup << " scene="
             << (scenePath.empty() ? "36-cubes" : scenePath)
             << " transparency=" << transparency
