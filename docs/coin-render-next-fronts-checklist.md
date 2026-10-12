@@ -768,8 +768,9 @@ nem encerra uma campanha completa de desempenho Windows.
   cinco cubos cai no centro da amostra após quantização a 1/256 pixel.
   Deslocar a câmera em 0,0005 apenas no fixture fez os nove frames de
   perspectiva passarem em ambos os Vulkan; o ortográfico da AMD/Vulkan ainda
-  falha no frame 1. Falta uma política de produção que preserve os demais
-  oráculos, sem deslocar a câmera do consumidor.
+  falha no frame 1. O teste completo passou em wgpu/Vulkan NVIDIA física.
+  Falta uma política de produção que preserve os demais oráculos, sem
+  deslocar a câmera do consumidor.
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 

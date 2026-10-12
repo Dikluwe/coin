@@ -78,6 +78,12 @@ com 20 pontos >3, dos quais 10 têm cores não pretas nos dois lados; a
 seleção de superfície/face pode explicar parte deles, mas ainda não foi
 modelada como no caso de perspectiva.
 
+O mesmo teste completo, sem opções diagnósticas, passou no wgpu/Vulkan da
+NVIDIA física com referência CoinGL obrigatória. No frame 5 de perspectiva,
+MAE foi 0,0590617, máximo RGB 1 e nenhum pixel >3; a reconstrução foi
+idêntica ao reuso. Os nove frames ortográficos também passaram. Essa célula
+qualifica o driver NVIDIA neste fixture, sem alterar o FAIL AMD.
+
 Reprodução do modelo, a partir da raiz do repositório (substituir `BUILD`
 pelo diretório do build wgpu ou BGFX):
 
