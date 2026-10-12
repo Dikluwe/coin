@@ -33,6 +33,7 @@ constexpr int side = 256;
 struct OracleIdentity {
   std::string renderer;
   std::string vendor;
+  GLint subpixelBits = -1;
 };
 void captureOracleIdentity(void * data, SoGLRenderAction *) {
   OracleIdentity & identity = *static_cast<OracleIdentity *>(data);
@@ -41,6 +42,7 @@ void captureOracleIdentity(void * data, SoGLRenderAction *) {
   const char * vendor = reinterpret_cast<const char *>(glGetString(GL_VENDOR));
   if (renderer) identity.renderer = renderer;
   if (vendor) identity.vendor = vendor;
+  glGetIntegerv(GL_SUBPIXEL_BITS, &identity.subpixelBits);
 }
 bool check(bool value, const char * message) {
   if (!value) std::cerr << "CoinRenderCameraReuseReferenceTest: " << message << '\n';
@@ -76,22 +78,21 @@ bool compare(const std::vector<uint8_t> & actual, const std::vector<uint8_t> & r
   const double mae = double(sum) / (side * side * 3);
   std::cout << name << " frame=" << frame << " rgb_mae=" << mae
             << " max=" << maximum << " pixels_over3=" << over3 << '\n';
-  if (mae > .10 || over3 > side*side/500u) {
-    // Optional unmodified diagnostic images; gate and normal behavior stay fixed.
-    const char * directory = std::getenv("COIN_RENDER_CAMERA_REFERENCE_IMAGES");
-    if (directory) {
-      std::string label(name); std::replace(label.begin(), label.end(), '/', '-');
-      for (bool expected : {false, true}) {
-        const std::string path = std::string(directory) + "/" + label + "-" +
-          std::to_string(frame) + (expected ? "-reference.ppm" : "-actual.ppm");
-        std::ofstream image(path.c_str(), std::ios::binary);
-        image << "P6\n" << side << ' ' << side << "\n255\n";
-        for (int y=0; y<side; ++y) for (int x=0; x<side; ++x) {
-          const size_t offset = expected ? (size_t(flip ? side-y-1 : y)*side+x)*channels : (size_t(y)*side+x)*4;
-          image.write(reinterpret_cast<const char *>((expected ? reference : actual).data()+offset), 3);
-        }
-        if (!image) std::cerr << "Cannot write camera diagnostic " << path << '\n';
+  const char * directory = std::getenv("COIN_RENDER_CAMERA_REFERENCE_IMAGES");
+  if (directory && (mae > .10 || over3 > side*side/500u || frame == 5)) {
+    // Capture frame five even when it passes, so 1x/3x GPU and CoinGL
+    // coverage can be compared across drivers. The gate is unchanged.
+    std::string label(name); std::replace(label.begin(), label.end(), '/', '-');
+    for (bool expected : {false, true}) {
+      const std::string path = std::string(directory) + "/" + label + "-" +
+        std::to_string(frame) + (expected ? "-reference.ppm" : "-actual.ppm");
+      std::ofstream image(path.c_str(), std::ios::binary);
+      image << "P6\n" << side << ' ' << side << "\n255\n";
+      for (int y=0; y<side; ++y) for (int x=0; x<side; ++x) {
+        const size_t offset = expected ? (size_t(flip ? side-y-1 : y)*side+x)*channels : (size_t(y)*side+x)*4;
+        image.write(reinterpret_cast<const char *>((expected ? reference : actual).data()+offset), 3);
       }
+      if (!image) std::cerr << "Cannot write camera diagnostic " << path << '\n';
     }
   }
   // Floating-point rasterization can differ at isolated silhouette edges.
@@ -228,7 +229,8 @@ bool run(bool perspective, bool requireGl) {
         if (ok) {
           if (frame == 0) {
             std::cout << "camera_oracle renderer=" << oracleIdentity.renderer
-                      << " vendor=" << oracleIdentity.vendor << '\n';
+                      << " vendor=" << oracleIdentity.vendor
+                      << " subpixel_bits=" << oracleIdentity.subpixelBits << '\n';
             const char * expectedOracle = std::getenv("COIN_RENDER_CAMERA_REFERENCE_EXPECT_GL_RENDERER");
             if (expectedOracle) {
               ok &= check(oracleIdentity.renderer.find(expectedOracle) != std::string::npos,

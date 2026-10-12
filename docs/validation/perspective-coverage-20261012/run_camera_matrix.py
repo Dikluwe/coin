@@ -13,6 +13,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--bgfx-build', required=True, type=Path)
 parser.add_argument('--wgpu-build', required=True, type=Path)
 parser.add_argument('--output', required=True, type=Path)
+parser.add_argument('--capture-images', action='store_true',
+                    help='save frame-five PPM pairs for cross-driver coverage analysis')
 args = parser.parse_args()
 args.output.mkdir(parents=True, exist_ok=True)
 
@@ -56,6 +58,10 @@ for gpu in ('amd', 'nvidia'):
                     env['__NV_PRIME_RENDER_OFFLOAD'] = '1'
                 env['COIN_BGFX_RENDERER' if backend == 'bgfx' else 'WGPU_BACKEND'] = (
                     api if backend == 'bgfx' else 'gl' if api == 'opengl' else 'vulkan')
+                if args.capture_images:
+                    image_dir = args.output / name
+                    image_dir.mkdir(exist_ok=True)
+                    env['COIN_RENDER_CAMERA_REFERENCE_IMAGES'] = str(image_dir)
                 cmd = [str(build / 'bin/CoinRenderCameraReuseReferenceTest')]
                 try:
                     proc = subprocess.run(cmd, env=env, capture_output=True, text=True,

@@ -129,6 +129,44 @@ Host: AMD Ryzen 7 5800H, Radeon `1002:1638` e NVIDIA RTX 3060 Laptop
 | NVIDIA wgpu/Vulkan | PASS | FAIL, perspectiva frame 5 | mesmo desvio 3× |
 | NVIDIA wgpu/OpenGL | indisponível | indisponível | sem adaptador WebGPU GL neste build |
 
+### Por que 3× falha na NVIDIA no frame 5
+
+Capturei o par CoinRender/CoinGL do frame 5 em wgpu/Vulkan nas quatro
+combinações AMD/NVIDIA × 1×/3×, usando
+`COIN_RENDER_CAMERA_REFERENCE_IMAGES`. O fixture agora grava também o frame 5
+quando ele passa; essa opção diagnóstica não altera o gate. A coluna `x=195`
+contém os mesmos 44 centros de pixel descritos pela projeção independente
+acima. A cobertura observada nesses centros foi:
+
+| GPU | CoinGL 256×256 | CoinRender 1× | CoinRender 3×, amostra central |
+| --- | ---: | ---: | ---: |
+| AMD | 44/44 cobertos | 0/44 cobertos | 44/44 cobertos |
+| NVIDIA | 0/44 cobertos | 0/44 cobertos | 44/44 cobertos |
+
+Assim, o CoinRender muda a seleção desses pixels com o tamanho físico do
+viewport nas **duas** GPUs. A referência CoinGL, renderizada sempre em
+256×256, seleciona lados opostos da aresta na AMD e na NVIDIA. Os 44 pixels
+da coluna são todos GPU preto/CoinGL coberto na falha AMD 1× e todos GPU
+coberto/CoinGL preto na falha NVIDIA 3×. As duas falhas compartilham 47
+coordenadas RGB >3; a NVIDIA 3× acrescenta `(122,206)` e `(253,89)`.
+
+A aresta projetada em `x=195,501771270` fica só `0,001771270` pixel além
+do centro `195,5`. No viewport 3×, ela cai em `x=586,505313810`, enquanto
+a amostra central está em `586,5`. Como modelo, arredondar à grade de 1/256
+pixel põe a aresta 1× exatamente no centro, mas a 3× em `586,50390625`,
+além do centro. Isso explica por que a cobertura GPU troca ao escalar;
+não demonstra que os drivers usem precisamente essa grade internamente.
+Ambos os contextos CoinGL reportaram `GL_SUBPIXEL_BITS=8`; esse dado sozinho
+não explica por que CoinGL AMD e NVIDIA escolhem lados diferentes. A causa
+interna exata dessa diferença entre drivers permanece não comprovada.
+
+PPMs e logs dos quatro controles estão em
+`/tmp/coin-render-camera-cross-coverage-20261012`. O caminho NVIDIA 1×
+continua passando o gate; a falha NVIDIA surge ao aplicar a opção 3×.
+[Auditoria por pixel](check_cross_edge.py) e
+[resultado consolidado](cross-edge-results.json) reproduzem a tabela com as
+capturas da matriz física.
+
 O [runner das cenas P20](run_p20_scene_matrix.py) comparou a cena opaca e a
 transparente em 128×128 contra CoinGL. O benchmark usa a API pública de
 amostra central para renderizar em 384×384 e publicar 128×128 no modo 3×.
@@ -180,7 +218,7 @@ incluam a API de amostra central:
 python3 docs/validation/perspective-coverage-20261012/run_camera_matrix.py \
   --bgfx-build /tmp/coin-render-closure-bgfx \
   --wgpu-build /tmp/coin-render-closure-wgpu \
-  --output /tmp/coin-render-camera-matrix-20261012
+  --output /tmp/coin-render-camera-matrix-20261012 --capture-images
 python3 docs/validation/perspective-coverage-20261012/run_p20_scene_matrix.py \
   --bgfx-build /tmp/coin-render-closure-bgfx \
   --wgpu-build /tmp/coin-render-closure-wgpu \
@@ -201,4 +239,8 @@ g++ -std=c++11 -Iinclude -I$BUILD/include \
 /tmp/coin-render-project-cubes > /tmp/coin-render-projected-cubes.txt
 python3 docs/validation/perspective-coverage-20261012/check_edge.py \
   /tmp/coin-render-projected-cubes.txt ACTUAL_PPM COINGL_PPM
+python3 docs/validation/perspective-coverage-20261012/check_cross_edge.py \
+  --projected /tmp/coin-render-projected-cubes.txt \
+  --matrix /tmp/coin-render-camera-matrix-20261012 \
+  --output /tmp/coin-render-cross-edge-results.json
 ```

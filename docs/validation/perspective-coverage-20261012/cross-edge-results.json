@@ -1,0 +1,63 @@
+{
+  "edge_x_logical": 195.50177127,
+  "edge_pixels": 44,
+  "rows": [
+    {
+      "gpu": "amd",
+      "factor": 1,
+      "edge_pixels": 44,
+      "covered": {
+        "coinrender": 0,
+        "coingl": 44
+      },
+      "pixels_over3": 47,
+      "column_195_over3": 44
+    },
+    {
+      "gpu": "amd",
+      "factor": 3,
+      "edge_pixels": 44,
+      "covered": {
+        "coinrender": 44,
+        "coingl": 44
+      },
+      "pixels_over3": 1,
+      "column_195_over3": 0
+    },
+    {
+      "gpu": "nvidia",
+      "factor": 1,
+      "edge_pixels": 44,
+      "covered": {
+        "coinrender": 0,
+        "coingl": 0
+      },
+      "pixels_over3": 0,
+      "column_195_over3": 0
+    },
+    {
+      "gpu": "nvidia",
+      "factor": 3,
+      "edge_pixels": 44,
+      "covered": {
+        "coinrender": 44,
+        "coingl": 0
+      },
+      "pixels_over3": 49,
+      "column_195_over3": 44
+    }
+  ],
+  "failure_overlap": 47,
+  "nvidia_only_errors": [
+    [
+      122,
+      206
+    ],
+    [
+      253,
+      89
+    ]
+  ],
+  "quantized_edge_1x": 195.5,
+  "quantized_edge_3x": 586.50390625
+}
