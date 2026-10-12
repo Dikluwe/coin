@@ -758,6 +758,12 @@ nem encerra uma campanha completa de desempenho Windows.
   ([A/B e limites](validation/android-million-camera-20261010/summary.md)).
 - [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
   a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
+  Nesta revisão, o frame 5 ainda falha com MAE 0,147283/0,149582 em
+  wgpu/BGFX Vulkan AMD. Reuso e reconstrução são idênticos; 47 pixels acima
+  do gate são comuns aos dois backends, 44 na coluna x=195. Em wgpu todos
+  os 47 diferem por cobertura, delimitando a investigação ao raster nas
+  bordas, sem atribuir ainda a causa
+  ([recibo](validation/perspective-coverage-20261012/summary.md)).
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 
