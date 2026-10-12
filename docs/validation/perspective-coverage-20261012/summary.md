@@ -69,6 +69,15 @@ da AMD/Vulkan falhou independentemente no frame 1: wgpu MAE 0,102193,
 `COIN_RENDER_CAMERA_REFERENCE_ONLY_ORTHOGRAPHIC=1` reproduziu essa falha
 sem executar a perspectiva. A frente geral permanece aberta.
 
+Um controle ortográfico com `COIN_RENDER_CAMERA_REFERENCE_BASE_COLOR=1`
+desativou a iluminação sem mudar a geometria. Ele falhou já no frame 0
+(MAE 0,140722, 7 pixels >3); nos sete pontos, um dos dois RGBs é preto e
+o outro é a cor base. Logo, iluminação não é necessária para produzir a
+divergência ortográfica neste host. O fixture iluminado do frame 1 continua
+com 20 pontos >3, dos quais 10 têm cores não pretas nos dois lados; a
+seleção de superfície/face pode explicar parte deles, mas ainda não foi
+modelada como no caso de perspectiva.
+
 Reprodução do modelo, a partir da raiz do repositório (substituir `BUILD`
 pelo diretório do build wgpu ou BGFX):
 

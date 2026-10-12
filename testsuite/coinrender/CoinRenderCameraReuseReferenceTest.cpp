@@ -7,6 +7,7 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
+#include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
@@ -111,6 +112,11 @@ bool run(bool perspective, bool requireGl) {
   spot->dropOffRate = .03f;
   spot->intensity = .20f;
   root->addChild(spot);
+  if (std::getenv("COIN_RENDER_CAMERA_REFERENCE_BASE_COLOR")) {
+    auto * unlit = new SoLightModel;
+    unlit->model = SoLightModel::BASE_COLOR;
+    root->addChild(unlit);
+  }
   auto * material = new SoMaterial;
   material->diffuseColor.setValue(.55f, .45f, .3f);
   material->specularColor.setValue(.25f, .2f, .15f);
