@@ -763,7 +763,13 @@ nem encerra uma campanha completa de desempenho Windows.
   do gate são comuns aos dois backends, 44 na coluna x=195. Em wgpu todos
   os 47 diferem por cobertura, delimitando a investigação ao raster nas
   bordas, sem atribuir ainda a causa
-  ([recibo](validation/perspective-coverage-20261012/summary.md)).
+  ([recibo](validation/perspective-coverage-20261012/summary.md)). A projeção
+  independente explicou exatamente os 44 pixels de `x=195`: a aresta de
+  cinco cubos cai no centro da amostra após quantização a 1/256 pixel.
+  Deslocar a câmera em 0,0005 apenas no fixture fez os nove frames de
+  perspectiva passarem em ambos os Vulkan; o ortográfico da AMD/Vulkan ainda
+  falha no frame 1. Falta uma política de produção que preserve os demais
+  oráculos, sem deslocar a câmera do consumidor.
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 

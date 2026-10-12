@@ -141,7 +141,13 @@ bool run(bool perspective, bool requireGl) {
     const void * anchorVertices = nullptr;
     for (int frame = 0; frame < 9 && ok; ++frame) {
       const int step = frame == 8 ? 0 : frame;
-      camera->position.setValue(.6f * std::sin(step*.7f), .4f * std::cos(step*.8f), 28 - step*.25f);
+      float x = .6f * std::sin(step*.7f);
+      // Opt-in raster diagnostic: move only the failing perspective frame.
+      if (perspective && frame == 5) {
+        const char * shift = std::getenv("COIN_RENDER_CAMERA_REFERENCE_FRAME5_X_SHIFT");
+        if (shift) x += std::strtof(shift, nullptr);
+      }
+      camera->position.setValue(x, .4f * std::cos(step*.8f), 28 - step*.25f);
       camera->orientation.setValue(SbVec3f(0,1,0), .035f * step);
       if (perspective) static_cast<SoPerspectiveCamera *>(camera)->heightAngle = .78f + .01f * step;
       else static_cast<SoOrthographicCamera *>(camera)->height = 20 + .2f * step;
@@ -203,5 +209,9 @@ int main() {
   if (!std::getenv("COIN_RENDER_REQUIRE_CAMERA_REFERENCE")) return 77;
   SoDB::init(); CoinRenderAction::initClass();
   const bool requireGl = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
-  return run(true, requireGl) && run(false, requireGl) ? 0 : 1;
+  const bool onlyPerspective = std::getenv("COIN_RENDER_CAMERA_REFERENCE_ONLY_PERSPECTIVE") != nullptr;
+  const bool onlyOrthographic = std::getenv("COIN_RENDER_CAMERA_REFERENCE_ONLY_ORTHOGRAPHIC") != nullptr;
+  if (onlyPerspective && onlyOrthographic) return 2;
+  return (onlyOrthographic || run(true, requireGl)) &&
+    (onlyPerspective || run(false, requireGl)) ? 0 : 1;
 }
