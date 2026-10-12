@@ -769,8 +769,11 @@ nem encerra uma campanha completa de desempenho Windows.
   Deslocar a câmera em 0,0005 apenas no fixture fez os nove frames de
   perspectiva passarem em ambos os Vulkan; o ortográfico da AMD/Vulkan ainda
   falha no frame 1. O teste completo passou em wgpu/Vulkan NVIDIA física.
-  Falta uma política de produção que preserve os demais oráculos, sem
-  deslocar a câmera do consumidor.
+  A captura offscreen opcional 3× com amostra central agora passa os 18 frames
+  de câmera AMD/Vulkan em wgpu e BGFX contra CoinGL, incluindo perspectiva e
+  ortográfica, sem deslocar a câmera. A API pública exige alvo e viewport 3×;
+  o custo é 9× pixels e a correção ainda não cobre janela/RTT nem qualifica os
+  demais oráculos e drivers ([recibo](validation/perspective-coverage-20261012/summary.md)).
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 

@@ -873,6 +873,37 @@ CoinRenderTarget::readbackRGBA(std::vector<uint8_t> & outPixels) const
   this->pimpl->readbackRGBA(outPixels);
 }
 
+SbBool
+CoinRenderTarget::readbackCenterSampledRGBA(unsigned int scale,
+                                             std::vector<uint8_t> & outPixels) const
+{
+  outPixels.clear();
+  const SbVec2i32 & size = this->pimpl->size;
+  if (this->pimpl->kind != CoinRenderTargetP::KIND_OFFSCREEN ||
+      !this->pimpl->synchronousReadbackValid ||
+      this->pimpl->directTextureOutput ||
+      scale == 0 || (scale & 1u) == 0 ||
+      size[0] <= 0 || size[1] <= 0 ||
+      uint64_t(size[0]) % scale != 0 || uint64_t(size[1]) % scale != 0 ||
+      this->pimpl->colorBuffer.size() !=
+        uint64_t(size[0]) * uint64_t(size[1]) * 4u) return FALSE;
+
+  const size_t width = size_t(size[0]) / scale;
+  const size_t height = size_t(size[1]) / scale;
+  outPixels.resize(width * height * 4u);
+  for (size_t y = 0; y < height; ++y) {
+    for (size_t x = 0; x < width; ++x) {
+      const size_t source = ((y * scale + scale / 2u) * size_t(size[0]) +
+                             x * scale + scale / 2u) * 4u;
+      const size_t destination = (y * width + x) * 4u;
+      for (size_t channel = 0; channel < 4; ++channel) {
+        outPixels[destination + channel] = this->pimpl->colorBuffer[source + channel];
+      }
+    }
+  }
+  return TRUE;
+}
+
 const uint8_t *
 CoinRenderTarget::borrowRGBA(std::size_t & byteCount) const
 {

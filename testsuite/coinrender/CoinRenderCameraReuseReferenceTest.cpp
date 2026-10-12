@@ -135,11 +135,22 @@ bool run(bool perspective, bool requireGl) {
   }
   bool ok = true;
   {
-    std::unique_ptr<CoinRenderTarget> optimized(CoinRenderTarget::createOffscreen(SbVec2i32(side, side)));
-    std::unique_ptr<CoinRenderTarget> rebuilt(CoinRenderTarget::createOffscreen(SbVec2i32(side, side)));
+    const char * supersample = std::getenv("COIN_RENDER_CAMERA_REFERENCE_SUPERSAMPLE");
+    const int factor = supersample ? std::atoi(supersample) : 1;
+    if (factor != 1 && factor != 3) { root->unref(); return false; }
+    const int targetSide = side * factor;
+    auto readback = [&](CoinRenderTarget * target, std::vector<uint8_t> & pixels) {
+      return target->readbackCenterSampledRGBA(unsigned(factor), pixels) == TRUE &&
+        pixels.size() == size_t(side * side * 4);
+    };
+    std::unique_ptr<CoinRenderTarget> optimized(CoinRenderTarget::createOffscreen(SbVec2i32(targetSide, targetSide)));
+    std::unique_ptr<CoinRenderTarget> rebuilt(CoinRenderTarget::createOffscreen(SbVec2i32(targetSide, targetSide)));
     if (!optimized || !rebuilt) { root->unref(); return false; }
+    std::vector<uint8_t> unavailable(1, 7);
+    ok &= check(!optimized->readbackCenterSampledRGBA(unsigned(factor), unavailable) &&
+                  unavailable.empty(), "center readback published before rendering");
     optimized->setDepthReadbackEnabled(FALSE); rebuilt->setDepthReadbackEnabled(FALSE);
-    CoinRenderAction fast(SbViewportRegion(side, side)), full(SbViewportRegion(side, side));
+    CoinRenderAction fast(SbViewportRegion(targetSide, targetSide)), full(SbViewportRegion(targetSide, targetSide));
     fast.setRenderTarget(optimized.get()); full.setRenderTarget(rebuilt.get());
     SoOffscreenRenderer gl(SbViewportRegion(side, side));
     gl.setComponents(SoOffscreenRenderer::RGB);
@@ -172,7 +183,12 @@ bool run(bool perspective, bool requireGl) {
       disableOverlay(true); full.apply(root); disableOverlay(false);
       ok &= check(full.getLastStatus() == CoinRenderAction::SUCCESS, full.getLastError().getString());
       std::vector<uint8_t> fastPixels, fullPixels;
-      optimized->readbackRGBA(fastPixels); rebuilt->readbackRGBA(fullPixels);
+      ok &= readback(optimized.get(), fastPixels) && readback(rebuilt.get(), fullPixels);
+      if (frame == 0) {
+        std::vector<uint8_t> invalid(1, 7);
+        ok &= check(!optimized->readbackCenterSampledRGBA(2, invalid) && invalid.empty(),
+                    "even center-sample scale was accepted");
+      }
       ok &= compare(fastPixels, fullPixels, 4, false, perspective ? "perspective/rebuild" : "ortho/rebuild", frame);
       if (frame == 0) anchorPixels = fastPixels;
       else if (frame == 8) ok &= check(fastPixels == anchorPixels, "return to the camera anchor drifted");
@@ -203,7 +219,7 @@ bool run(bool perspective, bool requireGl) {
       ok &= check(fast.getLastStatus() == CoinRenderAction::SUCCESS && full.getLastStatus() == CoinRenderAction::SUCCESS,
                   "mutation fallback failed");
       std::vector<uint8_t> a, b;
-      optimized->readbackRGBA(a); rebuilt->readbackRGBA(b);
+      ok &= readback(optimized.get(), a) && readback(rebuilt.get(), b);
       ok &= compare(a, b, 4, false, "scene-mutation/rebuild", 9);
     }
   }

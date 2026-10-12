@@ -84,6 +84,30 @@ MAE foi 0,0590617, máximo RGB 1 e nenhum pixel >3; a reconstrução foi
 idêntica ao reuso. Os nove frames ortográficos também passaram. Essa célula
 qualifica o driver NVIDIA neste fixture, sem alterar o FAIL AMD.
 
+## Correção opcional para captura offscreen AMD/Vulkan
+
+`CoinRenderTarget::readbackCenterSampledRGBA(3, pixels)` lê o centro de cada
+bloco 3×3 de um alvo offscreen CPU-readable. O consumidor deve criar o alvo
+com três vezes a largura e a altura lógicas **e** usar esse tamanho físico
+no viewport da `CoinRenderAction`. A API recusa fator par, dimensões
+incompatíveis e readback ainda não publicado. Não muda o raster da janela,
+RTT, tickets assíncronos ou o modo padrão de 1×.
+
+Com `COIN_RENDER_CAMERA_REFERENCE_SUPERSAMPLE=3`, o teste completo da câmera
+passou em **wgpu/Vulkan AMD** e **BGFX/Vulkan AMD**, mantendo o oracle CoinGL
+e o mesmo gate (MAE ≤0,10, até 131 pixels RGB >3). No frame 5 de perspectiva,
+ambos obtiveram MAE 0,0594686 e 1 pixel >3; no frame 1 ortográfico,
+wgpu obteve 0,0836589/3 pixels e BGFX 0,0842336/4 pixels. Todos os pares
+reuso/reconstrução permaneceram RGB idênticos. Essa rota também corresponde à
+sonda P20 em que 3× zerou os quatro pixels divergentes da cena isolada.
+
+O custo geométrico é renderizar **9×** pixels e manter um alvo/readback físico
+9× maior. Ainda faltam medição de desempenho, gate das demais cenas,
+integração em janela/RTT e qualificação em outros drivers. A varredura P20
+mostrou que fatores ímpares maiores não melhoram monotonamente a cobertura;
+por isso a correção é opt-in para captura offscreen e a frente geral permanece
+aberta.
+
 Reprodução do modelo, a partir da raiz do repositório (substituir `BUILD`
 pelo diretório do build wgpu ou BGFX):
 

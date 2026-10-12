@@ -152,6 +152,16 @@ public:
   SbBool requestWindowReadbackRGBA(void);
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
   /**
+   * Read the center pixel of each odd-sized block from a CPU-readable
+   * offscreen target. Render at size (logical width * scale, logical height *
+   * scale), with the action viewport at that same physical size, then use
+   * this method to obtain the logical RGBA8 image. Scale 3 is qualified as
+   * an opt-in edge-coverage workaround; it renders nine times as many pixels.
+   * Returns FALSE and clears outPixels for invalid scale, target or readback.
+   */
+  SbBool readbackCenterSampledRGBA(unsigned int scale,
+                                    std::vector<uint8_t> & outPixels) const;
+  /**
    * Borrow the last synchronous RGBA buffer without copying it.
    * Returns NULL and sets byteCount to zero when no synchronous pixels are
    * available. The pointer belongs to this target; it is invalidated by the
