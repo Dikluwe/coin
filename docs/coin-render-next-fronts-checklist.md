@@ -424,6 +424,12 @@ Melhoria futura, fora deste primeiro perfil:
 - [ ] Qualificar flat com sombras/iluminação por fragmento, multi-textura no
   fan preciso e demais extensões fora do perfil acima. Repetir o modo preciso
   em Windows/Android e consumidores reais junto da qualificação de plataforma.
+  A sonda local de QuadMesh 3D com material `PER_FACE` e sombra de qualidade
+  0,2/1,0 confirma a rejeição antes da publicação: a captura precisa assa a
+  iluminação flat em `BASE_COLOR`, enquanto o executor de sombras requer
+  `PHONG`. Após retirar a ligação flat, o mesmo alvo recupera e coincide com
+  CoinGL (RGB máximo 0) nas quatro rotas físicas ensaiadas
+  ([recibo e decisão](validation/precise-quadmesh-shadow-20261012/summary.md)).
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após

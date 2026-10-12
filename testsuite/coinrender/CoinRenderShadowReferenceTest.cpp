@@ -36,11 +36,13 @@
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoNormalBinding.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoPointLight.h>
+#include <Inventor/nodes/SoQuadMesh.h>
 #include <Inventor/nodes/SoRotation.h>
 #include <Inventor/nodes/SoScale.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
@@ -347,6 +349,91 @@ bool qualifyShadowQuality(SoSeparator * source, int maps, bool directional)
   }
   action.setRenderTarget(nullptr); scene->unref();
   return qualified;
+}
+
+bool qualifyPreciseQuadMeshShadow(SoSeparator * source)
+{
+  auto * scene = static_cast<SoSeparator *>(source->copy(TRUE));
+  scene->ref();
+  auto * group = static_cast<SoShadowGroup *>(scene->getChild(1));
+  auto * ground = static_cast<SoSeparator *>(group->getChild(2));
+  auto * material = static_cast<SoMaterial *>(ground->getChild(1));
+  material->diffuseColor.set1Value(0, SbColor(.8f, .8f, .8f));
+  material->diffuseColor.set1Value(1, SbColor(.45f, .7f, .9f));
+  auto * binding = new SoMaterialBinding;
+  binding->value = SoMaterialBinding::PER_FACE;
+  ground->insertChild(binding, 2);
+  auto * surface = new SoSeparator;
+  auto * positions = new SoCoordinate3;
+  for (int y = 0; y < 2; ++y)
+    for (int x = 0; x < 3; ++x)
+      positions->point.set1Value(y * 3 + x, SbVec3f((x - 1) * 3.f, (y * 2 - 1) * 3.f, 0));
+  surface->addChild(positions);
+  auto * mesh = new SoQuadMesh;
+  mesh->verticesPerRow = 3;
+  mesh->verticesPerColumn = 2;
+  surface->addChild(mesh);
+  ground->replaceChild(4, surface);
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side, side)));
+  CoinRenderAction action(SbViewportRegion(side, side));
+  action.setRenderTarget(target.get());
+  action.apply(source);
+  bool qualified = action.getLastStatus() == CoinRenderAction::SUCCESS;
+  std::vector<unsigned char> before, after;
+  if (qualified) target->readbackRGBA(before);
+  qualified = qualified && before.size() == size_t(side * side * 4);
+  for (float quality : {0.2f, 1.f}) {
+    group->quality = quality;
+    action.apply(scene);
+    qualified = qualified && action.getLastStatus() == CoinRenderAction::UNSUPPORTED;
+    const auto & rejected = action.getPimpl()->lastRejectedShadowFrame;
+    qualified = qualified && std::any_of(rejected.renderStates.begin(), rejected.renderStates.end(),
+      [](const CoinRenderRenderStateSnapshot & state) {
+        return state.shadowGroupSlot && state.lightModel == CoinRenderLightModel::BASE_COLOR;
+      });
+    if (qualified) target->readbackRGBA(after);
+    qualified = qualified && before == after;
+    std::cout << "precise QuadMesh flat shadow quality=" << quality
+              << " rejected without publication=" << qualified << "\n";
+  }
+  group->quality = 1.f;
+  ground->removeChild(binding);
+  material->diffuseColor.setValue(.8f, .8f, .8f);
+  action.apply(scene);
+  qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS;
+  std::vector<unsigned char> gpu, reference;
+  if (qualified) {
+    target->readbackRGBA(gpu);
+    qualified = gpu.size() == size_t(side * side * 4);
+  }
+  SoOffscreenRenderer gl(SbViewportRegion(side, side));
+  gl.setComponents(SoOffscreenRenderer::RGB);
+  if (qualified) qualified = render(gl, scene, reference);
+  double mean = 0;
+  int maximum = 0;
+  size_t changed = 0;
+  if (qualified)
+    for (size_t i = 0; i < gpu.size(); i += 4)
+      if (gpu[i] != before[i] || gpu[i + 1] != before[i + 1] || gpu[i + 2] != before[i + 2])
+        ++changed;
+  if (qualified) {
+    for (int y = 22; y < 106; ++y)
+      for (int x = 22; x < 106; ++x)
+        for (int c = 0; c < 3; ++c) {
+          const int error = std::abs(int(reference[(y * side + x) * 3 + c]) -
+            int(gpu[((side - 1 - y) * side + x) * 4 + c]));
+          mean += error;
+          maximum = std::max(maximum, error);
+        }
+    mean /= 84 * 84 * 3;
+  }
+  std::cout << "precise QuadMesh shadow recovery changed=" << changed
+            << " GL/GPU mean/max=" << mean << '/' << maximum
+            << " qualified=" << qualified << "\n";
+  if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+  action.setRenderTarget(nullptr);
+  scene->unref();
+  return qualified && changed > 100 && mean <= 2;
 }
 
 // Exercise the public path with a fresh Action, so capture references held by
@@ -1609,6 +1696,17 @@ int main(int argc, char ** argv)
   floor->width = floor->height = 6;
   floor->depth = 0.05f;
   ground->addChild(floor);
+
+  if (argc == 2 && std::string(argv[1]) == "--precise-quadmesh-shadow") {
+    if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
+        !std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
+      root->unref();
+      return 77;
+    }
+    const bool ok = qualifyPreciseQuadMeshShadow(root);
+    root->unref();
+    return ok ? 0 : 1;
+  }
 
   if (argc == 2 && std::string(argv[1]) == "--viewport") {
     if (!std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") &&
