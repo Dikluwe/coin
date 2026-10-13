@@ -1,0 +1,18 @@
+{
+  "stage": "S4",
+  "passed": 14,
+  "proof": [
+    "SbDP sphere footprint and matrix calculations",
+    "extent levels relative to drawing bounds",
+    "center snapped to projection texels",
+    "unit scales .00001 through 100000",
+    "fully covered native orbit/zoom leaves matrices and actual GPU map pixels identical",
+    "close-up translations retain extent, move by integer texels and preserve offscreen caster depth"
+  ],
+  "limits": [
+    "float source captures and GPU matrices still limit extreme world coordinates",
+    "discrete extent level transitions can change sampling at zoom boundaries; no temporal blend or cascades",
+    "spherical square fit may use fewer effective texels than tight AABB",
+    "legacy CoinGL projection unchanged"
+  ]
+}

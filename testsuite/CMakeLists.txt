@@ -1,5 +1,19 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderShadowStabilityTest coinrender/CoinRenderShadowStabilityTest.cpp)
+  target_compile_definitions(CoinRenderShadowStabilityTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_link_libraries(CoinRenderShadowStabilityTest CoinRender Coin)
+  target_include_directories(CoinRenderShadowStabilityTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+    ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME CoinRenderShadowStabilityTest COMMAND CoinRenderShadowStabilityTest)
+  if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_test(NAME CoinRenderShadowStabilityGpuTest COMMAND CoinRenderShadowStabilityTest
+      --gpu ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics/stable-directional.ppm)
+    set_tests_properties(CoinRenderShadowStabilityGpuTest PROPERTIES TIMEOUT 90
+      ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
+  endif()
   add_executable(CoinRenderShadowBudgetTest coinrender/CoinRenderShadowBudgetTest.cpp)
   target_compile_definitions(CoinRenderShadowBudgetTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
   target_link_libraries(CoinRenderShadowBudgetTest CoinRender Coin)

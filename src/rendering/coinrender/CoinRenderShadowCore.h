@@ -7,6 +7,9 @@
 #include <Inventor/SbBox3f.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbViewVolume.h>
+#include <Inventor/SbDPViewVolume.h>
+#include <Inventor/SbDPMatrix.h>
+#include <Inventor/SbDPRotation.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <algorithm>
 #include <cmath>
@@ -20,6 +23,9 @@ struct CoinRenderShadowPass {
   uint32_t lightSlot = 0;
   uint32_t mapSize = 0;
   bool visible = true;
+  bool stabilized = false;
+  uint32_t stabilizationLevel = 0;
+  double texelWorld = 0.0;
   SbMatrix view = SbMatrix::identity();
   SbMatrix projectionCoin = SbMatrix::identity();
   float nearDistance = 0.1f;
@@ -200,13 +206,75 @@ coin_render_shadow_view_volume(const CoinRenderCameraSnapshot & camera,
   return true;
 }
 
+// Stable square footprint: discrete scale relative to the captured drawing,
+// snapped in light-space texels. Full caster depth remains independent of the
+// camera. Double Sb math reduces cancellation; source captures are still float.
+inline bool
+coin_render_shadow_stable_directional(const SbBox3f & fullBounds,
+  const SbBox3f & visibleBounds, const SbVec3f & direction,
+  CoinRenderShadowPass & pass, std::string & diagnostic)
+{
+  if (pass.mapSize < 4) {
+    diagnostic="Stable PBR directional maps require at least four texels";
+    return false;
+  }
+  const SbVec3f fullSize=fullBounds.getSize(), fitSize=visibleBounds.getSize();
+  const double radius=0.5*SbVec3d(fullSize[0],fullSize[1],fullSize[2]).length();
+  const double fitRadius=0.5*SbVec3d(fitSize[0],fitSize[1],fitSize[2]).length();
+  if (!std::isfinite(radius)||radius<=0||!std::isfinite(fitRadius)) {
+    diagnostic="Stable directional footprint requires finite nondegenerate drawing bounds";
+    return false;
+  }
+  double extent=radius;
+  uint32_t level=0;
+  while (level<20 && extent*0.5>=fitRadius && fitRadius>0) {extent*=0.5;++level;}
+  // One texel margin in each direction covers center rounding at every level.
+  extent/=1.0-2.0/double(pass.mapSize);
+  const double pitch=2.0*extent/pass.mapSize;
+  const SbDPRotation orientation(SbVec3d(0,0,-1),SbVec3d(direction[0],direction[1],direction[2]));
+  const auto inverse=orientation.inverse();
+  const SbVec3f fc=visibleBounds.getCenter();SbVec3d center;
+  inverse.multVec(SbVec3d(fc[0],fc[1],fc[2]),center);
+  center[0]=std::floor(center[0]/pitch+0.5)*pitch;
+  center[1]=std::floor(center[1]/pitch+0.5)*pitch;
+  double low=INFINITY,high=-INFINITY;
+  const auto lo=fullBounds.getMin(),hi=fullBounds.getMax();
+  for(int x=0;x<2;++x)for(int y=0;y<2;++y)for(int z=0;z<2;++z) {
+    SbVec3d corner;inverse.multVec(SbVec3d(x?hi[0]:lo[0],y?hi[1]:lo[1],z?hi[2]:lo[2]),corner);
+    low=std::min(low,corner[2]);high=std::max(high,corner[2]);
+  }
+  const double depth=std::max(high-low,pitch);
+  center[2]=high+depth+pitch;
+  SbVec3d position;orientation.multVec(center,position);
+  SbDPViewVolume volume;volume.ortho(-extent,extent,-extent,extent,depth,2.0*depth+2.0*pitch);
+  volume.rotateCamera(orientation);volume.translateCamera(position);
+  SbDPMatrix view,projection;volume.getMatrices(view,projection);
+  CoinRenderShadowPass candidate=pass;
+  for(int row=0;row<4;++row)for(int column=0;column<4;++column) {
+    candidate.view[row][column]=float(view[row][column]);
+    candidate.projectionCoin[row][column]=float(projection[row][column]);
+    if(!std::isfinite(candidate.view[row][column])||!std::isfinite(candidate.projectionCoin[row][column])) {
+      diagnostic="Stable directional matrices exceed the float capture/output range";return false;
+    }
+  }
+  candidate.nearDistance=float(depth);candidate.farDistance=float(2.0*depth+2.0*pitch);
+  candidate.vsmFarDistance=candidate.farDistance*1.1f;
+  if(candidate.nearDistance<=0||!std::isfinite(candidate.vsmFarDistance)||
+     candidate.farDistance<=candidate.nearDistance) {
+    diagnostic="Stable directional depth exceeds the float capture/output range";return false;
+  }
+  candidate.stabilized=true;candidate.stabilizationLevel=level;candidate.texelWorld=pitch;
+  pass=std::move(candidate);
+  return true;
+}
+
 inline bool
 coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
                           const CoinRenderShadowLightSnapshot & light,
                           const SbBox3f & groupBounds,
                           const SbViewVolume * mainView,
                           CoinRenderShadowPass & pass,
-                          std::string & diagnostic)
+                          std::string & diagnostic, bool stablePbr = false)
 {
   if (groupBounds.isEmpty()) {
     pass.visible = false;
@@ -301,6 +369,8 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot & group,
       pass.visible = false;
       return true;
     }
+    if (stablePbr)
+      return coin_render_shadow_stable_directional(fullBounds,bounds,direction,pass,diagnostic);
     const SbVec3f size = bounds.getSize();
     const float extent = std::max(1.0f, std::max(size[0], std::max(size[1], size[2])));
     const SbVec3f position = bounds.getCenter() - direction * (extent * 2.0f);
@@ -405,6 +475,8 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
                          uint64_t budget = COIN_RENDER_SHADOW_ATTACHMENT_LIMIT)
 {
   CoinRenderShadowPlan candidate;
+  const bool stablePbr=std::any_of(frame.materials.begin(),frame.materials.end(),
+    [](const CoinRenderMaterialSnapshot & m){return m.model==CoinRenderMaterialModel::PBR;});
   for (size_t g = 0; g < frame.shadowGroups.size(); ++g) {
     const auto & group = frame.shadowGroups[g];
     if (!group.sourceRevision || group.parentGroupSlot > g ||
@@ -514,7 +586,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
           pass.receiverDraws.push_back(static_cast<uint32_t>(d));
       }
       if (!coin_render_shadow_camera(group, light, groupBounds,
-                                     mainViewPtr, pass, diagnostic)) return false;
+                                     mainViewPtr, pass, diagnostic, stablePbr)) return false;
       const uint64_t pixels = uint64_t(mapSize) * mapSize;
       const uint64_t moments = pixels * 16u; // RGBA32F.
       const uint64_t depth = pixels * 4u; // D32F used by both portable executors.

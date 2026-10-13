@@ -9,7 +9,7 @@ material e nas luzes. Perfil inicial de execução: BGFX/Vulkan e cenas CAD.
 - [x] S1 — orçamento completo, admissão conjunta de recursos e diagnóstico dos mapas.
 - [x] S2 — receptor PBR opaco com visibilidade por luz, GGX, HDR/IBL e views CAD.
 - [x] S3 — contato/detalhe: bias separado da variância, momentos e culling.
-- [ ] S4 — estabilidade da projeção direcional durante órbita/zoom.
+- [x] S4 — estabilidade da projeção direcional durante órbita/zoom.
 - [ ] S5 — persistência dos attachments e cache correto por conteúdo/projeção/vista.
 - [ ] S6 — filtros VSM/PCF e PCSS, incluindo contrato de emissor/penumbra e orçamento.
 
@@ -47,4 +47,11 @@ contato isolado, escalas .01/1/100, placas finas e restauração AS_IS. Os 12 co
 passaram. [Evidências S3](validation/shadows/s3/summary.json).
 As correções de contato são do perfil PBR; as fórmulas VSM legadas continuam
 compatíveis. O defeito histórico de restauração ShapeHints em CoinGL ainda é
-uma fila separada. S4 em implementação; S5–S6 abertos.
+uma fila separada. S4 concluído: projeção direcional PBR usa SbDP, extensão esférica em níveis
+relativos ao desenho e centro alinhado a texels. A profundidade usa todos os
+casters; a região visível orienta XY. Os 14 controles passaram, com mapas GPU
+idênticos em órbita/zoom de peça totalmente coberta e escalas .00001–100000.
+[Evidências S4](validation/shadows/s4/summary.json).
+Transições entre níveis discretos ainda mudam a amostragem; não há blending
+temporal/cascatas. Inputs e matrizes GPU continuam float. S5 em implementação;
+S6 aberto.
