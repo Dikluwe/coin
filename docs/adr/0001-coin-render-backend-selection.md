@@ -1,12 +1,23 @@
 # ADR 0001: Seleção do Backend WebGPU de Referência para a Onda 1A
 
+> Decisão histórica da Onda 1A. O [mapa atual de arquitetura](../coin-render-architecture.md)
+> descreve CoinRender como contrato para BGFX, wgpu e futuros executores,
+> com CoinGL como referência visual e RECORDING/CPU como ferramenta auxiliar.
+> A expressão “referência oficial” abaixo vale para o experimento da Onda 1A;
+> não define a prioridade atual do produto nem comprova aprovação individual
+> dos nomes registrados como decisores.
+
 - **Status:** Aceito
 - **Data:** 2026-09-22
 - **Decisores:** Time Coin3D / Antigravity
 
 ## Contexto
 
-A especificação [`SoWgpu-Onda0-Onda1.md`](../../estudos/So/SoWgpu-Onda0-Onda1.md) estabelece a evolução do renderizador WebGPU do Coin3D através de etapas incrementais. Na Onda 0, o scene graph foi desacoplado do pipeline gráfico através do `CoinRenderFramePlan` imutável e do `CoinRenderRecordingBackend`.
+A especificação histórica `SoWgpu-Onda0-Onda1.md` (não incluída neste checkout)
+descrevia a evolução inicial do renderizador em ondas. Na Onda 0, o scene
+graph foi desacoplado do pipeline gráfico por um plano imutável e um backend
+de gravação, então ainda nomeados `SoWgpuFramePlan` e
+`SoWgpuRecordingBackend`; foram renomeados para CoinRender depois.
 
 Para a Onda 1A (renderização offscreen em GPU real), três rotas técnicas foram avaliadas:
 1. **Dawn (C++ / Google):** Requer compilação e empacotamento complexos do Chromium/Dawn, indisponível nativamente nos repositórios padrão da maioria das distribuições Linux e com interface C++ mutável.

@@ -15,6 +15,8 @@ set(COIN_RENDER_SOURCES
 	CoinRenderRecordingBackend.cpp
 	CoinRenderCapabilities.cpp
 	CoinRenderSceneManager.cpp
+	# Auxiliary software reference is available to contract tests in GPU builds.
+	# CoinRenderBackendFactory selects it only for the explicit RECORDING build.
 	CoinRenderCpuReferenceBackend.cpp
 	CoinRenderRttExecution.cpp
 	CoinRenderTarget.cpp

@@ -10,8 +10,10 @@
 #include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
 #elif defined(HAVE_COIN_BGFX)
 #include "rendering/coinbgfx/CoinBgfxBackend.h"
-#else
+#elif defined(HAVE_COIN_RENDER_RECORDING)
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+#else
+#error "CoinRender requires an explicitly selected backend"
 #endif
 
 std::unique_ptr<CoinRenderBackend>
@@ -23,8 +25,10 @@ CoinRenderTargetP::createBackend()
   return std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
 #elif defined(HAVE_COIN_BGFX)
   return std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
-#else
+#elif defined(HAVE_COIN_RENDER_RECORDING)
   return std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
+#else
+#error "CoinRender requires an explicitly selected backend"
 #endif
 }
 

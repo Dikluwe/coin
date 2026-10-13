@@ -1,7 +1,7 @@
-/*! \page coin_render_experimental Experimental WebGPU renderer
+/*! \page coin_render_experimental Experimental CoinRender renderer
 
-  \brief Opt-in rendering path for evaluating WebGPU without changing the
-  public ABI of Coin 4 or replacing its Open Inventor traversal model.
+  \brief Opt-in rendering contract for BGFX, wgpu and future executors without
+  replacing Coin's Open Inventor traversal model.
 
   The experimental renderer is built as a separate
   <tt>CoinRender</tt> library. Applications opt in with
@@ -13,7 +13,7 @@
   CoinRenderAction is an SoAction. It traverses through SoCallbackAction,
   observes SoState through elements and bundles, and obtains fallback
   geometry through the usual primitive callbacks. It does not introduce a
-  second scene graph or a WebGPU-specific node hierarchy.
+  second scene graph or a backend-specific node hierarchy.
 
   \section coin_render_flow Frame flow
 
@@ -23,7 +23,7 @@
   - <b>Core</b> validates and transforms Coin-native captured data and
     connector results. It does not traverse or submit GPU work.
   - <b>Shell</b> turns outcomes into diagnostics, logs and profiling text.
-  - <b>Infra</b> owns the private WebGPU connector, device, queue, resources,
+  - <b>Infra</b> owns the selected connector, device, queue, resources,
     submission, presentation and readback.
   - <b>Wiring</b> is the CoinRenderAction orchestration that connects Coin
     traversal, frame planning, a render target and result publication.
@@ -31,13 +31,16 @@
   The concrete flow is:
   \code
   Coin scene graph -> CoinRenderAction traversal -> CoinRenderFramePlan
-                   -> private backend connector -> WebGPU target
+                   -> selected backend connector -> graphics API / driver
                    -> readback/presentation -> application
   \endcode
 
   CoinRenderFramePlan and the C ABI used by the Rust bridge are private implementation
   contracts. Only headers under <tt>experimental/include</tt> form the
   experimental source API.
+  CoinGL remains a separate OpenGL path and the visual compatibility reference
+  for valid scenes. RECORDING/CPU is an auxiliary test executor, not CoinGL or
+  the visual oracle. One CoinRender executor is selected per build.
 
   Status translation and C++ phase-line formatting have a private Shell owner.
   Public callers still observe only the existing status enums and diagnostic
@@ -179,39 +182,18 @@
   are nominal resource sizes, not total driver GPU memory; unsupported
   memory and framebuffer counters are printed as <tt>unavailable</tt>.
 
-  \section coin_bgfx_execution BGFX evaluation connector
+  \section coin_bgfx_execution GPU connectors
 
-  The optional <tt>COIN_RENDER_BACKEND=BGFX</tt> branch reuses the Coin traversal
-  and private CoinRenderFramePlan but executes a deliberately smaller profile through
-  BGFX/Vulkan by default, or BGFX/OpenGL when
-  <tt>COIN_BGFX_RENDERER=opengl</tt>, on Linux offscreen or Xlib windows.
-  Core lowers validated Coin-native
-  snapshots without BGFX headers; Infra owns the global BGFX instance,
-  renderer-specific SPIR-V/GLSL shader program,
-  GPU resources, offscreen RGBA readback and direct window presentation;
-  Wiring selects the backend.
-  This does not make BGFX a WebGPU implementation or extend Coin 4's stable
-  public ABI. The connector currently accepts only indexed, opaque,
-  untextured BASE_COLOR triangles in a full target viewport, with depth
-  testing but no depth readback. Window targets do not read pixels back.
-  Unsupported Open Inventor state is rejected
-  explicitly. BGFX uses a process-wide API thread and this evaluation permits
-  only one prepared target per process. A concurrent prepare returns
-  UNSUPPORTED without disturbing the owner; releasing the owner on its API
-  thread permits a serial handoff. The version 2 capability query initializes a
-  temporary 1x1 offscreen target and releases it before returning. It reports
-  the actual renderer, GPU IDs, normalized format support, MRT, independent
-  blend, compute and timestamp support. If the singleton is already owned, the
-  query reports COIN_RENDER_PROBE_BUSY with the backend diagnostic instead of
-  declaring the GPU unavailable. For an Xlib target, this proves the GPU and
-  renderer only; real presentation still requires preparing the caller's native
-  surface. OpenGL readback rows are normalized to the same target RGBA
-  orientation.
-  Core preserves Coin's floating-point clear color, and Infra passes it to
-  BGFX's float clear palette without early RGBA8 quantization.
-  Test each renderer in a separate process because BGFX initialization is
-  process-global. The Coin 4 public ABI is unchanged. See
-  <tt>docs/coin-bgfx-evaluation.md</tt> for build, limitations and the Release/GL gate.
+  <tt>COIN_RENDER_BACKEND=BGFX</tt> and
+  <tt>COIN_RENDER_BACKEND=RUST_BRIDGE</tt> reuse the same Coin traversal and
+  private CoinRenderFramePlan. BGFX and wgpu each own their GPU resources,
+  shaders, passes, presentation and readback. Their supported graphics APIs
+  and qualified scene profiles differ; query capabilities and consult
+  <tt>docs/coin-render-next-fronts-checklist.md</tt> for current evidence.
+  BGFX is not an implementation of WebGPU. Selecting OpenGL as the graphics
+  API of either executor does not select the legacy CoinGL path. Neither GPU
+  executor delegates triangle coverage to the auxiliary CPU executor.
+  See <tt>docs/coin-render-architecture.md</tt> for the ownership boundaries.
 
   A validated camera-only CoinRenderFramePlan revision updates draw transforms while
   retaining BGFX geometry buffers; other changes use full lowering.

@@ -5,6 +5,9 @@ A branch de desenvolvimento da funcionalidade é `codex/coin-render`, no checkou
 validação do CoinRender devem partir dela. Branches de investigação podem ser
 usadas temporariamente e integradas aqui antes de preparar o PR. As correções
 do núcleo CoinGL e os patches do driver Mesa têm escopos e revisões próprios.
+O [mapa de arquitetura](coin-render-architecture.md) registra a intenção atual:
+CoinRender conecta a cena Coin a BGFX, wgpu e futuros executores; CoinGL é o
+oráculo de compatibilidade e RECORDING/CPU é auxiliar de teste.
 
 ## Onde está cada parte
 
@@ -26,9 +29,9 @@ pendências. Para o contrato inicial, veja o
 [perfil experimental](coin-render-experimental-profile.md). Para a API pública
 de sampling, veja o [contrato](coin-render-texture-sampling-api.md).
 
-## Estado da integração em 2026-10-10
+## Campanha de integração de 2026-10-10
 
-A branch reúne a implementação original de CoinRender, a API de sampling
+A branch reuniu a implementação original de CoinRender, a API de sampling
 native/portable, a continuação Windows e o teste das mesmas cenas no Linux.
 Os relatórios visuais são [Windows](coin-render-windows-visual-scenes-20261010.md)
 e [Linux](validation/linux-visual-20261010/README.md). O Linux registrou 16

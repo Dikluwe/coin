@@ -110,7 +110,7 @@ struct CoinBgfxPhaseSample {
   bool gpuTimingRequested = false;
 };
 
-// Language-facing policy for private WebGPU statuses, diagnostics and traces.
+// Language-facing policy for CoinRender statuses, diagnostics and traces.
 class CoinRenderDiagnosticShell {
 public:
   COIN_RENDER_DLL_API static CoinRenderActionDiagnostic action(

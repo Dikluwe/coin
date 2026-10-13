@@ -6,6 +6,10 @@ As caixas abaixo representam entregas ainda não fechadas.
 
 A [checklist das próximas frentes](coin-render-next-fronts-checklist.md) detalha
 as pendências após a integração de 2026-10-06 e os critérios de cada entrega.
+Ela é a fonte de verdade para o estado atual; este plano conserva a decomposição
+P/F/A e pode marcar um P amplo como aberto mesmo após fechar subperfis. O
+[mapa de arquitetura](coin-render-architecture.md) define o papel de CoinGL,
+BGFX, wgpu e RECORDING/CPU.
 
 ## Base já entregue
 

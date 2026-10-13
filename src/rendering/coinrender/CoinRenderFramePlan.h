@@ -397,7 +397,7 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
 }
 
 /**
- * Private, Coin-native description of one captured WebGPU frame.
+ * Private, Coin-native description of one captured CoinRender frame.
  *
  * The plan is the mechanical boundary between Open Inventor traversal and a
  * concrete backend. It owns no GPU resources and performs no submission.

@@ -87,7 +87,7 @@ struct CoinRenderReadbackTicket {
 };
 
 /**
- * Experimental offscreen or native-window destination for WebGPU rendering.
+ * Experimental offscreen or native-window destination for CoinRender.
  *
  * The target owns backend attachments and presentation state, but never owns
  * native window handles supplied through CoinRenderNativeSurfaceDescriptor.

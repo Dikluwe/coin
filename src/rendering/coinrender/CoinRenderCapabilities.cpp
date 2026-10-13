@@ -286,7 +286,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
     result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK |
                        COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F | COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
   probeBgfx(target, renderer, result);
-#else
+#elif defined(HAVE_COIN_RENDER_RECORDING)
   result.backend = COIN_RENDER_EXPERIMENTAL_RECORDING;
   if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;
   result.features = COIN_RENDER_FEATURE_TRIANGLES |
@@ -308,6 +308,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
   result.max_scene_texture_depth = 8;
   result.max_scene_texture_bytes_per_apply = UINT64_C(64) * 1024 * 1024;
   setDiagnostic(result, "CPU recording backend does not run a GPU probe");
+#else
+#error "CoinRender capabilities require an explicitly selected backend"
 #endif
 
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
@@ -352,7 +354,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
 #elif defined(HAVE_COIN_BGFX)
   result.implemented_mechanisms = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING |
                                   COIN_RENDER_MECHANISM_WEIGHTED_OIT;
-#elif !defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE)
+#elif defined(HAVE_COIN_RENDER_RECORDING)
   result.implemented_mechanisms = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING;
   result.available_mechanisms =
       renderer == COIN_RENDER_RENDERER_UNKNOWN ? result.implemented_mechanisms : 0;
@@ -374,7 +376,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
   }
   if (result.features & COIN_RENDER_FEATURE_TEXTURE_2D) {
     result.implemented_sampling_policies = COIN_RENDER_SAMPLING_POLICY_NATIVE;
-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX) || (!defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE))
+#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_RENDER_RECORDING)
     result.implemented_sampling_policies |= COIN_RENDER_SAMPLING_POLICY_PORTABLE;
     result.portable_sampling_filter_mask = 1u << 2; // NEAREST_MIPMAP_LINEAR
     result.portable_sampling_max_anisotropy = 1;

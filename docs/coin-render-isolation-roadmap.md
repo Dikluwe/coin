@@ -1,5 +1,10 @@
 # Organização do render: quatro fases
 
+Registro das quatro fases concluídas naquela campanha. O
+[mapa de arquitetura](coin-render-architecture.md) descreve a intenção atual;
+a [checklist das próximas frentes](coin-render-next-fronts-checklist.md) mantém
+o estado das qualificações ainda abertas.
+
 Campanha concluída na branch `codex/coin-render-isolation`. A seleção de executor
 continua no build; a API pública comum e `CoinBgfxAction` de compatibilidade foram
 preservadas. Os consumidores C++ devem ser recompilados com o módulo.

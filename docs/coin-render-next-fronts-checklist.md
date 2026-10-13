@@ -1,6 +1,6 @@
 # CoinRender: checklist das próximas frentes
 
-Atualizada em 2026-10-10, incluindo a API de sampling, Windows e Linux, com a entrega
+Auditada em 2026-10-12, incluindo a API de sampling, Windows e Linux, com a entrega
 P03/P15/P16/P24/P28 após o fechamento
 P02/P04/P05/P06 e do primeiro perfil P07, na branch
 `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
@@ -8,6 +8,12 @@ precisam de ampliação ou qualificação apenas nos escopos indicados.
 O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
 O [guia da branch](coin-render-branch-guide.md) aponta código, testes,
 evidências e a preparação necessária para o PR.
+O [mapa de arquitetura](coin-render-architecture.md) fixa o papel dos
+executores, do CoinGL e do modo RECORDING. Há 88 caixas concluídas e 25
+abertas nesta revisão: 20 frentes e cinco critérios por entrega. Uma caixa
+concluída fecha apenas o escopo escrito nela; os perfis remanescentes continuam
+nas caixas abertas. Duas frentes são dependências externas ao CoinRender:
+limpeza de GL no Coin base e qualificação nativa do oráculo CoinGL.
 
 O checkout de continuação deste PC fica em
 `/mnt/Laranja/Git/externos/coin-render`, na branch `codex/coin-render`.
@@ -670,11 +676,19 @@ nem encerra uma campanha completa de desempenho Windows.
   não autorizam promovê-la diretamente à produção.
   Uma política comum que preserve câmera/viewport/RTT e os demais oráculos
   ainda precisa ser implementada e qualificada
-  ([recibos](validation/p20-edge-controls-20261011/summary.md)).
+  ([recibos](validation/p20-edge-controls-20261011/summary.md)). A matriz
+  física AMD/NVIDIA confirmou que 3× corrige câmera e transparência P20 em
+  alguns casos AMD, mas regride a câmera NVIDIA e a cena P20 opaca nas duas
+  placas. CoinGL também escolheu lados opostos da mesma aresta nas duas GPUs;
+  não há um único resultado que iguale ambas as referências nesse pixel.
+  A correção GPU requer uma regra canônica qualificada em BGFX e wgpu, com
+  CoinGL e expectativas independentes registrados separadamente
+  ([auditoria de cobertura](validation/perspective-coverage-20261012/summary.md)).
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
-- [ ] Remover completamente os fontes/referências GL remanescentes do Coin base;
+- [ ] **Dependência Coin base:** remover completamente os fontes/referências GL
+  remanescentes do Coin base;
   a primeira fronteira Android conserva ABI com referências fracas indisponíveis.
   Inventário do build CPU Android atual: 112 símbolos GL fracos em `libCoin.so`,
   distribuídos por 81 de 926 objetos; sem `DT_NEEDED` libGL/libGLES. A
@@ -683,7 +697,7 @@ nem encerra uma campanha completa de desempenho Windows.
 - [ ] Qualificar Vulkan nesta imagem Android: Goldfish é não conforme e a
   execução de diagnóstico falha em `vulkan.ranchu.so` no submit. Sem fallback.
 - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
-- [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
+- [ ] **Dependência CoinGL:** qualificar CoinGL nativo com oito mapas em contexto com nove unidades
   utilizáveis; a expectativa portátil local não encerra essa célula.
   AMD, NVIDIA e llvmpipe locais anunciam apenas oito unidades de coordenadas; o
   controle nativo estrito com oito mapas falha exigindo nove. A reserva de
@@ -756,26 +770,13 @@ nem encerra uma campanha completa de desempenho Windows.
   PSS de 3.845.081 KiB, zero swap e caudas de backend de câmera P95 43,62 ms;
   otimização para aparelhos menores exige trabalho adicional
   ([A/B e limites](validation/android-million-camera-20261010/summary.md)).
-- [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
-  a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
-  Nesta revisão, o frame 5 ainda falha com MAE 0,147283/0,149582 em
-  wgpu/BGFX Vulkan AMD. Reuso e reconstrução são idênticos; 47 pixels acima
-  do gate são comuns aos dois backends, 44 na coluna x=195. Em wgpu todos
-  os 47 diferem por cobertura, delimitando a investigação ao raster nas
-  bordas, sem atribuir ainda a causa
-  ([recibo](validation/perspective-coverage-20261012/summary.md)). A projeção
-  independente explicou exatamente os 44 pixels de `x=195`: a aresta de
-  cinco cubos cai no centro da amostra após quantização a 1/256 pixel.
-  Deslocar a câmera em 0,0005 apenas no fixture fez os nove frames de
-  perspectiva passarem em ambos os Vulkan; o ortográfico da AMD/Vulkan ainda
-  falha no frame 1. O teste completo passou em wgpu/Vulkan NVIDIA física.
-  A captura offscreen opcional 3× com amostra central agora passa os 18 frames
-  de câmera AMD/Vulkan em wgpu e BGFX contra CoinGL, incluindo perspectiva e
-  ortográfica, sem deslocar a câmera. A API pública exige alvo e viewport 3×;
-  o custo é 9× pixels. A matriz Linux AMD/NVIDIA confirmou que 3× regride a
-  câmera NVIDIA e a cena P20 opaca nas duas GPUs; só corrige os casos AMD
-  identificados. A correção geral ainda precisa de política de cobertura que
-  preserve janela/RTT e os outros oráculos
+- [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12, incluindo
+  custo, precisão, reutilização e publicação. Na AMD/Vulkan, o frame 5 de
+  câmera ainda falha contra CoinGL com MAE 0,147283/0,149582 em wgpu/BGFX;
+  reuso e reconstrução são idênticos. A auditoria localiza 44 diferenças de
+  cobertura em `x=195`, presentes antes do layout compacto. A política de
+  borda e os testes 1×/3× pertencem à frente P20 acima; não usar essa falha
+  preexistente como evidência de regressão do layout
   ([recibo](validation/perspective-coverage-20261012/summary.md)).
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
@@ -811,14 +812,17 @@ Os estudos e limites acima permanecem abertos.
 
 ## 6. Critérios para cada entrega
 
-- [ ] Documentar entrada, semântica esperada, limites e dono da decisão:
-  Wiring captura, Core decide, Infra executa, Shell explica.
+- [ ] Documentar entrada, semântica esperada, modelo visual, limites e dono da
+  decisão: Wiring captura, Core decide, Infra executa, Shell explica. Definir
+  uma expectativa independente para a propriedade testada antes de usar CoinGL
+  como comparação de compatibilidade.
 - [ ] Implementar ou rejeitar o mesmo contrato em BGFX e wgpu, sem duplicar
   interpretação Coin nos shaders/conectores.
 - [ ] Testar sucesso, limites, estado anterior preservado em falha e recuperação;
   verificar ABI/protocolo quando o transporte mudar.
-- [ ] Aplicar a [política de bugs do CoinGL](coin-render-compatibility-policy.md):
-  uma diferença sem diagnóstico permanece aberta.
+- [ ] Aplicar a [política de compatibilidade](coin-render-compatibility-policy.md):
+  classificar bug, adaptação de API e diferença sem diagnóstico; uma diferença
+  sem diagnóstico permanece aberta.
 - [ ] Atualizar capacidades, inventário e contratos; guardar revisão, comandos,
   ambiente, logs e contagens de passes/skips/falhas na branch consolidada.
 

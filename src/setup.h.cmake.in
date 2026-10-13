@@ -124,7 +124,7 @@
 /***************************************************************************
  * HAVE_COIN_RENDER
  *
- * WebGPU experimental render action support.
+ * Optional CoinRender action and backend contract.
  */
 
 #cmakedefine HAVE_COIN_RENDER
@@ -153,7 +153,10 @@
 
 #cmakedefine HAVE_COIN_WGPU_RUST_BRIDGE
 
-/* Experimental headless BGFX/Vulkan or OpenGL evaluation backend. */
+/* Explicit diagnostic RECORDING/CPU backend; never an implicit GPU fallback. */
+#cmakedefine HAVE_COIN_RENDER_RECORDING
+
+/* BGFX executor for the experimental CoinRender contract. */
 #cmakedefine HAVE_COIN_BGFX
 
 /***************************************************************************

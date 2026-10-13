@@ -1,5 +1,11 @@
 # Migração de nomes CoinRender, CoinBgfx e CoinWgpu
 
+Registro histórico da migração de 2026-09-28. Os parágrafos sobre branches
+descrevem aquela integração, não a organização atual do trabalho. Para a
+branch única e o papel de cada executor, ver o
+[guia da branch](coin-render-branch-guide.md) e o
+[mapa de arquitetura](coin-render-architecture.md).
+
 O commit de base `f749a64527` preserva o checkout existente antes da migração,
 incluindo mudanças anteriores de renderização e outras correções Coin. Ele não
 é parte da renomeação. A branch de origem `codex/bgfx-evaluation` foi preservada.

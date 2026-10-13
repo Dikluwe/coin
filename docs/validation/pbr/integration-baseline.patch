@@ -1,0 +1,544 @@
+diff --git a/CMakeLists.txt b/CMakeLists.txt
+index 1af738470c..c84e8a7c5a 100644
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -297,7 +297,8 @@ if(COIN_BUILD_RENDER)
+     endif()
+     set(HAVE_COIN_WGPU_RUST_BRIDGE 1)
+   elseif(COIN_RENDER_BACKEND STREQUAL "RECORDING")
+-    message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and reference software rasterizer.")
++    set(HAVE_COIN_RENDER_RECORDING 1)
++    message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and auxiliary software rasterizer.")
+   elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+     if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT WIN32)
+       message(FATAL_ERROR "The BGFX evaluation supports Linux and Windows.")
+diff --git a/docs/adr/0001-coin-render-backend-selection.md b/docs/adr/0001-coin-render-backend-selection.md
+index 9977b87a82..782d566a02 100644
+--- a/docs/adr/0001-coin-render-backend-selection.md
++++ b/docs/adr/0001-coin-render-backend-selection.md
+@@ -1,12 +1,23 @@
+ # ADR 0001: Seleção do Backend WebGPU de Referência para a Onda 1A
+ 
++> Decisão histórica da Onda 1A. O [mapa atual de arquitetura](../coin-render-architecture.md)
++> descreve CoinRender como contrato para BGFX, wgpu e futuros executores,
++> com CoinGL como referência visual e RECORDING/CPU como ferramenta auxiliar.
++> A expressão “referência oficial” abaixo vale para o experimento da Onda 1A;
++> não define a prioridade atual do produto nem comprova aprovação individual
++> dos nomes registrados como decisores.
++
+ - **Status:** Aceito
+ - **Data:** 2026-09-22
+ - **Decisores:** Time Coin3D / Antigravity
+ 
+ ## Contexto
+ 
+-A especificação [`SoWgpu-Onda0-Onda1.md`](../../estudos/So/SoWgpu-Onda0-Onda1.md) estabelece a evolução do renderizador WebGPU do Coin3D através de etapas incrementais. Na Onda 0, o scene graph foi desacoplado do pipeline gráfico através do `CoinRenderFramePlan` imutável e do `CoinRenderRecordingBackend`.
++A especificação histórica `SoWgpu-Onda0-Onda1.md` (não incluída neste checkout)
++descrevia a evolução inicial do renderizador em ondas. Na Onda 0, o scene
++graph foi desacoplado do pipeline gráfico por um plano imutável e um backend
++de gravação, então ainda nomeados `SoWgpuFramePlan` e
++`SoWgpuRecordingBackend`; foram renomeados para CoinRender depois.
+ 
+ Para a Onda 1A (renderização offscreen em GPU real), três rotas técnicas foram avaliadas:
+ 1. **Dawn (C++ / Google):** Requer compilação e empacotamento complexos do Chromium/Dawn, indisponível nativamente nos repositórios padrão da maioria das distribuições Linux e com interface C++ mutável.
+diff --git a/docs/coin-render-branch-guide.md b/docs/coin-render-branch-guide.md
+index 9b2c1a00a6..fbcee82a0b 100644
+--- a/docs/coin-render-branch-guide.md
++++ b/docs/coin-render-branch-guide.md
+@@ -5,6 +5,9 @@ A branch de desenvolvimento da funcionalidade é `codex/coin-render`, no checkou
+ validação do CoinRender devem partir dela. Branches de investigação podem ser
+ usadas temporariamente e integradas aqui antes de preparar o PR. As correções
+ do núcleo CoinGL e os patches do driver Mesa têm escopos e revisões próprios.
++O [mapa de arquitetura](coin-render-architecture.md) registra a intenção atual:
++CoinRender conecta a cena Coin a BGFX, wgpu e futuros executores; CoinGL é o
++oráculo de compatibilidade e RECORDING/CPU é auxiliar de teste.
+ 
+ ## Onde está cada parte
+ 
+@@ -26,9 +29,9 @@ pendências. Para o contrato inicial, veja o
+ [perfil experimental](coin-render-experimental-profile.md). Para a API pública
+ de sampling, veja o [contrato](coin-render-texture-sampling-api.md).
+ 
+-## Estado da integração em 2026-10-10
++## Campanha de integração de 2026-10-10
+ 
+-A branch reúne a implementação original de CoinRender, a API de sampling
++A branch reuniu a implementação original de CoinRender, a API de sampling
+ native/portable, a continuação Windows e o teste das mesmas cenas no Linux.
+ Os relatórios visuais são [Windows](coin-render-windows-visual-scenes-20261010.md)
+ e [Linux](validation/linux-visual-20261010/README.md). O Linux registrou 16
+diff --git a/docs/coin-render-compatibility-policy.md b/docs/coin-render-compatibility-policy.md
+index 553f422d62..71cf8c0d92 100644
+--- a/docs/coin-render-compatibility-policy.md
++++ b/docs/coin-render-compatibility-policy.md
+@@ -1,10 +1,35 @@
+ # Compatibilidade com CoinGL e tratamento de bugs
+ 
+-Diretriz estabelecida em 2026-10-06: CoinGL é a referência de compatibilidade
+-para CoinRender. Bugs confirmados, acessos inválidos e comportamento indefinido
+-não devem ser reproduzidos para obter igualdade com uma imagem ou execução
+-legada. O objetivo é preservar a semântica válida da cena nos executores CPU,
+-BGFX e wgpu.
++Diretriz estabelecida em 2026-10-06 e refinada em 2026-10-12: CoinGL é a
++referência de compatibilidade para CoinRender, mas não define sozinho o
++resultado correto. Bugs confirmados, acessos inválidos e comportamento
++indefinido não devem ser reproduzidos para obter igualdade com uma imagem ou
++execução legada. O objetivo é preservar a semântica válida da cena nos
++executores BGFX e wgpu; o backend CPU é auxiliar de testes.
++
++## Ordem para definir o resultado esperado
++
++1. Descrever a entrada e a semântica documentada dos nós e estados Coin. Fixar
++   unidades, espaços de coordenadas, projeção, ordem de composição, formatos,
++   espaço de cor e precisão relevantes ao caso.
++2. Aplicar a matemática do modelo visual escolhido e os contratos das APIs
++   gráficas. Uma iluminação aproximada herdada do Coin não se torna fisicamente
++   baseada por trocar de backend; uma mudança de modelo exige contrato e modo
++   próprios. Nos casos em que a especificação permite mais de um resultado,
++   declarar a política portátil antes de comparar pixels.
++3. Calcular uma expectativa independente para a propriedade testada, como
++   transformações, cobertura, profundidade, interpolação, texels, mistura ou
++   contribuição de luz. Esse controle deve poder detectar um erro compartilhado
++   por CoinGL e CoinRender.
++4. Comparar CoinGL, BGFX e wgpu no mesmo ambiente e classificar cada diferença.
++   CoinGL confirma compatibilidade histórica no domínio válido; não substitui
++   os três passos anteriores.
++
++Conversões exigidas pela API ou pelo driver, como origem da textura, intervalo
++de profundidade e apresentação em janela, pertencem ao executor. O resultado
++observável deve continuar obedecendo ao contrato comum. Quando uma regra
++portátil deliberada difere de CoinGL, registrar ambos os resultados e a razão;
++não chamar a divergência de paridade visual exata.
+ 
+ ## Classificação de uma diferença
+ 
+@@ -16,6 +41,9 @@ BGFX e wgpu.
+   resultado defeituoso do CoinGL não serve como resultado esperado.
+ - **Diferença ainda sem diagnóstico:** manter a investigação aberta, com cena
+   mínima e evidência. Não declarar paridade nem uma exceção por bug sem base.
++- **Adaptação de API ou driver:** identificar a transformação necessária,
++  verificar o resultado observável e não transportar a convenção da API para
++  a semântica da cena.
+ - **Recurso ainda sem suporte:** registrar a lacuna e o diagnóstico existente;
+   a ausência de suporte não é uma correção de bug do CoinGL.
+ 
+diff --git a/docs/coin-render-isolation-roadmap.md b/docs/coin-render-isolation-roadmap.md
+index f6f5077fc6..2f9df5c55c 100644
+--- a/docs/coin-render-isolation-roadmap.md
++++ b/docs/coin-render-isolation-roadmap.md
+@@ -1,5 +1,10 @@
+ # Organização do render: quatro fases
+ 
++Registro das quatro fases concluídas naquela campanha. O
++[mapa de arquitetura](coin-render-architecture.md) descreve a intenção atual;
++a [checklist das próximas frentes](coin-render-next-fronts-checklist.md) mantém
++o estado das qualificações ainda abertas.
++
+ Campanha concluída na branch `codex/coin-render-isolation`. A seleção de executor
+ continua no build; a API pública comum e `CoinBgfxAction` de compatibilidade foram
+ preservadas. Os consumidores C++ devem ser recompilados com o módulo.
+diff --git a/docs/coin-render-isolation.md b/docs/coin-render-isolation.md
+index 59af83f25e..3d3e01c328 100644
+--- a/docs/coin-render-isolation.md
++++ b/docs/coin-render-isolation.md
+@@ -1,5 +1,9 @@
+ # Isolamento da entrada CoinRender e dos executores
+ 
++Relatório histórico da primeira etapa de isolamento. Ver o
++[mapa atual](coin-render-architecture.md) para o propósito dos executores e a
++[checklist](coin-render-next-fronts-checklist.md) para trabalho ainda aberto.
++
+ Primeira etapa na branch `codex/coin-render-isolation`, sobre `ad82572bd3`.
+ A biblioteca continua opcional; a API pública comum e os tipos de compatibilidade
+ permanecem disponíveis. Consumidores C++ devem ser recompilados com o módulo.
+diff --git a/docs/coin-render-naming-migration.md b/docs/coin-render-naming-migration.md
+index a5c41a0040..04033fdffb 100644
+--- a/docs/coin-render-naming-migration.md
++++ b/docs/coin-render-naming-migration.md
+@@ -1,5 +1,11 @@
+ # Migração de nomes CoinRender, CoinBgfx e CoinWgpu
+ 
++Registro histórico da migração de 2026-09-28. Os parágrafos sobre branches
++descrevem aquela integração, não a organização atual do trabalho. Para a
++branch única e o papel de cada executor, ver o
++[guia da branch](coin-render-branch-guide.md) e o
++[mapa de arquitetura](coin-render-architecture.md).
++
+ O commit de base `f749a64527` preserva o checkout existente antes da migração,
+ incluindo mudanças anteriores de renderização e outras correções Coin. Ele não
+ é parte da renomeação. A branch de origem `codex/bgfx-evaluation` foi preservada.
+diff --git a/docs/coin-render-next-fronts-checklist.md b/docs/coin-render-next-fronts-checklist.md
+index 82a2065d74..0a227dc45a 100644
+--- a/docs/coin-render-next-fronts-checklist.md
++++ b/docs/coin-render-next-fronts-checklist.md
+@@ -1,6 +1,6 @@
+ # CoinRender: checklist das próximas frentes
+ 
+-Atualizada em 2026-10-10, incluindo a API de sampling, Windows e Linux, com a entrega
++Auditada em 2026-10-12, incluindo a API de sampling, Windows e Linux, com a entrega
+ P03/P15/P16/P24/P28 após o fechamento
+ P02/P04/P05/P06 e do primeiro perfil P07, na branch
+ `codex/coin-render`. Os itens abaixo são pendências; capacidades já implementadas
+@@ -8,6 +8,12 @@ precisam de ampliação ou qualificação apenas nos escopos indicados.
+ O [plano geral](coin-render-work-plan.md) conserva os identificadores P/F/A.
+ O [guia da branch](coin-render-branch-guide.md) aponta código, testes,
+ evidências e a preparação necessária para o PR.
++O [mapa de arquitetura](coin-render-architecture.md) fixa o papel dos
++executores, do CoinGL e do modo RECORDING. Há 88 caixas concluídas e 25
++abertas nesta revisão: 20 frentes e cinco critérios por entrega. Uma caixa
++concluída fecha apenas o escopo escrito nela; os perfis remanescentes continuam
++nas caixas abertas. Duas frentes são dependências externas ao CoinRender:
++limpeza de GL no Coin base e qualificação nativa do oráculo CoinGL.
+ 
+ O checkout de continuação deste PC fica em
+ `/mnt/Laranja/Git/externos/coin-render`, na branch `codex/coin-render`.
+@@ -670,11 +676,19 @@ nem encerra uma campanha completa de desempenho Windows.
+   não autorizam promovê-la diretamente à produção.
+   Uma política comum que preserve câmera/viewport/RTT e os demais oráculos
+   ainda precisa ser implementada e qualificada
+-  ([recibos](validation/p20-edge-controls-20261011/summary.md)).
++  ([recibos](validation/p20-edge-controls-20261011/summary.md)). A matriz
++  física AMD/NVIDIA confirmou que 3× corrige câmera e transparência P20 em
++  alguns casos AMD, mas regride a câmera NVIDIA e a cena P20 opaca nas duas
++  placas. CoinGL também escolheu lados opostos da mesma aresta nas duas GPUs;
++  não há um único resultado que iguale ambas as referências nesse pixel.
++  A correção GPU requer uma regra canônica qualificada em BGFX e wgpu, com
++  CoinGL e expectativas independentes registrados separadamente
++  ([auditoria de cobertura](validation/perspective-coverage-20261012/summary.md)).
+ - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
+   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
+   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
+-- [ ] Remover completamente os fontes/referências GL remanescentes do Coin base;
++- [ ] **Dependência Coin base:** remover completamente os fontes/referências GL
++  remanescentes do Coin base;
+   a primeira fronteira Android conserva ABI com referências fracas indisponíveis.
+   Inventário do build CPU Android atual: 112 símbolos GL fracos em `libCoin.so`,
+   distribuídos por 81 de 926 objetos; sem `DT_NEEDED` libGL/libGLES. A
+@@ -683,7 +697,7 @@ nem encerra uma campanha completa de desempenho Windows.
+ - [ ] Qualificar Vulkan nesta imagem Android: Goldfish é não conforme e a
+   execução de diagnóstico falha em `vulkan.ranchu.so` no submit. Sem fallback.
+ - [ ] Fechar a célula Intel física e repetir os perfis nas GPUs/APIs previstas.
+-- [ ] Qualificar CoinGL nativo com oito mapas em contexto com nove unidades
++- [ ] **Dependência CoinGL:** qualificar CoinGL nativo com oito mapas em contexto com nove unidades
+   utilizáveis; a expectativa portátil local não encerra essa célula.
+   AMD, NVIDIA e llvmpipe locais anunciam apenas oito unidades de coordenadas; o
+   controle nativo estrito com oito mapas falha exigindo nove. A reserva de
+@@ -756,26 +770,13 @@ nem encerra uma campanha completa de desempenho Windows.
+   PSS de 3.845.081 KiB, zero swap e caudas de backend de câmera P95 43,62 ms;
+   otimização para aparelhos menores exige trabalho adicional
+   ([A/B e limites](validation/android-million-camera-20261010/summary.md)).
+-- [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12 e estudar
+-  a diferença de perspectiva AMD/Vulkan/CoinGL já presente no shader anterior.
+-  Nesta revisão, o frame 5 ainda falha com MAE 0,147283/0,149582 em
+-  wgpu/BGFX Vulkan AMD. Reuso e reconstrução são idênticos; 47 pixels acima
+-  do gate são comuns aos dois backends, 44 na coluna x=195. Em wgpu todos
+-  os 47 diferem por cobertura, delimitando a investigação ao raster nas
+-  bordas, sem atribuir ainda a causa
+-  ([recibo](validation/perspective-coverage-20261012/summary.md)). A projeção
+-  independente explicou exatamente os 44 pixels de `x=195`: a aresta de
+-  cinco cubos cai no centro da amostra após quantização a 1/256 pixel.
+-  Deslocar a câmera em 0,0005 apenas no fixture fez os nove frames de
+-  perspectiva passarem em ambos os Vulkan; o ortográfico da AMD/Vulkan ainda
+-  falha no frame 1. O teste completo passou em wgpu/Vulkan NVIDIA física.
+-  A captura offscreen opcional 3× com amostra central agora passa os 18 frames
+-  de câmera AMD/Vulkan em wgpu e BGFX contra CoinGL, incluindo perspectiva e
+-  ortográfica, sem deslocar a câmera. A API pública exige alvo e viewport 3×;
+-  o custo é 9× pixels. A matriz Linux AMD/NVIDIA confirmou que 3× regride a
+-  câmera NVIDIA e a cena P20 opaca nas duas GPUs; só corrige os casos AMD
+-  identificados. A correção geral ainda precisa de política de cobertura que
+-  preserve janela/RTT e os outros oráculos
++- [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12, incluindo
++  custo, precisão, reutilização e publicação. Na AMD/Vulkan, o frame 5 de
++  câmera ainda falha contra CoinGL com MAE 0,147283/0,149582 em wgpu/BGFX;
++  reuso e reconstrução são idênticos. A auditoria localiza 44 diferenças de
++  cobertura em `x=195`, presentes antes do layout compacto. A política de
++  borda e os testes 1×/3× pertencem à frente P20 acima; não usar essa falha
++  preexistente como evidência de regressão do layout
+   ([recibo](validation/perspective-coverage-20261012/summary.md)).
+ - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
+   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
+@@ -811,14 +812,17 @@ Os estudos e limites acima permanecem abertos.
+ 
+ ## 6. Critérios para cada entrega
+ 
+-- [ ] Documentar entrada, semântica esperada, limites e dono da decisão:
+-  Wiring captura, Core decide, Infra executa, Shell explica.
++- [ ] Documentar entrada, semântica esperada, modelo visual, limites e dono da
++  decisão: Wiring captura, Core decide, Infra executa, Shell explica. Definir
++  uma expectativa independente para a propriedade testada antes de usar CoinGL
++  como comparação de compatibilidade.
+ - [ ] Implementar ou rejeitar o mesmo contrato em BGFX e wgpu, sem duplicar
+   interpretação Coin nos shaders/conectores.
+ - [ ] Testar sucesso, limites, estado anterior preservado em falha e recuperação;
+   verificar ABI/protocolo quando o transporte mudar.
+-- [ ] Aplicar a [política de bugs do CoinGL](coin-render-compatibility-policy.md):
+-  uma diferença sem diagnóstico permanece aberta.
++- [ ] Aplicar a [política de compatibilidade](coin-render-compatibility-policy.md):
++  classificar bug, adaptação de API e diferença sem diagnóstico; uma diferença
++  sem diagnóstico permanece aberta.
+ - [ ] Atualizar capacidades, inventário e contratos; guardar revisão, comandos,
+   ambiente, logs e contagens de passes/skips/falhas na branch consolidada.
+ 
+diff --git a/docs/coin-render-work-plan.md b/docs/coin-render-work-plan.md
+index c96e61749a..792b60595c 100644
+--- a/docs/coin-render-work-plan.md
++++ b/docs/coin-render-work-plan.md
+@@ -6,6 +6,10 @@ As caixas abaixo representam entregas ainda não fechadas.
+ 
+ A [checklist das próximas frentes](coin-render-next-fronts-checklist.md) detalha
+ as pendências após a integração de 2026-10-06 e os critérios de cada entrega.
++Ela é a fonte de verdade para o estado atual; este plano conserva a decomposição
++P/F/A e pode marcar um P amplo como aberto mesmo após fechar subperfis. O
++[mapa de arquitetura](coin-render-architecture.md) define o papel de CoinGL,
++BGFX, wgpu e RECORDING/CPU.
+ 
+ ## Base já entregue
+ 
+diff --git a/experimental/include/Inventor/rendering/CoinRenderTarget.h b/experimental/include/Inventor/rendering/CoinRenderTarget.h
+index c406e8007f..27823bc1dc 100644
+--- a/experimental/include/Inventor/rendering/CoinRenderTarget.h
++++ b/experimental/include/Inventor/rendering/CoinRenderTarget.h
+@@ -87,7 +87,7 @@ struct CoinRenderReadbackTicket {
+ };
+ 
+ /**
+- * Experimental offscreen or native-window destination for WebGPU rendering.
++ * Experimental offscreen or native-window destination for CoinRender.
+  *
+  * The target owns backend attachments and presentation state, but never owns
+  * native window handles supplied through CoinRenderNativeSurfaceDescriptor.
+diff --git a/src/rendering/coinrender/CMakeLists.txt b/src/rendering/coinrender/CMakeLists.txt
+index 052783346c..941a1dd098 100644
+--- a/src/rendering/coinrender/CMakeLists.txt
++++ b/src/rendering/coinrender/CMakeLists.txt
+@@ -15,6 +15,8 @@ set(COIN_RENDER_SOURCES
+ 	CoinRenderRecordingBackend.cpp
+ 	CoinRenderCapabilities.cpp
+ 	CoinRenderSceneManager.cpp
++	# Auxiliary software reference is available to contract tests in GPU builds.
++	# CoinRenderBackendFactory selects it only for the explicit RECORDING build.
+ 	CoinRenderCpuReferenceBackend.cpp
+ 	CoinRenderRttExecution.cpp
+ 	CoinRenderTarget.cpp
+diff --git a/src/rendering/coinrender/CoinRenderBackendFactory.cpp b/src/rendering/coinrender/CoinRenderBackendFactory.cpp
+index 03d5dcdf28..54a83d5317 100644
+--- a/src/rendering/coinrender/CoinRenderBackendFactory.cpp
++++ b/src/rendering/coinrender/CoinRenderBackendFactory.cpp
+@@ -10,8 +10,10 @@
+ #include "rendering/coinwgpu/CoinWgpuNativeBackend.h"
+ #elif defined(HAVE_COIN_BGFX)
+ #include "rendering/coinbgfx/CoinBgfxBackend.h"
+-#else
++#elif defined(HAVE_COIN_RENDER_RECORDING)
+ #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
++#else
++#error "CoinRender requires an explicitly selected backend"
+ #endif
+ 
+ std::unique_ptr<CoinRenderBackend>
+@@ -23,8 +25,10 @@ CoinRenderTargetP::createBackend()
+   return std::unique_ptr<CoinRenderBackend>(new CoinWgpuNativeBackend());
+ #elif defined(HAVE_COIN_BGFX)
+   return std::unique_ptr<CoinRenderBackend>(new CoinBgfxBackend());
+-#else
++#elif defined(HAVE_COIN_RENDER_RECORDING)
+   return std::unique_ptr<CoinRenderBackend>(new CoinRenderCpuReferenceBackend());
++#else
++#error "CoinRender requires an explicitly selected backend"
+ #endif
+ }
+ 
+diff --git a/src/rendering/coinrender/CoinRenderCapabilities.cpp b/src/rendering/coinrender/CoinRenderCapabilities.cpp
+index aa5ceceb90..3b41b460cd 100644
+--- a/src/rendering/coinrender/CoinRenderCapabilities.cpp
++++ b/src/rendering/coinrender/CoinRenderCapabilities.cpp
+@@ -286,7 +286,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+     result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK |
+                        COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F | COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
+   probeBgfx(target, renderer, result);
+-#else
++#elif defined(HAVE_COIN_RENDER_RECORDING)
+   result.backend = COIN_RENDER_EXPERIMENTAL_RECORDING;
+   if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;
+   result.features = COIN_RENDER_FEATURE_TRIANGLES |
+@@ -308,6 +308,8 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+   result.max_scene_texture_depth = 8;
+   result.max_scene_texture_bytes_per_apply = UINT64_C(64) * 1024 * 1024;
+   setDiagnostic(result, "CPU recording backend does not run a GPU probe");
++#else
++#error "CoinRender capabilities require an explicitly selected backend"
+ #endif
+ 
+ #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+@@ -352,7 +354,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+ #elif defined(HAVE_COIN_BGFX)
+   result.implemented_mechanisms = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING |
+                                   COIN_RENDER_MECHANISM_WEIGHTED_OIT;
+-#elif !defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE)
++#elif defined(HAVE_COIN_RENDER_RECORDING)
+   result.implemented_mechanisms = COIN_RENDER_MECHANISM_OBJECT | COIN_RENDER_MECHANISM_PEELING;
+   result.available_mechanisms =
+       renderer == COIN_RENDER_RENDERER_UNKNOWN ? result.implemented_mechanisms : 0;
+@@ -374,7 +376,7 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
+   }
+   if (result.features & COIN_RENDER_FEATURE_TEXTURE_2D) {
+     result.implemented_sampling_policies = COIN_RENDER_SAMPLING_POLICY_NATIVE;
+-#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX) || (!defined(HAVE_COIN_DAWN) && !defined(HAVE_COIN_WGPU_NATIVE))
++#if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_RENDER_RECORDING)
+     result.implemented_sampling_policies |= COIN_RENDER_SAMPLING_POLICY_PORTABLE;
+     result.portable_sampling_filter_mask = 1u << 2; // NEAREST_MIPMAP_LINEAR
+     result.portable_sampling_max_anisotropy = 1;
+diff --git a/src/rendering/coinrender/CoinRenderDiagnosticShell.h b/src/rendering/coinrender/CoinRenderDiagnosticShell.h
+index 1177975039..643dca23d5 100644
+--- a/src/rendering/coinrender/CoinRenderDiagnosticShell.h
++++ b/src/rendering/coinrender/CoinRenderDiagnosticShell.h
+@@ -110,7 +110,7 @@ struct CoinBgfxPhaseSample {
+   bool gpuTimingRequested = false;
+ };
+ 
+-// Language-facing policy for private WebGPU statuses, diagnostics and traces.
++// Language-facing policy for CoinRender statuses, diagnostics and traces.
+ class CoinRenderDiagnosticShell {
+ public:
+   COIN_RENDER_DLL_API static CoinRenderActionDiagnostic action(
+diff --git a/src/rendering/coinrender/CoinRenderExperimental.dox b/src/rendering/coinrender/CoinRenderExperimental.dox
+index f942c5d6b0..6f2995ede6 100644
+--- a/src/rendering/coinrender/CoinRenderExperimental.dox
++++ b/src/rendering/coinrender/CoinRenderExperimental.dox
+@@ -1,7 +1,7 @@
+-/*! \page coin_render_experimental Experimental WebGPU renderer
++/*! \page coin_render_experimental Experimental CoinRender renderer
+ 
+-  \brief Opt-in rendering path for evaluating WebGPU without changing the
+-  public ABI of Coin 4 or replacing its Open Inventor traversal model.
++  \brief Opt-in rendering contract for BGFX, wgpu and future executors without
++  replacing Coin's Open Inventor traversal model.
+ 
+   The experimental renderer is built as a separate
+   <tt>CoinRender</tt> library. Applications opt in with
+@@ -13,7 +13,7 @@
+   CoinRenderAction is an SoAction. It traverses through SoCallbackAction,
+   observes SoState through elements and bundles, and obtains fallback
+   geometry through the usual primitive callbacks. It does not introduce a
+-  second scene graph or a WebGPU-specific node hierarchy.
++  second scene graph or a backend-specific node hierarchy.
+ 
+   \section coin_render_flow Frame flow
+ 
+@@ -23,7 +23,7 @@
+   - <b>Core</b> validates and transforms Coin-native captured data and
+     connector results. It does not traverse or submit GPU work.
+   - <b>Shell</b> turns outcomes into diagnostics, logs and profiling text.
+-  - <b>Infra</b> owns the private WebGPU connector, device, queue, resources,
++  - <b>Infra</b> owns the selected connector, device, queue, resources,
+     submission, presentation and readback.
+   - <b>Wiring</b> is the CoinRenderAction orchestration that connects Coin
+     traversal, frame planning, a render target and result publication.
+@@ -31,13 +31,16 @@
+   The concrete flow is:
+   \code
+   Coin scene graph -> CoinRenderAction traversal -> CoinRenderFramePlan
+-                   -> private backend connector -> WebGPU target
++                   -> selected backend connector -> graphics API / driver
+                    -> readback/presentation -> application
+   \endcode
+ 
+   CoinRenderFramePlan and the C ABI used by the Rust bridge are private implementation
+   contracts. Only headers under <tt>experimental/include</tt> form the
+   experimental source API.
++  CoinGL remains a separate OpenGL path and the visual compatibility reference
++  for valid scenes. RECORDING/CPU is an auxiliary test executor, not CoinGL or
++  the visual oracle. One CoinRender executor is selected per build.
+ 
+   Status translation and C++ phase-line formatting have a private Shell owner.
+   Public callers still observe only the existing status enums and diagnostic
+@@ -179,39 +182,18 @@
+   are nominal resource sizes, not total driver GPU memory; unsupported
+   memory and framebuffer counters are printed as <tt>unavailable</tt>.
+ 
+-  \section coin_bgfx_execution BGFX evaluation connector
+-
+-  The optional <tt>COIN_RENDER_BACKEND=BGFX</tt> branch reuses the Coin traversal
+-  and private CoinRenderFramePlan but executes a deliberately smaller profile through
+-  BGFX/Vulkan by default, or BGFX/OpenGL when
+-  <tt>COIN_BGFX_RENDERER=opengl</tt>, on Linux offscreen or Xlib windows.
+-  Core lowers validated Coin-native
+-  snapshots without BGFX headers; Infra owns the global BGFX instance,
+-  renderer-specific SPIR-V/GLSL shader program,
+-  GPU resources, offscreen RGBA readback and direct window presentation;
+-  Wiring selects the backend.
+-  This does not make BGFX a WebGPU implementation or extend Coin 4's stable
+-  public ABI. The connector currently accepts only indexed, opaque,
+-  untextured BASE_COLOR triangles in a full target viewport, with depth
+-  testing but no depth readback. Window targets do not read pixels back.
+-  Unsupported Open Inventor state is rejected
+-  explicitly. BGFX uses a process-wide API thread and this evaluation permits
+-  only one prepared target per process. A concurrent prepare returns
+-  UNSUPPORTED without disturbing the owner; releasing the owner on its API
+-  thread permits a serial handoff. The version 2 capability query initializes a
+-  temporary 1x1 offscreen target and releases it before returning. It reports
+-  the actual renderer, GPU IDs, normalized format support, MRT, independent
+-  blend, compute and timestamp support. If the singleton is already owned, the
+-  query reports COIN_RENDER_PROBE_BUSY with the backend diagnostic instead of
+-  declaring the GPU unavailable. For an Xlib target, this proves the GPU and
+-  renderer only; real presentation still requires preparing the caller's native
+-  surface. OpenGL readback rows are normalized to the same target RGBA
+-  orientation.
+-  Core preserves Coin's floating-point clear color, and Infra passes it to
+-  BGFX's float clear palette without early RGBA8 quantization.
+-  Test each renderer in a separate process because BGFX initialization is
+-  process-global. The Coin 4 public ABI is unchanged. See
+-  <tt>docs/coin-bgfx-evaluation.md</tt> for build, limitations and the Release/GL gate.
++  \section coin_bgfx_execution GPU connectors
++
++  <tt>COIN_RENDER_BACKEND=BGFX</tt> and
++  <tt>COIN_RENDER_BACKEND=RUST_BRIDGE</tt> reuse the same Coin traversal and
++  private CoinRenderFramePlan. BGFX and wgpu each own their GPU resources,
++  shaders, passes, presentation and readback. Their supported graphics APIs
++  and qualified scene profiles differ; query capabilities and consult
++  <tt>docs/coin-render-next-fronts-checklist.md</tt> for current evidence.
++  BGFX is not an implementation of WebGPU. Selecting OpenGL as the graphics
++  API of either executor does not select the legacy CoinGL path. Neither GPU
++  executor delegates triangle coverage to the auxiliary CPU executor.
++  See <tt>docs/coin-render-architecture.md</tt> for the ownership boundaries.
+ 
+   A validated camera-only CoinRenderFramePlan revision updates draw transforms while
+   retaining BGFX geometry buffers; other changes use full lowering.
+diff --git a/src/rendering/coinrender/CoinRenderFramePlan.h b/src/rendering/coinrender/CoinRenderFramePlan.h
+index 65217f7edf..f270f238b1 100644
+--- a/src/rendering/coinrender/CoinRenderFramePlan.h
++++ b/src/rendering/coinrender/CoinRenderFramePlan.h
+@@ -397,7 +397,7 @@ inline CoinRenderTextureUnitSnapshot coin_render_texture_unit(const CoinRenderRe
+ }
+ 
+ /**
+- * Private, Coin-native description of one captured WebGPU frame.
++ * Private, Coin-native description of one captured CoinRender frame.
+  *
+  * The plan is the mechanical boundary between Open Inventor traversal and a
+  * concrete backend. It owns no GPU resources and performs no submission.
+diff --git a/src/setup.h.cmake.in b/src/setup.h.cmake.in
+index 66b36af750..44017cb49a 100644
+--- a/src/setup.h.cmake.in
++++ b/src/setup.h.cmake.in
+@@ -124,7 +124,7 @@
+ /***************************************************************************
+  * HAVE_COIN_RENDER
+  *
+- * WebGPU experimental render action support.
++ * Optional CoinRender action and backend contract.
+  */
+ 
+ #cmakedefine HAVE_COIN_RENDER
+@@ -153,7 +153,10 @@
+ 
+ #cmakedefine HAVE_COIN_WGPU_RUST_BRIDGE
+ 
+-/* Experimental headless BGFX/Vulkan or OpenGL evaluation backend. */
++/* Explicit diagnostic RECORDING/CPU backend; never an implicit GPU fallback. */
++#cmakedefine HAVE_COIN_RENDER_RECORDING
++
++/* BGFX executor for the experimental CoinRender contract. */
+ #cmakedefine HAVE_COIN_BGFX
+ 
+ /***************************************************************************

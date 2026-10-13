@@ -1,5 +1,9 @@
 # Isolamento da entrada CoinRender e dos executores
 
+Relatório histórico da primeira etapa de isolamento. Ver o
+[mapa atual](coin-render-architecture.md) para o propósito dos executores e a
+[checklist](coin-render-next-fronts-checklist.md) para trabalho ainda aberto.
+
 Primeira etapa na branch `codex/coin-render-isolation`, sobre `ad82572bd3`.
 A biblioteca continua opcional; a API pública comum e os tipos de compatibilidade
 permanecem disponíveis. Consumidores C++ devem ser recompilados com o módulo.
