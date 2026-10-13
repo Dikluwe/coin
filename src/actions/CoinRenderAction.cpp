@@ -48,6 +48,8 @@
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoNormalBinding.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/rendering/SoPBRMaterial.h>
+#include "rendering/coinrender/CoinRenderPbrMaterialElement.h"
 #include <Inventor/nodes/SoMaterialBinding.h>
 #include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/nodes/SoLightModel.h>
@@ -114,6 +116,9 @@ void
 CoinRenderAction::initClass(void)
 {
   SO_ACTION_INTERNAL_INIT_CLASS(CoinRenderAction, SoCallbackAction);
+  SoPBRMaterial::initClass();
+  SO_ENABLE(CoinRenderAction, CoinRenderPbrMaterialElement);
+  SO_ACTION_ADD_METHOD(SoMaterial, CoinRenderActionP::materialContentMethod);
   SO_ENABLE(CoinRenderAction, SoDepthBufferElement);
   SO_ENABLE(CoinRenderAction, SoTextureCombineElement);
   SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
@@ -1200,6 +1205,11 @@ bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjec
 
 void CoinRenderActionP::commitTranslationOverlay()
 {
+  // Only qualified, notified legacy material updates reach this commit. Keep
+  // their witnesses current after successful submission, never after rollback.
+  for (int i = 0; i < this->materialWitnessNodes.getLength(); ++i)
+    if (this->materialDirty.count(this->materialWitnessNodes[i]))
+      this->materialWitnessIds[i] = this->materialWitnessNodes[i]->getNodeId();
   this->translationDirty.clear();
   this->materialDirty.clear(); this->geometryDirty.clear();
   this->translationInputDirty = false;
@@ -1322,7 +1332,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     if (texture.producerId)
       planCacheAllowed = false;
   const bool qualifyCapturedCamera = !this->hasLastValidPlan || this->cachedRoot != cacheRoot;
-  const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
+  const bool materialProof = this->materialWitnessesValid();
+  const bool traversalSkipped = materialProof && planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
     this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId() &&
     !this->cameraOnlyDirty && !this->cameraPatchInvalidated && !this->translationInputDirty;
   CoinRenderFrameReuseDecision reuseDecision = traversalSkipped
@@ -1353,9 +1364,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   } overlayScope{this->lastValidPlan, overlayUndo, translationUndo, false};
   ProfileClock::time_point profileTraversed = ProfileClock::now();
   ProfileClock::time_point profilePlanned = profileTraversed;
-  const bool translationOverlay = !traversalSkipped && planCacheAllowed && !this->planOnly &&
+  const bool translationOverlay = this->materialWitnessesValid(true) && !traversalSkipped && planCacheAllowed && !this->planOnly &&
     this->hasLastValidPlan && this->prepareTranslationOverlay(cacheRoot, translationUndo);
-  const bool cameraOverlay = !translationOverlay && !traversalSkipped && planCacheAllowed &&
+  const bool cameraOverlay = materialProof && !translationOverlay && !traversalSkipped && planCacheAllowed &&
     !this->planOnly && this->hasLastValidPlan &&
     this->prepareCameraOverlay(cacheRoot, overlayUndo);
   if (cameraOverlay) {
@@ -1367,6 +1378,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       CoinRenderFrameReuseKind::RESOURCE_REBUILD, translationUndo.revision);
   }
   if (!traversalSkipped && !cameraOverlay && !translationOverlay) {
+    this->capturedMaterialWitnessNodes.truncate(0);
+    this->capturedMaterialWitnessIds.truncate(0);
+    this->capturedMaterialWitnessOverrides.truncate(0);
     this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
       (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
@@ -1521,6 +1535,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
     }
+    if (!traversalSkipped && !cameraOverlay && !translationOverlay) this->commitMaterialWitnesses();
     this->setDiagnostic(CoinRenderDiagnosticShell::success());
     return;
   }
@@ -1578,6 +1593,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       else if (!traversalSkipped)
         this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL, qualifyCapturedCamera);
     }
+    if (!traversalSkipped && !cameraOverlay && !translationOverlay) this->commitMaterialWitnesses();
     overlayScope.committed = true;
     this->setDiagnostic(CoinRenderDiagnosticShell::success());
     return;
@@ -1630,6 +1646,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     else if (!traversalSkipped)
       this->rememberFrameRoot(planCacheAllowed ? cacheRoot : NULL, qualifyCapturedCamera);
   }
+  if (!traversalSkipped && !cameraOverlay && !translationOverlay) this->commitMaterialWitnesses();
   overlayScope.committed = true;
   this->setDiagnostic(CoinRenderDiagnosticShell::success());
 }
@@ -1782,6 +1799,69 @@ CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
     else render->pimpl->observeBoundingBox(render, node);
   }
   render->invokePostCallbacks(node);
+}
+
+void
+CoinRenderActionP::materialContentMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  render->setCurrentNode(node);
+  render->invokePreCallbacks(node);
+  if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    SoState * state = render->getState();
+    const auto * pbr = CoinRenderPbrMaterialElement::get(state);
+    const auto * material = static_cast<const SoMaterial *>(node);
+    // Decide only the model transition, after user pre callbacks. Coin's
+    // virtual callback remains the sole owner of legacy field application.
+    const uint32_t flags = SoOverrideElement::getFlags(state);
+    const bool effective =
+      (!material->ambientColor.isIgnored() && material->ambientColor.getNum() && !(flags & SoOverrideElement::AMBIENT_COLOR)) ||
+      (!material->diffuseColor.isIgnored() && material->diffuseColor.getNum() && !(flags & SoOverrideElement::DIFFUSE_COLOR)) ||
+      (!material->specularColor.isIgnored() && material->specularColor.getNum() && !(flags & SoOverrideElement::SPECULAR_COLOR)) ||
+      (!material->emissiveColor.isIgnored() && material->emissiveColor.getNum() && !(flags & SoOverrideElement::EMISSIVE_COLOR)) ||
+      (!material->shininess.isIgnored() && material->shininess.getNum() && !(flags & SoOverrideElement::SHININESS)) ||
+      (!material->transparency.isIgnored() && material->transparency.getNum() && !(flags & SoOverrideElement::TRANSPARENCY));
+    if (pbr && !pbr->overridden && effective) CoinRenderPbrMaterialElement::selectLegacy(state);
+    node->callback(render);
+  }
+  render->invokePostCallbacks(node);
+}
+
+bool CoinRenderActionP::materialWitnessesValid(bool allowNotifiedMaterial) const
+{
+  if (materialWitnessNodes.getLength() != materialWitnessIds.getLength() ||
+      materialWitnessNodes.getLength() != materialWitnessOverrides.getLength()) return false;
+  for (int i = 0; i < materialWitnessNodes.getLength(); ++i) {
+    const SoNode * node = materialWitnessNodes[i];
+    if (node->isOverride() != materialWitnessOverrides[i]) return false;
+    if (node->getNodeId() != materialWitnessIds[i] &&
+        !(allowNotifiedMaterial && materialDirty.count(node))) return false;
+  }
+  return true;
+}
+
+void CoinRenderActionP::commitMaterialWitnesses()
+{
+  materialWitnessNodes = capturedMaterialWitnessNodes;
+  materialWitnessIds = capturedMaterialWitnessIds;
+  materialWitnessOverrides = capturedMaterialWitnessOverrides;
+}
+
+SoCallbackAction::Response CoinRenderActionP::materialWitnessPreCB(
+    void * data, SoCallbackAction *, const SoNode * node)
+{
+  auto * owner = static_cast<CoinRenderActionP *>(data);
+  const int found = owner->capturedMaterialWitnessNodes.find(const_cast<SoNode *>(node));
+  if (found < 0) {
+    owner->capturedMaterialWitnessNodes.append(const_cast<SoNode *>(node));
+    owner->capturedMaterialWitnessIds.append(node->getNodeId());
+    owner->capturedMaterialWitnessOverrides.append(node->isOverride());
+  } else {
+    owner->capturedMaterialWitnessIds[found] = node->getNodeId();
+    owner->capturedMaterialWitnessOverrides[found] = node->isOverride();
+  }
+  return SoCallbackAction::CONTINUE;
 }
 
 void
@@ -1958,6 +2038,8 @@ CoinRenderActionP::initCallbacks()
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
   this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoMaterial::getClassTypeId(), materialWitnessPreCB, this);
+  this->master->addPreCallback(SoPBRMaterial::getClassTypeId(), materialWitnessPreCB, this);
   this->master->addPreCallback(SoTexture2::getClassTypeId(), textureImagePreCB, this);
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPostCallback(SoShape::getClassTypeId(), shapePostCB, this);

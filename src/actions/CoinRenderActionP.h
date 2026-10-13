@@ -11,6 +11,8 @@
 #include "rendering/coinrender/CoinRenderRecordingBackend.h"
 #include "rendering/coinrender/CoinRenderRttCore.h"
 #include <Inventor/sensors/SoNodeSensor.h>
+#include <Inventor/lists/SoNodeList.h>
+#include <Inventor/lists/SbList.h>
 #include <string>
 #include <deque>
 #include <vector>
@@ -34,6 +36,10 @@ public:
 
   void initCallbacks();
   static void shapeContentMethod(SoAction *, SoNode *);
+  static void materialContentMethod(SoAction *, SoNode *);
+  static SoCallbackAction::Response materialWitnessPreCB(void *, SoCallbackAction *, const SoNode *);
+  bool materialWitnessesValid(bool allowNotifiedMaterial = false) const;
+  void commitMaterialWitnesses();
   bool captureBoundingBox(SoCallbackAction *, SoNode *);
   void observeBoundingBox(SoCallbackAction *, SoNode *);
   static void screenContentMethod(SoAction *, SoNode *);
@@ -127,6 +133,11 @@ public:
   CoinRenderFramePlanBuilder builder;
   CoinRenderRecordingBackend recordingBackend;
   CoinRenderFramePlan lastValidPlan;
+  // SoNode::setOverride changes the node ID without notifying ancestors.
+  // Coin node lists retain references while SbList carries revision witnesses.
+  SoNodeList materialWitnessNodes, capturedMaterialWitnessNodes;
+  SbList<SbUniqueId> materialWitnessIds, capturedMaterialWitnessIds;
+  SbList<SbBool> materialWitnessOverrides, capturedMaterialWitnessOverrides;
   CoinRenderFramePlan lastRejectedShadowFrame;
   CoinRenderShadowPlan lastRejectedShadowPlan;
   struct ShadowSceneCapture {

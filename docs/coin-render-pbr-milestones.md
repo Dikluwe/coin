@@ -12,7 +12,7 @@ BGFX/Vulkan e o viewer CoinRender; imagens devem vir do renderer real.
 ## Estado verificável
 
 - [x] M0 — baseline Coin, fixtures CAD, câmera e captura reproduzível.
-- [ ] M1 — nó, estado, serialização, captura, invalidação e perfis.
+- [x] M1 — nó, estado, serialização, captura, invalidação e perfis.
 - [ ] M2 — shading GGX por fragmento, materiais opacos, HDR e saída.
 - [ ] M3 — IBL pré-calculada, cubemap, irradiância, LUT e lifetime.
 - [ ] M4 — views CAD, seleção, cortes, arestas, labels e estabilidade.
@@ -54,5 +54,17 @@ Coin por uma cena, travessia ou renderer externo.
   [CTest](validation/pbr/m0/contract-tests-final.log) e
   [gallery](validation/pbr/m0/gallery.png).
 
-Próximo: M1, contrato e estado SoPBRMaterial, com registro, serialização,
-herança/override, captura tipada e rejeição explícita em executores sem PBR.
+## M1 — fechado
+
+- SoPBRMaterial experimental: fatores lineares, estado e serialização Coin,
+  binding OVERALL, isolamento, campos ignorados e override.
+- FramePlan/Recording tipados, validação de fatores e invalidação de materiais.
+  Rejeição explícita por executores ainda sem shading PBR; publicação preservada.
+- 13/13 CTests BGFX, 10/10 Recording, 11/11 Rust. Regressões legadas de action e
+  overlays passam; provas de revisão respeitam notificações e rollback.
+- Matriz CAD M0 repetida: 26/26, sem mudança nos hashes dos pixels.
+- Contrato: [material](coin-render-pbr-material.md). Evidências:
+  [summary](validation/pbr/m1/summary.json), [comandos](validation/pbr/m1/commands.json).
+
+Próximo: M2, GGX por fragmento, normais/câmera, HDR e transformação de saída.
+A capacidade PBR ainda não está ativa; as imagens existentes são legadas.

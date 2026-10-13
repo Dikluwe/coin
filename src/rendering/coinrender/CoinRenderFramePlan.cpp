@@ -169,6 +169,15 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
 
   for (size_t i = 0; i < this->materials.size(); ++i) {
     const CoinRenderMaterialSnapshot & m = this->materials[i];
+    if (m.model != CoinRenderMaterialModel::LEGACY && m.model != CoinRenderMaterialModel::PBR) {
+      if (outDiagnostic) *outDiagnostic = "Unknown material model";
+      return false;
+    }
+    if (m.model == CoinRenderMaterialModel::PBR &&
+        (!coin_render_valid_pbr_material(m.pbr) || m.transparency != 0 || m.diffuse[3] != 1)) {
+      if (outDiagnostic) *outDiagnostic = "PBR opaque material has invalid factors or alpha";
+      return false;
+    }
     if (!isFiniteF(m.transparency) || m.transparency < 0.0f || m.transparency > 1.0f ||
         !isFiniteF(m.diffuse[3]) || m.diffuse[3] < 0.0f || m.diffuse[3] > 1.0f) {
       if (outDiagnostic) *outDiagnostic = "Material has invalid transparency or diffuse alpha";

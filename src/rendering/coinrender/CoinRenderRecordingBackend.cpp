@@ -116,7 +116,15 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
         << " spec=[" << formatFloat(m.specular[0]) << "," << formatFloat(m.specular[1]) << "," << formatFloat(m.specular[2]) << "," << formatFloat(m.specular[3]) << "]"
         << " emiss=[" << formatFloat(m.emission[0]) << "," << formatFloat(m.emission[1]) << "," << formatFloat(m.emission[2]) << "," << formatFloat(m.emission[3]) << "]"
         << " shin=" << formatFloat(m.shininess)
-        << " transp=" << formatFloat(m.transparency) << "\n";
+        << " transp=" << formatFloat(m.transparency);
+    if (m.model == CoinRenderMaterialModel::PBR)
+      out << " model=PBR base=[" << formatFloat(m.pbr.baseColor[0]) << ","
+          << formatFloat(m.pbr.baseColor[1]) << "," << formatFloat(m.pbr.baseColor[2])
+          << "] metallic=" << formatFloat(m.pbr.metallic)
+          << " roughness=" << formatFloat(m.pbr.roughness)
+          << " emission=[" << formatFloat(m.pbr.emissive[0]) << ","
+          << formatFloat(m.pbr.emissive[1]) << "," << formatFloat(m.pbr.emissive[2]) << "]";
+    out << "\n";
   }
 
   out << "lightingStates count: " << frame.lightingStates.size() << "\n";

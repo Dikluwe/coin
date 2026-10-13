@@ -1,0 +1,16 @@
+{
+  "builds": [
+    "cmake --build /tmp/coin-pbr-bgfx -j6",
+    "cmake --build /tmp/coin-pbr-recording -j6",
+    "env CARGO_NET_OFFLINE=true cmake --build /tmp/coin-pbr-rust -j6"
+  ],
+  "selected_ctest_regex": "^(CoinRenderPbr.*Test|CoinRenderActionTest|CoinRenderBackendBoundaryTest|CoinRenderPlanAssemblyCoreTest|CoinRenderTransformCoreTest|CoinRenderFrameReuseCoreTest|CoinRenderLightingTest|CoinRenderSelection_vulkan|CoinRenderProductTest|CoinBgfxWindowTest|CoinRenderPublicationTest)$",
+  "target_specific_selection": "Recording omits GPU product/selection/window; Rust omits BGFX window/selection.",
+  "environment": {
+    "DISPLAY": ":0",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+    "COIN_BGFX_RENDERER": "vulkan",
+    "WGPU_BACKEND": "vulkan"
+  },
+  "baseline_runner": "docs/validation/pbr/m0/run-m0.py --output /tmp/coin-pbr-m1-baseline --cad-source <path in m0/cad-source.json>"
+}

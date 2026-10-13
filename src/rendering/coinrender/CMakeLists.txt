@@ -1,6 +1,8 @@
 # CMakeLists.txt for CoinRender shared library
 
 set(COIN_RENDER_SOURCES
+	SoPBRMaterial.cpp
+	CoinRenderPbrMaterialElement.cpp
 	CoinRenderBackendFactory.cpp
 	CoinRenderDiagnosticShell.cpp
 	CoinRenderDepthPolicyElement.cpp

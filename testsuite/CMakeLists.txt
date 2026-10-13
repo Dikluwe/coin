@@ -1,5 +1,13 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderPbrMaterialTest coinrender/CoinRenderPbrMaterialTest.cpp)
+  target_link_libraries(CoinRenderPbrMaterialTest CoinRender Coin)
+  target_include_directories(CoinRenderPbrMaterialTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME CoinRenderPbrMaterialTest COMMAND CoinRenderPbrMaterialTest)
+  add_test(NAME CoinRenderPbrTargetProfileTest COMMAND CoinRenderPbrMaterialTest --target)
+  set_tests_properties(CoinRenderPbrTargetProfileTest PROPERTIES TIMEOUT 60 SKIP_RETURN_CODE 77)
   add_executable(CoinRenderPbrFixturesTest coinrender/CoinRenderPbrFixturesTest.cpp)
   target_link_libraries(CoinRenderPbrFixturesTest Coin)
   target_include_directories(CoinRenderPbrFixturesTest PRIVATE

@@ -689,6 +689,13 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     this->status = CoinRenderTarget::TARGET_READY;
   }
 
+  for (const auto & material : frame.materials) {
+    if (material.model == CoinRenderMaterialModel::PBR && !this->backend->supportsPbr()) {
+      this->lastError = "PBR opaque material is not implemented by the selected executor";
+      return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+    }
+  }
+
   if (prepareCpuDepthBuffer(this) && this->kind == KIND_OFFSCREEN &&
       !this->directTextureOutput) {
     size_t pixelCount = static_cast<size_t>(this->size[0] * this->size[1]);

@@ -484,6 +484,9 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
 CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
+  for (const auto & material : frame.materials)
+    if (material.model == CoinRenderMaterialModel::PBR)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "The auxiliary CPU renderer does not implement PBR"};
   if(frame.outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR || frame.outputMipmaps)
     return {CoinRenderBackendStatus::UNSUPPORTED,"CPU output supports RGBA8 base only; HDR/mip RTT requires a direct GPU route"};
   for (const auto & state : frame.renderStates)

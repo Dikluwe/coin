@@ -1,0 +1,35 @@
+{
+  "milestone": "M1",
+  "status": "complete",
+  "base_commit": "614825e8dc",
+  "ctest": {
+    "BGFX": {
+      "passed": 13,
+      "total": 13
+    },
+    "RECORDING": {
+      "passed": 10,
+      "total": 10
+    },
+    "RUST_BRIDGE": {
+      "passed": 11,
+      "total": 11
+    }
+  },
+  "legacy_matrix": {
+    "passed": 26,
+    "total": 26,
+    "pixel_hash_changes": []
+  },
+  "render_profile": "contract-capture; GPU PBR not enabled",
+  "node_header": "experimental/include/Inventor/rendering/SoPBRMaterial.h",
+  "base_primitives": [
+    "SbColor",
+    "SbPimplPtr",
+    "SoColorPacker",
+    "SoElement",
+    "SoNodeList",
+    "SbList"
+  ],
+  "viewer_sha256": "cec63bf8a018506ebbc6ba463b391030a18aa02cd458ea72188caa5c50c71ffc"
+}

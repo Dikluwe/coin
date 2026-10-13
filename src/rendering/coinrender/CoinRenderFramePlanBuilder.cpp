@@ -10,6 +10,7 @@
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
+#include "rendering/coinrender/CoinRenderPbrMaterialElement.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
@@ -669,6 +670,24 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
     }
   }
 
+  const auto * physical = CoinRenderPbrMaterialElement::get(state);
+  if (physical && physical->model == CoinRenderMaterialModel::PBR) {
+    if (SoMaterialBindingElement::get(state) != SoMaterialBindingElement::OVERALL) {
+      this->isUnsupported = true;
+      this->builderError = "UNSUPPORTED: PBR opaque material requires OVERALL binding";
+      return 0;
+    }
+    // Canonical physical payload: legacy factors do not create spurious PBR
+    // material variants. Coin types remain the source of the color factors.
+    matSnap = CoinRenderMaterialSnapshot();
+    matSnap.model = CoinRenderMaterialModel::PBR;
+    matSnap.pbr = physical->material;
+    for (int channel = 0; channel < 3; ++channel) {
+      matSnap.diffuse[channel] = physical->material.baseColor[channel];
+      matSnap.emission[channel] = physical->material.emissive[channel];
+    }
+    matSnap.diffuse[3] = 1; matSnap.transparency = 0;
+  }
   return this->internMaterial(matSnap);
 }
 
