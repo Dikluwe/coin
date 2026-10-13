@@ -6,6 +6,12 @@
 #include <cmath>
 
 inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
+  if (!std::isfinite(options.pbrSpecularFilterVariance) || options.pbrSpecularFilterVariance < 0 ||
+      options.pbrSpecularFilterVariance > 1 || !std::isfinite(options.pbrSpecularFilterThreshold) ||
+      options.pbrSpecularFilterThreshold < 0 || options.pbrSpecularFilterThreshold > 1) {
+    diagnostic = "PBR specular filter variance and threshold require finite values in [0,1]";
+    return false;
+  }
   if (!std::isfinite(options.pbrEnvironmentRotation) ||
       !std::isfinite(options.pbrEnvironmentIntensity) || options.pbrEnvironmentIntensity < 0 ||
       options.pbrEnvironmentIntensity > 64) {

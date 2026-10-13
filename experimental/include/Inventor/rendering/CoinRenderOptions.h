@@ -34,6 +34,12 @@ struct CoinRenderOptions {
   SbString pbrEnvironmentBundle;
   float pbrEnvironmentRotation = 0.0f; // radians around world +Z
   float pbrEnvironmentIntensity = 1.0f;
+  // Quality profile with a configured environment. False retains the M3 oracle.
+  bool pbrEnergyCompensation = true;
+  // Screen-space normal variance broadens the same GGX width for direct/IBL.
+  float pbrSpecularFilterVariance = 0.15f;
+  float pbrSpecularFilterThreshold = 0.10f; // zero disables filtering
+
 };
 
 #endif

@@ -1037,6 +1037,9 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->pbrIblProgram)) bgfx::destroy(this->pbrIblProgram);
   if (bgfx::isValid(this->pbrSourceCube)) bgfx::destroy(this->pbrSourceCube);
   if (bgfx::isValid(this->pbrSpecularCube)) bgfx::destroy(this->pbrSpecularCube);
+  if (bgfx::isValid(this->pbrAlbedoAverageTexture)) bgfx::destroy(this->pbrAlbedoAverageTexture);
+  if (bgfx::isValid(this->pbrAlbedoAverageSampler)) bgfx::destroy(this->pbrAlbedoAverageSampler);
+  if (bgfx::isValid(this->pbrQualityUniform)) bgfx::destroy(this->pbrQualityUniform);
   if (bgfx::isValid(this->pbrDfgTexture)) bgfx::destroy(this->pbrDfgTexture);
   if (bgfx::isValid(this->pbrSpecularSampler)) bgfx::destroy(this->pbrSpecularSampler);
   if (bgfx::isValid(this->pbrDfgSampler)) bgfx::destroy(this->pbrDfgSampler);
@@ -1508,12 +1511,14 @@ bool CoinBgfxBackend::preparePbrResources()
     this->pbrCameraUniform = bgfx::createUniform("u_pbrCamera", bgfx::UniformType::Vec4);
   if (!bgfx::isValid(this->pbrOutputUniform))
     this->pbrOutputUniform = bgfx::createUniform("u_pbrOutput", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->readDepthSampler))
+    this->readDepthSampler=bgfx::createUniform("s_readDepth",bgfx::UniformType::Sampler);
   if (!bgfx::isValid(this->pbrRadianceSampler))
     this->pbrRadianceSampler = bgfx::createUniform("s_pbrRadiance", bgfx::UniformType::Sampler);
   if (!bgfx::isValid(this->pbrProgram) || !bgfx::isValid(this->pbrOutputProgram) ||
       !bgfx::isValid(this->pbrBaseUniform) || !bgfx::isValid(this->pbrEmissionUniform) ||
       !bgfx::isValid(this->pbrCameraUniform) || !bgfx::isValid(this->pbrOutputUniform) ||
-      !bgfx::isValid(this->pbrRadianceSampler)) {
+      !bgfx::isValid(this->pbrRadianceSampler) || !bgfx::isValid(this->readDepthSampler)) {
     this->lastError = "BGFX could not create the PBR shading/output resources";
     return false;
   }
@@ -1553,6 +1558,14 @@ bool CoinBgfxBackend::preparePbrEnvironment(CoinRenderTargetP & target)
   const auto specular = bgfx::createTextureCube(environment.size, true, 1, bgfx::TextureFormat::RGBA16F, flags);
   const auto table = bgfx::createTexture2D(environment.lutSize, environment.lutSize, false, 1,
     bgfx::TextureFormat::RGBA16F, flags);
+  const auto averageData=environment.albedoAverage();
+  const auto average=bgfx::createTexture2D(1, environment.lutSize, false, 1,
+    bgfx::TextureFormat::RGBA16F, flags,
+    bgfx::copy(averageData.constData(),uint32_t(averageData.size())));
+  if (!bgfx::isValid(this->pbrAlbedoAverageSampler))
+    this->pbrAlbedoAverageSampler=bgfx::createUniform("s_pbrAlbedoAverage",bgfx::UniformType::Sampler);
+  if (!bgfx::isValid(this->pbrQualityUniform))
+    this->pbrQualityUniform=bgfx::createUniform("u_pbrQuality",bgfx::UniformType::Vec4);
   if (!bgfx::isValid(this->pbrIblProgram))
     this->pbrIblProgram = createLayerProgram(coin_bgfx_vs_pbr_spirv, sizeof(coin_bgfx_vs_pbr_spirv),
       coin_bgfx_fs_pbr_ibl_spirv, sizeof(coin_bgfx_fs_pbr_ibl_spirv));
@@ -1569,10 +1582,12 @@ bool CoinBgfxBackend::preparePbrEnvironment(CoinRenderTargetP & target)
   if (!bgfx::isValid(source) || !bgfx::isValid(specular) || !bgfx::isValid(table) ||
       !bgfx::isValid(this->pbrIblProgram) || !bgfx::isValid(this->pbrSpecularSampler) ||
       !bgfx::isValid(this->pbrDfgSampler) || !bgfx::isValid(this->pbrViewToWorldUniform) ||
-      !bgfx::isValid(this->pbrIblUniform) || !bgfx::isValid(this->pbrIrradianceUniform)) {
+      !bgfx::isValid(this->pbrIblUniform) || !bgfx::isValid(this->pbrIrradianceUniform) || !bgfx::isValid(average) ||
+      !bgfx::isValid(this->pbrAlbedoAverageSampler) || !bgfx::isValid(this->pbrQualityUniform)) {
     if (bgfx::isValid(source)) bgfx::destroy(source);
     if (bgfx::isValid(specular)) bgfx::destroy(specular);
     if (bgfx::isValid(table)) bgfx::destroy(table);
+    if (bgfx::isValid(average)) bgfx::destroy(average);
     this->lastError = "BGFX could not allocate PBR environment resources"; return false;
   }
   for (int i = 0; i < environment.sections.getLength(); ++i) {
@@ -1587,11 +1602,12 @@ bool CoinBgfxBackend::preparePbrEnvironment(CoinRenderTargetP & target)
   }
   for (int j = 0; j < 9; ++j)
     for (int c = 0; c < 3; ++c) this->pbrIrradiance[j][c] = environment.irradiance[j][c];
+  this->pbrAlbedoAverageTexture=average;
   this->pbrSourceCube = source; this->pbrSpecularCube = specular; this->pbrDfgTexture = table;
   this->pbrEnvironmentPath = options.pbrEnvironmentBundle;
   this->pbrEnvironmentLevels = environment.levels;
   this->pbrEnvironmentIdentity = environment.identity;
-  this->pbrEnvironmentBytes = environment.gpuBytes(); ++this->pbrEnvironmentUploads;
+  this->pbrEnvironmentBytes = environment.gpuBytes()+averageData.size(); ++this->pbrEnvironmentUploads;
   if (CoinRenderDiagnosticShell::phaseTracingEnabled())
     std::fprintf(stderr, "COIN_RENDER_PHASE pbr_environment id=%016llx bytes=%llu uploads=%llu levels=%u\n",
       (unsigned long long)this->pbrEnvironmentIdentity, (unsigned long long)this->pbrEnvironmentBytes,
@@ -2508,14 +2524,30 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile does not yet accept textures or shadow groups"};
     if (outTicket)
       return {CoinRenderBackendStatus::UNSUPPORTED, "PBR asynchronous readback is not yet qualified"};
+    struct TechnicalLayer {uint32_t id;bool clear;};
+    SbList<TechnicalLayer> technicalLayers;
     for (const auto & draw : frame.draws) {
       const auto & state = frame.renderStates[draw.renderStateSlot];
+      if (draw.renderLayer>0) {
+        int layer=0;
+        while(layer<technicalLayers.getLength()&&technicalLayers[layer].id!=draw.renderLayer)++layer;
+        if(layer==technicalLayers.getLength())technicalLayers.append({draw.renderLayer,draw.clearDepthBefore});
+        else technicalLayers[layer].clear=technicalLayers[layer].clear||draw.clearDepthBefore;
+        size_t views=0;for(int i=0;i<technicalLayers.getLength();++i)views+=technicalLayers[i].clear?2:1;
+        if(views>targetViewCount-5)
+          return {CoinRenderBackendStatus::UNSUPPORTED,"PBR technical overlay views exceed the target view budget"};
+        if(frame.materials[state.materialSlot].model!=CoinRenderMaterialModel::LEGACY ||
+           state.lightModel!=CoinRenderLightModel::BASE_COLOR || state.transparentMaterial ||
+           state.fogMode!=CoinRenderFogMode::NONE || coin_render_alpha_test_active(state.alphaTestFunction))
+          return {CoinRenderBackendStatus::UNSUPPORTED,"PBR technical overlays require opaque legacy BASE_COLOR with no fog or alpha test"};
+        continue;
+      }
       if (frame.materials[state.materialSlot].model != CoinRenderMaterialModel::PBR ||
           draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || state.polygonOffsetPrimitiveStyle != 1 ||
           draw.renderLayer != 0 || draw.clearDepthBefore || state.rasterPixels ||
           state.fogMode != CoinRenderFogMode::NONE || state.transparentMaterial ||
           coin_render_alpha_test_active(state.alphaTestFunction) || state.lightModel != CoinRenderLightModel::PHONG)
-        return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile requires opaque PBR faces; strokes, mixed legacy, overlays, fog and alpha tests are not yet admitted"};
+        return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile requires opaque PBR faces; base-layer strokes, mixed legacy, fog and alpha tests are not admitted"};
       if (hasIbl && !CoinRenderTransformCore::rigidViewMatrix(state.view))
         return {CoinRenderBackendStatus::UNSUPPORTED, "PBR IBL requires a rigid camera view"};
       const SbMatrix modelView = state.model * state.view;
@@ -2684,7 +2716,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if (!this->prepareTransparencyPrograms(selectedStrategy))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
-  if (!hasPbr && !this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing))
+  const bool hasTechnicalOverlay=hasPbr&&std::any_of(strategyDraws.begin(),strategyDraws.end(),
+    [](const CoinBgfxDraw & draw){return draw.renderLayer>0;});
+  if ((!hasPbr||hasTechnicalOverlay) && !this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -3052,6 +3086,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         bgfx::setUniform(this->pbrIrradianceUniform, this->pbrIrradiance, 9);
         bgfx::setTexture(0, this->pbrSpecularSampler, this->pbrSpecularCube);
         bgfx::setTexture(1, this->pbrDfgSampler, this->pbrDfgTexture);
+        bgfx::setTexture(2, this->pbrAlbedoAverageSampler, this->pbrAlbedoAverageTexture);
+        const float quality[4]={target.options.pbrEnergyCompensation?1.f:0.f,
+          target.options.pbrSpecularFilterVariance,target.options.pbrSpecularFilterThreshold,0};
+        bgfx::setUniform(this->pbrQualityUniform,quality);
       }
     }
     bgfx::submit(opaqueView, hasPbr ? (hasIbl ? this->pbrIblProgram : this->pbrProgram) : hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
@@ -3121,7 +3159,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       ++nextView;
     }
   }
-  if (!this->encodeOverlayLayers(draws, vb, ib,
+  if (!hasPbr && !this->encodeOverlayLayers(draws, vb, ib,
         sceneOutput,
         textures, nextView, this->width, this->height, frame, shadowPlan, shadowMaps.buffers)) {
     destroyTextures();
@@ -3143,9 +3181,15 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
     bgfx::setTexture(0, this->pbrRadianceSampler, bgfx::getTexture(this->pbrFrameBuffer, 0),
       BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setTexture(1,this->readDepthSampler,bgfx::getTexture(this->pbrFrameBuffer,1),
+      BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_MIN_POINT|BGFX_SAMPLER_MAG_POINT);
     bgfx::setUniform(this->pbrOutputUniform, info);
-    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_ALWAYS);
     bgfx::submit(outputView, this->pbrOutputProgram);
+    if(!this->encodeOverlayLayers(draws,vb,ib,this->frameBuffer,textures,nextView,
+      this->width,this->height,frame,shadowPlan,shadowMaps.buffers)) {
+      destroyTextures();return {CoinRenderBackendStatus::UNSUPPORTED,this->lastError};
+    }
   }
   if (!hasPbr && bgfx::isValid(this->windowSceneFrameBuffer)) {
     const bgfx::ViewId presentView = nextView++;
@@ -3362,7 +3406,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     const float info[4] = {1.0f / this->width, 1.0f / this->height, 0, 0};
     bgfx::setTransform(identity);
     bgfx::setUniform(this->depthInfoUniform, info);
-    bgfx::setTexture(0, this->readDepthSampler, bgfx::getTexture(hasPbr ? this->pbrFrameBuffer : this->frameBuffer, 1));
+    bgfx::setTexture(0, this->readDepthSampler, bgfx::getTexture(this->frameBuffer, 1));
     bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
     bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
     bgfx::setState(BGFX_STATE_WRITE_R);

@@ -73,6 +73,8 @@ private:
   bool sceneLinearPublished = false;
   bgfx::ProgramHandle pbrIblProgram = BGFX_INVALID_HANDLE;
   bgfx::TextureHandle pbrSourceCube = BGFX_INVALID_HANDLE, pbrSpecularCube = BGFX_INVALID_HANDLE;
+  bgfx::TextureHandle pbrAlbedoAverageTexture = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrAlbedoAverageSampler = BGFX_INVALID_HANDLE, pbrQualityUniform = BGFX_INVALID_HANDLE;
   bgfx::TextureHandle pbrDfgTexture = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrSpecularSampler = BGFX_INVALID_HANDLE, pbrDfgSampler = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrIblUniform = BGFX_INVALID_HANDLE, pbrIrradianceUniform = BGFX_INVALID_HANDLE;

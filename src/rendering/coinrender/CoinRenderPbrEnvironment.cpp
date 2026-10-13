@@ -256,3 +256,24 @@ bool CoinRenderPbrEnvironment::read(const SbString & file,SbString & error) {
     *this=e;error.makeEmpty();return true;
   }catch(const std::bad_alloc&) {error="PBR environment allocation failed";return false;}
 }
+
+SbByteBuffer CoinRenderPbrEnvironment::albedoAverage() const {
+  SbByteBuffer result(size_t(lutSize)*8);
+  CoinRenderPbrEnvironmentSection table;
+  for(int i=0;i<sections.getLength();++i)if(sections[i].kind==LUT)table=sections[i];
+  if(table.kind!=LUT)return SbByteBuffer();
+  auto * dst=reinterpret_cast<uint8_t *>(result.data());
+  const auto * src=data(table);
+  for(uint32_t y=0;y<lutSize;++y) {
+    double a=0,b=0;
+    for(uint32_t x=0;x<lutSize;++x) {
+      const auto * pixel=src+(uint64_t(y)*lutSize+x)*8;
+      const double weight=2*(x+.5)/double(lutSize*lutSize);
+      a+=CoinRenderTextureFormatCore::fromHalf(CoinRenderTextureFormatCore::read16(pixel))*weight;
+      b+=CoinRenderTextureFormatCore::fromHalf(CoinRenderTextureFormatCore::read16(pixel+2))*weight;
+    }
+    const float values[]={float(a),float(b),float(a+b),1};
+    for(int c=0;c<4;++c)CoinRenderTextureFormatCore::write16(dst+y*8+c*2,CoinRenderTextureFormatCore::toHalf(values[c]));
+  }
+  return result;
+}

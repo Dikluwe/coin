@@ -1,0 +1,29 @@
+{
+  "builds": [
+    "cmake --build /tmp/coin-pbr-bgfx -j6",
+    "cmake --build /tmp/coin-pbr-recording -j6",
+    "env CARGO_NET_OFFLINE=true cmake --build /tmp/coin-pbr-rust -j6"
+  ],
+  "ctest_regex": {
+    "BGFX": "^(CoinRenderPbr.*Test|CoinRenderActionTest|CoinRenderBackendBoundaryTest|CoinRenderPlanAssemblyCoreTest|CoinRenderTransformCoreTest|CoinRenderFrameReuseCoreTest|CoinRenderLightingTest|CoinRenderSelection_vulkan|CoinRenderProductTest|CoinBgfxWindowTest|CoinRenderPublicationTest|CoinRenderDepthContractVulkanTest|CoinRenderClipPlane_vulkan_object|CoinRenderGouraud_vulkan_object|CoinBgfxOffscreenTest|CoinRenderCompositionTest)$",
+    "RECORDING": "^(CoinRenderPbr.*Test|CoinRenderActionTest|CoinRenderBackendBoundaryTest|CoinRenderPlanAssemblyCoreTest|CoinRenderTransformCoreTest|CoinRenderFrameReuseCoreTest|CoinRenderLightingTest|CoinRenderPublicationTest)$",
+    "RUST_BRIDGE": "^(CoinRenderPbr.*Test|CoinRenderActionTest|CoinRenderBackendBoundaryTest|CoinRenderPlanAssemblyCoreTest|CoinRenderTransformCoreTest|CoinRenderFrameReuseCoreTest|CoinRenderLightingTest|CoinRenderProductTest|CoinRenderPublicationTest)$"
+  },
+  "environment": {
+    "DISPLAY": ":0",
+    "VK_DRIVER_FILES": "/usr/share/vulkan/icd.d/radeon_icd.json",
+    "COIN_BGFX_RENDERER": "vulkan",
+    "WGPU_BACKEND": "vulkan"
+  },
+  "views": "python3 docs/validation/pbr/m4/run-m4.py --environments /tmp/coin-pbr-m3-env --cad-source <m0/cad-source.json path>",
+  "legacy": "python3 docs/validation/pbr/m0/run-m0.py --output /tmp/coin-pbr-m3-baseline --cad-source <m0/cad-source.json path>",
+  "bake": [
+    "coin_render_pbr_baker --source studio --output studio.cibl",
+    "coin_render_pbr_baker --source asymmetric --output asymmetric.cibl"
+  ],
+  "extra_controls": [
+    "coin_render_viewer --fixture flange --view detail --zoom-factor .5 --offscreen --environment asymmetric.cibl --validate-depth --capture-depth --frames 2 --capture-prefix flange-close",
+    "coin_render_viewer --fixture flange --view detail --zoom-factor 2 --offscreen --environment asymmetric.cibl --validate-depth --capture-depth --frames 2 --capture-prefix flange-far",
+    "coin_render_viewer --fixture housing --view iso-perspective --cad-tools --environment studio.cibl --direct-intensity 0 --frames 2 --capture-prefix housing-window-tools"
+  ]
+}

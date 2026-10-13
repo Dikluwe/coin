@@ -15,7 +15,7 @@ BGFX/Vulkan e o viewer CoinRender; imagens devem vir do renderer real.
 - [x] M1 — nó, estado, serialização, captura, invalidação e perfis.
 - [x] M2 — shading GGX por fragmento, materiais opacos, HDR e saída.
 - [x] M3 — IBL pré-calculada, cubemap, irradiância, LUT e lifetime.
-- [ ] M4 — views CAD, seleção, cortes, arestas, labels e estabilidade.
+- [x] M4 — views CAD, seleção, cortes, arestas, labels e estabilidade.
 - [ ] M5 — SDK instalado, consumidor, regressões e campanha Release.
 
 Cada conclusão deve apontar comandos, código e resultados que provem o alcance
@@ -94,5 +94,20 @@ Coin por uma cena, travessia ou renderer externo.
 - Contrato: [ambiente](coin-render-pbr-environment.md). Evidências:
   [summary](validation/pbr/m3/summary.json), [galeria](validation/pbr/m3/gallery.png).
 
-Próximo: M4, compensação de energia, filtragem especular, ferramentas CAD e
-matriz de 72 views. M3 mantém interação única e as aproximações SH9/split-sum.
+## M4 — fechado
+
+- Compensação Kulla/Conty e residual difuso recíproco coerentes com A/B e médias
+  derivadas; 72 furnaces e nove pontos diretos independentes. Controle M3 retido.
+- Filtragem especular por variância de normais; face plana preservada e pico
+  subpixel reduzido. Composição técnica após saída, com depth transfer e orçamento.
+- Ferramentas Coin: seleção/picking, feature edges com SbBSPTree/SbList,
+  chanfros, medida/SoText3, clipping e cores independentes de exposição.
+- 106/106 casos, 72 views em 1280×960, 280 imagens, 52170 probes geométricos,
+  18 masks exatos com legado, duas órbitas de 36 frames e conversão explícita S4.
+  Três controles adicionais de zoom e ferramentas em janela passaram.
+- 23/23 CTests BGFX, 12/12 Recording, 13/13 Rust; 26/26 baseline legada,
+  pixels preservados. Contrato: [qualidade CAD](coin-render-pbr-cad-quality.md).
+  Evidências: [summary](validation/pbr/m4/summary.json), [galeria](validation/pbr/m4/gallery.png).
+
+Próximo: M5, SDK/consumidor, ciclo de vida, budgets e performance Release.
+A atualização de fatores PBR sem recaptura de geometria ainda requer fechamento.

@@ -1,0 +1,52 @@
+Internal ctest changing into directory: /tmp/coin-pbr-bgfx
+Test project /tmp/coin-pbr-bgfx
+      Start   1: CoinRenderPbrCadToolsTest
+ 1/23 Test   #1: CoinRenderPbrCadToolsTest ...........   Passed    0.01 sec
+      Start   2: CoinRenderPbrEnvironmentTest
+ 2/23 Test   #2: CoinRenderPbrEnvironmentTest ........   Passed    0.16 sec
+      Start   3: CoinRenderPbrCadGpuTest
+ 3/23 Test   #3: CoinRenderPbrCadGpuTest .............   Passed    0.07 sec
+      Start   4: CoinRenderPbrIblGpuTest
+ 4/23 Test   #4: CoinRenderPbrIblGpuTest .............   Passed    5.55 sec
+      Start   5: CoinRenderPbrGpuTest
+ 5/23 Test   #5: CoinRenderPbrGpuTest ................   Passed    0.10 sec
+      Start   6: CoinRenderPbrMaterialTest
+ 6/23 Test   #6: CoinRenderPbrMaterialTest ...........   Passed    0.01 sec
+      Start   7: CoinRenderPbrTargetProfileTest
+ 7/23 Test   #7: CoinRenderPbrTargetProfileTest ......   Passed    0.12 sec
+      Start   8: CoinRenderPbrFixturesTest
+ 8/23 Test   #8: CoinRenderPbrFixturesTest ...........   Passed    0.01 sec
+      Start  51: CoinRenderActionTest
+ 9/23 Test  #51: CoinRenderActionTest ................   Passed    0.42 sec
+      Start  52: CoinRenderBackendBoundaryTest
+10/23 Test  #52: CoinRenderBackendBoundaryTest .......   Passed    0.01 sec
+      Start  54: CoinRenderPlanAssemblyCoreTest
+11/23 Test  #54: CoinRenderPlanAssemblyCoreTest ......   Passed    0.02 sec
+      Start  55: CoinRenderTransformCoreTest
+12/23 Test  #55: CoinRenderTransformCoreTest .........   Passed    0.01 sec
+      Start  61: CoinRenderSelection_vulkan
+13/23 Test  #61: CoinRenderSelection_vulkan ..........   Passed    0.43 sec
+      Start  63: CoinRenderProductTest
+14/23 Test  #63: CoinRenderProductTest ...............   Passed    0.20 sec
+      Start  79: CoinRenderDepthContractVulkanTest
+15/23 Test  #79: CoinRenderDepthContractVulkanTest ...   Passed    0.08 sec
+      Start  82: CoinBgfxOffscreenTest
+16/23 Test  #82: CoinBgfxOffscreenTest ...............   Passed    0.66 sec
+      Start  93: CoinBgfxWindowTest
+17/23 Test  #93: CoinBgfxWindowTest ..................   Passed    0.61 sec
+      Start 105: CoinRenderFrameReuseCoreTest
+18/23 Test #105: CoinRenderFrameReuseCoreTest ........   Passed    0.28 sec
+      Start 149: CoinRenderLightingTest
+19/23 Test #149: CoinRenderLightingTest ..............   Passed    1.43 sec
+      Start 151: CoinRenderGouraud_vulkan_object
+20/23 Test #151: CoinRenderGouraud_vulkan_object .....   Passed    0.14 sec
+      Start 159: CoinRenderClipPlane_vulkan_object
+21/23 Test #159: CoinRenderClipPlane_vulkan_object ...   Passed    0.18 sec
+      Start 179: CoinRenderCompositionTest
+22/23 Test #179: CoinRenderCompositionTest ...........   Passed    0.81 sec
+      Start 249: CoinRenderPublicationTest
+23/23 Test #249: CoinRenderPublicationTest ...........   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 23
+
+Total Test time (real) =  11.34 sec

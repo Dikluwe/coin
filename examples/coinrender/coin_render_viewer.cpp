@@ -66,6 +66,22 @@ int main(int argc, char ** argv) {
       transparencyDemo = true;
     } else if (std::strcmp(argv[i], "--pbr") == 0) {
       cad.active = TRUE; cad.pbr = TRUE;
+    } else if (std::strcmp(argv[i], "--cad-tools") == 0) {
+      cad.active=TRUE;cad.cadTools=TRUE;
+    } else if (std::strcmp(argv[i], "--capture-depth") == 0) {
+      cad.active=TRUE;cad.captureDepth=TRUE;
+    } else if (std::strcmp(argv[i], "--validate-depth") == 0) {
+      cad.active=TRUE;cad.validateDepth=TRUE;
+    } else if (std::strcmp(argv[i], "--convert-import") == 0) {
+      cad.active=cad.pbr=cad.convertImport=TRUE;
+    } else if ((std::strcmp(argv[i], "--import-metallic") == 0 || std::strcmp(argv[i], "--import-roughness") == 0) && i+1<argc) {
+      const SbString name(argv[i]);char * end=nullptr;const float value=std::strtof(argv[++i],&end);
+      if(!end||*end||!std::isfinite(value)||value<0||value>1)return 2;
+      if(name=="--import-metallic")cad.importedMetallic=value;else cad.importedRoughness=value;
+    } else if (std::strcmp(argv[i], "--single-scattering") == 0) {
+      cad.energyCompensation = FALSE;
+    } else if (std::strcmp(argv[i], "--no-specular-filter") == 0) {
+      cad.specularFilterThreshold = 0;
     } else if (std::strcmp(argv[i], "--environment") == 0 && i + 1 < argc) {
       cad.active = cad.pbr = TRUE; cad.environmentBundle = argv[++i];
     } else if ((std::strcmp(argv[i], "--env-rotation") == 0 ||
@@ -90,6 +106,9 @@ int main(int argc, char ** argv) {
       cad.active = TRUE; cad.scene = argv[++i];
     } else if (std::strcmp(argv[i], "--view") == 0 && i + 1 < argc) {
       cad.active = TRUE; cad.view = argv[++i];
+    } else if (std::strcmp(argv[i], "--zoom-factor") == 0 && i+1<argc) {
+      cad.active=TRUE;char * end=nullptr;cad.zoomFactor=std::strtof(argv[++i],&end);
+      if(!end||*end||!std::isfinite(cad.zoomFactor)||cad.zoomFactor<.25f||cad.zoomFactor>4)return 2;
     } else if (std::strcmp(argv[i], "--capture-prefix") == 0 && i + 1 < argc) {
       cad.active = TRUE; cad.capturePrefix = argv[++i];
     } else if (std::strcmp(argv[i], "--export-scene") == 0 && i + 1 < argc) {
@@ -113,6 +132,9 @@ int main(int argc, char ** argv) {
                    "  [--view iso-perspective|iso-orthographic|front|top|right|detail]\n"
                    "  [--pbr] [--exposure stops] [--renderer vulkan] [--offscreen] [--capture-prefix path]\n"
                    "  [--environment bundle.cibl] [--env-rotation degrees] [--env-intensity 1] [--direct-intensity 1]\n"
+                   "  [--cad-tools] [--capture-depth] [--validate-depth] [--zoom-factor .25..4]\n"
+                   "  [--convert-import] [--import-metallic .9] [--import-roughness .35]\n"
+                   "  [--single-scattering] [--no-specular-filter]\n"
                    "  [--width 1280] [--height 960] [--orbit-frames N] [--cut]\n"
                    "  [--export-scene file.iv]\n";
       return 2;

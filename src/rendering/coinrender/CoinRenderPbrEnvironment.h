@@ -37,6 +37,7 @@ public:
   static float diffuseFresnel(float noV, uint32_t samples);
   static void basis(const SbVec3f &, float result[9]);
   const uint8_t * data(const CoinRenderPbrEnvironmentSection & s) const;
+  SbByteBuffer albedoAverage() const; // one RGBA16F texel per roughness row
   uint64_t gpuBytes() const { return payload.size(); }
 };
 #endif

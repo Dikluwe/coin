@@ -1,6 +1,7 @@
 #ifndef COIN_RENDER_PBR_VIEWS_H
 #define COIN_RENDER_PBR_VIEWS_H
 #include "CoinRenderPbrFixtures.h"
+#include "CoinRenderPbrCadTools.h"
 #include <Inventor/rendering/SoPBRMaterial.h>
 #include <Inventor/C/base/time.h>
 #include <Inventor/SoDB.h>
@@ -30,7 +31,12 @@
 
 struct CoinRenderPbrViewOptions {
   SbBool active = FALSE, offscreen = FALSE, cut = FALSE, pbr = FALSE;
+  SbBool energyCompensation = TRUE, cadTools=FALSE, captureDepth=FALSE, validateDepth=FALSE;
+  SbBool convertImport=FALSE;
+  float importedMetallic=.9f, importedRoughness=.35f;
+  float specularFilterVariance=.15f, specularFilterThreshold=.10f;
   float exposureStops = 0.0f;
+  float zoomFactor=1.0f;
   SbString environmentBundle;
   float environmentRotation = 0.0f, environmentIntensity = 1.0f, directIntensity = 1.0f;
   SbString fixture = "flange", scene, view = "iso-perspective";
@@ -59,7 +65,7 @@ inline void coin_pbr_write_matrix(FILE * output, const SbMatrix & matrix) {
 
 inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
   const CoinRenderCapabilities & caps, SoCamera * camera, CoinRenderTarget * target,
-  int frame, double returnMs) {
+  int frame, double returnMs,const CoinRenderPbrCadMetrics & metrics) {
   std::vector<uint8_t> rgba; target->readbackRGBA(rgba);
   const size_t count = size_t(options.size[0]) * size_t(options.size[1]);
   if (rgba.size() != count * 4) return FALSE;
@@ -71,6 +77,13 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
   for (size_t pixel = 0; written && pixel < count; ++pixel)
     written = std::fwrite(&rgba[pixel * 4], 1, 3, image) == 3;
   if (std::fclose(image) != 0 || !written) return FALSE;
+  if(options.captureDepth) {
+    std::vector<float> depth;target->readbackDepth(depth);if(depth.size()!=count)return FALSE;
+    SbString filename;filename.sprintf("%s-%03d.depth.f32",options.capturePrefix.getString(),frame);
+    FILE * file=std::fopen(filename.getString(),"wb");if(!file)return FALSE;
+    const bool saved=std::fwrite(depth.data(),sizeof(float),depth.size(),file)==depth.size();
+    if(std::fclose(file)!=0||!saved)return FALSE;
+  }
   FILE * manifest = std::fopen(manifestName.getString(), "wb"); if (!manifest) return FALSE;
   SbMatrix viewMatrix, projection;
   camera->getViewVolume(float(options.size[0]) / options.size[1]).getMatrices(viewMatrix, projection);
@@ -80,7 +93,7 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
     "  \"cut\":%s,\n  \"axis_up\":\"Z\",\n  \"unit\":\"fixture-unit\",\n"
     "  \"renderer\":%u,\n  \"adapter\":%s,\n  \"vendor_id\":%u,\n  \"device_id\":%u,\n"
     "  \"submission\":%llu,\n  \"render_return_with_capture_ms\":%.6f,\n  \"view_matrix\":",
-    coin_pbr_json_string(options.pbr ? (options.environmentBundle.getLength() ? "pbr-ibl-m3" : "pbr-direct-m2") : "legacy-baseline").getString(), double(options.exposureStops),
+    coin_pbr_json_string(options.pbr ? (options.environmentBundle.getLength() ? (options.energyCompensation ? "pbr-cad-m4" : "pbr-ibl-m3") : "pbr-direct-m2") : "legacy-baseline").getString(), double(options.exposureStops),
     coin_pbr_json_string(options.fixture.getString()).getString(),
     coin_pbr_json_string(options.scene.getString()).getString(),
     coin_pbr_json_string(options.view.getString()).getString(), options.size[0], options.size[1], frame,
@@ -89,9 +102,17 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
   coin_pbr_write_matrix(manifest, viewMatrix); std::fprintf(manifest, ",\n  \"projection_matrix\":");
   coin_pbr_write_matrix(manifest, projection);
   std::fprintf(manifest, ",\n  \"environment_bundle\":%s,\n  \"environment_rotation_radians\":%.9g,\n"
-    "  \"environment_intensity\":%.9g,\n  \"direct_intensity\":%.9g\n}\n",
+    "  \"environment_intensity\":%.9g,\n  \"direct_intensity\":%.9g,\n",
     coin_pbr_json_string(options.environmentBundle.getString()).getString(), double(options.environmentRotation),
     double(options.environmentIntensity), double(options.directIntensity));
+  std::fprintf(manifest,"  \"energy_compensation\":%s,\n  \"specular_filter_variance\":%.9g,\n  \"specular_filter_threshold\":%.9g,\n"
+    "  \"cad_tools\":%s,\n  \"selected_name\":%s,\n  \"selected_diagonal\":%.9g,\n"
+    "  \"depth_oracle_probes\":%d,\n  \"depth_oracle_edge_samples\":%d,\n  \"converted_materials\":%d,\n"
+    "  \"import_color_policy\":%s,\n  \"imported_metallic\":%.9g,\n  \"imported_roughness\":%.9g\n}\n",
+    options.energyCompensation?"true":"false",double(options.specularFilterVariance),double(options.specularFilterThreshold),
+    options.cadTools?"true":"false",coin_pbr_json_string(metrics.selectedName.getString()).getString(),double(metrics.selectedDiagonal),
+    metrics.depthProbes,metrics.depthEdges,metrics.convertedMaterials,options.convertImport?"\"diffuse-srgb\"":"null",
+    double(options.importedMetallic),double(options.importedRoughness));
   return std::fclose(manifest) == 0;
 }
 
@@ -101,6 +122,12 @@ inline SoNode * coin_pbr_physical_material(const SbColor & color, float metallic
 }
 
 inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, int requestedFrames) {
+  if((options.captureDepth||options.validateDepth)&&!options.offscreen) {
+    std::fprintf(stderr,"CAD depth capture/oracle requires --offscreen\n");return 2;
+  }
+  if((options.convertImport&&!options.scene.getLength())||(options.scene.getLength()&&options.cut)) {
+    std::fprintf(stderr,"Import conversion requires --scene; --cut currently applies to procedural fixtures\n");return 2;
+  }
   const SbBool interactive = requestedFrames < 0 && !options.capturePrefix.getLength() &&
                              !options.orbitFrames && !options.offscreen;
   const int frames = options.orbitFrames > 0 ? options.orbitFrames : (requestedFrames > 0 ? requestedFrames : 1);
@@ -112,11 +139,15 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   renderOptions.pbrEnvironmentBundle = options.environmentBundle;
   renderOptions.pbrEnvironmentRotation = options.environmentRotation;
   renderOptions.pbrEnvironmentIntensity = options.environmentIntensity;
+  renderOptions.pbrEnergyCompensation = options.energyCompensation;
+  renderOptions.pbrSpecularFilterVariance = options.specularFilterVariance;
+  renderOptions.pbrSpecularFilterThreshold = options.specularFilterThreshold;
   CoinRenderCapabilities caps{};
   const uint32_t kind = options.offscreen ? COIN_RENDER_EXPERIMENTAL_OFFSCREEN : COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW;
   if (coin_render_query_capabilities_for_renderer(kind, renderOptions.renderer, &caps, sizeof(caps)) || !caps.gpu_available) {
     std::fprintf(stderr, "CAD Vulkan unavailable: %s\n", caps.diagnostic); return 2;
   }
+  CoinRenderPbrCadMetrics metrics;
   SoSeparator * geometry = NULL;
   if (options.scene.getLength()) {
     SoInput input; if (!input.openFile(options.scene.getString())) return 2;
@@ -125,9 +156,11 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
     options.pbr ? coin_pbr_physical_material : coin_pbr_fixture::material);
   if (!geometry) { std::fprintf(stderr, "Unknown or unreadable CAD fixture\n"); return 2; }
   geometry->ref(); SbVec3f center;
-  if (options.pbr && options.scene.getLength()) {
-    std::fprintf(stderr, "PBR view fixtures are authored explicitly; imported CAD material conversion is not yet qualified\n");
-    geometry->unref(); return 2;
+  if(options.pbr&&options.scene.getLength()) {
+    if(!options.convertImport||!coin_pbr_convert_import(geometry,options.importedMetallic,options.importedRoughness,metrics)) {
+      std::fprintf(stderr,"Imported PBR requires explicit --convert-import and one opaque diffuse material per binding\n");
+      geometry->unref();return 2;
+    }
   }
   // Presets own the camera. Remove input cameras through Coin's search/path
   // facilities so an embedded camera cannot invalidate the capture manifest.
@@ -153,12 +186,16 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   }
   SoCamera * camera = coin_pbr_fixture::camera(geometry, options.view, options.size, center);
   if (!camera) { geometry->unref(); std::fprintf(stderr, "Invalid CAD camera/scene\n"); return 2; }
+  if(options.zoomFactor!=1.0f)camera->scaleHeight(options.zoomFactor);
   SoSeparator * root = new SoSeparator; root->ref(); root->addChild(camera);
   SoLightModel * model = new SoLightModel; model->model = SoLightModel::PHONG; root->addChild(model);
   SoDirectionalLight * light = new SoDirectionalLight;
   light->direction.setValue(-0.3f, 0.4f, -1.0f); root->addChild(light);
   light->intensity = options.directIntensity;
-  root->addChild(geometry); geometry->unref();
+  auto * selection=new SoSelection;selection->addChild(geometry);root->addChild(selection);geometry->unref();
+  if(options.cadTools&&!coin_pbr_add_cad_tools(root,selection,geometry,options.size,metrics,options.cut)) {
+    std::fprintf(stderr,"CAD tools could not select a geometric surface\n");root->unref();return 2;
+  }
   if (options.exportScene.getLength()) {
     SoOutput output; if (!output.openFile(options.exportScene.getString())) { root->unref(); return 2; }
     SoWriteAction writer(&output); writer.apply(geometry); output.closeFile();
@@ -181,7 +218,7 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
       new CoinRenderSceneManager(options.size, renderOptions) : new CoinRenderSceneManager(surface, options.size, renderOptions));
     manager->setSceneGraph(root); root->unref();
     manager->setBackgroundColor(SbColor4f(0.025f, 0.035f, 0.05f, 1.0f));
-    if (options.offscreen) manager->getRenderTarget()->setDepthReadbackEnabled(FALSE);
+    if(options.offscreen)manager->getRenderTarget()->setDepthReadbackEnabled(options.captureDepth||options.validateDepth);
     const float radius = (camera->position.getValue() - center).length();
     int frame = 0; SbBool running = TRUE;
     while (running && (interactive || frame < frames)) {
@@ -208,7 +245,10 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
       if (status != CoinRenderAction::SUCCESS) {
         std::fprintf(stderr, "CAD render failed: %s\n", manager->getLastError().getString()); exitCode = 1; break;
       }
-      if (options.capturePrefix.getLength() && !coin_pbr_capture(options, caps, camera, target, frame, returnMs)) {
+      if(options.validateDepth&&!coin_pbr_depth_oracle(manager->getSceneGraph(),camera,target,options.size,metrics)) {
+        std::fprintf(stderr,"Independent CAD ray/depth oracle failed\n");exitCode=1;break;
+      }
+      if (options.capturePrefix.getLength() && !coin_pbr_capture(options, caps, camera, target, frame, returnMs,metrics)) {
         std::fprintf(stderr, "CAD capture incomplete\n"); exitCode = 1; break;
       }
       ++frame; if (interactive) usleep(16000);

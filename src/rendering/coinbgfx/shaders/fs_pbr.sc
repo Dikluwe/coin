@@ -23,6 +23,10 @@ void main() {
   gl_FragDepth = coinWindowDepth(v_coinClipDepth.x / v_coinClipDepth.y);
   vec3 n = coinPbrSafeUnit(v_viewNormal);
   vec3 v = u_pbrCamera.x > 0.5 ? coinPbrSafeUnit(-v_viewPosition) : vec3(0.0, 0.0, 1.0);
+  float roughness=u_pbrEmissionRoughness.a;
+#ifdef COIN_PBR_IBL
+  roughness=coinPbrFilteredRoughness(n,roughness);
+#endif
   vec3 radiance = u_pbrEmissionRoughness.rgb;
   for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_lightCount.x) break;
@@ -43,14 +47,17 @@ void main() {
         attenuation *= pow(max(cone, 0.0), u_lightAttenuationDrop[i].w * 128.0);
       }
     }
-    vec3 brdf = coinPbrBrdf(n, v, l, u_pbrBaseMetallic.rgb,
-      u_pbrBaseMetallic.a, u_pbrEmissionRoughness.a);
+#ifdef COIN_PBR_IBL
+    vec3 brdf = coinPbrQualityBrdf(n,v,l,u_pbrBaseMetallic.rgb,u_pbrBaseMetallic.a,roughness);
+#else
+    vec3 brdf = coinPbrBrdf(n,v,l,u_pbrBaseMetallic.rgb,u_pbrBaseMetallic.a,roughness);
+#endif
     radiance += brdf * max(dot(n, l), 0.0) * u_lightColorIntensity[i].rgb *
       (u_lightColorIntensity[i].a * attenuation);
   }
 #ifdef COIN_PBR_IBL
   radiance += coinPbrEnvironment(n, v, u_pbrBaseMetallic.rgb,
-    u_pbrBaseMetallic.a, u_pbrEmissionRoughness.a);
+    u_pbrBaseMetallic.a, roughness);
 #endif
   // Saturate only at the representable binary16 limit, never at display white.
   gl_FragColor = vec4(min(radiance, vec3_splat(65504.0)), 1.0);

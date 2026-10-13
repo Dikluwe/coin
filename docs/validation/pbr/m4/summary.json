@@ -1,0 +1,46 @@
+{
+  "milestone": "M4",
+  "status": "complete",
+  "date": "2026-10-13",
+  "input_commit": "fc2c87211e",
+  "program_sha256": "012f59c21e7ac7c4f24cf78e7c2236b309207c239268ea3a441bd75ca9fdd026",
+  "physical_gpu": "AMD RADV RENOIR 1002:1638 / Mesa25.2.8 / Vulkan",
+  "ctest": {
+    "BGFX": 23,
+    "RECORDING": 12,
+    "RUST_BRIDGE": 13
+  },
+  "primary_cases": 106,
+  "primary_images": 280,
+  "main_views": 72,
+  "main_resolution": [
+    1280,
+    960
+  ],
+  "orbit_sequences": 2,
+  "orbit_frames_each": 36,
+  "geometry_ray_depth_probes": 52170,
+  "legacy_geometry_masks_exact": 18,
+  "freecad_geometry_depth_exact": true,
+  "legacy_pixels": {
+    "passed": 26,
+    "unchanged": true
+  },
+  "extra_controls": 3,
+  "quality": {
+    "compensated_furnaces": 72,
+    "direct_brdf_controls": 9,
+    "single_scattering_controls": 18,
+    "flat_face_filter_pixels_exact": true,
+    "subpixel_peak_before": 13584,
+    "subpixel_peak_after": 221.875
+  },
+  "limitations": [
+    "initial Linux BGFX/Vulkan single-sample opaque profile",
+    "IBL split-sum, SH9 and diffuse residual under angularly varying radiance are approximations",
+    "technical layers: opaque legacy BASE_COLOR; base-layer mixed legacy remains unsupported",
+    "labels use native SoText3, not screen-text texture coverage",
+    "initial viewer tools use a deterministic native pick; full interactive CAD editing is outside this qualification",
+    "PBR material-only mutation optimization and dynamic output control remain final resource work for M5"
+  ]
+}
