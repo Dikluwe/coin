@@ -27,6 +27,7 @@
 #include <Inventor/nodes/SoShaderProgram.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowCulling.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/annex/FXViz/elements/SoShadowStyleElement.h>
@@ -124,6 +125,7 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, SoDepthBufferElement);
   SO_ENABLE(CoinRenderAction, SoTextureCombineElement);
   SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
+  SO_ENABLE(CoinRenderAction, SoGLShadowCullingElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
   SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::shapeContentMethod);
@@ -2173,6 +2175,7 @@ CoinRenderActionP::initCallbacks()
   this->master->addPreCallback(SoShadowGroup::getClassTypeId(), shadowGroupPreCB, this);
   this->master->addPostCallback(SoShadowGroup::getClassTypeId(), shadowGroupPostCB, this);
   this->master->addPreCallback(SoShadowStyle::getClassTypeId(), shadowStylePreCB, this);
+  this->master->addPreCallback(SoShadowCulling::getClassTypeId(), shadowCullingPreCB, this);
   this->master->addPreCallback(SoShaderProgram::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
   this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
@@ -2538,6 +2541,14 @@ CoinRenderActionP::shadowGroupPostCB(void * userdata, SoCallbackAction * action,
     SoShadowStyleElement::set(action->getState(), p->shadowStyleBeforeGroups.back());
     p->shadowStyleBeforeGroups.pop_back();
   }
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::shadowCullingPreCB(void *, SoCallbackAction * action, const SoNode * node)
+{
+  const auto * culling=static_cast<const SoShadowCulling *>(node);
+  SoGLShadowCullingElement::set(action->getState(),const_cast<SoShadowCulling *>(culling),culling->mode.getValue());
   return SoCallbackAction::CONTINUE;
 }
 

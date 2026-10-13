@@ -43,23 +43,37 @@ uniform vec4 u_shadowLightIndices;
 uniform vec4 u_shadowLightIndicesExtra;
 uniform vec4 u_shadowDiagnostic;
 #include "coin_shadow_visibility.sh"
+uniform vec4 u_pbrShadowBias[8];
+float coinPbrDepthBias(vec3 position, mat4 viewToLight, vec4 meta, vec4 bias) {
+  vec3 p = mul(viewToLight, vec4(position, 1.0)).xyz;
+  // The geometric normal is independent of smoothing and material normal maps.
+  vec3 geometric = cross(dFdx(p), dFdy(p));
+  float scale = max(abs(geometric.x),max(abs(geometric.y),abs(geometric.z)));
+  if (scale == 0.0) return 0.0;
+  geometric = normalize(geometric / scale);
+  vec3 direction = meta.x > 0.5 ? normalize(-p) : vec3(0.0,0.0,1.0);
+  float cosine = abs(dot(geometric, direction));
+  float slope = min(4.0, sqrt(max(0.0,1.0-cosine*cosine))/max(cosine,0.001));
+  float footprint = bias.x * (meta.x > 0.5 ? max(0.0,-p.z) : 1.0);
+  return footprint * (bias.y + bias.z * slope);
+}
 float coinPbrVisibility(int lightIndex, vec3 position) {
   float visibility = 1.0;
   if (u_shadowLightIndices.x >= 0.0 && abs(u_shadowLightIndices.x - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip0, u_shadowViewToLight0, u_shadowParams0, u_shadowMeta0, s_shadow0);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip0, u_shadowViewToLight0, u_shadowParams0, u_shadowMeta0, s_shadow0, coinPbrDepthBias(position, u_shadowViewToLight0, u_shadowMeta0, u_pbrShadowBias[0]));
   if (u_shadowLightIndices.y >= 0.0 && abs(u_shadowLightIndices.y - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip1, u_shadowViewToLight1, u_shadowParams1, u_shadowMeta1, s_shadow1);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip1, u_shadowViewToLight1, u_shadowParams1, u_shadowMeta1, s_shadow1, coinPbrDepthBias(position, u_shadowViewToLight1, u_shadowMeta1, u_pbrShadowBias[1]));
   if (u_shadowLightIndices.z >= 0.0 && abs(u_shadowLightIndices.z - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip2, u_shadowViewToLight2, u_shadowParams2, u_shadowMeta2, s_shadow2);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip2, u_shadowViewToLight2, u_shadowParams2, u_shadowMeta2, s_shadow2, coinPbrDepthBias(position, u_shadowViewToLight2, u_shadowMeta2, u_pbrShadowBias[2]));
   if (u_shadowLightIndices.w >= 0.0 && abs(u_shadowLightIndices.w - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip3, u_shadowViewToLight3, u_shadowParams3, u_shadowMeta3, s_shadow3);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip3, u_shadowViewToLight3, u_shadowParams3, u_shadowMeta3, s_shadow3, coinPbrDepthBias(position, u_shadowViewToLight3, u_shadowMeta3, u_pbrShadowBias[3]));
   if (u_shadowLightIndicesExtra.x >= 0.0 && abs(u_shadowLightIndicesExtra.x - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip4, u_shadowViewToLight4, u_shadowParams4, u_shadowMeta4, s_shadow4);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip4, u_shadowViewToLight4, u_shadowParams4, u_shadowMeta4, s_shadow4, coinPbrDepthBias(position, u_shadowViewToLight4, u_shadowMeta4, u_pbrShadowBias[4]));
   if (u_shadowLightIndicesExtra.y >= 0.0 && abs(u_shadowLightIndicesExtra.y - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip5, u_shadowViewToLight5, u_shadowParams5, u_shadowMeta5, s_shadow5);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip5, u_shadowViewToLight5, u_shadowParams5, u_shadowMeta5, s_shadow5, coinPbrDepthBias(position, u_shadowViewToLight5, u_shadowMeta5, u_pbrShadowBias[5]));
   if (u_shadowLightIndicesExtra.z >= 0.0 && abs(u_shadowLightIndicesExtra.z - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip6, u_shadowViewToLight6, u_shadowParams6, u_shadowMeta6, s_shadow6);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip6, u_shadowViewToLight6, u_shadowParams6, u_shadowMeta6, s_shadow6, coinPbrDepthBias(position, u_shadowViewToLight6, u_shadowMeta6, u_pbrShadowBias[6]));
   if (u_shadowLightIndicesExtra.w >= 0.0 && abs(u_shadowLightIndicesExtra.w - float(lightIndex)) < 0.5)
-    visibility *= coinShadowVisibility(position, u_shadowViewToClip7, u_shadowViewToLight7, u_shadowParams7, u_shadowMeta7, s_shadow7);
+    visibility *= coinShadowVisibilityDepthBias(position, u_shadowViewToClip7, u_shadowViewToLight7, u_shadowParams7, u_shadowMeta7, s_shadow7, coinPbrDepthBias(position, u_shadowViewToLight7, u_shadowMeta7, u_pbrShadowBias[7]));
   return visibility;
 }

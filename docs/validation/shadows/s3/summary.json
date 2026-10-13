@@ -1,0 +1,17 @@
+{
+  "stage": "S3",
+  "passed": 12,
+  "proof": [
+    "bias in projection texels and receiver distance; epsilon stays variance only",
+    "world scale .01,1,100 with over 99.5% radiance equivalence",
+    "GPU derivative second moment correction isolated with zero bias/epsilon/threshold in contact fixture",
+    "correction monotone, measurable on over 20 receivers",
+    "single thin CAD plate NO_CULLING changes over 30 receiver pixels",
+    "AS_IS restoration matches exactly without changing visible culling",
+    "native window equality and legacy controls"
+  ],
+  "limits": [
+    "PBR contact corrections only; legacy epsilon/shading formulas preserved",
+    "CoinGL historical ShapeHints restoration defect is outside the new CoinRender capture"
+  ]
+}

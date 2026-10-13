@@ -27,6 +27,7 @@
 #include <Inventor/details/SoCylinderDetail.h>
 #include <Inventor/C/tidbits.h>
 #include <Inventor/elements/SoClipPlaneElement.h>
+#include <Inventor/annex/FXViz/elements/SoGLShadowCullingElement.h>
 #include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
@@ -1226,6 +1227,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.materialSlot = materialSlot;
   rs.transparentMaterial = SoLazyElement::getInstance(state)->isTransparent() != FALSE;
   rs.shadowGroupSlot = this->activeShadowGroupSlot();
+  if (state->isElementEnabled(SoGLShadowCullingElement::getClassStackIndex()))
+    rs.shadowCulling=static_cast<uint32_t>(SoGLShadowCullingElement::get(state));
   if (rs.shadowGroupSlot) rs.shadowStyle = static_cast<uint32_t>(SoShadowStyleElement::get(state));
   if (rs.shadowGroupSlot && (rs.shadowStyle & 2u))
     rs.textureProjection = CoinRenderTextureProjection::DIRECT_ST;

@@ -15,6 +15,9 @@
 #include <Inventor/nodes/SoMaterial.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoLineSet.h>
+#include <Inventor/nodes/SoShapeHints.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowCulling.h>
 #include <memory>
 #include <cstdio>
 #include <cmath>
@@ -94,12 +97,63 @@ int main(int argc,char ** argv) {
   style->style=SoShadowStyle::SHADOWED;SbList<SbVec3f> restored;
   CHECK(render(*target,root,restored),"Restored PBR receiver");
   for(int i=0;i<both.getLength();++i)CHECK((restored[i]-both[i]).length()==0,"Receiver restoration is exact");
+  // World-unit changes preserve camera/light projections and the texel-based
+  // correction. A few raster edge pixels may differ after float conversion.
+  for(float scale:{.01f,100.f,1.f}) {
+    camera->height=7*scale;camera->position.setValue(0,0,8*scale);
+    camera->nearDistance=scale;camera->farDistance=20*scale;
+    for(int l=0;l<2;++l) {
+      lights[l]->location.setValue((l?-2:2)*scale,2*scale,4*scale);
+      lights[l]->nearDistance=scale;lights[l]->farDistance=12*scale;
+    }
+    cube->width=cube->height=cube->depth=1.4f*scale;
+    slab->width=slab->height=6*scale;slab->depth=.05f*scale;
+    translation->translation.setValue(0,0,-1.5f*scale);
+    CHECK(render(*target,root,restored),"CAD unit-scale equivalent renders");size_t equivalent=0;
+    for(int i=0;i<both.getLength();++i)
+      equivalent+=(restored[i]-both[i]).length()<.03f*std::max(1.f,both[i].length());
+    CHECK(equivalent>size_t(both.getLength())*995/1000,"Bias is relative to projection texels rather than an absolute world minimum");
+  }
   if(argc>1) {
     std::vector<uint8_t> rgba;target->readbackRGBA(rgba);
     std::ofstream out((std::string(argv[1])+"/pbr-shadows.ppm").c_str(),std::ios::binary);out<<"P6\n128 128\n255\n";
     for(size_t p=0;p<rgba.size();p+=4)out.write(reinterpret_cast<const char*>(rgba.data()+p),3);
     CHECK(bool(out),"Save actual PBR shadow capture");
   }
+  CoinRenderOptions rawOptions=options;rawOptions.pbrShadowMomentCorrection=false;
+  rawOptions.pbrShadowBiasTexels=rawOptions.pbrShadowSlopeBiasTexels=0;
+  std::unique_ptr<CoinRenderTarget> raw(CoinRenderTarget::createOffscreen(SbVec2i32(128,128),rawOptions));
+  rawOptions.pbrShadowMomentCorrection=true;
+  std::unique_ptr<CoinRenderTarget> correctedTarget(CoinRenderTarget::createOffscreen(SbVec2i32(128,128),rawOptions));
+  group->precision=.03125f;group->epsilon=0;group->threshold=0;
+  translation->translation.setValue(0,0,-.72f);
+  CHECK(correctedTarget&&render(*correctedTarget,root,first)&&raw&&render(*raw,root,second),"Corrected and original VSM moments render independently");
+  size_t corrected=0;float correctionPeak=0;
+  for(int i=0;i<first.getLength();++i) {
+    for(int c=0;c<3;++c)CHECK(first[i][c]+.001f>=second[i][c],"Nonnegative moment variance correction cannot darken a receiver");
+    corrected+=first[i][0]-second[i][0]>.001f;
+    correctionPeak=std::max(correctionPeak,first[i][0]-second[i][0]);
+  }
+  std::printf("moment correction pixels=%zu delta=%g\n",corrected,correctionPeak);
+  CHECK(corrected>20,"GPU second-moment derivative correction affects sloped actual receivers");
+  group->precision=.5f;group->epsilon=.00001f;group->threshold=.1f;
+  translation->translation.setValue(0,0,-1.5f);
+  cube->ref();group->removeChild(cube);
+  auto * plate=new SoSeparator;plate->ref();
+  auto * hints=new SoShapeHints;hints->shapeType=SoShapeHints::SOLID;
+  hints->vertexOrdering=SoShapeHints::CLOCKWISE;plate->addChild(hints);
+  auto * culling=new SoShadowCulling;culling->mode=SoShadowCulling::AS_IS_CULLING;plate->addChild(culling);
+  auto * plateCoords=new SoCoordinate3;
+  const SbVec3f points[]={SbVec3f(-.7f,-.7f,0),SbVec3f(.7f,-.7f,0),SbVec3f(.7f,.7f,0),SbVec3f(-.7f,.7f,0)};
+  plateCoords->point.setValues(0,4,points);plate->addChild(plateCoords);
+  auto * face=new SoIndexedFaceSet;const int32_t indices[]={0,1,2,3,-1};face->coordIndex.setValues(0,5,indices);plate->addChild(face);
+  group->addChild(plate);CHECK(render(*target,root,first),"Back-facing thin CAD plate with native culling");
+  culling->mode=SoShadowCulling::NO_CULLING;CHECK(render(*target,root,second),"Two-sided thin CAD plate caster");
+  size_t plateShadow=0;for(int i=0;i<first.getLength();++i)plateShadow+=first[i][0]-second[i][0]>.2f;
+  CHECK(plateShadow>30,"NO_CULLING preserves thin CAD shadow casters without changing their visible culling");
+  culling->mode=SoShadowCulling::AS_IS_CULLING;CHECK(render(*target,root,restored),"AS_IS restores native captured hints");
+  for(int i=0;i<first.getLength();++i)CHECK((restored[i]-first[i]).length()==0,"AS_IS restoration retains original shape hints");
+  group->removeChild(plate);plate->unref();group->insertChild(cube,3);cube->unref();
   CoinRenderPbrEnvironment env;SbString error;
   const SbString path=argc>1?SbString(argv[1])+"/shadow-white.cibl":SbString("/tmp/coin-shadow-white.cibl");
   CHECK(env.bake(env.WHITE,16,32,32,512,env,error)&&env.write(path,error),"Independent constant environment fixture");

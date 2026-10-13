@@ -352,6 +352,7 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t polygonOffsetStyles = 1;
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   uint32_t shadowGroupSlot = 0; // Zero outside active SoShadowGroup.
+  uint32_t shadowCulling = 0; // Native AS_IS_CULLING (0), NO_CULLING (2).
   uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
   bool transparentMaterial = false; // Coin lazy material flag over the bound array.
   bool transparentTexture = false; // Image alpha affects casting even at texture quality zero.

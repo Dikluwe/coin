@@ -59,6 +59,12 @@ int main() {
   REQUIRE(!coin_render_valid_options(options,diagnostic),"Diagnostic index cannot exceed the qualified map slots");
   options.shadowDiagnosticMap=0;options.shadowDiagnostic=static_cast<CoinRenderShadowDiagnostic>(4);
   REQUIRE(!coin_render_valid_options(options,diagnostic),"Unknown diagnostic mode is invalid");
+  options=CoinRenderOptions();options.pbrShadowBiasTexels=-1;
+  REQUIRE(!coin_render_valid_options(options,diagnostic),"Negative geometric bias is rejected");
+  options.pbrShadowBiasTexels=4;options.pbrShadowSlopeBiasTexels=4;
+  REQUIRE(coin_render_valid_options(options,diagnostic),"Bounded bias texel coefficients are admitted");
+  options.pbrShadowSlopeBiasTexels=5;
+  REQUIRE(!coin_render_valid_options(options,diagnostic),"Unbounded slope correction is rejected");
   root->unref();
   std::cout << "shadow attachments: moments=128 MiB depth=32 MiB total=160 MiB; boundaries/rollback/views verified\n";
   return 0;

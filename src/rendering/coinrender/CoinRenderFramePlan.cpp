@@ -386,7 +386,7 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
   for (size_t i = 0; i < this->renderStates.size(); ++i) {
     if (i == 0) timer.mark("scene_state");
     const CoinRenderRenderStateSnapshot & state = this->renderStates[i];
-    if (state.shadowGroupSlot > this->shadowGroups.size() || state.shadowStyle > 3u) {
+    if (state.shadowGroupSlot > this->shadowGroups.size() || state.shadowStyle > 3u || (state.shadowCulling != 0 && state.shadowCulling != 2)) {
       if (outDiagnostic) *outDiagnostic = "RenderState has invalid shadow group or style";
       return false;
     }

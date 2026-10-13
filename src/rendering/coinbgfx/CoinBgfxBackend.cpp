@@ -1047,6 +1047,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->npotMipProgram)) bgfx::destroy(this->npotMipProgram);
   if (bgfx::isValid(this->depthReadProgram)) bgfx::destroy(this->depthReadProgram);
   if (bgfx::isValid(this->readDepthSampler)) bgfx::destroy(this->readDepthSampler);
+  if (bgfx::isValid(this->pbrShadowBiasUniform)) bgfx::destroy(this->pbrShadowBiasUniform);
   if (bgfx::isValid(this->pbrIblProgram)) bgfx::destroy(this->pbrIblProgram);
   if (bgfx::isValid(this->pbrShadowProgram)) bgfx::destroy(this->pbrShadowProgram);
   if (bgfx::isValid(this->pbrShadowIblProgram)) bgfx::destroy(this->pbrShadowIblProgram);
@@ -1520,6 +1521,8 @@ bool CoinBgfxBackend::preparePbrResources()
   if (!bgfx::isValid(this->pbrOutputProgram))
     this->pbrOutputProgram = createLayerProgram(coin_bgfx_vs_spirv, sizeof(coin_bgfx_vs_spirv),
       coin_bgfx_fs_pbr_output_spirv, sizeof(coin_bgfx_fs_pbr_output_spirv));
+  if (!bgfx::isValid(this->pbrShadowBiasUniform))
+    this->pbrShadowBiasUniform = bgfx::createUniform("u_pbrShadowBias", bgfx::UniformType::Vec4, 8);
   if (!bgfx::isValid(this->pbrBaseUniform))
     this->pbrBaseUniform = bgfx::createUniform("u_pbrBaseMetallic", bgfx::UniformType::Vec4);
   if (!bgfx::isValid(this->pbrEmissionUniform))
@@ -1532,7 +1535,7 @@ bool CoinBgfxBackend::preparePbrResources()
     this->readDepthSampler=bgfx::createUniform("s_readDepth",bgfx::UniformType::Sampler);
   if (!bgfx::isValid(this->pbrRadianceSampler))
     this->pbrRadianceSampler = bgfx::createUniform("s_pbrRadiance", bgfx::UniformType::Sampler);
-  if (!bgfx::isValid(this->pbrProgram) || !bgfx::isValid(this->pbrOutputProgram) ||
+  if (!bgfx::isValid(this->pbrShadowBiasUniform) || !bgfx::isValid(this->pbrProgram) || !bgfx::isValid(this->pbrOutputProgram) ||
       !bgfx::isValid(this->pbrBaseUniform) || !bgfx::isValid(this->pbrEmissionUniform) ||
       !bgfx::isValid(this->pbrCameraUniform) || !bgfx::isValid(this->pbrOutputUniform) ||
       !bgfx::isValid(this->pbrRadianceSampler) || !bgfx::isValid(this->readDepthSampler)) {
@@ -2384,6 +2387,7 @@ CoinBgfxBackend::bindShadowReceiver(
   CoinBgfxDraw shaded = original;
   shaded.lightCount[1] = 0.0f;
   float indices[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
+  float biases[8][4] = {};
   const auto & state = frame.renderStates[original.renderStateSlot];
   const uint32_t flags = coin_render_shadow_shading_flags(frame, state);
   const float quality[4] = {float((flags & COIN_RENDER_SHADOW_VERTEX_LIGHTING) != 0),
@@ -2410,6 +2414,10 @@ CoinBgfxBackend::bindShadowReceiver(
     // Unshadowed shapes retain ordinary lighting; only receivers sample VSM.
     if ((state.shadowStyle & 2u) == 0) continue;
     indices[slot] = static_cast<float>(index);
+    biases[slot][0] = 2.0f / (std::abs(pass.projectionCoin[0][0]) * pass.mapSize *
+      (pass.vsmFarDistance - pass.nearDistance));
+    biases[slot][1] = this->pbrShadowBiasTexels;
+    biases[slot][2] = this->pbrShadowSlopeBiasTexels;
     const SbMatrix viewToLight = state.view.inverse() * pass.view;
     const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
       pass.projectionCoin * clipConversion;
@@ -2427,6 +2435,7 @@ CoinBgfxBackend::bindShadowReceiver(
     bgfx::setTexture(static_cast<uint8_t>(8 + slot), this->shadowSampler[slot],
       bgfx::getTexture(shadowMaps[passSlot], 0));
   }
+  if(pbr) bgfx::setUniform(this->pbrShadowBiasUniform, biases, 8);
   bgfx::setUniform(this->shadowLightIndicesUniform, indices);
   bgfx::setUniform(this->shadowLightIndicesExtraUniform, indices + 4);
   this->bindDrawLighting(shaded, targetHeight);
@@ -2539,6 +2548,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     [](const CoinRenderMaterialSnapshot & m) { return m.model == CoinRenderMaterialModel::PBR; });
   const bool hasIbl = hasPbr && target.options.pbrEnvironmentBundle.getLength();
   if (hasPbr) {
+    this->pbrShadowBiasTexels=target.options.pbrShadowBiasTexels;
+    this->pbrShadowSlopeBiasTexels=target.options.pbrShadowSlopeBiasTexels;
     if (!this->supportsPbr())
       return {CoinRenderBackendStatus::UNSUPPORTED, "PBR requires BGFX/Vulkan with RGBA16F framebuffer support"};
     if (!frame.textures.empty())
@@ -3094,7 +3105,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       const SbMatrix projection = homogeneousDepth ? pass.projectionCoin :
         pass.projectionCoin * clipConversion;
       const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
-        frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
+        frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f,
+        hasPbr && target.options.pbrShadowMomentCorrection ? 1.0f : 0.0f};
       for (const CoinBgfxDraw & draw : plan->shadowDraws) {
         if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
                       draw.sourceDrawSlot) == pass.casterDraws.end()) continue;
@@ -3110,8 +3122,11 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         bgfx::setUniform(this->clipMetaUniform, draw.clipMeta);
         bgfx::setUniform(this->clipPlanesUniform, draw.clipPlanes, COIN_RENDER_MAX_CLIP_PLANES);
         bgfx::setUniform(this->shadowDepthUniform, depthParams);
+        CoinBgfxDraw caster = draw;
+        if(state.shadowCulling == 2) caster.cullMode = CoinRenderCullMode::NONE;
         bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A |
-          BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS);
+          BGFX_STATE_WRITE_Z | BGFX_STATE_DEPTH_TEST_LESS |
+          (drawState(caster) & BGFX_STATE_CULL_MASK));
         bgfx::submit(mapView, this->shadowMomentsProgram);
       }
     }

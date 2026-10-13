@@ -8,7 +8,7 @@ material e nas luzes. Perfil inicial de execução: BGFX/Vulkan e cenas CAD.
 
 - [x] S1 — orçamento completo, admissão conjunta de recursos e diagnóstico dos mapas.
 - [x] S2 — receptor PBR opaco com visibilidade por luz, GGX, HDR/IBL e views CAD.
-- [ ] S3 — contato/detalhe: bias separado da variância, momentos e culling.
+- [x] S3 — contato/detalhe: bias separado da variância, momentos e culling.
 - [ ] S4 — estabilidade da projeção direcional durante órbita/zoom.
 - [ ] S5 — persistência dos attachments e cache correto por conteúdo/projeção/vista.
 - [ ] S6 — filtros VSM/PCF e PCSS, incluindo contrato de emissor/penumbra e orçamento.
@@ -40,4 +40,11 @@ igualdade entre janela Xlib e offscreen, os oracles GGX/IBL existentes e CoinGL.
 [captura real](validation/shadows/s2/pbr-shadows.png).
 PBR continua opaco, sem texturas de material e sem readback assíncrono qualificado.
 O diagnóstico de visibilidade para PBR ainda é feito por radiância linear;
-profundidade/momentos estão disponíveis. S3 em implementação; S4–S6 abertos.
+profundidade/momentos estão disponíveis. S3 concluído: bias geométrico em texels da projeção, separado do `epsilon`;
+segundo momento recebe a variância subpixel das derivadas. A captura respeita
+SoShadowCulling sem alterar ShapeHints da geometria visível. Provas GPU cobrem
+contato isolado, escalas .01/1/100, placas finas e restauração AS_IS. Os 12 controles
+passaram. [Evidências S3](validation/shadows/s3/summary.json).
+As correções de contato são do perfil PBR; as fórmulas VSM legadas continuam
+compatíveis. O defeito histórico de restauração ShapeHints em CoinGL ainda é
+uma fila separada. S4 em implementação; S5–S6 abertos.

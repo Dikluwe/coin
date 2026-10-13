@@ -90,6 +90,8 @@ private:
   bgfx::ProgramHandle pbrProgram = BGFX_INVALID_HANDLE, pbrOutputProgram = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrBaseUniform = BGFX_INVALID_HANDLE, pbrEmissionUniform = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrCameraUniform = BGFX_INVALID_HANDLE, pbrOutputUniform = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrShadowBiasUniform = BGFX_INVALID_HANDLE;
+  float pbrShadowBiasTexels = 0.5f, pbrShadowSlopeBiasTexels = 0.5f;
   bgfx::UniformHandle pbrRadianceSampler = BGFX_INVALID_HANDLE;
   bgfx::FrameBufferHandle pbrFrameBuffer = BGFX_INVALID_HANDLE;
   bool portableSampling = false; // Immutable policy of the owning target.

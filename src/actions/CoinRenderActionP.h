@@ -85,6 +85,7 @@ public:
 
   static SoCallbackAction::Response shadowGroupPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response shadowGroupPostCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response shadowCullingPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response shadowStylePreCB(void *, SoCallbackAction *, const SoNode *);
 
   static SoCallbackAction::Response lightPreCB(void * userdata,

@@ -55,6 +55,11 @@ struct CoinRenderOptions {
   uint64_t shadowAttachmentBudgetBytes = uint64_t(160) * 1024 * 1024;
   CoinRenderShadowDiagnostic shadowDiagnostic = COIN_RENDER_SHADOW_DIAGNOSTIC_NONE;
   uint32_t shadowDiagnosticMap = 0;
+  // PBR contact correction in shadow-map texels, independent of VSM epsilon.
+  // A perspective map converts this footprint at the receiver distance.
+  float pbrShadowBiasTexels = 0.5f;
+  float pbrShadowSlopeBiasTexels = 0.5f;
+  bool pbrShadowMomentCorrection = true;
 
 };
 
