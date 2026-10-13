@@ -10,6 +10,8 @@ for name in ['studio','asymmetric']:
 def run(name,fixture,view,environment,options):
     prefix=out/name;b=bundles[environment]
     cmd=[a.viewer,'--fixture',fixture,'--view',view,'--environment',b['path'],'--direct-intensity','0','--width','800','--height','600','--frames','2','--capture-prefix',str(prefix),*options]
+    # Keep the M3 interaction-only control reproducible with the M4/M5 viewer.
+    cmd+=['--single-scattering','--no-specular-filter']
     r=subprocess.run(cmd,env=env,text=True,capture_output=True,timeout=60);(out/f'{name}.log').write_text(r.stdout+r.stderr)
     row=dict(case=name,command=cmd,passed=False,exit_code=r.returncode,environment=environment)
     if not r.returncode:

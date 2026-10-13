@@ -621,7 +621,7 @@ bgfx::ProgramHandle createLayerProgram(const uint8_t * vertexData,
   return bgfx::createProgram(vs, fs, true);
 }
 
-bool captureGpuPasses(uint32_t submittedFrame, CoinBgfxPhaseSample & sample)
+bool captureGpuPasses(uint32_t submittedFrame, bgfx::ViewId viewBase, CoinBgfxPhaseSample & sample)
 {
   const bgfx::Stats * stats = bgfx::getStats();
   if (!stats) return false;
@@ -659,16 +659,19 @@ bool captureGpuPasses(uint32_t submittedFrame, CoinBgfxPhaseSample & sample)
     sample.gpuBlitReadbackMs < 0.0;
   for (uint16_t index = 0; needPasses && index < stats->numViews; ++index) {
     const bgfx::ViewStats & view = stats->viewStats[index];
-    if (view.gpuTimeEnd <= view.gpuTimeBegin) continue;
-    if (sample.gpuPassFrame == 0) sample.gpuPassFrame = view.gpuFrameNum;
-    if (view.gpuFrameNum != sample.gpuPassFrame) continue;
+    if (view.gpuTimeEnd <= view.gpuTimeBegin || view.gpuFrameNum != submittedFrame ||
+        view.view < viewBase || view.view >= viewBase + targetViewCount) continue;
+    sample.gpuPassFrame = submittedFrame;
     const double elapsed = double(view.gpuTimeEnd - view.gpuTimeBegin) *
                            gpuMilliseconds;
     if (std::strcmp(view.name, "opaque") == 0) {
       add(sample.gpuOpaqueMs, elapsed);
     } else if (std::strncmp(view.name, "transparent_accumulation", 24) == 0) {
       add(sample.gpuTransparentMs, elapsed);
-    } else if (std::strcmp(view.name, "fullscreen_composition") == 0) {
+    } else if (std::strcmp(view.name, "fullscreen_composition") == 0 ||
+               std::strcmp(view.name, "pbr_neutral_srgb_output") == 0 ||
+               std::strcmp(view.name, "overlay_immediate") == 0 ||
+               std::strcmp(view.name, "overlay_depth_clear") == 0) {
       add(sample.gpuCompositeMs, elapsed);
     } else if (std::strcmp(view.name, "blit_readback") == 0) {
       add(sample.gpuBlitReadbackMs, elapsed);
@@ -3245,7 +3248,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     const Clock::time_point gpuDrainBegin = Clock::now();
     uint32_t gpuQueryFrames = 0;
     for (int attempts = 0;
-         traceGpu && !captureGpuPasses(submittedFrame, sample) && attempts < 4;
+         traceGpu && !captureGpuPasses(submittedFrame, this->viewBase, sample) && attempts < 4;
          ++attempts) {
       bgfx::frame();
       ++gpuQueryFrames;
@@ -3468,7 +3471,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   gpuSample.gpuTimingRequested = traceGpu;
   const auto captureGpuFrame = [&]() {
     if (!traceGpu) return;
-    captureGpuPasses(submittedFrame, gpuSample);
+    captureGpuPasses(submittedFrame, this->viewBase, gpuSample);
   };
   captureGpuFrame();
   ReadbackSlot * publishSlot = NULL;

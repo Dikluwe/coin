@@ -28,6 +28,14 @@
 #include <vector>
 
 namespace {
+void mapControlledWindow(Display * display, Window window) {
+  // Exercise renderer presentation/resize with a stable native drawable;
+  // desktop policy may otherwise resize or unmap an unnamed test window.
+  XSetWindowAttributes attributes{};
+  attributes.override_redirect = True;
+  XChangeWindowAttributes(display, window, CWOverrideRedirect, &attributes);
+  XMapWindow(display, window);
+}
 struct Scene {
   SoSeparator * root;
   SoOrthographicCamera * camera;
@@ -124,8 +132,8 @@ int main() {
     CHECK(createOffscreen(), "offscreen-first initialization");
   Window first = XCreateSimpleWindow(display, DefaultRootWindow(display), 20, 20, 96, 96, 0, 0, 0);
   Window second = XCreateSimpleWindow(display, DefaultRootWindow(display), 180, 20, 80, 112, 0, 0, 0);
-  XMapWindow(display, first);
-  XMapWindow(display, second);
+  mapControlledWindow(display, first);
+  mapControlledWindow(display, second);
   XSync(display, False);
   auto firstTarget = makeWindow(display, first, 96, 96);
   auto secondTarget = makeWindow(display, second, 80, 112);
@@ -189,7 +197,7 @@ int main() {
   CHECK(frames(), "surviving second target after destroying initializer");
   CHECK(!readWindow || windowColor(display, second, 80, 112, 1), "second window lost presentation after owner destruction");
   first = XCreateSimpleWindow(display, DefaultRootWindow(display), 20, 160, 128, 72, 0, 0, 0);
-  XMapWindow(display, first);
+  mapControlledWindow(display, first);
   XSync(display, False);
   firstTarget = makeWindow(display, first, 128, 72);
   CHECK(firstTarget && firstTarget->getStatus() == CoinRenderTarget::TARGET_READY, "replacement native target creation");

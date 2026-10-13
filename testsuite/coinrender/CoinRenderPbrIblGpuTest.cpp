@@ -245,11 +245,18 @@ int main(int argc,char ** argv) {
   CHECK(render(target,frame,pixel)&&pixel[0]>.98f,"PBR publication restores HDR on the same target");
   const auto frozenIdentity=target.pbrEnvironmentSnapshot->identity;
   const auto oldGeneration=target.resourceGeneration;
+  const auto peerIdentity=directional.pbrEnvironmentSnapshot->identity;
+  std::remove(axisPath.getString());
   target.deviceLost();
   CHECK(!target.backend&&target.resourceGeneration>oldGeneration&&
     target.pbrEnvironmentSnapshot->identity==frozenIdentity,"device retirement retains immutable CPU environment");
   CHECK(render(target,frame,pixel)&&pixel[0]>.98f,
     "executor reconstruction uploads frozen environment after source removal");
+  auto peerFrame=plane();peerFrame.materials[0].pbr.baseColor=SbColor(1,1,1);
+  peerFrame.materials[0].pbr.metallic=1;peerFrame.materials[0].pbr.roughness=1;
+  CHECK(render(directional,peerFrame,pixel)&&(pixel-lastExpected).length()<.012&&
+    directional.pbrEnvironmentSnapshot->identity==peerIdentity,
+    "peer reconstructs its distinct frozen environment after shared device retirement and source removal");
   CoinRenderTargetP broken(SbVec2i32(32,32));broken.options.renderer=COIN_RENDER_RENDERER_VULKAN;
   broken.options.pbrEnergyCompensation=false;broken.options.pbrSpecularFilterThreshold=0;
   broken.options.pbrEnvironmentBundle=prefix+"-missing.cibl";

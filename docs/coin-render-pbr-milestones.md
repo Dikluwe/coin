@@ -16,7 +16,7 @@ BGFX/Vulkan e o viewer CoinRender; imagens devem vir do renderer real.
 - [x] M2 — shading GGX por fragmento, materiais opacos, HDR e saída.
 - [x] M3 — IBL pré-calculada, cubemap, irradiância, LUT e lifetime.
 - [x] M4 — views CAD, seleção, cortes, arestas, labels e estabilidade.
-- [ ] M5 — SDK instalado, consumidor, regressões e campanha Release.
+- [x] M5 — SDK instalado, consumidor, regressões e campanha Release.
 
 Cada conclusão deve apontar comandos, código e resultados que provem o alcance
 do marco. Uma etapa parcial não será marcada como concluída.
@@ -109,5 +109,29 @@ Coin por uma cena, travessia ou renderer externo.
   pixels preservados. Contrato: [qualidade CAD](coin-render-pbr-cad-quality.md).
   Evidências: [summary](validation/pbr/m4/summary.json), [galeria](validation/pbr/m4/gallery.png).
 
-Próximo: M5, SDK/consumidor, ciclo de vida, budgets e performance Release.
-A atualização de fatores PBR sem recaptura de geometria ainda requer fechamento.
+## M5 — fechado
+
+- Edição qualificada dos quatro fatores PBR sem recaptura de primitivas ou
+  reupload de vértices, com oracle de captura independente, fallback conservador
+  e rollback. Prova construída com listas/hash/sensores nativos Coin.
+- Setters públicos para exposição e parâmetros escalares do ambiente, sem
+  recaptura ou novo upload; validação, HDR, publicação e resize/suspensão.
+- SDK instalado e consumidor sem headers privados; baker reproduz os dois
+  pacotes com SHA-256 idêntico. Recording/Rust preservam publicação e rejeitam PBR.
+- Recuperação controlada do domínio GPU em janela e offscreen/peers, com fonte
+  removida e snapshots CPU preservados. Inicialização correta de SoSelection.
+- 33/33 CTests BGFX, 13/13 Recording, 14/14 Rust. Viewer instalado: 106/106,
+  280 imagens, 52170 probes, pixels idênticos a M4; baseline M0 26/26 inalterada.
+  Controles históricos M2 27/27 (pixels exatos), M3 22/22 (cinco deltas de
+  um nível de canal em um a quatro pixels, quantificados na evidência).
+- Mediana/p95 Release em quatro cargas, 128 amostras aquecidas por carga:
+  CPU instrumentada, timestamps GPU reais, submit/query drain e primeiro frame
+  separados. Bytes nominais, contadores BGFX e RSS identificados corretamente.
+- Contrato final: [qualificação](coin-render-pbr-qualification.md). Evidências:
+  [summary](validation/pbr/m5/summary.json),
+  [SDK/hashes](validation/pbr/m5/sdk/manifest.json),
+  [performance](validation/pbr/m5/benchmark/results.json) e
+  [views finais](validation/pbr/m5/matrix-gallery.png).
+
+M0–M5 concluídos para o primeiro perfil Linux BGFX/Vulkan opaco, HDR/IBL e CAD.
+Os limites e perfis ainda não qualificados constam no contrato final.

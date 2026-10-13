@@ -875,6 +875,23 @@ CoinRenderTarget::requestWindowReadbackRGBA(void)
   return TRUE;
 }
 
+SbBool CoinRenderTarget::setPbrExposureStops(float stops)
+{
+  if(!std::isfinite(stops)||stops< -16||stops>16) {
+    this->pimpl->lastError="PBR exposure requires finite stops in [-16,16]";return FALSE;
+  }
+  this->pimpl->options.pbrExposureStops=stops;this->pimpl->lastError.clear();return TRUE;
+}
+
+SbBool CoinRenderTarget::setPbrEnvironmentParameters(float rotation,float intensity)
+{
+  if(!std::isfinite(rotation)||!std::isfinite(intensity)||intensity<0||intensity>64) {
+    this->pimpl->lastError="PBR environment requires finite rotation and intensity in [0,64]";return FALSE;
+  }
+  this->pimpl->options.pbrEnvironmentRotation=rotation;
+  this->pimpl->options.pbrEnvironmentIntensity=intensity;this->pimpl->lastError.clear();return TRUE;
+}
+
 void
 CoinRenderTarget::readbackRGBA(std::vector<uint8_t> & outPixels) const
 {

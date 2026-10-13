@@ -1,0 +1,99 @@
+{
+  "input_commit": "856bc964964d4af80167ec5f6e0d5df86ea25d45",
+  "branch": "codex/sopbrmaterial",
+  "source_sha256": {
+    "examples/coinrender/CMakeLists.txt": "4b2d6c465b26bb403e5ef6cc712ffafbb8c12ff33b8d43d2fcf5bd05ec7851a0",
+    "examples/coinrender/CoinRenderPbrViews.h": "62477e169e01980b656b3ed037cbf9c4accaa291bb92194b26bd74f46dd89fc5",
+    "examples/coinrender/sdk-consumer/CMakeLists.txt": "9041af8c92a3403065d25d78e85fc6e53b315e775a7620abb0152f5078d308ae",
+    "examples/coinrender/sdk-consumer/README.md": "0f7de6322f4106d10eaaa6eeee65b210c7abd20098c138b3a31a738b68f1978a",
+    "examples/coinrender/sdk-consumer/pbr-main.cpp": "36b3d37f0e582e517dcf0729fa408a02feb4a192e90f570cb58d0b73598dd28a",
+    "experimental/include/Inventor/rendering/CoinRenderOptions.h": "fcc243a72127ef28ecfd7aa60a75c675b817d8c665dc7642dc7c9dc327c7ad8d",
+    "experimental/include/Inventor/rendering/CoinRenderTarget.h": "43dbb3f0327d475efcd97afff9a43f242b28e3e3c200ee3b5b25bfab2994152e",
+    "src/actions/CoinRenderAction.cpp": "c82421480472bc84ebf413cc415a830611ee06ab0295c807377dbdd8efe1f420",
+    "src/actions/CoinRenderActionP.h": "f39ef05228ea452f96f2d2a663a095748ada511e7c9b71ca00a283025b4eb6d1",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "e493d2060977c4df3be634adaad09a5eb344f157f7611ca426d06e91c25a9c47",
+    "src/rendering/coinbgfx/CoinBgfxLowering.cpp": "ee6640f33750a61e40a3a6542997c80fbd55e868e79edb84539c5dd9fc8f6932",
+    "src/rendering/coinbgfx/shaders/coin_pbr_brdf.sh": "8fd5bf9900ea2f0614b8684b6c527a3cb9031b5cf80551f6ef8f05094a19f5fe",
+    "src/rendering/coinbgfx/shaders/coin_pbr_ibl.sh": "d631daef635b1b9a28a3b0db70b1e28dd0bdce93420afa3cbcbd9bfd13b9ea01",
+    "src/rendering/coinbgfx/shaders/coin_pbr_output.sh": "1017c318e3c2c4baee25f5db8f161d1817e4fad6732f7708ac4067a3086cfad3",
+    "src/rendering/coinbgfx/shaders/fs_pbr.sc": "c20abbed7e82a1e1a79cbaf1b159dc6f24f277da3570f8e7a2afae6a8bf87671",
+    "src/rendering/coinbgfx/shaders/fs_pbr_output.sc": "0be6621d97de5329129e996a3cf4c8774e1b4a5dea8146849954fc84132198fe",
+    "src/rendering/coinbgfx/shaders/vs_pbr.sc": "198ff635f3c9dc572beb3359fcacf8129809241f153cffc90be4d8eca0194bc6",
+    "src/rendering/coinrender/CoinRenderFrameReuseCore.cpp": "8347b923983894bd744a64f780288bb69ac92b9ce8532ef76ebdac291bb4b628",
+    "src/rendering/coinrender/CoinRenderPbrEnvironment.cpp": "5dc303904868f9f4cdb1917bcb3fee04b8e937e2432a18834975682bb4e2b6c3",
+    "src/rendering/coinrender/CoinRenderPbrEnvironment.h": "9d5a619c205dc7a7b52bf8be37ab06ae85ae5252ab7421bb1789c3bd22e888d9",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "e85105f7c57bb8a58e836267af0579cafb940e77b9eff9a469a4e44f166945e8",
+    "testsuite/CMakeLists.txt": "cd6ffba714a65e840d18a0a7a13839be1e2388ef8ff02476c7cb292aaffe40e6",
+    "testsuite/coinbgfx/CoinBgfxMultiWindowTest.cpp": "3ef60ff2383a0eaeab0ec80ca9b4e64aafb143d74c67ee4b7f32b8f64a87b201",
+    "testsuite/coinrender/CoinRenderPbrCacheTest.cpp": "d7079210b35524414b1bb1e7cf13e5b6be005a1a2f7ae413461b398b72050ea4",
+    "testsuite/coinrender/CoinRenderPbrCadToolsTest.cpp": "051e2c148d762ba80b7348556e628da0a3168cf73230db8f84348e56a5a8163c",
+    "testsuite/coinrender/CoinRenderPbrIblGpuTest.cpp": "9b8700bfb60b3e708f3b6a15476ff8631d72695c0ee2a01e5b68afda17b7e26f",
+    "testsuite/coinrender/CoinRenderPbrOutputControlTest.cpp": "f47910f6ca7f567269331b59c302ff34b758bf96128599ac88232a9c18f06f17",
+    "testsuite/coinrender/CoinRenderPbrWindowLifecycleTest.cpp": "1adb0f1aec41349539953620dcef98fcc2e7bd61a41d821b59b2b05c501bd148"
+  },
+  "installed_artifacts": {
+    "viewer": {
+      "path": "/tmp/coin-pbr-sdk/bin/coin_render_viewer",
+      "sha256": "0644739865ec9306875834684a808534fc549b6a99e98f3ae9564bab701695f5"
+    },
+    "baker": {
+      "path": "/tmp/coin-pbr-sdk/bin/coin_render_pbr_baker",
+      "sha256": "fa4344aac70e190e4203a63280281167dbbb893ca9e948c83a1fc3addc626c30"
+    },
+    "libCoinRender": {
+      "path": "/tmp/coin-pbr-sdk/lib/libCoinRender.so",
+      "sha256": "2f06857bce6d284833b5f52d6eabfa429fb573af224fc30c9ce6dde55e4cced7"
+    },
+    "libCoin": {
+      "path": "/tmp/coin-pbr-sdk/lib/libCoin.so",
+      "sha256": "fcd74edb62bf6a15f254564330e3d8f2b40ceb2d8b4e97b89ccd7fdff29b4dd3"
+    },
+    "consumer": {
+      "path": "/tmp/coin-pbr-sdk-consumer/coin-render-sdk-pbr",
+      "sha256": "b03d13a0198465ea2c263581832bbbc0eb0cfb4ab17d650f1ca9fec9af3b0deb"
+    },
+    "public_material_header": {
+      "path": "/tmp/coin-pbr-sdk/include/Inventor/rendering/SoPBRMaterial.h",
+      "sha256": "6c9755e8bdfb308259ce95764d701b13be864e2741d86d81d3099673408e64e4"
+    },
+    "public_target_header": {
+      "path": "/tmp/coin-pbr-sdk/include/Inventor/rendering/CoinRenderTarget.h",
+      "sha256": "43dbb3f0327d475efcd97afff9a43f242b28e3e3c200ee3b5b25bfab2994152e"
+    }
+  },
+  "build_options": {
+    "bgfx": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_INSTALL_PREFIX": "/tmp/coin-pbr-sdk",
+      "COIN_BUILD_LEGACY_GL_RENDERER": "ON",
+      "COIN_BUILD_RENDER": "ON",
+      "COIN_BUILD_RENDER_BENCHMARKS": "ON",
+      "COIN_BUILD_RENDER_WINDOW_EXAMPLE": "ON",
+      "COIN_BUILD_TESTS": "ON",
+      "COIN_INSTALL_RENDER_EXPERIMENTAL": "ON",
+      "COIN_RENDER_BACKEND": "BGFX"
+    },
+    "recording": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_INSTALL_PREFIX": "/tmp/coin-pbr-recording-sdk",
+      "COIN_BUILD_LEGACY_GL_RENDERER": "ON",
+      "COIN_BUILD_RENDER": "ON",
+      "COIN_BUILD_RENDER_BENCHMARKS": "OFF",
+      "COIN_BUILD_RENDER_WINDOW_EXAMPLE": "OFF",
+      "COIN_BUILD_TESTS": "ON",
+      "COIN_INSTALL_RENDER_EXPERIMENTAL": "ON",
+      "COIN_RENDER_BACKEND": "RECORDING"
+    },
+    "rust": {
+      "CMAKE_BUILD_TYPE": "Release",
+      "CMAKE_INSTALL_PREFIX": "/tmp/coin-pbr-rust-sdk",
+      "COIN_BUILD_LEGACY_GL_RENDERER": "ON",
+      "COIN_BUILD_RENDER": "ON",
+      "COIN_BUILD_RENDER_BENCHMARKS": "OFF",
+      "COIN_BUILD_RENDER_WINDOW_EXAMPLE": "OFF",
+      "COIN_BUILD_TESTS": "ON",
+      "COIN_INSTALL_RENDER_EXPERIMENTAL": "ON",
+      "COIN_RENDER_BACKEND": "RUST_BRIDGE"
+    }
+  }
+}

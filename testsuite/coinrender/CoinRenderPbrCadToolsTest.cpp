@@ -1,5 +1,6 @@
 #include "CoinRenderPbrCadTools.h"
 #include <Inventor/SoDB.h>
+#include <Inventor/SoInteraction.h>
 #include <cstdio>
 #define CHECK(x,m) do{if(!(x)){std::fprintf(stderr,"FAIL: %s (%d)\n",m,__LINE__);return 1;}}while(0)
 static int edgeCount(SoNode * source) {
@@ -7,7 +8,7 @@ static int edgeCount(SoNode * source) {
   auto * lines=static_cast<SoIndexedLineSet *>(mesh->getChild(1));const int count=lines->coordIndex.getNum()/3;mesh->unref();return count;
 }
 int main() {
-  SoDB::init();SoPBRMaterial::initClass();
+  SoDB::init();SoInteraction::init();SoPBRMaterial::initClass();
   auto * cube=new SoSeparator;cube->ref();coin_pbr_fixture::box(cube,"cube",SbVec3f(3,2,1),SbVec3f(2,2,2),SbColor(.5f,.5f,.5f));
   CHECK(edgeCount(cube)==12,"cube exposes twelve geometric edges, without triangle diagonals");
   auto * ring=new SoSeparator;ring->ref();coin_pbr_fixture::ring(ring,"ring",SbVec3f(0,0,0),.5f,2,1,.1f,SbColor(.5f,.5f,.5f),1,.3f);

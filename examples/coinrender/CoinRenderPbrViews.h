@@ -5,6 +5,7 @@
 #include <Inventor/rendering/SoPBRMaterial.h>
 #include <Inventor/C/base/time.h>
 #include <Inventor/SoDB.h>
+#include <Inventor/SoInteraction.h>
 #include <Inventor/SoInput.h>
 #include <Inventor/SoOutput.h>
 #include <Inventor/SbViewVolume.h>
@@ -133,7 +134,7 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   const int frames = options.orbitFrames > 0 ? options.orbitFrames : (requestedFrames > 0 ? requestedFrames : 1);
   if (options.size[0] < 32 || options.size[1] < 32 || options.size[0] > 8192 ||
       options.size[1] > 8192 || frames > 100000) return 2;
-  SoDB::init(); CoinRenderAction::initClass();
+  SoDB::init(); SoInteraction::init(); CoinRenderAction::initClass();
   CoinRenderOptions renderOptions; renderOptions.renderer = COIN_RENDER_RENDERER_VULKAN;
   renderOptions.pbrExposureStops = options.exposureStops;
   renderOptions.pbrEnvironmentBundle = options.environmentBundle;

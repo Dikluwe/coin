@@ -28,6 +28,7 @@ class SoSeparator;
 class SoCube;
 class SoSFVec3f;
 class SoMaterial;
+class SoPBRMaterial;
 
 class COIN_RENDER_DLL_API CoinRenderActionP {
 public:
@@ -39,7 +40,10 @@ public:
   static void materialContentMethod(SoAction *, SoNode *);
   static SoCallbackAction::Response materialWitnessPreCB(void *, SoCallbackAction *, const SoNode *);
   bool materialWitnessesValid(bool allowNotifiedMaterial = false) const;
-  void commitMaterialWitnesses();
+  void commitMaterialWitnesses(SoNode *);
+  void qualifyPbrMaterials(SoNode *);
+  bool preparePbrMaterialOverlay(SoNode *,CoinRenderObjectOverlayUndo &);
+  void commitPbrMaterialOverlay();
   bool captureBoundingBox(SoCallbackAction *, SoNode *);
   void observeBoundingBox(SoCallbackAction *, SoNode *);
   static void screenContentMethod(SoAction *, SoNode *);
@@ -138,6 +142,15 @@ public:
   SoNodeList materialWitnessNodes, capturedMaterialWitnessNodes;
   SbList<SbUniqueId> materialWitnessIds, capturedMaterialWitnessIds;
   SbList<SbBool> materialWitnessOverrides, capturedMaterialWitnessOverrides;
+  struct PbrMaterialBinding {
+    SoPBRMaterial * node=nullptr;
+    CoinRenderPbrMaterialSnapshot authored;
+    SbList<uint32_t> slots;
+  };
+  SbList<PbrMaterialBinding> pbrMaterialBindings;
+  SoNodeList pbrMaterialDirty;
+  bool pbrMaterialInvalidated=true;
+  bool sceneHasCallbackNodes=false;
   CoinRenderFramePlan lastRejectedShadowFrame;
   CoinRenderShadowPlan lastRejectedShadowPlan;
   struct ShadowSceneCapture {

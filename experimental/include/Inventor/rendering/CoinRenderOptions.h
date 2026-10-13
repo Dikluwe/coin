@@ -14,7 +14,9 @@ enum CoinRenderStoredTextureColorSpace {
   COIN_RENDER_TEXTURE_SRGB = 1
 };
 
-/** Immutable target configuration. Explicit options override environment defaults.
+/** Structural target configuration. Exposure and environment scalar parameters
+ * may subsequently change through the target's explicit setters.
+ * Explicit options override environment defaults.
  * UNKNOWN renderer means the compiled connector's default. Extensions require
  * explicit selection; COIN preserves the captured transparency modality. */
 struct CoinRenderOptions {

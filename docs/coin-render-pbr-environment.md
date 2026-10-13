@@ -22,6 +22,9 @@ e multiplica somente a iluminação indireta. `pbrExposureStops` continua [-16,1
 As opções pertencem ao target. Um pacote carregado é imutável durante seu
 lifetime; substituir um arquivo sob o mesmo caminho não altera frames ativos.
 Para trocar seu conteúdo, criar outro target com o pacote desejado.
+Desde M5, `setPbrExposureStops()` e `setPbrEnvironmentParameters()` permitem
+editar os escalares para o próximo frame sem recaptura da geometria ou novo
+upload do ambiente. Valores inválidos preservam configuração e publicação.
 
 ## Modelo e matemática
 

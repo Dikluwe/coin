@@ -1,5 +1,26 @@
 # Consumidor público CoinRender instalado
 
+## SoPBRMaterial: perfil inicial Linux BGFX/Vulkan
+
+O executável adicional `coin-render-sdk-pbr` usa somente headers públicos
+instalados. Cria câmera e esfera Coin, troca o controle SoMaterial por
+SoPBRMaterial, verifica primeiro/replay, edita exposição e roughness, suspende
+e redimensiona o alvo. Seu tempo impresso inclui render/readback e não é um
+benchmark GPU. O SDK instala também o baker e os helpers das views CAD.
+
+```sh
+coin_render_pbr_baker --source studio --output studio.cibl
+coin-render-sdk-pbr --environment studio.cibl --output pbr.ppm
+```
+
+O pacote do ambiente permanece imutável por target. Os setters públicos
+`setPbrExposureStops(stops)` e `setPbrEnvironmentParameters(rotation,intensity)`
+alteram escalares no próximo frame. A rotação é em radianos sobre +Z mundial.
+
+Nos SDKs Recording e Rust, executar `coin-render-sdk-pbr --expect-unsupported`.
+O teste exige rejeição PBR explícita e preservação dos pixels/serial do controle
+legado. Isso não qualifica shading PBR nesses executores.
+
 Projeto CMake independente do build Coin, sem headers privados. Requer os
 pacotes Coin e CoinRender instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`
 e renderer legado ligado para a referência CoinGL. Usa somente targets

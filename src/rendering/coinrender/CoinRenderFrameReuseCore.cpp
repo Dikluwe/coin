@@ -615,9 +615,14 @@ bool CoinRenderFrameReuseCore::beginObjectOverlay(
     if (update.slot >= plan.materials.size() || !slots.insert(update.slot).second ||
         update.material.transparency != 0 || update.material.diffuse[3] != 1 ||
         !std::isfinite(update.material.shininess) || update.material.shininess < 0 || update.material.shininess > 1) return false;
+    if(update.material.model!=plan.materials[update.slot].model)return false;
+    if(update.material.model==CoinRenderMaterialModel::PBR) {
+      if(!coin_render_valid_pbr_material(update.material.pbr))return false;
+    } else if(update.material.model==CoinRenderMaterialModel::LEGACY) {
     for (const float * color : {update.material.ambient, update.material.diffuse,
                                update.material.specular, update.material.emission})
       for (int i = 0; i < 4; ++i) if (!std::isfinite(color[i]) || color[i] < 0 || color[i] > 1) return false;
+    } else return false;
     prepared.materials.push_back({update.slot, plan.materials[update.slot]});
   }
   const bool tracePositions = !positions.empty() && CoinRenderDiagnosticShell::phaseTracingEnabled();

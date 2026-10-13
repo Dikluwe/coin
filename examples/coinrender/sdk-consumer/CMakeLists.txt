@@ -11,3 +11,8 @@ target_link_libraries(coin-render-sdk-consumer PRIVATE CoinRender::CoinRender Co
 add_executable(coin-render-sdk-capabilities-c capabilities.c)
 set_target_properties(coin-render-sdk-capabilities-c PROPERTIES C_STANDARD 11 C_STANDARD_REQUIRED YES)
 target_link_libraries(coin-render-sdk-capabilities-c PRIVATE CoinRender::CoinRender Coin::Coin)
+
+# Uses installed public Coin/CoinRender headers only; no backend or baker header.
+add_executable(coin-render-sdk-pbr pbr-main.cpp)
+target_compile_features(coin-render-sdk-pbr PRIVATE cxx_std_17)
+target_link_libraries(coin-render-sdk-pbr PRIVATE CoinRender::CoinRender Coin::Coin)

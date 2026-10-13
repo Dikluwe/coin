@@ -1,0 +1,90 @@
+{
+  "milestone": "M5",
+  "status": "complete",
+  "date": "2026-10-13",
+  "input_commit": "856bc964964d4af80167ec5f6e0d5df86ea25d45",
+  "physical_gpu": "AMD RADV RENOIR 1002:1638 / Mesa25.2.8 / Vulkan",
+  "ctest": {
+    "BGFX": 33,
+    "RECORDING": 13,
+    "RUST_BRIDGE": 14
+  },
+  "sdk_consumers": {
+    "BGFX": "PBR positive",
+    "RECORDING": "explicit PBR rejection, prior publication preserved",
+    "RUST_BRIDGE": "explicit PBR rejection, prior publication preserved"
+  },
+  "installed_baker_binary_content_identical": true,
+  "material_factor_update": {
+    "native_full_capture_oracle": true,
+    "primitive_recapture": 0,
+    "gpu_vertex_reupload": 0,
+    "transactional_retry": true,
+    "conservative_fallback": true
+  },
+  "public_scalar_controls": {
+    "plan_reused": true,
+    "HDR_intensity_verified": true,
+    "exposure_preserves_scene_linear": true,
+    "invalid_values_preserve_publication": true
+  },
+  "lifecycle": {
+    "native_window": true,
+    "offscreen": true,
+    "resize": true,
+    "suspend_resume": true,
+    "controlled_device_loss_reconstruction": true,
+    "distinct_peer_environment_reconstruction": true,
+    "source_files_removed": true,
+    "previous_CPU_publication_preserved": true
+  },
+  "cad": {
+    "cases": 106,
+    "images": 280,
+    "main_views": 72,
+    "depth_probes": 52170,
+    "pixels_exact_M4": true
+  },
+  "historical_controls": {
+    "m0": {
+      "passed": 26,
+      "total": 26,
+      "pixel_hashes_exact": true
+    },
+    "m2": {
+      "passed": 27,
+      "total": 27,
+      "pixel_hashes_exact": true
+    },
+    "m3": {
+      "passed": 22,
+      "total": 22,
+      "pixel_hashes_exact": false
+    }
+  },
+  "benchmark": {
+    "build": "Release",
+    "resolution": [
+      1280,
+      960
+    ],
+    "frames_each": 144,
+    "warmup": 16,
+    "measured": 128,
+    "readback_each_frame": false,
+    "real_GPU_timestamps": true,
+    "per_pass_timestamps": "unavailable under strict frame/view matching",
+    "presentation_FPS": "not measured",
+    "cases": 4
+  },
+  "limits": {
+    "environment_payload_bytes": 67108864,
+    "material_proof_sources": 1024,
+    "material_slots": 65536,
+    "callback_graph_nodes": 65536,
+    "views_per_target": 16,
+    "technical_views": 11,
+    "readback_bytes": 134217728,
+    "readback_tickets": 16
+  }
+}

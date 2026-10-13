@@ -1,5 +1,17 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderPbrCacheTest coinrender/CoinRenderPbrCacheTest.cpp)
+  target_compile_definitions(CoinRenderPbrCacheTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_link_libraries(CoinRenderPbrCacheTest CoinRender Coin)
+  target_include_directories(CoinRenderPbrCacheTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+    ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME CoinRenderPbrCacheTest COMMAND CoinRenderPbrCacheTest)
+  if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_test(NAME CoinRenderPbrCacheGpuTest COMMAND CoinRenderPbrCacheTest --gpu)
+    set_tests_properties(CoinRenderPbrCacheGpuTest PROPERTIES TIMEOUT 90 ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
+  endif()
   add_executable(CoinRenderPbrCadToolsTest coinrender/CoinRenderPbrCadToolsTest.cpp)
   target_link_libraries(CoinRenderPbrCadToolsTest CoinRender Coin)
   target_include_directories(CoinRenderPbrCadToolsTest PRIVATE
@@ -14,6 +26,15 @@ if(COIN_BUILD_RENDER)
   add_test(NAME CoinRenderPbrEnvironmentTest COMMAND CoinRenderPbrEnvironmentTest
     ${CMAKE_CURRENT_BINARY_DIR}/pbr-environment-test.cibl)
   if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_executable(CoinRenderPbrOutputControlTest coinrender/CoinRenderPbrOutputControlTest.cpp)
+    target_compile_definitions(CoinRenderPbrOutputControlTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderPbrOutputControlTest CoinRender Coin)
+    target_include_directories(CoinRenderPbrOutputControlTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderPbrOutputControlTest COMMAND CoinRenderPbrOutputControlTest ${CMAKE_CURRENT_BINARY_DIR}/pbr-output.cibl)
+    set_tests_properties(CoinRenderPbrOutputControlTest PROPERTIES TIMEOUT 90 ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
     add_executable(CoinRenderPbrCadGpuTest coinrender/CoinRenderPbrCadGpuTest.cpp)
     target_compile_definitions(CoinRenderPbrCadGpuTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
     target_link_libraries(CoinRenderPbrCadGpuTest CoinRender Coin)
@@ -772,6 +793,15 @@ if(COIN_BUILD_RENDER)
 		set_tests_properties(CoinBgfxWeightedOitOpenGLTest PROPERTIES TIMEOUT 30 SKIP_RETURN_CODE 77
 			ENVIRONMENT "COIN_BGFX_TRANSPARENCY=weighted_oit;COIN_BGFX_RENDERER=opengl")
 		if(X11_FOUND)
+			add_executable(CoinRenderPbrWindowLifecycleTest coinrender/CoinRenderPbrWindowLifecycleTest.cpp)
+			target_compile_definitions(CoinRenderPbrWindowLifecycleTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+			target_link_libraries(CoinRenderPbrWindowLifecycleTest CoinRender Coin ${X11_LIBRARIES})
+			target_include_directories(CoinRenderPbrWindowLifecycleTest PRIVATE
+				${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+				${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+				${PROJECT_BINARY_DIR}/include ${X11_INCLUDE_DIR} ${COIN_TARGET_INCLUDE_DIRECTORIES})
+			add_test(NAME CoinRenderPbrWindowLifecycleTest COMMAND CoinRenderPbrWindowLifecycleTest ${CMAKE_CURRENT_BINARY_DIR}/pbr-window.cibl)
+			set_tests_properties(CoinRenderPbrWindowLifecycleTest PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77 ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
 			add_executable(CoinBgfxWindowTest coinbgfx/CoinBgfxWindowTest.cpp)
 			set_target_properties(CoinBgfxWindowTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 			target_link_libraries(CoinBgfxWindowTest CoinRender Coin ${X11_LIBRARIES})

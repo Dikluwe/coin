@@ -259,6 +259,8 @@ bool sameDrawExceptMaterial(const CoinBgfxDraw & lhs,
   CoinBgfxDraw b = rhs;
   a.alpha = b.alpha = 0.0f;
   a.materialSignature = b.materialSignature = 0;
+  std::memset(a.pbrBaseMetallic,0,sizeof(a.pbrBaseMetallic));std::memset(b.pbrBaseMetallic,0,sizeof(b.pbrBaseMetallic));
+  std::memset(a.pbrEmissionRoughness,0,sizeof(a.pbrEmissionRoughness));std::memset(b.pbrEmissionRoughness,0,sizeof(b.pbrEmissionRoughness));
   return std::memcmp(&a, &b, sizeof(a)) == 0;
 }
 
@@ -962,6 +964,17 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       for (float & q : packedQ) q = 1.0f;
     const auto setMaterial = [&](CoinBgfxVertex & vertex,
                                  const CoinRenderMaterialSnapshot & material) {
+      if(material.model==CoinRenderMaterialModel::PBR) {
+        // PBR parameters are per-draw uniforms. Dead legacy color attributes
+        // stay canonical, so edits do not upload the geometry buffer again.
+        const CoinRenderMaterialSnapshot canonical;
+        std::memcpy(vertex.color,canonical.diffuse,sizeof(vertex.color));
+        std::memcpy(vertex.ambient,canonical.ambient,sizeof(vertex.ambient));
+        std::memcpy(vertex.specular,canonical.specular,sizeof(vertex.specular));
+        std::memcpy(vertex.emission,canonical.emission,sizeof(vertex.emission));
+        vertex.material[0]=canonical.shininess;vertex.material[1]=1;
+        return;
+      }
       std::memcpy(vertex.color, material.diffuse, sizeof(vertex.color));
       std::memcpy(vertex.ambient, material.ambient, sizeof(vertex.ambient));
       std::memcpy(vertex.specular, material.specular, sizeof(vertex.specular));

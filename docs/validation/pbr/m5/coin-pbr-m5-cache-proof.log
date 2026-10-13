@@ -1,0 +1,15 @@
+GPU material-only trace: COIN_RENDER_PHASE action traversal_ms=0.003036 frame_plan_ms=0.027541 backend_ms=0.665289 vertices=36 indices=36 draws=1 plan_cache_hit=1 plan_reuse=resource_rebuild
+COIN_RENDER_PHASE pbr_material_update sources=1 materials=1 geometry_capture=0
+COIN_RENDER_PHASE combine_validation_memo enabled=1 programs_checked=8 cache_hits=0 validated=8
+COIN_RENDER_PHASE validation_detail materials_ms=0.001112 vertices_ms=0.001012 indices_ms=0.000100 scene_state_ms=0.000822 render_states_ms=0.002104 draws_ms=0.000260 finish_ms=0.012924
+COIN_RENDER_PHASE composition_range_memo enabled=1 entries=0 admissions=0 hits=0 depth_skipped=0 bound_fallbacks=0
+COIN_RENDER_PHASE composition_identity consumer=common copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=1 qualify_ms=0.003025 copy_ms=0.000000
+COIN_RENDER_PHASE composition_detail classify_ms=0.003336 sort_ms=0.000140 finish_ms=0.021100
+COIN_RENDER_PHASE bgfx_instancing_declined enabled=0 max_instance_data=16 max_vertex_attributes=32 reason=
+COIN_RENDER_PHASE bgfx_program_cache enabled=0 hits=0 writes=0
+COIN_RENDER_PHASE bgfx_geometry compact_vertices=0 vertex_stride=220 instancing=0 instances=0 instance_stride=160 instance_buffer_capacity=0
+COIN_RENDER_PHASE bgfx lower_ms=0.021850 upload_ms=0.009758 encode_ms=0.011171 draw_encode_ms=0.008466 blit_encode_ms=0.002705 submit_frame_ms=0.006622 read_request_ms=0.000291 read_wait_ms=0.328101 frame_wait_ms=0.328061 row_flip_ms=0.000110 vertices=36 draws=1 read_wait_frames=3 readback_pipeline_depth=1 readback_latency_frames=0 readback_pipeline_bytes=32768 readback_gpu_staging_bytes=16384 readback_cpu_staging_bytes=16384 readback_published_bytes=16384 readback_bootstrap=1 resource_cache_hit=0 texture_cache_hit=1 geometry_buffer_reused=1 vertex_buffer_capacity=256 index_buffer_capacity=256 camera_patch=0 material_patch=1 material_patch_ranges=0 material_patch_vertices=0 gpu_query_drain_ms=0.000030 gpu_query_frames=0 gpu_pass_frame=0 gpu_frame_ms=not_requested gpu_opaque_ms=unavailable gpu_transparent_ms=unavailable gpu_composite_ms=unavailable gpu_blit_readback_ms=unavailable gpu_wait_ms=unavailable gpu_resource_stats=0 gpu_draw_submits=0 opaque_draws=1 transparent_draws=0 opaque_grouping=1 opaque_reordered=0 logical_pipeline_changes=1 logical_material_changes=1 logical_texture_changes=1 logical_lighting_changes=1 gpu_memory_used_bytes=-1 texture_memory_used_bytes=-1 render_target_memory_used_bytes=-1 gpu_vertex_buffers=0 gpu_index_buffers=0 gpu_textures=0 gpu_framebuffers=0 gpu_programs=0
+COIN_RENDER_PHASE target validation_ms=0.141924 prepare_ms=0.009338 submit_ms=0.492216
+COIN_RENDER_PHASE target_composition_copy consumer=target copied_items=0 copied_bytes=0 borrowed_items=0 borrowed_bytes=0 computed_items=1 qualify_ms=0.000170 copy_ms=0.000181
+
+PBR material cache: four factors/HDR, exact full-traversal oracle, ambiguity, override, optout, callbacks and transactional retry PASS

@@ -7,6 +7,8 @@ env=os.environ.copy();env.update(DISPLAY=':0',VK_DRIVER_FILES='/usr/share/vulkan
 rows=[]
 def run(name,options):
     prefix=out/name;cmd=[a.viewer,'--pbr','--width','800','--height','600','--frames','2','--capture-prefix',str(prefix),*options]
+    # Preserve the M2 direct-shading control with the later quality defaults.
+    cmd+=['--single-scattering','--no-specular-filter']
     r=subprocess.run(cmd,env=env,text=True,capture_output=True,timeout=60)
     (out/(name+'.log')).write_text(r.stdout+r.stderr)
     row=dict(case=name,command=cmd,exit_code=r.returncode,passed=False)

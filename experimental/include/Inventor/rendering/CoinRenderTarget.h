@@ -126,6 +126,13 @@ public:
                                         const SbVec2i32& framebufferSize,
                                         const CoinRenderOptions& options);
   const CoinRenderOptions& getOptions(void) const;
+  /** Output/lighting scalars for the next frame. Exposure stops are finite
+   * in [-16,16]; rotation is finite radians about world +Z and intensity is
+   * finite in [0,64]. These do not recapture the
+   * scene or reload its immutable environment. Failed values leave the prior
+   * configuration and published frame intact. */
+  SbBool setPbrExposureStops(float stops);
+  SbBool setPbrEnvironmentParameters(float rotationRadians,float intensity);
 
   ~CoinRenderTarget(void);
   CoinRenderTarget(const CoinRenderTarget&) = delete;
