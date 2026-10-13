@@ -1,0 +1,24 @@
+Internal ctest changing into directory: /tmp/coin-pbr-bgfx
+Test project /tmp/coin-pbr-bgfx
+    Start   1: CoinRenderPbrFixturesTest
+1/9 Test   #1: CoinRenderPbrFixturesTest ...........   Passed    0.02 sec
+    Start  47: CoinRenderPlanAssemblyCoreTest
+2/9 Test  #47: CoinRenderPlanAssemblyCoreTest ......   Passed    0.03 sec
+    Start  60: CoinRenderFrameCoreTest
+3/9 Test  #60: CoinRenderFrameCoreTest .............   Passed    0.02 sec
+    Start  61: CoinBgfxReadbackModes_vulkan
+4/9 Test  #61: CoinBgfxReadbackModes_vulkan ........   Passed    0.29 sec
+    Start  72: CoinRenderDepthContractVulkanTest
+5/9 Test  #72: CoinRenderDepthContractVulkanTest ...   Passed    0.08 sec
+    Start  75: CoinBgfxOffscreenTest
+6/9 Test  #75: CoinBgfxOffscreenTest ...............   Passed    0.84 sec
+    Start  86: CoinBgfxWindowTest
+7/9 Test  #86: CoinBgfxWindowTest ..................   Passed    0.51 sec
+    Start  98: CoinRenderFrameReuseCoreTest
+8/9 Test  #98: CoinRenderFrameReuseCoreTest ........   Passed    0.29 sec
+    Start 100: CoinRenderIndexedGeometryCoreTest
+9/9 Test #100: CoinRenderIndexedGeometryCoreTest ...   Passed    0.01 sec
+
+100% tests passed, 0 tests failed out of 9
+
+Total Test time (real) =   2.09 sec

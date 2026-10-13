@@ -1,0 +1,274 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{babel}\babelprovide[import,main]{portuguese}
+\usepackage{lmodern,amsmath,amssymb,booktabs,array,longtable,xcolor,microtype}
+\usepackage[margin=23mm,headheight=15pt]{geometry}
+\usepackage{fancyhdr,enumitem,listings}
+\usepackage[colorlinks=true,linkcolor=blue!45!black,urlcolor=blue!45!black]{hyperref}
+\definecolor{ink}{HTML}{173B49}\definecolor{soft}{HTML}{F3F6F7}
+\pagestyle{fancy}\fancyhf{}
+\fancyhead[L]{\small\sffamily SoPBRMaterial no CoinRender}
+\fancyhead[R]{\small\sffamily Plano de implementação}
+\fancyfoot[C]{\small\thepage}
+\setlength{\parindent}{0pt}\setlength{\parskip}{6pt}
+\setlength{\emergencystretch}{3em}
+\setlist{nosep,leftmargin=1.4em}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\newcommand{\src}[2]{\par{\small\textit{Referência:} \href{#1}{#2}.}\par}
+\lstset{basicstyle=\small\ttfamily,backgroundcolor=\color{soft},breaklines=true,
+columns=fullflexible,keepspaces=true,showstringspaces=false,xleftmargin=8pt,xrightmargin=8pt}
+\hypersetup{pdftitle={Plano de implementação de SoPBRMaterial no CoinRender},pdfauthor={Planejamento técnico preparado com Codex}}
+\begin{document}
+\begin{center}
+{\sffamily\color{ink}\Huge SoPBRMaterial}\par\vspace{4mm}
+{\sffamily\Large Plano de implementação no CoinRender}\par\vspace{3mm}
+{\large Materiais opacos, HDR, ambiente e cenas CAD}\par\vspace{3mm}
+{\small 12 de outubro de 2026}
+\end{center}
+
+\textbf{Decisão.} Implementar diretamente um novo nó material, consumido pela captura comum do CoinRender. Começar com \textbf{BGFX/Vulkan em Linux} e usar o \textbf{coin\_render\_viewer} como base para as views interativas e reproduzíveis. A integração C++ e os shaders BGFX serão desenvolvidos nesse executor; a ponte Rust não faz parte da primeira implementação GPU.
+
+O objetivo é uma resposta física convincente e estável em peças e montagens CAD. O primeiro perfil inclui superfícies opacas isotrópicas, fatores de material, iluminação por fragmento, acumulação HDR, ambiente pré-calculado e transformação de saída. O nó expressa a superfície; ambiente e exposição são configurações de cena/target do exemplo e da integração.
+
+Não há exigência de criar Core/Shell/Infra/Wiring como diretórios, interfaces ou bibliotecas. Separar funções quando houver um algoritmo a testar, duplicação entre executores ou dificuldade concreta de manutenção. A regra útil de Tekt continua sendo dar um único dono a cada decisão.
+
+\textbf{Estado desta entrega.} Este é um plano, baseado no código e na documentação local. SoPBRMaterial, os novos shaders, a configuração de ambiente e as opções de captura descritas aqui ainda precisam ser implementados. Nenhuma view PBR foi renderizada nesta etapa. Os arquivos de código dos checkouts não foram alterados.
+
+\textbf{Sequência.} M0 baseline e harness; M1 nó/estado; M2 GGX e HDR; M3 IBL; M4 integração CAD e qualidade; M5 qualificação e publicação experimental. M1/M2 são incrementos de engenharia; a primeira demonstração visual completa é M3, e o primeiro perfil aceito para uso CAD é M4/M5.
+
+\newpage\tableofcontents\newpage
+
+\section{Base de integração e escolha do executor}
+
+O desenvolvimento deve partir da branch \path{codex/coin-render}, no checkout \path{/mnt/Laranja/Git/externos/coin-render}. O checkout do chat, \path{/mnt/Laranja/Git/externos/coin}, conserva o caminho clássico. A árvore CoinRender tinha alterações locais durante a inspeção; M0 deve congelar o commit e o diff efetivamente usados, sem descartar trabalho existente. Uma branch de implementação, por exemplo \path{codex/sopbrmaterial}, deve partir da integração reconciliada.
+\src{/mnt/Laranja/Git/externos/coin-render/docs/coin-render-branch-guide.md}{guia local da branch e localização dos componentes}
+
+\textbf{Por que BGFX/Vulkan?} O executor já tem integração C++ de targets, recursos, apresentação e captura de janela. Isso permite desenvolver o primeiro material sem atualizar simultaneamente um transporte C++/Rust. Vulkan é o perfil inicial escolhido; essa escolha não afirma superioridade de desempenho ou qualidade sobre wgpu.
+
+A checklist local registra controles físicos BGFX/Vulkan e integração FreeCAD em Linux. Eles são evidência de infraestrutura exercitada, não de PBR pronto. Os documentos antigos preservam falhas de campanhas anteriores; a checklist e os recibos mais recentes devem orientar a baseline. M0 reexecuta os controles necessários no estado exato escolhido.
+\src{/mnt/Laranja/Git/externos/coin-render/docs/coin-render-next-fronts-checklist.md}{checklist atual, especialmente captura, FreeCAD e janelas}
+
+\begin{center}\small
+\begin{tabular}{P{.25\linewidth}P{.65\linewidth}}
+\toprule Escolha & Uso previsto\\\midrule
+BGFX + Vulkan & Implementação e qualificação GPU do perfil PBR inicial. API solicitada explicitamente e adaptador real registrado.\\
+coin\_render\_viewer & Base do viewer PBR, com carregamento CAD, presets de câmera e capturas determinísticas.\\
+coin\_render\_window\_\allowbreak benchmark & Reutilizar padrões de captura e telemetria; manter controles legados de janela e performance.\\
+RECORDING & Validar captura, estado, rejeições e contratos sem GPU. Não é oráculo de imagem PBR.\\
+RUST\_BRIDGE/wgpu & Manter o build e o comportamento legado; recusar explicitamente PBR até sua implementação posterior.\\\bottomrule
+\end{tabular}\end{center}
+
+O viewer atual aceita somente frames e uma demonstração de transparência. Ele cria um cone e força BASE\_COLOR em uma rota BGFX. A extensão PBR precisa selecionar explicitamente o novo material e o perfil de câmera; as opções futuras deste plano não existem hoje.
+\src{/mnt/Laranja/Git/externos/coin-render/examples/coinrender/coin_render_viewer.cpp}{viewer escolhido}
+\src{/mnt/Laranja/Git/externos/coin-render/examples/coinrender/coin_render_window_benchmark.cpp}{padrões existentes de janela, captura e carregamento de cenas}
+
+\section{Contrato inicial do nó material}
+
+\texttt{SoPBRMaterial} será um nó derivado de SoNode, no mesmo papel de estado material que SoMaterial. A proposta é alojá-lo no módulo experimental CoinRender, com header \path{experimental/include/Inventor/rendering/SoPBRMaterial.h}. Esse caminho é proposto e deve entrar na instalação experimental. Não criar uma nova biblioteca apenas para este nó.
+
+\begin{center}\small
+\begin{tabular}{P{.20\linewidth}P{.18\linewidth}P{.52\linewidth}}
+\toprule Campo & Padrão proposto & Semântica\\\midrule
+baseColor & RGB (0,8; 0,8; 0,8) & Fator RGB linear, componentes em [0,1]. A interface do exemplo converte cores sRGB de entrada.\\
+metallic & 0 & Fator em [0,1]; 0 é dielétrico e 1 é metal no modelo adotado.\\
+roughness & 0,4 & Rugosidade perceptual em [0,1]. GGX usa $\alpha=r^2$ com piso numérico documentado.\\
+emissive & RGB (0; 0; 0) & Emissão linear não negativa, admite valores acima de 1.\\\bottomrule
+\end{tabular}\end{center}
+
+O perfil é OPAQUE: alpha de saída 1, sem mapas, transmissão, refração, anisotropia, clearcoat ou displacement. Normais geométricas/interpoladas são suficientes para a primeira entrega. Usar um único material efetivo por draw; bindings per-face/per-vertex que não possam ser representados devem ser recusados pelo perfil, nunca aproximados silenciosamente.
+
+\textbf{Regras de estado propostas:}
+\begin{enumerate}
+\item Cada nó PBR efetivamente aplicado substitui o conjunto de fatores físicos, seguindo os valores dos seus campos. Campos ignorados e override devem seguir regras explicitamente testadas de estado Coin.
+\item SoMaterial efetivamente aplicado seleciona o modelo legado; SoPBRMaterial efetivamente aplicado seleciona PBR. A restauração do estado por SoSeparator também restaura o modelo ativo.
+\item A seleção do modelo deve respeitar override e a ordem real de aplicação. Apenas observar a visita ao nó não comprova que o material foi aplicado.
+\item SoLightModel controla o material legado. Para um material PBR ativo, o modelo físico é selecionado pelo material; BASE\_COLOR herdado do viewer não pode desligá-lo acidentalmente.
+\item Transparência ou invisibilidade herdada de um material legado não pode ocultar indevidamente um PBR opaco. A captura e os fast paths devem consultar o material efetivo correto.
+\end{enumerate}
+
+Implementar um elemento de estado experimental habilitado na action e a integração de captura necessária para reconhecer transições com SoMaterial. M1 deve provar essa convivência sem acrescentar campos PBR à classe pública SoMaterial. O mecanismo preciso de callbacks/action methods precisa respeitar a ordem das actions e os subtipos de nós; deve ser demonstrado em testes de travessia, não presumido.
+
+O FramePlan ganha um identificador explícito de modelo e o payload PBR correspondente, mantendo o payload legado. Os novos fatores entram em validação, igualdade, digest, deduplicação, revisão e invalidação. Um nó reconhecido não autoriza um executor a ignorar seu modelo.
+\src{/mnt/Laranja/Git/externos/coin-render/src/actions/CoinRenderAction.cpp}{registro da action e pontos de captura}
+\src{/mnt/Laranja/Git/externos/coin-render/src/rendering/coinrender/CoinRenderFramePlan.h}{snapshots atuais de material, câmera e luz}
+
+\section{Modelo de shading e formação da imagem}
+
+\subsection{Modelo físico comum}
+
+Adotar GGX isotrópico, Smith correlacionado e Fresnel de Schlick. O difuso inicial será Lambert com peso $(1-m)(1-F)$, testando a energia do conjunto difuso/especular. O primeiro perfil usa IOR dielétrico 1,5, portanto $F_{0,d}=0,04$:
+\begin{equation}
+F_0=(1-m)0,04+mC_b,\qquad
+f_s=\frac{D_{\rm GGX}FG_2}{4(\mathbf n\cdot\mathbf l)(\mathbf n\cdot\mathbf v)}.
+\end{equation}
+
+As convenções de rugosidade, composição difusa e compensação de energia serão fixadas antes de gerar a LUT. Usar f32 no cálculo de shading. O piso inicial proposto é $r_{\min}=0,045$ na avaliação da BRDF, preservando o valor autorado no nó; documentar que o perfil não representa um espelho ideal. Esse piso pode ser revisto com evidência de precisão e filtragem, junto da versão do perfil e dos assets.
+
+M2 pode estabelecer o baseline de interação única. M3/M4 deve incluir compensação de múltiplo espalhamento coerente com a LUT e a referência independente, para melhorar a resposta de metais rugosos. Não corrigir perda de energia com ganho arbitrário de exposição.
+
+Criar shaders PBR específicos no executor BGFX. O shader de vértice fornece posição e normal apropriadas; o fragmento renormaliza a normal e avalia a BRDF. Em perspectiva, calcular a direção de visão pela posição; em ortográfica, usar direção constante. Escala não uniforme e transformações refletidas entram nos controles geométricos.
+
+Os shaders legados preservam sua função. Os atributos hoje chamados tangent/bitangent transportam Q de textura; normal mapping futuro precisará de um layout próprio, sem reutilizá-los indevidamente.
+\src{/mnt/Laranja/Git/externos/coin-render/src/rendering/coinbgfx/shaders/vs_base_color.sc}{shader atual e atributos de textura}
+\src{https://google.github.io/filament/main/filament.html}{Filament: referência para BRDF, IBL e compensação de energia}
+
+\subsection{HDR e saída}
+
+O caminho PBR renderiza para RGBA16F linear com depth compatível e faz um passe de saída para o display/captura. O executor atual usa RGBA8 nos alvos de cena examinados; formatos float existentes em outros recursos não equivalem a esse pipeline pronto.
+
+\begin{equation}
+C_{\rm display}=\operatorname{encode}_{\rm sRGB}\!\left(T(2^e L_{\rm HDR})\right).
+\end{equation}
+
+Escolher Khronos PBR Neutral como transformação inicial de apresentação, com exposição fixa e controle em stops. Implementar a transformação conforme a referência e seus testes. A codificação sRGB deve acontecer uma vez: explicitar se é feita no shader de saída ou pelo formato do target e testar o resultado final. O target interno permanece linear.
+
+Não limitar radiância a 1 nos shaders PBR. Valores HDR 2 e 4 precisam continuar distintos antes da saída. O readback público SDR será feito após a transformação; para validar radiância, criar um controle de teste que leia o alvo float ou um passe diagnóstico equivalente, sem apresentar PPM/PNG como radiância HDR.
+
+Janela e offscreen devem executar a mesma transformação e política de cor. Resize, apresentação, screenshots, profundidade e destruição de recursos devem incluir os novos attachments. Reservar IDs de views BGFX sem colisão com passes já existentes, incluindo composição e readback.
+\src{/mnt/Laranja/Git/externos/coin-render/src/rendering/coinbgfx/CoinBgfxBackend.cpp}{alvos, resize, composição e captura BGFX}
+\src{https://modelviewer.dev/examples/tone-mapping}{Khronos PBR Neutral: demonstração e referência do autor}
+\src{https://bkaradzic.github.io/bgfx/bgfx.html}{BGFX: API de views, recursos e capacidades}
+
+\section{Iluminação de ambiente}
+
+M3 entrega IBL global pré-calculada. O pacote contém cubemap HDR, especular convolvido por GGX em níveis de rugosidade, irradiância difusa em SH de nove coeficientes e LUT BRDF. Mipmaps comuns não substituem o pré-filtro físico.
+
+Começar com ambientes procedurais de teste: um estúdio neutro com fontes amplas e um ambiente assimétrico com regiões HDR intensas. Isso fornece conteúdo controlado, orientações verificáveis e fonte reprodutível. Acrescentar um HDRI externo apenas com origem, licença e hash registrados.
+
+Definir um pacote versionado simples de manifest e buffers float/half com seis faces e níveis explícitos. O pré-processamento pode ser uma ferramenta offline; suporte completo a novos formatos de assets não precisa anteceder a demonstração. O loader valida dimensões, byte counts, faces, níveis, orientação e versão do modelo. Não afrouxar globalmente a recusa atual de SoTextureCubeMap para aceitar payloads incompletos.
+
+Para o perfil inicial, o exemplo entrega ambiente imutável e exposição na configuração de renderização, capturados uma vez em contrato comum. Uma API experimental aditiva deve ser definida em M0/M3; o nó SoPBRMaterial permanece dedicado à superfície. O recurso terá identidade, revisão e conteúdo próprios, com lifetime e orçamento no mesmo domínio de device do executor.
+
+\textbf{Estimativa de recursos proposta:} seis faces 512$\times$512 RGBA16F sem mips usam 12 MiB; um cubemap pré-filtrado 512 com a cadeia completa usa aproximadamente 16 MiB; uma LUT 256$\times$256 RG16F usa 0,25 MiB. Aproximadamente 28,25 MiB nesse pacote, sem cópias, alinhamentos, staging e recursos da cena. É cálculo nominal, não medição.
+
+O ambiente fica em world space com rotação explícita. Luzes capturadas hoje usam view space; a transformação dos referenciais deve ser deliberada. Rotacionar a câmera não deve rotacionar o estúdio. Intensity e exposure são parâmetros diferentes.
+
+Luzes direcionais/pontuais existentes podem ser adaptadas em M2 com convenção normalizada claramente declarada, preservando a atenuação legada capturada. Não anunciar fotometria física sem definir escala de mundo e unidades. A validação principal de IBL usa controles separados de luz direta para não confundir contribuições.
+
+\section{Viewer e produção das views CAD}
+
+Estender \texttt{coin\_render\_viewer} mantendo seu demo atual como controle. A rota PBR deve usar CoinRenderSceneManager e o target público; não criar um renderer paralelo para fazer as imagens. A captura reutiliza a disciplina já existente no executor e nos exemplos de janela.
+
+\begin{center}\small
+\begin{tabular}{P{.25\linewidth}P{.65\linewidth}}
+\toprule Opção futura proposta & Comportamento\\\midrule
+\texttt{--scene} / \texttt{--pbr-demo} & Carregar fixture CAD explícito ou gerar a cena de referência; registrar tipos antes de ler .iv.\\
+\texttt{--renderer vulkan} & Solicitar a API no mecanismo existente de opções do target; conferir a API e GPU realmente usadas.\\
+\texttt{--view} & Selecionar um preset e gravar as matrizes finais da câmera.\\
+\texttt{--environment} / \texttt{--exposure} & Selecionar pacote de ambiente versionado e compensação em stops.\\
+\texttt{--capture-prefix} & Capturar a imagem final, parâmetros e resultado; esperar a submissão correspondente.\\
+\texttt{--orbit-frames} & Gerar uma sequência de posições conhecidas, sem usar tempo de relógio como parâmetro de cena.\\\bottomrule
+\end{tabular}\end{center}
+
+Essas opções são propostas de implementação, não comandos disponíveis hoje. O modo automatizado deve parar a animação livre e capturar após prontidão do frame. Uma primeira captura incorreta é uma falha; aquecimento não deve esconder falhas de inicialização. Separar o gate de primeiro frame dos frames aquecidos.
+
+As views serão produzidas em 1280$\times$960, com margem de enquadramento 1,15 e exposição fixada no manifest. Definir eixo vertical e escala de cada fixture. Converter a caixa da cena em posição/altura de câmera uma vez; não reenquadrar em função da iluminação ou material.
+
+\begin{center}\small
+\begin{tabular}{P{.25\linewidth}P{.65\linewidth}}
+\toprule Preset & Objetivo\\\midrule
+Isométrica perspectiva & Leitura geral de volume, Fresnel e reflexos durante apresentação.\\
+Isométrica ortográfica & Mesma orientação e enquadramento comparável; verificar direção de visão constante.\\
+Frontal, superior e lateral & Verificar câmeras técnicas, recortes e consistência da forma.\\
+Detalhe ortográfico & Examinar chanfros, filetes, furos, arestas finas e resposta especular.\\\bottomrule
+\end{tabular}\end{center}
+
+\textbf{Pacote de imagem:} cada captura gera pixels finais sem retoque, manifest JSON, status de execução e hash. O JSON contém commit/diff da baseline, versão do perfil, GPU/driver/API, resolução, câmera, escala, exposição, ambiente, parâmetros dos materiais e número da submissão. Converter PPM/RGBA para PNG preservando pixels, usando biblioteca de imagem fora do renderer se necessário.
+
+Gerar também uma sequência de 36 posições de órbita com câmera determinística. Ela verifica estabilidade e documenta reflexos em movimento. Tempos medidos devem vir de uma execução sem readback por frame; capturas e screenshot callbacks ficam fora do intervalo de performance.
+
+\section{Fixtures e validação CAD}
+
+\begin{longtable}{P{.10\linewidth}P{.31\linewidth}P{.49\linewidth}}
+\toprule Cena & Conteúdo & O que demonstra\\\midrule\endhead
+S0 & Grade de materiais e controles simples. & Metallic 0/1 e roughness 0,08/0,25/0,5/0,85; Fresnel, exposição, emissão e referência numérica.\\
+S1 & Flange ou suporte com furos, filetes e chanfros. & Alumínio/aço aproximados; curvas e normais; ortográfica, detalhe e escala não uniforme.\\
+S2 & Montagem mecânica com fixadores, metais e polímeros. & Vários materiais por draw, instâncias, herança, invalidação e leitura de volume.\\
+S3 & Carcaça com componentes internos, cortes, arestas e medidas. & Clipping, seleção, labels, overlays e recuperação do estado técnico.\\
+S4 & Montagem real exportada do FreeCAD. & Conteúdo CAD externo, triangulação e compatibilidade da captura. Preservar o arquivo original e registrar a transformação de materiais.\\\bottomrule
+\end{longtable}
+
+S1/S2/S3 podem ser fixtures procedurais pequenos, determinísticos e próprios do teste. Parâmetros dos metais são exemplos de aparência, não medições certificadas de ligas. S4 deve usar um modelo redistribuível identificado em M0, com hash do original e da exportação. Exportação de malha FreeCAD não equivale à execução no viewport FreeCAD/Quarter; qualificação nessa integração é uma campanha adicional explicitamente identificada.
+
+Converter materiais de fixtures por regra explícita, preservando hierarquia e identidade geométrica. Não substituir SoMaterial por busca textual no .iv nem aplicar um material na raiz esperando que ele sobreviva aos materiais dos filhos.
+
+\textbf{Matriz visual mínima final:} S1/S2/S3, seis presets, dois ambientes e duas exposições (0 e +2 stops): $3\times6\times2\times2=72$ imagens. Acrescentar controles S0/S4, corte ligado/desligado em S3 e sequência de órbita. Não multiplicar todas as variantes para cada commit; usar um smoke representativo por incremento e a matriz completa no fechamento.
+
+\subsection{Critérios de correção}
+
+\begin{itemize}
+\item \textbf{Matemática:} finitude, positividade, reciprocidade refletiva, extremos de Fresnel e roughness; integração independente de energia. O white furnace usa a expectativa do modelo escolhido, distinguindo interação única de compensação de múltiplo espalhamento.
+\item \textbf{Shading GPU:} confrontar pontos ou regiões interiores controladas com referência CPU independente. Registrar tolerâncias antes do gate, considerando f32, target half e integração IBL. Uma golden image produzida pelo mesmo shader não prova a BRDF.
+\item \textbf{Pipeline:} radiâncias HDR 2/4 distinguíveis; exposição +1 stop dobra a entrada da transformação; saída com uma codificação sRGB; janela e offscreen coerentes.
+\item \textbf{Geometria:} normais e visão corretas em ambas as projeções, sem dependência acidental da subdivisão de um plano equivalente; escala não uniforme e espelhamento controlados.
+\item \textbf{Ambiente:} orientação de faces sem costuras indevidas, rotação independente da câmera, rugosidade contínua e LUT coerente com a BRDF.
+\item \textbf{Ferramentas:} picking geométrico, clipping, arestas, medidas e overlays preservados; nenhum material PBR ignorado ou convertido silenciosamente.
+\item \textbf{Recursos:} mutar roughness ou exposure sem recapturar toda a geometria; trocar ambiente com invalidação correta; resize e device loss sem stale frame ou recursos de geração antiga.
+\end{itemize}
+
+Escolher máscaras geométricas independentes para comparação de cobertura. Classificar bordas rasterizadas separadamente de erros de shading. Não usar uma cor de fundo ou limiar de brilho para inferir silhueta PBR: metal escuro e tone mapping alteram essa relação.
+
+CoinGL continua sendo o controle das cenas legadas. PBR novo usa matemática e pipeline definidos; não exigir que sua aparência iguale Phong. Um renderer externo ajuda quando BRDF, ambiente, câmera e saída são equivalentes e suas diferenças estão registradas.
+
+\subsection{Qualidade técnica e convivência}
+
+Cenas exclusivamente legadas mantêm o caminho existente. Misturar opacos legados e PBR exige uma regra de composição; M4 deve implementar e documentar a modalidade aceita ou recusá-la explicitamente. Não tratar cor legada de display como radiância linear de forma implícita.
+
+Overlays técnicos podem ser compostos após a transformação de cena, com teste de profundidade apropriado e blending no espaço definido. Arestas de superfície, labels e destaque de seleção têm regras distintas; validar o framebuffer final. Uma cor que representa dados pode permanecer unlit com saída própria.
+
+Clipping precisa coincidir em cor/profundidade e seleção segundo a política existente. Tampa de corte depende da geometria presente no fixture. Sombras não são requisito para demonstrar M3; grupos de sombra PBR só podem ser aceitos quando seus shaders, estado e clipping forem integrados e testados. Qualquer combinação ainda fora do perfil recebe diagnóstico.
+
+Em M4, incluir filtragem especular inicial, por exemplo ajustando a largura da NDF à variação da normal, com controle de detalhe para não apagar chanfros. MSAA é uma opção de qualificação após a rota HDR single-sample correta; não usar MSAA como solução automática para aliasing especular. Avaliar órbita e zoom, além de imagens estáticas.
+
+\newpage
+\section{Marcos de implementação e critérios de passagem}
+
+\begin{longtable}{P{.08\linewidth}P{.40\linewidth}P{.42\linewidth}}
+\toprule Marco & Trabalho e resultado & Gate de passagem\\\midrule\endhead
+M0 & Congelar baseline e plataformas; fixtures; rotina de câmera e captura no viewer; especificação dos contratos. & Controle legado reproduzível; commit/diff e GPU registrados; presets e primeiro frame demonstrados.\\
+M1 & Nó, elemento, registro, leitura/escrita .iv, modelo no FramePlan, cache e rejeição em executores sem PBR. & Travessia com Separators, override e transição legado/PBR; nenhuma invisibilidade herdada; Recording e builds legados.\\
+M2 & Shaders GGX por fragmento, normais, luz direta, alvo HDR e transformação de saída. & Valores HDR preservados; referência numérica; ortográfica; emissão e exposição; janela/offscreen.\\
+M3 & Ambiente pré-processado, cubemap, SH, LUT, rotação/intensidade e cache. & Metais e dielétricos sob os dois ambientes; faces/LOD corretos; energia coerente; primeira demonstração CAD PBR completa.\\
+M4 & Integração de ferramentas, composição aceita, compensação/filtragem especular e órbita; controle S4. & Matriz de 72 views, corte/seleção/labels e estado; nenhuma combinação aceita incorretamente; qualidade em movimento.\\
+M5 & Instalação experimental, consumidor, regressões, resize/device loss, memória e performance Release. & SDK reproduzível; legado qualificado; matriz GPU inicial concluída; limitações e evidências publicadas.\\\bottomrule
+\end{longtable}
+
+M0$\rightarrow$M1$\rightarrow$M2$\rightarrow$M3 é o caminho crítico. A preparação de fixtures e referências pode ocorrer junto da implementação. Cada incremento inclui smoke de estado e ferramentas; a aceitação CAD completa fica em M4. Nenhuma promoção de perfil deve depender apenas de uma esfera bonita.
+
+\textbf{Lotes revisáveis sugeridos:} (1) baseline/viewer/fixtures; (2) nó e contrato; (3) GGX/HDR/saída; (4) IBL e pacote versionado; (5) convivência CAD e qualidade; (6) SDK e campanha final. Manter builds Recording, BGFX e Rust válidos; Rust reconhece e recusa PBR até receber implementação. Implementar o segundo executor é uma frente posterior usando o contrato estabelecido.
+
+Não estimar semanas antes de M0 congelar plataforma, baseline e integração CAD requerida. O risco principal está em estado, composição HDR/legado, recursos de ambiente e ferramentas; o shader isolado é apenas uma parcela.
+
+\section{Mapa de alterações previstas}
+
+Os nomes novos abaixo são propostas. Não representam arquivos criados nesta entrega.
+
+\begin{longtable}{P{.34\linewidth}P{.56\linewidth}}
+\toprule Área & Alteração prevista\\\midrule\endhead
+Header/nó experimental & SoPBRMaterial.h e implementação; campos, initClass, serialização e instalação.\\
+Elemento de estado & Estado material PBR e modelo ativo, push/pop e override; habilitação no CoinRenderAction.\\
+Action e builder comuns & Capturar material efetivo, conferir perfis/bindings e integrar invalidação; proteger fast paths que hoje pressupõem SoMaterial.\\
+FramePlan e contratos & Tag de modelo, fatores, dados de ambiente/saída; validação, igualdade e revisions.\\
+Executor BGFX & Payload e shaders PBR, alvo RGBA16F, cubemap/LUT, passe de saída, capacidades e lifetime.\\
+Shaders BGFX & Variantes PBR e saída; funções pequenas para BRDF/filtragem, extraídas somente onde ajudam teste ou reuso.\\
+Viewer & Opções de cena, câmera, ambiente/exposição, captura e manifest; mesmo manager/target do produto.\\
+Testes & Travessia, modelos materiais, HDR/IBL, câmera, recursos e integração CAD; controles legados preservados.\\
+Build/SDK/documentação & Fontes no módulo opt-in, exportação e registro de tipos, perfis/capacidades e limites; consumidor instalado.\\\bottomrule
+\end{longtable}
+
+\src{/mnt/Laranja/Git/externos/coin-render/docs/coin-render-material-resource-contract.md}{contrato local de recursos materiais e invalidação}
+\src{/mnt/Laranja/Git/externos/coin-render/testsuite/coinrender/CoinRenderMaterialTest.cpp}{testes atuais de material}
+\src{/mnt/Laranja/Git/externos/coin-render/testsuite/coinrender/CoinRenderLightingTest.cpp}{testes atuais de iluminação}
+\src{/mnt/Laranja/Git/externos/coin-render/examples/coinrender/CMakeLists.txt}{build dos exemplos e viewer}
+
+\section{Fechamento do primeiro perfil}
+
+O perfil está pronto quando o novo nó é serializável e corretamente capturado; BGFX/Vulkan produz materiais opacos com HDR e IBL; as views CAD e o movimento demonstram correção; ferramentas técnicas e cenas legadas passam; o SDK permite reproduzir os resultados sem headers privados.
+
+Registrar mediana/p95 em Release no mesmo hardware, cena, câmera e resolução, distinguindo CPU, GPU e espera de apresentação. Usar timestamps GPU quando disponíveis, nunca duração total de CTest como benchmark. Reportar bytes de attachments/ambiente, uploads e pipelines; verificar o primeiro frame e frames aquecidos separadamente. Em M0 fixar orçamento e carga CAD de referência antes de transformar desempenho em gate.
+
+Mapas baseColor/ORM/normal com espaço de cor por slot, tangentes compatíveis com o baker, wgpu, APIs adicionais, sombras PBR ampliadas, alpha-mask/blend e materiais avançados são continuações. Adicionar cada uma com demanda e critérios próprios, mantendo o contrato inicial legível.
+
+\textbf{Primeiro passo executável.} Preparar M0 na base de integração: fixtures S1/S2/S3, presets de câmera, captura do viewer e manifest. Em seguida implementar M1. O primeiro conjunto de views \emph{PBR} deve ser publicado após M3, identificado pela versão dos shaders, LUT e ambiente; M4 transforma essa demonstração em perfil CAD qualificado.
+\end{document}

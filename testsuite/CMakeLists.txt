@@ -1,4 +1,13 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
+if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderPbrFixturesTest coinrender/CoinRenderPbrFixturesTest.cpp)
+  target_link_libraries(CoinRenderPbrFixturesTest Coin)
+  target_include_directories(CoinRenderPbrFixturesTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/examples/coinrender ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME CoinRenderPbrFixturesTest COMMAND CoinRenderPbrFixturesTest)
+endif()
+
 set(_coin_bgfx_test_renderers vulkan opengl)
 if(WIN32)
   list(APPEND _coin_bgfx_test_renderers d3d12)

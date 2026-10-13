@@ -1,0 +1,29 @@
+{
+  "milestone": "M0",
+  "status": "complete",
+  "input_commit": "d11eab8dfcd85a841d18364beb3660a748ddda2a",
+  "program_sha256": "17013edf0ebadeb2e9ea5173047eb969c1d20c130fe42265e59fc05e39ccb6d9",
+  "cases_passed": 26,
+  "cases_total": 26,
+  "ctest_passed": 9,
+  "ctest_total": 9,
+  "physical_gpu": "AMD Radeon Graphics (RADV RENOIR), 1002:1638, Mesa 25.2.8",
+  "renderer": "BGFX/Vulkan",
+  "render_profile": "legacy-baseline",
+  "libraries": [
+    "Coin",
+    "CoinRender"
+  ],
+  "base_primitives": [
+    "SbVec2f",
+    "SbVec3f",
+    "SbBox3f",
+    "SbRotation",
+    "SbMatrix",
+    "SbList",
+    "SbString/cc_string",
+    "cc_time"
+  ],
+  "initial_window_control_failure": "Desktop window manager left unnamed test drawable unmapped; independent diagnostic confirmed map=0. Controlled native test drawable override_redirect=true is viewable (map=2), and original presentation/resize/capture assertions pass.",
+  "xvfb_limit": "No DRI3 Vulkan presentation; native evidence uses real DISPLAY=:0."
+}

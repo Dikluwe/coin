@@ -118,6 +118,12 @@ int main()
 
   Window window = XCreateSimpleWindow(display, DefaultRootWindow(display),
                                       20, 20, 96, 96, 0, 0, 0);
+  // This fixture tests native presentation, not window-manager policy. An
+  // unmanaged drawable keeps its requested extent/visibility: the desktop
+  // manager can otherwise unmap an unnamed test window before XGetImage.
+  XSetWindowAttributes attributes{};
+  attributes.override_redirect = True;
+  XChangeWindowAttributes(display, window, CWOverrideRedirect, &attributes);
   XMapWindow(display, window);
   XSync(display, False);
 

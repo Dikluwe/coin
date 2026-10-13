@@ -1,0 +1,31 @@
+Internal ctest changing into directory: /tmp/coin-pbr-bgfx
+Test project /tmp/coin-pbr-bgfx
+    Start  47: CoinRenderPlanAssemblyCoreTest
+1/8 Test  #47: CoinRenderPlanAssemblyCoreTest ......   Passed    0.02 sec
+    Start  60: CoinRenderFrameCoreTest
+2/8 Test  #60: CoinRenderFrameCoreTest .............   Passed    0.02 sec
+    Start  61: CoinBgfxReadbackModes_vulkan
+3/8 Test  #61: CoinBgfxReadbackModes_vulkan ........   Passed    0.31 sec
+    Start  72: CoinRenderDepthContractVulkanTest
+4/8 Test  #72: CoinRenderDepthContractVulkanTest ...   Passed    0.09 sec
+    Start  75: CoinBgfxOffscreenTest
+5/8 Test  #75: CoinBgfxOffscreenTest ...............   Passed    0.80 sec
+    Start  86: CoinBgfxWindowTest
+6/8 Test  #86: CoinBgfxWindowTest ..................***Failed    0.37 sec
+X Error of failed request:  BadMatch (invalid parameter attributes)
+  Major opcode of failed request:  73 (X_GetImage)
+  Serial number of failed request:  62
+  Current serial number in output stream:  62
+
+    Start  98: CoinRenderFrameReuseCoreTest
+7/8 Test  #98: CoinRenderFrameReuseCoreTest ........   Passed    0.32 sec
+    Start 100: CoinRenderIndexedGeometryCoreTest
+8/8 Test #100: CoinRenderIndexedGeometryCoreTest ...   Passed    0.01 sec
+
+88% tests passed, 1 tests failed out of 8
+
+Total Test time (real) =   1.95 sec
+
+The following tests FAILED:
+	 86 - CoinBgfxWindowTest (Failed)
+Errors while running CTest

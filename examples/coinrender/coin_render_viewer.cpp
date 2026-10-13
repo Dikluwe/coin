@@ -30,6 +30,7 @@
 #include <iostream>
 #include <memory>
 #include <unistd.h>
+#include "CoinRenderPbrViews.h"
 
 namespace {
 void addTransparencyQuad(SoSeparator * scene, const SbColor & color,
@@ -57,15 +58,49 @@ void addTransparencyQuad(SoSeparator * scene, const SbColor & color,
 int main(int argc, char ** argv) {
   int maxFrames = -1;
   bool transparencyDemo = false;
+  CoinRenderPbrViewOptions cad;
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--frames") == 0 && i + 1 < argc) {
       maxFrames = std::atoi(argv[++i]);
     } else if (std::strcmp(argv[i], "--transparency-demo") == 0) {
       transparencyDemo = true;
+    } else if (std::strcmp(argv[i], "--fixture") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.fixture = argv[++i];
+    } else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.scene = argv[++i];
+    } else if (std::strcmp(argv[i], "--view") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.view = argv[++i];
+    } else if (std::strcmp(argv[i], "--capture-prefix") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.capturePrefix = argv[++i];
+    } else if (std::strcmp(argv[i], "--export-scene") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.exportScene = argv[++i];
+    } else if (std::strcmp(argv[i], "--offscreen") == 0) {
+      cad.active = TRUE; cad.offscreen = TRUE;
+    } else if (std::strcmp(argv[i], "--cut") == 0) {
+      cad.active = TRUE; cad.cut = TRUE;
+    } else if (std::strcmp(argv[i], "--width") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.size[0] = std::atoi(argv[++i]);
+    } else if (std::strcmp(argv[i], "--height") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.size[1] = std::atoi(argv[++i]);
+    } else if (std::strcmp(argv[i], "--orbit-frames") == 0 && i + 1 < argc) {
+      cad.active = TRUE; cad.orbitFrames = std::atoi(argv[++i]);
+      if (cad.orbitFrames <= 0 || cad.orbitFrames > 4096) return 2;
+    } else if (std::strcmp(argv[i], "--renderer") == 0 && i + 1 < argc) {
+      cad.active = TRUE; if (std::strcmp(argv[++i], "vulkan") != 0) return 2;
     } else {
-      std::cerr << "Usage: coin_render_viewer [--frames N] [--transparency-demo]\n";
+      std::cerr << "Usage: coin_render_viewer [--frames N] [--transparency-demo]\n"
+                   "  CAD: --fixture flange|assembly|housing|grid [--scene file.iv]\n"
+                   "  [--view iso-perspective|iso-orthographic|front|top|right|detail]\n"
+                   "  [--renderer vulkan] [--offscreen] [--capture-prefix path]\n"
+                   "  [--width 1280] [--height 960] [--orbit-frames N] [--cut]\n"
+                   "  [--export-scene file.iv]\n";
       return 2;
     }
+  }
+
+  if (cad.active) {
+    if (transparencyDemo || maxFrames == 0) return 2;
+    return coin_render_run_cad_views(cad, maxFrames);
   }
 
   SoDB::init();
