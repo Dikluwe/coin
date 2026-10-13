@@ -28,6 +28,7 @@ public:
   bool supportsPbr() const override { return pbrSupported; }
   // Internal validation readback: scene-linear radiance before tone mapping.
   bool readSceneLinear(SbList<SbVec3f> & radiance) override;
+  CoinRenderShadowCacheStats shadowCacheStats() const override {return this->shadowCacheCounters;}
   uint64_t getAvailableTransparencyMechanisms(bool window = false) const {
     if (!(window ? this->windowSupported : this->offscreenSupported))
       return 0;
@@ -94,6 +95,13 @@ private:
   float pbrShadowBiasTexels = 0.5f, pbrShadowSlopeBiasTexels = 0.5f;
   bgfx::UniformHandle pbrRadianceSampler = BGFX_INVALID_HANDLE;
   bgfx::FrameBufferHandle pbrFrameBuffer = BGFX_INVALID_HANDLE;
+  struct ShadowCacheEntry {
+    bgfx::FrameBufferHandle output=BGFX_INVALID_HANDLE;
+    uint32_t size=0;
+    std::vector<uint8_t> content;
+  };
+  std::vector<ShadowCacheEntry> shadowCache;
+  CoinRenderShadowCacheStats shadowCacheCounters;
   bool portableSampling = false; // Immutable policy of the owning target.
   struct ReadbackSlot {
     bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;

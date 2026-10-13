@@ -16,6 +16,10 @@ struct CoinRenderDeviceDomain {
   uint64_t generation = 0;
 };
 
+struct CoinRenderShadowCacheStats {
+  uint64_t allocations=0, renders=0, hits=0, residentBytes=0, keyBytes=0;
+};
+
 enum class CoinRenderBackendStatus {
   SUCCESS = 0,
   NOT_READY,
@@ -42,6 +46,7 @@ class CoinRenderBackend {
 public:
   virtual ~CoinRenderBackend() {}
   virtual bool isGpuBackend() const = 0;
+  virtual CoinRenderShadowCacheStats shadowCacheStats() const {return {};}
   virtual bool supportsPbr() const { return false; }
   // Internal validation hook; scene-linear values before the output transform.
   virtual bool readSceneLinear(SbList<SbVec3f> &) { return false; }

@@ -13,6 +13,7 @@
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <iterator>
 #include <string>
 #include <utility>
@@ -51,6 +52,55 @@ struct CoinRenderShadowPlan {
   uint64_t depthBytes = 0;
   uint64_t attachmentBytes = 0;
 };
+
+// Exact, bounded process-local content keys: no hash collision can publish a
+// stale map. Opaque moment maps depend on positions, transforms, clipping and
+// caster culling, not the receiver's BRDF, light color or VSM lookup epsilon.
+class CoinRenderShadowKeyWriter {
+public:
+  explicit CoinRenderShadowKeyWriter(size_t limit):limit(limit) {}
+  template<class T> bool add(const T & value) {return bytes(&value,sizeof(value));}
+  bool bytes(const void * source,size_t count) {
+    if(count>limit||key.size()>limit-count)return false;
+    const size_t needed=key.size()+count;
+    if(needed>key.capacity())key.reserve(std::min(limit,std::max(needed,std::max(size_t(256),key.capacity()*2))));
+    const auto * p=static_cast<const uint8_t *>(source);key.insert(key.end(),p,p+count);return true;
+  }
+  std::vector<uint8_t> key;
+private: size_t limit;
+};
+inline std::vector<uint8_t>
+coin_render_shadow_content_key(const CoinRenderFramePlan & frame,
+  const CoinRenderShadowPass & pass,bool momentCorrection,uint64_t device,
+  uint64_t generation,size_t limit)
+{
+  CoinRenderShadowKeyWriter w(limit);
+  if(!w.add(device)||!w.add(generation)||!w.add(pass.mapSize)||!w.add(momentCorrection)||
+     !w.bytes(pass.view.getValue(),sizeof(SbMat))||!w.bytes(pass.projectionCoin.getValue(),sizeof(SbMat))||
+     !w.add(pass.nearDistance)||!w.add(pass.vsmFarDistance)||
+     pass.lightSlot>=frame.shadowLights.size()||!w.add(frame.shadowLights[pass.lightSlot].type))return {};
+  for(uint32_t slot:pass.casterDraws) {
+    if(slot>=frame.draws.size())return {};const auto & draw=frame.draws[slot];
+    if(draw.renderStateSlot>=frame.renderStates.size())return {};const auto & state=frame.renderStates[draw.renderStateSlot];
+    if(!w.add(draw.geometry.indexCount)||!w.bytes(state.model.getValue(),sizeof(SbMat))||
+       !w.add(state.cullMode)||!w.add(state.frontFace)||!w.add(state.shadowCulling)||
+       !w.add(state.clipPlanesWorld.size()))return {};
+    if(!state.clipPlanesWorld.empty()) {
+      if(!w.bytes(state.view.getValue(),sizeof(SbMat)))return {};
+      for(const auto & plane:state.clipPlanesWorld) {
+        const auto & n=plane.getNormal();const float d=plane.getDistanceFromOrigin();
+        if(!w.bytes(n.getValue(),3*sizeof(float))||!w.add(d))return {};
+      }
+    }
+    const uint64_t end=uint64_t(draw.geometry.firstIndex)+draw.geometry.indexCount;
+    if(end>frame.indices.size())return {};
+    for(uint64_t i=draw.geometry.firstIndex;i<end;++i) {
+      const auto index=frame.indices[size_t(i)];if(index>=frame.vertices.size())return {};
+      if(!w.bytes(frame.vertices[index].position,3*sizeof(float)))return {};
+    }
+  }
+  return std::move(w.key);
+}
 
 // The former 128 MiB check counted RGBA32F alone. Its actually admitted
 // RGBA32F + D32F attachments occupied up to 160 MiB. Preserve that physical

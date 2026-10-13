@@ -1,4 +1,5 @@
 #include "actions/CoinRenderActionP.h"
+#include "rendering/coinrender/CoinRenderTargetP.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/rendering/SoPBRMaterial.h>
@@ -69,9 +70,12 @@ int main(int argc,char ** argv) {
     CoinRenderOptions options;options.renderer=COIN_RENDER_RENDERER_VULKAN;options.shadowDiagnostic=COIN_RENDER_SHADOW_DIAGNOSTIC_DEPTH;
     std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(128,128),options));std::vector<uint8_t> before,after;
     CHECK(target&&pixels(*target,root,before),"Actual stable directional map GPU diagnostic");
+    const auto cache=target->getPimpl()->backend->shadowCacheStats();
     for(float angle:{-.08f,.08f})for(float height:{7.9f,8.1f}) {
       camera->orientation=SbRotation(SbVec3f(0,1,0),angle);camera->position=SbVec3f(8*std::sin(angle),0,8*std::cos(angle));camera->height=height;
       CHECK(pixels(*target,root,after)&&before==after,"Real directional map is pixel-identical through covered orbit/zoom");
+      const auto replay=target->getPimpl()->backend->shadowCacheStats();
+      CHECK(replay.allocations==cache.allocations&&replay.renders==cache.renders,"Stable covered views reuse actual GPU map content");
     }
     if(argc>2) {
       std::ofstream out(argv[2],std::ios::binary);out<<"P6\n128 128\n255\n";

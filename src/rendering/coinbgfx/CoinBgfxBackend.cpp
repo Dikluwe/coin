@@ -1003,6 +1003,8 @@ CoinBgfxBackend::destroyResources()
     return;
   }
   this->destroyFrameBuffers();
+  for(auto & entry:this->shadowCache)if(bgfx::isValid(entry.output))bgfx::destroy(entry.output);
+  this->shadowCache.clear();
   for (DirectTextureResource & resource : this->directTextures)
     if (bgfx::isValid(resource.frameBuffer)) bgfx::destroy(resource.frameBuffer);
   if (bgfx::isValid(this->fullscreenVertexBuffer)) bgfx::destroy(this->fullscreenVertexBuffer);
@@ -3050,39 +3052,67 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   };
 
   const Clock::time_point uploaded = Clock::now();
-  struct ShadowMapOwner {
-    CoinBgfxCallback * callback;
-    std::vector<bgfx::FrameBufferHandle> buffers;
-    ~ShadowMapOwner() {
-      if (callback && callback->failed()) return;
-      for (auto handle : buffers)
-        if (bgfx::isValid(handle)) bgfx::destroy(handle);
-    }
-  } shadowMaps{static_cast<CoinBgfxCallback *>(this->callback.get()), {}};
+  // Persistent attachments are target-owned. A failed submission never marks
+  // pending contents reusable; the public image remains independently staged.
+  struct ShadowMaps {std::vector<bgfx::FrameBufferHandle> buffers;} shadowMaps;
+  std::vector<std::vector<uint8_t>> shadowKeys;
+  std::vector<bool> shadowDirty;
+  const auto publishShadowCache=[&]() {
+    for(size_t slot=0;slot<shadowKeys.size();++slot)
+      this->shadowCache[slot].content=std::move(shadowKeys[slot]);
+    this->shadowCacheCounters.keyBytes=0;
+    for(const auto & entry:this->shadowCache)this->shadowCacheCounters.keyBytes+=entry.content.size();
+    if(tracePhases&&hasShadows)std::fprintf(stderr,
+      "COIN_RENDER_PHASE shadow_cache allocations=%llu renders=%llu hits=%llu resident_bytes=%llu key_bytes=%llu\n",
+      (unsigned long long)this->shadowCacheCounters.allocations,(unsigned long long)this->shadowCacheCounters.renders,
+      (unsigned long long)this->shadowCacheCounters.hits,(unsigned long long)this->shadowCacheCounters.residentBytes,
+      (unsigned long long)this->shadowCacheCounters.keyBytes);
+  };
   if (hasShadows) {
-    if (consumeTestFault("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
-      destroyTextures();
-      this->lastError = "Injected BGFX shadow-map allocation failure";
-      return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
-    }
-    for (const auto & pass : shadowPlan.passes) {
-      const uint16_t size = static_cast<uint16_t>(pass.mapSize);
-      bgfx::TextureHandle moments = bgfx::createTexture2D(size, size, false, 1,
-        bgfx::TextureFormat::RGBA32F, shadowTextureFlags);
-      bgfx::TextureHandle depth = bgfx::createTexture2D(size, size, false, 1,
-        bgfx::TextureFormat::D32F, BGFX_TEXTURE_RT_WRITE_ONLY);
-      const bgfx::TextureHandle attachments[2] = {moments, depth};
-      bgfx::FrameBufferHandle output = BGFX_INVALID_HANDLE;
-      if (bgfx::isValid(moments) && bgfx::isValid(depth))
-        output = bgfx::createFrameBuffer(2, attachments, true);
-      if (!bgfx::isValid(output)) {
-        if (bgfx::isValid(moments)) bgfx::destroy(moments);
-        if (bgfx::isValid(depth)) bgfx::destroy(depth);
-        destroyTextures();
-        this->lastError = "BGFX shadow-map attachment allocation failed";
-        return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
+    // Retire incompatible extents before allocating replacements: active
+    // attachment ownership stays inside the admitted byte budget.
+    for(size_t slot=0;slot<this->shadowCache.size();++slot) {
+      auto & entry=this->shadowCache[slot];
+      if(slot>=shadowPlan.passes.size()||entry.size!=shadowPlan.passes[slot].mapSize) {
+        if(bgfx::isValid(entry.output))bgfx::destroy(entry.output);
+        entry=ShadowCacheEntry{};
       }
-      shadowMaps.buffers.push_back(output);
+    }
+    this->shadowCache.resize(shadowPlan.passes.size());
+    const auto domain=this->resourceDomain();
+    const size_t keyLimit=(16u*1024u*1024u)/shadowPlan.passes.size();
+    const auto accountAttachments=[&]() {
+      this->shadowCacheCounters.residentBytes=0;
+      for(const auto & entry:this->shadowCache)if(bgfx::isValid(entry.output))
+        this->shadowCacheCounters.residentBytes+=uint64_t(entry.size)*entry.size*20u;
+    };
+    accountAttachments();
+    for(size_t slot=0;slot<shadowPlan.passes.size();++slot) {
+      const auto & pass=shadowPlan.passes[slot];auto & entry=this->shadowCache[slot];
+      if(!bgfx::isValid(entry.output)) {
+        if (consumeTestFault("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
+          destroyTextures();
+          return {CoinRenderBackendStatus::OUT_OF_MEMORY,"Injected BGFX shadow-map allocation failure"};
+        }
+        const uint16_t size=uint16_t(pass.mapSize);
+        const auto moments=bgfx::createTexture2D(size,size,false,1,bgfx::TextureFormat::RGBA32F,shadowTextureFlags);
+        const auto depth=bgfx::createTexture2D(size,size,false,1,bgfx::TextureFormat::D32F,BGFX_TEXTURE_RT_WRITE_ONLY);
+        const bgfx::TextureHandle attachments[2]={moments,depth};
+        if(bgfx::isValid(moments)&&bgfx::isValid(depth))entry.output=bgfx::createFrameBuffer(2,attachments,true);
+        if(!bgfx::isValid(entry.output)) {
+          if(bgfx::isValid(moments))bgfx::destroy(moments);
+          if(bgfx::isValid(depth))bgfx::destroy(depth);
+          destroyTextures();return {CoinRenderBackendStatus::OUT_OF_MEMORY,"BGFX persistent shadow-map allocation failed"};
+        }
+        entry.size=pass.mapSize;++this->shadowCacheCounters.allocations;
+        accountAttachments();
+      }
+      auto key=coin_render_shadow_content_key(frame,pass,
+        hasPbr&&target.options.pbrShadowMomentCorrection,domain.device,domain.generation,keyLimit);
+      const bool dirty=key.empty()||entry.content!=key;
+      shadowDirty.push_back(dirty);shadowKeys.push_back(std::move(key));shadowMaps.buffers.push_back(entry.output);
+      if(dirty)entry.content.clear(); // Invalid until successful completion/publication.
+      else ++this->shadowCacheCounters.hits;
     }
     const SbMatrix clipConversion(
       1.0f, 0.0f, 0.0f, 0.0f,
@@ -3092,6 +3122,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     const float white[4] = {1, 1, 1, 1};
     bgfx::setPaletteColor(3, white);
     for (size_t slot = 0; slot < shadowPlan.passes.size(); ++slot) {
+      if(!shadowDirty[slot])continue;
+      ++this->shadowCacheCounters.renders;
       const auto & pass = shadowPlan.passes[slot];
       const bgfx::ViewId mapView = this->viewBase + static_cast<bgfx::ViewId>(slot);
       bgfx::setViewName(mapView, "shadow_moments");
@@ -3434,6 +3466,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
     }
     this->lastError.clear();
+    publishShadowCache();
     this->sceneLinearPublished = hasPbr;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
   }
@@ -3737,6 +3770,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     std::fprintf(stderr, "%s\n", CoinRenderDiagnosticShell::formatBgfxPhase(sample).c_str());
   }
   this->lastError.clear();
+  publishShadowCache();
   this->sceneLinearPublished = hasPbr;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
 }

@@ -1,0 +1,19 @@
+{
+  "stage": "S5",
+  "passed": 14,
+  "proof": [
+    "two maps allocate/render once then produce two hits on exact replay",
+    "caster edits redraw contents without attachment reallocation",
+    "restored geometry reproduces previous radiance",
+    "light intensity changes reuse moments and update GGX",
+    "covered directional orbit/zoom produces actual map hits",
+    "failure during extent replacement preserves published pixels/serial",
+    "device loss retires caches; new generation allocates/renders again and reproduces radiance",
+    "exact bounded keys include geometry, projection, clip planes, culling, correction and device generation"
+  ],
+  "limits": [
+    "attachment budget per target; driver may defer destruction until in-flight work completes",
+    "exact content keys limited to 16 MiB total per target; oversized keys skip content caching and rerender safely",
+    "no guarantee of FPS: geometry, other passes and driver cost remain independent"
+  ]
+}

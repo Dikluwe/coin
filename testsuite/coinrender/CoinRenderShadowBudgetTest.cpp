@@ -40,6 +40,17 @@ int main() {
   REQUIRE(plan.attachmentBytes==previous.attachmentBytes && plan.passes.size()==8,
           "Refused plans preserve the caller's previous publication");
   REQUIRE(coin_render_plan_shadows(frame,plan,diagnostic,160*MiB),"Exact boundary is admitted");
+  const auto key=coin_render_shadow_content_key(frame,plan.passes[0],false,1,2,16*MiB);
+  REQUIRE(!key.empty(),"Opaque map key captures actual caster content");
+  REQUIRE(coin_render_shadow_content_key(frame,plan.passes[0],false,1,3,16*MiB)!=key,"Device generation invalidates map contents");
+  REQUIRE(coin_render_shadow_content_key(frame,plan.passes[0],true,1,2,16*MiB)!=key,"Moment correction invalidates map contents");
+  REQUIRE(coin_render_shadow_content_key(frame,plan.passes[0],false,1,2,4).empty(),"Oversized exact key safely disables content caching");
+  auto changed=frame;changed.vertices[changed.indices[changed.draws[plan.passes[0].casterDraws[0]].geometry.firstIndex]].position[0]+=.1f;
+  REQUIRE(coin_render_shadow_content_key(changed,plan.passes[0],false,1,2,16*MiB)!=key,"Caster position invalidates content");
+  changed=frame;changed.materials[0].shininess=.8f;
+  REQUIRE(coin_render_shadow_content_key(changed,plan.passes[0],false,1,2,16*MiB)==key,"Receiver BRDF does not invalidate opaque depth");
+  auto lookup=plan.passes[0];lookup.epsilon=.01f;lookup.threshold=.3f;
+  REQUIRE(coin_render_shadow_content_key(frame,lookup,false,1,2,16*MiB)==key,"VSM lookup controls remain independent of map content");
   auto larger=frame;larger.shadowGroups[0].precision=1;
   REQUIRE(!coin_render_plan_shadows(larger,plan,diagnostic),"Eight 2048-square maps exceed the physical limit");
   REQUIRE(plan.attachmentBytes==160*MiB,"Over-budget precision preserves the previous plan");

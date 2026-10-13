@@ -1,6 +1,7 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderPbrEnvironment.h"
 #include <Inventor/SoDB.h>
+#include <Inventor/C/tidbits.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/rendering/SoPBRMaterial.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
@@ -76,7 +77,35 @@ int main(int argc,char ** argv) {
   std::unique_ptr<CoinRenderTarget> target(initial);
   SbList<SbVec3f> both,first,second,zero,unshadowed;
   CHECK(target&&render(*target,root,both),"Native PBR shadow receiver renders");
+  auto cache=target->getPimpl()->backend->shadowCacheStats();
+  CHECK(cache.allocations==2&&cache.renders==2&&cache.residentBytes==40u*1024u*1024u,"Initial persistent map attachments are accounted");
+  CHECK(render(*target,root,first),"Persistent shadow replay");
+  auto replayCache=target->getPimpl()->backend->shadowCacheStats();
+  CHECK(replayCache.allocations==cache.allocations&&replayCache.renders==cache.renders&&replayCache.hits==2,
+    "Static replay neither reallocates attachments nor resubmits moment maps");
+  cube->width=1.8f;CHECK(render(*target,root,first),"Moved CAD caster contents");
+  auto movedCache=target->getPimpl()->backend->shadowCacheStats();
+  CHECK(movedCache.allocations==cache.allocations&&movedCache.renders==cache.renders+2,"Caster edit dirties content while retaining attachments");
+  cube->width=1.4f;CHECK(render(*target,root,first),"Restored caster");
+  for(int i=0;i<both.getLength();++i)CHECK((first[i]-both[i]).length()==0,"Cache never publishes stale restored geometry");
+  const auto oldDomain=target->getPimpl()->backend->resourceDomain();
+  const uint64_t oldSerial=target->getLastSubmissionSerial();std::vector<uint8_t> published,failedPixels;
+  target->readbackRGBA(published);
+  coin_setenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE","1",1);
+  CoinRenderAction failed(SbViewportRegion(128,128));failed.setRenderTarget(target.get());failed.apply(root);
+  coin_unsetenv("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE");target->readbackRGBA(failedPixels);
+  CHECK(failed.getLastStatus()==CoinRenderAction::DEVICE_LOST&&failedPixels==published&&
+    target->getLastSubmissionSerial()==oldSerial&&!target->getPimpl()->backend,"Device loss retires cache and preserves publication");
+  CHECK(target->resize(SbVec2i32(128,128))&&render(*target,root,first),"Shadow target reconstruction after device loss");
+  const auto newDomain=target->getPimpl()->backend->resourceDomain();
+  replayCache=target->getPimpl()->backend->shadowCacheStats();
+  CHECK(newDomain.generation>oldDomain.generation&&replayCache.allocations==2&&replayCache.renders==2&&replayCache.hits==0,
+    "A reconstructed device allocates and renders its own maps");
+  for(int i=0;i<both.getLength();++i)CHECK((first[i]-both[i]).length()==0,"Reconstructed device reproduces radiance exactly");
+  cache=target->getPimpl()->backend->shadowCacheStats();
   lights[1]->intensity=0;CHECK(render(*target,root,first),"First shadow light alone");
+  replayCache=target->getPimpl()->backend->shadowCacheStats();
+  CHECK(replayCache.renders==cache.renders,"Light intensity changes receiver radiance without redrawing unchanged maps");
   lights[0]->intensity=0;lights[1]->intensity=20;CHECK(render(*target,root,second),"Second shadow light alone");
   lights[1]->intensity=0;CHECK(render(*target,root,zero),"Emission alone with active shadow maps");
   size_t samples=0;float peak=0;

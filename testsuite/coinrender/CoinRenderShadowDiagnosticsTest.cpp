@@ -91,6 +91,7 @@ int main(int argc,char ** argv) {
   const uint64_t serial=target->getLastSubmissionSerial();
   {
     // Exercise the actual allocator error boundary, not only plan rejection.
+    group->precision=.25f; // Force attachment replacement rather than a cache hit.
 #ifdef _WIN32
     _putenv_s("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE","1");
 #else
@@ -100,6 +101,7 @@ int main(int argc,char ** argv) {
     target->readbackRGBA(after);
     REQUIRE(failed.getLastStatus()!=CoinRenderAction::SUCCESS && after==before &&
       target->getLastSubmissionSerial()==serial,"Attachment allocation failure preserves published pixels and serial");
+    group->precision=.5f;
     REQUIRE(target->resize(SbVec2i32(128,128)),"Explicit target reconfiguration recovers allocation failure");
     REQUIRE(render(*target,after)&&after==before,"Allocation failure recovers without stale output");
   }

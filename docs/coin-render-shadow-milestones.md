@@ -10,7 +10,7 @@ material e nas luzes. Perfil inicial de execução: BGFX/Vulkan e cenas CAD.
 - [x] S2 — receptor PBR opaco com visibilidade por luz, GGX, HDR/IBL e views CAD.
 - [x] S3 — contato/detalhe: bias separado da variância, momentos e culling.
 - [x] S4 — estabilidade da projeção direcional durante órbita/zoom.
-- [ ] S5 — persistência dos attachments e cache correto por conteúdo/projeção/vista.
+- [x] S5 — persistência dos attachments e cache correto por conteúdo/projeção/vista.
 - [ ] S6 — filtros VSM/PCF e PCSS, incluindo contrato de emissor/penumbra e orçamento.
 
 Cada fechamento deve registrar implementação, comandos, testes discriminantes,
@@ -53,5 +53,11 @@ casters; a região visível orienta XY. Os 14 controles passaram, com mapas GPU
 idênticos em órbita/zoom de peça totalmente coberta e escalas .00001–100000.
 [Evidências S4](validation/shadows/s4/summary.json).
 Transições entre níveis discretos ainda mudam a amostragem; não há blending
-temporal/cascatas. Inputs e matrizes GPU continuam float. S5 em implementação;
-S6 aberto.
+temporal/cascatas. Inputs e matrizes GPU continuam float. S5 concluído: attachments persistentes por target e chaves exatas de conteúdo,
+projeção, recorte, culling e geração de dispositivo. Replays e órbita coberta
+produzem hits sem passes de momentos; caster edits reutilizam attachments.
+Falha de substituição e perda/reconstrução de dispositivo preservam a publicação.
+Os 14 controles passaram. [Evidências S5](validation/shadows/s5/summary.json).
+Chaves têm teto de 16 MiB/target; conteúdo maior redesenha sem cache, sem reduzir
+qualidade. Orçamento de attachments é por target; o driver pode adiar destruição
+por frames em voo. Isso limita recursos, mas não garante FPS. S6 em implementação.
