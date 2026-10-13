@@ -3,8 +3,13 @@
 
 #include <Inventor/rendering/CoinRenderOptions.h>
 #include <string>
+#include <cmath>
 
 inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
+  if (!std::isfinite(options.pbrExposureStops) || options.pbrExposureStops < -16.0f ||
+      options.pbrExposureStops > 16.0f) {
+    diagnostic = "PBR exposure must be finite and between -16 and +16 stops"; return false;
+  }
   if (options.textureSamplingPolicy != COIN_RENDER_SAMPLING_NATIVE &&
       options.textureSamplingPolicy != COIN_RENDER_SAMPLING_PORTABLE) {
     diagnostic = "Invalid texture sampling policy; no fallback was applied";

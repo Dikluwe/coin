@@ -27,6 +27,8 @@ struct CoinRenderOptions {
   // original UV derivatives, POT active-mip centering, and two NPOT centers.
   // Active nearest/mip-linear samplers with anisotropy >1 are rejected.
   CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
+  // PBR output exposure in stops. Legacy-only frames keep their existing output.
+  float pbrExposureStops = 0.0f;
 };
 
 #endif

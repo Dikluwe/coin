@@ -1,0 +1,639 @@
+[
+  {
+    "case": "flange-iso-perspective-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-perspective",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-iso-perspective-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "380a7463e3c97382086d99cbf9c36b489be2bef4f89ec617f8134276a9020e38",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.19774251302083334,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "flange-iso-orthographic-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-orthographic",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-iso-orthographic-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "f163d64dfedf400c2eeb7113b73ded764f5220f5a0a1f0f81c40f4d5e3daf70c",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.18122884114583335,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "flange-front-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "front",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-front-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "a928a2fccc6dec3ccb1bdbe750379583f04b0a848722c6b9d91676233853b185",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.06872395833333333,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "flange-top-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "top",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-top-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "e8714731e4a954f993f1e066b983949ed3d79560ae46cb22881812e6a025c559",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.2587434895833333,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "flange-right-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "right",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-right-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "835eedd4c954a9cd64afb4bc401d4aef92b9cf3c112ea962ed8ae2e34de16c4e",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.06872395833333333,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "flange-detail-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "detail",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-detail-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "d0cee0fdc5a17fe22a21d99e77434678783fab8d12f5ed99b8cc952416bc1526",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.599140625,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "flange-iso-perspective-window",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-perspective",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/flange-iso-perspective-window"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "380a7463e3c97382086d99cbf9c36b489be2bef4f89ec617f8134276a9020e38",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.19774251302083334,
+    "nonconstant": true,
+    "pass": true,
+    "window_offscreen_equal": true
+  },
+  {
+    "case": "assembly-iso-perspective-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-iso-perspective-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "fc9ddc1b90e1286514f753a470cc00ad9a91def57fbcedad21662420c4b311c1",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.25188313802083334,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "assembly-iso-orthographic-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-orthographic",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-iso-orthographic-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "caccc3c8f24980e9a146fd15f58200d5a63dffbf79f5aece308381933d24e938",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.23347493489583335,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "assembly-front-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "front",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-front-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "aed1d6895b7150051bddaa0bcac8c8b37eb0a917e20ae0c2bd20037a7e7ec35c",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.08737711588541666,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "assembly-top-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "top",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-top-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "f208d5df5aa73baa54c4b92aa268bb3a1c4132e5ab4be6ebe143768079facc92",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.33046875,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "assembly-right-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "right",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-right-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "2b38ef6b38fa998e754a221a22f1bfa82aa835d574f12c1652a5d95eb58278a6",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.0608251953125,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "assembly-detail-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "detail",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-detail-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "9d75598ad191814a4ac0058ddc3fd03eb06ece6346fd27211bd69e23fecef31b",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.666669921875,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "assembly-iso-perspective-window",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/assembly-iso-perspective-window"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "fc9ddc1b90e1286514f753a470cc00ad9a91def57fbcedad21662420c4b311c1",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.25188313802083334,
+    "nonconstant": true,
+    "pass": true,
+    "window_offscreen_equal": true
+  },
+  {
+    "case": "housing-iso-perspective-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-perspective",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-iso-perspective-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "aaa753bcce8d80cc5c040068c455a2ba44c69eb96e86aaee7baab9f03fb20875",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.39601969401041665,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "housing-iso-orthographic-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-orthographic",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-iso-orthographic-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "280e75fa453a6aaa583ce8a6fcd68335f00a9ddb6f9ab0ff202136e4ec456fff",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.38307373046875,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "housing-front-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "front",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-front-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "6b4598995da885e251c2bf665d7fc74b3548237a519b5abc2ac4090a07b23a2f",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.1890625,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "housing-top-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "top",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-top-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "c97abe561fcd15b2efad88fba3d39750f051a8d67d02e5af13306eb8140279b7",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.32197916666666665,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "housing-right-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "right",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-right-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "0b5ed4cdd5765976daa2b1c809a0e37fea833fdfdd76cc5b795cdfed4bc252cc",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.150927734375,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "housing-detail-offscreen",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "detail",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-detail-offscreen"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "63ee356f3c0e76922414ee4a0caef4620cf39f2eb183bc1f9eb99c23876b0310",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.941787109375,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "housing-iso-perspective-window",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-perspective",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-iso-perspective-window"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "aaa753bcce8d80cc5c040068c455a2ba44c69eb96e86aaee7baab9f03fb20875",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.39601969401041665,
+    "nonconstant": true,
+    "pass": true,
+    "window_offscreen_equal": true
+  },
+  {
+    "case": "housing-cut",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-perspective",
+      "--offscreen",
+      "--cut",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/housing-cut"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "0cd0d47f8f878563288112b7a362760e1be351b717fa27b45f9d9aa78f9dc59d",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.218330078125,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "freecad-assembly",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--scene",
+      "/home/dikluwe/\u00c1rea de trabalho/Estudo coin/estudos/So/SoWgpu-FreeCAD-Exemplos/cenas/Assembly.iv",
+      "--view",
+      "iso-perspective",
+      "--offscreen",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m2-baseline/freecad-assembly"
+    ],
+    "exit_code": 0,
+    "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",
+    "renderer": 1,
+    "stable_pixels": true,
+    "pixels_sha256": "5189b93f1bbad31dbfd6d464f26ee65f12e5abcc548e3787cf57115430c0d252",
+    "dimensions": [
+      1280,
+      960
+    ],
+    "legacy_foreground_coverage": 0.06744140625,
+    "nonconstant": true,
+    "pass": true
+  },
+  {
+    "case": "reject---fixture-unknown",
+    "exit_code": 2,
+    "pass": true
+  },
+  {
+    "case": "reject---view-unknown",
+    "exit_code": 2,
+    "pass": true
+  },
+  {
+    "case": "reject---width-0",
+    "exit_code": 2,
+    "pass": true
+  }
+]

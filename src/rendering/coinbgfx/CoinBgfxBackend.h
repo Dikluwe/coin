@@ -11,6 +11,7 @@
 #include <map>
 #include <utility>
 #include <thread>
+#include <Inventor/lists/SbList.h>
 
 struct CoinRenderShadowPlan;
 
@@ -24,6 +25,9 @@ public:
   bool resetOnActionDetach() const override { return true; }
   bool isGpuBackend() const override { return true; }
   bool supportsOffscreenShadows() const override { return true; }
+  bool supportsPbr() const override { return pbrSupported; }
+  // Internal validation readback: scene-linear radiance before tone mapping.
+  bool readSceneLinear(SbList<SbVec3f> & radiance) override;
   uint64_t getAvailableTransparencyMechanisms(bool window = false) const {
     if (!(window ? this->windowSupported : this->offscreenSupported))
       return 0;
@@ -65,6 +69,12 @@ public:
   const std::string & getLastError() const override { return lastError; }
 
 private:
+  bool pbrSupported = false;
+  bgfx::ProgramHandle pbrProgram = BGFX_INVALID_HANDLE, pbrOutputProgram = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrBaseUniform = BGFX_INVALID_HANDLE, pbrEmissionUniform = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrCameraUniform = BGFX_INVALID_HANDLE, pbrOutputUniform = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrRadianceSampler = BGFX_INVALID_HANDLE;
+  bgfx::FrameBufferHandle pbrFrameBuffer = BGFX_INVALID_HANDLE;
   bool portableSampling = false; // Immutable policy of the owning target.
   struct ReadbackSlot {
     bgfx::TextureHandle texture = BGFX_INVALID_HANDLE;
@@ -94,6 +104,7 @@ private:
                           CoinBgfxTransparencyStrategy strategy,
                           bool instanced = false);
   bool prepareFullscreenResources();
+  bool preparePbrResources();
   bool prepareNpotMipProgram();
   bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);

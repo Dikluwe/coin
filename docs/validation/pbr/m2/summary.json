@@ -1,0 +1,49 @@
+{
+  "milestone": "M2",
+  "status": "complete",
+  "base_commit": "a9002b0409",
+  "profile": "opaque-direct-single-scattering",
+  "ctest": {
+    "BGFX": {
+      "passed": 18,
+      "total": 18
+    },
+    "RECORDING": {
+      "passed": 10,
+      "total": 10
+    },
+    "RUST_BRIDGE": {
+      "passed": 11,
+      "total": 11
+    }
+  },
+  "pbr_matrix": {
+    "passed": 27,
+    "total": 27,
+    "positive_cases": 24,
+    "rejections": 3,
+    "first_replay_images": 48,
+    "window_offscreen_equal": true
+  },
+  "legacy_matrix": {
+    "passed": 26,
+    "total": 26,
+    "pixel_hash_changes": []
+  },
+  "gpu": "AMD 1002:1638 RADV RENOIR, Vulkan",
+  "hdr_format": "RGBA16F",
+  "output": "Khronos PBR Neutral; sRGB exactly once",
+  "roughness_floor": 0.045,
+  "direct_brdf_reference_cases": 20,
+  "ibl": false,
+  "base_primitives": [
+    "SbMatrix",
+    "SbColor",
+    "SbVec3f",
+    "SbVec3d (reference)",
+    "SbList",
+    "SbString/cc_string",
+    "cc_time"
+  ],
+  "viewer_sha256": "bc7a4422d27f6808ac9605eac3a31e2c6e1fd1289ee294f5f8912a5286869ccb"
+}

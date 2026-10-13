@@ -13,7 +13,7 @@ BGFX/Vulkan e o viewer CoinRender; imagens devem vir do renderer real.
 
 - [x] M0 — baseline Coin, fixtures CAD, câmera e captura reproduzível.
 - [x] M1 — nó, estado, serialização, captura, invalidação e perfis.
-- [ ] M2 — shading GGX por fragmento, materiais opacos, HDR e saída.
+- [x] M2 — shading GGX por fragmento, materiais opacos, HDR e saída.
 - [ ] M3 — IBL pré-calculada, cubemap, irradiância, LUT e lifetime.
 - [ ] M4 — views CAD, seleção, cortes, arestas, labels e estabilidade.
 - [ ] M5 — SDK instalado, consumidor, regressões e campanha Release.
@@ -66,5 +66,19 @@ Coin por uma cena, travessia ou renderer externo.
 - Contrato: [material](coin-render-pbr-material.md). Evidências:
   [summary](validation/pbr/m1/summary.json), [comandos](validation/pbr/m1/commands.json).
 
-Próximo: M2, GGX por fragmento, normais/câmera, HDR e transformação de saída.
-A capacidade PBR ainda não está ativa; as imagens existentes são legadas.
+## M2 — fechado
+
+- GGX/Smith correlacionado/Schlick por fragmento, piso perceptual 0,045,
+  câmeras ortográfica/perspectiva e transformação de normais Coin.
+- Radiância RGBA16F, emissão HDR, exposição por target, Khronos Neutral e uma
+  codificação sRGB. Clipping e profundidade vêm do alvo da geometria.
+- 18/18 CTests BGFX, 10/10 Recording, 11/11 Rust; oracle independente de
+  radiância, câmera/normais, luzes pontuais/spot, saída e rejeições.
+- Viewer PBR: 27/27 casos, incluindo 48 imagens primeiro frame/replay,
+  igualdade janela/offscreen nas três cenas, corte, grade e exposição +2.
+- Matriz legada M0: 26/26, hashes de pixels preservados.
+- Contrato: [shading](coin-render-pbr-shading.md). Evidências:
+  [summary](validation/pbr/m2/summary.json), [gallery](validation/pbr/m2/gallery.png).
+
+Próximo: M3, ambiente HDR procedural, SH9, prefilter GGX e LUT coerente.
+M2 usa luz direta e interação única; IBL e compensação continuam pendentes.

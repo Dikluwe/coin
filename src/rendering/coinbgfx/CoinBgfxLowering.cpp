@@ -734,7 +734,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       diagnostic = "BGFX evaluation requires nonempty indexed triangles";
       return false;
     }
-    bool batchable = batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
+    bool batchable = frame.materials[state.materialSlot].model != CoinRenderMaterialModel::PBR && batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
       !item.blend && !item.screenDoor && draw.renderLayer == 0 && !draw.clearDepthBefore &&
       state.lightModel == CoinRenderLightModel::PHONG;
     float maxAlpha = 0.0f;
@@ -787,6 +787,17 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     CoinBgfxDraw lowered{};
     lowered.sourceDrawSlot = item.drawIndex;
     lowered.renderStateSlot = draw.renderStateSlot;
+    const auto & surface = frame.materials[state.materialSlot];
+    lowered.materialModel = surface.model;
+    if (surface.model == CoinRenderMaterialModel::PBR) {
+      for (int c = 0; c < 3; ++c) {
+        lowered.pbrBaseMetallic[c] = surface.pbr.baseColor[c];
+        lowered.pbrEmissionRoughness[c] = surface.pbr.emissive[c];
+      }
+      lowered.pbrBaseMetallic[3] = surface.pbr.metallic;
+      lowered.pbrEmissionRoughness[3] = surface.pbr.roughness;
+      lowered.pbrCamera[0] = frame.cameras[state.cameraSlot].isPerspective ? 1.0f : 0.0f;
+    }
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
     lowered.firstVertex = static_cast<uint32_t>(candidate.vertexCount());
     lowered.vertexCount = 0;

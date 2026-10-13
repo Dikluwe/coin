@@ -286,6 +286,10 @@ extern "C" int32_t coin_render_query_capabilities_for_renderer(uint32_t target,
     result.features |= COIN_RENDER_FEATURE_COLOR_DEPTH | COIN_RENDER_FEATURE_ASYNC_READBACK |
                        COIN_RENDER_FEATURE_DIRECT_RTT_RGBA16F | COIN_RENDER_FEATURE_DIRECT_RTT_MIPMAPS;
   probeBgfx(target, renderer, result);
+  if (result.gpu_available && result.renderer == COIN_RENDER_RENDERER_VULKAN &&
+      result.max_framebuffer_attachments >= 2 &&
+      (result.format_rgba16f & COIN_RENDER_FORMAT_FRAMEBUFFER))
+    result.features |= COIN_RENDER_FEATURE_PBR_OPAQUE;
 #elif defined(HAVE_COIN_RENDER_RECORDING)
   result.backend = COIN_RENDER_EXPERIMENTAL_RECORDING;
   if (target == COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW) return 1;

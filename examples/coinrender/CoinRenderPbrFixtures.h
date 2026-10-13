@@ -42,14 +42,16 @@ inline SoNode * material(const SbColor & color, float metallic, float roughness)
   return result;
 }
 
+typedef SoNode * (*MaterialFactory)(const SbColor &, float, float);
+
 inline SoSeparator * object(SoSeparator * parent, const char * name,
                             const SbVec3f & position, const SbColor & color,
-                            float metallic, float roughness)
+                            float metallic, float roughness, MaterialFactory factory = material)
 {
   SoSeparator * result = new SoSeparator;
   result->setName(name);
   parent->addChild(result);
-  result->addChild(material(color, metallic, roughness));
+  result->addChild(factory(color, metallic, roughness));
   SoTranslation * translation = new SoTranslation;
   translation->translation = position;
   result->addChild(translation);
@@ -58,9 +60,9 @@ inline SoSeparator * object(SoSeparator * parent, const char * name,
 
 inline void box(SoSeparator * parent, const char * name, const SbVec3f & position,
                 const SbVec3f & size, const SbColor & color,
-                float metallic = 0.0f, float roughness = 0.4f)
+                float metallic = 0.0f, float roughness = 0.4f, MaterialFactory factory = material)
 {
-  SoSeparator * part = object(parent, name, position, color, metallic, roughness);
+  SoSeparator * part = object(parent, name, position, color, metallic, roughness, factory);
   SoCube * shape = new SoCube;
   shape->width = size[0]; shape->height = size[1]; shape->depth = size[2];
   part->addChild(shape);
@@ -70,7 +72,7 @@ inline void box(SoSeparator * parent, const char * name, const SbVec3f & positio
 // planar caps and chamfers remain geometric; cylindrical normals are smooth.
 inline void ring(SoSeparator * parent, const char * name, const SbVec3f & position,
                  float inner, float outer, float height, float bevel,
-                 const SbColor & color, float metallic, float roughness)
+                 const SbColor & color, float metallic, float roughness, MaterialFactory factory = material)
 {
   const int segments = 64;
   const float half = height * 0.5f;
@@ -105,7 +107,7 @@ inline void ring(SoSeparator * parent, const char * name, const SbVec3f & positi
       indices.append(-1);
     }
   }
-  SoSeparator * part = object(parent, name, position, color, metallic, roughness);
+  SoSeparator * part = object(parent, name, position, color, metallic, roughness, factory);
   SoShapeHints * hints = new SoShapeHints;
   hints->vertexOrdering = SoShapeHints::COUNTERCLOCKWISE;
   hints->shapeType = SoShapeHints::SOLID;
@@ -125,7 +127,7 @@ inline void ring(SoSeparator * parent, const char * name, const SbVec3f & positi
   part->addChild(face);
 }
 
-inline SoSeparator * create(const SbString & fixture, SbBool cut)
+inline SoSeparator * create(const SbString & fixture, SbBool cut, MaterialFactory factory = material)
 {
   SoSeparator * root = new SoSeparator;
   root->setName("CAD_fixture");
@@ -138,44 +140,44 @@ inline SoSeparator * create(const SbString & fixture, SbBool cut)
   const SbColor polymer(0.03f, 0.07f, 0.12f), paint(0.16f, 0.32f, 0.52f);
   if (fixture == "flange") {
     ring(root, "flange", SbVec3f(0, 0, 0), 0.65f, 2.2f, 0.35f, 0.06f,
-         aluminium, 1, 0.25f);
+         aluminium, 1, 0.25f, factory);
     ring(root, "hub", SbVec3f(0, 0, 0.6f), 0.65f, 1.1f, 0.85f, 0.06f,
-         aluminium, 1, 0.25f);
+         aluminium, 1, 0.25f, factory);
     for (int i = 0; i < 8; ++i) {
       const float angle = i * 6.28318530718f / 8;
       ring(root, "fastener", SbVec3f(1.65f * std::cos(angle),
            1.65f * std::sin(angle), 0.29f), 0.08f, 0.18f, 0.23f, 0.025f,
-           steel, 1, 0.45f);
+           steel, 1, 0.45f, factory);
     }
   } else if (fixture == "assembly") {
     box(root, "base", SbVec3f(0, 0, -0.25f), SbVec3f(5, 3.6f, 0.3f),
-        paint, 0, 0.35f);
+        paint, 0, 0.35f, factory);
     ring(root, "bearing", SbVec3f(0.5f, 0, 0.1f), 0.3f, 1.2f, 0.4f, 0.06f,
-         aluminium, 1, 0.2f);
+         aluminium, 1, 0.2f, factory);
     ring(root, "shaft", SbVec3f(0.5f, 0, 0.7f), 0.08f, 0.3f, 1.2f, 0.025f,
-         steel, 1, 0.3f);
+         steel, 1, 0.3f, factory);
     box(root, "motor", SbVec3f(-1.4f, 0, 0.55f), SbVec3f(1.2f, 1.2f, 1.4f),
-        polymer, 0, 0.55f);
+        polymer, 0, 0.55f, factory);
     for (int x = -1; x <= 1; x += 2)
       for (int y = -1; y <= 1; y += 2)
         ring(root, "bolt", SbVec3f(x * 1.85f, y * 1.25f, 0.08f),
-             0.06f, 0.17f, 0.26f, 0.02f, steel, 1, 0.5f);
+             0.06f, 0.17f, 0.26f, 0.02f, steel, 1, 0.5f, factory);
   } else if (fixture == "housing") {
-    box(root, "floor", SbVec3f(0, 0, -1.1f), SbVec3f(5, 4, 0.3f), paint);
-    box(root, "left_wall", SbVec3f(-2.35f, 0, 0), SbVec3f(0.3f, 4, 2.2f), paint);
-    box(root, "right_wall", SbVec3f(2.35f, 0, 0), SbVec3f(0.3f, 4, 2.2f), paint);
-    box(root, "back_wall", SbVec3f(0, 1.85f, 0), SbVec3f(4.4f, 0.3f, 2.2f), paint);
+    box(root, "floor", SbVec3f(0, 0, -1.1f), SbVec3f(5, 4, 0.3f), paint, 0, 0.4f, factory);
+    box(root, "left_wall", SbVec3f(-2.35f, 0, 0), SbVec3f(0.3f, 4, 2.2f), paint, 0, 0.4f, factory);
+    box(root, "right_wall", SbVec3f(2.35f, 0, 0), SbVec3f(0.3f, 4, 2.2f), paint, 0, 0.4f, factory);
+    box(root, "back_wall", SbVec3f(0, 1.85f, 0), SbVec3f(4.4f, 0.3f, 2.2f), paint, 0, 0.4f, factory);
     box(root, "electronics", SbVec3f(-0.9f, 0.4f, -0.5f), SbVec3f(1.4f, 2, 0.5f),
-        polymer, 0, 0.65f);
+        polymer, 0, 0.65f, factory);
     ring(root, "internal_bearing", SbVec3f(0.95f, 0, -0.3f),
-         0.28f, 0.8f, 1.2f, 0.045f, aluminium, 1, 0.35f);
+         0.28f, 0.8f, 1.2f, 0.045f, aluminium, 1, 0.35f, factory);
   } else if (fixture == "grid") {
     const float roughness[] = {0.08f, 0.25f, 0.5f, 0.85f};
     for (int row = 0; row < 2; ++row) {
       for (int column = 0; column < 4; ++column) {
         SoSeparator * part = object(root, "sample",
           SbVec3f(column * 1.1f - 1.65f, row * 1.1f - 0.55f, 0),
-          aluminium, float(row), roughness[column]);
+          aluminium, float(row), roughness[column], factory);
         SoSphere * sphere = new SoSphere; sphere->radius = 0.45f;
         part->addChild(sphere);
       }

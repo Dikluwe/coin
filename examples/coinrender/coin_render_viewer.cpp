@@ -64,6 +64,12 @@ int main(int argc, char ** argv) {
       maxFrames = std::atoi(argv[++i]);
     } else if (std::strcmp(argv[i], "--transparency-demo") == 0) {
       transparencyDemo = true;
+    } else if (std::strcmp(argv[i], "--pbr") == 0) {
+      cad.active = TRUE; cad.pbr = TRUE;
+    } else if (std::strcmp(argv[i], "--exposure") == 0 && i + 1 < argc) {
+      cad.active = TRUE; char * end = nullptr;
+      cad.exposureStops = std::strtof(argv[++i], &end);
+      if (!end || *end || !std::isfinite(cad.exposureStops) || cad.exposureStops < -16 || cad.exposureStops > 16) return 2;
     } else if (std::strcmp(argv[i], "--fixture") == 0 && i + 1 < argc) {
       cad.active = TRUE; cad.fixture = argv[++i];
     } else if (std::strcmp(argv[i], "--scene") == 0 && i + 1 < argc) {
@@ -91,7 +97,7 @@ int main(int argc, char ** argv) {
       std::cerr << "Usage: coin_render_viewer [--frames N] [--transparency-demo]\n"
                    "  CAD: --fixture flange|assembly|housing|grid [--scene file.iv]\n"
                    "  [--view iso-perspective|iso-orthographic|front|top|right|detail]\n"
-                   "  [--renderer vulkan] [--offscreen] [--capture-prefix path]\n"
+                   "  [--pbr] [--exposure stops] [--renderer vulkan] [--offscreen] [--capture-prefix path]\n"
                    "  [--width 1280] [--height 960] [--orbit-frames N] [--cut]\n"
                    "  [--export-scene file.iv]\n";
       return 2;

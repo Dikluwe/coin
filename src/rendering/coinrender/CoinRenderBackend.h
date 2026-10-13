@@ -3,6 +3,7 @@
 
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include <string>
+#include <Inventor/lists/SbList.h>
 
 class CoinRenderTargetP;
 class CoinRenderRttPlan;
@@ -42,6 +43,8 @@ public:
   virtual ~CoinRenderBackend() {}
   virtual bool isGpuBackend() const = 0;
   virtual bool supportsPbr() const { return false; }
+  // Internal validation hook; scene-linear values before the output transform.
+  virtual bool readSceneLinear(SbList<SbVec3f> &) { return false; }
   virtual bool initializesCpuDepthBuffer() const { return true; }
   virtual bool resetOnActionDetach() const { return false; }
   // Implementation fact, independent of runtime GPU availability. Core still

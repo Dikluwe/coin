@@ -1,5 +1,17 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 if(COIN_BUILD_RENDER)
+  if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_executable(CoinRenderPbrGpuTest coinrender/CoinRenderPbrGpuTest.cpp)
+    target_compile_definitions(CoinRenderPbrGpuTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderPbrGpuTest CoinRender Coin)
+    target_include_directories(CoinRenderPbrGpuTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderPbrGpuTest COMMAND CoinRenderPbrGpuTest)
+    set_tests_properties(CoinRenderPbrGpuTest PROPERTIES TIMEOUT 90
+      ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
+  endif()
   add_executable(CoinRenderPbrMaterialTest coinrender/CoinRenderPbrMaterialTest.cpp)
   target_link_libraries(CoinRenderPbrMaterialTest CoinRender Coin)
   target_include_directories(CoinRenderPbrMaterialTest PRIVATE

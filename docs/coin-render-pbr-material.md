@@ -73,3 +73,11 @@ o novo nó e regressões de action, cache, transformação, iluminação e publi
 BGFX/Vulkan passou novamente nos 26 casos da matriz CAD M0. Os hashes de pixels
 coincidem com a baseline armazenada. Logs, comandos e comparação estão em
 `docs/validation/pbr/m1/`.
+
+## Perfil M2
+
+O executor BGFX/Vulkan agora admite faces PBR opacas com fatores, luzes diretas,
+emissão HDR e clipping. A exposição pertence a CoinRenderOptions. Consultar
+[shading](coin-render-pbr-shading.md) para saída e combinações admitidas.
+Recording e Rust mantêm rejeição explícita. O contrato M1 e suas evidências
+permanecem como baseline histórica.

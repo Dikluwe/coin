@@ -18,6 +18,10 @@
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 
+#include "coin_bgfx_vs_pbr_spirv.h"
+#include "coin_bgfx_fs_pbr_spirv.h"
+#include "coin_bgfx_fs_pbr_output_spirv.h"
+#include "rendering/coinrender/CoinRenderTextureFormatCore.h"
 #include "coin_bgfx_fs_depth_readback_glsl.h"
 #include "coin_bgfx_fs_depth_readback_spirv.h"
 #include "coin_bgfx_fs_mip_area_glsl.h"
@@ -1027,6 +1031,13 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->npotMipProgram)) bgfx::destroy(this->npotMipProgram);
   if (bgfx::isValid(this->depthReadProgram)) bgfx::destroy(this->depthReadProgram);
   if (bgfx::isValid(this->readDepthSampler)) bgfx::destroy(this->readDepthSampler);
+  if (bgfx::isValid(this->pbrProgram)) bgfx::destroy(this->pbrProgram);
+  if (bgfx::isValid(this->pbrOutputProgram)) bgfx::destroy(this->pbrOutputProgram);
+  if (bgfx::isValid(this->pbrBaseUniform)) bgfx::destroy(this->pbrBaseUniform);
+  if (bgfx::isValid(this->pbrEmissionUniform)) bgfx::destroy(this->pbrEmissionUniform);
+  if (bgfx::isValid(this->pbrCameraUniform)) bgfx::destroy(this->pbrCameraUniform);
+  if (bgfx::isValid(this->pbrOutputUniform)) bgfx::destroy(this->pbrOutputUniform);
+  if (bgfx::isValid(this->pbrRadianceSampler)) bgfx::destroy(this->pbrRadianceSampler);
   if (bgfx::isValid(this->program)) bgfx::destroy(this->program);
   if (bgfx::isValid(this->solidProgram)) bgfx::destroy(this->solidProgram);
   if (bgfx::isValid(this->instancedProgram)) bgfx::destroy(this->instancedProgram);
@@ -1298,6 +1309,10 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->offscreenSupported =
       baseSupported && bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA8,
                                             BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
+  this->pbrSupported = caps->rendererType == bgfx::RendererType::Vulkan &&
+    caps->limits.maxFBAttachments >= 2 &&
+    (caps->formats[bgfx::TextureFormat::RGBA16F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+    bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F, peelTextureFlags);
   if (target.capabilityProbeOnly) {
     this->initialized = true;
     return this->status = CoinRenderBackendStatus::SUCCESS;
@@ -1460,6 +1475,68 @@ CoinBgfxBackend::prepareFullscreenResources()
     this->lastError = "BGFX could not allocate shared transparency resources";
     this->status = CoinRenderBackendStatus::BACKEND_ERROR;
     return false;
+  }
+  return true;
+}
+
+bool CoinBgfxBackend::preparePbrResources()
+{
+  if (!this->prepareFullscreenResources()) return false;
+  if (!bgfx::isValid(this->pbrProgram))
+    this->pbrProgram = createLayerProgram(coin_bgfx_vs_pbr_spirv, sizeof(coin_bgfx_vs_pbr_spirv),
+      coin_bgfx_fs_pbr_spirv, sizeof(coin_bgfx_fs_pbr_spirv));
+  if (!bgfx::isValid(this->pbrOutputProgram))
+    this->pbrOutputProgram = createLayerProgram(coin_bgfx_vs_spirv, sizeof(coin_bgfx_vs_spirv),
+      coin_bgfx_fs_pbr_output_spirv, sizeof(coin_bgfx_fs_pbr_output_spirv));
+  if (!bgfx::isValid(this->pbrBaseUniform))
+    this->pbrBaseUniform = bgfx::createUniform("u_pbrBaseMetallic", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->pbrEmissionUniform))
+    this->pbrEmissionUniform = bgfx::createUniform("u_pbrEmissionRoughness", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->pbrCameraUniform))
+    this->pbrCameraUniform = bgfx::createUniform("u_pbrCamera", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->pbrOutputUniform))
+    this->pbrOutputUniform = bgfx::createUniform("u_pbrOutput", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->pbrRadianceSampler))
+    this->pbrRadianceSampler = bgfx::createUniform("s_pbrRadiance", bgfx::UniformType::Sampler);
+  if (!bgfx::isValid(this->pbrProgram) || !bgfx::isValid(this->pbrOutputProgram) ||
+      !bgfx::isValid(this->pbrBaseUniform) || !bgfx::isValid(this->pbrEmissionUniform) ||
+      !bgfx::isValid(this->pbrCameraUniform) || !bgfx::isValid(this->pbrOutputUniform) ||
+      !bgfx::isValid(this->pbrRadianceSampler)) {
+    this->lastError = "BGFX could not create the PBR shading/output resources";
+    return false;
+  }
+  return true;
+}
+
+bool CoinBgfxBackend::readSceneLinear(SbList<SbVec3f> & radiance)
+{
+  radiance.truncate(0);
+  if (!this->onApiThread() || !bgfx::isValid(this->pbrFrameBuffer) ||
+      !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA16F,
+        BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK)) return false;
+  const auto staging = bgfx::createTexture2D(this->width, this->height, false, 1,
+    bgfx::TextureFormat::RGBA16F, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
+  if (!bgfx::isValid(staging)) return false;
+  SbList<uint16_t> packed;
+  const int count = this->width * this->height;
+  packed.ensureCapacity(count * 4);
+  for (int i = 0; i < count * 4; ++i) packed.append(0);
+  bgfx::TextureRegion destination, source;
+  destination.handle = staging; source.handle = bgfx::getTexture(this->pbrFrameBuffer, 0);
+  const auto view = bgfx::ViewId(this->viewBase + targetViewCount - 1);
+  bgfx::blit(view, destination, source);
+  const uint32_t ready = bgfx::read(destination, &packed[0]);
+  uint32_t completed = bgfx::frame();
+  while (static_cast<int32_t>(completed - ready) < 0) completed = bgfx::frame();
+  bgfx::destroy(staging);
+  if (this->checkRuntimeFailure("PBR radiance readback failed") != CoinRenderBackendStatus::SUCCESS) return false;
+  radiance.ensureCapacity(count);
+  for (int i = 0; i < count; ++i) {
+    const int y = i / this->width, x = i % this->width;
+    const int pixel = bgfx::getCaps()->originBottomLeft ? (this->height - y - 1) * this->width + x : i;
+    radiance.append(SbVec3f(CoinRenderTextureFormatCore::fromHalf(packed[pixel * 4]),
+      CoinRenderTextureFormatCore::fromHalf(packed[pixel * 4 + 1]),
+      CoinRenderTextureFormatCore::fromHalf(packed[pixel * 4 + 2])));
   }
   return true;
 }
@@ -1630,6 +1707,8 @@ CoinBgfxBackend::destroyFrameBuffers()
   this->lastPublishedSequence = 0;
   if (bgfx::isValid(this->frameBuffer)) bgfx::destroy(this->frameBuffer);
   if (bgfx::isValid(this->windowSceneFrameBuffer)) bgfx::destroy(this->windowSceneFrameBuffer);
+  if (bgfx::isValid(this->pbrFrameBuffer)) bgfx::destroy(this->pbrFrameBuffer);
+  this->pbrFrameBuffer = BGFX_INVALID_HANDLE;
   this->readbackTexture = BGFX_INVALID_HANDLE;
   this->frameBuffer = BGFX_INVALID_HANDLE;
   this->windowSceneFrameBuffer = BGFX_INVALID_HANDLE;
@@ -2327,6 +2406,41 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   const auto textureAdmission = bgfxTextureProfile(frame);
   if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
+  const bool hasPbr = std::any_of(frame.materials.begin(), frame.materials.end(),
+    [](const CoinRenderMaterialSnapshot & m) { return m.model == CoinRenderMaterialModel::PBR; });
+  if (hasPbr) {
+    if (!this->supportsPbr())
+      return {CoinRenderBackendStatus::UNSUPPORTED, "PBR requires BGFX/Vulkan with RGBA16F framebuffer support"};
+    if (!frame.shadowGroups.empty() || !frame.textures.empty())
+      return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile does not yet accept textures or shadow groups"};
+    if (outTicket)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "PBR asynchronous readback is not yet qualified"};
+    for (const auto & draw : frame.draws) {
+      const auto & state = frame.renderStates[draw.renderStateSlot];
+      if (frame.materials[state.materialSlot].model != CoinRenderMaterialModel::PBR ||
+          draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || state.polygonOffsetPrimitiveStyle != 1 ||
+          draw.renderLayer != 0 || draw.clearDepthBefore || state.rasterPixels ||
+          state.fogMode != CoinRenderFogMode::NONE || state.transparentMaterial ||
+          coin_render_alpha_test_active(state.alphaTestFunction) || state.lightModel != CoinRenderLightModel::PHONG)
+        return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile requires opaque PBR faces; strokes, mixed legacy, overlays, fog and alpha tests are not yet admitted"};
+      const SbMatrix modelView = state.model * state.view;
+      const float determinant = modelView.det4();
+      if (!std::isfinite(determinant) || std::abs(determinant) <= 1e-12f || modelView[3][3] != 1.0f ||
+          modelView[0][3] != 0.0f || modelView[1][3] != 0.0f || modelView[2][3] != 0.0f)
+        return {CoinRenderBackendStatus::UNSUPPORTED, "PBR requires a nonsingular affine model-view transform"};
+      for (uint32_t i = 0; i < draw.geometry.indexCount; ++i) {
+        const auto & vertex = frame.vertices[frame.indices[draw.geometry.firstIndex + i]];
+        if (vertex.materialSlot != state.materialSlot)
+          return {CoinRenderBackendStatus::UNSUPPORTED, "PBR requires one OVERALL material per draw"};
+        const SbVec3f normal(vertex.normal);
+        const float squared = normal.dot(normal);
+        if (!std::isfinite(squared) || squared <= 1e-20f)
+          return {CoinRenderBackendStatus::UNSUPPORTED, "PBR faces require finite nonzero normals"};
+      }
+    }
+    if (!this->preparePbrResources())
+      return {CoinRenderBackendStatus::BACKEND_ERROR, this->lastError};
+  }
   const bool hasShadows = !frame.shadowGroups.empty();
   CoinRenderShadowPlan shadowPlan;
   if (hasShadows) {
@@ -2398,7 +2512,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
 #else
   const bool instanceCaps = true;
 #endif
-  const bool instancingEnabled = !hasShadows && this->drawBatchingEnabled &&
+  const bool instancingEnabled = !hasPbr && !hasShadows && this->drawBatchingEnabled &&
     !(disableInstancing && std::strcmp(disableInstancing, "1") == 0) &&
     instanceCaps &&
     caps->limits.maxInstanceData >= 10 && caps->limits.maxVertexAttributes >= 12;
@@ -2415,7 +2529,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     !(disableInstancedCameraPatch && std::strcmp(disableInstancedCameraPatch, "1") == 0) &&
     bgfx::isValid(this->cachedInstanceBuffer);
   const bool cameraPatchEligible =
-    !hasShadows && this->cameraPatchEnabled &&
+    !hasPbr && !hasShadows && this->cameraPatchEnabled &&
     (!this->cachedPlan.usesInstancing || instancedCameraPatchEnabled) &&
     reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
@@ -2473,7 +2587,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if (!this->prepareTransparencyPrograms(selectedStrategy))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
-  if (!this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing))
+  if (!hasPbr && !this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -2508,6 +2622,24 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if (!this->presentToWindow && target.depthReadbackEnabled && !this->prepareDepthReadbackResources())
     return CoinRenderSubmitResult(this->status, this->lastError);
+  if (hasPbr && !bgfx::isValid(this->pbrFrameBuffer)) {
+    const auto depthFormat = (caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)
+      ? bgfx::TextureFormat::D24S8 : bgfx::TextureFormat::D32F;
+    const auto color = bgfx::createTexture2D(this->width, this->height, false, 1,
+      bgfx::TextureFormat::RGBA16F, peelTextureFlags);
+    const auto depth = bgfx::createTexture2D(this->width, this->height, false, 1, depthFormat, peelTextureFlags);
+    if (!bgfx::isValid(color) || !bgfx::isValid(depth)) {
+      if (bgfx::isValid(color)) bgfx::destroy(color);
+      if (bgfx::isValid(depth)) bgfx::destroy(depth);
+      return {CoinRenderBackendStatus::OUT_OF_MEMORY, "PBR HDR color/depth allocation failed"};
+    }
+    const bgfx::TextureHandle attachments[] = {color, depth};
+    this->pbrFrameBuffer = bgfx::createFrameBuffer(2, attachments, true);
+    if (!bgfx::isValid(this->pbrFrameBuffer)) {
+      bgfx::destroy(color); bgfx::destroy(depth);
+      return {CoinRenderBackendStatus::OUT_OF_MEMORY, "PBR HDR framebuffer creation failed"};
+    }
+  }
   if (plan->vertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxVertex) ||
       plan->packedVertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxVertexPrefix) ||
       plan->instancedVertices.size() > std::numeric_limits<uint32_t>::max() / sizeof(CoinBgfxInstancedVertex) ||
@@ -2773,8 +2905,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(this->width),
                     static_cast<uint16_t>(this->height));
-  const bgfx::FrameBufferHandle sceneOutput = bgfx::isValid(this->windowSceneFrameBuffer)
-    ? this->windowSceneFrameBuffer : this->frameBuffer;
+  const bgfx::FrameBufferHandle sceneOutput = hasPbr ? this->pbrFrameBuffer :
+    bgfx::isValid(this->windowSceneFrameBuffer) ? this->windowSceneFrameBuffer : this->frameBuffer;
   bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
   // The packed clear API quantizes Coin's float color before the GL clear.
   // Keep the float until the renderer converts it to its target format.
@@ -2810,7 +2942,12 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->bindDrawTexture(draw, textures);
     if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
     else this->bindDrawLighting(draw);
-    bgfx::submit(opaqueView, hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
+    if (hasPbr) {
+      bgfx::setUniform(this->pbrBaseUniform, draw.pbrBaseMetallic);
+      bgfx::setUniform(this->pbrEmissionUniform, draw.pbrEmissionRoughness);
+      bgfx::setUniform(this->pbrCameraUniform, draw.pbrCamera);
+    }
+    bgfx::submit(opaqueView, hasPbr ? this->pbrProgram : hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
       this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
 
   }
@@ -2883,7 +3020,27 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     destroyTextures();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
-  if (bgfx::isValid(this->windowSceneFrameBuffer)) {
+  if (hasPbr) {
+    const bgfx::ViewId outputView = nextView++;
+    bgfx::setViewName(outputView, "pbr_neutral_srgb_output");
+    bgfx::setViewMode(outputView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(outputView, 0, 0, this->width, this->height);
+    bgfx::setViewFrameBuffer(outputView, this->frameBuffer);
+    bgfx::setViewClear(outputView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(outputView, nullptr, nullptr);
+    const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    const float info[4] = {1.0f / this->width, 1.0f / this->height,
+      std::exp2(target.options.pbrExposureStops), 0};
+    bgfx::setTransform(identity);
+    bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+    bgfx::setTexture(0, this->pbrRadianceSampler, bgfx::getTexture(this->pbrFrameBuffer, 0),
+      BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setUniform(this->pbrOutputUniform, info);
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+    bgfx::submit(outputView, this->pbrOutputProgram);
+  }
+  if (!hasPbr && bgfx::isValid(this->windowSceneFrameBuffer)) {
     const bgfx::ViewId presentView = nextView++;
     bgfx::setViewName(presentView, "window_scene_present");
     bgfx::setViewMode(presentView, bgfx::ViewMode::Sequential);
@@ -3097,7 +3254,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     const float info[4] = {1.0f / this->width, 1.0f / this->height, 0, 0};
     bgfx::setTransform(identity);
     bgfx::setUniform(this->depthInfoUniform, info);
-    bgfx::setTexture(0, this->readDepthSampler, bgfx::getTexture(this->frameBuffer, 1));
+    bgfx::setTexture(0, this->readDepthSampler, bgfx::getTexture(hasPbr ? this->pbrFrameBuffer : this->frameBuffer, 1));
     bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
     bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
     bgfx::setState(BGFX_STATE_WRITE_R);
@@ -3310,6 +3467,9 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                                        uint64_t producerKey,
                                        uint64_t & token)
 {
+  for (const auto & material : frame.materials)
+    if (material.model == CoinRenderMaterialModel::PBR)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "PBR direct scene textures are outside the initial HDR output profile"};
   token = 0;
   const auto outputFormat=coinBgfxTextureFormat(frame.outputColorFormat);
   const auto * runtimeCaps=bgfx::getCaps();
@@ -4026,6 +4186,9 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
   auto admission = bgfxTextureProfile(root);
   if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
   for (const auto & producer : graph.producers) {
+    for (const auto & material : producer.plan.materials)
+      if (material.model == CoinRenderMaterialModel::PBR)
+        return {CoinRenderBackendStatus::UNSUPPORTED, "PBR scene texture producers are outside the initial HDR output profile"};
     admission = bgfxTextureProfile(producer.plan);
     if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
   }

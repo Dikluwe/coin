@@ -1,6 +1,7 @@
 #ifndef COIN_RENDER_PBR_VIEWS_H
 #define COIN_RENDER_PBR_VIEWS_H
 #include "CoinRenderPbrFixtures.h"
+#include <Inventor/rendering/SoPBRMaterial.h>
 #include <Inventor/C/base/time.h>
 #include <Inventor/SoDB.h>
 #include <Inventor/SoInput.h>
@@ -28,7 +29,8 @@
 #include <unistd.h>
 
 struct CoinRenderPbrViewOptions {
-  SbBool active = FALSE, offscreen = FALSE, cut = FALSE;
+  SbBool active = FALSE, offscreen = FALSE, cut = FALSE, pbr = FALSE;
+  float exposureStops = 0.0f;
   SbString fixture = "flange", scene, view = "iso-perspective";
   SbString capturePrefix, exportScene;
   SbVec2i32 size = SbVec2i32(1280, 960);
@@ -71,11 +73,12 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
   SbMatrix viewMatrix, projection;
   camera->getViewVolume(float(options.size[0]) / options.size[1]).getMatrices(viewMatrix, projection);
   std::fprintf(manifest,
-    "{\n  \"profile\":\"legacy-baseline\",\n  \"fixture\":%s,\n  \"source_scene\":%s,\n"
+    "{\n  \"profile\":%s,\n  \"exposure_stops\":%.9g,\n  \"fixture\":%s,\n  \"source_scene\":%s,\n"
     "  \"view\":%s,\n  \"width\":%d,\n  \"height\":%d,\n  \"frame\":%d,\n"
     "  \"cut\":%s,\n  \"axis_up\":\"Z\",\n  \"unit\":\"fixture-unit\",\n"
     "  \"renderer\":%u,\n  \"adapter\":%s,\n  \"vendor_id\":%u,\n  \"device_id\":%u,\n"
     "  \"submission\":%llu,\n  \"render_return_with_capture_ms\":%.6f,\n  \"view_matrix\":",
+    options.pbr ? "\"pbr-direct-m2\"" : "\"legacy-baseline\"", double(options.exposureStops),
     coin_pbr_json_string(options.fixture.getString()).getString(),
     coin_pbr_json_string(options.scene.getString()).getString(),
     coin_pbr_json_string(options.view.getString()).getString(), options.size[0], options.size[1], frame,
@@ -86,6 +89,11 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
   return std::fclose(manifest) == 0;
 }
 
+inline SoNode * coin_pbr_physical_material(const SbColor & color, float metallic, float roughness) {
+  auto * result = new SoPBRMaterial; result->baseColor = color;
+  result->metallic = metallic; result->roughness = roughness; return result;
+}
+
 inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, int requestedFrames) {
   const SbBool interactive = requestedFrames < 0 && !options.capturePrefix.getLength() &&
                              !options.orbitFrames && !options.offscreen;
@@ -94,6 +102,7 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
       options.size[1] > 8192 || frames > 100000) return 2;
   SoDB::init(); CoinRenderAction::initClass();
   CoinRenderOptions renderOptions; renderOptions.renderer = COIN_RENDER_RENDERER_VULKAN;
+  renderOptions.pbrExposureStops = options.exposureStops;
   CoinRenderCapabilities caps{};
   const uint32_t kind = options.offscreen ? COIN_RENDER_EXPERIMENTAL_OFFSCREEN : COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW;
   if (coin_render_query_capabilities_for_renderer(kind, renderOptions.renderer, &caps, sizeof(caps)) || !caps.gpu_available) {
@@ -103,9 +112,14 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   if (options.scene.getLength()) {
     SoInput input; if (!input.openFile(options.scene.getString())) return 2;
     geometry = SoDB::readAll(&input);
-  } else geometry = coin_pbr_fixture::create(options.fixture, options.cut);
+  } else geometry = coin_pbr_fixture::create(options.fixture, options.cut,
+    options.pbr ? coin_pbr_physical_material : coin_pbr_fixture::material);
   if (!geometry) { std::fprintf(stderr, "Unknown or unreadable CAD fixture\n"); return 2; }
   geometry->ref(); SbVec3f center;
+  if (options.pbr && options.scene.getLength()) {
+    std::fprintf(stderr, "PBR view fixtures are authored explicitly; imported CAD material conversion is not yet qualified\n");
+    geometry->unref(); return 2;
+  }
   // Presets own the camera. Remove input cameras through Coin's search/path
   // facilities so an embedded camera cannot invalidate the capture manifest.
   SoSearchAction cameraSearch;
