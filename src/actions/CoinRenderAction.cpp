@@ -1513,6 +1513,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       return;
     }
     bool executableShadow = false;
+    const bool pbrShadow = std::any_of(plan.materials.begin(), plan.materials.end(),
+      [](const CoinRenderMaterialSnapshot & m) { return m.model == CoinRenderMaterialModel::PBR; });
     // SoSceneTexture2 producers are captured without a target. The resolved
     // frame is later submitted by the selected staged or direct executor.
     if (this->planOnly &&
@@ -1523,10 +1525,10 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
     }
     if (this->target &&
-        this->target->getPimpl()->supportsOffscreenShadows(this->asyncTicket != nullptr)) {
+        this->target->getPimpl()->supportsOffscreenShadows(this->asyncTicket != nullptr, pbrShadow)) {
       std::string profileDiagnostic;
       executableShadow = coin_render_shadow_object_profile(
-        plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic);
+        plan, shadowPlan, shadowPlan.passes.size(), profileDiagnostic, pbrShadow);
     }
     if (!executableShadow) {
       this->lastRejectedShadowFrame = std::move(plan);

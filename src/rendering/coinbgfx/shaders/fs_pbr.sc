@@ -2,6 +2,9 @@ $input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0
 #include <bgfx_shader.sh>
 #include "coin_depth.sh"
 #include "coin_pbr_brdf.sh"
+#ifdef COIN_PBR_SHADOW
+#include "coin_pbr_shadows.sh"
+#endif
 #ifdef COIN_PBR_IBL
 #include "coin_pbr_ibl.sh"
 #endif
@@ -52,7 +55,11 @@ void main() {
 #else
     vec3 brdf = coinPbrBrdf(n,v,l,u_pbrBaseMetallic.rgb,u_pbrBaseMetallic.a,roughness);
 #endif
-    radiance += brdf * max(dot(n, l), 0.0) * u_lightColorIntensity[i].rgb *
+    float visibility = 1.0;
+#ifdef COIN_PBR_SHADOW
+    visibility = coinPbrVisibility(i, v_viewPosition);
+#endif
+    radiance += visibility * brdf * max(dot(n, l), 0.0) * u_lightColorIntensity[i].rgb *
       (u_lightColorIntensity[i].a * attenuation);
   }
 #ifdef COIN_PBR_IBL

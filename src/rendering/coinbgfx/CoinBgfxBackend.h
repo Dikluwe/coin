@@ -74,6 +74,8 @@ private:
   bool pbrSupported = false;
   bool sceneLinearPublished = false;
   bgfx::ProgramHandle pbrIblProgram = BGFX_INVALID_HANDLE;
+  bgfx::ProgramHandle pbrShadowProgram = BGFX_INVALID_HANDLE;
+  bgfx::ProgramHandle pbrShadowIblProgram = BGFX_INVALID_HANDLE;
   bgfx::TextureHandle pbrSourceCube = BGFX_INVALID_HANDLE, pbrSpecularCube = BGFX_INVALID_HANDLE;
   bgfx::TextureHandle pbrAlbedoAverageTexture = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrAlbedoAverageSampler = BGFX_INVALID_HANDLE, pbrQualityUniform = BGFX_INVALID_HANDLE;
@@ -165,7 +167,7 @@ private:
   void bindShadowReceiver(const CoinRenderFramePlan & frame,
                           const CoinRenderShadowPlan & shadowPlan,
                           const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
-                          const CoinBgfxDraw & draw, int targetHeight);
+                          const CoinBgfxDraw & draw, int targetHeight, bool pbr = false);
   bool onApiThread() const;
   CoinRenderBackendStatus status;
 

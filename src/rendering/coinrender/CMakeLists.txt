@@ -185,12 +185,19 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	endforeach()
 
   # Initial PBR executor is Vulkan; other shader APIs remain explicit opt-outs.
-  foreach(_pbr_shader vs_pbr fs_pbr fs_pbr_output fs_pbr_ibl)
+  foreach(_pbr_shader vs_pbr fs_pbr fs_pbr_output fs_pbr_ibl fs_pbr_shadow fs_pbr_shadow_ibl)
     set(_pbr_source ${_pbr_shader})
     set(_pbr_defines)
     if(_pbr_shader STREQUAL "fs_pbr_ibl")
       set(_pbr_source fs_pbr)
       set(_pbr_defines --define COIN_PBR_IBL=1)
+    endif()
+    if(_pbr_shader MATCHES "^fs_pbr_shadow")
+      set(_pbr_source fs_pbr)
+      set(_pbr_defines --define COIN_PBR_SHADOW=1)
+      if(_pbr_shader STREQUAL "fs_pbr_shadow_ibl")
+        set(_pbr_defines --define "COIN_PBR_SHADOW=1;COIN_PBR_IBL=1")
+      endif()
     endif()
     if(_pbr_shader MATCHES "^vs")
       set(_pbr_type vertex)
@@ -206,6 +213,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
         --varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
         --bin2c coin_bgfx_${_pbr_shader}_spirv -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
       DEPENDS ${_coin_bgfx_shader_dir}/${_pbr_source}.sc
+        ${_coin_bgfx_shader_dir}/coin_pbr_shadows.sh
         ${_coin_bgfx_shader_dir}/coin_pbr_ibl.sh
         ${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh ${_coin_bgfx_shader_dir}/coin_pbr_output.sh
         ${_coin_bgfx_shader_dir}/coin_depth.sh

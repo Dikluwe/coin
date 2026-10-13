@@ -52,7 +52,7 @@ public:
   static std::unique_ptr<CoinRenderBackend> createBackend();
   static bool isGpuBackendAvailable();
   // Admission uses implementation facts without preparing a GPU/device.
-  bool supportsOffscreenShadows(bool asynchronous) const;
+  bool supportsOffscreenShadows(bool asynchronous, bool pbrWindow = false) const;
   CoinRenderBackendStatus prepareBackend();
   CoinRenderSubmitResult preflightSubmission(bool asynchronous);
   void deviceLost();

@@ -116,7 +116,7 @@ coin_render_shadow_group_bounds(const CoinRenderFramePlan & frame,
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (!coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot)) continue;
+    if (draw.renderLayer != 0 || !coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot)) continue;
     // A partial main traversal still uses the whole group's bounds for maps.
     // An implicit group capture supplies the omitted shapes; external custom
     // scenes keep Coin's camera bounds tied to the original group.
@@ -505,7 +505,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
           return false;
         }
         const auto & state = frame.renderStates[draw.renderStateSlot];
-        if (state.shadowGroupSlot != pass.groupSlot) continue;
+        if (draw.renderLayer != 0 || state.shadowGroupSlot != pass.groupSlot) continue;
         const bool casterScene = light.mapSceneCaptured ? draw.shadowLightSlot == l + 1 : draw.shadowLightSlot == 0;
         if (casterScene && (state.shadowStyle & 1u) != 0 &&
             !coin_render_shadow_transparent_shape(frame, state))
@@ -545,7 +545,7 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
 inline bool
 coin_render_shadow_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,
-  size_t lightCount, std::string & diagnostic)
+  size_t lightCount, std::string & diagnostic, bool pbr = false)
 {
   if (frame.shadowGroups.empty() || shadows.passes.size() != lightCount ||
       (lightCount < 1 || lightCount > 8)) {
@@ -575,6 +575,9 @@ coin_render_shadow_object_profile(
       return false;
     }
     const auto & state = frame.renderStates[draw.renderStateSlot];
+    // CAD technical layers are composed after the HDR output transform. The
+    // PBR admission validates their BASE_COLOR contract separately.
+    if (pbr && draw.renderLayer != 0) continue;
     if (state.shadowGroupSlot > frame.shadowGroups.size() ||
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
         (!draw.shadowLightSlot && state.lightModel != CoinRenderLightModel::PHONG) ||
@@ -658,7 +661,7 @@ coin_render_shadow_object_profile(
               light.modelViewAtLight == source.sourceModel;
           });
       });
-    if (lowQuality || externalOrdinary) {
+    if (!pbr && (lowQuality || externalOrdinary)) {
       if (draw.geometry.indexCount % 3 != 0) {
         diagnostic = "Vertex-lit shadow profile requires triangles";
         return false;

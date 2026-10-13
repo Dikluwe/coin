@@ -1,0 +1,34 @@
+{
+  "stage": "S2",
+  "passed": 12,
+  "gpu": "AMD Vulkan 1002:1638",
+  "proof": [
+    "scene-linear two-light additivity",
+    "emission invariant with maps",
+    "HDR peak 7.3125",
+    "3982 affected receiver pixels",
+    "IBL invariant without direct illumination",
+    "CAD BASE_COLOR line after tone mapping and outside shadow maps",
+    "native Xlib vs offscreen radiance/pixel equality",
+    "legacy CoinGL and Phong controls"
+  ],
+  "limitations": [
+    "PBR still opaque and without material textures",
+    "PBR async readback unqualified",
+    "PBR visibility display diagnostic unsupported; depth/moments and scene-linear proofs available",
+    "other PBR executors/platforms not qualified"
+  ],
+  "source_sha256": {
+    "src/actions/CoinRenderAction.cpp": "ea22b5d1a68ef2f84c89042d56f43b899243a5f4db41f5470e0620d999d4268e",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "cd96dccbbb76e329dd54bb6871c3cbe7f15c9cc02905a077bb3223f6e28c1d07",
+    "src/rendering/coinbgfx/CoinBgfxBackend.h": "b7eb117ed8aa7498a2cca0c564a789ab010147bb9a2d675b9496b65c22ed88e8",
+    "src/rendering/coinbgfx/shaders/fs_pbr.sc": "479d1a00fa2f97534d24883a175c63b1937c5c4162128bea86f4e295b5d61563",
+    "src/rendering/coinrender/CMakeLists.txt": "91f5f73f2b2d2658b7054a536210fc60cbb2c7a0c9e8e2bb4eea19c490566fb8",
+    "src/rendering/coinrender/CoinRenderShadowCore.h": "0513c467ac29d4ae451e4f985522b282b39d6b9cb992bbb497904404e144bcac",
+    "src/rendering/coinrender/CoinRenderTarget.cpp": "51e40fdf5c534db8b4af9cc31ce8e66e0e237ecfa1ff10a2ed23cc7903e611b5",
+    "src/rendering/coinrender/CoinRenderTargetP.h": "299a1c18166720c15b9a8714046f71f6e5091991aaef6eeb198e77cf92988783",
+    "testsuite/CMakeLists.txt": "a8baf4128693a3ea01370b9f2f53c86e839f4bf3af3046147e1175cdcf41cb77",
+    "src/rendering/coinbgfx/shaders/coin_pbr_shadows.sh": "dde8d4e6a510d0e580f9994105338b018cc86905bbb041fea164aab0ae9c27fb",
+    "testsuite/coinrender/CoinRenderPbrShadowGpuTest.cpp": "8e33d01fc63a5733f340441e5c19587afadf909f04a748f039badf5ec9474d49"
+  }
+}

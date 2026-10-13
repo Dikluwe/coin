@@ -21,6 +21,8 @@
 #include "coin_bgfx_vs_pbr_spirv.h"
 #include "coin_bgfx_fs_pbr_spirv.h"
 #include "coin_bgfx_fs_pbr_ibl_spirv.h"
+#include "coin_bgfx_fs_pbr_shadow_spirv.h"
+#include "coin_bgfx_fs_pbr_shadow_ibl_spirv.h"
 #include "rendering/coinrender/CoinRenderPbrEnvironment.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "coin_bgfx_fs_pbr_output_spirv.h"
@@ -1046,6 +1048,8 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->depthReadProgram)) bgfx::destroy(this->depthReadProgram);
   if (bgfx::isValid(this->readDepthSampler)) bgfx::destroy(this->readDepthSampler);
   if (bgfx::isValid(this->pbrIblProgram)) bgfx::destroy(this->pbrIblProgram);
+  if (bgfx::isValid(this->pbrShadowProgram)) bgfx::destroy(this->pbrShadowProgram);
+  if (bgfx::isValid(this->pbrShadowIblProgram)) bgfx::destroy(this->pbrShadowIblProgram);
   if (bgfx::isValid(this->pbrSourceCube)) bgfx::destroy(this->pbrSourceCube);
   if (bgfx::isValid(this->pbrSpecularCube)) bgfx::destroy(this->pbrSpecularCube);
   if (bgfx::isValid(this->pbrAlbedoAverageTexture)) bgfx::destroy(this->pbrAlbedoAverageTexture);
@@ -2284,7 +2288,9 @@ CoinBgfxBackend::encodeOverlayLayers(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadowPlan,
   const std::vector<bgfx::FrameBufferHandle> & shadowMaps)
 {
-  const bool hasShadows = !shadowPlan.passes.empty();
+  const bool pbr = std::any_of(frame.materials.begin(), frame.materials.end(),
+    [](const CoinRenderMaterialSnapshot & m) {return m.model == CoinRenderMaterialModel::PBR;});
+  const bool hasShadows = !pbr && !shadowPlan.passes.empty();
   uint32_t encodedLayer = 0;
   for (const CoinBgfxDraw & layerDraw : draws) {
     if (layerDraw.renderLayer == 0 || layerDraw.renderLayer == encodedLayer) continue;
@@ -2371,7 +2377,7 @@ void
 CoinBgfxBackend::bindShadowReceiver(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadowPlan,
   const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
-  const CoinBgfxDraw & original, int targetHeight)
+  const CoinBgfxDraw & original, int targetHeight, bool pbr)
 {
   const float noDiagnostic[4] = {0,0,0,0};
   bgfx::setUniform(this->shadowDiagnosticUniform,noDiagnostic);
@@ -2384,7 +2390,7 @@ CoinBgfxBackend::bindShadowReceiver(
     float((flags & COIN_RENDER_SHADOW_ORDINARY_FRAGMENT) != 0),
     float((flags & COIN_RENDER_SHADOW_GROUP_LIGHTING) != 0), 0};
   bgfx::setUniform(this->shadowQualityUniform, quality);
-  if (state.lightingSlot < frame.lightingStates.size()) {
+  if (!pbr && state.lightingSlot < frame.lightingStates.size()) {
     const auto & lights = frame.lightingStates[state.lightingSlot].lights;
     for (size_t i = 0; i < lights.size() && i < COIN_RENDER_MAX_LIGHTS; ++i)
       if (coin_render_shadow_suppresses_ordinary_light(frame, state, lights[i]))
@@ -2535,13 +2541,14 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   if (hasPbr) {
     if (!this->supportsPbr())
       return {CoinRenderBackendStatus::UNSUPPORTED, "PBR requires BGFX/Vulkan with RGBA16F framebuffer support"};
-    if (!frame.shadowGroups.empty() || !frame.textures.empty())
-      return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile does not yet accept textures or shadow groups"};
+    if (!frame.textures.empty())
+      return {CoinRenderBackendStatus::UNSUPPORTED, "PBR profile does not yet accept textures"};
     if (outTicket)
       return {CoinRenderBackendStatus::UNSUPPORTED, "PBR asynchronous readback is not yet qualified"};
     struct TechnicalLayer {uint32_t id;bool clear;};
     SbList<TechnicalLayer> technicalLayers;
     for (const auto & draw : frame.draws) {
+      if (draw.shadowLightSlot) continue; // Independently captured depth-only casters.
       const auto & state = frame.renderStates[draw.renderStateSlot];
       if (draw.renderLayer>0) {
         int layer=0;
@@ -2595,19 +2602,19 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     return {CoinRenderBackendStatus::UNSUPPORTED, "Shadow diagnostics require opaque shadow geometry without overlays"};
   CoinRenderShadowPlan shadowPlan;
   if (hasShadows) {
-    if (this->presentToWindow || outTicket || target.directTextureOutput) {
+    if ((!hasPbr && this->presentToWindow) || outTicket || target.directTextureOutput) {
       this->lastError = "BGFX opaque shadows require synchronous offscreen output";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     if (!coin_render_plan_shadows(frame, shadowPlan, this->lastError,
                                  target.options.shadowAttachmentBudgetBytes) ||
         !coin_render_shadow_object_profile(frame, shadowPlan,
-          shadowPlan.passes.size(), this->lastError))
+          shadowPlan.passes.size(), this->lastError, hasPbr))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     const bgfx::Caps * caps = bgfx::getCaps();
-    if (caps && caps->limits.maxTextureSamplers < (shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10)) {
+    if (caps && caps->limits.maxTextureSamplers < (hasPbr || shadowPlan.passes.size() > 4 ? 16 : shadowPlan.passes.size() > 2 ? 12 : 10)) {
       this->lastError = "BGFX shadow receiver needs one texture stage per shadow pass";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
@@ -2623,6 +2630,18 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
     if (!this->prepareShadowPrograms(shadowPlan.passes.size()))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
+    if (hasPbr) {
+      auto & program = hasIbl ? this->pbrShadowIblProgram : this->pbrShadowProgram;
+      if (!bgfx::isValid(program)) program = hasIbl
+        ? createLayerProgram(coin_bgfx_vs_pbr_spirv, sizeof(coin_bgfx_vs_pbr_spirv),
+            coin_bgfx_fs_pbr_shadow_ibl_spirv, sizeof(coin_bgfx_fs_pbr_shadow_ibl_spirv))
+        : createLayerProgram(coin_bgfx_vs_pbr_spirv, sizeof(coin_bgfx_vs_pbr_spirv),
+            coin_bgfx_fs_pbr_shadow_spirv, sizeof(coin_bgfx_fs_pbr_shadow_spirv));
+      if (!bgfx::isValid(program))
+        return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Cannot allocate PBR shadow receiver"};
+      if (shadowDiagnostic && target.options.shadowDiagnostic == COIN_RENDER_SHADOW_DIAGNOSTIC_VISIBILITY)
+        return {CoinRenderBackendStatus::UNSUPPORTED, "PBR visibility diagnostics use scene-linear radiance validation"};
+    }
     if (shadowDiagnostic && target.options.shadowDiagnosticMap >= shadowPlan.passes.size())
       return {CoinRenderBackendStatus::UNSUPPORTED, "Shadow diagnostic references a map absent from this frame"};
     if (!bgfx::isValid(this->shadowDiagnosticUniform))
@@ -2784,7 +2803,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   const bool hasTechnicalOverlay=hasPbr&&std::any_of(strategyDraws.begin(),strategyDraws.end(),
     [](const CoinBgfxDraw & draw){return draw.renderLayer>0;});
-  if ((!hasPbr||hasTechnicalOverlay) && !this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing))
+  if ((!hasPbr||hasTechnicalOverlay) && !this->prepareBaseProgram(strategyDraws, hasShadows && !hasPbr, selectedStrategy, plan->usesInstancing))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (hasShadows && selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -3142,7 +3161,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       bgfx::setInstanceDataBuffer(instanceBuffer, draw.firstInstance, draw.instanceCount);
     bgfx::setState(drawState(draw));
     this->bindDrawTexture(draw, textures);
-    if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
+    if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height, hasPbr);
     else this->bindDrawLighting(draw);
     if (hasShadows) {
       const float diagnostic[4] = {float(target.options.shadowDiagnostic),
@@ -3168,7 +3187,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         bgfx::setUniform(this->pbrQualityUniform,quality);
       }
     }
-    bgfx::submit(opaqueView, hasPbr ? (hasIbl ? this->pbrIblProgram : this->pbrProgram) : hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
+    bgfx::submit(opaqueView, hasPbr ? (hasShadows ? (hasIbl ? this->pbrShadowIblProgram : this->pbrShadowProgram) : (hasIbl ? this->pbrIblProgram : this->pbrProgram)) : hasShadows ? (shadowPlan.passes.size() > 4 ? this->shadowReceiverProgram8 : shadowPlan.passes.size() > 2 ?
       this->shadowReceiverProgram4 : this->shadowReceiverProgram) : this->activeProgram);
 
   }

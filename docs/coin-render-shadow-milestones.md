@@ -7,7 +7,7 @@ orientada pela view pertence ao CoinRender; propriedades físicas permanecem no
 material e nas luzes. Perfil inicial de execução: BGFX/Vulkan e cenas CAD.
 
 - [x] S1 — orçamento completo, admissão conjunta de recursos e diagnóstico dos mapas.
-- [ ] S2 — receptor PBR opaco com visibilidade por luz, GGX, HDR/IBL e views CAD.
+- [x] S2 — receptor PBR opaco com visibilidade por luz, GGX, HDR/IBL e views CAD.
 - [ ] S3 — contato/detalhe: bias separado da variância, momentos e culling.
 - [ ] S4 — estabilidade da projeção direcional durante órbita/zoom.
 - [ ] S5 — persistência dos attachments e cache correto por conteúdo/projeção/vista.
@@ -32,4 +32,12 @@ e diagnóstico antes de alocar os attachments da submissão.
 Evidências: [summary](validation/shadows/s1/summary.json),
 [CTest](validation/shadows/s1/ctest.log), [comandos](validation/shadows/s1/commands.txt)
 e [diagnósticos reais](validation/shadows/s1/gallery.png).
-S2 em implementação; S3–S6 ainda abertos.
+S2 concluído: receptor GGX por fragmento usa a visibilidade do mapa associado a
+cada luz, preserva HDR, emissão e IBL. Linhas técnicas BASE_COLOR são compostas
+após tone mapping e não entram nos mapas. Os 12 controles passaram, incluindo
+igualdade entre janela Xlib e offscreen, os oracles GGX/IBL existentes e CoinGL.
+[Evidências S2](validation/shadows/s2/summary.json) e
+[captura real](validation/shadows/s2/pbr-shadows.png).
+PBR continua opaco, sem texturas de material e sem readback assíncrono qualificado.
+O diagnóstico de visibilidade para PBR ainda é feito por radiância linear;
+profundidade/momentos estão disponíveis. S3 em implementação; S4–S6 abertos.

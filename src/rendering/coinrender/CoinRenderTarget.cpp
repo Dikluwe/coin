@@ -432,9 +432,9 @@ CoinRenderTargetP::detachedFromAction()
 }
 
 bool
-CoinRenderTargetP::supportsOffscreenShadows(bool asynchronous) const
+CoinRenderTargetP::supportsOffscreenShadows(bool asynchronous, bool pbrWindow) const
 {
-  if (this->kind != KIND_OFFSCREEN || this->directTextureOutput || asynchronous)
+  if ((!pbrWindow && this->kind != KIND_OFFSCREEN) || this->directTextureOutput || asynchronous)
     return false;
   if (this->backend) return this->backend->supportsOffscreenShadows();
   // An unprepared target uses the compiled connector's implementation facts.

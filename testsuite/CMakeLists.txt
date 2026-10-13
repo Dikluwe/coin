@@ -9,6 +9,26 @@ if(COIN_BUILD_RENDER)
     ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
   add_test(NAME CoinRenderShadowBudgetTest COMMAND CoinRenderShadowBudgetTest)
   if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_executable(CoinRenderPbrShadowGpuTest coinrender/CoinRenderPbrShadowGpuTest.cpp)
+    target_compile_definitions(CoinRenderPbrShadowGpuTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderPbrShadowGpuTest CoinRender Coin)
+    if(X11_FOUND)
+      target_compile_definitions(CoinRenderPbrShadowGpuTest PRIVATE COIN_SHADOW_TEST_X11)
+      target_link_libraries(CoinRenderPbrShadowGpuTest ${X11_LIBRARIES})
+      target_include_directories(CoinRenderPbrShadowGpuTest PRIVATE ${X11_INCLUDE_DIR})
+      add_test(NAME CoinRenderPbrShadowWindowTest COMMAND CoinRenderPbrShadowGpuTest
+        ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics --window)
+      set_tests_properties(CoinRenderPbrShadowWindowTest PROPERTIES TIMEOUT 90
+        ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
+    endif()
+    target_include_directories(CoinRenderPbrShadowGpuTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderPbrShadowGpuTest COMMAND CoinRenderPbrShadowGpuTest
+      ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics)
+    set_tests_properties(CoinRenderPbrShadowGpuTest PROPERTIES TIMEOUT 90
+      ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
     add_executable(CoinRenderShadowDiagnosticsTest coinrender/CoinRenderShadowDiagnosticsTest.cpp)
     target_compile_definitions(CoinRenderShadowDiagnosticsTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
     target_link_libraries(CoinRenderShadowDiagnosticsTest CoinRender Coin)
