@@ -6,6 +6,17 @@
 #include <cmath>
 
 inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
+  if (options.shadowDiagnostic < COIN_RENDER_SHADOW_DIAGNOSTIC_NONE ||
+      options.shadowDiagnostic > COIN_RENDER_SHADOW_DIAGNOSTIC_VISIBILITY ||
+      options.shadowDiagnosticMap >= 8) {
+    diagnostic = "Invalid shadow diagnostic or map index";
+    return false;
+  }
+  if (!options.shadowAttachmentBudgetBytes ||
+      options.shadowAttachmentBudgetBytes > uint64_t(160) * 1024 * 1024) {
+    diagnostic = "Shadow attachment budget must be nonzero and at most 160 MiB";
+    return false;
+  }
   if (!std::isfinite(options.pbrSpecularFilterVariance) || options.pbrSpecularFilterVariance < 0 ||
       options.pbrSpecularFilterVariance > 1 || !std::isfinite(options.pbrSpecularFilterThreshold) ||
       options.pbrSpecularFilterThreshold < 0 || options.pbrSpecularFilterThreshold > 1) {

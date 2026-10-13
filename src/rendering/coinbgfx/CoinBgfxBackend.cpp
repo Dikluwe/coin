@@ -43,6 +43,8 @@
 #include "coin_bgfx_fs_peel_next_spirv.h"
 #include "coin_bgfx_fs_composite_glsl.h"
 #include "coin_bgfx_fs_composite_spirv.h"
+#include "coin_bgfx_fs_shadow_diagnostic_glsl.h"
+#include "coin_bgfx_fs_shadow_diagnostic_spirv.h"
 #include "coin_bgfx_fs_weighted_oit_glsl.h"
 #include "coin_bgfx_fs_weighted_oit_spirv.h"
 #include "coin_bgfx_fs_weighted_composite_glsl.h"
@@ -824,6 +826,12 @@ CoinBgfxBackend::CoinBgfxBackend()
 bool
 CoinBgfxBackend::prepareShadowPrograms(size_t mapCount)
 {
+  if (!bgfx::isValid(this->shadowDiagnosticUniform))
+    this->shadowDiagnosticUniform = bgfx::createUniform("u_shadowDiagnostic", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->shadowDiagnosticUniform)) {
+    this->lastError = "Cannot allocate shadow diagnostic uniform";
+    return false;
+  }
   const bool extended = mapCount > 2;
   const bool eight = mapCount > 4;
   const auto createExtended = [&]() {
@@ -1060,6 +1068,8 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->solidProgram)) bgfx::destroy(this->solidProgram);
   if (bgfx::isValid(this->instancedProgram)) bgfx::destroy(this->instancedProgram);
   if (bgfx::isValid(this->shadowMomentsProgram)) bgfx::destroy(this->shadowMomentsProgram);
+  if (bgfx::isValid(this->shadowDiagnosticProgram)) bgfx::destroy(this->shadowDiagnosticProgram);
+  if (bgfx::isValid(this->shadowDiagnosticUniform)) bgfx::destroy(this->shadowDiagnosticUniform);
   if (bgfx::isValid(this->shadowReceiverProgram)) bgfx::destroy(this->shadowReceiverProgram);
   if (bgfx::isValid(this->shadowReceiverProgram4)) bgfx::destroy(this->shadowReceiverProgram4);
   if (bgfx::isValid(this->shadowReceiverProgram8)) bgfx::destroy(this->shadowReceiverProgram8);
@@ -2363,6 +2373,8 @@ CoinBgfxBackend::bindShadowReceiver(
   const std::vector<bgfx::FrameBufferHandle> & shadowMaps,
   const CoinBgfxDraw & original, int targetHeight)
 {
+  const float noDiagnostic[4] = {0,0,0,0};
+  bgfx::setUniform(this->shadowDiagnosticUniform,noDiagnostic);
   CoinBgfxDraw shaded = original;
   shaded.lightCount[1] = 0.0f;
   float indices[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
@@ -2574,13 +2586,21 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   }
   const bool hasShadows = !frame.shadowGroups.empty();
+  const bool shadowDiagnostic = target.options.shadowDiagnostic != COIN_RENDER_SHADOW_DIAGNOSTIC_NONE;
+  if (shadowDiagnostic && (!hasShadows || std::any_of(frame.draws.begin(), frame.draws.end(),
+      [&](const CoinRenderDrawPacket & draw) {
+        const auto & state = frame.renderStates[draw.renderStateSlot];
+        return draw.renderLayer != 0 || state.transparentMaterial || state.transparentTexture;
+      })))
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Shadow diagnostics require opaque shadow geometry without overlays"};
   CoinRenderShadowPlan shadowPlan;
   if (hasShadows) {
     if (this->presentToWindow || outTicket || target.directTextureOutput) {
       this->lastError = "BGFX opaque shadows require synchronous offscreen output";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
-    if (!coin_render_plan_shadows(frame, shadowPlan, this->lastError) ||
+    if (!coin_render_plan_shadows(frame, shadowPlan, this->lastError,
+                                 target.options.shadowAttachmentBudgetBytes) ||
         !coin_render_shadow_object_profile(frame, shadowPlan,
           shadowPlan.passes.size(), this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
@@ -2595,13 +2615,32 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       if (pass.mapSize > caps->limits.maxTextureSize ||
           !(caps->formats[bgfx::TextureFormat::RGBA32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
           !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
-          !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags)) {
+          !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F, shadowTextureFlags) ||
+          !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::D32F, BGFX_TEXTURE_RT_WRITE_ONLY)) {
         this->lastError = "BGFX cannot render RGBA32F/D32F shadow maps at the planned size";
         return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
       }
     }
     if (!this->prepareShadowPrograms(shadowPlan.passes.size()))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
+    if (shadowDiagnostic && target.options.shadowDiagnosticMap >= shadowPlan.passes.size())
+      return {CoinRenderBackendStatus::UNSUPPORTED, "Shadow diagnostic references a map absent from this frame"};
+    if (!bgfx::isValid(this->shadowDiagnosticUniform))
+      this->shadowDiagnosticUniform = bgfx::createUniform("u_shadowDiagnostic", bgfx::UniformType::Vec4);
+    if (!bgfx::isValid(this->shadowDiagnosticUniform))
+      return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Cannot allocate shadow diagnostic uniform"};
+    if (target.options.shadowDiagnostic == COIN_RENDER_SHADOW_DIAGNOSTIC_DEPTH ||
+        target.options.shadowDiagnostic == COIN_RENDER_SHADOW_DIAGNOSTIC_MOMENTS) {
+      if (!this->prepareFullscreenResources()) return {CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError};
+      if (!bgfx::isValid(this->shadowDiagnosticProgram))
+        this->shadowDiagnosticProgram = createLayerProgram(
+          COIN_BGFX_SHADER_DATA(coin_bgfx_vs), COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+          COIN_BGFX_SHADER_DATA(coin_bgfx_fs_shadow_diagnostic), COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_shadow_diagnostic));
+      if (!bgfx::isValid(this->layerSampler))
+        this->layerSampler = bgfx::createUniform("s_layer", bgfx::UniformType::Sampler);
+      if (!bgfx::isValid(this->shadowDiagnosticProgram) || !bgfx::isValid(this->layerSampler))
+        return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Cannot allocate shadow diagnostic output"};
+    }
   }
   if (outTicket) {
     auto & runtime = sharedRuntime();
@@ -2716,6 +2755,30 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         this->transparencyMode, this->weightedOitSupported,
         this->sortedLayersSupported, selectedStrategy, this->lastError)) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+  }
+  if (hasShadows) {
+    size_t sceneViews = selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS
+      ? size_t(frame.transparency.layers) + 2
+      : selectedStrategy == CoinBgfxTransparencyStrategy::WEIGHTED_OIT ? 3 : 2;
+    if (hasPbr) ++sceneViews; // HDR output conversion, before technical overlays.
+    if (selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
+        std::any_of(strategyDraws.begin(),strategyDraws.end(),[](const CoinBgfxDraw & draw) {
+          return draw.renderLayer == 0 && draw.blend && draw.deferred && draw.additive;
+        })) ++sceneViews;
+    size_t overlayViews=0;uint32_t previousLayer=0;
+    for (const auto & draw:strategyDraws) {
+      if (!draw.renderLayer || draw.renderLayer==previousLayer) continue;
+      previousLayer=draw.renderLayer;++overlayViews;
+      if (std::any_of(strategyDraws.begin(),strategyDraws.end(),[&](const CoinBgfxDraw & item) {
+            return item.renderLayer==draw.renderLayer && item.clearDepthBefore;
+          })) ++overlayViews;
+    }
+    const bool mapDiagnostic = target.options.shadowDiagnostic==COIN_RENDER_SHADOW_DIAGNOSTIC_DEPTH ||
+                               target.options.shadowDiagnostic==COIN_RENDER_SHADOW_DIAGNOSTIC_MOMENTS;
+    const size_t available=targetViewCount-2-(mapDiagnostic?1:0);
+    if (!coin_render_shadow_view_budget(shadowPlan.passes.size(),sceneViews,overlayViews,
+                                       available,this->lastError))
+      return {CoinRenderBackendStatus::UNSUPPORTED,this->lastError};
   }
   if (!this->prepareTransparencyPrograms(selectedStrategy))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
@@ -3056,6 +3119,11 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     CoinBgfxLowering::groupOpaqueDraws(sourceDraws, groupedDraws);
   const std::vector<CoinBgfxDraw> & draws =
     groupDraws ? groupedDraws : sourceDraws;
+  if (hasShadows) {
+    const float diagnostic[4] = {float(target.options.shadowDiagnostic),
+      float(target.options.shadowDiagnosticMap), bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f, 0.0f};
+    bgfx::setUniform(this->shadowDiagnosticUniform, diagnostic);
+  }
   const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, draws);
   const bool useSortedLayers =
     selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
@@ -3076,6 +3144,11 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->bindDrawTexture(draw, textures);
     if (hasShadows) this->bindShadowReceiver(frame, shadowPlan, shadowMaps.buffers, draw, this->height);
     else this->bindDrawLighting(draw);
+    if (hasShadows) {
+      const float diagnostic[4] = {float(target.options.shadowDiagnostic),
+        float(target.options.shadowDiagnosticMap),0,0};
+      bgfx::setUniform(this->shadowDiagnosticUniform,diagnostic);
+    }
     if (hasPbr) {
       bgfx::setUniform(this->pbrBaseUniform, draw.pbrBaseMetallic);
       bgfx::setUniform(this->pbrEmissionUniform, draw.pbrEmissionRoughness);
@@ -3214,6 +3287,32 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
     bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
     bgfx::submit(presentView, this->compositeProgram);
+  }
+  if (hasShadows && (target.options.shadowDiagnostic == COIN_RENDER_SHADOW_DIAGNOSTIC_DEPTH ||
+                    target.options.shadowDiagnostic == COIN_RENDER_SHADOW_DIAGNOSTIC_MOMENTS)) {
+    // BGFX orders views by ID. The diagnostic must precede the readback
+    // views allocated from nextView, rather than an unrelated fixed ID.
+    const bgfx::ViewId debugView = nextView++;
+    bgfx::setViewName(debugView, "shadow_map_diagnostic");
+    bgfx::setViewMode(debugView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(debugView, 0, 0, this->width, this->height);
+    bgfx::setViewFrameBuffer(debugView, this->frameBuffer);
+    bgfx::setViewClear(debugView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(debugView, nullptr, nullptr);
+    const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    const float info[4] = {1.0f/this->width, 1.0f/this->height, 0, 0};
+    const float diagnostic[4] = {float(target.options.shadowDiagnostic),
+      float(target.options.shadowDiagnosticMap), bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f, 0.0f};
+    bgfx::setTransform(identity);
+    bgfx::setVertexBuffer(0,this->fullscreenVertexBuffer);
+    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+    bgfx::setUniform(this->depthInfoUniform,info);
+    bgfx::setUniform(this->shadowDiagnosticUniform,diagnostic);
+    bgfx::setTexture(0,this->layerSampler,bgfx::getTexture(
+      shadowMaps.buffers[target.options.shadowDiagnosticMap],0),
+      BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_MIN_POINT|BGFX_SAMPLER_MAG_POINT);
+    bgfx::setState(BGFX_STATE_WRITE_RGB|BGFX_STATE_WRITE_A);
+    bgfx::submit(debugView,this->shadowDiagnosticProgram);
   }
   const Clock::time_point drawsEncoded = Clock::now();
   if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE")) {

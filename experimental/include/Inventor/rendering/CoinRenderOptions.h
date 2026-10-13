@@ -14,6 +14,13 @@ enum CoinRenderStoredTextureColorSpace {
   COIN_RENDER_TEXTURE_SRGB = 1
 };
 
+enum CoinRenderShadowDiagnostic {
+  COIN_RENDER_SHADOW_DIAGNOSTIC_NONE = 0,
+  COIN_RENDER_SHADOW_DIAGNOSTIC_DEPTH = 1, // linear depth from the first moment
+  COIN_RENDER_SHADOW_DIAGNOSTIC_MOMENTS = 2, // first/second moments in RG
+  COIN_RENDER_SHADOW_DIAGNOSTIC_VISIBILITY = 3 // selected map on its receivers
+};
+
 /** Structural target configuration. Exposure and environment scalar parameters
  * may subsequently change through the target's explicit setters.
  * Explicit options override environment defaults.
@@ -41,6 +48,13 @@ struct CoinRenderOptions {
   // Screen-space normal variance broadens the same GGX width for direct/IBL.
   float pbrSpecularFilterVariance = 0.15f;
   float pbrSpecularFilterThreshold = 0.10f; // zero disables filtering
+
+  // BGFX shadow attachment admission, including moments and depth. This
+  // preserves the actual ceiling of the qualified legacy profile. A lower
+  // limit refuses the frame before allocation; it never changes precision.
+  uint64_t shadowAttachmentBudgetBytes = uint64_t(160) * 1024 * 1024;
+  CoinRenderShadowDiagnostic shadowDiagnostic = COIN_RENDER_SHADOW_DIAGNOSTIC_NONE;
+  uint32_t shadowDiagnosticMap = 0;
 
 };
 

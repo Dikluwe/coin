@@ -69,6 +69,8 @@ public:
   const std::string & getLastError() const override { return lastError; }
 
 private:
+  bgfx::ProgramHandle shadowDiagnosticProgram = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle shadowDiagnosticUniform = BGFX_INVALID_HANDLE;
   bool pbrSupported = false;
   bool sceneLinearPublished = false;
   bgfx::ProgramHandle pbrIblProgram = BGFX_INVALID_HANDLE;

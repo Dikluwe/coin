@@ -66,6 +66,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
+        ${_coin_bgfx_shader_dir}/coin_shadow_visibility.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_alpha.sh
@@ -76,7 +77,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	foreach(_shader solid_color peel_next composite weighted_oit weighted_composite depth_readback mip_area)
+	foreach(_shader solid_color peel_next composite weighted_oit weighted_composite depth_readback mip_area shadow_diagnostic)
 		foreach(_renderer ${_coin_bgfx_renderers})
 			set(_shader_platform linux)
 			if(_renderer STREQUAL "dx11")
@@ -98,6 +99,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
+        ${_coin_bgfx_shader_dir}/coin_shadow_visibility.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_alpha.sh
@@ -135,6 +137,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 				DEPENDS ${_coin_bgfx_shader_dir}/${_shadow_shader}.sc
 					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
+        ${_coin_bgfx_shader_dir}/coin_shadow_visibility.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_alpha.sh
@@ -172,7 +175,8 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_${_surface}_portable_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_surface_file}.sc
 					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
-					${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_depth.sh
+        ${_coin_bgfx_shader_dir}/coin_shadow_visibility.sh ${_coin_bgfx_shader_dir}/coin_lighting.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh ${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh ${_coin_bgfx_shader_dir}/coin_shadow_quality.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc VERBATIM)
@@ -204,7 +208,8 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
       DEPENDS ${_coin_bgfx_shader_dir}/${_pbr_source}.sc
         ${_coin_bgfx_shader_dir}/coin_pbr_ibl.sh
         ${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh ${_coin_bgfx_shader_dir}/coin_pbr_output.sh
-        ${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/varying.def.sc
+        ${_coin_bgfx_shader_dir}/coin_depth.sh
+        ${_coin_bgfx_shader_dir}/coin_shadow_visibility.sh ${_coin_bgfx_shader_dir}/varying.def.sc
       VERBATIM)
     list(APPEND COIN_RENDER_SOURCES ${_pbr_output})
   endforeach()

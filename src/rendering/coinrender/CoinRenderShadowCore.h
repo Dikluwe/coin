@@ -41,8 +41,27 @@ struct CoinRenderShadowPass {
 
 struct CoinRenderShadowPlan {
   std::vector<CoinRenderShadowPass> passes;
+  uint64_t momentsBytes = 0;
+  uint64_t depthBytes = 0;
   uint64_t attachmentBytes = 0;
 };
+
+// The former 128 MiB check counted RGBA32F alone. Its actually admitted
+// RGBA32F + D32F attachments occupied up to 160 MiB. Preserve that physical
+// ceiling and the qualified eight-map profile while accounting for both.
+constexpr uint64_t COIN_RENDER_SHADOW_ATTACHMENT_LIMIT = uint64_t(160) * 1024 * 1024;
+
+inline bool
+coin_render_shadow_view_budget(size_t maps, size_t sceneViews, size_t overlayViews,
+                              size_t availableViews, std::string & diagnostic)
+{
+  if (maps > availableViews || sceneViews > availableViews - maps ||
+      overlayViews > availableViews - maps - sceneViews) {
+    diagnostic = "Shadow, scene and overlay passes exceed the target view budget";
+    return false;
+  }
+  return true;
+}
 
 inline bool
 coin_render_shadow_finite(const SbVec3f & value)
@@ -382,7 +401,8 @@ coin_render_append_shadow_scene(CoinRenderFramePlan & frame,
 // to CoinBgfx/CoinWgpu; only explicitly qualified profiles execute.
 inline bool
 coin_render_plan_shadows(const CoinRenderFramePlan & frame,
-                         CoinRenderShadowPlan & output, std::string & diagnostic)
+                         CoinRenderShadowPlan & output, std::string & diagnostic,
+                         uint64_t budget = COIN_RENDER_SHADOW_ATTACHMENT_LIMIT)
 {
   CoinRenderShadowPlan candidate;
   for (size_t g = 0; g < frame.shadowGroups.size(); ++g) {
@@ -495,12 +515,16 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
       }
       if (!coin_render_shadow_camera(group, light, groupBounds,
                                      mainViewPtr, pass, diagnostic)) return false;
-      const uint64_t bytes = uint64_t(mapSize) * mapSize * 16u; // RGBA32F moments.
-      const uint64_t budget = uint64_t(128) * 1024 * 1024;
+      const uint64_t pixels = uint64_t(mapSize) * mapSize;
+      const uint64_t moments = pixels * 16u; // RGBA32F.
+      const uint64_t depth = pixels * 4u; // D32F used by both portable executors.
+      const uint64_t bytes = moments + depth;
       if (bytes > budget || candidate.attachmentBytes > budget - bytes) {
-        diagnostic = "Shadow maps exceed 128 MiB per apply";
+        diagnostic = "Shadow moments and depth attachments exceed the configured byte budget";
         return false;
       }
+      candidate.momentsBytes += moments;
+      candidate.depthBytes += depth;
       candidate.attachmentBytes += bytes;
       candidate.passes.push_back(std::move(pass));
     }

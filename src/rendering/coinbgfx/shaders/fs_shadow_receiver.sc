@@ -17,33 +17,8 @@ uniform vec4 u_shadowMeta1;
 uniform vec4 u_shadowLightIndices;
 uniform vec4 u_shadowLightIndicesExtra;
 #include "coin_shadow_quality.sh"
-float coinShadowVisibility(vec3 positionView, mat4 viewToClip, mat4 viewToLight,
-                           vec4 params, vec4 meta, sampler2D mapTexture)
-{
-  vec4 coord = mul(viewToClip, vec4(positionView, 1.0));
-  if (coord.w <= 0.0) return 1.0;
-  vec3 clip = coord.xyz / coord.w;
-  vec2 uv = vec2(clip.x * 0.5 + 0.5,
-    meta.w > 0.5 ? clip.y * 0.5 + 0.5 : 0.5 - clip.y * 0.5);
-  if (uv.x < 0.0 || uv.x >= 1.0 || uv.y < 0.0 || uv.y >= 1.0 ||
-      clip.z < 0.0 || clip.z > 1.0) return 1.0;
-  vec2 moments = texture2D(mapTexture, uv).xy;
-  if (moments.x >= 0.9999) return 1.0;
-  vec3 lightView = mul(viewToLight, vec4(positionView, 1.0)).xyz;
-  float distance = meta.x > 0.5 ? length(lightView) : -lightView.z;
-  float normalized = (distance - params.x) / (params.y - params.x);
-  if (normalized <= moments.x) return 1.0;
-  float variance = min(max(moments.y - moments.x * moments.x, 0.0) + params.z, 1.0);
-  float delta = moments.x - normalized;
-  float probability = variance / (variance + delta * delta);
-  probability *= smoothstep(params.w, 1.0, probability);
-  if (meta.x < 0.5 && meta.y > 0.0) {
-    float eyeZ = positionView.z;
-    float fade = min(1.0, exp(meta.z * eyeZ * abs(eyeZ) / (meta.y * meta.y)));
-    return 1.0 - (1.0 - probability) * fade;
-  }
-  return probability;
-}
+#include "coin_shadow_visibility.sh"
+uniform vec4 u_shadowDiagnostic;
 void main()
 {
   vec4 color = v_color0;
@@ -82,5 +57,15 @@ void main()
   vec4 surface = coinSurfaceColor(gl_FragCoord.xy, color, v_texcoord0,
     v_viewPosition, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, vec4_splat(1.0), vec4_splat(1.0));
   surface.rgb = clamp(surface.rgb + specularColor, 0.0, 1.0);
+  if (u_shadowDiagnostic.x > 2.5) {
+    float visibility = 1.0;
+    if (abs(u_shadowDiagnostic.y - 0.0) < 0.5 && u_shadowLightIndices.x >= 0.0)
+      visibility = coinShadowVisibility(v_viewPosition, u_shadowViewToClip0,
+        u_shadowViewToLight0, u_shadowParams0, u_shadowMeta0, s_shadow0);
+    if (abs(u_shadowDiagnostic.y - 1.0) < 0.5 && u_shadowLightIndices.y >= 0.0)
+      visibility = coinShadowVisibility(v_viewPosition, u_shadowViewToClip1,
+        u_shadowViewToLight1, u_shadowParams1, u_shadowMeta1, s_shadow1);
+    surface = vec4(vec3_splat(visibility), 1.0);
+  }
   gl_FragColor = surface;
 }

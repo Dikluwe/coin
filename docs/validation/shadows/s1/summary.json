@@ -1,0 +1,53 @@
+{
+  "stage": "S1",
+  "date": "2026-10-13",
+  "branch": "codex/sombras-pbr",
+  "base": "6d2f8ecdb2be1be84bdc12069db39e88cbc7a802",
+  "tests_passed": 6,
+  "tests_total": 6,
+  "gpu": {
+    "renderer": "Vulkan",
+    "vendor": "0x1002",
+    "device": "0x1638"
+  },
+  "resource_budget": {
+    "default_bytes": 167772160,
+    "eight_1024_moments_bytes": 134217728,
+    "eight_1024_depth_bytes": 33554432,
+    "lower_explicit_128_mib_refuses_eight_maps": true
+  },
+  "diagnostics": [
+    "linear first-moment depth",
+    "first and second moments RG",
+    "selected map visibility on receivers"
+  ],
+  "failure_recovery": "allocator failure preserves publication; explicit target reconfiguration then reproduces prior pixels",
+  "legacy_controls": [
+    "eight maps intensity conservation",
+    "wiring/GL",
+    "viewport/GL",
+    "28 quality cases/GL"
+  ],
+  "source_sha256": {
+    "experimental/include/Inventor/rendering/CoinRenderOptions.h": "b30c1a31e829e8ed06c1d84ffe3b27127fa56c2c106edea13feda393f147532f",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "f0f40cc80c8e4ecf7e06728ddeed794e4d1bc0ae926b83c3a271335b0a0b48c9",
+    "src/rendering/coinbgfx/CoinBgfxBackend.h": "8b68aa0008d2ef9e0e8817d2532c2bf4723cbb85fac6351f8522bc94518620a0",
+    "src/rendering/coinbgfx/shaders/fs_shadow_receiver.sc": "2c530b3f84a6e12d84342968eaa4dfdabdd2bf732c2139315bd8b8970f3c2c9d",
+    "src/rendering/coinbgfx/shaders/fs_shadow_receiver4.sc": "39197912fa108181939b61e7bef9f2b48ed253a406f17b1de61c29bb336cb43f",
+    "src/rendering/coinrender/CMakeLists.txt": "a7dcfcefe83e4024502fa0ff6533aec2c823306e27a979ea14035360c29a489b",
+    "src/rendering/coinrender/CoinRenderSelectionCore.h": "a088429a5452719f7e3a6ae161755cadaabb734ec4830461fde8b7be7ea2a003",
+    "src/rendering/coinrender/CoinRenderShadowCore.h": "e17aed64dc50a13951f673d31e4a9594caa2ff6207f00a3c70fd210b78d17a8f",
+    "testsuite/CMakeLists.txt": "d9460b655cf978441b4235502d32e647cb6cde775fa3ca8b29b4cf271fb22416",
+    "src/rendering/coinbgfx/shaders/coin_shadow_visibility.sh": "193e9de8c21fd5c92b44af382530a021223c12265f4e224c9123746f4afd8e55",
+    "src/rendering/coinbgfx/shaders/fs_shadow_diagnostic.sc": "781ea0640817ad56765295caabfa75cfb265d8f3a696e4a6736153e37efd2c63",
+    "testsuite/coinrender/CoinRenderShadowBudgetTest.cpp": "cdb2d3417d7a8ef02e1124372ba092b44408a749ea1448ab4d2df46094b9717b",
+    "testsuite/coinrender/CoinRenderShadowDiagnosticsTest.cpp": "3616cc3182d9e43d42a25c9c42dcfa1ef7e1053f0b115466fa6220b49c188802"
+  },
+  "remaining_stages": [
+    "S2",
+    "S3",
+    "S4",
+    "S5",
+    "S6"
+  ]
+}

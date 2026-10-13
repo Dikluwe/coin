@@ -1,5 +1,27 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderShadowBudgetTest coinrender/CoinRenderShadowBudgetTest.cpp)
+  target_compile_definitions(CoinRenderShadowBudgetTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  target_link_libraries(CoinRenderShadowBudgetTest CoinRender Coin)
+  target_include_directories(CoinRenderShadowBudgetTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+    ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME CoinRenderShadowBudgetTest COMMAND CoinRenderShadowBudgetTest)
+  if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_executable(CoinRenderShadowDiagnosticsTest coinrender/CoinRenderShadowDiagnosticsTest.cpp)
+    target_compile_definitions(CoinRenderShadowDiagnosticsTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderShadowDiagnosticsTest CoinRender Coin)
+    target_include_directories(CoinRenderShadowDiagnosticsTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics)
+    add_test(NAME CoinRenderShadowDiagnosticsTest COMMAND CoinRenderShadowDiagnosticsTest
+      ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics)
+    set_tests_properties(CoinRenderShadowDiagnosticsTest PROPERTIES TIMEOUT 90
+      ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
+  endif()
   add_executable(CoinRenderPbrCacheTest coinrender/CoinRenderPbrCacheTest.cpp)
   target_compile_definitions(CoinRenderPbrCacheTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
   target_link_libraries(CoinRenderPbrCacheTest CoinRender Coin)
