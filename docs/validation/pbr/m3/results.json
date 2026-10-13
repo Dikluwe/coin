@@ -1,0 +1,804 @@
+[
+  {
+    "case": "flange-iso-perspective-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/flange-iso-perspective-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "478c1f48df0ec278718c03880efd8577d71b5252cc14f96ee570beb34bd62da9",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "flange-iso-orthographic-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-orthographic",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/flange-iso-orthographic-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "6b57405c8505f67fa796530e9cc6eb552eb432276c214960b17b42375fae237a",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-iso-perspective-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-iso-perspective-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "0fe637604baecc4502cee8da03821e9d8f2b8ca6cd97c430c4d7148a7125d34e",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-iso-orthographic-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-orthographic",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-iso-orthographic-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "fd4d99ff5b09e682a86245136cbd560db8942f32eff357cd6c1d937da4cfd509",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "housing-iso-perspective-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/housing-iso-perspective-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "81cc1733d00ae1e9c731c386e16fc8c0dac173c5211a352c96ae6f040a666df8",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "housing-iso-orthographic-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-orthographic",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/housing-iso-orthographic-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "a3fc7c59c8b08ae7812b1fc302f9eb64fa25e7bddfda0fe61b9face07ff65f60",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-window-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-window-studio"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "0fe637604baecc4502cee8da03821e9d8f2b8ca6cd97c430c4d7148a7125d34e",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1,
+    "window_offscreen_equal": true
+  },
+  {
+    "case": "grid-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "grid",
+      "--view",
+      "top",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/grid-studio",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "38188c94851f4abfd79cf5eda38cbdcbecb02c623b498eee7f0823cc18507183",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-rotation90-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-rotation90-studio",
+      "--offscreen",
+      "--env-rotation",
+      "90"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "e57d53f1abfd8819f299ecee6a0bba656a59aa300bec06b846565f9c712b98f8",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1,
+    "rotation_changes_pixels": true
+  },
+  {
+    "case": "assembly-intensity2-studio",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/studio.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-intensity2-studio",
+      "--offscreen",
+      "--env-intensity",
+      "2"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "studio",
+    "stable_pixels": true,
+    "pixels_sha256": "16179566378c947dde79673f6113cd0a0aef073f0291fbf5dd24f2557a35281d",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "34d5305383e1572f",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1,
+    "intensity_changes_pixels": true
+  },
+  {
+    "case": "flange-iso-perspective-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/flange-iso-perspective-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "99a7aa64978324c70c46c521c2769659317fad50319c53eaf29282ee3054be43",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "flange-iso-orthographic-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "flange",
+      "--view",
+      "iso-orthographic",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/flange-iso-orthographic-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "c162b9b68ff78ee65b4e9aa5934b826b4176632a5f0aa32862149f2ec4c41693",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-iso-perspective-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-iso-perspective-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "c8b01c820e94d9504ad4cb9b51b7bb736e51a6fd2ac43a863519f405bffcf4bf",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-iso-orthographic-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-orthographic",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-iso-orthographic-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "d5958db63519ade4d163d197db8ddd959a1e74549368a4679abc6074f3872f5f",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "housing-iso-perspective-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/housing-iso-perspective-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "d16caf6799a179c4e024abc9368f7b765b50648386393b6d3329191900b950fd",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "housing-iso-orthographic-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "housing",
+      "--view",
+      "iso-orthographic",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/housing-iso-orthographic-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "67727c41e2e6eadffb1039c2f653aa397954494532c134717f2d59f4d37ac321",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-window-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-window-asymmetric"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "c8b01c820e94d9504ad4cb9b51b7bb736e51a6fd2ac43a863519f405bffcf4bf",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1,
+    "window_offscreen_equal": true
+  },
+  {
+    "case": "grid-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "grid",
+      "--view",
+      "top",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/grid-asymmetric",
+      "--offscreen"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "d84239e25a202d32639547b3997a9d24fe8c0b6c23c7e69d90375f24b1dc7046",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1
+  },
+  {
+    "case": "assembly-rotation90-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-rotation90-asymmetric",
+      "--offscreen",
+      "--env-rotation",
+      "90"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "99a04394e5b133a3763d7180819ce1b894f63cbc2080f93b6e7acc377e216425",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1,
+    "rotation_changes_pixels": true
+  },
+  {
+    "case": "assembly-intensity2-asymmetric",
+    "command": [
+      "/tmp/coin-pbr-bgfx/bin/coin_render_viewer",
+      "--fixture",
+      "assembly",
+      "--view",
+      "iso-perspective",
+      "--environment",
+      "/tmp/coin-pbr-m3-env/asymmetric.cibl",
+      "--direct-intensity",
+      "0",
+      "--width",
+      "800",
+      "--height",
+      "600",
+      "--frames",
+      "2",
+      "--capture-prefix",
+      "/tmp/coin-pbr-m3-matrix/assembly-intensity2-asymmetric",
+      "--offscreen",
+      "--env-intensity",
+      "2"
+    ],
+    "passed": true,
+    "exit_code": 0,
+    "environment": "asymmetric",
+    "stable_pixels": true,
+    "pixels_sha256": "e9d368b98970314a819275577b359236fcd921f6d108eafdf88db09d2d3243b5",
+    "profile": "pbr-ibl-m3",
+    "uploads": [
+      [
+        "7952527fd927fcf4",
+        "29884508",
+        "1",
+        "10"
+      ]
+    ],
+    "vendor_id": 4098,
+    "renderer": 1,
+    "intensity_changes_pixels": true
+  },
+  {
+    "case": "reject-missing-bundle",
+    "passed": true,
+    "exit_code": 1
+  },
+  {
+    "case": "reject-invalid-intensity",
+    "passed": true,
+    "exit_code": 2
+  }
+]

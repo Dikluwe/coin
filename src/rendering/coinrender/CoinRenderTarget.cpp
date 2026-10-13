@@ -6,6 +6,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderPbrEnvironment.h"
 #include "rendering/coinrender/CoinRenderReadbackCore.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>

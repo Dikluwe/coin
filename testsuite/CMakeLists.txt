@@ -1,6 +1,23 @@
 # BGFX renderer parity runs include native Direct3D12 on Windows.
 if(COIN_BUILD_RENDER)
+  add_executable(CoinRenderPbrEnvironmentTest coinrender/CoinRenderPbrEnvironmentTest.cpp)
+  target_link_libraries(CoinRenderPbrEnvironmentTest CoinRender Coin)
+  target_include_directories(CoinRenderPbrEnvironmentTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  add_test(NAME CoinRenderPbrEnvironmentTest COMMAND CoinRenderPbrEnvironmentTest
+    ${CMAKE_CURRENT_BINARY_DIR}/pbr-environment-test.cibl)
   if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_executable(CoinRenderPbrIblGpuTest coinrender/CoinRenderPbrIblGpuTest.cpp)
+    target_compile_definitions(CoinRenderPbrIblGpuTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderPbrIblGpuTest CoinRender Coin)
+    target_include_directories(CoinRenderPbrIblGpuTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderPbrIblGpuTest COMMAND CoinRenderPbrIblGpuTest
+      ${CMAKE_CURRENT_BINARY_DIR}/pbr-ibl-gpu)
+    set_tests_properties(CoinRenderPbrIblGpuTest PROPERTIES TIMEOUT 90 ENVIRONMENT "COIN_BGFX_RENDERER=vulkan")
     add_executable(CoinRenderPbrGpuTest coinrender/CoinRenderPbrGpuTest.cpp)
     target_compile_definitions(CoinRenderPbrGpuTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
     target_link_libraries(CoinRenderPbrGpuTest CoinRender Coin)

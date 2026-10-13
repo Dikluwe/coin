@@ -797,6 +797,8 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       lowered.pbrBaseMetallic[3] = surface.pbr.metallic;
       lowered.pbrEmissionRoughness[3] = surface.pbr.roughness;
       lowered.pbrCamera[0] = frame.cameras[state.cameraSlot].isPerspective ? 1.0f : 0.0f;
+      const SbMatrix viewToWorld = state.view.inverse();
+      std::memcpy(lowered.pbrViewToWorld, viewToWorld.getValue(), sizeof(lowered.pbrViewToWorld));
     }
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
     lowered.firstVertex = static_cast<uint32_t>(candidate.vertexCount());

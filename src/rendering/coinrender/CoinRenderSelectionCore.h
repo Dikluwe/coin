@@ -6,6 +6,11 @@
 #include <cmath>
 
 inline bool coin_render_valid_options(const CoinRenderOptions& options, std::string& diagnostic) {
+  if (!std::isfinite(options.pbrEnvironmentRotation) ||
+      !std::isfinite(options.pbrEnvironmentIntensity) || options.pbrEnvironmentIntensity < 0 ||
+      options.pbrEnvironmentIntensity > 64) {
+    diagnostic = "PBR environment rotation must be finite and intensity in 0..64"; return false;
+  }
   if (!std::isfinite(options.pbrExposureStops) || options.pbrExposureStops < -16.0f ||
       options.pbrExposureStops > 16.0f) {
     diagnostic = "PBR exposure must be finite and between -16 and +16 stops"; return false;

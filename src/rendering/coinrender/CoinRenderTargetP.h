@@ -14,6 +14,7 @@
 #include <memory>
 
 class CoinRenderFramePreflight;
+class CoinRenderPbrEnvironment;
 struct CoinRenderCompositionTransferTrace;
 
 class COIN_RENDER_DLL_API CoinRenderTargetP {
@@ -32,6 +33,9 @@ public:
   CoinRenderBackendRuntime * runtime;
   bool capabilityProbeOnly = false;
   CoinRenderOptions options;
+  // Frozen CPU content survives executor retirement/device reconstruction.
+  std::unique_ptr<const CoinRenderPbrEnvironment> pbrEnvironmentSnapshot;
+  SbString pbrEnvironmentSnapshotPath;
   std::string optionsDiagnostic;
   TargetKind kind{KIND_OFFSCREEN};
   CoinRenderTarget::Status status{CoinRenderTarget::TARGET_READY};

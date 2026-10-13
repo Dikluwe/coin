@@ -70,6 +70,17 @@ public:
 
 private:
   bool pbrSupported = false;
+  bool sceneLinearPublished = false;
+  bgfx::ProgramHandle pbrIblProgram = BGFX_INVALID_HANDLE;
+  bgfx::TextureHandle pbrSourceCube = BGFX_INVALID_HANDLE, pbrSpecularCube = BGFX_INVALID_HANDLE;
+  bgfx::TextureHandle pbrDfgTexture = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrSpecularSampler = BGFX_INVALID_HANDLE, pbrDfgSampler = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrIblUniform = BGFX_INVALID_HANDLE, pbrIrradianceUniform = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrViewToWorldUniform = BGFX_INVALID_HANDLE;
+  SbString pbrEnvironmentPath;
+  float pbrIrradiance[9][4] = {};
+  uint32_t pbrEnvironmentLevels = 0;
+  uint64_t pbrEnvironmentIdentity = 0, pbrEnvironmentBytes = 0, pbrEnvironmentUploads = 0;
   bgfx::ProgramHandle pbrProgram = BGFX_INVALID_HANDLE, pbrOutputProgram = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrBaseUniform = BGFX_INVALID_HANDLE, pbrEmissionUniform = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrCameraUniform = BGFX_INVALID_HANDLE, pbrOutputUniform = BGFX_INVALID_HANDLE;
@@ -105,6 +116,7 @@ private:
                           bool instanced = false);
   bool prepareFullscreenResources();
   bool preparePbrResources();
+  bool preparePbrEnvironment(CoinRenderTargetP & target);
   bool prepareNpotMipProgram();
   bool prepareDepthReadbackResources();
   bool prepareShadowPrograms(size_t mapCount);

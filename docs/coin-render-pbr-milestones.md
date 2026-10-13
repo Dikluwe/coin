@@ -14,7 +14,7 @@ BGFX/Vulkan e o viewer CoinRender; imagens devem vir do renderer real.
 - [x] M0 — baseline Coin, fixtures CAD, câmera e captura reproduzível.
 - [x] M1 — nó, estado, serialização, captura, invalidação e perfis.
 - [x] M2 — shading GGX por fragmento, materiais opacos, HDR e saída.
-- [ ] M3 — IBL pré-calculada, cubemap, irradiância, LUT e lifetime.
+- [x] M3 — IBL pré-calculada, cubemap, irradiância, LUT e lifetime.
 - [ ] M4 — views CAD, seleção, cortes, arestas, labels e estabilidade.
 - [ ] M5 — SDK instalado, consumidor, regressões e campanha Release.
 
@@ -80,5 +80,19 @@ Coin por uma cena, travessia ou renderer externo.
 - Contrato: [shading](coin-render-pbr-shading.md). Evidências:
   [summary](validation/pbr/m2/summary.json), [gallery](validation/pbr/m2/gallery.png).
 
-Próximo: M3, ambiente HDR procedural, SH9, prefilter GGX e LUT coerente.
-M2 usa luz direta e interação única; IBL e compensação continuam pendentes.
+## M3 — fechado
+
+- Ambiente global HDR procedural, cubemap fonte, todos os níveis GGX, SH9 e
+  LUT RGBA16F A/B/C/Eavg, formato versionado e validação de conteúdo.
+- Direções mundiais via SbMatrix, rotação/intensidade e um upload por target.
+  Conteúdo CPU imutável preserva reconstrução após aposentadoria do dispositivo,
+  remoção do arquivo, resize e alternância de publicação PBR/legada.
+- 20/20 CTests BGFX, 11/11 Recording, 12/12 Rust; 18 furnaces independentes,
+  faces/bordas/cantos, LOD, intensidade, radiância HDR e controles negativos.
+- Viewer: 22/22, 40 imagens primeiro/replay, janela/offscreen iguais; controles
+  M0: 26/26 e pixels idênticos. Pacotes 512: 28,50 MiB cada, além da cópia CPU.
+- Contrato: [ambiente](coin-render-pbr-environment.md). Evidências:
+  [summary](validation/pbr/m3/summary.json), [galeria](validation/pbr/m3/gallery.png).
+
+Próximo: M4, compensação de energia, filtragem especular, ferramentas CAD e
+matriz de 72 views. M3 mantém interação única e as aproximações SH9/split-sum.

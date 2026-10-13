@@ -2,6 +2,7 @@
 #define COIN_RENDER_OPTIONS_H
 
 #include <Inventor/rendering/CoinRenderCapabilities.h>
+#include <Inventor/SbString.h>
 
 enum CoinRenderSceneTextureMode {
   COIN_RENDER_SCENE_TEXTURE_STAGED = 0,
@@ -29,6 +30,10 @@ struct CoinRenderOptions {
   CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
   // PBR output exposure in stops. Legacy-only frames keep their existing output.
   float pbrExposureStops = 0.0f;
+  // Immutable versioned .cibl bundle; empty disables IBL. World Z is up.
+  SbString pbrEnvironmentBundle;
+  float pbrEnvironmentRotation = 0.0f; // radians around world +Z
+  float pbrEnvironmentIntensity = 1.0f;
 };
 
 #endif

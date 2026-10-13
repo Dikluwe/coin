@@ -139,6 +139,11 @@ void probeBgfx(uint32_t target, CoinRenderRenderer renderer, CoinRenderCapabilit
   result.format_d24s8 = formatFeatures(caps->formats[bgfx::TextureFormat::D24S8]);
   result.format_d32f = formatFeatures(caps->formats[bgfx::TextureFormat::D32F]);
   result.format_rgba16f = formatFeatures(caps->formats[bgfx::TextureFormat::RGBA16F]);
+  if (caps->rendererType == bgfx::RendererType::Vulkan && caps->limits.maxFBAttachments >= 2 &&
+      (caps->formats[bgfx::TextureFormat::RGBA16F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) &&
+      (caps->formats[bgfx::TextureFormat::RGBA16F] & BGFX_CAPS_FORMAT_TEXTURE_CUBE) &&
+      bgfx::isTextureValid(0, true, 1, bgfx::TextureFormat::RGBA16F, BGFX_TEXTURE_NONE))
+    result.features |= COIN_RENDER_FEATURE_PBR_IBL;
   result.format_r16f = formatFeatures(caps->formats[bgfx::TextureFormat::R16F]);
   if (caps->limits.maxFBAttachments > 1)
     result.runtime_features |= COIN_RENDER_RUNTIME_MRT;

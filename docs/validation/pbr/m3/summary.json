@@ -1,0 +1,36 @@
+{
+  "milestone": "M3",
+  "status": "complete",
+  "date": "2026-10-13",
+  "hardware": "AMD RADV RENOIR 1002:1638 / Mesa 25.2.8 / Vulkan",
+  "ctest": {
+    "BGFX": 20,
+    "RECORDING": 11,
+    "RUST_BRIDGE": 12
+  },
+  "lifetime_reconstruction_test": "passed after source removal and device retirement",
+  "views": {
+    "passed": 22,
+    "total": 22,
+    "positive": 20,
+    "images": 40,
+    "first_replay_exact": true,
+    "window_offscreen_exact": true,
+    "uploads_per_target": 1
+  },
+  "legacy": {
+    "passed": 26,
+    "total": 26,
+    "pixel_hashes_unchanged": true
+  },
+  "payload_bytes": 29884508,
+  "cpu_frozen_payload_per_target": 29884508,
+  "nominal_gpu_texture_bytes": 29884400,
+  "limitations": [
+    "single scattering; M4 compensation and specular filtering pending",
+    "initial native GPU profile Linux BGFX/Vulkan",
+    "global environment, SH9 and split-sum are approximations",
+    "GPU allocator overhead and HDR attachments excluded from environment byte count",
+    "CPU procedural baker; external HDR image import not included"
+  ]
+}

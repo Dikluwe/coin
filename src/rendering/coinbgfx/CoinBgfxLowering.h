@@ -61,6 +61,7 @@ struct CoinBgfxDraw {
   CoinRenderMaterialModel materialModel = CoinRenderMaterialModel::LEGACY;
   float pbrBaseMetallic[4] = {}, pbrEmissionRoughness[4] = {};
   float pbrCamera[4] = {};
+  float pbrViewToWorld[16] = {};
   // Eye-space instance payload is anchored in the first camera. Columns 0..2
   // apply its camera delta; columns 3..5 transform normals. 3.w enables it.
   float instanceCamera[6][4] = {};

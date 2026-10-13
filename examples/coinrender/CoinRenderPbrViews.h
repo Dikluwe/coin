@@ -31,6 +31,8 @@
 struct CoinRenderPbrViewOptions {
   SbBool active = FALSE, offscreen = FALSE, cut = FALSE, pbr = FALSE;
   float exposureStops = 0.0f;
+  SbString environmentBundle;
+  float environmentRotation = 0.0f, environmentIntensity = 1.0f, directIntensity = 1.0f;
   SbString fixture = "flange", scene, view = "iso-perspective";
   SbString capturePrefix, exportScene;
   SbVec2i32 size = SbVec2i32(1280, 960);
@@ -78,14 +80,18 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
     "  \"cut\":%s,\n  \"axis_up\":\"Z\",\n  \"unit\":\"fixture-unit\",\n"
     "  \"renderer\":%u,\n  \"adapter\":%s,\n  \"vendor_id\":%u,\n  \"device_id\":%u,\n"
     "  \"submission\":%llu,\n  \"render_return_with_capture_ms\":%.6f,\n  \"view_matrix\":",
-    options.pbr ? "\"pbr-direct-m2\"" : "\"legacy-baseline\"", double(options.exposureStops),
+    coin_pbr_json_string(options.pbr ? (options.environmentBundle.getLength() ? "pbr-ibl-m3" : "pbr-direct-m2") : "legacy-baseline").getString(), double(options.exposureStops),
     coin_pbr_json_string(options.fixture.getString()).getString(),
     coin_pbr_json_string(options.scene.getString()).getString(),
     coin_pbr_json_string(options.view.getString()).getString(), options.size[0], options.size[1], frame,
     options.cut ? "true" : "false", caps.renderer, coin_pbr_json_string(caps.adapter_name).getString(),
     caps.vendor_id, caps.device_id, static_cast<unsigned long long>(target->getLastSubmissionSerial()), returnMs);
   coin_pbr_write_matrix(manifest, viewMatrix); std::fprintf(manifest, ",\n  \"projection_matrix\":");
-  coin_pbr_write_matrix(manifest, projection); std::fprintf(manifest, "\n}\n");
+  coin_pbr_write_matrix(manifest, projection);
+  std::fprintf(manifest, ",\n  \"environment_bundle\":%s,\n  \"environment_rotation_radians\":%.9g,\n"
+    "  \"environment_intensity\":%.9g,\n  \"direct_intensity\":%.9g\n}\n",
+    coin_pbr_json_string(options.environmentBundle.getString()).getString(), double(options.environmentRotation),
+    double(options.environmentIntensity), double(options.directIntensity));
   return std::fclose(manifest) == 0;
 }
 
@@ -103,6 +109,9 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   SoDB::init(); CoinRenderAction::initClass();
   CoinRenderOptions renderOptions; renderOptions.renderer = COIN_RENDER_RENDERER_VULKAN;
   renderOptions.pbrExposureStops = options.exposureStops;
+  renderOptions.pbrEnvironmentBundle = options.environmentBundle;
+  renderOptions.pbrEnvironmentRotation = options.environmentRotation;
+  renderOptions.pbrEnvironmentIntensity = options.environmentIntensity;
   CoinRenderCapabilities caps{};
   const uint32_t kind = options.offscreen ? COIN_RENDER_EXPERIMENTAL_OFFSCREEN : COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW;
   if (coin_render_query_capabilities_for_renderer(kind, renderOptions.renderer, &caps, sizeof(caps)) || !caps.gpu_available) {
@@ -148,6 +157,7 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   SoLightModel * model = new SoLightModel; model->model = SoLightModel::PHONG; root->addChild(model);
   SoDirectionalLight * light = new SoDirectionalLight;
   light->direction.setValue(-0.3f, 0.4f, -1.0f); root->addChild(light);
+  light->intensity = options.directIntensity;
   root->addChild(geometry); geometry->unref();
   if (options.exportScene.getLength()) {
     SoOutput output; if (!output.openFile(options.exportScene.getString())) { root->unref(); return 2; }

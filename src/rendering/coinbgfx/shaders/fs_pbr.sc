@@ -2,6 +2,9 @@ $input v_coinClipDepth, v_color0, v_ambient, v_specular, v_emission, v_texcoord0
 #include <bgfx_shader.sh>
 #include "coin_depth.sh"
 #include "coin_pbr_brdf.sh"
+#ifdef COIN_PBR_IBL
+#include "coin_pbr_ibl.sh"
+#endif
 uniform vec4 u_pbrBaseMetallic;
 uniform vec4 u_pbrEmissionRoughness;
 uniform vec4 u_pbrCamera; // x: perspective; orthographic view is +Z.
@@ -45,6 +48,10 @@ void main() {
     radiance += brdf * max(dot(n, l), 0.0) * u_lightColorIntensity[i].rgb *
       (u_lightColorIntensity[i].a * attenuation);
   }
+#ifdef COIN_PBR_IBL
+  radiance += coinPbrEnvironment(n, v, u_pbrBaseMetallic.rgb,
+    u_pbrBaseMetallic.a, u_pbrEmissionRoughness.a);
+#endif
   // Saturate only at the representable binary16 limit, never at display white.
   gl_FragColor = vec4(min(radiance, vec3_splat(65504.0)), 1.0);
 }

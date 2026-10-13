@@ -2,6 +2,7 @@
 
 set(COIN_RENDER_SOURCES
 	SoPBRMaterial.cpp
+	CoinRenderPbrEnvironment.cpp
 	CoinRenderPbrMaterialElement.cpp
 	CoinRenderBackendFactory.cpp
 	CoinRenderDiagnosticShell.cpp
@@ -180,7 +181,13 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	endforeach()
 
   # Initial PBR executor is Vulkan; other shader APIs remain explicit opt-outs.
-  foreach(_pbr_shader vs_pbr fs_pbr fs_pbr_output)
+  foreach(_pbr_shader vs_pbr fs_pbr fs_pbr_output fs_pbr_ibl)
+    set(_pbr_source ${_pbr_shader})
+    set(_pbr_defines)
+    if(_pbr_shader STREQUAL "fs_pbr_ibl")
+      set(_pbr_source fs_pbr)
+      set(_pbr_defines --define COIN_PBR_IBL=1)
+    endif()
     if(_pbr_shader MATCHES "^vs")
       set(_pbr_type vertex)
     else()
@@ -189,11 +196,13 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
     set(_pbr_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_pbr_shader}_spirv.h)
     add_custom_command(OUTPUT ${_pbr_output}
       COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
-        -f ${_coin_bgfx_shader_dir}/${_pbr_shader}.sc -o ${_pbr_output}
+        -f ${_coin_bgfx_shader_dir}/${_pbr_source}.sc -o ${_pbr_output}
         --type ${_pbr_type} --platform linux --profile spirv
+        ${_pbr_defines}
         --varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
         --bin2c coin_bgfx_${_pbr_shader}_spirv -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
-      DEPENDS ${_coin_bgfx_shader_dir}/${_pbr_shader}.sc
+      DEPENDS ${_coin_bgfx_shader_dir}/${_pbr_source}.sc
+        ${_coin_bgfx_shader_dir}/coin_pbr_ibl.sh
         ${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh ${_coin_bgfx_shader_dir}/coin_pbr_output.sh
         ${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/varying.def.sc
       VERBATIM)

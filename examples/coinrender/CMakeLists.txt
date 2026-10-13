@@ -1,3 +1,14 @@
+if(COIN_BUILD_RENDER)
+  add_executable(coin_render_pbr_baker coin_render_pbr_baker.cpp)
+  target_link_libraries(coin_render_pbr_baker PRIVATE CoinRender Coin)
+  target_include_directories(coin_render_pbr_baker PRIVATE
+    ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  if(COIN_INSTALL_RENDER_EXPERIMENTAL)
+    set_target_properties(coin_render_pbr_baker PROPERTIES INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
+    install(TARGETS coin_render_pbr_baker RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
+  endif()
+endif()
 if(COIN_BUILD_RENDER_WINDOW_EXAMPLE)
   if(ANDROID)
     if(NOT COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")

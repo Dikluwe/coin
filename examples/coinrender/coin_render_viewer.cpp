@@ -66,6 +66,20 @@ int main(int argc, char ** argv) {
       transparencyDemo = true;
     } else if (std::strcmp(argv[i], "--pbr") == 0) {
       cad.active = TRUE; cad.pbr = TRUE;
+    } else if (std::strcmp(argv[i], "--environment") == 0 && i + 1 < argc) {
+      cad.active = cad.pbr = TRUE; cad.environmentBundle = argv[++i];
+    } else if ((std::strcmp(argv[i], "--env-rotation") == 0 ||
+                std::strcmp(argv[i], "--env-intensity") == 0 ||
+                std::strcmp(argv[i], "--direct-intensity") == 0) && i + 1 < argc) {
+      const SbString option(argv[i]); cad.active = TRUE; char * end = nullptr;
+      const float value = std::strtof(argv[++i], &end);
+      if (!end || *end || !std::isfinite(value)) return 2;
+      if (option == "--env-rotation") cad.environmentRotation = std::remainder(value, 360.0f) * 0.01745329252f;
+      else {
+        if (value < 0 || value > 64) return 2;
+        if (option == "--env-intensity") cad.environmentIntensity = value;
+        else cad.directIntensity = value;
+      }
     } else if (std::strcmp(argv[i], "--exposure") == 0 && i + 1 < argc) {
       cad.active = TRUE; char * end = nullptr;
       cad.exposureStops = std::strtof(argv[++i], &end);
@@ -98,6 +112,7 @@ int main(int argc, char ** argv) {
                    "  CAD: --fixture flange|assembly|housing|grid [--scene file.iv]\n"
                    "  [--view iso-perspective|iso-orthographic|front|top|right|detail]\n"
                    "  [--pbr] [--exposure stops] [--renderer vulkan] [--offscreen] [--capture-prefix path]\n"
+                   "  [--environment bundle.cibl] [--env-rotation degrees] [--env-intensity 1] [--direct-intensity 1]\n"
                    "  [--width 1280] [--height 960] [--orbit-frames N] [--cut]\n"
                    "  [--export-scene file.iv]\n";
       return 2;
