@@ -50,6 +50,8 @@ public:
 
   void GLRender(SoGLRenderAction * action) override;
 
+  // CoinRender PCSS emitter radius: world distance for spot, radians for directional.
+  SoSFFloat angularRadius;
   SoSFNode shadowMapScene;
   SoSFFloat maxShadowDistance;
   SoSFVec3f bboxCenter;

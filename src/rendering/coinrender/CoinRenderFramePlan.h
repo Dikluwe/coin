@@ -167,6 +167,8 @@ struct CoinRenderShadowLightSnapshot {
   SbVec3f direction = SbVec3f(0, 0, -1);
   float cutOffAngle = 0.785398163f;
   float dropOffRate = 0.0f;
+  float sourceRadius = 0.0f; // Spot emitter, world units.
+  float angularRadius = 0.0f; // Directional emitter, radians.
   float nearDistance = -1.0f;
   float farDistance = -1.0f;
   float maxShadowDistance = -1.0f;

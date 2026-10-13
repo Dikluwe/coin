@@ -151,6 +151,7 @@ SO_NODE_SOURCE(SoShadowDirectionalLight);
 SoShadowDirectionalLight::SoShadowDirectionalLight(void)
 {
   SO_NODE_INTERNAL_CONSTRUCTOR(SoShadowDirectionalLight);
+  SO_NODE_ADD_FIELD(angularRadius, (0.0f));
   SO_NODE_ADD_FIELD(shadowMapScene, (NULL));
   SO_NODE_ADD_FIELD(maxShadowDistance, (-1.0f));
   SO_NODE_ADD_FIELD(bboxCenter, (0.0f, 0.0f, 0.0f));

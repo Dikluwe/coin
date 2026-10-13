@@ -158,6 +158,7 @@ SO_NODE_SOURCE(SoShadowSpotLight);
 SoShadowSpotLight::SoShadowSpotLight(void)
 {
   SO_NODE_INTERNAL_CONSTRUCTOR(SoShadowSpotLight);
+  SO_NODE_ADD_FIELD(sourceRadius, (0.0f));
   SO_NODE_ADD_FIELD(shadowMapScene, (NULL));
   SO_NODE_ADD_FIELD(nearDistance, (-1.0f));
   SO_NODE_ADD_FIELD(farDistance, (-1.0f));

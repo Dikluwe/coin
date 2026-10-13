@@ -1049,6 +1049,8 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->npotMipProgram)) bgfx::destroy(this->npotMipProgram);
   if (bgfx::isValid(this->depthReadProgram)) bgfx::destroy(this->depthReadProgram);
   if (bgfx::isValid(this->readDepthSampler)) bgfx::destroy(this->readDepthSampler);
+  if(bgfx::isValid(this->pbrShadowFilterUniform))bgfx::destroy(this->pbrShadowFilterUniform);
+  if(bgfx::isValid(this->pbrShadowProjectionUniform))bgfx::destroy(this->pbrShadowProjectionUniform);
   if (bgfx::isValid(this->pbrShadowBiasUniform)) bgfx::destroy(this->pbrShadowBiasUniform);
   if (bgfx::isValid(this->pbrIblProgram)) bgfx::destroy(this->pbrIblProgram);
   if (bgfx::isValid(this->pbrShadowProgram)) bgfx::destroy(this->pbrShadowProgram);
@@ -1523,6 +1525,10 @@ bool CoinBgfxBackend::preparePbrResources()
   if (!bgfx::isValid(this->pbrOutputProgram))
     this->pbrOutputProgram = createLayerProgram(coin_bgfx_vs_spirv, sizeof(coin_bgfx_vs_spirv),
       coin_bgfx_fs_pbr_output_spirv, sizeof(coin_bgfx_fs_pbr_output_spirv));
+  if (!bgfx::isValid(this->pbrShadowFilterUniform))
+    this->pbrShadowFilterUniform=bgfx::createUniform("u_pbrShadowFilter",bgfx::UniformType::Vec4,8);
+  if (!bgfx::isValid(this->pbrShadowProjectionUniform))
+    this->pbrShadowProjectionUniform=bgfx::createUniform("u_pbrShadowProjection",bgfx::UniformType::Vec4,8);
   if (!bgfx::isValid(this->pbrShadowBiasUniform))
     this->pbrShadowBiasUniform = bgfx::createUniform("u_pbrShadowBias", bgfx::UniformType::Vec4, 8);
   if (!bgfx::isValid(this->pbrBaseUniform))
@@ -1537,7 +1543,7 @@ bool CoinBgfxBackend::preparePbrResources()
     this->readDepthSampler=bgfx::createUniform("s_readDepth",bgfx::UniformType::Sampler);
   if (!bgfx::isValid(this->pbrRadianceSampler))
     this->pbrRadianceSampler = bgfx::createUniform("s_pbrRadiance", bgfx::UniformType::Sampler);
-  if (!bgfx::isValid(this->pbrShadowBiasUniform) || !bgfx::isValid(this->pbrProgram) || !bgfx::isValid(this->pbrOutputProgram) ||
+  if (!bgfx::isValid(this->pbrShadowFilterUniform) || !bgfx::isValid(this->pbrShadowProjectionUniform) || !bgfx::isValid(this->pbrShadowBiasUniform) || !bgfx::isValid(this->pbrProgram) || !bgfx::isValid(this->pbrOutputProgram) ||
       !bgfx::isValid(this->pbrBaseUniform) || !bgfx::isValid(this->pbrEmissionUniform) ||
       !bgfx::isValid(this->pbrCameraUniform) || !bgfx::isValid(this->pbrOutputUniform) ||
       !bgfx::isValid(this->pbrRadianceSampler) || !bgfx::isValid(this->readDepthSampler)) {
@@ -2389,7 +2395,7 @@ CoinBgfxBackend::bindShadowReceiver(
   CoinBgfxDraw shaded = original;
   shaded.lightCount[1] = 0.0f;
   float indices[8] = {-1, -1, -1, -1, -1, -1, -1, -1};
-  float biases[8][4] = {};
+  float biases[8][4] = {}, filters[8][4] = {}, projections[8][4] = {};
   const auto & state = frame.renderStates[original.renderStateSlot];
   const uint32_t flags = coin_render_shadow_shading_flags(frame, state);
   const float quality[4] = {float((flags & COIN_RENDER_SHADOW_VERTEX_LIGHTING) != 0),
@@ -2420,6 +2426,13 @@ CoinBgfxBackend::bindShadowReceiver(
       (pass.vsmFarDistance - pass.nearDistance));
     biases[slot][1] = this->pbrShadowBiasTexels;
     biases[slot][2] = this->pbrShadowSlopeBiasTexels;
+    const auto & light=frame.shadowLights[pass.lightSlot];
+    filters[slot][0]=float(this->pbrShadowFilter);filters[slot][1]=1.0f/pass.mapSize;
+    filters[slot][2]=this->pbrShadowPcfRadiusTexels;
+    filters[slot][3]=light.type==CoinRenderLightType::SPOT?light.sourceRadius:std::tan(light.angularRadius);
+    projections[slot][0]=std::abs(pass.projectionCoin[0][0]);
+    projections[slot][1]=std::abs(pass.projectionCoin[1][1]);
+    projections[slot][2]=pass.farDistance;
     const SbMatrix viewToLight = state.view.inverse() * pass.view;
     const SbMatrix projection = bgfx::getCaps()->homogeneousDepth ? pass.projectionCoin :
       pass.projectionCoin * clipConversion;
@@ -2435,9 +2448,16 @@ CoinBgfxBackend::bindShadowReceiver(
     bgfx::setUniform(this->shadowParamsUniform[slot], params);
     bgfx::setUniform(this->shadowMetaUniform[slot], meta);
     bgfx::setTexture(static_cast<uint8_t>(8 + slot), this->shadowSampler[slot],
-      bgfx::getTexture(shadowMaps[passSlot], 0));
+      bgfx::getTexture(shadowMaps[passSlot], 0),
+      pbr && this->pbrShadowFilter!=COIN_RENDER_PBR_SHADOW_VSM
+        ? BGFX_SAMPLER_U_CLAMP|BGFX_SAMPLER_V_CLAMP|BGFX_SAMPLER_MIN_POINT|BGFX_SAMPLER_MAG_POINT
+        : UINT32_MAX);
   }
-  if(pbr) bgfx::setUniform(this->pbrShadowBiasUniform, biases, 8);
+  if(pbr) {
+    bgfx::setUniform(this->pbrShadowBiasUniform,biases,8);
+    bgfx::setUniform(this->pbrShadowFilterUniform,filters,8);
+    bgfx::setUniform(this->pbrShadowProjectionUniform,projections,8);
+  }
   bgfx::setUniform(this->shadowLightIndicesUniform, indices);
   bgfx::setUniform(this->shadowLightIndicesExtraUniform, indices + 4);
   this->bindDrawLighting(shaded, targetHeight);
@@ -2550,6 +2570,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     [](const CoinRenderMaterialSnapshot & m) { return m.model == CoinRenderMaterialModel::PBR; });
   const bool hasIbl = hasPbr && target.options.pbrEnvironmentBundle.getLength();
   if (hasPbr) {
+    this->pbrShadowFilter=target.options.pbrShadowFilter;
+    this->pbrShadowPcfRadiusTexels=target.options.pbrShadowPcfRadiusTexels;
     this->pbrShadowBiasTexels=target.options.pbrShadowBiasTexels;
     this->pbrShadowSlopeBiasTexels=target.options.pbrShadowSlopeBiasTexels;
     if (!this->supportsPbr())
@@ -2624,6 +2646,13 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         !coin_render_shadow_object_profile(frame, shadowPlan,
           shadowPlan.passes.size(), this->lastError, hasPbr))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
+    uint64_t shadowSamples=0;
+    if(hasPbr&&!coin_render_shadow_filter_admission(frame,shadowPlan,target.options,target.size,
+                                                   shadowSamples,this->lastError))
+      return {CoinRenderBackendStatus::UNSUPPORTED,this->lastError};
+    if(hasPbr&&std::getenv("COIN_RENDER_TRACE_PHASES"))std::fprintf(stderr,
+      "COIN_RENDER_PHASE shadow_filter mode=%d sample_bound=%llu budget=%llu\n",int(target.options.pbrShadowFilter),
+      (unsigned long long)shadowSamples,(unsigned long long)target.options.pbrShadowSampleBudget);
     if (!bgfxShadowBatchSupported(frame, shadowPlan, this->lastError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     const bgfx::Caps * caps = bgfx::getCaps();

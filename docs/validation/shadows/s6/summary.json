@@ -1,0 +1,56 @@
+{
+  "stage": "S6",
+  "passed": 17,
+  "gpu": "AMD Vulkan 1002:1638",
+  "cad_views_passed": 5,
+  "cad_depth_oracle": "all offscreen views; independent native triangle/ray oracle",
+  "native_view_replay": "identical pixels and map content hit",
+  "filter_soft_receiver_pixels": {
+    "pcf": 261,
+    "spot_radius_0125": 1664,
+    "spot_radius_025": 3568
+  },
+  "sample_bound_256": 6893568,
+  "sample_bound_512": 26865664,
+  "proof": [
+    "PCF compares depth before filtering",
+    "PCSS zero-radius limit exactly equals hard PCF",
+    "spot world radius and directional angular radius control penumbra",
+    "radius cap and pixel/tap budget refusals preserve publication",
+    "emitter edits reuse center-depth maps",
+    "native PCF/PCSS HDR/IBL and CAD layers",
+    "IBL contribution present beyond emission and agrees with qualified unshadowed IBL program"
+  ],
+  "ibl_correction": "Final QA found CMake split the two defines; the IBL define was lost. Source wrapper fixes this. Earlier invariance-only IBL checks were insufficient; the final presence/control tests are discriminating.",
+  "source_sha256": {
+    "examples/coinrender/CoinRenderPbrViews.h": "0da00e4d58e4166c0208e03e4882ff677f9ad467df74718663c4850de9a9cd06",
+    "examples/coinrender/coin_render_viewer.cpp": "b0c274116eb9e5462a74b03b2bd62b7dd71f7dc117b7ac0c3c16fe7b0e2462db",
+    "experimental/include/Inventor/rendering/CoinRenderOptions.h": "8e7a75c40fe172a7b7db6ea0b5c24833f476030d4a276e5e89368d23ecc67319",
+    "include/Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h": "886390ff95a84c9da19bbcef9107a647df9fcbb18bdd8a3c091b90082695ad64",
+    "include/Inventor/annex/FXViz/nodes/SoShadowSpotLight.h": "174b6abe43532685d254d50f352ecb457dc648f20ce98d7a35e6f4e27da3d222",
+    "src/actions/CoinRenderAction.cpp": "1ab3ca95df2809785d64d304c5025bdd4dbf141acea34ed23a5c70909aea299b",
+    "src/rendering/coinbgfx/CoinBgfxBackend.cpp": "6b67d7b1c9c900ad97973bb39043dbcc0707a9ccaa69540da061acfc3f6934de",
+    "src/rendering/coinbgfx/CoinBgfxBackend.h": "8d41cdf15cafc69e235c9a1745acf4a7d90be3b6c0145b9e67c0b059039488ca",
+    "src/rendering/coinbgfx/shaders/coin_pbr_shadows.sh": "fb82d4a8a53bd318644c1f090372c00c7390b1dd7e7be93eba1c8d2e694ef060",
+    "src/rendering/coinrender/CMakeLists.txt": "6387ff363761d14ee69609728f5a9e8fe83fce65c8e60b28dea3931cb17a805e",
+    "src/rendering/coinrender/CoinRenderFramePlan.cpp": "da3e7e48a40b179c2ad72218f4ddd8a39bb80c0a37255c1ff75da16310559d55",
+    "src/rendering/coinrender/CoinRenderFramePlan.h": "bbd0cbff1070d41c2781af5421290a6df8ae8015b5de1235c30f92851108f9c3",
+    "src/rendering/coinrender/CoinRenderSelectionCore.h": "c3d0202e950838d181f0149110dac0fb33fde2928a37ec0bd0e4d8d89e89a611",
+    "src/rendering/coinrender/CoinRenderShadowCore.h": "145f8b7ebd177a8545aaf02f3e4b5d434c5a5a099b9059ba22869b0900a16c33",
+    "src/shadows/SoShadowDirectionalLight.cpp": "b8455d3357fa6de111ed1c99ae842188773f1aedacef86d3073441e01137eb14",
+    "src/shadows/SoShadowSpotLight.cpp": "0436a5450dc8f7ab3911c4b3d536e5aa792cab6415b7f7e61c1e86d5eca6bdc1",
+    "testsuite/CMakeLists.txt": "dcf3a967d74e5c080cb12b7d4493c7a24dfca085a00599272cf67b68eb69f5f8",
+    "testsuite/coinrender/CoinRenderPbrShadowGpuTest.cpp": "2e652b3073e25408b9eecd2b227552eb703cd58d7a708a21687ae52fadf57c6a",
+    "testsuite/coinrender/CoinRenderShadowBudgetTest.cpp": "028bc407ec824984c8393ad4da2b7b5b2cf7e722fc6b22468db2809853b9a241",
+    "src/rendering/coinbgfx/shaders/fs_pbr_shadow_ibl.sc": "7ad469cdd25911fa6705204f039598f8a5a08fbc825ee84703e8ff6f284ac3f8",
+    "testsuite/coinrender/CoinRenderShadowFilterTest.cpp": "aa447d1b471d96e62fabe73492573e3dc60e8aa9eca3202229b8d31e73485b27"
+  },
+  "limits": [
+    "BGFX/Vulkan opaque PBR profile",
+    "PCSS 16 blocker plus 16 compare samples is approximate soft visibility, not finite-area BRDF integration",
+    "directional angular radius qualified 0..0.1 radians",
+    "PCSS admission cap never clamps physical emitter; caller may explicitly reconfigure",
+    "sample budget bounds triangle pixel coverage/taps, not GPU time or helper-lane/driver cost",
+    "material textures, transparent transmission, point-light cubemap shadows and other PBR APIs remain unqualified"
+  ]
+}

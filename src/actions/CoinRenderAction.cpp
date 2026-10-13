@@ -2591,6 +2591,7 @@ CoinRenderActionP::lightPreCB(void * userdata,
     if (node->isOfType(SoShadowSpotLight::getClassTypeId())) {
       const auto * shadow = static_cast<const SoShadowSpotLight *>(node);
       snapshot.hasCustomScene = shadow->shadowMapScene.getValue() != nullptr;
+      snapshot.sourceRadius = shadow->sourceRadius.getValue();
       snapshot.nearDistance = shadow->nearDistance.getValue();
       snapshot.farDistance = shadow->farDistance.getValue();
     }
@@ -2602,6 +2603,7 @@ CoinRenderActionP::lightPreCB(void * userdata,
       const auto * shadow = static_cast<const SoShadowDirectionalLight *>(node);
       snapshot.shadowEligible = true;
       snapshot.hasCustomScene = shadow->shadowMapScene.getValue() != nullptr;
+      snapshot.angularRadius = shadow->angularRadius.getValue();
       snapshot.maxShadowDistance = shadow->maxShadowDistance.getValue();
       snapshot.bboxCenter = shadow->bboxCenter.getValue();
       snapshot.bboxSize = shadow->bboxSize.getValue();

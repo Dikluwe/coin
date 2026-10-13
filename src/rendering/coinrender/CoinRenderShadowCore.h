@@ -5,6 +5,8 @@
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/SbBox3f.h>
+#include <Inventor/SbVec4f.h>
+#include <Inventor/rendering/CoinRenderOptions.h>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/SbDPViewVolume.h>
@@ -664,6 +666,65 @@ coin_render_plan_shadows(const CoinRenderFramePlan & frame,
 // Qualified object-composition profile over captured Coin state. It checks the scene once,
 // then matches each ordinary light contribution to exactly one shadow pass.
 // Backends consume the resolved pass order without rediscovering Coin nodes.
+// A conservative coverage/tap budget, in physical viewport pixels, includes
+// receiver triangle overdraw. It is admission, not a frame-time/FPS promise.
+inline bool coin_render_shadow_filter_admission(const CoinRenderFramePlan & frame,
+  const CoinRenderShadowPlan & plan,const CoinRenderOptions & options,
+  const SbVec2i32 & targetSize,uint64_t & samples,std::string & diagnostic)
+{
+  const uint64_t taps=options.pbrShadowFilter==COIN_RENDER_PBR_SHADOW_PCSS?32:
+    options.pbrShadowFilter==COIN_RENDER_PBR_SHADOW_PCF?9:1;
+  uint64_t total=0;
+  for(const auto & pass:plan.passes) {
+    const auto & light=frame.shadowLights[pass.lightSlot];
+    if(options.pbrShadowFilter==COIN_RENDER_PBR_SHADOW_PCSS) {
+      const double extentFactor=std::abs(double(pass.projectionCoin[0][0]))*0.5;
+      const double radius=light.type==CoinRenderLightType::SPOT
+        ? light.sourceRadius*extentFactor*(pass.farDistance-pass.nearDistance)/(pass.nearDistance*pass.farDistance)
+        : std::tan(light.angularRadius)*extentFactor*(pass.farDistance-pass.nearDistance);
+      if(!std::isfinite(radius)||radius*pass.mapSize>options.pbrShadowMaxPcssRadiusTexels) {
+        diagnostic="Physical PCSS emitter exceeds the configured texel radius cap; emitter and map are not clamped";return false;
+      }
+    }
+    for(uint32_t slot:pass.receiverDraws) {
+      const auto & draw=frame.draws[slot];const auto & state=frame.renderStates[draw.renderStateSlot];
+      if(draw.renderLayer||draw.shadowLightSlot||frame.materials[state.materialSlot].model!=CoinRenderMaterialModel::PBR||
+         pass.lightingIndexByState[draw.renderStateSlot]<0)continue;
+      const auto & viewport=frame.viewports[state.viewportSlot];
+      const double vleft=std::max(0,viewport.x),vbottom=std::max(0,viewport.y);
+      const double vright=std::min(int64_t(targetSize[0]),int64_t(viewport.x)+viewport.width);
+      const double vtop=std::min(int64_t(targetSize[1]),int64_t(viewport.y)+viewport.height);
+      if(vright<=vleft||vtop<=vbottom)continue;
+      const auto mvp=state.model*state.view*state.projectionCoin;
+      const uint64_t end=uint64_t(draw.geometry.firstIndex)+draw.geometry.indexCount;
+      for(uint64_t i=draw.geometry.firstIndex;i+2<end;i+=3) {
+        double left=INFINITY,right=-INFINITY,bottom=INFINITY,top=-INFINITY;bool uncertain=false;
+        for(unsigned j=0;j<3;++j) {
+          const auto & vertex=frame.vertices[frame.indices[size_t(i+j)]];
+          SbVec4f clip;mvp.multVecMatrix(SbVec4f(vertex.position[0],vertex.position[1],vertex.position[2],1),clip);
+          if(clip[3]<=0||!std::isfinite(clip[3])){uncertain=true;break;}
+          const double x=double(clip[0])/clip[3],y=double(clip[1])/clip[3];
+          if(!std::isfinite(x)||!std::isfinite(y)){uncertain=true;break;}
+          left=std::min(left,x);right=std::max(right,x);bottom=std::min(bottom,y);top=std::max(top,y);
+        }
+        double x0=vleft,x1=vright,y0=vbottom,y1=vtop;
+        if(!uncertain) {
+          x0=std::max(vleft,std::floor(viewport.x+(left+1)*.5*viewport.width)-1);
+          x1=std::min(vright,std::ceil(viewport.x+(right+1)*.5*viewport.width)+1);
+          y0=std::max(vbottom,std::floor(viewport.y+(bottom+1)*.5*viewport.height)-1);
+          y1=std::min(vtop,std::ceil(viewport.y+(top+1)*.5*viewport.height)+1);
+        }
+        const uint64_t pixels=uint64_t(std::max(0.0,x1-x0))*uint64_t(std::max(0.0,y1-y0));
+        if(pixels>options.pbrShadowSampleBudget/taps||total>options.pbrShadowSampleBudget-pixels*taps) {
+          diagnostic="PBR shadow triangle coverage/tap bound exceeds the sample budget";return false;
+        }
+        total+=pixels*taps;
+      }
+    }
+  }
+  samples=total;return true;
+}
+
 inline bool
 coin_render_shadow_object_profile(
   const CoinRenderFramePlan & frame, const CoinRenderShadowPlan & shadows,

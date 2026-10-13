@@ -14,6 +14,12 @@ enum CoinRenderStoredTextureColorSpace {
   COIN_RENDER_TEXTURE_SRGB = 1
 };
 
+enum CoinRenderPbrShadowFilter {
+  COIN_RENDER_PBR_SHADOW_VSM = 0,
+  COIN_RENDER_PBR_SHADOW_PCF = 1,
+  COIN_RENDER_PBR_SHADOW_PCSS = 2
+};
+
 enum CoinRenderShadowDiagnostic {
   COIN_RENDER_SHADOW_DIAGNOSTIC_NONE = 0,
   COIN_RENDER_SHADOW_DIAGNOSTIC_DEPTH = 1, // linear depth from the first moment
@@ -60,6 +66,11 @@ struct CoinRenderOptions {
   float pbrShadowBiasTexels = 0.5f;
   float pbrShadowSlopeBiasTexels = 0.5f;
   bool pbrShadowMomentCorrection = true;
+  CoinRenderPbrShadowFilter pbrShadowFilter = COIN_RENDER_PBR_SHADOW_VSM;
+  float pbrShadowPcfRadiusTexels = 1.0f; // 3x3 compare-first filter, zero is hard.
+  float pbrShadowMaxPcssRadiusTexels = 64.0f; // Admission cap; never clamps an emitter.
+  // Conservative per-triangle pixel/tap bound; includes receiver overdraw.
+  uint64_t pbrShadowSampleBudget = uint64_t(128) * 1024 * 1024;
 
 };
 

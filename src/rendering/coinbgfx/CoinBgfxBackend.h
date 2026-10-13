@@ -92,6 +92,9 @@ private:
   bgfx::UniformHandle pbrBaseUniform = BGFX_INVALID_HANDLE, pbrEmissionUniform = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrCameraUniform = BGFX_INVALID_HANDLE, pbrOutputUniform = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle pbrShadowBiasUniform = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle pbrShadowFilterUniform = BGFX_INVALID_HANDLE, pbrShadowProjectionUniform = BGFX_INVALID_HANDLE;
+  CoinRenderPbrShadowFilter pbrShadowFilter = COIN_RENDER_PBR_SHADOW_VSM;
+  float pbrShadowPcfRadiusTexels = 1.0f;
   float pbrShadowBiasTexels = 0.5f, pbrShadowSlopeBiasTexels = 0.5f;
   bgfx::UniformHandle pbrRadianceSampler = BGFX_INVALID_HANDLE;
   bgfx::FrameBufferHandle pbrFrameBuffer = BGFX_INVALID_HANDLE;

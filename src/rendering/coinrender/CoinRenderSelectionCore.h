@@ -17,6 +17,12 @@ inline bool coin_render_valid_options(const CoinRenderOptions& options, std::str
     diagnostic = "Shadow attachment budget must be nonzero and at most 160 MiB";
     return false;
   }
+  if (options.pbrShadowFilter<COIN_RENDER_PBR_SHADOW_VSM || options.pbrShadowFilter>COIN_RENDER_PBR_SHADOW_PCSS ||
+      !std::isfinite(options.pbrShadowPcfRadiusTexels)||options.pbrShadowPcfRadiusTexels<0||options.pbrShadowPcfRadiusTexels>4||
+      !std::isfinite(options.pbrShadowMaxPcssRadiusTexels)||options.pbrShadowMaxPcssRadiusTexels<=0||options.pbrShadowMaxPcssRadiusTexels>256||
+      !options.pbrShadowSampleBudget||options.pbrShadowSampleBudget>uint64_t(1024)*1024*1024) {
+    diagnostic="PBR shadow filter/radii/sample budget outside the qualified finite limits";return false;
+  }
   if (!std::isfinite(options.pbrShadowBiasTexels) || options.pbrShadowBiasTexels < 0 ||
       options.pbrShadowBiasTexels > 4 || !std::isfinite(options.pbrShadowSlopeBiasTexels) ||
       options.pbrShadowSlopeBiasTexels < 0 || options.pbrShadowSlopeBiasTexels > 4) {

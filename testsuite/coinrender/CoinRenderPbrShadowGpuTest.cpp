@@ -1,4 +1,5 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "actions/CoinRenderActionP.h"
 #include "rendering/coinrender/CoinRenderPbrEnvironment.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/C/tidbits.h>
@@ -59,6 +60,11 @@ int main(int argc,char ** argv) {
   auto * translation=new SoTranslation;translation->translation.setValue(0,0,-1.5f);floor->addChild(translation);
   auto * slab=new SoCube;slab->width=slab->height=6;slab->depth=.05f;floor->addChild(slab);
   CoinRenderOptions options;options.renderer=COIN_RENDER_RENDERER_VULKAN;
+  if(argc>3&&std::string(argv[3])=="--pcf")options.pbrShadowFilter=COIN_RENDER_PBR_SHADOW_PCF;
+  if(argc>3&&std::string(argv[3])=="--pcss") {
+    options.pbrShadowFilter=COIN_RENDER_PBR_SHADOW_PCSS;
+    for(auto * light:lights)light->sourceRadius=.03f;
+  }
   CoinRenderTarget * initial=nullptr;
 #ifdef COIN_SHADOW_TEST_X11
   const bool windowMode=argc>2&&std::string(argv[2])=="--window";
@@ -134,6 +140,7 @@ int main(int argc,char ** argv) {
     for(int l=0;l<2;++l) {
       lights[l]->location.setValue((l?-2:2)*scale,2*scale,4*scale);
       lights[l]->nearDistance=scale;lights[l]->farDistance=12*scale;
+      if(options.pbrShadowFilter==COIN_RENDER_PBR_SHADOW_PCSS)lights[l]->sourceRadius=.03f*scale;
     }
     cube->width=cube->height=cube->depth=1.4f*scale;
     slab->width=slab->height=6*scale;slab->depth=.05f*scale;
@@ -149,6 +156,7 @@ int main(int argc,char ** argv) {
     for(size_t p=0;p<rgba.size();p+=4)out.write(reinterpret_cast<const char*>(rgba.data()+p),3);
     CHECK(bool(out),"Save actual PBR shadow capture");
   }
+  if(options.pbrShadowFilter==COIN_RENDER_PBR_SHADOW_VSM) {
   CoinRenderOptions rawOptions=options;rawOptions.pbrShadowMomentCorrection=false;
   rawOptions.pbrShadowBiasTexels=rawOptions.pbrShadowSlopeBiasTexels=0;
   std::unique_ptr<CoinRenderTarget> raw(CoinRenderTarget::createOffscreen(SbVec2i32(128,128),rawOptions));
@@ -167,6 +175,7 @@ int main(int argc,char ** argv) {
   CHECK(corrected>20,"GPU second-moment derivative correction affects sloped actual receivers");
   group->precision=.5f;group->epsilon=.00001f;group->threshold=.1f;
   translation->translation.setValue(0,0,-1.5f);
+  }
   cube->ref();group->removeChild(cube);
   auto * plate=new SoSeparator;plate->ref();
   auto * hints=new SoShapeHints;hints->shapeType=SoShapeHints::SOLID;
@@ -190,6 +199,22 @@ int main(int argc,char ** argv) {
   std::unique_ptr<CoinRenderTarget> ibl(CoinRenderTarget::createOffscreen(SbVec2i32(128,128),options));
   lights[0]->intensity=lights[1]->intensity=0;
   CHECK(ibl&&render(*ibl,root,first),"IBL plus shadow groups");style->style=SoShadowStyle::NO_SHADOWING;
+  size_t environmentPixels=0;
+  for(int i=0;i<first.getLength();++i)environmentPixels+=first[i][0]>.3f;
+  CHECK(environmentPixels>8000,"Actual environment radiance is present beyond authored emission");
+  CoinRenderAction referenceCapture(SbViewportRegion(128,128));referenceCapture.apply(root);
+  auto environmentFrame=referenceCapture.getPimpl()->lastRejectedShadowFrame;
+  environmentFrame.shadowGroups.clear();environmentFrame.shadowLights.clear();
+  for(auto & state:environmentFrame.renderStates)state.shadowGroupSlot=0;
+  environmentFrame.draws.erase(std::remove_if(environmentFrame.draws.begin(),environmentFrame.draws.end(),
+    [](const CoinRenderDrawPacket & draw){return draw.shadowLightSlot!=0;}),environmentFrame.draws.end());
+  CoinRenderTargetP environmentReference(SbVec2i32(128,128));environmentReference.options=options;
+  CHECK(environmentReference.executeFrame(environmentFrame).status==CoinRenderBackendStatus::SUCCESS,
+    "Independent existing IBL program without shadow groups");
+  SbList<SbVec3f> oracleEnvironment;
+  CHECK(environmentReference.backend->readSceneLinear(oracleEnvironment)&&oracleEnvironment.getLength()==first.getLength(),"IBL control radiance readback");
+  for(int i=0;i<first.getLength();++i)CHECK((first[i]-oracleEnvironment[i]).length()<.003f,
+    "Shadow+IBL program agrees with qualified unshadowed environment program");
   CHECK(render(*ibl,root,second),"IBL with receiver disabled");
   for(int i=0;i<first.getLength();++i)CHECK((first[i]-second[i]).length()==0,"Direct shadow visibility does not suppress environment radiance");
   style->style=SoShadowStyle::SHADOWED;lights[0]->intensity=lights[1]->intensity=20;

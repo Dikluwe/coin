@@ -9,6 +9,17 @@ if(COIN_BUILD_RENDER)
     ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
   add_test(NAME CoinRenderShadowStabilityTest COMMAND CoinRenderShadowStabilityTest)
   if(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    add_executable(CoinRenderShadowFilterTest coinrender/CoinRenderShadowFilterTest.cpp)
+    target_compile_definitions(CoinRenderShadowFilterTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderShadowFilterTest CoinRender Coin)
+    target_include_directories(CoinRenderShadowFilterTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderShadowFilterTest COMMAND CoinRenderShadowFilterTest
+      ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics)
+    set_tests_properties(CoinRenderShadowFilterTest PROPERTIES TIMEOUT 90
+      ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
     add_test(NAME CoinRenderShadowStabilityGpuTest COMMAND CoinRenderShadowStabilityTest
       --gpu ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics/stable-directional.ppm)
     set_tests_properties(CoinRenderShadowStabilityGpuTest PROPERTIES TIMEOUT 90
@@ -34,6 +45,12 @@ if(COIN_BUILD_RENDER)
         ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics --window)
       set_tests_properties(CoinRenderPbrShadowWindowTest PROPERTIES TIMEOUT 90
         ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
+      add_test(NAME CoinRenderPbrShadowPcfWindowTest COMMAND CoinRenderPbrShadowGpuTest
+        ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics --window --pcf)
+      add_test(NAME CoinRenderPbrShadowPcssWindowTest COMMAND CoinRenderPbrShadowGpuTest
+        ${CMAKE_CURRENT_BINARY_DIR}/shadow-diagnostics --window --pcss)
+      set_tests_properties(CoinRenderPbrShadowPcfWindowTest CoinRenderPbrShadowPcssWindowTest
+        PROPERTIES TIMEOUT 90 ENVIRONMENT "COIN_BGFX_RENDERER=vulkan" RESOURCE_LOCK coinrender_gpu)
     endif()
     target_include_directories(CoinRenderPbrShadowGpuTest PRIVATE
       ${PROJECT_SOURCE_DIR}/experimental/include ${PROJECT_SOURCE_DIR}/src

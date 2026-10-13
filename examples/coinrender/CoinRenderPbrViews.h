@@ -19,6 +19,9 @@
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowStyle.h>
 #include <X11/Xlib.h>
 #include <X11/keysym.h>
 #if defined(Status)
@@ -34,6 +37,9 @@ struct CoinRenderPbrViewOptions {
   SbBool active = FALSE, offscreen = FALSE, cut = FALSE, pbr = FALSE;
   SbBool energyCompensation = TRUE, cadTools=FALSE, captureDepth=FALSE, validateDepth=FALSE;
   SbBool convertImport=FALSE;
+  SbBool shadows=FALSE;
+  CoinRenderPbrShadowFilter shadowFilter=COIN_RENDER_PBR_SHADOW_VSM;
+  float shadowAngularRadius=.00465f;
   float importedMetallic=.9f, importedRoughness=.35f;
   float specularFilterVariance=.15f, specularFilterThreshold=.10f;
   float exposureStops = 0.0f;
@@ -102,6 +108,8 @@ inline SbBool coin_pbr_capture(const CoinRenderPbrViewOptions & options,
     caps.vendor_id, caps.device_id, static_cast<unsigned long long>(target->getLastSubmissionSerial()), returnMs);
   coin_pbr_write_matrix(manifest, viewMatrix); std::fprintf(manifest, ",\n  \"projection_matrix\":");
   coin_pbr_write_matrix(manifest, projection);
+  std::fprintf(manifest,",\n  \"shadows\":%s,\n  \"shadow_filter\":%d,\n  \"shadow_angular_radius_radians\":%.9g",
+    options.shadows?"true":"false",int(options.shadowFilter),double(options.shadowAngularRadius));
   std::fprintf(manifest, ",\n  \"environment_bundle\":%s,\n  \"environment_rotation_radians\":%.9g,\n"
     "  \"environment_intensity\":%.9g,\n  \"direct_intensity\":%.9g,\n",
     coin_pbr_json_string(options.environmentBundle.getString()).getString(), double(options.environmentRotation),
@@ -143,6 +151,7 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   renderOptions.pbrEnergyCompensation = options.energyCompensation;
   renderOptions.pbrSpecularFilterVariance = options.specularFilterVariance;
   renderOptions.pbrSpecularFilterThreshold = options.specularFilterThreshold;
+  renderOptions.pbrShadowFilter=options.shadowFilter;
   CoinRenderCapabilities caps{};
   const uint32_t kind = options.offscreen ? COIN_RENDER_EXPERIMENTAL_OFFSCREEN : COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW;
   if (coin_render_query_capabilities_for_renderer(kind, renderOptions.renderer, &caps, sizeof(caps)) || !caps.gpu_available) {
@@ -190,12 +199,26 @@ inline int coin_render_run_cad_views(const CoinRenderPbrViewOptions & options, i
   if(options.zoomFactor!=1.0f)camera->scaleHeight(options.zoomFactor);
   SoSeparator * root = new SoSeparator; root->ref(); root->addChild(camera);
   SoLightModel * model = new SoLightModel; model->model = SoLightModel::PHONG; root->addChild(model);
-  SoDirectionalLight * light = new SoDirectionalLight;
-  light->direction.setValue(-0.3f, 0.4f, -1.0f); root->addChild(light);
+  SoGroup * surfaces=root;
+  if(options.shadows) {
+    auto * group=new SoShadowGroup;group->quality=1;root->addChild(group);surfaces=group;
+  }
+  SoDirectionalLight * light = options.shadows?new SoShadowDirectionalLight:new SoDirectionalLight;
+  if(options.shadows)static_cast<SoShadowDirectionalLight *>(light)->angularRadius=options.shadowAngularRadius;
+  light->direction.setValue(-0.3f, 0.4f, -1.0f); surfaces->addChild(light);
   light->intensity = options.directIntensity;
-  auto * selection=new SoSelection;selection->addChild(geometry);root->addChild(selection);geometry->unref();
+  auto * selection=new SoSelection;selection->addChild(geometry);surfaces->addChild(selection);geometry->unref();
   if(options.cadTools&&!coin_pbr_add_cad_tools(root,selection,geometry,options.size,metrics,options.cut)) {
     std::fprintf(stderr,"CAD tools could not select a geometric surface\n");root->unref();return 2;
+  }
+  if(options.shadows) {
+    SoGetBoundingBoxAction bounds(SbViewportRegion(options.size[0],options.size[1]));bounds.apply(geometry);
+    const SbBox3f box=bounds.getBoundingBox();const SbVec3f size=box.getSize();
+    const float scale=std::max(size[0],std::max(size[1],size[2]));
+    auto * ground=new SoSeparator;auto * style=new SoShadowStyle;style->style=SoShadowStyle::SHADOWED;ground->addChild(style);
+    ground->addChild(coin_pbr_physical_material(SbColor(.18f,.18f,.18f),0,.8f));
+    auto * translation=new SoTranslation;translation->translation=SbVec3f(box.getCenter()[0],box.getCenter()[1],box.getMin()[2]-scale*.02f);ground->addChild(translation);
+    auto * slab=new SoCube;slab->width=slab->height=scale*2;slab->depth=scale*.02f;ground->addChild(slab);surfaces->addChild(ground);
   }
   if (options.exportScene.getLength()) {
     SoOutput output; if (!output.openFile(options.exportScene.getString())) { root->unref(); return 2; }

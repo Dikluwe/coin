@@ -66,6 +66,17 @@ int main(int argc, char ** argv) {
       transparencyDemo = true;
     } else if (std::strcmp(argv[i], "--pbr") == 0) {
       cad.active = TRUE; cad.pbr = TRUE;
+    } else if (std::strcmp(argv[i], "--shadows") == 0 && i + 1 < argc) {
+      cad.active = cad.pbr = cad.shadows = TRUE;
+      const SbString filter(argv[++i]);
+      if(filter=="vsm")cad.shadowFilter=COIN_RENDER_PBR_SHADOW_VSM;
+      else if(filter=="pcf")cad.shadowFilter=COIN_RENDER_PBR_SHADOW_PCF;
+      else if(filter=="pcss")cad.shadowFilter=COIN_RENDER_PBR_SHADOW_PCSS;
+      else {std::fprintf(stderr,"--shadows expects vsm, pcf or pcss\n");return 2;}
+    } else if (std::strcmp(argv[i], "--shadow-angular-radius") == 0 && i + 1 < argc) {
+      char * end=nullptr;const float radius=std::strtof(argv[++i],&end);
+      if(!end||*end||!std::isfinite(radius)||radius<0||radius>.1f){std::fprintf(stderr,"Emitter angular radius requires radians in [0,.1]\n");return 2;}
+      cad.shadowAngularRadius=radius;
     } else if (std::strcmp(argv[i], "--cad-tools") == 0) {
       cad.active=TRUE;cad.cadTools=TRUE;
     } else if (std::strcmp(argv[i], "--capture-depth") == 0) {
@@ -132,6 +143,7 @@ int main(int argc, char ** argv) {
                    "  [--view iso-perspective|iso-orthographic|front|top|right|detail]\n"
                    "  [--pbr] [--exposure stops] [--renderer vulkan] [--offscreen] [--capture-prefix path]\n"
                    "  [--environment bundle.cibl] [--env-rotation degrees] [--env-intensity 1] [--direct-intensity 1]\n"
+                   "  [--shadows vsm|pcf|pcss] [--shadow-angular-radius radians]\n"
                    "  [--cad-tools] [--capture-depth] [--validate-depth] [--zoom-factor .25..4]\n"
                    "  [--convert-import] [--import-metallic .9] [--import-roughness .35]\n"
                    "  [--single-scattering] [--no-specular-filter]\n"

@@ -1,5 +1,7 @@
 #include "CoinRenderTestEnvironment.h"
 #include <Inventor/SoDB.h>
+#include <Inventor/SoInput.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
@@ -76,6 +78,20 @@ int main() {
   REQUIRE(coin_render_valid_options(options,diagnostic),"Bounded bias texel coefficients are admitted");
   options.pbrShadowSlopeBiasTexels=5;
   REQUIRE(!coin_render_valid_options(options,diagnostic),"Unbounded slope correction is rejected");
+  options=CoinRenderOptions();options.pbrShadowFilter=static_cast<CoinRenderPbrShadowFilter>(3);
+  REQUIRE(!coin_render_valid_options(options,diagnostic),"Unknown PBR shadow filter is rejected");
+  options=CoinRenderOptions();options.pbrShadowSampleBudget=0;
+  REQUIRE(!coin_render_valid_options(options,diagnostic),"Zero sample budget is rejected");
+  options=CoinRenderOptions();options.pbrShadowMaxPcssRadiusTexels=0;
+  REQUIRE(!coin_render_valid_options(options,diagnostic),"Zero PCSS admission radius is rejected");
+  const char * spotText="ShadowSpotLight { sourceRadius 0.025 }";
+  SoInput spotInput;spotInput.setBuffer(const_cast<char *>(spotText),std::strlen(spotText));SoNode * parsed=nullptr;
+  REQUIRE(SoDB::read(&spotInput,parsed)&&parsed&&parsed->isOfType(SoShadowSpotLight::getClassTypeId()),"Native Coin spot emitter field reads from scene syntax");
+  parsed->ref();REQUIRE(std::abs(static_cast<SoShadowSpotLight *>(parsed)->sourceRadius.getValue()-.025f)<1e-6,"Spot radius stores world distance");parsed->unref();
+  const char * sunText="ShadowDirectionalLight { angularRadius 0.02 }";
+  SoInput sunInput;sunInput.setBuffer(const_cast<char *>(sunText),std::strlen(sunText));parsed=nullptr;
+  REQUIRE(SoDB::read(&sunInput,parsed)&&parsed&&parsed->isOfType(SoShadowDirectionalLight::getClassTypeId()),"Native Coin directional emitter field reads from scene syntax");
+  parsed->ref();REQUIRE(std::abs(static_cast<SoShadowDirectionalLight *>(parsed)->angularRadius.getValue()-.02f)<1e-6,"Directional radius stores radians");parsed->unref();
   root->unref();
   std::cout << "shadow attachments: moments=128 MiB depth=32 MiB total=160 MiB; boundaries/rollback/views verified\n";
   return 0;

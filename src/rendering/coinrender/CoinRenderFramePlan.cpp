@@ -364,7 +364,9 @@ CoinRenderFramePlan::isValid(std::string * outDiagnostic) const
       return false;
     }
     if (!isFiniteF(light.intensity) || light.intensity < 0.0f ||
-        !isFiniteF(light.cutOffAngle) || !isFiniteF(light.dropOffRate)) {
+        !isFiniteF(light.cutOffAngle) || !isFiniteF(light.dropOffRate) ||
+        !isFiniteF(light.sourceRadius) || light.sourceRadius<0 ||
+        !isFiniteF(light.angularRadius) || light.angularRadius<0 || light.angularRadius>.1f) {
       if (outDiagnostic) *outDiagnostic = "Invalid captured shadow light intensity or cone";
       return false;
     }

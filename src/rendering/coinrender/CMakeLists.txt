@@ -196,7 +196,8 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
       set(_pbr_source fs_pbr)
       set(_pbr_defines --define COIN_PBR_SHADOW=1)
       if(_pbr_shader STREQUAL "fs_pbr_shadow_ibl")
-        set(_pbr_defines --define "COIN_PBR_SHADOW=1;COIN_PBR_IBL=1")
+        set(_pbr_source fs_pbr_shadow_ibl)
+        set(_pbr_defines)
       endif()
     endif()
     if(_pbr_shader MATCHES "^vs")
@@ -213,6 +214,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
         --varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
         --bin2c coin_bgfx_${_pbr_shader}_spirv -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
       DEPENDS ${_coin_bgfx_shader_dir}/${_pbr_source}.sc
+        ${_coin_bgfx_shader_dir}/fs_pbr.sc
         ${_coin_bgfx_shader_dir}/coin_pbr_shadows.sh
         ${_coin_bgfx_shader_dir}/coin_pbr_ibl.sh
         ${_coin_bgfx_shader_dir}/coin_pbr_brdf.sh ${_coin_bgfx_shader_dir}/coin_pbr_output.sh

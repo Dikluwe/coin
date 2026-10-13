@@ -11,7 +11,7 @@ material e nas luzes. Perfil inicial de execução: BGFX/Vulkan e cenas CAD.
 - [x] S3 — contato/detalhe: bias separado da variância, momentos e culling.
 - [x] S4 — estabilidade da projeção direcional durante órbita/zoom.
 - [x] S5 — persistência dos attachments e cache correto por conteúdo/projeção/vista.
-- [ ] S6 — filtros VSM/PCF e PCSS, incluindo contrato de emissor/penumbra e orçamento.
+- [x] S6 — filtros VSM/PCF e PCSS, incluindo contrato de emissor/penumbra e orçamento.
 
 Cada fechamento deve registrar implementação, comandos, testes discriminantes,
 imagens reais e limitações. Os controles legados de Phong e de qualidade Coin
@@ -60,4 +60,24 @@ Falha de substituição e perda/reconstrução de dispositivo preservam a public
 Os 14 controles passaram. [Evidências S5](validation/shadows/s5/summary.json).
 Chaves têm teto de 16 MiB/target; conteúdo maior redesenha sem cache, sem reduzir
 qualidade. Orçamento de attachments é por target; o driver pode adiar destruição
-por frames em voo. Isso limita recursos, mas não garante FPS. S6 em implementação.
+por frames em voo. Isso limita recursos, mas não garante FPS. S6 concluído: VSM, PCF 3×3 e PCSS 16+16, campos nativos `sourceRadius`
+(distância mundial) e `angularRadius` (radianos), admissão por pixels/triângulos/taps
+e por penumbra máxima. Recusas preservam a publicação sem alterar emissores ou
+resolução. Os 17 controles passaram; cinco views CAD reais passaram, incluindo
+recorte/oracle de profundidade e replay da montagem na janela nativa.
+[Evidências S6](validation/shadows/s6/summary.json),
+[comparação de filtros](validation/shadows/s6/filter-gallery.png) e
+[views CAD](validation/shadows/s6/cad/gallery.png).
+
+A QA final revelou que a lista CMake separava os defines de sombras e IBL:
+a variante era compilada sem ambiente. A invariância dos testes S2 anteriores
+não provava a presença de IBL. A variante agora usa um wrapper com ambos os
+defines e os testes exigem contribuição de ambiente acima da emissão e acordo
+com o programa IBL já qualificado. As evidências S2–S5 são checkpoints históricos;
+a validação final S6 é a referência para a composição completa.
+
+As seis etapas estão implementadas e verificadas no perfil descrito.
+PCSS é uma aproximação de visibilidade suave; a BRDF direta continua pontual.
+Luzes de área com integração da BRDF, transmissão e sombras cubemap de point
+lights permanecem funcionalidades futuras. O orçamento limita recursos e
+amostragem admitida, sem prometer FPS.
