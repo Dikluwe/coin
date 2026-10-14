@@ -37,6 +37,8 @@
 #error this is a private header file
 #endif
 
+#include <Inventor/C/basic.h>
+
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
@@ -156,7 +158,7 @@ typedef struct {
 } GLUWrapper_t;
 
 
-const GLUWrapper_t * GLUWrapper(void);
+COIN_DLL_API const GLUWrapper_t * GLUWrapper(void);
 
 
 #ifdef __cplusplus

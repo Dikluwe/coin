@@ -1,3 +1,18 @@
+# The experimental library is configured after src/, so register its Doxygen
+# inputs here while the global documentation file list is still being built.
+if(COIN_BUILD_RENDER AND
+   (COIN_BUILD_DOCUMENTATION OR COIN_BUILD_AWESOME_DOCUMENTATION))
+  set(COIN_DOCUMENTATION_FILES
+    ${COIN_DOCUMENTATION_FILES}
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinrender/CoinRenderExperimental.dox
+    ${PROJECT_SOURCE_DIR}/include/Inventor/actions/CoinRenderAction.h
+    ${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderCapabilities.h
+    ${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderNativeSurface.h
+    ${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderTarget.h
+    ${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderSceneManager.h
+    CACHE INTERNAL "COIN_DOCUMENTATION_FILES")
+endif()
+
 # Add a target to generate API documentation with Doxygen
 if(COIN_BUILD_DOCUMENTATION)
   find_package(Doxygen)

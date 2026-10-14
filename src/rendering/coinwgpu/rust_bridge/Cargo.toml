@@ -1,0 +1,25 @@
+[package]
+name = "coin_wgpu_rust_bridge"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["staticlib"]
+
+[dependencies]
+wgpu = "24"
+pollster = "0.4"
+bytemuck = { version = "1.21", features = ["derive"] }
+raw-window-handle = "0.6"
+log = "0.4"
+
+[[test]]
+name = "gouraud_shader"
+path = "../../../../testsuite/coinwgpu/rust/gouraud_shader.rs"
+
+[[test]]
+name = "shadow_shader"
+path = "../../../../testsuite/coinwgpu/rust/shadow_shader.rs"
+
+[dev-dependencies]
+naga = { version = "24", features = ["wgsl-in", "glsl-out"] }

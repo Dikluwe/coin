@@ -220,6 +220,8 @@
 
 #include "actions/SoSubActionP.h"
 #include "SbBasicP.h"
+#include <limits>
+#include <vector>
 
 #ifndef DOXYGEN_SKIP_THIS
 
@@ -328,20 +330,46 @@ SoCallbackData::doPointCallbacks(SoCallbackAction * action,
 // class to hold private, hidden data
 class SoCallbackActionP {
 public:
+  enum CallbackKind { PRE, POST, TRIANGLE, LINE, POINT };
+  struct Registration {
+    CallbackKind kind;
+    SoType type;
+    void * function;
+    void * userdata;
+  };
+  std::vector<Registration> registrations;
+  mutable std::vector<bool> expandedTypes;
+  mutable int registryTypeCount = -1;
+  void refreshDerivedTypes() const;
+  void addRegistration(CallbackKind kind, SoType type, void * function, void * userdata);
+  SbList<SoCallbackData *> & table(CallbackKind kind) const {
+    switch (kind) {
+    case PRE: return precallback;
+    case POST: return postcallback;
+    case TRIANGLE: return trianglecallback;
+    case LINE: return linecallback;
+    default: return pointcallback;
+    }
+  }
+  uint64_t callbackregistrationrevision;
+  void advanceCallbackRevision() {
+    if (this->callbackregistrationrevision != std::numeric_limits<uint64_t>::max())
+      ++this->callbackregistrationrevision;
+  }
   SbBool viewportset;
   SbViewportRegion viewport;
   SoCallbackAction::Response response;
   SoNode * currentnode;
 
-  SbList <SoCallbackData *> precallback;
-  SbList <SoCallbackData *> postcallback;
+  mutable SbList <SoCallbackData *> precallback;
+  mutable SbList <SoCallbackData *> postcallback;
 
   SoCallbackData * pretailcallback;
   SoCallbackData * posttailcallback;
 
-  SbList <SoCallbackData *> trianglecallback;
-  SbList <SoCallbackData *> linecallback;
-  SbList <SoCallbackData *> pointcallback;
+  mutable SbList <SoCallbackData *> trianglecallback;
+  mutable SbList <SoCallbackData *> linecallback;
+  mutable SbList <SoCallbackData *> pointcallback;
 
   SbBool callbackall;
 };
@@ -442,6 +470,7 @@ SoCallbackAction::commonConstructor(void)
   PRIVATE(this)->posttailcallback = NULL;
   PRIVATE(this)->viewportset = FALSE;
   PRIVATE(this)->callbackall = FALSE;
+  PRIVATE(this)->callbackregistrationrevision = 0;
 }
 
 /*!
@@ -516,6 +545,42 @@ set_callback_data(SbList<SoCallbackData *> & list, const SoType type,
   }
 }
 
+// Registration applies to descendants created later as well. Expanding only
+// new type keys preserves callback order and multiplicity on existing types.
+// The registration revision tracks user changes, not registry growth: native
+// built-in fast paths keep the same observers, and newly added nodes invalidate
+// their scene roots through the normal notification mechanism.
+void
+SoCallbackActionP::refreshDerivedTypes() const
+{
+  const int count = SoType::getNumTypes();
+  if (this->registryTypeCount == count) return;
+  SoTypeList nodes;
+  SoType::getAllDerivedFrom(SoNode::getClassTypeId(), nodes);
+  for (int i = 0; i < nodes.getLength(); ++i) {
+    const SoType node = nodes[i];
+    const size_t key = node.getKey();
+    if (key >= this->expandedTypes.size()) this->expandedTypes.resize(key + 1, false);
+    if (this->expandedTypes[key]) continue;
+    for (const auto & registration : this->registrations) {
+      if (node.isDerivedFrom(registration.type))
+        set_callback_data_idx(this->table(registration.kind),
+          static_cast<int>(node.getData()), registration.function, registration.userdata);
+    }
+    this->expandedTypes[key] = true;
+  }
+  this->registryTypeCount = count;
+}
+
+void
+SoCallbackActionP::addRegistration(CallbackKind kind, SoType type, void * function, void * userdata)
+{
+  this->refreshDerivedTypes();
+  this->registrations.push_back({kind, type, function, userdata});
+  set_callback_data(this->table(kind), type, function, userdata);
+  this->advanceCallbackRevision();
+}
+
 /*!
   Set a function \a cb to call before every node of \a type is
   traversed. \a cb will be called with \a userdata.
@@ -524,7 +589,8 @@ void
 SoCallbackAction::addPreCallback(const SoType type, SoCallbackActionCB * cb,
                                  void * userdata)
 {
-  set_callback_data(PRIVATE(this)->precallback, type, function_to_object_cast<void *>(cb), userdata);
+  PRIVATE(this)->addRegistration(SoCallbackActionP::PRE, type,
+    function_to_object_cast<void *>(cb), userdata);
 }
 
 /*!
@@ -535,7 +601,8 @@ void
 SoCallbackAction::addPostCallback(const SoType type, SoCallbackActionCB * cb,
                                   void * userdata)
 {
-  set_callback_data(PRIVATE(this)->postcallback, type, function_to_object_cast<void *>(cb), userdata);
+  PRIVATE(this)->addRegistration(SoCallbackActionP::POST, type,
+    function_to_object_cast<void *>(cb), userdata);
 }
 
 /*!
@@ -545,6 +612,7 @@ SoCallbackAction::addPostCallback(const SoType type, SoCallbackActionCB * cb,
 void
 SoCallbackAction::addPreTailCallback(SoCallbackActionCB * cb, void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   if (PRIVATE(this)->pretailcallback == NULL)
     PRIVATE(this)->pretailcallback = new SoCallbackData(function_to_object_cast<void *>(cb), userdata);
   else
@@ -558,6 +626,7 @@ SoCallbackAction::addPreTailCallback(SoCallbackActionCB * cb, void * userdata)
 void
 SoCallbackAction::addPostTailCallback(SoCallbackActionCB * cb, void * userdata)
 {
+  PRIVATE(this)->advanceCallbackRevision();
   if (PRIVATE(this)->posttailcallback == NULL)
     PRIVATE(this)->posttailcallback = new SoCallbackData(function_to_object_cast<void *>(cb), userdata);
   else
@@ -573,7 +642,8 @@ void
 SoCallbackAction::addTriangleCallback(const SoType type, SoTriangleCB * cb,
                                       void * userdata)
 {
-  set_callback_data(PRIVATE(this)->trianglecallback, type, function_to_object_cast<void *>(cb), userdata);
+  PRIVATE(this)->addRegistration(SoCallbackActionP::TRIANGLE, type,
+    function_to_object_cast<void *>(cb), userdata);
 }
 
 /*!
@@ -585,7 +655,8 @@ void
 SoCallbackAction::addLineSegmentCallback(const SoType type, SoLineSegmentCB * cb,
                                          void * userdata)
 {
-  set_callback_data(PRIVATE(this)->linecallback, type, function_to_object_cast<void *>(cb), userdata);
+  PRIVATE(this)->addRegistration(SoCallbackActionP::LINE, type,
+    function_to_object_cast<void *>(cb), userdata);
 }
 
 /*!
@@ -597,7 +668,8 @@ void
 SoCallbackAction::addPointCallback(const SoType type, SoPointCB * cb,
                                    void * userdata)
 {
-  set_callback_data(PRIVATE(this)->pointcallback, type, function_to_object_cast<void *>(cb), userdata);
+  PRIVATE(this)->addRegistration(SoCallbackActionP::POINT, type,
+    function_to_object_cast<void *>(cb), userdata);
 }
 
 /************************************************************************************/
@@ -1131,6 +1203,7 @@ SoCallbackAction::getCurrentResponse(void) const
 void
 SoCallbackAction::invokePreCallbacks(const SoNode * const node)
 {
+  PRIVATE(this)->refreshDerivedTypes();
   // reset response if previous node was pruned
   if (PRIVATE(this)->response == PRUNE) PRIVATE(this)->response = CONTINUE;
 
@@ -1164,6 +1237,7 @@ SoCallbackAction::invokePreCallbacks(const SoNode * const node)
 void
 SoCallbackAction::invokePostCallbacks(const SoNode * const node)
 {
+  PRIVATE(this)->refreshDerivedTypes();
   // reset response if previous node was pruned
   if (PRIVATE(this)->response == PRUNE) PRIVATE(this)->response = CONTINUE;
 
@@ -1199,9 +1273,32 @@ SoCallbackAction::invokeTriangleCallbacks(const SoShape * const shape,
                                           const SoPrimitiveVertex * const v2,
                                           const SoPrimitiveVertex * const v3)
 {
+  PRIVATE(this)->refreshDerivedTypes();
   int idx = static_cast<int>(shape->getTypeId().getData());
   if (idx < PRIVATE(this)->trianglecallback.getLength() && PRIVATE(this)->trianglecallback[idx] != NULL)
     PRIVATE(this)->trianglecallback[idx]->doTriangleCallbacks(this, v1, v2, v3);
+}
+
+SbBool
+SoCallbackAction::hasSingleShapeCallbacks(const SoType type) const
+{
+  PRIVATE(this)->refreshDerivedTypes();
+  const int idx = static_cast<int>(type.getData());
+  const auto single = [idx](const SbList<SoCallbackData *> & callbacks) {
+    if (idx < 0 || idx >= callbacks.getLength()) return false;
+    const SoCallbackData * data = callbacks[idx];
+    return data && data->next == NULL;
+  };
+  return !PRIVATE(this)->pretailcallback && !PRIVATE(this)->posttailcallback &&
+    single(PRIVATE(this)->precallback) && single(PRIVATE(this)->postcallback) &&
+    single(PRIVATE(this)->trianglecallback) && single(PRIVATE(this)->linecallback) &&
+    single(PRIVATE(this)->pointcallback);
+}
+
+uint64_t
+SoCallbackAction::callbackRegistrationRevision(void) const
+{
+  return PRIVATE(this)->callbackregistrationrevision;
 }
 
 /*!
@@ -1214,6 +1311,7 @@ SoCallbackAction::invokeLineSegmentCallbacks(const SoShape * const shape,
                                              const SoPrimitiveVertex * const v1,
                                              const SoPrimitiveVertex * const v2)
 {
+  PRIVATE(this)->refreshDerivedTypes();
   int idx = static_cast<int>(shape->getTypeId().getData());
   if (idx < PRIVATE(this)->linecallback.getLength() && PRIVATE(this)->linecallback[idx] != NULL)
     PRIVATE(this)->linecallback[idx]->doLineSegmentCallbacks(this, v1, v2);
@@ -1228,6 +1326,7 @@ void
 SoCallbackAction::invokePointCallbacks(const SoShape * const shape,
                                        const SoPrimitiveVertex * const v)
 {
+  PRIVATE(this)->refreshDerivedTypes();
   int idx = static_cast<int>(shape->getTypeId().getData());
   if (idx < PRIVATE(this)->pointcallback.getLength() && PRIVATE(this)->pointcallback[idx] != NULL)
     PRIVATE(this)->pointcallback[idx]->doPointCallbacks(this, v);
@@ -1243,6 +1342,7 @@ SoCallbackAction::invokePointCallbacks(const SoShape * const shape,
 SbBool
 SoCallbackAction::shouldGeneratePrimitives(const SoShape * shape) const
 {
+  PRIVATE(this)->refreshDerivedTypes();
   int idx = static_cast<int>(shape->getTypeId().getData());
   if (idx < PRIVATE(this)->trianglecallback.getLength() && PRIVATE(this)->trianglecallback[idx])
     return TRUE;
@@ -1278,6 +1378,7 @@ SoCallbackAction::setCurrentNode(SoNode * const node)
 void
 SoCallbackAction::beginTraversal(SoNode * node)
 {
+  PRIVATE(this)->refreshDerivedTypes();
   PRIVATE(this)->response = SoCallbackAction::CONTINUE;
   // we set the viewport region element here. This element is not enabled
   // for SoCallbackAction in Inventor, bu we think it should be.

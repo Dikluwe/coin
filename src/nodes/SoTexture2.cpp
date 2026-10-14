@@ -224,6 +224,7 @@
 #include <Inventor/misc/SoGLBigImage.h>
 #include <Inventor/sensors/SoFieldSensor.h>
 #include <Inventor/threads/SbMutex.h>
+#include <atomic>
 
 // *************************************************************************
 
@@ -380,6 +381,9 @@ public:
   static SbMutex * mutex;
   int readstatus;
   SbBool glimagevalid;
+  SbUniqueId imageUploadRevision;
+  SbUniqueId portableQualityRevision;
+  float portableUploadQuality;
 
   static void cleanup(void) {
     delete SoTexture2P::mutex;
@@ -388,6 +392,7 @@ public:
 };
 
 SbMutex * SoTexture2P::mutex = NULL;
+static std::atomic<SbUniqueId> nextTextureImageUploadRevision{1};
 
 #define PRIVATE(p) ((p)->pimpl)
 
@@ -436,6 +441,9 @@ SoTexture2::SoTexture2(void)
 
   PRIVATE(this)->glimage = NULL;
   PRIVATE(this)->glimagevalid = FALSE;
+  PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
+  PRIVATE(this)->portableQualityRevision = 0;
+  PRIVATE(this)->portableUploadQuality = 0.0f;
   PRIVATE(this)->readstatus = 1;
 
   // use field sensor for filename since we will load an image if
@@ -455,6 +463,35 @@ SoTexture2::~SoTexture2()
   if (PRIVATE(this)->glimage) PRIVATE(this)->glimage->unref(NULL);
   delete PRIVATE(this)->filenamesensor;
   delete PRIVATE(this);
+}
+
+SbUniqueId
+SoTexture2::getImageUploadRevision(void) const
+{
+  return PRIVATE(this)->imageUploadRevision;
+}
+
+SbBool
+SoTexture2::getGLImageUploadHints(SbBool & uploadValid, SbBool & scaleDown,
+                                  SbBool & compressed, float & quality) const
+{
+  LOCK_GLIMAGE(this);
+  const SoGLImage * image = PRIVATE(this)->glimage;
+  const SbBool available = image && image->getTypeId() == SoGLImage::getClassTypeId();
+  const uint32_t flags = available ? image->getFlags() : 0;
+  uploadValid = available && PRIVATE(this)->glimagevalid;
+  scaleDown = (flags & SoGLImage::SCALE_DOWN) != 0;
+  compressed = (flags & SoGLImage::COMPRESSED) != 0;
+  if (uploadValid) quality = image->getQuality();
+  else {
+    if (PRIVATE(this)->portableQualityRevision != PRIVATE(this)->imageUploadRevision) {
+      PRIVATE(this)->portableUploadQuality = quality;
+      PRIVATE(this)->portableQualityRevision = PRIVATE(this)->imageUploadRevision;
+    }
+    quality = PRIVATE(this)->portableUploadQuality;
+  }
+  UNLOCK_GLIMAGE(this);
+  return available;
 }
 
 // Documented in superclass.
@@ -707,6 +744,7 @@ SoTexture2::notify(SoNotList * l)
   SoField * f = l->getLastField();
   if (f == &this->image) {
     PRIVATE(this)->glimagevalid = FALSE;
+    PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
 
     // write image, not filename
     this->filename.setDefault(TRUE);
@@ -714,6 +752,7 @@ SoTexture2::notify(SoNotList * l)
   }
   else if (f == &this->wrapS || f == &this->wrapT) {
     PRIVATE(this)->glimagevalid = FALSE;
+    PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
   }
   inherited::notify(l);
 }
@@ -740,6 +779,7 @@ SoTexture2::loadFilename(void)
       this->image.setValue(size, nc, bytes);
       this->image.enableNotify(oldnotify);
       PRIVATE(this)->glimagevalid = FALSE; // recreate GL image in next GLRender()
+      PRIVATE(this)->imageUploadRevision = nextTextureImageUploadRevision.fetch_add(1);
       retval = TRUE;
     }
   }

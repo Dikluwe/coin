@@ -348,13 +348,14 @@ namespace { namespace SoGL { namespace TriStripSet {
       SEND_VERTEX(idx); // vertex 2
       idx++;
 
+      bool firstface = true;
       while (n--) {
-        if ((AttributeBinding)NormalBinding == PER_FACE ||
+        if (((AttributeBinding)NormalBinding == PER_FACE && !firstface) ||
             (AttributeBinding)NormalBinding == PER_VERTEX) {
           currnormal = normals++;
           glNormal3fv((const GLfloat *)currnormal);
         }
-        if ((AttributeBinding)MaterialBinding == PER_FACE ||
+        if (((AttributeBinding)MaterialBinding == PER_FACE && !firstface) ||
             (AttributeBinding)MaterialBinding == PER_VERTEX) {
           mb->send(matnr++, TRUE);
         }
@@ -370,6 +371,7 @@ namespace { namespace SoGL { namespace TriStripSet {
         }
         SEND_VERTEX(idx); // vertex 3-n
         idx++;
+        firstface = false;
       }
       glEnd();
     }

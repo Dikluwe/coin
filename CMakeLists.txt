@@ -153,6 +153,189 @@ option(COIN_BUILD_LEGACY_GL_RENDERER
   "Build Coin's legacy fixed-function OpenGL renderer."
   ON)
 set(COIN_HAVE_LEGACY_GL_RENDERER ${COIN_BUILD_LEGACY_GL_RENDERER})
+# Android keeps Coin's scene/type ABI, but has no desktop GL implementation.
+# This boundary makes old GL APIs unavailable rather than emulating them.
+set(COIN_ANDROID_CPU_ONLY OFF)
+if(ANDROID AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
+  set(COIN_ANDROID_CPU_ONLY ON)
+endif()
+
+
+# Transitional source/build compatibility for the former WebGPU-named module.
+# New CoinRender cache options take precedence when both names are supplied.
+foreach(_coin_render_legacy_pair IN ITEMS
+  "COIN_BUILD_WGPU|COIN_BUILD_RENDER"
+  "COIN_BUILD_WGPU_WINDOW_EXAMPLE|COIN_BUILD_RENDER_WINDOW_EXAMPLE"
+  "COIN_BUILD_WGPU_BENCHMARKS|COIN_BUILD_RENDER_BENCHMARKS"
+  "COIN_INSTALL_WGPU_EXPERIMENTAL|COIN_INSTALL_RENDER_EXPERIMENTAL"
+  "COIN_WGPU_BACKEND|COIN_RENDER_BACKEND"
+  "COIN_TEST_WGPU_STRICT_DISPLAY|COIN_TEST_RENDER_STRICT_DISPLAY"
+  "COIN_TEST_WGPU_GL_REFERENCE|COIN_TEST_RENDER_GL_REFERENCE"
+)
+  string(REPLACE "|" ";" _coin_render_names "${_coin_render_legacy_pair}")
+  list(GET _coin_render_names 0 _coin_render_old)
+  list(GET _coin_render_names 1 _coin_render_new)
+  if(DEFINED ${_coin_render_old} AND NOT DEFINED ${_coin_render_new})
+    set(${_coin_render_new} "${${_coin_render_old}}" CACHE STRING
+      "CoinRender option migrated from ${_coin_render_old}")
+  endif()
+endforeach()
+
+option(COIN_BUILD_RENDER "Build the experimental CoinRender module" OFF)
+option(COIN_BUILD_RENDER_WINDOW_EXAMPLE "Build the experimental CoinRender window example" OFF)
+option(COIN_BUILD_RENDER_BENCHMARKS "Build experimental renderer/GL comparison tools" OFF)
+option(COIN_INSTALL_RENDER_EXPERIMENTAL "Install the opt-in experimental CoinRender module and headers" OFF)
+if(COIN_INSTALL_RENDER_EXPERIMENTAL AND NOT COIN_BUILD_RENDER)
+  message(FATAL_ERROR "COIN_INSTALL_RENDER_EXPERIMENTAL requires COIN_BUILD_RENDER=ON")
+endif()
+if(COIN_BUILD_RENDER_BENCHMARKS AND NOT COIN_BUILD_RENDER)
+  message(FATAL_ERROR "COIN_BUILD_RENDER_BENCHMARKS requires COIN_BUILD_RENDER=ON")
+endif()
+if(COIN_BUILD_RENDER_BENCHMARKS AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
+  message(FATAL_ERROR "COIN_BUILD_RENDER_BENCHMARKS requires COIN_BUILD_LEGACY_GL_RENDERER=ON")
+endif()
+set(COIN_RENDER_BACKEND "RUST_BRIDGE" CACHE STRING
+    "Experimental render backend: RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE or BGFX")
+set_property(CACHE COIN_RENDER_BACKEND PROPERTY STRINGS
+             RECORDING DAWN WGPU_NATIVE RUST_BRIDGE BGFX)
+if(COIN_BUILD_RENDER)
+  set(HAVE_COIN_RENDER 1)
+  if(COIN_RENDER_BACKEND STREQUAL "DAWN")
+    find_package(Dawn QUIET CONFIG)
+    if(NOT Dawn_FOUND)
+      message(FATAL_ERROR "COIN_RENDER_BACKEND is set to DAWN, but the Dawn WebGPU package was not found.")
+    endif()
+    set(HAVE_COIN_DAWN 1)
+    if(TARGET dawn::webgpu_dawn)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES dawn::webgpu_dawn)
+    elseif(TARGET webgpu_dawn)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES webgpu_dawn)
+    else()
+      message(FATAL_ERROR "Dawn package found but target dawn::webgpu_dawn or webgpu_dawn is missing.")
+    endif()
+  elseif(COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
+    find_package(wgpu_native QUIET CONFIG)
+    if(NOT wgpu_native_FOUND)
+      message(FATAL_ERROR "COIN_RENDER_BACKEND is set to WGPU_NATIVE, but the wgpu-native library was not found.")
+    endif()
+    set(HAVE_COIN_WGPU_NATIVE 1)
+    if(TARGET wgpu_native::wgpu_native)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES wgpu_native::wgpu_native)
+    elseif(TARGET wgpu_native)
+      list(APPEND COIN_TARGET_LINK_LIBRARIES wgpu_native)
+    else()
+      message(FATAL_ERROR "wgpu-native package found but target wgpu_native::wgpu_native or wgpu_native is missing.")
+    endif()
+  elseif(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+    find_program(CARGO_EXECUTABLE cargo REQUIRED)
+    set(RUST_BRIDGE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/rust_bridge")
+    set(RUST_TARGET_DIR "${CMAKE_CURRENT_BINARY_DIR}/rust_target")
+    if(CMAKE_BUILD_TYPE MATCHES "Debug|DEBUG")
+      set(RUST_PROFILE_DIR "debug")
+      set(CARGO_BUILD_FLAGS "--locked")
+    else()
+      set(RUST_PROFILE_DIR "release")
+      set(CARGO_BUILD_FLAGS "--locked" "--release")
+    endif()
+    if(ANDROID)
+      if(CMAKE_ANDROID_ARCH_ABI)
+        set(COIN_RENDER_ANDROID_ABI "${CMAKE_ANDROID_ARCH_ABI}")
+      else()
+        set(COIN_RENDER_ANDROID_ABI "${ANDROID_ABI}")
+      endif()
+      if(COIN_RENDER_ANDROID_ABI STREQUAL "arm64-v8a")
+        set(COIN_RENDER_RUST_TARGET "aarch64-linux-android")
+      elseif(COIN_RENDER_ANDROID_ABI STREQUAL "armeabi-v7a")
+        set(COIN_RENDER_RUST_TARGET "armv7-linux-androideabi")
+      elseif(COIN_RENDER_ANDROID_ABI STREQUAL "x86_64")
+        set(COIN_RENDER_RUST_TARGET "x86_64-linux-android")
+      elseif(COIN_RENDER_ANDROID_ABI STREQUAL "x86")
+        set(COIN_RENDER_RUST_TARGET "i686-linux-android")
+      else()
+        message(FATAL_ERROR "Unsupported Android ABI for Rust bridge: ${COIN_RENDER_ANDROID_ABI}")
+      endif()
+      string(TOUPPER "${COIN_RENDER_RUST_TARGET}" COIN_RENDER_RUST_LINKER_KEY)
+      string(REPLACE "-" "_" COIN_RENDER_RUST_LINKER_KEY "${COIN_RENDER_RUST_LINKER_KEY}")
+      list(APPEND CARGO_BUILD_FLAGS "--target" "${COIN_RENDER_RUST_TARGET}")
+      set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${COIN_RENDER_RUST_TARGET}/${RUST_PROFILE_DIR}/libcoin_wgpu_rust_bridge.a")
+      set(COIN_RENDER_CARGO_ENV "CARGO_TARGET_${COIN_RENDER_RUST_LINKER_KEY}_LINKER=${CMAKE_C_COMPILER}")
+    elseif(WIN32 AND MSVC)
+      set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${RUST_PROFILE_DIR}/coin_wgpu_rust_bridge.lib")
+    else()
+      set(RUST_LIB_PATH "${RUST_TARGET_DIR}/${RUST_PROFILE_DIR}/libcoin_wgpu_rust_bridge.a")
+    endif()
+
+    add_custom_command(
+      OUTPUT "${RUST_LIB_PATH}"
+      COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${COIN_RENDER_CARGO_ENV} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
+      WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
+      DEPENDS "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/texture_mips.rs" "${RUST_BRIDGE_DIR}/src/texture_profile.rs" "${RUST_BRIDGE_DIR}/src/instancing.rs" "${RUST_BRIDGE_DIR}/src/depth_transfer.rs" "${RUST_BRIDGE_DIR}/src/uniform_arena.rs" "${RUST_BRIDGE_DIR}/src/shader_profile.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
+      COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
+      VERBATIM
+    )
+    add_custom_target(coin_wgpu_rust_bridge_build ALL DEPENDS "${RUST_LIB_PATH}")
+
+    add_library(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge STATIC IMPORTED GLOBAL)
+    set_target_properties(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge PROPERTIES
+      IMPORTED_LOCATION "${RUST_LIB_PATH}"
+    )
+    add_dependencies(coin_wgpu_rust_bridge::coin_wgpu_rust_bridge coin_wgpu_rust_bridge_build)
+
+    find_package(Threads REQUIRED)
+    set(COIN_RENDER_LINK_LIBRARIES
+      coin_wgpu_rust_bridge::coin_wgpu_rust_bridge
+      Threads::Threads
+      ${CMAKE_DL_LIBS}
+    )
+    if(WIN32)
+      list(APPEND COIN_RENDER_LINK_LIBRARIES bcrypt crypt32 ntdll ole32 oleaut32
+        opengl32 d3dcompiler propsys runtimeobject user32 userenv ws2_32)
+    elseif(ANDROID)
+      list(APPEND COIN_RENDER_LINK_LIBRARIES android log m)
+    else()
+      list(APPEND COIN_RENDER_LINK_LIBRARIES m)
+    endif()
+    set(HAVE_COIN_WGPU_RUST_BRIDGE 1)
+  elseif(COIN_RENDER_BACKEND STREQUAL "RECORDING")
+    set(HAVE_COIN_RENDER_RECORDING 1)
+    message(STATUS "COIN_RENDER_BACKEND is set to RECORDING: using deterministic recording log and auxiliary software rasterizer.")
+  elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    if(NOT CMAKE_SYSTEM_NAME STREQUAL "Linux" AND NOT WIN32)
+      message(FATAL_ERROR "The BGFX evaluation supports Linux and Windows.")
+    endif()
+    find_package(bgfx QUIET CONFIG)
+    if(NOT TARGET bgfx::bgfx)
+      message(FATAL_ERROR "BGFX evaluation requires an installed bgfx CMake package (bgfx::bgfx).")
+    endif()
+    find_program(COIN_BGFX_SHADERC_EXECUTABLE NAMES shaderc REQUIRED)
+    find_path(COIN_BGFX_SHADER_INCLUDE_DIR NAMES bgfx_shader.sh PATH_SUFFIXES bgfx REQUIRED)
+    set(COIN_RENDER_LINK_LIBRARIES bgfx::bgfx)
+    set(HAVE_COIN_BGFX 1)
+    message(STATUS "BGFX evaluation: offscreen or native window, Vulkan/OpenGL and Windows D3D12, BASE_COLOR indexed triangles and opt-in transparency modes")
+  else()
+    message(FATAL_ERROR "Unsupported COIN_RENDER_BACKEND: ${COIN_RENDER_BACKEND}. Supported backends are RECORDING, DAWN, WGPU_NATIVE, RUST_BRIDGE, BGFX.")
+  endif()
+endif()
+
+if(UNIX AND NOT APPLE AND NOT X11_FOUND)
+  find_package(X11 QUIET)
+endif()
+
+if(COIN_BUILD_RENDER)
+  set(COIN_HAVE_RENDER ON)
+  if((COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE" OR COIN_RENDER_BACKEND STREQUAL "BGFX") AND
+     ((UNIX AND NOT APPLE) OR WIN32 OR APPLE OR ANDROID))
+    set(HAVE_COIN_RENDER_WINDOW_SURFACE 1)
+    set(COIN_HAVE_RENDER_WINDOW_SURFACE ON)
+  else()
+    unset(HAVE_COIN_RENDER_WINDOW_SURFACE)
+    set(COIN_HAVE_RENDER_WINDOW_SURFACE OFF)
+  endif()
+else()
+  set(COIN_HAVE_RENDER OFF)
+  unset(HAVE_COIN_RENDER_WINDOW_SURFACE)
+  set(COIN_HAVE_RENDER_WINDOW_SURFACE OFF)
+endif()
 
 check_include_file_cxx(thread HAVE_STD_THREAD)
 cmake_dependent_option(COIN_DEBUG_CHECK_THREAD "Enable thread check in several central Coin functions." OFF "HAVE_STD_THREAD" OFF)
@@ -160,6 +343,8 @@ cmake_dependent_option(COIN_DEBUG_CHECK_THREAD "Enable thread check in several c
 report_prepare(
   COIN_BUILD_SHARED_LIBS
   COIN_BUILD_TESTS
+  COIN_BUILD_RENDER
+  COIN_RENDER_BACKEND
   COIN_BUILD_DOCUMENTATION
   COIN_BUILD_INTERNAL_DOCUMENTATION
   COIN_BUILD_DOCUMENTATION_MAN
@@ -252,7 +437,11 @@ else()
     list(APPEND COIN_TARGET_INCLUDE_DIRECTORIES ${X11_INCLUDE_DIR})
     list(APPEND COIN_TARGET_LINK_LIBRARIES ${X11_LIBRARIES})
   endif()
-  find_package(OpenGL REQUIRED)
+  # Android Vulkan/wgpu does not use a desktop OpenGL system library. Other
+  # Coin sources still include desktop GL headers; see the P23 build status.
+  if(NOT ANDROID OR COIN_BUILD_LEGACY_GL_RENDERER)
+    find_package(OpenGL REQUIRED)
+  endif()
   if(OPENGL_FOUND)
     set(HAVE_OPENGL 1)
     set(OPENGL_SYSTEM_LIBRARY_NAME "${OPENGL_gl_LIBRARY}${CMAKE_SHARED_LIBRARY_SUFFIX}")
@@ -922,16 +1111,23 @@ unset(COIN_DOCUMENTATION_FILES CACHE)
 # they are put in DOXYGEN_EXCLUDE.
 unset(COIN_INTERNAL_DOCUMENTATION_FILES CACHE)
 
+
 add_subdirectory(include)
 add_subdirectory(data)
 add_subdirectory(src)
-
-if (COIN_BUILD_EXAMPLES)
-  add_subdirectory(examples)
+if(COIN_BUILD_RENDER)
+  add_subdirectory(src/rendering/coinrender)
 endif()
 
 if(COIN_BUILD_TESTS)
   enable_testing()
+endif()
+
+if (COIN_BUILD_EXAMPLES OR COIN_BUILD_RENDER_WINDOW_EXAMPLE OR COIN_BUILD_RENDER_BENCHMARKS)
+  add_subdirectory(examples)
+endif()
+
+if(COIN_BUILD_TESTS)
   add_subdirectory(testsuite)
 endif()
 

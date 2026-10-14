@@ -380,8 +380,17 @@ else()
 # Install headers
 # ############################################################################
 
-  install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/Inventor/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor COMPONENT development FILES_MATCHING PATTERN "*.h")
-  install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Inventor/ DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor COMPONENT development FILES_MATCHING PATTERN "*.h")
+  set(_coin_render_header_excludes)
+  foreach(_coin_render_header IN LISTS COIN_RENDER_PUBLIC_HEADERS)
+    get_filename_component(_coin_render_header_name "${_coin_render_header}" NAME)
+    list(APPEND _coin_render_header_excludes PATTERN "${_coin_render_header_name}" EXCLUDE)
+  endforeach()
+  install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/Inventor/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor COMPONENT development
+    FILES_MATCHING PATTERN "*.h" ${_coin_render_header_excludes})
+  install(DIRECTORY ${CMAKE_BINARY_DIR}/include/Inventor/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor COMPONENT development
+    FILES_MATCHING PATTERN "*.h" ${_coin_render_header_excludes})
   install(FILES ${PROJECT_SOURCE_DIR}/include/SoWinEnterScope.h ${PROJECT_SOURCE_DIR}/include/SoWinLeaveScope.h ${PROJECT_SOURCE_DIR}/include/SoDebug.h DESTINATION ${CMAKE_INSTALL_INCLUDEDIR} COMPONENT development)
 
 # ############################################################################

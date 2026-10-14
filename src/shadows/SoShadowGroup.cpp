@@ -326,6 +326,7 @@
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoGLMultiTextureEnabledElement.h>
+#include <Inventor/elements/SoGLMultiTextureImageElement.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
@@ -622,6 +623,8 @@ public:
     texunit1(NULL),
     lightmodel(NULL),
     twosided(NULL),
+    peelactive(NULL),
+    peelunit(8),
     numtexunitsinscene(1),
     hasclipplanes(FALSE),
     subgraphsearchenabled(TRUE)
@@ -645,6 +648,7 @@ public:
     this->clearLightPaths();
     if (this->lightmodel) this->lightmodel->unref();
     if (this->twosided) this->twosided->unref();
+    if (this->peelactive) this->peelactive->unref();
     if (this->texunit0) this->texunit0->unref();
     if (this->texunit1) this->texunit1->unref();
     if (this->vertexshadercache) this->vertexshadercache->unref();
@@ -745,6 +749,8 @@ public:
   SoShaderParameter1i * texunit1;
   SoShaderParameter1i * lightmodel;
   SoShaderParameter1i * twosided;
+  SoShaderParameter1i * peelactive;
+  int peelunit;
 
   int numtexunitsinscene;
   SbBool hasclipplanes;
@@ -1514,8 +1520,14 @@ SoShadowGroupP::setVertexShader(SoState * state)
     gen.addMainStatement(str);
 
     if (!perpixelspot) {
-      spotlight = TRUE;
-      addSpotLight(gen, cache->lightid);
+      if (cache->light->isOfType(SoDirectionalLight::getClassTypeId())) {
+        dirlight = TRUE;
+        addDirectionalLight(gen, cache->lightid);
+      }
+      else {
+        spotlight = TRUE;
+        addSpotLight(gen, cache->lightid);
+      }
       str.sprintf("spotVertexColor%d = \n"
                   "  ambient.rgb * gl_FrontMaterial.ambient.rgb + "
                   "  diffuse.rgb * gl_Color.rgb + "
@@ -1525,6 +1537,7 @@ SoShadowGroupP::setVertexShader(SoState * state)
   }
 
   if (spotlight) gen.addNamedFunction(SbName("lights/SpotLight"), FALSE);
+  if (dirlight) gen.addNamedFunction(SbName("lights/DirectionalLight"), FALSE);
   int32_t fogType = this->getFog(state);
 
   switch (fogType) {
@@ -1585,13 +1598,24 @@ SoShadowGroupP::setFragmentShader(SoState * state)
 
   SoShaderGenerator & gen = this->fragmentgenerator;
   gen.reset(FALSE);
-  gen.setVersion("#version 120");
+  const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
+  GLint fragmentunits = 0;
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &fragmentunits);
+  // Reserve a fragment-only unit outside every fixed-function texture unit,
+  // including contexts able to host eight native shadow maps plus scene color.
+  this->peelunit = SbMax(8, cc_glglue_max_texture_units(glue));
+  const bool shaderpeeling = fragmentunits > this->peelunit &&
+    cc_glglue_glext_supported(glue, "GL_ARB_texture_rectangle");
+  gen.setVersion(shaderpeeling ? "#version 120\n#extension GL_ARB_texture_rectangle : enable" : "#version 120");
+  if (shaderpeeling) {
+    gen.addDeclaration("uniform sampler2DRect coin_peel_depth;\nuniform int coin_peel_active;\n", FALSE);
+    gen.addMainStatement("if (coin_peel_active != 0 && gl_FragCoord.z <= texture2DRect(coin_peel_depth, gl_FragCoord.xy).r) discard;");
+  }
 
   SbBool perpixelspot = FALSE;
   SbBool perpixelother = FALSE;
   this->getQuality(state, perpixelspot, perpixelother);
 
-  const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
   SbBool storedinvalid = SoCacheElement::setInvalid(FALSE);
   state->push();
 
@@ -1787,9 +1811,11 @@ SoShadowGroupP::setFragmentShader(SoState * state)
         gen.addMainStatement("scolor += specular.rgb * gl_FrontMaterial.specular.rgb;\n");
       }
 
-      if (dirlight) gen.addNamedFunction(SbName("lights/DirectionalLight"), FALSE);
       if (pointlight) gen.addNamedFunction(SbName("lights/PointLight"), FALSE);
     }
+    // Shadow directional lights use this function even when ordinary lights
+    // stay vertex-lit (quality between 0.3 and 0.7).
+    if (dirlight) gen.addNamedFunction(SbName("lights/DirectionalLight"), FALSE);
     if (spotlight) gen.addNamedFunction(SbName("lights/SpotLight"), FALSE);
   }
 
@@ -1805,8 +1831,14 @@ SoShadowGroupP::setFragmentShader(SoState * state)
         }
       }
       SbString str;
-      str.sprintf("dist = length(vec3(gl_LightSource[%d].position) - ecPosition3);\n"
-                  "coord = 0.5 * (shadowCoord%d.xyz / shadowCoord%d.w + vec3(1.0));\n"
+      if (light->isOfType(SoDirectionalLight::getClassTypeId()))
+        str.sprintf("dist = dot(ecPosition3.xyz, lightplane%d.xyz) - lightplane%d.w;\n",
+                    i, i);
+      else
+        str.sprintf("dist = length(vec3(gl_LightSource[%d].position) - ecPosition3);\n",
+                    lights.getLength() + i);
+      gen.addMainStatement(str);
+      str.sprintf("coord = 0.5 * (shadowCoord%d.xyz / shadowCoord%d.w + vec3(1.0));\n"
                   "map = texture2D(shadowMap%d, coord.xy);\n"
 #ifdef USE_NEGATIVE
                   "map = (map + vec4(1.0)) * 0.5;\n"
@@ -1816,7 +1848,7 @@ SoShadowGroupP::setFragmentShader(SoState * state)
 #endif
                   "shadeFactor = (shadowCoord%d.z > -1.0%s ? VsmLookup(map, (dist - nearval%d)/(farval%d-nearval%d), EPSILON, THRESHOLD) : 1.0;\n"
                   "color += shadeFactor * spotVertexColor%d;\n",
-                  lights.getLength()+i, i , i, i, i,insidetest.getString(), i,i,i,i);
+                  i, i, i, i, insidetest.getString(), i, i, i, i);
       gen.addMainStatement(str);
     }
   }
@@ -1866,6 +1898,22 @@ SoShadowGroupP::setFragmentShader(SoState * state)
   }
 
   this->fragmentshader->parameter.setNum(0);
+  if (!shaderpeeling && this->peelactive) {
+    this->peelactive->unref();
+    this->peelactive = NULL;
+  }
+  if (shaderpeeling) {
+    if (!this->peelactive) {
+      this->peelactive = new SoShaderParameter1i;
+      this->peelactive->ref();
+      this->peelactive->name = "coin_peel_active";
+    }
+    auto * depthmap = new SoShaderParameter1i;
+    depthmap->name = "coin_peel_depth";
+    depthmap->value = this->peelunit;
+    this->fragmentshader->parameter.set1Value(this->fragmentshader->parameter.getNum(), depthmap);
+    this->fragmentshader->parameter.set1Value(this->fragmentshader->parameter.getNum(), this->peelactive);
+  }
 
   for (i = 0; i < numshadowlights; i++) {
     SoShadowLightCache * cache = this->shadowlights[i];
@@ -2021,7 +2069,10 @@ SoShadowLightCache::createVSMProgram(void)
   SbBool dirlight = this->light->isOfType(SoDirectionalLight::getClassTypeId());
 
   vgen.addDeclaration("varying vec3 light_vec;", FALSE);
+  // Fixed-function clipping needs an explicit eye-space clip vertex when
+  // a vertex shader is active, including light-owned shadowMapScene geometry.
   vgen.addMainStatement("light_vec = (gl_ModelViewMatrix * gl_Vertex).xyz;\n"
+                        "gl_ClipVertex = gl_ModelViewMatrix * gl_Vertex;\n"
                         "gl_Position = ftransform();");
 
   vshader->sourceProgram = vgen.getShaderProgram();
@@ -2148,7 +2199,10 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
     }
   }
 
-  if (!supported || !PUBLIC(this)->isActive.getValue()) {
+  // Nested groups contribute ordinary casting geometry to an ancestor map.
+  // Re-entering their shader here would replace VSM moments with lit colors.
+  if ((SoShapeStyleElement::get(state)->getFlags() & SoShapeStyleElement::SHADOWMAP) ||
+      !supported || !PUBLIC(this)->isActive.getValue()) {
     if (inpath) PUBLIC(this)->SoSeparator::GLRenderInPath(action);
     else PUBLIC(this)->SoSeparator::GLRenderBelowPath(action);
     return;
@@ -2167,9 +2221,26 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
   }
 
   SoShadowStyleElement::set(state, PUBLIC(this), SoShadowStyleElement::CASTS_SHADOW_AND_SHADOWED);
+  // Framebuffer work must execute immediately, outside ancestor render caches.
+  SoCacheElement::invalidate(state);
   SoShapeStyleElement::setShadowMapRendering(state, TRUE);
   this->updateShadowLights(action);
+  // Rendering the shadow map may overwrite bindings inherited from the parent.
+  const int scenetexunits = SbMin(this->numtexunitsinscene,
+                                 cc_glglue_max_texture_units(glue));
+  for (int unit = 0; unit < scenetexunits; ++unit) {
+    SoGLMultiTextureImageElement::restore(state, unit);
+  }
   SoShapeStyleElement::setShadowMapRendering(state, FALSE);
+  // A shadow shader references every group light, including nodes after a
+  // shape. Clear their GL slots until traversal reaches each light node.
+  const GLfloat black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
+  for (int i = 0; i < this->shadowlights.getLength(); ++i) {
+    const GLenum slot = GLenum(GL_LIGHT0 + this->shadowlights[i]->lightid);
+    glLightfv(slot, GL_AMBIENT, black);
+    glLightfv(slot, GL_DIFFUSE, black);
+    glLightfv(slot, GL_SPECULAR, black);
+  }
 
   if (!this->vertexshadercache || !this->vertexshadercache->isValid(state)) {
     this->setVertexShader(state);
@@ -2177,6 +2248,18 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
 
   if (!this->fragmentshadercache || !this->fragmentshadercache->isValid(state)) {
     this->setFragmentShader(state);
+  }
+  if (this->peelactive) {
+    const unsigned int depth = action->getShadowPeelDepthTexture();
+    this->peelactive->value = depth != 0;
+    if (depth) {
+      // Keep the fragment-only depth binding outside Coin texture traversal.
+      GLint activeunit = GL_TEXTURE0;
+      glGetIntegerv(GL_ACTIVE_TEXTURE, &activeunit);
+      cc_glglue_glActiveTexture(glue, GL_TEXTURE0 + this->peelunit);
+      glBindTexture(GL_TEXTURE_RECTANGLE_ARB, depth);
+      cc_glglue_glActiveTexture(glue, activeunit);
+    }
   }
   this->shaderprogram->GLRender(action);
 
@@ -2319,6 +2402,7 @@ SoShadowLightCache::shadowmap_glcallback(void * COIN_UNUSED_ARG(closure), SoActi
 {
   if (action->isOfType(SoGLRenderAction::getClassTypeId())) {
     SoState * state = action->getState();
+    SoShapeStyleElement::setShadowMapRendering(state, TRUE);
     SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
     SoTextureQualityElement::set(state, 0.0f);
     SoMaterialBindingElement::set(state, NULL, SoMaterialBindingElement::OVERALL);

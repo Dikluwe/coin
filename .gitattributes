@@ -1,0 +1,4 @@
+# Patch context preserves whitespace from external source trees.
+cmake/patches/*.patch -whitespace
+testsuite/reproducers/**/*.patch -whitespace
+examples/coinrender/*.patch -whitespace

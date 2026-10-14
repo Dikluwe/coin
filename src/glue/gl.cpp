@@ -515,10 +515,11 @@ cc_glglue_getprocaddress(const cc_glglue * glue, const char * symname)
   ptr = coin_wgl_getprocaddress(glue, symname);
   if (ptr) goto returnpoint;
 
-  ptr = eglglue_getprocaddress(glue, symname);
-  if (ptr) goto returnpoint;
-
-  ptr = glxglue_getprocaddress(glue, symname);
+  /* Resolve through the API that owns this context. On hybrid systems EGL
+     can return another vendor's GLX functions, even with a current GLX
+     context, bypassing the GLVND vendor selection. */
+  ptr = COIN_USE_EGL > 0 ? eglglue_getprocaddress(glue, symname) :
+                         glxglue_getprocaddress(glue, symname);
   if (ptr) goto returnpoint;
 
   ptr = cc_dl_sym(coin_glglue_dl_handle(glue), symname);

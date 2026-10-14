@@ -122,7 +122,7 @@ public:
 
   static void apply(SoState * state, const int unit);
 
-  class UnitData {
+  class COIN_DLL_API UnitData {
   public:
     UnitData();
     UnitData(const UnitData & org); // keep it for ABI compatibility with 4.0.10

@@ -104,6 +104,8 @@ public:
     BASE_COLOR,
     PHONG
   };
+  // Keep the experimental spelling as an alias of the original Coin 4 type.
+  typedef LightModel CoinRenderLightModel;
 
   enum VertexOrdering {
     CW,

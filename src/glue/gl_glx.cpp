@@ -568,14 +568,10 @@ glxglue_build_GL_attrs(int * attrs, int trynum)
   }
 
 
-  /* FIXME: we're currently not giving any hint as to whether we want
-     a single- / double- / quad-buffer visual. Using anything than a
-     single-buffer visual for offscreen rendering is probably
-     wasteful, so we're likely to often use up more resources than we
-     really need to do.
-
-     20061025 mortene.
-  */
+  /* glXChooseVisual defaults to a single-buffer visual. PRIME drivers can
+     expose only double-buffer RGBA visuals, so try those after exhausting
+     the single-buffer formats. Keep the existing preference where possible. */
+  if (trynum & 0x08) attrs[pos++] = GLX_DOUBLEBUFFER;
 
   attrs[pos++] = None;
 
@@ -595,7 +591,7 @@ glxglue_find_gl_visual(void)
 
   if (glxglue_get_display() == NULL) { return NULL; }
 
-  while (visinfo == NULL && trynum < 8) {
+  while (visinfo == NULL && trynum < 16) {
     if (glxglue_build_GL_attrs(attrs, trynum) >= ARRAYSIZE) assert(false);
     visinfo = glXChooseVisual(glxglue_get_display(), DefaultScreen(glxglue_get_display()),
                               attrs);
@@ -790,6 +786,7 @@ glxglue_context_create_pbuffer(struct glxglue_contextdata * context)
     GLX_ALPHA_SIZE, 8,
     GLX_DRAWABLE_TYPE, GLX_PBUFFER_BIT,
     GLX_DEPTH_SIZE, 24,
+    GLX_DOUBLEBUFFER, False,
     None
   };
 
@@ -807,6 +804,13 @@ glxglue_context_create_pbuffer(struct glxglue_contextdata * context)
      fine. */
 
   fbc = glxglue_glXChooseFBConfig(dpy, DefaultScreen(dpy), attrs, &fbc_cnt);
+  /* As with visuals, PRIME can provide only double-buffer configurations. */
+  if (!fbc || fbc_cnt == 0) {
+    if (fbc) XFree(fbc);
+    attrs[sizeof(attrs) / sizeof(attrs[0]) - 2] = True;
+    fbc_cnt = 0;
+    fbc = glxglue_glXChooseFBConfig(dpy, DefaultScreen(dpy), attrs, &fbc_cnt);
+  }
   assert(fbc_cnt >= 0);
   if ((fbc_cnt == 0) || (fbc == NULL)) {
     /* FIXME: we have had reports of this hitting. Is it possible to

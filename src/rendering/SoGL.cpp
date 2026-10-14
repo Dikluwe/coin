@@ -1232,7 +1232,16 @@ sogl_render_lineset(const SoGLCoordinateElement * const coords,
                     const int texture,
                     const int drawAsPoints)
 {
-
+  // An absent per-line/per-segment index array uses the occurrence order,
+  // as generatePrimitives does. Coordinate separators are not attribute indices.
+  if (!mindices) {
+    if (mbind == SoGL::IndexedLineSet::PER_SEGMENT_INDEXED) mbind = SoGL::IndexedLineSet::PER_SEGMENT;
+    if (mbind == SoGL::IndexedLineSet::PER_LINE_INDEXED) mbind = SoGL::IndexedLineSet::PER_LINE;
+  }
+  if (!nindices) {
+    if (nbind == SoGL::IndexedLineSet::PER_SEGMENT_INDEXED) nbind = SoGL::IndexedLineSet::PER_SEGMENT;
+    if (nbind == SoGL::IndexedLineSet::PER_LINE_INDEXED) nbind = SoGL::IndexedLineSet::PER_LINE;
+  }
   SOGL_INDEXEDLINESET_GLRENDER(nbind, mbind, texture, (coords,
                                                        cindices,
                                                        numindices,

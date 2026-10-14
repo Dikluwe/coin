@@ -281,12 +281,14 @@
 #include <Inventor/elements/SoTextureQualityElement.h>
 #include <Inventor/elements/SoGLShaderProgramElement.h>
 #include <Inventor/elements/SoTextureOverrideElement.h>
+#include <Inventor/elements/SoOverrideElement.h>
 #include <Inventor/elements/SoGLLazyElement.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/elements/SoViewportRegionElement.h>
 #include <Inventor/elements/SoGLCacheContextElement.h>
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoGLMultiTextureImageElement.h>
+#include <Inventor/elements/SoMultiTextureMatrixElement.h>
 #include <Inventor/elements/SoGLMultiTextureEnabledElement.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoGLDisplayList.h>
@@ -383,6 +385,7 @@ public:
   int32_t glimagecontext;
   
   SbBool buffervalid;
+  SbBool buffermipmap = FALSE;
 
   SbBool glimagevalid;
   SbBool glrectangle;
@@ -549,9 +552,15 @@ SoSceneTexture2::GLRender(SoGLRenderAction * action)
     }
   }
   LOCK_GLIMAGE(this);
+  const SbBool requestedMipmap = quality > 0.5f;
+  if (root && requestedMipmap != PRIVATE(this)->buffermipmap) {
+    PRIVATE(this)->buffervalid = FALSE;
+    PRIVATE(this)->glimagevalid = FALSE;
+  }
 
   if (root && (!PRIVATE(this)->buffervalid || !PRIVATE(this)->glimagevalid)) {
     PRIVATE(this)->updateBuffer(state, quality);
+    PRIVATE(this)->buffermipmap = requestedMipmap;
 
     // don't cache when we change the glimage
     SoCacheElement::setInvalid(TRUE);
@@ -820,6 +829,16 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
 
   state->push();
 
+  // A producer is a separate scene, even when first visited by a consumer's
+  // shadow-map traversal. Internal VSM scenes establish their own map flag
+  // and overrides in the shadow callback below their camera.
+  SoShapeStyleElement::setShadowMapRendering(state, FALSE);
+  SoShapeStyleElement::setShadowsRendering(state, FALSE);
+  SoOverrideElement::setNormalVectorOverride(state, NULL, FALSE);
+  SoOverrideElement::setMaterialBindingOverride(state, NULL, FALSE);
+  SoOverrideElement::setLightModelOverride(state, NULL, FALSE);
+  SoTextureOverrideElement::setQualityOverride(state, FALSE);
+  SoTextureQualityElement::set(state, 0.5f);
   // reset OpenGL/Coin state
   SoGLShaderProgramElement::enable(state, FALSE);
   SoLazyElement::setToDefault(state);
@@ -828,6 +847,14 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
 
   // disable all active textures
   SoMultiTextureEnabledElement::disableAll(state);
+  // A producer is an independent texture space, matching the pbuffer action.
+  // Otherwise the FBO path multiplies the consumer matrix into producer UVs.
+  for (int unit=0;unit<cc_glglue_max_texture_units(glue);++unit)
+    SoMultiTextureMatrixElement::makeIdentity(state,PUBLIC(this),unit);
+  // The producer starts on unit zero even when visited while a shadow map
+  // is being bound on another unit. Inheriting that unit breaks ordinary
+  // fixed-function textures on drivers with fewer fixed than shader units.
+  SoTextureUnitElement::set(state, PUBLIC(this), 0);
 
   // just disable all active light source
   int numlights = SoLightElement::getLights(state).getLength();
@@ -897,6 +924,15 @@ SoSceneTexture2P::updateFrameBuffer(SoState * state, const float COIN_UNUSED_ARG
     glEnable((GLenum) (GL_LIGHT0 + i));
   }
   state->pop();
+
+  // FBO finalization binds/unbinds a texture outside the image element. An
+  // unchanged inherited image is not restored by pop(), which compares image
+  // identities, so a consumer on another unit can silently lose unit zero.
+  int lastEnabled = -1;
+  const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, lastEnabled);
+  for (int unit = 0; unit <= lastEnabled; ++unit) {
+    if (enabled[unit]) SoGLMultiTextureImageElement::restore(state, unit);
+  }
 
   SoGLLazyElement::getInstance(state)->reset(state,
                                              SoLazyElement::LIGHT_MODEL_MASK|
@@ -984,11 +1020,16 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
     this->glimagevalid = FALSE;
   }
 
+  // SoGLImage's direct pbuffer binding exposes only the base level. Use its
+  // stored-image path when RTT requests mipmaps, even if WGL can bind the
+  // pbuffer directly, so the requested trilinear sampler has a complete chain.
+  const SbBool usePbufferTexture = this->canrendertotexture && quality <= 0.5f;
+
   if (!this->buffervalid) {
     assert(this->glaction != NULL);
     assert(this->glcontext != NULL);
-    this->glaction->setTransparencyType((SoGLRenderAction::TransparencyType)
-                                        SoShapeStyleElement::getTransparencyType(state));
+    // Match FBO and the initial pbuffer setup: keep an explicit producer policy.
+    this->glaction->setTransparencyType(this->getTransparencyType(state));
 
     cc_glglue_context_make_current(this->glcontext);
     glEnable(GL_DEPTH_TEST);
@@ -997,7 +1038,7 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
     // flickering. DON'T REMOVE THIS. You have been warned.
     glFlush();
 
-    if (!this->canrendertotexture) {
+    if (!usePbufferTexture) {
       SbVec2s size = this->glcontextsize;
       int reqbytes = size[0]*size[1]*4;
       if (reqbytes > this->offscreenbuffersize) {
@@ -1039,16 +1080,22 @@ SoSceneTexture2P::updatePBuffer(SoState * state, const float quality)
       assert(0 && "should not get here");
       break;
     }
-    if (this->canrendertotexture) {
+    if (usePbufferTexture) {
       // bind texture to pbuffer
       this->glimage->setPBuffer(state, this->glcontext,
                                 translateWrap((SoSceneTexture2::Wrap)PUBLIC(this)->wrapS.getValue()),
                                 translateWrap((SoSceneTexture2::Wrap)PUBLIC(this)->wrapT.getValue()),
                                 quality);
     }
+    // RTT has a common linear/trilinear sampler independent of its producer
+    // mechanism, rather than the stored-image quality thresholds.
+    flags &= ~(SoGLImage::USE_QUALITY_VALUE | SoGLImage::NO_MIPMAP);
+    flags |= SoGLImage::LINEAR_MIN_FILTER | SoGLImage::LINEAR_MAG_FILTER;
+    if (quality<=0.5f) flags |= SoGLImage::NO_MIPMAP;
+    else flags |= SoGLImage::LINEAR_MIPMAP_FILTER;
     this->glimage->setFlags(flags);
   }
-  if (!this->canrendertotexture) {
+  if (!usePbufferTexture) {
     assert(this->glimage);
     assert(this->offscreenbuffer);
     this->glimage->setData(this->offscreenbuffer,

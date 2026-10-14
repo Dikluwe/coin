@@ -489,3 +489,6 @@
 
 /* Enable thread check in several central Coin functions. */
 #cmakedefine COIN_DEBUG_CHECK_THREAD
+
+/* Android scene ABI without a legacy desktop OpenGL implementation. */
+#cmakedefine01 COIN_ANDROID_CPU_ONLY

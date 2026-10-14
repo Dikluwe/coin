@@ -37,3 +37,16 @@ tip commit retain their earlier generated version values.
 
 If these headers are updated, record the exact upstream commit or release,
 the update date, and any Coin-specific modifications here.
+
+Android legacy ABI declarations (GL/gl.h)
+---------------------------------------
+Import date: 2026-10-07
+Source: https://github.com/NVIDIA/libglvnd/blob/v1.7.0/include/GL/gl.h
+Original SHA-256: 1989b51365b6d7d0c48ff6e8b181ef75e2cdf71bfb1626b1cc4362e2f54854a3
+The upstream bytes matched /usr/include/GL/gl.h from libgl-dev 1.7.0-1build1.
+The Mesa copyright and MIT license remain in the file.
+Coin modifications: the glext.h include is relative for SDK relocation;
+GLAPI declarations become weak only for COIN_ANDROID_CPU_ONLY. These are ABI
+scalar/token/function declarations, without a driver implementation. The
+Android profile rejects legacy rendering before initializing GL state.
+The other Khronos files listed above remain unchanged.

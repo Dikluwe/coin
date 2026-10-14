@@ -55,6 +55,16 @@
   Coordinate3 sets control points to have an equal weight of 1.0 (nonrational).
   Use Coordinate4 to specify x, y, z and weight values (rational).
 
+  With PER_VERTEX material binding, diffuse colors and transparencies are
+  interpolated over the surface using the same NURBS basis and knot vectors as
+  the geometry. This allows material values at the control points to define a
+  smooth color field over the rendered surface.
+
+  The control points generally do not lie on the rendered surface. Therefore,
+  control-point colors are evaluated by the NURBS basis; they are not colors
+  assigned to visible vertices. The interpolation is performed during OpenGL
+  rendering.
+
   A basic usage example:
 
   \code

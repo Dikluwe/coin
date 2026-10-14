@@ -28,6 +28,7 @@ set(COIN_ACTIONS_INTERNAL_FILES
 	SoSubActionP.h
 )
 
+
 # build library
 if(COIN_BUILD_SINGLE_LIB)
 	foreach(SRCFILE ${COIN_ACTIONS_FILES})

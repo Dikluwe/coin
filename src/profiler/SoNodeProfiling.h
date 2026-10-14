@@ -34,9 +34,11 @@
 \**************************************************************************/
 
 #include <Inventor/actions/SoAction.h>
-#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/nodes/SoGroup.h>
+#if !defined(COIN_BUILD_LEGACY_GL_RENDERER) || COIN_BUILD_LEGACY_GL_RENDERER
+#include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/system/gl.h>
+#endif
 #include <Inventor/annex/Profiler/SoProfiler.h>
 #include <Inventor/annex/Profiler/elements/SoProfilerElement.h>
 
@@ -89,9 +91,11 @@ public:
   {
     if (!SoNodeProfiling::isActive(action)) return;
 
+#if !defined(COIN_BUILD_LEGACY_GL_RENDERER) || COIN_BUILD_LEGACY_GL_RENDERER
     if (action->isOfType(SoGLRenderAction::getClassTypeId()) &&
         SoProfilerP::shouldSyncGL())
       glFinish();
+#endif
 
     const SbTime duration(SbTime::getTimeOfDay() - this->pretime);
 

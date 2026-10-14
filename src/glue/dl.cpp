@@ -1036,6 +1036,9 @@ cc_dl_coin_handle(void)
 cc_libhandle
 cc_dl_opengl_handle(void)
 {
+#if COIN_ANDROID_CPU_ONLY
+  return NULL;
+#else
 #ifndef OPENGL_SYSTEM_LIBRARY_NAME /* should usually be available in config.h */
 #define OPENGL_SYSTEM_LIBRARY_NAME "libGL.so"
 #endif
@@ -1071,6 +1074,7 @@ cc_dl_opengl_handle(void)
      sure to clean up to avoid resource leak. */
   if (hnd) { cc_dl_close(hnd); }
   return NULL;
+#endif /* COIN_ANDROID_CPU_ONLY */
 }
 
 /* 

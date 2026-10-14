@@ -57,6 +57,7 @@ public:
   SoSFFloat quality;
 
   void GLRender(SoGLRenderAction * action) override;
+  void callback(SoCallbackAction * action) override;
 
 protected:
   virtual ~SoTextureScalePolicy();

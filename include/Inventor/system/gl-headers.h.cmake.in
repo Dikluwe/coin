@@ -46,7 +46,11 @@
 #define GL_GLEXT_PROTOTYPES 1
 #endif
 
-#if defined(COIN_BUILDING_COIN) && defined(_WIN32)
+#cmakedefine01 COIN_ANDROID_CPU_ONLY
+
+#if COIN_ANDROID_CPU_ONLY
+# include <Inventor/system/legacy-gl/gl.h>
+#elif defined(COIN_BUILDING_COIN) && defined(_WIN32)
 #  include <windows.h>
 #  include <GL/gl.h>
 #  include "glue/khronos/GL/glext.h"

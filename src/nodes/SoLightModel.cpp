@@ -41,7 +41,7 @@
 
   <b>FILE FORMAT/DEFAULTS:</b>
   \code
-    LightModel {
+    CoinRenderLightModel {
         model PHONG
     }
   \endcode

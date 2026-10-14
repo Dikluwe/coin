@@ -220,7 +220,6 @@
 #include <Inventor/misc/SoState.h>
 #include <Inventor/lists/SbList.h>
 #include <Inventor/SoDB.h>
-#include <Inventor/system/gl.h>
 #include <Inventor/errors/SoDebugError.h>
 
 #include "tidbitsp.h"
@@ -462,6 +461,16 @@ SoAction::isOfType(SoType type) const
 void
 SoAction::apply(SoNode * root)
 {
+#if COIN_ANDROID_CPU_ONLY
+  // Reject before getState(): GL element initialization itself calls GL.
+  if (this->isOfType(SoGLRenderAction::getClassTypeId())) {
+    SoDebugError::post("SoAction::apply",
+                      "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
+    this->setTerminated(TRUE);
+    return;
+  }
+#endif
+
   SoDB::readlock();
   // need to store these in case action is re-applied
   AppliedCode storedcode = PRIVATE(this)->appliedcode;
@@ -616,6 +625,16 @@ SoAction::apply(SoNode * root)
 void
 SoAction::apply(SoPath * path)
 {
+#if COIN_ANDROID_CPU_ONLY
+  // Reject before getState(): GL element initialization itself calls GL.
+  if (this->isOfType(SoGLRenderAction::getClassTypeId())) {
+    SoDebugError::post("SoAction::apply",
+                      "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
+    this->setTerminated(TRUE);
+    return;
+  }
+#endif
+
   SoDB::readlock();
   // need to store these in case action in reapplied
   AppliedCode storedcode = PRIVATE(this)->appliedcode;
@@ -678,6 +697,16 @@ SoAction::apply(SoPath * path)
 void
 SoAction::apply(const SoPathList & pathlist, SbBool obeysrules)
 {
+#if COIN_ANDROID_CPU_ONLY
+  // Reject before getState(): GL element initialization itself calls GL.
+  if (this->isOfType(SoGLRenderAction::getClassTypeId())) {
+    SoDebugError::post("SoAction::apply",
+                      "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
+    this->setTerminated(TRUE);
+    return;
+  }
+#endif
+
   SoDB::readlock();
   // This is a pretty good indicator on whether or not we remembered
   // to use the SO_ACTION_CONSTRUCTOR() macro in the constructor of

@@ -122,6 +122,52 @@
 #cmakedefine COIN_HAVE_JAVASCRIPT
 
 /***************************************************************************
+ * HAVE_COIN_RENDER
+ *
+ * Optional CoinRender action and backend contract.
+ */
+
+#cmakedefine HAVE_COIN_RENDER
+
+/***************************************************************************
+ * HAVE_COIN_DAWN
+ *
+ * Dawn WebGPU hardware backend support.
+ */
+
+#cmakedefine HAVE_COIN_DAWN
+
+/***************************************************************************
+ * HAVE_COIN_WGPU_NATIVE
+ *
+ * wgpu-native WebGPU hardware backend support.
+ */
+
+#cmakedefine HAVE_COIN_WGPU_NATIVE
+
+/***************************************************************************
+ * HAVE_COIN_WGPU_RUST_BRIDGE
+ *
+ * Rust bridge WebGPU hardware backend support.
+ */
+
+#cmakedefine HAVE_COIN_WGPU_RUST_BRIDGE
+
+/* Explicit diagnostic RECORDING/CPU backend; never an implicit GPU fallback. */
+#cmakedefine HAVE_COIN_RENDER_RECORDING
+
+/* BGFX executor for the experimental CoinRender contract. */
+#cmakedefine HAVE_COIN_BGFX
+
+/***************************************************************************
+ * HAVE_COIN_RENDER_WINDOW_SURFACE
+ *
+ * Native window surface presentation support for WebGPU.
+ */
+
+#cmakedefine HAVE_COIN_RENDER_WINDOW_SURFACE
+
+/***************************************************************************
  * The end.
  *
  * Make sure this header file is not installed, and only used when building

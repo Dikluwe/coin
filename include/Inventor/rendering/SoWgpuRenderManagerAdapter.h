@@ -1,0 +1,12 @@
+#ifndef COIN_RENDER_LEGACY_SOWGPURENDERMANAGERADAPTER_H
+#define COIN_RENDER_LEGACY_SOWGPURENDERMANAGERADAPTER_H
+
+// Source compatibility only. Rebuild clients against CoinRender.
+#include <Inventor/rendering/CoinRenderManagerAdapter.h>
+#define COIN_WGPU_DLL_API COIN_RENDER_DLL_API
+typedef CoinRenderNativeSurfaceDescriptor SoWgpuNativeSurfaceDescriptor;
+typedef CoinRenderAction SoWgpuRenderAction;
+typedef CoinRenderManagerAdapter SoWgpuRenderManagerAdapter;
+typedef CoinRenderSceneManager SoWgpuSceneManager;
+
+#endif // COIN_RENDER_LEGACY_SOWGPURENDERMANAGERADAPTER_H

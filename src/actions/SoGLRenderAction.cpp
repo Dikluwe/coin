@@ -700,6 +700,7 @@ public:
   SbBool sortedlayersblendinitialized;
   SbMatrix sortedlayersblendprojectionmatrix;
   int sortedlayersblendcounter;
+  SbBool shadowpeeling;
   SbBool usenvidiaregistercombiners;
 
   SoGLRenderAction::SortedObjectOrderStrategy sortedobjectstrategy;
@@ -883,6 +884,7 @@ SoGLRenderAction::SoGLRenderAction(const SbViewportRegion & viewportregion)
   PRIVATE(this)->viewportwidth = 0;
   PRIVATE(this)->sortedlayersblendinitialized = FALSE;
   PRIVATE(this)->sortedlayersblendcounter = 0;
+  PRIVATE(this)->shadowpeeling = FALSE;
   PRIVATE(this)->usenvidiaregistercombiners = FALSE;
   PRIVATE(this)->cachedprofilingsg = NULL;
   PRIVATE(this)->transpobjdepthwrite = FALSE;
@@ -1218,6 +1220,13 @@ SoGLRenderAction::getSortedLayersNumPasses() const
 void
 SoGLRenderAction::beginTraversal(SoNode * node)
 {
+#if COIN_ANDROID_CPU_ONLY
+  SoDebugError::post("SoGLRenderAction::beginTraversal",
+                     "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
+  this->setTerminated(TRUE);
+  return;
+#endif
+
   if (PRIVATE(this)->cachedprofilingsg == NULL) {
     SoGroup * group = coin_safe_cast<SoGroup *>(node);
     if (group && group->getNumChildren() > 0) {
@@ -3082,8 +3091,11 @@ SoGLRenderActionP::renderOneBlendLayer(const SoState * state,
     glerror = glGetError();
   }
 
-  // Do the rendering
+  // GLSL shadow receivers replace the ARB fragment program, so they must
+  // perform the same previous-layer depth rejection themselves.
+  this->shadowpeeling = peel;
   this->action->beginTraversal(node);
+  this->shadowpeeling = FALSE;
 
   if(peel) {
     if (glue->has_arb_fragment_program && !this->usenvidiaregistercombiners) {
@@ -3622,3 +3634,9 @@ SoGLRenderActionP::renderSortedLayersNV(const SoState * state)
 // *************************************************************************
 
 #undef PRIVATE
+
+unsigned int
+SoGLRenderAction::getShadowPeelDepthTexture(void) const
+{
+  return this->pimpl->shadowpeeling ? this->pimpl->depthtextureid : 0;
+}

@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+include(CMakeFindDependencyMacro)
+find_dependency(CoinRender CONFIG)
+if(NOT TARGET CoinWgpuExperimental::CoinWgpuExperimental)
+  add_library(CoinWgpuExperimental::CoinWgpuExperimental INTERFACE IMPORTED)
+  set_property(TARGET CoinWgpuExperimental::CoinWgpuExperimental PROPERTY
+    INTERFACE_LINK_LIBRARIES CoinRender::CoinRender)
+endif()

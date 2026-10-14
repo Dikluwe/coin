@@ -1006,6 +1006,12 @@ SoOffscreenRendererP::renderFromBase(SoBase * base)
 SbBool
 SoOffscreenRenderer::render(SoNode * scene)
 {
+#if COIN_ANDROID_CPU_ONLY
+  SoDebugError::post("SoOffscreenRenderer::render",
+                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderTarget");
+  return FALSE;
+#endif
+
   return PRIVATE(this)->renderFromBase(scene);
 }
 
@@ -1015,6 +1021,12 @@ SoOffscreenRenderer::render(SoNode * scene)
 SbBool
 SoOffscreenRenderer::render(SoPath * scene)
 {
+#if COIN_ANDROID_CPU_ONLY
+  SoDebugError::post("SoOffscreenRenderer::render",
+                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderTarget");
+  return FALSE;
+#endif
+
   return PRIVATE(this)->renderFromBase(scene);
 }
 

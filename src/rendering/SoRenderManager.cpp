@@ -48,6 +48,7 @@
 */
 
 #include <Inventor/SoRenderManager.h>
+#include <Inventor/errors/SoDebugError.h>
 #include <Inventor/elements/SoLinePatternElement.h>
 #include <Inventor/elements/SoLineWidthElement.h>
 #include <Inventor/elements/SoDrawStyleElement.h>
@@ -80,6 +81,7 @@
 #include <Inventor/actions/SoAudioRenderAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/sensors/SoOneShotSensor.h>
+#include <Inventor/sensors/SoSensorManager.h>
 #include <Inventor/fields/SoSFTime.h>
 #include <Inventor/misc/SoAudioDevice.h>
 #include <Inventor/SoDB.h>
@@ -588,6 +590,12 @@ SoRenderManager::removeSuperimposition(Superimposition * s)
 void
 SoRenderManager::render(const SbBool clearwindow, const SbBool clearzbuffer)
 {
+#if COIN_ANDROID_CPU_ONLY
+  SoDebugError::post("SoRenderManager::render",
+                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
+  return;
+#endif
+
   // FIXME: according to a user, TGS Inventor seems to disable the
   // redraw SoOneShotSensor while the scene graph is being rendered,
   // which Coin does not do. SGI Inventor probably has the same
@@ -659,6 +667,51 @@ SoRenderManager::render(const SbBool clearwindow, const SbBool clearzbuffer)
 }
 
 /*!
+  Prepare an external-renderer frame without applying SoGLRenderAction.
+  Application pre/post callbacks must themselves be backend-independent.
+  Returns FALSE on reentry. Pair success with finishFrame(), also on failure.
+*/
+SbBool
+SoRenderManager::prepareFrame(const SbBool processDelaySensors)
+{
+  if (PRIVATE(this)->frameprepared) return FALSE;
+  PRIVATE(this)->frameprepared = TRUE;
+  if (processDelaySensors && SoDB::getSensorManager()->isDelaySensorPending())
+    SoDB::getSensorManager()->processDelayQueue(FALSE);
+  PRIVATE(this)->invokePreRenderCallbacks();
+  if (PRIVATE(this)->scene && coin_sound_should_traverse() &&
+      SoAudioDevice::instance()->haveSound() && SoAudioDevice::instance()->isEnabled())
+    PRIVATE(this)->audiorenderaction->apply(PRIVATE(this)->scene);
+  if (PRIVATE(this)->autoclipping != NO_AUTO_CLIPPING)
+    PRIVATE(this)->setClippingPlanes();
+  // Consume requests satisfied by this frame, keeping notifications generated
+  // by traversal, animation and post callbacks scheduled for the next frame.
+  PRIVATE(this)->lock();
+  if (PRIVATE(this)->rootsensor && PRIVATE(this)->rootsensor->isScheduled())
+    PRIVATE(this)->rootsensor->unschedule();
+  if (PRIVATE(this)->redrawshot->isScheduled()) PRIVATE(this)->redrawshot->unschedule();
+  PRIVATE(this)->unlock();
+  return TRUE;
+}
+
+/*!
+  Complete external rendering. realTime updates only on success; post callbacks
+  run also on failure. Animation notifications remain scheduled.
+*/
+void
+SoRenderManager::finishFrame(const SbBool rendered)
+{
+  if (!PRIVATE(this)->frameprepared) return;
+  if (rendered && SoRenderManager::isRealTimeUpdateEnabled()) {
+    SoField * realtime = SoDB::getGlobalField("realTime");
+    if (realtime && realtime->getTypeId() == SoSFTime::getClassTypeId())
+      static_cast<SoSFTime *>(realtime)->setValue(SbTime::getTimeOfDay());
+  }
+  PRIVATE(this)->invokePostRenderCallbacks();
+  PRIVATE(this)->frameprepared = FALSE;
+}
+
+/*!
   \copydetails SoRenderManager::render(const SbBool clearwindow, const SbBool clearzbuffer)
 
   \param[in] initmatrices If set to \c TRUE, the projection and modelview
@@ -671,6 +724,12 @@ SoRenderManager::render(SoGLRenderAction * action,
                         const SbBool clearwindow,
                         const SbBool clearzbuffer)
 {
+#if COIN_ANDROID_CPU_ONLY
+  SoDebugError::post("SoRenderManager::render",
+                    "Legacy OpenGL renderer is unavailable in the Android CPU profile; use CoinRenderAction");
+  return;
+#endif
+
   SbBool clearwindow_tmp = clearwindow; // make sure we only clear the color buffer once
   PRIVATE(this)->invokePreRenderCallbacks();
 

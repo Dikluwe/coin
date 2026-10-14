@@ -49,6 +49,7 @@
 #include <Inventor/nodes/SoTexture2.h>
 #include <Inventor/nodes/SoTextureCoordinateBinding.h>
 #include <Inventor/nodes/SoUnits.h>
+#include <cstdint>
 
 class SbColor;
 class SbMatrix;
@@ -183,14 +184,19 @@ public:
   SbBool isCallbackAll(void) const;
 
 protected:
+  // Derived capture actions can reuse state only without arbitrary callbacks
+  // between primitive emissions. The query includes inherited registrations.
+  SbBool hasSingleShapeCallbacks(const SoType type) const;
   void beginTraversal(SoNode * node) override;
 
 private:
   void commonConstructor(void);
+  uint64_t callbackRegistrationRevision(void) const;
 
 private:
   SbPimplPtr<SoCallbackActionP> pimpl;
   friend class SoCallbackActionP;
+  friend class CoinRenderActionP;
 
   SoCallbackAction(const SoCallbackAction & rhs);
   SoCallbackAction & operator = (const SoCallbackAction & rhs);

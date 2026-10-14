@@ -40,6 +40,8 @@
 #include <Inventor/elements/SoComplexityElement.h>
 #include <Inventor/elements/SoViewportRegionElement.h>
 #include <Inventor/elements/SoCoordinateElement.h>
+#include <Inventor/elements/SoLazyElement.h>
+#include <Inventor/elements/SoMaterialBindingElement.h>
 #include <Inventor/elements/SoComplexityTypeElement.h>
 #include <Inventor/elements/SoMultiTextureEnabledElement.h>
 #include <Inventor/elements/SoMultiTextureCoordinateElement.h>
@@ -75,6 +77,7 @@ namespace {
   SbStorage * sogl_coordstorage = NULL;
   SbStorage * sogl_texcoordstorage = NULL;
   SbStorage * sogl_normalstorage = NULL;
+  SbStorage * sogl_colorstorage = NULL;
 
   void nurbs_coord_cleanup(void)
   {
@@ -92,6 +95,12 @@ namespace {
   {
     delete sogl_normalstorage;
     sogl_normalstorage = NULL;
+  }
+
+  void nurbs_color_cleanup(void)
+  {
+    delete sogl_colorstorage;
+    sogl_colorstorage = NULL;
   }
 
   void sogl_alloc_coords(void * ptr)
@@ -139,6 +148,17 @@ namespace {
     return *ptr;
   }
 
+  SbList <float> *
+  sogl_get_tmpcolorlist(void)
+  {
+    if (sogl_colorstorage == NULL) {
+      sogl_colorstorage = new SbStorage(sizeof(void*), sogl_alloc_coords, sogl_dealloc_coords);
+      coin_atexit((coin_atexit_f *)nurbs_color_cleanup, CC_ATEXIT_NORMAL);
+    }
+    SbList <float> ** ptr = (SbList <float> **) sogl_colorstorage->get();
+    return *ptr;
+  }
+
   // Toggle extra debugging output for nurbs complexity settings code.
   SbBool
   sogl_nurbs_debugging(void)
@@ -153,13 +173,18 @@ namespace {
 
   void
   sogl_set_nurbs_complexity(SoAction * action, SoShape * shape, void * nurbsrenderer,
-                            int uIsLinear, int vIsLinear, int numuctrlpts, int numvctrlpts, int uIsClosed, int vIsClosed, float uSpan, float vSpan)
+                            int uIsLinear, int vIsLinear, int numuctrlpts, int numvctrlpts, int uIsClosed, int vIsClosed, float uSpan, float vSpan,
+                            SbBool colorinterpolation = FALSE)
   {
     SoState * state = action->getState();
 
     float complexity = SbClamp(SoComplexityElement::get(state), 0.0f, 1.0f);
+    // Geometric error metrics do not account for variation in the color map.
+    // Sample colored surfaces in parameter space, including planar patches.
+    const SoComplexityTypeElement::Type complexitytype = colorinterpolation ?
+      SoComplexityTypeElement::OBJECT_SPACE : SoComplexityTypeElement::get(state);
 
-    if (!GLUWrapper()->versionMatchesAtLeast(1, 3, 0)) {
+    if (!colorinterpolation && !GLUWrapper()->versionMatchesAtLeast(1, 3, 0)) {
       // GLU < 1.3 does not support view-independent error metrics
       // for tessellation accuracy. => Fall back to pixel-based metric.
 
@@ -201,10 +226,10 @@ namespace {
       const char * env = coin_getenv("COIN_OLD_NURBS_COMPLEXITY");
       oldnurbscomplexity = env ? atoi(env) : -2;
     }
-    if ((oldnurbscomplexity > 0) || 
+    if (!colorinterpolation && ((oldnurbscomplexity > 0) ||
         ((oldnurbscomplexity == -2) && 
-         (SoComplexityTypeElement::get(state) == SoComplexityTypeElement::SCREEN_SPACE))) {
-      switch (SoComplexityTypeElement::get(state)) {
+         (complexitytype == SoComplexityTypeElement::SCREEN_SPACE)))) {
+      switch (complexitytype) {
       case SoComplexityTypeElement::SCREEN_SPACE:
         {
           SbBox3f box;
@@ -287,7 +312,7 @@ namespace {
       }
     }
     else { // new nurbs complexity
-      switch (SoComplexityTypeElement::get(state)) {
+      switch (complexitytype) {
       case SoComplexityTypeElement::SCREEN_SPACE:
         {
           float tolerance;
@@ -923,7 +948,17 @@ sogl_render_nurbs_surface(SoAction * action, SoShape * shape,
   float uSpan = uknotvec[numuknot-1] - uknotvec[0];
   float vSpan = vknotvec[numvknot-1] - vknotvec[0];
 
-  sogl_set_nurbs_complexity(action, shape, nurbsrenderer, uIsLinear, vIsLinear, numuctrlpts, numvctrlpts, uIsClosed, vIsClosed, uSpan, vSpan);
+  const SoMaterialBindingElement::Binding materialbinding =
+    SoMaterialBindingElement::get(state);
+  const SbBool colorinterpolation = glrender &&
+    (materialbinding == SoMaterialBindingElement::PER_VERTEX ||
+     materialbinding == SoMaterialBindingElement::PER_VERTEX_INDEXED) &&
+    SoLazyElement::getInstance(state)->getNumDiffuse() > 1;
+  sogl_set_nurbs_complexity(action, shape, nurbsrenderer,
+                            colorinterpolation ? FALSE : uIsLinear,
+                            colorinterpolation ? FALSE : vIsLinear,
+                            numuctrlpts, numvctrlpts, uIsClosed, vIsClosed,
+                            uSpan, vSpan, colorinterpolation);
 
   GLUWrapper()->gluBeginSurface(nurbsrenderer);
   GLUWrapper()->gluNurbsSurface(nurbsrenderer,
@@ -933,7 +968,41 @@ sogl_render_nurbs_surface(SoAction * action, SoShape * shape,
                                 numuknot - numuctrlpts, numvknot - numvctrlpts,
                                 (dim == 3) ? GL_MAP2_VERTEX_3 : GL_MAP2_VERTEX_4);
 
-
+  // NURBS control points are also the control points for the material map.
+  // GLU evaluates GL_MAP2_COLOR_4 using the same surface basis and knot
+  // vectors, so the resulting colors vary smoothly over the rendered surface.
+  if (glrender &&
+      (materialbinding == SoMaterialBindingElement::PER_VERTEX ||
+       materialbinding == SoMaterialBindingElement::PER_VERTEX_INDEXED)) {
+    const int numcontrolpoints = numuctrlpts * numvctrlpts;
+    const int numcolorpoints = numcoordindex && coordindex ? numcoordindex : numcontrolpoints;
+    if (numcolorpoints == numcontrolpoints) {
+      SoLazyElement * lazy = SoLazyElement::getInstance(state);
+      const int numdiffuse = lazy->getNumDiffuse();
+      if (numdiffuse > 0) {
+        SbList <float> * tmpcolorlist = sogl_get_tmpcolorlist();
+        tmpcolorlist->truncate(0);
+        for (int i = 0; i < numcolorpoints; i++) {
+          int materialindex = numcoordindex && coordindex ? coordindex[i] : i;
+          materialindex = SbClamp(materialindex, 0, numdiffuse - 1);
+          const float alpha = 1.0f - SoLazyElement::getTransparency(state, materialindex);
+          const SbColor & color = SoLazyElement::getDiffuse(state, materialindex);
+          tmpcolorlist->append(color[0]);
+          tmpcolorlist->append(color[1]);
+          tmpcolorlist->append(color[2]);
+          tmpcolorlist->append(alpha);
+        }
+        GLUWrapper()->gluNurbsSurface(nurbsrenderer,
+                                      numuknot, (GLfloat*) uknotvec,
+                                      numvknot, (GLfloat*) vknotvec,
+                                      4, 4 * numuctrlpts,
+                                      (GLfloat*) tmpcolorlist->getArrayPtr(),
+                                      numuknot - numuctrlpts,
+                                      numvknot - numvctrlpts,
+                                      GL_MAP2_COLOR_4);
+      }
+    }
+  }
 
   static int calculatenurbsnormals = -1;
   if (calculatenurbsnormals == -1) {
