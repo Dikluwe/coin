@@ -1,0 +1,63 @@
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_overlays.FCMacro').read_text())
+from pivy import coin
+
+report['test'] = 'freecad-grid'
+App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool('EnablePreselection', False)
+
+def dark(image):
+    return sum(max(c.red(), c.green(), c.blue()) < 20
+               for y in range(0, image.height(), 2)
+               for x in range(0, image.width(), 2)
+               for c in (image.pixelColor(x, y),))
+
+def axes_baseline():
+    global grid, original_size
+    capture('grid-off')
+    original_size = Gui.getMainWindow().size()
+    grid = coin.SoType.fromName('SoDrawingGrid').createInstance()
+    if grid is None:
+        raise RuntimeError('SoDrawingGrid type unavailable')
+    view.getSceneGraph().addChild(grid)
+    step(grid_on)
+
+def grid_on():
+    image = capture('grid-on')
+    report['grid_pixels'] = dark(image) - dark(images['grid-off'])
+    if report['grid_pixels'] < 1000:
+        raise RuntimeError('grid missing over real native viewport')
+    view.viewFront()
+    step(grid_rotated)
+
+def grid_rotated():
+    image = capture('grid-rotated')
+    corner = QtCore.QRect(0, 0, 100, 100)
+    if changes(images['grid-on'], image, corner) > 30:
+        raise RuntimeError('screen-space grid moved with camera')
+    main = Gui.getMainWindow()
+    main.resize(max(400, original_size.width()-120), max(300, original_size.height()-70))
+    step(grid_resized)
+
+def grid_resized():
+    image = capture('grid-resized')
+    if image.size() == images['grid-on'].size() or dark(image) < 1000:
+        raise RuntimeError('grid failed during native resize')
+    Gui.getMainWindow().resize(original_size)
+    view.viewAxonometric()
+    view.getSceneGraph().removeChild(grid)
+    step(grid_removed)
+
+def grid_removed():
+    image = capture('grid-removed')
+    corner = QtCore.QRect(0, 0, 100, 100)
+    if changes(images['grid-off'], image, corner) > 30:
+        raise RuntimeError('removed grid remained')
+    report['idle_start'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(grid_idle, 1200)
+
+def grid_idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if native and report['idle_end'] != report['idle_start']:
+        raise RuntimeError('grid caused continuous redraw')
+    finish()

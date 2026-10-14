@@ -1,0 +1,155 @@
+# Extend native XTest coverage to edges, vertices and transformed perspective views.
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_mouse_picking.FCMacro').read_text())
+
+report['test'] = 'freecad-mouse-elements'
+report['scenarios'] = []
+original_step = step
+def step(function, delay=600):
+    original_step(function, delay)
+
+scenarios = [('orthographic', False), ('perspective', False), ('perspective-placed', True)]
+scenario_index = -1
+
+def axes_baseline():
+    Gui.getMainWindow().raise_()
+    Gui.getMainWindow().activateWindow()
+    global mouse_observer
+    def record_mouse(event):
+        report['last_coin_motion'] = list(event['Position'])
+    mouse_observer = view.addEventCallback('SoLocation2Event', record_mouse)
+    step(next_scenario)
+
+def next_scenario():
+    global scenario_index, current, candidates, element_index
+    scenario_index += 1
+    if scenario_index == len(scenarios):
+        report.update(settle_samples=0, settle_stable=0,
+                      settle_frame=int(viewer_widget().property('wgpuFrameCount')))
+        step(settle, 500)
+        return
+    name, placed = scenarios[scenario_index]
+    doc.Box.Placement = (App.Placement(App.Vector(23, -17, 11),
+                                     App.Rotation(App.Vector(1, 2, 3), 31))
+                         if placed else App.Placement())
+    doc.recompute()
+    view.setCameraType(0 if name == 'orthographic' else 1)
+    view.viewAxonometric()
+    view.fitAll()
+    move(QtCore.QPoint(15, 15))
+    current = {'name': name, 'elements': []}
+    report['scenarios'].append(current)
+    element_index = -1
+    step(discover, 900)
+
+def hit(point):
+    viewport = viewer_widget().viewport()
+    scale = viewport.devicePixelRatioF()
+    info = view.getObjectInfo((round(point.x()*scale),
+                               round((viewport.height()-1-point.y())*scale)))
+    return info.get('Component') if info and info.get('Object') == 'Box' else None
+
+def project(position):
+    x, y = view.getPointOnScreen(position)
+    viewport = viewer_widget().viewport()
+    scale = viewport.devicePixelRatioF()
+    return QtCore.QPoint(round(x/scale), round(viewport.height()-1-y/scale))
+
+def discover():
+    global candidates
+    candidates = [locate()[0]]
+    # Project known topology, then use the ordinary pick radius to reject hidden
+    # elements. No visibility override, detail injection or selection API.
+    for prefix, topology in [('Edge', doc.Box.Shape.Edges), ('Vertex', doc.Box.Shape.Vertexes)]:
+        chosen = None
+        for index, element in enumerate(topology, 1):
+            position = element.CenterOfMass if prefix == 'Edge' else element.Point
+            center = project(position)
+            expected = prefix + str(index)
+            for dx, dy in ((0,0),(-1,0),(1,0),(0,-1),(0,1)):
+                point = center + QtCore.QPoint(dx, dy)
+                if hit(point) == expected:
+                    chosen = (expected, point)
+                    break
+            if chosen:
+                break
+        if not chosen:
+            raise RuntimeError('no visible ray-picked ' + prefix + ' in ' + current['name'])
+        candidates.append(chosen)
+    current['candidates'] = {name: [point.x(), point.y()] for name,point in candidates}
+    step(next_element)
+
+def next_element():
+    global element_index, item
+    element_index += 1
+    if element_index == len(candidates):
+        step(next_scenario)
+        return
+    name, point = candidates[element_index]
+    item = {'component': name}
+    current['elements'].append(item)
+    image(current['name'] + '-' + name + '-baseline')
+    move(point)
+    step(element_hover)
+
+def element_delta(a, b, name, point):
+    if not name.startswith('Vertex'):
+        return delta(a, b)
+    # Small point sprites cannot be measured with every-other-pixel sampling:
+    # a rotation can move most covered pixels between samples. Count all pixels
+    # in a bounded neighbourhood of the native pointer instead.
+    scale = viewer_widget().viewport().devicePixelRatioF()
+    x, y = round(point.x()*scale), round(point.y()*scale)
+    radius = round(12*scale)
+    return sum(a.pixel(px, py) != b.pixel(px, py)
+               for py in range(max(0,y-radius), min(a.height(),y+radius))
+               for px in range(max(0,x-radius), min(a.width(),x+radius)))
+
+def element_hover():
+    name, point = candidates[element_index]
+    viewport = viewer_widget().viewport()
+    actual_point = viewport.mapFromGlobal(QtGui.QCursor.pos())
+    item.update(pointer=[actual_point.x(), actual_point.y()],
+                ray_at_pointer=hit(actual_point),
+                coin_motion=report.get('last_coin_motion'))
+    if actual_point != point or item['ray_at_pointer'] != name:
+        raise RuntimeError('native pointer moved away from the expected topology element')
+    check_hover(name)
+    baseline = images[current['name'] + '-' + name + '-baseline']
+    pixels = element_delta(baseline, image(current['name'] + '-' + name + '-hover'), name, point)
+    minimum = 100 if name.startswith('Face') else 20 if name.startswith('Edge') else 6
+    item.update(hover_pixels=pixels, minimum_pixels=minimum)
+    if pixels < minimum:
+        raise RuntimeError('missing visible hover for ' + name)
+    click()
+    step(element_clicked)
+
+def element_clicked():
+    name, point = candidates[element_index]
+    selection = Gui.Selection.getSelectionEx()
+    if len(selection) != 1 or selection[0].ObjectName != 'Box' or list(selection[0].SubElementNames) != [name]:
+        raise RuntimeError('mouse selected wrong topology element: ' + name)
+    move(QtCore.QPoint(15, 15))
+    step(element_background)
+
+def element_background():
+    name, point = candidates[element_index]
+    if Gui.Selection.getPreselection().ObjectName:
+        raise RuntimeError('background did not clear topology preselection')
+    pixels = element_delta(images[current['name'] + '-' + name + '-baseline'],
+                           image(current['name'] + '-' + name + '-selected'), name, point)
+    item['selection_pixels'] = pixels
+    if pixels < item['minimum_pixels']:
+        raise RuntimeError('missing visible click selection for ' + name)
+    Gui.Selection.clearSelection()
+    step(element_clean)
+
+def element_clean():
+    name, point = candidates[element_index]
+    pixels = delta(images[current['name'] + '-' + name + '-baseline'],
+                   image(current['name'] + '-' + name + '-cleared'))
+    item['cleanup_pixels'] = pixels
+    if pixels > 30:
+        raise RuntimeError('stale topology highlight after clear')
+    step(next_element)

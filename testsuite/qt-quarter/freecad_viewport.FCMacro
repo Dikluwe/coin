@@ -1,0 +1,248 @@
+# P16: the same live documents and state changes in GL, BGFX and wgpu.
+import json
+import os
+import traceback
+from pathlib import Path
+import FreeCAD as App
+import FreeCADGui as Gui
+from PySide import QtCore, QtGui
+try:
+    from PySide import QtWidgets
+except ImportError:
+    QtWidgets = QtGui
+
+artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
+reference = os.environ.get('COIN_TEST_GL_REFERENCE') == '1'
+report = {'test': 'freecad-viewport', 'status': 'PASS', 'reference_gl': reference,
+          'profile': 'Part/BRep, App::Part, nested App::Link and expanded link array'}
+docs = []
+images = {}
+viewer = None
+before_frames = 0
+
+
+def finish(error=None):
+    if error:
+        report.update(status='FAIL', reason=str(error))
+        os.write(1, traceback.format_exc().encode())
+    (artifacts / 'viewport-result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    os._exit(0 if report['status'] == 'PASS' else 1)
+
+
+def step(fn, delay=900):
+    def guarded():
+        try:
+            fn()
+        except Exception as error:
+            finish(error)
+    QtCore.QTimer.singleShot(delay, guarded)
+
+
+def find_viewer():
+    found = [w for w in QtWidgets.QApplication.allWidgets()
+             if w.isVisible() and 'View3DInventorViewer' in w.metaObject().className()]
+    if len(found) != 1:
+        raise RuntimeError('expected one actual document viewport, got ' + str(len(found)))
+    return found[0]
+
+
+def frame_count():
+    if reference:
+        return 0
+    if (viewer.property('wgpuOpenGLViewport') or viewer.property('wgpuFallbackReason') or
+            not viewer.property('wgpuFrameCount')):
+        raise RuntimeError('native frame absent or viewport fell back to GL')
+    return int(viewer.property('wgpuFrameCount'))
+
+
+def capture(name, require_red=True):
+    frame_count()
+    viewport = viewer.viewport()
+    p = viewport.mapToGlobal(QtCore.QPoint())
+    screen = viewport.screen()
+    image = screen.grabWindow(0, p.x(), p.y(), viewport.width(), viewport.height()).toImage()
+    if image.isNull() or not image.save(str(artifacts / (name + '.png'))):
+        raise RuntimeError('native screen capture failed')
+    red = blue = 0
+    for y in range(image.height()//10, 9*image.height()//10, 3):
+        for x in range(image.width()//10, 9*image.width()//10, 3):
+            c = image.pixelColor(x, y)
+            red += c.red() > 100 and c.red() > 2*c.green() and c.red() > 2*c.blue()
+            blue += c.blue() > 100 and c.blue() > 2*c.green() and c.blue() > 2*c.red()
+    report.setdefault('captures', {})[name] = {'red': red, 'blue': blue, 'frames': frame_count()}
+    if (require_red and red < 100) or blue < 100:
+        raise RuntimeError('missing red assembly or blue array geometry: ' + name)
+    images[name] = image
+    return image
+
+
+def delta(a, b):
+    if a.size() != b.size():
+        raise RuntimeError('unexpected size change in pixel assertion')
+    return sum(a.pixel(x, y) != b.pixel(x, y)
+               for y in range(0, a.height(), 2) for x in range(0, a.width(), 2))
+
+
+def require_change(a, b):
+    changed = delta(images[a], images[b])
+    report.setdefault('pixel_changes', {})[a + '->' + b] = changed
+    if changed < 100:
+        raise RuntimeError('presented pixels did not change: ' + a + '->' + b)
+
+
+def prepare_document(name):
+    doc = App.newDocument(name)
+    assembly = doc.addObject('App::Part', 'Assembly')
+    part = doc.addObject('Part::Box', 'Box')
+    part.Length = 12; part.Width = 9; part.Height = 7
+    assembly.addObject(part)
+    part.ViewObject.ShapeColor = (1.0, 0.04, 0.02)
+    inner = doc.addObject('App::Link', 'Inner')
+    inner.setLink(assembly)
+    instance = doc.addObject('App::Link', 'Instance')
+    instance.setLink(inner)
+    instance.LinkPlacement = App.Placement(App.Vector(-18, 0, 0), App.Rotation())
+    source = doc.addObject('Part::Box', 'ArraySource')
+    source.Length = 6; source.Width = 5; source.Height = 7
+    source.ViewObject.ShapeColor = (0.03, 0.12, 1.0)
+    array = doc.addObject('App::Link', 'Array')
+    array.setLink(source)
+    array.ElementCount = 3
+    array.PlacementList = [App.Placement(App.Vector(4, y, 0), App.Rotation())
+                           for y in (-10, 0, 10)]
+    doc.recompute()
+    for obj in (assembly, inner, source):
+        obj.ViewObject.Visibility = False
+    instance.ViewObject.Visibility = True
+    array.ViewObject.Visibility = True
+    doc.recompute()
+    view = Gui.activeDocument().activeView()
+    view.viewAxonometric(); view.fitAll()
+    from pivy import coin
+    snapshot = {'document': name, 'shape_null': part.Shape.isNull(),
+                'part_module': __import__('Part').__file__,
+                'part_gui_module': __import__('PartGui').__file__,
+                'loaded_part': sorted({line.split()[-1] for line in Path('/proc/self/maps').read_text().splitlines()
+                                      if 'Part.so' in line or 'PartGui.so' in line}),
+                'volume': part.Shape.Volume, 'bbox': str(part.Shape.BoundBox),
+                'resolved_null': __import__('Part').getShape(part).isNull(),
+                'part_view_type': part.ViewObject.TypeId,
+                'display_mode': part.ViewObject.DisplayMode,
+                'instance_visible': instance.ViewObject.Visibility,
+                'array_visible': array.ViewObject.Visibility,
+                'camera': view.getCamera()}
+    report.setdefault('documents', []).append(snapshot)
+    loaded = set(snapshot['loaded_part'])
+    expected = {str(Path(snapshot[key]).resolve()) for key in ('part_module', 'part_gui_module')}
+    if loaded != expected or len(loaded) != 2:
+        raise RuntimeError('duplicate Part/PartGui modules; mixed builds invalidate the scene: ' + str(loaded))
+    output = coin.SoOutput()
+    output.openFile(str(artifacts / (name + '.iv')))
+    coin.SoWriteAction(output).apply(view.getSceneGraph())
+    output.closeFile()
+    docs.append(doc)
+    return doc
+
+
+def exposed():
+    global viewer, before_frames
+    viewer = find_viewer()
+    capture('exposed')
+    before_frames = frame_count()
+    Gui.getMainWindow().resize(1040, 740)
+    step(resized)
+
+
+def resized():
+    if not reference and frame_count() <= before_frames:
+        raise RuntimeError('resize did not complete a fresh native frame')
+    capture('resized')
+    Gui.Selection.addSelection(docs[0].Name, 'Instance', 'Box.Face2')
+    step(selected)
+
+
+def selected():
+    selection = Gui.Selection.getSelectionEx(docs[0].Name, 0)
+    if (len(selection) != 1 or selection[0].ObjectName != 'Instance' or
+            list(selection[0].SubElementNames) != ['Box.Face2']):
+        raise RuntimeError('selection did not retain nested link identity')
+    report['selected_subnames'] = list(selection[0].SubElementNames)
+    capture('selected', require_red=False)
+    require_change('resized', 'selected')
+    Gui.Selection.clearSelection()
+    step(cleared)
+
+
+def cleared():
+    capture('cleared')
+    residue = delta(images['resized'], images['cleared'])
+    report['selection_cleanup_pixels'] = residue
+    if residue > 30:
+        raise RuntimeError('selection left stale pixels')
+    docs[0].Array.ElementCount = 2
+    docs[0].recompute()
+    step(array_changed)
+
+
+def array_changed():
+    capture('array-changed')
+    require_change('cleared', 'array-changed')
+    path = artifacts / 'viewport.FCStd'
+    docs[0].saveAs(str(path))
+    App.closeDocument(docs[0].Name)
+    reopened = App.openDocument(str(path))
+    docs[0] = reopened
+    report['reopened_array_count'] = reopened.Array.ElementCount
+    if reopened.Array.ElementCount != 2 or reopened.Instance.LinkedObject.Name != 'Inner':
+        raise RuntimeError('document did not preserve links and array')
+    Gui.activeDocument().activeView().viewAxonometric()
+    Gui.activeDocument().activeView().fitAll()
+    step(reopened_capture)
+
+
+def reopened_capture():
+    global viewer
+    viewer = find_viewer()
+    capture('reopened')
+    prepare_document('ViewportSurvivor')
+    App.closeDocument(docs[0].Name)
+    step(survivor)
+
+
+def survivor():
+    global viewer, before_frames
+    viewer = find_viewer()
+    capture('survivor')
+    Gui.activeDocument().activeView().viewRear()
+    step(camera)
+
+
+def camera():
+    global before_frames
+    capture('camera')
+    require_change('survivor', 'camera')
+    before_frames = frame_count()
+    step(idle, 1200)
+
+
+def idle():
+    if not reference and frame_count() != before_frames:
+        raise RuntimeError('stable viewport keeps submitting frames')
+    report['owner_destroy_survivor'] = True
+    finish()
+
+
+def start():
+    Gui.activateWorkbench('PartWorkbench')
+    for dock in Gui.getMainWindow().findChildren(QtWidgets.QDockWidget):
+        try:
+            dock.hide()
+        except RuntimeError:
+            pass  # Hiding a dock can delete a transient sibling widget.
+    Gui.getMainWindow().resize(1180, 840)
+    prepare_document('ViewportContract')
+    step(exposed, 1800)
+
+
+step(start, 1800)

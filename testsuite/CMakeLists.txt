@@ -1,3 +1,9 @@
+# BGFX renderer parity runs include native Direct3D12 on Windows.
+set(_coin_bgfx_test_renderers vulkan opengl)
+if(WIN32)
+  list(APPEND _coin_bgfx_test_renderers d3d12)
+endif()
+
 if(COIN_BUILD_LEGACY_GL_RENDERER)
   find_package(Threads REQUIRED)
   add_executable(CoinBumpProgramTest bumprender/FailureTest.cpp)
@@ -137,22 +143,58 @@ set_property(SOURCE InternalSmallMapTest.cpp APPEND PROPERTY
 	COMPILE_DEFINITIONS COIN_SMALLMAP_TESTING)
 set_target_properties(CoinTests PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
 target_link_libraries(CoinTests Coin ${COIN_TARGET_LINK_LIBRARIES})
+if(WIN32 AND COIN_BUILD_SHARED_LIBS)
+	# These private functions are intentionally absent from the Coin DLL API.
+	target_sources(CoinTests PRIVATE
+		${PROJECT_SOURCE_DIR}/src/base/dict.cpp
+		${PROJECT_SOURCE_DIR}/src/base/dynarray.cpp
+		CoinGeqPrimeNumberWin32TestSupport.cpp)
+	set_source_files_properties(
+		${PROJECT_SOURCE_DIR}/src/base/dict.cpp
+		${PROJECT_SOURCE_DIR}/src/base/dynarray.cpp
+		CoinGeqPrimeNumberWin32TestSupport.cpp PROPERTIES
+		COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_include_directories(CoinTests PRIVATE ${PROJECT_BINARY_DIR}/src)
+endif()
 target_include_directories(CoinTests PRIVATE
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${PROJECT_SOURCE_DIR}/include
-	${PROJECT_SOURCE_DIR}/include/Inventor/annex
+		${PROJECT_SOURCE_DIR}/include
+	${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/include/Inventor/annex
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_BINARY_DIR}/include
 	${COIN_TARGET_INCLUDE_DIRECTORIES}
 )
 if(NOT WIN32)
-	target_sources(CoinTests PRIVATE GLUWrapperTest.cpp)
+	target_sources(CoinTests PRIVATE GLUWrapperTest.cpp GLUNurbsColorMapTest.cpp)
 	target_include_directories(CoinTests PRIVATE ${PROJECT_BINARY_DIR}/src)
 endif()
 if (USE_PTHREAD)
 	target_link_libraries(CoinTests pthread)
 endif()
 add_test(NAME CoinTests COMMAND CoinTests)
+
+# This render regression requires a real GLX display; enable it explicitly in
+# environments with X11 or run CTest under xvfb-run.
+option(COIN_TEST_NURBS_COLOR_GLX "Enable NURBS control-color GLX render tests" OFF)
+if(COIN_TEST_NURBS_COLOR_GLX)
+  find_package(X11 REQUIRED)
+  find_package(OpenGL REQUIRED)
+  add_executable(NurbsControlColorRenderTest
+    reproducers/nurbs-control-colors/repro.cpp)
+  target_include_directories(NurbsControlColorRenderTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+    ${X11_INCLUDE_DIR} ${OPENGL_INCLUDE_DIR})
+  target_link_libraries(NurbsControlColorRenderTest
+    Coin ${X11_LIBRARIES} OpenGL::GL)
+  add_test(NAME NurbsControlColorRender
+    COMMAND NurbsControlColorRenderTest)
+  add_test(NAME IndexedNurbsControlColorRender
+    COMMAND NurbsControlColorRenderTest indexed)
+  set_tests_properties(NurbsControlColorRender IndexedNurbsControlColorRender
+    PROPERTIES TIMEOUT 30)
+endif()
 
 # Keep this regression test in a fresh process: the unfixed implementation corrupts
 # SoTempPath's internal empty-list storage before ordinary assertions can
@@ -321,7 +363,8 @@ add_executable(CoinProfilerInitTest
   reproducers/soprofiler-initclass-ordering/repro.cpp)
 target_link_libraries(CoinProfilerInitTest Coin ${COIN_TARGET_LINK_LIBRARIES})
 target_include_directories(CoinProfilerInitTest PRIVATE
-  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
+  ${PROJECT_SOURCE_DIR}/include
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include
   ${COIN_TARGET_INCLUDE_DIRECTORIES})
 foreach(profile_mode unset off 0 on 1 syncgl invalid)
   add_test(NAME ProfilerInit_${profile_mode}
@@ -338,12 +381,23 @@ include(RegressionTests.cmake)
 
 include(CheckCoreGLHeaders.cmake)
 
+add_executable(RenderManagerFramePreparationTest RenderManagerFramePreparationTest.cpp)
+target_link_libraries(RenderManagerFramePreparationTest Coin ${COIN_TARGET_LINK_LIBRARIES})
+target_include_directories(RenderManagerFramePreparationTest PRIVATE
+  ${PROJECT_SOURCE_DIR}/include ${PROJECT_BINARY_DIR}/include)
+add_test(NAME RenderManagerFramePreparationTest COMMAND RenderManagerFramePreparationTest)
+
 # Many warnings are generated from test macros on macOS with Xcode.
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG(-Wtautological-compare DISABLE_WARNING_TAUTOLOGCOMPARE)
 if(DISABLE_WARNING_TAUTOLOGCOMPARE)
 	target_compile_options(CoinTests PUBLIC -Wno-tautological-compare)
 endif()
+
+option(COIN_TEST_RENDER_STRICT_DISPLAY "Enable strict X11 display test in CTest where missing DISPLAY is a failure" OFF)
+option(COIN_TEST_RENDER_GL_REFERENCE "Enable strict Coin/GL offscreen lighting reference under Xvfb" OFF)
+
+add_subdirectory(coinrender)
 
 # These cases inspect the global queues and disable realTime. Keep each in
 # its own process to avoid changing the shared CoinTests sensor state.

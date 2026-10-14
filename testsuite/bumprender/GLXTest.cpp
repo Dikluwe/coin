@@ -154,13 +154,20 @@ int main() {
   if (!display) { std::puts("SKIP: no X display"); return 77; }
   int attr[] = { GLX_RGBA, GLX_DEPTH_SIZE, 24, None };
   XVisualInfo * visual = glXChooseVisual(display, DefaultScreen(display), attr);
-  if (!visual) { XCloseDisplay(display); return 77; }
+  // PRIME NVIDIA exposes the compatible RGBA visual with double buffering.
+  if (!visual) {
+    int buffered[] = { GLX_RGBA, GLX_DOUBLEBUFFER, GLX_DEPTH_SIZE, 24, None };
+    visual = glXChooseVisual(display, DefaultScreen(display), buffered);
+  }
+  if (!visual) { std::puts("SKIP: no compatible RGBA/depth GLX visual"); XCloseDisplay(display); return 77; }
   SoDB::init();
   {
     GLContext a(display, visual), b(display, visual); a.current(71);
     const char * extensions = (const char *) glGetString(GL_EXTENSIONS);
     if (!extensions || !std::strstr(extensions, "GL_ARB_fragment_program") ||
-        !std::strstr(extensions, "GL_ARB_vertex_program")) return 77;
+        !std::strstr(extensions, "GL_ARB_vertex_program")) {
+      std::puts("SKIP: ARB vertex/fragment programs unavailable"); return 77;
+    }
     std::printf("GL renderer: %s\n", glGetString(GL_RENDERER));
     const cc_glglue * gluea = cc_glglue_instance(71);
     CoinBumpTestRenderer * renderer = new CoinBumpTestRenderer;

@@ -12,6 +12,18 @@ if(NOT DEFINED COIN_EXPECT_LEGACY_GL_RENDERER OR
   message(FATAL_ERROR "COIN_EXPECT_LEGACY_GL_RENDERER must be ON or OFF")
 endif()
 
+if(DEFINED COIN_EXPECT_RENDER)
+  if(NOT Coin_HAVE_RENDER STREQUAL COIN_EXPECT_RENDER)
+    message(FATAL_ERROR "Expected Coin_HAVE_RENDER=${COIN_EXPECT_RENDER}, got ${Coin_HAVE_RENDER}")
+  endif()
+endif()
+
+if(DEFINED COIN_EXPECT_RENDER_WINDOW_SURFACE)
+  if(NOT Coin_HAVE_RENDER_WINDOW_SURFACE STREQUAL COIN_EXPECT_RENDER_WINDOW_SURFACE)
+    message(FATAL_ERROR "Expected Coin_HAVE_RENDER_WINDOW_SURFACE=${COIN_EXPECT_RENDER_WINDOW_SURFACE}, got ${Coin_HAVE_RENDER_WINDOW_SURFACE}")
+  endif()
+endif()
+
 get_target_property(_coin_consumer_includes Coin::Coin INTERFACE_INCLUDE_DIRECTORIES)
 foreach(_coin_include IN LISTS _coin_consumer_includes)
   if(_coin_include MATCHES "[/\\]src([/\\]|$)" OR

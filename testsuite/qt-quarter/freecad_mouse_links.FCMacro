@@ -1,0 +1,361 @@
+# Native XTest picking across two instances of the same linked Part shape.
+from pathlib import Path
+import os
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_mouse_elements.FCMacro').read_text())
+
+report['test'] = 'freecad-mouse-links'
+reference_gl = os.environ.get('COIN_TEST_GL_REFERENCE') == '1'
+report['reference_gl'] = reference_gl
+if reference_gl:
+    report['native'] = False
+    # A Coin/GL build can diagnose the selection contract, but cannot count
+    # as a BGFX result in run.py (which requires BGFX submission evidence).
+    native = False
+x11.XKeysymToKeycode.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+x11.XKeysymToKeycode.restype = ctypes.c_uint
+xtst.XTestFakeKeyEvent.argtypes = [ctypes.c_void_p, ctypes.c_uint, ctypes.c_int, ctypes.c_ulong]
+x11.XSync.argtypes = [ctypes.c_void_p, ctypes.c_int]
+
+def wait_button_event(prior_events):
+    # XSync waits for the X server, not Qt's asynchronous XCB event reader.
+    # Keep the modifier held until Coin acknowledges this native click.
+    if len(report.get('button_events', [])) > prior_events:
+        return
+    loop = QtCore.QEventLoop()
+    poll = QtCore.QTimer(loop)
+    poll.timeout.connect(lambda: loop.quit()
+                         if len(report.get('button_events', [])) > prior_events else None)
+    deadline = QtCore.QTimer(loop)
+    deadline.setSingleShot(True)
+    deadline.timeout.connect(loop.quit)
+    poll.start(10)
+    deadline.start(1000)
+    loop.exec()
+    poll.stop()
+    deadline.stop()
+
+def key_click(keysym):
+    active()
+    keycode = x11.XKeysymToKeycode(display, keysym)
+    if not keycode or not xtst.XTestFakeKeyEvent(display, keycode, 1, 0):
+        raise RuntimeError('XTest modifier key press failed')
+    x11.XSync(display, 0)
+    QtWidgets.QApplication.processEvents()
+    prior_events = len(report.get('button_events', []))
+    try:
+        click()
+        x11.XSync(display, 0)
+        QtWidgets.QApplication.processEvents()
+        wait_button_event(prior_events)
+        events = report.get('button_events', [])
+        field = 'CtrlDown' if keysym == 0xffe3 else 'ShiftDown'
+        if len(events) <= prior_events or not any(event.get(field) for event in events[prior_events:]):
+            raise RuntimeError('Coin did not receive the native modifier with the click')
+    finally:
+        if not xtst.XTestFakeKeyEvent(display, keycode, 0, 0):
+            raise RuntimeError('XTest modifier key release failed')
+        x11.XFlush(display)
+
+class NativeInputProbe(QtCore.QObject):
+    """Observe Qt delivery without injecting events or consuming them."""
+    def eventFilter(self, watched, event):
+        kind = event.type()
+        if kind in (QtCore.QEvent.KeyPress, QtCore.QEvent.KeyRelease,
+                    QtCore.QEvent.MouseButtonPress, QtCore.QEvent.MouseButtonRelease):
+            record = {'type': kind.name, 'receiver': watched.metaObject().className(),
+                      'modifiers': event.modifiers().value}
+            if hasattr(event, 'globalPosition'):
+                p = event.globalPosition()
+                record['global'] = [p.x(), p.y()]
+            if hasattr(event, 'key'):
+                record['key'] = event.key()
+            report.setdefault('qt_input_events', []).append(record)
+        return False
+
+def hide_dock_ui():
+    main = Gui.getMainWindow()
+    for dock in main.findChildren(QtWidgets.QDockWidget):
+        dock.hide()
+    hidden_tabs = 0
+    # Reparented overlay tabs may outlive a hidden QDockWidget, or reappear on resize.
+    for widget in QtWidgets.QApplication.allWidgets():
+        if widget.isVisible() and widget.metaObject().className() == 'Gui::OverlayTabWidget':
+            widget.hide()
+            hidden_tabs += 1
+    report.setdefault('hidden_dock_overlay_tabs', []).append(hidden_tabs)
+    QtWidgets.QApplication.processEvents()
+
+def axes_baseline():
+    global link_a, link_b, original_size, input_probe
+    main = Gui.getMainWindow()
+    main.raise_()
+    main.activateWindow()
+    original_size = main.size()
+    report['dock_overlay_enabled'] = App.ParamGet(
+        'User parameter:BaseApp/Preferences/DockWindows').GetBool('ActivateOverlay', True)
+    input_probe = NativeInputProbe(main)
+    QtWidgets.QApplication.instance().installEventFilter(input_probe)
+    link_a = doc.addObject('App::Link', 'LinkA')
+    link_a.setLink(doc.Box)
+    link_b = doc.addObject('App::Link', 'LinkB')
+    link_b.setLink(doc.Box)
+    link_b.LinkPlacement = App.Placement(App.Vector(30, 0, 0), App.Rotation())
+    doc.Box.ViewObject.Visibility = False
+    doc.recompute()
+    hide_dock_ui()
+    view.fitAll()
+    move(QtCore.QPoint(15, 15))
+    def record_button(event):
+        report.setdefault('button_events', []).append(
+            {key: event[key] for key in ('Position', 'ShiftDown', 'CtrlDown', 'AltDown', 'State', 'Button')})
+    view.addEventCallback('SoMouseButtonEvent', record_button)
+    step(discover_links, 1000)
+
+def raw_hit(point):
+    viewport = viewer_widget().viewport()
+    scale = viewport.devicePixelRatioF()
+    return view.getObjectInfo((round(point.x()*scale),
+                               round((viewport.height()-1-point.y())*scale)))
+
+def unobstructed(point):
+    viewport = viewer_widget().viewport()
+    widget = QtWidgets.QApplication.widgetAt(viewport.mapToGlobal(point))
+    return widget is viewport or (widget is not None and viewport.isAncestorOf(widget)
+                                  and not widget.inherits('QAbstractButton'))
+
+def discover_links(next_stage=None):
+    global targets
+    image('links-discovery-' + str(len(report.get('locations', []))))
+    viewport = viewer_widget().viewport()
+    found = {}
+    for y in range(viewport.height()//4, 3*viewport.height()//4,
+                   max(8, viewport.height()//25)):
+        for x in range(viewport.width()//5, 4*viewport.width()//5,
+                       max(8, viewport.width()//35)):
+            point = QtCore.QPoint(x, y)
+            if not unobstructed(point):
+                continue
+            info = raw_hit(point)
+            if not info or info.get('Object') not in ('LinkA', 'LinkB'):
+                continue
+            name, face = info['Object'], info.get('Component', '')
+            if not face.startswith('Face') or name in found:
+                continue
+            if all((near := raw_hit(point + QtCore.QPoint(dx,dy))) and
+                   near.get('Object') == name and near.get('Component') == face
+                   for dx,dy in ((-8,0),(8,0),(0,-8),(0,8))) and all(
+                   unobstructed(point + QtCore.QPoint(dx,dy))
+                   for dx,dy in ((-8,0),(8,0),(0,-8),(0,8))):
+                found[name] = (face, point)
+    report.setdefault('locations', []).append(
+        {name: {'face': face, 'point': [point.x(),point.y()]}
+         for name,(face,point) in found.items()})
+    if set(found) != {'LinkA', 'LinkB'}:
+        raise RuntimeError('ray-picking did not locate two link instances')
+    targets = found
+    step(next_stage or baseline)
+
+def pixels(a, b):
+    return delta(a, b)
+
+def instance_region(name, snapshot):
+    viewport = viewer_widget().viewport()
+    scale = viewport.devicePixelRatioF()
+    placement = doc.getObject(name).LinkPlacement
+    points = [project(placement.multVec(App.Vector(x,y,z)))
+              for x in (0,10) for y in (0,10) for z in (0,10)]
+    x0, y0 = min(p.x() for p in points), min(p.y() for p in points)
+    x1, y1 = max(p.x() for p in points), max(p.y() for p in points)
+    return QtCore.QRect(round(x0*scale)-8, round(y0*scale)-8,
+                       round((x1-x0)*scale)+17, round((y1-y0)*scale)+17).intersected(
+                           QtCore.QRect(0,0,snapshot.width()-1,snapshot.height()-1))
+
+def expect_instance_pixels(snapshot_name, highlighted, baseline_name='links-baseline'):
+    baseline, snapshot = images[baseline_name], images[snapshot_name]
+    counts = {}
+    for name in ('LinkA','LinkB'):
+        count = changes(baseline, snapshot, instance_region(name, snapshot))
+        counts[name] = count
+        if name in highlighted and count < 100:
+            raise RuntimeError('missing per-instance highlight: ' + name)
+        if name not in highlighted and count > 30:
+            raise RuntimeError('highlight leaked to unselected link instance: ' + name)
+    report.setdefault('instance_pixels', {})[snapshot_name] = counts
+
+def expect_preselection(name):
+    pre = Gui.Selection.getPreselection()
+    face = targets[name][0]
+    report.setdefault('hovered', []).append(
+        {'object': pre.ObjectName, 'subs': list(pre.SubElementNames)})
+    if pre.ObjectName != name or list(pre.SubElementNames) != [face]:
+        raise RuntimeError('native hover selected wrong link instance: ' + name)
+
+def expect_selection(names):
+    actual = sorted((sel.ObjectName, tuple(sel.SubElementNames))
+                    for sel in Gui.Selection.getSelectionEx())
+    expected = sorted((name, (targets[name][0],)) for name in names)
+    report.setdefault('selections', []).append(actual)
+    if actual != expected:
+        raise RuntimeError('native click selected wrong link instances: ' +
+                           str(actual) + ' != ' + str(expected))
+
+def baseline():
+    image('links-baseline')
+    move(targets['LinkA'][1])
+    step(hover_a)
+
+def hover_a():
+    expect_preselection('LinkA')
+    count = pixels(images['links-baseline'], image('links-a-hover'))
+    expect_instance_pixels('links-a-hover', ('LinkA',))
+    report['a_hover_pixels'] = count
+    if count < 100:
+        raise RuntimeError('LinkA hover is not visible')
+    click()
+    move(QtCore.QPoint(15, 15))
+    step(selected_a)
+
+def selected_a():
+    expect_selection(('LinkA',))
+    count = pixels(images['links-baseline'], image('links-a-selected'))
+    expect_instance_pixels('links-a-selected', ('LinkA',))
+    report['a_selected_pixels'] = count
+    if count < 100:
+        raise RuntimeError('LinkA selection is not visible')
+    move(targets['LinkB'][1])
+    step(hover_b)
+
+def hover_b():
+    expect_preselection('LinkB')
+    count = pixels(images['links-a-selected'], image('links-b-hover'))
+    expect_instance_pixels('links-b-hover', ('LinkA','LinkB'))
+    report['b_hover_pixels'] = count
+    if count < 100:
+        raise RuntimeError('LinkB hover is not visible')
+    key_click(0xffe3)  # Control_L: additive selection/toggle.
+    move(QtCore.QPoint(15, 15))
+    step(selected_both)
+
+def selected_both():
+    expect_selection(('LinkA', 'LinkB'))
+    count = pixels(images['links-a-selected'], image('links-both-selected'))
+    expect_instance_pixels('links-both-selected', ('LinkA','LinkB'))
+    report['both_selected_pixels'] = count
+    if count < 100:
+        raise RuntimeError('Ctrl-click did not visibly add LinkB')
+    move(targets['LinkA'][1])
+    step(toggle_a)
+
+def toggle_a():
+    expect_preselection('LinkA')
+    key_click(0xffe3)
+    move(QtCore.QPoint(15, 15))
+    step(selected_only_b)
+
+def selected_only_b():
+    expect_selection(('LinkB',))
+    count = pixels(images['links-both-selected'], image('links-only-b'))
+    expect_instance_pixels('links-only-b', ('LinkB',))
+    report['toggle_pixels'] = count
+    if count < 100:
+        raise RuntimeError('Ctrl-click did not visibly remove LinkA')
+    move(targets['LinkA'][1])
+    step(replace_with_shift)
+
+def replace_with_shift():
+    expect_preselection('LinkA')
+    key_click(0xffe1)  # Shift_L alone is not additive in CAD navigation.
+    move(QtCore.QPoint(15, 15))
+    step(selected_only_a)
+
+def selected_only_a():
+    expect_selection(('LinkA',))
+    count = pixels(images['links-only-b'], image('links-only-a'))
+    expect_instance_pixels('links-only-a', ('LinkA',))
+    report['shift_replace_pixels'] = count
+    if count < 100:
+        raise RuntimeError('Shift-click did not update visible selection')
+    Gui.Selection.clearSelection()
+    step(clean)
+
+def clean():
+    if Gui.Selection.getPreselection().ObjectName:
+        raise RuntimeError('link preselection remained on background')
+    count = pixels(images['links-baseline'], image('links-cleared'))
+    report['cleanup_pixels'] = count
+    if count > 30:
+        raise RuntimeError('link highlights remained after cleanup')
+    main = Gui.getMainWindow()
+    main.resize(original_size.width()-140, original_size.height()-100)
+    view.fitAll()
+    step(resized, 1000)
+
+def resized():
+    hide_dock_ui()
+    view.fitAll()
+    step(lambda: discover_links(resized_baseline))
+
+def chrome_rgb_error(pairs):
+    total = samples = 0
+    for actual, expected in pairs:
+        total += sum(abs(a-b) for a, b in zip(actual, expected))
+        samples += 3
+    if not samples:
+        raise RuntimeError('no document chrome samples')
+    return total / samples
+
+def expect_document_chrome(snapshot):
+    import shiboken6
+    viewport = viewer_widget().viewport()
+    scale = viewport.devicePixelRatioF()
+    measurements = []
+    for bar in QtWidgets.QApplication.allWidgets():
+        if not shiboken6.isValid(bar) or not bar.inherits('QTabBar') or not bar.isVisible():
+            continue
+        origin = viewport.mapFromGlobal(bar.mapToGlobal(QtCore.QPoint()))
+        overlap = QtCore.QRect(origin, bar.size()).intersected(viewport.rect())
+        if overlap.isEmpty():
+            continue
+        # Independent Qt paint reference, compared with the actual screen.
+        expected = bar.grab().toImage()
+        pairs = []
+        for y in range(overlap.top()+2, overlap.bottom()-1, 2):
+            for x in range(overlap.left()+2, overlap.right()-1, 2):
+                actual_color = snapshot.pixelColor(round(x*scale), round(y*scale))
+                expected_color = expected.pixelColor(round((x-origin.x())*scale),
+                                                       round((y-origin.y())*scale))
+                pairs.append((actual_color.getRgb()[:3], expected_color.getRgb()[:3]))
+        error = chrome_rgb_error(pairs)
+        measurements.append({'samples': len(pairs), 'rgb_mae': error})
+        if error > 6:
+            raise RuntimeError('native viewport covered document tab bar: RGB MAE ' + str(error))
+    report['document_chrome'] = measurements
+    if scale >= 1.9 and not measurements:
+        raise RuntimeError('DPR 2 fixture did not exercise document tab overlap')
+
+def resized_baseline():
+    expect_document_chrome(image('links-resized-baseline'))
+    move(targets['LinkB'][1])
+    step(resized_hover)
+
+def resized_hover():
+    expect_preselection('LinkB')
+    count = pixels(images['links-resized-baseline'], image('links-resized-hover'))
+    expect_instance_pixels('links-resized-hover', ('LinkB',), 'links-resized-baseline')
+    report['resized_hover_pixels'] = count
+    if count < 100:
+        raise RuntimeError('LinkB hover lost after viewport resize')
+    move(QtCore.QPoint(15, 15))
+    step(resized_clear)
+
+def resized_clear():
+    if Gui.Selection.getPreselection().ObjectName:
+        raise RuntimeError('link preselection did not clear after resize')
+    if pixels(images['links-resized-baseline'], image('links-resized-cleared')) > 30:
+        raise RuntimeError('stale link highlight after resize')
+    if reference_gl:
+        finish()
+        return
+    report.update(settle_samples=0, settle_stable=0,
+                  settle_frame=int(viewer_widget().property('wgpuFrameCount') or 0))
+    step(settle, 500)

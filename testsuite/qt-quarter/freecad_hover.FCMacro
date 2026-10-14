@@ -1,0 +1,98 @@
+# Real FreeCAD selection path, not a synthetic Coin material edit.
+import json
+import os
+import traceback
+from pathlib import Path
+try:
+    import FreeCAD as App
+    import FreeCADGui as Gui
+    import Part
+    from PySide import QtCore, QtGui
+    try:
+        from PySide import QtWidgets
+    except ImportError:
+        QtWidgets = QtGui
+except Exception as error:
+    os.write(1, ('RESULT ' + json.dumps({'status': 'FAIL', 'reason': 'FreeCAD/PySide setup: ' + str(error)}) + '\n').encode())
+    os._exit(1)
+
+artifacts = Path(os.environ['COIN_TEST_ARTIFACTS'])
+report = {'test': 'hover', 'status': 'PASS'}
+images = []
+doc = None
+
+def finish(error=None):
+    if error:
+        report.update(status='FAIL', reason=str(error))
+        os.write(1, traceback.format_exc().encode())
+    (artifacts / 'hover-result.json').write_text(json.dumps(report, indent=2))
+    os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    # Process isolation: exit after saving artifacts, never leave a live GUI behind.
+    os._exit(0 if report['status'] == 'PASS' else 1)
+
+def capture(name):
+    candidates = []
+    names = []
+    for widget in QtWidgets.QApplication.allWidgets():
+        try:
+            class_name = widget.metaObject().className()
+            names.append(class_name)
+            if widget.isVisible() and ('View3DInventorViewer' in class_name or 'QuarterWidget' in class_name):
+                candidates.append(widget)
+        except RuntimeError:
+            # FreeCAD may have destroyed a transient child while listing widgets.
+            continue
+    report['widget_classes'] = sorted(set(names))
+    if not candidates:
+        raise RuntimeError('no real FreeCAD Quarter viewport found; refusing whole-window false pass')
+    window = max(candidates, key=lambda w: w.width() * w.height())
+    screen = QtWidgets.QApplication.primaryScreen()
+    p = window.mapToGlobal(QtCore.QPoint(0, 0))
+    image = screen.grabWindow(0, p.x(), p.y(), window.width(), window.height()).toImage()
+    if image.isNull() or not image.save(str(artifacts / (name + '.png'))):
+        raise RuntimeError('native FreeCAD capture failed')
+    return image
+
+def select(index):
+    face = doc.Box.Shape.Faces[index - 1]
+    point = face.CenterOfMass
+    Gui.Selection.setPreselection(doc.Box, 'Face' + str(index), point.x, point.y, point.z)
+    selected = Gui.Selection.getPreselection()
+    if tuple(selected.SubElementNames) != ('Face' + str(index),):
+        raise RuntimeError('preselection API did not switch Face1 -> Face2')
+
+def step2():
+    try:
+        images.append(capture('Face2'))
+        a, b = images
+        changes = sum(a.pixel(x,y) != b.pixel(x,y)
+                      for y in range(0, a.height(), 2) for x in range(0, a.width(), 2))
+        report['changed_samples'] = changes
+        if changes < 100:
+            raise RuntimeError('Face1 -> Face2 did not update presented pixels')
+        finish()
+    except Exception as error:
+        finish(error)
+
+def step1():
+    try:
+        images.append(capture('Face1'))
+        select(2)
+        QtCore.QTimer.singleShot(600, step2)
+    except Exception as error:
+        finish(error)
+
+def start():
+    global doc
+    try:
+        doc = App.newDocument('WgpuHoverRegression')
+        box = doc.addObject('Part::Box', 'Box')
+        doc.recompute()
+        Gui.activeDocument().activeView().viewAxonometric()
+        Gui.activeDocument().activeView().fitAll()
+        select(1)
+        QtCore.QTimer.singleShot(600, step1)
+    except Exception as error:
+        finish(error)
+
+QtCore.QTimer.singleShot(1500, start)

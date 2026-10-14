@@ -1,0 +1,111 @@
+from pathlib import Path
+import os
+# Reuse the real-viewer setup/capture helpers, then replace its first stage.
+exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_overlays.FCMacro').read_text())
+
+import ctypes
+import shiboken6
+# Isolate overlay removal from incidental hover caused by the desktop cursor.
+# The runner uses a disposable profile; the separate hover case tests preselection.
+App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool('EnablePreselection', False)
+report['test'] = 'freecad-flags'
+bridge = ctypes.CDLL(os.environ['COIN_TEST_FLAG_HELPER'])
+bridge.flag_test_create.argtypes = [ctypes.c_void_p]
+bridge.flag_test_create.restype = ctypes.c_int
+bridge.flag_test_update.restype = ctypes.c_int
+bridge.flag_test_clear.restype = ctypes.c_int
+bridge.flag_test_hide.restype = ctypes.c_int
+
+def yellow(image):
+    return sum(c.red() > 200 and c.green() > 170 and c.blue() < 100
+               for y in range(0, image.height(), 2)
+               for x in range(0, image.width(), 2)
+               for c in (image.pixelColor(x, y),))
+
+def white(image):
+    return sum(c.red() > 220 and c.green() > 220 and c.blue() > 220
+               for y in range(image.height())
+               for x in range(image.width())
+               for c in (image.pixelColor(x, y),))
+
+def axes_baseline():
+    capture('flags-off')
+    widget = viewer_widget()
+    if not bridge.flag_test_create(shiboken6.getCppPointer(widget)[0]):
+        raise RuntimeError('Flag bridge could not find the actual viewer')
+    step(flags_on)
+
+def flags_on():
+    image = capture('flags-on')
+    report['widgets'] = [
+        {'class': w.metaObject().className(), 'visible': w.isVisible(),
+         'geometry': [w.x(), w.y(), w.width(), w.height()],
+         'global': [w.mapToGlobal(QtCore.QPoint()).x(), w.mapToGlobal(QtCore.QPoint()).y()],
+         'parent': w.parentWidget().metaObject().className() if w.parentWidget() else '',
+         'native': w.testAttribute(QtCore.Qt.WA_NativeWindow)}
+        for w in QtWidgets.QApplication.allWidgets()
+        if 'Flag' in w.metaObject().className()]
+    report['label_pixels'] = yellow(image)
+    labels = [w for w in QtWidgets.QApplication.allWidgets()
+              if 'Flag' in w.metaObject().className() and w.isVisible()]
+    viewport = viewer_widget().viewport()
+    dpr = image.devicePixelRatio()
+    report['individual_label_pixels'] = []
+    for label in labels:
+        p = viewport.mapFromGlobal(label.mapToGlobal(QtCore.QPoint()))
+        region = QtCore.QRect(int(p.x()*dpr), int(p.y()*dpr),
+                             int(label.width()*dpr), int(label.height()*dpr))
+        report['individual_label_pixels'].append(yellow(image.copy(region)))
+    if len(labels) != 2 or any(n < 200 for n in report['individual_label_pixels']):
+        raise RuntimeError('one or both raster Flag labels hidden by native viewport')
+    rect = QtCore.QRect(0, 0, image.width()-1, image.height()-1)
+    report['appearance_pixels'] = changes(images['flags-off'], image, rect)
+    report['connector_pixels'] = white(image) - white(images['flags-off'])
+    if report['connector_pixels'] < 100:
+        raise RuntimeError('Flag connectors/points absent over native viewport')
+    if report['appearance_pixels'] < 500:
+        raise RuntimeError('Flag overlay did not appear')
+    bridge.flag_test_update()
+    step(flags_updated)
+
+def flags_updated():
+    image = capture('flags-updated')
+    rect = QtCore.QRect(0, 0, image.width()-1, image.height()-1)
+    report['update_pixels'] = changes(images['flags-on'], image, rect)
+    if report['update_pixels'] < 300 or yellow(image) < 300:
+        raise RuntimeError('Flag position/origin did not update')
+    view.viewFront()
+    step(flags_rotated)
+
+def flags_rotated():
+    image = capture('flags-rotated')
+    if yellow(image) < 300:
+        raise RuntimeError('camera change lost Flag labels')
+    bridge.flag_test_hide()
+    step(flags_hidden)
+
+def flags_hidden():
+    image = capture('flags-hidden')
+    report['hidden_label_pixels'] = yellow(image)
+    if not 200 < report['hidden_label_pixels'] < report['label_pixels'] * 0.8:
+        raise RuntimeError('hide did not remove exactly one label')
+    view.viewAxonometric()
+    bridge.flag_test_clear()
+    step(flags_removed)
+
+def flags_removed():
+    image = capture('flags-removed')
+    if yellow(image):
+        raise RuntimeError('removed Flag label remained')
+    rect = QtCore.QRect(0, 0, image.width()-1, image.height()-1)
+    report['remaining_pixels'] = changes(images['flags-off'], image, rect)
+    if report['remaining_pixels'] > 30:
+        raise RuntimeError('removed Flag connector remained')
+    report['idle_start'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    step(flags_idle, 1200)
+
+def flags_idle():
+    report['idle_end'] = int(viewer_widget().property('wgpuFrameCount') or 0)
+    if native and report['idle_end'] != report['idle_start']:
+        raise RuntimeError('Flags caused continuous redraw')
+    finish()

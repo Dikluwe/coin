@@ -1,0 +1,386 @@
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+#include <Inventor/SoDB.h>
+#include <Inventor/SoPrimitiveVertex.h>
+#include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/nodes/SoSubNode.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoText2.h>
+#include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoCallback.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoShaderProgram.h>
+#include <Inventor/nodes/SoFragmentShader.h>
+#include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCubeMap.h>
+#include <Inventor/nodes/SoSceneTextureCubeMap.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
+#include "rendering/coinrender/CoinRenderTargetP.h"
+#include <iostream>
+#include <memory>
+
+// Characterization of P15 blockers, not certification of these features.
+class InventoryGlOnlyNode : public SoNode {
+  SO_NODE_HEADER(InventoryGlOnlyNode);
+
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryGlOnlyNode, SoNode, "Node"); }
+  InventoryGlOnlyNode() { SO_NODE_CONSTRUCTOR(InventoryGlOnlyNode); }
+  unsigned glCalls = 0;
+
+protected:
+  ~InventoryGlOnlyNode() override {}
+  void GLRender(SoGLRenderAction*) override { ++glCalls; }
+};
+SO_NODE_SOURCE(InventoryGlOnlyNode);
+class InventoryFaces : public SoIndexedFaceSet {
+  SO_NODE_HEADER(InventoryFaces);
+
+public:
+  static void initClass() {
+    SO_NODE_INIT_CLASS(InventoryFaces, SoIndexedFaceSet, "IndexedFaceSet");
+  }
+  InventoryFaces() { SO_NODE_CONSTRUCTOR(InventoryFaces); }
+  unsigned callbacks = 0;
+
+protected:
+  ~InventoryFaces() override {}
+  void callback(SoCallbackAction* action) override {
+    ++callbacks;
+    SoIndexedFaceSet::callback(action);
+  }
+};
+SO_NODE_SOURCE(InventoryFaces);
+// Host subclasses opt in from their own callback after cold preparation.
+class InventoryText : public SoText2 {
+  SO_NODE_HEADER(InventoryText);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryText, SoText2, "Text2"); }
+  InventoryText() { SO_NODE_CONSTRUCTOR(InventoryText); }
+  unsigned callbacks = 0;
+  bool invalidDelegation = false;
+protected:
+  ~InventoryText() override {}
+  void callback(SoCallbackAction * action) override {
+    ++callbacks;
+    if (action->isOfType(CoinRenderAction::getClassTypeId()))
+      static_cast<CoinRenderAction *>(action)->captureScreenContent(invalidDelegation ? nullptr : this);
+    else SoText2::callback(action);
+  }
+};
+SO_NODE_SOURCE(InventoryText);
+class InventoryImage : public SoImage {
+  SO_NODE_HEADER(InventoryImage);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryImage, SoImage, "Image"); }
+  InventoryImage() { SO_NODE_CONSTRUCTOR(InventoryImage); }
+  unsigned callbacks = 0;
+protected:
+  ~InventoryImage() override {}
+  void callback(SoCallbackAction * action) override {
+    ++callbacks;
+    if (action->isOfType(CoinRenderAction::getClassTypeId()))
+      static_cast<CoinRenderAction *>(action)->captureScreenContent(this);
+    else SoImage::callback(action);
+  }
+};
+SO_NODE_SOURCE(InventoryImage);
+// These classes are initialized after both actions and their registrations.
+class InventoryLateShape : public SoShape {
+  SO_NODE_HEADER(InventoryLateShape);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryLateShape, SoShape, "Shape"); }
+  InventoryLateShape() { SO_NODE_CONSTRUCTOR(InventoryLateShape); }
+  unsigned generations = 0;
+protected:
+  ~InventoryLateShape() override {}
+  void computeBBox(SoAction *, SbBox3f & box, SbVec3f & center) override {
+    box.setBounds(SbVec3f(-1,-1,0),SbVec3f(1,1,0)); center=SbVec3f(0,0,0);
+  }
+  void generatePrimitives(SoAction * current) override {
+    ++generations;
+    SoPrimitiveVertex vertex;
+    beginShape(current, SoShape::TRIANGLES);
+    for (const auto & point : {SbVec3f(-1,-1,0),SbVec3f(1,-1,0),SbVec3f(0,1,0)}) {
+      vertex.setPoint(point); shapeVertex(&vertex);
+    }
+    endShape();
+  }
+};
+SO_NODE_SOURCE(InventoryLateShape);
+class InventoryLaterShape : public InventoryLateShape {
+  SO_NODE_HEADER(InventoryLaterShape);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryLaterShape, InventoryLateShape, "InventoryLateShape"); }
+  InventoryLaterShape() { SO_NODE_CONSTRUCTOR(InventoryLaterShape); }
+protected:
+  ~InventoryLaterShape() override {}
+};
+SO_NODE_SOURCE(InventoryLaterShape);
+class InventoryLateShader : public SoShaderProgram {
+  SO_NODE_HEADER(InventoryLateShader);
+public:
+  static void initClass() { SO_NODE_INIT_CLASS(InventoryLateShader, SoShaderProgram, "ShaderProgram"); }
+  InventoryLateShader() { SO_NODE_CONSTRUCTOR(InventoryLateShader); }
+protected:
+  ~InventoryLateShader() override {}
+};
+SO_NODE_SOURCE(InventoryLateShader);
+struct LateObservers {
+  std::vector<int> order;
+  unsigned triangles=0;
+  bool prune=false, abort=false;
+};
+static SoCallbackAction::Response latePre(void * data, SoCallbackAction *, const SoNode *) {
+  auto & observed=*static_cast<LateObservers *>(data); observed.order.push_back(1);
+  return observed.abort ? SoCallbackAction::ABORT : observed.prune ? SoCallbackAction::PRUNE : SoCallbackAction::CONTINUE;
+}
+static SoCallbackAction::Response lateSecondPre(void * data, SoCallbackAction *, const SoNode *) {
+  static_cast<LateObservers *>(data)->order.push_back(2); return SoCallbackAction::CONTINUE;
+}
+static SoCallbackAction::Response latePost(void * data, SoCallbackAction *, const SoNode *) {
+  static_cast<LateObservers *>(data)->order.push_back(3); return SoCallbackAction::CONTINUE;
+}
+static void lateTriangle(void * data, SoCallbackAction *, const SoPrimitiveVertex *, const SoPrimitiveVertex *, const SoPrimitiveVertex *) {
+  ++static_cast<LateObservers *>(data)->triangles;
+}
+struct Witness {
+  CoinRenderFramePlan frame;
+  unsigned submits = 0;
+};
+class CaptureBackend : public CoinRenderBackend {
+public:
+  explicit CaptureBackend(Witness& value) : witness(value) {}
+  bool isGpuBackend() const override { return false; }
+  CoinRenderBackendStatus getStatus() const override { return CoinRenderBackendStatus::SUCCESS; }
+  CoinRenderBackendStatus prepare(CoinRenderTargetP&) override {
+    return CoinRenderBackendStatus::SUCCESS;
+  }
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan& frame, CoinRenderTargetP&) override {
+    witness.frame = frame;
+    return {CoinRenderBackendStatus::SUCCESS, "", ++witness.submits};
+  }
+  void poll() override {}
+  const std::string& getLastError() const override { return diagnostic; }
+
+private:
+  Witness& witness;
+  std::string diagnostic;
+};
+static bool check(bool result, const char* message) {
+  if (!result)
+    std::cerr << "CoinRenderNodeInventoryTest: " << message << '\n';
+  return result;
+}
+int main() {
+  SoDB::init();
+  CoinRenderAction::initClass();
+  InventoryGlOnlyNode::initClass();
+  InventoryFaces::initClass();
+  InventoryText::initClass();
+  InventoryImage::initClass();
+  Witness witness;
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64)));
+  target->getPimpl().get().backend.reset(new CaptureBackend(witness));
+  CoinRenderAction action(SbViewportRegion(64, 64));
+  action.setRenderTarget(target.get());
+  SoSeparator* root = new SoSeparator;
+  root->ref();
+  auto* camera = new SoOrthographicCamera;
+  camera->position.setValue(0, 0, 3);
+  root->addChild(camera);
+  auto capture = [&](SoNode* node) {
+    root->addChild(node);
+    action.apply(root);
+    root->removeChild(node);
+    return action.getLastStatus() == CoinRenderAction::SUCCESS;
+  };
+  bool ok = true;
+  SoCallbackAction ordinary;
+  LateObservers observed;
+  ordinary.addPreCallback(SoShape::getClassTypeId(),latePre,&observed);
+  ordinary.addPreCallback(SoShape::getClassTypeId(),lateSecondPre,&observed);
+  ordinary.addPostCallback(SoShape::getClassTypeId(),latePost,&observed);
+  ordinary.addTriangleCallback(SoShape::getClassTypeId(),lateTriangle,&observed);
+  InventoryLateShape::initClass();
+  auto * late=new InventoryLateShape; late->ref();
+  ordinary.apply(late);
+  ok &= check(observed.order==std::vector<int>({1,2,3}) && observed.triangles==1,
+              "late shape inherits callbacks in registration order");
+  ok &= check(capture(late) && witness.frame.indices.size()==3,
+              "existing render action captures a shape initialized later");
+  InventoryLaterShape::initClass();
+  auto * later=new InventoryLaterShape; later->ref();
+  observed.order.clear(); observed.triangles=0;
+  ordinary.apply(later); ordinary.apply(late);
+  ok &= check(observed.order==std::vector<int>({1,2,3,1,2,3}) && observed.triangles==2,
+              "another late descendant expands without duplicating existing callbacks");
+  ok &= check(capture(later) && witness.frame.indices.size()==3,
+              "existing render action captures a second late generation");
+  observed.order.clear(); observed.triangles=0; observed.prune=true;
+  ordinary.apply(later);
+  ok &= check(observed.order==std::vector<int>({1,2,3}) && !observed.triangles,
+              "late-node PRUNE preserves post callbacks and skips primitives");
+  observed.order.clear(); observed.prune=false; observed.abort=true;
+  ordinary.apply(later);
+  ok &= check(observed.order==std::vector<int>({1,3}) && ordinary.hasTerminated(),
+              "late-node ABORT skips later pre callbacks and preserves native post behavior");
+  observed.abort=false; observed.order.clear();
+  ordinary.apply(later);
+  ok &= check(observed.order==std::vector<int>({1,2,3}) && observed.triangles==1,
+              "same callback action recovers after ABORT");
+  InventoryLateShader::initClass();
+  auto * lateShader=new InventoryLateShader; lateShader->ref();
+  auto * fragment=new SoFragmentShader; fragment->sourceProgram="void main() {}";
+  lateShader->shaderObject.set1Value(0,fragment);
+  const auto latePrevious=witness.frame; const auto lateSubmits=witness.submits;
+  ok &= check(!capture(lateShader) && action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+              witness.submits==lateSubmits && witness.frame.hasSamePayload(latePrevious),
+              "late shader inherits admission callback and preserves publication on rejection");
+  lateShader->unref();
+  ok &= check(capture(late),"same render action recovers after late-node rejection");
+  later->unref(); late->unref();
+  auto* glOnly = new InventoryGlOnlyNode;
+  glOnly->ref();
+  ok &= check(capture(glOnly) && !glOnly->glCalls && witness.frame.draws.empty(),
+                  "GL-only node currently succeeds with no draws: a blocker, not support");
+  glOnly->unref();
+  auto* text = new SoText2;
+  text->string = "P15";
+  ok &= check(capture(text) && !witness.frame.draws.empty() && !witness.frame.textures.empty(),
+              "SoText2 captures screen glyph coverage and texture payload");
+  auto* image = new SoImage;
+  std::vector<unsigned char> bytes(4 * 4 * 4, 255);
+  image->image.setValue(SbVec2s(4, 4), 4, bytes.data());
+  ok &=
+      check(capture(image) && !witness.frame.draws.empty() && !witness.frame.textures.empty(),
+            "standalone SoImage captures its pixel payload as a screen raster");
+  const auto imageFrame = witness.frame;
+  auto * hostImage = new InventoryImage; hostImage->ref();
+  hostImage->image.setValue(SbVec2s(4,4),4,bytes.data());
+  unsigned imageObserverCalls = 0;
+  action.addTriangleCallback(InventoryImage::getClassTypeId(),
+    [](void * data, SoCallbackAction *, const SoPrimitiveVertex *,
+       const SoPrimitiveVertex *, const SoPrimitiveVertex *) { ++*static_cast<unsigned *>(data); },
+    &imageObserverCalls);
+  ok &= check(!action.captureScreenContent(hostImage), "delegation outside apply is inert");
+  ok &= check(capture(hostImage) && hostImage->callbacks == 1 && imageObserverCalls == 2 &&
+              witness.frame.vertices.size() == imageFrame.vertices.size() &&
+              witness.frame.indices == imageFrame.indices &&
+              witness.frame.textures.size() == imageFrame.textures.size() &&
+              witness.frame.textures.back().pixelsRgba == imageFrame.textures.back().pixelsRgba,
+              "host image delegates the same native raster without duplicate quad");
+  hostImage->width = 8;
+  ok &= check(capture(hostImage) && hostImage->callbacks == 2 && imageObserverCalls == 4 &&
+              witness.frame.vertices.size() == imageFrame.vertices.size() &&
+              witness.frame.vertices[1].position[0] != imageFrame.vertices[1].position[0],
+              "host image mutation recaptures");
+  hostImage->unref();
+  auto * hostText = new InventoryText; hostText->ref(); hostText->string = "P15";
+  ok &= check(capture(hostText) && hostText->callbacks == 1 &&
+              !witness.frame.draws.empty() && !witness.frame.textures.empty(),
+              "host text explicitly delegates after its callback");
+  hostText->string = "";
+  ok &= check(capture(hostText) && hostText->callbacks == 2 && witness.frame.draws.empty(),
+              "host empty text removes its raster");
+  const unsigned beforeInvalidDelegation = witness.submits;
+  hostText->invalidDelegation = true;
+  ok &= check(!capture(hostText) && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeInvalidDelegation,
+              "invalid host delegation rejects before publication");
+  hostText->invalidDelegation = false; hostText->string = "Recovered P15";
+  ok &= check(capture(hostText) && !witness.frame.draws.empty(),
+              "host delegation recovers on the same action");
+  hostText->unref();
+  ok &= check(!action.rejectUnsupported("outside apply"), "host rejection outside apply is inert");
+  auto * unsupportedHost = new SoCallback; unsupportedHost->ref();
+  unsupportedHost->setCallback([](void *, SoAction * current) {
+    static_cast<CoinRenderAction *>(current)->rejectUnsupported("Host test: profile limit");
+  }, nullptr);
+  const unsigned beforeHostRejection = witness.submits;
+  const auto previousHostFrame = witness.frame;
+  ok &= check(!capture(unsupportedHost) && action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeHostRejection && witness.frame.hasSamePayload(previousHostFrame),
+              "explicit host rejection preserves the previous publication");
+  unsupportedHost->unref();
+  ok &= check(capture(new SoCube), "same action recovers after host rejection");
+  auto* coords = new SoCoordinate3;
+  const SbVec3f points[] = {SbVec3f(-1, -1, 0), SbVec3f(1, -1, 0), SbVec3f(0, 1, 0)};
+  coords->point.setValues(0, 3, points);
+  root->addChild(coords);
+  auto* faces = new InventoryFaces;
+  faces->ref();
+  const int32_t indices[] = {0, 1, 2, -1};
+  faces->coordIndex.setValues(0, 4, indices);
+  for (bool fast : {true, false}) {
+    action.setFastPathEnabled(fast);
+    const unsigned before = faces->callbacks;
+    ok &= check(capture(faces) && faces->callbacks == before + 1 && !witness.frame.draws.empty(),
+                "indexed subclasses retain their virtual callback in fast and generic paths");
+  }
+  faces->unref();
+  auto* program = new SoShaderProgram;
+  auto* shader = new SoFragmentShader;
+  shader->sourceType = SoShaderObject::GLSL_PROGRAM;
+  shader->sourceProgram = "void main() { gl_FragColor = vec4(1.0,0.0,0.0,1.0); }";
+  program->shaderObject.set1Value(0, shader);
+  root->addChild(program);
+  const unsigned beforeShader = witness.submits;
+  ok &= check(!capture(new SoCube) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeShader &&
+              action.getLastError().find("SoShaderProgram") >= 0,
+              "active shader must fail before publication");
+  root->removeChild(program);
+  ok &= check(capture(new SoTexture3) && capture(new SoTextureCubeMap),
+              "empty texture nodes must remain inert");
+  const unsigned beforeEffects = witness.submits;
+  auto* volume = new SoTexture3;
+  const unsigned char whiteVolume[8] = {255,255,255,255,255,255,255,255};
+  volume->images.setValue(SbVec3s(2, 2, 2), 1, whiteVolume);
+  ok &= check(!capture(volume) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoTexture3") >= 0,
+              "3D texture must fail before publication");
+  auto* cubeMap = new SoTextureCubeMap;
+  const unsigned char whiteFace[4] = {255,255,255,255};
+  cubeMap->imagePosX.setValue(SbVec2s(2, 2), 1, whiteFace);
+  ok &= check(!capture(cubeMap) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoTextureCubeMap") >= 0,
+              "cube texture must fail before publication");
+  auto* cubeRtt = new SoSceneTextureCubeMap;
+  cubeRtt->scene = new SoCube;
+  ok &= check(!capture(cubeRtt) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoSceneTextureCubeMap") >= 0,
+              "cube scene texture must fail before publication");
+  auto* shadows = new SoShadowGroup;
+  shadows->ref();
+  shadows->addChild(new SoCube);
+  ok &= check(!capture(shadows) &&
+              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+              witness.submits == beforeEffects &&
+              action.getLastError().find("SoShadowGroup") >= 0,
+              "active shadow group must fail before publication");
+  shadows->isActive = FALSE;
+  ok &= check(capture(shadows) && witness.submits == beforeEffects + 1 &&
+              !witness.frame.draws.empty(),
+              "inactive shadow group must preserve ordinary child traversal");
+  shadows->unref();
+  action.setRenderTarget(nullptr);
+  root->unref();
+  if (!ok)
+    return 1;
+  std::cout << "P15/P25: GL-only characterization, native raster, delegation, effect gates and subclass "
+               "callbacks characterized\n";
+  return 0;
+}
