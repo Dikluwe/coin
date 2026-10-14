@@ -1,0 +1,102 @@
+{
+  "phase": "wgpu",
+  "identifiers": {
+    "COIN_SOWGPUBRIDGEPHASESAMPLE_H": "COIN_WGPU_BRIDGE_PHASE_SAMPLE_H",
+    "COIN_SOWGPUFFIFRAME_H": "COIN_WGPU_FFI_FRAME_H",
+    "COIN_SOWGPUNATIVEBACKEND_H": "COIN_WGPU_NATIVE_BACKEND_H",
+    "COIN_SOWGPURUSTBACKEND_H": "COIN_WGPU_BACKEND_H",
+    "CoinRenderCacheTest": "CoinWgpuCacheTest",
+    "HAVE_WGPU_DAWN": "HAVE_COIN_DAWN",
+    "HAVE_WGPU_NATIVE": "HAVE_COIN_WGPU_NATIVE",
+    "HAVE_WGPU_RUST_BRIDGE": "HAVE_COIN_WGPU_RUST_BRIDGE",
+    "SoWgpuBridgePhaseSample": "CoinWgpuBridgePhaseSample",
+    "SoWgpuFfiFrame": "CoinWgpuFfiFrame",
+    "SoWgpuNativeBackend": "CoinWgpuNativeBackend",
+    "SoWgpuRustBackend": "CoinWgpuBackend",
+    "WgpuFfiFrameTest": "CoinWgpuFfiFrameTest",
+    "WgpuMultiDeviceTest": "CoinWgpuMultiDeviceTest",
+    "coin_wgpu_ffi": "CoinWgpuFfi"
+  },
+  "paths": [
+    [
+      ".github/scripts/build-and-test-wgpu.sh",
+      ".github/scripts/build-and-test-coin-wgpu.sh"
+    ],
+    [
+      "docs/coin-render-annotation-contract.md",
+      "docs/coin-wgpu-annotation-contract.md"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuFfiFrame.cpp",
+      "src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuFfiFrame.h",
+      "src/rendering/coinwgpu/CoinWgpuFfiFrame.h"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuNativeBackend.cpp",
+      "src/rendering/coinwgpu/CoinWgpuNativeBackend.cpp"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuNativeBackend.h",
+      "src/rendering/coinwgpu/CoinWgpuNativeBackend.h"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuRustBackend.cpp",
+      "src/rendering/coinwgpu/CoinWgpuBackend.cpp"
+    ],
+    [
+      "src/rendering/coinrender/SoWgpuRustBackend.h",
+      "src/rendering/coinwgpu/CoinWgpuBackend.h"
+    ],
+    [
+      "src/rendering/coinrender/coin_wgpu_ffi.h",
+      "src/rendering/coinwgpu/CoinWgpuFfi.h"
+    ],
+    [
+      "src/rendering/coinrender/rust_bridge/Cargo.lock",
+      "src/rendering/coinwgpu/rust_bridge/Cargo.lock"
+    ],
+    [
+      "src/rendering/coinrender/rust_bridge/Cargo.toml",
+      "src/rendering/coinwgpu/rust_bridge/Cargo.toml"
+    ],
+    [
+      "src/rendering/coinrender/rust_bridge/src/composition.rs",
+      "src/rendering/coinwgpu/rust_bridge/src/composition.rs"
+    ],
+    [
+      "src/rendering/coinrender/rust_bridge/src/lib.rs",
+      "src/rendering/coinwgpu/rust_bridge/src/lib.rs"
+    ],
+    [
+      "src/rendering/coinrender/rust_bridge/tests/gouraud_shader.rs",
+      "src/rendering/coinwgpu/rust_bridge/tests/gouraud_shader.rs"
+    ],
+    [
+      "src/rendering/coinrender/shaders/coin_line.wgsl",
+      "src/rendering/coinwgpu/shaders/coin_line.wgsl"
+    ],
+    [
+      "src/rendering/coinrender/shaders/coin_point.wgsl",
+      "src/rendering/coinwgpu/shaders/coin_point.wgsl"
+    ],
+    [
+      "src/rendering/coinrender/shaders/coin_standard.wgsl",
+      "src/rendering/coinwgpu/shaders/coin_standard.wgsl"
+    ],
+    [
+      "testsuite/coinrender/CoinRenderCacheTest.cpp",
+      "testsuite/coinwgpu/CoinWgpuCacheTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuFfiFrameTest.cpp",
+      "testsuite/coinwgpu/CoinWgpuFfiFrameTest.cpp"
+    ],
+    [
+      "testsuite/coinrender/WgpuMultiDeviceTest.cpp",
+      "testsuite/coinwgpu/CoinWgpuMultiDeviceTest.cpp"
+    ]
+  ]
+}

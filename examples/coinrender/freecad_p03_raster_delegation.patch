@@ -1,0 +1,66 @@
+--- a/src/Gui/SoLabelNodes.h
++++ b/src/Gui/SoLabelNodes.h
+@@ -69,6 +69,7 @@
+     SoColorBarLabel();
+
+ protected:
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+ };
+
+@@ -147,6 +148,7 @@
+     ~SoFrameLabel() override = default;
+     void notify(SoNotList* list) override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+
+ private:
+     void prepareImage(SoState* state);
+--- a/src/Gui/SoLabelNodes.cpp
++++ b/src/Gui/SoLabelNodes.cpp
+@@ -40,6 +40,10 @@
+ #include <QPen>
+ #include <QStringList>
+ #include <Inventor/actions/SoAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/elements/SoLazyElement.h>
+ #include <Inventor/SbVec2f.h>
+@@ -108,6 +112,17 @@
+     SO_NODE_CONSTRUCTOR(SoColorBarLabel);
+ }
+
++void SoColorBarLabel::callback(SoCallbackAction* action)
++{
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action->isOfType(CoinRenderAction::getClassTypeId())) {
++        static_cast<CoinRenderAction*>(action)->captureScreenContent(this);
++        return;
++    }
++#endif
++    inherited::callback(action);
++}
++
+ void SoColorBarLabel::computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center)
+ {
+     computeText2BBoxWithCoinWorkaround(action, this, box, center, [&](SbBox3f& textBox, SbVec3f& textCenter) {
+@@ -504,3 +519,16 @@
+     prepareImage(action ? action->getState() : nullptr);
+     inherited::GLRender(action);
+ }
++
++void SoFrameLabel::callback(SoCallbackAction* action)
++{
++    // Cold preparation belongs to the host, before common raster capture.
++    prepareImage(action ? action->getState() : nullptr);
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action && action->isOfType(CoinRenderAction::getClassTypeId())) {
++        static_cast<CoinRenderAction*>(action)->captureScreenContent(this);
++        return;
++    }
++#endif
++    inherited::callback(action);
++}

@@ -1,0 +1,95 @@
+--- a/src/Gui/Quarter/QuarterWidget.cpp
++++ b/src/Gui/Quarter/QuarterWidget.cpp
+@@ -82,4 +82,6 @@
+ #include <Inventor/rendering/CoinRenderNativeSurface.h>
+ #include <Inventor/rendering/CoinRenderManagerAdapter.h>
++#include <Inventor/rendering/CoinRenderSceneManager.h>
++#include <Inventor/rendering/CoinRenderTarget.h>
+ #include <QtGui/qguiapplication_platform.h>
+ #include <X11/extensions/shape.h>
+@@ -1170,8 +1172,11 @@
+     }
+     bool rendered = false;
++    auto candidateStatus = CoinRenderAction::BACKEND_ERROR;
+     if (PRIVATE(this)->wgpuadapter) {
+         PRIVATE(this)->wgpuadapter->setSceneGraphOverride(this->getWgpuSceneGraph());
+-        if (PRIVATE(this)->wgpuadapter->resize(size))
+-            rendered = PRIVATE(this)->wgpuadapter->render() == CoinRenderAction::SUCCESS;
++        if (PRIVATE(this)->wgpuadapter->resize(size)) {
++            candidateStatus = PRIVATE(this)->wgpuadapter->render();
++            rendered = candidateStatus == CoinRenderAction::SUCCESS;
++        }
+         if (!rendered)
+             reason = QString::fromUtf8(PRIVATE(this)->wgpuadapter->getLastError().getString());
+@@ -1180,4 +1185,15 @@
+     PRIVATE(this)->processdelayqueue = true;
+     PRIVATE(this)->wgpuframerunning = false;
++    setProperty("wgpuFrameStatus", int(candidateStatus));
++    setProperty("wgpuFrameError", rendered ? QString() : reason);
++    if (!rendered && candidateStatus == CoinRenderAction::UNSUPPORTED
++        && PRIVATE(this)->wgpuadapter->getSceneManager()->getRenderTarget()->getLastSubmissionSerial() > 0
++        && PRIVATE(this)->wgpuadapter->getSceneManager()->getRenderTarget()->getStatus()
++            == CoinRenderTarget::TARGET_READY) {
++        // Admission failure leaves a healthy target and its last publication.
++        // Keep it alive so a corrected scene can recover on the next redraw.
++        qWarning() << "CoinRender frame rejected; previous image retained:" << reason;
++        return;
++    }
+     if (rendered) {
+         const auto frames = property("wgpuFrameCount").toULongLong() + 1;
+--- a/src/Mod/Mesh/Gui/SoPolygon.cpp
++++ b/src/Mod/Mesh/Gui/SoPolygon.cpp
+@@ -40,9 +40,4 @@
+ #include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/SoPrimitiveVertex.h>
+-#include <Inventor/nodes/SoSeparator.h>
+-#include <Inventor/nodes/SoCoordinate3.h>
+-#include <Inventor/nodes/SoLineSet.h>
+-#include <Inventor/nodes/SoDrawStyle.h>
+-#include <Inventor/nodes/SoLightModel.h>
+ #include <Inventor/elements/SoLineWidthElement.h>
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+@@ -140,35 +135,4 @@
+     //}
+     inherited::rayPick(action);
+-}
+-
+-void SoPolygon::callback(SoCallbackAction* action)
+-{
+-    if (!render.getValue()) return;
+-    const auto* coordinates = SoCoordinateElement::getInstance(action->getState());
+-    const int32_t first = startIndex.getValue(), count = numVertices.getValue();
+-    if (first < 0 || count < 0 || count > 65536 || first > coordinates->getNum()
+-        || count > coordinates->getNum() - first) {
+-#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-        if (action->isOfType(CoinRenderAction::getClassTypeId()))
+-            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoPolygon: invalid coordinate range or 65536-point budget");
+-#endif
+-        return;
+-    }
+-    if (count < 2) return;
+-    auto* root = new SoSeparator; root->ref();
+-    auto* lighting = new SoLightModel; lighting->model = SoLightModel::BASE_COLOR;
+-    root->addChild(lighting);
+-    auto* style = new SoDrawStyle; style->lineWidth = 3.0F;
+-    root->addChild(style);
+-    auto* points = new SoCoordinate3;
+-    auto* lines = new SoLineSet;
+-    for (int32_t i = 0; i < count; ++i) {
+-        points->point.set1Value(2*i, coordinates->get3(first+i));
+-        points->point.set1Value(2*i+1, coordinates->get3(first+(i+1)%count));
+-        lines->numVertices.set1Value(i, 2);
+-    }
+-    root->addChild(points); root->addChild(lines);
+-    root->callback(action);
+-    root->unref();
+ }
+
+--- a/src/Mod/Mesh/Gui/SoPolygon.h
++++ b/src/Mod/Mesh/Gui/SoPolygon.h
+@@ -54,5 +54,4 @@
+     ~SoPolygon() override = default;
+     void GLRender(SoGLRenderAction* action) override;
+-    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+     void rayPick(SoRayPickAction* action) override;

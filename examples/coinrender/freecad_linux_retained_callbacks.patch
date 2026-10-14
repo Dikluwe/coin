@@ -1,0 +1,517 @@
+diff --git a/src/Gui/Inventor/Draggers/SoTransformDragger.cpp b/src/Gui/Inventor/Draggers/SoTransformDragger.cpp
+--- a/src/Gui/Inventor/Draggers/SoTransformDragger.cpp
++++ b/src/Gui/Inventor/Draggers/SoTransformDragger.cpp
+@@ -27,4 +27,5 @@
+ #include <Inventor/SbRotation.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/engines/SoComposeVec3f.h>
+ #include <Inventor/nodes/SoLightModel.h>
+@@ -523,4 +524,14 @@
+         sudoThis->idleSensor.schedule();
+     }
++}
++
++void SoTransformDragger::callback(SoCallbackAction* action)
++{
++    if (!scaleInited) {
++        scaleInited = true;
++        updateDraggerCache(action->getCurPath());
++    }
++    updateAxisScale();
++    inherited::callback(action);
+ }
+
+diff --git a/src/Gui/Inventor/Draggers/SoTransformDragger.h b/src/Gui/Inventor/Draggers/SoTransformDragger.h
+--- a/src/Gui/Inventor/Draggers/SoTransformDragger.h
++++ b/src/Gui/Inventor/Draggers/SoTransformDragger.h
+@@ -163,4 +163,5 @@
+
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+
+ protected:
+diff --git a/src/Gui/Inventor/SoAxisCrossKit.cpp b/src/Gui/Inventor/SoAxisCrossKit.cpp
+--- a/src/Gui/Inventor/SoAxisCrossKit.cpp
++++ b/src/Gui/Inventor/SoAxisCrossKit.cpp
+@@ -28,4 +28,5 @@
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/elements/SoModelMatrixElement.h>
+ #include <Inventor/elements/SoViewportRegionElement.h>
+@@ -81,4 +82,10 @@
+ }
+
++void SoShapeScale::callback(SoCallbackAction* action)
++{
++    updateScale(action ? action->getState() : nullptr);
++    inherited::callback(action);
++}
++
+ void SoShapeScale::GLRender(SoGLRenderAction* action)
+ {
+diff --git a/src/Gui/Inventor/SoAxisCrossKit.h b/src/Gui/Inventor/SoAxisCrossKit.h
+--- a/src/Gui/Inventor/SoAxisCrossKit.h
++++ b/src/Gui/Inventor/SoAxisCrossKit.h
+@@ -70,4 +70,5 @@
+     void updateScale(SoState* state);
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     ~SoShapeScale() override;
+ };
+diff --git a/src/Gui/Inventor/SoFCBoundingBox.cpp b/src/Gui/Inventor/SoFCBoundingBox.cpp
+--- a/src/Gui/Inventor/SoFCBoundingBox.cpp
++++ b/src/Gui/Inventor/SoFCBoundingBox.cpp
+@@ -37,4 +37,13 @@
+
+ #include <sstream>
++#include <cmath>
++#include <Inventor/SbVec4f.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/elements/SoDepthBufferElement.h>
++#include <Inventor/elements/SoViewingMatrixElement.h>
++#include <Inventor/elements/SoProjectionMatrixElement.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+
+ #include <Inventor/SbBox.h>
+@@ -125,4 +134,40 @@
+     textSep->unref();
+     dimSep->unref();
++}
++
++void SoFCBoundingBox::callback(SoCallbackAction* action)
++{
++    if (!action) return;
++    SoState* state = action->getState();
++    prepareGeometry(state);
++    state->push();
++    if (ViewParams::instance()->getRenderProjectedBBox())
++        SoModelMatrixElement::makeIdentity(state, this);
++    const SbMatrix transform = SoModelMatrixElement::get(state)
++        * SoViewingMatrixElement::get(state) * SoProjectionMatrixElement::get(state);
++    for(int i=0;i<8;++i) {
++        const auto& point=bboxCoords->point[i];
++        SbVec4f clip(point[0],point[1],point[2],1);
++        transform.multVecMatrix(clip,clip);
++        if (!std::isfinite(clip[2]) || !std::isfinite(clip[3]) || clip[3]<=0
++            || clip[2]<-clip[3] || clip[2]>clip[3]) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++            if (action->isOfType(CoinRenderAction::getClassTypeId()))
++                static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCBoundingBox: geometric depth clamp is outside the portable profile");
++#endif
++            state->pop();
++            return;
++        }
++    }
++    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
++    const SbBool test=SoDepthBufferElement::getTestEnable(state);
++    const SbBool write=SoDepthBufferElement::getWriteEnable(state);
++    const auto range=SoDepthBufferElement::getRange(state);
++    SoDepthBufferElement::set(state,test,write,SoDepthBufferElement::LEQUAL,range);
++    bboxSep->callback(action);
++    SoDepthBufferElement::set(state,test,write,SoDepthBufferElement::ALWAYS,range);
++    if(coordsOn.getValue()) textSep->callback(action);
++    if(dimensionsOn.getValue()) dimSep->callback(action);
++    state->pop();
+ }
+
+diff --git a/src/Gui/Inventor/SoFCBoundingBox.h b/src/Gui/Inventor/SoFCBoundingBox.h
+--- a/src/Gui/Inventor/SoFCBoundingBox.h
++++ b/src/Gui/Inventor/SoFCBoundingBox.h
+@@ -73,4 +73,5 @@
+     ~SoFCBoundingBox() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void generatePrimitives(SoAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+diff --git a/src/Gui/SoDatumLabel.cpp b/src/Gui/SoDatumLabel.cpp
+--- a/src/Gui/SoDatumLabel.cpp
++++ b/src/Gui/SoDatumLabel.cpp
+@@ -34,4 +34,5 @@
+ #include <Inventor/SoPrimitiveVertex.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/elements/SoFocalDistanceElement.h>
+ #include <Inventor/elements/SoModelMatrixElement.h>
+@@ -61,4 +62,6 @@
+
+ #include "SoDatumLabel.h"
++#include "Inventor/CoinRenderGeneratedImage.h"
++#include <Inventor/elements/SoShapeStyleElement.h>
+
+ // NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-pro-bounds-pointer-arithmetic)
+@@ -1550,4 +1553,8 @@
+     }
+
++    // Retain the logical text dimensions; normalize only the sampled payload.
++    if (m_TextTexture->image.isConnected()) m_TextTexture->image.disconnect();
++    Gui::setGeneratedTextureImage(m_TextTexture->image, imgsize, nc, dataptr);
++
+     const SbViewVolume& vv = SoViewVolumeElement::get(state);
+     const SbVec3f z = vv.zVector();
+@@ -1657,4 +1664,19 @@
+
+     return hasText;
++}
++
++void SoDatumLabel::callback(SoCallbackAction* action)
++{
++    if (!action) return;
++    SoState* state = action->getState();
++    state->push();
++    SoLazyElement::setBackfaceCulling(state, FALSE);
++    if (prepareRenderScene(state)) {
++        SoTextureQualityElement::set(state, this, 0.49F);
++        SoShapeStyleElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++        SoLazyElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++    }
++    if (m_Root) m_Root->callback(action);
++    state->pop();
+ }
+
+diff --git a/src/Gui/SoDatumLabel.h b/src/Gui/SoDatumLabel.h
+--- a/src/Gui/SoDatumLabel.h
++++ b/src/Gui/SoDatumLabel.h
+@@ -111,4 +111,5 @@
+     ~SoDatumLabel() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction*, SbBox3f& box, SbVec3f& center) override;
+     void generatePrimitives(SoAction* action) override;
+diff --git a/src/Gui/SoFCColorBar.cpp b/src/Gui/SoFCColorBar.cpp
+--- a/src/Gui/SoFCColorBar.cpp
++++ b/src/Gui/SoFCColorBar.cpp
+@@ -27,4 +27,6 @@
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/elements/SoViewportRegionElement.h>
+ #include <Inventor/actions/SoHandleEventAction.h>
+ #include <Inventor/events/SoMouseButtonEvent.h>
+@@ -520,4 +522,10 @@
+ }
+
++void SoFCColorBar::callback(SoCallbackAction* action)
++{
++    prepareViewport(SoViewportRegionElement::get(action->getState()).getWindowSize());
++    inherited::callback(action);
++}
++
+ void SoFCColorBar::GLRenderBelowPath(SoGLRenderAction* action)
+ {
+diff --git a/src/Gui/SoFCColorBar.h b/src/Gui/SoFCColorBar.h
+--- a/src/Gui/SoFCColorBar.h
++++ b/src/Gui/SoFCColorBar.h
+@@ -71,4 +71,5 @@
+
+     void GLRenderBelowPath(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void handleEvent(SoHandleEventAction* action) override;
+
+diff --git a/src/Gui/SoLabelNodes.cpp b/src/Gui/SoLabelNodes.cpp
+--- a/src/Gui/SoLabelNodes.cpp
++++ b/src/Gui/SoLabelNodes.cpp
+@@ -64,4 +64,5 @@
+ #include "Inventor/SoFCScreenSpaceGroup.h"
+ #include "SoLabelNodes.h"
++#include "Inventor/CoinRenderGeneratedImage.h"
+ #include "SoFCInteractiveElement.h"
+ #include "Tools.h"
+@@ -184,4 +185,18 @@
+  * Render the retained viewport-space text quad in the legacy renderer.
+  */
++void SoStringLabel::callback(SoCallbackAction* action)
++{
++    if (!action || !textRoot || !textSwitch) return;
++    SoState* state = action->getState();
++    state->push();
++    ensureTextGeometry(state);
++    if (textSwitch->whichChild.getValue() != SO_SWITCH_NONE) {
++        SoShapeStyleElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++        SoLazyElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++        textRoot->callback(action);
++    }
++    state->pop();
++}
++
+ void SoStringLabel::GLRender(SoGLRenderAction* action)
+ {
+@@ -330,5 +345,7 @@
+     SoSFImage sfImage;
+     Gui::BitmapFactory().convert(image, sfImage);
+-    textTexture->image = sfImage;
++    SbVec2s payloadSize; int components;
++    const unsigned char* payload = sfImage.getValue(payloadSize, components);
++    Gui::setGeneratedTextureImage(textTexture->image, payloadSize, components, payload);
+
+     cachedImageWidth = maxWidth;
+diff --git a/src/Gui/SoLabelNodes.h b/src/Gui/SoLabelNodes.h
+--- a/src/Gui/SoLabelNodes.h
++++ b/src/Gui/SoLabelNodes.h
+@@ -92,4 +92,5 @@
+     ~SoStringLabel() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void notify(SoNotList* list) override;
+
+diff --git a/src/Mod/Mesh/Gui/CMakeLists.txt b/src/Mod/Mesh/Gui/CMakeLists.txt
+--- a/src/Mod/Mesh/Gui/CMakeLists.txt
++++ b/src/Mod/Mesh/Gui/CMakeLists.txt
+@@ -157,4 +157,9 @@
+ endif ()
+
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    find_package(CoinRender CONFIG REQUIRED)
++    set_source_files_properties(SoFCMeshObject.cpp SoPolygon.cpp PROPERTIES COMPILE_DEFINITIONS FREECAD_COIN_WGPU_EXPERIMENTAL)
++endif()
++
+ add_library(MeshGui SHARED ${MeshGui_SRCS} ${MeshGuiIcon_SVG})
+
+@@ -171,4 +176,7 @@
+ )
+ target_link_libraries(MeshGui ${MeshGui_LIBS})
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    target_link_libraries(MeshGui CoinRender::CoinRender)
++endif()
+
+ if (MSVC)
+diff --git a/src/Mod/Mesh/Gui/SoFCMeshObject.cpp b/src/Mod/Mesh/Gui/SoFCMeshObject.cpp
+--- a/src/Mod/Mesh/Gui/SoFCMeshObject.cpp
++++ b/src/Mod/Mesh/Gui/SoFCMeshObject.cpp
+@@ -41,4 +41,12 @@
+ #include <Inventor/SoPrimitiveVertex.h>
+ #include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/nodes/SoBaseColor.h>
++#include <Inventor/nodes/SoLightModel.h>
++#include <Inventor/nodes/SoLineSet.h>
++#include <Inventor/nodes/SoCoordinate3.h>
++#include <Inventor/nodes/SoSeparator.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGetPrimitiveCountAction.h>
+@@ -441,4 +449,41 @@
+ {
+     SO_NODE_INIT_CLASS(SoFCMeshGridNode, SoNode, "Node");
++}
++
++void SoFCMeshGridNode::callback(SoCallbackAction* action)
++{
++    const SbVec3s dimensions = lenGrid.getValue();
++    if (dimensions == SbVec3s(0,0,0)) return; // Unconfigured grid.
++    for (int axis=0; axis<3; ++axis) {
++        if (dimensions[axis] < 1 || dimensions[axis] > 128) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++            if (action->isOfType(CoinRenderAction::getClassTypeId()))
++                static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCMeshGridNode: divisions must be 1..128");
++#endif
++            return;
++        }
++    }
++    auto* scene = new SoSeparator; scene->ref();
++    auto* lighting = new SoLightModel; lighting->model = SoLightModel::BASE_COLOR; scene->addChild(lighting);
++    auto* color = new SoBaseColor; color->rgb.setValue(0,1,0); scene->addChild(color);
++    auto* coordinates = new SoCoordinate3; scene->addChild(coordinates);
++    std::vector<SbVec3f> points;
++    const auto minimum=minGrid.getValue(), maximum=maxGrid.getValue();
++    for (int axis=0; axis<3; ++axis) {
++        const int a=(axis+1)%3, b=(axis+2)%3;
++        for(int i=0;i<=dimensions[a];++i) for(int j=0;j<=dimensions[b];++j) {
++            SbVec3f start=minimum, end;
++            start[a] += (maximum[a]-minimum[a])*float(i)/dimensions[a];
++            start[b] += (maximum[b]-minimum[b])*float(j)/dimensions[b];
++            end=start; end[axis]=maximum[axis];
++            points.push_back(start); points.push_back(end);
++        }
++    }
++    coordinates->point.setValues(0,static_cast<int>(points.size()),points.data());
++    auto* lines = new SoLineSet; scene->addChild(lines);
++    std::vector<int32_t> counts(points.size()/2,2);
++    lines->numVertices.setValues(0,static_cast<int>(counts.size()),counts.data());
++    scene->callback(action);
++    scene->unref();
+ }
+
+diff --git a/src/Mod/Mesh/Gui/SoFCMeshObject.h b/src/Mod/Mesh/Gui/SoFCMeshObject.h
+--- a/src/Mod/Mesh/Gui/SoFCMeshObject.h
++++ b/src/Mod/Mesh/Gui/SoFCMeshObject.h
+@@ -124,4 +124,5 @@
+     SoFCMeshGridNode();
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+
+     SoSFVec3f minGrid;
+diff --git a/src/Mod/Mesh/Gui/SoPolygon.cpp b/src/Mod/Mesh/Gui/SoPolygon.cpp
+--- a/src/Mod/Mesh/Gui/SoPolygon.cpp
++++ b/src/Mod/Mesh/Gui/SoPolygon.cpp
+@@ -38,4 +38,15 @@
+
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/SoPrimitiveVertex.h>
++#include <Inventor/nodes/SoSeparator.h>
++#include <Inventor/nodes/SoCoordinate3.h>
++#include <Inventor/nodes/SoLineSet.h>
++#include <Inventor/nodes/SoDrawStyle.h>
++#include <Inventor/nodes/SoLightModel.h>
++#include <Inventor/elements/SoLineWidthElement.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/bundles/SoMaterialBundle.h>
+ #include <Inventor/bundles/SoTextureCoordinateBundle.h>
+@@ -131,6 +142,64 @@
+ }
+
+-void SoPolygon::generatePrimitives(SoAction* /*action*/)
+-{}
++void SoPolygon::callback(SoCallbackAction* action)
++{
++    if (!render.getValue()) return;
++    const auto* coordinates = SoCoordinateElement::getInstance(action->getState());
++    const int32_t first = startIndex.getValue(), count = numVertices.getValue();
++    if (first < 0 || count < 0 || count > 65536 || first > coordinates->getNum()
++        || count > coordinates->getNum() - first) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoPolygon: invalid coordinate range or 65536-point budget");
++#endif
++        return;
++    }
++    if (count < 2) return;
++    auto* root = new SoSeparator; root->ref();
++    auto* lighting = new SoLightModel; lighting->model = SoLightModel::BASE_COLOR;
++    root->addChild(lighting);
++    auto* style = new SoDrawStyle; style->lineWidth = 3.0F;
++    root->addChild(style);
++    auto* points = new SoCoordinate3;
++    auto* lines = new SoLineSet;
++    for (int32_t i = 0; i < count; ++i) {
++        points->point.set1Value(2*i, coordinates->get3(first+i));
++        points->point.set1Value(2*i+1, coordinates->get3(first+(i+1)%count));
++        lines->numVertices.set1Value(i, 2);
++    }
++    root->addChild(points); root->addChild(lines);
++    root->callback(action);
++    root->unref();
++}
++
++void SoPolygon::generatePrimitives(SoAction* action)
++{
++    if (!render.getValue()) return;
++    SoState* state = action->getState();
++    const auto* coordinates = SoCoordinateElement::getInstance(state);
++    const int32_t first = startIndex.getValue(), count = numVertices.getValue();
++    if (first < 0 || count < 0 || count > 65536 || first > coordinates->getNum()
++        || count > coordinates->getNum() - first) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoPolygon: invalid coordinate range or 65536-point budget");
++#endif
++        return;
++    }
++    if (count < 2) return;
++    state->push();
++    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
++    SoLineWidthElement::set(state, 3.0F);
++    SoPrimitiveVertex vertex;
++    vertex.setNormal(SbVec3f(0,0,1));
++    vertex.setMaterialIndex(0);
++    beginShape(action, SoShape::LINES);
++    for (int32_t i = 0; i < count; ++i) {
++        vertex.setPoint(coordinates->get3(first+i)); shapeVertex(&vertex);
++        vertex.setPoint(coordinates->get3(first+(i+1)%count)); shapeVertex(&vertex);
++    }
++    endShape();
++    state->pop();
++}
+
+ /**
+diff --git a/src/Mod/Mesh/Gui/SoPolygon.h b/src/Mod/Mesh/Gui/SoPolygon.h
+--- a/src/Mod/Mesh/Gui/SoPolygon.h
++++ b/src/Mod/Mesh/Gui/SoPolygon.h
+@@ -54,4 +54,5 @@
+     ~SoPolygon() override = default;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+     void rayPick(SoRayPickAction* action) override;
+diff --git a/src/Mod/Part/Gui/CMakeLists.txt b/src/Mod/Part/Gui/CMakeLists.txt
+--- a/src/Mod/Part/Gui/CMakeLists.txt
++++ b/src/Mod/Part/Gui/CMakeLists.txt
+@@ -266,4 +266,9 @@
+ )
+
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    find_package(CoinRender CONFIG REQUIRED)
++    set_source_files_properties(SoFCShapeObject.cpp PROPERTIES COMPILE_DEFINITIONS FREECAD_COIN_WGPU_EXPERIMENTAL)
++endif()
++
+ add_library(PartGui SHARED ${PartGui_SRCS} ${PartGuiIcon_SVG})
+
+@@ -290,4 +295,7 @@
+ )
+ target_link_libraries(PartGui ${PartGui_LIBS})
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    target_link_libraries(PartGui CoinRender::CoinRender)
++endif()
+
+ if (MSVC)
+diff --git a/src/Mod/Part/Gui/SoFCShapeObject.cpp b/src/Mod/Part/Gui/SoFCShapeObject.cpp
+--- a/src/Mod/Part/Gui/SoFCShapeObject.cpp
++++ b/src/Mod/Part/Gui/SoFCShapeObject.cpp
+@@ -28,4 +28,8 @@
+ #include <vector>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/elements/SoCoordinateElement.h>
+ #include <Inventor/errors/SoReadError.h>
+@@ -239,4 +243,32 @@
+ }
+
++void SoFCControlPoints::callback(SoCallbackAction* action)
++{
++    if (!action || !renderRoot) return;
++    if (numPolesU.getValue()==0 && numPolesV.getValue()==0
++        && numKnotsU.getValue()==0 && numKnotsV.getValue()==0) return;
++    const uint64_t polesU=numPolesU.getValue(), polesV=numPolesV.getValue();
++    const uint64_t knotsU=numKnotsU.getValue(), knotsV=numKnotsV.getValue();
++    const uint64_t poles=polesU*polesV, knots=knotsU*knotsV;
++    const auto* coordinates=SoCoordinateElement::getInstance(action->getState());
++    if ((polesU==0)!=(polesV==0) || (knotsU==0)!=(knotsV==0)
++        || poles>65536 || knots>65536 || poles+knots>65536
++        || poles+knots>static_cast<uint64_t>(coordinates->getNum())) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCControlPoints: invalid dimensions, coordinate range or 65536-point budget");
++#endif
++        return;
++    }
++    if (!syncRenderGeometry(action->getState())) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCControlPoints: coordinates do not cover poles/knots");
++#endif
++        return;
++    }
++    renderRoot->callback(action);
++}
++
+ void SoFCControlPoints::GLRender(SoGLRenderAction* action)
+ {
+diff --git a/src/Mod/Part/Gui/SoFCShapeObject.h b/src/Mod/Part/Gui/SoFCShapeObject.h
+--- a/src/Mod/Part/Gui/SoFCShapeObject.h
++++ b/src/Mod/Part/Gui/SoFCShapeObject.h
+@@ -101,4 +101,5 @@
+     ~SoFCControlPoints() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+     void generatePrimitives(SoAction* action) override;

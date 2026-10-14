@@ -1,0 +1,82 @@
+--- a/src/Gui/CMakeLists.txt
++++ b/src/Gui/CMakeLists.txt
+@@ -129,12 +129,12 @@
+     list(APPEND FreeCADGui_LIBS ${COIN3D_LIBRARIES})
+ endif()
+
+-option(FREECAD_COIN_WGPU_EXPERIMENTAL "Render QuarterWidget through CoinWgpuExperimental when FREECAD_COIN_WGPU=1" OFF)
++option(FREECAD_COIN_WGPU_EXPERIMENTAL "Render QuarterWidget through CoinRender when FREECAD_COIN_WGPU=1" OFF)
+ if (FREECAD_COIN_WGPU_EXPERIMENTAL)
+-    find_package(CoinWgpuExperimental CONFIG REQUIRED)
++    find_package(CoinRender CONFIG REQUIRED)
+     find_package(X11 REQUIRED)
+     list(APPEND FreeCADGui_LIBS
+-        CoinWgpuExperimental::CoinWgpuExperimental
++        CoinRender::CoinRender
+         ${X11_Xfixes_LIB}
+     )
+     target_compile_definitions(FreeCADGui PRIVATE FREECAD_COIN_WGPU_EXPERIMENTAL)
+--- a/src/Gui/Quarter/QuarterWidget.cpp
++++ b/src/Gui/Quarter/QuarterWidget.cpp
+@@ -79,8 +79,8 @@
+ #include <Inventor/SoRenderManager.h>
+ #include <Gui/Selection/Selection.h>
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-#include <Inventor/rendering/SoWgpuNativeSurface.h>
+-#include <Inventor/rendering/SoWgpuRenderManagerAdapter.h>
++#include <Inventor/rendering/CoinRenderNativeSurface.h>
++#include <Inventor/rendering/CoinRenderManagerAdapter.h>
+ #include <QtGui/qguiapplication_platform.h>
+ #include <X11/extensions/shape.h>
+ #include <X11/extensions/Xfixes.h>
+@@ -1150,17 +1150,17 @@
+     if (!PRIVATE(this)->wgpuadapter) {
+         auto * x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+         if (x11) {
+-            SoWgpuNativeSurfaceDescriptor surface{};
+-            surface.abiVersion = COIN_WGPU_NATIVE_SURFACE_ABI_VERSION;
++            CoinRenderNativeSurfaceDescriptor surface{};
++            surface.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
+             surface.structSize = sizeof(surface);
+-            surface.type = COIN_WGPU_SURFACE_XLIB;
++            surface.type = COIN_RENDER_SURFACE_XLIB;
+             surface.native.xlib.display = x11->display();
+             const ::Window presentwindow = static_cast<::Window>(PRIVATE(this)->wgpupresent->winId());
+             XserverRegion inputregion = XFixesCreateRegion(x11->display(), nullptr, 0);
+             XFixesSetWindowShapeRegion(x11->display(), presentwindow, ShapeInput, 0, 0, inputregion);
+             XFixesDestroyRegion(x11->display(), inputregion);
+             surface.native.xlib.window = static_cast<uint64_t>(presentwindow);
+-            PRIVATE(this)->wgpuadapter = new SoWgpuRenderManagerAdapter(
++            PRIVATE(this)->wgpuadapter = new CoinRenderManagerAdapter(
+                 *getSoRenderManager(), surface, size);
+             PRIVATE(this)->wgpuwindow = windowId;
+         }
+@@ -1172,7 +1172,7 @@
+     if (PRIVATE(this)->wgpuadapter) {
+         PRIVATE(this)->wgpuadapter->setSceneGraphOverride(this->getWgpuSceneGraph());
+         if (PRIVATE(this)->wgpuadapter->resize(size))
+-            rendered = PRIVATE(this)->wgpuadapter->render() == SoWgpuRenderAction::SUCCESS;
++            rendered = PRIVATE(this)->wgpuadapter->render() == CoinRenderAction::SUCCESS;
+         if (!rendered)
+             reason = QString::fromUtf8(PRIVATE(this)->wgpuadapter->getLastError().getString());
+     }
+--- a/src/Gui/Quarter/QuarterWidgetP.h
++++ b/src/Gui/Quarter/QuarterWidgetP.h
+@@ -46,7 +46,7 @@
+ class SoCamera;
+ class SoRenderManager;
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-class SoWgpuRenderManagerAdapter;
++class CoinRenderManagerAdapter;
+ #endif
+ class SoEventManager;
+ class SoDirectionalLight;
+@@ -90,7 +90,7 @@
+   InteractionMode * interactionmode;
+   SoRenderManager * sorendermanager;
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-  SoWgpuRenderManagerAdapter * wgpuadapter {nullptr};
++  CoinRenderManagerAdapter * wgpuadapter {nullptr};
+   QWidget * wgpupresent {nullptr};
+   bool wgpuenabled {false};
+   bool wgpufailed {false};

@@ -1,0 +1,1363 @@
+{
+  "schema": 1,
+  "scope": "P16 Linux X11/Xwayland: Part/BRep, grid, on-top, nested App::Link, expanded link arrays, App::Part and document lifecycle",
+  "coin_base_revision": "7992e9ef4e",
+  "freecad_revision": "228c679d78845c3fb6f5eb3d1a27f48aceab68b5",
+  "freecad_source_digest": "9c8b84d4f8afdc65a944b984c2a3b833a5e9d620c8c9c166b8006e1583d67ee6",
+  "device": {
+    "driver": "RADV RENOIR",
+    "vendor": "0x1002",
+    "device": "0x1638",
+    "type": "IntegratedGpu"
+  },
+  "source_sha256": {
+    "src/rendering/coinrender/CoinRenderManagerAdapter.cpp": "35d95b025021d5e23ff8dc55da17f21b1da843ec1a67ad3e3272923881528ce1",
+    "src/rendering/coinrender/CoinRenderSceneManager.cpp": "c72e7c1f364a06aed968efdcf4fdd440a8103d3b0eb28d777f2d487d1a8ff93c",
+    "src/rendering/coinrender/CoinRenderDiagnosticShell.cpp": "73752d8c16d48423df325f3a8ea406442893a7f652a0d61d559946bdce096ef3",
+    "src/rendering/coinwgpu/rust_bridge/src/lib.rs": "d4d6f94e77b4425d71d350d3e87fa59d9d72e97ed3d4c4fed89b4cffe591aeb3",
+    "testsuite/qt-quarter/run.py": "cee6960ab7192a4ad2b5cfc9f3a0e4becd47703de6e0b164321a62241f4aa95e",
+    "testsuite/qt-quarter/freecad_viewport.FCMacro": "cdc9ad950d466560b352afb3290abb9c6850d57bf1af8c2824427f3dd3a65d1c",
+    "testsuite/qt-quarter/freecad_multi.FCMacro": "3f2bce8cdc3735405a8c8981ebe68d329806ef32447a350863178e28afb1bb9d",
+    "testsuite/qt-quarter/freecad_overlays.FCMacro": "dd4747f4fc6a6a7e5d1ed93f001fce1302eaa96d395a78a87699f05e9382f50c"
+  },
+  "counts": {
+    "PASS": 63,
+    "REFERENCE_PASS": 6
+  },
+  "results": [
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl",
+      "results_sha256": "8d9a9407cbc633201302bb613fda98eda71e2b53088cd185647965abf2438a8f",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3416,
+        "cleared->array-changed": 1526,
+        "survivor->camera": 30429
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-grid",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl",
+      "results_sha256": "8d9a9407cbc633201302bb613fda98eda71e2b53088cd185647965abf2438a8f",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "idle_start": 99,
+      "idle_end": 99,
+      "grid_pixels": 11593
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl",
+      "results_sha256": "8d9a9407cbc633201302bb613fda98eda71e2b53088cd185647965abf2438a8f",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 60,
+      "idle_end": 60
+    },
+    {
+      "test": "freecad-mouse-elements",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl",
+      "results_sha256": "8d9a9407cbc633201302bb613fda98eda71e2b53088cd185647965abf2438a8f",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "idle_start": 163,
+      "idle_end": 163,
+      "input_scenarios": [
+        {
+          "name": "orthographic",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective-placed",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        }
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl-weighted_oit-1x",
+      "results_sha256": "1bf7e2ef8365fdaffe4b8c03e919b14818ccb7611cd77f0d18705b521877633e",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3415,
+        "cleared->array-changed": 1526,
+        "survivor->camera": 30429
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl-weighted_oit-1x",
+      "results_sha256": "1bf7e2ef8365fdaffe4b8c03e919b14818ccb7611cd77f0d18705b521877633e",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 61,
+      "idle_end": 61
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-opengl-object-2x-validated",
+      "results_sha256": "05bbb8a00a2b754365532b269ec5a9da12817f0556bcac871e1f733a60560f3f",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 14001,
+        "cleared->array-changed": 5850,
+        "survivor->camera": 120913
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "first-expose",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "resize",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "maximize",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "minimize",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "panel",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "dpr",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "dpr",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "recreate",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "idle",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "wheel-rotation",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "two-viewports",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "two-viewports",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-opengl",
+      "results_sha256": "6512233be4fbf91d2ebb692f713e54637cf0c944c04c322432bc18852b6bbb24",
+      "adapter": "BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)"
+    },
+    {
+      "test": "freecad-multi",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-visible-freecad-bgfx-opengl-object-1x",
+      "results_sha256": "23cb9d85b263e688189cdbe27a05d77e199f388de0c982fef7087caa0bba7772",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        19258,
+        0
+      ],
+      "preselection_changed_samples": [
+        8660,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-multi",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-visible-freecad-bgfx-opengl-weighted_oit-1x",
+      "results_sha256": "35532d44d37751dd2ede4fe08164cd436ae24946a3f8b287da2e36159b848b08",
+      "adapter": "bgfx opengl vendor 0x0000 device 0x0000",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        19258,
+        0
+      ],
+      "preselection_changed_samples": [
+        8660,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-object-1x",
+      "results_sha256": "02ae7cc4e73f220a25637b07730a5627b0490ea3ece687c9ccb2e6c3bdf6a7cb",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3464,
+        "cleared->array-changed": 1578,
+        "survivor->camera": 30458
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-grid",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-object-1x",
+      "results_sha256": "02ae7cc4e73f220a25637b07730a5627b0490ea3ece687c9ccb2e6c3bdf6a7cb",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "idle_start": 100,
+      "idle_end": 100,
+      "grid_pixels": 11591
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-object-1x",
+      "results_sha256": "02ae7cc4e73f220a25637b07730a5627b0490ea3ece687c9ccb2e6c3bdf6a7cb",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 61,
+      "idle_end": 61
+    },
+    {
+      "test": "freecad-mouse-elements",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-object-1x",
+      "results_sha256": "02ae7cc4e73f220a25637b07730a5627b0490ea3ece687c9ccb2e6c3bdf6a7cb",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "idle_start": 163,
+      "idle_end": 163,
+      "input_scenarios": [
+        {
+          "name": "orthographic",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective-placed",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        }
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-weighted_oit-1x",
+      "results_sha256": "f7b5c0ffa66ee335be3a2adcb7beaf379cce87a3d95a85e41e19b727a0782ecf",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3471,
+        "cleared->array-changed": 1526,
+        "survivor->camera": 30502
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-weighted_oit-1x",
+      "results_sha256": "f7b5c0ffa66ee335be3a2adcb7beaf379cce87a3d95a85e41e19b727a0782ecf",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 61,
+      "idle_end": 61
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-bgfx-vulkan-object-2x-validated",
+      "results_sha256": "386753666641bab2a39a12401693827d6b873f94b6e1ad6d92cab8cd0ff15747",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 14002,
+        "cleared->array-changed": 5850,
+        "survivor->camera": 120966
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "first-expose",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "resize",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "maximize",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "minimize",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "panel",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "dpr",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "dpr",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "recreate",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "idle",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "wheel-rotation",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "two-viewports",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "two-viewports",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-bgfx-vulkan",
+      "results_sha256": "1ccccba48af36e3b9df0833d68adc39a84509c1f4ff124e5dc3c7332fea31993",
+      "adapter": "BGFX Vulkan AMD (vendor 0x1002, device 0x1638)"
+    },
+    {
+      "test": "freecad-multi",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-visible-freecad-bgfx-vulkan-object-1x",
+      "results_sha256": "c8738f7715f36108f0067d2763affe505b7c90a66ab9e1a28d27a7b7af76ee21",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        19258,
+        0
+      ],
+      "preselection_changed_samples": [
+        8662,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-multi",
+      "status": "PASS",
+      "backend": "bgfx",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-visible-freecad-bgfx-vulkan-weighted_oit-1x",
+      "results_sha256": "7584c99908039d92d16c36eedbcb082fdbd21b49fefe52f8034fecfb7f99bf42",
+      "adapter": "bgfx vulkan vendor 0x1002 device 0x1638",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        19258,
+        0
+      ],
+      "preselection_changed_samples": [
+        8661,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-object-1x",
+      "results_sha256": "45c0b6bf66f5ccd6e51f82c5522c6778f016eb8759d3b8bfe79dc0bf63952b2f",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3415,
+        "cleared->array-changed": 1526,
+        "survivor->camera": 30451
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-grid",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-object-1x",
+      "results_sha256": "45c0b6bf66f5ccd6e51f82c5522c6778f016eb8759d3b8bfe79dc0bf63952b2f",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "idle_start": 100,
+      "idle_end": 100,
+      "grid_pixels": 11592
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-object-1x",
+      "results_sha256": "45c0b6bf66f5ccd6e51f82c5522c6778f016eb8759d3b8bfe79dc0bf63952b2f",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 61,
+      "idle_end": 61
+    },
+    {
+      "test": "freecad-mouse-elements",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-object-1x",
+      "results_sha256": "45c0b6bf66f5ccd6e51f82c5522c6778f016eb8759d3b8bfe79dc0bf63952b2f",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "idle_start": 163,
+      "idle_end": 163,
+      "input_scenarios": [
+        {
+          "name": "orthographic",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective-placed",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        }
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-weighted_oit-1x",
+      "results_sha256": "af9c410a9014c921b6edc4f9fb50ef09ff23f23ede61172a27c56d1d73cd660b",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3415,
+        "cleared->array-changed": 1526,
+        "survivor->camera": 30568
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-weighted_oit-1x",
+      "results_sha256": "af9c410a9014c921b6edc4f9fb50ef09ff23f23ede61172a27c56d1d73cd660b",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 61,
+      "idle_end": 61
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-freecad-wgpu-vulkan-object-2x",
+      "results_sha256": "9818a277546e0a12eedcd616f6d50394379f3bc0a962d035d3fa0127912522b3",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 14001,
+        "cleared->array-changed": 5850,
+        "survivor->camera": 121014
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "first-expose",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "resize",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "maximize",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "minimize",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "panel",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "dpr",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "dpr",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "recreate",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "idle",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "wheel-rotation",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "two-viewports",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "two-viewports",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "qt",
+      "evidence_directory": "/tmp/coin-p16-final-qt-wgpu-vulkan",
+      "results_sha256": "a4136179de92d9e2f4e80dc1bbbb2f745bf368f2884a9ad93f8bd2ded6506816",
+      "adapter": "AMD Radeon Graphics (RADV RENOIR) (Vulkan)"
+    },
+    {
+      "test": "freecad-multi",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-visible-freecad-wgpu-vulkan-object-1x",
+      "results_sha256": "4f6b9dcb3cb4eb7d5e4e6fe9d2a8ca279bd2bd649fe297875bcc14aac1a31868",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        19261,
+        0
+      ],
+      "preselection_changed_samples": [
+        8661,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-multi",
+      "status": "PASS",
+      "backend": "wgpu",
+      "renderer": "vulkan",
+      "mode": "weighted_oit",
+      "scale": 1,
+      "hardware_gpu": true,
+      "gpu_submitted": true,
+      "suite": "freecad",
+      "evidence_directory": "/tmp/coin-p16-final-visible-freecad-wgpu-vulkan-weighted_oit-1x",
+      "results_sha256": "a84fa897c81920674ef958e2821902894830ce40e37cf09629136b9116de233b",
+      "adapter": "wgpu vulkan vendor 0x1002 device 0x1638",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        19261,
+        0
+      ],
+      "preselection_changed_samples": [
+        8662,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "REFERENCE_PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": false,
+      "gpu_submitted": false,
+      "suite": "reference",
+      "evidence_directory": "/tmp/coin-p16-final-reference-freecad-viewport",
+      "results_sha256": "f1e203d64ef1790227d8cd31da755f9b6189860ea12b218664d703838983ee02",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 3415,
+        "cleared->array-changed": 1527,
+        "survivor->camera": 29684
+      },
+      "owner_destroy_survivor": true
+    },
+    {
+      "test": "freecad-grid",
+      "status": "REFERENCE_PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": false,
+      "gpu_submitted": false,
+      "suite": "reference",
+      "evidence_directory": "/tmp/coin-p16-final-reference-freecad-grid",
+      "results_sha256": "4616db3260339b22a33339350ff8a966b39781a388f2b08f200d47f39b7765e3",
+      "idle_start": 0,
+      "idle_end": 0,
+      "grid_pixels": 11590
+    },
+    {
+      "test": "freecad-path-selection",
+      "status": "REFERENCE_PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": false,
+      "gpu_submitted": false,
+      "suite": "reference",
+      "evidence_directory": "/tmp/coin-p16-final-reference-freecad-path-selection",
+      "results_sha256": "1e4a8235ea8843977b9bd189ab73c619ad4357cbc905c37bd6dd7c4eb634bae7",
+      "face1_changed": 2198,
+      "face1_paths": 1,
+      "idle_start": 0,
+      "idle_end": 0
+    },
+    {
+      "test": "freecad-mouse-elements",
+      "status": "REFERENCE_PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": false,
+      "gpu_submitted": false,
+      "suite": "reference",
+      "evidence_directory": "/tmp/coin-p16-final-reference-freecad-mouse-elements",
+      "results_sha256": "0e8df7cc05ba835a5be0516bb2916b7f5f12d49821a6fa27cd315090958e2188",
+      "idle_start": 0,
+      "idle_end": 0,
+      "input_scenarios": [
+        {
+          "name": "orthographic",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        },
+        {
+          "name": "perspective-placed",
+          "components": [
+            "Face6",
+            "Edge1",
+            "Vertex1"
+          ]
+        }
+      ]
+    },
+    {
+      "test": "freecad-multi",
+      "status": "REFERENCE_PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 1,
+      "hardware_gpu": false,
+      "gpu_submitted": false,
+      "suite": "reference",
+      "evidence_directory": "/tmp/coin-p16-final-visible-reference-freecad-multi",
+      "results_sha256": "3e916ff6fe887e1314ebbdf7e9b4ed5e4c0dcc4ee8463132678f88d8d952657d",
+      "owner_destroy_survivor": true,
+      "camera_changed_samples": [
+        15107,
+        0
+      ],
+      "preselection_changed_samples": [
+        4754,
+        0
+      ],
+      "preselection_subname": "Face6",
+      "lifecycle": [
+        "resize",
+        "maximize",
+        "restore",
+        "unminimize"
+      ]
+    },
+    {
+      "test": "freecad-viewport",
+      "status": "REFERENCE_PASS",
+      "backend": "bgfx",
+      "renderer": "opengl",
+      "mode": "object",
+      "scale": 2,
+      "hardware_gpu": false,
+      "gpu_submitted": false,
+      "suite": "reference",
+      "evidence_directory": "/tmp/coin-p16-final-reference-freecad-viewport-2x",
+      "results_sha256": "704f8f6fef7b6a616672709f4a684b0167ae0e40487ec0a8c01d9f4cd175468b",
+      "selection_cleanup_pixels": 0,
+      "selected_subnames": [
+        "Box.Face2"
+      ],
+      "pixel_changes": {
+        "resized->selected": 13999,
+        "cleared->array-changed": 5850,
+        "survivor->camera": 117661
+      },
+      "owner_destroy_survivor": true
+    }
+  ]
+}

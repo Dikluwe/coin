@@ -1,0 +1,113 @@
+target,scene,update,backend,mode,repetition,cpu_frame_median_ms,cpu_frame_p95_ms,total_ms,throughput_fps,adapter,vendor_id,device_id
+window,opaque-interleaved,static,coin-gl,object,1,0.092392,0.136264,18.104676,9942.182892,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,opaque-interleaved,static,coin-gl,object,2,0.101329,0.118049,19.1967,9376.611605,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,opaque-interleaved,static,bgfx-opengl,object,1,0.247992,0.296542,46.876246,3839.89793,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,opaque-interleaved,static,bgfx-opengl,object,2,0.267218,0.312693,49.25718,3654.289588,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,opaque-interleaved,static,bgfx-vulkan,object,1,0.129702,0.145241,23.965299,7510.859764,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,opaque-interleaved,static,bgfx-vulkan,object,2,0.130503,0.175306,24.598248,7317.594326,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,opaque-interleaved,static,wgpu-vulkan,object,1,0.539254,0.59076,97.265372,1850.607223,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,opaque-interleaved,static,wgpu-vulkan,object,2,0.51523,0.549874,94.58457,1903.058818,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,opaque-interleaved,dynamic,coin-gl,object,1,0.11824,0.132287,22.393732,8037.96348,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,opaque-interleaved,dynamic,coin-gl,object,2,0.089787,0.103192,17.490301,10291.418084,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,opaque-interleaved,dynamic,bgfx-opengl,object,1,1.018577,1.061397,184.05758,977.954833,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,opaque-interleaved,dynamic,bgfx-opengl,object,2,1.03685,1.174978,189.837755,948.17809,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,opaque-interleaved,dynamic,bgfx-vulkan,object,1,1.075372,1.40717,202.753997,887.775347,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,opaque-interleaved,dynamic,bgfx-vulkan,object,2,1.043082,2.055879,219.029275,821.807952,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,opaque-interleaved,dynamic,wgpu-vulkan,object,1,1.265607,1.398745,230.97485,779.305626,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,opaque-interleaved,dynamic,wgpu-vulkan,object,2,1.262942,1.344123,230.646219,780.416002,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,static,coin-gl,object,1,0.361564,0.400245,66.421973,2709.946602,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,static,coin-gl,object,2,0.38104,0.466348,70.081569,2568.435647,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,static,coin-gl,sorted_layers,1,0.672823,0.779432,123.418324,1458.454419,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,static,coin-gl,sorted_layers,2,0.654729,0.848861,124.300507,1448.103506,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,static,bgfx-opengl,object,1,0.423819,0.486816,77.521514,2321.936076,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,static,bgfx-opengl,object,2,0.41322,0.471689,75.918107,2370.975873,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,static,bgfx-opengl,weighted_oit,1,0.651322,0.748303,118.892105,1513.977736,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,static,bgfx-opengl,weighted_oit,2,0.686749,0.767619,125.124671,1438.565221,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,static,bgfx-opengl,sorted_layers,1,1.65972,1.899698,299.024213,601.957942,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,static,bgfx-opengl,sorted_layers,2,1.815622,2.057782,329.810031,545.768725,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,static,bgfx-vulkan,object,1,0.255256,0.284941,49.904183,3606.91207,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,static,bgfx-vulkan,object,2,0.280032,0.397741,54.047028,3330.432896,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,static,bgfx-vulkan,weighted_oit,1,0.842189,0.904514,152.177429,1182.829814,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,static,bgfx-vulkan,weighted_oit,2,0.793258,0.852087,143.968893,1250.270084,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,static,bgfx-vulkan,sorted_layers,1,2.102545,2.31978,381.148984,472.256277,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,static,bgfx-vulkan,sorted_layers,2,2.096985,2.3307,380.585515,472.955467,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,static,wgpu-vulkan,object,1,0.689053,0.763953,126.598915,1421.813133,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,static,wgpu-vulkan,object,2,0.625554,0.658967,113.707098,1583.014633,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,static,wgpu-vulkan,sorted_layers,1,3.736618,6.128944,695.325457,258.87158,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,static,wgpu-vulkan,sorted_layers,2,3.956829,5.830638,703.470744,255.87418,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,dynamic,coin-gl,object,1,0.406417,0.634321,82.946464,2170.074423,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,dynamic,coin-gl,object,2,0.425933,0.456741,78.197781,2301.855599,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,dynamic,coin-gl,sorted_layers,1,0.680968,0.873186,128.923683,1396.174821,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,dynamic,coin-gl,sorted_layers,2,0.699583,0.855794,132.134061,1362.252841,"AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-opengl,object,1,0.428888,0.486216,79.704987,2258.327951,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-opengl,object,2,0.496375,0.549504,87.307986,2061.667074,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-opengl,weighted_oit,1,0.698791,0.82653,130.164203,1382.868683,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-opengl,weighted_oit,2,0.644069,0.723497,118.525008,1518.666845,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-opengl,sorted_layers,1,1.630196,1.800443,296.265317,607.563524,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-opengl,sorted_layers,2,1.676031,1.905668,304.231331,591.655039,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+window,transparent-overlap,dynamic,bgfx-vulkan,object,1,0.330475,0.398372,61.646899,2919.854898,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,dynamic,bgfx-vulkan,object,2,0.312692,0.320046,57.103428,3152.175032,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,dynamic,bgfx-vulkan,weighted_oit,1,0.815809,0.882464,149.340341,1205.300583,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,dynamic,bgfx-vulkan,weighted_oit,2,0.818855,0.928389,153.574416,1172.070223,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,dynamic,bgfx-vulkan,sorted_layers,1,2.043496,2.199877,372.321977,483.452525,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,dynamic,bgfx-vulkan,sorted_layers,2,2.038496,2.205507,370.182914,486.246105,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+window,transparent-overlap,dynamic,wgpu-vulkan,object,1,0.844573,0.924872,155.692089,1156.128106,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,dynamic,wgpu-vulkan,object,2,0.862016,1.083167,165.857469,1085.269184,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,dynamic,wgpu-vulkan,sorted_layers,1,3.677017,9.664718,756.069567,238.073331,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+window,transparent-overlap,dynamic,wgpu-vulkan,sorted_layers,2,3.410381,3.988337,551.515917,326.373173,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,opaque-interleaved,static,coin-gl,object,1,0.379818,0.408841,68.2948,2635.63,not-queried,0x0,0x0
+offscreen,opaque-interleaved,static,coin-gl,object,2,0.378675,0.428788,68.6432,2622.26,not-queried,0x0,0x0
+offscreen,opaque-interleaved,static,bgfx-opengl,object,1,0.61183,0.761298,112.334,1602.37,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,opaque-interleaved,static,bgfx-opengl,object,2,0.661291,0.835756,123.293,1459.94,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,opaque-interleaved,static,bgfx-vulkan,object,1,0.634241,0.731733,116.952,1539.1,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,opaque-interleaved,static,bgfx-vulkan,object,2,0.627188,0.7465,116.922,1539.49,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,opaque-interleaved,static,wgpu-vulkan,object,1,0.779932,0.898613,144.905,1242.2,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,opaque-interleaved,static,wgpu-vulkan,object,2,0.798707,0.874198,145.446,1237.57,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,opaque-interleaved,dynamic,coin-gl,object,1,0.387041,0.449407,71.1198,2530.94,not-queried,0x0,0x0
+offscreen,opaque-interleaved,dynamic,coin-gl,object,2,0.397339,0.491526,74.6448,2411.42,not-queried,0x0,0x0
+offscreen,opaque-interleaved,dynamic,bgfx-opengl,object,1,0.649931,0.872515,120.78,1490.31,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,opaque-interleaved,dynamic,bgfx-opengl,object,2,0.658517,0.875591,124.943,1440.66,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,opaque-interleaved,dynamic,bgfx-vulkan,object,1,0.658957,0.865772,124.643,1444.13,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,opaque-interleaved,dynamic,bgfx-vulkan,object,2,2.93019,3.2399,496.387,362.621,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,opaque-interleaved,dynamic,wgpu-vulkan,object,1,0.946232,1.01015,170.389,1056.41,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,opaque-interleaved,dynamic,wgpu-vulkan,object,2,0.829314,0.9938,153.372,1173.62,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,static,coin-gl,object,1,0.636065,0.73039,114.608,1570.57,not-queried,0x0,0x0
+offscreen,transparent-overlap,static,coin-gl,object,2,0.580691,0.701367,107.419,1675.68,not-queried,0x0,0x0
+offscreen,transparent-overlap,static,coin-gl,sorted_layers,1,0.901248,1.1512,167.389,1075.34,not-queried,0x0,0x0
+offscreen,transparent-overlap,static,coin-gl,sorted_layers,2,0.903703,0.960689,163.122,1103.47,not-queried,0x0,0x0
+offscreen,transparent-overlap,static,bgfx-opengl,object,1,0.658567,0.787236,123.712,1454.99,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,static,bgfx-opengl,object,2,0.782457,0.955609,142.166,1266.13,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,static,bgfx-opengl,weighted_oit,1,0.99311,1.15649,179.869,1000.73,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,static,bgfx-opengl,weighted_oit,2,0.991586,1.19027,178.621,1007.72,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,static,bgfx-opengl,sorted_layers,1,1.48251,1.74767,269.389,668.179,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,static,bgfx-opengl,sorted_layers,2,1.53085,1.80685,278.157,647.116,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,static,bgfx-vulkan,object,1,0.689063,0.922037,131.08,1373.21,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,static,bgfx-vulkan,object,2,0.708218,0.920114,132.753,1355.9,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,static,bgfx-vulkan,weighted_oit,1,1.14133,1.36575,207.795,866.236,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,static,bgfx-vulkan,weighted_oit,2,1.0631,1.33491,194.925,923.433,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,static,bgfx-vulkan,sorted_layers,1,2.24886,2.55617,406.728,442.556,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,static,bgfx-vulkan,sorted_layers,2,2.25614,2.45559,401.512,448.305,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,static,wgpu-vulkan,object,1,0.933769,1.07017,171.9,1047.12,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,static,wgpu-vulkan,object,2,0.916998,1.0638,168.78,1066.48,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,static,wgpu-vulkan,sorted_layers,1,6.01815,6.6402,1095.03,164.379,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,static,wgpu-vulkan,sorted_layers,2,5.98836,6.21118,1079.12,166.803,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,dynamic,coin-gl,object,1,0.599456,0.757821,112.441,1600.85,not-queried,0x0,0x0
+offscreen,transparent-overlap,dynamic,coin-gl,object,2,0.5855,0.644701,107.446,1675.26,not-queried,0x0,0x0
+offscreen,transparent-overlap,dynamic,coin-gl,sorted_layers,1,0.884197,1.09451,163.782,1099.02,not-queried,0x0,0x0
+offscreen,transparent-overlap,dynamic,coin-gl,sorted_layers,2,0.895477,1.03786,163.67,1099.78,not-queried,0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-opengl,object,1,0.82197,0.974124,152.498,1180.35,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-opengl,object,2,0.877323,1.01868,159.259,1130.23,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-opengl,weighted_oit,1,1.10446,1.26759,200.929,895.838,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-opengl,weighted_oit,2,1.12456,1.26624,202.135,890.492,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-opengl,sorted_layers,1,1.63346,1.93816,296.632,606.813,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-opengl,sorted_layers,2,1.61387,1.85741,292.366,615.667,"BGFX OpenGL unknown vendor (vendor 0x0000, device 0x0000)",0x0,0x0
+offscreen,transparent-overlap,dynamic,bgfx-vulkan,object,1,0.921907,1.16108,170.212,1057.51,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,dynamic,bgfx-vulkan,object,2,0.88608,1.09217,163.122,1103.47,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,dynamic,bgfx-vulkan,weighted_oit,1,1.18924,1.47832,229.405,784.638,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,dynamic,bgfx-vulkan,weighted_oit,2,1.35522,1.53372,249.644,721.028,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,dynamic,bgfx-vulkan,sorted_layers,1,2.41424,2.6788,435.035,413.76,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,dynamic,bgfx-vulkan,sorted_layers,2,2.46767,2.72382,450.612,399.457,"BGFX Vulkan AMD (vendor 0x1002, device 0x1638)",0x1002,0x1638
+offscreen,transparent-overlap,dynamic,wgpu-vulkan,object,1,0.974124,1.21384,180.867,995.204,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,dynamic,wgpu-vulkan,object,2,0.946101,0.999662,172.211,1045.23,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,dynamic,wgpu-vulkan,sorted_layers,1,6.01188,6.73003,1095.14,164.363,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638
+offscreen,transparent-overlap,dynamic,wgpu-vulkan,sorted_layers,2,6.00059,6.75819,1095.87,164.253,AMD Radeon Graphics (RADV RENOIR) (Vulkan),0x1002,0x1638

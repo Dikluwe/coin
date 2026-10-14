@@ -1,0 +1,200 @@
+{
+  "SmSwitchboard": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "So3DAnnotation": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core camadas",
+    "next": "P16",
+    "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+  },
+  "SoAutoZoomTranslation": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "SoBrepEdgeSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoBrepFaceSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoBrepPointSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoDatumLabel": {
+    "status": "PARTIAL",
+    "owner": "Wiring preparação de rótulo + Core layout",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara cena/textura fria, normaliza RGBA NPOT sem alterar a imagem lógica usada por picking e percorre m_Root. Perfil Linux de rótulo e mutação; Sketcher/Measure completos e Windows seguem abertos."
+  },
+  "SoDrawingGrid": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core camadas",
+    "next": "P16",
+    "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+  },
+  "SoFCBoundingBox": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core geometria",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara caixa/rótulos e explicita depth/culling. Perfil dentro do volume de profundidade; bbox que depende de geometric depth clamp é recusada antes da publicação. Windows e consumidores completos seguem abertos."
+  },
+  "SoFCColorBar": {
+    "status": "PARTIAL",
+    "owner": "Wiring viewport + Core layout/texto",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara viewport antes de atravessar geometria/rótulos. Comparação fria CoinGL e glifos em três ranges usa câmera de foreground com height 10; consumidores FEM/Mesh completos e Windows seguem separados."
+  },
+  "SoFCControlPoints": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core geometria",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback sincroniza renderRoot com produtos/soma em 64 bits, eixos zero pareados e orçamento de 65536 pontos. Rejeição mantém publicação e recupera. Perfil Linux 2x2/1x4 e consumidores Part::Spline Bezier, BSpline curva 5x1 e superfície 5x4 com regeneração/remoção, object/weighted OIT e DPR 1/2. BGFX OpenGL desses consumidores requer cache de programas desativado no binding GLX NVIDIA/EGL Mesa; edição completa, arraste e Windows seguem separados."
+  },
+  "SoFCIndexedFaceSet": {
+    "status": "PARTIAL",
+    "owner": "Wiring seleção Mesh + Core geometria",
+    "next": "P16",
+    "reason": "Faces herdadas são capturáveis; GLRender e doAction de ações especializadas têm seleção própria. Presença de doAction não prova sua execução no callback CoinRender."
+  },
+  "SoFCMeshGridNode": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core linhas",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback gera linhas verdes retidas para dimensões 1..128 por eixo; (0,0,0) é inerte. Dimensão fora do orçamento rejeita e recupera. Perfil Linux 2x2x2/3x3x3; consumidores Mesh e Windows seguem separados."
+  },
+  "SoFCMeshObjectBoundary": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCMeshObjectNode": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCMeshObjectShape": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCMeshSegmentShape": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring elemento Mesh + Core primitivas",
+    "next": "P16",
+    "reason": "MeshObjectNode instala SoFCMeshObjectElement no callback; shapes emitem primitivas. Qualificar bindings, segmentos, fronteiras e aproximação renderTriangleLimit versus GL."
+  },
+  "SoFCPathAnnotation": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core camadas",
+    "next": "P16",
+    "reason": "Callback tem deferred paths sob FREECAD_COIN_WGPU_EXPERIMENTAL usando SoWgpuRenderAction. Nome legado não define executor: conferir flag e alias para CoinRender em cada build; qualificar ordem/depth/path no host."
+  },
+  "SoFCScreenSpaceGroup": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core geometria/composição",
+    "next": "P16",
+    "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
+  },
+  "SoFCSelection": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoFCSelectionRoot": {
+    "status": "PARTIAL",
+    "owner": "Wiring contexto de seleção + Core composição",
+    "next": "P16",
+    "reason": "Callbacks locais já capturam seleção/material e geometria. Não certificam equivalência de delayed paths, clarificação, hover, depth e overlays GL; testar fonte com patches atuais."
+  },
+  "SoFCSeparator": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring travessia e cache",
+    "next": "P16",
+    "reason": "Override GLBelowPath trata modo de cache e chama SoSeparator. Descendentes podem atravessar via callback herdado; cache GL não precisa ser reproduzido na Infra nova."
+  },
+  "SoFCTransform": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "SoFCUnifiedSelection": {
+    "status": "PARTIAL",
+    "owner": "Wiring seleção/host",
+    "next": "P16",
+    "reason": "Descendentes e contexto podem atravessar; GLBelowPath altera bounding-box global e cursor QOpenGLWidget. Side effects de GUI exigem adaptação do host, não shaders."
+  },
+  "SoFrameLabel": {
+    "status": "PARTIAL",
+    "owner": "Wiring captura + Core imagem/layout",
+    "next": "P03/P16 — perfil raster e consumidores",
+    "reason": "Callback prepara imagem a frio e delega explicitamente para CoinRenderAction::captureScreenContent sob o guard experimental. Pixels, glyphs, mutação, remoção e resize qualificados no viewport Linux; consumidores completos e Windows continuam abertos."
+  },
+  "SoGLWidgetNode": {
+    "status": "HOST_ONLY",
+    "owner": "Wiring Qt/host",
+    "next": "P16",
+    "reason": "Instala SoGLWidgetElement associado ao QOpenGLWidget no GLRender. Não é geometria; adaptar contexto de host e consumidores, sem emular handles GL no Core."
+  },
+  "SoNaviCube": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core geometria/composição",
+    "next": "P16",
+    "reason": "Callback prepara estado e percorre geometria retida; generatePrimitives vazio no NaviCube não implica omissão, pois renderCoin atravessa callbackRoot."
+  },
+  "SoPolygon": {
+    "status": "PARTIAL",
+    "owner": "Wiring host + Core geometria",
+    "next": "P16 consumidores / Windows",
+    "reason": "SoShape::callback usa generatePrimitives com contorno fechado, largura 3 e BASE_COLOR; faixa válida e orçamento de 65536 pontos. SoCallbackAction acompanha tipos registrados depois da action, sem omitir Polygon nem duplicar observadores. Perfil Linux 4/3 pontos com mutação/resize, recusa e recuperação; operações completas de Mesh e Windows seguem separadas."
+  },
+  "SoScreenSpaceScale": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  },
+  "SoShapeScale": {
+    "status": "PARTIAL",
+    "owner": "Wiring câmera/manipulação + Core transformações",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback chama updateScale antes de atravessar o kit. Perfil Linux inclui shape explícito, campos active/scaleFactor e resize; kit com shape nulo é vazio. Manipulação de workbench e Windows seguem separados."
+  },
+  "SoStringLabel": {
+    "status": "PARTIAL",
+    "owner": "Wiring captura + Core imagem/layout",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara textRoot frio e normaliza RGBA NPOT gerado. Perfil Linux ensaia glifos, mutação, remoção, câmera e resize; consumidores completos e Windows ainda requerem qualificação."
+  },
+  "SoTransformDragger": {
+    "status": "PARTIAL",
+    "owner": "Wiring câmera/manipulação + Core transformações",
+    "next": "P16 consumidores / Windows",
+    "reason": "Callback prepara cache e escala dos eixos antes da travessia retida. Perfil Linux verifica pixels, campo translation, resize e caminhos lógicos de picking nas hastes; arraste por input e Windows seguem separados."
+  },
+  "SoZoomTranslation": {
+    "status": "CAPTURE_CANDIDATE",
+    "owner": "Wiring host + Core estado",
+    "next": "P16",
+    "reason": "Callback executa a mesma decisão doAction ou travessia do GL; qualificar paths, câmera, resize e overrides no host."
+  }
+}
