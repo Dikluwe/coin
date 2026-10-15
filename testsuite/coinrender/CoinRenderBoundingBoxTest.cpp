@@ -6,6 +6,10 @@
 #if COIN_HAVE_LEGACY_GL_RENDERER
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/system/gl.h>
+// Windows system GL headers do not expose this core/extension token.
+#ifndef GL_DEPTH_CLAMP
+#define GL_DEPTH_CLAMP 0x864F
+#endif
 #endif
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoCallbackAction.h>
