@@ -1,0 +1,1151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="(empty)"
+	tests="181"
+	failures="0"
+	disabled="0"
+	skipped="50"
+	hostname=""
+	time="57"
+	timestamp="2026-10-15T18:57:31"
+	>
+	<testcase name="BumpProgramFailuresAndLifetime" classname="BumpProgramFailuresAndLifetime" time="0.0985678" status="run">
+		<properties/>
+		<system-out>Running cold_registry_allocation_case
+Running failure_cases
+Running deferred_cases
+Running stale_initializer_case
+Running lifetime_cases
+Running diffuse_and_context_cases
+Running error_handler_cases
+Running redraw_lifetime_cases
+Running multiple_root_redraw_case
+Running queue_changed_lifetime_cases
+Running concurrent_cases
+Running allocation_failure_cases
+Running owned_allocation_cases
+Running dependency_failure_boundary_cases
+Running registry_cleanup_allocation_case
+Running token_exhaustion_cases
+Bump program failure, allocation, cache, deferred initialization and lifetime tests passed.
+</system-out>
+	</testcase>
+	<testcase name="CoinTests" classname="CoinTests" time="1.04717" status="run">
+		<properties/>
+		<system-out>Coin warning in SoVRMLScript::initialize(): No script language evaluation engine available.
+[OK] 418 tests, 307736 checks
+</system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_valid_sentinel" classname="SoTempPathReplaceTail_valid_sentinel" time="0.0901714" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_valid_replacement" classname="SoTempPathReplaceTail_valid_replacement" time="0.0745368" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathReplaceTail_empty_noop" classname="SoTempPathReplaceTail_empty_noop" time="0.07404" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathRange" classname="SoPathRange" time="0.0911342" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_node" classname="SoPathLegacyAccessorBounds_node" time="0.0917837" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_node-tail" classname="SoPathLegacyAccessorBounds_node-tail" time="0.0935318" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_index" classname="SoPathLegacyAccessorBounds_index" time="0.0768124" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_index-tail" classname="SoPathLegacyAccessorBounds_index-tail" time="0.0755483" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_valid" classname="SoPathLegacyAccessorBounds_valid" time="0.0757629" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathLegacyAccessorBounds_visibility" classname="SoPathLegacyAccessorBounds_visibility" time="0.0756806" status="run">
+		<properties>
+			<property name="cmake_labels" value="sopath-legacy-accessor"/>
+		</properties>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_reassign" classname="SoPathAssignmentAuditor_reassign" time="0.0912634" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_self-assign" classname="SoPathAssignmentAuditor_self-assign" time="0.0761396" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAssignmentAuditor_copy-construct" classname="SoPathAssignmentAuditor_copy-construct" time="0.0765184" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_empty" classname="SoPathAuditorCallback_empty" time="0.0938468" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_foreign-parent" classname="SoPathAuditorCallback_foreign-parent" time="0.0777877" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_negative-index" classname="SoPathAuditorCallback_negative-index" time="0.0772001" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_null-replacement" classname="SoPathAuditorCallback_null-replacement" time="0.0754632" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathAuditorCallback_valid-callbacks" classname="SoPathAuditorCallback_valid-callbacks" time="0.0752972" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoPathChildAppend" classname="SoPathChildAppend" time="0.0906226" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinConfigCompatibility" classname="CoinConfigCompatibility" time="1.90645" status="run">
+		<properties/>
+		<system-out>-- Coin config compatibility matrix passed
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterExact" classname="CoinTestsFilterExact" time="0.0841653" status="run">
+		<properties/>
+		<system-out>[OK] 1 tests, 103 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterWildcard" classname="CoinTestsFilterWildcard" time="0.0745858" status="run">
+		<properties/>
+		<system-out>[OK] 1 tests, 103 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterSuite" classname="CoinTestsFilterSuite" time="0.0764842" status="run">
+		<properties/>
+		<system-out>[OK] 5 tests, 151 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterCombined" classname="CoinTestsFilterCombined" time="0.0793925" status="run">
+		<properties/>
+		<system-out>[OK] 3 tests, 111 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterRepeated" classname="CoinTestsFilterRepeated" time="0.074989" status="run">
+		<properties/>
+		<system-out>[OK] 2 tests, 107 checks
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterNoMatch" classname="CoinTestsFilterNoMatch" time="0.0756263" status="run">
+		<properties/>
+		<system-out>[FAIL] no tests matched the requested filters
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterMissingValue" classname="CoinTestsFilterMissingValue" time="0.0864261" status="run">
+		<properties/>
+		<system-out>[FAIL] --run_test requires a non-empty filter
+</system-out>
+	</testcase>
+	<testcase name="CoinTestsFilterEmptyValue" classname="CoinTestsFilterEmptyValue" time="0.076332" status="run">
+		<properties/>
+		<system-out>[FAIL] --run_test requires a non-empty filter
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_unset" classname="ProfilerInit_unset" time="0.130938" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_off" classname="ProfilerInit_off" time="0.141593" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_0" classname="ProfilerInit_0" time="0.158011" status="run">
+		<properties/>
+		<system-out>enabled=0 element=0 callbacks=1 entries=0 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_on" classname="ProfilerInit_on" time="0.140769" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_1" classname="ProfilerInit_1" time="0.137423" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_syncgl" classname="ProfilerInit_syncgl" time="0.167495" status="run">
+		<properties/>
+		<system-out>enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="ProfilerInit_invalid" classname="ProfilerInit_invalid" time="0.122271" status="run">
+		<properties/>
+		<system-out>Coin warning in SoProfilerP::parseCoinProfilerVariable(): invalid token 'pr717_invalid_token'
+enabled=1 element=1 callbacks=1 entries=4 bounds=1: PASS
+
+</system-out>
+	</testcase>
+	<testcase name="SoNodeKitPathBehavior" classname="SoNodeKitPathBehavior" time="0.0848769" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoManipNestedKit" classname="SoManipNestedKit" time="0.0910648" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathPolicy_nonempty_destination" classname="SoTempPathPolicy_nonempty_destination" time="0.0880211" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathPolicy_empty_destination" classname="SoTempPathPolicy_empty_destination" time="0.0900518" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathPolicy_ordinary_empty_destination" classname="SoTempPathPolicy_ordinary_empty_destination" time="0.0760988" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="SoTempPathPolicy_temporary_source" classname="SoTempPathPolicy_temporary_source" time="0.0774897" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="RenderManagerFramePreparationTest" classname="RenderManagerFramePreparationTest" time="0.0902651" status="run">
+		<properties/>
+		<system-out>frames=2 gl_traversals=0 sensors=1 callbacks=2 autoclip=updated
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_alarm_cancel" classname="SensorScheduling_alarm_cancel" time="0.0984473" status="run">
+		<properties/>
+		<system-out>alarm_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_recurring_cancel" classname="SensorScheduling_recurring_cancel" time="0.0800153" status="run">
+		<properties/>
+		<system-out>recurring_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_alarm_reschedule" classname="SensorScheduling_alarm_reschedule" time="0.0844696" status="run">
+		<properties/>
+		<system-out>alarm_reschedule: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timeout_change_cancel" classname="SensorScheduling_timeout_change_cancel" time="0.0894965" status="run">
+		<properties/>
+		<system-out>timeout_change_cancel: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_zero_repeat" classname="SensorScheduling_zero_repeat" time="0.0771498" status="run">
+		<properties/>
+		<system-out>zero_repeat: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_zero_nonidle" classname="SensorScheduling_zero_nonidle" time="0.078401" status="run">
+		<properties/>
+		<system-out>zero_nonidle: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_nonzero_timeout" classname="SensorScheduling_nonzero_timeout" time="0.0776422" status="run">
+		<properties/>
+		<system-out>nonzero_timeout: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_node_detach" classname="SensorScheduling_node_detach" time="0.075179" status="run">
+		<properties/>
+		<system-out>node_detach: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_reentry" classname="SensorScheduling_delay_reentry" time="0.0824923" status="run">
+		<properties/>
+		<system-out>delay_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_timeout_reentry" classname="SensorScheduling_delay_timeout_reentry" time="0.0796441" status="run">
+		<properties/>
+		<system-out>delay_timeout_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_reentry" classname="SensorScheduling_timer_reentry" time="0.0762261" status="run">
+		<properties/>
+		<system-out>timer_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_changed_exception" classname="SensorScheduling_delay_changed_exception" time="0.0752076" status="run">
+		<properties/>
+		<system-out>delay_changed_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_changed_exception" classname="SensorScheduling_timer_changed_exception" time="0.0779847" status="run">
+		<properties/>
+		<system-out>timer_changed_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_remove_reentry" classname="SensorScheduling_delay_remove_reentry" time="0.0928723" status="run">
+		<properties/>
+		<system-out>delay_remove_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_remove_reentry" classname="SensorScheduling_timer_remove_reentry" time="0.0757201" status="run">
+		<properties/>
+		<system-out>timer_remove_reentry: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_exception" classname="SensorScheduling_timer_exception" time="0.080928" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_exception" classname="SensorScheduling_delay_exception" time="0.0865361" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_timer_cancel_exception" classname="SensorScheduling_timer_cancel_exception" time="0.0767343" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processTimerQueue(): Unexpected function exit. Unhandled Exception?
+timer_cancel_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_delay_deferred_exception" classname="SensorScheduling_delay_deferred_exception" time="0.0772798" status="run">
+		<properties/>
+		<system-out>Coin error in SoSensorManager::processDelayQueue(): Unexpected function exit. Unhandled Exception?
+delay_deferred_exception: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_absolute_deadline" classname="SensorScheduling_absolute_deadline" time="0.0786341" status="run">
+		<properties/>
+		<system-out>absolute_deadline: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_changed_during_dispatch" classname="SensorScheduling_changed_during_dispatch" time="0.0950319" status="run">
+		<properties/>
+		<system-out>changed_during_dispatch: passed
+</system-out>
+	</testcase>
+	<testcase name="SensorScheduling_immediate_notification" classname="SensorScheduling_immediate_notification" time="0.0825564" status="run">
+		<properties/>
+		<system-out>immediate_notification: passed
+</system-out>
+	</testcase>
+	<testcase name="XmlCHeaderAttributeTest" classname="XmlCHeaderAttributeTest" time="0.0267453" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderDocumentTest" classname="XmlCHeaderDocumentTest" time="0.0273939" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderElementTest" classname="XmlCHeaderElementTest" time="0.025324" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderEntityTest" classname="XmlCHeaderEntityTest" time="0.0230834" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderParserTest" classname="XmlCHeaderParserTest" time="0.0206712" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderPathTest" classname="XmlCHeaderPathTest" time="0.019806" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderTypesTest" classname="XmlCHeaderTypesTest" time="0.0207832" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeaderWorldTest" classname="XmlCHeaderWorldTest" time="0.0213463" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCHeadersAggregateTest" classname="XmlCHeadersAggregateTest" time="0.0211219" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="XmlCApiTest" classname="XmlCApiTest" time="0.0813813" status="run">
+		<properties/>
+		<system-out>root[0]
+</system-out>
+	</testcase>
+	<testcase name="XmlLegacyPathDocumentCxxAbiTest" classname="XmlLegacyPathDocumentCxxAbiTest" time="0.0945823" status="run">
+		<properties/>
+		<system-out>legacy
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderActionTest" classname="CoinRenderActionTest" time="1.32962" status="run">
+		<properties/>
+		<system-out>Running CoinRenderActionTest...
+All CoinRenderRenderAction tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendBoundaryTest" classname="CoinRenderBackendBoundaryTest" time="0.0900078" status="run">
+		<properties/>
+		<system-out>Common action, manager, shadow admission and reuse dispatch passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRuntimeBoundaryTest" classname="CoinRenderRuntimeBoundaryTest" time="0.0913271" status="run">
+		<properties/>
+		<system-out>Independent runtime surface lifetime, descriptor validation, telemetry, depth and detach passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPlanAssemblyCoreTest" classname="CoinRenderPlanAssemblyCoreTest" time="0.1227" status="run">
+		<properties/>
+		<system-out>Captured values, image conversion, deduplication and bounded cube ranges passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTransformCoreTest" classname="CoinRenderTransformCoreTest" time="0.092852" status="run">
+		<properties/>
+		<system-out>Shared depth, normal, viewport and scissor transforms passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCameraReuseReferenceTest" classname="CoinRenderCameraReuseReferenceTest" time="0.0888979" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderSamplingPolicyWindowTest" classname="CoinRenderSamplingPolicyWindowTest" time="0.122021" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>FAIL v4 runtime capabilities
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSamplingPolicyTest" classname="CoinRenderSamplingPolicyTest" time="0.124197" status="run">
+		<properties/>
+		<system-out>Sampling API window=0 CPU=1 result=PASS
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSamplingPolicyGpuTest" classname="CoinRenderSamplingPolicyGpuTest" time="0.0885522" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>FAIL wgpu reports GL fallback versus fine Vulkan derivatives
+adapter= renderer=0 derivative=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSelectionTest" classname="CoinRenderSelectionTest" time="0.0933813" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderProductTest" classname="CoinRenderProductTest" time="0.0897469" status="run">
+		<properties/>
+		<system-out>COIN_WGPU_CAPABILITIES backend=0 probe_status=0 renderer=0 vendor_id=0x0000 device_id=0x0000 max_framebuffer_attachments=0 runtime_features=0x0 rgba8=0x0 d24s8=0x0 d32f=0x0 rgba16f=0x0 r16f=0x0 adapter= diagnostic=CPU recording backend does not run a GPU probe
+CoinRenderProductTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBackendContractTest" classname="CoinRenderBackendContractTest" time="0.0984909" status="run">
+		<properties/>
+		<system-out>Shared offscreen rendering contract passed for backend 0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderOffscreenTest" classname="CoinRenderOffscreenTest" time="0.124099" status="run">
+		<properties/>
+		<system-out>Running CoinRenderOffscreenTest...
+Testing zero-size target behavior...
+Testing culling and winding via SoShapeHints...
+All CoinRenderOffscreen tests PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGateG0Test" classname="CoinRenderGateG0Test" time="0.105796" status="run">
+		<properties/>
+		<system-out>Running CoinRenderGateG0Test (Onda 2A Saneamento)...
+-&gt; Test G0.1: Multi-root SoPathList accumulation (B02)...
+   [PASS] G0.1 Multi-root accumulation
+-&gt; Test G0.2: PER_VERTEX material binding preservation (B03)...
+   [PASS] G0.2 PER_VERTEX material binding
+-&gt; Test G0.3: Directional light view space transform (B04)...
+   [PASS] G0.3 Directional light in view space
+-&gt; Test G0.4: 32-bit arithmetic overflow protection (B05)...
+   [PASS] G0.4 32-bit overflow protection
+-&gt; Test G0.5: Target dimension overflow &amp; OOM protection (B06)...
+   [PASS] G0.5 Target overflow protection
+-&gt; Test G0.6: Backend GPU availability isolation (B07)...
+   [PASS] G0.6 GPU availability query
+-&gt; Test G0.7: Reentrancy protection and terminal error preservation (B08)...
+   [PASS] G0.7 Reentrancy error preservation
+-&gt; Test G0.8: Near plane frustum clipping robustness (B09)...
+   [PASS] G0.8 Near plane clipping robustness
+
+=======================================================
+All CoinRenderGateG0Test test suites PASSED successfully!
+======...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameCoreTest" classname="CoinRenderFrameCoreTest" time="0.13728" status="run">
+		<properties/>
+		<system-out>render_state_stride=496
+CoinRenderFrameCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxCoreTest" classname="CoinBgfxCoreTest" time="0.725866" status="run">
+		<properties/>
+		<system-out>CoinBgfxCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinBgfxProgramSelectionTest" classname="CoinBgfxProgramSelectionTest" time="0.0448049" status="run">
+		<properties/>
+		<system-out>CoinBgfxProgramSelectionTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthContractTest" classname="CoinRenderDepthContractTest" time="0.296193" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderFrameReuseCoreTest" classname="CoinRenderFrameReuseCoreTest" time="0.347314" status="run">
+		<properties/>
+		<system-out>CoinRenderFrameReuseCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDiagnosticShellTest" classname="CoinRenderDiagnosticShellTest" time="0.091794" status="run">
+		<properties/>
+		<system-out>CoinRenderDiagnosticShellTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedGeometryCoreTest" classname="CoinRenderIndexedGeometryCoreTest" time="0.0923828" status="run">
+		<properties/>
+		<system-out>CoinRenderIndexedGeometryCoreTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGateG1Test" classname="CoinRenderGateG1Test" time="0.092855" status="run">
+		<properties/>
+		<system-out>Running CoinRenderGateG1Test (Onda 2B Backend WebGPU Real)...
+-&gt; Test G1.1: WebGPU backend availability query...
+   [PASS] G1.1 WebGPU backend availability
+-&gt; Test G1.2: Triangle offscreen color and depth readback...
+   [PASS] G1.2 Triangle offscreen color and depth readback
+-&gt; Test G1.3: Depth buffer occlusion ordering...
+   [PASS] G1.3 Depth buffer occlusion ordering
+-&gt; Test G1.4: Monotonic submission serials...
+   [PASS] G1.4 Monotonic submission serials
+-&gt; Test G1.5: Status distinction and DEVICE_LOST recovery...
+   [PASS] G1.5 Status distinction and recovery
+
+=======================================================
+All CoinRenderGateG1Test test suites PASSED successfully!
+=======================================================
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGateG2Test" classname="CoinRenderGateG2Test" time="0.0897593" status="run">
+		<properties/>
+		<system-out>Running CoinRenderGateG2Test (Onda 2C Native Topologies: Lines and Points)...
+-&gt; Test G2.1: Native unit line rendering and readback (SoLineSet)...
+   [PASS] G2.1 Native unit line rendering and readback
+-&gt; Test G2.2: Native unit point rendering and readback (SoPointSet)...
+   [PASS] G2.2 Native unit point rendering and readback
+-&gt; Test G2.3: Cross-topology depth occlusion (Line vs Triangle)...
+   [PASS] G2.3 Cross-topology depth occlusion
+-&gt; Test G2.4: Wide/patterned lines and sized points...
+   [PASS] G2.4 Wide/patterned lines and sized points
+
+=======================================================
+All CoinRenderGateG2Test test suites PASSED successfully!
+=======================================================
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderIndexedFastPathTest" classname="CoinRenderIndexedFastPathTest" time="0.112928" status="run">
+		<properties/>
+		<system-out>Running CoinRenderIndexedFastPathTest (Onda 2D Indexed Fast Path)...
+-&gt; Test 1: Sentinel parser, triangles and convex quads...
+   [PASS] Test 1: Sentinel parser and convex quads
+-&gt; Test 2: Degenerate faces and consecutive sentinels...
+   [PASS] Test 2: Degenerate faces handled cleanly
+-&gt; Test 3: Atomic validation and rollback on invalid indices...
+   [PASS] Test 3: Atomic validation and rollback
+-&gt; Test 4: Concave quads diversion to fallback...
+   [PASS] Test 4: Concave quad fallback verified
+-&gt; Test 5: Canonical vertex deduplication...
+   [PASS] Test 5: Canonical vertex deduplication verified
+-&gt; Test 6: Indexed line sets (SoIndexedLineSet)...
+   [PASS] Test 6: IndexedLineSet fast path verified
+-&gt; Test 7: Strict pixel and depth equivalence (Fast Path vs Fallback)...
+   [PASS] Test 7: Strict pixel and depth equivalence verified
+-&gt; Test 8: Generated normals at hard and smooth edges...
+   [PASS] Test 8: Hard and smooth generated normals verified
+
+ALL 8 TESTS IN CoinRenderIndexedFastPathTest PASSED!
+</system-out>
+	</testcase>
+	<testcase name="CoinWgpuCacheTest" classname="CoinWgpuCacheTest" time="0.085632" status="run">
+		<properties/>
+		<system-out>Running CoinWgpuCacheTest (Onda 2E GPU Resource Cache &amp; Safe Retirement)...
+WGPU Rust bridge not enabled, skipping test.
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderStabilizationTest" classname="CoinRenderStabilizationTest" time="0.0923694" status="run">
+		<properties/>
+		<system-out>Running CoinRenderStabilizationTest (Onda 2F Concurrency, Packet Separation, Exact Hash &amp; Budget)...
+WGPU Rust bridge not enabled, skipping test.
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBenchmarkAnimationTest" classname="CoinRenderBenchmarkAnimationTest" time="0.121322" status="run">
+		<properties/>
+		<system-out>Benchmark animation selection, isolated mutations, deterministic replay and lifetime passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureTest" classname="CoinRenderTextureTest" time="0.153746" status="run">
+		<properties/>
+		<system-out>========================================================
+Running CoinRenderTextureTest (Subwave 3B: 2D Texture Pipeline)
+========================================================
+-&gt; Test 1: Texture formats (1, 2, 3, 4 components) with MODULATE...
+-&gt; Test 2: MODULATE model color verification...
+-&gt; Test 3: Strict UNSUPPORTED rejections outside the texture profile...
+Coin error in SbImage::readFile(): couldn't find 'non_existent_file_dummy_test_123.png'.
+Coin warning in SoTexture2::filenameSensorCB(): Image file 'non_existent_file_dummy_test_123.png' could not be read
+-&gt; Test 4: UV coordinates (explicit vs procedural vs out-of-bounds)...
+-&gt; Test 5: Texture transformation and wrap modes...
+-&gt; Test 6: Multiple draws with different textures in same frame...
+-&gt; Test 7: Texture image deduplication with different samplers...
+-&gt; Test 8: Texture quality 0.0 disables texture smoothly...
+
+ALL CoinRenderTextureTest checks PASSED successfully!
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGluNativeOracleTest" classname="CoinRenderGluNativeOracleTest" time="0.355971" status="run">
+		<properties/>
+		<system-out>GL=NVIDIA Corporation GLU=1.2.2.0 Microsoft Corporation resize=0 red=15,15,25,25
+17x19-&gt;16x16 max=1 mae=0.225586
+17x19-&gt;32x32 max=1 mae=0.194824
+3x5-&gt;2x4 max=1 mae=0.1875
+3x5-&gt;4x8 max=1 mae=0.15625
+1x7-&gt;1x4 max=1 mae=0.1875
+1x7-&gt;1x8 max=1 mae=0.15625
+7x1-&gt;4x1 max=1 mae=0.1875
+7x1-&gt;8x1 max=1 mae=0.15625
+31x3-&gt;16x2 max=1 mae=0.3125
+31x3-&gt;32x4 max=1 mae=0.197266
+2x2-&gt;1x1 max=0 mae=0
+2x2-&gt;4x4 max=1 mae=0.25
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSamplingCaptureTest" classname="CoinRenderTextureSamplingCaptureTest" time="0.579419" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+P07 sampling cases=234 rejected=4 GPU=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderTextureSamplingConfigLimitTest" classname="CoinRenderTextureSamplingConfigLimitTest" time="0.0777983" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderAdvancedTextureCoreTest" classname="CoinRenderAdvancedTextureCoreTest" time="0.169808" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+portable alpha/filter-0/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-8 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-3 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-7 CPU maximumRGB=0
+portable alpha/filter-0/unit-7/function-6 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-5 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-8 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-3 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-7 CPU maximumRGB=0
+portable alpha/filter-1/unit-0/function-6 CPU maximumRGB=0
+portable alpha/filter-1/unit-7/function-5 CPU maximumRGB=0
+portable alpha/filter-1/unit-7/function-8 CPU maximumRGB=...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixCaptureTest" classname="CoinRenderRttMatrixCaptureTest" time="0.110024" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportCaptureTest" classname="CoinRenderRttViewportCaptureTest" time="0.0922859" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportFboTest" classname="CoinRenderRttViewportFboTest" time="1.0884" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttViewportPbufferTest" classname="CoinRenderRttViewportPbufferTest" time="1.43818" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixFboTest" classname="CoinRenderRttMatrixFboTest" time="1.03195" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=1 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=2 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttMatrixPbufferTest" classname="CoinRenderRttMatrixPbufferTest" time="1.43012" status="run">
+		<properties/>
+		<system-out>RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0 physicalTx=0 RGB=204,0,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,204,0 minFilter=9729 mip1Width=0
+RTT matrix GL framebuffer=0 stateTx=0.25 physicalTx=0.25 RGB=0,163,0 minFilter=9729 mip1Width=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGeometryViewportCaptureTest" classname="CoinRenderGeometryViewportCaptureTest" time="1.70362" status="run">
+		<properties/>
+		<system-out>Geometry/viewport cases=1800 GPU=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProceduralTextureCaptureTest" classname="CoinRenderProceduralTextureCaptureTest" time="1.89603" status="run">
+		<properties/>
+		<system-out>sampling_test_policy=0
+P07 passed cases=313 CoinGL_references=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderLightingTest" classname="CoinRenderLightingTest" time="2.54909" status="run">
+		<properties/>
+		<system-out>Coin/GL reference active; directional CPU=71 GL=71; two lights CPU=142 GL=143
+Gouraud oracle PASS: curved normals: specular before interpolation
+Gouraud oracle PASS: broad point-light face: vertex distance
+Gouraud oracle PASS: spot cone misses vertices: no fragment relighting
+Gouraud oracle PASS: spot drop-off: vertex cone factor
+Gouraud oracle PASS: negative N.H: no artificial specular floor
+Curved sphere Gouraud PASS: light=0
+Curved sphere Gouraud PASS: light=1
+Curved sphere Gouraud PASS: light=2
+Ambient CPU=[25,51,12] GL=[25,51,13]
+Point constant CPU=133 GL=133; linear CPU=54 GL=54
+Spot inside CPU=161 GL=162; outside CPU=0 GL=0
+Spot dropoff hard CPU=162 GL=162; soft CPU=84 GL=84
+Nonuniform normal CPU=69 GL=69
+CoinRenderLightingTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderGouraudInterpolationTest" classname="CoinRenderGouraudInterpolationTest" time="0.096672" status="run">
+		<properties/>
+		<system-out>CoinRenderGouraudInterpolationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFogTest" classname="CoinRenderFogTest" time="1.47199" status="run">
+		<properties/>
+		<system-out>CoinRenderFogTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderClipPlaneTest" classname="CoinRenderClipPlaneTest" time="0.509966" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>Coin/GL reference passed
+[SKIP] GPU adapter unavailable
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDrawStyleTest" classname="CoinRenderDrawStyleTest" time="14.2524" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>Coin/GL native stipple reference passed
+Coin/GL clip 0 edge 0 phase displacement -25
+Coin/GL clip 0 edge 1 phase displacement -25
+Coin/GL clip 0 edge 2 phase displacement -57
+Coin/GL clip 0 edge 3 phase displacement -25
+Coin/GL clip 1 edge 0 phase displacement -25
+Coin/GL clip 1 edge 1 phase displacement -19
+Coin/GL clip 1 edge 3 phase displacement -25
+Coin/GL clip 2 edge 0 phase displacement -25
+Coin/GL clip 2 edge 1 phase displacement -31
+Coin/GL clip 2 edge 2 phase displacement -83
+Coin/GL clip 3 edge 1 phase displacement -29
+Coin/GL clip 3 edge 2 phase displacement -77
+Coin/GL clip 3 edge 3 phase displacement -29
+Coin/GL clip 4 edge 0 phase displacement -57
+Coin/GL clip 4 edge 2 phase displacement -103
+Coin/GL clip 4 edge 3 phase displacement -57
+Coin/GL clip 5 edge 1 phase displacement -19
+Coin/GL clip 5 edge 3 phase displacement -19
+Coin/GL clip 6 edge 0 phase displacement -25
+Coin/GL clip 6 edge 1 phase displacement 0
+Coin/GL clip 6 edge 3 phase displacement -25
+Coin/GL clip 7 edge 0 phase displacement -12
+Coin/GL clip 7 edge 1 phase displacement -37
+Coin/GL clip 7 edge 2 phase displacement 65
+Coin/GL clipped geometry and retained-edge stipple reference passed
+Coin/GL polygon stipple reference passed
+Coin/GL polygon attributes reference passed
+[SKIP] GPU adapter unavailable
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMultitextureTest" classname="CoinRenderMultitextureTest" time="2.33991" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>P08 Coin GL reference passed (CPU=1)
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderPeelingTest" classname="CoinRenderPeelingTest" time="1.01603" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderTransparencyTest" classname="CoinRenderTransparencyTest" time="2.09491" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>CPU transparency matrices
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderCompositionTest" classname="CoinRenderCompositionTest" time="0.127312" status="run">
+		<properties/>
+		<system-out>CoinRenderCompositionTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderNodeInventoryDiscoveryTest" classname="CoinRenderNodeInventoryDiscoveryTest" time="0.3169" status="run">
+		<properties/>
+		<system-out>...
+----------------------------------------------------------------------
+Ran 3 tests in 0.030s
+
+OK
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderNodeInventoryTest" classname="CoinRenderNodeInventoryTest" time="0.100717" status="run">
+		<properties/>
+		<system-out>P15/P25: GL-only characterization, native raster, delegation, effect gates and subclass callbacks characterized
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderScreenContentCaptureTest" classname="CoinRenderScreenContentCaptureTest" time="0.265915" status="run">
+		<properties/>
+		<system-out>CoinRenderScreenContentTest capture/CPU passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderFragmentPolicyCaptureTest" classname="CoinRenderFragmentPolicyCaptureTest" time="0.278016" status="run">
+		<properties/>
+		<system-out>depth/off-write-on color/depth restoration passed; GPU depth readback=not requested
+alpha/weighted profile requires --gpu; CPU capture does not claim OIT execution
+alpha/RTT execution requires --gpu; temporary producer targets are not CPU mocks
+CoinRenderFragmentPolicyTest capture/CPU passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderDepthDisabledCaptureTest" classname="CoinRenderDepthDisabledCaptureTest" time="0.106538" status="run">
+		<properties/>
+		<system-out>depth/off-write-on color/depth restoration passed; GPU depth readback=not requested
+CoinRenderFragmentPolicyTest depth-only capture/CPU passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderProjectiveUvCaptureTest" classname="CoinRenderProjectiveUvCaptureTest" time="1.11604" status="run">
+		<properties/>
+		<system-out>units/all-eight-independent-Q/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.497037 max=1 pixels_over3=0
+units/all-eight-fallback/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.497037 max=1 pixels_over3=0
+units/unit-0/B/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.501481 max=1 pixels_over3=0
+units/unit-0/A-restored/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.497037 max=1 pixels_over3=0
+units/unit-0/eight-active-isolated-projective-control/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.496852 max=1 pixels_over3=0
+units/unit-0/eight-active-predivided-counterfactual/CPU oracle=independent-eight-stage-analytic reference_pixels=3600 actual_pixels=3600 roi_mae=0.49713 max=1 pixels_over3=0
+units/unit-0/eight-active-isolated-A-restored/CPU oracle=independent-eight-stage-analyt...
+[This part of the test output was removed since it exceeds the threshold of 1024 bytes.]
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderBoundingBoxCaptureTest" classname="CoinRenderBoundingBoxCaptureTest" time="0.200023" status="run">
+		<properties/>
+		<system-out>shadow-map/original-caster-profile requires actual GPU; not certified by CPU capture mode
+CoinRenderBoundingBoxTest capture/CPU passed native_gl_comparisons=0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderMarkerSetCaptureTest" classname="CoinRenderMarkerSetCaptureTest" time="0.249464" status="run">
+		<properties/>
+		<system-out>indexed/short-list-safe-extension complete-list-equivalence passed (no unsafe CoinGL execution)
+markers/subclass-user-callback passed (callback semantics; no native bitmap parity claim)
+markers/degenerate-perspective-volume explicit transactional rejection passed
+markers/start-outside-coordinates explicit transactional rejection passed
+markers/count-outside-coordinates explicit transactional rejection passed
+markers/invalid-negative-marker explicit transactional rejection passed
+markers/nonfinite-coordinate explicit transactional rejection passed
+indexed/invalid-coordinate-index explicit transactional rejection passed
+indexed/builtin-native-stride-incompatibility explicit transactional rejection passed
+CoinRenderMarkerSetTest capture/CPU passed reference_pairs=0 safe_extension_checks=1
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowEightMapTest" classname="CoinRenderShadowEightMapTest" time="0.0934015" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowReferenceTest" classname="CoinRenderShadowReferenceTest" time="1.75328" status="run">
+		<properties/>
+		<system-out>Coin/GL two-light contribution delta=402
+Coin/GL shadow sample inactive=600 active=126 late_light=30 no_receive=600 restored=126 no_caster=654 center_delta=1
+ directional_style_delta=666 late_directional_style_delta=0 mixed_directional_style_delta=666 spot_late_style_delta=0 spot_mixed_style_delta=474 at=0,0 values=0,0,0
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowWiringTest" classname="CoinRenderShadowWiringTest" time="0.0839778" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderPreciseQuadMeshShadowTest" classname="CoinRenderPreciseQuadMeshShadowTest" time="0.0768931" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowViewportTest" classname="CoinRenderShadowViewportTest" time="0.0762031" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency5Test" classname="CoinRenderShadowTransparency5Test" time="0.0786152" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>extended shadow transparency requires an explicit GPU qualification run
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency6Test" classname="CoinRenderShadowTransparency6Test" time="0.090177" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>extended shadow transparency requires an explicit GPU qualification run
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency7Test" classname="CoinRenderShadowTransparency7Test" time="0.0784324" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>extended shadow transparency requires an explicit GPU qualification run
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowTransparency8Test" classname="CoinRenderShadowTransparency8Test" time="0.075385" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out>extended shadow transparency requires an explicit GPU qualification run
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest1_0Test" classname="CoinRenderShadowAlphaTest1_0Test" time="0.076366" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest1_1Test" classname="CoinRenderShadowAlphaTest1_1Test" time="0.0778657" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest1_2Test" classname="CoinRenderShadowAlphaTest1_2Test" time="0.0846336" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest4_0Test" classname="CoinRenderShadowAlphaTest4_0Test" time="0.081932" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest4_1Test" classname="CoinRenderShadowAlphaTest4_1Test" time="0.103241" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest4_2Test" classname="CoinRenderShadowAlphaTest4_2Test" time="0.0888948" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest5_0Test" classname="CoinRenderShadowAlphaTest5_0Test" time="0.0786058" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest5_1Test" classname="CoinRenderShadowAlphaTest5_1Test" time="0.109395" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest5_2Test" classname="CoinRenderShadowAlphaTest5_2Test" time="0.0927701" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest6_0Test" classname="CoinRenderShadowAlphaTest6_0Test" time="0.0774294" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest6_1Test" classname="CoinRenderShadowAlphaTest6_1Test" time="0.0749672" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest6_2Test" classname="CoinRenderShadowAlphaTest6_2Test" time="0.0777309" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest7_0Test" classname="CoinRenderShadowAlphaTest7_0Test" time="0.0739983" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest7_1Test" classname="CoinRenderShadowAlphaTest7_1Test" time="0.0833059" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest7_2Test" classname="CoinRenderShadowAlphaTest7_2Test" time="0.0765618" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_0Test" classname="CoinRenderShadowAlphaTest8_0Test" time="0.077009" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_1Test" classname="CoinRenderShadowAlphaTest8_1Test" time="0.0740515" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowAlphaTest8_2Test" classname="CoinRenderShadowAlphaTest8_2Test" time="0.0780536" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowQuality1Test" classname="CoinRenderShadowQuality1Test" time="0.076497" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit1_1Test" classname="CoinRenderShadowOit1_1Test" time="0.0774068" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers1_1Test" classname="CoinRenderShadowLayers1_1Test" time="0.07614" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit1_2Test" classname="CoinRenderShadowOit1_2Test" time="0.0746156" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers1_2Test" classname="CoinRenderShadowLayers1_2Test" time="0.0771473" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowQuality4Test" classname="CoinRenderShadowQuality4Test" time="0.0770383" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit4_1Test" classname="CoinRenderShadowOit4_1Test" time="0.0767146" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers4_1Test" classname="CoinRenderShadowLayers4_1Test" time="0.0752966" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit4_2Test" classname="CoinRenderShadowOit4_2Test" time="0.0769939" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers4_2Test" classname="CoinRenderShadowLayers4_2Test" time="0.0760383" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowQuality8Test" classname="CoinRenderShadowQuality8Test" time="0.0763968" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit8_1Test" classname="CoinRenderShadowOit8_1Test" time="0.0773191" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers8_1Test" classname="CoinRenderShadowLayers8_1Test" time="0.0760432" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowOit8_2Test" classname="CoinRenderShadowOit8_2Test" time="0.0789655" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderShadowLayers8_2Test" classname="CoinRenderShadowLayers8_2Test" time="0.0747805" status="notrun">
+		<skipped message="SKIP_RETURN_CODE=77"/>
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderMultiTargetTest" classname="CoinRenderMultiTargetTest" time="0.090703" status="run">
+		<properties/>
+		<system-out></system-out>
+	</testcase>
+	<testcase name="CoinRenderPublicationTest" classname="CoinRenderPublicationTest" time="0.0920895" status="run">
+		<properties/>
+		<system-out>CoinRenderPublicationTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderRttOwnershipTest" classname="CoinRenderRttOwnershipTest" time="0.099915" status="run">
+		<properties/>
+		<system-out>CoinRenderRttOwnershipTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureTest" classname="CoinRenderSceneTextureTest" time="0.122368" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureTest passed
+</system-out>
+	</testcase>
+	<testcase name="CoinRenderSceneTextureBudgetTest" classname="CoinRenderSceneTextureBudgetTest" time="0.551011" status="run">
+		<properties/>
+		<system-out>CoinRenderSceneTextureBudgetTest passed
+</system-out>
+	</testcase>
+</testsuite>

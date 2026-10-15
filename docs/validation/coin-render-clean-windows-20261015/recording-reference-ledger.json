@@ -1,0 +1,50 @@
+[
+  {
+    "label": "recording-reference-recording-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\coin-clean-win-20261015\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-recording",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCOIN_BUILD_SHARED_LIBS=ON",
+      "-DCOIN_BUILD_TESTS=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=ON",
+      "-DCMAKE_CXX_STANDARD=11",
+      "-DCOIN_BUILD_MSVC_MP=OFF",
+      "-DCMAKE_CXX_FLAGS=/MP2",
+      "-DCOIN_BUILD_DOCUMENTATION=OFF",
+      "-DCOIN_BUILD_AWESOME_DOCUMENTATION=OFF",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\clean-windows-20261015\\install-recording",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON",
+      "-DCOIN_RENDER_BACKEND=RECORDING",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=OFF",
+      "-DCOIN_BUILD_RENDER_BENCHMARKS=OFF"
+    ],
+    "exit": 0,
+    "seconds": 9.74793791770935,
+    "log": "recording-reference-recording-configure.log",
+    "sha256": "637732341da6445359f5104ee704da5c8b80ede31dd615038f5822f5d23fb5e6"
+  },
+  {
+    "label": "recording-reference-recording-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-recording",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 1,
+    "seconds": 2.4132022857666016,
+    "log": "recording-reference-recording-build.log",
+    "sha256": "cf5c144556bd561f2c15f28cafb673e7e8e567572e29082e5aeed547ee0a57a2"
+  }
+]

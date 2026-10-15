@@ -1,0 +1,302 @@
+{
+  "source": "eb13545855503661e79c6c660e09aa57081142fa",
+  "suites": {
+    "off": {
+      "tests": 77,
+      "failures": [],
+      "skips": []
+    },
+    "recording": {
+      "tests": 181,
+      "failures": [],
+      "skips": [
+        "CoinRenderCameraReuseReferenceTest",
+        "CoinRenderSamplingPolicyWindowTest",
+        "CoinRenderSamplingPolicyGpuTest",
+        "CoinRenderSelectionTest",
+        "CoinRenderClipPlaneTest",
+        "CoinRenderDrawStyleTest",
+        "CoinRenderMultitextureTest",
+        "CoinRenderPeelingTest",
+        "CoinRenderTransparencyTest",
+        "CoinRenderShadowEightMapTest",
+        "CoinRenderShadowWiringTest",
+        "CoinRenderPreciseQuadMeshShadowTest",
+        "CoinRenderShadowViewportTest",
+        "CoinRenderShadowTransparency5Test",
+        "CoinRenderShadowTransparency6Test",
+        "CoinRenderShadowTransparency7Test",
+        "CoinRenderShadowTransparency8Test",
+        "CoinRenderShadowAlphaTest1_0Test",
+        "CoinRenderShadowAlphaTest1_1Test",
+        "CoinRenderShadowAlphaTest1_2Test",
+        "CoinRenderShadowAlphaTest4_0Test",
+        "CoinRenderShadowAlphaTest4_1Test",
+        "CoinRenderShadowAlphaTest4_2Test",
+        "CoinRenderShadowAlphaTest5_0Test",
+        "CoinRenderShadowAlphaTest5_1Test",
+        "CoinRenderShadowAlphaTest5_2Test",
+        "CoinRenderShadowAlphaTest6_0Test",
+        "CoinRenderShadowAlphaTest6_1Test",
+        "CoinRenderShadowAlphaTest6_2Test",
+        "CoinRenderShadowAlphaTest7_0Test",
+        "CoinRenderShadowAlphaTest7_1Test",
+        "CoinRenderShadowAlphaTest7_2Test",
+        "CoinRenderShadowAlphaTest8_0Test",
+        "CoinRenderShadowAlphaTest8_1Test",
+        "CoinRenderShadowAlphaTest8_2Test",
+        "CoinRenderShadowQuality1Test",
+        "CoinRenderShadowOit1_1Test",
+        "CoinRenderShadowLayers1_1Test",
+        "CoinRenderShadowOit1_2Test",
+        "CoinRenderShadowLayers1_2Test",
+        "CoinRenderShadowQuality4Test",
+        "CoinRenderShadowOit4_1Test",
+        "CoinRenderShadowLayers4_1Test",
+        "CoinRenderShadowOit4_2Test",
+        "CoinRenderShadowLayers4_2Test",
+        "CoinRenderShadowQuality8Test",
+        "CoinRenderShadowOit8_1Test",
+        "CoinRenderShadowLayers8_1Test",
+        "CoinRenderShadowOit8_2Test",
+        "CoinRenderShadowLayers8_2Test"
+      ]
+    },
+    "bgfx": {
+      "tests": 315,
+      "failures": [
+        "CoinBgfxInstancingOpenGLTest"
+      ],
+      "skips": [
+        "CoinRenderCameraReuseReferenceTest"
+      ]
+    },
+    "wgpu": {
+      "tests": 219,
+      "failures": [],
+      "skips": [
+        "CoinRenderCameraReuseReferenceTest"
+      ]
+    }
+  },
+  "sdk": [
+    {
+      "label": "final-bgfx-sdk-c11",
+      "exit": 0,
+      "pass": true
+    },
+    {
+      "label": "final-bgfx-sdk-d3d12-native",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-bgfx-sdk-d3d12-portable",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-bgfx-sdk-vulkan-native",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-bgfx-sdk-vulkan-portable",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=BGFX Vulkan NVIDIA (vendor 0x10de, device 0x1c03) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-bgfx-sdk-opengl-native",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-bgfx-sdk-opengl-portable",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-bgfx\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-c11",
+      "exit": 0,
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-d3d12-native",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-d3d12-portable",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=4 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-vulkan-native",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-vulkan-portable",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=1 vendor_id=0x10de device_id=0x1c03 adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-opengl-native",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    },
+    {
+      "label": "final-wgpu-sdk-opengl-portable",
+      "exit": 0,
+      "receipt": [
+        "installed_sdk renderer=2 vendor_id=0x10de device_id=0x0 adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) pixels_ok=1"
+      ],
+      "modules": {
+        "Coin4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\Coin4.dll",
+        "CoinRender4.dll": "H:\\Git\\coin\\build\\clean-windows-20261015\\install-wgpu\\bin\\CoinRender4.dll"
+      },
+      "pass": true
+    }
+  ],
+  "full_matrix_source": "2620d12da6064cbfc773ac8acfa05adbd7c1b1c9",
+  "recording_recheck_source": "eb13545855503661e79c6c660e09aa57081142fa",
+  "commands_failed": [
+    "recording-configure",
+    "bgfx-build",
+    "final-recording-ctest",
+    "final-bgfx-ctest",
+    "fixed-recording-build",
+    "fixed-bgfx-build",
+    "recording-reference-recording-build"
+  ],
+  "camera": [
+    {
+      "label": "camera-bgfx-d3d12",
+      "exit": 0,
+      "receipts": [
+        "camera_gpu adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=0x10de device=0x1c03",
+        "camera_gpu adapter=BGFX Direct3D 12 NVIDIA (vendor 0x10de, device 0x1c03) renderer=4 vendor=0x10de device=0x1c03"
+      ],
+      "physical_api_pass": true
+    },
+    {
+      "label": "camera-bgfx-vulkan",
+      "exit": 0,
+      "receipts": [],
+      "physical_api_pass": false
+    },
+    {
+      "label": "camera-bgfx-opengl",
+      "exit": 0,
+      "receipts": [
+        "camera_gpu adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=0x10de device=0x0",
+        "camera_gpu adapter=BGFX OpenGL NVIDIA (vendor 0x10de, device 0x0000) renderer=2 vendor=0x10de device=0x0"
+      ],
+      "physical_api_pass": true
+    },
+    {
+      "label": "camera-wgpu-d3d12",
+      "exit": 0,
+      "receipts": [
+        "camera_gpu adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 vendor=0x10de device=0x1c03",
+        "camera_gpu adapter=NVIDIA GeForce GTX 1060 6GB (Dx12) renderer=4 vendor=0x10de device=0x1c03"
+      ],
+      "physical_api_pass": true
+    },
+    {
+      "label": "camera-wgpu-vulkan",
+      "exit": 0,
+      "receipts": [
+        "camera_gpu adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) renderer=1 vendor=0x10de device=0x1c03",
+        "camera_gpu adapter=NVIDIA GeForce GTX 1060 6GB (Vulkan) renderer=1 vendor=0x10de device=0x1c03"
+      ],
+      "physical_api_pass": true
+    },
+    {
+      "label": "camera-wgpu-opengl",
+      "exit": 0,
+      "receipts": [
+        "camera_gpu adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) renderer=2 vendor=0x10de device=0x0",
+        "camera_gpu adapter=NVIDIA GeForce GTX 1060 6GB/PCIe/SSE2 (Gl) renderer=2 vendor=0x10de device=0x0"
+      ],
+      "physical_api_pass": true
+    }
+  ]
+}

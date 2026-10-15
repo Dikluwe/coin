@@ -1,0 +1,98 @@
+[
+  {
+    "label": "camera-bgfx-d3d12",
+    "command": [
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-bgfx\\bin\\CoinRenderCameraReuseReferenceTest.exe"
+    ],
+    "exit": 0,
+    "seconds": 1.7267258167266846,
+    "selected_environment": {
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "camera-bgfx-vulkan",
+    "command": [
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-bgfx\\bin\\CoinRenderCameraReuseReferenceTest.exe"
+    ],
+    "exit": 0,
+    "seconds": 1.736924409866333,
+    "selected_environment": {
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "camera-bgfx-opengl",
+    "command": [
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-bgfx\\bin\\CoinRenderCameraReuseReferenceTest.exe"
+    ],
+    "exit": 0,
+    "seconds": 1.4108860492706299,
+    "selected_environment": {
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "camera-wgpu-d3d12",
+    "command": [
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-wgpu\\bin\\CoinRenderCameraReuseReferenceTest.exe"
+    ],
+    "exit": 0,
+    "seconds": 1.7265031337738037,
+    "selected_environment": {
+      "COIN_BGFX_RENDERER": "d3d12",
+      "WGPU_BACKEND": "dx12",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "camera-wgpu-vulkan",
+    "command": [
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-wgpu\\bin\\CoinRenderCameraReuseReferenceTest.exe"
+    ],
+    "exit": 0,
+    "seconds": 1.1477372646331787,
+    "selected_environment": {
+      "COIN_BGFX_RENDERER": "vulkan",
+      "WGPU_BACKEND": "vulkan",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  },
+  {
+    "label": "camera-wgpu-opengl",
+    "command": [
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-wgpu\\bin\\CoinRenderCameraReuseReferenceTest.exe"
+    ],
+    "exit": 0,
+    "seconds": 1.3626065254211426,
+    "selected_environment": {
+      "COIN_BGFX_RENDERER": "opengl",
+      "WGPU_BACKEND": "gl",
+      "COIN_RENDER_REQUIRE_CAMERA_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_GL_REFERENCE": "1",
+      "COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU": "1",
+      "COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU": "1"
+    }
+  }
+]

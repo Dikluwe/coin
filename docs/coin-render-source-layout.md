@@ -121,3 +121,11 @@ GPU tests run serially in a systemd scope limited to 8 GiB of resident memory;
 builds use two jobs and a per-process virtual-memory limit. Build peak resident
 set measurements stayed below 600 MiB per process. No documentation generation
 was part of these commands.
+
+## Windows continuation (2026-10-15)
+
+The clean branch needed the existing study fix that removes DLL import/export
+from the header-defined `SbLazyPimplPtr` template. Without it, MSVC reported
+C2491 while building CoinRender as a DLL. The Windows build/SDK results,
+initial failure and remaining limitations are recorded in the
+[Windows validation](coin-render-clean-windows-20261015.md).

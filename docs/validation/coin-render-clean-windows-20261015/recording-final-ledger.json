@@ -1,0 +1,83 @@
+[
+  {
+    "label": "recording-final-recording-configure",
+    "command": [
+      "cmake",
+      "-S",
+      "C:\\Users\\Diklu\\.codex\\worktrees\\coin-clean-win-20261015\\coin",
+      "-B",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-recording",
+      "-G",
+      "Visual Studio 17 2022",
+      "-A",
+      "x64",
+      "-DCOIN_BUILD_SHARED_LIBS=ON",
+      "-DCOIN_BUILD_TESTS=ON",
+      "-DCOIN_BUILD_LEGACY_GL_RENDERER=ON",
+      "-DCMAKE_CXX_STANDARD=11",
+      "-DCOIN_BUILD_MSVC_MP=OFF",
+      "-DCMAKE_CXX_FLAGS=/MP2",
+      "-DCOIN_BUILD_DOCUMENTATION=OFF",
+      "-DCOIN_BUILD_AWESOME_DOCUMENTATION=OFF",
+      "-DCMAKE_INSTALL_PREFIX=H:\\Git\\coin\\build\\clean-windows-20261015\\install-recording",
+      "-DCOIN_BUILD_RENDER=ON",
+      "-DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON",
+      "-DCOIN_RENDER_BACKEND=RECORDING",
+      "-DCOIN_BUILD_RENDER_WINDOW_EXAMPLE=OFF",
+      "-DCOIN_BUILD_RENDER_BENCHMARKS=OFF"
+    ],
+    "exit": 0,
+    "seconds": 11.08497166633606,
+    "log": "recording-final-recording-configure.log",
+    "sha256": "bd2791ffb0be03d341e55cdc00f91170916ba7f3b97675f35dc68b0d0f8842ef"
+  },
+  {
+    "label": "recording-final-recording-build",
+    "command": [
+      "cmake",
+      "--build",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-recording",
+      "--config",
+      "Release",
+      "--parallel",
+      "2"
+    ],
+    "exit": 0,
+    "seconds": 7.0253636837005615,
+    "log": "recording-final-recording-build.log",
+    "sha256": "8a2349e8e6c60fc0d05e6ffd071b59562d16ad8954239ab68eb0eef9bd685cd3"
+  },
+  {
+    "label": "recording-final-recording-install",
+    "command": [
+      "cmake",
+      "--install",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-recording",
+      "--config",
+      "Release"
+    ],
+    "exit": 0,
+    "seconds": 6.5992560386657715,
+    "log": "recording-final-recording-install.log",
+    "sha256": "5fa2fe42ce1fda9f148e1367f72baf3243cb28e7a76e0920042a9a5de51183f8"
+  },
+  {
+    "label": "recording-final-recording-ctest",
+    "command": [
+      "ctest",
+      "--test-dir",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\build-recording",
+      "-C",
+      "Release",
+      "--output-on-failure",
+      "-j",
+      "1",
+      "--output-junit",
+      "H:\\Git\\coin\\build\\clean-windows-20261015\\recording-ctest.xml"
+    ],
+    "exit": 0,
+    "seconds": 35.06470060348511,
+    "log": "recording-final-recording-ctest.log",
+    "sha256": "968d72b8eeab152e0e4cc646d2012f0c2f936173bbbe5f6bbc683d82be1d49e1"
+  }
+]
