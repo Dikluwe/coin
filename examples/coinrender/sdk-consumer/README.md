@@ -51,3 +51,58 @@ em uma GPU identificada não publica automaticamente um perfil geral Windows.
 No Windows, os caminhos de Coin4.dll/CoinRender4.dll carregados são impressos;
 compare seus hashes com a instalação. A sonda C11 verifica capabilities v4
 com 584 bytes, prefixo v3 com 536 bytes e ordinal nativo zero.
+
+## Validação Windows da branch limpa
+
+Usar Visual Studio 2022 com ferramentas C/C++ e Windows SDK, CMake, Git e
+driver da GPU física com a API solicitada. Para `RUST_BRIDGE`, instalar Rust
+com toolchain MSVC x64 e Cargo; conservar `Cargo.lock`. Para BGFX, preparar o
+SDK e o patch final conforme [as instruções da dependência](../../../cmake/patches/README.md).
+Não misturar os prefixes de BGFX e wgpu. O consumidor C++ requer C++17;
+o consumidor C requer C11. A biblioteca Coin mantém seu mínimo C++11.
+
+Exemplo PowerShell, na raiz do checkout, depois de preparar BGFX:
+
+```powershell
+$coinSource = (Get-Location).Path
+$bgfxSdk = Join-Path $coinSource 'build/coinrender-windows-deps/install'
+$coinSdk = Join-Path $coinSource 'build/sdk-bgfx'
+cmake -S . -B build/windows-bgfx -G 'Visual Studio 17 2022' -A x64 `
+  -DCOIN_BUILD_SHARED_LIBS=ON -DCOIN_BUILD_TESTS=ON `
+  -DCOIN_BUILD_LEGACY_GL_RENDERER=ON -DCOIN_BUILD_RENDER=ON `
+  -DCOIN_RENDER_BACKEND=BGFX -DCOIN_INSTALL_RENDER_EXPERIMENTAL=ON `
+  "-DCMAKE_PREFIX_PATH=$bgfxSdk" "-DCMAKE_INSTALL_PREFIX=$coinSdk" `
+  "-DCOIN_BGFX_SHADERC_EXECUTABLE=$bgfxSdk/bin/shaderc.exe" `
+  "-DCOIN_BGFX_SHADER_INCLUDE_DIR=$bgfxSdk/include/bgfx"
+cmake --build build/windows-bgfx --config Release --parallel 2
+ctest --test-dir build/windows-bgfx -C Release --output-on-failure -j 1
+cmake --install build/windows-bgfx --config Release
+cmake -S examples/coinrender/sdk-consumer -B build/consumer-bgfx `
+  -G 'Visual Studio 17 2022' -A x64 "-DCMAKE_PREFIX_PATH=$coinSdk"
+cmake --build build/consumer-bgfx --config Release --parallel 2
+$env:PATH = "$coinSdk/bin;$env:PATH"
+& ./build/consumer-bgfx/Release/coin-render-sdk-capabilities-c.exe
+& ./build/consumer-bgfx/Release/coin-render-sdk-consumer.exe d3d12 portable
+```
+
+Conferir o código de saída de cada comando antes de continuar. Repetir o
+consumidor nas APIs físicas `vulkan` e `opengl`, com políticas `native` e
+`portable`. Para wgpu, configurar outro diretório de build e outro prefixo,
+selecionando `COIN_RENDER_BACKEND=RUST_BRIDGE`, sem as três opções BGFX;
+repetir build, CTest, instalação e consumidores usando somente esse prefixo.
+Executar builds pesados separadamente e testes GPU com um processo por vez.
+
+Na reorganização Linux, compilaram as configurações `RECORDING`, `RUST_BRIDGE`,
+`BGFX` e CoinRender desativado, além dos consumidores instalados C/C++.
+Os smokes Vulkan portáteis de wgpu e BGFX passaram. Esses resultados não
+qualificam MSVC, exportação/importação DLL nem os consumidores Windows desta
+branch. Registrar os resultados Windows e os caminhos/hashes das DLLs carregadas.
+O [relatório da organização](../../../docs/coin-render-source-layout.md) conserva
+as contagens, skips e limitações dos testes Linux.
+
+Continuam abertas a discrepância de um pixel do instancing BGFX/OpenGL/NVIDIA
+e a falha no encerramento paralelo dos testes Rust, ambas anteriores à
+reorganização. Os testes Rust passaram serialmente neste host; isso não prova
+correção do encerramento paralelo. A recuperação do patch BGFX não corrige
+essas falhas nem as falhas visuais históricas Windows. PBR em desenvolvimento
+não integra esta entrega para testes.
