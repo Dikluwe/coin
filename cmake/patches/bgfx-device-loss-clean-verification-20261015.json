@@ -1,0 +1,25 @@
+{
+  "date": "2026-10-15",
+  "origin_repository": "https://github.com/Dikluwe/coin.git",
+  "origin_commit": "68657a5b969f252234760080be35acf67350b40d",
+  "patch_sha256": "4a0d2b7785f9369a789a4a88ac5171db142ca5955a8e7b2d776325b0a4e26c79",
+  "bgfx_revision": "7346c3e731bd65f35c7e6a99819840e554f5b748",
+  "source_url_pattern": "https://raw.githubusercontent.com/bkaradzic/bgfx/{revision}/src/{filename}",
+  "git_apply_check_exit": 0,
+  "git_apply_exit": 0,
+  "applied_files": [
+    {
+      "file": "bgfx/src/renderer_d3d12.cpp",
+      "sha256": "f4b323e3324ae61168e0974c498eb21e4e8a736432ee8f1bb05220d0e4d5382d",
+      "matches_recovered_sdk_source_raw_hash": true,
+      "line_endings": "LF"
+    },
+    {
+      "file": "bgfx/src/renderer_d3d12.h",
+      "sha256": "5ae7f85a2edbebb3d8c2c211897fd89414efd2cc28cd3087782eafb7e631d017",
+      "matches_recovered_sdk_source_raw_hash": true,
+      "line_endings": "LF"
+    }
+  ],
+  "scope": "Integrity and application only; no SDK build or GPU qualification."
+}

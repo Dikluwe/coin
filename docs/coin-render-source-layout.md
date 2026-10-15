@@ -52,13 +52,15 @@ excluded; the original checkout retains them.
 
 The transfer covers the integration source, tests, examples and tracked local
 edits, rather than every historical experiment under `docs/validation`.
-An additional reproducibility gap exists in the original Windows report:
-`coin-render-windows-remaining-gates-20261010.md` references a final
-`bgfx-device-loss.patch` that is absent from the original checkout as well as
-this branch. The archive contains an earlier `bgfx-device-loss-before-history.patch`
-and dependency revisions, but these must not be presented as the complete final
-SDK patch. Recover that final dependency patch before claiming that the Windows
-device-loss qualification can be reproduced from this branch alone.
+The final Windows BGFX dependency patch, initially omitted from publication,
+was recovered in `Dikluwe/coin` commit
+`68657a5b969f252234760080be35acf67350b40d` on 2026-10-15. This branch preserves
+its original bytes, dependency revisions and recovery receipt in `cmake/patches`.
+See [dependency reproduction](../cmake/patches/README.md) for pinned revisions,
+build commands and the independent application check. Applying the patch to the
+exact upstream sources reproduces the recovered SDK source hashes. This closes
+the missing-patch gap; it is not a new Windows build or GPU qualification and
+does not resolve the existing BGFX/OpenGL or parallel Rust teardown failures.
 
 The extraction preserves the common Core/Shell/Infra/Wiring responsibilities,
 both GPU executors, legacy aliases and opt-in installation. A lexical comparison

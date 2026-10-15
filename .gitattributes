@@ -2,3 +2,6 @@
 cmake/patches/*.patch -whitespace
 testsuite/reproducers/**/*.patch -whitespace
 examples/coinrender/*.patch -whitespace
+# Imported Windows receipts retain their original CRLF bytes.
+cmake/patches/bgfx-device-loss-provenance.json whitespace=cr-at-eol
+cmake/patches/bgfx-device-loss-recovery-20261015.json whitespace=cr-at-eol
