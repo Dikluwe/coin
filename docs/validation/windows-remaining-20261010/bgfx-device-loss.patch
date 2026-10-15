@@ -1,0 +1,88 @@
+--- a/bgfx/src/renderer_d3d12.cpp
++++ b/bgfx/src/renderer_d3d12.cpp
+@@ -4,6 +4,8 @@
+  */
+ 
+ #include "bgfx_p.h"
++#include <cstdio>
++#include <cstdlib>
+ 
+ #if BGFX_CONFIG_RENDERER_DIRECT3D12
+ #	include "renderer_d3d12.h"
+@@ -2117,6 +2119,18 @@
+ 
+ 			DX_RELEASE(m_zeroInitBuffer, 0);
+ 
++#if BX_PLATFORM_WINDOWS
++			// Device removal destroys the renderer before queued framebuffer teardown.
++			// Release secondary native swapchains so the removed device can die.
++			for (uint32_t ii = 0; ii < BX_COUNTOF(m_frameBuffers); ++ii)
++			{
++				if (ii != kMainFrameBufferIdx && NULL != m_frameBuffers[ii].m_swapChain)
++				{
++					m_frameBuffers[ii].destroy();
++				}
++			}
++#endif // BX_PLATFORM_WINDOWS
++
+ 			preReset();
+ 
+ 			m_gpuTimer.shutdown();
+@@ -8516,6 +8530,9 @@
+ 
+ 	void TimerQueryD3D12::create()
+ 	{
++		const char* traceFilename = std::getenv("COIN_BGFX_D3D12_QUERY_LOG");
++		m_traceFile = NULL != traceFilename ? std::fopen(traceFilename, "ab") : NULL;
++		m_traceResults = NULL != m_traceFile;
+ 		ID3D12Device* device = s_renderD3D12->m_device;
+ 
+ 		D3D12_QUERY_HEAP_DESC queryHeapDesc =
+@@ -8549,6 +8566,9 @@
+ 
+ 	void TimerQueryD3D12::shutdown()
+ 	{
++		if (NULL != m_traceFile) std::fclose(static_cast<std::FILE*>(m_traceFile));
++		m_traceFile = NULL;
++		m_traceResults = false;
+ 		D3D12_RANGE range = { 0, 0 };
+ 		m_readback->Unmap(0, &range);
+ 
+@@ -8660,6 +8680,15 @@
+ 			uint32_t offset = idx * 2;
+ 			result.m_begin  = m_queryResult[offset+0];
+ 			result.m_end    = m_queryResult[offset+1];
++			if (m_traceResults)
++			{
++				// Preserve every completed query before the public latest-result slot is reused.
++				std::fprintf(static_cast<std::FILE*>(m_traceFile), "COIN_BGFX_D3D12_QUERY kind=%s view=%u frame=%u begin=%llu end=%llu frequency=%llu\n",
++					query.m_resultIdx == BGFX_CONFIG_MAX_VIEWS ? "frame" : "view",
++					query.m_resultIdx, query.m_frameNum,
++					(unsigned long long)result.m_begin, (unsigned long long)result.m_end,
++					(unsigned long long)m_frequency);
++			}
+ 
+ 			return true;
+ 		}
+--- a/bgfx/src/renderer_d3d12.h
++++ b/bgfx/src/renderer_d3d12.h
+@@ -750,7 +750,9 @@
+ 	struct TimerQueryD3D12
+ 	{
+ 		TimerQueryD3D12()
+-			: m_control(kMinTimerQueries)
++			: m_traceResults(false)
++			, m_traceFile(NULL)
++			, m_control(kMinTimerQueries)
+ 		{
+ 		}
+ 
+@@ -786,6 +788,8 @@
+ 			uint32_t m_frameNum;
+ 		};
+ 
++		bool m_traceResults;
++		void* m_traceFile;
+ 		uint64_t m_frequency;
+ 
+ 		Result m_result[BGFX_CONFIG_MAX_VIEWS+1];

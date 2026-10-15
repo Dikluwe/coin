@@ -1,0 +1,26 @@
+{
+  "date": "2026-10-15",
+  "reason": "Final patch generated and used on Windows was omitted from published evidence; original patch bytes restored.",
+  "patch_sha256": "4a0d2b7785f9369a789a4a88ac5171db142ca5955a8e7b2d776325b0a4e26c79",
+  "patch_bytes": 2459,
+  "bgfx_cmake_revision": "eb88f6be55ae223966698c802542c24b0d93fd25",
+  "bgfx_revision": "7346c3e731bd65f35c7e6a99819840e554f5b748",
+  "apply_check_exit": 0,
+  "reproduced_files": [
+    {
+      "file": "bgfx/src/renderer_d3d12.cpp",
+      "applied_sha256": "769d00dbe7da46170682730cebbd261c53403d1a4dae2c143a06c6663069cdaf",
+      "built_sdk_source_sha256": "f4b323e3324ae61168e0974c498eb21e4e8a736432ee8f1bb05220d0e4d5382d",
+      "same_source_after_CRLF_to_LF": true
+    },
+    {
+      "file": "bgfx/src/renderer_d3d12.h",
+      "applied_sha256": "18ebb180578d424b1c8c56dadfd54c188cf12510e6326e59ceb718c60ae20d0f",
+      "built_sdk_source_sha256": "5ae7f85a2edbebb3d8c2c211897fd89414efd2cc28cd3087782eafb7e631d017",
+      "same_source_after_CRLF_to_LF": true
+    }
+  ],
+  "line_ending_note": "Patch-check fixture uses CRLF; SDK source uses LF. Raw hashes differ, normalized source bytes match. Original patch bytes are preserved.",
+  "previous_evidence_manifests": "Preserved unchanged. This receipt covers the added patch.",
+  "scope": "Dependency patch only. No new SDK compilation, GPU qualification or fix for the 42 visual failures."
+}
