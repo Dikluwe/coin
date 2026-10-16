@@ -295,8 +295,10 @@ extern "C" {
 #endif
 
 static cc_list * gl_instance_created_cblist = NULL;
-static int COIN_MAXIMUM_TEXTURE2_SIZE = -1;
-static int COIN_MAXIMUM_TEXTURE3_SIZE = -1;
+// Zero means the corresponding environment variable has not been read yet.
+// A missing or non-positive override imposes no limit.
+static int COIN_MAXIMUM_TEXTURE2_SIZE = 0;
+static int COIN_MAXIMUM_TEXTURE3_SIZE = 0;
 static cc_glglue_offscreen_cb_functions* offscreen_cb = NULL;
 #if defined(HAVE_AGL)
 static int COIN_USE_AGL = -1;
