@@ -114,7 +114,7 @@ de RGB não certificam paridade geral do alpha de framebuffer: CoinRender
 mantém seu contrato existente de composição source-over.
 
 A evidência Linux fica em
-[validation/fragment-policy-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/fragment-policy-linux).
+[validation/fragment-policy-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/fragment-policy-linux>).
 Essa campanha cobre wgpu/Vulkan e BGFX/Vulkan/OpenGL nesta máquina NVIDIA.
 Windows e outros drivers precisam de execução própria dos mesmos gates.
 
@@ -132,7 +132,7 @@ geral de RTT. A recusa em sombras verifica diagnóstico e preservação do frame
 com controle GPU PHONG válido antes da entrada recusada.
 
 A campanha adicional de RGB/REPLACE em
-[validation/rgb-replace-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/rgb-replace-linux) reexecuta o gate
+[validation/rgb-replace-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/rgb-replace-linux>) reexecuta o gate
 com seis cenas adicionais por executor e registra o piloto que reproduziu a
 divergência de ordem antes da correção. Passaram **348 comparações GPU RGB**
 (116 por executor), com erro máximo de 1/255, além de 279 comparações de
@@ -141,7 +141,7 @@ finais. O perfil continua restrito a Linux/NVIDIA; não houve alteração de ABI
 Rust ou shaders nesta correção.
 
 A campanha focada de profundidade em
-[validation/depth-disabled-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/depth-disabled-linux) passou
+[validation/depth-disabled-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/depth-disabled-linux>) passou
 **18 comparações GPU/CoinGL** (seis por executor) e as respectivas comparações
 CPU/CoinGL, com erro RGB zero. Os dois builds passaram captura/CPU. O gate
 completo wgpu/Vulkan passou **119 comparações GPU/CoinGL**, com erro máximo

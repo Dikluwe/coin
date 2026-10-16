@@ -44,7 +44,7 @@ wgpu) preservaram os checksums anteriores. Quatro verificações dinâmicas
 preservaram os checksums: `0x972ec92989e3abdc` para câmera e
 `0x9147e63e47d4fcaf` para material.
 
-[Evidências e scripts](/mnt/Laranja/Git/externos/coin-render/docs/validation/render-transform-linux). Não se declara ganho
+[Evidências e scripts](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/render-transform-linux>). Não se declara ganho
 de desempenho nesta campanha. Windows e os protótipos não foram executados.
 A conclusão é sobre os limites de organização descritos, sem declarar resolvidas
 as pendências de equivalência funcional ou todos os pontos da checklist de render.

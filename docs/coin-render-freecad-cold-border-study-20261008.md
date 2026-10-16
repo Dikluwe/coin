@@ -8,11 +8,11 @@ exatamente 1.476 pixels, todos na moldura de um retângulo de 370 × 370 pixels:
 `(10,10,10)` para `(146,152,158)`. A contagem coincide com
 `2 × 370 + 2 × 370 - 4`: a borda de um pixel desapareceu; não restou nenhum
 pixel do texto amarelo na área alterada. As quatro capturas foram copiadas para
-o ledger versionado: [baseline](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-bare.png),
-[texto inicial](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-text.png),
-[texto alterado](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-text-updated.png),
-[após remoção](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-text-removed.png)
-e [resultado](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/result.json).
+o ledger versionado: [baseline](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-bare.png>),
+[texto inicial](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-text.png>),
+[texto alterado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-text-updated.png>),
+[após remoção](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/screen-text-removed.png>)
+e [resultado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/result.json>).
 SHA-256: `661d2a6998b1a14813aaacde80bd31b4187b341f5db6543c6b20d638c7aa566c`
 e `ee744cb039325107e3873cf1c7554e4685021f466436be71ae1aaa7e5358a061`.
 
@@ -28,7 +28,7 @@ de tela estável em duas leituras descarta um frame de apresentação isolado,
 mas não prova que o desenho inicial do documento já estivesse estabilizado.
 O teste posterior aquecido `sampling-startup-before-text` versus
 `sampling-startup-after-text` tem diff zero na mesma célula
-([resultado](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-warm-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/result.json)). Isso delimita a
+([resultado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-warm-qualified-final/wgpu-nvidia-vulkan-portable/vulkan-object-opaque-1x-freecad-sampling-policy/result.json>)). Isso delimita a
 transição ao primeiro uso do host; não identifica se a origem é estado de
 seleção/estilo do FreeCAD, cache de geometria ou apresentação inicial.
 
@@ -66,7 +66,7 @@ os resultados aparecem abaixo.
 
 Resultados e imagens completos estão no root durável
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/cold-border-controls-20261008`.
-Os [cinco resultados e oito capturas selecionadas](/mnt/Laranja/Git/externos/coin-render/docs/validation/cold-border-controls-20261008/amd-portable-visible-mutation/result.json)
+Os [cinco resultados e oito capturas selecionadas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/cold-border-controls-20261008/amd-portable-visible-mutation/result.json>)
 também foram copiados para `docs/validation/cold-border-controls-20261008`,
 com subdiretórios por controle; o quinto resultado documenta a falha de
 inicialização NVIDIA.
@@ -115,7 +115,7 @@ pixels não reapareceu, e driver e shell mudaram entre as coletas. A causa
 daquela transição permanece aberta; não há base para atribuí-la ao sampling,
 ao driver ou ao shell isoladamente. Oracle e tolerância não foram alterados.
 
-[Resumo calculado, resultados e capturas](/mnt/Laranja/Git/externos/coin-render/docs/validation/cold-border-nvidia-after-driver-20261008/summary.json)
+[Resumo calculado, resultados e capturas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/cold-border-nvidia-after-driver-20261008/summary.json>)
 estão no ledger versionado. Para repetir neste host, usar
 `testsuite/qt-quarter/run_isolated.py --server xwayland --weston-shell desktop-shell.so`
 com o mesmo `--weston-prefix`, host privado, `--require-hardware` e seletor
@@ -135,7 +135,7 @@ do primeiro uso de texto e sem redraw forçado pelo fixture. Em 16 processos
 FreeCAD novos na GPU NVIDIA física, 12 portáteis e quatro nativos, o texto e a
 mutação produziram alterações visíveis, mas a borda voltou exatamente ao
 baseline após ocultar o texto e permaneceu idêntica em segunda leitura.
-Todos registraram `cold_start_qualified=true`. [Runner, recibos e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/freecad-cold-qualify-20261011/summary.md).
+Todos registraram `cold_start_qualified=true`. [Runner, recibos e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/freecad-cold-qualify-20261011/summary.md>).
 
 O resultado fecha a qualificação fria delimitada deste host. A transição
 histórica de 1.476 pixels continua documentada; como não foi reproduzida, sua

@@ -40,7 +40,7 @@ a frente de iluminação precisa.
 
 ## Continuação
 
-A [qualificação posterior](/mnt/Laranja/Git/externos/coin-render/docs/validation/precise-quadmesh-20261011/summary.md)
+A [qualificação posterior](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/precise-quadmesh-20261011/summary.md>)
 substituiu os quatro ponteiros UV por valores, implementou o fan centrado no
 callback portátil e fechou seu perfil de uma textura. Os limites e resultados
 acima descrevem a revisão anterior dessa investigação.

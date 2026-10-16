@@ -62,9 +62,9 @@ Os PPM foram comparados na orientação final, em 1024 × 1024. O alpha e o chec
 
 As imagens estão visualmente próximas, mas não são byte a byte iguais. No wgpu/OpenGL, o fundo mede RGB 26/26/26 e no CoinGL/AMD 25/25/25, explicando grande parte dos pixels diferentes e do MAE. Os erros acima de três níveis afetam de um a três pixels por par. Não foi aplicada correção de fundo, alpha ou imagem para reduzir os erros medidos, nem um gate novo de equivalência para a cena PHONG.
 
-![Comparação NVIDIA](/mnt/Laranja/Git/externos/coin-render/docs/validation/coingl-reference-linux/nvidia-rgb-comparison.png)
+![Comparação NVIDIA](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/coingl-reference-linux/nvidia-rgb-comparison.png>)
 
-![Comparação AMD](/mnt/Laranja/Git/externos/coin-render/docs/validation/coingl-reference-linux/amd-rgb-comparison.png)
+![Comparação AMD](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/coingl-reference-linux/amd-rgb-comparison.png>)
 
 Os 18 processos conservaram o checksum estático próprio de cada renderer. As quatro variantes experimentais também conservaram seus checksums conhecidos das medições anteriores. A inclusão de CoinGL não altera os resultados dos 33 testes e quatro controles dinâmicos da última validação; esta campanha não os reexecuta nem faz alteração de produção.
 
@@ -72,4 +72,4 @@ Os 18 processos conservaram o checksum estático próprio de cada renderer. As q
 
 A campanha mede esta cidade estática, este host e saída offscreen síncrona. Não qualifica janela, animação, outras cenas/GPUs ou um build pristine do upstream. Diferenças de caches e contexto offscreen fazem parte dos caminhos utilizados e estão registradas. O primeiro quadro em processo novo não representa driver/shader cache vazio.
 
-[Logs, hashes, métricas RGB e scripts](/mnt/Laranja/Git/externos/coin-render/docs/validation/coingl-reference-linux/README.md).
+[Logs, hashes, métricas RGB e scripts](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/coingl-reference-linux/README.md>).

@@ -43,7 +43,7 @@ O gate estrito completo passou com `COIN_RENDER_REQUIRE_GL_REFERENCE=1`:
 | CoinGL llvmpipe/Mesa 25.2.8 + CoinRender CPU/BGFX Vulkan AMD | PASS, exit 0 |
 
 Os logs dos gates após compilação limpa estão em
-[`validation/raster-amd-strict-gate-20261009`](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-amd-strict-gate-20261009).
+[`validation/raster-amd-strict-gate-20261009`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-amd-strict-gate-20261009>).
 O alvo `CoinRenderDrawStyleTest` foi compilado com CMake/Ninja a partir desta
 branch antes dos dois gates; a compilação terminou com exit 0.
 O gate cobre as cenas do teste, inclusive recorte, stipple, modelos de textura,

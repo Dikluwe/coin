@@ -115,10 +115,10 @@ python3 testsuite/reproducers/portable-sampling-study/run_base.py \
   --artifacts "$study_artifacts"
 ```
 
-[Oracle/contagens](/mnt/Laranja/Git/externos/coin-render/docs/validation/base-sampling-counterexample-20261008/results.json),
-[AMD com derivadas](/mnt/Laranja/Git/externos/coin-render/docs/validation/base-sampling-counterexample-20261008/amd-4096-derived.log),
-[NVIDIA com derivadas](/mnt/Laranja/Git/externos/coin-render/docs/validation/base-sampling-counterexample-20261008/nvidia-4096-derived.log),
-[manifest/hashes](/mnt/Laranja/Git/externos/coin-render/docs/validation/base-sampling-counterexample-20261008/manifest.json).
+[Oracle/contagens](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/base-sampling-counterexample-20261008/results.json>),
+[AMD com derivadas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/base-sampling-counterexample-20261008/amd-4096-derived.log>),
+[NVIDIA com derivadas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/base-sampling-counterexample-20261008/nvidia-4096-derived.log>),
+[manifest/hashes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/base-sampling-counterexample-20261008/manifest.json>).
 Logs, dumps RGBA e recibos são versionados. Build/executável ficam em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-base`.
 O binário linka EGL/OpenGL e dependências C++, sem Coin.

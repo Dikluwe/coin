@@ -95,7 +95,7 @@ argumentos do empacotador e os comandos de execução. As dimensões base seguem
 a semântica de [ANativeWindow_setBuffersGeometry](https://developer.android.com/ndk/reference/group/a-native-window#anativewindow_setbuffersgeometry),
 que restaura o tamanho base quando width/height são zero.
 
-[validation/p23-apk-linux-20261007](/mnt/Laranja/Git/externos/coin-render/docs/validation/p23-apk-linux-20261007)
+[validation/p23-apk-linux-20261007](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p23-apk-linux-20261007>)
 contém comandos, logs de preparação/falhas e versão final, XML Linux, ELF,
 assinatura/alinhamento, screenshots e hashes. Scripts usam paths deste host;
 reproduzir em diretórios novos sem substituir o pacote arquivado. O arquivo

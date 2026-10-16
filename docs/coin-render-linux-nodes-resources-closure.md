@@ -1,7 +1,7 @@
 # P03/P15/P16/P24/P28 — continuação Linux
 
 Esta entrega amplia o perfil neste PC. As campanhas anteriores continuam em
-seus diretórios; [a nova evidência](/mnt/Laranja/Git/externos/coin-render/docs/validation/resources-linux-20261006/README.md)
+seus diretórios; [a nova evidência](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/resources-linux-20261006/README.md>)
 identifica o código, os binários e as configurações desta rodada: 48 células
 nativas da matriz e três células focadas de rejeição, todas PASS.
 

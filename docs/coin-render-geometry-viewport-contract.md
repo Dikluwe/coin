@@ -113,7 +113,7 @@ PHONG clássico mantém iluminação Gouraud; iluminação por fragmento continu
 uma extensão distinta. Não há nova promessa de paridade universal.
 
 Resultados, ambiente NVIDIA, hashes e logs estão em
-[validation/geometry-viewport-20261006/summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-viewport-20261006/summary.json).
+[validation/geometry-viewport-20261006/summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-viewport-20261006/summary.json>).
 
 A rodada aprova 189 CTests wgpu (191 agendados, dois skips conhecidos) e 252
 CTests BGFX distintos (254 agendados, dois skips conhecidos). O primeiro run
@@ -186,7 +186,7 @@ Planos privados construídos à mão com offset não resolvido e range reverso
 não fazem parte do perfil capturado: devem passar pela resolução Core antes
 que o transporte/executor receba slope/maximum.
 
-A [campanha integrada final](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-viewport-closure-20261006/summary.json)
+A [campanha integrada final](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-viewport-closure-20261006/summary.json>)
 qualifica 204 CTests wgpu (206 agendados) e 270 BGFX (272 agendados), com os
 mesmos dois skips conhecidos. Em wgpu, duas verificações estruturais foram
 adaptadas para recuperar posições antes do passo raster; os dois retestes passam

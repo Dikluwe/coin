@@ -146,7 +146,7 @@ Asset milhão: 133.200.021 bytes, seed 136,
 SHA-256 `b52a2ce714bf94129d3ddf7a02f910ffacadf915a72b61c8c86acb40ed72ab19`.
 O asset de 40.000 mantém o hash `bb9ccc612cd38ffb749ee599d9350a80974649eab5bf477d2f344538a42b2576`.
 
-[Evidência e hashes](/mnt/Laranja/Git/externos/coin-render/docs/validation/p23-android-fps-million-20261007/manifest.json).
+[Evidência e hashes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p23-android-fps-million-20261007/manifest.json>).
 Logs textuais no Git usam `.log.gz`, com hashes dos bytes descomprimidos no
 manifesto. Os originais legíveis permanecem no diretório de artefatos acima.
 [Checklist](coin-render-next-fronts-checklist.md).

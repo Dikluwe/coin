@@ -71,17 +71,17 @@ As divergências após mover a câmera das cidades aparecem em ambos os backends
 
 ## Imagens reais
 
-![Cidade de 40 mil edifícios](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-visual-20261010/visual-initial/city-40000-bgfx-d3d12-0-native-initial-window.png)
+![Cidade de 40 mil edifícios](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-visual-20261010/visual-initial/city-40000-bgfx-d3d12-0-native-initial-window.png>)
 
-![Cidade de um milhão de instâncias](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-visual-20261010/visual-million/city-million-bgfx-d3d12-0-native-initial-window.png)
+![Cidade de um milhão de instâncias](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-visual-20261010/visual-million/city-million-bgfx-d3d12-0-native-initial-window.png>)
 
-![Terreno com um milhão de triângulos](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-visual-20261010/visual-initial/terrain-million-bgfx-d3d12-0-native-initial-window.png)
+![Terreno com um milhão de triângulos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-visual-20261010/visual-initial/terrain-million-bgfx-d3d12-0-native-initial-window.png>)
 
-![Sólidos com textura e transparência](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-visual-20261010/visual-initial/solids-wgpu-d3d12-0-native-final-window.png)
+![Sólidos com textura e transparência](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-visual-20261010/visual-initial/solids-wgpu-d3d12-0-native-final-window.png>)
 
 ## Reprodução e evidências
 
-O diretório [de evidências](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-visual-20261010) guarda logs iniciais, XML de todos os resultados, comandos/ambiente, CSVs, clocks/P-state/driver, fontes das três versões do fixture, logs de build, SHA256, PNGs e máscaras. `pixel-manifest.json` registra hashes dos PPMs mantidos no diretório de execução e dos RGB/PNGs publicados. `artifact-manifest.json` protege os bytes dos arquivos publicados. O SDK e suas revisões/patch estão registrados na [campanha anterior](coin-render-windows-remaining-gates-20261010.md).
+O diretório [de evidências](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-visual-20261010>) guarda logs iniciais, XML de todos os resultados, comandos/ambiente, CSVs, clocks/P-state/driver, fontes das três versões do fixture, logs de build, SHA256, PNGs e máscaras. `pixel-manifest.json` registra hashes dos PPMs mantidos no diretório de execução e dos RGB/PNGs publicados. `artifact-manifest.json` protege os bytes dos arquivos publicados. O SDK e suas revisões/patch estão registrados na [campanha anterior](coin-render-windows-remaining-gates-20261010.md).
 
 Para recompilar, configurar `visual-src` separadamente com `CMAKE_PREFIX_PATH` apontando para cada prefixo Coin/CoinRender BGFX/wgpu, gerador Visual Studio 17 2022, x64, Release e parallel 2. Colocar o `bin` do respectivo prefixo primeiro em PATH, selecionar `COIN_BGFX_RENDERER` e `WGPU_BACKEND`, e executar:
 

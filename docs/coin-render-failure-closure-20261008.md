@@ -74,7 +74,7 @@ funcional, não a identificação física da GPU. GPU sempre sequencial.
 | **Total original** | **162** | **162** | **0** |
 
 Nenhum SKIP, alteração de tolerância ou substituição da referência. O
-[ledger individual](/mnt/Laranja/Git/externos/coin-render/docs/validation/failure-closure-20261008/original-28-ledger.json)
+[ledger individual](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/failure-closure-20261008/original-28-ledger.json>)
 liga cada FAIL anterior ao PASS correspondente, com hashes dos logs. O piloto
 repete seis casos já presentes no gate avançado, como na campanha anterior.
 
@@ -119,9 +119,9 @@ coerentes com o critério portátil CPU/BGFX/wgpu autorizado anteriormente.
 
 ## Evidências e continuação
 
-[Resultados](/mnt/Laranja/Git/externos/coin-render/docs/validation/failure-closure-20261008/qualified-results.json),
-[manifest](/mnt/Laranja/Git/externos/coin-render/docs/validation/failure-closure-20261008/manifest.json),
-[hashes dos runtimes](/mnt/Laranja/Git/externos/coin-render/docs/validation/failure-closure-20261008/runtime-hashes.json) e
+[Resultados](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/failure-closure-20261008/qualified-results.json>),
+[manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/failure-closure-20261008/manifest.json>),
+[hashes dos runtimes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/failure-closure-20261008/runtime-hashes.json>) e
 [receita do Mesa](../testsuite/reproducers/portable-sampling-study/mesa/README.md).
 Logs de tentativas descartadas, crash inicial do compilador NIR e seu reparo
 foram preservados. O crash foi no compilador do primeiro protótipo; a versão

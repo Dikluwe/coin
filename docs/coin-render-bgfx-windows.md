@@ -57,8 +57,8 @@ reexecução dirigida passou em 58/58, incluindo todas as falhas e skips
 iniciais e os 39 testes de sombras com GPU obrigatória. Esse total combina
 as duas execuções; não representa uma única execução integral sem falhas.
 Os logs, XMLs e resultados por teste estão em
-[validation/bgfx-windows](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows), com o consolidado em
-[validation-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/validation-summary.json).
+[validation/bgfx-windows](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows>), com o consolidado em
+[validation-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/validation-summary.json>).
 
 ```powershell
 $env:COIN_BGFX_RENDERER = 'd3d12'
@@ -107,7 +107,7 @@ em relação à captura OpenGL, em uma escala de 0 a 255. Essa medida descreve
 as imagens desta cena; não substitui os oráculos e tolerâncias dos testes.
 As capturas de 10.000 e 40.000 edifícios são pixel a pixel idênticas às
 capturas wgpu/Vulkan correspondentes. A imagem maior está preservada em
-[city-40000-bgfx-d3d12.png](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/city-40000-bgfx-d3d12.png).
+[city-40000-bgfx-d3d12.png](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/city-40000-bgfx-d3d12.png>).
 
 A preparação inicial fazia uma busca linear em todos os estados anteriores
 para cada matriz de modelo nova. O índice por matriz remove essa busca
@@ -188,8 +188,8 @@ com reutilização estática e invalidação de material. Isso combina as duas
 execuções, sem repetir o total histórico de 163 para o código novo.
 
 Os logs de fases, controles, benchmarks finais, XMLs e resultados por
-teste estão em [validation/bgfx-windows/performance](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/performance).
-O [performance-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/performance/performance-summary.json)
+teste estão em [validation/bgfx-windows/performance](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/performance>).
+O [performance-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/performance/performance-summary.json>)
 registra as medianas, hashes das imagens e resultados consolidados.
 
 ## Primeiro quadro
@@ -211,7 +211,7 @@ fixture extensa de estilos recebeu um prazo de 120 s no Windows.
 Captura e inicialização continuam sendo custos relevantes. A decomposição,
 o método e os limites da medição estão no
 [relatório de cenas grandes](coin-render-large-scenes-windows.md#primeiro-quadro-diagnóstico-e-correção)
-e em [first-frame-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/first-frame-summary.json).
+e em [first-frame-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/first-frame-summary.json>).
 
 A validação seguinte, com o mesmo código, confirmou o ganho em Vulkan e
 OpenGL: primeiro quadro de 40.000 com mediana **2.902,66 ms em Vulkan**
@@ -220,4 +220,4 @@ aquecidas foram 10,87 ms e 13,32 ms, respectivamente. As imagens de 10.000
 e 40.000 preservam exatamente a imagem anterior de cada API; Vulkan coincide
 com D3D12, e OpenGL mantém uma diferença anterior de dois pixels por cidade.
 Essa rodada executou benchmarks e comparações de imagem; os resultados estão em
-[cross-api-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/cross-api/cross-api-summary.json).
+[cross-api-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/cross-api/cross-api-summary.json>).

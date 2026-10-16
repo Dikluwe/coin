@@ -14,7 +14,7 @@ Windows 10 Pro 19045 x64; i5-4670K; MSVC 19.44/VS 2022 e SDK Windows
 GTX 1060 6GB, PCI 10de:1c03, driver 32.0.15.8108 / NVIDIA 581.08. A Intel
 HD 4600, driver 10.18.15.4279, está habilitada, mas não foi selecionada por
 estes processos; sua presença não é uma qualificação Intel. Vulkaninfo
-enumerou somente a GTX 1060. Os dois monitores têm DPI efetivo 96. Os [30 recibos de API/GPU](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-windows-20261010/physical-api-receipts.json) de SDK, sampling, janela e NPOT confirmam as APIs solicitadas na NVIDIA, sem fallback contado.
+enumerou somente a GTX 1060. Os dois monitores têm DPI efetivo 96. Os [30 recibos de API/GPU](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-windows-20261010/physical-api-receipts.json>) de SDK, sampling, janela e NPOT confirmam as APIs solicitadas na NVIDIA, sem fallback contado.
 
 Checkout: `C:/Users/Diklu/.codex/worktrees/sampling-win-20261010/coin`.
 Builds, prefixes e binários completos:
@@ -172,7 +172,7 @@ do adaptador do desktop. A documentação de
 lista Windows build 20348 como mínimo para esse método; o host é 19045.
 Nenhum passe de perda real é atribuído a essa API nesta campanha.
 
-O [inventário FreeCAD](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-windows-20261010/freecad-inventory.json) confirma a instalação 1.0, Coin4.dll legado e ausência de CoinRender4.dll integrado.
+O [inventário FreeCAD](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-windows-20261010/freecad-inventory.json>) confirma a instalação 1.0, Coin4.dll legado e ausência de CoinRender4.dll integrado.
 Part::Spline, Mesh/FEM, ColorBar, arraste por eventos e RTT do host permanecem
 SKIP por falta do consumidor integrado; não houve substituição das DLLs do
 FreeCAD instalado. Gates C++ do adapter não são passes FreeCAD.
@@ -197,9 +197,9 @@ Hashes finais dos SDKs instalados, idênticos aos binários de build:
 | wgpu | Coin4.dll | `f3ac17ce2f66e4d98cd151aa2fc8ef0306753eb87c11efd67eca9b9d052ecb32` |
 | wgpu | CoinRender4.dll | `d1db2196d634662999bfba77148847536ec1a8fa6647c13db51b75efab176c75` |
 
-Os [ledgers e manifest SHA256](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-windows-20261010/manifest.json) guardam comandos,
+Os [ledgers e manifest SHA256](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-windows-20261010/manifest.json>) guardam comandos,
 ambiente seletivo, hashes dos executáveis/DLLs/logs, XML, full LastTest.log,
 PPMs, GPU/API, clocks e fontes de cada tentativa. DLLs completas e binários
 continuam no root local; não foram adicionados ao repositório. A revisão base
-e [diff do código testado](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-windows-20261010/tested-source.diff) identificam as alterações.
+e [diff do código testado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-windows-20261010/tested-source.diff>) identificam as alterações.
 Não misturar resultados de prefixes antigos ou campanhas de clock distintas.

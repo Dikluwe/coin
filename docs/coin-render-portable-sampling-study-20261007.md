@@ -52,7 +52,7 @@ native AMD troca na coluna24, NVIDIA na32; **centro e fetch trocam na32 nas duas
 GPUs, zero diferenças em16.384 canais por imagem**. Isso confirma que só LOD
 explícito com coordenada original não basta; escolher o texel também é necessário.
 O controle inicial base-only16² não reproduzia a diferença; o controle final usa
-cadeia completa e sampler do reproducer original. Veja [boundary](/mnt/Laranja/Git/externos/coin-render/docs/validation/portable-sampling-study-20261007/boundary/amd.log).
+cadeia completa e sampler do reproducer original. Veja [boundary](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/portable-sampling-study-20261007/boundary/amd.log>).
 
 NPOT, repeat/clamp, modelos legados, SRGB/HDR, BC3, samplers compartilhados,
 anisotropia suportada, RTT direto/mips, rejeição sem publicação e recuperação:
@@ -75,7 +75,7 @@ esfera/defaultUV em OpenGL (max4 contra limite3); alpha/clamp1 CoinGL AMD.
 O teste FragmentPolicy completo passou na NVIDIA e interrompe na AMD antes dos
 seus casos seguintes. Não se declara cobertura destes casos por esse executável.
 O oracle alpha autoral e AdvancedTexture cobrem separadamente o sampling.
-Os logs e retornos completos estão em [manifest](/mnt/Laranja/Git/externos/coin-render/docs/validation/portable-sampling-study-20261007/manifest.json).
+Os logs e retornos completos estão em [manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/portable-sampling-study-20261007/manifest.json>).
 
 ## Desempenho: medido, sem inferir FPS geral do shader
 
@@ -104,7 +104,7 @@ Centro no filtro linear é native; não representa reconstrução linear. Em nea
 centro custa cerca3,2–4,1× native neste microbenchmark; é próxima do fetch inteiro
 otimizado. Bilinear/trilinear manual custa cerca6–7,4× native.
 
-![Custo GPU](/mnt/Laranja/Git/externos/coin-render/docs/validation/portable-sampling-study-20261007/sampling-cost.png)
+![Custo GPU](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/portable-sampling-study-20261007/sampling-cost.png>)
 
 Janela wgpu/Vulkan: 1280×720, 45 warmups, 150 quadros por processo, sequência
 intercalada, CSV. **120 processos passaram** nas duas fases. Mede chamada CPU
@@ -153,9 +153,9 @@ mecanismos cobre log/fila/CAS/portas, não sampling; não foi emitido laudo Bate
 sobre GPU nem atribuída prova de correção a insights externos.
 
 Fontes/reprodução: [README do estudo](https://github.com/Dikluwe/coin/blob/codex/coin-portable-sampling-study/testsuite/reproducers/portable-sampling-study/README.md),
-[resumo derivado](/mnt/Laranja/Git/externos/coin-render/docs/validation/portable-sampling-study-20261007/results.json),
-[patch inicial](/mnt/Laranja/Git/externos/coin-render/docs/validation/portable-sampling-study-20261007/phase1/source.patch),
-[patch final](/mnt/Laranja/Git/externos/coin-render/docs/validation/portable-sampling-study-20261007/final-source.patch).
+[resumo derivado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/portable-sampling-study-20261007/results.json>),
+[patch inicial](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/portable-sampling-study-20261007/phase1/source.patch>),
+[patch final](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/portable-sampling-study-20261007/final-source.patch>).
 Artefatos/builds persistem em `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261007`;
 evidências, CSV, dumps, hashes e cenas pequenas comprimidas estão versionados.
 Os pilotos inválidos de compilação não entram nas contagens; logs foram preservados.

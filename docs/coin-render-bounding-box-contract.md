@@ -121,7 +121,7 @@ scopes, callbacks, degenerados, texto/imagem, ambos MarkerSet e mapas com
 geometria original estão cobertos. Bounds NaN/infinito e overflow de extensão
 verificam INVALID_SCENE, preservação de pixels/serial e recuperação. Logs e
 regressões ficam em
-[validation/bounding-box-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/bounding-box-linux).
+[validation/bounding-box-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bounding-box-linux>).
 
 FILLED usa bounds sem ambiguidade de cobertura nos centros de pixels;
 LINES/POINTS usam centros para testar endpoints. As tolerâncias mantêm o

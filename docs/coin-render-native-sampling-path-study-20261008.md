@@ -135,8 +135,8 @@ Depois qualificar perspectiva/derivadas/NPOT/HDR, Android/Windows/FreeCAD,
 streaming e outros drivers. As divergências CoinGL AMD continuam documentadas.
 
 [Checklist](coin-render-next-fronts-checklist.md),
-[agregado](/mnt/Laranja/Git/externos/coin-render/docs/validation/native-sampling-path-study-20261008/results-native.json) e
-[manifest](/mnt/Laranja/Git/externos/coin-render/docs/validation/native-sampling-path-study-20261008/manifest.json).
+[agregado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/native-sampling-path-study-20261008/results-native.json>) e
+[manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/native-sampling-path-study-20261008/manifest.json>).
 Logs,CSV.gz,telemetria, fontes/patch e hashes ficam versionados neste diretório.
 O manifest registra comandos, revisões, identificação dos perfis, scopes,
 ensaios rejeitados e hashes. Bibliotecas completas e builds permanecem em

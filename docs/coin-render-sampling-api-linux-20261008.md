@@ -88,7 +88,7 @@ Campanhas independentes, ordem ABBA: **144/144** processos CPU válidos,
 **96/96** sondas GPU válidas (4.320 timestamps medidos) e **120/120** controles
 native versus baseline válidos. Cenas POT 1/4/8 unidades, NPOT 63×65/8 unidades,
 cidades 40 mil/1 milhão; janela 1280×720 sem readback. CPU usa 90 frames/30 warmup,
-GPU 45/15; o milhão BGFX usa 12/4 em políticas e baseline. O [índice de campanhas](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/campaign-index.json)
+GPU 45/15; o milhão BGFX usa 12/4 em políticas e baseline. O [índice de campanhas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/campaign-index.json>)
 identifica as linhas qualificadas; os controles GL CPU/baseline originais sem
 recibo de contexto físico foram substituídos por repetições explícitas.
 Comandos, amostras,
@@ -129,14 +129,14 @@ metadados, superando o orçamento explícito de 128 MiB; recusa a retenção do 
 e o backend volta a lowering/upload no frame seguinte. O código e os traces
 sustentam esse diagnóstico. Otimizar o plano residente/payload ou separar
 metadados de replay permanece estudo; não aumentar o limite silenciosamente.
-[Profiling](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/bgfx-million-profile/summary.json). Na coorte longa NVIDIA
+[Profiling](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/bgfx-million-profile/summary.json>). Na coorte longa NVIDIA
 wgpu portable ficou ~25% acima de native (12,03 vs 9,63 ms); no piloto ABBA
 isolado ambos ficaram perto de 10 ms. Não se afirma custo CPU zero ou igualdade
 universal: variação de frequência/carga/backpressure exige estudo separado.
 A repetição isolada ABBA 120 frames/30 warmup obteve 9,04 ms native e 9,16 ms
 portable, intervalos 8,98–9,10/9,08–9,24 ms. Essa repetição não apaga a coorte
 longa; reforça que não se deve atribuir toda diferença agregada à política.
-[Repetição NVIDIA](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/nvidia-repeat-aggregate.json).
+[Repetição NVIDIA](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/nvidia-repeat-aggregate.json>).
 
 Oito unidades POT, ms GPU:
 
@@ -161,11 +161,11 @@ antes das modificações; oito hashes foram conferidos novamente.
 
 ## Evidência, falhas anteriores e limites
 
-Ledger: [manifest](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/manifest.json),
-[CPU](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/cpu-aggregate-final.json),
-[GPU](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/gpu-aggregate-final.json),
-[baseline](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/baseline-aggregate-final.json),
-[FreeCAD: índice de resultados qualificados](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-linux-20261008/freecad-qualified-index.json).
+Ledger: [manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/manifest.json>),
+[CPU](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/cpu-aggregate-final.json>),
+[GPU](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/gpu-aggregate-final.json>),
+[baseline](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/baseline-aggregate-final.json>),
+[FreeCAD: índice de resultados qualificados](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-linux-20261008/freecad-qualified-index.json>).
 Receitas: [runner](../testsuite/reproducers/sampling-api/README.md).
 Artefatos grandes permanecem no diretório durável
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux`;

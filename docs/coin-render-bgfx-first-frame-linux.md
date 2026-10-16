@@ -68,7 +68,7 @@ O runtime reserva um encoder (`maxEncoders=1`) e pools transientes de VB e IB de
 
 ## Diagnósticos e ablações
 
-Um [piloto separado](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-first-frame-linux/ablations/reserve/results.json), com trace e apenas uma amostra por configuração, mediu a reserva de captura:
+Um [piloto separado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-first-frame-linux/ablations/reserve/results.json>), com trace e apenas uma amostra por configuração, mediu a reserva de captura:
 
 | Configuração do piloto | BGFX/Vulkan primeiro | BGFX/OpenGL primeiro |
 |---|---:|---:|
@@ -80,7 +80,7 @@ Esse piloto apoia a direção da reserva de captura, mas não estima sua contrib
 
 O lowering geral também conserva um cache local limitado por span, reutilizando análise de material e remapeamento sem alterar bytes/ordem (`COIN_BGFX_DISABLE_SHARED_RANGE_LOWERING=1` para ablação). Seu ganho nos pilotos foi pequeno. Pilotos anteriores à correção de SCREEN_DOOR/LEQUAL não ativavam instancing e não demonstram seu efeito. Esses experimentos intermediários não têm builds com manifesto neste pacote.
 
-Um [trace Vulkan depois](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-first-frame-linux/ablations/reserve/vulkan-after.log) registrou aproximadamente 135 ms de travessia/captura, 28 ms de finalização do plano, 140 ms de preparação do target e 17 ms de lowering instanced; esses tempos têm instrumentação e variação entre execuções. O preparo do device e a captura são candidatos para a próxima investigação. A campanha final sem trace, e o tempo desde `main`, são as medidas usadas na conclusão.
+Um [trace Vulkan depois](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-first-frame-linux/ablations/reserve/vulkan-after.log>) registrou aproximadamente 135 ms de travessia/captura, 28 ms de finalização do plano, 140 ms de preparação do target e 17 ms de lowering instanced; esses tempos têm instrumentação e variação entre execuções. O preparo do device e a captura são candidatos para a próxima investigação. A campanha final sem trace, e o tempo desde `main`, são as medidas usadas na conclusão.
 
 ## Imagens e correção
 
@@ -94,7 +94,7 @@ Os três processos de cada variante conservaram seu checksum estático. Antes/de
 
 CoinGL limpa alpha do fundo em zero e transporta linhas bottom-up; os caminhos experimentais publicam alpha um e linhas top-down. Portanto, checksum RGBA bruto cruzado não é um gate de igualdade. A comparação acima usa o RGB na orientação final, sem correção de imagem para reduzir erro, e conserva as diferenças da referência anterior.
 
-![Comparação RGB na NVIDIA](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-first-frame-linux/nvidia-rgb-comparison.png)
+![Comparação RGB na NVIDIA](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-first-frame-linux/nvidia-rgb-comparison.png>)
 
 Validação concluída:
 
@@ -109,4 +109,4 @@ A redução é comprovada para esta cidade estática, este host e saída offscre
 
 BGFX/OpenGL alcançou menos de 300 ms nas três amostras; BGFX/Vulkan chegou perto, mas ainda excede a meta. A próxima investigação pode focar a captura de 40 mil estados e a preparação do device, acompanhando também `main` → primeira imagem para medir o custo total percebido. CoinGL continua sendo a referência na mesma GPU.
 
-[Logs, scripts, hashes e métricas](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-first-frame-linux/README.md).
+[Logs, scripts, hashes e métricas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-first-frame-linux/README.md>).

@@ -45,7 +45,7 @@ Os intervalos preservam mínimo e máximo por processo, incluindo outliers; não
 
 Pico RSS é memória residente máxima do processo, não memória GPU. Coin/OpenGL é controle compartilhado: CSV e log antes/depois têm hashes iguais e a execução é contada uma vez.
 
-![Primeiro quadro, composição e controle steady](/mnt/Laranja/Git/externos/coin-render/docs/validation/composition-copy-linux/composition-copy.png)
+![Primeiro quadro, composição e controle steady](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/composition-copy-linux/composition-copy.png>)
 
 ## Quadros após warmup
 
@@ -209,6 +209,6 @@ A campanha é offscreen: total inclui espera GPU e readback, sem medir duração
 - Cold conserva todos os outliers. Processos novos na mesma sessão não reinicializam o driver/computador. Amostras curtas não estabelecem latência de cauda; regressões steady permanecem no relatório.
 - Probe suplementar BGFX/Vulkan materials-10 na mesma build, três pares on/off: seis processos, 90 quadros medidos e 30 warmups, separados de matched168 e ablação36. Total off→on 52.641419→52.709456 ms (+0.068037 ms; +0.129%). Transferência/lookup 0.367967→0.000712 ms. O aumento de +2,997 ms (+5,72%) observado na comparação principal não se repetiu com essa magnitude no probe; a variação positiva do probe permanece registrada. Ele não substitui a campanha principal nem estabelece causalidade. hardware-after-main.json preserva o snapshot anterior ao probe; hardware-after.json e os 20 hashes pós-campanha foram atualizados após ele.
 
-[Evidência e reprodução](/mnt/Laranja/Git/externos/coin-render/docs/validation/composition-copy-linux/README.md).
+[Evidência e reprodução](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/composition-copy-linux/README.md>).
 
 Entradas, configuração e SHA-256 do gerador estão em `report-inputs.json`. Valores de desempenho são lidos da evidência.

@@ -23,7 +23,7 @@ na própria NVIDIA física. As duas rotas offscreen, pixmap e pbuffer, passaram.
 As seis células completas somam 288 testes. A correção NVIDIA foi seguida
 por 49 testes de regressão AMD/OpenGL, 46 testes wgpu/Vulkan com oráculo
 NVIDIA/GL e oito testes focados de pbuffer NVIDIA, todos sem skips. A suíte Coin também passou:
-370 testes, 85.374 verificações. Os [logs preservados](/mnt/Laranja/Git/externos/coin-render/docs/validation/p27-linux)
+370 testes, 85.374 verificações. Os [logs preservados](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p27-linux>)
 registram inventário, capacidades, limite GL e resultados por célula.
 
 ## Correções fechadas nesta campanha

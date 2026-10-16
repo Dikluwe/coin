@@ -88,7 +88,7 @@ tickets entre threads, outros formatos/fixtures, Vulkan e Android físico/ARM.
 
 APK de desenvolvimento: `/mnt/Laranja/Git/externos/coin-render-artifacts/p23-city-20261007/apk-controls-x86_64/coin-render-p23-x86_64.apk`.
 SHA-256: `aa5e3c4aaaa64bcdcb677d361084258be336c088216b4ea3ec8eaa6f46d5e0df`.
-[Evidência e hashes](/mnt/Laranja/Git/externos/coin-render/docs/validation/p23-android-city-20261007/manifest.json).
+[Evidência e hashes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p23-android-city-20261007/manifest.json>).
 
 ```sh
 python3 .github/scripts/build-coin-render-android-apk.py \

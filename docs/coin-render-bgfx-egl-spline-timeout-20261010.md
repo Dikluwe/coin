@@ -5,9 +5,9 @@ reproduzir o timeout com o cache de programas ativo e desativado. A pilha do
 processo mostrou a thread principal esperando em `bgfx::frame()` e a thread de
 render do BGFX em `loader_dri3_set_swap_interval()` →
 `loader_dri3_wait_for_sbc()` → `xcb_wait_for_special_event()`. O trace da
-[falha 68](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-egl-spline-timeout-20261010/hang-trace.txt) localiza
+[falha 68](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-egl-spline-timeout-20261010/hang-trace.txt>) localiza
 a chamada sem retorno em `eglSwapInterval(0)` na primeira ativação da
-swapchain secundária. A [pilha capturada](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-egl-spline-timeout-20261010/hang-stack.txt)
+swapchain secundária. A [pilha capturada](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-egl-spline-timeout-20261010/hang-stack.txt>)
 e as falhas com cache desligado excluem o cache de programas como condição
 necessária.
 
@@ -36,8 +36,8 @@ regenerações, com remoção concluída. Os cinco testes `CoinBgfxWindowOpenGLT
 `CoinBgfxMultiWindowOpenGLTest`, `CoinBgfxMultiWindowOffscreenFirstOpenGLTest`,
 `CoinBgfxMultiWindow_weighted_oit_openglTest` e
 `CoinBgfxMultiWindow_sorted_layers_openglTest` passaram no X11 local
-([log](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-egl-spline-timeout-20261010/window-ctest.log)). O
-[CSV](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-egl-spline-timeout-20261010/stress.csv) registra cada
+([log](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-egl-spline-timeout-20261010/window-ctest.log>)). O
+[CSV](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-egl-spline-timeout-20261010/stress.csv>) registra cada
 processo. A instrumentação de diagnóstico foi removida do Coin e do patch
 final.
 

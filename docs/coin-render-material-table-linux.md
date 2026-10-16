@@ -17,7 +17,7 @@ Mediana de três medianas por processo. Os colchetes mostram mínimo–máximo d
 | Base 40.001 slots / Transformações 10% | 124.69 [118.96–125.77] | 94.78 [93.44–96.96] | 92.73 [92.12–95.33] | 90.26 [88.14–90.71] | 91.23 [87.64–99.90] | +0.97 ms (+1.07%) |
 | Base 40.001 slots / Estático | 12.75 [12.14–12.97] | 2.05 [2.00–2.10] | 2.26 [2.25–2.44] | 3.04 [3.00–3.15] | 2.75 [2.75–2.81] | -0.29 ms (-9.53%) |
 
-![Medianas e faixas por processo](/mnt/Laranja/Git/externos/coin-render/docs/validation/material-table-linux/material-table.png)
+![Medianas e faixas por processo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/material-table-linux/material-table.png>)
 
 ### Fases do quadro e variações positivas
 
@@ -122,7 +122,7 @@ Quiet: 90 processos, 2.925 medidos e 825 warmups. Cinco casos dinâmicos usam 5 
 
 Os slots declarados pelo gerador são previsão da cena estática. Capturas podem internar materiais/clonar ocorrências; os contadores da tabela real são medidos por frame. O total inclui update, render/readback e publicação. Fases sobrepostas e medianas não devem ser somadas como decomposição causal.
 
-[Evidências e reprodução CPU](/mnt/Laranja/Git/externos/coin-render/docs/validation/material-table-linux/README.md). CSVs, logs, comandos, fontes/hashes, cenas/geradores e ferramentas estão arquivados; PPMs e binários ficam fora. A validação relocada rederiva estatísticas/provas/logs e Markdown; conferências de pixels foram feitas antes da coleta e são preservadas por hashes/métricas.
+[Evidências e reprodução CPU](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/material-table-linux/README.md>). CSVs, logs, comandos, fontes/hashes, cenas/geradores e ferramentas estão arquivados; PPMs e binários ficam fora. A validação relocada rederiva estatísticas/provas/logs e Markdown; conferências de pixels foram feitas antes da coleta e são preservadas por hashes/métricas.
 
 A primeira tentativa CPU de análise cross usou um diretório como --reference, embora a opção espere uma variante; foi corrigida para agregação explícita. Nenhum processo GPU falhou nem foi repetido por esse erro de análise.
 

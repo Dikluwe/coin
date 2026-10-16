@@ -7,7 +7,7 @@ os gates. O esperado escolhido continua sendo o contrato portátil CPU/BGFX/wgpu
 O diagnóstico foi executado em AMD Renoir/Mesa 25.2.8 e NVIDIA RTX 3060
 Laptop/610.57.04, com referências CoinGL na mesma GPU de cada execução.
 
-[Dados, comandos, hashes e figuras](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-study-20261007/README.md).
+[Dados, comandos, hashes e figuras](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-study-20261007/README.md>).
 O relatório distingue mecanismos demonstrados de hipóteses de driver e das
 melhorias que ainda precisam de implementação e qualificação.
 
@@ -74,7 +74,7 @@ na esfera contra CoinGL. Não basta corrigir somente linhas largas. O cone
 é controle adicional: cinco pixels distintos na largura 4 e um na largura 1;
 alguns empates de depth dos triângulos no OpenGL também persistem.
 
-![Depth da junção (26,23)](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-study-20261007/sphere-depth.png)
+![Depth da junção (26,23)](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-study-20261007/sphere-depth.png>)
 
 A especificação OpenGL descreve endpoints meio abertos, variantes delimitadas
 do diamond-exit e regras próprias de interpolação de linhas largas. Isso
@@ -124,7 +124,7 @@ fonte upstream, sem trace de comandos GPU.
 Fontes: [radeonsi/si_state_viewport.c](https://gitlab.freedesktop.org/mesa/mesa/-/blob/mesa-25.2.8/src/gallium/drivers/radeonsi/si_state_viewport.c),
 [RADV/radv_physical_device.c](https://gitlab.freedesktop.org/mesa/mesa/-/blob/mesa-25.2.8/src/amd/vulkan/radv_physical_device.c).
 
-![Cobertura da câmera](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-study-20261007/camera-coverage.png)
+![Cobertura da câmera](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-study-20261007/camera-coverage.png>)
 
 A inferência não foi transferida automaticamente aos quatro pixels da
 transparência P20. Essa fixture precisa receber os mesmos controles de

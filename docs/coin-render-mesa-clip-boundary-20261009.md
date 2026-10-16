@@ -41,7 +41,7 @@ Nenhuma biblioteca do sistema foi substituída.
 | `PA_CL_CLIP_CNTL.DX_LINEAR_ATTR_CLIP_ENA=0` | 0/18 | 0+0 | Não muda o contorno. |
 
 O [ensaio anterior de `USE_VTX_EDGE_FLAG=0`](coin-render-raster-amd-followup-20261008.md)
-também não restaurou a borda. Os [logs do oracle](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009)
+também não restaurou a borda. Os [logs do oracle](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009>)
 preservam os resultados, sem caminhos locais de build.
 
 ## Protótipo de tratamento por geometry shader
@@ -70,11 +70,11 @@ que o geometry shader da GPU consegue rasterizar as interseções; ela
 **não** corrige o Mesa nem é equivalente ao contorno completo de `GL_POLYGON`.
 O [oracle estrito sem o shader suplementar](../testsuite/reproducers/raster-clip-edge/RasterClipEdgeGlOracle.cpp)
 continua falhando no radeonsi.
-[Saída do protótipo na AMD](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/gs-probe-amd.log).
+[Saída do protótipo na AMD](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/gs-probe-amd.log>).
 
 ## Integração experimental no Mesa privado
 
-Um [patch experimental do state tracker](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-quad-line-experiment.patch)
+Um [patch experimental do state tracker](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-quad-line-experiment.patch>)
 liga um shader NIR suplementar após o draw original somente quando a variável
 `MESA_EXPERIMENTAL_CLIP_BOUNDARY` está presente. No caso de `GL_POLYGON` com
 quatro vértices em modo `LINE` e um plano ativo, o segundo draw apresenta os
@@ -91,7 +91,7 @@ exata ainda não foi demonstrada. A versão preservada do patch impede a
 submissão das variantes de triângulo e ponto. A compilação dessa versão passou,
 mas o display X desapareceu após o segundo reset, impedindo uma nova medição
 de hardware. Nenhum driver instalado foi modificado.
-[Registro da tentativa](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-draw-experiment.log).
+[Registro da tentativa](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-draw-experiment.log>).
 
 Após salvar o patch, os três fontes alterados foram restaurados byte a byte
 da tarball Mesa 25.2.8 e a biblioteca privada foi recompilada. O display X
@@ -142,7 +142,7 @@ ele. A causa interna exata do radeonsi ainda não foi demonstrada. A primeira
 medição `nongg` desta rodada, que deu 0/18, havia omitido por engano
 `MESA_EXPERIMENTAL_CLIP_BOUNDARY`; ela não é uma comparação válida do patch.
 
-[Registro dos ensaios e resets](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-state-transition-20261009.log).
+[Registro dos ensaios e resets](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-state-transition-20261009.log>).
 Os três fontes e a biblioteca Mesa privados foram restaurados byte a byte;
 os hashes SHA256 coincidem com os backups. O driver instalado permaneceu
 intacto.
@@ -171,7 +171,7 @@ cinco hashes SHA256 coincidem com os backups. `glxinfo -B` confirmou novamente
 renderização direta na AMD com o driver instalado Mesa 25.2.8. Não houve
 alteração do driver instalado.
 
-[Log da vinculação e do teste VGT](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-bind-vgt-flush-20261009.log).
+[Log da vinculação e do teste VGT](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-bind-vgt-flush-20261009.log>).
 
 ## Aplicação da pesquisa Bateia 0125 — 2026-10-09
 
@@ -208,7 +208,7 @@ medição do PM4 emitido ou prova da causa do reset. O controle discriminante
 `dirty_shaders_mask`, variante/PM4 VS, `VGT_GS_MODE`,
 `VGT_SHADER_STAGES_EN` e bases de userdata devem coincidir antes do draw.
 
-Um [patch candidato](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch)
+Um [patch candidato](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch>)
 marca VS ou TES como dirty ao desativar GS. O controle em `drm-shim` abaixo
 mostrou que ele restaura a variante VS enfileirada e `VGT_GS_MODE` em CPU.
 Não houve execução física ou leitura de pixels com este patch. A correção de
@@ -224,26 +224,26 @@ diferentes; seus achados não validam o comportamento OpenGL do radeonsi.
 
 Foi compilado um `drm-shim` privado do Mesa 25.2.8. Ele fornece um render
 node simulado (`DRM 3.49`) e descarta o ioctl de submissão, sem executar
-comandos na GPU. A [fixture EGL](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-fixture.cpp)
+comandos na GPU. A [fixture EGL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-fixture.cpp>)
 executou um polígono em `GL_LINE` com o GS suplementar experimental, seguido
 de triângulos em `GL_LINE` depois de GS→NULL, com `AMD_DEBUG=nongg`.
 Nos dois casos `glGetError()` foi zero; esse resultado não valida pixels.
 
-- [Baseline sem a correção](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-baseline-20261009.log): após GS→NULL, `dirty=0x8` no bind e `dirty=0x28` na atualização; o VS enfileirado continuou sendo a variante da etapa GS e `vgt_gs_mode=0x300033`.
-- [Com a correção candidata](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-candidate-20261009.log): `dirty=0x9` no bind e `dirty=0x29` na atualização; o VS normal foi enfileirado e `vgt_gs_mode=0x0`.
+- [Baseline sem a correção](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-baseline-20261009.log>): após GS→NULL, `dirty=0x8` no bind e `dirty=0x28` na atualização; o VS enfileirado continuou sendo a variante da etapa GS e `vgt_gs_mode=0x300033`.
+- [Com a correção candidata](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-drm-shim-candidate-20261009.log>): `dirty=0x9` no bind e `dirty=0x29` na atualização; o VS normal foi enfileirado e `vgt_gs_mode=0x0`.
 
 Assim, a invalidação faltante é um defeito de estado CPU reproduzido, e o
 patch candidato corrige **essa** divergência. O controle seguinte compara o
 PM4 e testa fisicamente a sequência que antes provocava reset.
 
-Com o mesmo Mesa privado, a [fixture softpipe](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-fixture.cpp)
+Com o mesmo Mesa privado, a [fixture softpipe](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-fixture.cpp>)
 executou o quad em `GL_LINE` sob `EGL_PLATFORM=surfaceless`, uma vez com
 `glClipPlane` e outra com clipping do frustum. O
-[patch de instrumentação temporária](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-instrument.patch)
+[patch de instrumentação temporária](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-clip-instrument.patch>)
 registrou `draw_pipe_clip.c` e `draw_pipe_unfilled.c`:
 
-- [Plano do usuário](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-user-clip-20261009.log): `plane=6 user=1`; os novos vértices em `x=0` chegaram com `edgeflag=1` e máscara de aresta ativa, formando a borda vertical.
-- [Frustum](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-frustum-clip-20261009.log): `plane=1 user=0`; a interseção em `x=-1` chegou com `edgeflag=0`, e a borda vertical foi suprimida pelo estágio `unfilled`.
+- [Plano do usuário](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-user-clip-20261009.log>): `plane=6 user=1`; os novos vértices em `x=0` chegaram com `edgeflag=1` e máscara de aresta ativa, formando a borda vertical.
+- [Frustum](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-softpipe-frustum-clip-20261009.log>): `plane=1 user=0`; a interseção em `x=-1` chegou com `edgeflag=0`, e a borda vertical foi suprimida pelo estágio `unfilled`.
 
 Essas medições confirmam o contrato de flags do caminho de software. Elas
 não provam que o radeonsi implementa a mesma geometria no caminho acelerado.
@@ -254,14 +254,14 @@ oito comparações retornaram `MATCH`. O driver instalado não foi modificado.
 ## PM4 e ensaio físico do patch candidato — 2026-10-09
 
 O Mesa privado foi instrumentado com
-[`si_print_current_ib`](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-instrument.patch)
+[`si_print_current_ib`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-instrument.patch>)
 e executado no `drm-shim` com a
-[fixture sem `glFlush` intermediário](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-fixture.cpp).
+[fixture sem `glFlush` intermediário](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-fixture.cpp>).
 Os três draws no mesmo command stream foram: polígono original sem GS,
 contorno suplementar com GS, e triângulos após GS→NULL. As capturas completas
 sem códigos ANSI estão em
-[baseline](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-baseline-20261009.log)
-e [candidato](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-candidate-20261009.log).
+[baseline](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-baseline-20261009.log>)
+e [candidato](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-pm4-candidate-20261009.log>).
 Os números de endereço do programa VS variam entre processos; a diferença
 relevante é a emissão de um novo programa após a transição.
 
@@ -279,23 +279,23 @@ causa independente nesta fixture; a captura completa permite inspecioná-las.
 A biblioteca candidata foi recompilada **sem a instrumentação PM4** e
 carregada por GLX com renderização direta na AMD Renoir (`DRM 3.64`,
 `AMD_DEBUG=nongg`). O
-[repro físico de dois draws](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-two-draws-fixture.cpp)
+[repro físico de dois draws](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-two-draws-fixture.cpp>)
 terminou sem travar: o polígono `GL_LINE` teve **18/18** pixels na borda e o
 triângulo seguinte terminou com erro GL zero, embora sem a borda esperada.
-[Saída](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-two-draws-20261009.log).
+[Saída](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-two-draws-20261009.log>).
 
-O [oracle estrito completo](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-oracle-20261009.log)
+O [oracle estrito completo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-oracle-20261009.log>)
 também terminou sem timeout. Saiu com código 1 porque ainda falham
 `triangles-line`, `polygon-point` e os casos `gl_ClipDistance` de linha e
 ponto. No intervalo desses dois ensaios com `AMD_DEBUG=nongg`, o
-[journal do kernel](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-kernel-20261009.log)
+[journal do kernel](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-kernel-20261009.log>)
 não registrou eventos.
 
 A mesma sequência foi repetida com `AMD_DEBUG` desativado: o
-[repro curto](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-two-draws-20261009.log)
-e o [oracle completo](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-oracle-20261009.log)
+[repro curto](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-two-draws-20261009.log>)
+e o [oracle completo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-oracle-20261009.log>)
 terminaram com os mesmos resultados e sem timeout. O
-[journal desse intervalo](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-kernel-20261009.log)
+[journal desse intervalo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-gpu-candidate-default-kernel-20261009.log>)
 também não registrou eventos. `glxinfo -B` depois de cada par confirmou
 renderização direta na AMD. Isso valida a ausência de reset **nessas quatro
 execuções**, não uma prova de estabilidade geral ou da correção completa do
@@ -312,9 +312,9 @@ alterado.
 Com a correção candidata de GS→NULL já validada no PM4, reativei apenas o
 segundo draw dos seis vértices do oracle (`MESA_PRIM_TRIANGLES`, `count=6`,
 `GL_LINE`, um plano de recorte). O
-[patch incremental](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-triangle-line-after-transition.patch)
+[patch incremental](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-triangle-line-after-transition.patch>)
 se aplica sobre o patch experimental de quad; os dois dependem também do
-[patch de transição GS→NULL](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch)
+[patch de transição GS→NULL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-unbind-dirty-stage-candidate.patch>)
 para este ensaio. A variável `MESA_EXPERIMENTAL_CLIP_BOUNDARY=1` continua
 obrigatória. Não há mudança no driver instalado.
 
@@ -327,7 +327,7 @@ padrão): **18/18** pixels na borda para `polygon-line` e `triangles-line`,
 sem erro GL. O controle llvmpipe anterior também tinha `x17=1` para
 `triangles-line`; esse pixel não foi criado pelo patch.
 
-O [registro completo](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-triangle-line-20261009.log)
+O [registro completo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-triangle-line-20261009.log>)
 contém o resultado do shim e dos quatro ensaios físicos. O oracle estrito
 completo terminou sem timeout nos dois caminhos, porém com código 1:
 `polygon-point` segue sem os pontos novos; `gl_ClipDistance` continua sem a
@@ -347,13 +347,13 @@ cobertura de testes.
 
 A variante experimental de `GL_POLYGON`/`POINT` foi liberada apenas para o
 polígono de quatro vértices do oracle. O
-[patch isolado](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-quad-point-after-transition.patch)
+[patch isolado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-quad-point-after-transition.patch>)
 passou no `drm-shim` e na AMD física: os dois pontos da borda recortada
 produziram **4+4** pixels, sem erro GL. O oracle completo, nessa variante,
 terminou com código 1 porque ainda não incluía o patch de triângulos nem
 resolvia os shaders do aplicativo.
 
-O [patch combinado](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-line-point-combined-after-transition.patch)
+O [patch combinado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-line-point-combined-after-transition.patch>)
 habilita `POLYGON/LINE`, `TRIANGLES/LINE` com seis vértices e
 `POLYGON/POINT` com quatro vértices. No Mesa privado com a correção GS→NULL,
 o shim terminou com erro GL zero. Na AMD física, o caso mínimo passou para os
@@ -362,14 +362,14 @@ estrito completo passou todos os casos de geometria fixa nesses dois modos,
 mas terminou com código 1: os únicos FAIL são
 `shader-clip-distance-polygon-line` e
 `shader-clip-distance-polygon-point`.
-[Saídas e condições](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-point-combined-20261009.log).
+[Saídas e condições](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-point-combined-20261009.log>).
 O journal filtrado não registrou reset, timeout de ring ou fault, e a sessão
 AMD continuou com renderização direta. Esses resultados valem para as
 execuções e geometrias testadas; a variante continua experimental.
 
 Um log temporário confirmou que o segundo draw com GS **é selecionado** nos
 dois casos `gl_ClipDistance`. O
-[NIR capturado](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdistance-nir-20261009.log)
+[NIR capturado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdistance-nir-20261009.log>)
 mostra que o vertex shader do aplicativo foi ligado com
 `next_stage=MESA_SHADER_FRAGMENT` e sua escrita em `CLIP_DIST0` tem
 `no_varying`; o GS suplementar, inserido depois da ligação pelo state
@@ -402,16 +402,16 @@ oracle estrito completo terminou com **código 0**, incluindo os dois casos
 programa era o obstáculo imediato do protótipo.
 
 Em seguida, apliquei um
-[patch NIR restrito](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdist-varying-after-link.patch)
+[patch NIR restrito](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdist-varying-after-link.patch>)
 ao Mesa privado: quando `MESA_EXPERIMENTAL_CLIP_BOUNDARY=1`, há vertex shader
 e não há geometry shader do aplicativo, ele mantém `CLIP_DIST0` como varying
 após a otimização. As demais otimizações de IO permanecem ligadas. O
-[NIR do shim com o patch](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdistance-nir-preserved-20261009.log)
+[NIR do shim com o patch](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-clipdistance-nir-preserved-20261009.log>)
 mostra a escrita de `VARYING_SLOT_CLIP_DIST0` sem `no_varying`, e o shader do
 aplicativo ligou e desenhou sem erro GL.
 
 Com os patches combinado, GS→NULL e NIR restrito, o
-[oracle estrito completo](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-full-oracle-targeted-20261009.log)
+[oracle estrito completo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-fix-20261009/mesa-gs-full-oracle-targeted-20261009.log>)
 passou na AMD Renoir física **duas vezes**, com `AMD_DEBUG=nongg` e com a
 configuração padrão. `MESA_GLSL_DISABLE_IO_OPT` ficou desativado nesses dois
 ensaios, e o cache de shader foi desligado para forçar a compilação da

@@ -7,7 +7,7 @@ instâncias, um draw e nenhuma unidade de textura. Os oito processos usaram
 backend. Todos retornaram zero, identificaram a GPU física e produziram o
 mesmo `final_state_digest=0x33d99c7f4d6c3900`. O hash da cena foi idêntico
 nos oito processos. Os binários e suas SHA-256 constam do
-[resultado bruto](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-million-after-driver-20261008/summary.json).
+[resultado bruto](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-million-after-driver-20261008/summary.json>).
 
 | Backend | Native, medianas por processo (ms) | Portable (ms) | Mediana das medianas native/portable |
 | --- | ---: | ---: | ---: |
@@ -30,7 +30,7 @@ de 130,60/126,49 ms para menos de 0,002 ms. As sondas instrumentadas foram
 excluídas das medianas da tabela. Isso amplia a prova local do replay do
 milhão da AMD para a NVIDIA/Vulkan; outras cargas e APIs continuam abertas.
 
-O [resumo calculado](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-million-after-driver-20261008/analysis.json),
+O [resumo calculado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-million-after-driver-20261008/analysis.json>),
 os CSVs, logs e traces estão no ledger versionado. A cópia integral está em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/benchmark-nvidia-after-driver-20261008`.
 Comando da campanha sem tracing:

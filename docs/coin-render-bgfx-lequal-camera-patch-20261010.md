@@ -37,7 +37,7 @@ reconstrução native e patch portable: SHA-256
 `7b5c511a18f2819056a66ac4a5bc90a05136ca66ab1f94d0dd5a97f0e02ec965`.
 Na cidade de um milhão, a mesma comparação byte a byte passou com SHA-256
 `606607a75805f314bf4446416775088533c26b9465e84ca6d5fdbc28e996ee1c`.
-Os [CSV e logs](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-lequal-camera-20261010) guardam os recibos;
+Os [CSV e logs](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-lequal-camera-20261010>) guardam os recibos;
 os PPMs grandes permaneceram locais em `/tmp/bgfx-lequal-*.ppm`.
 
 `CoinBgfxCoreTest`, `CoinBgfxInstancingTest` e `CoinRenderDepthContractTest`

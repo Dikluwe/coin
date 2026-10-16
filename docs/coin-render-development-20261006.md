@@ -70,7 +70,7 @@ nenhuma tolerância ou esperado visual foi relaxado para aprovar a integração.
 
 ## Validação
 
-Os logs desta rodada ficam em [validation/upstream-20261006](/mnt/Laranja/Git/externos/coin-render/docs/validation/upstream-20261006).
+Os logs desta rodada ficam em [validation/upstream-20261006](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/upstream-20261006>).
 Código validado: `fafd3ab325`. Builds Release completos BGFX e wgpu.
 
 | Campanha | Passaram | Pulados | Falharam |
@@ -90,7 +90,7 @@ oráculo CoinGL específico de oito mapas não foi exigido nesta campanha.
 As tentativas iniciais sob Xvfb não forneceram o oráculo GL. No display real
 com pixmap AMD, algumas comparações ficaram fora do perfil anteriormente
 qualificado. A campanha final usa NVIDIA, pbuffer GLX padrão e as variáveis
-registradas no [manifesto](/mnt/Laranja/Git/externos/coin-render/docs/validation/upstream-20261006/summary.json).
+registradas no [manifesto](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/upstream-20261006/summary.json>).
 Esses resultados não qualificam o caminho pixmap AMD desta integração.
 
 Não houve nova execução Windows, Intel física, macOS ou Android. As campanhas

@@ -141,6 +141,6 @@ Windows não deve ser extrapolado para o custo de `getenv` no Linux.
 Prioridades: `SoText2`, `SoImage` e adaptações GL-only; em seguida UV/qualidade
 de textura, shader portátil, volume/cube map e perfis ampliados.
 
-[Scripts, comandos, CSVs, logs, hashes, gates e resumo](/mnt/Laranja/Git/externos/coin-render/docs/validation/animated-buildings-windows-20261005).
+[Scripts, comandos, CSVs, logs, hashes, gates e resumo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animated-buildings-windows-20261005>).
 PPMs e cópias dos binários permanecem no diretório homônimo em `build`;
 hashes dos RGB e dos executáveis/bibliotecas constam da evidência.

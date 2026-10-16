@@ -45,7 +45,7 @@ Cada valor é a mediana das medianas por processo. O total é tempo de parede de
 | Transformações 100% | 92.35 → 88.76 | -3.89% | 229.18 |
 | Geometria 100% | 235.33 → 227.42 | -3.36% | 238.44 |
 
-![Tempos, recursos e primeiro quadro](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-matrix-cache-linux/wgpu-matrix-cache.png)
+![Tempos, recursos e primeiro quadro](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-matrix-cache-linux/wgpu-matrix-cache.png>)
 
 ### Recursos e primeiro quadro
 
@@ -133,6 +133,6 @@ Esta campanha é offscreen. Tempo total inclui espera GPU/readback; não mede du
 - Não houve benchmark BGFX nesta etapa específica do wgpu. Resultados em janela e latência de exibição continuam sem medição nesta campanha.
 - PPMs e bibliotecas ficam fora do Git. O arquivo RGB conserva hashes e métricas calculadas a partir dos 196 PPMs originais (98 pares); a reprodução sem PPMs reutiliza esses registros de forma explícita.
 
-[Evidência e reprodução](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-matrix-cache-linux/README.md).
+[Evidência e reprodução](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-matrix-cache-linux/README.md>).
 
 Os JSONs de entrada e os hashes do gerador são registrados em `report-inputs.json`. Nenhum número de desempenho é embutido no gerador.

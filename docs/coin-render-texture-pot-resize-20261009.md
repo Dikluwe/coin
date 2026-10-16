@@ -173,7 +173,7 @@ passaram. A sonda CoinGL acrescentou 3×5 e 31×3 ao caso 17×19, cobrindo
 72 combinações por executor (três dimensões, três políticas, duas qualidades
 e quatro formatos). A execução física passou nos quatro perfis AMD/NVIDIA
 Vulkan/OpenGL, com diferença GPU/CoinGL máxima de 2 canais em cada perfil.
-O [ledger e os logs](/mnt/Laranja/Git/externos/coin-render/docs/validation/glu-pot-expanded-20261009/summary.json)
+O [ledger e os logs](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/glu-pot-expanded-20261009/summary.json>)
 registram identidade do adaptador, contagem, máximo, hashes e resultado.
 O [CI da revisão ampliada](https://github.com/Dikluwe/coin/actions/runs/37968646516)
 passou nos quatro jobs: Ubuntu executou a integração CoinGL e o oráculo;

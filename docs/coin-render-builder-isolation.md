@@ -38,5 +38,5 @@ As quatro variantes da cena de 40 mil edifícios preservaram os checksums anteri
 Foi corrigida uma expectativa antiga do teste de texturas RECORDING: a referência
 CPU já implementava SCREEN_DOOR, mas o teste esperava UNSUPPORTED. A mesma falha
 foi confirmada recompilando o builder e ImageCore do commit anterior; o comportamento
-de produção não mudou. [Evidências e scripts](/mnt/Laranja/Git/externos/coin-render/docs/validation/render-assembly-linux).
+de produção não mudou. [Evidências e scripts](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/render-assembly-linux>).
 Não se declara ganho de desempenho; Windows/protótipos não foram executados.

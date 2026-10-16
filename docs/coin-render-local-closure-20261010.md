@@ -12,8 +12,8 @@ reclassificado por mera ausência de reprodução.
 | --- | --- | --- |
 | 58 — NPOT BGFX | Parcial | Repetir HDR/2047² e combinações Linux; D3D11 precisa de Windows. |
 | 76 — rescaling, formatos | Parcial | Ampliar estado/formatos e FreeCAD Linux; Windows/Android em campanhas próprias. |
-| 240 — borda fria FreeCAD | Concluído como qualificação delimitada em 2026-10-11 | 12/12 processos portáteis e 4/4 nativos frios em NVIDIA física, sem redraw prévio pelo fixture; texto exercitado e diff final/repetido zero. Evento histórico não reproduzido nem atribuído. [Recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/freecad-cold-qualify-20261011/summary.md). |
-| 260 — variação NVIDIA/wgpu | Concluído como estudo em 2026-10-11 | A/B/B/A 8/8 em Weston/Xwayland privado: −0,51% portable/native, sem pausa >500 ms; outlier histórico não reproduzido nem atribuído. Replay BGFX qualificado em AMD/NVIDIA. [Recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-variance-isolated-20261011/summary.md). |
+| 240 — borda fria FreeCAD | Concluído como qualificação delimitada em 2026-10-11 | 12/12 processos portáteis e 4/4 nativos frios em NVIDIA física, sem redraw prévio pelo fixture; texto exercitado e diff final/repetido zero. Evento histórico não reproduzido nem atribuído. [Recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/freecad-cold-qualify-20261011/summary.md>). |
+| 260 — variação NVIDIA/wgpu | Concluído como estudo em 2026-10-11 | A/B/B/A 8/8 em Weston/Xwayland privado: −0,51% portable/native, sem pausa >500 ms; outlier histórico não reproduzido nem atribuído. Replay BGFX qualificado em AMD/NVIDIA. [Recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-variance-isolated-20261011/summary.md>). |
 | 270 — sampling API | Parcial | AVD e consumidores Linux; Windows e outros dispositivos seguem separados. |
 | 331 — junções e endpoints | Concluído nesta rodada | Reprodução física, custo mínimo das alternativas e decisão de preservar o contrato portátil; melhorias futuras continuam separadas. |
 | 346 — bindings/shapes | Concluído nesta rodada | 64 casos côncavos com subclasses/UV e 441 pares de binding em nove formas; correção de TriangleStripSet; 1.795 casos por rota. |
@@ -23,10 +23,10 @@ reclassificado por mera ausência de reprodução.
 | 363 — workbenches | Parcial | Consumidores reais Linux; matriz Windows externa. |
 | 368 — arraste/workbenches | Parcial | Input e workbenches Linux; repetir adaptadores no Windows depois. |
 | 388 — bbox/depth clamp | Concluído nesta rodada | Clipping e clamp distinguidos em sonda CoinGL; contrato portátil continua no item 348. |
-| 407 — mips/recursos | Concluído em 2026-10-11 | Mips GPU diretos RGBA8/RGBA16F e 4096×1024 sob 64 MiB; seis perfis Linux e recuperação após rejeição. [Recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/rtt-direct-mips-wide-20261011/summary.md). |
+| 407 — mips/recursos | Concluído em 2026-10-11 | Mips GPU diretos RGBA8/RGBA16F e 4096×1024 sob 64 MiB; seis perfis Linux e recuperação após rejeição. [Recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/rtt-direct-mips-wide-20261011/summary.md>). |
 | 452 — desempenho Windows | Externo | Exige host Windows e controle de clocks/latência. |
 | 485 — igualdade janela/offscreen | Parcial em curso | 40/40 cidade/terreno passaram; capturar recorrência preta espontânea com leituras X11 repetidas e repetir os gates Windows. |
-| 550 — bordas AMD/Vulkan | Diagnóstico ampliado, aberto | Os quatro pixels P20 reproduziram; alfa não é causa única e os quads de cada borda foram isolados. Falta política comum validada em câmera/viewport/RTT. [Recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/p20-edge-controls-20261011/summary.md). |
+| 550 — bordas AMD/Vulkan | Diagnóstico ampliado, aberto | Os quatro pixels P20 reproduziram; alfa não é causa única e os quads de cada borda foram isolados. Falta política comum validada em câmera/viewport/RTT. [Recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p20-edge-controls-20261011/summary.md>). |
 | 560 — fontes GL no Coin base | Local | Inventariar símbolos/objetos restantes e remover em etapas com ABI verificada. |
 | 562 — Vulkan no AVD | Condicionado | Verificar imagem/driver; Goldfish atual falha no submit. |
 | 564 — Intel física | Externo | Este host não oferece essa GPU. |
@@ -34,7 +34,7 @@ reclassificado por mera ausência de reprodução.
 | 589 — DPI/TDR Windows | Externo | Exige monitores com DPI distinto e host Windows. |
 | 592 — Metal/Wayland físico | Externo | Metal indisponível; compositor físico/escala fracionária requer outro perfil. |
 | 603 — Android duas janelas | Local | Ampliar o AVD x86_64 e preservar zoom/RTT. |
-| 611 — milhão no AVD | Concluído como estudo em 2026-10-11 | Estado CPU 1.648→496 B; AVD 8 GiB passou interação/retomada, 4 GiB sofreu encerramento por falta de memória; 2 GiB não qualificado. [Recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/sparse-state-million-20261011/summary.md). |
+| 611 — milhão no AVD | Concluído como estudo em 2026-10-11 | Estado CPU 1.648→496 B; AVD 8 GiB passou interação/retomada, 4 GiB sofreu encerramento por falta de memória; 2 GiB não qualificado. [Recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sparse-state-million-20261011/summary.md>). |
 | 614 — layout GPU compacto | Parcial | Diferença AMD/Vulkan/CoinGL aqui; Metal/D3D12 fora. |
 | 616 — Android físico arm64 | Externo | Emulação x86_64 não substitui o dispositivo. |
 
@@ -47,14 +47,14 @@ cena constante aprove o ensaio. Em 96×80, a área visível foi 1728 pixels na
 base, 1536 em cada corte e zero quando toda a caixa foi rejeitada. Máximo RGB
 e MAE foram zero nas 12 comparações por backend. A regressão completa passou
 com 143 comparações CoinGL em BGFX/OpenGL, BGFX/Vulkan e wgpu/Vulkan. Os
-[recibos](/mnt/Laranja/Git/externos/coin-render/docs/validation/bbox-depth-20261010) registram as saídas.
+[recibos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bbox-depth-20261010>) registram as saídas.
 
 Este ensaio cobre clipping geométrico normal. A sonda separada
 `--probe-gl-depth-clamp` habilitou `GL_DEPTH_CLAMP` apenas no CoinGL via
 `SoCallback`, restaurou o estado após a caixa e comparou com a mesma cena sem
 clamp. Near e far passaram de 1536 pixels sob clipping a 1728 sob clamp:
 **192 pixels alterados em cada plano**
-([log](/mnt/Laranja/Git/externos/coin-render/docs/validation/bbox-depth-20261010/coingl-depth-clamp.log)). Assim, o
+([log](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bbox-depth-20261010/coingl-depth-clamp.log>)). Assim, o
 clamp não pode ser inferido de um `SoDepthBuffer` com range limitado ou de
 uma caixa que cruza o plano. O perfil atual de bounding box continua a usar
 clipping geométrico; não há estado CoinRender portátil que solicite
@@ -78,7 +78,7 @@ No X11 `:0`, a AMD Renoir física executou doze processos da cidade estática
 40 mil e um do terreno com um milhão de triângulos, todos native, 1280×960,
 um warmup e dois frames. As **13 capturas iniciais e finais** tiveram RGB
 máximo zero contra o offscreen e cobertura visível não nula
-([CSV](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-gl-first-capture-20261010/summary.csv)). Isto não
+([CSV](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-gl-first-capture-20261010/summary.csv>)). Isto não
 reproduz a [imagem inicial preta histórica](coin-render-wgpu-opengl-first-present-20261010.md)
 e não demonstra sua correção. A frente 485 segue aberta.
 
@@ -88,7 +88,7 @@ adicional. Uma injeção limitada ao fixture (`COIN_VISUAL_TEST_EMPTY_XGETIMAGE=
 zerou a cópia da primeira leitura de propósito: as quatro leituras reais
 seguintes viram 250473 pixels, enquanto o gate continuou a reprovar a primeira
 captura. A execução sem injeção passou RGB zero nas duas capturas. O
-[diagnóstico controlado](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-gl-first-capture-20261010/diagnostic.log)
+[diagnóstico controlado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-gl-first-capture-20261010/diagnostic.log>)
 valida a instrumentação, **não** reproduz a falha histórica. Na próxima
 ocorrência real, os registros distinguirão uma janela que se preenche sem
 render novo de uma falha persistente, e então poderemos direcionar o trace de
@@ -110,7 +110,7 @@ em itens próprios.
 
 O `benchmark_linux.py` repetiu A/B/B/A em NVIDIA/Vulkan, wgpu e BGFX, com
 `texture-8` e `city-40000`: 16/16 processos válidos, sem readback. O
-[CSV versionado](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-variance-20261010/summary.csv) conserva
+[CSV versionado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-variance-20261010/summary.csv>) conserva
 as medianas de 90 frames após 30 aquecimentos. Em wgpu/cidade, as duas
 execuções **native** foram 0,6561 e 0,5817 ms, amplitude de 12,8% em relação
 à menor; portable foi 0,5789 e 0,5826 ms. Textura com oito unidades ficou
@@ -138,7 +138,7 @@ externo como parte da regressão normal. A forma em “L” tem três amostras
 independentes para impedir que uma triangulação em leque preencha o recorte.
 BGFX/Vulkan, BGFX/OpenGL e wgpu/Vulkan na AMD física passaram 1306 casos por
 rota; as 48 comparações côncavas CPU/GPU/CoinGL por rota tiveram máximo RGB 1.
-O [recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/concave-geometry-20261010/summary.log) guarda identidades
+O [recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/concave-geometry-20261010/summary.log>) guarda identidades
 e contagens. A expansão posterior com subclasses e UV consta da décima
 terceira frente abaixo.
 
@@ -159,7 +159,7 @@ portátil mantém a triangulação comum. O builder agora recusa QuadMesh sob
 essa variável com `UNSUPPORTED`, antes de publicar a triangulação diferente.
 Pixels e seriais permanecem intactos e a mesma action recupera ao renderizar
 uma cena sem QuadMesh: 3/3 rotas físicas passaram o teste de rejeição.
-O [recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/precise-lighting-20261010/summary.log) conserva a falha
+O [recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/precise-lighting-20261010/summary.log>) conserva a falha
 anterior e os passes posteriores. O modo positivo não padrão continua aberto
 no item 351. Sem essa variável, 1306 casos passaram em cada rota após a
 correção.
@@ -169,7 +169,7 @@ correção.
 Mais 40 processos wgpu/OpenGL X11 native alternaram cidade em movimento e
 terreno de um milhão. Todos passaram RGB 0 em capturas inicial e final, sem
 acionar as leituras diagnósticas extras. O
-[recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-gl-first-capture-20261010/stress-40.log) conserva a
+[recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-gl-first-capture-20261010/stress-40.log>) conserva a
 contagem e o hash do CSV temporário. A falha intermitente histórica continua
 sem reprodução causal; o item 492 não foi fechado.
 
@@ -178,7 +178,7 @@ sem reprodução causal; o item 492 não foi fechado.
 O runner congelado repetiu A/B/B/A em wgpu e BGFX/Vulkan físicos, com oito
 texturas POT, oito NPOT, 40.000 e 1.000.000 de instâncias. Os **32/32
 processos** passaram a validação de GPU, quantidade de frames e ausência de
-readback. O [resumo por processo](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-variance-wide-20261010/summary.csv)
+readback. O [resumo por processo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-variance-wide-20261010/summary.csv>)
 inclui hashes dos binários e cenas; o `summary.json` bruto e os CSV de frames
 permanecem em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/benchmark-nvidia-wide-20261010`
@@ -213,7 +213,7 @@ retornar da HOME. O enquadramento agora ocorre somente na primeira superfície
 da Activity. O APK x86_64 foi recompilado, instalado e exercitado no AVD
 AMD/GLES: o gesto alterou a distância focal de 1880,807 para 2668,993; três
 recriações reais mantiveram 2668,993 no mesmo PID, com seriais e capturas
-offscreen crescentes. O [recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/android-zoom-20261010/summary.md)
+offscreen crescentes. O [recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/android-zoom-20261010/summary.md>)
 preserva APK, hash, gerações e limite. Duas janelas, AUTO e tickets/RTT entre
 threads continuam abertos no item 642.
 
@@ -248,7 +248,7 @@ No mesmo AVD, 17 patches da variante nova tiveram `frame_plan_ms` mediano
 ao gesto foi de 10,15 FPS/98,5 ms, frente a 5,52 FPS/181,2 ms na rodada
 anterior. É um A/B curto, com contagem de eventos diferente; os traces isolam
 o ganho de CPU do plano, mas não fecham a campanha de caudas. Os
-[recibos e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/android-million-camera-20261010/summary.md)
+[recibos e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/android-million-camera-20261010/summary.md>)
 preservam APK, logs, memória e escopo. A frente 650 continua aberta.
 
 ## Décima terceira frente: subclasses e UV côncavos
@@ -260,7 +260,7 @@ notch verifica que o recorte côncavo não foi preenchido. BGFX/Vulkan,
 BGFX/OpenGL e wgpu/Vulkan físicos na NVIDIA passaram todos os 64 casos, máximo
 RGB 1. A rejeição
 transacional já existente de offset não planar passou nas mesmas três rotas.
-O [recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-subclasses-uv-20261011/summary.md) guarda
+O [recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-subclasses-uv-20261011/summary.md>) guarda
 comandos, adaptadores e hashes dos logs. A sonda posterior dos 49 pares de
 material/normal encontrou RGB 11 contra CoinGL no TriangleStripSet com
 material PER_FACE e normal PER_VERTEX. O callback normalizava o material por
@@ -268,7 +268,7 @@ face nos três vértices, enquanto GL suavizado conserva o material dos dois
 vértices compartilhados. O builder agora reconstrói esses materiais pela
 ordem de callbacks de cada strip. Nove formas × 49 pares passaram em todas
 as três rotas, máximo RGB 1; a matriz integrada passou **1.795/1.795** por
-rota. [Falha anterior e logs finais](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-subclasses-uv-20261011/summary.md).
+rota. [Falha anterior e logs finais](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-subclasses-uv-20261011/summary.md>).
 O item 358 está fechado dentro do contrato atual; offset não planar positivo
 segue fora do contrato.
 
@@ -279,7 +279,7 @@ NPOT-8 sob native/portable, cada um com dois warmups e oito frames medidos.
 Todos construíram plano e recursos no primeiro quadro e reutilizaram plano,
 textura e buffer de geometria nos nove seguintes. A sonda não faz readback e
 usa a mesma fixture congelada do benchmark A/B. O
-[recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/replay-textures-dual-gpu-20261011/summary.md) traz hashes,
+[recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/replay-textures-dual-gpu-20261011/summary.md>) traz hashes,
 adaptadores e logs. Isso amplia o replay a outras GPUs/cargas; a variação
 wgpu/NVIDIA observada historicamente ainda não tem causa isolada; o estudo
 delimitado posterior encerrou o item 260 conforme a tabela acima.
@@ -291,6 +291,6 @@ primeiro texto e sem redraw forçado pelo fixture. Em 16 processos FreeCAD
 independentes, 12 portáteis e quatro nativos, NVIDIA/wgpu/Vulkan físico,
 o texto visível mudou 700 pixels, sua mutação mudou 330, e o diff após ocultar
 e repetir foi zero em todos. Todos registraram `cold_start_qualified=true`.
-O [recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/freecad-cold-qualify-20261011/summary.md) guarda o script,
+O [recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/freecad-cold-qualify-20261011/summary.md>) guarda o script,
 os valores e os limites. A causa da transição histórica de 1.476 pixels não
 foi determinada porque ela não reapareceu nesta campanha.

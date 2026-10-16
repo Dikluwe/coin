@@ -69,7 +69,7 @@ Uma nova modalidade Coin começa por contrato comum e expectativa de
 compatibilidade, depois é implementada ou rejeitada explicitamente em cada
 executor qualificado. Uma diferença que só aparece entre drivers não fica
 resolvida ao mudar o backend CPU ou ao relaxar um gate de imagem. O
-[caso de cobertura AMD/NVIDIA](/mnt/Laranja/Git/externos/coin-render/docs/validation/perspective-coverage-20261012/summary.md)
+[caso de cobertura AMD/NVIDIA](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/perspective-coverage-20261012/summary.md>)
 permanece aberto para os caminhos GPU: o próprio CoinGL escolheu lados
 diferentes de uma aresta entre as duas placas, e o modo 3× regrediu outras
 cenas. É preciso definir uma política de cobertura portátil e demonstrá-la em

@@ -31,7 +31,7 @@ preserva a publicação anterior e permite recuperação na mesma action/target.
 
 ## Qualificação e reprodução
 
-[Resultados e ambiente](/mnt/Laranja/Git/externos/coin-render/docs/validation/retained-linux-20261006/README.md).
+[Resultados e ambiente](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/retained-linux-20261006/README.md>).
 A fixture `freecad_screen_content.FCMacro`, com `COIN_TEST_RETAINED_NODES=1`,
 instancia os oito primeiros tipos reais dentro do viewport FreeCAD. Verifica
 conteúdo visível, glifos quando aplicável, mutação, remoção, câmera/resize,

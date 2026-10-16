@@ -42,7 +42,7 @@ Mínimo .. máximo das três medianas por processo, sem remover extremos. Estas 
 
 - BGFX/Vulkan · Geometria 10%: 67.62 → 100.77 ms; +33.15 ms (+49.03%).
 
-![Totais, faixa das rodadas e ablação](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-overlay-linux/geometry-overlay.png)
+![Totais, faixa das rodadas e ablação](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-overlay-linux/geometry-overlay.png>)
 
 ## Ablação no mesmo binário
 
@@ -84,7 +84,7 @@ Total on − off: -3.31 ms (-5.51%). A mudança +49.03% da campanha principal co
 
 Os pares que aumentaram o tempo permanecem nesta tabela; a mediana agregada não estabelece ausência universal de regressão.
 
-[Comandos, CSVs, logs e resumo do probe](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-overlay-linux/regression-probe/summary.json).
+[Comandos, CSVs, logs e resumo do probe](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-overlay-linux/regression-probe/summary.json>).
 
 ## Protocolo e fontes
 
@@ -126,6 +126,6 @@ Este gerador lê os resultados RGB fornecidos e não reabre os PPMs. A reproduç
 - A terceira rodada teve outliers grandes, mantidos nos dados e nas faixas do gráfico. load-observation.json preserva um snapshot de carga durante essa rodada: a lista GPU amostrada mostrou nosso benchmark, e ps incluiu Codex/navegadores. Essa amostra não prova a causa da variação nem acompanha a carga de toda a campanha.
 - O probe suplementar usa a mesma build BGFX/Vulkan, geometry-10, sem trace: seis processos, 90 medidos e 30 warmups. Todas as três diferenças por par permanecem, inclusive o primeiro par positivo. Não substitui a campanha principal ou a ablação e não identifica a causa da variação observada.
 
-[Evidência e reprodução](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-overlay-linux/README.md).
+[Evidência e reprodução](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-overlay-linux/README.md>).
 
 Entradas e SHA-256 do gerador estão em `report-inputs.json`; os valores são lidos da evidência.

@@ -63,4 +63,4 @@ O resultado qualifica este perfil de cena e estes caminhos offscreen Linux. Jane
 
 Continuam sendo candidatos a medições específicas: captura e cópias de estados no Core comum, inicialização de recursos BGFX e expansão da geometria em cada backend. A geometria CPU/GPU permanece expandida no packer; seu volume não caiu nesta mudança.
 
-[Logs, resultados e scripts](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-early-opaque-batch-linux/README.md).
+[Logs, resultados e scripts](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-early-opaque-batch-linux/README.md>).

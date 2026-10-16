@@ -32,7 +32,7 @@ O OpenGL reportado pelo BGFX não expõe vendor/device (`0000:0000`); `glxinfo -
 no mesmo ambiente identifica AMD Radeon Graphics, driver radeonsi Renoir. O
 Vulkan reporta AMD `1002:1638`. No OpenGL, dois replays do mesmo plano e revisão
 também deram erro máximo zero. Os logs completos e a identidade GL estão em
-[`validation/advanced-textures-mixed-views-20261008`](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-mixed-views-20261008).
+[`validation/advanced-textures-mixed-views-20261008`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-mixed-views-20261008>).
 
 Estes controles qualificam Linux/AMD deste PC. Não certificam NVIDIA, Windows,
 Android nem alias de token RTT direto.

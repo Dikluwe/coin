@@ -97,7 +97,7 @@ histórica de 600 quadros.
 
 ## Desempenho
 
-![Mediana e faixa entre rodadas](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-instancing-linux/offscreen/figures/mediana-tempo-total-ms.png)
+![Mediana e faixa entre rodadas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-instancing-linux/offscreen/figures/mediana-tempo-total-ms.png>)
 
 Tempo total por quadro, incluindo atualização, render/readback e publicação:
 
@@ -226,7 +226,7 @@ permanecem no arquivo de validação.
 
 ## Evidências e reprodução
 
-Dados em [validation/wgpu-instancing-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-instancing-linux):
+Dados em [validation/wgpu-instancing-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-instancing-linux>):
 CSV por quadro, logs, comandos/ambiente, identidades dos binários, resumos
 recomputados e hashes/métricas das imagens. PPMs permanecem nos diretórios
 temporários de captura e não entram no Git. Os traces são diagnósticos separados

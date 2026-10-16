@@ -104,7 +104,7 @@ falhas preparatórias ficam nos logs e não são contadas como passes.
 
 ## Evidência, reprodução e limites
 
-[validation/windows-integration-linux-20261007](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-integration-linux-20261007)
+[validation/windows-integration-linux-20261007](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-integration-linux-20261007>)
 guarda source/base, scripts, comandos/ambiente, XML/logs, capacidade física,
 manifestos, SDK exports, compile commands e bibliotecas carregadas. Os scripts
 usam os paths deste host; executar com diretório novo e adaptar paths sem

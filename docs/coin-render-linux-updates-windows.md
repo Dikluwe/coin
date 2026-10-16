@@ -159,11 +159,11 @@ medições. `installed-hashes.json` confirma que Coin4.dll, CoinRender4.dll e o
 benchmark instalado correspondem aos binários qualificados de cada backend.
 
 Os scripts desta campanha estão em
-[`validation/linux-updates-windows-20261005`](/mnt/Laranja/Git/externos/coin-render/docs/validation/linux-updates-windows-20261005).
+[`validation/linux-updates-windows-20261005`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/linux-updates-windows-20261005>).
 `qualify.ps1` roda os gates nos builds existentes, `measure.py` roda a campanha
 serial e `summarize.py` valida amostras, contratos e diferenças de imagem.
 A cena de materiais é gerada com `generate_material_slot_scene.py`, usando
 `--source-city build/large-scenes/city-40000.iv --objects 40000 --material-slots 40001`.
 
 Resumo completo:
-[`summary.json`](/mnt/Laranja/Git/externos/coin-render/docs/validation/linux-updates-windows-20261005/summary.json).
+[`summary.json`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/linux-updates-windows-20261005/summary.json>).

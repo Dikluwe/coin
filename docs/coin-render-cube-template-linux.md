@@ -37,7 +37,7 @@ O plano de origem caiu de **864.048 para 96.216 vértices**, de **36.002 para 4.
 
 Mesmo com quatro mil dimensões distintas, o Cube estável reaparece entre clones e permanece no LRU. O trace final mostra 32 templates, 39 ranges retidos e 3.970 evictions de templates. Os 4.009 ranges do plano capturado continuam válidos, independentemente da retenção no cache.
 
-![Geometria em movimento e primeiro quadro](/mnt/Laranja/Git/externos/coin-render/docs/validation/cube-template-linux/cube-template.png)
+![Geometria em movimento e primeiro quadro](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/cube-template-linux/cube-template.png>)
 
 ### Primeiro quadro e memória de processo: geometria 10%
 
@@ -102,7 +102,7 @@ A campanha em janela foi interrompida e excluída: DPMS registrou **Monitor Off*
 - Cubes distintos inicialmente iguais: alias é recusado para edição direta; mudança só de C recaptura, preserva A, readmite C e permite atualização posterior com rollback/retry.
 - **168 comparações RGB foram idênticas por bytes**, nos seis casos × quatro variantes × sete quadros lógicos (0..600, passo100), com digests de estado iguais e movimento confirmado. Incluem 42 comparações Coin/OpenGL entre suas duas execuções de verificação. Essas imagens demonstram preservação antes/depois de cada variante; os testes GPU específicos mantêm o oráculo de profundidade/PHONG.
 
-[Pacote de evidência](/mnt/Laranja/Git/externos/coin-render/docs/validation/cube-template-linux) conserva CSVs, logs, comandos, protocolo, controles de binários, digests/SHAs das imagens, métricas, diagnóstico, gates e scripts de reprodução. PPMs permanecem em /tmp, sem cópia para Git. Os resumos recalculam estatísticas dos CSVs; a validação posterior pode reutilizar as métricas RGB arquivadas sem alegar nova comparação de pixels.
+[Pacote de evidência](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/cube-template-linux>) conserva CSVs, logs, comandos, protocolo, controles de binários, digests/SHAs das imagens, métricas, diagnóstico, gates e scripts de reprodução. PPMs permanecem em /tmp, sem cópia para Git. Os resumos recalculam estatísticas dos CSVs; a validação posterior pode reutilizar as métricas RGB arquivadas sem alegar nova comparação de pixels.
 
 
 ## Próximos custos identificados

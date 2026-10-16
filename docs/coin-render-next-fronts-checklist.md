@@ -118,7 +118,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   A ampliação Linux verificou 12 redimensionamentos GLU nativos (máximo 1)
   e 72 comparações GPU/CoinGL em cada perfil AMD/NVIDIA Vulkan/OpenGL
   (máximo 2), incluindo texturas pequenas e não quadradas; o
-  [ledger](/mnt/Laranja/Git/externos/coin-render/docs/validation/glu-pot-expanded-20261009/summary.json) guarda os logs.
+  [ledger](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/glu-pot-expanded-20261009/summary.json>) guarda os logs.
   Os 12 redimensionamentos também passaram no
   [CI Windows/macOS](https://github.com/Dikluwe/coin/actions/runs/37968646516).
   [Contrato e ledger NPOT](coin-render-texture-scale-policy-20261009.md) e
@@ -261,7 +261,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   independentes em NVIDIA física, sem redraw forçado antes da primeira captura,
   todos PASS e `cold_start_qualified=true`; texto e mutação efetivamente
   alteraram pixels, e a borda teve diff zero após remoção e repetição.
-  [Recibos e alcance](/mnt/Laranja/Git/externos/coin-render/docs/validation/freecad-cold-qualify-20261011/summary.md).
+  [Recibos e alcance](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/freecad-cold-qualify-20261011/summary.md>).
   A causa do evento antigo não foi atribuída; este fechamento qualifica somente
   o host e a sequência ensaiados, sem alegar correção geral.
 - [x] Diagnosticar BGFX milhão: 1.000.001 instâncias/160 bytes excedem o cache
@@ -290,15 +290,15 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   Replay BGFX de textura-8 e NPOT-8, native/portable em NVIDIA e AMD físicas,
   passou 8/8 processos: o primeiro quadro constrói, os nove seguintes
   reutilizam plano, textura e geometria
-  ([recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/replay-textures-dual-gpu-20261011/summary.md)).
+  ([recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/replay-textures-dual-gpu-20261011/summary.md>)).
   A origem da variação wgpu ainda não foi identificada
-  ([resumo](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-variance-wide-20261010/summary.csv)).
+  ([resumo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-variance-wide-20261010/summary.csv>)).
   Na sessão X11 de 2026-10-11, uma nova coorte foi interrompida: `present()`
   NVIDIA/wgpu e `submit_frame_ms` NVIDIA/BGFX alternaram pausas de
   750–1000 ms inclusive em texture-8, enquanto AMD/wgpu no mesmo X11 não
   pausou. O milhão manteve `plan_cache_hit=1`; esta é uma instabilidade da
   apresentação NVIDIA atual, sem atribuição causal ao outlier histórico
-  ([traces e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-present-stall-20261011/summary.md)).
+  ([traces e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-present-stall-20261011/summary.md>)).
   Em Weston/Xwayland privado, 8/8 processos da cidade de um milhão na
   mesma sessão passaram com GPU/digest idênticos e sem pausas >500 ms.
   Medianas das medianas: native 15,272 ms, portable 15,194 ms
@@ -306,7 +306,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   O salto de 25% não se reproduziu; o estudo local termina sem atribuir
   causa ao caso histórico nem prometer FPS universal. O replay BGFX já
   passou no milhão e em textura POT/NPOT nas GPUs físicas AMD/NVIDIA
-  ([decisão e recibos](/mnt/Laranja/Git/externos/coin-render/docs/validation/nvidia-variance-isolated-20261011/summary.md)).
+  ([decisão e recibos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/nvidia-variance-isolated-20261011/summary.md>)).
 - [ ] Qualificar esta API em Windows/Android, outros consumidores/dispositivos e
   avaliar promoção para coin-render. Windows/GTX 1060 passou 102/102 gates
   funcionais native/portable e 12/12 consumidor instalado, com rejeição sem
@@ -357,7 +357,7 @@ O [contrato ampliado](coin-render-geometry-viewport-contract.md) define o alcanc
 - [x] Ampliar RTT com viewport externo em capture/FBO/pbuffer/staged/direto e
   sombras com controle crop ativo/inativo; fixtures sem expectativas circulares.
 - [x] Concluir a qualificação integrada BGFX Vulkan/OpenGL e Recording;
-  guardar [contagens, hashes e logs finais](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-viewport-closure-20261006/summary.json).
+  guardar [contagens, hashes e logs finais](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-viewport-closure-20261006/summary.json>).
   Dois asserts wgpu foram ajustados ao deslocamento raster; o timeout BGFX
   de sombras passou isolado com fonte/limite inalterados. Os eventos ficam nos logs.
 
@@ -403,7 +403,7 @@ Melhoria futura, fora deste primeiro perfil:
   Uma divergência de RGB 11 no TriangleStripSet com material PER_FACE e normal
   PER_VERTEX foi corrigida: a captura preserva o material dos vértices
   compartilhados na ordem dos callbacks. Máximo RGB final 1.
-  [Recibo e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/geometry-subclasses-uv-20261011/summary.md).
+  [Recibo e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/geometry-subclasses-uv-20261011/summary.md>).
 - [ ] Estudar depth clamp geométrico, precisão/formatos de depth adicionais e
   mais combinações de transparência/sombras/RTT; clamp de range já implementado
   não equivale a GL_DEPTH_CLAMP. A herança de `SoDepthBuffer.range` ignorado
@@ -414,7 +414,7 @@ Melhoria futura, fora deste primeiro perfil:
   `GL_DEPTH_CLAMP`; ambas as GPUs anunciam `depthClamp` em Vulkan, mas o
   CoinRender não captura esse estado. Formatos, transparência, sombras e RTT
   sob clamp geométrico continuam abertos
-  ([diagnóstico e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/depth-range-inheritance-20261011/summary.md)).
+  ([diagnóstico e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/depth-range-inheritance-20261011/summary.md>)).
 - [x] Qualificar `COIN_QUADMESH_PRECISE_LIGHTING` em QuadMesh 3D com zero ou uma
   textura: fan centrado, material OVERALL/PER_PART/PER_FACE, normal
   OVERALL/PER_PART/PER_FACE/PER_VERTEX, BASE_COLOR/PHONG, malha 4×2 plana e
@@ -426,7 +426,7 @@ Melhoria futura, fora deste primeiro perfil:
   e recupera. Regressão de geometria com o modo ativo 1.799/1.799 em
   BGFX/OpenGL AMD; a regressão sem o modo passou 1.799/1.799 em
   BGFX/OpenGL AMD, BGFX/Vulkan NVIDIA e wgpu/Vulkan AMD
-  ([matriz e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/precise-quadmesh-20261011/summary.md)).
+  ([matriz e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/precise-quadmesh-20261011/summary.md>)).
 - [ ] Qualificar flat com sombras/iluminação por fragmento, multi-textura no
   fan preciso e demais extensões fora do perfil acima. Repetir o modo preciso
   em Windows/Android e consumidores reais junto da qualificação de plataforma.
@@ -435,7 +435,7 @@ Melhoria futura, fora deste primeiro perfil:
   iluminação flat em `BASE_COLOR`, enquanto o executor de sombras requer
   `PHONG`. Após retirar a ligação flat, o mesmo alvo recupera e coincide com
   CoinGL (RGB máximo 0) nas quatro rotas físicas ensaiadas
-  ([recibo e decisão](/mnt/Laranja/Git/externos/coin-render/docs/validation/precise-quadmesh-shadow-20261012/summary.md)).
+  ([recibo e decisão](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/precise-quadmesh-shadow-20261012/summary.md>)).
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após
@@ -505,7 +505,7 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
   exata. Mips diretos e staged passaram nos seis perfis Linux, e a política
   portátil direta passou em quatro perfis Vulkan. Os FAILs preexistentes
   de sampling projetivo AMD seguem registrados separadamente
-  ([recibo e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/rtt-direct-mips-wide-20261011/summary.md)).
+  ([recibo e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/rtt-direct-mips-wide-20261011/summary.md>)).
 - [x] Definir o contrato portátil de shaders próprios antes de implementar
   tradução e recursos em BGFX/wgpu.
 - [x] Definir planos comuns para texturas 3D, cube maps e RTT de cubo.
@@ -580,7 +580,7 @@ nem encerra uma campanha completa de desempenho Windows.
   × Vulkan/OpenGL × native/portable, com código Windows atualizado em SDKs
   isolados: 48 processos, 16 passes e 32 falhas no gate RGB exato. NVIDIA
   física em Vulkan e AMD física em OpenGL; 88 capturas conferidas dos PPMs.
-  O [relatório Linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/linux-visual-20261010/README.md) separa as
+  O [relatório Linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/linux-visual-20261010/README.md>) separa as
   divergências e a primeira captura preta intermitente de wgpu/OpenGL.
 - [ ] Resolver as divergências janela/offscreen das cidades sob movimento,
   os casos BGFX/OpenGL e a diferença final do terreno iluminado wgpu;
@@ -633,7 +633,7 @@ nem encerra uma campanha completa de desempenho Windows.
   Mais 40 processos native com cidade em movimento/terreno passaram RGB 0 nas
   duas capturas, sem reproduzir o primeiro quadro preto; a instrumentação
   permanece pronta para a próxima ocorrência
-  ([recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-gl-first-capture-20261010/stress-40.log)).
+  ([recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-gl-first-capture-20261010/stress-40.log>)).
   O controle X11 wgpu/OpenGL passou 3/3 nesta repetição, sem explicar a
   primeira captura preta histórica. Os testes executados não encerram
   qualificação visual independente ou
@@ -676,14 +676,14 @@ nem encerra uma campanha completa de desempenho Windows.
   não autorizam promovê-la diretamente à produção.
   Uma política comum que preserve câmera/viewport/RTT e os demais oráculos
   ainda precisa ser implementada e qualificada
-  ([recibos](/mnt/Laranja/Git/externos/coin-render/docs/validation/p20-edge-controls-20261011/summary.md)). A matriz
+  ([recibos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p20-edge-controls-20261011/summary.md>)). A matriz
   física AMD/NVIDIA confirmou que 3× corrige câmera e transparência P20 em
   alguns casos AMD, mas regride a câmera NVIDIA e a cena P20 opaca nas duas
   placas. CoinGL também escolheu lados opostos da mesma aresta nas duas GPUs;
   não há um único resultado que iguale ambas as referências nesse pixel.
   A correção GPU requer uma regra canônica qualificada em BGFX e wgpu, com
   CoinGL e expectativas independentes registrados separadamente
-  ([auditoria de cobertura](/mnt/Laranja/Git/externos/coin-render/docs/validation/perspective-coverage-20261012/summary.md)).
+  ([auditoria de cobertura](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/perspective-coverage-20261012/summary.md>)).
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote
   assinado/instalado e apresentação wgpu/OpenGL ES no AVD.
@@ -740,7 +740,7 @@ nem encerra uma campanha completa de desempenho Windows.
   O host agora enquadra a câmera apenas na primeira superfície da Activity:
   zoom 2668,993 persistiu nas gerações 2/3/4 e no mesmo PID no AVD AMD/GLES,
   com captura offscreen em cada retorno
-  ([recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/android-zoom-20261010/summary.md)). As outras células
+  ([recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/android-zoom-20261010/summary.md>)). As outras células
   desta frente ainda estão abertas.
 - [x] Perfilar e otimizar os 40.000 no AVD/GLES: duas rodadas A/B sem input,
   cerca de 1,1 → 60 FPS, cache de viewport/plano e SCREEN_DOOR realmente opaco.
@@ -762,14 +762,14 @@ nem encerra uma campanha completa de desempenho Windows.
   adicionais causaram encerramento pelo `lowmemorykiller` após PSS de
   3.831.269 KiB e swap PSS de 1.299.492 KiB. O AVD API 37 não permite 2 GiB
   efetivos e o PSS medido excede esse orçamento
-  ([recibo e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/sparse-state-million-20261011/summary.md)).
+  ([recibo e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sparse-state-million-20261011/summary.md>)).
   O undo do overlay de câmera passou a guardar a câmera anterior e bitset de
   fog em vez de copiar cada estado: no AVD de 8 GiB, `frame_plan_ms` mediano
   no arraste caiu de 130,3 para 34,1 ms; o backend continuou perto de 64 ms.
   Rollback exato e referência CoinGL passaram. O ensaio de 8 GiB mediu também
   PSS de 3.845.081 KiB, zero swap e caudas de backend de câmera P95 43,62 ms;
   otimização para aparelhos menores exige trabalho adicional
-  ([A/B e limites](/mnt/Laranja/Git/externos/coin-render/docs/validation/android-million-camera-20261010/summary.md)).
+  ([A/B e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/android-million-camera-20261010/summary.md>)).
 - [ ] Qualificar o layout GPU compacto em outros drivers/Metal/D3D12, incluindo
   custo, precisão, reutilização e publicação. Na AMD/Vulkan, o frame 5 de
   câmera ainda falha contra CoinGL com MAE 0,147283/0,149582 em wgpu/BGFX;
@@ -777,7 +777,7 @@ nem encerra uma campanha completa de desempenho Windows.
   cobertura em `x=195`, presentes antes do layout compacto. A política de
   borda e os testes 1×/3× pertencem à frente P20 acima; não usar essa falha
   preexistente como evidência de regressão do layout
-  ([recibo](/mnt/Laranja/Git/externos/coin-render/docs/validation/perspective-coverage-20261012/summary.md)).
+  ([recibo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/perspective-coverage-20261012/summary.md>)).
 - [ ] Qualificar APK arm64 e Android físico: pause/resume, rotação,
   recriação de superfície e drivers. A emulação x86_64 permanece evidência separada.
 

@@ -3,7 +3,7 @@
 Entrega do [perfil P07/P24 avançado](coin-render-advanced-textures-profile.md),
 na continuação `codex/coin-render`, a partir de `ae2e64c41f4e75c4255df7399afb2463696c0b30`.
 Fontes, comandos, hashes e resultados ficam em
-[`docs/validation/advanced-textures-20261007`](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-20261007/summary.json).
+[`docs/validation/advanced-textures-20261007`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-20261007/summary.json>).
 Os builds permanecem em `/mnt/Laranja/Git/externos/coin-render-artifacts`.
 
 ## Resultado do perfil novo
@@ -50,7 +50,7 @@ recusa NPOT; não faz uma conversão staged silenciosa.
 ## Diagnósticos que mudaram a implementação
 
 O wgpu/OpenGL entregava níveis inferiores incorretos quando as views de fonte e
-saída usavam a mesma textura. O [controle anterior](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-20261007/diagnostic-wgpu-gl-mips-before.log)
+saída usavam a mesma textura. O [controle anterior](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-20261007/diagnostic-wgpu-gl-mips-before.log>)
 registrou erro HDR máximo 128 e erro NPOT 85. Fontes isoladas com cópias GPU por
 nível corrigiram ambos, sem map/readback CPU. O orçamento do grafo passou a
 reservar conservadoramente essas fontes, também nos demais backends.
@@ -62,7 +62,7 @@ A fixture e o oráculo ficam no teste versionado, sem relaxar tolerância.
 
 BGFX/OpenGL também contaminava o intervalo de mip de um sampler quando a mesma
 imagem era usada simultaneamente em nível base e com mips. O
-[diagnóstico anterior](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-20261007/diagnostic-bgfx-gl-shared-lod-before.log)
+[diagnóstico anterior](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-20261007/diagnostic-bgfx-gl-shared-lod-before.log>)
 registrou erro máximo 64. A combinação é agora recusada por frame sem alterar
 pixels/serial. Vulkan/wgpu mantêm o controle positivo. Views independentes são
 uma melhoria pendente.
@@ -87,7 +87,7 @@ O gate legado de sampling permanece falhando na fixture projetiva AMD, a partir
 da qualidade 0,5: wgpu/AMD Vulkan e OpenGL registram MAE 8,08/max 78;
 BGFX/AMD Vulkan é equivalente e BGFX/OpenGL registra MAE 7,99/max 77. NVIDIA
 Vulkan passou nos dois backends, incluindo 234 controles e quatro rejeições.
-A [execução com todas as fontes do commit anterior](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-20261007/baseline-head-sampling.log)
+A [execução com todas as fontes do commit anterior](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-20261007/baseline-head-sampling.log>)
 reproduziu exatamente MAE 8,08/max 78 em AMD/wgpu Vulkan. Não se atribui essa
 falha à extensão de formatos nem se declara paridade projetiva AMD resolvida.
 O limite original MAE≤1,5/max≤4 foi mantido; investigar LOD/footprint nativa fica
@@ -95,9 +95,9 @@ como estudo aberto.
 
 Dois outros gates wgpu falham na base anterior e na extensão:
 
-- [LargeBindings](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-20261007/baseline-CoinWgpuLargeBindingsTest.log):
+- [LargeBindings](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-20261007/baseline-CoinWgpuLargeBindingsTest.log>):
   expectativa de 25.600 draws depois do packing;
-- [MultiDevice](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-20261007/baseline-CoinWgpuMultiDeviceTest.log):
+- [MultiDevice](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-20261007/baseline-CoinWgpuMultiDeviceTest.log>):
   expectativa de contagem/bytes de upload de instâncias após atualização.
 
 Esses controles antigos de instancing/bindings continuam abertos; não foram

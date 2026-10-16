@@ -1,7 +1,7 @@
 # Terreno de um milhão de triângulos: limite do buffer wgpu
 
 Continuação de 2026-10-10 na branch `codex/coin-render`. A campanha visual
-[Linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/linux-visual-20261010/README.md) e a
+[Linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/linux-visual-20261010/README.md>) e a
 [Windows](coin-render-windows-visual-scenes-20261010.md) terminavam antes da
 captura do terreno com `Coin Uncached Vertex Buffer` inválido (status 7). O
 trace físico wgpu/Vulkan neste Linux mediu 492.000.000 bytes de vértices e

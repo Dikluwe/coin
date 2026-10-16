@@ -62,7 +62,7 @@ A ablação registrou economia de aproximadamente **0,9 a 1,8 ms na validação 
 | Materiais 10% | 56.33 → 52.44 | 62.78 → 53.42 | 63.15 → 65.47 | 136.50 |
 | Geometria 10% | 63.00 → 60.47 | 64.84 → 61.65 | 71.40 → 70.86 | 118.00 |
 
-![Tempos observados antes/depois](/mnt/Laranja/Git/externos/coin-render/docs/validation/validation-programs-linux/validation-programs.png)
+![Tempos observados antes/depois](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/validation-programs-linux/validation-programs.png>)
 
 wgpu registrou −2,94% em transformação, **+3,67% em materiais** e −0,76% em geometria parcial. BGFX/Vulkan registrou +0,32%, −6,91% e −4,02%; BGFX/OpenGL −9,78%, −14,91% e −4,91%, respectivamente. Esses percentuais descrevem a amostra completa, sem atribuição isolada de todas as diferenças à memoização. Os custos restantes de captura, matrizes e transporte continuam presentes.
 
@@ -97,7 +97,7 @@ Cena `/tmp/coin-render-city-40000.iv`, SHA-256 `bb9ccc612cd38ffb749ee599d9350a80
 - Oráculo Core compara aceitação e diagnóstico completo literal/memo: active/inactive, cada uma das 16 posições × oito unidades × NaN/±Inf, signed zero, estados sem draws, A/B/A, textura habilitada, limites, precedência de erros, mutação/reparo sem nova revisão e diagnóstico opcional.
 - **168 comparações RGB idênticas por bytes**, seis casos × quatro variantes × sete quadros lógicos 0..600, passo100, com digests iguais e movimento confirmado. Antes reaproveita a verificação da etapa anterior, compilada de ac28529a27da5ea370cf90eef4eeaf8b22f08850, cujos hashes coincidem com o controle congelado. Depois executou 24 processos novos. São comparações antes/depois por variante, incluindo 42 Coin/OpenGL; não são uma alegação de igualdade entre backends.
 
-Esta campanha é offscreen. Não medimos janela, duração GPU ou latência real de exibição. Os PPMs permanecem fora do Git. [Evidência e reprodução](/mnt/Laranja/Git/externos/coin-render/docs/validation/validation-programs-linux/README.md) conserva comandos, CSVs, logs, hashes de binários, controles, fases, contadores e scripts.
+Esta campanha é offscreen. Não medimos janela, duração GPU ou latência real de exibição. Os PPMs permanecem fora do Git. [Evidência e reprodução](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/validation-programs-linux/README.md>) conserva comandos, CSVs, logs, hashes de binários, controles, fases, contadores e scripts.
 
 ## Próximos custos, em ordem
 

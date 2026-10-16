@@ -148,7 +148,7 @@ Rust verifica layouts, tamanhos e limites sem gerar a cadeia.
 matriz default/própria/RTT aninhado. Os gates de clipping, geometria, Gouraud,
 alpha, shadows, RTT/publicação, callbacks e demais regressões permanecem na
 campanha integrada. Logs, comandos, diagnóstico anterior e hashes estão em
-[validation/p07-closure-20261006/summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/p07-closure-20261006/summary.json).
+[validation/p07-closure-20261006/summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p07-closure-20261006/summary.json>).
 
 A campanha final Release passou em **261 testes BGFX** e **197 testes wgpu**,
 com dois skips conhecidos em cada configuração e nenhuma falha. Também passaram

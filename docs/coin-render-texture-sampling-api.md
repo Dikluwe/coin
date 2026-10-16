@@ -131,7 +131,7 @@ Windows e Android desta API permanecem pendentes.
 ## Reprodução e evidências
 
 Runner e receitas: [sampling-api](../testsuite/reproducers/sampling-api/README.md).
-Ledger versionado: [manifest](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-api-20261008/manifest.json).
+Ledger versionado: [manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-api-20261008/manifest.json>).
 Artefatos e baseline binário imutável estão em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api`.
 Os diretórios build são reutilizados e mutáveis; use os hashes e cópias de baseline,

@@ -43,7 +43,7 @@ Os intervalos mostram mínimo e máximo das medianas por processo, preservando t
 
 Main → primeira imagem vem do log e inclui custos anteriores ao render. Pico RSS é memória residente máxima do processo, não memória GPU. Coin/OpenGL é o controle compartilhado, com igualdade de CSV/log comprovada por hashes.
 
-![Primeiro quadro, qualificação e controles steady](/mnt/Laranja/Git/externos/coin-render/docs/validation/capture-camera-basis-linux/capture-camera-basis.png)
+![Primeiro quadro, qualificação e controles steady](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/capture-camera-basis-linux/capture-camera-basis.png>)
 
 ## Quadros após warmup
 
@@ -128,6 +128,6 @@ A campanha é offscreen: total inclui espera GPU e readback, sem medir duração
 - Outliers do primeiro quadro permanecem nas amostras. Nove processos por lado, na mesma sessão, não equivalem a nove reinicializações do driver ou do computador.
 - O próximo custo de captura a investigar é a descoberta de cena repetida nos perfis de câmera e objetos. Estes dois perfis continuam executados conforme seus guards atuais; esta mudança remove apenas uma preparação duplicada da base.
 
-[Evidência e reprodução](/mnt/Laranja/Git/externos/coin-render/docs/validation/capture-camera-basis-linux/README.md).
+[Evidência e reprodução](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/capture-camera-basis-linux/README.md>).
 
 Entradas, configuração e SHA-256 do gerador estão em `report-inputs.json`. Nenhum resultado de desempenho é embutido no gerador.

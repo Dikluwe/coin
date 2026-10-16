@@ -1,8 +1,8 @@
 # CoinRender: branch de integração
 
-Este checkout limpo está na branch `codex/coin-render-clean` e organiza a
+Este checkout canônico está na branch `codex/coin-render` e organiza a
 implementação CoinRender para revisão. O checkout original de desenvolvimento
-evidenciado pelos relatórios é `/mnt/Laranja/Git/externos/coin-render`, no
+evidenciado pelos relatórios foi preservado no bundle da consolidação, no
 estado local de referência `c28812338b8c6d51f7a1a8bd7eea6d997a291013`. Os links
 para recibos excluídos deste checkout apontam para caminhos absolutos dentro
 desse arquivo local; eles não estão publicados em um destino remoto. Antes de
@@ -39,7 +39,7 @@ A branch de origem reuniu a implementação original de CoinRender, a API de
 sampling native/portable, a continuação Windows e o teste das mesmas cenas no
 Linux.
 Os relatórios visuais são [Windows](coin-render-windows-visual-scenes-20261010.md)
-e [Linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/linux-visual-20261010/README.md). O Linux registrou 16
+e [Linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/linux-visual-20261010/README.md>). O Linux registrou 16
 passes e 32 falhas em 48 processos sob igualdade RGB exata; o Windows registrou
 30 passes e 42 falhas em 72. Essas falhas continuam abertas no checklist.
 
@@ -63,3 +63,22 @@ A configuração é opt-in: `COIN_BUILD_RENDER=ON`, com
 `COIN_RENDER_BACKEND=BGFX` ou `RUST_BRIDGE`; a instalação experimental exige
 `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`. Os relatórios indicam os comandos e
 os GPUs específicos usados em cada campanha.
+
+
+## Frente única após a consolidação de 16/10/2026
+
+Continuar CoinRender somente na branch `codex/coin-render`, neste checkout.
+A antiga branch `codex/coin-render-clean` foi absorvida pelo nome canônico.
+O estado local original, incluindo as 17 modificações e a documentação nova,
+foi preservado em snapshot e bundle restaurado independentemente antes da troca.
+A organização modular e as correções Windows posteriores são a base atual.
+
+As versões arquivadas de limites de textura e oito mapas CoinGL foram
+integradas por seus deltas de código/teste, conservando os testes posteriores.
+O relatório de oito mapas é histórico e não qualifica automaticamente esta árvore.
+Windows, Linux e demais sistemas são colunas da mesma matriz por backend/GPU.
+PBR continua como frente separada, que usa CoinRender e está em
+`/home/dikluwe/.codex/worktrees/pbr-clean/coin`, branch `codex/pbr-clean`.
+
+Manifesto, fontes originais e evidências completas:
+`/home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/LEIA-ME.md`.

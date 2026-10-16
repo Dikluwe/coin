@@ -47,14 +47,14 @@ representa chamadas CPU com possível backpressure, não latência de monitor,
 tempo GPU ou FPS universal. A cena é estática; arraste, mutação de geometria,
 outras GPUs e APIs exigem células próprias.
 
-Ledger versionado: [resumo dos processos](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/summary.json),
-[trace native](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/native-replay-trace.log),
-[trace portable](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/portable-replay-trace.log)
+Ledger versionado: [resumo dos processos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/summary.json>),
+[trace native](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/native-replay-trace.log>),
+[trace portable](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/portable-replay-trace.log>)
 e quatro CSVs no mesmo diretório. Os logs de
-[Core](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/core.log),
-[instancing Vulkan](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/instancing-vulkan.log),
-[instancing OpenGL](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/instancing-opengl.log)
-e o [recibo OpenGL](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-million-replay-20261008/opengl-adapter.txt)
+[Core](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/core.log>),
+[instancing Vulkan](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/instancing-vulkan.log>),
+[instancing OpenGL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/instancing-opengl.log>)
+e o [recibo OpenGL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-million-replay-20261008/opengl-adapter.txt>)
 também estão versionados. Logs completos e builds permanecem em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261008-sampling-api-linux/bgfx-million-replay-20261008`.
 Comando do A/B:

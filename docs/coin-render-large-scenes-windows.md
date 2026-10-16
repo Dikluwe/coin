@@ -26,7 +26,7 @@ computador. O gerador é versionado; os arquivos grandes são regeneráveis.
 
 Renderização offscreen a 1024 × 1024, incluindo RGBA readback síncrono.
 São medidas de cena estática, não FPS de uma janela interativa. Os logs completos
-estão em [validation/large-scenes-windows](/mnt/Laranja/Git/externos/coin-render/docs/validation/large-scenes-windows).
+estão em [validation/large-scenes-windows](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/large-scenes-windows>).
 
 | Caminho | Edifícios | Aquecimento / quadros medidos | Mediana | P95 | Resultado |
 |---|---:|---:|---:|---:|---|
@@ -178,7 +178,7 @@ Esses dois tempos registram a variação do ambiente e não são uma comparaçã
 de desempenho entre versões.
 
 Logs, XMLs, resultados por teste, hashes e o método estão em
-[first-frame-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/first-frame-summary.json).
+[first-frame-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/first-frame-summary.json>).
 
 ### Validação do primeiro quadro em Vulkan e OpenGL
 
@@ -207,7 +207,7 @@ e 88 em 40.000. A causa desses dois pixels entre APIs não foi isolada.
 Esta rodada acrescenta benchmarks e controles de imagem, sem alterar o código
 de renderização ou repetir a qualificação anterior de 152 testes. Os logs,
 amostras individuais, hashes e diferenças de imagem estão em
-[cross-api-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/cross-api/cross-api-summary.json).
+[cross-api-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/cross-api/cross-api-summary.json>).
 Para reproduzir com o comando abaixo, altere `COIN_BGFX_RENDERER` para
 `vulkan` ou `opengl`.
 
@@ -271,7 +271,7 @@ wgpu. Isso identifica trabalho ainda necessário no backend; esta rodada não
 isola quanto cada fase responde pelos tempos altos nem corrige o erro D3D12.
 
 Logs, hashes dos binários, amostras e comparações de imagem estão em
-[legacy-wgpu-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/legacy-wgpu/legacy-wgpu-summary.json).
+[legacy-wgpu-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/legacy-wgpu/legacy-wgpu-summary.json>).
 Não houve alteração no código de renderização nem repetição da suíte completa.
 Para reproduzir, use `--backend gl` no benchmark para Coin/OpenGL, ou o build
 `RUST_BRIDGE` com `--backend wgpu` e `WGPU_BACKEND=vulkan`, `dx12` ou `gl`.
@@ -368,7 +368,7 @@ iguais aos dos binários testados; `Coin4.dll` e `CoinRender4.dll` devem ser
 atualizados juntos por causa da nova consulta protegida no Core.
 
 Logs, hashes, amostras, diferenças de imagem e resultados de testes estão em
-[common-capture-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/common-capture/common-capture-summary.json).
+[common-capture-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/common-capture/common-capture-summary.json>).
 
 ## Correção dos caminhos wgpu para cenas grandes
 
@@ -505,7 +505,7 @@ a pressão de descritores para recursos iguais; cenas com milhares de tabelas
 de texturas distintas continuam sujeitas aos limites do dispositivo.
 
 Logs, amostras, hashes, testes e diferenças de imagem estão em
-[wgpu-large-scenes-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/wgpu-large-scenes/wgpu-large-scenes-summary.json).
+[wgpu-large-scenes-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/wgpu-large-scenes/wgpu-large-scenes-summary.json>).
 Os controles intermediários de arena, agrupamento e shader são diagnósticos
 de binários anteriores ao build final e estão identificados como tais.
 
@@ -590,7 +590,7 @@ hashes iguais aos do build. `Coin4.dll` continua idêntica à baseline;
 `CoinRender4.dll` tem SHA-256
 `ccf6137d5462acee8b72f38943633007e8dd420aa796e4543c0a4bea70615575`.
 Logs, lista das 19 falhas resolvidas, hashes e controles de imagem estão em
-[wgpu-gl-errors-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/wgpu-gl-errors/wgpu-gl-errors-summary.json).
+[wgpu-gl-errors-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/wgpu-gl-errors/wgpu-gl-errors-summary.json>).
 A rodada parcial de diagnóstico, que isolou a falha do snapshot depois da
 correção inicial de readback/shader, está identificada separadamente; a
 qualificação integral é a execução final de 100 testes.
@@ -709,7 +709,7 @@ sequencialmente, portanto seu segundo resultado não representa uma execução
 independente desde o início do processo.
 
 Logs, hashes, controles e método estão em
-[common-details-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/common-details/common-details-summary.json).
+[common-details-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/common-details/common-details-summary.json>).
 A prioridade indicada pela medição é otimizar a conferência de floats, depois
 examinar reaproveitamento de validação/composição e expansão da geometria.
 
@@ -828,7 +828,7 @@ O log inicial também está preservado. No wgpu, as sombras GPU foram
 obrigatórias desde a primeira execução Vulkan.
 
 Logs, scripts de reprodução, resultados JUnit e hashes estão em
-[common-optimizations-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/common-optimizations/common-optimizations-summary.json).
+[common-optimizations-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/common-optimizations/common-optimizations-summary.json>).
 As instalações locais `build/coin-render-install` e
 `build/coin-render-bgfx-install` foram atualizadas e conferidas contra os builds.
 
@@ -911,7 +911,7 @@ permaneceram iguais. As instalações locais dos dois backends foram atualizadas
 e verificadas por SHA-256 contra os builds.
 
 Logs, scripts, JUnit, hashes e medições estão em
-[cube-replay-summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/cube-replay/cube-replay-summary.json).
+[cube-replay-summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/cube-replay/cube-replay-summary.json>).
 
 ## Geometria indexada no BGFX/OpenGL — 2026-10-03
 
@@ -1016,7 +1016,7 @@ A instalação local BGFX foi atualizada e os hashes de `Coin4.dll`,
 `Coin4.dll` permanece idêntico à baseline. O build wgpu não foi alterado.
 
 Logs, scripts, resultados JUnit, hashes e medição consolidada:
-[`bgfx-gl-indexed-summary.json`](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/bgfx-gl-indexed/bgfx-gl-indexed-summary.json).
+[`bgfx-gl-indexed-summary.json`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/bgfx-gl-indexed/bgfx-gl-indexed-summary.json>).
 
 ## Upload por referência no BGFX/OpenGL — 2026-10-03
 
@@ -1108,7 +1108,7 @@ Os resultados acima pertencem a uma nova rodada completa com a versão final,
 sem excluir amostras individuais. Os pilotos estão em `pilots/`.
 
 Evidências, scripts e logs:
-[`bgfx-gl-upload-summary.json`](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/bgfx-gl-upload/bgfx-gl-upload-summary.json).
+[`bgfx-gl-upload-summary.json`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/bgfx-gl-upload/bgfx-gl-upload-summary.json>).
 
 ## Lowering, preparação e readback do BGFX — 2026-10-03
 
@@ -1241,7 +1241,7 @@ amostras. A primeira tentativa de teste Core tinha uma fixture SCREEN_DOOR e
 uma barreira inválida em layer zero; ambas foram corrigidas antes da qualificação.
 
 Evidências e scripts:
-[`bgfx-gl-stages-summary.json`](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-windows/first-frame/bgfx-gl-stages/bgfx-gl-stages-summary.json).
+[`bgfx-gl-stages-summary.json`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-windows/first-frame/bgfx-gl-stages/bgfx-gl-stages-summary.json>).
 
 ## Reproduzir
 

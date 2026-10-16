@@ -8,7 +8,7 @@ foram executados. A [checklist](coin-render-next-fronts-checklist.md) mantém
 qualificação local, implementação pendente e hardware externo separados.
 
 Código base: `94a2ee1a9b`, com o patch e os hashes de fontes da rodada no
-[manifesto](/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/manifest.json).
+[manifesto](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/hardware-surfaces-linux-20261007/manifest.json>).
 Após retirar o include GL desnecessário de `SoAction` e condicionar o
 `glFinish` do profiler ao build legado, as quatro bibliotecas nativas
 Coin/CoinRender recompiladas permaneceram **byte a byte idênticas** às usadas
@@ -151,7 +151,7 @@ fontes GL continua aberto. A campanha anterior acima continua histórica.
 
 Os scripts de campanha, comandos, seleção de ICD/GLX/EGL, capacidade real,
 logs, pixels e hashes estão em
-[validation/hardware-surfaces-linux-20261007](/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007).
+[validation/hardware-surfaces-linux-20261007](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/hardware-surfaces-linux-20261007>).
 O runner P20 aceita `--session physical` para X11 físico ou `isolated` para
 Xwayland privado. Usa as fixtures P17 verificadas por SHA-256 e builds Release.
 As capturas de janela usam display ativo; o estado DPMS original foi restaurado.

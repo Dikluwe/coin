@@ -37,7 +37,7 @@ Vulkan identificou AMD `1002:1638` e NVIDIA `10de:2560`. Em OpenGL, o
 callback BGFX identificou Radeon Renoir/Mesa 25.2.8 e RTX 3060/driver
 615.71.09. Esta matriz usou os drivers instalados, sem o Mesa privado de
 sampling. NVIDIA/OpenGL exigiu `EGL_PLATFORM=surfaceless` neste PC.
-Os [logs reduzidos e o ledger](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-npot-mip-gpu-20261009/summary.json)
+Os [logs reduzidos e o ledger](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-npot-mip-gpu-20261009/summary.json>)
 guardam cada amostra, mediana, p95 e hash; os logs brutos ficam em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/npot-mip-gpu-full`.
 Os hashes dos oito logs brutos foram conferidos com o ledger.

@@ -7,12 +7,12 @@ de estudo. O `libCoin.so.80` resultante tem SHA256
 `6bb822fcd772a97402f9771dabf45996bef38c1cabcc3793ab51af0450b78a39`.
 O teste foi `CoinRenderDrawStyleTest` do mesmo build. `strace openat` confirmou
 o carregamento desse CoinGL, do `libGLX_mesa.so.0` privado e do
-`libgallium-25.2.8.so` privado; veja [loader-openat.txt](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/loader-openat.txt).
+`libgallium-25.2.8.so` privado; veja [loader-openat.txt](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/loader-openat.txt>).
 
 O Mesa candidato reuniu os patches de GS suplementar, transição GS→NULL e
 preservação de `CLIP_DIST0` já descritos em
 [Mesa clip boundary](coin-render-mesa-clip-boundary-20261009.md). O
-[oracle OpenGL estrito](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/candidate-oracle.log)
+[oracle OpenGL estrito](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/candidate-oracle.log>)
 passou com código 0 na AMD, usando o par GLX/Gallium privado.
 Uma tentativa anterior que misturou o GLX instalado com Gallium privado não
 criou FBConfig; esse resultado foi descartado. O candidato validado pelo oracle
@@ -20,15 +20,15 @@ tem SHA256 `f85a15810fa6908574e4418fd76ee8f45b88020c0afb7fce62b93e7e883b1642`.
 
 | Mesa privado | CoinGL original | Resultado |
 | --- | --- | --- |
-| Candidato do oracle, sem extensão | Gate completo | Exit 1: a borda `clip 1` ficou 0/18 pixels; [log](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/original-candidate-full-gate.log). |
-| Candidato com `GL_QUADS` de quatro vértices | Sonda `--probe-clipped-boundary` | Exit 0: borda 18/18 pixels, preenchimento 18/18; [log](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/quad-probe.log). |
-| Candidato com `GL_QUADS` de quatro vértices | Gate completo | Exit 1: primeira divergência no `clip 5`, com dois planos de usuário; [log](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/quad-full-gate.log). |
+| Candidato do oracle, sem extensão | Gate completo | Exit 1: a borda `clip 1` ficou 0/18 pixels; [log](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/original-candidate-full-gate.log>). |
+| Candidato com `GL_QUADS` de quatro vértices | Sonda `--probe-clipped-boundary` | Exit 0: borda 18/18 pixels, preenchimento 18/18; [log](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/quad-probe.log>). |
+| Candidato com `GL_QUADS` de quatro vértices | Gate completo | Exit 1: primeira divergência no `clip 5`, com dois planos de usuário; [log](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/quad-full-gate.log>). |
 
 Uma instrumentação temporária no `st_draw_clip_boundary` registrou, para a
 sonda CoinGL, `mode=7` (`MESA_PRIM_QUADS`), quatro vértices,
 `index_size=0`, um draw e um plano ativo. O candidato só selecionava o GS
 suplementar para `MESA_PRIM_POLYGON` de quatro vértices e
-`MESA_PRIM_TRIANGLES` de seis. O [patch de uma linha](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/mesa-gs-quad-coingl-probe.patch)
+`MESA_PRIM_TRIANGLES` de seis. O [patch de uma linha](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/mesa-gs-quad-coingl-probe.patch>)
 incluiu `MESA_PRIM_QUADS` no primeiro caso. Ele é apenas uma sonda e não
 estabelece a semântica geral de quads. O caso `clip 5` permanece fora do guard
 `ClipPlanesEnabled == 1` e do shader suplementar de um plano.
@@ -38,7 +38,7 @@ Os ensaios usaram `MESA_EXPERIMENTAL_CLIP_BOUNDARY=1`,
 `COIN_RENDER_REQUIRE_GL_REFERENCE=1` e o par GLX/Gallium privado no início de
 `LD_LIBRARY_PATH`, com `LIBGL_DRIVERS_PATH` apontando ao driver privado. O
 gate foi limitado por `timeout`; os três processos terminaram antes dele. Os
-[hashes](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-clip-edge-mesa-coingl-20261009/hashes.txt) distinguem
+[hashes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-clip-edge-mesa-coingl-20261009/hashes.txt>) distinguem
 CoinGL, candidato original e variante quad. Após o ensaio, `glxinfo -B`
 confirmou renderização direta AMD com o Mesa instalado; a consulta ao journal
 do intervalo não mostrou timeout, reset ou fault do amdgpu.

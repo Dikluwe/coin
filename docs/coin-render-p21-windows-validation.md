@@ -39,8 +39,8 @@ D3D12 (`renderer=4`). Nenhum desses probes usou o Microsoft Basic Render Driver.
 
 As rodadas corrigidas passaram pelo runner estrito, com GPU física e Coin/GL
 obrigatórios: D3D12 99/99 em 1.021,28 s; Vulkan 99/99 em 261,75 s, sem skips.
-Os XMLs e probes estão em [D3D12](/mnt/Laranja/Git/externos/coin-render/docs/validation/p21-windows/corrected-d3d12) e
-[Vulkan](/mnt/Laranja/Git/externos/coin-render/docs/validation/p21-windows/corrected-vulkan). Na campanha final D3D12,
+Os XMLs e probes estão em [D3D12](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p21-windows/corrected-d3d12>) e
+[Vulkan](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p21-windows/corrected-vulkan>). Na campanha final D3D12,
 DrawStyle levou 41,70 s, Multitexture 11,63 s e Transparency 58,89 s.
 
 A rodada D3D12 original teve 95/99 em 991,71 s, incluindo timeout de RTT direto
@@ -50,7 +50,7 @@ os logs originais continuam preservados. O reteste numérico Vulkan foi 3/3;
 o diagnóstico D3D12 também aprovou esses três contratos e registra expectativas
 antigas de outros testes, corrigidas antes da rodada completa original.
 
-Os [logs](/mnt/Laranja/Git/externos/coin-render/docs/validation/p21-windows) preservam os resultados. O smoke registra
+Os [logs](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p21-windows>) preservam os resultados. O smoke registra
 96 DPI; o mesmo checksum aparece nas duas APIs e nas duas janelas para o mesmo
 tamanho. A captura publicada tem bytes RGBA8; a superfície negocia o formato
 compatível por meio do conector. O teste não expõe o formato DXGI/Vulkan concreto.
@@ -164,6 +164,6 @@ Coin/GL na própria NVIDIA: BGFX/OpenGL 9/9 e wgpu/Vulkan 9/9, sem skips.
 As fixtures incluem FrameCore (padding), Selection, Lighting, Stabilization,
 DrawStyle, Multitexture, Transparency, ShadowReference e ShadowWiring.
 Rust passou 23 testes; Coin passou 370 testes e 85.374 verificações.
-Os [logs da integração](/mnt/Laranja/Git/externos/coin-render/docs/validation/p21-windows/linux-integration) preservam
+Os [logs da integração](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p21-windows/linux-integration>) preservam
 os resultados. A execução Linux verifica regressões das mudanças comuns;
 a evidência Windows continua sendo a campanha nativa descrita acima.

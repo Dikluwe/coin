@@ -81,7 +81,7 @@ checksums anteriores (`0x6714299260985122` em Vulkan, `0x156847cec1d97864` em BG
 OpenGL e `0x3a998bbb78caa846` em wgpu OpenGL). Não se estabelece ganho de desempenho
 nesta refatoração.
 
-[Comandos, scripts e logs](/mnt/Laranja/Git/externos/coin-render/docs/validation/render-runtime-linux) registram a execução.
+[Comandos, scripts e logs](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/render-runtime-linux>) registram a execução.
 
 ## Continuação
 

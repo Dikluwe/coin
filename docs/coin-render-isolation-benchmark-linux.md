@@ -32,5 +32,5 @@ O resultado cobre os quatro caminhos offscreen da referência; não qualifica ja
 
 ## Evidências
 
-- [Resultados, logs e script](/mnt/Laranja/Git/externos/coin-render/docs/validation/render-isolation-benchmark-linux/README.md).
+- [Resultados, logs e script](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/render-isolation-benchmark-linux/README.md>).
 - [Medição de referência](coin-render-first-frame-linux.md).

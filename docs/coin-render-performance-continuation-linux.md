@@ -96,8 +96,8 @@ causada pela reserva, pois a política de apresentação estava interferindo.
 
 Fechamento desta rodada: **252 processos qualificados**, 30.240 quadros
 medidos e 7.560 de aquecimento. Os [dados brutos e critérios de
-verificação](/mnt/Laranja/Git/externos/coin-render/docs/validation/performance-linux-20261007/README.md) preservam cada
-processo. A [comparação CSV](/mnt/Laranja/Git/externos/coin-render/docs/validation/performance-linux-20261007/comparison.csv)
+verificação](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/performance-linux-20261007/README.md>) preservam cada
+processo. A [comparação CSV](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/performance-linux-20261007/comparison.csv>)
 contém todos os seis casos, primeiro quadro, p95 e RSS; as séries brutas também
 mantêm p99, máximos e contagens acima dos orçamentos de quadro.
 
@@ -114,7 +114,7 @@ principal; os pares literal/reserva qualificam o mecanismo complementar.
 | Janela | BGFX OpenGL | 218,16 / 235,91 | 209,09 / 212,50 | −4,2% | 230,91 |
 | Janela | wgpu Vulkan | 207,82 / 224,63 | 195,76 / 199,58 | −5,8% | 230,91 |
 
-![Medianas por processo e p95 de geometria 100%](/mnt/Laranja/Git/externos/coin-render/docs/validation/performance-linux-20261007/geometry-100.png)
+![Medianas por processo e p95 de geometria 100%](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/performance-linux-20261007/geometry-100.png>)
 
 A mediana caiu nas seis células acima, mas **BGFX/Vulkan offscreen piorou
 o p95 resumido de 252,97 para 347,03 ms (+37,2%)**. Não há garantia de menor

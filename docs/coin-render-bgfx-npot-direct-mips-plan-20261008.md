@@ -26,7 +26,7 @@ sem readback nem geração CPU. A rota POT continua com autogeração nativa.
 
 ## Validação neste PC
 
-O [ledger com resumo e logs](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-npot-direct-mips-20261009/analysis.json)
+O [ledger com resumo e logs](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-npot-direct-mips-20261009/analysis.json>)
 registra 16/16 processos PASS no build separado: oito perfis de texturas
 avançadas (AMD Renoir e NVIDIA RTX 3060 Laptop, Vulkan/OpenGL, native/portable),
 seis gates RTT direto com CoinGL, um gate staged e um controle CPU. Os recibos

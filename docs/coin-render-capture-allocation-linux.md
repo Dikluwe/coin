@@ -60,4 +60,4 @@ São **33 execuções de testes selecionados**, mais quatro controles dinâmicos
 
 No trace atual, a primeira montagem BGFX ainda paga aproximadamente 136,56 ms na conversão para o backend, 134,10 ms em preparação e 156,37 ms na espera do readback. O packer wgpu levou aproximadamente 99,16 ms. A expansão da geometria e o ciclo de inicialização/leitura merecem medições específicas antes de outra alteração. Os valores são diagnósticos de uma execução, não estimativas universais.
 
-[Logs, scripts e hashes](/mnt/Laranja/Git/externos/coin-render/docs/validation/render-capture-allocation-linux/README.md).
+[Logs, scripts e hashes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/render-capture-allocation-linux/README.md>).

@@ -56,7 +56,7 @@ tempos válidos para os frames de redução neste build; ela foi retirada do
 código. Esses números servem para dimensionar o custo observável, não para
 atribuir tempo GPU exclusivamente aos mips.
 
-Os [logs individuais](/mnt/Laranja/Git/externos/coin-render/docs/validation/bgfx-npot-shadow-oit-20261009) preservam
+Os [logs individuais](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/bgfx-npot-shadow-oit-20261009>) preservam
 recibos e medianas. O build usado fica em
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build`.
 

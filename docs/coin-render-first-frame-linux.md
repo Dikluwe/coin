@@ -117,5 +117,5 @@ Para NVIDIA PRIME foram usados `__NV_PRIME_RENDER_OFFLOAD=1`,
 `__GLX_VENDOR_LIBRARY_NAME=nvidia` e o ICD NVIDIA. Para WGPU/OpenGL AMD,
 `WGPU_BACKEND=gl`, sem essas variáveis PRIME, com o ICD Radeon.
 
-Logs e resultados estruturados: [validation/first-frame-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/first-frame-linux).
+Logs e resultados estruturados: [validation/first-frame-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/first-frame-linux>).
 A medição não qualifica Direct3D12, janelas nativas nem o caminho Coin/OpenGL legado.

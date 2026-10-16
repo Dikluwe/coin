@@ -127,8 +127,8 @@ de Coin4.dll, CoinRender4.dll e benchmark instalado corresponde à build
 qualificada de cada backend em `installed-hashes.json`.
 
 Comandos, sondas, logs, resultados de teste, manifests, scripts e métricas:
-[evidências](/mnt/Laranja/Git/externos/coin-render/docs/validation/shared-overlay-first-frame-windows-20261005).
-[Resumo JSON](/mnt/Laranja/Git/externos/coin-render/docs/validation/shared-overlay-first-frame-windows-20261005/summary.json).
+[evidências](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/shared-overlay-first-frame-windows-20261005>).
+[Resumo JSON](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/shared-overlay-first-frame-windows-20261005/summary.json>).
 As imagens e cópias de binários permanecem no diretório correspondente de
 `build`; hashes estão no manifesto. `qualify.ps1` executa os gates,
 `measure.py` a campanha serial e `summarize.py` valida cobertura e imagens.

@@ -65,7 +65,7 @@ substituem a [campanha histórica de 600](coin-render-animation-linux.md).
 
 ## Offscreen
 
-![Medianas e faixa entre rodadas](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-motion-linux/motion-before-after.png)
+![Medianas e faixa entre rodadas](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-motion-linux/motion-before-after.png>)
 
 Tempo total por quadro, incluindo atualização, render/readback e publicação:
 
@@ -105,7 +105,7 @@ Essa etapa não demonstra uma melhora substancial de inicialização.
 
 ## Janela e pausas de apresentação
 
-![Tempos de cada chamada na primeira rodada](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-motion-linux/window-frame-times.png)
+![Tempos de cada chamada na primeira rodada](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-motion-linux/window-frame-times.png>)
 
 Tempo CPU da atualização e chamada render/present; não mede duração GPU,
 latência até a tela ou FPS físico:
@@ -181,7 +181,7 @@ Nenhuma destas limitações foi marcada como corrigida nesta etapa.
 
 ## Evidências e reprodução
 
-Dados completos em [validation/wgpu-motion-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/wgpu-motion-linux):
+Dados completos em [validation/wgpu-motion-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/wgpu-motion-linux>):
 CSV de cada quadro, logs, manifestos, comandos, ambiente, SHA-256 dos binários,
 resumos recomputados e hashes/métricas das imagens. Os PPM ficam nos diretórios
 temporários de captura e não foram adicionados ao Git.

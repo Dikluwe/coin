@@ -56,7 +56,7 @@ CPU/CoinGL é MAE 8,08/máximo 78 no mesmo reproducer registrado no
 [estudo anterior](coin-render-native-sampling-path-study-20261008.md). Eles
 não são contados como PASS desta rodada; a sonda isolada teve PASS 4/4.
 
-Os [logs da sonda, controle CPU, FAIL projetivo e contraste FRACTURE](/mnt/Laranja/Git/externos/coin-render/docs/validation/texture-scale-policy-20261009)
+Os [logs da sonda, controle CPU, FAIL projetivo e contraste FRACTURE](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/texture-scale-policy-20261009>)
 preservam métricas e recibos. A matriz foi executada no build BGFX separado
 `/mnt/Laranja/Git/externos/coin-portable-sampling-artifacts/20261009-npot-bgfx/build`.
 

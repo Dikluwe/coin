@@ -87,9 +87,9 @@ registradas anteriormente não foram descartadas nem atribuídas à captura.
 
 As tabelas abaixo usam mediana das estatísticas por processo. Máximos e contagens
 somam as amostras de todas as rodadas. Os registros brutos e hashes ficam em
-[validation/camera-reuse-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/camera-reuse-linux).
+[validation/camera-reuse-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/camera-reuse-linux>).
 
-![Câmera antes/depois e referência CoinGL](/mnt/Laranja/Git/externos/coin-render/docs/validation/camera-reuse-linux/camera-before-after.png)
+![Câmera antes/depois e referência CoinGL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/camera-reuse-linux/camera-before-after.png>)
 
 A figura usa escala logarítmica. Pontos preenchidos são as medianas atuais;
 pontos vazios são o histórico; traços verticais marcam p99 agregados.
@@ -254,7 +254,7 @@ campanha anterior tiveram MAE máximo 0,000250, máximo por canal 140 e até sei
 pixels acima de 3; os 21 controles CoinGL foram exatos. Essas diferenças pequenas
 se concentram em bordas, sem mudança dos estados ou deriva acumulada da câmera.
 
-![Cidade, câmera no quadro lógico 300](/mnt/Laranja/Git/externos/coin-render/docs/validation/camera-reuse-linux/camera-rgb-comparison.png)
+![Cidade, câmera no quadro lógico 300](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/camera-reuse-linux/camera-rgb-comparison.png>)
 
 A montagem é reduzida para inspeção. Os quatro PNGs RGB em resolução original
 estão no diretório `images/` das evidências.

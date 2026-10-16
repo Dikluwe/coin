@@ -99,7 +99,7 @@ mesmo tipo, conservando valores e layout. A biblioteca permanece na versão
 A qualificação contra a release `v4.0.10` usa builds equivalentes com DWARF,
 comparação libabigail e um consumidor externo compilado pelos headers antigos
 que executa com a biblioteca nova sem recompilação. Logs e escopo ficam em
-[validation/projective-uv-public-abi-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/projective-uv-public-abi-linux).
+[validation/projective-uv-public-abi-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/projective-uv-public-abi-linux>).
 
 Em Linux/GCC, libabigail 2.4 no recorte de tipos públicos registra zero tipos
 alterados, zero funções existentes removidas/alteradas e somente adições de
@@ -180,6 +180,6 @@ fixa Vulkan por configuração CMake, por isso OpenGL teve execução separada.
 As execuções finais GPU não tiveram skips; os pilotos e suas correções de
 fixture estão registrados separadamente.
 
-A evidência fica em [validation/projective-uv-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/projective-uv-linux).
+A evidência fica em [validation/projective-uv-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/projective-uv-linux>).
 O perfil é Linux/NVIDIA com wgpu/Vulkan e BGFX/Vulkan/OpenGL. Windows e outros
 drivers precisam executar seus próprios gates.

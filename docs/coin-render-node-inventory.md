@@ -35,7 +35,7 @@ vazias. São 93 cenas por executor, com fontes `defaultFont`/DejaVu Sans,
 âncoras fracionárias, nove alinhamentos, zoom anisotrópico, mutações, resize,
 perspectiva, depth test/write, clip planes, fog, políticas de transparência,
 callbacks externos e recuperação após entradas recusadas. Logs em
-[validation/screen-raster-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/screen-raster-linux).
+[validation/screen-raster-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/screen-raster-linux>).
 As 279 comparações GPU passaram, com erro RGB máximo de 1/255 e MAE máximo
 de 0,366667 por canal na região avaliada. Também passaram 27 gates de regressão
 de action, captura, composição, textura, multitextura, depth, reuse e RTT.
@@ -78,7 +78,7 @@ mutações globais. Documenta também os limites do GL legado de
 `SoIndexedMarkerSet`: lista curta em Release e inferência de alinhamento após
 substituir/remover registros. A ABI C wgpu permanece na revisão 44.
 O gate `CoinRenderMarkerSetTest` verifica captura e pixels contra Coin/OpenGL;
-a qualificação está em [validation/marker-linux](/mnt/Laranja/Git/externos/coin-render/docs/validation/marker-linux).
+a qualificação está em [validation/marker-linux](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/marker-linux>).
 
 ## Adaptadores retidos Linux
 

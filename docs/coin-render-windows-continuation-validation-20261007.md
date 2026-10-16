@@ -134,7 +134,7 @@ wgpu/Vulkan estático: **2,359 → 2,874 ms**, razão **1,218**. wgpu/Vulkan câ
 também piorou: mediana **1,769 → 1,887 ms**, p95 **2,643 → 3,037 ms**.
 O controle estático também variou; esses números não demonstram, sozinhos,
 uma causa na implementação da reserva. Ganhos e regressões observados estão
-na [tabela completa](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-continuation-20261007/performance/summary.md).
+na [tabela completa](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-continuation-20261007/performance/summary.md>).
 
 O JSON conserva update/render/publicação, p99, primeiro quadro e medianas dos
 três processos. Primeiro quadro significa processo novo, sem limpar cache do
@@ -147,7 +147,7 @@ e atribuição causal de regressões continuam abertas.
 ## Evidência e reprodução
 
 Os registros estão em
-[`docs/validation/windows-continuation-20261007`](/mnt/Laranja/Git/externos/coin-render/docs/validation/windows-continuation-20261007/README.md).
+[`docs/validation/windows-continuation-20261007`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/windows-continuation-20261007/README.md>).
 Incluem XML, saída completa `LastTest.log`, falhas iniciais, seleção/inventário
 CTest, comandos/ambiente, scripts, versões e hashes de DLLs/executáveis/shaders,
 SDKs e os dados A/B. `test-summary.json` mantém contagens por rodada;

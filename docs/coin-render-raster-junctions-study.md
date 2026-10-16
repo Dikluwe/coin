@@ -27,7 +27,7 @@ A classificação de borda está demonstrada pelos pixels/cores vizinhas, mas
 a causa específica ainda exige estudo. Esses achados não são prova de que
 o mecanismo das junções curvas seja a causa; nenhum gate foi relaxado.
 
-Os [logs diagnósticos preservados](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-junctions-study-20261006/README.md)
+Os [logs diagnósticos preservados](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-junctions-study-20261006/README.md>)
 registram o reproducer e o controle FILLED, com o alcance das observações.
 
 A fixture `CoinRenderProceduralTextureTest --probe-cone` reproduzia MAE 2,93584
@@ -101,7 +101,7 @@ de emissão sobre a mistura, sem depender de LOD, depth ou CoinRender. Não
 identifica ainda qual política portátil é desejável para uma junção completa
 em uma cena com materiais, depth e texturas.
 
-[Fixtures, seis logs e hashes](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-junctions-study-20261006/alpha-endpoints-manifest-20261010.json).
+[Fixtures, seis logs e hashes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-junctions-study-20261006/alpha-endpoints-manifest-20261010.json>).
 A sonda usa EGL surfaceless e o driver Mesa instalado ou NVIDIA 615.71.09;
 não usa o candidato Mesa privado. A medição não é uma campanha de custo nem um
 gate CPU/BGFX/wgpu. A próxima prova necessária é renderizar o mesmo par
@@ -111,7 +111,7 @@ perfil de compatibilidade CoinGL.
 
 ## Par semitransparente no contrato portátil — 2026-10-10
 
-A [sonda CoinRender](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-junctions-study-20261006/portable-alpha-20261010/CoinRenderJunctionAlphaStudy.cpp)
+A [sonda CoinRender](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-junctions-study-20261006/portable-alpha-20261010/CoinRenderJunctionAlphaStudy.cpp>)
 renderiza as mesmas duas bordas históricas como `SoLineSet`, em quatro modos:
 linha autoral, invertida, par no mesmo sentido e par em sentidos opostos.
 Cada linha tem material vermelho ou azul com transparência 0,5. A cena usa
@@ -121,14 +121,14 @@ lida **após** a passagem transparente diferida do `SoOffscreenRenderer` e
 convertida da origem inferior para top-down; a leitura antecipada ou sem essa
 conversão dá um resultado falso.
 
-Foram executados [32 casos físicos](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-junctions-study-20261006/portable-alpha-20261010/summary.json):
+Foram executados [32 casos físicos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-junctions-study-20261006/portable-alpha-20261010/summary.json>):
 CPU/wgpu e CPU/BGFX, cada um em AMD Renoir e NVIDIA RTX 3060, com dois
 endpoints × quatro modos. Os binários GPU são do build congelado de 2026-10-07,
 identificado por hashes no manifesto. Em todos os casos, CPU/GPU tiveram
 **diferença máxima de 1** por canal RGBA no quadro completo; GPU/CoinGL
 tiveram cobertura RGB idêntica e diferença RGB máxima de 1.
 
-A campanha foi repetida no [build BGFX do checkout atual](/mnt/Laranja/Git/externos/coin-render/docs/validation/raster-junctions-study-20261006/portable-alpha-20261010/summary-current-bgfx.json):
+A campanha foi repetida no [build BGFX do checkout atual](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/raster-junctions-study-20261006/portable-alpha-20261010/summary-current-bgfx.json>):
 16 casos físicos AMD/NVIDIA, duas bordas × quatro modos. CPU/BGFX continuaram
 com máximo **1 RGBA**; BGFX/CoinGL coincidiram em cobertura e tiveram máximo
 **1 RGB**. As imagens RGBA top-down completas, logs e hashes estão junto dos

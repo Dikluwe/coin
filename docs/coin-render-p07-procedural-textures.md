@@ -109,7 +109,7 @@ não vazio para separar o contrato de UV das bordas de raster já conhecidas;
 a validação analítica dos snapshots cobre os vértices das superfícies preenchidas.
 Matrizes gerais de raster, bindings e todas as combinações de nós continuam abertas.
 
-Os logs e comandos finais ficam em [validation/p07-procedural-20261006](/mnt/Laranja/Git/externos/coin-render/docs/validation/p07-procedural-20261006).
+Os logs e comandos finais ficam em [validation/p07-procedural-20261006](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p07-procedural-20261006>).
 
 ## Resultado da integração
 
@@ -129,7 +129,7 @@ visual e as tolerâncias existentes foram preservados. A regressão da unidade
 habilitada sem imagem falhou antes da correção e passou na revisão final.
 
 Comandos/ambiente, hashes dos fontes, resultados e limites estão no
-[manifesto](/mnt/Laranja/Git/externos/coin-render/docs/validation/p07-procedural-20261006/summary.json). Os tempos CTest
+[manifesto](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p07-procedural-20261006/summary.json>). Os tempos CTest
 não representam uma campanha de desempenho; as suítes GPU rodaram concorrentes.
 
 ## Fechamento posterior do primeiro perfil P07

@@ -55,7 +55,7 @@ a tabela de contagens deste relatório soma os três processos diretamente a par
 das amostras e o máximo global é calculado sobre todos eles. O campo publication
 da janela é não aplicável; o zero do resumo não representa uma medição de cópia.
 
-![Medianas e p99 por caso e escopo](/mnt/Laranja/Git/externos/coin-render/docs/validation/animation-linux/animation-timings.png)
+![Medianas e p99 por caso e escopo](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animation-linux/animation-timings.png>)
 
 A figura usa escala logarítmica. Os pontos vazios são p99 agregados por mediana
 dos processos; os máximos globais ficam nas tabelas.
@@ -230,7 +230,7 @@ eliminar diferenças. As métricas foram calculadas nos pixels integrais. O
 analisador registra os erros RGB; seu sucesso verifica correspondência dos
 estados e movimento, sem impor um limiar automático de aceitação RGB.
 
-![Comparação RGB dos backends](/mnt/Laranja/Git/externos/coin-render/docs/validation/animation-linux/verification/rgb-comparison.png)
+![Comparação RGB dos backends](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animation-linux/verification/rgb-comparison.png>)
 
 ## Limites do benchmark de janela
 
@@ -255,7 +255,7 @@ com `COIN_RENDER_TRACE_PHASES=1`. Quatro controles offscreen tiveram um warmup e
 dois quadros medidos; quatro controles estáticos de janela tiveram um warmup e
 quatro quadros medidos. Seus tempos não entram nas tabelas principais, e não são
 timestamps GPU. Os comandos e todos os registros estão em
-[phase-diagnostics/](/mnt/Laranja/Git/externos/coin-render/docs/validation/animation-linux/phase-diagnostics/summary.json).
+[phase-diagnostics/](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animation-linux/phase-diagnostics/summary.json>).
 
 ### Recaptura durante animação
 
@@ -300,7 +300,7 @@ ficou em aproximadamente 0,016–0,029 ms e submit/present em 0,18–0,25 ms nes
 controles. A leitura do código identifica esperas possíveis de apresentação e
 fences, mas não prova qual delas causou os picos da campanha anterior.
 
-[display-state-observation.txt](/mnt/Laranja/Git/externos/coin-render/docs/validation/animation-linux/window/display-state-observation.txt)
+[display-state-observation.txt](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animation-linux/window/display-state-observation.txt>)
 registra três snapshots somente de leitura: monitor ligado e timeouts de
 screensaver/DPMS em zero. Eles descrevem os instantes observados; não estabelecem
 o histórico do display durante os processos anteriores.
@@ -328,10 +328,10 @@ matrizes normais, iluminação, ordenação e os digests/imagens desta campanha.
 
 ## Evidências
 
-[Logs, CSV, manifests e imagens](/mnt/Laranja/Git/externos/coin-render/docs/validation/animation-linux/README.md).
+[Logs, CSV, manifests e imagens](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animation-linux/README.md>).
 As duas campanhas principais totalizaram **72 processos, 43.200 quadros medidos e
 4.320 warmup**, sem falhas. Os oito diagnósticos completaram 80 processos nessas
 duas etapas. Os pilotos e a verificação RGB são campanhas separadas e seus
 resultados não pertencem às tabelas principais. O
-[manifest geral](/mnt/Laranja/Git/externos/coin-render/docs/validation/animation-linux/manifest.json) reúne os controles e a
+[manifest geral](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/animation-linux/manifest.json>) reúne os controles e a
 identidade dos dados; os manifests originais foram preservados.

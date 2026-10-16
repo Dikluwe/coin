@@ -34,12 +34,12 @@ Reproduzir com seleção física explícita de GLX/EGL/ICD, usando
 `scripts/coinrender/run_p20_physical_matrix.py --device amd|nvidia
 --session physical --bgfx-build BUILD_BGFX --wgpu-build BUILD_WGPU
 --scenes-dir SCENES --output-dir EVIDENCE`. Os comandos completos estão nos
-scripts e JSONs da [evidência](/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007).
+scripts e JSONs da [evidência](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/hardware-surfaces-linux-20261007>).
 `--session isolated` continua exigindo o launcher privado; `--targets` permite
 campanhas só de janela ou offscreen. Captura não é benchmark de desempenho.
 
-O [relatório anterior](/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/prior-p20-report.md)
-e o [inventário anterior](/mnt/Laranja/Git/externos/coin-render/docs/validation/hardware-surfaces-linux-20261007/prior-p20-matrix.json)
+O [relatório anterior](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/hardware-surfaces-linux-20261007/prior-p20-report.md>)
+e o [inventário anterior](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/hardware-surfaces-linux-20261007/prior-p20-matrix.json>)
 registram os 28 processos, quatro falhas e oráculos inconclusivos daquela
 rodada. P20 mantém Intel física e a melhoria de raster AMD como pendências.
 Windows, AppKit/Wayland e Android permanecem nas fases P21–P23.

@@ -166,7 +166,7 @@ Derivadas, interpolação e rasterização ainda limitam paridade geral; GLSL330
 usa derivadas comuns, e o backend Naga pode fazer fallback de fine em GL.
 Faltam streaming, cargas de memória realistas, outros drivers e plataformas.
 
-![Custo medido das variantes](/mnt/Laranja/Git/externos/coin-render/docs/validation/fine-sampling-study-20261008/performance.png)
+![Custo medido das variantes](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/fine-sampling-study-20261008/performance.png>)
 
 ## Decisão e reprodução
 
@@ -177,8 +177,8 @@ comum/API/capacidades com pipelines adequados antes de propor promoção.
 A economia medida é frente ao contrato portátil de duas amostras.
 
 Fontes e comandos estão no [laboratório](https://github.com/Dikluwe/coin/blob/2369685893fac545153d63756ac578d3b33cd6dc/testsuite/reproducers/portable-sampling-study/README.md).
-[Resultados agregados](/mnt/Laranja/Git/externos/coin-render/docs/validation/fine-sampling-study-20261008/results-fine.json),
-[manifest](/mnt/Laranja/Git/externos/coin-render/docs/validation/fine-sampling-study-20261008/manifest.json), logs e CSV
+[Resultados agregados](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/fine-sampling-study-20261008/results-fine.json>),
+[manifest](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/fine-sampling-study-20261008/manifest.json>), logs e CSV
 comprimidos ficam versionados. Fontes das revisões testadas e hashes distinguem
 os executáveis de QA e os benchmarks. Implementação/testes: `2369685893fac545153d63756ac578d3b33cd6dc`.
 Os artefatos completos/builds permanecem

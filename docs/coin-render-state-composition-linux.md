@@ -33,7 +33,7 @@ Optout: `COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE=1` conserva o caminho literal d
 | Materiais 10% | 56.24 → 51.61 | 56.82 → 52.08 | 77.28 → 61.33 | 112.06 |
 | Geometria 10% | 63.78 → 58.68 | 63.37 → 59.55 | 84.93 → 68.53 | 112.21 |
 
-![Animação e comparação Coin/OpenGL](/mnt/Laranja/Git/externos/coin-render/docs/validation/state-composition-linux/state-composition.png)
+![Animação e comparação Coin/OpenGL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/state-composition-linux/state-composition.png>)
 
 O wgpu reduziu **23,53% em transformação**, **20,65% em materiais** e **19,30% em geometria parcial**. O Common também beneficiou BGFX: transformação caiu cerca de 10%, materiais cerca de 8%, e geometria parcial entre 6% e 8%. Não houve redução de objetos ou conteúdo renderizado. O transporte mantém 24 vértices, 36 índices e 40.001 instâncias nesses perfis; o plano de origem mantém a geometria da etapa anterior.
 
@@ -96,7 +96,7 @@ A tela estava ativa no diagnóstico inicial, mas antes da campanha em janela o c
 - Oráculo FFI compara buffers completos default/optout, 59 mutações tardias em estado não referenciado, sentinelas equivalentes, câmera→objetos 10/100%→câmera, RTT, resize, erro de nove lights e retry com a mesma revision.
 - **168 comparações RGB idênticas por bytes**: seis casos × quatro variantes × sete quadros lógicos 0..600, passo100. Digests de estado iguais e movimento confirmado. São comparações antes/depois de cada variante; incluem 42 comparações Coin/OpenGL entre duas execuções independentes de verificação.
 
-[Pacote de evidência e reprodução](/mnt/Laranja/Git/externos/coin-render/docs/validation/state-composition-linux/README.md) conserva CSVs, logs, comandos, hashes, scripts, métricas, gates, ablação e motivo da exclusão de janela. Os PPMs permanecem fora do Git.
+[Pacote de evidência e reprodução](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/state-composition-linux/README.md>) conserva CSVs, logs, comandos, hashes, scripts, métricas, gates, ablação e motivo da exclusão de janela. Os PPMs permanecem fora do Git.
 
 ## Próximos custos identificados
 

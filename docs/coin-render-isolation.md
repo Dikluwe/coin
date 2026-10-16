@@ -67,7 +67,7 @@ As quatro variantes preservaram os checksums do benchmark anterior:
 | wgpu Vulkan | NVIDIA | `0x6714299260985122` |
 | wgpu OpenGL | AMD | `0x3a998bbb78caa846` |
 
-[Logs e resultados](/mnt/Laranja/Git/externos/coin-render/docs/validation/render-isolation-linux) registram os comandos e
+[Logs e resultados](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/render-isolation-linux>) registram os comandos e
 resultados. Esta execução verifica preservação da saída; não estabelece novo ganho
 de desempenho. Windows e os protótipos DAWN/WGPU_NATIVE não foram executados.
 

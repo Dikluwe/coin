@@ -94,7 +94,7 @@ depender da existência de uma imagem GL retida de uma aplicação anterior.
 O gate `CoinRenderMarkerSetTest` separa `--capture` e `--gpu`. O modo GPU usa
 Coin/OpenGL como referência e controles sem marcadores para evitar comparações
 vazias. A campanha de qualificação e seus limites ficam registrados em
-[validation/marker-linux/summary.json](/mnt/Laranja/Git/externos/coin-render/docs/validation/marker-linux/summary.json).
+[validation/marker-linux/summary.json](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/marker-linux/summary.json>).
 
 Resultado em Linux/NVIDIA: **363 comparações GPU** (121 em cada executor)
 passaram com RGB idêntico ao Coin/OpenGL. As 363 comparações CPU associadas

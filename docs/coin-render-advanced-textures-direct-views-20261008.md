@@ -23,7 +23,7 @@ com erro máximo zero. O teste completo também passou no CPU e no AMD/Vulkan:
 | BGFX OpenGL portátil | 395 | PASS |
 | BGFX Vulkan nativo | 380 | PASS |
 
-[Logs completos](/mnt/Laranja/Git/externos/coin-render/docs/validation/advanced-textures-direct-views-20261008).
+[Logs completos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/advanced-textures-direct-views-20261008>).
 O controle direto é específico do BGFX/OpenGL nesta campanha; outras GPUs e
 formatos de destino de blit precisam de qualificação. A redução NPOT direta por
 área no BGFX permanece pendente.

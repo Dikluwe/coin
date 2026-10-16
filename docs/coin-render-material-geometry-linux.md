@@ -112,7 +112,7 @@ foi preservada; o drain final continua registrado separadamente pelo bench.
 
 Wgpu/geometria ficou 3,9% acima do controle em janela.
 
-![Tempos antes/depois e referência Coin/OpenGL](/mnt/Laranja/Git/externos/coin-render/docs/validation/material-geometry-linux/material-geometry.png)
+![Tempos antes/depois e referência Coin/OpenGL](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/material-geometry-linux/material-geometry.png>)
 
 ### Carga com 100% dos objetos
 
@@ -199,7 +199,7 @@ Os tempos de transformação continuam abaixo do controle Coin/OpenGL.
 
 ## Evidência e reprodução
 
-[Pacote de validação](/mnt/Laranja/Git/externos/coin-render/docs/validation/material-geometry-linux) contém comandos,
+[Pacote de validação](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/material-geometry-linux>) contém comandos,
 ambiente relevante, SHA256 dos binários, fonte declarada por variante, logs,
 CSV, máximos, contagens de frames acima de budgets, RSS e hashes das imagens.
 PPMs originais permanecem nos diretórios locais `/tmp`; o pacote versionado

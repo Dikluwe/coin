@@ -33,7 +33,7 @@ contém três executáveis independentes:
 3. `glx-visual-probe`: consulta as ofertas single/double-buffer por GLX, sem Coin.
 
 Foi reconstruído `libCoin.so` da master, sem símbolos CoinRender/wgpu. O
-[recibo de linkage](/mnt/Laranja/Git/externos/coin-render/docs/validation/coin-sampling-amd-study-20261007/linkage.json)
+[recibo de linkage](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/coin-sampling-amd-study-20261007/linkage.json>)
 conserva bibliotecas e hashes. Os arquivos `SoGLImage.cpp`, `SoTexture2.cpp`,
 `SoTextureMatrixTransform.cpp` e `SoGLMultiTextureMatrixElement.cpp` são idênticos
 à versão presente na branch do renderer.
@@ -136,13 +136,13 @@ fetch explícito versus fórmula independente dá **0/0 em ambas as GPUs**.
 Na qualidade 0,8 o oracle independente mantém máximo 1; controles preservam
 MAE≤1,5/máximo≤4. Nenhum resultado nativo foi convertido em PASS por tolerância.
 
-![Sampling isolado](/mnt/Laranja/Git/externos/coin-render/docs/validation/coin-sampling-amd-study-20261007/sampling-origin.png)
+![Sampling isolado](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/coin-sampling-amd-study-20261007/sampling-origin.png>)
 
 ## Falha Coin separada: escolha de visual GLX NVIDIA
 
 O Coin original retorna `Couldn't get any OpenGL-capable RGBA X11 visual` antes
 do primeiro draw NVIDIA/GLX. O
-[controle GLX independente](/mnt/Laranja/Git/externos/coin-render/docs/validation/coin-sampling-amd-study-20261007/glx-visual-summary.json)
+[controle GLX independente](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/coin-sampling-amd-study-20261007/glx-visual-summary.json>)
 consulta as duas opções diretamente:
 
 | Driver GLX | Visual RGBA/depth single-buffer | Visual RGBA/depth double-buffer |

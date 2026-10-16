@@ -9,7 +9,7 @@ Não houve alteração de executor, shader ou sampler CPU de produção, nem med
 ou promessa de ganho de FPS.
 
 Fontes, patches experimentais, logs, comandos e hashes ficam em
-[`validation/sampling-instancing-fixes-20261007`](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-instancing-fixes-20261007/summary.json).
+[`validation/sampling-instancing-fixes-20261007`](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-instancing-fixes-20261007/summary.json>).
 Os builds e experimentos completos permanecem em
 `/mnt/Laranja/Git/externos/coin-render-artifacts/sampling-instancing-fixes-20261007`.
 
@@ -73,7 +73,7 @@ Nenhum desses offsets substitui a fixture que falha no gate normal.
 
 ## Experimentos controlados, sem incorporação em produção
 
-A [análise independente](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-instancing-fixes-20261007/analyze_footprint.py)
+A [análise independente](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-instancing-fixes-20261007/analyze_footprint.py>)
 usa a fórmula do quad autoral de 16 pixels, UV 0,03..0,97 e Q = 1 + 0,3*S.
 Na coluna x=33, a coordenada S do mip 3 é **7,998724964 texels**, a somente
 0,001275036 da borda inteira 8. Isso fica dentro de meio passo de uma
@@ -121,7 +121,7 @@ A mesma coleta expõe uma diferença OpenGL na esfera com linhas/UV DEFAULT:
 MAE 0,319495/máximo 4, contra seu limite original MAE <= 1/máximo <= 3. Ela ocorre
 antes do novo controle anisotrópico. Recompilar o teste **original de 6c91ed26**
 reproduziu os mesmos números em wgpu/BGFX OpenGL. Logs e hashes dessa comparação
-ficam no [baseline procedural](/mnt/Laranja/Git/externos/coin-render/docs/validation/sampling-instancing-fixes-20261007/baseline-procedural-summary.json).
+ficam no [baseline procedural](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/sampling-instancing-fixes-20261007/baseline-procedural-summary.json>).
 Esse gate continua falhando, separado do sampling projetivo e ligado ao estudo
 aberto de junções curvas; não houve aumento de tolerância ou exclusão OpenGL.
 
