@@ -277,6 +277,7 @@
 #include "coindefs.h"
 
 #include <cmath>
+#include <vector>
 
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoPointLight.h>
@@ -327,6 +328,8 @@
 #include <Inventor/elements/SoTextureUnitElement.h>
 #include <Inventor/elements/SoGLMultiTextureEnabledElement.h>
 #include <Inventor/elements/SoGLMultiTextureImageElement.h>
+#include <Inventor/elements/SoGLDisplayList.h>
+#include <Inventor/misc/SoGLImage.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
@@ -394,6 +397,9 @@ public:
 
     this->shadowmapid = new SoShaderParameter1i;
     this->shadowmapid->ref();
+    this->shadowmatrix = new SoShaderParameterMatrix;
+    this->shadowmatrix->ref();
+    this->fixedimage = NULL;
 
     this->fragment_farval = new SoShaderParameter1f;
     this->fragment_farval->ref();
@@ -503,6 +509,7 @@ public:
     if (this->vsm_nearval) this->vsm_nearval->unref();
     if (this->fragment_farval) this->fragment_farval->unref();
     if (this->shadowmapid) this->shadowmapid->unref();
+    if (this->shadowmatrix) this->shadowmatrix->unref();
     if (this->fragment_nearval) this->fragment_nearval->unref();
     if (this->fragment_lightplane) this->fragment_lightplane->unref();
     if (this->light) this->light->unref();
@@ -593,6 +600,10 @@ public:
   SoSeparator * bboxnode;
   SoShaderProgram * vsm_program;
   SoShaderParameter1i * shadowmapid;
+  SoShaderParameterMatrix * shadowmatrix;
+  SoGLImage * fixedimage;
+  SoGLMultiTextureImageElement::Model fixedmodel;
+  SbColor fixedblend;
   SoShaderParameter1f * vsm_farval;
   SoShaderParameter1f * vsm_nearval;
   SoShaderParameter1f * fragment_farval;
@@ -719,7 +730,7 @@ public:
 
   void renderDepthMap(SoShadowLightCache * cache,
                       SoGLRenderAction * action);
-  void updateShadowLights(SoGLRenderAction * action);
+  void updateShadowLights(SoGLRenderAction * action, std::vector<GLint> & priorExtraBindings);
 
   int32_t getFog(SoState * state) {
     return SoEnvironmentElement::getFogType(state);
@@ -948,10 +959,12 @@ SoShadowGroup::enableSubgraphSearchOnNotify(const SbBool onoff)
 // *************************************************************************
 
 void
-SoShadowGroupP::updateShadowLights(SoGLRenderAction * action)
+SoShadowGroupP::updateShadowLights(SoGLRenderAction * action, std::vector<GLint> & priorExtraBindings)
 {
   int i;
   SoState * state = action->getState();
+  const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
+  const int maxunits = cc_glglue_max_texture_units(glue);
 
   if (!this->shadowlightsvalid) {
     int lightidoffset = SoLightElement::getLights(state).getLength();
@@ -964,8 +977,6 @@ SoShadowGroupP::updateShadowLights(SoGLRenderAction * action)
     //if (smoothing > 0.9) gaussmatrixsize = 7;
     //else if (smoothing > 0.5) gaussmatrixsize = 5;
     //else if (smoothing > 0.01) gaussmatrixsize = 3;
-
-    const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
 
     if (this->needscenesearch) {
       this->hasclipplanes = SoClipPlaneElement::getInstance(state)->getNum() > 0;
@@ -1008,9 +1019,22 @@ SoShadowGroupP::updateShadowLights(SoGLRenderAction * action)
       this->searchaction.reset();
       this->needscenesearch = FALSE;
     }
-    int maxunits = cc_glglue_max_texture_units(glue);
-
-    int maxlights = maxunits - this->numtexunitsinscene;
+    GLint fragmentunits = 0, combinedunits = 0;
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &fragmentunits);
+    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &combinedunits);
+    // The scene owns its texture units. Place shadow maps in the remaining
+    // coordinate units first; use fragment-only samplers for the balance when
+    // a one-texture scene and the context can address eight maps plus color.
+    const int usablefixed = SbMin(maxunits, int(combinedunits));
+    const int fixedslots = SbMax(0, usablefixed - this->numtexunitsinscene);
+    const bool fragmentonly = this->numtexunitsinscene == 1 && fixedslots > 0 &&
+      fragmentunits >= 9 && combinedunits >= 9;
+    GLint glmaxlights = 0;
+    glGetIntegerv(GL_MAX_LIGHTS, &glmaxlights);
+    const int samplerlimit = SbMin(int(fragmentunits), int(combinedunits)) -
+      this->numtexunitsinscene;
+    const int maxlights = SbMax(0, SbMin(SbMin(8, int(glmaxlights) - lightidoffset),
+      SbMin(fragmentonly ? 8 : fixedslots, samplerlimit)));
     SbList <SoTempPath*> & pl = this->lightpaths;
 
     int numlights = 0;
@@ -1058,7 +1082,7 @@ SoShadowGroupP::updateShadowLights(SoGLRenderAction * action)
       SoLight * light = (SoLight*) path->fullPath().getTail();
       if (light->on.getValue() && (i2 < maxlights)) {
         SoShadowLightCache * cache = this->shadowlights[i2];
-        int unit = (maxunits - 1) - i2;
+        int unit = i2 < fixedslots ? (usablefixed - 1) - i2 : usablefixed + i2 - fixedslots;
         int lightid = id++;
         if (unit != cache->texunit || lightid != cache->lightid) {
           if (this->vertexshadercache) this->vertexshadercache->invalidate();
@@ -1079,6 +1103,8 @@ SoShadowGroupP::updateShadowLights(SoGLRenderAction * action)
     }
     this->shadowlightsvalid = TRUE;
   }
+  const bool fragmentonly = this->shadowlights.getLength() > 0 &&
+    this->shadowlights[this->shadowlights.getLength() - 1]->texunit >= maxunits;
   for (i = 0; i < this->shadowlights.getLength(); i++) {
     SoShadowLightCache * cache = this->shadowlights[i];
     if (cache->light->isOfType(SoDirectionalLight::getClassTypeId())) {
@@ -1087,16 +1113,50 @@ SoShadowGroupP::updateShadowLights(SoGLRenderAction * action)
     }
     assert(cache->texunit >= 0);
     assert(cache->lightid >= 0);
-    SoTextureUnitElement::set(state, PUBLIC(this), cache->texunit);
-
-    SbMatrix mat = cache->matrix;
-
-    assert(cache->texunit >= 0);
-
-    SoMultiTextureMatrixElement::set(state, PUBLIC(this), cache->texunit, cache->matrix);
+    const bool extra = cache->texunit >= maxunits;
+    const int renderunit = extra ? maxunits - 1 : cache->texunit;
+    SoTextureUnitElement::set(state, PUBLIC(this), renderunit);
+    if (!extra) SoMultiTextureMatrixElement::set(state, PUBLIC(this), renderunit, cache->matrix);
+    cache->shadowmatrix->value = cache->matrix;
     this->renderDepthMap(cache, action);
-    SoGLMultiTextureEnabledElement::set(state, PUBLIC(this), cache->texunit,
+    SoGLMultiTextureEnabledElement::set(state, PUBLIC(this), renderunit,
                                         SoGLMultiTextureEnabledElement::DISABLED);
+    if (extra) {
+      // SoSceneTexture2 produces into a supported fixed unit. Move only its
+      // sampler binding to the fragment-only unit and restore the previous
+      // shadow image and matrix in the borrowed fixed unit.
+      SoGLMultiTextureImageElement::Model model;
+      SbColor blend;
+      SoGLImage * image = SoGLMultiTextureImageElement::get(state, renderunit, model, blend);
+      if (image) {
+        GLint active = GL_TEXTURE0;
+        glGetIntegerv(GL_ACTIVE_TEXTURE, &active);
+        cc_glglue_glActiveTexture(glue, GLenum(GL_TEXTURE0 + cache->texunit));
+        GLint priorBinding = -1;
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &priorBinding);
+        const size_t extraIndex = size_t(cache->texunit - maxunits);
+        if (priorExtraBindings.size() <= extraIndex)
+          priorExtraBindings.resize(extraIndex + 1, -1);
+        priorExtraBindings[extraIndex] = priorBinding;
+        SoGLDisplayList * list = image->getGLDisplayList(state);
+        if (list) {
+          SoGLImage::tagImage(state, image);
+          list->call(state);
+        }
+        cc_glglue_glActiveTexture(glue, GLenum(active));
+      }
+      if (this->shadowlights.getLength() > 1) {
+        SoShadowLightCache * first = this->shadowlights[0];
+        // The first shadow owns the fixed unit borrowed by the eighth.
+        SoGLMultiTextureImageElement::set(state, PUBLIC(this), renderunit,
+          first->fixedimage, first->fixedmodel, first->fixedblend);
+        SoMultiTextureMatrixElement::set(state, PUBLIC(this), renderunit, first->matrix);
+      }
+    }
+    else if (fragmentonly && i == 0) {
+      cache->fixedimage = SoGLMultiTextureImageElement::get(state, renderunit,
+        cache->fixedmodel, cache->fixedblend);
+    }
   }
   SoTextureUnitElement::set(state, PUBLIC(this), 0);
 }
@@ -1516,7 +1576,12 @@ SoShadowGroupP::setVertexShader(SoState * state)
   }
   for (i = 0; i < numshadowlights; i++) {
     SoShadowLightCache * cache = this->shadowlights[i];
-    str.sprintf("shadowCoord%d = gl_TextureMatrix[%d] * pos;\n", i, cache->texunit); // in light space
+    if (cache->texunit >= cc_glglue_max_texture_units(glue)) {
+      str.sprintf("uniform mat4 shadowMatrix%d;", i);
+      gen.addDeclaration(str, FALSE);
+      str.sprintf("shadowCoord%d = shadowMatrix%d * pos;\n", i, i);
+    }
+    else str.sprintf("shadowCoord%d = gl_TextureMatrix[%d] * pos;\n", i, cache->texunit);
     gen.addMainStatement(str);
 
     if (!perpixelspot) {
@@ -1573,6 +1638,15 @@ SoShadowGroupP::setVertexShader(SoState * state)
 
     if (numshadowlights) {
       this->vertexshader->parameter.set1Value(0, this->cameratransform);
+      for (i = 0; i < numshadowlights; ++i) {
+        SoShadowLightCache * cache = this->shadowlights[i];
+        if (cache->texunit >= cc_glglue_max_texture_units(glue)) {
+          SbString name;
+          name.sprintf("shadowMatrix%d", i);
+          cache->shadowmatrix->name = name;
+          this->vertexshader->parameter.set1Value(this->vertexshader->parameter.getNum(), cache->shadowmatrix);
+        }
+      }
     }
     else {
       this->vertexshader->parameter.setNum(0);
@@ -1599,12 +1673,16 @@ SoShadowGroupP::setFragmentShader(SoState * state)
   SoShaderGenerator & gen = this->fragmentgenerator;
   gen.reset(FALSE);
   const cc_glglue * glue = cc_glglue_instance(SoGLCacheContextElement::get(state));
-  GLint fragmentunits = 0;
+  GLint fragmentunits = 0, combinedunits = 0;
   glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &fragmentunits);
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &combinedunits);
   // Reserve a fragment-only unit outside every fixed-function texture unit,
   // including contexts able to host eight native shadow maps plus scene color.
   this->peelunit = SbMax(8, cc_glglue_max_texture_units(glue));
+  for (int slot = 0; slot < this->shadowlights.getLength(); ++slot)
+    this->peelunit = SbMax(this->peelunit, this->shadowlights[slot]->texunit + 1);
   const bool shaderpeeling = fragmentunits > this->peelunit &&
+    combinedunits > this->peelunit &&
     cc_glglue_glext_supported(glue, "GL_ARB_texture_rectangle");
   gen.setVersion(shaderpeeling ? "#version 120\n#extension GL_ARB_texture_rectangle : enable" : "#version 120");
   if (shaderpeeling) {
@@ -2144,6 +2222,9 @@ SoShadowGroupP::shader_enable_cb(void * closure,
   for (int i = 0; i < thisp->shadowlights.getLength(); i++) {
     SoShadowLightCache * cache = thisp->shadowlights[i];
     int unit = cache->texunit;
+    // Shader samplers above GL_MAX_TEXTURE_COORDS do not have fixed-function
+    // GL_TEXTURE_2D enable state. Their texture objects are bound explicitly.
+    if (unit >= cc_glglue_max_texture_units(glue)) continue;
     if (unit == 0) {
       if (enable) glEnable(GL_TEXTURE_2D);
       else glDisable(GL_TEXTURE_2D);
@@ -2208,6 +2289,9 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
     return;
   }
 
+  // Fragment-only samplers bypass Coin's fixed-unit state. Save their GL
+  // bindings so the parent context is unchanged after this group.
+  std::vector<GLint> priorExtraBindings;
   state->push();
 
   if (!this->vertexshadercache || !this->vertexshadercache->isValid(state)) {
@@ -2224,7 +2308,7 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
   // Framebuffer work must execute immediately, outside ancestor render caches.
   SoCacheElement::invalidate(state);
   SoShapeStyleElement::setShadowMapRendering(state, TRUE);
-  this->updateShadowLights(action);
+  this->updateShadowLights(action, priorExtraBindings);
   // Rendering the shadow map may overwrite bindings inherited from the parent.
   const int scenetexunits = SbMin(this->numtexunitsinscene,
                                  cc_glglue_max_texture_units(glue));
@@ -2268,6 +2352,17 @@ SoShadowGroupP::GLRender(SoGLRenderAction * action, const SbBool inpath)
   else PUBLIC(this)->SoSeparator::GLRenderBelowPath(action);
   SoShapeStyleElement::setShadowsRendering(state, FALSE);
   state->pop();
+  if (!priorExtraBindings.empty()) {
+    GLint active = GL_TEXTURE0;
+    glGetIntegerv(GL_ACTIVE_TEXTURE, &active);
+    const int firstExtraUnit = cc_glglue_max_texture_units(glue);
+    for (size_t index = 0; index < priorExtraBindings.size(); ++index) {
+      if (priorExtraBindings[index] < 0) continue;
+      cc_glglue_glActiveTexture(glue, GLenum(GL_TEXTURE0 + firstExtraUnit + index));
+      glBindTexture(GL_TEXTURE_2D, GLuint(priorExtraBindings[index]));
+    }
+    cc_glglue_glActiveTexture(glue, GLenum(active));
+  }
 }
 
 SoShaderProgram *

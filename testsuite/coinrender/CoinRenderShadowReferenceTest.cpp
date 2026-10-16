@@ -97,34 +97,55 @@ int luminanceRgba(const std::vector<unsigned char> & rgba, int x, int y)
   return static_cast<int>(rgba[i]) + rgba[i + 1] + rgba[i + 2];
 }
 
+struct GlShadowCapacity {
+  int fixedUnits = 0;
+  int fragmentSamplers = 0;
+  int combinedSamplers = 0;
+  int maxLights = 0;
+  bool nativeEight = false;
+};
+
 void captureGlTextureUnits(void * data, SoGLRenderAction * action)
 {
-  *static_cast<int *>(data) = cc_glglue_max_texture_units(
+  auto & capacity = *static_cast<GlShadowCapacity *>(data);
+  capacity.fixedUnits = cc_glglue_max_texture_units(
     cc_glglue_instance(action->getCacheContext()));
+  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &capacity.fragmentSamplers);
+  glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &capacity.combinedSamplers);
+  glGetIntegerv(GL_MAX_LIGHTS, &capacity.maxLights);
+  capacity.nativeEight = capacity.fixedUnits >= 2 &&
+    capacity.fragmentSamplers >= 9 && capacity.combinedSamplers >= 9 &&
+    capacity.maxLights >= 8;
 }
 
 void captureGlCapacity(void * data, SoGLRenderAction * action)
 {
   captureGlTextureUnits(data, action);
-  GLint coords = 0, samplers = 0;
-  glGetIntegerv(GL_MAX_TEXTURE_COORDS_ARB, &coords);
-  glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS_ARB, &samplers);
+  const auto & capacity = *static_cast<GlShadowCapacity *>(data);
   std::cout << "CoinGL renderer=\"" << glGetString(GL_RENDERER)
             << "\" vendor=\"" << glGetString(GL_VENDOR)
-            << "\" texture_coords=" << coords << " fragment_samplers=" << samplers << '\n';
+            << "\" texture_coords=" << capacity.fixedUnits
+            << " fragment_samplers=" << capacity.fragmentSamplers
+            << " combined_samplers=" << capacity.combinedSamplers
+            << " max_lights=" << capacity.maxLights << '\n';
 }
 
 bool render(SoOffscreenRenderer & gl, SoNode * root,
             std::vector<unsigned char> & rgb)
 {
-  int units = 0;
+  GlShadowCapacity capacity;
   const bool requireEight = std::getenv("COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE");
-  if (requireEight) gl.getGLRenderAction()->addPreRenderCallback(captureGlTextureUnits,&units);
+  if (requireEight) gl.getGLRenderAction()->addPreRenderCallback(captureGlTextureUnits,&capacity);
   const bool rendered = gl.render(root) && gl.getBuffer();
-  if (requireEight) gl.getGLRenderAction()->removePreRenderCallback(captureGlTextureUnits,&units);
+  if (requireEight) gl.getGLRenderAction()->removePreRenderCallback(captureGlTextureUnits,&capacity);
   if (!rendered) return false;
-  if (requireEight && units < 9) {
-    std::cerr << "Native eight-map Coin/GL reference requires nine texture units; context provides " << units << '\n';
+  if (requireEight && !capacity.nativeEight) {
+    std::cerr << "Native eight-map Coin/GL reference needs at least two coordinate "
+              << "units, nine fragment and combined samplers, and eight lights; "
+              << "context provides " << capacity.fixedUnits << " coordinates, "
+              << capacity.fragmentSamplers << " fragment samplers, "
+              << capacity.combinedSamplers << " combined samplers and "
+              << capacity.maxLights << " lights\n";
     return false;
   }
   const unsigned char * data = gl.getBuffer();
@@ -591,6 +612,40 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
               << " rtt=" << rttMode << " policy=" << rttPolicy << " alpha_texture=" << alphaTexture << " mode=" << type << " Coin/GL/GPU delta="
               << glDelta << '/' << gpuDelta << " qualified=" << qualified << '\n';
     if (!qualified) std::cerr << action.getLastError().getString() << '\n';
+  }
+  if (qualified && shadowLightCount == 8 &&
+      std::getenv("COIN_RENDER_REQUIRE_GL_EIGHT_MAP_REFERENCE")) {
+    // The same last light contributes to both the shadowed and unshadowed
+    // image. Subtract those images first: an ordinary, unshadowed eighth
+    // light cancels out, whereas an eighth sampled map changes the result.
+    mode->value = firstType;
+    auto * last = static_cast<SoShadowSpotLight *>(shadowGroup->getChild(7));
+    const float originalIntensity = last->intensity.getValue();
+    SoOffscreenRenderer gl(SbViewportRegion(side, side));
+    gl.setComponents(SoOffscreenRenderer::RGB);
+    std::vector<unsigned char> fullShadow, fullClear, reducedShadow, reducedClear;
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    qualified = render(gl, scene, fullShadow);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    qualified = qualified && render(gl, scene, fullClear);
+    last->intensity = 0.0f;
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    qualified = qualified && render(gl, scene, reducedShadow);
+    groundStyle->style = SoShadowStyle::NO_SHADOWING;
+    qualified = qualified && render(gl, scene, reducedClear);
+    last->intensity = originalIntensity;
+    groundStyle->style = SoShadowStyle::SHADOWED;
+    int incremental = 0;
+    if (qualified) for (int y = 20; y < 105; ++y) for (int x = 20; x < 105; ++x)
+      for (int channel = 0; channel < 3; ++channel) {
+        const size_t index = static_cast<size_t>((y * side + x) * 3 + channel);
+        const int full = int(fullShadow[index]) - int(fullClear[index]);
+        const int reduced = int(reducedShadow[index]) - int(reducedClear[index]);
+        incremental = std::max(incremental, std::abs(full - reduced));
+      }
+    qualified = qualified && incremental > 3;
+    std::cout << "native eighth shadow incremental=" << incremental
+              << " qualified=" << qualified << '\n';
   }
   if (qualified && shadowLightCount > 4) {
     // Coin blending must see all lighting at once. Splitting the same total
@@ -1778,11 +1833,14 @@ int main(int argc, char ** argv)
   if (argc == 2 && std::string(argv[1]) == "--gl-capacity") {
     SoOffscreenRenderer gl(SbViewportRegion(side,side));
     gl.setComponents(SoOffscreenRenderer::RGB);
-    int units=0;
-    gl.getGLRenderAction()->addPreRenderCallback(captureGlCapacity,&units);
+    GlShadowCapacity capacity;
+    gl.getGLRenderAction()->addPreRenderCallback(captureGlCapacity,&capacity);
     const bool ok=gl.render(root) && gl.getBuffer();
-    gl.getGLRenderAction()->removePreRenderCallback(captureGlCapacity,&units);
-    std::cout << "CoinGL max_texture_units=" << units << " native_eight_maps=" << (units>=9) << '\n';
+    gl.getGLRenderAction()->removePreRenderCallback(captureGlCapacity,&capacity);
+    std::cout << "CoinGL max_texture_units=" << capacity.fixedUnits
+              << " native_eight_maps=" << capacity.nativeEight
+              << " route=" << (capacity.fixedUnits >= 9 ? "fixed" :
+                capacity.nativeEight ? "fragment-only" : "unavailable") << '\n';
     root->unref();
     return ok ? 0 : 1;
   }
