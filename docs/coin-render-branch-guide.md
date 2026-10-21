@@ -16,7 +16,8 @@ O [fechamento consolidado](coin-render-feature-matrix.md#fechamento-da-etapa-2)
 registra resultados, evidências e limites. A etapa 3 integrou
 [R28/ABI65](coin-render-feature-matrix.md#r28--multipass-integrado--21102026) e concluiu o
 [contrato portátil R22](coin-render-feature-matrix.md#r22--contrato-portátil-v1-concluído--21102026), além do
-[perfil de volumes R23/ABI66](coin-render-feature-matrix.md#r23--volumes-rgba8-linearsrgb-concluídos--21102026);
+[perfil de volumes R23/ABI66](coin-render-feature-matrix.md#r23--volumes-rgba8-linearsrgb-concluídos--21102026) e do
+[perfil de cubemaps R24/ABI67](coin-render-feature-matrix.md#r24--cubemaps-rgba8-linearsrgb-concluídos--21102026);
 os demais itens da etapa 3 continuam abertos. **A etapa 4 permanece suspensa.**
 As referências ao checkout canônico abaixo descrevem a organização anterior a
 esta publicação.

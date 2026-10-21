@@ -1,6 +1,6 @@
 # P03/P15/P16/P24/P28 — contratos além do primeiro perfil
 
-Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1/R23.2 implementam volumes POT/NPOT e R23.3 amplia o formato para sRGB em CPU, BGFX e wgpu; R27 possui perfis MSAA. Shaders autorais, cubos e multipass possuem implementação; seus perfis de execução e pendências estão delimitados na matriz. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
+Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1/R23.2 implementam volumes POT/NPOT e R23.3 amplia o formato para sRGB em CPU, BGFX e wgpu; R24.3/R24.4 completam o perfil armazenado de cubemap linear/sRGB; R27 possui perfis MSAA. Shaders autorais, cubos e multipass possuem implementação; seus perfis de execução e pendências estão delimitados na matriz. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
 
 ## Shaders próprios: primeiro contrato portátil
 
@@ -45,7 +45,7 @@ produtores contam separadamente. O Core valida a soma completa antes de
 compilar, executar produtores ou publicar. O ingresso privado Rust também
 admite a tabela inteira antes de chamar o Core para o primeiro módulo. Não é
 uma estimativa da memória do driver nem substitui o cache de programas e os
-orçamentos próprios de texturas, attachments e multipass. A entrega R22 preservou a ABI65; a revisão corrente é 66 em R23.3.
+orçamentos próprios de texturas, attachments e multipass. A entrega R22 preservou a ABI65; R23.3 introduziu a revisão 66 e a corrente é 67 em R24.3.
 
 Core valida AST/assinatura, ordena operações e produz um IR único. Infra emite
 WGSL e as variantes de shader BGFX a partir desse IR, verifica limites reais e
@@ -79,7 +79,7 @@ as mesmas áreas completas, incluindo bordas NPOT ímpares, e codificam uma vez
 por nível. O alpha conserva a média inteira e o arredondamento existentes;
 o caminho linear mantém seus bytes. A cor de saída permanece RGBA8 linear.
 
-A ABI privada 66 mantém o formato 11 e os tamanhos das estruturas, com sRGB no
+A ABI privada 66 introduzida em R23.3, preservada na revisão 67, mantém o formato 11 e os tamanhos das estruturas, com sRGB no
 bit 25 dos metadados do volume; bits 26–30 permanecem reservados e zero. O bit
 31 conserva a declaração geral de opacidade, sem modificar o alpha autoral. Dimensões,
 padding, comprimento e flags são validados antes do reuso por revisão. O formato
@@ -100,8 +100,7 @@ offscreen, janela e RTT; não encerra as demais combinações de C17.
 A representação comum para extensões futuras terá `dimension` (2D/3D/cube), extensão xyz, formato, mip levels,
 face/layer e bytes/pitches por subrecurso. A identidade inclui todos os descritores
 e payloads; a conversão de L/LA/RGB/RGBA para RGBA8 acontece uma única vez no
-Core. O perfil de volumes admite RGBA8 linear/sRGB; o perfil de cubos permanece
-RGBA8 linear. Compressão, depth e float/HDR espaciais exigem contrato próprio,
+Core. Os perfis armazenados de volumes e cubos admitem RGBA8 linear/sRGB. Compressão, depth e float/HDR espaciais exigem contrato próprio,
 assim como anisotropia maior que 1; as solicitações sem suporte são recusadas. Limites iniciais de admissão: volume 256 por eixo,
 cubo 2048 por face, 128 MiB somando subrecursos/mips por imagem. Os limites reais
 do executor podem ser menores e devem ser verificados antes de alocar.
@@ -114,13 +113,13 @@ O perfil R23.2 admite os eixos inteiros 1..256 e recusa geração incompleta;
 filtragem entre fatias usa interpolação nas três dimensões. Upload/flip deve
 preservar os eixos Coin, demonstrados por um volume com oito cantos diferentes.
 
-O núcleo R24.1 (`CoinRenderCubeTextureCore`) prepara seis faces POT 1..2048 em RGBA8 linear, com cadeia de mips isolada por face. O atlas usa largura 2N e sequência linear de níveis/faces/linhas; a altura é o teto do total de texels dividido pela largura e o padding final é zero. No máximo 2048, a cadeia completa ocupa 4096×8192×4=134.217.728 bytes, incluindo padding. Projeção e amostragem CPU validam os descritores antes de ler e preservam a saída em caso de erro. O desempate portátil de direção prioriza X/Y/Z; a filtragem inicial limita cada face às próprias bordas. A integração pública R24.2 liga esse núcleo à captura, ao plano, à CPU e aos executores BGFX/wgpu; a matriz delimita a qualificação e os cruzamentos ainda abertos. Seamless permanece ausente.
+O núcleo R24.1 (`CoinRenderCubeTextureCore`) prepara seis faces POT 1..2048 em RGBA8 linear/sRGB, com cadeia de mips isolada por face. O overload anterior conserva o caminho linear; o overload tipado e o membro final de formato do atlas selecionam sRGB. Bytes autorais do nível base são preservados. Cada fetch decodifica RGB antes de interpolar; cada mip integra RGB em luz linear e codifica uma vez por nível. Alpha permanece linear e conserva a média inteira com empate para cima. O atlas usa largura 2N e sequência linear de níveis/faces/linhas; a altura é o teto do total de texels dividido pela largura e o padding final é zero. No máximo 2048, a cadeia completa ocupa 4096×8192×4=134.217.728 bytes, incluindo padding. Projeção e amostragem CPU validam os descritores antes de ler e preservam a saída em caso de erro. O desempate portátil de direção prioriza X/Y/Z; a filtragem inicial limita cada face às próprias bordas. A integração pública R24.2 liga esse núcleo à captura, ao plano, à CPU e aos executores BGFX/wgpu; a matriz delimita a qualificação e os cruzamentos ainda abertos. Seamless permanece ausente.
 
-R24.2 captura as seis imagens de `SoTextureCubeMap`, na ordem +X, -X, +Y, -Y, +Z, -Z. As faces têm mesmo tamanho e componentes originais L/LA/RGB/RGBA; o atlas físico é RGBA8 linear. MODULATE, REPLACE, DECAL e BLEND conservam os componentes originais; REPLACE RGB preserva alpha primário e DECAL L/LA é recusado. O sampler limita cada face à borda, como o caminho CoinGL atual; não aplica wrap entre faces. Anisotropia, compressão, HDR e sRGB ficam fora deste perfil.
+R24.2 captura as seis imagens de `SoTextureCubeMap`, na ordem +X, -X, +Y, -Y, +Z, -Z. As faces têm mesmo tamanho e componentes originais L/LA/RGB/RGBA; o atlas físico é RGBA8 linear/sRGB segundo `storedTextureColorSpace`. MODULATE, REPLACE, DECAL e BLEND conservam os componentes originais; REPLACE RGB preserva alpha primário e DECAL L/LA é recusado. O sampler limita cada face à borda, como o caminho CoinGL atual; não aplica wrap entre faces. Anisotropia maior que 1, compressão, HDR/depth e faces NPOT ficam fora deste perfil e são recusados. Seamless e SAMPLECUBE autoral não são implementados; outros cruzamentos/plataformas exigem qualificação própria.
 
-A direção STR recebe a matriz de textura 4×4 uma única vez e mantém interpolação perspectiva antes da seleção da face; Q finito zero/negativo não divide STR. Não há normalização por vértice. Direção zero/não finita, inclusive singularidade dentro da primitiva, falha antes da publicação. O perfil inicial usa `SoTextureCoordinate3` explícito; defaults geométricos e geradores adicionais exigem qualificação própria, sem Reflection implícito. Face ausente/mista, filename pendente e bytes/metadados inválidos são recusados; Separator, unidade, revisão e reuso preservam o estado. Validação precede cache de mesma revisão nos ingressos CPU/C++/Rust.
+A direção STR recebe a matriz de textura 4×4 uma única vez e mantém interpolação perspectiva antes da seleção da face; Q finito zero/negativo não divide STR. Não há normalização por vértice. Direção zero/não finita, inclusive singularidade dentro da primitiva, falha antes da publicação. O perfil qualifica `SoTextureCoordinate3`, direções variáveis de comprimentos diferentes e perspectiva com W distintos. Também qualifica o default geométrico bbox XY do Coin (no empate quadrado, S=Y/T=X), com matriz que mantém STR não nulo, e os callbacks CPU Object, Plane, ReflectionMap e Environment nas entradas registradas. Não há Reflection implícito. Default que alcance direção zero é recusado. O NormalMap geométrico deste Coin entrega somente um callback dummy zero e depende de hardware: é recusado mesmo se uma matriz deslocar esse dummy; o avaliador raster existente é preservado. TEXGEN sem callback CPU recusa quando a textura está ativa; qualidade zero conserva a desativação anterior. Face ausente/mista, filename pendente e bytes/metadados inválidos são recusados; Separator, unidade, revisão e reuso preservam o estado. Validação precede cache de mesma revisão e publicação nos ingressos Target/CPU/BGFX/C++/Rust. Formato, metadados e bytes do cubo participam do reuso BGFX, inclusive CAMERA_PATCH; metadados do formato 12 participam de TextureKey no Rust. Mesma revisão/digest/payload não encobre uma troca válida linear/sRGB/linear.
 
-A orientação segue a tabela 3.19 do OpenGL 2.1 e passou nos controles interiores assimétricos CoinGL AMD/NVIDIA. O CoinGL atual fixa MIN/MAG em LINEAR sem gerar mips em `SoGLCubeMapImage`; CoinRender amplia esse caminho com quatro bandas de qualidade e mips por face, verificadas por oráculo numérico. O LOD usa derivadas da projeção na face escolhida; bilinear e interpolação de níveis são manuais. A verificação de cobertura MSAA k/N vale para uma face resolvida observada sem nova mistura de texels no consumidor. Quando produtor e consumidor resolvem N amostras e o consumidor combina texels diferentes, podem surgir frações k/N²; esse resultado não exige correção de pixels por fabricante. Os testes devem isolar cada resolução ou calcular a composição completa. BGFX usa endereço inteiro e `texelFetch`, wgpu usa endereço u32, sem converter a direção em imagem CPU para executar na GPU. O protocolo wgpu privado 61 na implementação R25 usa formato12 e metadados de tamanho/componentes/mips, sem alterar o tamanho do FrameView. Empates de eixo e filtragem nas costuras não recebem alegação de seamless; a divergência nativa AMD/NVIDIA para Q está registrada em B29.
+A orientação segue a tabela 3.19 do OpenGL 2.1 e passou nos controles interiores assimétricos CoinGL AMD/NVIDIA. O CoinGL atual fixa MIN/MAG em LINEAR sem gerar mips em `SoGLCubeMapImage`; CoinRender amplia esse caminho com quatro bandas de qualidade e mips por face, verificadas por oráculo numérico. O LOD usa derivadas da projeção na face escolhida; bilinear e interpolação de níveis são manuais. A verificação de cobertura MSAA k/N vale para uma face resolvida observada sem nova mistura de texels no consumidor. Quando produtor e consumidor resolvem N amostras e o consumidor combina texels diferentes, podem surgir frações k/N²; esse resultado não exige correção de pixels por fabricante. Os testes devem isolar cada resolução ou calcular a composição completa. BGFX usa endereço inteiro e `texelFetch`, wgpu usa endereço u32, sem converter a direção em imagem CPU para executar na GPU. O protocolo wgpu privado corrente 67 usa formato 12 com metadados de tamanho/componentes/mips e bit 9 sRGB, sem alterar o FrameView de 544 bytes. A revisão 66 é recusada. Empates de eixo e filtragem nas costuras não recebem alegação de seamless; a divergência nativa AMD/NVIDIA para Q está registrada em B29.
 
 RTT de cubo é um produtor lógico com seis passes e câmeras descritas no Core,
 com dependências anteriores, limite de oito níveis e ciclos rejeitados. Só
@@ -131,10 +130,10 @@ política de transparência e revisões. Não confundir seis passes com seis
 produtores independentes publicáveis. Janela não é produtor de face: recebe
 um consumidor do grafo, com ownership do dispositivo da janela.
 
-Em R25, a ABI privada wgpu 61 conserva os layouts públicos existentes.
+R25 introduziu o formato 12 na ABI privada wgpu 61; a revisão corrente 67 conserva os tamanhos das estruturas.
 No formato 12, os bits 0–3 indicam o expoente do tamanho da face, 4–6 os
-componentes de origem, 7 a cadeia de mips e 8 um recurso GPU; os demais bits
-são inválidos. O cubo RTT GPU usa quatro componentes, ponteiro nulo e comprimento
+componentes de origem, 7 a cadeia de mips, 8 um recurso GPU e 9 sRGB armazenado.
+Bits 10–30 são reservados zero; bit 31 é a declaração geral de opacidade, sem alterar alpha. Cubos RTT permanecem RGBA8 linear mesmo com a política de imagens autorais em sRGB: bit 9 deve ser zero para o produtor/token GPU. Não se decodificam novamente os bytes lineares de um resultado renderizado. O cubo RTT GPU usa quatro componentes, ponteiro nulo e comprimento
 CPU zero; o campo privado content_digest transporta o token do recurso.
 Dimensões físicas do atlas, domínio, geração e cadeia são validados antes do
 cache. O token do cubo montado possui seus próprios recursos e permanece válido
