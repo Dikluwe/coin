@@ -1912,7 +1912,7 @@ bool rttNoneAlpha(Harness &h, Scene &producer, Scene &consumer,
                                    image.pixelsRgba.end(), packed.pixels) &&
                         (!image.contentDigest ||
                          packed.content_digest == image.contentDigest),
-                    "ABI66 NONE bit31 preserves raw alpha, every payload byte "
+                    "ABI67 NONE bit31 preserves raw alpha, every payload byte "
                     "and known digest");
     std::cout << "NONE_staged_payload clear=" << clear
               << " geometry=" << geometry << " expected_alpha=" << expectedAlpha
@@ -1996,10 +1996,10 @@ bool delivery(Scene &scene, Harness &h) {
     return false;
   const auto &view = ffi.getView();
   ok &=
-      check(view.abi_version == 66 && view.bump_vertex_count == stream.size() &&
+      check(view.abi_version == 67 && view.bump_vertex_count == stream.size() &&
                 view.bump_image_count == 1 && view.texture_count >= 8 &&
                 view.shadow_receiver_count > 0,
-            "ABI66 simultaneously owns all texture, bump and shadow packets");
+            "ABI67 simultaneously owns all texture, bump and shadow packets");
   for (size_t i = 0; i < stream.size(); ++i)
     ok &= check(view.bump_vertices[i].image_slot == stream[i].imageSlot &&
                     !std::memcmp(view.bump_vertices[i].coord, stream[i].coord,

@@ -12,18 +12,18 @@
 
 namespace {
 using namespace portable_module_test;
-static_assert(sizeof(CoinWgpuPortableNode) == 40, "ABI66 node layout");
-static_assert(sizeof(CoinWgpuPortableModule) == 56, "ABI66 module layout");
+static_assert(sizeof(CoinWgpuPortableNode) == 40, "ABI67 node layout");
+static_assert(sizeof(CoinWgpuPortableModule) == 56, "ABI67 module layout");
 static_assert(sizeof(CoinWgpuPortableRange) == 64,
-              "ABI66 numeric range layout");
-static_assert(sizeof(CoinWgpuRenderState) == 2436, "ABI66 state layout");
-static_assert(sizeof(CoinWgpuFrameView) == 544, "ABI66 frame layout");
+              "ABI67 numeric range layout");
+static_assert(sizeof(CoinWgpuRenderState) == 2436, "ABI67 state layout");
+static_assert(sizeof(CoinWgpuFrameView) == 544, "ABI67 frame layout");
 static_assert(offsetof(CoinWgpuRenderState, portable_shader_slot) == 2432,
-              "ABI66 appends state association");
+              "ABI67 appends state association");
 static_assert(offsetof(CoinWgpuFrameView, portable_modules) == 496,
-              "ABI66 appends module array");
+              "ABI67 appends module array");
 static_assert(offsetof(CoinWgpuFrameView, portable_module_count) == 504,
-              "ABI66 appends module count");
+              "ABI67 appends module count");
 
 uint32_t bits(float x) {
   uint32_t b;
@@ -105,11 +105,11 @@ CoinRenderFramePlan packet(const CoinRenderShaderInstance &s) {
 }
 bool transport(const CoinWgpuFrameView &v,
                const std::vector<CoinRenderShaderInstance> &expected) {
-  if (!check(v.abi_version == 66 && v.struct_size == 544 &&
+  if (!check(v.abi_version == 67 && v.struct_size == 544 &&
                  v.portable_module_count == expected.size() &&
                  v.portable_modules && v.states &&
                  v.state_count >= expected.size(),
-             "explicit ABI66 and real per-occurrence module/state arrays"))
+             "explicit ABI67 and real per-occurrence module/state arrays"))
     return false;
   bool ok = true;
   for (size_t i = 0; i < expected.size(); ++i) {
@@ -274,7 +274,7 @@ bool contextualProjection() {
     if (prepared) {
       const auto &v = ffi.getView();
       accepted &=
-          check(v.abi_version == 66 && v.portable_module_count == 1 &&
+          check(v.abi_version == 67 && v.portable_module_count == 1 &&
                     v.state_count && v.states[0].portable_shader_slot == 1 &&
                     v.states[0].texture_projection == (direct ? 1u : 0u) &&
                     v.states[0].texture_matrix[15] == q,

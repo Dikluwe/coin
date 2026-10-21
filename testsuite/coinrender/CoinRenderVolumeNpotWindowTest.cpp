@@ -12,6 +12,7 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCubeMap.h>
 #include <Inventor/nodes/SoTextureCoordinate3.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
@@ -33,7 +34,7 @@
 #include <vector>
 #include "CoinRenderVolumeSrgbOracle.h"
 namespace {
-bool srgb=false;
+bool srgb=false,cubeMode=false;
 std::array<unsigned char,3> displayColor(std::array<unsigned char,3> rgb){if(srgb)for(auto&c:rgb)c=uint8_t(std::lround(255*volume_srgb_oracle::decode(c)));return rgb;}
 
 bool check(bool good,const char * label) {
@@ -103,6 +104,7 @@ struct Scene {
   SoSeparator * root=new SoSeparator;
   SoOrthographicCamera * camera=new SoOrthographicCamera;
   SoTexture3 * texture=new SoTexture3;
+  SoTextureCubeMap * cube=new SoTextureCubeMap;
   SoAlphaTest * alpha=new SoAlphaTest;
   Scene() {
     root->ref();camera->position.setValue(0,0,3);camera->height=2;
@@ -110,7 +112,7 @@ struct Scene {
     auto * model=new SoLightModel;model->model=SoLightModel::BASE_COLOR;root->addChild(model);
     auto * complexity=new SoComplexity;complexity->textureQuality=.1f;
     root->addChild(complexity);
-    texture->model=SoTexture3::MODULATE;root->addChild(texture);
+    texture->model=SoTexture3::MODULATE;cube->model=SoTextureCubeMap::MODULATE;if(cubeMode)root->addChild(cube);else root->addChild(texture);
     auto * material=new SoMaterial;material->diffuseColor.setValue(1,1,1);
     root->addChild(material);
     alpha->function=SoAlphaTest::ALWAYS;alpha->value=.5f;root->addChild(alpha);
@@ -126,12 +128,12 @@ struct Scene {
     auto * face=new SoFaceSet;face->numVertices.set1Value(0,4);root->addChild(face);
     set({{80,160,220}});
   }
-  ~Scene(){root->unref();}
+  ~Scene(){if(cubeMode){texture->ref();texture->unref();}else{cube->ref();cube->unref();}root->unref();}
   void set(const std::array<unsigned char,3> & rgb) {
     std::vector<unsigned char> p(3*5*7*4);
     for(int z=0;z<7;++z)for(int y=0;y<5;++y)for(int x=0;x<3;++x){size_t at=size_t((z*5+y)*3+x)*4;p[at]=17+x*53;p[at+1]=19+y*41;p[at+2]=23+z*31;p[at+3]=255;}
     size_t at=size_t(6*5*3)*4;for(int c=0;c<3;++c)p[at+c]=rgb[c];
-    texture->images.setValue(SbVec3s(3,5,7),4,p.data());
+    if(cubeMode){SoSFImage*faces[]={&cube->imagePosX,&cube->imageNegX,&cube->imagePosY,&cube->imageNegY,&cube->imagePosZ,&cube->imageNegZ};for(unsigned face=0;face<6;++face){std::array<uint8_t,16> bytes;for(unsigned t=0;t<4;++t){for(unsigned c=0;c<3;++c)bytes[t*4+c]=face==4?rgb[c]:uint8_t(17+face*29+c*31);bytes[t*4+3]=255;}faces[face]->setValue(SbVec2s(2,2),4,bytes.data());}}else texture->images.setValue(SbVec3s(3,5,7),4,p.data());
   }
 };
 }
@@ -139,7 +141,8 @@ int main(int argc,char ** argv) {
   bool canonical=false,portable=false,readback=false;unsigned samples=1;
   for(int i=1;i<argc;++i) {
     const std::string arg(argv[i]);
-    if(arg=="--srgb")srgb=true;
+    if(arg=="--cube")cubeMode=true;
+    else if(arg=="--srgb")srgb=true;
     else if(arg=="--msaa2") samples=2;
     else if(arg=="--msaa4") samples=4;
     else if(arg=="--canonical-raster") canonical=true;
@@ -222,7 +225,7 @@ int main(int argc,char ** argv) {
   }
   const auto current=colors[2];
   std::vector<unsigned char> oversized(257*4,255);
-  scene.texture->images.setValue(SbVec3s(257,1,1),4,oversized.data());
+  if(cubeMode)scene.cube->imageNegY.setValue(SbVec2s(3,3),4,oversized.data());else scene.texture->images.setValue(SbVec3s(257,1,1),4,oversized.data());
   target->requestWindowReadbackRGBA();action.apply(scene.root);
   std::vector<uint8_t> rejected;target->readbackRGBA(rejected);
   ok &= check(action.getLastStatus()!=CoinRenderAction::SUCCESS&&target->getLastSubmissionSerial()==serial&&(!readback||rejected==lastReadback)&&observe(display,window,size,displayColor(current),"invalid-volume"),"NPOT invalid extent preserves physical/readback/serial");

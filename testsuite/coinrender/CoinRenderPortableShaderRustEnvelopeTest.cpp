@@ -32,7 +32,7 @@ int main(int argc,char **) {
   CoinWgpuPortableNode node{};node.type=4;
   const uint8_t tiny[4]={1,0,0,0};
   CoinWgpuPortableModule module{};module.nodes=&node;module.node_count=1;module.signature=tiny;module.signature_bytes=4;
-  CoinWgpuFrameView frame{};frame.abi_version=66;frame.struct_size=sizeof(frame);frame.portable_modules=&module;frame.portable_module_count=1;
+  CoinWgpuFrameView frame{};frame.abi_version=67;frame.struct_size=sizeof(frame);frame.portable_modules=&module;frame.portable_module_count=1;
   char error[512];
   for(uint64_t length:{UINT64_C(65537),UINT64_C(0x100000000),UINT64_MAX}) {
     module.signature_bytes=length;

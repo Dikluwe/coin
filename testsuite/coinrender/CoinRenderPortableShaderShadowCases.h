@@ -383,11 +383,11 @@ bool shadowModuleDelivery(const CoinRenderFramePlan &frame,
     return false;
   const auto &v = ffi.getView();
   shadowModuleDumpFfi(v, "shadowModuleDelivery");
-  ok &= check(v.abi_version == 66 &&
+  ok &= check(v.abi_version == 67 &&
                   v.texture_sampling_policy ==
                       uint32_t(frame.textureSamplingPolicy) &&
                   v.shadow_map_size == 256 && v.shadow_caster_count > 0,
-              "ABI66 retains real moment resources and sampling policy");
+              "ABI67 retains real moment resources and sampling policy");
   unsigned casterCount = 0;
   for (uint64_t i = 0; i < v.shadow_caster_count; ++i) {
     casterCount += v.shadow_casters[i].index_count;

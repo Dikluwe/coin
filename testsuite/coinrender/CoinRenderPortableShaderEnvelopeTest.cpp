@@ -31,7 +31,7 @@ bool envelopes() {
   Scene scene;
   CoinRenderAction action(SbViewportRegion(32,32));
   for (bool consumed:{true,false}) {
-    // Authored independently from the ABI66 schema: 8 header + 8 uniform
+    // Authored independently from the ABI67 schema: 8 header + 8 uniform
     // descriptor + 24 IR header + 12 UNIFORM or 24 CONSTANT bytes.
     const size_t fixed=consumed?52:64;
     for(size_t limit:{size_t(65535),size_t(65536),size_t(65537)}) {
