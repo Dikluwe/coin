@@ -5,6 +5,7 @@
 #endif
 #include "rendering/coinrender/CoinRenderBoundingBoxCore.h"
 #include "rendering/coinrender/CoinRenderBumpMapCore.h"
+#include <typeinfo>
 #include <cstdio>
 #include <limits>
 #include <utility>
@@ -207,6 +208,11 @@ CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
   this->rasterGenerators.clear();
+  this->rasterNormalNeedsOrder = false;
+  this->rasterNormalEffects.clear();
+  this->rasterNormalConsumers.clear();
+  this->frameInitialNormal = this->rasterNormal;
+  this->frameInitialNormalKnown = this->rasterNormalKnown;
   const char * disabledCubeTemplates = std::getenv("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE");
   this->cubeGeometryCore.reset(!(disabledCubeTemplates && std::strcmp(disabledCubeTemplates, "1") == 0));
   this->cubeReplayHits = 0;
@@ -376,13 +382,91 @@ CoinRenderFramePlanBuilder::synchronizeRasterGenerators(SoCallbackAction * actio
 void
 CoinRenderFramePlanBuilder::recordRasterNormal(SoCallbackAction * action, const SoNode * node)
 {
-  if (!action || !node || !action->getState()) return;
+  if (!action || !node || !action->getState() || this->currentPlan.draws.empty() ||
+      this->currentPlan.draws.back().sourceNodeId != node->getNodeId()) return;
+  SoState * state = action->getState();
+  if (SoDrawStyleElement::get(state) == SoDrawStyleElement::INVISIBLE ||
+      node->getTypeId() == SoText2::getClassTypeId() ||
+      node->isOfType(SoMarkerSet::getClassTypeId()) ||
+      node->isOfType(SoIndexedMarkerSet::getClassTypeId())) return;
+  const auto & draw = this->currentPlan.draws.back();
+  const auto & drawState = this->currentPlan.renderStates[draw.renderStateSlot];
+  const int transparency = SoShapeStyleElement::getTransparencyType(state);
+  if (draw.renderLayer ||
+      ((drawState.transparentMaterial || drawState.transparentTexture) &&
+       transparency != SoGLRenderAction::NONE && transparency != SoGLRenderAction::SCREEN_DOOR &&
+       transparency != SoGLRenderAction::BLEND && transparency != SoGLRenderAction::ADD))
+    this->rasterNormalNeedsOrder = true;
+  struct StateScope {
+    SoState * state;
+    bool pushed;
+    explicit StateScope(SoState * owner) : state(owner), pushed(false) {}
+    ~StateScope() { if (pushed) state->pop(); }
+  } scope(state);
+  const auto * shape = dynamic_cast<const SoVertexShape *>(node);
+  if (shape && shape->vertexProperty.getValue()) {
+    SoNode * property = shape->vertexProperty.getValue();
+    if (property->getTypeId() != SoVertexProperty::getClassTypeId() ||
+        typeid(*property) != typeid(SoVertexProperty)) {
+      const auto ordinal = this->currentPlan.draws.back().frameNodeOrdinal;
+      if (this->rasterNormalEffects.size() <= ordinal) this->rasterNormalEffects.resize(ordinal + 1);
+      this->rasterNormalEffects[ordinal].kind = RasterNormalEffect::UNKNOWN;
+      return;
+    }
+    // Native GLRender applies VertexProperty inside a pushed state. Reproduce
+    // only its ordinary element updates; no GL call or callback traversal.
+    state->push(); scope.pushed = true;
+    static_cast<SoVertexProperty *>(property)->SoVertexProperty::doAction(action);
+  }
+  auto effect = this->classifyRasterNormal(action, node);
+  if (action->getComplexityType() != SoComplexity::BOUNDING_BOX &&
+      (drawState.transparentMaterial || drawState.transparentTexture) &&
+      (transparency == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
+       transparency == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND)) {
+    // shouldGLRender substitutes its primitive cache and enables normal arrays,
+    // including immediate annotation draws during the delayed-path traversal.
+    if (!node->isOfType(SoImage::getClassTypeId()) &&
+        !node->isOfType(SoText2::getClassTypeId()) &&
+        !node->isOfType(SoMarkerSet::getClassTypeId()) &&
+        !node->isOfType(SoIndexedMarkerSet::getClassTypeId()))
+      effect.kind = RasterNormalEffect::UNKNOWN;
+  }
+  if (effect.kind == RasterNormalEffect::PRESERVE) return;
+  // Native shouldGLRender may cull a valid bounding-box cache before any
+  // normal emission. If a shape is wholly outside the frustum, cache presence
+  // determines whether it emits; do not claim either result from callbacks.
+  SbBox3f box; SbVec3f center;
+  const_cast<SoShape *>(static_cast<const SoShape *>(node))->computeBBox(action, box, center);
+  if (!box.isEmpty()) {
+    SbPlane planes[6]; action->getViewVolume().getViewVolumePlanes(planes);
+    for (const auto & plane : planes) {
+      bool anyInside = false;
+      for (int corner = 0; corner < 8; ++corner) {
+        SbVec3f point((corner & 1) ? box.getMax()[0] : box.getMin()[0],
+                      (corner & 2) ? box.getMax()[1] : box.getMin()[1],
+                      (corner & 4) ? box.getMax()[2] : box.getMin()[2]);
+        action->getModelMatrix().multVecMatrix(point, point);
+        anyInside |= plane.isInHalfSpace(point);
+      }
+      if (!anyInside) { effect.kind = RasterNormalEffect::UNKNOWN; break; }
+    }
+  }
+  if (this->rasterNormalEffects.size() <= draw.frameNodeOrdinal)
+    this->rasterNormalEffects.resize(draw.frameNodeOrdinal + 1);
+  this->rasterNormalEffects[draw.frameNodeOrdinal] = effect;
+}
+
+CoinRenderFramePlanBuilder::RasterNormalEffect
+CoinRenderFramePlanBuilder::classifyRasterNormal(SoCallbackAction * action, const SoNode * node)
+{
+  RasterNormalEffect effect;
+  if (!action || !node || !action->getState()) return effect;
   const auto type = node->getTypeId();
   if (type == SoText2::getClassTypeId() ||
-      node->isOfType(SoMarkerSet::getClassTypeId()) || node->isOfType(SoIndexedMarkerSet::getClassTypeId())) return;
+      node->isOfType(SoMarkerSet::getClassTypeId()) || node->isOfType(SoIndexedMarkerSet::getClassTypeId())) return effect;
   // An invisible/empty shape never reaches native geometry submission.
   if (SoDrawStyleElement::get(action->getState()) == SoDrawStyleElement::INVISIBLE ||
-      this->currentPlan.draws.empty() || this->currentPlan.draws.back().sourceNodeId != node->getNodeId()) return;
+      this->currentPlan.draws.empty() || this->currentPlan.draws.back().sourceNodeId != node->getNodeId()) return effect;
   // shouldGLRender can replace a triangle shape (including Image's native
   // primitive quad) with the bump cache before its ordinary normal emissions.
   // The specular pass may enable a normal array. Diffuse-only rendering
@@ -408,17 +492,14 @@ CoinRenderFramePlanBuilder::recordRasterNormal(SoCallbackAction * action, const 
     // renderNormal submit no normal array or glNormal, preserving even an
     // unknown incoming value. Unclassified custom shapes remain unknown.
     if (!nativeBumpPath || specular[0] != 0.0f || specular[1] != 0.0f || specular[2] != 0.0f)
-      this->rasterNormalKnown = false;
-    return;
+      effect.kind = RasterNormalEffect::UNKNOWN;
+    return effect;
   }
-  if (type == SoImage::getClassTypeId()) return;
-  const auto & drawState = this->currentPlan.renderStates[this->currentPlan.draws.back().renderStateSlot];
+  if (type == SoImage::getClassTypeId()) return effect;
   if (type == SoFaceSet::getClassTypeId() &&
-      !static_cast<const SoFaceSet *>(node)->vertexProperty.getValue() &&
       SoLazyElement::getLightModel(action->getState()) == SoLazyElement::BASE_COLOR &&
       SoDrawStyleElement::get(action->getState()) == SoDrawStyleElement::FILLED &&
-      action->getComplexityType() != SoComplexity::BOUNDING_BOX &&
-      !drawState.transparentMaterial && !drawState.transparentTexture) {
+      action->getComplexityType() != SoComplexity::BOUNDING_BOX) {
     int lastUnit = -1;
     const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
     bool textured = false;
@@ -428,44 +509,32 @@ CoinRenderFramePlanBuilder::recordRasterNormal(SoCallbackAction * action, const 
     // path disables the normal array, and the convex path uses binding NONE
     // without its guarded overall glNormal. Culling also emits no normal.
     // Preserve an unknown history too: this shape cannot establish a value.
-    if (!textured) return;
-  }
-  const int transparency = SoShapeStyleElement::getTransparencyType(action->getState());
-  if ((drawState.transparentMaterial || drawState.transparentTexture) &&
-      transparency != SoGLRenderAction::NONE && transparency != SoGLRenderAction::SCREEN_DOOR &&
-      transparency != SoGLRenderAction::BLEND && transparency != SoGLRenderAction::ADD) {
-    // Deferred native traversal can emit in a different order (and sorted
-    // triangles may use arrays). Capture order cannot prove current normal.
-    this->rasterNormalKnown = false;
-    return;
+    if (!textured) return effect;
   }
   const bool audited = type == SoCube::getClassTypeId() || type == SoCone::getClassTypeId() ||
     type == SoCylinder::getClassTypeId() || type == SoSphere::getClassTypeId() ||
     type == SoPointSet::getClassTypeId() || type == SoIndexedFaceSet::getClassTypeId() || type == SoIndexedTriangleStripSet::getClassTypeId() ||
     action->getComplexityType() == SoComplexity::BOUNDING_BOX;
-  if (!audited) { this->rasterNormalKnown = false; return; }
-  // Native shouldGLRender may cull a valid bounding-box cache before any
-  // normal emission. If a shape is wholly outside the frustum, cache presence
-  // determines whether it emits; do not claim either result from callbacks.
-  SbBox3f box; SbVec3f center;
-  const_cast<SoShape *>(static_cast<const SoShape *>(node))->computeBBox(action, box, center);
-  if (!box.isEmpty()) {
-    SbPlane planes[6]; action->getViewVolume().getViewVolumePlanes(planes);
-    for (const auto & plane : planes) {
-      bool anyInside = false;
-      for (int corner = 0; corner < 8; ++corner) {
-        SbVec3f point((corner & 1) ? box.getMax()[0] : box.getMin()[0],
-                      (corner & 2) ? box.getMax()[1] : box.getMin()[1],
-                      (corner & 4) ? box.getMax()[2] : box.getMin()[2]);
-        action->getModelMatrix().multVecMatrix(point, point);
-        anyInside |= plane.isInHalfSpace(point);
-      }
-      if (!anyInside) { this->rasterNormalKnown = false; return; }
-    }
-  }
+  if (!audited) { effect.kind = RasterNormalEffect::UNKNOWN; return effect; }
   const bool sendsNormals = SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR ||
     SoMultiTextureCoordinateElement::getType(action->getState(), 0) == SoMultiTextureCoordinateElement::FUNCTION;
-  auto setNormal = [this](const SbVec3f & value) { this->rasterNormal = value; this->rasterNormalKnown = true; };
+  bool bundleSendsNormals = SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR;
+  // Native SoTextureCoordinateBundle::isFunction covers every enabled
+  // unit, including its generated default coordinates. Quality zero
+  // disables these effective GL units, but does not disable PHONG normals.
+  if ((type == SoPointSet::getClassTypeId() || type == SoIndexedFaceSet::getClassTypeId()) &&
+      !bundleSendsNormals && SoTextureQualityElement::get(action->getState()) > 0.0f) {
+    int lastUnit = -1;
+    const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
+    const auto * coordinates = SoMultiTextureCoordinateElement::getInstance(action->getState());
+    for (int unit = 0; unit <= lastUnit; ++unit) {
+      if (!enabled[unit]) continue;
+      const auto kind = coordinates->getType(unit);
+      if (kind != SoMultiTextureCoordinateElement::EXPLICIT || coordinates->getNum(unit) == 0)
+        bundleSendsNormals = true;
+    }
+  }
+  auto setNormal = [&effect](const SbVec3f & value) { effect.normal = value; effect.kind = RasterNormalEffect::DEFINED; };
   // These helpers use immediate glNormal, independently of array capabilities.
   if (action->getComplexityType() == SoComplexity::BOUNDING_BOX) {
     // SoShape::GLRenderBoundingBox always requests immediate cube normals.
@@ -513,55 +582,100 @@ CoinRenderFramePlanBuilder::recordRasterNormal(SoCallbackAction * action, const 
     }
     setNormal(SbVec3f(float(sin(theta))*ts, tc, float(cos(theta))*ts));
   } else if (type == SoPointSet::getClassTypeId()) {
-    const auto * points = static_cast<const SoPointSet *>(node);
-    if (points->vertexProperty.getValue()) this->rasterNormalKnown = false;
-    else {
-      bool needNormals = SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR;
-      // Native SoTextureCoordinateBundle::isFunction covers every enabled
-      // unit, including its generated default coordinates. Quality zero
-      // disables these effective GL units, but does not disable PHONG normals.
-      if (!needNormals && SoTextureQualityElement::get(action->getState()) > 0.0f) {
-        int lastUnit = -1;
-        const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
-        const auto * coordinates = SoMultiTextureCoordinateElement::getInstance(action->getState());
-        for (int unit = 0; unit <= lastUnit; ++unit) {
-          if (!enabled[unit]) continue;
-          const auto kind = coordinates->getType(unit);
-          if (kind != SoMultiTextureCoordinateElement::EXPLICIT || coordinates->getNum(unit) == 0)
-            needNormals = true;
-        }
-      }
-      const auto * normals = SoNormalElement::getInstance(action->getState());
-      // Unlike IndexedShape, PointSet does not generate missing normals;
-      // it turns normal submission off and preserves GL_CURRENT_NORMAL.
-      if (needNormals && normals->getNum()) {
-        if (SoNormalBindingElement::get(action->getState()) == SoNormalBindingElement::OVERALL)
-          setNormal(normals->get(0)); // Explicit glNormal, normal array disabled.
-        else this->rasterNormalKnown = false; // Per-point arrays may be enabled.
-      }
+    const auto * normals = SoNormalElement::getInstance(action->getState());
+    // Unlike IndexedShape, PointSet does not generate missing normals;
+    // it turns normal submission off and preserves GL_CURRENT_NORMAL.
+    if (bundleSendsNormals && normals->getNum()) {
+      if (SoNormalBindingElement::get(action->getState()) == SoNormalBindingElement::OVERALL)
+        setNormal(normals->get(0)); // Explicit glNormal, normal array disabled.
+      else effect.kind = RasterNormalEffect::UNKNOWN; // Per-point arrays may be enabled.
     }
   } else if (type == SoIndexedFaceSet::getClassTypeId() ||
              type == SoIndexedTriangleStripSet::getClassTypeId()) {
-    const auto * vertexShape = static_cast<const SoVertexShape *>(node);
-    // VertexProperty overrides are applied inside native GLRender. Until
-    // audited independently, do not read a popped outer normal as its value.
-    if (vertexShape->vertexProperty.getValue()) this->rasterNormalKnown = false;
-    else {
-      const bool emit = type == SoIndexedTriangleStripSet::getClassTypeId()
-        ? SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR : sendsNormals;
-      if (emit) {
-        if (SoNormalBindingElement::get(action->getState()) == SoNormalBindingElement::OVERALL) {
-          const auto * normals = SoNormalElement::getInstance(action->getState());
-          if (normals->getNum()) setNormal(normals->get(0));
-          else this->rasterNormalKnown = false; // Native may generate a normal cache.
-        } else this->rasterNormalKnown = false;
-      }
+    const bool emit = type == SoIndexedTriangleStripSet::getClassTypeId()
+      ? SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR : bundleSendsNormals;
+    if (emit) {
+      if (SoNormalBindingElement::get(action->getState()) == SoNormalBindingElement::OVERALL) {
+        const auto * normals = SoNormalElement::getInstance(action->getState());
+        if (normals->getNum()) setNormal(normals->get(0));
+        else effect.kind = RasterNormalEffect::UNKNOWN; // Native may generate a normal cache.
+      } else effect.kind = RasterNormalEffect::UNKNOWN;
     }
   } else {
     // No inference from generated callback corners: native enabled normal
     // arrays leave the current normal indeterminate after DrawArrays/Elements.
-    this->rasterNormalKnown = false;
+    effect.kind = RasterNormalEffect::UNKNOWN;
   }
+  return effect;
+}
+
+bool
+CoinRenderFramePlanBuilder::resolveRasterNormals(
+  const std::vector<CoinRenderCompositionItem> & order, std::string * outError, bool captureOrder)
+{
+  SbVec3f currentNormal = this->frameInitialNormal;
+  bool currentKnown = this->frameInitialNormalKnown;
+  auto fail = [&](const char * message, bool unsupported) {
+    this->isUnsupported = unsupported;
+    this->hasError = !unsupported;
+    this->builderError = message;
+    if (outError) *outError = message;
+    return false;
+  };
+  auto applyEffect = [&](const RasterNormalEffect & effect) {
+    if (effect.kind == RasterNormalEffect::UNKNOWN) currentKnown = false;
+    else if (effect.kind == RasterNormalEffect::DEFINED) {
+      currentNormal = effect.normal;
+      currentKnown = true;
+    }
+  };
+  if (captureOrder) {
+    for (const auto & effect : this->rasterNormalEffects) applyEffect(effect);
+  }
+  for (const auto & item : order) {
+    const auto & draw = this->currentPlan.draws[item.drawIndex];
+    const auto consumer = this->rasterNormalConsumers.find(draw.frameNodeOrdinal);
+    if (consumer != this->rasterNormalConsumers.end()) {
+      if (!currentKnown)
+        return fail("UNSUPPORTED: raster texgen current normal is not determined for the native geometry history", true);
+      auto & coordinates = this->currentPlan.renderStates[draw.renderStateSlot].rasterTextureCoordinates;
+      const auto & request = consumer->second;
+      const auto & rasterPosition = request.position;
+      for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+        const auto kind = request.generators[unit];
+        if (kind == RasterGeneratorKind::OBJECT) continue;
+        // CoinGL enables NORMALIZE. SoImage's MODELVIEW is identity, hence
+        // normalize the persistent raw normal, never the prior model transform.
+        SbVec3f normal = currentNormal;
+        for (int axis = 0; axis < 3; ++axis)
+          if (!std::isfinite(normal[axis]) || !std::isfinite(rasterPosition[axis]))
+            return fail("Non-finite raster normal or eye position", false);
+        if (!(normal.normalize() > 0.0f))
+          return fail("UNSUPPORTED: raster texgen current normal has zero length", true);
+        SbVec3f generated = normal;
+        if (kind != RasterGeneratorKind::NORMAL) {
+          SbVec3f eye = rasterPosition;
+          if (!(eye.normalize() > 0.0f))
+            return fail("UNSUPPORTED: raster reflection eye position has zero length", true);
+          generated = eye - normal * (2.0f * normal.dot(eye));
+        }
+        const auto & plane = request.qPlanes[unit];
+        const float q = plane[0]*rasterPosition[0] + plane[1]*rasterPosition[1] +
+                        plane[2]*rasterPosition[2] + plane[3];
+        if (kind == RasterGeneratorKind::SPHERE) {
+          const float m = 2.0f * sqrtf(generated[0]*generated[0] + generated[1]*generated[1] +
+                                      (generated[2]+1.0f)*(generated[2]+1.0f));
+          if (!(m > 0.0f)) return fail("UNSUPPORTED: raster sphere-map divisor is zero", true);
+          coordinates[unit] = SbVec4f(generated[0]/m+0.5f, generated[1]/m+0.5f, 1, 1);
+        } else coordinates[unit] = SbVec4f(generated[0], generated[1], generated[2], q);
+      }
+    }
+    if (draw.frameNodeOrdinal < this->rasterNormalEffects.size())
+      applyEffect(this->rasterNormalEffects[draw.frameNodeOrdinal]);
+  }
+  this->rasterNormal = currentNormal;
+  this->rasterNormalKnown = currentKnown;
+  return true;
 }
 
 void
@@ -2514,6 +2628,8 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
   bool imageTransparent = false;
   auto rasterCoordinates = source.rasterTextureCoordinates;
   auto rasterProvenance = source.rasterTextureProvenance;
+  RasterNormalConsumer normalConsumer;
+  bool consumesNormal = false;
   if (isImage) {
     const auto & imageNode = *static_cast<const SoImage *>(node);
     SbVec2s size; int components = 0;
@@ -2535,8 +2651,6 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
           recorded->second.callback == reinterpret_cast<const void *>(data.funcCB)) {
         if (recorded->second.kind == RasterGeneratorKind::UNSUPPORTED)
           return fail("UNSUPPORTED: raster texgen subclass has no audited native contract", true);
-        if (recorded->second.kind != RasterGeneratorKind::OBJECT && !this->rasterNormalKnown)
-          return fail("UNSUPPORTED: raster texgen current normal is not determined for the native geometry history", true);
         // Native object-linear generators define all four components. Defer
         // evaluation until layout establishes SoImage's pixel-space RasterPos.
         rasterProvenance[size_t(unit)] = 1;
@@ -2584,30 +2698,12 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
         rasterCoordinates[unit] = coordinates->get(int(unit), rasterPosition, this->rasterNormal);
         continue;
       }
-      // CoinGL enables NORMALIZE. SoImage's MODELVIEW is identity, hence
-      // normalize the persistent raw normal, never the prior model transform.
-      SbVec3f normal = this->rasterNormal;
-      for (int axis = 0; axis < 3; ++axis)
-        if (!std::isfinite(normal[axis]) || !std::isfinite(rasterPosition[axis]))
-          return fail("Non-finite raster normal or eye position", false);
-      if (!(normal.normalize() > 0.0f))
-        return fail("UNSUPPORTED: raster texgen current normal has zero length", true);
-      SbVec3f generated = normal;
-      if (generator.kind != RasterGeneratorKind::NORMAL) {
-        SbVec3f eye = rasterPosition;
-        if (!(eye.normalize() > 0.0f))
-          return fail("UNSUPPORTED: raster reflection eye position has zero length", true);
-        generated = eye - normal * (2.0f * normal.dot(eye));
-      }
-      const auto & plane = this->rasterQPlanes[unit];
-      const float q = plane[0]*rasterPosition[0] + plane[1]*rasterPosition[1] +
-                      plane[2]*rasterPosition[2] + plane[3];
-      if (generator.kind == RasterGeneratorKind::SPHERE) {
-        const float m = 2.0f * sqrtf(generated[0]*generated[0] + generated[1]*generated[1] +
-                                    (generated[2]+1.0f)*(generated[2]+1.0f));
-        if (!(m > 0.0f)) return fail("UNSUPPORTED: raster sphere-map divisor is zero", true);
-        rasterCoordinates[unit] = SbVec4f(generated[0]/m+0.5f, generated[1]/m+0.5f, 1, 1);
-      } else rasterCoordinates[unit] = SbVec4f(generated[0], generated[1], generated[2], q);
+      // A deferred shape may execute after this Image despite preceding it
+      // in the graph. Resolve normal-dependent texgen in composition order.
+      consumesNormal = true;
+      normalConsumer.position = rasterPosition;
+      normalConsumer.generators[unit] = generator.kind;
+      normalConsumer.qPlanes[unit] = this->rasterQPlanes[unit];
     }
     if (!CoinRenderScreenRasterCore::imagePayload(bytes,
           size_t(size[0]) * size_t(size[1]) * size_t(components),
@@ -2743,8 +2839,17 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
     rasterState.transparentTexture = imageTransparent || source.transparentTexture;
     rasterState.rasterTransparent = rasterState.rasterTransparent || imageTransparent;
     rasterState.textureImageSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
-    const uint32_t slot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
-    return emit(imageLayout.quad, slot);
+    uint32_t slot;
+    if (consumesNormal) {
+      // Identical captured images can consume different persistent normals.
+      // Keep their resolved coordinates private to each occurrence.
+      slot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
+      this->currentPlan.renderStates.push_back(rasterState);
+    } else slot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
+    if (!emit(imageLayout.quad, slot)) return false;
+    if (consumesNormal)
+      this->rasterNormalConsumers[this->currentPlan.draws[this->currentDrawIndex].frameNodeOrdinal] = normalConsumer;
+    return true;
   }
 
   for (auto & pass : text.passes) {
@@ -3896,6 +4001,21 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
   if (this->hasError || this->isUnsupported) {
     if (outError) *outError = this->builderError.empty() ? "Builder encountered unsupported or invalid feature" : this->builderError;
     return false;
+  }
+  // Resolve current attributes on the captured native occurrences, before
+  // clipping/offset expansion can remove or split their transport geometry.
+  // The compositor checks its own ranges and alpha inputs; full plan validation
+  // follows once every consumed normal-dependent coordinate has been resolved.
+  if (!this->rasterNormalEffects.empty() || !this->rasterNormalConsumers.empty()) {
+    std::vector<CoinRenderCompositionItem> normalOrder;
+    const bool captureOrder = !this->rasterNormalNeedsOrder && this->rasterNormalConsumers.empty();
+    if (!captureOrder && !coin_render_composition_order(this->currentPlan, normalOrder,
+                                                        this->builderError)) {
+      this->isUnsupported = true;
+      if (outError) *outError = this->builderError;
+      return false;
+    }
+    if (!this->resolveRasterNormals(normalOrder, outError, captureOrder)) return false;
   }
   if (!this->expandStyledPrimitives(outError)) {
     return false;

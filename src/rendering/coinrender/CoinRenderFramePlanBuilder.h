@@ -18,6 +18,7 @@ class SoTexture2;
 class SoTexture3;
 class SoTextureCubeMap;
 class CoinRenderFramePreflight;
+struct CoinRenderCompositionItem;
 
 #include <Inventor/rendering/CoinRenderOptions.h>
 
@@ -160,6 +161,24 @@ private:
   // stack state. SoNormal alone does not emit glNormal.
   SbVec3f rasterNormal = SbVec3f(0,0,1);
   bool rasterNormalKnown = true;
+  struct RasterNormalEffect {
+    enum Kind { PRESERVE, DEFINED, UNKNOWN } kind = PRESERVE;
+    SbVec3f normal = SbVec3f(0,0,1);
+  };
+  struct RasterNormalConsumer {
+    SbVec3f position;
+    std::array<RasterGeneratorKind, COIN_RENDER_MAX_TEXTURE_UNITS> generators{};
+    std::array<SbVec4f, COIN_RENDER_MAX_TEXTURE_UNITS> qPlanes{};
+  };
+  SbVec3f frameInitialNormal = SbVec3f(0,0,1);
+  bool frameInitialNormalKnown = true;
+  // Keyed by capture ordinal, retained by stroke expansion. Replayed in the
+  // compositor's execution order, rather than graph/callback order.
+  bool rasterNormalNeedsOrder = false;
+  std::vector<RasterNormalEffect> rasterNormalEffects;
+  std::unordered_map<uint32_t, RasterNormalConsumer> rasterNormalConsumers;
+  RasterNormalEffect classifyRasterNormal(SoCallbackAction *, const SoNode *);
+  bool resolveRasterNormals(const std::vector<CoinRenderCompositionItem> &, std::string *, bool captureOrder = false);
   std::array<SbVec4f, COIN_RENDER_MAX_TEXTURE_UNITS> rasterQPlanes{};
   std::unordered_map<SbUniqueId, RasterGenerator> rasterGenerators;
   void invalidateRasterCoordinates(SoCallbackAction * action);
