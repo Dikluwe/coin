@@ -1,5 +1,21 @@
 # CoinRender: branch de integração
 
+Etapa 1 de inventário e reconciliação **encerrada em 16/10/2026**: [auditoria, inventários e critérios](coin-render-stage1-audit.md), com [ledger individual das campanhas visuais](coin-render-visual-case-ledger.md). Recursos e combinações continuam acompanhados na matriz.
+
+## Continuação publicada em 21/10/2026
+
+A continuação revisável está em `codex/stage2-review-20261021`, no repositório
+[Dikluwe/coin](https://github.com/Dikluwe/coin/tree/codex/stage2-review-20261021).
+A árvore anterior `codex/coin-render` foi preservada. A [matriz](coin-render-feature-matrix.md)
+registra os commits de baseline/candidato e os comandos de reprodução de B90–B92.
+Código, testes e matriz foram separados. Os bloqueios históricos da etapa2 seguem
+abertos e etapas3/4 permanecem suspensas. As referências ao checkout canônico
+abaixo descrevem a organização anterior a esta publicação.
+
+## Acompanhamento funcional
+
+Use a [matriz consolidada](coin-render-feature-matrix.md) para acompanhar recursos, combinações, plataformas e falhas até a cobertura completa. Ela separa implementação de qualificação e remete aos contratos e relatórios históricos. PBR permanece fora dessa matriz.
+
 Este checkout canônico está na branch `codex/coin-render` e organiza a
 implementação CoinRender para revisão. O checkout original de desenvolvimento
 evidenciado pelos relatórios foi preservado no bundle da consolidação, no

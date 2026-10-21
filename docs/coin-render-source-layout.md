@@ -81,6 +81,9 @@ at process shutdown. This behavior was reproduced using the untouched original
 source in a separate temporary baseline. Both original and reorganized sources
 pass serially; the two shader integration targets add five passing tests.
 This existing teardown problem remains open.
+The later [B06 lifecycle diagnosis](coin-render-b06-lifecycle-20261017.md)
+reproduces the loader stack and closes the admitted CoinRender concurrency on
+the available Linux GPU/API cells; this paragraph records the earlier baseline.
 
 Builds during validation run one at a time with two jobs and a per-process
 virtual-memory limit of 8 GiB; documentation generation is disabled.

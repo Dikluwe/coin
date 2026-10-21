@@ -70,6 +70,10 @@ usada na qualificação desse consumidor em OpenGL. Os oito nós da matriz
 principal passaram com o cache padrão ativo. A influência da configuração foi
 observada, mas a causa do timeout e a relação com reuso/lifecycle ficam abertas
 como estudo; desativar o cache não fecha a investigação.
+O [diagnóstico posterior do B05](coin-render-b05-egl-lifecycle-20261017.md)
+reproduziu o timeout também com o cache desligado, identificou a espera em
+`eglSwapInterval(0)` e qualificou a correção no SDK BGFX para Xwayland/AMD.
+Este parágrafo registra a condição do ensaio inicial.
 Essas combinações permanecem diagnósticos de integração de drivers, separados
 do perfil aprovado. Residência de processo em nvidia-smi não comprova qual GPU
 executou o backend.

@@ -1,5 +1,37 @@
 # CoinRender: checklist das próximas frentes
 
+Etapa 1 de inventário e reconciliação **encerrada em 16/10/2026**: [auditoria, inventários e critérios](coin-render-stage1-audit.md), com [ledger individual das campanhas visuais](coin-render-visual-case-ledger.md). Recursos e combinações continuam acompanhados na matriz.
+
+Etapa 2 em andamento: [B12 qualificado em GPU e B02 corrigido](coin-render-stage2-b12-b02-20261016.md), com 8/8 processos BGFX GPU em AMD/NVIDIA × Vulkan/OpenGL e 2/2 controles CPU. B12 preserva a publicação e permite recuperação; B02 usa model-view composto mantendo instancing e patch de câmera. R26/C17 permanecem abertos para efeito visual; B12 wgpu foi qualificado nas três células Linux na continuação B01; Windows e custo LESS em B10 mantêm qualificação própria. Demais falhas mantêm seu estado na matriz.
+
+R26.6 qualifica o bump público opaco de uma luz em BGFX/wgpu nas sete células Linux disponíveis: janela, MSAA 1×/2×/4×, produtor RTT DIRECT/STAGED, base linear/sRGB e coexistência entre alvos. B66 corrige identidade/domínio de anisotropia preservando wrap-R; B67 permite misturar draws com/sem bump mantendo Phong e profundidade. Tekt separou implementação, testes e execução; os controles numéricos e de entrega não exigem pixels idênticos entre máquinas. Sombras, transparência/OIT e multiluz com bump, estabilidade B34, desempenho e plataformas externas continuam abertos; as etapas 2/3/4 permanecem em andamento na [matriz](coin-render-feature-matrix.md).
+
+R25 está integrado com campanha específica final 189/189 nas sete células Linux, incluindo janela/MSAA, mips máximos, aninhamento e preservação de efeitos observáveis. B68–B73 corrigem câmera, override, sombra direcional, custo declarativo, estado GLES de wgpu e pico de registros DIRECT. Seis mutações dirigidas foram detectadas. As expectativas das regressões compartilhadas foram reconciliadas com as opções públicas e o contrato de sombras neutras. B74 demonstrou e corrigiu a corrida de apresentação do SDK BGFX: quatro comparações dirigidas antes/depois, sete controles normais e 40/40 regressões proporcionais passaram. Os testes legados de DIRECT/STAGED foram corrigidos e passaram 34/34; o oráculo de sombra direcional neutra passou nas três células wgpu, com preservação das duas luzes, cor/depth/A/B/A e mutação de metadados detectada. O perfil GPU Linux está qualificado. O perfil CPU integral STAGED RGBA8 linear 1× passou 33/33 testes RECORDING sem display/drivers GPU, incluindo limites 1/2/2048 com/sem mips. O controle de OOM preserva a publicação, exige bloqueio até resize explícito e recupera RGBA/depth A/B/A no mesmo alvo/backend. A expectativa anterior de retry automático contradizia o protocolo existente e foi corrigida no teste, sem alterar a produção. DIRECT, MSAA, janela, async, sombras e bump permanecem fora das capacidades anteriores do CPU auxiliar. Cruzamentos e plataformas explicitamente abertos continuam pendentes. Essa frente também atende à etapa 3 e não substitui as combinações ainda abertas da etapa 2. [Estado e limites atuais](coin-render-feature-matrix.md).
+
+Continuação B01: [perfil canônico explícito qualificado](coin-render-b01-canonical-coverage-20261016.md), 14/14 processos em sete células BGFX/wgpu, com câmera/viewport/alpha/depth e RTT. O padrão nativo foi preservado; B01.2 teve seu contrato definido e os cruzamentos B01.3 foram [concluídos nas sete células Linux](coin-render-b01-completion-20261016.md); gates nativos reprovados e qualificação externa foram preservados separadamente. A [P20 portátil](coin-render-b01-p20-portable-20261016.md) está qualificada nas 24 células CoinRender AMD/NVIDIA disponíveis, incluindo janela X11/offscreen e transparência.
+
+C14.1 fecha a transição de qualidade do mesmo volume 3D e a restauração por Separator no Linux AMD/NVIDIA: 12/12 testes nativos, 21/21 regressões finais nas sete células GPU (volumes completos e cache 2D) e quatro mutações dirigidas rejeitadas. A política legada 2D permanece preservada; FRACTURE/rescaling completo, demais consumidores e B09 continuam abertos na matriz.
+
+R27.7 tem o perfil numérico Linux validado nas sete células disponíveis. B48/B49 foram corrigidos: profundidade inclinada e samples cobertos nas bordas passam 119/119 execuções finais, incluindo range/offset, RTT, janela e A/B/A; as regressões OpenGL afetadas passam 22/22. B50 permite leitura RGBA da janela mesmo sem COPY_SRC na superfície: 9/9 controles, 18/18 regressões e mutação de apresentação rejeitada. A mutação que restaura depth GL incorreto também é rejeitada. A regressão geral anterior à última correção ficou em 209/210, reproduzindo o crash B34 NVIDIA/OpenGL; não encerrar estabilidade por uma rodada aprovada. B43 exige extensão controlada do SDK BGFX/Vulkan; B34 e os demais cruzamentos da matriz continuam abertos. As etapas 2/3/4 não estão concluídas.
+
+R27.6 qualifica weighted OIT explícito com MSAA 1/2/4 nas sete células Linux: composição por sample antes do resolve, oclusão opaca, textura/AlphaTest/clip/fog, ADD, VSM, manager/background/annotations e RTT DIRECT/STAGED nos dois sentidos. Campanha final 70/70 GPU, 140/140 regressões, 5/5 CPU e cinco mutações rejeitadas; 350 frames físicos RGB exatos. Baseline anterior reprova as mesmas 56 entradas e a versão intermediária sem identidade da cena reprova 7/7 controles layers. B41 corrige identidade/ordem das annotations e B42 preserva depth no weighted wgpu. Capacidades/formatos, orçamento por sample e preflight global são conferidos. Peeling MSAA e demais combinações continuam abertos; B34/B34.1/B34.2 e etapas 2/3/4 permanecem em andamento na [matriz](coin-render-feature-matrix.md).
+
+R27.5 qualifica MSAA 1/2/4 com sombras VSM, mapas spot/direcional 1/2/4/8, oito modos comuns OBJECT, três fogs, clip/AlphaTest, layers e RTT DIRECT/STAGED nas sete células Linux. São 56/56 processos do perfil final, 35/35 baselines reprovados nas mesmas entradas, 126/126 regressões, 12/12 revalidações de janela após a última correção e quatro mutações rejeitadas. Janela com runtime vivo soma 42 frames RGB exatos. B39 corrige BASE_COLOR externo ao grupo e B40 uniformiza o resolve RGBA8 da janela wgpu; o passe GPU adicional não tem ganho de desempenho medido. Recriação BGFX/OpenGL/NVIDIA B34.2 permanece aberta, inclusive após repetição aprovada; o teste sem âncora é preservado. Weighted OIT recebeu continuação R27.6; peeling MSAA, bump com sombra, highlight MSAA com sombra, formatos/mips, async e demais combinações continuam abertos na [matriz](coin-render-feature-matrix.md).
+
+R27.4/R35.4 qualificam MSAA 1/2/4 com os oito modos comuns de transparência no perfil RGBA8 linear das sete células Linux. Inclui equações numéricas, sorting por triângulo dentro de um objeto, layers/clear parcial, BOX/LINE com alpha acoplada/separada, janela física e RTT DIRECT/STAGED com alpha legado. Campanha 56/56 GPU, CPU nos dois builds, 101/101 regressões e quatro mutações rejeitadas; baseline reprova as mesmas 21 entradas offscreen/layers/RTT. B38 corrige bindings excedentes após reciclagem de programas BGFX, sem SDK alterado ou exceção por fabricante. Sombras MSAA receberam continuação R27.5; Weighted OIT recebeu continuação R27.6; peeling, bump translúcido, formatos/mips, async e demais cruzamentos continuam abertos; etapas 2/3/4 seguem em andamento na [matriz](coin-render-feature-matrix.md).
+
+R27.3/R35.3 qualificam MSAA opaco 2×/4× com annotations, layers e highlights BOX/LINE nas sete células Linux: offscreen, janela X11/resize e produtor RTT DIRECT/STAGED. Clear parcial conserva cor/depth exteriores e o resolve vem depois da composição. B36 corrige o primeiro frame BGFX/OpenGL pelo alvo privado de resolve; B37 corrige scissor no resolve GLES da dependência wgpu-hal, reproduzido sem Coin. Campanha nova 35/35 GPU, controles CPU nos dois builds, 70/70 regressões e quatro mutações BGFX rejeitadas. R27/C18/R35/C25 integrais e B34/B34.1 permanecem abertos na [matriz](coin-render-feature-matrix.md).
+
+R27.2 qualifica MSAA BGFX opaco 1/2/4 nas quatro células Linux AMD/NVIDIA × Vulkan/OpenGL: resolve GPU de cor/depth, contagem efetiva conferida, janela X11 e RTT DIRECT/STAGED. Campanha principal 24/24, regressões 33/33 e três mutações dirigidas rejeitadas. Resize/suspensão/recriação 2×/4× e recusa de orçamento/tickets preservam publicação; os demais cruzamentos de R27/C18 e plataformas continuam abertos.
+
+R35.1/C25.1 implementam highlights box/line no adaptador de manager mono 1× AS_IS, sem executar a action GL: seleção por ocorrência, estilo, atualização sem tocar a cena, oclusão, recorte e foreground real. Os testes distinguem alpha acoplada/separada conforme o CoinGL nativo, preservam publicação após estilo inválido e exigem A/B/A exato. MSAA/stereo/modos técnicos/RTT e outros domínios continuam abertos. B34/B34.1 mantêm FAIL de estabilidade NVIDIA/OpenGL; o teste público de ciclo de vida e a reprodução EGL externa impedem tratar uma rodada de janela aprovada como encerramento.
+
+R35.2/C25.2/B35 corrigem a travessia LINE: paths reais, poda de Separators não selecionados, ordem das seleções e estado ancestral preservados, sem recusa genérica de Switch. Novos controles 10/10 e regressões 39/39 nas células Linux; três mutações rejeitadas. No microbenchmark CPU 32²/1.024 ramos/oito seleções, callbacks/frame caem de 9.216 para 1.032 e mediana de 11,39–11,60 para 5,02–5,11 ms, com RGBA exato; isso não mede desempenho GPU/PBR. B34/B34.1 e os demais domínios da matriz continuam abertos.
+
+## Matriz consolidada de acompanhamento
+
+A [matriz de recursos e combinações](coin-render-feature-matrix.md) é o ponto de entrada atualizado em 16/10/2026, com IDs estáveis R/C/V/B para implementação, combinações, plataformas e falhas. As seções abaixo preservam a cronologia e os domínios das campanhas; caixas antigas não devem ser interpretadas como ausência de mecanismos implementados posteriormente. Atualize a matriz e a evidência específica ao fechar um caso. B10.3b qualifica a especialização base 2D BGFX e mede o primeiro apply NVIDIA/OpenGL (mediana 9.094,5→231,5 ms no quad testado). B32 corrigiu a seleção explícita de API e requalificou 129 entradas finais nas sete células Linux. A auditoria revelou B33: a view compute herdava o clear do produtor RTT DIRECT e o apagava em OpenGL; a correção passou STAGED/DIRECT nas sete células e 62 regressões, incluindo a repetição das 48 variantes de sombras BGFX/OpenGL com identidade real conferida.
+
 Auditada em 2026-10-12, incluindo a API de sampling, Windows e Linux, com a entrega
 P03/P15/P16/P24/P28 após o fechamento
 P02/P04/P05/P06 e do primeiro perfil P07, na branch
@@ -284,7 +316,7 @@ em 2026-10-07; seus binários não versionados precisam ser reconstruídos.
   uma repetição native wgpu/cidade variou 12,8%, enquanto clocks NVIDIA
   oscilaram na rodada, sem correlação causal por frame
   ([medidas](coin-render-local-closure-20261010.md)).
-  A ampliação para NPOT-8 e cidade de um milhão completou 32/32 processos
+  A ampliação para NPOT-8 e cidade de um milhão completou 33/33 processos
   físicos em wgpu/BGFX; a maior amplitude entre repetições foi 3,32% no
   milhão wgpu native. O salto histórico de 25% não reapareceu.
   Replay BGFX de textura-8 e NPOT-8, native/portable em NVIDIA e AMD físicas,
@@ -427,15 +459,19 @@ Melhoria futura, fora deste primeiro perfil:
   BGFX/OpenGL AMD; a regressão sem o modo passou 1.799/1.799 em
   BGFX/OpenGL AMD, BGFX/Vulkan NVIDIA e wgpu/Vulkan AMD
   ([matriz e limites](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/precise-quadmesh-20261011/summary.md>)).
-- [ ] Qualificar flat com sombras/iluminação por fragmento, multi-textura no
-  fan preciso e demais extensões fora do perfil acima. Repetir o modo preciso
-  em Windows/Android e consumidores reais junto da qualificação de plataforma.
-  A sonda local de QuadMesh 3D com material `PER_FACE` e sombra de qualidade
-  0,2/1,0 confirma a rejeição antes da publicação: a captura precisa assa a
-  iluminação flat em `BASE_COLOR`, enquanto o executor de sombras requer
-  `PHONG`. Após retirar a ligação flat, o mesmo alvo recupera e coincide com
-  CoinGL (RGB máximo 0) nas quatro rotas físicas ensaiadas
-  ([recibo e decisão](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/precise-quadmesh-shadow-20261012/summary.md>)).
+- [ ] Ampliar flat com sombras para estados/plataformas restantes e multi-textura
+  no fan preciso. C02.1–C02.3 da [matriz atual](coin-render-feature-matrix.md)
+  implementam o perfil opaco com uma textura, materiais por face/vértice e
+  normais por face/vértice/OVERALL, nas qualidades 0,2/1,0 e NO_SHADOWING.
+  Há canais separados para a primária flat e a iluminação raw por vértice;
+  o par reutilizado do QuadStrip recupera o material da face anterior.
+  Na AMD, BGFX/wgpu × Vulkan/OpenGL passaram 480 comparações CoinGL nos
+  modos preciso e convencional; a antiga rejeição foi superada nesses casos.
+  O sampler de momentos wgpu agora é bilinear. Nas três células NVIDIA,
+  50/120 imagens por célula passam o gate nativo; os demais FAIL permanecem
+  em C02.4, com divergência medida também entre os próprios CoinGL AMD/NVIDIA.
+  Reuso/ABI/publicação passaram; CPU sem mapas de sombra recusa antes de
+  publicar (B13). Windows/Android e consumidores reais aguardam qualificação.
 - [ ] Repetir o perfil em outros drivers/dispositivos, Windows e FreeCAD.
 
 Fechamento por perfil: fixtures comuns, restauração de estado, recuperação após
@@ -512,8 +548,10 @@ Entrega e limites: [perfil ampliado](coin-render-p03-p24-p28-profile.md) e
 - [x] Definir MSAA/resolve e multipass na action/target, com memória e
   comportamento de resize/readback explícitos.
 
-Os três últimos itens fecham definição de contrato, não execução. Shaders,
-volume/cubo e MSAA continuam sem executor no perfil publicado. Referência:
+Os três últimos itens fecham definição de contrato. A implementação atual tem
+perfis de volume R23.1, cubemap R24.2 e MSAA delimitados na matriz; shaders
+próprios e RTT de cubo continuam pendentes. Não inferir cobertura integral
+desses recursos a partir dos perfis qualificados. Referência:
 [contratos dos recursos](coin-render-portable-resources-contract.md).
 
 Fechamento por perfil: cenário real no host quando pertinente; ausência de
@@ -608,7 +646,7 @@ nem encerra uma campanha completa de desempenho Windows.
   A janela BGFX/OpenGL passou a renderizar em alvo RGBA8/D24S8 equivalente
   ao offscreen antes da apresentação: duas cidades e terreno passaram RGB 0
   inicial/final em native/portable, inclusive no controle XGetImage da cidade
-  40 mil e do terreno em native; 32/32 testes BGFX passaram
+  40 mil e do terreno em native; 33/33 testes BGFX passaram
   ([correção e recibos](coin-render-bgfx-opengl-window-parity-20261010.md)).
   As duas cidades BGFX/OpenGL voltaram a usar patch de câmera em `LEQUAL`,
   mantendo instâncias em coordenadas de câmera e atualizando só seu buffer.
@@ -639,6 +677,23 @@ nem encerra uma campanha completa de desempenho Windows.
   qualificação visual independente ou
   desempenho das cidades e não representam FreeCAD.
 
+A continuação B03 de 17/10 acrescentou um observador de submissão única:
+51 processos e 153 quadros com RGB exato em sete células físicas. O controle
+negativo rejeitou a imagem antiga quando a segunda submissão foi omitida.
+O retorno da submissão antecedeu a nova imagem X11 em 152 observações; nenhuma
+captura wgpu/OpenGL aos 50 ms falhou. A ocorrência histórica do terreno e
+sua causa continuam abertas; não houve declaração de correção por repetição
+aprovada ([provas e limitações](coin-render-b03-first-present-20261017.md)).
+
+B03.3 foi corrigido em 17/10: o cruzamento terreno iluminado × janela/offscreen
+× resize perdia o primeiro quadro BGFX/OpenGL AMD nos modos nativo/canônico.
+Confirmar o tamanho X11 não bastou; a preparação do drawable com uma view sem
+geometria antes da cena eliminou a perda. A rodada final passou 25 processos
+positivos/75 imagens exatas em sete células, mais 20 regressões BGFX, incluindo
+pixels X11 multiwindow exigidos. B03.2 continua aberto para a causa histórica
+wgpu/OpenGL aos 50 ms; não houve propagação de qualificação para outras
+plataformas ([fontes, falhas e provas](coin-render-b03-terrain-resize-20261017.md)).
+
 ## 5. Hardware, superfícies e sombras — P20/P21/P22/P23/P27
 
 - [x] Requalificar sombras Linux nas duas GPUs físicas: BGFX Vulkan/OpenGL e
@@ -648,8 +703,11 @@ nem encerra uma campanha completa de desempenho Windows.
   quatro pixels de borda fora do gate CoinGL, documentados como estudo.
 - [x] Definir expectativa independente para oito mapas: conservação de
   intensidade, contribuição da oitava luz, nona rejeitada sem publicação e
-  recuperação exata. O limite CoinGL de oito unidades foi demonstrado nas
-  duas GPUs; sua referência nativa de oito mapas continua externa.
+  recuperação exata. [Continuação B11](coin-render-b11-distinct-shadow-oracle-20261017.md):
+  oito oclusões distintas, composição aditiva e projeção geométrica passaram
+  nas sete células Linux; mapas duplicados reprovam. O limite CoinGL de oito
+  unidades foi demonstrado nas duas GPUs; sua referência nativa de oito mapas
+  continua externa.
 - [x] Executar `BumpProgramGLX` nas duas GPUs, com visual double-buffer no PRIME.
   Executar câmera com CoinGL na NVIDIA e AMD/OpenGL, e contrato portátil nas
   três APIs AMD. Diferenças de borda AMD/Vulkan permanecem explicitamente abertas.
@@ -658,7 +716,14 @@ nem encerra uma campanha completa de desempenho Windows.
   recriações reais de superfície com isolamento da janela sobrevivente.
 - [x] Recompilar ponte Rust e objetos Android arm64/API 26; retirar GL da ação
   comum/profiler quando o renderer legado está desligado.
-- [ ] Melhorar a seleção de fragmentos nas bordas AMD/Vulkan de P20/câmera,
+- [x] Qualificar uma política explícita comum em câmera/viewport/RTT e na P20
+  completa disponível: [B01.3a](coin-render-b01-p20-portable-20261016.md), 24/24 células CoinRender
+  AMD/NVIDIA, CPU e cruzamentos de API/GPU aprovados; Intel indisponível.
+- [x] Concluir a correção B01 canônica nas sete células Linux disponíveis:
+  [recibo final](coin-render-b01-completion-20261016.md), 188 casos offscreen/192 janela por célula,
+  instancing e 56 processos de sombras; demais plataformas seguem nos V.
+- [x] Formalizar o contrato canônico como solução B01 e preservar os controles
+  nativos CoinGL AMD/Vulkan de P20/câmera como reprovados, sem declarar paridade,
   mantendo o gate atual. A [câmera branca foi diagnosticada](coin-render-raster-study-20261007.md)
   por quantização subpixel; validar snap comum em câmera/viewport/RTT e aplicar
   os controles à transparência P20 antes de declarar a mesma causa.
@@ -674,15 +739,15 @@ nem encerra uma campanha completa de desempenho Windows.
   Uma sonda 3× de centro de pixel passou em BGFX/wgpu Vulkan com RGB máximo 1
   contra CoinGL, mas fatores maiores não foram monotônicos e o custo/escopo
   não autorizam promovê-la diretamente à produção.
-  Uma política comum que preserve câmera/viewport/RTT e os demais oráculos
-  ainda precisa ser implementada e qualificada
+  Esse era o estado anterior à política explícita B01.1 e à qualificação P20
+  B01.3a; o contrato nativo e seus oráculos permanecem abertos
   ([recibos](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/p20-edge-controls-20261011/summary.md>)). A matriz
   física AMD/NVIDIA confirmou que 3× corrige câmera e transparência P20 em
   alguns casos AMD, mas regride a câmera NVIDIA e a cena P20 opaca nas duas
   placas. CoinGL também escolheu lados opostos da mesma aresta nas duas GPUs;
   não há um único resultado que iguale ambas as referências nesse pixel.
-  A correção GPU requer uma regra canônica qualificada em BGFX e wgpu, com
-  CoinGL e expectativas independentes registrados separadamente
+  A regra canônica agora está qualificada em BGFX e wgpu para B01.1/P20,
+  com CoinGL e expectativas independentes registrados separadamente
   ([auditoria de cobertura](</home/dikluwe/Área de trabalho/Estudo coin/consolidacao-frentes-20261016/renderer-history/docs/validation/perspective-coverage-20261012/summary.md>)).
 - [x] Concluir o primeiro **build/link e APK Android x86_64 neste Linux**:
   perfil CPU do Coin sem libGL/libGLES, renderer legado recusado, pacote

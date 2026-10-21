@@ -1,0 +1,532 @@
+{
+  "schema_version": 1,
+  "master": "ca247c1321bce07199ec0f034493977761b3218e",
+  "coinrender": "24ddf557af4c8956b008d51a53446f4671f33a3b",
+  "scope": "58 nomes de metodos publicos da classe externa SoRenderManager; construtor/destrutor e API aninhada Superimposition tratados na auditoria Markdown",
+  "methods": [
+    {
+      "method": "render",
+      "signatures": [
+        "render(SoGLRenderAction * action, SbBool clearcolorbuffer = FALSE);",
+        "render(const SbBool clearwindow = TRUE, const SbBool clearzbuffer = TRUE);",
+        "render(SoGLRenderAction * action, const SbBool initmatrices = TRUE, const SbBool clearwindow = TRUE, const SbBool clearzbuffer = TRUE);"
+      ],
+      "state": "entrada alternativa parcial",
+      "resource": "R20",
+      "finding": "adapter.render nao equivale aos overloads clearwindow/clearzbuffer/initmatrices/action externa"
+    },
+    {
+      "method": "addSuperimposition",
+      "signatures": [
+        "addSuperimposition(SoNode * scene, uint32_t flags = Superimposition::AUTOREDRAW | Superimposition::ZBUFFERON | Superimposition::CLEARZBUFFER);"
+      ],
+      "state": "sem equivalencia integral",
+      "resource": "R30",
+      "finding": "camadas SoAnnotation e override de root existem; nao implementam a API completa de modos/superimpositions"
+    },
+    {
+      "method": "removeSuperimposition",
+      "signatures": [
+        "removeSuperimposition(Superimposition * s);"
+      ],
+      "state": "sem equivalencia integral",
+      "resource": "R30",
+      "finding": "camadas SoAnnotation e override de root existem; nao implementam a API completa de modos/superimpositions"
+    },
+    {
+      "method": "setSceneGraph",
+      "signatures": [
+        "setSceneGraph(SoNode * const sceneroot);"
+      ],
+      "state": "encaminhado pelo adaptador",
+      "resource": "R20",
+      "finding": "syncFromRenderManager copia root, viewport e fundo; setSceneGraphOverride opcional"
+    },
+    {
+      "method": "getSceneGraph",
+      "signatures": [
+        "getSceneGraph(void) const;"
+      ],
+      "state": "encaminhado pelo adaptador",
+      "resource": "R20",
+      "finding": "syncFromRenderManager copia root, viewport e fundo; setSceneGraphOverride opcional"
+    },
+    {
+      "method": "setCamera",
+      "signatures": [
+        "setCamera(SoCamera * camera);"
+      ],
+      "state": "parcial via manager fonte",
+      "resource": "R20",
+      "finding": "prepareFrame atualiza clipping do manager fonte; camera independente do grafo nao e copiada pelo adaptador"
+    },
+    {
+      "method": "getCamera",
+      "signatures": [
+        "getCamera(void) const;"
+      ],
+      "state": "parcial via manager fonte",
+      "resource": "R20",
+      "finding": "prepareFrame atualiza clipping do manager fonte; camera independente do grafo nao e copiada pelo adaptador"
+    },
+    {
+      "method": "setAutoClipping",
+      "signatures": [
+        "setAutoClipping(AutoClippingStrategy autoclipping);"
+      ],
+      "state": "parcial via manager fonte",
+      "resource": "R20",
+      "finding": "prepareFrame atualiza clipping do manager fonte; camera independente do grafo nao e copiada pelo adaptador"
+    },
+    {
+      "method": "getAutoClipping",
+      "signatures": [
+        "getAutoClipping(void) const;"
+      ],
+      "state": "parcial via manager fonte",
+      "resource": "R20",
+      "finding": "prepareFrame atualiza clipping do manager fonte; camera independente do grafo nao e copiada pelo adaptador"
+    },
+    {
+      "method": "setNearPlaneValue",
+      "signatures": [
+        "setNearPlaneValue(float value);"
+      ],
+      "state": "parcial via manager fonte",
+      "resource": "R20",
+      "finding": "prepareFrame atualiza clipping do manager fonte; camera independente do grafo nao e copiada pelo adaptador"
+    },
+    {
+      "method": "getNearPlaneValue",
+      "signatures": [
+        "getNearPlaneValue(void) const;"
+      ],
+      "state": "parcial via manager fonte",
+      "resource": "R20",
+      "finding": "prepareFrame atualiza clipping do manager fonte; camera independente do grafo nao e copiada pelo adaptador"
+    },
+    {
+      "method": "setTexturesEnabled",
+      "signatures": [
+        "setTexturesEnabled(const SbBool onoff);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "isTexturesEnabled",
+      "signatures": [
+        "isTexturesEnabled(void) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "setDoubleBuffer",
+      "signatures": [
+        "setDoubleBuffer(const SbBool enable);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "isDoubleBuffer",
+      "signatures": [
+        "isDoubleBuffer(void) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "setRenderMode",
+      "signatures": [
+        "setRenderMode(const RenderMode mode);"
+      ],
+      "state": "sem equivalencia integral",
+      "resource": "R30",
+      "finding": "camadas SoAnnotation e override de root existem; nao implementam a API completa de modos/superimpositions"
+    },
+    {
+      "method": "getRenderMode",
+      "signatures": [
+        "getRenderMode(void) const;"
+      ],
+      "state": "sem equivalencia integral",
+      "resource": "R30",
+      "finding": "camadas SoAnnotation e override de root existem; nao implementam a API completa de modos/superimpositions"
+    },
+    {
+      "method": "setStereoMode",
+      "signatures": [
+        "setStereoMode(const StereoMode mode);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R29",
+      "finding": "modos MONO/ANAGLYPH/SEPARATE_OUTPUT/INTERLEAVED_ROWS/COLUMNS e offset nao chegam ao plano"
+    },
+    {
+      "method": "getStereoMode",
+      "signatures": [
+        "getStereoMode(void) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R29",
+      "finding": "modos MONO/ANAGLYPH/SEPARATE_OUTPUT/INTERLEAVED_ROWS/COLUMNS e offset nao chegam ao plano"
+    },
+    {
+      "method": "setStereoOffset",
+      "signatures": [
+        "setStereoOffset(const float offset);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R29",
+      "finding": "modos MONO/ANAGLYPH/SEPARATE_OUTPUT/INTERLEAVED_ROWS/COLUMNS e offset nao chegam ao plano"
+    },
+    {
+      "method": "getStereoOffset",
+      "signatures": [
+        "getStereoOffset(void) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R29",
+      "finding": "modos MONO/ANAGLYPH/SEPARATE_OUTPUT/INTERLEAVED_ROWS/COLUMNS e offset nao chegam ao plano"
+    },
+    {
+      "method": "setRenderCallback",
+      "signatures": [
+        "setRenderCallback(SoRenderManagerRenderCB * f, void * const userData = NULL);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "isAutoRedraw",
+      "signatures": [
+        "isAutoRedraw(void) const;"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "setRedrawPriority",
+      "signatures": [
+        "setRedrawPriority(const uint32_t priority);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "getRedrawPriority",
+      "signatures": [
+        "getRedrawPriority(void) const;"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "scheduleRedraw",
+      "signatures": [
+        "scheduleRedraw(void);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "setWindowSize",
+      "signatures": [
+        "setWindowSize(const SbVec2s & newsize);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "getWindowSize",
+      "signatures": [
+        "getWindowSize(void) const;"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "setSize",
+      "signatures": [
+        "setSize(const SbVec2s & newsize);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "getSize",
+      "signatures": [
+        "getSize(void) const;"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "setOrigin",
+      "signatures": [
+        "setOrigin(const SbVec2s & newOrigin);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "getOrigin",
+      "signatures": [
+        "getOrigin(void) const;"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "setViewportRegion",
+      "signatures": [
+        "setViewportRegion(const SbViewportRegion & newRegion);"
+      ],
+      "state": "encaminhado pelo adaptador",
+      "resource": "R20",
+      "finding": "syncFromRenderManager copia root, viewport e fundo; setSceneGraphOverride opcional"
+    },
+    {
+      "method": "getViewportRegion",
+      "signatures": [
+        "getViewportRegion(void) const;"
+      ],
+      "state": "encaminhado pelo adaptador",
+      "resource": "R20",
+      "finding": "syncFromRenderManager copia root, viewport e fundo; setSceneGraphOverride opcional"
+    },
+    {
+      "method": "setBackgroundColor",
+      "signatures": [
+        "setBackgroundColor(const SbColor4f & color);"
+      ],
+      "state": "encaminhado pelo adaptador",
+      "resource": "R20",
+      "finding": "syncFromRenderManager copia root, viewport e fundo; setSceneGraphOverride opcional"
+    },
+    {
+      "method": "getBackgroundColor",
+      "signatures": [
+        "getBackgroundColor(void) const;"
+      ],
+      "state": "encaminhado pelo adaptador",
+      "resource": "R20",
+      "finding": "syncFromRenderManager copia root, viewport e fundo; setSceneGraphOverride opcional"
+    },
+    {
+      "method": "setOverlayColor",
+      "signatures": [
+        "setOverlayColor(const SbColor4f & color);"
+      ],
+      "state": "sem equivalencia integral",
+      "resource": "R30",
+      "finding": "camadas SoAnnotation e override de root existem; nao implementam a API completa de modos/superimpositions"
+    },
+    {
+      "method": "getOverlayColor",
+      "signatures": [
+        "getOverlayColor(void) const;"
+      ],
+      "state": "sem equivalencia integral",
+      "resource": "R30",
+      "finding": "camadas SoAnnotation e override de root existem; nao implementam a API completa de modos/superimpositions"
+    },
+    {
+      "method": "setBackgroundIndex",
+      "signatures": [
+        "setBackgroundIndex(const int index);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "getBackgroundIndex",
+      "signatures": [
+        "getBackgroundIndex(void) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "setRGBMode",
+      "signatures": [
+        "setRGBMode(const SbBool onOrOff);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "isRGBMode",
+      "signatures": [
+        "isRGBMode(void) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R30",
+      "finding": "estado nao e copiado pelo adaptador; apresentar via surface nao prova equivalencia"
+    },
+    {
+      "method": "activate",
+      "signatures": [
+        "activate(void);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "deactivate",
+      "signatures": [
+        "deactivate(void);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "setAntialiasing",
+      "signatures": [
+        "setAntialiasing(const SbBool smoothing, const int numPasses);"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R28",
+      "finding": "smoothing e numPasses da fonte nao sao copiados"
+    },
+    {
+      "method": "getAntialiasing",
+      "signatures": [
+        "getAntialiasing(SbBool & smoothing, int & numPasses) const;"
+      ],
+      "state": "sem encaminhamento",
+      "resource": "R28",
+      "finding": "smoothing e numPasses da fonte nao sao copiados"
+    },
+    {
+      "method": "setGLRenderAction",
+      "signatures": [
+        "setGLRenderAction(SoGLRenderAction * const action);"
+      ],
+      "state": "configuracao parcialmente lida",
+      "resource": "R20",
+      "finding": "somente transparencia e lida; action GL e demais opcoes nao sao executadas pelo adaptador"
+    },
+    {
+      "method": "getGLRenderAction",
+      "signatures": [
+        "getGLRenderAction(void) const;"
+      ],
+      "state": "configuracao parcialmente lida",
+      "resource": "R20",
+      "finding": "somente transparencia e lida; action GL e demais opcoes nao sao executadas pelo adaptador"
+    },
+    {
+      "method": "setAudioRenderAction",
+      "signatures": [
+        "setAudioRenderAction(SoAudioRenderAction * const action);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "getAudioRenderAction",
+      "signatures": [
+        "getAudioRenderAction(void) const;"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "enableRealTimeUpdate",
+      "signatures": [
+        "enableRealTimeUpdate(const SbBool flag);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "isRealTimeUpdateEnabled",
+      "signatures": [
+        "isRealTimeUpdateEnabled(void);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "getDefaultRedrawPriority",
+      "signatures": [
+        "getDefaultRedrawPriority(void);"
+      ],
+      "state": "responsabilidade do host/fonte",
+      "resource": "R20",
+      "finding": "agendamento, ativacao, render callback e dimensoes continuam no host; resize e viewport exigem encaminhamento explicito"
+    },
+    {
+      "method": "addPreRenderCallback",
+      "signatures": [
+        "addPreRenderCallback(SoRenderManagerRenderCB * cb, void * data);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "removePreRenderCallback",
+      "signatures": [
+        "removePreRenderCallback(SoRenderManagerRenderCB * cb, void * data);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "addPostRenderCallback",
+      "signatures": [
+        "addPostRenderCallback(SoRenderManagerRenderCB * cb, void * data);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "removePostRenderCallback",
+      "signatures": [
+        "removePostRenderCallback(SoRenderManagerRenderCB * cb, void * data);"
+      ],
+      "state": "ciclo comum preservado",
+      "resource": "R20",
+      "finding": "prepareFrame/finishFrame executam pre/post, audio e realTime; callbacks devem ser independentes de GL"
+    },
+    {
+      "method": "reinitialize",
+      "signatures": [
+        "reinitialize(void);"
+      ],
+      "state": "sem equivalencia direta",
+      "resource": "R18",
+      "finding": "resize/device-loss do target tem contrato proprio; reinitialize da fonte nao e propagado"
+    }
+  ]
+}

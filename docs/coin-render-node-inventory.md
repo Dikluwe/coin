@@ -4,6 +4,8 @@ P15 fecha a descoberta e a classificação do checkout local; suporte funcional
 F19/F20 e qualificação de interação P16 permanecem separados. Percorrer um nó,
 aceitar uma cena ou gerar primitivas de picking não certifica o resultado GL.
 
+Atualização de recursos em 19/10/2026: volumes 3D POT/NPOT e cubemaps de seis faces têm perfis públicos qualificados em R23/R24; `SoSceneTextureCubeMap` já está integrado em R25, cuja campanha específica passou e cujas regressões compartilhadas ainda estão em andamento. Esses nós não são recusados genericamente. Uma textura de cubo incompleta deve ser testada com um consumidor ativo para comprovar a recusa; um nó de textura inerte não comprova suporte. Analogamente, `SoShadowGroup` sem luz efetiva percorre a geometria comum e não consome sua qualidade: o teste de qualidade não finita adiciona uma luz de mapa, exige recusa antes de publicar e verifica recuperação. O inventário atualizado passou nos dois builds com backend de captura CPU. Os números de ABI abaixo descrevem as qualificações históricas; a integração R25 usa ABI privada wgpu 61. O estado de recursos e combinações atual está na [matriz](coin-render-feature-matrix.md).
+
 ## Texto e imagem implementados em Linux
 
 Em 2026-10-05, os tipos nativos exatos `SoText2` e `SoImage` passaram a ter
@@ -53,9 +55,17 @@ válido. Imagem/texto vazios são inertes.
 
 `SoImage` com texturas herdadas ativas é recusado: o CoinGL aplica texturas
 usando coordenadas raster persistentes que o estado da callback não fornece.
-Texto desativa essas texturas no CoinGL. Nós de raster dentro de um
-`SoShadowGroup` ativo e raster transparente interceptado pela ordenação de
-triângulos também são recusados até existir um contrato comum para esses casos.
+Texto desativa essas texturas no CoinGL. O perfil C07.3 qualifica os quatro nós
+como casters de um mapa spot/direcional nas sete células Linux, incluindo origem
+recortada pelo observador, máscara e exclusão de alpha transparente. A cobertura é
+reconstruída pela câmera da luz. O receiver SoImage PHONG de um mapa spot/direcional e fog planar linear
+também está qualificado em C07.4, com máscara/alpha preservados e posição real
+de iluminação separada da profundidade de fog. C07.5 amplia casters por slot e sorting para quatro/oito mapas; C07.6–C07.8 qualificam os perfis de RTT, janela X11 física e depth/anotações com 1/4/8 mapas. C07.9 qualifica HAZE/FOG/SMOKE com 1/4/8 mapas e múltiplas âncoras de marcadores. AlphaTest tem perfis próprios em C07.10: caster assinado, receiver, slots 1/4/8, RTT, janela e restauração; os demais cruzamentos continuam abertos. C21.4 qualifica também a projeção raster por câmera autoral em `shadowMapScene`; C21.5 cobre reset de modelo anterior não comutativo, preservando âncoras. São oráculos comuns de projeção, sem converter a divergência raster CoinGL B21 em passe.
+Text2 e marcadores forçam BASE_COLOR e conservam cor sem iluminação. Grupos sem mapas
+efetivos têm composição ordinária qualificada no perfil C07.2; a referência CoinGL
+ativa mantém divergências de shader raster (B21). A ordenação transparente de objetos/triângulos BLEND e ADD
+preserva o conteúdo raster e foi qualificada sem mapas nas sete células Linux
+em C07.1. Runs de pixels conservam a unidade de ordenação do nó original.
 O fog usa a aproximação planar permitida pelo GL, qualificada no driver desta
 campanha. A comparação de imagem mede RGB; não é uma certificação geral de
 alpha de framebuffer/RTT. Os testes negativos não contam como paridade visual.
@@ -243,7 +253,7 @@ uma comparação visual FreeCAD/BGFX/wgpu. Fonte/linha referem-se ao checkout au
 | Measure | MassPropertiesResult: SoImage; SoScreenSpaceScale; labels compartilhados | Escala candidata, ícone/rótulo sem qualificação. |
 | PartDesign | ViewProviderDatumCS: 3 SoText2 | Eixos geométricos podem capturar; legendas precisam P03. |
 | Viewer/GUI | NaviCube, axis cross (SoText2), draggers/FrameLabel; ViewProviderAnnotation (SoText2/SoImage), NavlibPivot, ManualAlignment | NaviCube candidato; texto, imagem e preparação fria dos rótulos pendentes. |
-| Texturas de faces | ViewProviderTextureExtension cria SoTexture3 | Fora do contrato de textura 2D; verificar/rejeitar volume e coordenadas antes de declarar suporte. |
+| Texturas de faces | ViewProviderTextureExtension cria SoTexture3 | Perfil RGBA8 linear/POT até 256 por eixo implementado em R23.1; conferir formatos, coordenadas e uso real deste consumidor antes de qualificá-lo. Outros formatos e combinações permanecem na matriz. |
 | CAM | PathSimulator/AppGL/DlgCAMSimulator + Shader.cpp: glCreateShader/glUseProgram | Widget GL independente do grafo Coin; trocar CoinRender não migra o simulador. Integração/Infra própria se requerida. |
 | TechDraw/Quarter/Qt | QOpenGLWidget em QGVPage e componentes GUI | Uso de widget não prova nó GL-only ou shader customizado. Ensaiar host no P16. |
 
@@ -275,8 +285,8 @@ separado; o contrato Coin de shader também permanece aberto por si só.
   declarar capacidade/diagnóstico e contrato de programa/parâmetros antes da
   implementação específica em BGFX/wgpu; programa GL não é plano portátil.
 - [ ] **I08 — Volume/cube maps/sombras (F20):** SoTexture3 tem consumidor real;
-  conferir formatos/dimensões e política comum, com rejeição explícita onde faltar
-  suporte. Cube maps/sombras precisam ampliar a descoberta de consumidores.
+  R23.1 qualifica um perfil POT/RGBA8 do executor, mas ainda falta qualificar
+  formatos/dimensões e combinações desse consumidor, com rejeição explícita onde faltar suporte. Cube maps/sombras precisam ampliar a descoberta de consumidores.
 
 Estas pendências funcionais não são P15 incompleto: P15 identifica o que precisa
 ser fechado e seus donos. P16 deve declarar casos utilizáveis e seus bloqueios,

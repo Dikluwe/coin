@@ -34,8 +34,10 @@ permanecem habilitados. AVIF/WebP ficam desabilitados apenas no alvo auxiliar
 O diff do gerador deve ser preservado junto aos artefatos de recuperação.
 
 BGFX é configurado com 1024 view IDs, 1024 framebuffers, 4096 shaders e
-12 bits de programa. Os 16 view IDs reservados por alvo preservam a capacidade
-anterior de 64 alvos. Pools compilados não substituem validação de todas as
+12 bits de programa. A reserva inicial de 16 view IDs por alvo preserva a
+capacidade anterior de 64 alvos simples. B51 permite expandir um alvo em blocos
+contíguos conforme a composição; esses blocos reduzem a capacidade simultânea
+restante. A fronteira de recursos foi requalificada em B51.2 nas quatro células BGFX Linux, com consulta sem reserva e coexistência STAGED antes do primeiro produtor. Pools compilados não substituem validação de todas as
 combinações de composição e recursos.
 
 ## Pendência funcional ao retomar

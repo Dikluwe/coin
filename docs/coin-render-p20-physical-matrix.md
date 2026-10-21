@@ -1,4 +1,9 @@
-# P20 — matriz física Linux (continuação de 2026-10-07)
+# P20 — matriz física Linux
+
+Continuação de 2026-10-16: [perfil portátil B01.3a](coin-render-b01-p20-portable-20261016.md),
+24/24 células CoinRender qualificadas contra CPU e nas duas GPUs. Controle
+nativo reexecutado: 22/24 comparações CoinGL aprovadas, duas falhas AMD
+conservadas. Os números abaixo documentam a campanha histórica de 2026-10-07.
 
 A [campanha atual](coin-render-hardware-surfaces-linux.md) executou as duas
 GPUs físicas deste PC: AMD Renoir `1002:1638`, Mesa radeonsi/RADV 25.2.8,

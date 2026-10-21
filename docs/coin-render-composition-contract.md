@@ -16,7 +16,14 @@ condição BGFX. O Core recebe snapshots e arrays; não lê `SoState`, atravessa
 comandos GPU.
 
 - `NONE` e `SCREEN_DOOR` não habilitam blend. O nível de stipple do screen door
-  também é resolvido no Core; sua aplicação é específica do executor.
+  também é resolvido no Core; sua aplicação é específica do executor. O Bayer
+  32×32 preserva a ordem MSB do bitmap CoinGL, sem espelhamento horizontal,
+  e permanece ancorado à origem inferior esquerda do framebuffer. O stipple
+  poligonal aplica-se somente a faces preenchidas. `SoDrawStyle::LINES` e
+  `POINTS`, assim como `SoLineSet` e `SoPointSet`, conservam sua geometria sem
+  esse stipple, seguindo [OpenGL 1.4, §3.5.4](https://registry.khronos.org/OpenGL/specs/gl/glspec14.pdf).
+  O CoinGL instalado diverge entre Mesa e NVIDIA nesse cruzamento; a comparação
+  nativa continua estrita e a divergência é acompanhada em B09.1 na matriz.
 - `ADD` e `BLEND` executam imediatamente na ordem de travessia.
 - `DELAYED_*` adiam draws transparentes, mantendo sua ordem relativa.
 - `SORTED_OBJECT_*` ordenam os transparentes de trás para frente, estavelmente,

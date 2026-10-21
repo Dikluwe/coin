@@ -1,5 +1,9 @@
 # CoinRender: arquitetura e fonte de verdade
 
+## Acompanhamento da cobertura
+
+A [matriz consolidada de recursos e combinações](coin-render-feature-matrix.md), iniciada em 16/10/2026, é o ponto de entrada para o estado funcional atual e suas evidências. Os relatórios e contagens datados abaixo conservam seus escopos históricos; não são uma nova execução no HEAD atual.
+
 Estado auditado em 2026-10-12 na branch `codex/coin-render`. Este documento
 descreve a intenção atual da funcionalidade; os relatórios de validação e as
 ADRs de ondas anteriores preservam o contexto histórico de cada entrega.

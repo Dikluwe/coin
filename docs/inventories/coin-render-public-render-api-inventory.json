@@ -1,0 +1,1150 @@
+{
+  "schema_version": 1,
+  "master": "ca247c1321bce07199ec0f034493977761b3218e",
+  "coinrender": "24ddf557af4c8956b008d51a53446f4671f33a3b",
+  "headers": {
+    "include/Inventor/actions/SoGLRenderAction.h": "R34",
+    "include/Inventor/actions/SoBoxHighlightRenderAction.h": "R35",
+    "include/Inventor/actions/SoLineHighlightRenderAction.h": "R35",
+    "include/Inventor/SoSceneManager.h": "R20",
+    "include/Inventor/SoOffscreenRenderer.h": "R36"
+  },
+  "declarations": [
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "initClass",
+      "signature": "initClass(void);",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "SoGLRenderAction",
+      "signature": "SoGLRenderAction(const SbViewportRegion & viewportregion);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "SoGLRenderAction",
+      "signature": "SoGLRenderAction(void);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "SoGLRenderAbortCB",
+      "signature": "SoGLRenderAbortCB(void * userdata);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setViewportRegion",
+      "signature": "setViewportRegion(const SbViewportRegion & newregion);",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getViewportRegion",
+      "signature": "getViewportRegion(void) const;",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setUpdateArea",
+      "signature": "setUpdateArea(const SbVec2f & origin, const SbVec2f & size);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getUpdateArea",
+      "signature": "getUpdateArea(SbVec2f & origin, SbVec2f & size) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setAbortCallback",
+      "signature": "setAbortCallback(SoGLRenderAbortCB * const func, void * const userdata);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getAbortCallback",
+      "signature": "getAbortCallback(SoGLRenderAbortCB * & func_out, void * & userdata_out) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setTransparencyType",
+      "signature": "setTransparencyType(const TransparencyType type);",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getTransparencyType",
+      "signature": "getTransparencyType(void) const;",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setTransparentDelayedObjectRenderType",
+      "signature": "setTransparentDelayedObjectRenderType(TransparentDelayedObjectRenderType type);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getTransparentDelayedObjectRenderType",
+      "signature": "getTransparentDelayedObjectRenderType(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setSmoothing",
+      "signature": "setSmoothing(const SbBool smooth);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "isSmoothing",
+      "signature": "isSmoothing(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setNumPasses",
+      "signature": "setNumPasses(const int num);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getNumPasses",
+      "signature": "getNumPasses(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setPassUpdate",
+      "signature": "setPassUpdate(const SbBool flag);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "isPassUpdate",
+      "signature": "isPassUpdate(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setPassCallback",
+      "signature": "setPassCallback(SoGLRenderPassCB * const func, void * const userdata);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setCacheContext",
+      "signature": "setCacheContext(const uint32_t context);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getCacheContext",
+      "signature": "getCacheContext(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "addDelayedPath",
+      "signature": "addDelayedPath(SoPath * path);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "isRenderingDelayedPaths",
+      "signature": "isRenderingDelayedPaths(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "handleTransparency",
+      "signature": "handleTransparency(SbBool istransparent = FALSE);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setCurPass",
+      "signature": "setCurPass(const int passnum, const int numpasses);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getCurPass",
+      "signature": "getCurPass(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "abortNow",
+      "signature": "abortNow(void);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setRenderingIsRemote",
+      "signature": "setRenderingIsRemote(SbBool isremote);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getRenderingIsRemote",
+      "signature": "getRenderingIsRemote(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "invalidateState",
+      "signature": "invalidateState(void) override;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "addPreRenderCallback",
+      "signature": "addPreRenderCallback(SoGLPreRenderCB * func, void * userdata);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "removePreRenderCallback",
+      "signature": "removePreRenderCallback(SoGLPreRenderCB * func, void * userdata);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setSortedLayersNumPasses",
+      "signature": "setSortedLayersNumPasses(int num);",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getSortedLayersNumPasses",
+      "signature": "getSortedLayersNumPasses(void) const;",
+      "resource": "R34",
+      "state": "assinatura homonima na action alternativa; sem prova de equivalencia geral",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setSortedObjectOrderStrategy",
+      "signature": "setSortedObjectOrderStrategy(const SortedObjectOrderStrategy strategy,\n                                    SoGLSortedObjectOrderCB * cb = NULL,\n                                    void * closure = NULL);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "setDelayedObjDepthWrite",
+      "signature": "setDelayedObjDepthWrite(SbBool write);",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "getDelayedObjDepthWrite",
+      "signature": "getDelayedObjDepthWrite(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "isRenderingTranspPaths",
+      "signature": "isRenderingTranspPaths(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoGLRenderAction.h",
+      "method": "isRenderingTranspBackfaces",
+      "signature": "isRenderingTranspBackfaces(void) const;",
+      "resource": "R34",
+      "state": "sem assinatura homonima na action alternativa; adaptar contrato",
+      "master_header_sha256": "6faea73611cfece8435b0eef2f77a3a6250c4e285359dac31ac30de24abab85d"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "initClass",
+      "signature": "initClass(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "SoBoxHighlightRenderAction",
+      "signature": "SoBoxHighlightRenderAction(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "SoBoxHighlightRenderAction",
+      "signature": "SoBoxHighlightRenderAction(const SbViewportRegion & viewportregion);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "SoBoxHighlightRenderAction",
+      "signature": "SoBoxHighlightRenderAction(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "apply",
+      "signature": "apply(SoNode * node) override;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "apply",
+      "signature": "apply(SoPath * path) override;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "apply",
+      "signature": "apply(const SoPathList & pathlist, SbBool obeysrules = FALSE) override;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "setVisible",
+      "signature": "setVisible(const SbBool visible);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "isVisible",
+      "signature": "isVisible(void) const;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "setColor",
+      "signature": "setColor(const SbColor & color);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "getColor",
+      "signature": "getColor(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "setLinePattern",
+      "signature": "setLinePattern(unsigned short pattern);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "getLinePattern",
+      "signature": "getLinePattern(void) const;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "setLineWidth",
+      "signature": "setLineWidth(const float width);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoBoxHighlightRenderAction.h",
+      "method": "getLineWidth",
+      "signature": "getLineWidth(void) const;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "65927b134d79e5860ed5c2a96619975aacde60c551b4e2c79f2d253b8af24cff"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "initClass",
+      "signature": "initClass(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "SoLineHighlightRenderAction",
+      "signature": "SoLineHighlightRenderAction(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "SoLineHighlightRenderAction",
+      "signature": "SoLineHighlightRenderAction(const SbViewportRegion & viewportregion);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "SoLineHighlightRenderAction",
+      "signature": "SoLineHighlightRenderAction(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "apply",
+      "signature": "apply(SoNode * node) override;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "apply",
+      "signature": "apply(SoPath * path) override;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "apply",
+      "signature": "apply(const SoPathList & pathlist, SbBool obeysrules = FALSE) override;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "setVisible",
+      "signature": "setVisible(const SbBool visible);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "isVisible",
+      "signature": "isVisible(void) const;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "setColor",
+      "signature": "setColor(const SbColor & color);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "getColor",
+      "signature": "getColor(void);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "setLinePattern",
+      "signature": "setLinePattern(uint16_t pattern);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "getLinePattern",
+      "signature": "getLinePattern(void) const;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "setLineWidth",
+      "signature": "setLineWidth(const float width);",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/actions/SoLineHighlightRenderAction.h",
+      "method": "getLineWidth",
+      "signature": "getLineWidth(void) const;",
+      "resource": "R35",
+      "state": "action GL especializada; selecao/picking do host nao comprova esta action",
+      "master_header_sha256": "23c9e20f84eb1cae41d7339696f2d00e339794eea7de404817ace6136abe1d5b"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "SoSceneManager",
+      "signature": "SoSceneManager(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "SoSceneManager",
+      "signature": "SoSceneManager();",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "render",
+      "signature": "render(const SbBool clearwindow = TRUE,\n                      const SbBool clearzbuffer = TRUE);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "render",
+      "signature": "render(SoGLRenderAction * action,\n                      const SbBool initmatrices = TRUE,\n                      const SbBool clearwindow = TRUE,\n                      const SbBool clearzbuffer = TRUE);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setCamera",
+      "signature": "setCamera(SoCamera * camera);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getCamera",
+      "signature": "getCamera(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "processEvent",
+      "signature": "processEvent(const SoEvent * const event);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "reinitialize",
+      "signature": "reinitialize(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "scheduleRedraw",
+      "signature": "scheduleRedraw(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setSceneGraph",
+      "signature": "setSceneGraph(SoNode * const sceneroot);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getSceneGraph",
+      "signature": "getSceneGraph(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setWindowSize",
+      "signature": "setWindowSize(const SbVec2s & newsize);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getWindowSize",
+      "signature": "getWindowSize(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setSize",
+      "signature": "setSize(const SbVec2s & newsize);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getSize",
+      "signature": "getSize(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setOrigin",
+      "signature": "setOrigin(const SbVec2s & newOrigin);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getOrigin",
+      "signature": "getOrigin(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setViewportRegion",
+      "signature": "setViewportRegion(const SbViewportRegion & newRegion);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getViewportRegion",
+      "signature": "getViewportRegion(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setBackgroundColor",
+      "signature": "setBackgroundColor(const SbColor & color);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getBackgroundColor",
+      "signature": "getBackgroundColor(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setBackgroundIndex",
+      "signature": "setBackgroundIndex(const int index);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getBackgroundIndex",
+      "signature": "getBackgroundIndex(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setRGBMode",
+      "signature": "setRGBMode(const SbBool onOrOff);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "isRGBMode",
+      "signature": "isRGBMode(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "activate",
+      "signature": "activate(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "deactivate",
+      "signature": "deactivate(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setRenderCallback",
+      "signature": "setRenderCallback(SoSceneManagerRenderCB * f,\n                         void * const userData = NULL);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "isAutoRedraw",
+      "signature": "isAutoRedraw(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setRedrawPriority",
+      "signature": "setRedrawPriority(const uint32_t priority);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getRedrawPriority",
+      "signature": "getRedrawPriority(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setAntialiasing",
+      "signature": "setAntialiasing(const SbBool smoothing, const int numPasses);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getAntialiasing",
+      "signature": "getAntialiasing(SbBool & smoothing, int & numPasses) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setGLRenderAction",
+      "signature": "setGLRenderAction(SoGLRenderAction * const action);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getGLRenderAction",
+      "signature": "getGLRenderAction(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setAudioRenderAction",
+      "signature": "setAudioRenderAction(SoAudioRenderAction * const action);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getAudioRenderAction",
+      "signature": "getAudioRenderAction(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "setHandleEventAction",
+      "signature": "setHandleEventAction(SoHandleEventAction * hea);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getHandleEventAction",
+      "signature": "getHandleEventAction(void) const;",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "getDefaultRedrawPriority",
+      "signature": "getDefaultRedrawPriority(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "enableRealTimeUpdate",
+      "signature": "enableRealTimeUpdate(const SbBool flag);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoSceneManager.h",
+      "method": "isRealTimeUpdateEnabled",
+      "signature": "isRealTimeUpdateEnabled(void);",
+      "resource": "R20",
+      "state": "triagem de fronteira; equivalencia por contrato/caso, nao inferida por assinatura",
+      "master_header_sha256": "0d24f904c126667f427258fb4e26751f823526b09eb0670e24640755d5708b37"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "SoOffscreenRenderer",
+      "signature": "SoOffscreenRenderer(const SbViewportRegion & viewportregion);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "SoOffscreenRenderer",
+      "signature": "SoOffscreenRenderer(SoGLRenderAction * action);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "SoOffscreenRenderer",
+      "signature": "SoOffscreenRenderer();",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getScreenPixelsPerInch",
+      "signature": "getScreenPixelsPerInch(void);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getMaximumResolution",
+      "signature": "getMaximumResolution(void);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "setComponents",
+      "signature": "setComponents(const Components components);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getComponents",
+      "signature": "getComponents(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "setViewportRegion",
+      "signature": "setViewportRegion(const SbViewportRegion & region);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getViewportRegion",
+      "signature": "getViewportRegion(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "setBackgroundColor",
+      "signature": "setBackgroundColor(const SbColor & color);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getBackgroundColor",
+      "signature": "getBackgroundColor(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "setGLRenderAction",
+      "signature": "setGLRenderAction(SoGLRenderAction * action);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getGLRenderAction",
+      "signature": "getGLRenderAction(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "render",
+      "signature": "render(SoNode * scene);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "render",
+      "signature": "render(SoPath * scene);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getBuffer",
+      "signature": "getBuffer(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getDC",
+      "signature": "getDC(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToRGB",
+      "signature": "writeToRGB(FILE * fp) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToPostScript",
+      "signature": "writeToPostScript(FILE * fp) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToPostScript",
+      "signature": "writeToPostScript(FILE * fp, const SbVec2f & printsize) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToRGB",
+      "signature": "writeToRGB(const char * filename) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToPostScript",
+      "signature": "writeToPostScript(const char * filename) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToPostScript",
+      "signature": "writeToPostScript(const char * filename, const SbVec2f & printsize) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "isWriteSupported",
+      "signature": "isWriteSupported(const SbName & filetypeextension) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getNumWriteFiletypes",
+      "signature": "getNumWriteFiletypes(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getWriteFiletypeInfo",
+      "signature": "getWriteFiletypeInfo(const int idx,\n                            SbPList & extlist,\n                            SbString & fullname,\n                            SbString & description);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "writeToFile",
+      "signature": "writeToFile(const SbString & filename, const SbName & filetypeextension) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "setPbufferEnable",
+      "signature": "setPbufferEnable(SbBool enable);",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    },
+    {
+      "header": "include/Inventor/SoOffscreenRenderer.h",
+      "method": "getPbufferEnable",
+      "signature": "getPbufferEnable(void) const;",
+      "resource": "R36",
+      "state": "captura CoinRender propria; componentes/exportacao/contexto legado exigem correspondencia",
+      "master_header_sha256": "1c304d706ac7bf0922f780ae18d53685f20c196b71a618cad98fbf73e0a61a09"
+    }
+  ]
+}

@@ -26,7 +26,9 @@ camadas. Core trabalha sobre snapshots, sem travessia nem comandos GPU.
 | `SORTED_LAYERS_BLEND` | Seleção de camadas por profundidade por pixel e composição de trás para frente. |
 
 Empates de sorting são estáveis. Triângulos artificiais da expansão de strokes
-não são reordenados. Anotações preservam travessia na própria camada, com a
+e dos runs de pixels raster não são reordenados. Imagens, textos e marcadores
+preservam a ordem do objeto original; a rota CoinGL conserva GLRender raster
+em vez de substituir o bitmap pelo cache de primitivas (B19/C07.1). Anotações preservam travessia na própria camada, com a
 barreira comum de profundidade; não participam do peeling da camada base.
 
 O passe transparente adiado usa test=true, write=false, LEQUAL e range [0,1],
@@ -65,6 +67,49 @@ pública do Coin. O bridge valida combinações de flags; não reclassifica alph
 Packets de triângulos ordenados não reutilizam uma única entrada de geometria
 identificada pela shape. Camera patch recalcula ordem e invalida o hint quando
 a sequência muda.
+
+## Sombras com múltiplas texturas
+
+O caminho completo BGFX/wgpu conserva as oito unidades de cena e até oito
+mapas VSM também na composição transparente. Os momentos são copiados para
+layers independentes de um array RGBA32F; cada mapa mantém sua resolução e o
+receiver faz quatro leituras de texel para interpolação bilinear. Grupos com
+resoluções diferentes usam a maior extensão física, com coordenadas limitadas
+à região válida de cada layer. Amostragem Native/Portable das texturas de cena
+continua sendo uma escolha separada.
+
+BGFX usa cena em 0–7, profundidades do compositor em 8–9 e array em 10; wgpu
+mantém oito samplers e até onze texturas na disposição completa. O rearranjo evita
+exigir dezoito texturas para oito unidades, oito mapas e duas profundidades.
+A cópia do array consome uma view BGFX, incluída na admissão do frame/grafo.
+Não há redução silenciosa de mapas, unidades, amostras ou mecanismo OIT.
+
+O orçamento físico de sombras é de 128 MiB por apply: as fontes custam
+20 bytes por texel (RGBA32F e D32F), além de 16 bytes por texel de cada layer
+na maior extensão. Ambos alocam pelo menos duas layers para obter um array
+nativo. No wgpu, seis mapas usam sete layers físicas: o HAL GLES instalado
+infere cubemap para seis faces quadradas e não reinterpreta o tipo na view.
+A camada extra fica sem mapa lógico; essa reserva vale em todos os adapters
+e participa do orçamento e do limite de layers. Esse custo é verificado antes dos produtores RTT;
+no caminho de janela wgpu, também antes da aquisição WSI. A recusa conserva a
+publicação anterior. Formatos, limites de bindings/interstage e programas
+concretos também participam da admissão.
+
+RTT conserva seu sampler e sua política alpha. Em qualidade 0,1, o FBO de
+`SoSceneTexture2` usa LINEAR; a textura estática dessa qualidade usa NEAREST.
+A política `NONE` fornece alpha amostrado igual a 1. `gpuOpaque` continua
+sendo uma prova conservadora sobre o conteúdo armazenado e pode ser falso
+nessa política. DIRECT transporta o token GPU e esse metadado pelo FFI;
+STAGED transporta os pixels resolvidos. A classificação de transparência
+considera a política de amostragem junto aos demais estados capturados.
+
+A campanha delimitada cobre rasterização Native em 1×/2×/4×; MSAA 2×/4×
+desse caminho exige Native. As modalidades Coin, peeling/weighted, estados de
+profundidade e RTT continuam
+sujeitos às restrições concretas de cada executor. A implementação não é uma
+qualificação de todo o produto cartesiano: os cruzamentos aprovados e os ainda
+abertos estão em C02.9/C03.6 da
+[matriz de recursos](coin-render-feature-matrix.md).
 
 ## Qualificação e limites
 

@@ -69,9 +69,16 @@ com a checagem do GL de `SoIndexedMarkerSet`; o GL Release de `SoMarkerSet`
 acessa o registro sem checar esse limite. A política segura para IDs ausentes
 não é uma certificação daquele acesso indefinido.
 
-O perfil também recusa raster dentro de `SoShadowGroup` ativo e raster
-transparente interceptado pela ordenação de triângulos, seguindo o contrato
-de texto/imagem. `vertexProperty` customizado e volumes de visão degenerados
+O perfil C07.3 qualifica marcadores como casters de um mapa spot/direcional
+nas sete células Linux, com cobertura reconstruída por câmera da luz e máscara
+esparsa preservada, mesmo com a origem fora da câmera observadora. Material
+transparente exclui o caster. O marcador força BASE_COLOR e conserva sua cor
+sem iluminação. C07.5 qualifica casters por slot com quatro/oito mapas e sorting BLEND/ADD; C07.6–C07.8 qualificam os perfis de RTT, janela física e depth/anotações com 1/4/8 mapas. C07.9 qualifica as três funções de fog planar com múltiplas âncoras e 1/4/8 mapas. AlphaTest tem perfis próprios em C07.10: caster assinado, receiver, slots 1/4/8, RTT, janela e restauração; os demais cruzamentos continuam abertos. C21.4/C21.5 qualificam câmera autoral em `shadowMapScene` e reset do modelo anterior à câmera para os perfis de marcadores, com deslocamento analítico e frames invariantes; a referência raster nativa B21 permanece reprovada.
+Grupos sem mapas têm composição ordinária qualificada no perfil C07.2; os gates da
+referência CoinGL ativa permanecem reprovados em B21.
+A ordenação transparente de objetos/triângulos BLEND e ADD preserva a unidade
+do marcador e sua máscara; o perfil sem mapas foi qualificado nas sete células
+Linux em C07.1, junto de texto/imagem. `vertexProperty` customizado e volumes de visão degenerados
 exigem um contrato adicional e são recusados no perfil raster.
 `SoComplexity::BOUNDING_BOX` usa agora a
 [captura comum de caixas](coin-render-bounding-box-contract.md), preservando

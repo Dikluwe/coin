@@ -4,16 +4,21 @@ O protocolo privado 21 transporta `CoinRenderDrawPacket::renderLayer` e
 `clearDepthBefore` em `CoinWgpuDraw::render_layer` e `clear_depth_before`.
 C++ e Rust devem ser reconstruídos juntos. O draw tem 56 bytes desde a revisão 20;
 a revisão 21 usa o antigo campo reservado para o blend resolvido pelo Core.
-O estado tinha 956 bytes nessa entrega, incluindo polygon offset. Na revisão
-privada atual 25 tem 1096 bytes com clipping, bias de inclinação e máximo de depth original; os metadados de anotações permanecem
-no draw de 56 bytes. Veja o [contrato de clipping](coin-render-clipping-contract.md).
+O estado tinha 956 bytes nessa entrega e 1096 na revisão 25; esses tamanhos
+são históricos. A revisão privada vigente é 59, definida em
+[CoinWgpuFfi.h](../src/rendering/coinwgpu/CoinWgpuFfi.h); os metadados de
+anotações permanecem no draw de 56 bytes. Veja o
+[contrato de clipping](coin-render-clipping-contract.md).
 
 A camada zero recebe a composição resolvida pelo Core CoinRender. As demais
 camadas são executadas por número crescente e preservam a ordem de travessia,
 inclusive quando alternam geometria opaca e transparente. A limpeza de depth
-ocorre antes do draw marcado, em uma passagem sem attachment de cor, com
-scissor na viewport correspondente. A profundidade fora da viewport é
-preservada. O pipeline dessa limpeza é reutilizado por device.
+ocorre uma vez na entrada da camada marcada, antes de seus draws, em uma
+passagem sem attachment de cor. O draw que transporta `clearDepthBefore`
+identifica a viewport original da limpeza; sua posição na sequência resolvida
+não cria uma barreira no meio da camada. O scissor conserva essa viewport e
+preserva a profundidade externa. O pipeline dessa limpeza é reutilizado por
+device.
 
 Viewports inválidas são rejeitadas antes da mutação dos caches e da codificação
 de comandos. A viewport FFI com largura e altura zero continua significando o

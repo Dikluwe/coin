@@ -1,0 +1,23 @@
+{
+  "id": "B03",
+  "status": "open_historical_cause",
+  "verification": {
+    "positive_processes_passed": 51,
+    "fresh_frames_with_exact_independent_pixels": 153,
+    "physical_api_cells": 7,
+    "stale_image_negative_controls_rejected": 1,
+    "unavailable_cells": 1,
+    "immediate_stale_observations": 152,
+    "fixed_50ms_stale_observations": 38,
+    "wgpu_opengl_fixed_50ms_stale_observations": 0,
+    "B03_historical_50ms_failure_cause_proved": false,
+    "B03_closed": false,
+    "evidence_hashes_verified": true
+  },
+  "report": "../coin-render-b03-first-present-20261017.md",
+  "remaining": [
+    "Reproduce the historical 50ms wgpu/OpenGL terrain capture failure",
+    "Discriminate omitted presentation, delayed visibility, and window lifecycle",
+    "Correct the proved cause and rerun the affected combinations"
+  ]
+}

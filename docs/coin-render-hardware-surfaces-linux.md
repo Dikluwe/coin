@@ -50,6 +50,12 @@ de oclusão com oito câmeras distintas. As
 fixtures antigas de oito mapas que usam sete luzes equivalentes mantêm essa
 qualificação restrita.
 
+Continuação de 17/10/2026: um [oráculo independente com oito mapas
+distintos](coin-render-b11-distinct-shadow-oracle-20261017.md) passou em sete
+células BGFX/wgpu Linux, incluindo oclusões individuais, soma de luzes,
+projeção geométrica e controle negativo de mapas duplicados. Isso amplia a
+qualificação funcional portátil; a limitação CoinGL nativa acima permanece.
+
 O runner de sombras agora exige que **o contexto offscreen CoinGL atual**
 identifique a GPU física esperada e rejeita renderer de software; inventariar
 apenas o adaptador Vulkan não comprova o oráculo. BGFX/OpenGL também exige

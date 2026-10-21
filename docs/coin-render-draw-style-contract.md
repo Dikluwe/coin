@@ -1,8 +1,9 @@
 # CoinRender: contrato e fechamento de SoDrawStyle
 
 P02/F04 continua aberto na matriz completa. INVISIBLE está implementado;
-LINES/POINTS agora têm resolução comum e um perfil de contornos convexos
-executado em CPU, BGFX e wgpu. Os limites restantes estão registrados abaixo.
+LINES/POINTS têm resolução comum em CPU, BGFX e wgpu. A ampliação C04.1
+implementa contornos côncavos, identidade por ocorrência e offset não planar;
+sua qualificação e as divergências CoinGL estão na matriz de recursos.
 
 ## Fonte do contrato
 
@@ -108,10 +109,10 @@ não aceita strokes preparados em coordenadas de tela.
 
 ### Limites explícitos
 
-- Contornos côncavos, coordenadas repetidas ambíguas, montagem incompleta ou
-  atributos inconsistentes retornam UNSUPPORTED. Esses casos não geram uma
-  aproximação com diagonais. A triangulação de faces côncavas do GL exige estudo
-  próprio para definir bordas efetivamente rasterizadas em cada shape.
+- Montagem incompleta, ocorrências sem identidade recuperável ou atributos
+  contraditórios para a mesma ocorrência retornam UNSUPPORTED. C04.1 amplia
+  contornos côncavos e coordenadas repetidas com identidade válida, conservando
+  bordas originais em vez de introduzir diagonais de tesselação.
 - Padrão de linha de 16 bits tem fase contínua por polígono, com repetição
   limitada a 1..256 e contagem por fragmentos unitários. A primeira aresta
   segue o perfil de montagem documentado abaixo; bordas e recortes gerais ainda
@@ -120,11 +121,13 @@ não aceita strokes preparados em coordenadas de tela.
   projetada não zero. No wgpu, inclinação e units são combinados na Infra usando a precisão
   D32Float do maior depth original, preservado antes do padrão; FILLED conserva o bias nativo.
   Precisão de units e qualificação de depth/raster continuam vinculadas a
-  P04/F12. Faces não planas e faces de lado com factor ativo têm diagnóstico
-  explícito; com factor zero, conservam o perfil anterior.
+  P04/F12. C04.1 resolve faces não planares a partir dos triângulos de origem;
+  quando faltam esses dados ou a área projetada necessária é zero, a recusa
+  continua explícita.
 - Textura na unidade 0 com UV explícito, quatro modelos e fog por fragmento
-  estão implementados em ambos os backends. Multitextura no wgpu e UV
-  procedural/default permanecem no escopo de P07/P08. A matriz de
+  estão implementados em ambos os backends. C04.1 exercita multitextura explícita
+  nas unidades 0/3 em ambos; demais recursos e UV procedural/default permanecem
+  nos cruzamentos de P07/P08. A matriz de
   transparência e de outras plataformas ainda exige qualificação.
 - Não declarar equivalência visual Coin/GL, cobertura de subclasses/custom
   GLRender, todas as modalidades de transparência ou qualificação FreeCAD.
@@ -195,8 +198,9 @@ perfil testado com units zero.
 viewport, projeção homogênea, range, sinais, clipping e máscara de estilo.
 A cena coplanar inclinada verifica LINES/POINTS, fast path ligado/desligado,
 oclusão antes/depois do stroke e bias suficiente para atingir o clamp sem
-eliminar geometria pelo clipping. Faces não planas preservam imagem e serial,
-e a action recupera após rejeição. O teste de depth valida transporte BGFX e
+eliminar geometria pelo clipping. Faces não planares com triângulos de origem
+resolvem o slope; sem os dados necessários preservam a publicação e a action
+recupera após rejeição. O teste de depth valida transporte BGFX e
 invalidação por mudança isolada do bias; FFI e Naga validam o transporte Rust
 e as três variantes WGSL. Esses testes não encerram comparação visual Coin/GL,
 precisão de units nem a matriz de transparência.
@@ -295,10 +299,12 @@ Offsets anteriores de clipping e bias, vértices e draws permanecem iguais.
 |---|---|---|
 | FaceSet/IndexedFaceSet convexos com detalhe recuperável | Contorno original, sem diagonais internas | Captura, Core, CPU, GPU; padrão GL em triângulos/quads/pentágonos |
 | Cube/Sphere/Cylinder/Cone de tipo exato | Montagem conhecida dos callbacks | Captura e multiplicidade dos contornos |
-| Subclasse sem detalhe de face recuperável | UNSUPPORTED | Action CPU/GPU preserva imagem e serial; FILLED/INVISIBLE recuperam |
-| Contorno côncavo | UNSUPPORTED | Core e action CPU/GPU preservam publicação |
+| Subclasse que herda geração conhecida válida ou fornece detalhe recuperável | Mesma montagem validada da origem | DerivedStyleCube e DerivedConcaveFaceSet; não inferir suporte a overrides arbitrários |
+| Shape sem detalhe de face nem montagem recuperável | UNSUPPORTED | UndetailedTriangle preserva publicação; FILLED recupera |
+| Contorno côncavo com detalhe recuperável | Implementado no perfil C04.1; recorte pode produzir componentes separados | FaceSet/IndexedFaceSet/subclasse; oráculos geométricos e máscaras independentes |
 | Montagem incompleta ou atributos inconsistentes | UNSUPPORTED | Validação do builder; sem aproximação por triangulação |
-| Face não plana ou de área projetada zero com factor ativo | UNSUPPORTED | Core e publicação; factor zero conserva o perfil existente |
+| Face não planar com factor ativo e triângulos de origem disponíveis | Bias por triângulo dono da aresta ou por cada ocorrência incidente de ponto | Slope projetado independente; fatores positivos e negativos em GPU |
+| Offset não planar sem triângulos de origem ou com área projetada necessária igual a zero | UNSUPPORTED com diagnóstico | Recusa antes de publicar; não escolher uma diagonal artificial |
 
 A matriz de padrões verifica duas faces consecutivas, três quantidades de
 vértices, faces indexadas/não indexadas, fast path ligado/desligado, larguras
@@ -472,5 +478,41 @@ reutilizam o identificador de conteúdo indexado anterior.
 As junções nativas curvas/coincidentes e os endpoints compartilhados transparentes
 são [estudo de melhoria futura](coin-render-raster-junctions-study.md). Os gates
 portáteis não relaxam tolerâncias; referências CoinGL permanecem nas matrizes
-independentes qualificadas. A escolha não encerra concavidade, offset não planar,
-subclasses adicionais ou a matriz de todos os cruzamentos de bindings.
+independentes qualificadas. A ampliação C04.1 abaixo cobre concavidade e offset não planar em seu perfil
+explícito; a matriz agregadora conserva os cruzamentos e plataformas pendentes.
+
+## Ampliação C04.1: contorno e atributos por ocorrência
+
+Um vértice do contorno é uma ocorrência, não apenas uma posição XYZ. Materiais,
+normais e coordenadas homogêneas s/t/r/q das oito unidades permanecem associados
+a essa ocorrência. Pontos coincidentes só são compactados quando todos os
+atributos rasterizados e a flag de borda também coincidem. Assim, dois cantos
+consecutivos no mesmo XYZ podem definir atributos diferentes para as arestas
+de entrada e saída. O segmento de comprimento zero não apaga essa descontinuidade.
+
+O recorte de uma face côncava pode gerar vários componentes. Os triângulos
+originais fornecem as partes recortadas; a montagem cancela arestas interiores
+e conserva cada contorno fechado sem ligar componentes por uma ponte artificial.
+Em offset não planar, LINES usa o slope do triângulo dono de cada aresta. POINTS
+conserva as ocorrências dos triângulos incidentes: o teste de depth decide qual
+fragmento vence, inclusive quando o sinal de factor muda. O quantum de units
+continua pertencendo ao formato de depth do executor.
+
+O teste público permite selecionar `--canonical-raster` e `--portable-sampling`
+independentemente, aplica as opções também aos alvos CPU e fresh, e verifica a
+política efetiva. Compara CPU/GPU, máscaras numéricas de POINTS, cores e texels
+analíticos, componentes, bindings, subclasses, mutação e recusa transacional.
+As comparações CoinGL continuam estritas: o CoinGL AMD/NVIDIA pode escolher
+lados diferentes da mesma borda, e seu cache ainda descarta atributos de uma
+ocorrência consecutiva repetida (B17). Não são passes de paridade nativa.
+O envio da normal OVERALL no cache FaceSet foi corrigido em B16; a referência
+nativa agora independe da normal deixada pelo desenho anterior.
+
+O estado de qualificação por GPU/API e as pendências permanecem em
+[C04/C04.1/C05 e B16/B17](coin-render-feature-matrix.md).
+
+## Alpha em contornos côncavos
+
+C05.1 qualifica FaceSet com BLEND, SORTED_OBJECT_BLEND e SCREEN_DOOR nos perfis descritos na matriz. No clipping que separa o polígono em componentes, o resultado conectado abandonado deve ser limpo antes da reconstrução: POINTS deduplica somente vértices já indexados no resultado novo. Manter o ring anterior omitia os cantos originais e deixava apenas interseções na linha de clip (B31). Alpha e UV por ocorrência, inclusive em posições coincidentes, conservam a aresta de saída correta; novos vértices interpolam alpha dos extremos.
+
+O teste independente usa cores BLEND analíticas em FILLED e nas arestas/pontos recortados, além de comparação integral CPU/GPU, depth e restauração. BLEND imediato e SORTED_OBJECT_BLEND adiado podem produzir o mesmo RGBA e depth diferente; a comparação entre políticas distingue esses canais, e a recuperação dentro de cada política exige RGBA/depth exatos. A campanha Linux passou 28/28 processos GPU e oito controles CPU, preservando as reprovações CoinGL estritas da suíte opaca: as 447 comparações comuns por célula e as falhas nativas permaneceram idênticas ao baseline. Outros shapes/bindings e cruzamentos C17 continuam na matriz.

@@ -1,5 +1,9 @@
 # Primeira apresentação wgpu/OpenGL no X11
 
+Continuação: [campanha de submissão única de 17/10/2026](coin-render-b03-first-present-20261017.md)
+e [30 processos independentes com o consumidor histórico](coin-render-b03-historical-gl-20261017.md).
+A causa histórica permanece aberta.
+
 No recibo `light-final-wgpu-opengl-native-terrain-million`, a primeira
 captura XGetImage tinha cobertura visível zero, enquanto o render offscreen
 da mesma cena tinha 401.466 pixels visíveis. A captura final passou RGB 0.
