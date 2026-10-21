@@ -71,6 +71,10 @@ CoinRenderSubmitResult
 CoinRenderRecordingBackend::submit(const CoinRenderFramePlan & frame,
                                CoinRenderTargetP & /*target*/)
 {
+  if (frame.hasPortableShaderDraws())
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "Recording backend does not execute portable shader modules"};
+
   this->lastRecordingLog = this->recordToString(frame);
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->submissionSerial);
 }
@@ -172,6 +176,7 @@ CoinRenderRecordingBackend::recordToString(const CoinRenderFramePlan & frame) co
         << " linePatternScale=" << rs.linePatternScaleFactor
         << " depthTest=" << (rs.depthTest ? "1" : "0")
         << " depthWrite=" << (rs.depthWrite ? "1" : "0")
+        << " colorWrite=" << (rs.colorWrite ? "1" : "0")
         << " depthFunction=" << depthFunctionName(rs.depthFunction)
         << " depthRange=[" << formatFloat(rs.depthRange[0]) << ","
         << formatFloat(rs.depthRange[1]) << "]"

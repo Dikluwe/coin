@@ -1,3 +1,5 @@
+#include <set>
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -7,11 +9,15 @@
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include "rendering/coinwgpu/CoinWgpuPortableCore.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderRttCore.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderShadowCore.h"
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 
+#include <algorithm>
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
@@ -46,7 +52,9 @@ static_assert(alignof(CoinWgpuTexture) == 8, "CoinWgpuTexture alignment mismatch
 static_assert(sizeof(CoinWgpuSampler) == 16, "CoinWgpuSampler size mismatch");
 static_assert(alignof(CoinWgpuSampler) == 4, "CoinWgpuSampler alignment mismatch");
 
-static_assert(sizeof(CoinWgpuRenderState) == 2292, "CoinWgpuRenderState size mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 2436, "CoinWgpuRenderState size mismatch");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_source_slot) == 2300, "Raster source ABI tail mismatch");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_coordinates) == 2304, "Raster coordinate ABI tail mismatch");
 static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2280, "Alpha function ABI tail mismatch");
 static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2284, "Alpha reference ABI tail mismatch");
 static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection ABI tail changed");
@@ -70,13 +78,13 @@ static_assert(offsetof(CoinWgpuRenderState, fog_color) == 896, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderState fog_start offset mismatch");
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
 
-static_assert(sizeof(CoinWgpuTarget) == 56, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 456, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuTarget) == 64, "CoinWgpuTarget size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 512, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
 static_assert(offsetof(CoinWgpuFrameView, instance_ranges) == 432, "CoinWgpuFrameView instance range offset mismatch");
-static_assert(sizeof(CoinWgpuShadowDraw) == 144, "CoinWgpuShadowDraw size mismatch");
+static_assert(sizeof(CoinWgpuShadowDraw) == 160, "CoinWgpuShadowDraw size mismatch");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "CoinWgpuShadowReceiver size mismatch");
 static_assert(sizeof(CoinWgpuNativeSurfaceDescriptor) == 32, "CoinWgpuNativeSurfaceDescriptor size mismatch");
 static_assert(sizeof(CoinWgpuSurfaceCreateInfo) == 56, "CoinWgpuSurfaceCreateInfo size mismatch");
@@ -115,6 +123,11 @@ CoinWgpuBackend::getAdapterInfo()
 CoinRenderBackendStatus
 CoinWgpuBackend::prepare(CoinRenderTargetP & target)
 {
+  if (coin_wgpu_install_cpp_portable_core() != COIN_WGPU_OK) {
+    this->lastError = "Portable shader Core callback registration failed";
+    return CoinRenderBackendStatus::UNSUPPORTED;
+  }
+  this->sampleCount = target.options.sampleCount;
   if (target.kind != CoinRenderTargetP::KIND_WINDOW &&
       target.options.renderer != COIN_RENDER_RENDERER_UNKNOWN) {
     CoinWgpuRuntimeCapabilities caps{};
@@ -164,6 +177,7 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
       info.width = target.size[0] > 0 ? static_cast<uint32_t>(target.size[0]) : 0;
       info.height = target.size[1] > 0 ? static_cast<uint32_t>(target.size[1]) : 0;
       info.renderer = uint32_t(target.options.renderer);
+      info.sample_count = target.options.sampleCount;
 
       CoinWgpuSurfaceId sId = COIN_WGPU_INVALID_SURFACE_ID;
       char errBuf[512] = {0};
@@ -262,12 +276,19 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
 
   std::string packDiagnostic;
-  if (!this->ffiFrame->prepare(frame,
+  const bool hasActiveBump = std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
+    [](const CoinRenderBumpCoordOverride & coord) { return coord.imageSlot != 0; });
+  const bool packed = hasActiveBump
+    ? this->ffiFrame->prepareBumpFrame(frame,
+        static_cast<uint32_t>(target.size[0]),
+        static_cast<uint32_t>(target.size[1]), packDiagnostic)
+    : this->ffiFrame->prepare(frame,
                                static_cast<uint32_t>(target.size[0]),
                                static_cast<uint32_t>(target.size[1]),
                                reuse,
                                packDiagnostic, target.submissionPreflight(frame),
-                               !target.directTextureOutput)) {
+                               !target.directTextureOutput);
+  if (!packed) {
     this->lastError = packDiagnostic;
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
@@ -299,6 +320,7 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     tPod.submission_serial = 0;
 
     tPod.device_id = 0;
+    tPod.sample_count = target.options.sampleCount;
     // 7. Submit to WebGPU via FFI
     target.directTextureToken = 0;
     if (target.directTextureOutput) {
@@ -414,20 +436,211 @@ CoinRenderSubmitResult CoinWgpuBackend::submitRtt(const CoinRenderFramePlan& fra
   return result;
 }
 
+CoinRenderSubmitResult CoinWgpuBackend::assembleCubeRtt(const std::array<uint64_t,6> & faces,
+    uint32_t n,bool mips,CoinRenderTargetP &,uint64_t & token) {
+  token=0;char error[1024]={0};
+  const auto status=coin_wgpu_assemble_cube_rtt(faces.data(),n,mips?1u:0u,
+    coin_wgpu_default_device_generation(),&token,error,sizeof(error));
+  if(status==COIN_WGPU_OK)return {};
+  return {status==COIN_WGPU_DEVICE_LOST?CoinRenderBackendStatus::DEVICE_LOST:
+    status==COIN_WGPU_OUT_OF_MEMORY?CoinRenderBackendStatus::OUT_OF_MEMORY:
+    status==COIN_WGPU_NOT_READY?CoinRenderBackendStatus::NOT_READY:CoinRenderBackendStatus::UNSUPPORTED,error};
+}
+
 void CoinWgpuBackend::finishRtt(const std::vector<uint64_t>& tokens) {
   for (uint64_t token : tokens)
     coin_wgpu_release_texture(token);
 }
 
+void CoinWgpuBackend::retireRtt(const std::vector<uint64_t>& tokens) {
+  // Release active registrations now; the bridge retains their texture/views
+  // until the last local submission fence, including cube assembly, completes.
+  for (uint64_t token : tokens) coin_wgpu_release_texture(token);
+}
+
 CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& graph,
                                                      const CoinRenderFramePlan& root,
                                                      const SbVec2i32& size) const {
-  if (graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
-    if (graph.producers.size() > coin_wgpu_default_rtt_capacity())
+  return this->preflightRttImpl(graph,root,size,true);
+}
+
+CoinRenderSubmitResult CoinWgpuBackend::preflightRttImpl(const CoinRenderRttPlan& graph,
+                                                     const CoinRenderFramePlan& root,
+                                                     const SbVec2i32& size,
+                                                     bool checkTokenCapacity) const {
+  if(std::any_of(graph.producers.begin(),graph.producers.end(),[](const CoinRenderRttProducer & p){return p.cube;})) {
+    std::string diagnostic;uint64_t nominal=0;
+    if(!graph.cubeNominalBytes(root,this->sampleCount,nominal,diagnostic))return {CoinRenderBackendStatus::UNSUPPORTED,diagnostic};
+    if(checkTokenCapacity && graph.mode==COIN_RENDER_SCENE_TEXTURE_DIRECT && graph.tokenCount()>coin_wgpu_default_rtt_capacity())
+      return {CoinRenderBackendStatus::UNSUPPORTED,"Cube RTT candidates exceed retained GPU texture capacity"};
+    if(coin_wgpu_default_device_generation())for(size_t i=0;i<graph.producers.size();++i)if(graph.producers[i].cube &&
+      coin_wgpu_preflight_cube_rtt(uint32_t(graph.producers[i].size[0]),graph.requestsMips(i+1,root)?1:0,this->sampleCount)!=COIN_WGPU_OK)
+      return {CoinRenderBackendStatus::UNSUPPORTED,"Cube RTT atlas/face extent, copy or samples unavailable"};
+    // Expanded descriptors inspect every face's capabilities and resources;
+    // capacity was already checked against the logical graph's actual peak.
+    const auto expanded=graph.inspection(root);return this->preflightRttImpl(expanded,root,size,false);
+  }
+  if (checkTokenCapacity && graph.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+    if (graph.tokenCount() > coin_wgpu_default_rtt_capacity())
       return {CoinRenderBackendStatus::UNSUPPORTED,
               "wgpu direct RTT exceeds the capacity of 64 retained textures"};
   }
+  // Inspect every producer before the first GPU submission, including STAGED.
+  bool needsWeighted = false;
+  bool needsPeeling = false;
+  bool needsSampleDepth = false;
+  bool needsShadowMultitexture = false;
+  bool needsShadowMultitextureDepth = false;
+  uint32_t shadowAlphaModes=1, shadowArrayExtent=1, shadowArrayLayers=1;
+  uint32_t rasterOutputs=0,rasterWidth=0,rasterHeight=0;
+  uint64_t rasterBytes=0;
+  const auto budget = [&](const CoinRenderFramePlan &frame, const SbVec2i32 &extent,
+                          std::string &diagnostic) {
+    if (!coin_render_shader_execution_profile(frame, diagnostic))
+      return false;
+    if (!coin_render_validate_extended_bump(frame, diagnostic))
+      return false;
+    const bool extendedBump = coin_render_uses_extended_bump(frame);
+    if (extendedBump) {
+      for (const auto &draw : frame.draws) {
+        if (draw.shadowLightSlot)
+          continue;
+        const auto &viewport =
+            frame.viewports[frame.renderStates[draw.renderStateSlot].viewportSlot];
+        if (viewport.x || viewport.y || viewport.width != extent[0] ||
+            viewport.height != extent[1]) {
+          diagnostic = "Extended bump requires the full target viewport";
+          return false;
+        }
+      }
+    }
+    if (extendedBump && coin_wgpu_default_device_generation()) {
+      uint32_t imageAxis = 0;
+      for (const auto &image : frame.bumpImages)
+        imageAxis = std::max(imageAxis, std::max(image.width, image.height));
+      const uint32_t effectivePolicy =
+          std::any_of(frame.samplers.begin(), frame.samplers.end(),
+                      [](const CoinRenderSamplerSnapshot &sampler) {
+                        return sampler.filter == CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+                      })
+              ? uint32_t(frame.textureSamplingPolicy)
+              : 0;
+      size_t largestDraw = 0;
+      for (const auto &draw : frame.draws) {
+        if (draw.shadowLightSlot)
+          continue;
+        const auto first = frame.indices.begin() + draw.geometry.firstIndex;
+        const std::set<uint32_t> vertices(first, first + draw.geometry.indexCount);
+        largestDraw = std::max(largestDraw, vertices.size());
+      }
+      if (coin_wgpu_preflight_bump_receiver(this->sampleCount, largestDraw, 1, imageAxis,
+                                            effectivePolicy) != COIN_WGPU_OK) {
+        diagnostic =
+            "Complete directional bump receiver pipeline or device resource limits unavailable";
+        return false;
+      }
+    }
+    uint32_t outputs = 0;
+    uint64_t bytes = 0;
+    for (const auto & state:frame.renderStates) {
+      if (state.rasterTextureSourceSlot == UINT32_MAX)
+        continue;
+      if (++outputs>4096 || state.textureImageSlot>=frame.textures.size()) {
+        diagnostic = "Inherited images exceed output count or reference invalid payload";
+        return false;
+      }
+      const auto & image=frame.textures[state.textureImageSlot];
+      const uint64_t pixels=uint64_t(image.width)*image.height;
+      if (!image.width || !image.height || pixels>(128ull*1024*1024-bytes)/16) {
+        diagnostic = "Inherited image outputs exceed 128 MiB or have zero extent";
+        return false;
+      }
+      bytes+=pixels*16;
+      rasterWidth = std::max(rasterWidth, image.width);
+      rasterHeight = std::max(rasterHeight, image.height);
+    }
+    // Producers execute sequentially: retain the largest per-frame footprint,
+    // not a sum of temporaries that cannot coexist.
+    rasterOutputs = std::max(rasterOutputs, outputs);
+    rasterBytes = std::max(rasterBytes, bytes);
+    std::vector<CoinRenderCompositionItem> order;
+    if (!coin_render_composition_order(frame, order, diagnostic))
+      return false;
+    const bool weighted = std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem & item) {
+      return item.blend && item.deferred && !item.additive &&
+        item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT;
+    });
+    const bool peeling = std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem & item) {
+      return item.blend && item.deferred && !item.additive &&
+        item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
+    });
+    needsSampleDepth = needsSampleDepth || frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT ||
+      std::any_of(frame.renderStates.begin(), frame.renderStates.end(), [](const CoinRenderRenderStateSnapshot & state) {
+      return state.polygonOffsetEnabled || state.depthRange[0] > state.depthRange[1];
+    });
+    const bool shadowMultitexture = !frame.shadowGroups.empty() && std::any_of(frame.draws.begin(), frame.draws.end(), [&frame](const CoinRenderDrawPacket & draw) {
+      if (draw.renderStateSlot >= frame.renderStates.size()) return false;
+      const auto & state = frame.renderStates[draw.renderStateSlot];
+      return (state.hasTexture && state.textureImageSlot < frame.textures.size() &&
+        (frame.textures[state.textureImageSlot].volumeDepth || frame.textures[state.textureImageSlot].cubeFaceSize)) ||
+        std::any_of(std::begin(state.extraTextures), std::end(state.extraTextures), [](const CoinRenderTextureUnitSnapshot & unit) { return unit.enabled; });
+    });
+    if (shadowMultitexture && this->sampleCount > 1 && frame.rasterizationPolicy != COIN_RENDER_RASTER_NATIVE) {
+      diagnostic = "Shadow multitexture MSAA requires native rasterization";
+      return false;
+    }
+    needsShadowMultitextureDepth = needsShadowMultitextureDepth || (shadowMultitexture && this->sampleCount > 1 &&
+      std::any_of(frame.renderStates.begin(), frame.renderStates.end(), [](const CoinRenderRenderStateSnapshot & state) {
+        return state.depthRange[0] != 0.0f || state.depthRange[1] != 1.0f ||
+          (state.polygonOffsetEnabled && (state.polygonOffsetStyles & state.polygonOffsetPrimitiveStyle) &&
+           (state.polygonOffsetFactor != 0.0f || state.polygonOffsetUnits != 0.0f || state.polygonOffsetSlopeBias != 0.0f));
+      }));
+    if (shadowMultitexture) {
+      CoinRenderShadowPlan shadows;
+      if (!coin_render_plan_shadows(frame, shadows, diagnostic) ||
+          !coin_render_shadow_object_profile(frame, shadows, shadows.passes.size(), diagnostic))
+        return false;
+      // Match the private D2Array allocation, including HAL-compatible padding
+      // for singleton arrays and square six-layer cube-compatible descriptors.
+      const uint32_t arrayLayers=uint32_t(shadows.passes.size());
+      const uint32_t minimumArrayLayers=arrayLayers%6==0?arrayLayers+1:2;
+      if (!coin_render_shadow_array_budget(shadows, minimumArrayLayers, diagnostic))
+        return false;
+      shadowArrayLayers=std::max(shadowArrayLayers,uint32_t(shadows.passes.size()));
+      for (const auto &pass : shadows.passes)
+        shadowArrayExtent = std::max(shadowArrayExtent, pass.mapSize);
+      shadowAlphaModes |= (weighted?2u:0u)|(peeling?4u:0u);
+    }
+    needsShadowMultitexture = needsShadowMultitexture || shadowMultitexture;
+    needsWeighted = needsWeighted || weighted;
+    needsPeeling = needsPeeling || peeling;
+    if (!weighted && !peeling)
+      return true;
+    auto options = frame.transparency;
+    if (!peeling)
+      options.layers = 1;
+    uint64_t required = 0;
+    return coin_render_transparency_sample_budget(extent[0], extent[1], options, true,
+      this->sampleCount, required, diagnostic);
+  };
+  std::string diagnostic;
+  if (!budget(root, size, diagnostic)) return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+  for (const auto & producer : graph.producers)
+    if (!budget(producer.plan, producer.size, diagnostic))
+      return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
   if(!coin_wgpu_default_device_generation()) return {}; // Hardware checks follow prepare.
+  if (rasterOutputs && coin_wgpu_preflight_raster_images(rasterOutputs,rasterWidth,rasterHeight,rasterBytes)!=COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED,"wgpu inherited raster image pipeline, output extent or storage capability unavailable"};
+  if (needsShadowMultitexture && coin_wgpu_preflight_shadow_multitexture_alpha(this->sampleCount,shadowAlphaModes,shadowArrayExtent,shadowArrayLayers) != COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "wgpu complete shadow multitexture composition or moment-array capability unavailable"};
+  if (needsShadowMultitextureDepth && coin_wgpu_preflight_shadow_multitexture_depth(this->sampleCount) != COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "wgpu extended custom MSAA depth profile unavailable"};
+  if (needsSampleDepth && coin_wgpu_preflight_sample_depth(this->sampleCount) != COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "wgpu custom MSAA depth requires sample-frequency shading"};
+  if (needsWeighted && coin_wgpu_preflight_weighted(this->sampleCount) != COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "wgpu weighted MSAA formats/blend/sample count unavailable"};
+  if (needsPeeling && coin_wgpu_preflight_peeling(this->sampleCount) != COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "wgpu peeling formats/depth/mask sample count unavailable"};
   uint32_t formats=0, outputs=0, anisotropy=1;
   const auto scan=[&](const CoinRenderFramePlan & frame) {
     for(const auto & image:frame.textures) formats|=1u<<uint32_t(image.format);
@@ -449,6 +662,27 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& gr
       status==COIN_WGPU_OUT_OF_MEMORY?CoinRenderBackendStatus::OUT_OF_MEMORY:
       status==COIN_WGPU_BACKEND_ERROR?CoinRenderBackendStatus::BACKEND_ERROR:CoinRenderBackendStatus::UNSUPPORTED;
     return {mapped,"wgpu advanced texture profile unavailable on the prepared adapter"};
+  }
+  if (coin_wgpu_default_device_generation()) {
+    const auto prepareModules = [&](const CoinRenderFramePlan &frame, const SbVec2i32 &extent) -> CoinRenderSubmitResult {
+      if (!frame.hasPortableShaderDraws()) return CoinRenderSubmitResult{};
+      CoinWgpuFfiFrame packed;
+      std::string diagnostic;
+      if (!packed.preparePortablePreflight(frame, uint32_t(extent[0]), uint32_t(extent[1]), diagnostic))
+        return CoinRenderSubmitResult{CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+      char error[1024] = {};
+      if (coin_wgpu_install_cpp_portable_core() != COIN_WGPU_OK)
+        return CoinRenderSubmitResult{CoinRenderBackendStatus::BACKEND_ERROR, "Portable shader Core callback installation failed"};
+      const auto status = coin_wgpu_prepare_portable_frame(&packed.getView(), this->sampleCount, error, sizeof(error));
+      return status == COIN_WGPU_OK ? CoinRenderSubmitResult{} :
+        CoinRenderSubmitResult{CoinRenderBackendStatus::UNSUPPORTED, error};
+    };
+    auto prepared = prepareModules(root, size);
+    if (prepared.status != CoinRenderBackendStatus::SUCCESS) return prepared;
+    for (const auto &producer : graph.producers) {
+      prepared = prepareModules(producer.plan, producer.size);
+      if (prepared.status != CoinRenderBackendStatus::SUCCESS) return prepared;
+    }
   }
   (void)size;
   // Viewport projection/intersection is resolved by the shared Core during

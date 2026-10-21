@@ -36,6 +36,9 @@ struct Uniforms {
     // Preserve the standard uniform tail offset in this shadow-free profile.
     shadow_layout_padding: array<vec4<f32>, 44>,
     alpha_test: vec4<f32>, // semantic function, clamped reference
+    raster_viewport: vec4<f32>,
+    flat_shadow_primary: vec4<u32>,
+    sampling_texture_sizes: array<vec4<f32>,8>,
 };
 
 struct GpuMaterial {
@@ -96,14 +99,14 @@ struct VertexOutput {
     @location(1) normal_view: vec3<f32>,
     @location(2) diffuse_color: vec4<f32>,
     @location(3) @interpolate(flat) material_slot: u32,
-    @location(4) texcoord: vec3<f32>,
-    @location(5) uv1: vec3<f32>,
-    @location(6) uv2: vec3<f32>,
-    @location(7) uv3: vec3<f32>,
-    @location(8) uv4: vec3<f32>,
-    @location(9) uv5: vec3<f32>,
-    @location(10) uv6: vec3<f32>,
-    @location(11) uv7: vec3<f32>,
+    @location(4) texcoord: vec4<f32>,
+    @location(5) uv1: vec4<f32>,
+    @location(6) uv2: vec4<f32>,
+    @location(7) uv3: vec4<f32>,
+    @location(8) uv4: vec4<f32>,
+    @location(9) uv5: vec4<f32>,
+    @location(10) uv6: vec4<f32>,
+    @location(11) uv7: vec4<f32>,
 
 };
 
@@ -180,26 +183,151 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     output.material_slot = input.material_slot;
 
     if (u.tex_params.x > 0.5) {
-        output.texcoord = (u.texture_matrix * input.texcoord).xyw;
+        output.texcoord = (u.texture_matrix * input.texcoord);
     } else {
-        output.texcoord = input.texcoord.xyw;
+        output.texcoord = input.texcoord;
     }
 
-    output.uv1 = (u.extra_texture_matrices[0] * input.uv1).xyw;
-    output.uv2 = (u.extra_texture_matrices[1] * input.uv2).xyw;
-    output.uv3 = (u.extra_texture_matrices[2] * input.uv3).xyw;
-    output.uv4 = (u.extra_texture_matrices[3] * input.uv4).xyw;
-    output.uv5 = (u.extra_texture_matrices[4] * input.uv5).xyw;
-    output.uv6 = (u.extra_texture_matrices[5] * input.uv6).xyw;
-    output.uv7 = (u.extra_texture_matrices[6] * input.uv7).xyw;
+    output.uv1 = (u.extra_texture_matrices[0] * input.uv1);
+    output.uv2 = (u.extra_texture_matrices[1] * input.uv2);
+    output.uv3 = (u.extra_texture_matrices[2] * input.uv3);
+    output.uv4 = (u.extra_texture_matrices[3] * input.uv4);
+    output.uv5 = (u.extra_texture_matrices[4] * input.uv5);
+    output.uv6 = (u.extra_texture_matrices[5] * input.uv6);
+    output.uv7 = (u.extra_texture_matrices[6] * input.uv7);
     return output;
 }
 
 // Coin's active shadow shader samples transformed ST without Q division.
 // Other paths preserve Q through interpolation and keep ordinary q=1 UV fast.
-fn projected_uv(value: vec3<f32>, projection: f32) -> vec2<f32> {
-    if (projection > 0.5 || value.z == 1.0) { return value.xy; }
-    return value.xy / value.z;
+fn coin_portable_lerp(a: vec4<f32>, b: vec4<f32>, w: f32) -> vec4<f32> { return a + (b-a)*w; }
+fn coin_volume_index(value: i32, extent: i32, clamp_axis: bool) -> u32 {
+    if clamp_axis { return u32(clamp(value, 0, extent - 1)); }
+    return u32(((value % extent) + extent) % extent);
+}
+fn coin_volume_fetch(t: texture_2d<f32>, x: i32, y: i32, z: i32,
+                     extent: vec3<u32>, columns: u32, y_base: u32, flags: u32) -> vec4<f32> {
+    let ix = coin_volume_index(x, i32(extent.x), (flags & 1u) != 0u);
+    let iy = coin_volume_index(y, i32(extent.y), (flags & 2u) != 0u);
+    let iz = coin_volume_index(z, i32(extent.z), (flags & 4u) != 0u);
+    let atlas_x = (iz % columns) * extent.x + ix;
+    let atlas_y = y_base + (iz / columns) * extent.y + iy;
+    return textureLoad(t, vec2<i32>(i32(atlas_x), i32(atlas_y)), 0);
+}
+fn coin_volume_level(t: texture_2d<f32>, coordinate: vec3<f32>, size: vec3<u32>,
+                     columns: u32, flags: u32, level: u32, linear: bool) -> vec4<f32> {
+    var extent = size;
+    var y_base = 0u;
+    for (var i = 0u; i < level; i = i + 1u) {
+        y_base += extent.y * ((extent.z + columns - 1u) / columns);
+        extent = max(extent >> vec3<u32>(1u), vec3<u32>(1u));
+    }
+    let bounded = vec3<f32>(
+        select(fract(coordinate.x), clamp(coordinate.x, 0.0, 1.0), (flags & 1u) != 0u),
+        select(fract(coordinate.y), clamp(coordinate.y, 0.0, 1.0), (flags & 2u) != 0u),
+        select(fract(coordinate.z), clamp(coordinate.z, 0.0, 1.0), (flags & 4u) != 0u));
+    if !linear {
+        let p = vec3<i32>(floor(bounded * vec3<f32>(extent)));
+        return coin_volume_fetch(t, p.x, p.y, p.z, extent, columns, y_base, flags);
+    }
+    let f = bounded * vec3<f32>(extent) - vec3<f32>(0.5);
+    let p = vec3<i32>(floor(f));
+    let weight = fract(f);
+    let a = coin_portable_lerp(
+        coin_volume_fetch(t,p.x,p.y,p.z,extent,columns,y_base,flags),
+        coin_volume_fetch(t,p.x+1,p.y,p.z,extent,columns,y_base,flags),weight.x);
+    let b = coin_portable_lerp(
+        coin_volume_fetch(t,p.x,p.y+1,p.z,extent,columns,y_base,flags),
+        coin_volume_fetch(t,p.x+1,p.y+1,p.z,extent,columns,y_base,flags),weight.x);
+    let c = coin_portable_lerp(
+        coin_volume_fetch(t,p.x,p.y,p.z+1,extent,columns,y_base,flags),
+        coin_volume_fetch(t,p.x+1,p.y,p.z+1,extent,columns,y_base,flags),weight.x);
+    let d = coin_portable_lerp(
+        coin_volume_fetch(t,p.x,p.y+1,p.z+1,extent,columns,y_base,flags),
+        coin_volume_fetch(t,p.x+1,p.y+1,p.z+1,extent,columns,y_base,flags),weight.x);
+    return coin_portable_lerp(coin_portable_lerp(a,b,weight.y),
+                              coin_portable_lerp(c,d,weight.y),weight.z);
+}
+fn coin_volume_sample(t: texture_2d<f32>, coordinate: vec3<f32>, supplied_size: vec4<f32>) -> vec4<f32> {
+    let size = vec3<u32>(u32(supplied_size.x), u32(supplied_size.y), u32(supplied_size.w) / 16u);
+    let flags = u32(supplied_size.w) & 15u;
+    let spatial_filter = u32(supplied_size.z) - 4u;
+    var columns = 1u;
+    while columns * columns < size.z { columns = columns * 2u; }
+    let has_mips = (flags & 8u) != 0u;
+    if !has_mips || spatial_filter < 2u {
+        return coin_volume_level(t,coordinate,size,columns,flags,0u,spatial_filter != 0u);
+    }
+    let footprint = vec3<f32>(size);
+    let dx = length(dpdxFine(coordinate) * footprint);
+    let dy = length(dpdyFine(coordinate) * footprint);
+    let maximum = u32(log2(f32(max(max(size.x,size.y),size.z))));
+    let lod = clamp(log2(max(max(dx,dy),0.000001)),0.0,f32(maximum));
+    if lod <= 0.0 { return coin_volume_level(t,coordinate,size,columns,flags,0u,true); }
+    let lo = u32(floor(lod));
+    let hi = min(maximum,lo+1u);
+    let spatial_linear = spatial_filter == 3u;
+    return coin_portable_lerp(
+        coin_volume_level(t,coordinate,size,columns,flags,lo,spatial_linear),
+        coin_volume_level(t,coordinate,size,columns,flags,hi,spatial_linear),fract(lod));
+}
+// Six face atlas, OpenGL 2.1 table 3.19, portable X/Y/Z tie order.
+fn coin_cube_chart(direction: vec3<f32>) -> vec3<f32> {
+    let d=direction/max(max(abs(direction.x),abs(direction.y)),abs(direction.z));
+    let a=abs(d);var c=vec2<f32>(0.0);var m=0.0;var face=0.0;
+    if a.x>=a.y && a.x>=a.z {m=a.x;if d.x>=0.0 {face=0.0;c=vec2<f32>(-d.z,-d.y);}else{face=1.0;c=vec2<f32>(d.z,-d.y);}}
+    else if a.y>=a.z {m=a.y;if d.y>=0.0 {face=2.0;c=vec2<f32>(d.x,d.z);}else{face=3.0;c=vec2<f32>(d.x,-d.z);}}
+    else {m=a.z;if d.z>=0.0 {face=4.0;c=vec2<f32>(d.x,-d.y);}else{face=5.0;c=vec2<f32>(-d.x,-d.y);}}
+    return vec3<f32>(0.5*(c/m+vec2<f32>(1.0)),face);
+}
+fn coin_cube_fetch(t:texture_2d<f32>,p:vec2<i32>,n:u32,face:u32,base:u32)->vec4<f32>{
+    let bounded=vec2<u32>(clamp(p,vec2<i32>(0),vec2<i32>(i32(n)-1)));
+    let index=base+face*n*n+bounded.y*n+bounded.x;
+    let width=textureDimensions(t).x;
+    return textureLoad(t,vec2<i32>(i32(index%width),i32(index/width)),0);
+}
+fn coin_cube_level(t:texture_2d<f32>,chart:vec3<f32>,size:u32,level:u32,linear_texel:bool)->vec4<f32>{
+    var n=size;var base=0u;
+    for(var i=0u;i<level;i+=1u){base+=6u*n*n;n=max(1u,n/2u);}
+    let face=u32(chart.z);
+    if !linear_texel {return coin_cube_fetch(t,vec2<i32>(floor(chart.xy*f32(n))),n,face,base);}
+    let f=chart.xy*f32(n)-vec2<f32>(0.5);let p=vec2<i32>(floor(f));let w=fract(f);
+    let a=coin_cube_fetch(t,p,n,face,base);let b=coin_cube_fetch(t,p+vec2<i32>(1,0),n,face,base);
+    let c=coin_cube_fetch(t,p+vec2<i32>(0,1),n,face,base);let d=coin_cube_fetch(t,p+vec2<i32>(1,1),n,face,base);
+    return mix(mix(a,b,w.x),mix(c,d,w.x),w.y);
+}
+fn coin_cube_sample(t:texture_2d<f32>,direction:vec3<f32>,metadata:vec4<f32>,lod:f32)->vec4<f32>{
+    let chart=coin_cube_chart(direction);let n=u32(metadata.x);let cube_filter=u32(metadata.z)-8u;
+    if cube_filter<2u {return coin_cube_level(t,chart,n,0u,cube_filter==1u);}
+    if lod<=0.0 {return coin_cube_level(t,chart,n,0u,true);}
+    let maximum=select(0.0,log2(metadata.x),metadata.y>0.5);
+    let bounded=clamp(lod,0.0,maximum);let lo=u32(floor(bounded));let hi=min(lo+1u,u32(maximum));
+    return mix(coin_cube_level(t,chart,n,lo,cube_filter==3u),coin_cube_level(t,chart,n,hi,cube_filter==3u),fract(bounded));
+}
+fn coin_cube_lod(direction:vec3<f32>,size:f32)->f32{
+    let d=direction/max(max(abs(direction.x),abs(direction.y)),abs(direction.z));
+    let scale=max(max(abs(direction.x),abs(direction.y)),abs(direction.z));
+    let dx=dpdxFine(direction)/scale;let dy=dpdyFine(direction)/scale;let face=coin_cube_chart(d).z;
+    var c=vec2<f32>(0.0);var cx=c;var cy=c;var m=0.0;var mx=0.0;var my=0.0;
+    if face<1.5 {let sign=select(-1.0,1.0,face<0.5);c=vec2<f32>(-sign*d.z,-d.y);cx=vec2<f32>(-sign*dx.z,-dx.y);cy=vec2<f32>(-sign*dy.z,-dy.y);m=sign*d.x;mx=sign*dx.x;my=sign*dy.x;}
+    else if face<3.5 {let sign=select(-1.0,1.0,face<2.5);c=vec2<f32>(d.x,sign*d.z);cx=vec2<f32>(dx.x,sign*dx.z);cy=vec2<f32>(dy.x,sign*dy.z);m=sign*d.y;mx=sign*dx.y;my=sign*dy.y;}
+    else {let sign=select(-1.0,1.0,face<4.5);c=vec2<f32>(sign*d.x,-d.y);cx=vec2<f32>(sign*dx.x,-dx.y);cy=vec2<f32>(sign*dy.x,-dy.y);m=sign*d.z;mx=sign*dx.z;my=sign*dy.z;}
+    let sx=0.5*(cx*m-c*mx)/(m*m)*size;let sy=0.5*(cy*m-c*my)/(m*m)*size;
+    return log2(max(max(length(sx),length(sy)),0.000001));
+}
+fn coin_line_sample(t:texture_2d<f32>,s:sampler,value:vec4<f32>,params:vec4<f32>,metadata:vec4<f32>)->vec4<f32>{
+    if metadata.z>=8.0{return coin_cube_sample(t,value.xyz,metadata,coin_cube_lod(value.xyz,metadata.x));}
+    if metadata.z>=4.0 {
+        let coordinate=select(value.xyz/value.w,value.xyz,params.w>0.5);
+        return coin_volume_sample(t,coordinate,metadata);
+    }
+    let projected=projected_uv(value,params.w);
+    let uv=select(projected,vec2<f32>(projected.x,1.0-projected.y),params.z>0.5);
+    return textureSample(t,s,uv);
+}
+fn projected_uv(value: vec4<f32>, projection: f32) -> vec2<f32> {
+    if (projection > 0.5 || value.w == 1.0) { return value.xy; }
+    return value.xy / value.w;
 }
 
 // Mechanical execution of CoinRender's validated texture-combine program.
@@ -294,58 +422,42 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
     var base_color = primary;
 
     if (u.tex_params.x > 0.5) {
-        let projected = projected_uv(input.texcoord, u.tex_params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), u.tex_params.z > 0.5);
-        let tex_col = textureSample(t_diffuse, s_diffuse, uv);
+        let tex_col = coin_line_sample(t_diffuse,s_diffuse,input.texcoord,u.tex_params,u.sampling_texture_sizes[0]);
         base_color = texture_layer(primary, base_color, tex_col, u.tex_params, u.texture_blend_color, 0u);
     }
     if (u.extra_tex_params[0].x > 0.5) {
         let params = u.extra_tex_params[0];
-        let projected = projected_uv(input.uv1, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture1, s_texture1, uv);
+        let tex = coin_line_sample(t_texture1,s_texture1,input.uv1,params,u.sampling_texture_sizes[1]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[0], 1u);
     }
     if (u.extra_tex_params[1].x > 0.5) {
         let params = u.extra_tex_params[1];
-        let projected = projected_uv(input.uv2, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture2, s_texture2, uv);
+        let tex = coin_line_sample(t_texture2,s_texture2,input.uv2,params,u.sampling_texture_sizes[2]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[1], 2u);
     }
     if (u.extra_tex_params[2].x > 0.5) {
         let params = u.extra_tex_params[2];
-        let projected = projected_uv(input.uv3, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture3, s_texture3, uv);
+        let tex = coin_line_sample(t_texture3,s_texture3,input.uv3,params,u.sampling_texture_sizes[3]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[2], 3u);
     }
     if (u.extra_tex_params[3].x > 0.5) {
         let params = u.extra_tex_params[3];
-        let projected = projected_uv(input.uv4, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture4, s_texture4, uv);
+        let tex = coin_line_sample(t_texture4,s_texture4,input.uv4,params,u.sampling_texture_sizes[4]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[3], 4u);
     }
     if (u.extra_tex_params[4].x > 0.5) {
         let params = u.extra_tex_params[4];
-        let projected = projected_uv(input.uv5, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture5, s_texture5, uv);
+        let tex = coin_line_sample(t_texture5,s_texture5,input.uv5,params,u.sampling_texture_sizes[5]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[4], 5u);
     }
     if (u.extra_tex_params[5].x > 0.5) {
         let params = u.extra_tex_params[5];
-        let projected = projected_uv(input.uv6, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture6, s_texture6, uv);
+        let tex = coin_line_sample(t_texture6,s_texture6,input.uv6,params,u.sampling_texture_sizes[6]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[5], 6u);
     }
     if (u.extra_tex_params[6].x > 0.5) {
         let params = u.extra_tex_params[6];
-        let projected = projected_uv(input.uv7, params.w);
-        let uv = select(projected, vec2<f32>(projected.x, 1.0 - projected.y), params.z > 0.5);
-        let tex = textureSample(t_texture7, s_texture7, uv);
+        let tex = coin_line_sample(t_texture7,s_texture7,input.uv7,params,u.sampling_texture_sizes[7]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
     if (!alpha_test_accepts(base_color.a)) { discard; }

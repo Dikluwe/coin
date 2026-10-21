@@ -1,13 +1,18 @@
 $input a_position, a_color0, a_color1, a_color2, a_color3, a_texcoord0, a_texcoord1, a_texcoord2, a_texcoord3
-$output v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_shadowVertex
+$output v_color0, v_ambient, v_specular, v_emission, v_texcoord0, v_viewPosition, v_viewNormal, v_material, v_texcoords4, v_texcoords5, v_texcoords6, v_texcoords7, v_shadowVertex, v_coinClipDepth
 #include <bgfx_shader.sh>
 #include "coin_lighting.sh"
+#include "coin_coverage.sh"
 uniform vec4 u_shadowLightIndices;
 uniform vec4 u_shadowLightIndicesExtra;
 uniform vec4 u_shadowQuality;
 void main()
 {
   gl_Position = mul(u_modelViewProj, vec4(a_position, 1.0)) * (a_texcoord3.z > 0.0 ? a_texcoord3.z : 1.0);
+  // Fullscreen conversion/composition vertices have no captured W marker.
+  if (a_texcoord3.z > 0.0) gl_Position = coinCanonicalCoverage(gl_Position);
+  v_coinClipDepth = coinCapturedDepth(gl_Position);
+  gl_Position = coinCanonicalDepthPosition(gl_Position);
   vec3 color = a_color1.rgb * u_ambientLight.rgb * u_ambientLight.a + a_color3.rgb;
   if (u_lightCount.y > 0.5) color = vec3_splat(0.0);
   if (a_texcoord3.y < 0.5) {
@@ -24,14 +29,14 @@ void main()
         abs(float(i) - u_shadowLightIndicesExtra.z) < 0.5 ||
         abs(float(i) - u_shadowLightIndicesExtra.w) < 0.5) continue;
     if (u_shadowQuality.z > 0.5)
-      color += coinGroupLightContribution(i, a_color0, a_color2, a_texcoord1, a_texcoord2, a_texcoord3.x);
-    else color += coinLightContribution(i, a_color0, a_color2, a_texcoord1, a_texcoord2, a_texcoord3.x);
+      color += coinGroupLightContribution(i, a_color0, a_color2, a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
+    else color += coinLightContribution(i, a_color0, a_color2, a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
   }
   v_color0 = vec4(clamp(color, 0.0, 1.0), a_color0.a);
   v_specular = a_color2;
-  v_texcoord0 = vec3(a_texcoord0, a_texcoord3.w);
-  v_viewPosition = a_texcoord1;
-  v_viewNormal = a_texcoord2;
+  v_texcoord0 = vec4(a_texcoord0.xyz, a_texcoord3.w);
+  v_viewPosition = a_texcoord1.xyz;
+  v_viewNormal = a_texcoord2.xyz;
   v_material = a_texcoord3.xy;
   v_texcoords4 = a_color0;
   // Pack eight independent RGB contributions into six unused vec4 varyings.
@@ -43,7 +48,7 @@ void main()
     float index = slot < 4 ? u_shadowLightIndices[component] : u_shadowLightIndicesExtra[component];
     if (u_shadowQuality.x > 0.5 && index >= 0.0)
       c[slot] = coinGroupLightContribution(int(index), a_color0, a_color2,
-        a_texcoord1, a_texcoord2, a_texcoord3.x);
+        a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
   }
   v_ambient = vec4(c[0], c[1].x);
   v_emission = vec4(c[1].yz, c[2].xy);

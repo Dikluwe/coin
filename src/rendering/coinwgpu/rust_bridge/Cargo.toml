@@ -23,3 +23,27 @@ path = "../../../../testsuite/coinwgpu/rust/shadow_shader.rs"
 
 [dev-dependencies]
 naga = { version = "24", features = ["wgsl-in", "glsl-out"] }
+
+[patch.crates-io]
+# Naga 24 already declares multisampled depth as sampler2DMS, but rejects
+# textureLoad in its GLSL writer. Keep this narrow fix until upstream supports
+# texelFetch for depth multisample textures.
+naga = { path = "vendor/naga-24.0.0" }
+wgpu-hal = { path = "vendor/wgpu-hal-24.0.4" }
+glow = { path = "vendor/glow-0.16.0" }
+
+[[test]]
+name = "adapter_lifecycle"
+path = "../../../../testsuite/coinwgpu/rust/adapter_lifecycle.rs"
+
+[[test]]
+name = "bump_shader"
+path = "../../../../testsuite/coinwgpu/rust/bump_shader.rs"
+
+[[test]]
+name = "msaa_resolve_probe"
+path = "../../../../testsuite/coinwgpu/rust/msaa_resolve_probe.rs"
+
+[[test]]
+name = "msaa_partial_scissor_resolve"
+path = "../../../../testsuite/coinwgpu/rust/msaa_partial_scissor_resolve.rs"

@@ -13,6 +13,8 @@ pub fn format(code: u32) -> Result<(wgpu::TextureFormat, bool), (CoinWgpuStatus,
         8 => (F::Bc3RgbaUnorm, true),
         9 => (F::Bc3RgbaUnormSrgb, false),
         10 => (F::Bc3RgbaUnormSrgb, true),
+        12 => (F::Rgba8Unorm, false), // Six cube faces and their face-local mip chain.
+        11 => (F::Rgba8Unorm, false), // Explicitly packed 3D atlas; no hardware 2D mips.
         _ => {
             return Err((
                 CoinWgpuStatus::InvalidArgument,

@@ -90,10 +90,13 @@ pub(super) fn validate_payload(f: &CoinWgpuFrameView, vertices: &[CoinWgpuVertex
         return Err((CoinWgpuStatus::InvalidArgument, "Partial instanced payload".into()));
     }
     let s = &states[0];
+    if s.flat_shadow_primary > 1 {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid flat shadow primary flag".into()));
+    }
     if !profile_transport_supported(f)
         || s.has_texture != 0 || s.extra_textures.iter().any(|t| t.enabled != 0)
         || s.fog_mode != 0 || s.clip_plane_count != 0 || s.polygon_offset_enabled != 0
-        || !matches!(s.light_model, 0 | 1) {
+        || !matches!(s.light_model, 0 | 1) || s.flat_shadow_primary != 0 {
         return Err((CoinWgpuStatus::Unsupported,
             "Instancing supports only opaque triangles without textures, fog, clipping, shadows or polygon offset".into()));
     }

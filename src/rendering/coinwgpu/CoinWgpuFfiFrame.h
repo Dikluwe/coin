@@ -24,7 +24,22 @@ public:
                std::string & outDiagnostic,
                const CoinRenderFramePreflight * preflight = nullptr,
                bool allowInstancing = true);
+  // Internal R26 staging path: preserves authored vertex order and attaches
+  // the optional packet. Normal prepare still enforces the B12 rejection.
+  bool prepareBumpFrame(const CoinRenderFramePlan & frame, uint32_t width,
+                        uint32_t height, std::string & diagnostic);
+  // Declaration-only graph preflight. Preserve real producer dimensions,
+  // formats, sampling and module payloads while their logical dependencies
+  // are unresolved. This view is only for coin_wgpu_prepare_portable_frame;
+  // ordinary prepare/prepareBumpFrame still require resolved submit resources.
+  bool preparePortablePreflight(const CoinRenderFramePlan & frame, uint32_t width,
+                                uint32_t height, std::string & diagnostic);
   const CoinWgpuFrameView & getView() const;
+  // Prepare owned R26 transport from explicit emitted-to-source vertex IDs.
+  // The ordinary prepare path still refuses active bump until Rust renders it.
+  bool prepareBumpPayload(const CoinRenderFramePlan & frame,
+                          const std::vector<uint32_t> & sourceVertexForEmitted,
+                          std::string & diagnostic);
   const CoinWgpuShadowFrame & getShadowFrame() const;
   bool reusedLastPrepare() const;
   CoinRenderFrameReuseKind lastPrepareKind() const;
@@ -63,6 +78,11 @@ private:
   };
   CoinWgpuFfiFrame(const CoinWgpuFfiFrame &);
   CoinWgpuFfiFrame & operator=(const CoinWgpuFfiFrame &);
+  bool prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
+                   uint32_t height, const CoinRenderFrameReuseDecision & reuse,
+                   std::string & diagnostic,
+                   const CoinRenderFramePreflight * preflight,
+                   bool allowInstancing, bool allowBump, bool allowUnresolved = false);
   bool packStates(const CoinRenderFramePlan & frame, CoinWgpuShadowFrame & shadow,
                   uint32_t targetWidth, uint32_t targetHeight,
                   std::string & outDiagnostic,
@@ -108,10 +128,20 @@ private:
   uint32_t opaqueTargetWidth, opaqueTargetHeight;
   float opaqueClearColor[4];
   CoinRenderFrameReuseKind prepareKind;
+  struct PortableStorage {
+    std::vector<CoinWgpuPortableNode> nodes;
+    std::vector<float> parameters;
+    std::string signature;
+  };
+  std::vector<PortableStorage> portableStorage;
+  std::vector<CoinWgpuPortableModule> portableViews;
   CoinWgpuFrameView view;
   CoinWgpuShadowFrame shadowFrame;
   std::vector<CoinWgpuShadowPassView> extraShadowPassViews;
   std::vector<CoinWgpuVertex> vertices;
+  std::vector<CoinWgpuBumpVertex> bumpVertices;
+  std::vector<CoinWgpuBumpImage> bumpImages;
+  std::vector<std::vector<uint8_t> > bumpPixels;
   std::vector<uint32_t> indices;
   std::vector<CoinWgpuDraw> draws;
   std::vector<CoinWgpuMaterial> materials;
@@ -133,6 +163,7 @@ private:
   std::vector<BakeMatrices> bakeMatrices, opaquePreviousMatrices;
   std::vector<OpaqueRange> opaqueRanges;
   std::vector<uint32_t> opaqueStateMaterialSlots;
+  std::vector<uint64_t> packedLayerIdentity;
   std::vector<CoinRenderVertexSnapshot> opaqueInputVertices;
   std::vector<uint32_t> opaqueInputIndices;
   std::vector<CoinRenderMaterialSnapshot> opaqueInputMaterials;

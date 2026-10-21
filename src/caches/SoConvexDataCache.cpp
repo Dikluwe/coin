@@ -49,6 +49,7 @@
 #include <Inventor/caches/SoConvexDataCache.h>
 
 #include <cassert>
+#include <cmath>
 
 #include <Inventor/SbMatrix.h>
 #include <Inventor/SbTesselator.h>
@@ -64,6 +65,7 @@
 class SoConvexDataCacheP {
 public:
   SbList <int32_t> coordIndices;
+  SbList <uint8_t> edgeFlags;
   SbList <int32_t> normalIndices;
   SbList <int32_t> materialIndices;
   SbList <int32_t> texIndices;
@@ -132,6 +134,13 @@ int
 SoConvexDataCache::getNumCoordIndices(void) const
 {
   return PRIVATE(this)->coordIndices.getLength();
+}
+
+const uint8_t *
+SoConvexDataCache::getEdgeFlags(void) const
+{
+  return PRIVATE(this)->edgeFlags.getLength()
+             ? PRIVATE(this)->edgeFlags.getArrayPtr() : NULL;
 }
 
 /*!
@@ -204,6 +213,7 @@ typedef struct
   int  texnr;
   int  normnr;
   int  vertexnr;
+  int  occurrence;
 } tVertexInfo;
 
 // callback function
@@ -220,6 +230,9 @@ typedef struct {
   SoConvexDataCache::Binding texbind;
 
   SbList <int32_t> *vertexIndex;
+  SbList <uint8_t> *edgeFlags;
+  int faceCount;
+  SbList <SbVec3f> facePositions;
   SbList <int32_t> *matIndex;
   SbList <int32_t> *normIndex;
   SbList <int32_t> *texIndex;
@@ -251,6 +264,7 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
 
   // remove old data
   PRIVATE(this)->coordIndices.truncate(0);
+  PRIVATE(this)->edgeFlags.truncate(0);
   PRIVATE(this)->materialIndices.truncate(0);
   PRIVATE(this)->normalIndices.truncate(0);
   PRIVATE(this)->texIndices.truncate(0);
@@ -272,6 +286,8 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
   // should only allocate enough to hold the largest polygon
   tessdata.vertexInfo = new tVertexInfo[numv];
   tessdata.vertexIndex = NULL;
+  tessdata.edgeFlags = &PRIVATE(this)->edgeFlags;
+  tessdata.faceCount = 0;
   tessdata.matIndex = NULL;
   tessdata.normIndex = NULL;
   tessdata.texIndex = NULL;
@@ -294,10 +310,13 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
 
   if (gt) { glutess.beginPolygon(); }
   else { tess.beginPolygon(); }
+  int faceStart = 0;
   for (int i = 0; i < numv; i++) {
     if (vind[i] < 0) {
+      tessdata.faceCount = i - faceStart;
       if (gt) { glutess.endPolygon(); }
       else { tess.endPolygon(); }
+      tessdata.facePositions.truncate(0);
       if (matbind == PER_VERTEX_INDEXED || 
           matbind == PER_FACE ||
           matbind == PER_FACE_INDEXED) matnr++;
@@ -309,9 +328,11 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
         if (gt) { glutess.beginPolygon(); }
         else { tess.beginPolygon(); }
       }
+      faceStart = i + 1;
     }
     else {
       tessdata.vertexInfo[i].vertexnr = vind[i];
+      tessdata.vertexInfo[i].occurrence = i - faceStart;
       if (mind)
         tessdata.vertexInfo[i].matnr = mind[matnr];
       else tessdata.vertexInfo[i].matnr = matnr;
@@ -330,6 +351,7 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
 
       SbVec3f v = coords->get3(vind[i]);
       if (!identity) matrix.multVecMatrix(v,v);
+      tessdata.facePositions.append(v);
       if (gt) { glutess.addVertex(v, static_cast<void *>(&tessdata.vertexInfo[i])); }
       else { tess.addVertex(v, static_cast<void *>(&tessdata.vertexInfo[i])); }
     }
@@ -337,6 +359,7 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
   
   // if last coordIndex != -1, terminate polygon
   if (numv > 0 && vind[numv-1] != -1) {
+    tessdata.faceCount = numv - faceStart;
     if (gt) { glutess.endPolygon(); }
     else { tess.endPolygon(); }
   }
@@ -344,6 +367,7 @@ SoConvexDataCache::generate(const SoCoordinateElement * const coords,
   delete [] tessdata.vertexInfo;
 
   PRIVATE(this)->coordIndices.fit();
+  PRIVATE(this)->edgeFlags.fit();
   if (tessdata.matIndex) PRIVATE(this)->materialIndices.fit();
   if (tessdata.normIndex) PRIVATE(this)->normalIndices.fit();
   if (tessdata.texIndex) PRIVATE(this)->texIndices.fit();
@@ -382,16 +406,70 @@ vertex_tri(tVertexInfo *info, tTessData *tessdata)
 //
 // handles callbacks from SbTesselator or SbGLUTessellator
 //
+static bool
+is_boundary_path(const tTessData * tessdata, int a, int b)
+{
+  const int count = tessdata->faceCount;
+  if (count < 3 || a < 0 || b < 0 || a >= count || b >= count || a == b ||
+      tessdata->facePositions.getLength() != count) return false;
+  if ((a + 1) % count == b) return true;
+
+  const SbVec3f & start = tessdata->facePositions[a];
+  const SbVec3f & end = tessdata->facePositions[b];
+  double direction[3];
+  double lengthSquared = 0.0;
+  for (int c = 0; c < 3; ++c) {
+    direction[c] = double(end[c]) - double(start[c]);
+    lengthSquared += direction[c] * direction[c];
+  }
+  if (!(lengthSquared > 0.0)) return false;
+
+  // A tessellator can omit coincident or collinear occurrences. The
+  // surviving edge is still on the original contour only when every
+  // intervening occurrence lies on this segment in the same order.
+  double previous = 0.0;
+  const double tolerance = 1.0e-6;
+  for (int i = (a + 1) % count; i != b; i = (i + 1) % count) {
+    const SbVec3f & point = tessdata->facePositions[i];
+    double projection = 0.0;
+    double offsetSquared = 0.0;
+    for (int c = 0; c < 3; ++c) {
+      const double offset = double(point[c]) - double(start[c]);
+      projection += offset * direction[c];
+      offsetSquared += offset * offset;
+    }
+    const double t = projection / lengthSquared;
+    const double perpendicularSquared = offsetSquared - projection * projection / lengthSquared;
+    if (t < previous - tolerance || t > 1.0 + tolerance ||
+        perpendicularSquared > lengthSquared * tolerance * tolerance)
+      return false;
+    previous = t;
+  }
+  return true;
+}
+
 static void
 do_triangle(void *v0, void *v1, void *v2, void *data)
 {
   tTessData *tessdata = static_cast<tTessData *>(data);
+  const tVertexInfo *corners[3] = {
+    static_cast<tVertexInfo *>(v0), static_cast<tVertexInfo *>(v1),
+    static_cast<tVertexInfo *>(v2)
+  };
   tessdata->firstvertex = TRUE;
   vertex_tri(static_cast<tVertexInfo *>(v0), tessdata);
   vertex_tri(static_cast<tVertexInfo *>(v1), tessdata);
   vertex_tri(static_cast<tVertexInfo *>(v2), tessdata);
+  for (int i = 0; i < 3; ++i) {
+    const int a = corners[i]->occurrence;
+    const int b = corners[(i + 1) % 3]->occurrence;
+    const bool boundary = is_boundary_path(tessdata, a, b) ||
+                          is_boundary_path(tessdata, b, a);
+    tessdata->edgeFlags->append(boundary ? 1 : 0);
+  }
 
   tessdata->vertexIndex->append(-1);
+  tessdata->edgeFlags->append(2);
   if (tessdata->matIndex &&
       tessdata->matbind >= SoConvexDataCache::PER_VERTEX) {
     tessdata->matIndex->append(-1);

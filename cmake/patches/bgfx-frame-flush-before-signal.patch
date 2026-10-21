@@ -1,0 +1,26 @@
+--- a/src/bgfx.cpp
++++ b/src/bgfx.cpp
+@@ -3032,18 +3032,21 @@
+ 				rendererExecCommands(m_render->m_cmdPost);
+ 			}
+ 
++			// The API may swap m_render as soon as renderSemPost wakes it.
++			// Keep this completed frame's flag before releasing its ownership.
++			const bool frameFlush = m_render->m_flush;
+ 			renderSemPost();
+ 
+ 			if (m_flipAfterRender)
+ 			{
+-				if (!m_render->m_flush)
++				if (!frameFlush)
+ 				{
+ 					BGFX_PROFILER_SCOPE("bgfx/flip", kColorSubmit);
+ 					flip();
+ 				}
+ 			}
+ 
+-			m_flushPrevFrame = m_render->m_flush;
++			m_flushPrevFrame = frameFlush;
+ 		}
+ 		else
+ 		{

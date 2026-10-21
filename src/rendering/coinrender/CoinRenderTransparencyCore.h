@@ -25,4 +25,9 @@ COIN_RENDER_DLL_API bool coin_render_transparency_budget(uint32_t width, uint32_
                                             bool allocateLayers, uint64_t& required,
                                             std::string& diagnostic);
 
+// Same conservative attachment estimate for a multisampled transparency target.
+COIN_RENDER_DLL_API bool coin_render_transparency_sample_budget(uint32_t width, uint32_t height,
+    const CoinRenderTransparencyOptions & options, bool allocateLayers, uint32_t samples,
+    uint64_t & required, std::string & diagnostic);
+
 #endif

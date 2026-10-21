@@ -1,3 +1,5 @@
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
+#include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -8,11 +10,59 @@
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoSubAction.h>
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/nodes/SoCallback.h>
+#include <Inventor/nodes/SoTextureCoordinateFunction.h>
+#include <Inventor/fields/SoSFNode.h>
+#include <Inventor/fields/SoMFNode.h>
+#include <Inventor/fields/SoSFImage.h>
+#include <Inventor/fields/SoSFImage3.h>
+#include <Inventor/fields/SoSFString.h>
+#include <Inventor/fields/SoMFString.h>
+#include <Inventor/fields/SoSFPath.h>
+#include <Inventor/fields/SoMFPath.h>
+#include <Inventor/fields/SoSFEngine.h>
+#include <Inventor/fields/SoMFEngine.h>
+#include <Inventor/fields/SoMFBitMask.h>
+#include <Inventor/fields/SoMFBool.h>
+#include <Inventor/fields/SoMFColor.h>
+#include <Inventor/fields/SoMFColorRGBA.h>
+#include <Inventor/fields/SoMFDouble.h>
+#include <Inventor/fields/SoMFEnum.h>
+#include <Inventor/fields/SoMFFloat.h>
+#include <Inventor/fields/SoMFInt32.h>
+#include <Inventor/fields/SoMFMatrix.h>
+#include <Inventor/fields/SoMFName.h>
+#include <Inventor/fields/SoMFPlane.h>
+#include <Inventor/fields/SoMFRotation.h>
+#include <Inventor/fields/SoMFShort.h>
+#include <Inventor/fields/SoMFTime.h>
+#include <Inventor/fields/SoMFUInt32.h>
+#include <Inventor/fields/SoMFUShort.h>
+#include <Inventor/fields/SoMFVec2b.h>
+#include <Inventor/fields/SoMFVec2d.h>
+#include <Inventor/fields/SoMFVec2f.h>
+#include <Inventor/fields/SoMFVec2i32.h>
+#include <Inventor/fields/SoMFVec2s.h>
+#include <Inventor/fields/SoMFVec3b.h>
+#include <Inventor/fields/SoMFVec3d.h>
+#include <Inventor/fields/SoMFVec3f.h>
+#include <Inventor/fields/SoMFVec3i32.h>
+#include <Inventor/fields/SoMFVec3s.h>
+#include <Inventor/fields/SoMFVec4b.h>
+#include <Inventor/fields/SoMFVec4d.h>
+#include <Inventor/fields/SoMFVec4f.h>
+#include <Inventor/fields/SoMFVec4i32.h>
+#include <Inventor/fields/SoMFVec4s.h>
+#include <Inventor/fields/SoMFVec4ub.h>
+#include <Inventor/fields/SoMFVec4ui32.h>
+#include <Inventor/fields/SoMFVec4us.h>
+#include <Inventor/SbImage.h>
 #include <Inventor/nodes/SoDrawStyle.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoIndexedShape.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
 #include <Inventor/nodes/SoTransparencyType.h>
@@ -20,6 +70,7 @@
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoBumpMap.h>
 #include <Inventor/nodes/SoTextureCubeMap.h>
 #include <Inventor/nodes/SoSceneTextureCubeMap.h>
 #include <Inventor/nodes/SoShaderProgram.h>
@@ -29,6 +80,7 @@
 #include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/annex/FXViz/elements/SoShadowStyleElement.h>
 #include <Inventor/elements/SoEnvironmentElement.h>
+#include <Inventor/elements/SoBumpMapElement.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoPointSet.h>
@@ -60,6 +112,7 @@
 #include <Inventor/fields/SoFieldData.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoCube.h>
+#include <typeinfo>
 #include <Inventor/nodes/SoImage.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/nodes/SoMarkerSet.h>
@@ -68,6 +121,11 @@
 #include <Inventor/SoPath.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
 #include <Inventor/elements/SoCoordinateElement.h>
+#include <Inventor/nodes/SoTextureCoordinateObject.h>
+#include <Inventor/nodes/SoTextureCoordinatePlane.h>
+#include <Inventor/nodes/SoTextureCoordinateEnvironment.h>
+#include <Inventor/nodes/SoTextureCoordinateReflectionMap.h>
+#include <Inventor/nodes/SoTextureCoordinateNormalMap.h>
 #include <Inventor/elements/SoNormalElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
@@ -79,13 +137,25 @@
 #include <Inventor/elements/SoShapeStyleElement.h>
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/elements/SoModelMatrixElement.h>
+#include <Inventor/elements/SoViewVolumeElement.h>
+#include <Inventor/elements/SoViewportRegionElement.h>
+#include <Inventor/elements/SoProjectionMatrixElement.h>
+#include <Inventor/elements/SoViewingMatrixElement.h>
 #include <Inventor/elements/SoClipPlaneElement.h>
 #include <Inventor/actions/SoSearchAction.h>
 #include <Inventor/elements/SoOverrideElement.h>
+#include <Inventor/elements/SoDrawStyleElement.h>
+#include <Inventor/elements/SoLightModelElement.h>
+#include <Inventor/elements/SoComplexityTypeElement.h>
+#include <Inventor/elements/SoPolygonOffsetElement.h>
 #include <Inventor/elements/SoDepthBufferElement.h>
+#include <Inventor/elements/SoLinePatternElement.h>
+#include <Inventor/elements/SoLineWidthElement.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
+#include "rendering/coinrender/CoinRenderShaderModuleElement.h"
 #include <algorithm>
+#include <utility>
 #include <chrono>
 #include <memory>
 #include <new>
@@ -100,13 +170,472 @@
 #include "actions/CoinRenderActionP.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
+#include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderShadowCameraMath.h"
 #include "rendering/coinrender/CoinRenderRttExecution.h"
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderManagerLayerPurpose.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCapture.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
 #include "actions/SoSubActionP.h"
+
+static bool rttNodeHasKnownTraversal(const SoNode * node)
+{
+  // This SDK's concrete SceneTextureCubeMap uses SO_NODE_CONSTRUCTOR, unlike
+  // its other internal texture nodes. Qualify that exact implementation only;
+  // application subclasses retain the dynamic/custom traversal contract.
+  return node->getIsBuiltIn() || node->getTypeId()==SoSceneTextureCubeMap::getClassTypeId();
+}
+
+// This proof is local to one outer apply. It owns field values (including
+// copied image bytes), not revisions/digests as a substitute for the payload.
+// isSame supplies field-value equality, not IEEE representation equality. User
+// code capable of editing values during this apply invalidates proofs before
+// it runs; no proof survives into a later apply (including notify-disabled edits).
+// Dynamic traversal is deliberately not memoized: its callbacks still execute
+// at every logical occurrence, just as before graph payload deduplication.
+class CoinRenderRttCaptureMemo {
+public:
+  struct Identity {
+    const SoNode * node;
+    uint64_t revision;
+    bool overrideValue;
+    int stereoMode = 0;
+    float stereoAdjustment = 0, stereoBalance = 0;
+    bool matches() const {
+      if (node->getNodeId()!=revision || bool(node->isOverride())!=overrideValue) return false;
+      if (node->isOfType(SoCamera::getClassTypeId())) {
+        const auto * camera=static_cast<const SoCamera *>(node);
+        if (camera->getStereoMode()!=stereoMode || camera->getStereoAdjustment()!=stereoAdjustment ||
+            camera->getBalanceAdjustment()!=stereoBalance) return false;
+      }
+      return true;
+    }
+  };
+  struct Baseline {
+    bool complete = true;
+    std::vector<Identity> nodes;
+    bool matches() const {
+      if (!complete) return false;
+      for (const auto & identity : nodes) if (!identity.matches()) return false;
+      return true;
+    }
+  };
+  struct Field {
+    const SoField * original;
+    std::shared_ptr<SoField> value;
+    bool ignored, defaultValue;
+  };
+  struct Node {
+    std::shared_ptr<const SoNode> original;
+    uint64_t revision;
+    bool overrideValue;
+    std::vector<Field> fields;
+    std::vector<const SoNode *> children;
+    int stereoMode = 0;
+    float stereoAdjustment = 0, stereoBalance = 0;
+  };
+  struct Scene {
+    std::vector<Node> nodes;
+    bool stable = true;
+    // The proof is only an optimization. Bound its per-apply copied payload;
+    // exceeding this allowance preserves full traversal, never rejects a scene.
+    static bool charge(size_t amount, size_t & used) {
+      const size_t allowance = size_t(1024)*1024;
+      if (amount > allowance-used) return false;
+      used += amount; return true;
+    }
+    static bool chargeProduct(uint64_t a, uint64_t b, size_t & used) {
+      const size_t allowance = size_t(1024)*1024;
+      if (a && b > (allowance-used)/a) return false;
+      return charge(size_t(a*b), used);
+    }
+    static size_t multiFieldElementSize(const SoField * field) {
+      // Public typed accessors expose the real contiguous element type. Do not
+      // reach through SoMField's protected storage API for this optional proof.
+#define COIN_RTT_MFIELD_SIZE(Type) \
+      if (field->getTypeId()==Type::getClassTypeId()) \
+        return sizeof(*static_cast<const Type *>(field)->getValues(0))
+      COIN_RTT_MFIELD_SIZE(SoMFBitMask);
+      COIN_RTT_MFIELD_SIZE(SoMFBool);
+      COIN_RTT_MFIELD_SIZE(SoMFColor);
+      COIN_RTT_MFIELD_SIZE(SoMFColorRGBA);
+      COIN_RTT_MFIELD_SIZE(SoMFDouble);
+      COIN_RTT_MFIELD_SIZE(SoMFEnum);
+      COIN_RTT_MFIELD_SIZE(SoMFFloat);
+      COIN_RTT_MFIELD_SIZE(SoMFInt32);
+      COIN_RTT_MFIELD_SIZE(SoMFMatrix);
+      COIN_RTT_MFIELD_SIZE(SoMFName);
+      COIN_RTT_MFIELD_SIZE(SoMFNode);
+      COIN_RTT_MFIELD_SIZE(SoMFPlane);
+      COIN_RTT_MFIELD_SIZE(SoMFRotation);
+      COIN_RTT_MFIELD_SIZE(SoMFShort);
+      COIN_RTT_MFIELD_SIZE(SoMFString);
+      COIN_RTT_MFIELD_SIZE(SoMFTime);
+      COIN_RTT_MFIELD_SIZE(SoMFUInt32);
+      COIN_RTT_MFIELD_SIZE(SoMFUShort);
+      COIN_RTT_MFIELD_SIZE(SoMFVec2b);
+      COIN_RTT_MFIELD_SIZE(SoMFVec2d);
+      COIN_RTT_MFIELD_SIZE(SoMFVec2f);
+      COIN_RTT_MFIELD_SIZE(SoMFVec2i32);
+      COIN_RTT_MFIELD_SIZE(SoMFVec2s);
+      COIN_RTT_MFIELD_SIZE(SoMFVec3b);
+      COIN_RTT_MFIELD_SIZE(SoMFVec3d);
+      COIN_RTT_MFIELD_SIZE(SoMFVec3f);
+      COIN_RTT_MFIELD_SIZE(SoMFVec3i32);
+      COIN_RTT_MFIELD_SIZE(SoMFVec3s);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4b);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4d);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4f);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4i32);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4s);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4ub);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4ui32);
+      COIN_RTT_MFIELD_SIZE(SoMFVec4us);
+#undef COIN_RTT_MFIELD_SIZE
+      return 0; // Unknown/custom fields retain ordinary capture.
+    }
+    bool capture(const SoNode * root, size_t & used) {
+      std::vector<const SoNode *> pending(1, root);
+      std::unordered_set<const SoNode *> seen;
+      while (!pending.empty()) {
+        const SoNode * node = pending.back(); pending.pop_back();
+        if (!node || !seen.insert(node).second) continue;
+        if (!rttNodeHasKnownTraversal(node) || node->isOfType(SoCallback::getClassTypeId()) ||
+            node->isOfType(SoTextureCoordinateFunction::getClassTypeId())) return stable = false;
+        if (!charge(sizeof(Node)+256, used)) return stable = false;
+        Node saved;
+        node->ref();
+        saved.original = std::shared_ptr<const SoNode>(node, [](const SoNode * n) { n->unref(); });
+        saved.revision = node->getNodeId(); saved.overrideValue = node->isOverride();
+        const SoFieldData * data = node->getFieldData();
+        for (int i = 0; data && i < data->getNumFields(); ++i) {
+          const SoField * field = data->getField(node, i);
+          // Do not evaluate engines or scheduled image callbacks for a cache proof.
+          if (field->isConnected() || !field->getTypeId().canCreateInstance() ||
+              field->isOfType(SoSFPath::getClassTypeId()) || field->isOfType(SoMFPath::getClassTypeId()) ||
+              field->isOfType(SoSFEngine::getClassTypeId()) || field->isOfType(SoMFEngine::getClassTypeId()) ||
+              !charge(sizeof(Field)+256, used)) return stable = false;
+          if (field->getTypeId() == SoSFImage::getClassTypeId()) {
+            const SbImage & image = static_cast<const SoSFImage *>(field)->getValue();
+            // SbImage equality is false for scheduled reads, even against itself.
+            if (!image.hasData() || !(image == image)) return stable = false;
+            SbVec2s size; int components;
+            static_cast<const SoSFImage *>(field)->getValue(size, components);
+            if (size[0]<0 || size[1]<0 || components<0 ||
+                !chargeProduct(size_t(size[0])*size_t(size[1]), size_t(components), used)) return stable = false;
+          } else if (field->getTypeId() == SoSFImage3::getClassTypeId()) {
+            SbVec3s size; int components;
+            static_cast<const SoSFImage3 *>(field)->getValue(size, components);
+            if (size[0]<0 || size[1]<0 || size[2]<0 || components<0 ||
+                !chargeProduct(uint64_t(size[0])*uint64_t(size[1])*uint64_t(size[2]), uint64_t(components), used)) return stable = false;
+          } else if (field->isOfType(SoMField::getClassTypeId())) {
+            const auto * values = static_cast<const SoMField *>(field);
+            const size_t elementSize=multiFieldElementSize(field);
+            if (values->getNum()<0 || !elementSize ||
+                !chargeProduct(size_t(values->getNum()), elementSize, used)) return stable = false;
+            if (field->getTypeId() == SoMFString::getClassTypeId()) {
+              const auto * strings = static_cast<const SoMFString *>(field);
+              for (int j=0;j<strings->getNum();++j)
+                if (!charge(size_t((*strings)[j].getLength())+1, used)) return stable = false;
+            }
+          } else if (field->getTypeId() == SoSFString::getClassTypeId()) {
+            if (!charge(size_t(static_cast<const SoSFString *>(field)->getValue().getLength())+1, used)) return stable = false;
+          }
+          Field copy;
+          copy.original = field; copy.ignored = field->isIgnored(); copy.defaultValue = field->isDefault();
+          copy.value.reset(static_cast<SoField *>(field->getTypeId().createInstance()));
+          if (!copy.value) return stable = false;
+          copy.value->copyFrom(*field);
+          saved.fields.push_back(std::move(copy));
+          if (field->isOfType(SoSFNode::getClassTypeId()))
+            pending.push_back(static_cast<const SoSFNode *>(field)->getValue());
+          else if (field->isOfType(SoMFNode::getClassTypeId())) {
+            const auto * refs = static_cast<const SoMFNode *>(field);
+            for (int j = 0; j < refs->getNum(); ++j) pending.push_back((*refs)[j]);
+          }
+        }
+        const SoChildList * children = node->getChildren();
+        for (int i = 0; children && i < children->getLength(); ++i) {
+          if (!charge(3*sizeof(const SoNode *), used)) return stable = false;
+          saved.children.push_back((*children)[i]); pending.push_back((*children)[i]);
+        }
+        if (node->isOfType(SoCamera::getClassTypeId())) {
+          const auto * camera = static_cast<const SoCamera *>(node);
+          saved.stereoMode = camera->getStereoMode();
+          saved.stereoAdjustment = camera->getStereoAdjustment();
+          saved.stereoBalance = camera->getBalanceAdjustment();
+        }
+        nodes.push_back(std::move(saved));
+      }
+      return true;
+    }
+    bool matches() const {
+      if (!stable) return false;
+      for (const auto & saved : nodes) {
+        const SoNode * node = saved.original.get();
+        if (node->getNodeId() != saved.revision || bool(node->isOverride()) != saved.overrideValue) return false;
+        const SoFieldData * data = node->getFieldData();
+        if (size_t(data ? data->getNumFields() : 0) != saved.fields.size()) return false;
+        for (size_t i = 0; i < saved.fields.size(); ++i) {
+          const Field & field = saved.fields[i];
+          if (data->getField(node, int(i)) != field.original || field.original->isConnected() ||
+              bool(field.original->isIgnored()) != field.ignored ||
+              bool(field.original->isDefault()) != field.defaultValue ||
+              !field.value->isSame(*field.original)) return false;
+        }
+        const SoChildList * children = node->getChildren();
+        if (size_t(children ? children->getLength() : 0) != saved.children.size()) return false;
+        for (size_t i = 0; i < saved.children.size(); ++i)
+          if ((*children)[int(i)] != saved.children[i]) return false;
+        if (node->isOfType(SoCamera::getClassTypeId())) {
+          const auto * camera = static_cast<const SoCamera *>(node);
+          if (camera->getStereoMode() != saved.stereoMode ||
+              camera->getStereoAdjustment() != saved.stereoAdjustment ||
+              camera->getBalanceAdjustment() != saved.stereoBalance) return false;
+        }
+      }
+      return true;
+    }
+  };
+  struct Visit {
+    uint64_t source;
+    size_t relativeDepth;
+  };
+  struct Trace {
+    size_t baseDepth;
+    bool complete = true;
+    size_t reservedBytes = 0;
+    std::vector<Visit> visits;
+  };
+  struct Entry {
+    const SoNode * source;
+    std::vector<uint64_t> context;
+    Scene scene;
+    std::vector<Visit> visits;
+    uint64_t epoch, producer;
+    size_t stagedCharge = 0;
+    size_t reservedBytes = 0;
+  };
+  bool allowed = true;
+  const CoinRenderActionP * owner = NULL;
+  uint64_t epoch = 0;
+  size_t proofBytes = 0;
+  std::vector<Entry> entries;
+  std::vector<Trace *> activeTraces;
+
+  void invalidate() {
+    ++epoch;
+    // Release field auditors and strong node references before the effect,
+    // without disturbing the numeric traces owned by active capture scopes.
+    for (const auto & entry : entries) proofBytes -= entry.reservedBytes;
+    entries.clear();
+  }
+
+  void recordVisit(uint64_t source, size_t depth) {
+    for (auto * trace : activeTraces) {
+      if (!trace->complete) continue;
+      bool found = false;
+      for (auto & visit : trace->visits) if (visit.source == source) {
+        visit.relativeDepth = std::max(visit.relativeDepth, depth-trace->baseDepth);
+        found = true; break;
+      }
+      if (!found) {
+        if (!Scene::charge(sizeof(Visit)+32, proofBytes)) { trace->complete = false; continue; }
+        trace->reservedBytes += sizeof(Visit)+32;
+        Visit visit; visit.source = source; visit.relativeDepth = depth-trace->baseDepth;
+        trace->visits.push_back(visit);
+      }
+    }
+  }
+  struct TraceScope {
+    CoinRenderRttCaptureMemo * memo;
+    Trace trace;
+    TraceScope(CoinRenderRttCaptureMemo * owner, uint64_t source, size_t depth)
+      : memo(owner && owner->allowed ? owner : NULL) {
+      trace.baseDepth = depth;
+      if (memo) { memo->activeTraces.push_back(&trace); memo->recordVisit(source, depth); }
+    }
+    ~TraceScope() {
+      if (memo) { memo->activeTraces.pop_back(); memo->proofBytes -= trace.reservedBytes; }
+    }
+  };
+
+  static bool activeSource(const CoinRenderRttPlan & graph, uint64_t source) {
+    return std::find(graph.activeSources.begin(), graph.activeSources.end(), source) != graph.activeSources.end();
+  }
+  static bool checkSubgraph(const CoinRenderRttPlan & graph, uint64_t id,
+                            size_t depth, std::string & diagnostic, bool & cycle) {
+    std::vector<std::pair<uint64_t, size_t>> pending(1, std::make_pair(id, depth));
+    std::vector<size_t> deepest(graph.producers.size(), 0);
+    while (!pending.empty()) {
+      const auto visit = pending.back(); pending.pop_back();
+      if (!visit.first || visit.first > graph.producers.size()) {
+        diagnostic = "Invalid memoized RTT dependency"; return false;
+      }
+      const auto & producer = graph.producers[size_t(visit.first-1)];
+      if (activeSource(graph, producer.sourceRevision)) {
+        cycle = true; diagnostic = "SoSceneTexture2 dependency cycle"; return false;
+      }
+      if (visit.second > 8) {
+        diagnostic = "SoSceneTexture2 nesting beyond eight passes"; return false;
+      }
+      if (deepest[size_t(visit.first-1)] >= visit.second) continue;
+      deepest[size_t(visit.first-1)] = visit.second;
+      for (size_t f = 0; f < producer.faceCount(); ++f)
+        for (const auto & texture : producer.face(f).textures) if (texture.producerId) {
+          if (texture.producerId >= visit.first) {
+            diagnostic = "Invalid memoized RTT dependency order"; return false;
+          }
+          pending.push_back(std::make_pair(texture.producerId, visit.second+1));
+        }
+    }
+    return true;
+  }
+  bool find(const SoNode * source, const std::vector<uint64_t> & context,
+            CoinRenderRttPlan & graph, uint64_t & id, std::string & diagnostic, bool & cycle) {
+    id = 0;
+    cycle = activeSource(graph, source->getNodeId());
+    if (cycle) { diagnostic = "SoSceneTexture2 dependency cycle"; return false; }
+    if (!allowed) return true;
+    for (const auto & entry : entries)
+      if (entry.source == source && entry.context == context && entry.epoch == epoch && entry.scene.matches()) {
+        const size_t depth = graph.activeSources.size()+1;
+        bool exceedsDepth = false;
+        for (const auto & visit : entry.visits) {
+          if (activeSource(graph, visit.source)) {
+            cycle = true; diagnostic = "SoSceneTexture2 dependency cycle"; return false;
+          }
+          exceedsDepth = exceedsDepth || depth+visit.relativeDepth > 8;
+        }
+        if (exceedsDepth) {
+          diagnostic = "SoSceneTexture2 nesting beyond eight passes"; return false;
+        }
+        if (!checkSubgraph(graph, entry.producer, depth, diagnostic, cycle)) return false;
+        // STAGED has a conservative 2D charge per logical occurrence. A hit
+        // skips traversal, not admission: replay the entire captured subtree.
+        if (graph.mode==COIN_RENDER_SCENE_TEXTURE_STAGED) {
+          if (graph.chargedBytes>graph.budget() || entry.stagedCharge>graph.budget()-graph.chargedBytes) {
+            diagnostic="SoSceneTexture2 staged RGBA8 budget exceeds 64 MiB per apply"; return false;
+          }
+          graph.chargedBytes += entry.stagedCharge;
+        }
+        for (const auto & visit : entry.visits) recordVisit(visit.source, depth+visit.relativeDepth);
+        id = entry.producer; return true;
+      }
+    return true;
+  }
+  void remember(const SoNode * source, const std::vector<uint64_t> & context,
+                const Baseline & baseline, const Trace & trace, uint64_t capturedEpoch,
+                uint64_t id, size_t stagedCharge, bool captureStable) {
+    if (!allowed || !captureStable || !trace.complete || epoch!=capturedEpoch || !baseline.matches()) return;
+    // Ancestors keep only lightweight identities while their children capture.
+    // Copy field payloads after the children, so an ancestor cannot consume the
+    // entire proof allowance before the first leaf is eligible for reuse.
+    const size_t reservedBefore = proofBytes;
+    Scene scene;
+    if (!scene.capture(source, proofBytes) || !scene.matches() ||
+        !Scene::chargeProduct(trace.visits.size(), sizeof(Visit), proofBytes)) {
+      scene.nodes.clear();
+      proofBytes = reservedBefore;
+      return;
+    }
+    Entry entry;
+    entry.source = source; entry.context = context; entry.scene = std::move(scene);
+    entry.visits = trace.visits;
+    entry.epoch = epoch; entry.producer = id; entry.stagedCharge = stagedCharge;
+    entry.reservedBytes = proofBytes-reservedBefore;
+    entries.push_back(std::move(entry));
+  }
+};
+
+static std::vector<uint64_t>
+rttCaptureContext(const CoinRenderActionP & p, SoState * state,
+                  int transparency, bool bumpProducer)
+{
+  const auto & options = p.executionOptions;
+  // These are exactly the parent inputs installed on the private child action.
+  return {uint64_t(options.renderer), uint64_t(options.transparency), uint64_t(options.sceneTexture),
+    uint64_t(options.storedTextureColorSpace), uint64_t(options.maxTextureAnisotropy),
+    uint64_t(options.textureSamplingPolicy), uint64_t(options.rasterizationPolicy), uint64_t(options.sampleCount),
+    uint64_t(transparency), uint64_t(SoOverrideElement::getTransparencyTypeOverride(state)),
+    uint64_t(p.transparencyOptions.layers), p.transparencyOptions.bufferBudget, uint64_t(bumpProducer)};
+}
+
+static bool rttNodeHasEffects(const SoNode * node)
+{
+  if (!rttNodeHasKnownTraversal(node) || node->isOfType(SoCallback::getClassTypeId()) ||
+      node->isOfType(SoTextureCoordinateFunction::getClassTypeId())) return true;
+  const SoFieldData * data = node->getFieldData();
+  for (int i=0;data && i<data->getNumFields();++i) {
+    const SoField * field = data->getField(node,i);
+    if (field->isConnected()) return true;
+    if (field->getTypeId() == SoSFImage::getClassTypeId()) {
+      const SbImage & image = static_cast<const SoSFImage *>(field)->getValue();
+      if (!image.hasData() || !(image == image)) return true;
+    }
+  }
+  return false;
+}
+
+static bool rttSceneHasEffects(const SoNode * root, CoinRenderRttCaptureMemo::Baseline * baseline=NULL)
+{
+  std::vector<const SoNode *> pending(1,root);
+  std::unordered_set<const SoNode *> seen;
+  while (!pending.empty()) {
+    const SoNode * node = pending.back(); pending.pop_back();
+    if (!node || !seen.insert(node).second) continue;
+    if (rttNodeHasEffects(node)) return true;
+    if (baseline && baseline->complete) {
+      // This bounds transient metadata only; it never changes scene admission.
+      if (baseline->nodes.size()>=4096) { baseline->complete=false; baseline->nodes.clear(); }
+      else {
+        CoinRenderRttCaptureMemo::Identity identity;
+        identity.node=node; identity.revision=node->getNodeId(); identity.overrideValue=node->isOverride();
+        if (node->isOfType(SoCamera::getClassTypeId())) {
+          const auto * camera=static_cast<const SoCamera *>(node);
+          identity.stereoMode=camera->getStereoMode(); identity.stereoAdjustment=camera->getStereoAdjustment();
+          identity.stereoBalance=camera->getBalanceAdjustment();
+        }
+        baseline->nodes.push_back(identity);
+      }
+    }
+    const SoFieldData * data = node->getFieldData();
+    for (int i=0;data && i<data->getNumFields();++i) {
+      const SoField * field = data->getField(node,i);
+      if (field->isOfType(SoSFNode::getClassTypeId()))
+        pending.push_back(static_cast<const SoSFNode *>(field)->getValue());
+      else if (field->isOfType(SoMFNode::getClassTypeId())) {
+        const auto * refs=static_cast<const SoMFNode *>(field);
+        for (int j=0;j<refs->getNum();++j) pending.push_back((*refs)[j]);
+      }
+    }
+    const SoChildList * children=node->getChildren();
+    for (int i=0;children && i<children->getLength();++i) pending.push_back((*children)[i]);
+  }
+  return false;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::rttMutationPreCB(void * data, SoCallbackAction *, const SoNode * node)
+{
+  auto * p = static_cast<CoinRenderActionP *>(data);
+  // An effect outside a producer can change state not represented by fields.
+  // Invalidate earlier proofs instead of assuming a callback only touches its node.
+  const auto memo = p->sceneTextureCaptureMemo;
+  if (memo && memo->allowed && memo->owner &&
+      memo->owner->master->callbackRegistrationRevision() != memo->owner->captureCallbackRevision) {
+    // A callback may install more action observers while the apply is active.
+    memo->allowed = false;
+    memo->invalidate();
+  }
+  if (memo && memo->allowed && (!memo->entries.empty() || !memo->activeTraces.empty()) &&
+      rttNodeHasEffects(node)) memo->invalidate();
+  return SoCallbackAction::CONTINUE;
+}
 
 SO_ACTION_SOURCE(CoinRenderAction);
 
@@ -119,6 +648,8 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, SoShadowStyleElement);
   CoinRenderDepthPolicyElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
+  CoinRenderShaderModuleElement::initClass();
+  SO_ENABLE(CoinRenderAction, CoinRenderShaderModuleElement);
   SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::shapeContentMethod);
   SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
   SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
@@ -212,6 +743,51 @@ CoinRenderAction::getTransparencyType(void) const
   return this->pimpl->transparencyType;
 }
 
+void
+CoinRenderAction::setDrawMode(DrawMode mode)
+{
+  if (this->pimpl->drawMode != mode) {
+    this->pimpl->drawMode = mode;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+
+CoinRenderAction::DrawMode
+CoinRenderAction::getDrawMode(void) const
+{
+  return this->pimpl->drawMode;
+}
+
+void
+CoinRenderAction::setOverlayColor(const SbColor4f & color)
+{
+  if (this->pimpl->overlayColor != color) {
+    this->pimpl->overlayColor = color;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+
+const SbColor4f &
+CoinRenderAction::getOverlayColor(void) const
+{
+  return this->pimpl->overlayColor;
+}
+
+void
+CoinRenderAction::setTexturesEnabled(SbBool enabled)
+{
+  if (this->pimpl->texturesEnabled != enabled) {
+    this->pimpl->texturesEnabled = enabled;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+
+SbBool
+CoinRenderAction::isTexturesEnabled(void) const
+{
+  return this->pimpl->texturesEnabled;
+}
+
 void CoinRenderAction::setSortedLayersNumPasses(int passes) {
   if (this->pimpl->transparencyOptions.layers != static_cast<uint32_t>(passes)) {
     this->pimpl->transparencyOptions.layers = static_cast<uint32_t>(passes);
@@ -232,6 +808,36 @@ void CoinRenderAction::setTransparencyBufferBudget(uint64_t bytes) {
 
 uint64_t CoinRenderAction::getTransparencyBufferBudget(void) const {
   return this->pimpl->transparencyOptions.bufferBudget;
+}
+
+
+SbBool CoinRenderAction::setPortableShaderModule(SoShaderProgram *program,
+                                                const CoinRenderShaderModule &module)
+{
+  if(!program) return FALSE;
+  SbString diagnostic;
+  if(!coin_render_validate_shader_module(module,diagnostic)) return FALSE;
+  try {
+    auto registration=std::make_shared<CoinRenderShaderRegistration>();
+    registration->module=module;
+    program->ref();
+    registration->program=std::shared_ptr<SoShaderProgram>(program,[](SoShaderProgram *node){node->unref();});
+    this->pimpl->portableShaderModules[program]=registration;
+    this->pimpl->hasLastValidPlan=false;
+    return TRUE;
+  } catch(const std::bad_alloc &) { return FALSE; }
+}
+
+void CoinRenderAction::clearPortableShaderModule(SoShaderProgram *program)
+{
+  this->pimpl->portableShaderModules.erase(program);
+  this->pimpl->hasLastValidPlan=false;
+}
+
+void CoinRenderAction::clearPortableShaderModules()
+{
+  this->pimpl->portableShaderModules.clear();
+  this->pimpl->hasLastValidPlan=false;
 }
 
 void
@@ -329,6 +935,21 @@ CoinRenderAction::endForegroundPass()
     this->pimpl->builder.endForeground();
 }
 
+void
+CoinRenderAction::clearManagerLayerBoundaries()
+{
+  this->pimpl->managerLayerBoundaries.clear();
+}
+
+void
+CoinRenderAction::addManagerLayerBoundary(SoNode * separator, SbBool clearDepth,
+                                          int transparencyType)
+{
+  if (separator)
+    this->pimpl->managerLayerBoundaries.emplace_back(
+      separator, clearDepth != FALSE, transparencyType);
+}
+
 SbBool
 CoinRenderAction::deferOverlayPath(SoPath * supplied, int priority)
 {
@@ -401,6 +1022,31 @@ CoinRenderAction::beginTraversal(SoNode * root)
   if (this->pimpl->isApplying) {
     SoState * state = this->getState();
     state->push();
+    // A manager's technical mode applies to its base scene. Foreground
+    // superimpositions follow those passes once, in manager order, with their
+    // own depth policy rather than inheriting the hidden-line overrides.
+    SoNode * technicalBase = root;
+    const SoGroup * managerRoot = nullptr;
+    if (root && !this->pimpl->managerLayerBoundaries.empty() &&
+        this->pimpl->drawMode != DrawMode::SCENE &&
+        root->isOfType(SoSeparator::getClassTypeId())) {
+      const auto * group = static_cast<const SoGroup *>(root);
+      if (group->getNumChildren() == int(this->pimpl->managerLayerBoundaries.size()) + 1) {
+        bool matches = true;
+        for (int i = 1; i < group->getNumChildren(); ++i)
+          matches = matches && group->getChild(i) ==
+            std::get<0>(this->pimpl->managerLayerBoundaries[size_t(i - 1)]);
+        if (matches) {
+          managerRoot = group;
+          technicalBase = group->getChild(0);
+        }
+      }
+    }
+    const auto appendManagerForeground = [&]() {
+      if (managerRoot)
+        for (int i = 1; i < managerRoot->getNumChildren(); ++i)
+          this->inherited::beginTraversal(managerRoot->getChild(i));
+    };
     SoShapeStyleElement::setTransparencyType(
       state, static_cast<int32_t>(this->pimpl->transparencyType));
     SoLazyElement::setTransparencyType(
@@ -408,6 +1054,129 @@ CoinRenderAction::beginTraversal(SoNode * root)
     if (root && ((!this->pimpl->planOnly && this->pimpl->transparencyType == SORTED_LAYERS_BLEND) ||
                  this->pimpl->inheritedTransparencyOverride)) {
       SoOverrideElement::setTransparencyTypeOverride(state, root, TRUE);
+    }
+    if (root && !this->pimpl->texturesEnabled) {
+      SoTextureQualityElement::set(state, 0.0f);
+      SoTextureOverrideElement::setQualityOverride(state, TRUE);
+    }
+    if (root && this->pimpl->drawMode == DrawMode::HIDDEN_LINE) {
+      state->push();
+      SoMaterialBindingElement::set(state, root, SoMaterialBindingElement::OVERALL);
+      SoLightModelElement::set(state, root, SoLightModelElement::BASE_COLOR);
+      SoPolygonOffsetElement::set(state, root, 1.0f, 1.0f,
+                                  SoPolygonOffsetElement::FILLED, TRUE);
+      SoOverrideElement::setMaterialBindingOverride(state, root, TRUE);
+      SoOverrideElement::setLightModelOverride(state, root, TRUE);
+      SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
+      this->pimpl->builder.setColorWriteEnabled(false);
+      this->inherited::beginTraversal(technicalBase);
+      this->pimpl->builder.setColorWriteEnabled(true);
+      state->pop();
+
+      state->push();
+      SoMaterialBindingElement::set(state, root, SoMaterialBindingElement::OVERALL);
+      SoLightModelElement::set(state, root, SoLightModelElement::BASE_COLOR);
+      SoPolygonOffsetElement::set(state, root, 0.0f, 0.0f,
+                                  SoPolygonOffsetElement::FILLED, FALSE);
+      SoDrawStyleElement::set(state, root, SoDrawStyleElement::LINES);
+      SoOverrideElement::setLightModelOverride(state, root, TRUE);
+      SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
+      SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
+      this->inherited::beginTraversal(technicalBase);
+      state->pop();
+      appendManagerForeground();
+      state->pop();
+      return;
+    }
+    if (root && this->pimpl->drawMode == DrawMode::SHADED_HIDDEN_LINES) {
+      state->push();
+      SoDrawStyleElement::set(state, root, SoDrawStyleElement::FILLED);
+      SoLightModelElement::set(state, root, SoLightModelElement::PHONG);
+      SoPolygonOffsetElement::set(state, root, 1.0f, 1.0f,
+                                  SoPolygonOffsetElement::FILLED, TRUE);
+      SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
+      SoOverrideElement::setLightModelOverride(state, root, TRUE);
+      SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
+      this->inherited::beginTraversal(technicalBase);
+
+      SoPolygonOffsetElement::set(state, root, 0.0f, 0.0f,
+                                  SoPolygonOffsetElement::FILLED, FALSE);
+      SoDrawStyleElement::set(state, root, SoDrawStyleElement::LINES);
+      SoLinePatternElement::set(state, root, 0xffff, 1);
+      SoOverrideElement::setLinePatternOverride(state, root, TRUE);
+      SoDepthBufferElement::set(state, TRUE, FALSE, SoDepthBufferElement::LEQUAL,
+                                SoDepthBufferElement::getRange(state));
+      this->inherited::beginTraversal(technicalBase);
+
+      SoLineWidthElement::set(state, root, 1.0f);
+      SoOverrideElement::setLineWidthOverride(state, root, TRUE);
+      SoLinePatternElement::set(state, root, 0xf0f0, 2);
+      this->pimpl->builder.setLinePatternOverride(true, 0xf0f0u, 2);
+      SoDepthBufferElement::set(state, TRUE, FALSE, SoDepthBufferElement::GREATER,
+                                SoDepthBufferElement::getRange(state));
+      this->inherited::beginTraversal(technicalBase);
+      this->pimpl->builder.setLinePatternOverride(false);
+      state->pop();
+      appendManagerForeground();
+      state->pop();
+      return;
+    }
+    if (root && this->pimpl->drawMode == DrawMode::WIREFRAME_OVERLAY) {
+      state->push();
+      SoPolygonOffsetElement::set(state, root, 1.0f, 1.0f,
+                                  SoPolygonOffsetElement::FILLED, TRUE);
+      SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
+      this->inherited::beginTraversal(technicalBase);
+      state->pop();
+
+      state->push();
+      SoPolygonOffsetElement::set(state, root, 0.0f, 0.0f,
+                                  SoPolygonOffsetElement::FILLED, FALSE);
+      SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
+      const uint32_t packed = this->pimpl->overlayColor.getPackedValue();
+      SoLazyElement::setPacked(state, root, 1, &packed, TRUE);
+      SoLightModelElement::set(state, root, SoLightModelElement::BASE_COLOR);
+      SoMaterialBindingElement::set(state, root, SoMaterialBindingElement::OVERALL);
+      SoDrawStyleElement::set(state, root, SoDrawStyleElement::LINES);
+      SoOverrideElement::setLightModelOverride(state, root, TRUE);
+      SoOverrideElement::setDiffuseColorOverride(state, root, TRUE);
+      SoOverrideElement::setMaterialBindingOverride(state, root, TRUE);
+      SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
+      this->inherited::beginTraversal(technicalBase);
+      state->pop();
+      appendManagerForeground();
+      state->pop();
+      return;
+    }
+    if (root && managerRoot && this->pimpl->drawMode != DrawMode::SCENE) {
+      state->push();
+      SoDrawStyleElement::set(state, root,
+        this->pimpl->drawMode == DrawMode::POINTS
+          ? SoDrawStyleElement::POINTS : SoDrawStyleElement::LINES);
+      SoLightModelElement::set(state, root, SoLightModelElement::BASE_COLOR);
+      SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
+      SoOverrideElement::setLightModelOverride(state, root, TRUE);
+      if (this->pimpl->drawMode == DrawMode::BOUNDING_BOX) {
+        SoComplexityTypeElement::set(state, root, SoComplexityTypeElement::BOUNDING_BOX);
+        SoOverrideElement::setComplexityTypeOverride(state, root, TRUE);
+      }
+      this->inherited::beginTraversal(technicalBase);
+      state->pop();
+      appendManagerForeground();
+      state->pop();
+      return;
+    }
+    if (root && this->pimpl->drawMode != DrawMode::SCENE) {
+      SoDrawStyleElement::set(state, root,
+        this->pimpl->drawMode == DrawMode::POINTS
+          ? SoDrawStyleElement::POINTS : SoDrawStyleElement::LINES);
+      SoLightModelElement::set(state, root, SoLightModelElement::BASE_COLOR);
+      SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
+      SoOverrideElement::setLightModelOverride(state, root, TRUE);
+      if (this->pimpl->drawMode == DrawMode::BOUNDING_BOX) {
+        SoComplexityTypeElement::set(state, root, SoComplexityTypeElement::BOUNDING_BOX);
+        SoOverrideElement::setComplexityTypeOverride(state, root, TRUE);
+      }
     }
     if (root) {
       this->inherited::beginTraversal(root);
@@ -499,6 +1268,18 @@ cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = fa
     SoIndexedFaceSet::getClassTypeId(), SoIndexedLineSet::getClassTypeId()
   };
   const SoType * leafEnd = leafTypes + sizeof(leafTypes) / sizeof(leafTypes[0]);
+  // Runtime SoType alone does not exclude C++ subclasses which inherit their
+  // parent's registration but override traversal. Object overlays skip that
+  // traversal, so every admitted occurrence must be a concrete native node.
+  const std::type_info * objectTypes[] = {
+    &typeid(SoCube), &typeid(SoTransform), &typeid(SoMaterial),
+    &typeid(SoTranslation), &typeid(SoLightModel), &typeid(SoDirectionalLight),
+    &typeid(SoEnvironment), &typeid(SoCoordinate3), &typeid(SoNormal),
+    &typeid(SoNormalBinding), &typeid(SoMaterialBinding), &typeid(SoShapeHints),
+    &typeid(SoPointLight), &typeid(SoSpotLight), &typeid(SoIndexedFaceSet),
+    &typeid(SoIndexedLineSet), &typeid(SoSeparator), &typeid(SoGroup),
+    &typeid(SoPerspectiveCamera), &typeid(SoOrthographicCamera)
+  };
   std::unordered_set<SoNode *> qualifiedSharedLeaves;
   unsigned cameraOccurrences = 0;
   size_t materialOccurrences = 0;
@@ -520,6 +1301,8 @@ cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = fa
     const SoType type = node->getTypeId();
     const bool isGroup = type == separatorType || type == groupType;
     if (node != camera && !isGroup && std::find(leafTypes, leafEnd, type) == leafEnd) return false;
+    if (translationProfile && std::none_of(std::begin(objectTypes), std::end(objectTypes),
+        [node](const std::type_info * native) { return typeid(*node) == *native; })) return false;
     // Connected scene fields may change as a consequence of camera fields.
     // Qualify their absence once, outside all subsequent overlay updates.
     const SoFieldData * fields = node->getFieldData();
@@ -630,6 +1413,7 @@ CoinRenderActionP::rememberFrameRoot(SoNode * root, bool qualifyCamera)
   if (type != SoPerspectiveCamera::getClassTypeId() &&
       type != SoOrthographicCamera::getClassTypeId()) return;
   SoCamera * camera = static_cast<SoCamera *>(first);
+  if (camera->getStereoMode() != SoCamera::MONOSCOPIC) return;
   if (camera->viewportMapping.getValue() != SoCamera::ADJUST_CAMERA &&
       camera->viewportMapping.getValue() != SoCamera::LEAVE_ALONE) return;
   // Object animation must not pay for a scene-wide camera qualification after
@@ -726,6 +1510,13 @@ SoCallbackAction::Response CoinRenderActionP::translationPreCB(
 {
   auto * self = static_cast<CoinRenderActionP *>(data);
   if (!self->capturingTranslations || self->translationCaptureInvalid) return SoCallbackAction::CONTINUE;
+  // Internal inherited pre/post observers make the shape lists non-single.
+  // The registration revision covers every callback kind, including tails;
+  // only the unchanged complete internal registration can be skipped later.
+  if (self->master->callbackRegistrationRevision() != self->captureCallbackRevision) {
+    self->translationCaptureInvalid = true;
+    return SoCallbackAction::CONTINUE;
+  }
   const SoType type = node->getTypeId();
   if (type != SoTransform::getClassTypeId() && type != SoTranslation::getClassTypeId())
     return SoCallbackAction::CONTINUE;
@@ -741,7 +1532,7 @@ SoCallbackAction::Response CoinRenderActionP::translationPreCB(
   SoNode * material = parent->getChild(0) == node ? parent->getChild(1) : parent->getChild(0);
   if ((parent->getChild(0) != node && parent->getChild(1) != node) ||
       material->getTypeId() != SoMaterial::getClassTypeId() || !translationFieldsStable(material) ||
-      !self->master->hasSingleShapeCallbacks(SoCube::getClassTypeId())) return SoCallbackAction::CONTINUE;
+      typeid(*parent->getChild(2)) != typeid(SoCube)) return SoCallbackAction::CONTINUE;
   if (self->translationCapture.size() == 65536 || self->translationCaptureByNode.count(node)) {
     self->translationCaptureInvalid = true;
     return SoCallbackAction::CONTINUE;
@@ -825,6 +1616,7 @@ void CoinRenderActionP::qualifyTranslationCapture(
   struct CaptureScope { bool & capturing; ~CaptureScope() { capturing = false; } } scope{this->capturingTranslations};
   std::unordered_map<const SoNode *, size_t> materialVisits;
   if (!this->capturingTranslations || this->translationCaptureInvalid || this->translationCapture.empty() ||
+      this->master->callbackRegistrationRevision() != this->captureCallbackRevision ||
       !root || !this->candidateCamera || this->lastValidPlan.renderStates.size() > 65536 ||
       this->lastValidPlan.draws.size() > 65536 ||
       !cameraStableScene(root, this->candidateCamera, true, &materialVisits)) return;
@@ -1142,8 +1934,10 @@ bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjec
   }
   updateTimer.mark("materials");
   std::vector<CoinRenderPositionUpdate> positions;
+  std::vector<CoinRenderCubeRangeUpdate> cubeRanges;
   std::vector<CoinRenderDrawSourceUpdate> draws;
   const bool reserveUpdates = objectOverlayEnabled("COIN_RENDER_DISABLE_OBJECT_UPDATE_RESERVE");
+  const bool compactCubes = objectOverlayEnabled("COIN_RENDER_DISABLE_CUBE_RANGE_OVERLAY");
   // The admitted Cube profile has 24 vertices. Estimate from dirty sources,
   // bounded by the existing position/draw limits. Shared sources may require
   // more ranges; normal growth remains available without a second proof pass.
@@ -1156,8 +1950,13 @@ bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjec
   };
   // Keep the literal growth classes: an underestimated aliased range must not
   // double an arbitrary reserved capacity beyond the existing memory bound.
-  if (reserveUpdates) {
+  if (reserveUpdates && !compactCubes) {
     try { positions.reserve(growthCapacity(estimatedPositions, COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS)); } catch (const std::bad_alloc &) {}
+  }
+  if (reserveUpdates && compactCubes) {
+    try { cubeRanges.reserve(growthCapacity(this->geometryDirty.size(), 65536)); } catch (const std::bad_alloc &) {}
+  }
+  if (reserveUpdates) {
     try { draws.reserve(growthCapacity(std::min(this->geometryDirty.size(), this->translationBindings.size()), 65536)); }
     catch (const std::bad_alloc &) {}
   }
@@ -1175,13 +1974,21 @@ bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjec
       if (binding.material->isOverride() || binding.material->getNodeType() != SoNode::INVENTOR) return false;
       draws.push_back({static_cast<uint32_t>(binding.firstDraw), node->getNodeId()});
       if (!vertexRanges.insert(binding.geometry.firstVertex).second) continue;
-      for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
-        const uint32_t slot = binding.geometry.firstVertex + offset;
-        if (positions.size() == COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS) return false;
-        const auto & previous = this->lastValidPlan.vertices[slot];
-        SbVec3f position;
-        for (int axis = 0; axis < 3; ++axis) position[axis] = std::copysign(dimensions[axis] * .5f, previous.position[axis]);
-        positions.push_back({slot, position});
+      if (compactCubes) {
+        CoinRenderCubeRangeUpdate range;
+        range.firstVertex = binding.geometry.firstVertex;
+        range.vertexCount = binding.geometry.vertexCount;
+        range.halfExtents = dimensions * .5f;
+        cubeRanges.push_back(range);
+      } else {
+        for (uint32_t offset = 0; offset < binding.geometry.vertexCount; ++offset) {
+          const uint32_t slot = binding.geometry.firstVertex + offset;
+          if (positions.size() == COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS) return false;
+          const auto & previous = this->lastValidPlan.vertices[slot];
+          SbVec3f position;
+          for (int axis = 0; axis < 3; ++axis) position[axis] = std::copysign(dimensions[axis] * .5f, previous.position[axis]);
+          positions.push_back({slot, position});
+        }
       }
     }
   }
@@ -1192,8 +1999,30 @@ bool CoinRenderActionP::prepareTranslationOverlay(SoNode * root, CoinRenderObjec
       positions.capacity() * sizeof(CoinRenderPositionUpdate), draws.size(), draws.capacity(),
       draws.capacity() * sizeof(CoinRenderDrawSourceUpdate), initialPositionCapacity, initialDrawCapacity,
       positions.capacity() != initialPositionCapacity, draws.capacity() != initialDrawCapacity);
-  const bool applied = CoinRenderFrameReuseCore::beginObjectOverlay(this->lastValidPlan, updates, materials, positions, draws,
-    CoinRenderFramePlanBuilder::nextRevision(), undo);
+  const uint64_t revision = CoinRenderFramePlanBuilder::nextRevision();
+  bool applied = compactCubes && CoinRenderFrameReuseCore::beginCubeObjectOverlay(
+    this->lastValidPlan, updates, materials, cubeRanges, draws, revision, undo);
+  if (!applied) {
+    if (compactCubes) {
+      if (reserveUpdates) {
+        try { positions.reserve(growthCapacity(estimatedPositions, COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS)); }
+        catch (const std::bad_alloc &) {}
+      }
+      for (const auto & range : cubeRanges)
+        for (uint32_t offset = 0; offset < range.vertexCount; ++offset) {
+          const size_t slot = size_t(range.firstVertex) + offset;
+          if (slot > UINT32_MAX || slot >= this->lastValidPlan.vertices.size() ||
+              positions.size() == COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS) return false;
+          const auto & previous = this->lastValidPlan.vertices[slot];
+          SbVec3f position;
+          for (int axis = 0; axis < 3; ++axis)
+            position[axis] = std::copysign(range.halfExtents[axis], previous.position[axis]);
+          positions.push_back({static_cast<uint32_t>(slot), position});
+        }
+    }
+    applied = CoinRenderFrameReuseCore::beginObjectOverlay(
+      this->lastValidPlan, updates, materials, positions, draws, revision, undo);
+  }
   updateTimer.mark("overlay");
   return applied;
 }
@@ -1302,20 +2131,47 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   } annotationScope{this};
   this->isApplying = true;
   this->hasReentrancyError = false;
+  struct RasterHistoryScope {
+    CoinRenderFramePlanBuilder & builder;
+    CoinRenderFramePlanBuilder::RasterHistory saved;
+    bool committed = false;
+    explicit RasterHistoryScope(CoinRenderFramePlanBuilder & owner)
+      : builder(owner), saved(owner.rasterHistory()) {}
+    ~RasterHistoryScope() { if (!committed) builder.restoreRasterHistory(saved); }
+  } rasterHistoryScope(this->builder);
   // External callbacks can change capture or have observable side effects.
   // Registration after construction permanently requires their traversal.
-  bool planCacheAllowed = this->master->callbackRegistrationRevision() == this->captureCallbackRevision;
+  bool planCacheAllowed = this->portableShaderModules.empty() &&
+    this->master->callbackRegistrationRevision() == this->captureCallbackRevision;
+  if (planCacheAllowed && cacheRoot && cacheRoot == this->cachedRoot &&
+      cacheRoot->getNodeId() == this->cachedRootId) {
+    // SoCamera's stereo setters are not fields and do not touch the node.
+    // Detect eye/offset changes before a cached plan or camera patch is used.
+    for (const auto & saved : this->capturedStereoStates)
+      if (saved.mode != static_cast<int>(saved.camera->getStereoMode()) ||
+          saved.adjustment != saved.camera->getStereoAdjustment() ||
+          saved.balance != saved.camera->getBalanceAdjustment()) {
+        planCacheAllowed = false;
+        break;
+      }
+  }
 
   const bool ownsSceneTexturePlan = !this->sceneTexturePlan;
-  if (ownsSceneTexturePlan)
+  if (ownsSceneTexturePlan) {
     this->sceneTexturePlan =
         std::make_shared<CoinRenderRttPlan>(this->executionOptions.sceneTexture);
+    this->sceneTextureCaptureMemo = std::make_shared<CoinRenderRttCaptureMemo>();
+    this->sceneTextureCaptureMemo->allowed = planCacheAllowed;
+    this->sceneTextureCaptureMemo->owner = this;
+  }
   struct SceneTexturePlanScope {
     CoinRenderActionP * action;
     bool owns;
     ~SceneTexturePlanScope() {
-      if (owns)
+      if (owns) {
+        action->sceneTextureCaptureMemo.reset();
         action->sceneTexturePlan.reset();
+      }
     }
   } sceneTexturePlanScope{this, ownsSceneTexturePlan};
   for (const auto& texture : this->lastValidPlan.textures)
@@ -1331,7 +2187,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     : CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::UNKNOWN, 0);
   this->sceneTexturePixels.clear();
   this->shadowSceneCaptures.clear();
+  this->encounteredActiveBump = false;
   this->shadowStyleBeforeGroups.clear();
+  this->managerHighlightDepth = 0;
   this->activeShadowGroupNodes.clear();
   this->lastRejectedShadowFrame = CoinRenderFramePlan();
   this->lastRejectedShadowPlan = CoinRenderShadowPlan();
@@ -1367,17 +2225,21 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       CoinRenderFrameReuseKind::RESOURCE_REBUILD, translationUndo.revision);
   }
   if (!traversalSkipped && !cameraOverlay && !translationOverlay) {
+    this->frameStereoStates.clear();
     this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
       (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
     this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+    this->managerCapturedLayers.clear();
     this->builder.configureTextures(this->executionOptions);
     this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
     traversalFn();
     const uint32_t delayedLayers = (this->delayedOverlays.empty() ? 0 : 1) +
                                   (this->delayedAnnotations.empty() ? 0 : 1);
     if (delayedLayers && !this->master->hasTerminated()) {
-      this->builder.reserveDelayedLayers(delayedLayers);
-      uint32_t layer = 1;
+      const uint32_t firstDelayedLayer = this->builder.reserveDelayedLayers(delayedLayers);
+      for (uint32_t & layer : this->managerCapturedLayers)
+        if (layer >= firstDelayedLayer) layer += delayedLayers;
+      uint32_t layer = firstDelayedLayer;
       auto replay = [&](std::vector<DelayedAnnotation> & paths, bool clearDepth) {
         if (paths.empty() || this->master->hasTerminated()) return;
         std::stable_sort(paths.begin(), paths.end(),
@@ -1398,6 +2260,10 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     }
     profileTraversed = ProfileClock::now();
   }
+  // A node can register an observer while it traverses. Never retain a plan
+  // or object proof based on the registration checked before that traversal.
+  planCacheAllowed = planCacheAllowed &&
+    this->master->callbackRegistrationRevision() == this->captureCallbackRevision;
 
   this->isApplying = false;
 
@@ -1424,20 +2290,246 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   if (!traversalSkipped && !cameraOverlay && !translationOverlay &&
       !this->builder.build(plan, &err, true, &capturedTransparency,
                            this->target && !this->planOnly ? &capturedPreflight : nullptr)) {
+    if (this->encounteredActiveBump) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString("SoBumpMap requires a qualified bump/normal executor")));
+      return;
+    }
     const CoinRenderAction::Status status = this->builder.isUnsupportedBuild()
       ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE;
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
+  // Visiting a bump declaration is not consumption: a later empty map may
+  // neutralize it before every shape. The builder captures and validates each
+  // effective map while emitting its vertices; failed capture is still handled
+  // above. Only emitted active image slots require the bump executor/profile.
+  bool capturedActiveBump = false;
+  { // Classification storage must not survive into admission or GPU execution.
+    std::vector<CoinRenderBumpGpuVertex> capturedBumpStream;
+    std::string bumpConsumptionDiagnostic;
+    bool bumpConsumptionValid = coin_render_build_bump_gpu_stream(plan, capturedBumpStream,
+                                                                 bumpConsumptionDiagnostic);
+    if (bumpConsumptionValid && !capturedBumpStream.empty()) for (const auto &draw : plan.draws) {
+      if (draw.shadowLightSlot) continue;
+      uint32_t slot = 0;
+      if (!coin_render_bump_draw_slot(plan, capturedBumpStream, draw, slot, bumpConsumptionDiagnostic)) {
+        bumpConsumptionValid = false;
+        break;
+      }
+      capturedActiveBump = capturedActiveBump || slot != 0;
+    }
+    if (!bumpConsumptionValid) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString(bumpConsumptionDiagnostic.c_str())));
+      return;
+    }
+  }
+  if (capturedActiveBump) {
+    const bool targetQualified = (this->target && !this->planOnly &&
+      this->target->getPimpl()->supportsOpaqueBump(this->asyncTicket != nullptr)) ||
+      (this->planOnly && this->sceneTextureBumpProducer);
+    std::string bumpProfileDiagnostic;
+    const bool bumpProfileValid = coin_render_validate_extended_bump(plan, bumpProfileDiagnostic);
+    const bool frameQualified =
+        bumpProfileValid && !plan.draws.empty() && !plan.bumpImages.empty() &&
+        !plan.bumpCoords.empty() &&
+        size_t(std::count_if(plan.bumpCoords.begin(), plan.bumpCoords.end(),
+                             [](const CoinRenderBumpCoordOverride &coord) {
+                               return coord.imageSlot != 0;
+                             })) == plan.bumpTangents.size() &&
+        std::all_of(plan.draws.begin(), plan.draws.end(),
+                    [&plan](const CoinRenderDrawPacket &draw) {
+                      if (draw.renderStateSlot >= plan.renderStates.size())
+                        return false;
+                      const auto &state = plan.renderStates[draw.renderStateSlot];
+                      // The common bump validator checks lighting only on
+                      // indexed occurrences which consume a normal image.
+                      if (draw.shadowLightSlot) return true;
+                      return state.lightingSlot < plan.lightingStates.size() &&
+                             state.cullMode == CoinRenderCullMode::NONE && state.depthTest &&
+                             state.depthWrite &&
+                             (state.depthFunction == CoinRenderDepthFunction::LESS ||
+                              state.depthFunction == CoinRenderDepthFunction::LEQUAL) &&
+                             !state.transparentMaterial && !state.transparentTexture &&
+                             state.transparencyType == SoGLRenderAction::NONE &&
+                             state.fogMode == CoinRenderFogMode::NONE &&
+                             draw.renderLayer == 0 && !draw.clearDepthBefore;
+                    });
+    if (!targetQualified || !frameQualified) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString(bumpProfileDiagnostic.empty()
+                       ? "SoBumpMap requires a qualified opaque bump/normal executor"
+                       : bumpProfileDiagnostic.c_str())));
+      return;
+    }
+    planCacheAllowed = false;
+  }
+  // The qualified technical foreground texture is a stored single-unit RGBA
+  // image with the fixed-function MODULATE alpha product. Other texture
+  // sources and combine policies need a separate CoinGL comparison before
+  // they can be admitted in a technical manager layer.
+  const auto qualifiedTechnicalForegroundTexture = [&plan](
+    const CoinRenderRenderStateSnapshot & state) {
+    if (!state.hasTexture || state.textureModel != CoinRenderTextureModel::MODULATE ||
+        state.textureImageSlot >= plan.textures.size() ||
+        state.textureCombines[0].instructions[0][0] > .5f) return false;
+    for (const auto & unit : state.extraTextures)
+      if (unit.enabled) return false;
+    const auto & texture = plan.textures[state.textureImageSlot];
+    return (texture.format == CoinRenderTextureFormat::RGBA8_LINEAR ||
+            texture.format == CoinRenderTextureFormat::RGBA8_SRGB) &&
+      texture.width > 0 && texture.width <= 8192 &&
+      texture.height > 0 && texture.height <= 8192 && texture.components == 4 &&
+      texture.pixelsRgba.size() == size_t(texture.width) * texture.height * 4 &&
+      !texture.producerId && !texture.gpuToken;
+  };
+  if ((this->drawMode == CoinRenderAction::DrawMode::HIDDEN_LINE ||
+       this->drawMode == CoinRenderAction::DrawMode::SHADED_HIDDEN_LINES) &&
+      !traversalSkipped && !cameraOverlay && !translationOverlay) {
+    const auto textureHasUnqualifiedAlpha = [&plan](uint32_t slot) {
+      if (slot >= plan.textures.size()) return true;
+      const auto & texture = plan.textures[slot];
+      if (texture.producerId || texture.gpuToken) return true;
+      if (texture.pixelsRgba.empty()) return !texture.gpuOpaque;
+      return coin_render_image_has_transparency(texture.pixelsRgba.data(),
+                                                texture.pixelsRgba.size() / 4, 4);
+    };
+    for (const auto & draw : plan.draws) {
+      const auto & state = plan.renderStates[draw.renderStateSlot];
+      const bool managerForeground = std::find(this->managerCapturedLayers.begin(),
+        this->managerCapturedLayers.end(), draw.renderLayer) !=
+        this->managerCapturedLayers.end();
+      bool textureAlpha = state.hasTexture && textureHasUnqualifiedAlpha(state.textureImageSlot);
+      for (const auto & texture : state.extraTextures) {
+        if (texture.enabled && textureHasUnqualifiedAlpha(texture.imageSlot)) textureAlpha = true;
+      }
+      const bool foregroundMaterial = managerForeground &&
+        (state.transparencyType == SoGLRenderAction::BLEND ||
+         (state.transparencyType == SoGLRenderAction::SCREEN_DOOR && !state.hasTexture));
+      const bool foregroundTexture = managerForeground &&
+        state.transparencyType == SoGLRenderAction::BLEND &&
+        qualifiedTechnicalForegroundTexture(state);
+      if ((state.transparentMaterial && !foregroundMaterial) ||
+          (state.transparentTexture && !foregroundTexture) ||
+          (textureAlpha && !foregroundTexture) ||
+          (state.screenDoorTransparency > 0 && !foregroundMaterial) ||
+          coin_render_alpha_test_active(state.alphaTestFunction) ||
+          state.shadowGroupSlot ||
+          ((draw.renderLayer || draw.clearDepthBefore) && !managerForeground)) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("hidden-line modes require opaque base geometry or a qualified manager foreground without shadows or alpha test")));
+        return;
+      }
+    }
+  }
+  if (this->drawMode != CoinRenderAction::DrawMode::SCENE &&
+      !this->managerCapturedLayers.empty() &&
+      !traversalSkipped && !cameraOverlay && !translationOverlay) {
+    const auto textureHasAlpha = [&plan](uint32_t slot) {
+      if (slot >= plan.textures.size()) return true;
+      const auto & texture = plan.textures[slot];
+      if (texture.producerId || texture.gpuToken) return true;
+      if (texture.pixelsRgba.empty()) return !texture.gpuOpaque;
+      return coin_render_image_has_transparency(texture.pixelsRgba.data(),
+                                                texture.pixelsRgba.size() / 4, 4);
+    };
+    for (const auto & draw : plan.draws) {
+      if (std::find(this->managerCapturedLayers.begin(), this->managerCapturedLayers.end(),
+                    draw.renderLayer) == this->managerCapturedLayers.end()) continue;
+      const auto & state = plan.renderStates[draw.renderStateSlot];
+      bool textureAlpha = state.hasTexture && textureHasAlpha(state.textureImageSlot);
+      for (const auto & texture : state.extraTextures)
+        if (texture.enabled && textureHasAlpha(texture.imageSlot)) textureAlpha = true;
+      const bool foregroundMaterial = state.transparencyType == SoGLRenderAction::BLEND ||
+        (state.transparencyType == SoGLRenderAction::SCREEN_DOOR && !state.hasTexture);
+      const bool foregroundTexture = state.transparencyType == SoGLRenderAction::BLEND &&
+        qualifiedTechnicalForegroundTexture(state);
+      if ((state.transparentMaterial && !foregroundMaterial) ||
+          (state.transparentTexture && !foregroundTexture) ||
+          (textureAlpha && !foregroundTexture) ||
+          (state.screenDoorTransparency > 0 && !foregroundMaterial) ||
+          coin_render_alpha_test_active(state.alphaTestFunction) ||
+          !state.depthTest || !state.depthWrite ||
+          (state.depthFunction != CoinRenderDepthFunction::LESS &&
+           state.depthFunction != CoinRenderDepthFunction::LEQUAL) ||
+          state.shadowGroupSlot || draw.shadowLightSlot) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Manager technical foreground needs qualified SCREEN_DOOR or BLEND Z-buffer rendering")));
+        return;
+      }
+    }
+  }
   if (!this->shadowSceneCaptures.empty()) capturedPreflight.invalidate();
   for (const auto & capture : this->shadowSceneCaptures) {
     for (size_t l = 0; l < plan.shadowLights.size(); ++l) {
       auto & light = plan.shadowLights[l];
       if (light.groupSlot != capture.groupSlot || light.sourceRevision != capture.lightRevision) continue;
+      const bool authoredCamera = std::any_of(capture.frame.renderStates.begin(),
+        capture.frame.renderStates.end(), [](const CoinRenderRenderStateSnapshot &state) {
+          return state.shadowMapCameraOverride;
+        });
+      if (authoredCamera) {
+        const SbMatrix &entryModel = plan.shadowGroups[light.groupSlot - 1].entryModel;
+        SbMatrix inverseEntry;
+        if (!coin_render_shadow_camera_math::inverse(entryModel, inverseEntry)) {
+          this->setDiagnostic(CoinRenderDiagnosticShell::action(
+            CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+            SbString("shadowMapScene camera has a non-invertible group entry transform")));
+          return;
+        }
+      }
       coin_render_append_shadow_scene(plan, capture.frame, static_cast<uint32_t>(l + 1),
                                       capture.inheritedClipPlaneCount);
       light.mapSceneCaptured = true;
+    }
+  }
+  if (!plan.shadowGroups.empty()) {
+    const bool hasShadowMap = std::any_of(plan.shadowLights.begin(), plan.shadowLights.end(),
+      [](const CoinRenderShadowLightSnapshot & light) {
+        return light.enabled && light.shadowEligible;
+      });
+    if (hasShadowMap) {
+      for (auto &state : plan.renderStates) {
+        if (!state.shadowGroupSlot || !(state.shadowStyle & 2u) ||
+            !state.rasterShadowImagePhong) continue;
+        if (!state.rasterPixels || !state.rasterShadowAnchorValid ||
+            state.cameraSlot >= plan.cameras.size()) {
+          this->setDiagnostic(CoinRenderDiagnosticShell::action(
+            CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+            SbString("Raster image shadow receiver has no observer camera anchor")));
+          return;
+        }
+        // SoImage retains the authored light model. With an active shadow
+        // shader, PHONG modulates the pixel color by the existing receiver
+        // lighting path; BASE_COLOR remains unlit.
+        state.lightModel = CoinRenderLightModel::PHONG;
+        state.textureModel = CoinRenderTextureModel::MODULATE;
+      }
+    }
+    if (!hasShadowMap) {
+      // An active group without a map is ordinary scene traversal. Keep its
+      // captured lights and raster draws, but remove the inactive map scope so
+      // the CPU and GPU paths use the same normal compositor.
+      const bool flatReceiver = std::any_of(plan.renderStates.begin(), plan.renderStates.end(),
+        [](const CoinRenderRenderStateSnapshot & state) { return state.flatShadowPrimary; });
+      if (!flatReceiver) {
+        for (auto & state : plan.renderStates) {
+          if (state.shadowGroupSlot) {
+            state.textureProjection = CoinRenderTextureProjection::PROJECTIVE;
+            state.shadowGroupSlot = 0;
+            state.shadowStyle = 0;
+          }
+        }
+        plan.shadowGroups.clear();
+        plan.shadowLights.clear();
+      }
     }
   }
   if (!coin_render_valid_sampling(plan, err)) {
@@ -1451,14 +2543,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
   if (!plan.shadowGroups.empty()) {
-    for (const auto & state : plan.renderStates) {
-      if (coin_render_alpha_test_active(state.alphaTestFunction)) {
-        this->setDiagnostic(CoinRenderDiagnosticShell::action(
-          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-          SbString("Active SoAlphaTest requires alpha-aware shadow-map caster capture")));
-        return;
-      }
-    }
     CoinRenderShadowPlan shadowPlan;
     std::string shadowDiagnostic;
     if (!coin_render_plan_shadows(plan, shadowPlan, shadowDiagnostic)) {
@@ -1467,6 +2551,17 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
         SbString(shadowDiagnostic.c_str())));
       return;
+    }
+    if (!plan.rasterOccurrences.empty()) {
+      if (!coin_render_materialize_raster_casters(plan, shadowPlan, shadowDiagnostic) ||
+          !plan.isValid(&shadowDiagnostic) ||
+          !coin_render_plan_shadows(plan, shadowPlan, shadowDiagnostic)) {
+        this->lastRejectedShadowFrame = std::move(plan);
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString(shadowDiagnostic.c_str())));
+        return;
+      }
     }
     bool executableShadow = false;
     // SoSceneTexture2 producers are captured without a target. The resolved
@@ -1520,8 +2615,35 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     if (!useCachedPlan) {
       this->lastValidPlan = std::move(plan);
       this->hasLastValidPlan = true;
+      this->capturedStereoStates = this->frameStereoStates;
     }
     this->setDiagnostic(CoinRenderDiagnosticShell::success());
+    return;
+  }
+
+  // The typed capture/transport increment is independently usable by Core
+  // consumers. GPU execution is enabled only with the matching executor.
+  bool portableExecution = capturedPlan.hasPortableShaderDraws();
+  for (const auto &producer : this->sceneTexturePlan->producers)
+    for (size_t face = 0; face < producer.faceCount(); ++face)
+      portableExecution = portableExecution || producer.face(face).hasPortableShaderDraws();
+  if (portableExecution) {
+    std::string error;
+    bool valid = coin_render_shader_execution_profile(capturedPlan, error);
+    for (const auto &producer : this->sceneTexturePlan->producers)
+      for (size_t face = 0; valid && face < producer.faceCount(); ++face)
+        valid = coin_render_shader_execution_profile(producer.face(face), error);
+    if (!valid) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(error.c_str())));
+      return;
+    }
+  }
+  if (portableExecution && (!this->target ||
+      !this->target->getPimpl().get().supportsPortableShaderModules())) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("Portable shader module execution requires a GPU executor for this target")));
     return;
   }
 
@@ -1567,6 +2689,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     if (!useCachedPlan) {
       this->lastValidPlan = retainStagedPixels ? std::move(resolvedPlan) : std::move(plan);
       this->hasLastValidPlan = true;
+      this->capturedStereoStates = this->frameStereoStates;
     }
     if (cacheRoot) {
       this->cachedRoot = planCacheAllowed ? cacheRoot : NULL;
@@ -1596,6 +2719,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
+  rasterHistoryScope.committed = true;
   const ProfileClock::time_point profileExecuted = ProfileClock::now();
   if (tracePhases) {
     CoinRenderActionPhaseSample sample;
@@ -1616,6 +2740,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     capturedPreflight.invalidate();
     this->lastValidPlan = retainStagedPixels ? std::move(resolvedPlan) : std::move(plan);
     this->hasLastValidPlan = true;
+    this->capturedStereoStates = this->frameStereoStates;
     this->recordingLogValid = false;
   } else if (cameraOverlay || translationOverlay) {
     this->recordingLogValid = false;
@@ -1651,11 +2776,69 @@ CoinRenderActionP::textureImagePreCB(void * userdata, SoCallbackAction *, const 
 }
 
 SoCallbackAction::Response
+CoinRenderActionP::textureVolumePreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
+{
+  const auto * texture = static_cast<const SoTexture3 *>(node);
+  SoState * state = action->getState();
+  const int unit = SoTextureUnitElement::get(state);
+  if (unit == 0 && SoTextureOverrideElement::getImageOverride(state))
+    return SoCallbackAction::CONTINUE;
+  SbVec3s size;
+  int components = 0;
+  const auto * bytes = texture->images.getValue(size, components);
+  const bool pending = size == SbVec3s(0, 0, 0) && texture->images.isDefault() &&
+      texture->filenames.getNum() > 0 && texture->filenames[0].getLength() != 0;
+  // SoTexture3::doAction does not set the enabled element for callbacks.
+  // Preserve the dimensional mode explicitly: SoMultiTextureImageElement also
+  // stores ordinary 2D images with a depth of one.
+  if (size != SbVec3s(0, 0, 0) || pending)
+    SoMultiTextureEnabledElement::enableTexture3(state, const_cast<SoTexture3 *>(texture), unit);
+  else
+    SoMultiTextureEnabledElement::set(state, const_cast<SoTexture3 *>(texture), unit, FALSE);
+  if (size[0] > 0 && size[1] > 0 && size[2] > 0 && components > 0)
+    static_cast<CoinRenderActionP *>(userdata)->builder.registerAuthoredVolumeImage(
+      bytes, texture->enableCompressedTexture.getValue(), texture, texture->getNodeId());
+  return SoCallbackAction::CONTINUE;
+}
+
+static bool validShadowMapViewport(const SbViewportRegion &viewport, std::string &diagnostic)
+{
+  const auto &origin = viewport.getViewportOrigin();
+  const auto &extent = viewport.getViewportSize();
+  const auto &window = viewport.getWindowSize();
+  for (unsigned axis = 0; axis < 2; ++axis) {
+    const double pixelOrigin = double(origin[axis]) * window[axis];
+    const double pixelExtent = double(extent[axis]) * window[axis];
+    if (window[axis] <= 0 || !std::isfinite(pixelOrigin) || !std::isfinite(pixelExtent) ||
+        extent[axis] < 0.0f || std::round(pixelOrigin) < std::numeric_limits<short>::min() ||
+        std::round(pixelOrigin) > std::numeric_limits<short>::max() ||
+        std::round(pixelExtent) > std::numeric_limits<short>::max()) {
+      diagnostic =
+          "shadowMapScene viewport is non-finite, negative or exceeds SbViewportRegion pixels";
+      return false;
+    }
+  }
+  return true;
+}
+
+SoCallbackAction::Response
 CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   // PRUNE skips this shape only; subsequent state nodes still traverse.
   if (CoinRenderFramePlanBuilder::isShapeInvisible(action)) return SoCallbackAction::PRUNE;
   auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->capturingShadowScene) {
+    std::string diagnostic;
+    if (!validShadowMapViewport(action->getViewportRegion(), diagnostic)) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+                                                         CoinRenderDiagnosticDomain::FRAME_PLAN,
+                                                         SbString(diagnostic.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    const auto extent = action->getViewportRegion().getViewportSizePixels();
+    if (!extent[0] || !extent[1])
+      return SoCallbackAction::PRUNE;
+  }
   if (node->getTypeId() == SoImage::getClassTypeId() ||
       node->getTypeId() == SoText2::getClassTypeId() ||
       node->getTypeId() == SoMarkerSet::getClassTypeId() ||
@@ -1687,7 +2870,16 @@ CoinRenderActionP::textureUnitsPreCB(void * userdata, SoCallbackAction * action,
   }
   p->builder.endShape();
   p->beginTranslationShape(action, node);
-  if (p->master->hasSingleShapeCallbacks(node->getTypeId())) {
+  // The installed capture callbacks include multiple inherited pre/post
+  // observers. Their exact registration revision, rather than a single-list
+  // count, proves that no external observer can be skipped by cube replay.
+  // Restrict this admission to the concrete native generator: a C++ subclass
+  // may override callback/generation while retaining Cube's runtime SoType.
+  const bool internalCubeCapture = p->fastPathEnabled &&
+    node->getTypeId() == SoCube::getClassTypeId() &&
+    typeid(*node) == typeid(SoCube) &&
+    p->master->callbackRegistrationRevision() == p->captureCallbackRevision;
+  if (internalCubeCapture || p->master->hasSingleShapeCallbacks(node->getTypeId())) {
     p->builder.beginShape(action, node);
     if (p->fastPathEnabled && p->master->callbackRegistrationRevision() == p->captureCallbackRevision &&
         p->builder.replayNativeCube(action, const_cast<SoNode *>(node))) {
@@ -1769,6 +2961,52 @@ CoinRenderActionP::observeBoundingBox(SoCallbackAction * action, SoNode * node)
   node->callback(action);
 }
 
+namespace {
+void normalizeIndexedBindings(const SoNode * node, CoinRenderDirectGeometryView & view)
+{
+  // VRML1 PER_VERTEX means per coordinate, even when normalIndex is authored.
+  // Both native indexed shapes replace that index stream with coordIndex.
+  if (node->getNodeType() != SoNode::VRML1) return;
+  if (view.normalBinding == SoNormalBindingElement::PER_VERTEX) {
+    view.normalBinding = SoNormalBindingElement::PER_VERTEX_INDEXED;
+    view.normalIndex = view.coordIndex;
+  }
+  // The native material binding has the same VRML1 coordinate-index rule;
+  // an authored materialIndex is idle in this binding.
+  if (view.materialBinding == SoMaterialBindingElement::PER_VERTEX) {
+    view.materialBinding = SoMaterialBindingElement::PER_VERTEX_INDEXED;
+    view.materialIndex = view.coordIndex;
+  }
+}
+
+bool validateIndexedShapeNormals(SoCallbackAction * action, SoNode * node,
+                                std::string & diagnostic)
+{
+  const bool faces = node->isOfType(SoIndexedFaceSet::getClassTypeId());
+  if (!faces && !node->isOfType(SoIndexedLineSet::getClassTypeId())) return true;
+  const auto * shape = static_cast<const SoIndexedShape *>(node);
+  SoState * state = action->getState();
+  state->push();
+  struct StateScope { SoState * state; ~StateScope() { state->pop(); } } scope{state};
+  // Match generatePrimitives: vertexProperty is applied before its arrays and
+  // binding are read, including inherited override rules.
+  if (shape->vertexProperty.getValue()) shape->vertexProperty.getValue()->doAction(action);
+  const auto * normals = SoNormalElement::getInstance(state);
+  if (!normals || normals->getNum() == 0) return true;
+  CoinRenderDirectGeometryView view;
+  // Normal bounds depend on geometry presence, not coordinate values/dimension.
+  view.positions = CoinRenderSpan<SbVec3f>(nullptr,
+    size_t(SoCoordinateElement::getInstance(state)->getNum()));
+  view.normals = CoinRenderSpan<SbVec3f>(normals->getArrayPtr(), size_t(normals->getNum()));
+  view.coordIndex = CoinRenderSpan<int32_t>(shape->coordIndex.getValues(0), size_t(shape->coordIndex.getNum()));
+  view.normalIndex = CoinRenderSpan<int32_t>(shape->normalIndex.getValues(0), size_t(shape->normalIndex.getNum()));
+  view.normalBinding = SoNormalBindingElement::get(state);
+  normalizeIndexedBindings(shape, view);
+  return faces ? CoinRenderIndexedGeometryCore::validateFaceNormals(view, diagnostic)
+               : CoinRenderIndexedGeometryCore::validateLineNormals(view, diagnostic);
+}
+}
+
 void
 CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
 {
@@ -1778,7 +3016,16 @@ CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
     const bool box = render->pimpl->captureBoundingBox(render, node);
-    if (!box) node->callback(render);
+    // All pre-callbacks have now run. Guard the native fallback as well as
+    // subclasses and LINE replay, which intentionally bypass direct capture.
+    const bool generatesPrimitives = !box || !render->hasSingleShapeCallbacks(node->getTypeId());
+    std::string diagnostic;
+    if (generatesPrimitives && !validateIndexedShapeNormals(render, node, diagnostic)) {
+      render->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString(diagnostic.c_str())));
+      render->setTerminated(TRUE);
+    } else if (!box) node->callback(render);
     else render->pimpl->observeBoundingBox(render, node);
   }
   render->invokePostCallbacks(node);
@@ -1847,11 +3094,27 @@ CoinRenderActionP::screenContentMethod(SoAction * action, SoNode * node)
 }
 
 SoCallbackAction::Response
-CoinRenderActionP::shapePostCB(void * userdata, SoCallbackAction *, const SoNode *)
+CoinRenderActionP::shapePostCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   auto * self = static_cast<CoinRenderActionP *>(userdata);
+  self->builder.recordRasterNormal(action, node);
   self->builder.endShape();
   self->endTranslationShape();
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::rasterGeneratorPostCB(void * userdata, SoCallbackAction * action, const SoNode * node)
+{
+  static_cast<CoinRenderActionP *>(userdata)->builder.recordRasterGenerator(action, node);
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::rasterStatePostCB(void * userdata, SoCallbackAction * action, const SoNode *)
+{
+  // Native GL texgen callbacks are reapplied when a state stack is popped.
+  static_cast<CoinRenderActionP *>(userdata)->builder.synchronizeRasterGenerators(action);
   return SoCallbackAction::CONTINUE;
 }
 
@@ -1892,50 +3155,300 @@ CoinRenderActionP::alphaTestMethod(SoAction * action, SoNode * node)
   render->invokePostCallbacks(node);
 }
 
+// Match SoCamera::GLRender before its model-matrix step. Orthographic
+// sources also become perspective frusta in stereo. Coin's callback already
+// installed CROP's viewport; do not install the returned adjustment again.
+static bool shadowStereoCamera(const SoCamera &camera, const SbViewportRegion &viewport,
+                               SbViewVolume &volume, SbMatrix &view, SbMatrix &projection,
+                               std::string &diagnostic)
+{
+  SbViewportRegion adjusted;
+  volume = camera.getViewVolume(viewport, adjusted, SbMatrix::identity());
+  const float nearDistance = volume.getNearDist();
+  const float farDistance = nearDistance + volume.getDepth();
+  const float width = volume.getWidth(), height = volume.getHeight();
+  const float adjustment = camera.getStereoAdjustment(), balance = camera.getBalanceAdjustment();
+  float focal = camera.focalDistance.getValue() * balance;
+  if (!std::isfinite(nearDistance) || nearDistance <= 0.0f || !std::isfinite(farDistance) ||
+      farDistance <= nearDistance || !std::isfinite(width) || width <= 0.0f ||
+      !std::isfinite(height) || height <= 0.0f || !std::isfinite(adjustment) ||
+      !std::isfinite(balance) || !std::isfinite(focal)) {
+    diagnostic = "Stereo shadow-map camera requires a finite nondegenerate frustum";
+    return false;
+  }
+  if (focal < nearDistance)
+    focal = nearDistance;
+  float offset = adjustment * 0.5f;
+  if (camera.getStereoMode() == SoCamera::LEFT_VIEW)
+    offset = -offset;
+  SbVec3f right = volume.getProjectionDirection().cross(volume.getViewUp());
+  const float axisLength = right.normalize();
+  if (!std::isfinite(axisLength) || axisLength == 0.0f) {
+    diagnostic = "Stereo shadow-map camera has no finite eye-separation axis";
+    return false;
+  }
+  volume.getMatrices(view, projection);
+  SbMatrix cameraTransform, inverseProjection;
+  if (!coin_render_shadow_camera_math::inverse(view, cameraTransform) ||
+      !coin_render_shadow_camera_math::inverse(projection, inverseProjection)) {
+    diagnostic = "Stereo shadow-map camera has an invalid camera transform";
+    return false;
+  }
+  const float halfWidth = width * 0.5f, halfHeight = height * 0.5f;
+  const float shift = offset * nearDistance / focal;
+  const float left = -halfWidth - shift, rightPlane = halfWidth - shift;
+  if (!std::isfinite(shift) || !std::isfinite(left) || !std::isfinite(rightPlane) ||
+      left >= rightPlane || halfHeight <= 0.0f) {
+    diagnostic = "Stereo shadow-map camera skew is non-finite or degenerate";
+    return false;
+  }
+  volume.frustum(left, rightPlane, -halfHeight, halfHeight, nearDistance, farDistance);
+  volume.transform(cameraTransform);
+  SbMatrix eyeTransform;
+  eyeTransform.setTranslate(right * offset);
+  volume.transform(eyeTransform);
+  volume.getMatrices(view, projection);
+  SbMatrix inverseView;
+  if (!coin_render_shadow_camera_math::inverse(view, inverseView) ||
+      !coin_render_shadow_camera_math::inverse(projection, inverseProjection)) {
+    diagnostic = "Stereo shadow-map camera produces invalid view/projection matrices";
+    return false;
+  }
+  return true;
+}
+
 SoCallbackAction::Response
-CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, const SoNode * node)
+CoinRenderActionP::cameraStereoPostCB(void * userdata, SoCallbackAction * action,
+                                      const SoNode * node)
+{
+  auto * owner = static_cast<CoinRenderActionP *>(userdata);
+  const auto * camera = static_cast<const SoCamera *>(node);
+  owner->frameStereoStates.push_back({camera, static_cast<int>(camera->getStereoMode()),
+    camera->getStereoAdjustment(), camera->getBalanceAdjustment()});
+  if (owner->capturingShadowScene && camera->getStereoMode() == SoCamera::MONOSCOPIC)
+    owner->builder.registerShadowMapCameraPose(camera, action->getModelMatrix(),
+                                                 action->getViewingMatrix());
+  if (camera->getStereoMode() == SoCamera::MONOSCOPIC) return SoCallbackAction::CONTINUE;
+  if (owner->capturingShadowScene) {
+    SbViewVolume volume;
+    SbMatrix view, projection;
+    std::string diagnostic;
+    if (!shadowStereoCamera(*camera, action->getViewportRegion(), volume, view, projection,
+                            diagnostic)) {
+      owner->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+                                                             CoinRenderDiagnosticDomain::FRAME_PLAN,
+                                                             SbString(diagnostic.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    SoState *state = action->getState();
+    SbBool identity;
+    const SbMatrix &model = SoModelMatrixElement::get(state, identity);
+    SbMatrix inverseModel;
+    if (!coin_render_shadow_camera_math::inverse(model, inverseModel)) {
+      owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Stereo shadow-map camera has a non-invertible model transform")));
+      return SoCallbackAction::ABORT;
+    }
+    if (!identity) {
+      view.multRight(inverseModel);
+      volume.transform(model);
+    }
+    SbMatrix inverseView;
+    if (!coin_render_shadow_camera_math::inverse(view, inverseView)) {
+      owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Stereo shadow-map camera model/view product is non-finite or non-invertible")));
+      return SoCallbackAction::ABORT;
+    }
+    SoNode *mutableCamera = const_cast<SoCamera *>(camera);
+    SoViewVolumeElement::set(state, mutableCamera, volume);
+    SoProjectionMatrixElement::set(state, mutableCamera, projection);
+    SoViewingMatrixElement::set(state, mutableCamera, view);
+    owner->builder.registerShadowMapCameraPose(camera, model, view);
+    return SoCallbackAction::CONTINUE;
+  }
+  const SbViewportRegion & viewport = owner->master->getViewportRegion();
+  SbViewportRegion adjusted;
+  SbViewVolume volume = camera->getViewVolume(viewport, adjusted, SbMatrix::identity());
+  const float nearDistance = volume.getNearDist();
+  const float farDistance = nearDistance + volume.getDepth();
+  const float focalDistance = camera->focalDistance.getValue() * camera->getBalanceAdjustment();
+  if (adjusted != viewport || !std::isfinite(nearDistance) || nearDistance <= 0.0f ||
+      !std::isfinite(farDistance) || farDistance <= nearDistance ||
+      !std::isfinite(focalDistance) || focalDistance <= 0.0f ||
+      !std::isfinite(camera->getStereoAdjustment()) ||
+      volume.getWidth() <= 0.0f || volume.getHeight() <= 0.0f) {
+    owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("Stereo camera requires a finite frustum and an uncropped viewport")));
+    return SoCallbackAction::ABORT;
+  }
+  SbMatrix view, projection;
+  volume.getMatrices(view, projection);
+  const SbMatrix cameraTransform = view.inverse();
+  float eyeOffset = camera->getStereoAdjustment() * 0.5f;
+  if (camera->getStereoMode() == SoCamera::LEFT_VIEW) eyeOffset = -eyeOffset;
+  SbVec3f right = volume.getProjectionDirection().cross(volume.getViewUp());
+  if (right.normalize() == 0.0f) {
+    owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("Stereo camera has no eye-separation axis")));
+    return SoCallbackAction::ABORT;
+  }
+  const float halfWidth = volume.getWidth() * 0.5f;
+  const float halfHeight = volume.getHeight() * 0.5f;
+  const float shift = eyeOffset * nearDistance / std::max(focalDistance, nearDistance);
+  // Match SoCamera::GLRender: skew the near plane, restore the camera pose,
+  // then translate the eye along the camera's right vector.
+  volume.frustum(-halfWidth - shift, halfWidth - shift,
+                 -halfHeight, halfHeight, nearDistance, farDistance);
+  volume.transform(cameraTransform);
+  SbMatrix eyeTransform;
+  eyeTransform.setTranslate(right * eyeOffset);
+  volume.transform(eyeTransform);
+  volume.getMatrices(view, projection);
+  SoState * state = action->getState();
+  SbBool identity;
+  const SbMatrix & model = SoModelMatrixElement::get(state, identity);
+  if (!identity) {
+    view.multRight(model.inverse());
+    volume.transform(model);
+  }
+  SoNode * mutableCamera = const_cast<SoCamera *>(camera);
+  SoViewVolumeElement::set(state, mutableCamera, volume);
+  SoProjectionMatrixElement::set(state, mutableCamera, projection);
+  SoViewingMatrixElement::set(state, mutableCamera, view);
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   if (node->isOfType(SoCamera::getClassTypeId())) {
     auto * p = static_cast<CoinRenderActionP *>(userdata);
     if (!p->capturingShadowScene) return SoCallbackAction::CONTINUE;
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("shadowMapScene cannot replace the light-owned camera in this profile")));
-    return SoCallbackAction::ABORT;
+    const SoType type = node->getTypeId();
+    if (type != SoPerspectiveCamera::getClassTypeId() &&
+        type != SoOrthographicCamera::getClassTypeId()) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString("shadowMapScene camera type is not qualified")));
+      return SoCallbackAction::ABORT;
+    }
+    std::string viewportDiagnostic;
+    if (!validShadowMapViewport(action->getViewportRegion(), viewportDiagnostic)) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+                                                         CoinRenderDiagnosticDomain::FRAME_PLAN,
+                                                         SbString(viewportDiagnostic.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    const auto *camera = static_cast<const SoCamera *>(node);
+    const int mapping = camera->viewportMapping.getValue();
+    const bool validMapping = mapping == SoCamera::ADJUST_CAMERA ||
+                              mapping == SoCamera::LEAVE_ALONE ||
+                              mapping == SoCamera::CROP_VIEWPORT_FILL_FRAME ||
+                              mapping == SoCamera::CROP_VIEWPORT_LINE_FRAME ||
+                              mapping == SoCamera::CROP_VIEWPORT_NO_FRAME;
+    const SbVec3f position = camera->position.getValue();
+    const SbRotation orientation = camera->orientation.getValue();
+    const float *rotation = orientation.getValue();
+    bool finiteParameters = std::isfinite(camera->aspectRatio.getValue()) &&
+                            std::isfinite(camera->nearDistance.getValue()) &&
+                            std::isfinite(camera->farDistance.getValue()) &&
+                            std::isfinite(camera->focalDistance.getValue());
+    for (int i = 0; i < 3; ++i) finiteParameters = finiteParameters && std::isfinite(position[i]);
+    for (int i = 0; i < 4; ++i) finiteParameters = finiteParameters && std::isfinite(rotation[i]);
+    bool valid = validMapping && finiteParameters && camera->aspectRatio.getValue() > 0.0f &&
+                 camera->farDistance.getValue() > camera->nearDistance.getValue();
+    if (type == SoPerspectiveCamera::getClassTypeId()) {
+      const float angle = static_cast<const SoPerspectiveCamera *>(camera)->heightAngle.getValue();
+      finiteParameters = finiteParameters && std::isfinite(angle);
+      valid = valid && camera->nearDistance.getValue() > 0.0f &&
+        std::isfinite(angle) && angle > 0.0f && angle < 3.14159265358979323846f;
+    } else {
+      const float height = static_cast<const SoOrthographicCamera *>(camera)->height.getValue();
+      finiteParameters = finiteParameters && std::isfinite(height);
+      valid = valid && std::isfinite(height) && height > 0.0f;
+    }
+    const auto stereo = camera->getStereoMode();
+    if (stereo != SoCamera::MONOSCOPIC) {
+      const float focal = camera->focalDistance.getValue() * camera->getBalanceAdjustment();
+      finiteParameters = finiteParameters && std::isfinite(camera->getStereoAdjustment()) &&
+                         std::isfinite(camera->getBalanceAdjustment()) && std::isfinite(focal);
+      valid = valid && (stereo == SoCamera::LEFT_VIEW || stereo == SoCamera::RIGHT_VIEW) &&
+              camera->nearDistance.getValue() > 0.0f &&
+              std::isfinite(camera->getStereoAdjustment()) &&
+              std::isfinite(camera->getBalanceAdjustment()) && std::isfinite(focal);
+    }
+    if (!valid) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(
+        finiteParameters ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::FRAME_PLAN,
+        SbString(finiteParameters ? "shadowMapScene camera has unsupported or invalid parameters"
+                                  : "shadowMapScene camera has non-finite parameters")));
+      return SoCallbackAction::ABORT;
+    }
+    p->builder.registerShadowMapCamera(camera);
+    return SoCallbackAction::CONTINUE;
   }
 
   const char * diagnostic = nullptr;
-  if (node->isOfType(SoTexture3::getClassTypeId())) {
-    const auto * texture = static_cast<const SoTexture3 *>(node);
-    SbVec3s size;
+  if (node->isOfType(SoBumpMap::getClassTypeId())) {
+    const auto * bump = static_cast<const SoBumpMap *>(node);
+    SoBumpMapElement::set(action->getState(), const_cast<SoBumpMap *>(bump), nullptr);
+    SbVec2s size;
     int components = 0;
-    texture->images.getValue(size, components);
-    if (size == SbVec3s(0, 0, 0) &&
-        (texture->filenames.getNum() == 0 || texture->filenames[0].getLength() == 0))
-      return SoCallbackAction::CONTINUE;
-    diagnostic = "SoTexture3 requires a 3D texture contract and executor";
+    bump->image.getValue(size, components);
+    if (size != SbVec2s(0, 0) || bump->filename.getValue().getLength() != 0)
+      static_cast<CoinRenderActionP *>(userdata)->encounteredActiveBump = true;
+    return SoCallbackAction::CONTINUE;
   } else if (node->isOfType(SoTextureCubeMap::getClassTypeId())) {
-    const auto * texture = static_cast<const SoTextureCubeMap *>(node);
-    const SoSFImage * faces[] = {&texture->imagePosX, &texture->imageNegX,
-      &texture->imagePosY, &texture->imageNegY, &texture->imagePosZ, &texture->imageNegZ};
-    bool hasFace = false;
-    for (const SoSFImage * face : faces) {
-      SbVec2s size;
-      int components = 0;
-      face->getValue(size, components);
-      hasFace = hasFace || size != SbVec2s(0, 0);
+    auto * owner = static_cast<CoinRenderActionP *>(userdata);
+    std::string error;
+    if (!owner->builder.captureCubeNode(action, static_cast<const SoTextureCubeMap *>(node), error)) {
+      owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(error.c_str())));
+      return SoCallbackAction::ABORT;
     }
-    if (!hasFace && (texture->filenames.getNum() == 0 ||
-                     texture->filenames[0].getLength() == 0))
-      return SoCallbackAction::CONTINUE;
-    diagnostic = "SoTextureCubeMap requires a cube texture contract and executor";
+    return SoCallbackAction::CONTINUE;
   } else if (node->isOfType(SoSceneTextureCubeMap::getClassTypeId())) {
-    if (!static_cast<const SoSceneTextureCubeMap *>(node)->scene.getValue())
-      return SoCallbackAction::CONTINUE;
-    diagnostic = "SoSceneTextureCubeMap requires a cube RTT contract and executor";
+    return SoCallbackAction::CONTINUE;
   } else if (node->isOfType(SoShaderProgram::getClassTypeId())) {
-    if (static_cast<const SoShaderProgram *>(node)->shaderObject.getNum() == 0) {
-      const auto * owner = static_cast<CoinRenderActionP *>(userdata);
+    auto *owner = static_cast<CoinRenderActionP *>(userdata);
+    const auto found = owner->portableShaderModules.find(const_cast<SoShaderProgram *>(
+      static_cast<const SoShaderProgram *>(node)));
+    if (found != owner->portableShaderModules.end()) {
+      bool active = false;
+      std::string error;
+      if (!coin_render_shader_active(*found->second, active, error)) {
+        owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(error.c_str())));
+        return SoCallbackAction::ABORT;
+      }
+      // An empty/inactive program replaces, rather than inherits, the previous
+      // module. Separator restores its own preceding element afterwards.
+      CoinRenderShaderModuleElement::set(action->getState(), active ? found->second :
+        std::shared_ptr<const CoinRenderShaderRegistration>());
+      if (!active && owner->builder.hasActiveShadowGroup()) {
+        owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Empty SoShaderProgram disables the active shadow shader; this profile is unsupported")));
+        return SoCallbackAction::ABORT;
+      }
+      // Resource and numeric proofs follow only at consumed active draws.
+      return SoCallbackAction::CONTINUE;
+    }
+    bool active = false;
+    std::string activationError;
+    if (!coin_render_shader_active(static_cast<const SoShaderProgram *>(node), active, activationError)) {
+      owner->setDiagnostic(CoinRenderDiagnosticShell::action(
+        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(activationError.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    if (!active) {
+      CoinRenderShaderModuleElement::set(action->getState(),
+        std::shared_ptr<const CoinRenderShaderRegistration>());
       if (!owner->builder.hasActiveShadowGroup()) return SoCallbackAction::CONTINUE;
       // Empty programs remove Coin's generated shadow program, changing both
       // lighting/shadows and texture projection without changing ShadowStyle.
@@ -1953,19 +3466,27 @@ CoinRenderActionP::unsupportedEffectPreCB(void * userdata, SoCallbackAction *, c
 void
 CoinRenderActionP::initCallbacks()
 {
+  this->master->addPreCallback(SoNode::getClassTypeId(), rttMutationPreCB, this);
   this->master->addTriangleCallback(SoShape::getClassTypeId(), triangleCB, this);
   this->master->addLineSegmentCallback(SoShape::getClassTypeId(), lineCB, this);
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
   this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPostCallback(SoCamera::getClassTypeId(), cameraStereoPostCB, this);
   this->master->addPreCallback(SoTexture2::getClassTypeId(), textureImagePreCB, this);
+  this->master->addPreCallback(SoTexture3::getClassTypeId(), textureVolumePreCB, this);
+  this->master->addPostCallback(SoTextureCoordinateObject::getClassTypeId(), rasterGeneratorPostCB, this);
+  this->master->addPostCallback(SoTextureCoordinatePlane::getClassTypeId(), rasterGeneratorPostCB, this);
+  this->master->addPostCallback(SoTextureCoordinateEnvironment::getClassTypeId(), rasterGeneratorPostCB, this);
+  this->master->addPostCallback(SoTextureCoordinateReflectionMap::getClassTypeId(), rasterGeneratorPostCB, this);
+  this->master->addPostCallback(SoTextureCoordinateNormalMap::getClassTypeId(), rasterGeneratorPostCB, this);
   this->master->addPreCallback(SoShape::getClassTypeId(), textureUnitsPreCB, this);
   this->master->addPostCallback(SoShape::getClassTypeId(), shapePostCB, this);
   this->master->addPreCallback(SoTranslation::getClassTypeId(), translationPreCB, this);
   this->master->addPreCallback(SoTransform::getClassTypeId(), translationPreCB, this);
   this->master->addPreCallback(SoLight::getClassTypeId(), lightPreCB, this);
   this->master->addPreCallback(SoTextureCombine::getClassTypeId(), textureCombinePreCB, this);
-  this->master->addPreCallback(SoTexture3::getClassTypeId(), unsupportedEffectPreCB, this);
+  this->master->addPreCallback(SoBumpMap::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoSceneTextureCubeMap::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPreCallback(SoShadowGroup::getClassTypeId(), shadowGroupPreCB, this);
@@ -1975,9 +3496,13 @@ CoinRenderActionP::initCallbacks()
   this->master->addPreCallback(SoDepthBuffer::getClassTypeId(), depthBufferPreCB, this);
   this->master->addPreCallback(SoAnnotation::getClassTypeId(), annotationPreCB, this);
   this->master->addPostCallback(SoAnnotation::getClassTypeId(), annotationPostCB, this);
+  this->master->addPreCallback(SoSeparator::getClassTypeId(), managerLayerPreCB, this);
+  this->master->addPostCallback(SoSeparator::getClassTypeId(), managerLayerPostCB, this);
   this->master->addPreCallback(SoSceneTexture2::getClassTypeId(), sceneTexturePreCB, this);
+  this->master->addPreCallback(SoSceneTextureCubeMap::getClassTypeId(), sceneCubeTexturePreCB, this);
   this->master->addPreCallback(SoIndexedFaceSet::getClassTypeId(), indexedFaceSetPreCB, this);
   this->master->addPreCallback(SoIndexedLineSet::getClassTypeId(), indexedLineSetPreCB, this);
+  this->master->addPostCallback(SoNode::getClassTypeId(), rasterStatePostCB, this);
   this->captureCallbackRevision = this->master->callbackRegistrationRevision();
 }
 
@@ -2016,6 +3541,224 @@ CoinRenderActionP::pointCB(void * userdata,
   const auto type = action->getCurPathTail()->getTypeId();
   if (type == SoMarkerSet::getClassTypeId() || type == SoIndexedMarkerSet::getClassTypeId()) return;
   p->builder.addPoint(action, vertex);
+}
+
+namespace {
+struct CubeCameraOverride {
+  const SoCamera * original;
+  SoCamera * replacement;
+  CoinRenderCameraSnapshot * captured;
+  CoinRenderActionP * owner;
+  static SoCallbackAction::Response post(void * data,SoCallbackAction * action,const SoNode * node) {
+    auto * self=static_cast<CubeCameraOverride *>(data);
+    if(node!=(self->original?static_cast<const SoNode *>(self->original):self->replacement))return SoCallbackAction::CONTINUE;
+    if(self->replacement->getStereoMode()!=SoCamera::MONOSCOPIC) {
+      // The ordinary post callback sees the original camera node. Rebuild its
+      // stereo volume from the private face orientation before extracting the
+      // GL reset matrix; no original camera fields are changed.
+      self->replacement->doAction(action);
+      if(CoinRenderActionP::cameraStereoPostCB(self->owner,action,self->replacement)!=SoCallbackAction::CONTINUE)
+        return SoCallbackAction::ABORT;
+    }
+    SoState * state=action->getState();
+    SbBool identity;
+    const SbMatrix & model=SoModelMatrixElement::get(state,identity);
+    SbMatrix view=SoViewingMatrixElement::get(state);
+    if(!identity) {
+      const float determinant=model.det4();
+      if(!std::isfinite(determinant) || determinant==0) {
+        self->owner->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+          CoinRenderDiagnosticDomain::FRAME_PLAN,SbString("Cube RTT camera path is non-invertible")));
+        return SoCallbackAction::ABORT;
+      }
+      // Match SoGLViewingMatrixElement::getResetMatrix, including its exact
+      // order. doAction stores V*M^-1; GL renders with reset M^-1*V so geometry
+      // before and after SoResetTransform, and later local transforms, agree.
+      view.multRight(model);
+      view.multLeft(model.inverse());
+      SoViewingMatrixElement::set(state,self->replacement,view);
+    }
+    self->captured->viewMatrix=view;
+    self->captured->projectionMatrixCoin=SoProjectionMatrixElement::get(action->getState());
+    self->captured->isPerspective=self->replacement->isOfType(SoPerspectiveCamera::getClassTypeId());
+    self->captured->nearDistance=self->replacement->nearDistance.getValue();
+    self->captured->farDistance=self->replacement->farDistance.getValue();
+    self->captured->focalDistance=self->replacement->focalDistance.getValue();
+    self->captured->aspectRatio=self->replacement->aspectRatio.getValue();
+    return SoCallbackAction::CONTINUE;
+  }
+  static SoCallbackAction::Response apply(void * data, SoCallbackAction * action, const SoNode * node) {
+    const auto * self=static_cast<const CubeCameraOverride *>(data);
+    if (node!=self->original) return SoCallbackAction::CONTINUE;
+    // Traverse only the private camera's fields at the original path/model
+    // transform. No field, notification, connection or node ID of the scene
+    // is modified, and all subsequent cameras retain their native behavior.
+    self->replacement->doAction(action);
+    return SoCallbackAction::PRUNE;
+  }
+};
+SbRotation cubeRttOrientation(unsigned face) {
+  const float pi=3.14159265358979323846f;
+  switch(face) {
+  case 0:return SbRotation(SbVec3f(0,1,0),-pi/2)*SbRotation(SbVec3f(1,0,0),pi);
+  case 1:return SbRotation(SbVec3f(0,1,0), pi/2)*SbRotation(SbVec3f(1,0,0),pi);
+  case 2:return SbRotation(SbVec3f(1,0,0), pi/2);
+  case 3:return SbRotation(SbVec3f(1,0,0),-pi/2);
+  case 4:return SbRotation(SbVec3f(0,1,0), pi)*SbRotation(SbVec3f(0,0,1),pi);
+  default:return SbRotation(SbVec3f(0,0,1),pi);
+  }
+}
+bool validCubeCamera(const SoCamera * camera) {
+  if (!camera || !std::isfinite(camera->nearDistance.getValue()) ||
+      !std::isfinite(camera->farDistance.getValue()) ||
+      camera->farDistance.getValue()<=camera->nearDistance.getValue() ||
+      !std::isfinite(camera->aspectRatio.getValue()) || camera->aspectRatio.getValue()<=0 ||
+      !std::isfinite(camera->focalDistance.getValue())) return false;
+  for(int c=0;c<3;++c)if(!std::isfinite(camera->position.getValue()[c]))return false;
+  if(camera->isOfType(SoPerspectiveCamera::getClassTypeId())) {
+    const float angle=static_cast<const SoPerspectiveCamera *>(camera)->heightAngle.getValue();
+    if(!std::isfinite(angle) || angle<=0 || angle>=3.14159265358979323846f || camera->nearDistance.getValue()<=0)return false;
+  }
+  if(camera->isOfType(SoOrthographicCamera::getClassTypeId())) {
+    const float height=static_cast<const SoOrthographicCamera *>(camera)->height.getValue();
+    if(!std::isfinite(height)||height<=0)return false;
+  }
+  return true;
+}
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::sceneCubeTexturePreCB(void * userdata,SoCallbackAction * action,const SoNode * node)
+{
+  auto * p=static_cast<CoinRenderActionP *>(userdata);
+  const auto * texture=static_cast<const SoSceneTextureCubeMap *>(node);
+  SoState * state=action?action->getState():NULL;
+  const auto failWithStatus=[&](const std::string & text, CoinRenderAction::Status status) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(status,
+      CoinRenderDiagnosticDomain::FRAME_PLAN,SbString(text.c_str())));
+    return SoCallbackAction::ABORT;
+  };
+  const auto fail=[&](const std::string & text) {
+    return failWithStatus(text, CoinRenderAction::UNSUPPORTED);
+  };
+  if(!state)return fail("Cube RTT has no traversal state");
+  const int unit=SoTextureUnitElement::get(state);
+  if(unit==0 && SoTextureOverrideElement::getImageOverride(state))return SoCallbackAction::CONTINUE;
+  if(unit<0 || unit>=int(COIN_RENDER_MAX_TEXTURE_UNITS))return fail("Cube RTT supports units 0..7");
+  CoinRenderTextureFilter filter;
+  if(!CoinRenderTextureSamplingCore::quality(SoTextureQualityElement::get(state),filter))
+    return fail("Cube RTT quality must be finite in [0,1]");
+  if(!texture->scene.getValue() || SoTextureQualityElement::get(state)==0) {
+    // Removal revokes the resource and inherited alpha classification.
+    SoMultiTextureImageElement::set(state,const_cast<SoSceneTextureCubeMap *>(texture),unit,
+      SbVec2s(0,0),0,NULL,SoMultiTextureImageElement::CLAMP,SoMultiTextureImageElement::CLAMP,
+      SoMultiTextureImageElement::MODULATE,SbColor(0,0,0));
+    SoMultiTextureEnabledElement::set(state,const_cast<SoSceneTextureCubeMap *>(texture),unit,FALSE);
+    if(unit==0 && texture->isOverride())SoTextureOverrideElement::setImageOverride(state,TRUE);
+    return SoCallbackAction::CONTINUE;
+  }
+  const int model=texture->model.getValue();
+  if((model!=SoSceneTextureCubeMap::MODULATE && model!=SoSceneTextureCubeMap::REPLACE &&
+      model!=SoSceneTextureCubeMap::DECAL && model!=SoSceneTextureCubeMap::BLEND) ||
+     !coin_render_scene_texture_policy_supported(texture->transparencyFunction.getValue()) ||
+     (texture->wrapS.getValue()!=SoSceneTextureCubeMap::REPEAT && texture->wrapS.getValue()!=SoSceneTextureCubeMap::CLAMP) ||
+     (texture->wrapT.getValue()!=SoSceneTextureCubeMap::REPEAT && texture->wrapT.getValue()!=SoSceneTextureCubeMap::CLAMP) ||
+     (texture->wrapR.getValue()!=SoSceneTextureCubeMap::REPEAT && texture->wrapR.getValue()!=SoSceneTextureCubeMap::CLAMP))
+    return fail("Invalid cube RTT model, wrap or transparency policy");
+  for(int c=0;c<3;++c)if(!std::isfinite(texture->backgroundColor.getValue()[c]) ||
+      !std::isfinite(texture->blendColor.getValue()[c]))return fail("Non-finite cube RTT background/blend");
+  const SbVec2s size=texture->size.getValue();
+  CoinRenderTextureImageSnapshot description;
+  if(size[0]!=size[1] || !CoinRenderCubeTextureCore::describe(uint32_t(size[0]),false,description))
+    return fail("Cube RTT requires six square POT faces in 1..2048 within atlas limits");
+  std::string diagnostic;
+  if (!p->sceneTexturePlan) return fail("Missing cube RTT graph");
+  const bool bumpProducer = p->sceneTextureBumpProducer ||
+    (p->target && !p->planOnly && !p->asyncTicket && p->target->getPimpl()->supportsOpaqueBump(false));
+  const int producerTransparency = SoShapeStyleElement::getTransparencyType(state);
+  const auto context = rttCaptureContext(*p, state, producerTransparency, bumpProducer);
+  uint64_t producerId = 0;
+  bool dependencyCycle = CoinRenderRttCaptureMemo::activeSource(*p->sceneTexturePlan, texture->getNodeId());
+  if (dependencyCycle) return failWithStatus("SoSceneTexture2 dependency cycle", CoinRenderAction::INVALID_SCENE);
+  if (p->sceneTextureCaptureMemo &&
+      !p->sceneTextureCaptureMemo->find(texture, context, *p->sceneTexturePlan, producerId, diagnostic, dependencyCycle))
+    return failWithStatus(diagnostic, dependencyCycle ? CoinRenderAction::INVALID_SCENE : CoinRenderAction::UNSUPPORTED);
+  if (!producerId) {
+    CoinRenderRttCaptureMemo::Baseline baseline;
+    const uint64_t captureEpoch = p->sceneTextureCaptureMemo ? p->sceneTextureCaptureMemo->epoch : 0;
+    bool hasEffects = true;
+    if (p->sceneTextureCaptureMemo && p->sceneTextureCaptureMemo->allowed)
+      hasEffects = rttSceneHasEffects(texture, &baseline);
+    if (hasEffects) { baseline.complete=false; baseline.nodes.clear(); }
+    const size_t chargeBefore = p->sceneTexturePlan ? p->sceneTexturePlan->chargedBytes : 0;
+    bool captureStable = true;
+    if(!p->sceneTexturePlan->enter(texture->getNodeId(),SbVec2i32(size[0],size[1]),diagnostic,true)) return fail(diagnostic);
+    struct GraphScope {CoinRenderRttPlan & graph;~GraphScope(){graph.leave();}} graphScope{*p->sceneTexturePlan};
+    CoinRenderRttCaptureMemo::TraceScope trace(p->sceneTextureCaptureMemo.get(), texture->getNodeId(),
+                                              p->sceneTexturePlan->activeSources.size());
+    SoNode * scene=texture->scene.getValue();
+    // Search/copy can invoke callbacks too. Release previous proofs before it,
+    // so a callback's removals/destructors observe the original ownership.
+    if (hasEffects && p->sceneTextureCaptureMemo) p->sceneTextureCaptureMemo->invalidate();
+    SoSearchAction search;search.setType(SoCamera::getClassTypeId());search.setInterest(SoSearchAction::FIRST);search.apply(scene);
+    const SoCamera * original=search.getPath()?static_cast<const SoCamera *>(search.getPath()->getTail()):NULL;
+    SoCamera * camera=original?static_cast<SoCamera *>(original->copy(FALSE)):new SoPerspectiveCamera;
+    camera->ref();
+    SoSeparator * wrapper=NULL;
+    struct CameraScope {SoCamera * camera;SoSeparator * & wrapper;~CameraScope(){if(wrapper)wrapper->unref();camera->unref();}} cameraScope{camera,wrapper};
+    if(!original) {
+      camera->position=SbVec3f(0,0,0);camera->nearDistance=.1f;camera->farDistance=100;
+      static_cast<SoPerspectiveCamera *>(camera)->heightAngle=3.14159265358979323846f/2;
+      wrapper=new SoSeparator;wrapper->ref();wrapper->addChild(camera);wrapper->addChild(scene);
+    }
+    if(original) {
+      camera->setStereoMode(original->getStereoMode());
+      camera->setStereoAdjustment(original->getStereoAdjustment());
+      camera->setBalanceAdjustment(original->getBalanceAdjustment());
+    }
+    if(!validCubeCamera(camera))return fail("Invalid cube RTT camera parameters");
+    CoinRenderRttProducer producer;producer.cube=true;producer.size=SbVec2i32(size[0],size[1]);
+    producer.sourceRevision=texture->getNodeId();
+    for(unsigned face=0;face<6;++face) {
+      camera->orientation=cubeRttOrientation(face);
+      CoinRenderAction child(SbViewportRegion(size[0],size[1]));
+      child.pimpl->sceneTexturePlan=p->sceneTexturePlan;child.pimpl->planOnly=true;
+      child.pimpl->sceneTextureCaptureMemo=p->sceneTextureCaptureMemo;
+      child.pimpl->sceneTextureBumpProducer=bumpProducer;
+      child.pimpl->executionOptions=p->executionOptions;
+      child.pimpl->portableShaderModules=p->portableShaderModules;
+      child.pimpl->inheritedTransparencyOverride=SoOverrideElement::getTransparencyTypeOverride(state);
+      child.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(producerTransparency));
+      child.setSortedLayersNumPasses(int(p->transparencyOptions.layers));child.setTransparencyBufferBudget(p->transparencyOptions.bufferBudget);
+      const auto bg=texture->backgroundColor.getValue();child.setBackgroundColor(SbColor4f(bg[0],bg[1],bg[2],1));
+      CoinRenderCameraSnapshot capturedCamera;
+      CubeCameraOverride overrideCamera{original,camera,&capturedCamera,child.pimpl.operator->()};
+      child.addPostCallback(SoCamera::getClassTypeId(),CubeCameraOverride::post,&overrideCamera);
+      if(original)child.addPreCallback(SoCamera::getClassTypeId(),CubeCameraOverride::apply,&overrideCamera);
+      child.apply(wrapper?static_cast<SoNode *>(wrapper):scene);
+      if(child.getLastStatus()!=CoinRenderAction::SUCCESS)return fail(std::string("Cube RTT face capture: ")+child.getLastError().getString());
+      captureStable = captureStable && !child.pimpl->builder.hasCoordinateFunctions();
+      producer.face(face)=std::move(child.pimpl->lastValidPlan);producer.face(face).legacyBlendAlpha=true;
+      if(producer.face(face).cameras.empty())producer.face(face).cameras.push_back(capturedCamera);
+    }
+    producer.capturedCubeFaces=6;
+    if(!p->sceneTexturePlan->append(std::move(producer),producerId,diagnostic))return fail(diagnostic);
+    if (p->sceneTextureCaptureMemo)
+      p->sceneTextureCaptureMemo->remember(texture, context, baseline, trace.trace, captureEpoch, producerId,
+                                          p->sceneTexturePlan->chargedBytes-chargeBefore, captureStable);
+  }
+  p->sceneTexturePixels.emplace_back(4,0);auto & marker=p->sceneTexturePixels.back();
+  for(unsigned i=0;i<4;++i)marker[i]=uint8_t(producerId>>(i*8));
+  SoMultiTextureImageElement::set(state,const_cast<SoSceneTextureCubeMap *>(texture),unit,SbVec2s(1,1),4,marker.data(),
+    SoMultiTextureImageElement::CLAMP,SoMultiTextureImageElement::CLAMP,
+    static_cast<SoMultiTextureImageElement::Model>(model),texture->blendColor.getValue());
+  SbVec2s retained;int components;const auto * image=SoMultiTextureImageElement::getImage(state,unit,retained,components);
+  if(!image||retained!=SbVec2s(1,1)||components!=4)return fail("Cube RTT marker was not retained");
+  p->builder.registerSceneTexture(image,producerId,description.width,description.height,false,
+    texture->transparencyFunction.getValue(),CoinRenderTextureFormat::RGBA8_LINEAR,uint32_t(size[0]));
+  SoMultiTextureEnabledElement::enableCubeMap(state,const_cast<SoSceneTextureCubeMap *>(texture),unit);
+  if(unit==0 && texture->isOverride())SoTextureOverrideElement::setImageOverride(state,TRUE);
+  return SoCallbackAction::CONTINUE;
 }
 
 SoCallbackAction::Response
@@ -2071,57 +3814,104 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
   }
 
   const SbVec2s size = texture->size.getValue();
+  // Disabled texturing returned above and does not consume a producer size.
+  // Active nonpositive extents are malformed authorship; positive extents
+  // still pass through the mode-specific capability/budget admission below.
+  if (size[0] <= 0 || size[1] <= 0) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
+      SbString("SoSceneTexture2 requires positive authored dimensions")));
+    return SoCallbackAction::ABORT;
+  }
   SoNode * scene = texture->scene.getValue();
   std::string diagnostic;
   const SbVec2i32 passSize(size[0], size[1]);
   const uint64_t sourceRevision = texture->getNodeId();
-  if (!scene || !p->sceneTexturePlan ||
-      !p->sceneTexturePlan->enter(sourceRevision, passSize, diagnostic)) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(
-        CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-        SbString(diagnostic.empty() ? "SoSceneTexture2 requires a scene and dimensions in 1..2048"
-                                    : diagnostic.c_str())));
-    return SoCallbackAction::ABORT;
-  }
-  struct ActiveTextureScope {
-    CoinRenderRttPlan& graph;
-    ~ActiveTextureScope() { graph.leave(); }
-  } scope{*p->sceneTexturePlan};
-  const SbVec4f background = texture->backgroundColor.getValue();
-  CoinRenderAction childAction(SbViewportRegion(size[0], size[1]));
-  childAction.pimpl->sceneTexturePlan = p->sceneTexturePlan;
-  childAction.pimpl->planOnly = true;
-  childAction.pimpl->inheritedTransparencyOverride = SoOverrideElement::getTransparencyTypeOverride(state);
-  childAction.pimpl->executionOptions = p->executionOptions;
-  // The producer inherits the traversal policy, including preceding Coin nodes.
-  // Its explicit SoTransparencyType overrides this policy exactly as in CoinGL.
+  const bool bumpProducer = p->target && !p->planOnly && !p->asyncTicket &&
+    p->target->getPimpl()->supportsOpaqueBump(false);
   const int producerTransparency = transparency
     ? static_cast<const SoTransparencyType *>(transparency)->value.getValue()
     : SoShapeStyleElement::getTransparencyType(state);
-  childAction.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(producerTransparency));
-  childAction.setSortedLayersNumPasses(static_cast<int>(p->transparencyOptions.layers));
-  childAction.setTransparencyBufferBudget(p->transparencyOptions.bufferBudget);
-  childAction.setBackgroundColor(
-      SbColor4f(background[0], background[1], background[2], background[3]));
-  childAction.apply(scene);
-  if (childAction.getLastStatus() != CoinRenderAction::SUCCESS) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::withContext(
-      childAction.getLastStatus(), childAction.pimpl->lastDiagnosticDomain,
-      "SoSceneTexture2 subscene", childAction.getLastError()));
+  const auto context = rttCaptureContext(*p, state, producerTransparency, bumpProducer);
+  uint64_t producerId = 0;
+  bool dependencyCycle = p->sceneTexturePlan &&
+    CoinRenderRttCaptureMemo::activeSource(*p->sceneTexturePlan, sourceRevision);
+  if (dependencyCycle) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("SoSceneTexture2 dependency cycle")));
     return SoCallbackAction::ABORT;
   }
-  CoinRenderRttProducer producer;
-  producer.plan = std::move(childAction.pimpl->lastValidPlan);
-  producer.plan.legacyBlendAlpha = true;
-  producer.size = passSize;
-  producer.sourceRevision = sourceRevision;
-  producer.format=texture->type.getValue()==SoSceneTexture2::RGBA16F?CoinRenderTextureFormat::RGBA16_FLOAT:CoinRenderTextureFormat::RGBA8_LINEAR;
-  uint64_t producerId = 0;
-  if (!p->sceneTexturePlan->append(std::move(producer), producerId, diagnostic)) {
-    p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
-                                                       CoinRenderDiagnosticDomain::FRAME_PLAN,
-                                                       SbString(diagnostic.c_str())));
+  if (p->sceneTexturePlan && p->sceneTextureCaptureMemo &&
+      !p->sceneTextureCaptureMemo->find(texture, context, *p->sceneTexturePlan, producerId, diagnostic, dependencyCycle)) {
+    p->setDiagnostic(CoinRenderDiagnosticShell::action(
+      dependencyCycle ? CoinRenderAction::INVALID_SCENE : CoinRenderAction::UNSUPPORTED,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(diagnostic.c_str())));
     return SoCallbackAction::ABORT;
+  }
+  if (!producerId) {
+    CoinRenderRttCaptureMemo::Baseline baseline;
+    const uint64_t captureEpoch = p->sceneTextureCaptureMemo ? p->sceneTextureCaptureMemo->epoch : 0;
+    bool hasEffects = true;
+    if (p->sceneTextureCaptureMemo && p->sceneTextureCaptureMemo->allowed)
+      hasEffects = rttSceneHasEffects(texture, &baseline);
+    if (hasEffects) { baseline.complete=false; baseline.nodes.clear(); }
+    const size_t chargeBefore = p->sceneTexturePlan ? p->sceneTexturePlan->chargedBytes : 0;
+    if (!scene || !p->sceneTexturePlan ||
+        !p->sceneTexturePlan->enter(sourceRevision, passSize, diagnostic)) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString(diagnostic.empty() ? "SoSceneTexture2 requires a scene and dimensions in 1..2048"
+                                      : diagnostic.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    struct ActiveTextureScope {
+      CoinRenderRttPlan& graph;
+      ~ActiveTextureScope() { graph.leave(); }
+    } scope{*p->sceneTexturePlan};
+    CoinRenderRttCaptureMemo::TraceScope trace(p->sceneTextureCaptureMemo.get(), sourceRevision,
+                                              p->sceneTexturePlan->activeSources.size());
+    const SbVec4f background = texture->backgroundColor.getValue();
+    CoinRenderAction childAction(SbViewportRegion(size[0], size[1]));
+    childAction.pimpl->sceneTexturePlan = p->sceneTexturePlan;
+    childAction.pimpl->sceneTextureCaptureMemo = p->sceneTextureCaptureMemo;
+    childAction.pimpl->planOnly = true;
+    // The qualified backend executes the child into private RTT attachments.
+    // The consumer may be either an offscreen target or a native window; its
+    // capability guard still excludes asynchronous/direct-output targets.
+    childAction.pimpl->sceneTextureBumpProducer = bumpProducer;
+    childAction.pimpl->inheritedTransparencyOverride = SoOverrideElement::getTransparencyTypeOverride(state);
+    childAction.pimpl->executionOptions = p->executionOptions;
+    childAction.pimpl->portableShaderModules = p->portableShaderModules;
+    // The producer inherits the traversal policy, including preceding Coin nodes.
+    // Its explicit SoTransparencyType overrides this policy exactly as in CoinGL.
+    childAction.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(producerTransparency));
+    childAction.setSortedLayersNumPasses(static_cast<int>(p->transparencyOptions.layers));
+    childAction.setTransparencyBufferBudget(p->transparencyOptions.bufferBudget);
+    childAction.setBackgroundColor(
+        SbColor4f(background[0], background[1], background[2], background[3]));
+    childAction.apply(scene);
+    if (childAction.getLastStatus() != CoinRenderAction::SUCCESS) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::withContext(
+        childAction.getLastStatus(), childAction.pimpl->lastDiagnosticDomain,
+        "SoSceneTexture2 subscene", childAction.getLastError()));
+      return SoCallbackAction::ABORT;
+    }
+    CoinRenderRttProducer producer;
+    producer.plan = std::move(childAction.pimpl->lastValidPlan);
+    producer.plan.legacyBlendAlpha = true;
+    producer.size = passSize;
+    producer.sourceRevision = sourceRevision;
+    producer.format=texture->type.getValue()==SoSceneTexture2::RGBA16F?CoinRenderTextureFormat::RGBA16_FLOAT:CoinRenderTextureFormat::RGBA8_LINEAR;
+    if (!p->sceneTexturePlan->append(std::move(producer), producerId, diagnostic)) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+                                                         CoinRenderDiagnosticDomain::FRAME_PLAN,
+                                                         SbString(diagnostic.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    if (p->sceneTextureCaptureMemo)
+      p->sceneTextureCaptureMemo->remember(texture, context, baseline, trace.trace, captureEpoch, producerId,
+                                          p->sceneTexturePlan->chargedBytes-chargeBefore,
+                                          !childAction.pimpl->builder.hasCoordinateFunctions());
   }
   p->sceneTexturePixels.emplace_back(4, 0);
   auto& marker = p->sceneTexturePixels.back();
@@ -2200,11 +3990,76 @@ CoinRenderActionP::annotationPostCB(void * userdata, SoCallbackAction * action, 
 }
 
 SoCallbackAction::Response
+CoinRenderActionP::managerLayerPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
+{
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->capturingShadowScene || p->replayingAnnotations) return SoCallbackAction::CONTINUE;
+  const auto found = std::find_if(p->managerLayerBoundaries.begin(),
+    p->managerLayerBoundaries.end(),
+    [node](const std::tuple<const SoNode *, bool, int> & layer) {
+      return std::get<0>(layer) == node;
+    });
+  if (found != p->managerLayerBoundaries.end()) {
+    const int type = std::get<2>(*found);
+    // This purpose belongs to a generated composition boundary, never to an
+    // inferred combination of authored material, style or texture state.
+    if (type == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER) ++p->managerHighlightDepth;
+    if (type >= 0) {
+      action->getState()->push();
+      SoShapeStyleElement::setTransparencyType(action->getState(), type);
+      SoLazyElement::setTransparencyType(action->getState(), type);
+    }
+    if (type == -2) p->builder.beginAuthoredScene(std::get<1>(*found));
+    else p->builder.beginAnnotation(std::get<1>(*found));
+    p->managerCapturedLayers.push_back(p->builder.activeAnnotationLayer());
+  }
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
+CoinRenderActionP::managerLayerPostCB(void * userdata, SoCallbackAction * action, const SoNode * node)
+{
+  auto * p = static_cast<CoinRenderActionP *>(userdata);
+  if (p->capturingShadowScene || p->replayingAnnotations) return SoCallbackAction::CONTINUE;
+  const auto found = std::find_if(p->managerLayerBoundaries.begin(),
+    p->managerLayerBoundaries.end(),
+    [node](const std::tuple<const SoNode *, bool, int> & layer) {
+      return std::get<0>(layer) == node;
+    });
+  if (found != p->managerLayerBoundaries.end()) {
+    if (std::get<2>(*found) == -2) p->builder.endAuthoredScene();
+    else p->builder.endAnnotation();
+    if (std::get<2>(*found) == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER &&
+        p->managerHighlightDepth) --p->managerHighlightDepth;
+    if (std::get<2>(*found) >= 0) action->getState()->pop();
+  }
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
 CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   auto * p = static_cast<CoinRenderActionP *>(userdata);
   const auto * group = static_cast<const SoShadowGroup *>(node);
-  if (p->capturingShadowScene || !group->isActive.getValue()) return SoCallbackAction::CONTINUE;
+  // Selection replay still traverses the real path and its transforms, but
+  // only the authored base contributes shadow groups, lights and map scenes.
+  if (p->managerHighlightDepth || p->capturingShadowScene || !group->isActive.getValue())
+    return SoCallbackAction::CONTINUE;
+  SoSearchAction mapLightSearch;
+  mapLightSearch.setType(SoLight::getClassTypeId());
+  mapLightSearch.setInterest(SoSearchAction::ALL);
+  mapLightSearch.apply(const_cast<SoShadowGroup *>(group));
+  bool hasMapLight = false;
+  for (int i = 0; i < mapLightSearch.getPaths().getLength(); ++i) {
+    const SoNode * light = mapLightSearch.getPaths()[i]->getTail();
+    if (!static_cast<const SoLight *>(light)->on.getValue()) continue;
+    if (light->isOfType(SoSpotLight::getClassTypeId()) ||
+        light->isOfType(SoShadowDirectionalLight::getClassTypeId())) {
+      hasMapLight = true;
+      break;
+    }
+  }
+  if (!hasMapLight) return SoCallbackAction::CONTINUE;
   CoinRenderShadowGroupSnapshot snapshot;
   snapshot.sourceRevision = node->getNodeId();
   snapshot.intensity = group->intensity.getValue();
@@ -2277,9 +4132,18 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
           return capture.groupSlot == p->builder.activeShadowGroupSlot() &&
             capture.lightRevision == light->getNodeId();
         })) continue;
+    uint32_t mapSize = 0;
+    std::string mapDiagnostic;
+    if (!coin_render_shadow_map_size(snapshot.precision, mapSize, mapDiagnostic)) {
+      p->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+                                                         CoinRenderDiagnosticDomain::FRAME_PLAN,
+                                                         SbString(mapDiagnostic.c_str())));
+      return SoCallbackAction::ABORT;
+    }
+    const SbViewportRegion mapViewport(static_cast<short>(mapSize), static_cast<short>(mapSize));
     CoinRenderFramePlanBuilder savedBuilder;
     std::swap(savedBuilder, p->builder);
-    p->builder.beginFrame(p->backgroundColor, p->viewport);
+    p->builder.beginFrame(p->backgroundColor, mapViewport);
     p->builder.configureTextures(p->executionOptions);
     auto captureGroup = snapshot;
     captureGroup.parentGroupSlot = 0;
@@ -2287,6 +4151,11 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     SoState * state = action->getState();
     const uint32_t inheritedPlanes = SoClipPlaneElement::getInstance(state)->getNum();
     state->push();
+    // SoSceneTexture2 renders each light map with a square viewport. Camera
+    // viewportMapping must see that aspect, not the observer's viewport.
+    const SbViewportRegion observerViewport = action->getViewportRegion();
+    action->setViewportRegion(mapViewport);
+    SoViewportRegionElement::set(state, mapViewport);
     SoLazyElement::setToDefault(state);
     SoMultiTextureEnabledElement::disableAll(state);
     SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
@@ -2305,6 +4174,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     } else action->switchToNodeTraversal(scene);
     p->capturingShadowScene = false;
     state->pop();
+    action->setViewportRegion(observerViewport);
     action->setCurrentNode(const_cast<SoNode *>(node));
     ShadowSceneCapture capture;
     capture.groupSlot = savedBuilder.activeShadowGroupSlot();
@@ -2319,6 +4189,8 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
         CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(error.c_str())));
       return SoCallbackAction::ABORT;
     }
+    for (auto &mapState : capture.frame.renderStates)
+      mapState.shadowMapSize = mapSize;
     p->shadowSceneCaptures.push_back(std::move(capture));
   }
   return SoCallbackAction::CONTINUE;
@@ -2328,7 +4200,10 @@ SoCallbackAction::Response
 CoinRenderActionP::shadowGroupPostCB(void * userdata, SoCallbackAction * action, const SoNode * node)
 {
   auto * p = static_cast<CoinRenderActionP *>(userdata);
-  if (p->capturingShadowScene || !static_cast<const SoShadowGroup *>(node)->isActive.getValue())
+  if (p->managerHighlightDepth || p->capturingShadowScene ||
+      !static_cast<const SoShadowGroup *>(node)->isActive.getValue())
+    return SoCallbackAction::CONTINUE;
+  if (p->activeShadowGroupNodes.empty() || p->activeShadowGroupNodes.back() != node)
     return SoCallbackAction::CONTINUE;
   p->builder.endShadowGroup();
   if (!p->activeShadowGroupNodes.empty()) p->activeShadowGroupNodes.pop_back();
@@ -2354,7 +4229,7 @@ CoinRenderActionP::lightPreCB(void * userdata,
                                const SoNode * node)
 {
   CoinRenderActionP * p = static_cast<CoinRenderActionP *>(userdata);
-  if (p->capturingShadowScene) return SoCallbackAction::CONTINUE;
+  if (p->managerHighlightDepth || p->capturingShadowScene) return SoCallbackAction::CONTINUE;
   p->builder.recordLightAttenuation(action);
   if (!p->builder.hasActiveShadowGroup()) return SoCallbackAction::CONTINUE;
   const auto * light = static_cast<const SoLight *>(node);
@@ -2512,6 +4387,7 @@ CoinRenderActionP::indexedFaceSetPreCB(void * userdata,
 
   view.materialBinding = SoMaterialBindingElement::get(state);
   view.normalBinding = SoNormalBindingElement::get(state);
+  normalizeIndexedBindings(node, view);
 
   std::string err;
   CoinRenderFastPathResult res = p->builder.processIndexedFaceSet(action, view, const_cast<SoNode *>(node), &err);
@@ -2602,6 +4478,7 @@ CoinRenderActionP::indexedLineSetPreCB(void * userdata,
   }
 
   view.materialBinding = SoMaterialBindingElement::get(state);
+  normalizeIndexedBindings(node, view);
 
   std::string err;
   CoinRenderFastPathResult res = p->builder.processIndexedLineSet(action, view, const_cast<SoNode *>(node), &err);

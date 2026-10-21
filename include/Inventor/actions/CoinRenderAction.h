@@ -42,6 +42,8 @@
 
 class CoinRenderActionP;
 class CoinRenderTarget;
+class SoShaderProgram;
+struct CoinRenderShaderModule;
 struct CoinRenderReadbackTicket;
 
 /**
@@ -88,6 +90,8 @@ public:
     SORTED_LAYERS_BLEND = SoGLRenderAction::SORTED_LAYERS_BLEND
   };
 
+  enum class DrawMode { SCENE, WIREFRAME, POINTS, BOUNDING_BOX, WIREFRAME_OVERLAY, HIDDEN_LINE, SHADED_HIDDEN_LINES };
+
   static void initClass(void);
   static SbBool isGpuBackendAvailable(void);
 
@@ -117,6 +121,12 @@ public:
   /** Viewer foreground pass: preserve depth state, do not clear depth. */
   void beginForegroundPass();
   void endForegroundPass();
+  /** Manager adapter only: mark an owned separator as a foreground pass.
+   * The action borrows the pointer for the next apply; the scene owns it.
+   */
+  void clearManagerLayerBoundaries();
+  void addManagerLayerBoundary(SoNode * separator, SbBool clearDepth,
+                               int transparencyType = -1);
 
   CoinRenderAction(void);
   CoinRenderAction(const SbViewportRegion & viewport);
@@ -136,6 +146,12 @@ public:
 
   void setTransparencyType(TransparencyType type);
   TransparencyType getTransparencyType(void) const;
+  void setDrawMode(DrawMode mode);
+  DrawMode getDrawMode(void) const;
+  void setOverlayColor(const SbColor4f & color);
+  const SbColor4f & getOverlayColor(void) const;
+  void setTexturesEnabled(SbBool enabled);
+  SbBool isTexturesEnabled(void) const;
 
   /** Experimental peeling profile: 1..8 layers, default 4. Invalid requests
    * are rejected at apply() without changing the published frame. */
@@ -144,6 +160,10 @@ public:
   /** Conservative per-frame attachment budget; default 256 MiB. */
   void setTransparencyBufferBudget(uint64_t bytes);
   uint64_t getTransparencyBufferBudget(void) const;
+
+  SbBool setPortableShaderModule(SoShaderProgram *program, const CoinRenderShaderModule &module);
+  void clearPortableShaderModule(SoShaderProgram *program);
+  void clearPortableShaderModules();
 
   void setFastPathEnabled(SbBool enable);
   SbBool isFastPathEnabled(void) const;

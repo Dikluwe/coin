@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -7,9 +8,12 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 
 #include <Inventor/SbMatrix.h>
+#include <Inventor/nodes/SoSceneTexture2.h>
 #include "rendering/coinrender/CoinRenderComposition.h"
 
 #include <algorithm>
@@ -29,7 +33,13 @@
 #define COIN_WGPU_MATRIX_CACHE_FP_X86 1
 #endif
 
-static_assert(sizeof(CoinWgpuFrameView) == 456, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuPortableNode) == 40, "Portable IR statement ABI size changed");
+static_assert(sizeof(CoinWgpuPortableModule) == 56, "Portable module ABI size changed");
+static_assert(sizeof(CoinWgpuPortableRange) == 64, "Portable range ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 512, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuBumpVertex) == 44, "Bump vertex ABI size changed");
+static_assert(sizeof(CoinWgpuBumpImage) == 32, "Bump image ABI size changed");
+static_assert(offsetof(CoinWgpuFrameView, bump_vertices) == 464, "Bump ABI tail offset changed");
 static_assert(sizeof(CoinWgpuInstance) == 144, "Instance ABI size changed");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "Instance range ABI size changed");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "Instance ABI tail offset changed");
@@ -39,7 +49,8 @@ static_assert(offsetof(CoinWgpuFrameView, extra_shadow_passes) == 400,
               "Extra shadow pass ABI offset changed");
 static_assert(offsetof(CoinWgpuFrameView, shadow_epsilon_second) == 376,
               "Frame view per-pass VSM ABI offset changed");
-static_assert(sizeof(CoinWgpuShadowDraw) == 144, "Shadow draw ABI size changed");
+static_assert(sizeof(CoinWgpuShadowDraw) == 160, "Shadow draw ABI size changed");
+static_assert(offsetof(CoinWgpuShadowDraw, viewport) == 144, "Shadow viewport ABI offset changed");
 static_assert(sizeof(CoinWgpuShadowReceiver) == 144, "Shadow receiver ABI size changed");
 static_assert(offsetof(CoinWgpuShadowReceiver, max_shadow_distance) == 8,
               "Shadow distance ABI offset changed");
@@ -65,7 +76,9 @@ static_assert(sizeof(CoinWgpuTextureUnit) == 96, "Texture unit ABI size changed"
 static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 52, "Extra UV ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1096, "Extra textures ABI offset changed");
 static_assert(offsetof(CoinWgpuRenderState, texture_combines) == 1768, "Combine ABI offset changed");
-static_assert(sizeof(CoinWgpuRenderState) == 2292, "CoinWgpuRenderState ABI size changed");
+static_assert(sizeof(CoinWgpuRenderState) == 2436, "CoinWgpuRenderState ABI size changed");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_source_slot) == 2300, "Raster source ABI tail mismatch");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_coordinates) == 2304, "Raster coordinate ABI tail mismatch");
 static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2280, "Alpha function ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2284, "Alpha reference ABI tail changed");
 static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection ABI tail changed");
@@ -78,6 +91,49 @@ static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_funct
 static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
 namespace {
+// Validate new reference-bearing state before revision reuse or vector/cache
+// mutation. This does not inspect vertices and leaves old packed bytes intact.
+inline bool validRasterTextureStateReferences(const CoinRenderFramePlan & frame, std::string & diagnostic) {
+  if (!CoinRenderCubeTextureCore::validate(frame, diagnostic)) return false;
+  for (const auto & state : frame.renderStates) {
+    if (state.rasterTextureSourceSlot == UINT32_MAX) continue;
+    if (!state.rasterPixels || !state.hasTexture ||
+        state.textureImageSlot >= frame.textures.size() || state.samplerSlot >= frame.samplers.size() ||
+        state.rasterTextureSourceSlot >= frame.renderStates.size()) {
+      diagnostic = "Invalid raster inherited texture source or payload"; return false;
+    }
+    const auto & source = frame.renderStates[state.rasterTextureSourceSlot];
+    if (source.rasterPixels || source.rasterTextureSourceSlot != UINT32_MAX ||
+        static_cast<unsigned>(source.textureProjection) > 1) {
+      diagnostic = "Recursive or invalid raster inherited texture source"; return false;
+    }
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      if (state.rasterTextureProvenance[unit] > 1) {
+        diagnostic = "Invalid raster texture provenance"; return false;
+      }
+      const auto & raw = state.rasterTextureCoordinates[unit];
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(raw[c])) {
+        diagnostic = "Non-finite raster texture coordinate"; return false;
+      }
+      const auto layer = coin_render_texture_unit(source, unit);
+      if (!layer.enabled) continue;
+      if (layer.imageSlot >= frame.textures.size() || layer.samplerSlot >= frame.samplers.size()) {
+        diagnostic = "Invalid raster inherited texture resource slot"; return false;
+      }
+      SbVec4f transformed;
+      layer.matrix.multVecMatrix(raw, transformed);
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(transformed[c])) {
+        diagnostic = "Non-finite raster texture matrix result"; return false;
+      }
+      if (!frame.textures[layer.imageSlot].cubeFaceSize && source.textureProjection == CoinRenderTextureProjection::PROJECTIVE &&
+          (transformed[3] == 0 || !std::isfinite(transformed[0]/transformed[3]) ||
+           !std::isfinite(transformed[1]/transformed[3]) || !std::isfinite(transformed[2]/transformed[3]))) {
+        diagnostic = "Invalid raster texture projective coordinate"; return false;
+      }
+    }
+  }
+  return true;
+}
 // Numerical memoization is optional. Recognize a fully masked, gradual,
 // nearest-even x86 environment, including x87 precision/infinity controls.
 // Unknown platforms/modes retain the literal matrix operations. Sticky flags
@@ -191,6 +247,9 @@ bool sameOpaquePackedFields(const CoinRenderRenderStateSnapshot & a,
       std::memcmp(&a.alphaTestReference, &b.alphaTestReference, sizeof(float)) ||
       std::memcmp(a.textureCombines.data(), b.textureCombines.data(),
                   sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) ||
+      a.rasterTextureSourceSlot != b.rasterTextureSourceSlot ||
+      a.rasterTextureCoordinates != b.rasterTextureCoordinates ||
+      a.rasterTextureProvenance != b.rasterTextureProvenance ||
       a.textureImageSlot != b.textureImageSlot || a.samplerSlot != b.samplerSlot ||
       a.textureModel != b.textureModel || a.textureProjection != b.textureProjection ||
       std::memcmp(a.textureBlendColor, b.textureBlendColor, sizeof(a.textureBlendColor)) ||
@@ -295,9 +354,78 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
                         const CoinRenderFramePreflight * preflight,
                         bool allowInstancing)
 {
+  return this->prepareImpl(frame, width, height, reuse, outDiagnostic,
+                           preflight, allowInstancing, false);
+}
+
+bool
+CoinWgpuFfiFrame::prepareBumpFrame(const CoinRenderFramePlan & frame,
+                                   uint32_t width, uint32_t height,
+                                   std::string & diagnostic)
+{
+  if (!coin_render_validate_extended_bump(frame, diagnostic))
+    return false;
+  return this->prepareImpl(frame, width, height,
+    CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
+    diagnostic, nullptr, false, true);
+}
+
+bool
+CoinWgpuFfiFrame::preparePortablePreflight(const CoinRenderFramePlan & frame,
+                                          uint32_t width, uint32_t height,
+                                          std::string & diagnostic)
+{
+  // Graph admission has validated the producer identities and descriptors.
+  // This path neither resolves them nor manufactures pixel/token payloads.
+  // The ordinary execution boundary below remains strict.
+  if (!coin_render_shader_execution_profile(frame, diagnostic) ||
+      !coin_render_validate_extended_bump(frame, diagnostic)) return false;
+  const bool bump = std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
+      [](const CoinRenderBumpCoordOverride &coordinate) { return coordinate.imageSlot != 0; });
+  return this->prepareImpl(frame, width, height,
+      CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
+      diagnostic, nullptr, false, bump, true);
+}
+
+bool
+CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
+                              uint32_t height,
+                              const CoinRenderFrameReuseDecision & reuse,
+                              std::string & outDiagnostic,
+                              const CoinRenderFramePreflight * preflight,
+                              bool allowInstancing, bool allowBump, bool allowUnresolved)
+{
   outDiagnostic.clear();
+  if (!frame.hasFiniteNormalizedInputs(&outDiagnostic)) return false;
+  if (!frame.portableShaders.empty()) {
+    // The new typed ingress shares the Core resource and finite-operation proof.
+    // Keep failures ahead of vector mutation, fast paths and GPU commands.
+    if (!frame.isValid(&outDiagnostic)) return false;
+    allowInstancing = false;
+  }
+  if (!validRasterTextureStateReferences(frame, outDiagnostic)) return false;
+  if (!coin_render_scene_layers_valid(frame, outDiagnostic)) return false;
+  // Validate cheap per-state ingress fields before any fast path or payload
+  // vector is modified. A failed prepare must leave the previously packed
+  // FFI state/caster pointers and bytes available to its owner.
+  for (const auto & state : frame.renderStates) {
+    if (state.colorWriteMask & ~uint8_t(0x0f)) {
+      outDiagnostic = "RenderState has invalid color write mask";
+      return false;
+    }
+    if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference)) {
+      outDiagnostic = "Invalid alpha comparison function or reference";
+      return false;
+    }
+    if (state.shadowStyle > 3u) {
+      outDiagnostic = "Invalid shadow style";
+      return false;
+    }
+  }
+  const bool portableFrame = !frame.portableShaders.empty() || !this->portableViews.empty();
   const char * loweringDisabled = std::getenv("COIN_WGPU_DISABLE_DIAGONAL_MESH_LOWERING");
-  const bool loweringAllowed = !(loweringDisabled && std::strcmp(loweringDisabled, "1") == 0);
+  const bool loweringAllowed = !portableFrame && !allowBump &&
+    !(loweringDisabled && std::strcmp(loweringDisabled, "1") == 0);
   this->opaqueIncrementalUsed = false;
   this->opaqueHashedRanges = 0;
   this->opaqueCommonStatesPacked = this->opaqueCameraProofReused = 0;
@@ -346,13 +474,79 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   } guard(this->opaqueIncrementalValid, this->opaqueCameraPatchable, this->opaqueInstanced,
           this->opaqueCameraMatricesQualified, this->opaqueMatrixCache.valid,
           this->opaqueMatrixCache.candidate, this->packedRevision, this->prepareKind);
-  for (const auto& texture : frame.textures) {
-    if (texture.producerId) {
-      outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
+  if (!allowBump && std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
+      [](const CoinRenderBumpCoordOverride & coord) { return coord.imageSlot != 0; })) {
+    outDiagnostic = "wgpu bump shader execution is not yet supported";
+    return false;
+  }
+  // Validate before subtracting/packing: bit 4 is wrap-R, not a seventeenth
+  // anisotropy value. Truncating an invalid public factor changes its meaning.
+  for (const auto & sampler : frame.samplers) {
+    if (!CoinRenderTextureSamplingCore::powerOfTwo(sampler.maxAnisotropy) ||
+        sampler.maxAnisotropy > 16 ||
+        (sampler.maxAnisotropy > 1 && sampler.filter != CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR) ||
+        uint32_t(sampler.wrapS) > 1 || uint32_t(sampler.wrapT) > 1 || uint32_t(sampler.wrapR) > 1 ||
+        uint32_t(sampler.filter) > 3) {
+      outDiagnostic = "Invalid sampler anisotropy, wrap or filter at wgpu transport boundary";
       return false;
     }
   }
-  if (frame.revision != 0 && frame.revision == this->packedRevision &&
+  std::string cubeDiagnostic;
+  if (!CoinRenderCubeTextureCore::validate(frame,cubeDiagnostic)) {
+    outDiagnostic=cubeDiagnostic;return false;
+  }
+  for (const auto& texture : frame.textures) {
+    if (texture.producerId && !allowUnresolved) {
+      outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
+      return false;
+    }
+    if ((texture.volumeDepth || texture.volumeWidth || texture.volumeHeight ||
+         texture.volumeColumns || texture.volumeSourceComponents || texture.volumeMipmapped) &&
+        !CoinRenderTextureSamplingCore::validMipImage(texture)) {
+      outDiagnostic = "Invalid SoTexture3 atlas metadata at wgpu execution boundary";
+      return false;
+    }
+  }
+  bool sameAtlasTextures = true;
+  for (size_t i = frame.textures.size(); i < this->textures.size(); ++i)
+    if (this->textures[i].format == 11 || this->textures[i].format == 12) sameAtlasTextures = false;
+  for (size_t i = 0; i < frame.textures.size(); ++i) {
+    const auto & image = frame.textures[i];
+    const uint32_t declaration = image.sceneTransparencyFunction == SoSceneTexture2::NONE ?
+      COIN_WGPU_TEXTURE_DECLARED_OPAQUE : 0u;
+    if (i >= this->textures.size() ||
+        (this->textures[i].reserved & COIN_WGPU_TEXTURE_DECLARED_OPAQUE) != declaration) {
+      sameAtlasTextures = false;
+      break;
+    }
+    if (!image.cubeFaceSize && !image.volumeDepth &&
+        !(i < this->textures.size() && (this->textures[i].format == 11 || this->textures[i].format == 12))) continue;
+    uint32_t exponent = 0; for (uint32_t n = image.cubeFaceSize; n > 1; n >>= 1) ++exponent;
+    const uint32_t metadata = (image.sceneTransparencyFunction == SoSceneTexture2::NONE ?
+      COIN_WGPU_TEXTURE_DECLARED_OPAQUE : 0u) | (image.volumeDepth ?
+      ((image.volumeWidth - 1) | ((image.volumeHeight - 1) << 8) |
+       ((image.volumeDepth - 1) << 16) | (image.volumeMipmapped ? 1u << 24 : 0u)) :
+      (exponent | (image.cubeSourceComponents << 4) | (image.cubeMipmapped ? 128u : 0u) | (image.gpuToken ? 256u : 0u)));
+    if (i >= this->textures.size() || i >= this->texturePixels.size() ||
+        this->textures[i].format != (image.volumeDepth ? 11u : 12u) || this->textures[i].width != image.width ||
+        this->textures[i].height != image.height || this->textures[i].reserved != metadata ||
+        this->textures[i].content_digest != (image.gpuToken ? image.gpuToken : image.contentDigest) || this->texturePixels[i] != image.pixelsRgba) {
+      sameAtlasTextures = false; break;
+    }
+  }
+  const auto layerIdentity = [](const CoinRenderDrawPacket & draw) {
+    return (uint64_t(draw.renderLayer) << 2) | (draw.authoredScene ? 2u : 0u) |
+      (draw.clearDepthBefore ? 1u : 0u);
+  };
+  bool sameLayerIdentity = frame.draws.size() == this->packedLayerIdentity.size();
+  if (sameLayerIdentity) for (size_t i = 0; i < frame.draws.size(); ++i)
+    if (layerIdentity(frame.draws[i]) != this->packedLayerIdentity[i]) { sameLayerIdentity = false; break; }
+  const auto rememberLayerIdentity = [&]() {
+    this->packedLayerIdentity.resize(frame.draws.size());
+    for (size_t i = 0; i < frame.draws.size(); ++i)
+      this->packedLayerIdentity[i] = layerIdentity(frame.draws[i]);
+  };
+  if (!portableFrame && !allowBump && sameLayerIdentity && sameAtlasTextures && frame.revision != 0 && frame.revision == this->packedRevision &&
       (allowInstancing || !this->opaqueInstanced) && (loweringAllowed || !this->opaqueDiagonalLowered)) {
     uint64_t requiredBytes = 0;
     const bool needsPeeling =
@@ -369,6 +563,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->view.height = height;
     this->view.sorted_layers_passes = frame.transparency.layers;
     this->view.transparency_budget_bytes = frame.transparency.bufferBudget;
+    rememberLayerIdentity();
     guard.committed = true;
     return true;
   }
@@ -376,7 +571,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
   CoinWgpuShadowFrame candidateShadow;
   if (!candidateShadow.prepare(frame, outDiagnostic)) return false;
 
-  if ((allowInstancing || !this->opaqueInstanced) && (loweringAllowed || !this->opaqueDiagonalLowered) &&
+  if (!portableFrame && !allowBump && (allowInstancing || !this->opaqueInstanced) &&
+      (loweringAllowed || !this->opaqueDiagonalLowered) &&
       this->patchOpaqueCamera(frame, width, height, reuse)) {
     // The output still belongs to the camera anchor, while the captured states
     // now contain a different view. Do not mix it with a later object rebake.
@@ -387,13 +583,14 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->view.camera_base_revision = reuse.baseRevision;
     this->packedRevision = frame.revision;
     this->prepareKind = CoinRenderFrameReuseKind::CAMERA_PATCH;
+    rememberLayerIdentity();
     guard.committed = true;
     return true;
   }
 
   // The Rust camera patch owns only the standard immutable payload; shadow
   // casters/receivers must be transported through the full validated path.
-  if (!this->opaqueBatched && frame.shadowGroups.empty() &&
+  if (!allowBump && !this->opaqueBatched && frame.shadowGroups.empty() &&
       reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
@@ -410,6 +607,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->packedRevision = frame.revision;
     this->prepareKind = CoinRenderFrameReuseKind::CAMERA_PATCH;
     this->opaqueIncrementalValid = false;
+    rememberLayerIdentity();
     guard.committed = true;
     return true;
   }
@@ -434,8 +632,8 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     dst.transparency = src.transparency;
   }
 
-  if ((allowInstancing && this->tryOpaqueInstancing(frame, width, height, preflight)) ||
-      this->tryEarlyOpaqueBatch(frame, width, height, preflight)) {
+  if (!portableFrame && !allowBump && ((allowInstancing && this->tryOpaqueInstancing(frame, width, height, preflight)) ||
+      this->tryEarlyOpaqueBatch(frame, width, height, preflight))) {
     this->rememberOpaqueCamera(frame, width, height);
     this->textures.clear();
     this->texturePixels.clear();
@@ -449,6 +647,7 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->opaqueIncrementalValid = this->opaqueIncrementalCandidate;
     this->opaqueMatrixCache.valid = this->opaqueInstanced && this->opaqueMatrixCache.candidate;
     this->opaqueMatrixCache.candidate = false;
+    rememberLayerIdentity();
     guard.committed = true;
     return true;
   }
@@ -469,9 +668,16 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->texturePixels[i].insert(this->texturePixels[i].end(),src.mipmapsRgba.begin(),src.mipmapsRgba.end());
     dst.width = src.width;
     dst.height = src.height;
-    dst.format = src.gpuToken?1:src.format==CoinRenderTextureFormat::RGBA8_LINEAR?(src.mipmapped?2:0):
+    dst.format = src.cubeFaceSize ? 12 : src.volumeDepth ? 11 : src.gpuToken?1:src.format==CoinRenderTextureFormat::RGBA8_LINEAR?(src.mipmapped?2:0):
       3+(uint32_t(src.format)-1)*2+(src.mipmapped?1:0);
-    dst.reserved = src.gpuToken?((src.gpuOpaque?1:0)|(src.mipmapped?2:0)|(uint32_t(src.format)<<2)):0;
+    auto exponent = [](uint32_t v) { uint32_t bits=0; while (v>1) {v>>=1;++bits;} return bits; };
+    dst.reserved = src.cubeFaceSize ?
+      (exponent(src.cubeFaceSize) | (src.cubeSourceComponents << 4) | (src.cubeMipmapped ? 128u : 0u) | (src.gpuToken ? 256u : 0u)) : src.volumeDepth ?
+      ((src.volumeWidth - 1) | ((src.volumeHeight - 1)<<8) |
+       ((src.volumeDepth - 1)<<16) | (src.volumeMipmapped ? 1u<<24 : 0u)) :
+      src.gpuToken?((src.gpuOpaque?1:0)|(src.mipmapped?2:0)|(uint32_t(src.format)<<2)):0;
+    if (src.sceneTransparencyFunction == SoSceneTexture2::NONE)
+      dst.reserved |= COIN_WGPU_TEXTURE_DECLARED_OPAQUE;
     dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
     dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();
     dst.pixel_bytes_len = static_cast<uint64_t>(this->texturePixels[i].size());
@@ -482,18 +688,30 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
     this->samplers[i].wrap_s = static_cast<uint32_t>(frame.samplers[i].wrapS);
     this->samplers[i].wrap_t = static_cast<uint32_t>(frame.samplers[i].wrapT);
     this->samplers[i].filter = static_cast<uint32_t>(frame.samplers[i].filter);
-    this->samplers[i].reserved=frame.samplers[i].maxAnisotropy-1;
+    this->samplers[i].reserved=(frame.samplers[i].maxAnisotropy-1) |
+        (uint32_t(frame.samplers[i].wrapR)<<4);
   }
 
-  this->batchOpaqueTriangles(frame, width, height);
+  if (!allowBump) this->batchOpaqueTriangles(frame, width, height);
   this->rememberOpaqueCamera(frame, width, height);
 
   this->shadowFrame = std::move(candidateShadow);
   this->bindView(frame, width, height);
+  if (allowBump) {
+    if (frame.vertices.size() > UINT32_MAX) {
+      outDiagnostic = "Bump frame exceeds source vertex index range";
+      return false;
+    }
+    std::vector<uint32_t> sourceVertexForEmitted(frame.vertices.size());
+    for (size_t i = 0; i < sourceVertexForEmitted.size(); ++i)
+      sourceVertexForEmitted[i] = static_cast<uint32_t>(i);
+    if (!this->prepareBumpPayload(frame, sourceVertexForEmitted, outDiagnostic)) return false;
+  }
   this->packedRevision = frame.revision;
   this->prepareKind = reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD
     ? CoinRenderFrameReuseKind::RESOURCE_REBUILD
     : CoinRenderFrameReuseKind::FULL_REBUILD;
+  rememberLayerIdentity();
   guard.committed = true;
   return true;
 }
@@ -740,7 +958,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
         draw.renderStateSlot >= frame.renderStates.size() ||
         item.firstIndex != range.firstIndex || item.indexCount != range.indexCount) return false;
     const auto & state = frame.renderStates[draw.renderStateSlot];
-    if (state.materialSlot >= frame.materials.size() ||
+    if (!state.colorWrite || state.materialSlot >= frame.materials.size() ||
         frame.materials[state.materialSlot].diffuse[3] != 1 || frame.materials[state.materialSlot].transparency != 0 ||
         item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
         item.depthFunction != state.depthFunction || item.depthRange[0] != state.depthRange[0] ||
@@ -889,7 +1107,7 @@ CoinWgpuFfiFrame::tryOpaqueInstancing(const CoinRenderFramePlan & frame,
         state.model[0][3] != 0 || state.model[1][3] != 0 || state.model[2][3] != 0 || state.model[3][3] != 1 ||
         std::memcmp(state.view.getValue(), first.view.getValue(), sizeof(float) * 16) ||
         std::memcmp(state.projectionCoin.getValue(), first.projectionCoin.getValue(), sizeof(float) * 16) ||
-        state.hasTexture || state.transparentMaterial || state.transparentTexture ||
+        !state.colorWrite || state.hasTexture || state.transparentMaterial || state.transparentTexture ||
         state.screenDoorTransparency > 0 || state.fogMode != CoinRenderFogMode::NONE ||
         !state.clipPlanesWorld.empty() || state.polygonOffsetEnabled ||
         state.lightModel != first.lightModel || state.lightingSlot != first.lightingSlot ||
@@ -1112,7 +1330,7 @@ CoinWgpuFfiFrame::tryEarlyOpaqueBatch(const CoinRenderFramePlan & frame,
   // byte comparison below remains the authority for a successful batch.
   const auto & firstState = frame.renderStates.front();
   for (const auto & state : frame.renderStates) {
-    if (state.hasTexture || state.fogMode != CoinRenderFogMode::NONE ||
+    if (!state.colorWrite || state.hasTexture || state.fogMode != CoinRenderFogMode::NONE ||
         coin_render_alpha_test_active(state.alphaTestFunction) ||
         !state.clipPlanesWorld.empty() || state.polygonOffsetEnabled ||
         state.cullMode != firstState.cullMode || state.frontFace != firstState.frontFace ||
@@ -1443,10 +1661,6 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
     outDiagnostic = "Invalid alpha comparison function or reference";
     return false;
   }
-  if (!frame.shadowGroups.empty() && coin_render_alpha_test_active(src.alphaTestFunction)) {
-    outDiagnostic = "Active alpha test requires alpha-aware shadow-map casters";
-    return false;
-  }
   dst.alpha_test_function = static_cast<uint32_t>(src.alphaTestFunction);
   if (src.textureProjection != CoinRenderTextureProjection::PROJECTIVE &&
       src.textureProjection != CoinRenderTextureProjection::DIRECT_ST) {
@@ -1465,6 +1679,23 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
   std::memcpy(dst.model_view, modelView.getValue(), sizeof(float) * 16);
   std::memcpy(dst.model_view_projection, mvpWgpu.getValue(), sizeof(float) * 16);
   std::memcpy(dst.normal_matrix, normalMatrix.getValue(), sizeof(float) * 16);
+  if (src.rasterShadowAnchorValid) {
+    if (src.cameraSlot >= frame.cameras.size()) {
+      outDiagnostic = "Raster shadow receiver lacks its observer camera";
+      return false;
+    }
+    SbVec3f eyeAnchor;
+    frame.cameras[src.cameraSlot].viewMatrix.multVecMatrix(
+      src.rasterShadowAnchorWorld, eyeAnchor);
+    if (!std::isfinite(eyeAnchor[0]) || !std::isfinite(eyeAnchor[1]) ||
+        !std::isfinite(eyeAnchor[2])) {
+      outDiagnostic = "Raster shadow receiver has a non-finite eye anchor";
+      return false;
+    }
+    const SbMatrix constantView(0, 0, 0, 0, 0, 0, 0, 0,
+                                0, 0, 0, 0, eyeAnchor[0], eyeAnchor[1], eyeAnchor[2], 1);
+    std::memcpy(dst.model_view, constantView.getValue(), sizeof(dst.model_view));
+  }
 
   bool hasLight = false;
   if (src.lightModel == CoinRenderLightModel::PHONG &&
@@ -1490,6 +1721,47 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
   dst.has_light = hasLight ? 1 : 0;
   dst.material_slot = src.materialSlot;
   dst.cull_mode = static_cast<uint32_t>(src.cullMode);
+  if (src.rasterTextureSourceSlot != UINT32_MAX) {
+    if (!src.rasterPixels || !src.hasTexture || src.textureImageSlot >= frame.textures.size() ||
+        src.samplerSlot >= frame.samplers.size() || src.rasterTextureSourceSlot >= frame.renderStates.size() ||
+        frame.renderStates[src.rasterTextureSourceSlot].rasterPixels ||
+        frame.renderStates[src.rasterTextureSourceSlot].rasterTextureSourceSlot != UINT32_MAX) {
+      outDiagnostic = "Invalid inherited image source state"; return false;
+    }
+    const auto & source = frame.renderStates[src.rasterTextureSourceSlot];
+    if (static_cast<unsigned>(source.textureProjection) > 1) {
+      outDiagnostic = "Invalid raster texture projection policy"; return false;
+    }
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const auto layer = coin_render_texture_unit(source, unit);
+      const auto & raw = src.rasterTextureCoordinates[unit];
+      if (src.rasterTextureProvenance[unit] > 1) {
+        outDiagnostic = "Invalid raster texture provenance"; return false;
+      }
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(raw[c])) {
+        outDiagnostic = "Non-finite inherited raster coordinate"; return false;
+      }
+      if (!layer.enabled) continue;
+      if (layer.imageSlot >= frame.textures.size() || layer.samplerSlot >= frame.samplers.size()) {
+        outDiagnostic = "Invalid inherited image resource slot"; return false;
+      }
+      SbVec4f transformed;
+      layer.matrix.multVecMatrix(raw, transformed);
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(transformed[c])) {
+        outDiagnostic = "Non-finite inherited raster matrix result"; return false;
+      }
+      if (!frame.textures[layer.imageSlot].cubeFaceSize && source.textureProjection == CoinRenderTextureProjection::PROJECTIVE &&
+          (transformed[3] == 0 || !std::isfinite(transformed[0]/transformed[3]) ||
+           !std::isfinite(transformed[1]/transformed[3]) || !std::isfinite(transformed[2]/transformed[3]))) {
+        outDiagnostic = "Invalid inherited raster projection"; return false;
+      }
+    }
+  }
+  dst.flat_shadow_primary = src.flatShadowPrimary ? 1u : 0u;
+  dst.raster_texture_source_slot = src.rasterTextureSourceSlot == UINT32_MAX ? 0u : src.rasterTextureSourceSlot + 1u;
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+    for (size_t channel = 0; channel < 4; ++channel)
+      dst.raster_texture_coordinates[unit][channel] = src.rasterTextureCoordinates[unit][channel];
   dst.front_face = static_cast<uint32_t>(src.frontFace);
   dst.light_model = static_cast<uint32_t>(src.lightModel);
   std::memcpy(dst.texture_matrix, src.textureMatrix.getValue(), sizeof(float) * 16);
@@ -1531,6 +1803,9 @@ CoinWgpuFfiFrame::packState(const CoinRenderFramePlan & frame,
   dst.fog_end = src.fogEnd;
   dst.depth_test = src.depthTest ? 1u : 0u;
   dst.depth_write = src.depthWrite ? 1u : 0u;
+  dst.portable_shader_slot = src.portableShaderSlot;
+  dst.color_write = !src.colorWrite || src.colorWriteMask == 0 ? 0u :
+                    src.colorWriteMask == 0x0f ? 1u : (0x10u | src.colorWriteMask);
   dst.depth_function = static_cast<uint32_t>(src.depthFunction);
   dst.depth_range[0] = src.depthRange[0];
   dst.depth_range[1] = src.depthRange[1];
@@ -1583,6 +1858,71 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, outDiagnostic, preflight))
     return false;
+  // Ordinary shadow lighting suppresses enabled lights which do not own a
+  // map. Tangent-space bump accumulates every authored light instead. The
+  // same source state can serve both occurrences, because bump lives on the
+  // indexed vertices rather than in RenderState.
+  std::vector<uint8_t> bumpItems;
+  std::vector<uint8_t> lightingUse;
+  std::vector<uint32_t> bumpLightingStates;
+  const bool activeBump = std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
+    [](const CoinRenderBumpCoordOverride &corner) { return corner.imageSlot != 0; });
+  if (activeBump) {
+    std::vector<uint8_t> activeVertices(frame.vertices.size(), 0);
+    for (const auto &corner : frame.bumpCoords) {
+      if (corner.vertexIndex >= activeVertices.size() || corner.imageSlot > frame.bumpImages.size()) {
+        outDiagnostic = "Invalid bump lighting occurrence vertex or image slot";
+        return false;
+      }
+      if (corner.imageSlot) activeVertices[corner.vertexIndex] = 1;
+    }
+    bumpItems.assign(order.size(), 0);
+    lightingUse.assign(frame.renderStates.size(), 0);
+    bumpLightingStates.assign(frame.renderStates.size(), UINT32_MAX);
+    for (size_t itemIndex = 0; itemIndex < order.size(); ++itemIndex) {
+      const auto &item = order[itemIndex];
+      if (item.drawIndex >= frame.draws.size()) {
+        outDiagnostic = "Invalid bump lighting composition draw";
+        return false;
+      }
+      const auto &draw = frame.draws[item.drawIndex];
+      const size_t first = item.firstIndex;
+      if (draw.renderStateSlot >= lightingUse.size() || first > frame.indices.size() ||
+          item.indexCount > frame.indices.size() - first) {
+        outDiagnostic = "Invalid bump lighting occurrence state or index range";
+        return false;
+      }
+      bool consumed = false;
+      for (size_t i = first; i < first + item.indexCount; ++i) {
+        const uint32_t vertex = frame.indices[i];
+        if (vertex >= activeVertices.size()) {
+          outDiagnostic = "Invalid indexed bump lighting vertex";
+          return false;
+        }
+        consumed = consumed || activeVertices[vertex] != 0;
+      }
+      // Map-only caster lighting remains owned by ShadowCore.
+      consumed = consumed && !draw.shadowLightSlot;
+      bumpItems[itemIndex] = consumed ? 1 : 0;
+      lightingUse[draw.renderStateSlot] |= consumed ? 2 : 1;
+    }
+  }
+  const auto restoreBumpLighting = [&](uint32_t sourceSlot, CoinWgpuRenderState &packed) {
+    const auto &source = frame.renderStates[sourceSlot];
+    if (source.lightModel != CoinRenderLightModel::PHONG ||
+        source.lightingSlot >= frame.lightingStates.size()) return false;
+    const auto &lights = frame.lightingStates[source.lightingSlot].lights;
+    bool restored = false;
+    for (size_t i = 0; i < lights.size(); ++i) {
+      if (coin_render_shadow_suppresses_ordinary_light(frame, source, lights[i])) {
+        packed.lights[i].color_intensity[3] = lights[i].intensity;
+        restored = true;
+      }
+    }
+    return restored;
+  };
+  for (size_t slot = 0; slot < lightingUse.size(); ++slot)
+    if (lightingUse[slot] == 2) restoreBumpLighting(static_cast<uint32_t>(slot), this->states[slot]);
   uint64_t requiredBytes = 0;
   const bool needsPeeling =
       std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {
@@ -1599,7 +1939,8 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
     return false;
   std::vector<CoinWgpuDraw> resolvedDraws;
   resolvedDraws.reserve(order.size());
-  for (const auto & item : order) {
+  for (size_t itemIndex = 0; itemIndex < order.size(); ++itemIndex) {
+    const auto &item = order[itemIndex];
     const auto & src = frame.draws[item.drawIndex];
     const auto & state = frame.renderStates[src.renderStateSlot];
     CoinWgpuDraw dst{};
@@ -1609,6 +1950,19 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
     dst.first_index = item.firstIndex;
     dst.index_count = item.indexCount;
     dst.render_state_slot = src.renderStateSlot;
+    if (!bumpItems.empty() && bumpItems[itemIndex] && lightingUse[src.renderStateSlot] == 3) {
+      auto &bumpSlot = bumpLightingStates[src.renderStateSlot];
+      if (bumpSlot == UINT32_MAX) {
+        CoinWgpuRenderState bumpState = this->states[src.renderStateSlot];
+        bumpSlot = src.renderStateSlot;
+        if (restoreBumpLighting(src.renderStateSlot, bumpState)) {
+          bumpSlot = static_cast<uint32_t>(this->states.size());
+          this->states.push_back(bumpState);
+          shadow.appendReceiverState(src.renderStateSlot);
+        }
+      }
+      dst.render_state_slot = bumpSlot;
+    }
     dst.stable_node_id = item.blend && item.sortTriangles ? 0 : src.stableNodeId;
     dst.draw_ordinal = src.drawOrdinal;
     dst.composition_flags =
@@ -1622,14 +1976,15 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
         (frame.legacyBlendAlpha && item.blend && !item.additive &&
           item.transparencyStrategy != CoinRenderCompositionItem::SORTED_LAYERS &&
           item.transparencyStrategy != CoinRenderCompositionItem::WEIGHTED_OIT ? 32u : 0u) |
-        (item.screenDoorLevel << 8);
+        (src.authoredScene ? 64u : 0u) | (item.screenDoorLevel << 8);
     dst.source_revision = src.sourceRevision;
     dst.render_layer = src.renderLayer;
     dst.clear_depth_before = src.clearDepthBefore ? 1u : 0u;
     if (item.depthTest != state.depthTest || item.depthWrite != state.depthWrite ||
         item.depthFunction != state.depthFunction ||
         item.depthRange[0] != state.depthRange[0] || item.depthRange[1] != state.depthRange[1]) {
-      CoinWgpuRenderState resolved = this->states[src.renderStateSlot];
+      const uint32_t receiverSource = dst.render_state_slot;
+      CoinWgpuRenderState resolved = this->states[receiverSource];
       resolved.depth_test = item.depthTest ? 1u : 0u;
       resolved.depth_write = item.depthWrite ? 1u : 0u;
       resolved.depth_function = static_cast<uint32_t>(item.depthFunction);
@@ -1637,7 +1992,7 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
       resolved.depth_range[1] = item.depthRange[1];
       dst.render_state_slot = static_cast<uint32_t>(this->states.size());
       this->states.push_back(resolved);
-      shadow.appendReceiverState(src.renderStateSlot);
+      shadow.appendReceiverState(receiverSource);
     }
     resolvedDraws.push_back(dst);
   }
@@ -1648,11 +2003,46 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
 void
 CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height)
 {
+  this->portableStorage.clear();
+  this->portableViews.clear();
+  this->portableStorage.reserve(frame.portableShaders.size());
+  this->portableViews.reserve(frame.portableShaders.size());
+  for (const auto &instance : frame.portableShaders) {
+    PortableStorage storage;
+    storage.parameters = instance.parameters;
+    storage.signature = coin_render_shader_key(instance.module, instance.ir);
+    storage.nodes.reserve(instance.ir.nodes.size());
+    for (const auto &node : instance.ir.nodes) {
+      CoinWgpuPortableNode packed = {};
+      packed.op = static_cast<uint32_t>(node.op);
+      packed.type = static_cast<uint32_t>(node.type);
+      std::copy(node.inputs.begin(), node.inputs.end(), packed.inputs);
+      std::copy(node.value.begin(), node.value.end(), packed.value);
+      packed.resource = node.resource;
+      storage.nodes.push_back(packed);
+    }
+    this->portableStorage.push_back(std::move(storage));
+  }
+  for (size_t slot = 0; slot < frame.portableShaders.size(); ++slot) {
+    const auto &storage = this->portableStorage[slot];
+    CoinWgpuPortableModule packed = {};
+    packed.nodes = storage.nodes.data(); packed.node_count = storage.nodes.size();
+    packed.parameters = storage.parameters.empty() ? nullptr : storage.parameters.data();
+    packed.parameter_count = storage.parameters.size();
+    packed.output = frame.portableShaders[slot].ir.output;
+    packed.alpha_may_vary = frame.portableShaders[slot].ir.alphaMayVary ? 1 : 0;
+    packed.signature = reinterpret_cast<const uint8_t *>(storage.signature.data());
+    packed.signature_bytes = storage.signature.size();
+    this->portableViews.push_back(packed);
+  }
   this->view = CoinWgpuFrameView{};
+  this->view.portable_modules = this->portableViews.empty() ? nullptr : this->portableViews.data();
+  this->view.portable_module_count = this->portableViews.size();
   this->view.abi_version = COIN_WGPU_ABI_VERSION;
   this->view.struct_size = sizeof(CoinWgpuFrameView);
   this->view.frame_revision = frame.revision;
   this->view.texture_sampling_policy = uint32_t(frame.textureSamplingPolicy);
+  this->view.rasterization_policy = uint32_t(frame.rasterizationPolicy);
   this->view.vertices = this->vertices.empty() ? NULL : this->vertices.data();
   this->view.vertex_count = static_cast<uint64_t>(this->vertices.size());
   this->view.indices = this->indices.empty() ? NULL : this->indices.data();
@@ -1755,6 +2145,73 @@ const CoinWgpuFrameView &
 CoinWgpuFfiFrame::getView() const
 {
   return this->view;
+}
+
+bool
+CoinWgpuFfiFrame::prepareBumpPayload(
+  const CoinRenderFramePlan & frame,
+  const std::vector<uint32_t> & sourceVertexForEmitted,
+  std::string & diagnostic)
+{
+  std::vector<CoinRenderBumpGpuVertex> source, emitted;
+  if (!coin_render_build_bump_gpu_stream(frame, source, diagnostic)) return false;
+  if (source.empty()) {
+    this->bumpVertices.clear();
+    this->bumpImages.clear();
+    this->bumpPixels.clear();
+    this->view.bump_vertices = NULL;
+    this->view.bump_vertex_count = 0;
+    this->view.bump_images = NULL;
+    this->view.bump_image_count = 0;
+    diagnostic.clear();
+    return true;
+  }
+  if (this->view.abi_version != COIN_WGPU_ABI_VERSION ||
+      this->view.frame_revision != frame.revision ||
+      sourceVertexForEmitted.size() != this->view.vertex_count) {
+    diagnostic = "Bump source mapping does not match packed wgpu frame";
+    return false;
+  }
+  if (!coin_render_remap_bump_gpu_stream(source, sourceVertexForEmitted,
+                                         emitted, diagnostic)) return false;
+  try {
+    std::vector<CoinWgpuBumpVertex> vertices(emitted.size());
+    for (size_t i = 0; i < emitted.size(); ++i) {
+      std::memcpy(vertices[i].coord, emitted[i].coord, sizeof(vertices[i].coord));
+      std::memcpy(vertices[i].tangent_s, emitted[i].tangentS, sizeof(vertices[i].tangent_s));
+      std::memcpy(vertices[i].tangent_t, emitted[i].tangentT, sizeof(vertices[i].tangent_t));
+      vertices[i].image_slot = emitted[i].imageSlot;
+    }
+    std::vector<std::vector<uint8_t> > pixels(frame.bumpImages.size());
+    std::vector<CoinWgpuBumpImage> images(frame.bumpImages.size());
+    for (size_t i = 0; i < frame.bumpImages.size(); ++i) {
+      const auto & sourceImage = frame.bumpImages[i];
+      if (!sourceImage.width || !sourceImage.height ||
+          uint64_t(sourceImage.width) * sourceImage.height * 3 != sourceImage.rgb.size()) {
+        diagnostic = "Invalid bump image at wgpu transport boundary";
+        return false;
+      }
+      pixels[i] = sourceImage.rgb;
+      images[i].width = sourceImage.width;
+      images[i].height = sourceImage.height;
+      images[i].clamp_s = sourceImage.clampS ? 1u : 0u;
+      images[i].clamp_t = sourceImage.clampT ? 1u : 0u;
+      images[i].rgb = pixels[i].data();
+      images[i].rgb_len = pixels[i].size();
+    }
+    this->bumpVertices.swap(vertices);
+    this->bumpImages.swap(images);
+    this->bumpPixels.swap(pixels);
+    this->view.bump_vertices = this->bumpVertices.data();
+    this->view.bump_vertex_count = this->bumpVertices.size();
+    this->view.bump_images = this->bumpImages.data();
+    this->view.bump_image_count = this->bumpImages.size();
+    diagnostic.clear();
+    return true;
+  } catch (const std::bad_alloc &) {
+    diagnostic = "Bump wgpu transport allocation failed";
+    return false;
+  }
 }
 
 const CoinWgpuShadowFrame &

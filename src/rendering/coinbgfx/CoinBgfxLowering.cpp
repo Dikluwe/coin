@@ -9,6 +9,9 @@
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
+#include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 
 #include <cmath>
 #include <algorithm>
@@ -17,6 +20,8 @@
 #include <utility>
 #include <unordered_map>
 #include <limits>
+#include <chrono>
+#include <cstdio>
 
 namespace {
 struct SharedRangeKey {
@@ -185,11 +190,15 @@ int compareBytes(const void * lhs, const void * rhs, size_t bytes)
 int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
                            const CoinBgfxDraw & rhs)
 {
-  int result = compareValue(lhs.renderLayer, rhs.renderLayer);
+  int result = compareValue(lhs.authoredScene, rhs.authoredScene);
+  if (result != 0) return result;
+  result = compareValue(lhs.renderLayer, rhs.renderLayer);
   if (result == 0) result = compareValue(lhs.cullMode, rhs.cullMode);
   if (result == 0) result = compareValue(lhs.frontFace, rhs.frontFace);
   if (result == 0) result = compareValue(lhs.depthTest, rhs.depthTest);
   if (result == 0) result = compareValue(lhs.depthWrite, rhs.depthWrite);
+  if (result == 0) result = compareValue(lhs.colorWrite, rhs.colorWrite);
+  if (result == 0) result = compareValue(lhs.colorWriteMask, rhs.colorWriteMask);
   if (result == 0) result = compareValue(lhs.textureProjection, rhs.textureProjection);
   if (result == 0) result = compareValue(lhs.depthFunction, rhs.depthFunction);
   if (result == 0) result = compareBytes(lhs.depthRange, rhs.depthRange, sizeof(lhs.depthRange));
@@ -211,6 +220,14 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
   if (result == 0) result = compareValue(lhs.textureModel, rhs.textureModel);
   if (result == 0) result = compareValue(lhs.wrapS, rhs.wrapS);
   if (result == 0) result = compareValue(lhs.wrapT, rhs.wrapT);
+  if (result == 0) result = compareValue(lhs.wrapR, rhs.wrapR);
+  if (result == 0) result = compareValue(lhs.cubeFaceSize, rhs.cubeFaceSize);
+  if (result == 0) result = compareValue(lhs.cubeSourceComponents, rhs.cubeSourceComponents);
+  if (result == 0) result = compareValue(lhs.cubeMipmapped, rhs.cubeMipmapped);
+  if (result == 0) result = compareValue(lhs.volumeWidth, rhs.volumeWidth);
+  if (result == 0) result = compareValue(lhs.volumeHeight, rhs.volumeHeight);
+  if (result == 0) result = compareValue(lhs.volumeDepth, rhs.volumeDepth);
+  if (result == 0) result = compareValue(lhs.volumeMipmapped, rhs.volumeMipmapped);
   if (result == 0) result = compareValue(lhs.filter, rhs.filter);
   if(result==0)result=compareValue(lhs.maxAnisotropy,rhs.maxAnisotropy);
   if (result == 0) result = compareBytes(lhs.textureBlendColor,
@@ -233,6 +250,11 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
 bool sameTexture(const CoinBgfxTexture & lhs, const CoinBgfxTexture & rhs)
 {
   return lhs.format == rhs.format && lhs.width == rhs.width && lhs.height == rhs.height &&
+    lhs.cubeFaceSize == rhs.cubeFaceSize && lhs.cubeSourceComponents == rhs.cubeSourceComponents &&
+    lhs.cubeMipmapped == rhs.cubeMipmapped && lhs.volumeWidth == rhs.volumeWidth && lhs.volumeHeight == rhs.volumeHeight &&
+    lhs.volumeDepth == rhs.volumeDepth && lhs.volumeColumns == rhs.volumeColumns &&
+    lhs.volumeSourceComponents == rhs.volumeSourceComponents &&
+    lhs.volumeMipmapped == rhs.volumeMipmapped &&
     lhs.gpuToken == rhs.gpuToken &&
     lhs.pixelsRgba == rhs.pixelsRgba && lhs.mipmapped == rhs.mipmapped;
 }
@@ -243,7 +265,7 @@ bool opaqueDrawCanBeGrouped(const CoinBgfxDraw & draw)
   // Non-default comparisons, disabled test/write, remapped depth ranges and
   // polygon offset make overlapping draws order-sensitive. In those cases a
   // pipeline/material sort can visibly differ from sequential GL traversal.
-  if (draw.blend && !draw.deferred) return false;
+  if (draw.bumpSlot || !draw.colorWrite || (draw.blend && !draw.deferred)) return false;
   return draw.blend ||
     (draw.depthTest && draw.depthWrite &&
      draw.depthFunction == CoinRenderDepthFunction::LESS &&
@@ -334,8 +356,21 @@ bool
 CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, int height,
                                bool homogeneousDepth, CoinBgfxPlan & output,
                                std::string & diagnostic,
-                               const CoinRenderFramePreflight * preflight)
+                               const CoinRenderFramePreflight * preflight,
+                               bool allowWorldSpace)
 {
+  if (std::any_of(frame.renderStates.begin(), frame.renderStates.end(),
+      [](const CoinRenderRenderStateSnapshot &state) { return state.portableShaderSlot != 0; }))
+    return false;
+  using Clock = std::chrono::steady_clock;
+  const bool traceInstancing = std::getenv("COIN_RENDER_TRACE_PHASES") != nullptr;
+  const auto milliseconds = [](Clock::duration duration) {
+    return std::chrono::duration<double, std::milli>(duration).count();
+  };
+  Clock::duration matrixDuration{}, rangeDuration{}, packingDuration{};
+  Clock::duration lookupDuration{}, validationDuration{}, normalizationDuration{},
+    dedupDuration{}, insertionDuration{};
+  const auto precheckBegin = Clock::now();
   diagnostic.clear();
   const auto decline = [&](const std::string & reason) {
     diagnostic = "BGFX instancing declined: " + reason;
@@ -343,6 +378,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   };
   if (width <= 0 || height <= 0 || width > 16384 || height > 16384) return decline("target size");
   if (frame.draws.size() < 256 || frame.draws.size() > UINT32_MAX) return decline("draw count");
+  if (std::any_of(frame.bumpCoords.begin(),frame.bumpCoords.end(),[](const CoinRenderBumpCoordOverride & coord){return coord.imageSlot!=0;}))return decline("active bump stream");
   if (!frame.shadowGroups.empty()) return decline("shadow groups");
   if (!frame.textures.empty()) return decline("texture images");
   if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
@@ -365,7 +401,9 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
       const float determinant = state.model.det4();
       return std::isfinite(determinant) && std::abs(determinant) > 1.0e-9f;
     });
-  const bool worldSpaceInstances = firstState.depthFunction == CoinRenderDepthFunction::LESS &&
+  const auto precheckEnd = Clock::now();
+  const bool worldSpaceInstances = allowWorldSpace &&
+    firstState.depthFunction == CoinRenderDepthFunction::LESS &&
     CoinRenderTransformCore::cameraReuseView(firstState.view) && patchableModels;
   std::memcpy(drawTemplate.mvp, mvp.getValue(), sizeof(drawTemplate.mvp));
   drawTemplate.cullMode = firstState.cullMode;
@@ -407,6 +445,7 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
   candidate.draws.reserve(std::min<size_t>(frame.draws.size(), 256));
   uint32_t previousMesh = UINT32_MAX;
   for (size_t ordinal = 0; ordinal < order.size(); ++ordinal) {
+    const auto drawBegin = traceInstancing ? Clock::now() : Clock::time_point{};
     const auto & item = order[ordinal];
     const auto & sourceDraw = frame.draws[item.drawIndex];
     const auto & state = frame.renderStates[sourceDraw.renderStateSlot];
@@ -484,9 +523,14 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
       candidate.instancedCameraPatchable = candidate.instancedCameraPatchable &&
         composableInstanceNormal(modelView, normalMatrix);
 
+    const auto rangeBegin = traceInstancing ? Clock::now() : Clock::time_point{};
+    if (traceInstancing) matrixDuration += rangeBegin - drawBegin;
+
     const SharedRangeKey key = {geometry.firstVertex, geometry.vertexCount,
                                geometry.firstIndex, geometry.indexCount};
     auto range = ranges.find(key);
+    const auto validationBegin = traceInstancing ? Clock::now() : Clock::time_point{};
+    if (traceInstancing) lookupDuration += validationBegin - rangeBegin;
     if (range == ranges.end()) {
       if (ranges.size() >= maxSourceSpans || metadataBytes + spanMetadataBytes > metadataBudget)
         return declineDraw("source span/metadata budget");
@@ -504,13 +548,15 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
       for (uint32_t j = 0; j < geometry.indexCount; ++j) {
         const uint32_t sourceIndex = frame.indices[geometry.firstIndex + j];
         if (sourceIndex < geometry.firstVertex || sourceIndex >= geometry.firstVertex + geometry.vertexCount) return declineDraw("index escapes vertex range");
-        const auto & source = frame.vertices[sourceIndex];
-        if (source.materialSlot != materialSlot) return declineDraw("nonuniform vertex material");
-        if (source.screenSpaceW != 1.0f || source.fogEyeDepth >= 0.0f) return declineDraw("stroke interpolation/fog depth");
-        for (int channel = 0; channel < 3; ++channel)
-          if (!instancedMagnitude(source.position[channel]) || !instancedMagnitude(source.normal[channel])) return declineDraw("source position/normal magnitude");
         uint32_t & slot = remap[sourceIndex - geometry.firstVertex];
+        // Every index is range-checked; immutable vertex attributes need only
+        // be qualified on the first reference to this vertex in the span.
         if (slot == UINT32_MAX) {
+          const auto & source = frame.vertices[sourceIndex];
+          if (source.materialSlot != materialSlot) return declineDraw("nonuniform vertex material");
+          if (source.screenSpaceW != 1.0f || source.fogEyeDepth >= 0.0f) return declineDraw("stroke interpolation/fog depth");
+          for (int channel = 0; channel < 3; ++channel)
+            if (!instancedMagnitude(source.position[channel]) || !instancedMagnitude(source.normal[channel])) return declineDraw("source position/normal magnitude");
           CoinBgfxInstancedVertex vertex;
           std::memcpy(vertex.position, source.position, sizeof(vertex.position));
           std::memcpy(vertex.normal, source.normal, sizeof(vertex.normal));
@@ -519,8 +565,12 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
         }
         indices.push_back(slot);
       }
+      const auto normalizationBegin = traceInstancing ? Clock::now() : Clock::time_point{};
+      if (traceInstancing) validationDuration += normalizationBegin - validationBegin;
       float positionScale[3] = {1.0f, 1.0f, 1.0f};
       normalizeDiagonalMesh(vertices, positionScale);
+      const auto dedupBegin = traceInstancing ? Clock::now() : Clock::time_point{};
+      if (traceInstancing) normalizationDuration += dedupBegin - normalizationBegin;
       uint32_t meshSlot = UINT32_MAX;
       const auto sameMesh = [&](uint32_t slot) {
         const auto & mesh = meshes[slot];
@@ -555,11 +605,16 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
           metadataBytes += meshMetadataBytes;
         }
       }
+      const auto insertionBegin = traceInstancing ? Clock::now() : Clock::time_point{};
+      if (traceInstancing) dedupDuration += insertionBegin - dedupBegin;
       range = ranges.emplace(key, Range{meshSlot, materialSlot,
         {positionScale[0], positionScale[1], positionScale[2]}}).first;
       metadataBytes += spanMetadataBytes;
+      if (traceInstancing) insertionDuration += Clock::now() - insertionBegin;
     }
     const auto & mesh = meshes[range->second.meshSlot];
+    const auto packingBegin = traceInstancing ? Clock::now() : Clock::time_point{};
+    if (traceInstancing) rangeDuration += packingBegin - rangeBegin;
     const auto & material = frame.materials[range->second.materialSlot];
     SbMatrix positionModelView = modelView;
     for (int row = 0; row < 3; ++row)
@@ -609,9 +664,139 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
       candidate.draws.push_back(draw);
     }
     previousMesh = range->second.meshSlot;
+    if (traceInstancing) packingDuration += Clock::now() - packingBegin;
   }
+  if (traceInstancing)
+    std::fprintf(stderr,
+      "COIN_RENDER_PHASE bgfx_instancing_detail precheck_ms=%.6f matrix_ms=%.6f range_ms=%.6f pack_ms=%.6f source_spans=%zu distinct_meshes=%zu instances=%zu first_mesh_vertices=%u first_mesh_indices=%u\n",
+      milliseconds(precheckEnd - precheckBegin), milliseconds(matrixDuration),
+      milliseconds(rangeDuration), milliseconds(packingDuration), ranges.size(),
+      meshes.size(), candidate.instances.size(),
+      meshes.empty() ? 0u : meshes.front().vertexCount,
+      meshes.empty() ? 0u : meshes.front().indexCount);
+  if (traceInstancing)
+    std::fprintf(stderr,
+      "COIN_RENDER_PHASE bgfx_instancing_range lookup_ms=%.6f validation_ms=%.6f normalize_ms=%.6f dedup_ms=%.6f insert_ms=%.6f\n",
+      milliseconds(lookupDuration), milliseconds(validationDuration),
+      milliseconds(normalizationDuration), milliseconds(dedupDuration),
+      milliseconds(insertionDuration));
   for (int channel = 0; channel < 4; ++channel) candidate.clearColor[channel] = frame.clearColor[channel];
   output = std::move(candidate);
+  return true;
+}
+
+bool
+CoinBgfxLowering::validateBump(const CoinRenderFramePlan & frame, std::string & diagnostic)
+{
+  if (!coin_render_validate_extended_bump(frame, diagnostic))
+    return false;
+  const bool active=std::any_of(frame.bumpCoords.begin(),frame.bumpCoords.end(),
+    [](const CoinRenderBumpCoordOverride & coord){return coord.imageSlot!=0;});
+  if (!active) return true;
+  const auto fail=[&](const char * message){diagnostic=message;return false;};
+  if (!frame.isValid(&diagnostic)) return false;
+  std::vector<CoinRenderBumpGpuVertex> stream;
+  if (!coin_render_build_bump_gpu_stream(frame, stream, diagnostic))
+    return false;
+  if (stream.empty())
+    return true;
+  if (frame.rasterizationPolicy != COIN_RENDER_RASTER_NATIVE ||
+      frame.outputColorFormat != CoinRenderTextureFormat::RGBA8_LINEAR || frame.draws.empty())
+    return fail("BGFX bump requires native opaque RGBA8 geometry");
+  if(frame.bumpImages.size()>4096)return fail("BGFX bump supports at most 4096 images");
+  uint64_t bytes=0;
+  for(const auto & image:frame.bumpImages) {
+    bytes+=image.rgb.size();
+    if(image.width>32767 || image.height>32767 || image.rgb.size()>48u*1024u*1024u || bytes>256u*1024u*1024u)
+      return fail("BGFX bump images exceed the 32767-axis/48 MiB image/256 MiB transport profile");
+  }
+  std::vector<CoinRenderCompositionItem> composition;
+  if(!coin_render_composition_order(frame,composition,diagnostic))return false;
+  if(std::any_of(composition.begin(),composition.end(),[](const CoinRenderCompositionItem & item){return item.blend || item.screenDoor || item.additive;}))
+    return fail("BGFX bump supports opaque composition only");
+  const bool extended = coin_render_uses_extended_bump(frame);
+  int depth=-1;
+  for(const auto & draw:frame.draws) {
+    if (draw.shadowLightSlot)
+      continue;
+    uint32_t drawBumpSlot = 0;
+    if (!coin_render_bump_draw_slot(frame, stream, draw, drawBumpSlot, diagnostic)) return false;
+    const auto & state=frame.renderStates[draw.renderStateSlot];
+    const auto & material=frame.materials[state.materialSlot];
+    const auto & lights=frame.lightingStates[state.lightingSlot].lights;
+    const bool lightingQualified = !drawBumpSlot ||
+      (state.lightModel == CoinRenderLightModel::PHONG && !lights.empty() && lights.size() <= 8 &&
+       (lights.size() == 1 ?
+         (lights[0].type == CoinRenderLightType::POINT || lights[0].type == CoinRenderLightType::DIRECTIONAL) :
+         std::all_of(lights.begin(), lights.end(), [](const CoinRenderLightSourceSnapshot &light) {
+           return light.type == CoinRenderLightType::DIRECTIONAL;
+         })));
+    if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.clearDepthBefore ||
+        state.rasterPixels || state.rasterTextureSourceSlot != UINT32_MAX ||
+        state.fogMode != CoinRenderFogMode::NONE || !state.depthTest || !state.depthWrite ||
+        state.cullMode != CoinRenderCullMode::NONE ||
+        (state.depthFunction != CoinRenderDepthFunction::LESS &&
+         state.depthFunction != CoinRenderDepthFunction::LEQUAL) ||
+        state.depthRange[0] != 0 || state.depthRange[1] != 1 || state.polygonOffsetEnabled ||
+        state.alphaTestFunction != CoinRenderAlphaTestFunction::NONE ||
+        !state.clipPlanesWorld.empty() || material.transparency != 0 || material.diffuse[3] != 1 ||
+        state.screenDoorTransparency != 0 || !lightingQualified)
+      return fail("BGFX bump requires opaque triangles with one point light or one to eight "
+                  "directional lights, default depth, no fog/clip/alpha composition");
+    const auto modelView=state.model*state.view;
+    for(int i=0;i<3;++i)if(modelView[i][3]!=0)return fail("BGFX bump needs affine model-view");
+    if(modelView[3][3]!=1)return fail("BGFX bump needs affine model-view");
+    if(depth!=-1 && depth!=int(state.depthFunction))return fail("BGFX bump needs one depth function per frame");
+    depth=int(state.depthFunction);
+    if(!std::isfinite(material.shininess) || material.shininess<0 || material.shininess>1)
+      return fail("Invalid BGFX bump shininess");
+    if (!drawBumpSlot) continue;
+    const auto inverseDirection=CoinRenderTransformCore::normalMatrix(modelView).transpose();
+    const auto & light=lights[0];
+    const SbVec3f translation(modelView[3][0],modelView[3][1],modelView[3][2]);
+    SbVec3f objectLight,objectEye;
+    inverseDirection.multDirMatrix(light.type==CoinRenderLightType::POINT ? SbVec3f(light.position)-translation : -SbVec3f(light.direction),objectLight);
+    inverseDirection.multDirMatrix(-translation,objectEye);
+    for(int c=0;c<3;++c)if(!std::isfinite(material.diffuse[c]*light.color[c]*light.intensity) ||
+        !std::isfinite(material.specular[c]))return fail("Invalid BGFX bump material/light product");
+    if (extended && lights[0].type != CoinRenderLightType::DIRECTIONAL)
+      return fail("Extended bump requires one to eight directional lights");
+    if (state.hasTexture && drawBumpSlot && !extended) {
+      const auto & image=frame.textures[state.textureImageSlot];
+      const auto & sampler=frame.samplers[state.samplerSlot];
+      if(state.textureCombines[0].instructions[0][0]!=0 ||
+         state.textureModel!=CoinRenderTextureModel::MODULATE || state.textureProjection!=CoinRenderTextureProjection::PROJECTIVE ||
+         (image.format!=CoinRenderTextureFormat::RGBA8_LINEAR && image.format!=CoinRenderTextureFormat::RGBA8_SRGB) ||
+         image.volumeDepth || image.cubeFaceSize || image.producerId || image.gpuToken ||
+         image.pixelsRgba.size()+image.mipmapsRgba.size()>48u*1024u*1024u ||
+         coin_render_texture_has_transparency(image) ||
+         (sampler.maxAnisotropy!=1 && sampler.maxAnisotropy!=16))
+        return fail("BGFX bump base needs opaque stored RGBA8 linear/sRGB projective MODULATE; anisotropy supports only 1 or native maximum 16");
+      for(size_t i=3;i<image.pixelsRgba.size();i+=4)if(image.pixelsRgba[i]!=255)
+        return fail("BGFX bump base alpha needs transparency composition");
+      for(size_t i=3;i<image.mipmapsRgba.size();i+=4)if(image.mipmapsRgba[i]!=255)
+        return fail("BGFX bump base mip alpha needs transparency composition");
+    }
+    const uint32_t slot=drawBumpSlot;
+    for(uint32_t j=0;j<draw.geometry.indexCount;++j) {
+      const auto & bump=stream[frame.indices[draw.geometry.firstIndex+j]];
+      if(slot!=bump.imageSlot)return fail("BGFX bump requires one consistent image slot per draw");
+      if(!slot)continue;
+      const auto & vertex=frame.vertices[frame.indices[draw.geometry.firstIndex+j]];
+      CoinRenderBumpTangents tangents;
+      std::copy_n(bump.tangentS,3,tangents.s);std::copy_n(bump.tangentT,3,tangents.t);
+      float lightVector[3],eyeVector[3];
+      if(!coin_render_legacy_bump_light_vector(tangents,vertex.normal,vertex.position,objectLight.getValue(),
+           light.type==CoinRenderLightType::POINT,lightVector) ||
+         !coin_render_legacy_bump_eye_vector(tangents,vertex.normal,vertex.position,objectEye.getValue(),eyeVector))
+        return fail("Invalid BGFX bump object light/eye vector");
+      if(std::abs(bump.coord[3])<std::numeric_limits<float>::min() ||
+         !std::isfinite(bump.coord[0]/bump.coord[3]) || !std::isfinite(bump.coord[1]/bump.coord[3]))
+        return fail("Invalid BGFX projected bump coordinate");
+      if(j%3 && std::signbit(bump.coord[3])!=std::signbit(stream[frame.indices[draw.geometry.firstIndex+j-j%3]].coord[3]))
+        return fail("BGFX bump Q changes sign within a primitive");
+    }
+  }
   return true;
 }
 
@@ -622,8 +807,35 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
                       const CoinRenderFramePreflight * preflight,
                       bool compactOpaqueVertices)
 {
+  return lowerImpl(frame, width, height, homogeneousDepth, output, diagnostic,
+      allowQualifiedShadows, batchOpaque, preflight, compactOpaqueVertices, ResourcePurpose::SUBMISSION);
+}
+
+bool
+CoinBgfxLowering::lowerPortablePreflight(const CoinRenderFramePlan & frame, int width, int height,
+                                       bool homogeneousDepth, CoinBgfxPlan & output,
+                                       std::string & diagnostic, bool allowQualifiedShadows)
+{
+  return lowerImpl(frame, width, height, homogeneousDepth, output, diagnostic,
+      allowQualifiedShadows, false, nullptr, false, ResourcePurpose::MODULE_PREFLIGHT);
+}
+
+bool
+CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int height,
+                          bool homogeneousDepth, CoinBgfxPlan & output,
+                          std::string & diagnostic, bool allowQualifiedShadows, bool batchOpaque,
+                          const CoinRenderFramePreflight * preflight, bool compactOpaqueVertices,
+                          ResourcePurpose purpose)
+{
   diagnostic.clear();
   CoinBgfxPlan candidate;
+  if (!validateBump(frame,diagnostic)) return false;
+  std::vector<CoinRenderBumpGpuVertex> bumpStream;
+  if (!coin_render_build_bump_gpu_stream(frame,bumpStream,diagnostic)) return false;
+  const bool bumpActive=!bumpStream.empty();
+  const bool extendedBump = bumpActive && coin_render_uses_extended_bump(frame);
+  batchOpaque=batchOpaque && !bumpActive;
+  compactOpaqueVertices=compactOpaqueVertices && !bumpActive && !frame.hasPortableShaderDraws();
   if (width <= 0 || height <= 0 || width > 16384 || height > 16384) {
     diagnostic = "BGFX evaluation requires a nonzero target up to 16384 pixels per side";
     return false;
@@ -633,14 +845,6 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     return false;
   }
   if ((!preflight || !preflight->compositionFor(frame)) && !frame.isValid(&diagnostic)) return false;
-  if (!frame.shadowGroups.empty()) {
-    for (const auto & draw : frame.draws) {
-      if (coin_render_alpha_test_active(frame.renderStates[draw.renderStateSlot].alphaTestFunction)) {
-        diagnostic = "BGFX alpha test with shadow maps requires an alpha-tested caster contract";
-        return false;
-      }
-    }
-  }
   std::vector<CoinRenderCompositionItem> order;
   if (!coin_render_composition_schedule(frame, order, diagnostic, preflight))
     return false;
@@ -723,8 +927,9 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       }
       const CoinRenderTextureImageSnapshot & texture = frame.textures[state.textureImageSlot];
       const uint64_t expected = CoinRenderTextureFormatCore::levelBytes(texture.width,texture.height,texture.format);
+      const bool declaredProducer = purpose == ResourcePurpose::MODULE_PREFLIGHT && texture.producerId != 0;
       if (texture.width == 0 || texture.height == 0 ||
-          (texture.gpuToken == 0 && texture.pixelsRgba.size() != expected) ||
+          (!declaredProducer && texture.gpuToken == 0 && texture.pixelsRgba.size() != expected) ||
           (texture.gpuToken != 0 && !texture.pixelsRgba.empty())) {
         diagnostic = "BGFX requires canonical RGBA8 pixels or a direct GPU texture token";
         return false;
@@ -734,7 +939,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       diagnostic = "BGFX evaluation requires nonempty indexed triangles";
       return false;
     }
-    bool batchable = batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
+    bool batchable = !state.portableShaderSlot && batchOpaque && frame.draws.size() >= 256 && frame.shadowGroups.empty() &&
       !item.blend && !item.screenDoor && draw.renderLayer == 0 && !draw.clearDepthBefore &&
       state.lightModel == CoinRenderLightModel::PHONG;
     float maxAlpha = 0.0f;
@@ -787,6 +992,7 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     CoinBgfxDraw lowered{};
     lowered.sourceDrawSlot = item.drawIndex;
     lowered.renderStateSlot = draw.renderStateSlot;
+    lowered.portableShaderSlot = state.portableShaderSlot;
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));
     lowered.firstVertex = static_cast<uint32_t>(candidate.vertexCount());
     lowered.vertexCount = 0;
@@ -794,19 +1000,10 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.indexCount = draw.geometry.indexCount;
     lowered.cullMode = state.cullMode;
     lowered.frontFace = state.frontFace;
-    // The current layer compositor publishes color over the opaque depth.
-    // Reject effective states this mechanism cannot preserve before submission.
-    if (item.blend && item.deferred &&
-        item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS &&
-        (item.depthWrite || !item.depthTest ||
-         (item.depthFunction != CoinRenderDepthFunction::LESS &&
-          item.depthFunction != CoinRenderDepthFunction::LEQUAL &&
-          item.depthFunction != CoinRenderDepthFunction::NEVER))) {
-      diagnostic = "BGFX sorted layers requires depth test LESS/LEQUAL/NEVER and no transparent depth writes";
-      return false;
-    }
     lowered.depthTest = item.depthTest;
     lowered.depthWrite = item.depthWrite;
+    lowered.colorWrite = state.colorWrite;
+    lowered.colorWriteMask = state.colorWriteMask;
     lowered.textureProjection = state.textureProjection;
     lowered.depthFunction = item.depthFunction;
     lowered.depthRange[0] = item.depthRange[0];
@@ -844,8 +1041,20 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     lowered.viewport[2] = viewport.width;
     lowered.viewport[3] = viewport.height;
     lowered.renderLayer = draw.renderLayer;
+    lowered.authoredScene = draw.authoredScene;
     lowered.clearDepthBefore = draw.clearDepthBefore;
     std::memcpy(lowered.textureCombines, state.textureCombines.data(), sizeof(lowered.textureCombines));
+    if (!draw.shadowLightSlot && bumpActive &&
+        bumpStream[frame.indices[draw.geometry.firstIndex]].imageSlot) {
+      lowered.bumpExtended = extendedBump;
+      lowered.bumpSlot=bumpStream[frame.indices[draw.geometry.firstIndex]].imageSlot;
+      lowered.bumpTextureSlot=uint32_t(frame.textures.size())+lowered.bumpSlot-1;
+      const auto & image=frame.bumpImages[lowered.bumpSlot-1];
+      lowered.bumpClampS=image.clampS; lowered.bumpClampT=image.clampT;
+      if(viewport.x!=0 || viewport.y!=0 || viewport.width!=width || viewport.height!=height) {
+        diagnostic="BGFX bump requires the full target viewport";return false;
+      }
+    }
     lowered.hasTexture = state.hasTexture;
     lowered.textureSlot = state.textureImageSlot;
     lowered.textureModel = state.textureModel;
@@ -855,7 +1064,15 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       const CoinRenderSamplerSnapshot & sampler = frame.samplers[state.samplerSlot];
       lowered.wrapS = sampler.wrapS;
       lowered.wrapT = sampler.wrapT;
+      lowered.wrapR = sampler.wrapR;
       lowered.filter = sampler.filter; lowered.maxAnisotropy = sampler.maxAnisotropy;
+      const auto & image = frame.textures[state.textureImageSlot];
+      lowered.cubeFaceSize = image.cubeFaceSize; lowered.cubeSourceComponents = image.cubeSourceComponents;
+      lowered.cubeMipmapped = image.cubeMipmapped;
+      lowered.volumeWidth = image.volumeWidth;
+      lowered.volumeHeight = image.volumeHeight;
+      lowered.volumeDepth = image.volumeDepth;
+      lowered.volumeMipmapped = image.volumeMipmapped;
     }
     for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
       const auto & source = state.extraTextures[unit - 1];
@@ -865,11 +1082,29 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       layer.slot = source.imageSlot; layer.model = source.model;
       std::memcpy(layer.blendColor, source.blendColor, sizeof(layer.blendColor));
       const auto & sampler = frame.samplers[source.samplerSlot];
-      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.filter = sampler.filter; layer.maxAnisotropy = sampler.maxAnisotropy;
+      layer.wrapS = sampler.wrapS; layer.wrapT = sampler.wrapT; layer.wrapR = sampler.wrapR;
+      layer.filter = sampler.filter; layer.maxAnisotropy = sampler.maxAnisotropy;
+      const auto & image = frame.textures[source.imageSlot];
+      layer.cubeFaceSize = image.cubeFaceSize; layer.cubeSourceComponents = image.cubeSourceComponents;
+      layer.cubeMipmapped = image.cubeMipmapped;
+      layer.volumeWidth = image.volumeWidth;
+      layer.volumeHeight = image.volumeHeight;
+      layer.volumeDepth = image.volumeDepth;
+      layer.volumeMipmapped = image.volumeMipmapped;
     }
     std::memcpy(lowered.fogColorMode, state.fogColor, sizeof(state.fogColor));
     lowered.fogColorMode[3] = static_cast<float>(state.fogMode);
     lowered.fogRange[0] = state.fogStart; lowered.fogRange[1] = state.fogEnd;
+    // Raster lighting uses the anchored eye position, whereas Coin bitmap fog
+    // uses the depth of the screen raster position. Keep both quantities.
+    if (state.rasterShadowAnchorValid && state.rasterPixels &&
+        draw.geometry.firstVertex < frame.vertices.size()) {
+      const float depth = frame.vertices[draw.geometry.firstVertex].fogEyeDepth;
+      if (depth >= 0.0f) {
+        lowered.fogRange[2] = 1.0f;
+        lowered.fogRange[3] = depth;
+      }
+    }
     const CoinRenderLightingSnapshot & lighting = frame.lightingStates[state.lightingSlot];
     lowered.ambientLight[0] = lighting.ambientColor[0];
     lowered.ambientLight[1] = lighting.ambientColor[1];
@@ -1000,7 +1235,11 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
       vertex.material[2] = source.screenSpaceW;
       SbVec3f viewPosition;
       modelView.multVecMatrix(SbVec3f(source.position), viewPosition);
-      if (source.fogEyeDepth >= 0) viewPosition[2] = -source.fogEyeDepth;
+      if (state.rasterShadowAnchorValid && state.cameraSlot < frame.cameras.size())
+        frame.cameras[state.cameraSlot].viewMatrix.multVecMatrix(
+          state.rasterShadowAnchorWorld, viewPosition);
+      if (source.fogEyeDepth >= 0 && !state.rasterShadowAnchorValid)
+        viewPosition[2] = -source.fogEyeDepth;
       viewPosition.getValue(vertex.viewPosition[0], vertex.viewPosition[1],
                             vertex.viewPosition[2]);
       if (batchable) std::memcpy(vertex.position, vertex.viewPosition, sizeof(vertex.position));
@@ -1012,19 +1251,21 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         std::memcpy(previousNormal, source.normal, sizeof(previousNormal));
         normalCached = true;
       }
-      std::memcpy(vertex.viewNormal, previousViewNormal, sizeof(vertex.viewNormal));
-      if (state.hasTexture) {
+      std::memcpy(vertex.viewNormal, previousViewNormal, sizeof(previousViewNormal));
+      if (state.hasTexture || state.portableShaderSlot) {
         SbVec4f transformed;
         state.textureMatrix.multVecMatrix(
           SbVec4f(source.texcoord[0], source.texcoord[1], source.textureR[0], source.textureQ[0]),
           transformed);
         vertex.texcoord[0] = transformed[0];
         vertex.texcoord[1] = transformed[1];
+        vertex.texcoord[2] = transformed[2];
         vertex.material[3] = transformed[3];
       }
       for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
         const auto & layer = state.extraTextures[unit - 1];
-        if (!layer.enabled) continue;
+        if (!layer.enabled && (!state.portableShaderSlot ||
+            !(frame.portableShaders[state.portableShaderSlot - 1].ir.coordinateMask & (1u << unit)))) continue;
         SbVec4f uv;
         layer.matrix.multVecMatrix(
           SbVec4f(source.extraTexcoords[unit - 1][0], source.extraTexcoords[unit - 1][1],
@@ -1032,6 +1273,60 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
         float * packed = &vertex.extraTexcoords[(unit - 1) / 2][((unit - 1) % 2) * 2];
         packed[0] = uv[0]; packed[1] = uv[1];
         vertex.extraTextureQ[(unit - 1) / 4][(unit - 1) % 4] = uv[3];
+        switch (unit) {
+        case 1: vertex.ambient[3] = uv[2]; break;
+        case 2: vertex.specular[3] = uv[2]; break;
+        case 3: vertex.emission[3] = uv[2]; break;
+        case 4: vertex.viewPosition[3] = uv[2]; break;
+        case 5: vertex.viewNormal[3] = uv[2]; break;
+        case 6: vertex.extraTextureQ[1][3] = uv[2]; break;
+        case 7: vertex.texcoord[3] = uv[2]; break;
+        }
+      }
+      if (!draw.shadowLightSlot && bumpActive && bumpStream[sourceIndex].imageSlot) {
+        const auto & bump=bumpStream[sourceIndex];
+        const auto & light=lighting.lights[0];
+        const auto & bumpMaterial=frame.materials[state.materialSlot];
+        const auto inverseDirection=normalMatrix.transpose();
+        SbVec3f objectLight,objectEye;
+        const SbVec3f translation(modelView[3][0],modelView[3][1],modelView[3][2]);
+        inverseDirection.multDirMatrix(light.type==CoinRenderLightType::POINT ? SbVec3f(light.position)-translation : -SbVec3f(light.direction),objectLight);
+        inverseDirection.multDirMatrix(-translation,objectEye);
+        CoinRenderBumpTangents tangents;
+        std::copy_n(bump.tangentS,3,tangents.s);std::copy_n(bump.tangentT,3,tangents.t);
+        if (!coin_render_legacy_bump_light_vector(
+                tangents, source.normal, source.position, objectLight.getValue(),
+                light.type == CoinRenderLightType::POINT,
+                lowered.bumpExtended ? vertex.ambient : vertex.viewPosition) ||
+            !coin_render_legacy_bump_eye_vector(
+                tangents, source.normal, source.position, objectEye.getValue(),
+                lowered.bumpExtended ? vertex.emission : vertex.viewNormal)) {
+          diagnostic="BGFX bump object light/eye exceeds finite precision";return false;
+        }
+        if (lowered.bumpExtended) {
+          std::copy_n(bump.coord, 3, vertex.viewNormal);
+          vertex.material[1] = bump.coord[3];
+        } else
+          std::copy_n(bump.coord, 4, vertex.extraTexcoords[0]);
+        for(int c=0;c<3;++c) {
+          vertex.color[c]=bumpMaterial.diffuse[c]*light.color[c]*light.intensity;
+          vertex.specular[c]=bumpMaterial.specular[c];
+          if(!std::isfinite(vertex.color[c]) || !std::isfinite(vertex.specular[c])) {
+            diagnostic="Invalid BGFX bump diffuse/specular product";return false;
+          }
+        }
+        vertex.color[3]=1;vertex.material[0]=bumpMaterial.shininess;
+        if (lighting.lights.size()>1) {
+          const auto &cornerMaterial=frame.materials[source.materialSlot];
+          std::copy_n(cornerMaterial.diffuse,3,vertex.color);
+          std::copy_n(cornerMaterial.specular,3,vertex.specular);
+          vertex.material[0]=cornerMaterial.shininess;
+          // The multi-DIR VS projects each normalized object-space direction
+          // onto this original S/T/N basis, before interpolation.
+          std::copy_n(bump.tangentS,3,vertex.ambient);
+          std::copy_n(bump.tangentT,3,vertex.emission);
+          std::copy_n(source.normal,3,vertex.viewPosition);
+        }
       }
       if (!replayRange) candidate.indices.push_back(emittedIndex);
       if (compact) {
@@ -1070,7 +1365,13 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     CoinBgfxTexture texture;
     texture.format = source.format; texture.width = source.width;
     texture.height = source.height;
-    if (source.producerId) {
+    texture.cubeFaceSize = source.cubeFaceSize; texture.cubeSourceComponents = source.cubeSourceComponents;
+      texture.cubeMipmapped = source.cubeMipmapped;
+      texture.volumeWidth = source.volumeWidth; texture.volumeHeight = source.volumeHeight;
+    texture.volumeDepth = source.volumeDepth; texture.volumeColumns = source.volumeColumns;
+    texture.volumeSourceComponents = source.volumeSourceComponents;
+    texture.volumeMipmapped = source.volumeMipmapped;
+    if (source.producerId && purpose == ResourcePurpose::SUBMISSION) {
       diagnostic = "Unresolved scene texture producer at BGFX execution boundary";
       return false;
     }
@@ -1078,6 +1379,15 @@ CoinBgfxLowering::lower(const CoinRenderFramePlan & frame, int width, int height
     texture.mipmapped = source.mipmapped;
     texture.pixelsRgba = source.pixelsRgba;
     texture.pixelsRgba.insert(texture.pixelsRgba.end(),source.mipmapsRgba.begin(),source.mipmapsRgba.end());
+    candidate.textures.push_back(std::move(texture));
+  }
+  if(bumpActive)for(const auto & image:frame.bumpImages) {
+    CoinBgfxTexture texture;texture.width=image.width;texture.height=image.height;
+    texture.pixelsRgba.resize(size_t(image.width)*image.height*4);
+    for(size_t i=0;i<image.rgb.size()/3;++i) {
+      std::copy_n(image.rgb.data()+i*3,3,texture.pixelsRgba.data()+i*4);
+      texture.pixelsRgba[i*4+3]=255;
+    }
     candidate.textures.push_back(std::move(texture));
   }
   for (int channel = 0; channel < 4; ++channel) {
@@ -1164,7 +1474,7 @@ CoinBgfxLowering::selectTransparencyStrategy(
   size_t transparentCount = 0;
   CoinBgfxTransparencyStrategy required = CoinBgfxTransparencyStrategy::OBJECT;
   for (const CoinBgfxDraw & draw : draws) {
-    if (!draw.blend || !draw.deferred || draw.additive || draw.renderLayer != 0) continue;
+    if (!draw.blend || !draw.deferred || draw.additive || !draw.isSceneLayer()) continue;
     ++transparentCount;
     if (draw.transparencyStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS) {
       required = CoinBgfxTransparencyStrategy::SORTED_LAYERS;
@@ -1263,7 +1573,7 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
       if (source.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || source.renderLayer != 0 ||
           source.clearDepthBefore || source.shadowLightSlot || source.lineStripId ||
           source.geometry.indexCount != draw.indexCount || state.lightModel != CoinRenderLightModel::PHONG ||
-          state.hasTexture || state.transparentMaterial || state.transparentTexture ||
+          !state.colorWrite || state.hasTexture || state.transparentMaterial || state.transparentTexture ||
           !state.clipPlanesWorld.empty() || state.fogMode != CoinRenderFogMode::NONE || state.shadowGroupSlot ||
           state.polygonOffsetEnabled || state.polygonLinePattern || state.linePattern != 0xffffu ||
           coin_render_alpha_test_active(state.alphaTestFunction) ||
@@ -1389,6 +1699,8 @@ CoinBgfxLowering::patchCamera(const CoinRenderFramePlan & frame, int width, int 
         state.frontFace != previous.frontFace ||
         state.depthTest != previous.depthTest ||
         state.depthWrite != previous.depthWrite ||
+        state.colorWrite != previous.colorWrite ||
+        state.colorWriteMask != previous.colorWriteMask ||
         state.textureProjection != previous.textureProjection ||
         state.depthFunction != previous.depthFunction ||
         state.depthRange[0] != previous.depthRange[0] ||

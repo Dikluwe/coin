@@ -312,6 +312,30 @@ SoRenderManager::Superimposition::setEnabled(SbBool yes)
   PRIVATE(this)->enabled = yes;
 }
 
+SbBool
+SoRenderManager::Superimposition::isEnabled(void) const
+{
+  return PRIVATE(this)->enabled;
+}
+
+SoNode *
+SoRenderManager::Superimposition::getSceneGraph(void) const
+{
+  return PRIVATE(this)->scene;
+}
+
+SbBool
+SoRenderManager::Superimposition::inheritsTransparencyType(void) const
+{
+  return PRIVATE(this)->transparencytype == INHERIT_TRANSPARENCY_TYPE;
+}
+
+SoGLRenderAction::TransparencyType
+SoRenderManager::Superimposition::getTransparencyType(void) const
+{
+  return static_cast<SoGLRenderAction::TransparencyType>(PRIVATE(this)->transparencytype);
+}
+
 void
 SoRenderManager::Superimposition::changeCB(void * data, SoSensor * COIN_UNUSED_ARG(sensor))
 {

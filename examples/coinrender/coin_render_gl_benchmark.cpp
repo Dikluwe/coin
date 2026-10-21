@@ -10,6 +10,7 @@
 #include <Inventor/SbRotation.h>
 #include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/rendering/CoinRenderSceneManager.h>
+#include <Inventor/rendering/CoinRenderOptions.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
@@ -207,6 +208,7 @@ int main(int argc, char ** argv) {
   bool dynamic = false;
   bool materialDynamic = false;
   std::string backend = "both";
+  std::string rasterizationPolicy = "native";
   std::string readback = "color";
   std::string transparency = "object";
   std::string rgbaOutput = "copy";
@@ -255,12 +257,13 @@ int main(int argc, char ** argv) {
     else if (std::strcmp(argv[i], "--dynamic") == 0) dynamic = true;
     else if (std::strcmp(argv[i], "--material-dynamic") == 0) materialDynamic = true;
     else if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc) backend = argv[++i];
+    else if (std::strcmp(argv[i], "--rasterization-policy") == 0 && i + 1 < argc) rasterizationPolicy = argv[++i];
     else if (std::strcmp(argv[i], "--readback") == 0 && i + 1 < argc) readback = argv[++i];
     else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc) transparency = argv[++i];
     else if (std::strcmp(argv[i], "--rgba-output") == 0 && i + 1 < argc) rgbaOutput = argv[++i];
     else {
       std::cerr << "Usage: coin_render_gl_benchmark [--frames 30] [--warmup 8] [--image-output frame.ppm]"
-                   " [--size 256] [--center-sample-scale 1|3] [--scene normalized.iv] [--dynamic|--material-dynamic]"
+                   " [--rasterization-policy native|canonical] [--size 256] [--center-sample-scale 1|3] [--scene normalized.iv] [--dynamic|--material-dynamic]"
                    " [--animation static|camera|transforms|materials|geometry] [--animated-percent 1..100]"
                    " [--animation-step 1] [--samples-output samples.csv]"
                    " [--capture-frames 0,60,120] [--capture-prefix path]"
@@ -314,6 +317,11 @@ int main(int argc, char ** argv) {
 #else
   setenv("COIN_RENDER_TRANSPARENCY", transparency.c_str(), 1);
 #endif
+  if ((rasterizationPolicy != "native" && rasterizationPolicy != "canonical") ||
+      (backend == "gl" && rasterizationPolicy != "native")) {
+    std::cerr << "Invalid rasterization policy for backend\n"; return 2;
+  }
+  std::cout << "rasterization_policy=" << rasterizationPolicy << '\n';
   const auto initBegin = Clock::now();
   SoDB::init();
   CoinRenderAction::initClass();
@@ -410,8 +418,16 @@ int main(int argc, char ** argv) {
   const auto setupBegin = Clock::now();
   CoinRenderSceneManager * wgpu = NULL;
   if (runWgpu) {
-    wgpu = new CoinRenderSceneManager(SbVec2i32(side * centerSampleScale,
-                                                side * centerSampleScale));
+    CoinRenderOptions targetOptions;
+    targetOptions.renderer = static_cast<CoinRenderRenderer>(caps.renderer);
+    targetOptions.transparency = transparency == "weighted_oit" ? COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT :
+      transparency == "sorted_layers" ? COIN_RENDER_TRANSPARENCY_PEELING : COIN_RENDER_TRANSPARENCY_OBJECT;
+    targetOptions.rasterizationPolicy = rasterizationPolicy == "canonical" ?
+      COIN_RENDER_RASTER_CANONICAL_8BIT : COIN_RENDER_RASTER_NATIVE;
+    const SbVec2i32 targetSize(side * centerSampleScale, side * centerSampleScale);
+    // Keep the legacy native constructor's environment contract unchanged.
+    wgpu = rasterizationPolicy == "native" ? new CoinRenderSceneManager(targetSize) :
+      new CoinRenderSceneManager(targetSize, targetOptions);
     wgpu->setSceneGraph(root);
     wgpu->setBackgroundColor(SbColor4f(0.1f, 0.1f, blue, 1.0f));
     wgpu->setTransparencyType(transparency == "sorted_layers" ?

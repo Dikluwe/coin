@@ -649,7 +649,9 @@ SoIndexedFaceSet::GLRender(SoGLRenderAction * action)
                         (int)mbind,
                         (int)attribbind,
                         doTextures ? 1 : 0,
-                        doattribs ? 1 : 0);
+                        doattribs ? 1 : 0,
+                        convexcacheused && SoDrawStyleElement::get(state) == SoDrawStyleElement::LINES
+                            ? PRIVATE(this)->convexCache->getEdgeFlags() : NULL);
   }
   // Mesa 25.2.8 on Renoir can omit a boundary introduced by a user clip plane
   // in polygon-line and polygon-point modes. Keep the native contour and add

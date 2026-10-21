@@ -169,6 +169,15 @@ public:
                                const SoPrimitiveVertex * const v1,
                                const SoPrimitiveVertex * const v2,
                                const SoPrimitiveVertex * const v3);
+  void invokeTriangleCallbacks(const SoShape * const shape,
+                               const SoPrimitiveVertex * const v1,
+                               const SoPrimitiveVertex * const v2,
+                               const SoPrimitiveVertex * const v3,
+                               const int pointDetailIndices[3]);
+  // Valid only inside a triangle callback; -1 means the shape did not supply
+  // an indexed point detail for this corner/vertex.
+  int getCurrentTrianglePointDetailIndex(int corner) const;
+  int getCurrentTrianglePointDetailIndex(const SoPrimitiveVertex * vertex) const;
   void invokeLineSegmentCallbacks(const SoShape * const shape,
                                   const SoPrimitiveVertex * const v1,
                                   const SoPrimitiveVertex * const v2);

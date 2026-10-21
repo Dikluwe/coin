@@ -9,16 +9,25 @@ bool
 coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot &a,
                                      const CoinRenderRenderStateSnapshot &b)
 {
-  return a.clipPlanesWorld == b.clipPlanesWorld && a.model == b.model &&
+  return a.portableShaderSlot == b.portableShaderSlot && a.clipPlanesWorld == b.clipPlanesWorld && a.model == b.model &&
          a.materialSlot == b.materialSlot && a.lightingSlot == b.lightingSlot &&
          a.shadowGroupSlot == b.shadowGroupSlot && a.shadowStyle == b.shadowStyle &&
+         a.shadowMapSize == b.shadowMapSize &&
+         a.shadowMapCameraOverride == b.shadowMapCameraOverride &&
+         a.flatShadowPrimary == b.flatShadowPrimary &&
          a.transparentMaterial == b.transparentMaterial &&
          a.transparentTexture == b.transparentTexture && a.rasterPixels == b.rasterPixels &&
          a.rasterTransparent == b.rasterTransparent && a.rasterForceBlend == b.rasterForceBlend &&
-         a.cameraSlot == b.cameraSlot && a.viewportSlot == b.viewportSlot &&
-         a.cullMode == b.cullMode && a.frontFace == b.frontFace && a.depthTest == b.depthTest &&
-         a.depthWrite == b.depthWrite && a.textureProjection == b.textureProjection &&
-         a.explicitDepthMask == b.explicitDepthMask &&
+         a.rasterShadowAnchorValid == b.rasterShadowAnchorValid &&
+         a.rasterShadowAnchorWorld == b.rasterShadowAnchorWorld &&
+         a.rasterShadowImagePhong == b.rasterShadowImagePhong &&
+         a.rasterTextureSourceSlot == b.rasterTextureSourceSlot &&
+         a.rasterTextureCoordinates == b.rasterTextureCoordinates &&
+         a.rasterTextureProvenance == b.rasterTextureProvenance && a.cameraSlot == b.cameraSlot &&
+         a.viewportSlot == b.viewportSlot && a.cullMode == b.cullMode &&
+         a.frontFace == b.frontFace && a.depthTest == b.depthTest && a.depthWrite == b.depthWrite &&
+         a.colorWrite == b.colorWrite && a.colorWriteMask == b.colorWriteMask &&
+         a.textureProjection == b.textureProjection && a.explicitDepthMask == b.explicitDepthMask &&
          a.screenDoorTransparency == b.screenDoorTransparency &&
          a.depthFunction == b.depthFunction && a.alphaTestFunction == b.alphaTestFunction &&
          a.alphaTestReference == b.alphaTestReference &&

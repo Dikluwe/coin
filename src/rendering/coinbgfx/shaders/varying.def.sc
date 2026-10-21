@@ -2,7 +2,7 @@ vec4 v_color0 : COLOR0 = vec4(1.0, 1.0, 1.0, 1.0);
 vec4 v_ambient : COLOR1;
 vec4 v_specular : COLOR2;
 vec4 v_emission : COLOR3;
-vec3 v_texcoord0 : TEXCOORD0;
+vec4 v_texcoord0 : TEXCOORD0;
 vec3 v_viewPosition : TEXCOORD1;
 vec3 v_viewNormal : TEXCOORD2;
 vec2 v_material : TEXCOORD3;
@@ -14,9 +14,9 @@ vec4 a_color0 : COLOR0;
 vec4 a_color1 : COLOR1;
 vec4 a_color2 : COLOR2;
 vec4 a_color3 : COLOR3;
-vec2 a_texcoord0 : TEXCOORD0;
-vec3 a_texcoord1 : TEXCOORD1;
-vec3 a_texcoord2 : TEXCOORD2;
+vec4 a_texcoord0 : TEXCOORD0;
+vec4 a_texcoord1 : TEXCOORD1;
+vec4 a_texcoord2 : TEXCOORD2;
 vec4 a_texcoord3 : TEXCOORD3;
 vec4 a_texcoord4 : TEXCOORD4;
 vec4 v_texcoords4 : TEXCOORD4;
@@ -41,3 +41,12 @@ vec4 i_data8 : TEXCOORD23;
 vec4 i_data9 : TEXCOORD22;
 
 vec2 v_coinClipDepth : TEXCOORD11;
+
+vec4 v_shadowUV0 : TEXCOORD9;
+vec4 v_shadowUV1 : TEXCOORD10;
+vec4 v_shadowUV2 : TEXCOORD12;
+vec4 v_shadowUV3 : TEXCOORD13;
+vec4 v_shadowUV4 : TEXCOORD14;
+vec4 v_shadowUV5 : TEXCOORD15;
+
+vec4 v_shadowR : TEXCOORD16;

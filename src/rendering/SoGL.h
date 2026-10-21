@@ -131,7 +131,8 @@ void sogl_render_faceset(const SoGLCoordinateElement * const coords,
                          const int mbind,
                          const int attribbind,
                          const int dotexture,
-                         const int doattribs);
+                         const int doattribs,
+                         const uint8_t *edgeflags = NULL);
 
 void
 sogl_render_tristrip(const SoGLCoordinateElement * const coords,

@@ -29,6 +29,7 @@ public:
 
   bool isGpuBackend() const override { return true; }
   bool supportsOffscreenShadows() const override { return true; }
+  bool supportsOpaqueBump() const override { return true; }
   CoinRenderBackendStatus getStatus() const override;
   virtual CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
   virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
@@ -43,10 +44,16 @@ public:
   CoinRenderSubmitResult preflightRtt(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
                                       const SbVec2i32&) const override;
   bool readbackLoad(uint64_t&, uint64_t&) const override;
+  // The second RTT inspection needs the consumer sample count and a live
+  // device before any STAGED producer can publish its result.
+  bool stagedRttRequiresPreparedParent() const override { return true; }
   CoinRenderDeviceDomain resourceDomain() const override;
   CoinRenderSubmitResult submitRtt(const CoinRenderFramePlan&, const SbVec2i32&, uint64_t,
                                    CoinRenderTargetP&, uint64_t&) override;
+  CoinRenderSubmitResult assembleCubeRtt(const std::array<uint64_t,6>&, uint32_t, bool,
+                                         CoinRenderTargetP&, uint64_t&) override;
   void finishRtt(const std::vector<uint64_t>&) override;
+  void retireRtt(const std::vector<uint64_t>&) override;
   virtual void poll() override;
   virtual const std::string & getLastError() const override;
 
@@ -54,9 +61,12 @@ public:
   static std::string getAdapterInfo();
 
 private:
+  CoinRenderSubmitResult preflightRttImpl(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
+                                         const SbVec2i32&, bool checkTokenCapacity) const;
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               CoinRenderReadbackTicket * outTicket,
                               const CoinRenderFrameReuseDecision & reuse);
+  uint32_t sampleCount = 1;
   CoinRenderBackendStatus status;
   std::string lastError;
   std::unique_ptr<CoinWgpuFfiFrame> ffiFrame;

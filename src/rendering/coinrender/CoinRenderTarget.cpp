@@ -36,7 +36,10 @@
 #include <mutex>
 #include <chrono>
 #include <cstdio>
+#include <cctype>
 #include "rendering/coinrender/CoinRenderResourceCore.h"
+#include "rendering/coinrender/CoinRenderLegacyColorCore.h"
+#include "glue/simage_wrapper.h"
 namespace {
 struct TargetRegistry {
   std::mutex mutex;
@@ -284,6 +287,16 @@ CoinRenderTargetP::readbackDepth(std::vector<float> & outDepth) const
   else outDepth.clear();
 }
 
+namespace {
+const char * canonicalCoverageDiagnostic(const CoinRenderFramePlan & frame) {
+  if (frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT &&
+      std::any_of(frame.draws.begin(), frame.draws.end(),
+        [](const CoinRenderDrawPacket & draw) { return draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST; }))
+    return "Canonical coverage requires triangle surfaces";
+  return nullptr;
+}
+}
+
 CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfile(const CoinRenderFramePlan& frame,
                                                                   const SbVec2i32& targetSize,
                                                                   bool deferUnresolvedAlpha) {
@@ -300,6 +313,9 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight,
     const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
     CoinRenderCompositionTransferTrace * transfers) {
+  // The same admission applies to root targets and direct RTT producers.
+  if (const char * diagnostic = canonicalCoverageDiagnostic(frame))
+    return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
   std::string planDiag;
   const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
     ? capturedPreflight->compositionFor(frame) : nullptr;
@@ -434,13 +450,36 @@ CoinRenderTargetP::detachedFromAction()
 bool
 CoinRenderTargetP::supportsOffscreenShadows(bool asynchronous) const
 {
-  if (this->kind != KIND_OFFSCREEN || this->directTextureOutput || asynchronous)
+  if ((this->kind != KIND_OFFSCREEN && this->kind != KIND_WINDOW) ||
+      this->directTextureOutput || asynchronous)
     return false;
   if (this->backend) return this->backend->supportsOffscreenShadows();
   // An unprepared target uses the compiled connector's implementation facts.
   // Constructing a connector does not create GPU resources or probe hardware.
   const auto candidate = createBackend();
   return candidate->supportsOffscreenShadows();
+}
+
+bool
+CoinRenderTargetP::supportsOpaqueBump(bool asynchronous) const
+{
+  if ((this->kind != KIND_OFFSCREEN && this->kind != KIND_WINDOW) ||
+      this->directTextureOutput || asynchronous)
+    return false;
+  if (this->backend) return this->backend->supportsOpaqueBump();
+  const auto candidate = createBackend();
+  return candidate->supportsOpaqueBump();
+}
+
+bool
+CoinRenderTargetP::supportsPortableShaderModules() const
+{
+  if (this->backend) return this->backend->isGpuBackend();
+  // Lazy targets have no executor yet. Inspect the compiled connector without
+  // initializing it, matching the existing shadow/bump capability queries.
+  // Do not store it here: normal prepare must still initialize the real target.
+  const auto candidate = createBackend();
+  return candidate && candidate->isGpuBackend();
 }
 
 CoinRenderBackendStatus CoinRenderTargetP::prepareBackend() {
@@ -601,6 +640,25 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
+  if (frame.hasPortableShaderDraws() && !this->supportsPortableShaderModules())
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "Portable shader module execution is unavailable in this backend"};
+  if (this->options.sampleCount > 1) {
+#if !defined(HAVE_COIN_WGPU_RUST_BRIDGE) && !defined(HAVE_COIN_BGFX)
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "MSAA target requires the wgpu Rust bridge or BGFX in this profile"};
+#endif
+    if (this->kind != KIND_OFFSCREEN && this->kind != KIND_WINDOW)
+      return {CoinRenderBackendStatus::UNSUPPORTED,
+              "MSAA currently requires an offscreen or window target"};
+    if (outTicket)
+      return {CoinRenderBackendStatus::UNSUPPORTED,
+              "MSAA depth readback currently requires synchronous offscreen output"};
+  }
+  if (frame.rasterizationPolicy != this->options.rasterizationPolicy)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Frame rasterization policy differs from the immutable target policy"};
+  if (const char * diagnostic = canonicalCoverageDiagnostic(frame))
+    return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
   if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy ||
       !coin_render_valid_sampling(frame, this->lastError)) {
     if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy)
@@ -690,6 +748,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     this->status = CoinRenderTarget::TARGET_READY;
   }
 
+  // Check the executor actually prepared above as well as its earlier pure
+  // implementation fact. A CPU/recording executor must never ignore the AST.
+  if (frame.hasPortableShaderDraws() && (!this->backend || !this->backend->isGpuBackend()))
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "Prepared backend does not execute portable shader modules"};
+
   if (prepareCpuDepthBuffer(this) && this->kind == KIND_OFFSCREEN &&
       !this->directTextureOutput) {
     size_t pixelCount = static_cast<size_t>(this->size[0] * this->size[1]);
@@ -734,7 +798,12 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
       this->status = CoinRenderTarget::TARGET_SURFACE_LOST;
       return CoinRenderSubmitResult(CoinRenderBackendStatus::SURFACE_LOST, lastErr, res.submissionSerial);
     } else if (res.status == CoinRenderBackendStatus::OUT_OF_MEMORY) {
-      this->status = CoinRenderTarget::TARGET_ERROR;
+      // The injected MSAA failure occurs after encoding but before queue
+      // submission. No device resource or published readback was changed, so
+      // the same target can accept a new frame once the fault is cleared.
+      // Keep genuine allocation failures on the existing terminal path.
+      this->status = lastErr == "Injected MSAA failure after encoding, before queue submission"
+        ? CoinRenderTarget::TARGET_READY : CoinRenderTarget::TARGET_ERROR;
       return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, lastErr, res.submissionSerial);
     } else if (res.status == CoinRenderBackendStatus::UNSUPPORTED) {
       // A rejected frame does not invalidate the prepared GPU target or the
@@ -810,6 +879,7 @@ CoinRenderTarget* CoinRenderTarget::createOffscreen(const SbVec2i32& size,
   CoinRenderTarget* target = new CoinRenderTarget();
   target->pimpl->options = options;
   target->pimpl->optionsDiagnostic.clear();
+  if (options.sampleCount > 1) target->pimpl->depthReadbackEnabled = false;
   target->pimpl->resize(size);
   return target;
 }
@@ -872,6 +942,84 @@ void
 CoinRenderTarget::readbackRGBA(std::vector<uint8_t> & outPixels) const
 {
   this->pimpl->readbackRGBA(outPixels);
+}
+
+SbBool
+CoinRenderTarget::readbackLegacyComponents(CoinRenderLegacyComponents components,
+                                           std::vector<uint8_t> & outPixels) const
+{
+  outPixels.clear();
+  const CoinRenderTargetP & target = this->pimpl.get();
+  if (target.kind != CoinRenderTargetP::KIND_OFFSCREEN ||
+      !target.synchronousReadbackValid || target.directTextureOutput ||
+      target.size[0] <= 0 || target.size[1] <= 0 ||
+      uint64_t(target.colorBuffer.size()) !=
+        uint64_t(target.size[0]) * uint64_t(target.size[1]) * 4u)
+    return FALSE;
+  return coin_render_convert_legacy_components(target.colorBuffer.data(),
+    static_cast<uint32_t>(target.size[0]), static_cast<uint32_t>(target.size[1]),
+    components, outPixels) ? TRUE : FALSE;
+}
+
+SbBool
+CoinRenderTarget::encodeLegacyRGB(CoinRenderLegacyComponents components,
+                                  std::vector<uint8_t> & outBytes) const
+{
+  outBytes.clear();
+  std::vector<uint8_t> pixels;
+  if (!this->readbackLegacyComponents(components, pixels)) return FALSE;
+  const SbVec2i32 & size = this->pimpl->size;
+  return coin_render_encode_legacy_rgb(pixels.data(),
+    static_cast<uint32_t>(size[0]), static_cast<uint32_t>(size[1]),
+    components, outBytes) ? TRUE : FALSE;
+}
+
+SbBool
+CoinRenderTarget::encodeLegacyPostScript(CoinRenderLegacyComponents components,
+                                         const SbVec2f & printSize, float dpi,
+                                         std::vector<uint8_t> & outBytes) const
+{
+  outBytes.clear();
+  std::vector<uint8_t> pixels;
+  if (!this->readbackLegacyComponents(components, pixels)) return FALSE;
+  const SbVec2i32 & size = this->pimpl->size;
+  return coin_render_encode_legacy_postscript(pixels.data(),
+    static_cast<uint32_t>(size[0]), static_cast<uint32_t>(size[1]),
+    components, printSize, dpi, outBytes) ? TRUE : FALSE;
+}
+
+SbBool
+CoinRenderTarget::writeLegacyImageFile(const SbString & filename,
+                                       const SbString & extension,
+                                       CoinRenderLegacyComponents components) const
+{
+  if (!filename.getLength() || !extension.getLength()) return FALSE;
+  std::string codecName = extension.getString();
+  std::transform(codecName.begin(), codecName.end(), codecName.begin(),
+    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  const bool tiffLA = components == CoinRenderLegacyComponents::LUMINANCE_TRANSPARENCY &&
+    (codecName == "tiff" || codecName == "tif");
+  const simage_wrapper_t * codec = simage_wrapper();
+  if (!codec->available || !codec->versionMatchesAtLeast(1, 1, 0) ||
+      !codec->simage_check_save_supported || !codec->simage_save_image ||
+      !codec->simage_check_save_supported(extension.getString())) return FALSE;
+  std::vector<uint8_t> pixels;
+  if (!this->readbackLegacyComponents(components, pixels)) return FALSE;
+  const SbVec2i32 & size = this->pimpl->size;
+  if (tiffLA) {
+    // simage's TIFF writer accepts two-channel LA, but treats its alpha bytes
+    // as grayscale pixels. Store equivalent RGBA instead to preserve both
+    // channels in a TIFF that its reader can round-trip.
+    std::vector<uint8_t> rgba(pixels.size() * 2);
+    for (size_t pixel = 0; pixel < pixels.size() / 2; ++pixel) {
+      rgba[pixel * 4] = rgba[pixel * 4 + 1] = rgba[pixel * 4 + 2] = pixels[pixel * 2];
+      rgba[pixel * 4 + 3] = pixels[pixel * 2 + 1];
+    }
+    return codec->simage_save_image(filename.getString(), rgba.data(),
+      size[0], size[1], 4, extension.getString()) ? TRUE : FALSE;
+  }
+  return codec->simage_save_image(filename.getString(), pixels.data(),
+    size[0], size[1], static_cast<int>(components), extension.getString()) ? TRUE : FALSE;
 }
 
 SbBool

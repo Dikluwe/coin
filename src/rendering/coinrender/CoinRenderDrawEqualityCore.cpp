@@ -12,13 +12,15 @@ coin_render_same_draw(const CoinRenderDrawPacket &a, const CoinRenderDrawPacket 
          a.geometry.vertexCount == b.geometry.vertexCount &&
          a.geometry.firstIndex == b.geometry.firstIndex &&
          a.geometry.indexCount == b.geometry.indexCount && a.renderStateSlot == b.renderStateSlot &&
-         a.shadowLightSlot == b.shadowLightSlot && a.frameNodeOrdinal == b.frameNodeOrdinal &&
+         a.shadowLightSlot == b.shadowLightSlot &&
+         a.rasterShadowCaster == b.rasterShadowCaster &&
+         a.frameNodeOrdinal == b.frameNodeOrdinal &&
          a.sourceNodeId == b.sourceNodeId && a.stableNodeId == b.stableNodeId &&
          a.drawOrdinal == b.drawOrdinal && a.sourceRevision == b.sourceRevision &&
          a.hasSortingCenter == b.hasSortingCenter &&
          std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) ==
              0 &&
-         a.renderLayer == b.renderLayer && a.clearDepthBefore == b.clearDepthBefore &&
+         a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene && a.clearDepthBefore == b.clearDepthBefore &&
          a.lineStripId == b.lineStripId;
 }
 

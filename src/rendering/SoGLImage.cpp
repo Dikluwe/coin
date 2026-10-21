@@ -642,6 +642,7 @@ public:
                    uint32_t &xsize, uint32_t &ysize, uint32_t &zsize);
   SbBool shouldCreateMipmap(void);
   void applyFilter(const SbBool ismipmap);
+  void applyFilter(const SbBool ismipmap, const float filterquality);
 
   void * pbuffer;
   const SbImage *image;
@@ -1242,41 +1243,55 @@ SoGLImage::getImage(void) const
 SoGLDisplayList *
 SoGLImage::getGLDisplayList(SoState *state)
 {
+  return this->getGLDisplayListForQuality(state, SoTextureQualityElement::get(state));
+}
+
+// Separator restoration can precede the quality element's own pop. Use the
+// quality preserved by the image element rather than that still-inner state.
+SoGLDisplayList *
+SoGLImage::getGLDisplayListForQuality(SoState * state, const float filterquality)
+{
   LOCK_GLIMAGE;
   SoGLDisplayList *dl = PRIVATE(this)->findDL(state);
-  UNLOCK_GLIMAGE;
 
   if (dl == NULL) {
     dl = PRIVATE(this)->createGLDisplayList(state);
-    if (dl) {
-      LOCK_GLIMAGE;
-      PRIVATE(this)->dlists.append(SoGLImageP::dldata(dl));
-      UNLOCK_GLIMAGE;
-    }
+    if (dl) PRIVATE(this)->dlists.append(SoGLImageP::dldata(dl));
   }
   if (dl && !dl->isMipMapTextureObject() && PRIVATE(this)->image) {
-    float quality = SoTextureQualityElement::get(state);
-    float oldquality = PRIVATE(this)->quality;
-    PRIVATE(this)->quality = quality;
+    // Keep the quality of the actual upload for resize policy/getQuality().
+    // A filter-only change must not replace it, while a mip-chain upload may
+    // rescale the image and must retain the quality used for that upload.
+    const float oldquality = PRIVATE(this)->quality;
+    SbBool uploadedMipmaps = FALSE;
+    PRIVATE(this)->quality = filterquality;
     if (PRIVATE(this)->shouldCreateMipmap()) {
-      LOCK_GLIMAGE;
-      // recreate DL to get a mipmapped image
-      int n = PRIVATE(this)->dlists.getLength();
+      // Recreate only when levels are missing, as before. A filter change
+      // between already available levels never reuploads the image.
+      const int n = PRIVATE(this)->dlists.getLength();
       for (int i = 0; i < n; i++) {
         if (PRIVATE(this)->dlists[i].dlist == dl) {
-          dl->unref(state); // unref old DL
+          dl->unref(state);
           dl = PRIVATE(this)->createGLDisplayList(state);
           PRIVATE(this)->dlists[i].dlist = dl;
+          uploadedMipmaps = dl != NULL;
           break;
         }
       }
-      UNLOCK_GLIMAGE;
     }
-    else PRIVATE(this)->quality = oldquality;
+    if (!uploadedMipmaps) PRIVATE(this)->quality = oldquality;
   }
+  if (dl && PRIVATE(this)->image && PRIVATE(this)->image->getSize()[2] > 0 &&
+      dl->getType() == SoGLDisplayList::TEXTURE_OBJECT) {
+    // Volume filter state belongs to this context's texture object, not to the
+    // last context or unit that used the image. Preserve the legacy 2D upload
+    // policy; only volumes refresh MIN/MAG from the current quality here.
+    dl->call(state);
+    PRIVATE(this)->applyFilter(dl->isMipMapTextureObject(), filterquality);
+  }
+  UNLOCK_GLIMAGE;
   return dl;
 }
-
 
 /*!
   Returns \e TRUE if this texture has some pixels with alpha value != 255
@@ -1791,9 +1806,10 @@ SoGLImageP::reallyCreateTexture(SoState *state,
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-  //FIXME: Check cc_glglue capability as well? (kintel 20011129)
-  if (SoMultiTextureEnabledElement::getMode(state) == 
-      SoMultiTextureEnabledElement::TEXTURE3D) { // 3D textures
+  // The upload target belongs to this image. The enabled texture mode can
+  // still describe a previous node while SoTexture2/3 installs a new image.
+  // createGLDisplayList() and applyFilter() choose the target from depth too.
+  if (d > 0) { // 3D textures
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S,
                     translate_wrap(state, this->wraps));
     glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T,
@@ -1997,6 +2013,12 @@ SoGLImageP::shouldCreateMipmap(void)
 void
 SoGLImageP::applyFilter(const SbBool ismipmap)
 {
+  this->applyFilter(ismipmap, this->quality);
+}
+
+void
+SoGLImageP::applyFilter(const SbBool ismipmap, const float filterquality)
+{
   GLenum target;
 
   // Casting away const
@@ -2008,15 +2030,15 @@ SoGLImageP::applyFilter(const SbBool ismipmap)
       GL_TEXTURE_RECTANGLE_ARB : GL_TEXTURE_2D;
   }
   if (this->flags & SoGLImage::USE_QUALITY_VALUE) {
-    if (this->quality < COIN_TEX2_LINEAR_LIMIT) {
+    if (filterquality < COIN_TEX2_LINEAR_LIMIT) {
       glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
       glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     }
-    else if ((this->quality < COIN_TEX2_MIPMAP_LIMIT) || !ismipmap) {
+    else if ((filterquality < COIN_TEX2_MIPMAP_LIMIT) || !ismipmap) {
       glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     }
-    else if (this->quality < COIN_TEX2_LINEAR_MIPMAP_LIMIT) {
+    else if (filterquality < COIN_TEX2_LINEAR_MIPMAP_LIMIT) {
       glTexParameteri(target, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
       glTexParameteri(target, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     }

@@ -1,5 +1,5 @@
 // Direct-to-window benchmark for Coin/GL, BGFX and wgpu.
-// This executable deliberately never reads pixels back to the CPU.
+// Optional capture modes validate the final image; presented capture runs after timing.
 
 #include <Inventor/SoDB.h>
 #include <Inventor/SbRotation.h>
@@ -44,6 +44,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <thread>
 #include <vector>
 
 namespace {
@@ -52,6 +53,7 @@ using Clock = std::chrono::steady_clock;
 struct Options {
   std::string backend;
   std::string samplingPolicy = "native";
+  std::string rasterizationPolicy = "native";
   std::string transparency;
   std::string scenePath;
   std::string animation;
@@ -64,6 +66,7 @@ struct Options {
   bool dynamic;
   bool materialDynamic;
   bool captureWindow;
+  bool capturePresented = false;
   bool animationSpecified;
   bool allowVsync = false;
   int animatedPercent;
@@ -102,11 +105,11 @@ void usage()
   std::cerr << "Usage: coin_render_window_benchmark"
                " --backend coin-gl|bgfx-opengl|bgfx-vulkan|wgpu-vulkan|wgpu-opengl"
                " --transparency object|weighted_oit|sorted_layers"
-               " [--sampling-policy native|portable] [--allow-vsync] [--scene normalized.iv]"
+               " [--rasterization-policy native|canonical] [--sampling-policy native|portable] [--allow-vsync] [--scene normalized.iv]"
                " [--width 960] [--height 540] [--warmup 60] [--frames 600]"
                " [--animation static|camera|transforms|materials|geometry]"
                " [--animated-percent 1..100] [--animation-step 1] [--samples-output frames.csv]"
-               " [--dynamic|--material-dynamic] [--capture-window] [--image-output frame.ppm]\n";
+               " [--dynamic|--material-dynamic] [--capture-window|--capture-presented] [--image-output frame.ppm]\n";
 }
 
 bool parseInteger(const char * text, int & value)
@@ -125,6 +128,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
   for (int i = 1; i < argc; ++i) {
     if (std::strcmp(argv[i], "--backend") == 0 && i + 1 < argc)
       options.backend = argv[++i];
+    else if (std::strcmp(argv[i], "--rasterization-policy") == 0 && i + 1 < argc)
+      options.rasterizationPolicy = argv[++i];
     else if (std::strcmp(argv[i], "--sampling-policy") == 0 && i + 1 < argc)
       options.samplingPolicy = argv[++i];
     else if (std::strcmp(argv[i], "--transparency") == 0 && i + 1 < argc)
@@ -159,6 +164,8 @@ bool parseOptions(int argc, char ** argv, Options & options)
       options.allowVsync = true;
     else if (std::strcmp(argv[i], "--capture-window") == 0)
       options.captureWindow = true;
+    else if (std::strcmp(argv[i], "--capture-presented") == 0)
+      options.capturePresented = true;
     else if (std::strcmp(argv[i], "--image-output") == 0 && i + 1 < argc)
       options.imageOutput = argv[++i];
     else return false;
@@ -170,11 +177,15 @@ bool parseOptions(int argc, char ** argv, Options & options)
     options.transparency == "weighted_oit" ||
     options.transparency == "sorted_layers";
   CoinRenderBenchmarkAnimation::Mode animationMode;
-  if (!backend || !transparency || (options.samplingPolicy != "native" && options.samplingPolicy != "portable") ||
+  if (!backend || !transparency ||
+      (options.rasterizationPolicy != "native" && options.rasterizationPolicy != "canonical") ||
+      (options.backend == "coin-gl" && options.rasterizationPolicy != "native") || (options.samplingPolicy != "native" && options.samplingPolicy != "portable") ||
       (options.backend == "coin-gl" && options.samplingPolicy != "native") ||
       !CoinRenderBenchmarkAnimation::parseMode(options.animation, animationMode) ||
       options.animatedPercent < 1 || options.animatedPercent > 100 || options.animationStep < 1 ||
-      (!options.imageOutput.empty() && !options.captureWindow) ||
+      (!options.imageOutput.empty() && !options.captureWindow && !options.capturePresented) ||
+      (options.captureWindow && options.capturePresented) ||
+      (options.capturePresented && options.backend == "coin-gl") ||
       (options.dynamic && options.materialDynamic) ||
       (options.animationSpecified && (options.dynamic || options.materialDynamic)) ||
       options.width < 1 || options.width > 8192 ||
@@ -544,7 +555,8 @@ void report(const Options & options, const std::vector<FrameSample> & samples,
     << " scene=" << (options.scenePath.empty() ? "builtin-overlap" : options.scenePath)
     << " framing=" << (options.animationSpecified && !options.scenePath.empty() ?
       "perspective-viewAll-1.15" : "legacy-orthographic")
-    << " readback=" << (options.captureWindow ? "rgba-on-request" : "none")
+    << " readback=" << (options.captureWindow ? "rgba-on-request" :
+      options.capturePresented ? "x11-presented-after-timing" : "none")
     << " adapter=\"" << adapter << "\""
     << " vendor_id=0x" << std::hex << vendor << " device_id=0x" << device << std::dec
     << " present_policy=" << (options.allowVsync ? "surface-default" : "off-requested")
@@ -578,6 +590,26 @@ bool writeCapture(const Options & options, const std::vector<uint8_t> & rgba, bo
     image.write(reinterpret_cast<const char *>(rgba.data()+offset),3);
   }
   return bool(image);
+}
+
+std::vector<uint8_t> capturePresented(Display * display, Window window, int width, int height) {
+  XImage * image = XGetImage(display, window, 0, 0, width, height, AllPlanes, ZPixmap);
+  if (!image) return {};
+  const auto channel = [](unsigned long pixel, unsigned long mask) {
+    if (!mask) return uint8_t(0);
+    while (!(mask & 1)) { mask >>= 1; pixel >>= 1; }
+    return uint8_t(((pixel & mask) * 255 + mask / 2) / mask);
+  };
+  std::vector<uint8_t> rgba(size_t(width) * height * 4, 255);
+  for (int y = 0; y < height; ++y) for (int x = 0; x < width; ++x) {
+    const unsigned long pixel = XGetPixel(image, x, y);
+    const size_t offset = (size_t(y) * width + x) * 4;
+    rgba[offset] = channel(pixel, image->red_mask);
+    rgba[offset + 1] = channel(pixel, image->green_mask);
+    rgba[offset + 2] = channel(pixel, image->blue_mask);
+  }
+  XDestroyImage(image);
+  return rgba;
 }
 
 int runCoinGl(const Options & options, SoSeparator * root,
@@ -669,6 +701,9 @@ int runNative(const Options & options, SoSeparator * root,
 {
   const bool wgpu = options.backend == "wgpu-vulkan" || options.backend == "wgpu-opengl";
   CoinRenderOptions targetOptions;
+  std::cout << "rasterization_policy=" << options.rasterizationPolicy << '\n';
+  targetOptions.rasterizationPolicy = options.rasterizationPolicy == "canonical" ?
+    COIN_RENDER_RASTER_CANONICAL_8BIT : COIN_RENDER_RASTER_NATIVE;
   targetOptions.renderer = options.backend.find("opengl") != std::string::npos ?
     COIN_RENDER_RENDERER_OPENGL : COIN_RENDER_RENDERER_VULKAN;
   targetOptions.transparency = options.transparency == "weighted_oit" ? COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT :
@@ -783,6 +818,32 @@ int runNative(const Options & options, SoSeparator * root,
         writeSamples(samplesOutput, samples);
         if (options.captureWindow) {
           if (!writeCapture(options, captured, false)) exitCode=1;
+        }
+        if (options.capturePresented) {
+          // A distinct clear color stamps a diagnostic render of the final scene.
+          // The extra render and X11 polling are outside the measured interval.
+          const uint8_t stamp[3] = {19, 167, 226};
+          manager.setBackgroundColor(SbColor4f(stamp[0]/255.0f,
+                                               stamp[1]/255.0f,
+                                               stamp[2]/255.0f, 1.0f));
+          if (manager.render() != CoinRenderAction::SUCCESS) {
+            std::cerr << "Presented diagnostic render failed: "
+                      << manager.getLastError().getString() << '\n';
+            exitCode = 1;
+          } else {
+            bool fresh = false;
+            for (int attempt = 0; attempt < 200; ++attempt) {
+              captured = capturePresented(display, window, options.width, options.height);
+              fresh = captured.size() == size_t(options.width) * options.height * 4;
+              if (fresh) for (int c = 0; c < 3; ++c)
+                fresh &= captured[c] == stamp[c];
+              if (fresh) break;
+              std::this_thread::sleep_for(std::chrono::milliseconds(2));
+            }
+            std::cout << "window_presented_capture fresh=" << int(fresh)
+                      << " diagnostic_after_timing=1 rgb_only=1\n";
+            if (!fresh || !writeCapture(options, captured, false)) exitCode = 1;
+          }
         }
       }
     }

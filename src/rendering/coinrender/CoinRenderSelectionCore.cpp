@@ -8,6 +8,15 @@
 bool
 coin_render_valid_options(const CoinRenderOptions &options, std::string &diagnostic)
 {
+  if (options.sampleCount != 1 && options.sampleCount != 2 && options.sampleCount != 4) {
+    diagnostic = "MSAA sample count must be 1, 2 or 4; no fallback was applied";
+    return false;
+  }
+  if (options.rasterizationPolicy != COIN_RENDER_RASTER_NATIVE &&
+      options.rasterizationPolicy != COIN_RENDER_RASTER_CANONICAL_8BIT) {
+    diagnostic = "Invalid rasterization policy; no fallback was applied";
+    return false;
+  }
   if (options.textureSamplingPolicy != COIN_RENDER_SAMPLING_NATIVE &&
       options.textureSamplingPolicy != COIN_RENDER_SAMPLING_PORTABLE) {
     diagnostic = "Invalid texture sampling policy; no fallback was applied";

@@ -36,6 +36,7 @@ struct CoinRenderCompositionItem {
 // This option revokes both submission-local loans; the literal owned paths
 // remain available for ablation and for every composition outside the profile.
 COIN_RENDER_DLL_API bool coin_render_composition_borrow_enabled();
+COIN_RENDER_DLL_API bool coin_render_scene_layers_valid(const CoinRenderFramePlan &, std::string &);
 
 // Logical payload transfers, not vector capacity or allocator traffic. Clock
 // reads and output are disabled unless phase tracing is requested.

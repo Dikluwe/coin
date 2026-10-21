@@ -13,6 +13,11 @@ enum CoinRenderStoredTextureColorSpace {
   COIN_RENDER_TEXTURE_SRGB = 1
 };
 
+enum CoinRenderRasterizationPolicy {
+  COIN_RENDER_RASTER_NATIVE = 0,
+  COIN_RENDER_RASTER_CANONICAL_8BIT = 1
+};
+
 /** Immutable target configuration. Explicit options override environment defaults.
  * UNKNOWN renderer means the compiled connector's default. Extensions require
  * explicit selection; COIN preserves the captured transparency modality. */
@@ -27,6 +32,16 @@ struct CoinRenderOptions {
   // original UV derivatives, POT active-mip centering, and two NPOT centers.
   // Active nearest/mip-linear samplers with anisotropy >1 are rejected.
   CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
+  // Explicit vertex snap to odd 1/256 window coordinates (1/128 pixel step).
+  // Half-step cells round toward +infinity; horizontal/vertical edges avoid
+  // pixel centers, where native GL and Vulkan fill conventions differ.
+  // Retains original Z/W for fragment clipping/depth. Native remains default.
+  CoinRenderRasterizationPolicy rasterizationPolicy = COIN_RENDER_RASTER_NATIVE;
+  // Native RGBA8 BGFX/wgpu profiles: 1 (default), 2 or 4 samples,
+  // with opaque or common object transparency. Offscreen,
+  // window and RTT output have explicit backend/profile limits; combinations
+  // without a supported resolve path report UNSUPPORTED.
+  uint32_t sampleCount = 1;
 };
 
 #endif

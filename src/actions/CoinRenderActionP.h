@@ -5,6 +5,7 @@
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+#include "rendering/coinrender/CoinRenderShaderModuleCore.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
 #include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderShadowCore.h"
@@ -14,6 +15,7 @@
 #include <string>
 #include <deque>
 #include <vector>
+#include <tuple>
 #include <memory>
 #include <cstdint>
 #include <cstddef>
@@ -24,6 +26,7 @@ class SoCamera;
 class SoShadowGroup;
 class SoSeparator;
 class SoCube;
+class CoinRenderRttCaptureMemo;
 class SoSFVec3f;
 class SoMaterial;
 
@@ -32,14 +35,17 @@ public:
   CoinRenderActionP(CoinRenderAction * master = nullptr);
   ~CoinRenderActionP();
 
+  std::unordered_map<SoShaderProgram *, std::shared_ptr<const CoinRenderShaderRegistration>> portableShaderModules;
   void initCallbacks();
   static void shapeContentMethod(SoAction *, SoNode *);
+  static SoCallbackAction::Response rttMutationPreCB(void *, SoCallbackAction *, const SoNode *);
   bool captureBoundingBox(SoCallbackAction *, SoNode *);
   void observeBoundingBox(SoCallbackAction *, SoNode *);
   static void screenContentMethod(SoAction *, SoNode *);
   static void markerContentMethod(SoAction *, SoNode *);
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
+  static SoCallbackAction::Response cameraStereoPostCB(void *, SoCallbackAction *, const SoNode *);
   void rememberFrameRoot(SoNode * root, bool qualifyCamera);
   bool prepareCameraOverlay(SoNode * root, CoinRenderCameraOverlayUndo & undo);
   void beginTranslationCapture(bool enabled);
@@ -91,14 +97,20 @@ public:
   static SoCallbackAction::Response annotationPostCB(void * userdata,
                                                      SoCallbackAction * action,
                                                      const SoNode * node);
+  static SoCallbackAction::Response managerLayerPreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response managerLayerPostCB(void *, SoCallbackAction *, const SoNode *);
 
   static SoCallbackAction::Response textureImagePreCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response rasterGeneratorPostCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response rasterStatePostCB(void *, SoCallbackAction *, const SoNode *);
+  static SoCallbackAction::Response textureVolumePreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureUnitsPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response shapePostCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response textureCombinePreCB(void *, SoCallbackAction *, const SoNode *);
   static void alphaTestMethod(SoAction *, SoNode *);
   static SoCallbackAction::Response unsupportedEffectPreCB(void *, SoCallbackAction *, const SoNode *);
 
+  static SoCallbackAction::Response sceneCubeTexturePreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response sceneTexturePreCB(void * userdata,
                                                       SoCallbackAction * action,
                                                       const SoNode * node);
@@ -117,6 +129,9 @@ public:
   SbViewportRegion viewport;
   SbColor4f backgroundColor;
   CoinRenderAction::TransparencyType transparencyType;
+  CoinRenderAction::DrawMode drawMode = CoinRenderAction::DrawMode::SCENE;
+  SbColor4f overlayColor = SbColor4f(1.0f, 0.0f, 0.0f, 1.0f);
+  SbBool texturesEnabled = TRUE;
   CoinRenderTransparencyOptions transparencyOptions;
   CoinRenderOptions executionOptions;
   CoinRenderAction::Status lastStatus;
@@ -137,6 +152,7 @@ public:
   };
   std::vector<ShadowSceneCapture> shadowSceneCaptures;
   bool capturingShadowScene = false;
+  bool encounteredActiveBump = false;
   bool boundingBoxObservers = false;
   std::vector<int> shadowStyleBeforeGroups;
   std::vector<const SoShadowGroup *> activeShadowGroupNodes;
@@ -144,14 +160,19 @@ public:
   std::deque<std::vector<uint8_t> > sceneTexturePixels;
   // Shared logical graph, containing no backend handles or resources.
   std::shared_ptr<CoinRenderRttPlan> sceneTexturePlan;
+  std::shared_ptr<CoinRenderRttCaptureMemo> sceneTextureCaptureMemo;
   struct DelayedAnnotation {
     SoPath * path;
     int priority;
   };
   std::vector<DelayedAnnotation> delayedAnnotations;
   std::vector<DelayedAnnotation> delayedOverlays;
+  std::vector<std::tuple<const SoNode *, bool, int>> managerLayerBoundaries;
+  std::vector<uint32_t> managerCapturedLayers;
+  unsigned int managerHighlightDepth = 0;
   bool replayingAnnotations = false;
   bool planOnly = false;
+  bool sceneTextureBumpProducer = false;
   bool inheritedTransparencyOverride = false;
   bool hasLastValidPlan;
   mutable bool recordingLogValid;
@@ -161,6 +182,14 @@ public:
   uint64_t captureCallbackRevision = 0;
   SoNode * cachedRoot = NULL;
   SbUniqueId cachedRootId = 0;
+  struct CameraStereoState {
+    const SoCamera * camera;
+    int mode;
+    float adjustment;
+    float balance;
+  };
+  std::vector<CameraStereoState> capturedStereoStates;
+  std::vector<CameraStereoState> frameStereoStates;
   SoNodeSensor cameraSensor;
   SoCamera * candidateCamera = NULL;
   SoCamera * cachedCamera = NULL;

@@ -70,6 +70,11 @@ public:
 
     void render(SoGLRenderAction * action, SbBool clearcolorbuffer = FALSE);
     void setEnabled(SbBool yes);
+    SbBool isEnabled(void) const;
+    SoNode * getSceneGraph(void) const;
+    SbBool inheritsTransparencyType(void) const;
+    // Call only when inheritsTransparencyType() is FALSE.
+    SoGLRenderAction::TransparencyType getTransparencyType(void) const;
     int getStateFlags(void) const;
     void setTransparencyType(SoGLRenderAction::TransparencyType transparencytype);
 
@@ -129,6 +134,9 @@ public:
                                        Superimposition::ZBUFFERON  |
                                        Superimposition::CLEARZBUFFER);
   void removeSuperimposition(Superimposition * s);
+  SbBool hasEnabledSuperimpositions(void) const;
+  int getNumSuperimpositions(void) const;
+  Superimposition * getSuperimposition(int index) const;
 
   virtual void setSceneGraph(SoNode * const sceneroot);
   virtual SoNode * getSceneGraph(void) const;

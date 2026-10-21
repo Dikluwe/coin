@@ -29,5 +29,10 @@ public:
   COIN_RENDER_DLL_API static bool compress(CoinRenderTextureImageSnapshot &image);
 
   COIN_RENDER_DLL_API static bool generate(CoinRenderTextureImageSnapshot &image);
+  // Packs all complete 3D mip levels into one RGBA8 2D resource. The atlas
+  // contains no hardware mips; 3D filtering and LOD are evaluated explicitly.
+  COIN_RENDER_DLL_API static bool packVolumeAtlas(const std::vector<uint8_t> &rgba,
+      uint32_t width, uint32_t height, uint32_t depth, uint32_t sourceComponents,
+      bool mipmapped, CoinRenderTextureImageSnapshot &image);
 };
 #endif

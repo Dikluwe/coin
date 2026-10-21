@@ -3,6 +3,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderText2Capture.h"
+#include "rendering/coinrender/CoinRenderText2ShadowCapture.h"
 #include "fonts/CoinRenderGlyphBridge.h"
 
 #include <Inventor/C/base/string.h>
@@ -113,7 +114,7 @@ bool initializePass(CoinRenderText2RasterPass & pass, int width, int height,
 }
 
 bool captureImpl(const SoText2 & node, SoState * state, CoinRenderText2Raster & candidate,
-                 Status & status, std::string & diagnostic)
+                 Status & status, std::string & diagnostic, bool preserveForShadowMap)
 {
   if (!state) return fail(Status::INVALID_INPUT, "SoText2 capture requires Coin state", status, diagnostic);
   const int lines = node.string.getNum();
@@ -243,7 +244,8 @@ bool captureImpl(const SoText2 & node, SoState * state, CoinRenderText2Raster & 
   // Text2's raster helper first calls glRasterPos at nonnegative x/y. A right
   // or top raster origin beyond the viewport invalidates that raster position,
   // whereas negative x/y are shifted back with glBitmap(0,...).
-  if (candidate.anchor.depthCoin < -1.0f || candidate.anchor.depthCoin > 1.0f) return true;
+  if (!preserveForShadowMap &&
+      (candidate.anchor.depthCoin < -1.0f || candidate.anchor.depthCoin > 1.0f)) return true;
   if (candidate.anchor.pixelY < float(std::numeric_limits<int>::min()) ||
       double(candidate.anchor.pixelY) > double(std::numeric_limits<int>::max()))
     return fail(Status::UNSUPPORTED, "SoText2 projected anchor exceeds raster integer limits", status, diagnostic);
@@ -295,7 +297,8 @@ bool captureImpl(const SoText2 & node, SoState * state, CoinRenderText2Raster & 
         }
       }
       pass.image.contentDigest = CoinRenderImageCore::rgba8Digest(pass.image.pixelsRgba);
-      if (pass.pixelX <= float(viewport.width) && pass.pixelY <= float(viewport.height))
+      if (preserveForShadowMap ||
+          (pass.pixelX <= float(viewport.width) && pass.pixelY <= float(viewport.height)))
         candidate.passes.push_back(std::move(pass));
     } else {
       if (!hasGray) {
@@ -327,7 +330,8 @@ bool captureImpl(const SoText2 & node, SoState * state, CoinRenderText2Raster & 
     for (size_t pixel = 0; pixel < gray.coverageMask.size(); ++pixel)
       gray.coverageMask[pixel] = gray.image.pixelsRgba[pixel * 4 + 3] > 76 ? 1 : 0;
     gray.image.contentDigest = CoinRenderImageCore::rgba8Digest(gray.image.pixelsRgba);
-    if (gray.pixelX <= float(viewport.width) && gray.pixelY <= float(viewport.height))
+    if (preserveForShadowMap ||
+        (gray.pixelX <= float(viewport.width) && gray.pixelY <= float(viewport.height)))
       candidate.passes.push_back(std::move(gray)); // GL emits this after every mono glyph.
   }
   candidate.empty = candidate.passes.empty();
@@ -345,10 +349,29 @@ CoinRenderText2Capture::capture(const SoText2 & node, SoState * state,
   diagnostic.clear();
   try {
     CoinRenderText2Raster candidate;
-    if (!captureImpl(node, state, candidate, status, diagnostic)) return false;
+    if (!captureImpl(node, state, candidate, status, diagnostic, false)) return false;
     output = std::move(candidate);
     return true;
   } catch (const std::bad_alloc &) {
     return fail(Status::RESOURCE_ERROR, "SoText2 captured raster allocation failed", status, diagnostic);
+  }
+}
+
+bool
+coin_render_capture_text2_for_shadow(const SoText2 & node, SoState * state,
+                                     CoinRenderText2Raster & output,
+                                     CoinRenderText2Capture::Status & status,
+                                     std::string & diagnostic)
+{
+  status = CoinRenderText2Capture::Status::SUCCESS;
+  diagnostic.clear();
+  try {
+    CoinRenderText2Raster candidate;
+    if (!captureImpl(node, state, candidate, status, diagnostic, true)) return false;
+    output = std::move(candidate);
+    return true;
+  } catch (const std::bad_alloc &) {
+    return fail(CoinRenderText2Capture::Status::RESOURCE_ERROR,
+                "SoText2 shadow raster allocation failed", status, diagnostic);
   }
 }

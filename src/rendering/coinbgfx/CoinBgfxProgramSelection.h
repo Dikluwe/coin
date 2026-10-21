@@ -12,5 +12,11 @@ coin_bgfx_solid_program(const std::vector<CoinBgfxDraw> & draws,
                         bool hasShadows,
                         CoinBgfxTransparencyStrategy strategy);
 
+// Uses the shared surface shader with only base 2D sampling retained. The
+// remaining material, fragment and fixed-function operations stay intact.
+bool
+coin_bgfx_texture2d_program(const std::vector<CoinBgfxDraw> & draws,
+                            bool hasShadows,
+                            CoinBgfxTransparencyStrategy strategy);
 
 #endif

@@ -27,8 +27,12 @@ uint64_t modelMatrixKey(const SbMatrix & matrix)
 
 
 void CoinRenderPlanAssemblyCore::normalizeCamera(CoinRenderCameraSnapshot & camera) {
-  if (camera.isPerspective && camera.nearDistance <= 0) camera.nearDistance = 0.1f;
-  if (camera.farDistance <= camera.nearDistance) camera.farDistance = camera.nearDistance + 100.0f;
+  // Preserve non-finite source values for validation instead of repairing them.
+  if (camera.isPerspective && std::isfinite(camera.nearDistance) && camera.nearDistance <= 0)
+    camera.nearDistance = 0.1f;
+  if (std::isfinite(camera.nearDistance) && std::isfinite(camera.farDistance) &&
+      camera.farDistance <= camera.nearDistance)
+    camera.farDistance = camera.nearDistance + 100.0f;
 }
 void CoinRenderPlanAssemblyCore::transformLight(CoinRenderLightSourceSnapshot & light) {
   if (light.type != CoinRenderLightType::DIRECTIONAL) {
@@ -50,10 +54,12 @@ void CoinRenderPlanAssemblyCore::transformLight(CoinRenderLightSourceSnapshot & 
 }
 void CoinRenderPlanAssemblyCore::normalizeState(CoinRenderRenderStateSnapshot & state,
                                                 const CoinRenderCameraSnapshot & camera) {
-  state.screenDoorTransparency = std::max(0.0f, std::min(1.0f, state.screenDoorTransparency));
-  state.fogEnd = state.fogEnd > 0 ? state.fogEnd : camera.farDistance;
-  if (state.lineWidth <= 0) state.lineWidth = 1;
-  if (state.pointSize <= 0) state.pointSize = 1;
+  if (std::isfinite(state.screenDoorTransparency))
+    state.screenDoorTransparency = std::max(0.0f, std::min(1.0f, state.screenDoorTransparency));
+  if (std::isfinite(state.fogEnd) && state.fogEnd <= 0)
+    state.fogEnd = camera.farDistance;
+  if (std::isfinite(state.lineWidth) && state.lineWidth <= 0) state.lineWidth = 1;
+  if (std::isfinite(state.pointSize) && state.pointSize <= 0) state.pointSize = 1;
   state.linePattern &= 0xffffu;
   state.linePatternScaleFactor = std::max(1, state.linePatternScaleFactor);
 }
@@ -171,62 +177,62 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
   for (size_t candidate = 0; candidate < count; ++candidate) {
     const uint32_t i = candidate == 0 ? candidates->second.first : candidates->second.additional[candidate - 1];
     const auto & existing = plan.renderStates[i];
-    if (existing.clipPlanesWorld == rs.clipPlanesWorld &&
+    if (existing.portableShaderSlot == rs.portableShaderSlot &&
+        existing.clipPlanesWorld == rs.clipPlanesWorld &&
         existing.materialSlot == rs.materialSlot &&
-        existing.shadowGroupSlot == rs.shadowGroupSlot &&
-        existing.shadowStyle == rs.shadowStyle &&
+        existing.shadowGroupSlot == rs.shadowGroupSlot && existing.shadowStyle == rs.shadowStyle &&
+        existing.shadowMapSize == rs.shadowMapSize &&
+        existing.shadowMapCameraOverride == rs.shadowMapCameraOverride &&
+        existing.flatShadowPrimary == rs.flatShadowPrimary &&
         existing.transparentMaterial == rs.transparentMaterial &&
         existing.transparentTexture == rs.transparentTexture &&
         existing.rasterPixels == rs.rasterPixels &&
         existing.rasterTransparent == rs.rasterTransparent &&
         existing.rasterForceBlend == rs.rasterForceBlend &&
-        existing.lightingSlot == rs.lightingSlot &&
-        existing.lightModel == rs.lightModel &&
-        existing.transparencyType == rs.transparencyType &&
-        existing.cameraSlot == rs.cameraSlot &&
-        existing.viewportSlot == rs.viewportSlot &&
-        existing.cullMode == rs.cullMode &&
-        existing.frontFace == rs.frontFace &&
-        existing.depthTest == rs.depthTest &&
-        existing.depthWrite == rs.depthWrite &&
+        existing.rasterShadowAnchorValid == rs.rasterShadowAnchorValid &&
+        existing.rasterShadowAnchorWorld == rs.rasterShadowAnchorWorld &&
+        existing.rasterShadowImagePhong == rs.rasterShadowImagePhong &&
+        existing.rasterTextureSourceSlot == rs.rasterTextureSourceSlot &&
+        existing.rasterTextureCoordinates == rs.rasterTextureCoordinates &&
+        existing.rasterTextureProvenance == rs.rasterTextureProvenance &&
+        existing.lightingSlot == rs.lightingSlot && existing.lightModel == rs.lightModel &&
+        existing.transparencyType == rs.transparencyType && existing.cameraSlot == rs.cameraSlot &&
+        existing.viewportSlot == rs.viewportSlot && existing.cullMode == rs.cullMode &&
+        existing.frontFace == rs.frontFace && existing.depthTest == rs.depthTest &&
+        existing.depthWrite == rs.depthWrite && existing.colorWrite == rs.colorWrite &&
+        existing.colorWriteMask == rs.colorWriteMask &&
         existing.textureProjection == rs.textureProjection &&
         existing.depthFunction == rs.depthFunction &&
         existing.alphaTestFunction == rs.alphaTestFunction &&
         existing.alphaTestReference == rs.alphaTestReference &&
         existing.explicitDepthMask == rs.explicitDepthMask &&
         existing.screenDoorTransparency == rs.screenDoorTransparency &&
-        existing.depthRange[0] == rs.depthRange[0] &&
-        existing.depthRange[1] == rs.depthRange[1] &&
+        existing.depthRange[0] == rs.depthRange[0] && existing.depthRange[1] == rs.depthRange[1] &&
         existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
         existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
         existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
         existing.polygonOffsetSlopeBias == rs.polygonOffsetSlopeBias &&
         existing.polygonOffsetMaxDepth == rs.polygonOffsetMaxDepth &&
         existing.polygonOffsetPrimitiveStyle == rs.polygonOffsetPrimitiveStyle &&
-        existing.polygonOffsetStyles == rs.polygonOffsetStyles &&
-        existing.fogMode == rs.fogMode &&
-        existing.fogStart == rs.fogStart &&
-        existing.fogEnd == rs.fogEnd &&
+        existing.polygonOffsetStyles == rs.polygonOffsetStyles && existing.fogMode == rs.fogMode &&
+        existing.fogStart == rs.fogStart && existing.fogEnd == rs.fogEnd &&
         std::memcmp(existing.fogColor, rs.fogColor, sizeof(rs.fogColor)) == 0 &&
-        existing.lineWidth == rs.lineWidth &&
-        existing.pointSize == rs.pointSize &&
+        existing.lineWidth == rs.lineWidth && existing.pointSize == rs.pointSize &&
         coin_render_same_texture_units(existing.extraTextures, rs.extraTextures) &&
         std::memcmp(existing.textureCombines.data(), rs.textureCombines.data(),
-                    sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) == 0 &&
-        existing.hasTexture == rs.hasTexture &&
-        existing.linePattern == rs.linePattern &&
+                    sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) ==
+            0 &&
+        existing.hasTexture == rs.hasTexture && existing.linePattern == rs.linePattern &&
         existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
         existing.polygonLinePattern == rs.polygonLinePattern &&
         existing.preservePolygonEdgeDirection == rs.preservePolygonEdgeDirection &&
-        (!rs.hasTexture || (
-          existing.textureImageSlot == rs.textureImageSlot &&
-          existing.samplerSlot == rs.samplerSlot &&
-          existing.textureModel == rs.textureModel &&
+        (!rs.hasTexture ||
+         (existing.textureImageSlot == rs.textureImageSlot &&
+          existing.samplerSlot == rs.samplerSlot && existing.textureModel == rs.textureModel &&
           std::memcmp(existing.textureBlendColor, rs.textureBlendColor,
                       sizeof(rs.textureBlendColor)) == 0 &&
           existing.textureMatrix == rs.textureMatrix)) &&
-        existing.model == rs.model &&
-        existing.view == rs.view &&
+        existing.model == rs.model && existing.view == rs.view &&
         existing.projectionCoin == rs.projectionCoin) {
       rsSlot = static_cast<uint32_t>(i);
       rsFound = true;
@@ -246,6 +252,12 @@ uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRen
   for (size_t i = 0; i < plan.textures.size(); ++i) {
     const auto & existing = plan.textures[i];
     if (existing.format == image.format && existing.width == image.width && existing.height == image.height &&
+        existing.cubeFaceSize == image.cubeFaceSize &&
+        existing.cubeSourceComponents == image.cubeSourceComponents &&
+        existing.cubeMipmapped == image.cubeMipmapped && existing.volumeWidth == image.volumeWidth && existing.volumeHeight == image.volumeHeight &&
+        existing.volumeDepth == image.volumeDepth && existing.volumeColumns == image.volumeColumns &&
+        existing.volumeSourceComponents == image.volumeSourceComponents &&
+        existing.volumeMipmapped == image.volumeMipmapped &&
         existing.contentDigest == image.contentDigest && existing.producerId == image.producerId &&
         existing.sceneTransparencyFunction == image.sceneTransparencyFunction && existing.pixelsRgba == image.pixelsRgba && existing.mipmapped == image.mipmapped && existing.mipmapsRgba == image.mipmapsRgba)
       return static_cast<uint32_t>(i);
@@ -259,7 +271,7 @@ uint32_t CoinRenderPlanAssemblyCore::sampler(CoinRenderFramePlan & plan, const C
   for (size_t i = 0; i < plan.samplers.size(); ++i) {
     const auto & s = plan.samplers[i];
     if (s.wrapS == sampSnap.wrapS &&
-        s.wrapT == sampSnap.wrapT &&
+        s.wrapT == sampSnap.wrapT && s.wrapR == sampSnap.wrapR &&
         s.filter == sampSnap.filter && s.maxAnisotropy == sampSnap.maxAnisotropy) {
       sampSlot = static_cast<uint32_t>(i);
       break;

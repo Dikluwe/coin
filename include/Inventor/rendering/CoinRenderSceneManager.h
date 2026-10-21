@@ -8,6 +8,7 @@
 #include <Inventor/SbString.h>
 
 class SoNode;
+class SoCamera;
 class SbViewportRegion;
 class CoinRenderTarget;
 struct CoinRenderOptions;
@@ -42,8 +43,19 @@ public:
   void setBackgroundColor(const SbColor4f & color);
   void setTransparencyType(CoinRenderAction::TransparencyType type);
   CoinRenderAction::TransparencyType getTransparencyType() const;
+  void setDrawMode(CoinRenderAction::DrawMode mode);
+  CoinRenderAction::DrawMode getDrawMode() const;
+  void setOverlayColor(const SbColor4f & color);
+  const SbColor4f & getOverlayColor() const;
+  void setTexturesEnabled(SbBool enabled);
+  SbBool isTexturesEnabled() const;
+  void clearManagerLayerBoundaries();
+  void addManagerLayerBoundary(SoNode * separator, SbBool clearDepth,
+                               int transparencyType = -1);
   SbBool resize(const SbVec2i32 & framebufferSize);
   CoinRenderAction::Status render();
+  // Manager stereo: capture both eyes and submit one composed frame.
+  CoinRenderAction::Status renderAnaglyph(SoCamera * camera, float stereoOffset);
   CoinRenderAction::Status renderAsync(CoinRenderReadbackTicket & ticket);
   CoinRenderAction::Status getLastStatus() const;
   const SbString & getLastError() const;

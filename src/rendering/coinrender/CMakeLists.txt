@@ -6,11 +6,14 @@ set(COIN_RENDER_SOURCES
 	CoinRenderAlphaTestCapture.cpp
 	CoinRenderAlphaTestCore.cpp
 	CoinRenderBoundingBoxCore.cpp
+	CoinRenderBumpMapCore.cpp
 	CoinRenderClipCore.cpp
 	CoinRenderComposition.cpp
+	CoinRenderCubeTextureCore.cpp
 	CoinRenderDepthCore.cpp
 	CoinRenderDrawEqualityCore.cpp
 	CoinRenderFloatCore.cpp
+	CoinRenderLegacyColorCore.cpp
 	CoinRenderLightEqualityCore.cpp
 	CoinRenderLightingCore.cpp
 	CoinRenderLineStippleCore.cpp
@@ -23,6 +26,8 @@ set(COIN_RENDER_SOURCES
 	CoinRenderSamplingCore.cpp
 	CoinRenderScreenRasterCore.cpp
 	CoinRenderSelectionCore.cpp
+	CoinRenderShaderModuleCore.cpp
+	CoinRenderShaderModuleElement.cpp
 	CoinRenderShadowCore.cpp
 	CoinRenderStateCore.cpp
 	CoinRenderStrokeCore.cpp
@@ -56,11 +61,22 @@ set(COIN_RENDER_SOURCES
 )
 
 if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
-	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuShadowFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuBackend.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuRuntime.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuPortableCore.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuShadowFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuBackend.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuRuntime.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "DAWN" OR COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuNativeBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramCache.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramSelection.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxAction.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRuntime.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxShaderCompiler.cpp)
+	configure_file(${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxShaderCompilerConfig.h.in
+	  ${CMAKE_CURRENT_BINARY_DIR}/CoinBgfxShaderCompilerConfig.h @ONLY)
+	if(COIN_INSTALL_RENDER_EXPERIMENTAL)
+		install(DIRECTORY ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/shaders/
+		  DESTINATION ${CMAKE_INSTALL_DATADIR}/CoinRender/shaders COMPONENT runtime)
+		install(FILES ${COIN_BGFX_SHADER_INCLUDE_DIR}/bgfx_shader.sh
+		  DESTINATION ${CMAKE_INSTALL_DATADIR}/CoinRender/shaders/sdk COMPONENT runtime)
+		install(PROGRAMS ${COIN_BGFX_SHADERC_EXECUTABLE}
+		  DESTINATION ${CMAKE_INSTALL_LIBEXECDIR}/CoinRender RENAME shaderc COMPONENT runtime)
+	endif()
 	set(_coin_bgfx_shader_dir ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/shaders)
 	set(_coin_bgfx_generated_dir ${CMAKE_CURRENT_BINARY_DIR}/bgfx-generated)
 	file(MAKE_DIRECTORY ${_coin_bgfx_generated_dir})
@@ -68,6 +84,25 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	if(WIN32)
 		list(APPEND _coin_bgfx_renderers dx11)
 	endif()
+	foreach(_renderer ${_coin_bgfx_renderers})
+		set(_shader_platform linux)
+		if(_renderer STREQUAL "dx11")
+			set(_shader_profile s_5_0)
+			set(_shader_platform windows)
+		elseif(_renderer STREQUAL "spirv")
+			set(_shader_profile spirv)
+		else()
+			set(_shader_profile 430)
+		endif()
+		set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_cs_raster_image_${_renderer}.h)
+		add_custom_command(OUTPUT ${_shader_output}
+			COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
+				-f ${_coin_bgfx_shader_dir}/cs_raster_image.sc -o ${_shader_output}
+				--type compute --platform ${_shader_platform} --profile ${_shader_profile}
+				--bin2c coin_bgfx_cs_raster_image_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
+			DEPENDS ${_coin_bgfx_shader_dir}/cs_raster_image.sc ${_coin_bgfx_shader_dir}/coin_cube.sh VERBATIM)
+		list(APPEND COIN_RENDER_SOURCES ${_shader_output})
+	endforeach()
 	foreach(_stage vs fs)
 		if(_stage STREQUAL "vs")
 			set(_shader_type vertex)
@@ -94,8 +129,13 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					--bin2c coin_bgfx_${_stage}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_stage}_base_color.sc
+					${_coin_bgfx_shader_dir}/coin_peel_sampling.sh
+					${_coin_bgfx_shader_dir}/coin_sample_depth.sh
+					${_coin_bgfx_shader_dir}/fs_peel_next.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_coverage.sh
+					${_coin_bgfx_shader_dir}/coin_cube.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
@@ -105,7 +145,27 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	foreach(_shader solid_color peel_next composite weighted_oit weighted_composite depth_readback mip_area)
+	file(READ ${_coin_bgfx_shader_dir}/coin_msaa_resolve.sh COIN_BGFX_MSAA_BODY)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+		${_coin_bgfx_shader_dir}/coin_msaa_resolve.sh)
+	configure_file(${_coin_bgfx_shader_dir}/fs_msaa_resolve_glsl.sc.in
+		${_coin_bgfx_generated_dir}/fs_msaa_resolve_glsl.sc @ONLY)
+	unset(COIN_BGFX_MSAA_BODY)
+	file(READ ${_coin_bgfx_shader_dir}/coin_weighted_composite.sh COIN_BGFX_WEIGHTED_FORMULA)
+	file(READ ${_coin_bgfx_shader_dir}/coin_weighted_msaa.sh COIN_BGFX_WEIGHTED_MSAA)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+		${_coin_bgfx_shader_dir}/coin_weighted_composite.sh
+		${_coin_bgfx_shader_dir}/coin_weighted_msaa.sh)
+	configure_file(${_coin_bgfx_shader_dir}/fs_weighted_composite_msaa_glsl.sc.in
+		${_coin_bgfx_generated_dir}/fs_weighted_composite_msaa_glsl.sc @ONLY)
+	unset(COIN_BGFX_WEIGHTED_FORMULA)
+	unset(COIN_BGFX_WEIGHTED_MSAA)
+	file(READ ${_coin_bgfx_shader_dir}/coin_peel_msaa_composite.sh COIN_BGFX_PEEL_MSAA_COMPOSITE)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS
+		${_coin_bgfx_shader_dir}/coin_peel_msaa_composite.sh)
+	configure_file(${_coin_bgfx_shader_dir}/fs_peel_msaa_composite_glsl.sc.in
+		${_coin_bgfx_generated_dir}/fs_peel_msaa_composite_glsl.sc @ONLY)
+	foreach(_shader surface_native_depth surface_sample_depth solid_color texture2d texture2d_native_depth texture2d_sample_depth peel_next peel_next_msaa peel_msaa_composite composite composite_depth weighted_oit weighted_composite weighted_composite_msaa depth_readback mip_area msaa_resolve)
 		foreach(_renderer ${_coin_bgfx_renderers})
 			set(_shader_platform linux)
 			if(_renderer STREQUAL "dx11")
@@ -116,18 +176,59 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			else()
 				set(_shader_profile 330)
 			endif()
+			set(_shader_source ${_coin_bgfx_shader_dir}/fs_${_shader}.sc)
+			set(_shader_arguments)
+			set(_shader_dependencies)
+			if(_shader STREQUAL "msaa_resolve")
+				list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/coin_msaa_resolve.sh)
+				if(_renderer STREQUAL "glsl")
+					set(_shader_profile 430)
+					set(_shader_source ${_coin_bgfx_generated_dir}/fs_msaa_resolve_glsl.sc)
+					list(APPEND _shader_arguments --raw)
+					list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/fs_msaa_resolve_glsl.sc.in)
+				endif()
+			endif()
+			list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/coin_weighted_composite.sh)
+			if(_shader STREQUAL "weighted_composite_msaa")
+				list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/coin_weighted_msaa.sh)
+				if(_renderer STREQUAL "glsl")
+					set(_shader_profile 430)
+					set(_shader_source ${_coin_bgfx_generated_dir}/fs_weighted_composite_msaa_glsl.sc)
+					list(APPEND _shader_arguments --raw)
+					list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/fs_weighted_composite_msaa_glsl.sc.in)
+				endif()
+			endif()
+			if(_shader STREQUAL "peel_msaa_composite")
+				list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/coin_peel_msaa_composite.sh)
+				if(_renderer STREQUAL "glsl")
+					set(_shader_profile 430)
+					set(_shader_source ${_coin_bgfx_generated_dir}/fs_peel_msaa_composite_glsl.sc)
+					list(APPEND _shader_arguments --raw)
+					list(APPEND _shader_dependencies ${_coin_bgfx_shader_dir}/fs_peel_msaa_composite_glsl.sc.in)
+				endif()
+			endif()
+			if((_shader STREQUAL "peel_next_msaa" OR _shader STREQUAL "surface_sample_depth" OR _shader STREQUAL "texture2d_sample_depth") AND _renderer STREQUAL "glsl")
+				set(_shader_profile 430)
+			endif()
 			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_fs_${_shader}_${_renderer}.h)
 			add_custom_command(OUTPUT ${_shader_output}
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
-					-f ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+					-f ${_shader_source} ${_shader_arguments}
 					-o ${_shader_output}
 					--type fragment --platform ${_shader_platform} --profile ${_shader_profile}
 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
 					--bin2c coin_bgfx_fs_${_shader}_${_renderer}
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
-				DEPENDS ${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+				DEPENDS ${_shader_source} ${_shader_dependencies}
+					${_coin_bgfx_shader_dir}/fs_${_shader}.sc
+					${_coin_bgfx_shader_dir}/fs_base_color.sc
+					${_coin_bgfx_shader_dir}/coin_peel_sampling.sh
+					${_coin_bgfx_shader_dir}/coin_sample_depth.sh
+					${_coin_bgfx_shader_dir}/fs_peel_next.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_coverage.sh
+					${_coin_bgfx_shader_dir}/coin_cube.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
@@ -136,7 +237,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			list(APPEND COIN_RENDER_SOURCES ${_shader_output})
 		endforeach()
 	endforeach()
-	foreach(_shadow_shader vs_instanced_color fs_instanced_color vs_shadow_moments fs_shadow_moments vs_shadow_receiver fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_peel fs_shadow_oit)
+	foreach(_shadow_shader vs_bump_receiver fs_bump_receiver fs_bump_receiver_native_depth fs_bump_receiver_sample_depth vs_bump fs_bump fs_bump_native_depth fs_bump_sample_depth vs_instanced_color fs_instanced_color fs_instanced_native_depth fs_instanced_sample_depth vs_shadow_moments fs_shadow_moments vs_shadow_receiver vs_shadow_multitexture fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_multitexture fs_shadow_multitexture_native_depth fs_shadow_multitexture_sample_depth fs_shadow_multitexture_peel fs_shadow_multitexture_peel_msaa fs_shadow_multitexture_oit fs_shadow_multitexture_oit_sample_depth fs_shadow_native_depth fs_shadow_sample_depth fs_shadow_peel fs_shadow_peel_msaa fs_shadow_oit)
 		if(_shadow_shader MATCHES "^vs_")
 			set(_shadow_type vertex)
 		else()
@@ -152,6 +253,9 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			else()
 				set(_shader_profile 330)
 			endif()
+			if((_shadow_shader MATCHES "_msaa$" OR _shadow_shader MATCHES "sample_depth$") AND _renderer STREQUAL "glsl")
+				set(_shader_profile 430)
+			endif()
 			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_shadow_shader}_${_renderer}.h)
 			add_custom_command(OUTPUT ${_shader_output}
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
@@ -163,8 +267,17 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					-i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_shadow_shader}.sc
 					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
+					${_coin_bgfx_shader_dir}/fs_bump_receiver.sc
+					${_coin_bgfx_shader_dir}/fs_bump.sc
+					${_coin_bgfx_shader_dir}/fs_instanced_color.sc
+					${_coin_bgfx_shader_dir}/fs_base_color.sc
+					${_coin_bgfx_shader_dir}/coin_peel_sampling.sh
+					${_coin_bgfx_shader_dir}/coin_sample_depth.sh
+					${_coin_bgfx_shader_dir}/fs_peel_next.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh
 					${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_coverage.sh
+					${_coin_bgfx_shader_dir}/coin_cube.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh
 					${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh
@@ -175,7 +288,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	endforeach()
 	# Native and portable use separate fragment binaries. Native never declares
 	# the portable uniform or compiles reconstructed sampling.
-	foreach(_surface fs fs_peel_next fs_weighted_oit fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_peel fs_shadow_oit)
+	foreach(_surface fs_bump_receiver fs_bump_receiver_native_depth fs_bump_receiver_sample_depth fs fs_surface_native_depth fs_surface_sample_depth fs_texture2d fs_texture2d_native_depth fs_texture2d_sample_depth fs_peel_next fs_peel_next_msaa fs_weighted_oit fs_shadow_receiver fs_shadow_receiver4 fs_shadow_receiver8 fs_shadow_multitexture fs_shadow_multitexture_native_depth fs_shadow_multitexture_sample_depth fs_shadow_multitexture_peel fs_shadow_multitexture_peel_msaa fs_shadow_multitexture_oit fs_shadow_multitexture_oit_sample_depth fs_shadow_native_depth fs_shadow_sample_depth fs_shadow_peel fs_shadow_peel_msaa fs_shadow_oit)
 		if(_surface STREQUAL "fs")
 			set(_surface_file fs_base_color)
 		else()
@@ -191,6 +304,9 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 			else()
 				set(_shader_profile 330)
 			endif()
+			if((_surface MATCHES "_msaa$" OR _surface MATCHES "sample_depth$") AND _renderer STREQUAL "glsl")
+				set(_shader_profile 430)
+			endif()
 			set(_shader_output ${_coin_bgfx_generated_dir}/coin_bgfx_${_surface}_portable_${_renderer}.h)
 			add_custom_command(OUTPUT ${_shader_output}
 				COMMAND ${COIN_BGFX_SHADERC_EXECUTABLE}
@@ -200,8 +316,18 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 					--varyingdef ${_coin_bgfx_shader_dir}/varying.def.sc
 					--bin2c coin_bgfx_${_surface}_portable_${_renderer} -i ${COIN_BGFX_SHADER_INCLUDE_DIR}
 				DEPENDS ${_coin_bgfx_shader_dir}/${_surface_file}.sc
+					${_coin_bgfx_shader_dir}/fs_base_color.sc
 					${_coin_bgfx_shader_dir}/fs_shadow_receiver4.sc
+					${_coin_bgfx_shader_dir}/fs_bump_receiver.sc
+					${_coin_bgfx_shader_dir}/fs_bump.sc
+					${_coin_bgfx_shader_dir}/fs_instanced_color.sc
+					${_coin_bgfx_shader_dir}/fs_base_color.sc
+					${_coin_bgfx_shader_dir}/coin_peel_sampling.sh
+					${_coin_bgfx_shader_dir}/coin_sample_depth.sh
+					${_coin_bgfx_shader_dir}/fs_peel_next.sc
 					${_coin_bgfx_shader_dir}/coin_depth.sh ${_coin_bgfx_shader_dir}/coin_lighting.sh
+					${_coin_bgfx_shader_dir}/coin_coverage.sh
+					${_coin_bgfx_shader_dir}/coin_cube.sh
 					${_coin_bgfx_shader_dir}/coin_surface.sh ${_coin_bgfx_shader_dir}/coin_alpha.sh
 					${_coin_bgfx_shader_dir}/coin_weighted.sh ${_coin_bgfx_shader_dir}/coin_shadow_quality.sh
 					${_coin_bgfx_shader_dir}/varying.def.sc VERBATIM)
@@ -234,6 +360,7 @@ target_include_directories(CoinRender PUBLIC
 )
 
 target_include_directories(CoinRender PRIVATE
+	${CMAKE_CURRENT_BINARY_DIR}
 	${PROJECT_SOURCE_DIR}/src
 	${PROJECT_BINARY_DIR}/src
 	$<$<STREQUAL:${COIN_RENDER_BACKEND},BGFX>:${_coin_bgfx_generated_dir}>
@@ -281,6 +408,7 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderManagerAdapter.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderNativeSurface.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderOptions.h
+		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderShaderModule.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderSceneManager.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderTarget.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/SoWgpuCapabilities.h

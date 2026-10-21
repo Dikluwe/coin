@@ -79,6 +79,7 @@
 #include <Inventor/elements/SoGLCoordinateElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
+#include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoVertexAttributeBindingElement.h>
 #include <Inventor/errors/SoDebugError.h>
 #include <Inventor/bundles/SoMaterialBundle.h>
@@ -1072,6 +1073,12 @@ SoFaceSet::useConvexCache(SoAction * action)
 
   mb.sendFirst(); // make sure we have the correct material
 
+  // The convex cache maps OVERALL to NONE, so its FaceSet renderer does not
+  // send a normal. Set the authored overall normal explicitly instead of
+  // inheriting GL_CURRENT_NORMAL from an earlier shape or frame.
+  if (needNormals && nbind == SoConvexDataCache::NONE && normals)
+    glNormal3fv((const GLfloat *)normals);
+
   // the convex data cache will change PER_VERTEX binding
   // to PER_VERTEX_INDEXED. We must do so also.
   int realmbind = (int) mbind;
@@ -1111,7 +1118,9 @@ SoFaceSet::useConvexCache(SoAction * action)
                       realmbind,
                       attribbind,
                       doTextures ? 1 : 0,
-                      doattribs ? 1 : 0);
+                      doattribs ? 1 : 0,
+                      SoDrawStyleElement::get(state) == SoDrawStyleElement::LINES
+                          ? PRIVATE(this)->convexCache->getEdgeFlags() : NULL);
 
 
   if (nc) {

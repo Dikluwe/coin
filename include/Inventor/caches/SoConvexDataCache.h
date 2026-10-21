@@ -68,6 +68,9 @@ public:
 
   const int32_t *getCoordIndices(void) const;
   int getNumCoordIndices(void) const;
+  // One flag per convexified coord index: 1 for original contour edge,
+  // 0 for tessellation edge, 2 for the face separator.
+  const uint8_t *getEdgeFlags(void) const;
   const int32_t *getMaterialIndices(void) const;
   int getNumMaterialIndices(void) const;
   const int32_t *getNormalIndices(void) const;

@@ -224,11 +224,29 @@ coin_render_transparency_strategy(int32_t type,
 }
 
 bool
+coin_render_scene_layers_valid(const CoinRenderFramePlan & frame, std::string & diagnostic)
+{
+  const auto authored = std::find_if(frame.draws.begin(), frame.draws.end(),
+    [](const CoinRenderDrawPacket & draw) { return !draw.shadowLightSlot && draw.authoredScene; });
+  if (authored == frame.draws.end()) return true;
+  const uint32_t layer = authored->renderLayer;
+  for (const auto & draw : frame.draws) {
+    if (draw.shadowLightSlot) continue;
+    if (!layer || !draw.renderLayer || ((draw.renderLayer == layer) != draw.authoredScene)) {
+      diagnostic = "Inconsistent authored scene layer identity";
+      return false;
+    }
+  }
+  return true;
+}
+
+bool
 coin_render_composition_order(const CoinRenderFramePlan &frame,
                               std::vector<CoinRenderCompositionItem> &order,
                               std::string &diagnostic, bool deferUnresolvedAlpha,
                               bool *opaqueIdentity)
 {
+  if (!coin_render_scene_layers_valid(frame, diagnostic)) return false;
   CoinRenderPhaseTimer timer("composition_detail");
   if (opaqueIdentity)
     *opaqueIdentity = false;
@@ -360,9 +378,22 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
         materialAlpha = materialAlpha || cached != 0;
     }
 
+    if (rs.portableShaderSlot) {
+      if (rs.portableShaderSlot > frame.portableShaders.size()) {
+        diagnostic = "Invalid portable shader in composition order";
+        return false;
+      }
+      // The module replaces fixed texturing and owns output alpha. Its
+      // structural proof, never current parameter/image values, controls the
+      // conservative transparent schedule; explicit Coin transparency modes
+      // below keep their existing ownership.
+      materialAlpha = frame.portableShaders[rs.portableShaderSlot - 1].ir.alphaMayVary;
+      unresolvedAlpha = false;
+    }
+
     // Coin's traversal flag precedes shading, including an opaque REPLACE or
     // combine result that replaces packed primary alpha with one.
-    materialAlpha = materialAlpha || nativeMaterialAlpha;
+    materialAlpha = materialAlpha || (!rs.portableShaderSlot && nativeMaterialAlpha);
 
     CoinRenderCompositionItem item;
     item.drawIndex = i;
@@ -451,7 +482,7 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
       item.blend = true;
       item.additive = false;
     }
-    if (item.blend && item.deferred && !item.additive && draw.renderLayer == 0) {
+    if (item.blend && item.deferred && !item.additive && draw.isSceneLayer()) {
       const uint64_t required =
           item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS
               ? COIN_RENDER_MECHANISM_PEELING
@@ -471,8 +502,11 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
                                       : CoinRenderCompositionItem::OBJECT;
     }
     // Annotation paths execute immediately, including translucent depth writers.
-    item.deferred = item.deferred && draw.renderLayer == 0;
-    item.sortTriangles = item.sortTriangles && rs.polygonOffsetPrimitiveStyle == 1;
+    item.deferred = item.deferred && draw.isSceneLayer();
+    // The captured triangles of a bitmap are only pixel-run transport. Coin's
+    // sorted-object traversal sorts the raster node as one semantic object.
+    item.sortTriangles = item.sortTriangles && !rs.rasterPixels &&
+                         rs.polygonOffsetPrimitiveStyle == 1;
     item.depthTest = rs.depthTest;
     item.depthWrite = rs.depthWrite;
     item.depthFunction = rs.depthFunction;
@@ -511,7 +545,7 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
       return layerA < layerB;
     // Overlay layers follow immediate traversal order: their opaque depth
     // writers and translucent labels can depend on the exact submission order.
-    if (layerA != 0)
+    if (!frame.draws[a.drawIndex].isSceneLayer())
       return false;
     if (a.deferred != b.deferred)
       return !a.deferred;
@@ -542,6 +576,9 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
 uint32_t
 coin_render_screen_door_rank(uint32_t x, uint32_t y)
 {
+  // SoGLLazyElement packs the first pixel into the most significant bit.
+  // GL_UNPACK_LSB_FIRST defaults to false, so glPolygonStipple reads that
+  // same most-significant bit first: no horizontal byte reversal is needed.
   uint32_t rank = 0, weight = 256;
   for (int bit = 0; bit < 5; ++bit) {
     const uint32_t bx = x & 1, by = y & 1;
@@ -573,7 +610,7 @@ coin_render_composition_schedule(const CoinRenderFramePlan &frame,
       continue;
     }
     size_t end = begin + 1;
-    if (source.sourceNodeId && source.renderLayer == 0)
+    if (source.sourceNodeId && source.isSceneLayer())
       while (end < order.size()) {
         const auto &next = order[end];
         const auto &draw = frame.draws[next.drawIndex];

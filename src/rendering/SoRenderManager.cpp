@@ -572,6 +572,32 @@ SoRenderManager::removeSuperimposition(Superimposition * s)
   return;
 }
 
+SbBool
+SoRenderManager::hasEnabledSuperimpositions(void) const
+{
+  if (!PRIVATE(this)->superimpositions) return FALSE;
+  for (int i = 0; i < PRIVATE(this)->superimpositions->getLength(); ++i) {
+    const Superimposition * layer =
+      static_cast<const Superimposition *>((*PRIVATE(this)->superimpositions)[i]);
+    if (layer->isEnabled()) return TRUE;
+  }
+  return FALSE;
+}
+
+int
+SoRenderManager::getNumSuperimpositions(void) const
+{
+  return PRIVATE(this)->superimpositions
+    ? PRIVATE(this)->superimpositions->getLength() : 0;
+}
+
+SoRenderManager::Superimposition *
+SoRenderManager::getSuperimposition(int index) const
+{
+  if (index < 0 || index >= this->getNumSuperimpositions()) return NULL;
+  return static_cast<Superimposition *>((*PRIVATE(this)->superimpositions)[index]);
+}
+
 
 /*!
   Render the scene graph.

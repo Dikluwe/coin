@@ -10,6 +10,7 @@
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbViewVolume.h>
 #include <Inventor/nodes/SoSceneTexture2.h>
+#include <algorithm>
 #include <iterator>
 #include <string>
 #include <utility>
@@ -43,6 +44,35 @@ struct CoinRenderShadowPlan {
   std::vector<CoinRenderShadowPass> passes;
   uint64_t attachmentBytes = 0;
 };
+
+// Resolve the actual square target before traversal, so pixel viewports stay
+// pixels and normalized viewports are evaluated at the real map resolution.
+COIN_RENDER_DLL_API bool coin_render_shadow_map_size(float precision, uint32_t &size,
+                                                     std::string &diagnostic);
+// Projection maps to the full map; scissor is bottom-left map pixels. Original
+// camera XY clipping is retained by this viewport/map intersection.
+COIN_RENDER_DLL_API bool coin_render_shadow_caster_viewport(
+    const CoinRenderFramePlan &frame, const CoinRenderRenderStateSnapshot &state, uint32_t mapSize,
+    SbMatrix &transform, int32_t scissor[4], std::string &diagnostic);
+
+// Infra's packed moment receiver retains the original render targets and one
+// array copy. Charge its real padding/layers, including D32F source attachments,
+// against the existing per-apply shadow attachment budget before GPU work.
+inline bool coin_render_shadow_array_budget(const CoinRenderShadowPlan & plan,
+    uint32_t minimumLayers, std::string & diagnostic) {
+  if(plan.passes.empty())return true;
+  uint64_t extent=0,sourceBytes=0;
+  for(const auto &pass:plan.passes) {
+    extent=std::max(extent,uint64_t(pass.mapSize));
+    sourceBytes+=uint64_t(pass.mapSize)*pass.mapSize*20u;
+  }
+  const uint64_t arrayBytes=extent*extent*16u*std::max<uint64_t>(minimumLayers,plan.passes.size());
+  const uint64_t budget=128ull*1024*1024;
+  if(sourceBytes>budget || arrayBytes>budget-sourceBytes) {
+    diagnostic="Shadow source attachments and moment array exceed 128 MiB per apply";return false;
+  }
+  return true;
+}
 
 COIN_RENDER_DLL_API bool
 coin_render_shadow_finite(const SbVec3f & value);
@@ -105,6 +135,13 @@ coin_render_append_shadow_scene(CoinRenderFramePlan & frame,
 COIN_RENDER_DLL_API bool
 coin_render_plan_shadows(const CoinRenderFramePlan & frame,
                          CoinRenderShadowPlan & output, std::string & diagnostic);
+
+// Materialize bitmap coverage independently for each light camera. The
+// observer's screen-space quads are never used as shadow casters.
+COIN_RENDER_DLL_API bool
+coin_render_materialize_raster_casters(CoinRenderFramePlan & frame,
+                                      const CoinRenderShadowPlan & shadows,
+                                      std::string & diagnostic);
 
 // Qualified object-composition profile over captured Coin state. It checks the scene once,
 // then matches each ordinary light contribution to exactly one shadow pass.

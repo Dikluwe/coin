@@ -39,6 +39,7 @@
 #include <cstdint>
 #include <cstddef>
 #include <Inventor/SbVec2i32.h>
+#include <Inventor/SbVec2f.h>
 #include <Inventor/SbString.h>
 #include <Inventor/tools/SbPimplPtr.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
@@ -84,6 +85,14 @@ struct CoinRenderReadbackTicket {
   uint32_t depthRowPitch = 0;
   uint64_t colorBytes = 0;
   uint64_t depthBytes = 0;
+};
+
+/** Component layouts used by the legacy SoOffscreenRenderer::getBuffer(). */
+enum class CoinRenderLegacyComponents : uint8_t {
+  LUMINANCE = 1,
+  LUMINANCE_TRANSPARENCY = 2,
+  RGB = 3,
+  RGB_TRANSPARENCY = 4
 };
 
 /**
@@ -134,9 +143,17 @@ public:
   Status getStatus(void) const;
   const char * getLastError(void) const;
   const SbVec2i32 & getSize(void) const;
+  /**
+   * Reconfigure the target dimensions. For offscreen targets, a valid resize
+   * clears terminal submission errors and invalidates the synchronous readback
+   * and submission serial, even when the size is unchanged. Render again to
+   * publish a new image. Clearing the cause of an OUT_OF_MEMORY submission
+   * alone does not recover a target in TARGET_ERROR.
+   */
   SbBool resize(const SbVec2i32 & size);
   /**
-   * Request a depth readback on offscreen renders. Enabled by default.
+   * Request a depth readback on offscreen renders. Enabled by default for
+   * single-sample targets; multisample targets require an explicit opt-in.
    * Disabling it leaves depth testing intact, but readbackDepth() returns
    * an empty vector and async tickets omit depth. Changing the mode
    * invalidates synchronous readback until the next successful render.
@@ -151,6 +168,34 @@ public:
    */
   SbBool requestWindowReadbackRGBA(void);
   void readbackRGBA(std::vector<uint8_t> & outPixels) const;
+  /**
+   * Convert the last synchronous offscreen RGBA8 frame to the component
+   * layout and bottom-up row order of SoOffscreenRenderer::getBuffer().
+   * Luminance uses Coin's 0.30 R + 0.59 G + 0.11 B truncation rule.
+   * Returns FALSE and clears outPixels for an invalid layout, unavailable
+   * frame, window target or unsupported output policy.
+   */
+  SbBool readbackLegacyComponents(CoinRenderLegacyComponents components,
+                                  std::vector<uint8_t> & outPixels) const;
+  /** Encode the last offscreen frame as an uncompressed SGI RGB file.
+   * The requested layout selects one to four image channels. Returns FALSE
+   * and clears outBytes when dimensions exceed the format or pixels are absent.
+   */
+  SbBool encodeLegacyRGB(CoinRenderLegacyComponents components,
+                         std::vector<uint8_t> & outBytes) const;
+  /** Encode an EPS image with CoinGL's ASCII85 layout. The caller supplies
+   * page size in inches and pixels per inch explicitly for portability.
+   */
+  SbBool encodeLegacyPostScript(CoinRenderLegacyComponents components,
+                                const SbVec2f & printSize, float dpi,
+                                std::vector<uint8_t> & outBytes) const;
+  /** Save the last offscreen frame through Coin's optional simage codecs.
+   * TIFF stores LUMINANCE_TRANSPARENCY as equivalent RGBA because the simage
+   * TIFF writer does not preserve interleaved two-channel LA pixels.
+   */
+  SbBool writeLegacyImageFile(const SbString & filename,
+                              const SbString & extension,
+                              CoinRenderLegacyComponents components) const;
   /**
    * Read the center pixel of each odd-sized block from a CPU-readable
    * offscreen target. Render at size (logical width * scale, logical height *
@@ -184,6 +229,11 @@ public:
                                      std::vector<float> & outDepth,
                                      SbString * diagnostic = nullptr);
   static SbBool cancelReadback(const CoinRenderReadbackTicket & ticket);
+  /** Last successful submission, not a native window presentation fence.
+   * X11/compositor observation can still contain an earlier frame after this
+   * serial advances. Window RGBA readback, when supported and requested,
+   * captures the submitted render image rather than physical display timing.
+   */
   uint64_t getLastSubmissionSerial(void) const;
   SbBool getCacheTelemetry(CoinRenderCacheTelemetry & outTelemetry) const;
   void pollDevice(void);

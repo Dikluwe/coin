@@ -46,6 +46,7 @@ typedef const SbVec4f & SoTextureCoordinateFunctionCB(void * userdata,
 class SoMultiTextureCoordinateElementP;
 
 class COIN_DLL_API SoMultiTextureCoordinateElement : public SoElement {
+  friend class CoinRenderFramePlanBuilder;
   typedef SoElement inherited;
 
   SO_ELEMENT_HEADER(SoMultiTextureCoordinateElement);

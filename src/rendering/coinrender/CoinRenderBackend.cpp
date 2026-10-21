@@ -33,3 +33,8 @@ CoinRenderBackend::submitRtt(const CoinRenderFramePlan &, const SbVec2i32 &, uin
   return {CoinRenderBackendStatus::UNSUPPORTED,
           "Direct scene texture is not implemented; no fallback was applied"};
 }
+
+CoinRenderSubmitResult CoinRenderBackend::assembleCubeRtt(const std::array<uint64_t,6>&,
+    uint32_t,bool,CoinRenderTargetP&,uint64_t & token) {
+  token=0;return {CoinRenderBackendStatus::UNSUPPORTED,"Direct cube RTT assembly is not implemented"};
+}

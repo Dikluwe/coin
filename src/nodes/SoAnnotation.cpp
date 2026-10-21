@@ -55,14 +55,13 @@
     \endcode
 */
 
-// FIXME: consider adding a lazy GL depth buffer element. 200YMMDD pederb.
-
 #include <Inventor/nodes/SoAnnotation.h>
 #include <Inventor/elements/SoShapeStyleElement.h>
 
 #include <Inventor/elements/SoCacheElement.h>
+#include <Inventor/elements/SoGLDepthBufferElement.h>
 #include <Inventor/actions/SoGLRenderAction.h>
-#include <Inventor/system/gl.h>
+#include <Inventor/misc/SoState.h>
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -96,6 +95,7 @@ void
 SoAnnotation::initClass(void)
 {
   SO_NODE_INTERNAL_INIT_CLASS(SoAnnotation, SO_FROM_INVENTOR_1);
+  SO_ENABLE(SoGLRenderAction, SoGLDepthBufferElement);
 }
 
 // Doc in superclass.
@@ -123,10 +123,16 @@ SoAnnotation::GLRenderBelowPath(SoGLRenderAction * action)
   if (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::SHADOWMAP)
     return;
   if (action->isRenderingDelayedPaths()) {
-    SbBool zbenabled = glIsEnabled(GL_DEPTH_TEST);
-    if (zbenabled) glDisable(GL_DEPTH_TEST);
+    SoState * state = action->getState();
+    // Keep the annotation default in the element so explicit child depth
+    // settings work, and restore the caller's complete depth state on exit.
+    state->push();
+    SoDepthBufferElement::set(state, FALSE,
+                             SoDepthBufferElement::getWriteEnable(state),
+                             SoDepthBufferElement::getFunction(state),
+                             SoDepthBufferElement::getRange(state));
     inherited::GLRenderBelowPath(action);
-    if (zbenabled) glEnable(GL_DEPTH_TEST);
+    state->pop();
   }
   else {
     SoCacheElement::invalidate(action->getState());
@@ -141,10 +147,16 @@ SoAnnotation::GLRenderInPath(SoGLRenderAction * action)
   if (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::SHADOWMAP)
     return;
   if (action->isRenderingDelayedPaths()) {
-    SbBool zbenabled = glIsEnabled(GL_DEPTH_TEST);
-    if (zbenabled) glDisable(GL_DEPTH_TEST);
+    SoState * state = action->getState();
+    // Keep the annotation default in the element so explicit child depth
+    // settings work, and restore the caller's complete depth state on exit.
+    state->push();
+    SoDepthBufferElement::set(state, FALSE,
+                             SoDepthBufferElement::getWriteEnable(state),
+                             SoDepthBufferElement::getFunction(state),
+                             SoDepthBufferElement::getRange(state));
     inherited::GLRenderInPath(action);
-    if (zbenabled) glEnable(GL_DEPTH_TEST);
+    state->pop();
   }
   else {
     SoCacheElement::invalidate(action->getState());

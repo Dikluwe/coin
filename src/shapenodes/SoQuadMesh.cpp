@@ -184,6 +184,8 @@
 #include <Inventor/elements/SoGLCoordinateElement.h>
 #include <Inventor/elements/SoGLLazyElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
+#include <Inventor/elements/SoMultiTextureEnabledElement.h>
+#include <Inventor/elements/SoMultiTextureCoordinateElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
 #include <Inventor/elements/SoShapeHintsElement.h>
 #include <Inventor/errors/SoDebugError.h>
@@ -361,7 +363,8 @@ namespace { namespace SoGL { namespace QuadMesh {
   template < int NormalBinding,
              int MaterialBinding,
              int TexturingEnabled >
-  static void GLRender(const SoGLCoordinateElement * coords,
+  static void GLRender(SoState * state,
+                       const SoGLCoordinateElement * coords,
                        const SbVec3f *normals,
                        SoMaterialBundle * mb,
                        const SoTextureCoordinateBundle * tb,
@@ -633,9 +636,30 @@ namespace { namespace SoGL { namespace QuadMesh {
             assert(FALSE && "unimplemented");
           }
           if (TexturingEnabled == TRUE) {
-            // tb->send(?curridx?, cc, nc) was replaced by
-            // glTexCoord for center vertex
+            // The center is a new vertex in every active unit. Interpolate
+            // homogeneous coordinates before the fixed-function Q division.
             glTexCoord4fv((const GLfloat*)&tc);
+            int lastenabled = -1;
+            const SbBool * enabled =
+              SoMultiTextureEnabledElement::getEnabledUnits(state, lastenabled);
+            if (lastenabled > 0) {
+              const SoMultiTextureCoordinateElement * texcoords =
+                SoMultiTextureCoordinateElement::getInstance(state);
+              const cc_glglue * glue = sogl_glue_instance(state);
+              const int corneridx[4] = {curridx1-1, curridx2-1, curridx1, curridx2};
+              const float weights[4] = {w1, w2, w3, w4};
+              for (int unit = 1; unit <= lastenabled; ++unit) {
+                if (!enabled[unit]) continue;
+                SbVec4f centercoord(0, 0, 0, 0);
+                for (int k = 0; k < 4; ++k) {
+                  // get4() can reuse conversion scratch for 2D/3D input.
+                  const SbVec4f uv = texcoords->get4(unit, corneridx[k]);
+                  centercoord += uv * weights[k];
+                }
+                cc_glglue_glMultiTexCoord4fv(glue, GLenum(GL_TEXTURE0 + unit),
+                                               centercoord.getValue());
+              }
+            }
           }
           if (is3d) {
             glVertex3fv((const GLfloat*)&ccd3);
@@ -975,7 +999,8 @@ SoQuadMesh::GLRender(SoGLRenderAction * action)
     goto glrender_done;
   }
 
-  SOGL_QUADMESH_GLRENDER(nbind, mbind, doTextures, (coords,
+  SOGL_QUADMESH_GLRENDER(nbind, mbind, doTextures, (state,
+                                                    coords,
                                                     normals,
                                                     &mb,
                                                     &tb,

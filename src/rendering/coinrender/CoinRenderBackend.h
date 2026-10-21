@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_BACKEND_H
 #define COIN_RENDER_BACKEND_H
+#include <array>
 
 #include <Inventor/CoinRenderExport.h>
 
@@ -48,6 +49,7 @@ public:
   // Implementation fact, independent of runtime GPU availability. Core still
   // validates the captured shadow profile; Target checks the output policy.
   virtual bool supportsOffscreenShadows() const { return false; }
+  virtual bool supportsOpaqueBump() const { return false; }
   virtual CoinRenderBackendStatus getStatus() const = 0;
   virtual CoinRenderBackendStatus prepare(CoinRenderTargetP & target) = 0;
   virtual CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
@@ -75,6 +77,11 @@ public:
   virtual bool stagedRttRequiresPreparedParent() const { return false; }
   virtual void poll() = 0;
   virtual const std::string & getLastError() const = 0;
+  virtual CoinRenderSubmitResult assembleCubeRtt(const std::array<uint64_t,6>&, uint32_t,
+                                                bool, CoinRenderTargetP&, uint64_t&);
+  // Retire only these owned candidates after their last queued use. Distinct
+  // from finishRtt, which may also prune/recycle the backend's retained cache.
+  virtual void retireRtt(const std::vector<uint64_t>&) {}
 };
 
 #endif // !COIN_RENDER_BACKEND_H

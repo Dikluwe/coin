@@ -167,12 +167,75 @@ getOrAddVertex(std::map<VertexKey, uint32_t> & uniqueVertices,
 
 } // namespace
 
+bool
+CoinRenderIndexedGeometryCore::validateFaceNormals(
+  const CoinRenderDirectGeometryView & view, std::string & diagnostic)
+{
+  diagnostic.clear();
+  if (view.normals.empty() || view.positions.size == 0 || view.coordIndex.size < 3)
+    return true;
+  // SoIndexedShape treats an absent array or a negative first normal index
+  // as implicit indexing. Native PER_FACE_INDEXED then becomes PER_FACE.
+  const bool explicitIndices = !view.normalIndex.empty() && view.normalIndex[0] >= 0;
+  size_t start = 0, face = 0, occurrence = 0;
+  while (start < view.coordIndex.size) {
+    size_t end = start;
+    while (end < view.coordIndex.size && view.coordIndex[end] >= 0) ++end;
+    // Native primitive generation stops at the first incomplete face.
+    if (end - start < 3) break;
+    const auto check = [&](size_t implicit, size_t indexPosition, bool indexed) {
+      size_t normal = implicit;
+      if (indexed && explicitIndices) {
+        if (indexPosition >= view.normalIndex.size || view.normalIndex[indexPosition] < 0)
+          return false;
+        normal = static_cast<size_t>(view.normalIndex[indexPosition]);
+      }
+      return normal < view.normals.size;
+    };
+    bool valid = true;
+    switch (view.normalBinding) {
+    case SoNormalBindingElement::OVERALL:
+      break; // The nonempty array's first normal is the only consumed value.
+    case SoNormalBindingElement::PER_PART:
+    case SoNormalBindingElement::PER_FACE:
+      valid = check(face, face, false);
+      break;
+    case SoNormalBindingElement::PER_PART_INDEXED:
+    case SoNormalBindingElement::PER_FACE_INDEXED:
+      valid = check(face, face, true);
+      break;
+    case SoNormalBindingElement::PER_VERTEX:
+    case SoNormalBindingElement::PER_VERTEX_INDEXED:
+      for (size_t i = start; valid && i < end; ++i) {
+        const bool indexed = view.normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED;
+        valid = check(indexed ? static_cast<size_t>(view.coordIndex[i]) : occurrence,
+                      i, indexed);
+        ++occurrence;
+      }
+      break;
+    default:
+      diagnostic = "IndexedFaceSet has an invalid normal binding";
+      return false;
+    }
+    if (!valid) {
+      diagnostic = "IndexedFaceSet normal binding/index references outside the authored normal array";
+      return false;
+    }
+    ++face;
+    start = end + (end < view.coordIndex.size ? 1 : 0);
+  }
+  return true;
+}
+
 CoinRenderIndexedGeometryResult
 CoinRenderIndexedGeometryCore::buildFaces(
   const CoinRenderDirectGeometryView & inputView,
   const CoinRenderIndexedGeometryOptions & options)
 {
   CoinRenderDirectGeometryView view = inputView;
+  std::string normalDiagnostic;
+  if (!validateFaceNormals(view, normalDiagnostic))
+    return finish(CoinRenderFastPathResult::INVALID_SCENE, normalDiagnostic.c_str());
   if (view.positions.empty() || view.coordIndex.empty()) {
     return finish(CoinRenderFastPathResult::SUCCESS_PRUNE);
   }
@@ -416,6 +479,62 @@ CoinRenderIndexedGeometryCore::buildFaces(
   return output;
 }
 
+bool
+CoinRenderIndexedGeometryCore::validateLineNormals(
+  const CoinRenderDirectGeometryView & view, std::string & diagnostic)
+{
+  diagnostic.clear();
+  if (view.normals.empty() || view.positions.size == 0 || view.coordIndex.size < 2) return true;
+  const bool explicitIndices = !view.normalIndex.empty() && view.normalIndex[0] >= 0;
+  size_t start = 0, line = 0, segment = 0, occurrence = 0;
+  while (start + 1 < view.coordIndex.size) {
+    size_t end = start;
+    while (end < view.coordIndex.size && view.coordIndex[end] >= 0) ++end;
+    if (end == start) break; // No normal belongs to an empty polyline.
+    const auto check = [&](size_t implicit, size_t indexPosition, bool indexed) {
+      size_t normal = implicit;
+      if (indexed && explicitIndices) {
+        if (indexPosition >= view.normalIndex.size || view.normalIndex[indexPosition] < 0)
+          return false;
+        normal = static_cast<size_t>(view.normalIndex[indexPosition]);
+      }
+      return normal < view.normals.size;
+    };
+    bool valid = true;
+    switch (view.normalBinding) {
+    case SoNormalBindingElement::OVERALL:
+      break;
+    case SoNormalBindingElement::PER_FACE:
+    case SoNormalBindingElement::PER_FACE_INDEXED:
+      valid = check(line, line, view.normalBinding == SoNormalBindingElement::PER_FACE_INDEXED);
+      break;
+    case SoNormalBindingElement::PER_PART:
+    case SoNormalBindingElement::PER_PART_INDEXED:
+      // Native line PART is a segment; its index stream has no separators.
+      for (size_t i = start + 1; valid && i < end; ++i, ++segment)
+        valid = check(segment, segment, view.normalBinding == SoNormalBindingElement::PER_PART_INDEXED);
+      break;
+    case SoNormalBindingElement::PER_VERTEX:
+    case SoNormalBindingElement::PER_VERTEX_INDEXED:
+      for (size_t i = start; valid && i < end; ++i, ++occurrence) {
+        const bool indexed = view.normalBinding == SoNormalBindingElement::PER_VERTEX_INDEXED;
+        valid = check(indexed ? static_cast<size_t>(view.coordIndex[i]) : occurrence, i, indexed);
+      }
+      break;
+    default:
+      diagnostic = "IndexedLineSet has an invalid normal binding";
+      return false;
+    }
+    if (!valid) {
+      diagnostic = "IndexedLineSet normal binding/index references outside the authored normal array";
+      return false;
+    }
+    ++line;
+    start = end + (end < view.coordIndex.size ? 1 : 0);
+  }
+  return true;
+}
+
 CoinRenderIndexedGeometryResult
 CoinRenderIndexedGeometryCore::buildLines(
   const CoinRenderDirectGeometryView & view,
@@ -424,6 +543,9 @@ CoinRenderIndexedGeometryCore::buildLines(
   if (view.positions.empty() || view.coordIndex.empty()) {
     return finish(CoinRenderFastPathResult::SUCCESS_PRUNE);
   }
+  std::string normalDiagnostic;
+  if (!validateLineNormals(view, normalDiagnostic))
+    return finish(CoinRenderFastPathResult::INVALID_SCENE, normalDiagnostic.c_str());
   if (options.hasTexture) {
     return finish(CoinRenderFastPathResult::FALLBACK_CONTINUE,
       "Textured lines require callback UV capture");

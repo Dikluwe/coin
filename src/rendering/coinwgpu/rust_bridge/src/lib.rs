@@ -4,8 +4,10 @@
 #![allow(clippy::if_same_then_else)]
 #![allow(clippy::needless_range_loop)]
 #![allow(clippy::needless_lifetimes)]
+mod raster_image;
 mod texture_profile;
 mod texture_mips;
+mod surface_present;
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
@@ -25,19 +27,28 @@ mod composition;
 mod peeling;
 mod shadow;
 mod shadow_receiver;
+mod bump_receiver;
 mod weighted;
 mod uniform_arena;
 mod shader_profile;
+mod portable;
+pub use portable::{CoinWgpuPortableNode,CoinWgpuPortableModule,CoinWgpuPortableRange};
 mod depth_transfer;
 mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 51;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 63;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 456);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 512);
+    assert!(std::mem::size_of::<CoinWgpuPortableNode>() == 40);
+    assert!(std::mem::size_of::<CoinWgpuPortableModule>() == 56);
+    assert!(std::mem::size_of::<CoinWgpuPortableRange>() == 64);
+    assert!(std::mem::size_of::<CoinWgpuBumpVertex>() == 44);
+    assert!(std::mem::size_of::<CoinWgpuBumpImage>() == 32);
+    assert!(std::mem::offset_of!(CoinWgpuFrameView, bump_vertices) == 464);
     assert!(std::mem::size_of::<CoinWgpuInstance>() == 144);
     assert!(std::mem::size_of::<CoinWgpuInstanceRange>() == 16);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, instances) == 416);
@@ -45,7 +56,8 @@ const _: () = {
     assert!(std::mem::size_of::<CoinWgpuShadowPassView>() == 56);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, extra_shadow_passes) == 400);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_epsilon_second) == 376);
-    assert!(std::mem::size_of::<CoinWgpuShadowDraw>() == 144);
+    assert!(std::mem::size_of::<CoinWgpuShadowDraw>() == 160);
+    assert!(std::mem::offset_of!(CoinWgpuShadowDraw, viewport) == 144);
     assert!(std::mem::size_of::<CoinWgpuShadowReceiver>() == 144);
     assert!(std::mem::offset_of!(CoinWgpuShadowReceiver, max_shadow_distance) == 8);
     assert!(std::mem::offset_of!(CoinWgpuFrameView, shadow_receivers) == 216);
@@ -97,7 +109,9 @@ pub struct CoinWgpuSurfaceCreateInfo {
     pub width: u32,
     pub height: u32,
     pub renderer: u32,
+    pub sample_count: u32,
 }
+const _: () = assert!(std::mem::size_of::<CoinWgpuSurfaceCreateInfo>() == 56);
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, Pod, Zeroable)]
@@ -109,6 +123,26 @@ pub struct CoinWgpuVertex {
     pub screen_space_w: f32,
     pub fog_eye_depth_plus_one: f32,
     pub extra_texcoords: [[f32; 4]; 7],
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, Pod, Zeroable)]
+pub struct CoinWgpuBumpVertex {
+    pub coord: [f32; 4],
+    pub tangent_s: [f32; 3],
+    pub tangent_t: [f32; 3],
+    pub image_slot: u32,
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug)]
+pub struct CoinWgpuBumpImage {
+    pub width: u32,
+    pub height: u32,
+    pub clamp_s: u32,
+    pub clamp_t: u32,
+    pub rgb: *const u8,
+    pub rgb_len: u64,
 }
 
 #[repr(C)]
@@ -197,10 +231,8 @@ impl SamplingPolicy {
             _ => Err((CoinWgpuStatus::InvalidArgument, "Invalid texture sampling policy".into())) }
     }
 }
-const NATIVE_UNIFORM_BYTES: usize = std::mem::offset_of!(CoinWgpuUniforms, sampling_texture_sizes);
-fn uniform_binding_bytes(instanced: bool, policy: SamplingPolicy) -> usize {
-    if instanced || policy == SamplingPolicy::Native { NATIVE_UNIFORM_BYTES }
-    else { std::mem::size_of::<CoinWgpuUniforms>() }
+fn uniform_binding_bytes(_instanced: bool, _policy: SamplingPolicy) -> usize {
+    std::mem::size_of::<CoinWgpuUniforms>()
 }
 
 #[repr(C)]
@@ -271,6 +303,8 @@ pub struct CoinWgpuUniforms {
     pub shadow_falloff_fourth: [f32; 4],
     pub alpha_test: [f32; 4],
     // Private GPU block, never part of the transported C ABI. Actual bound extents.
+    pub raster_viewport: [f32; 4],
+    pub flat_shadow_primary: [u32; 4],
     pub sampling_texture_sizes: [[f32; 4]; 8],
 }
 
@@ -331,6 +365,11 @@ pub struct CoinWgpuRenderState {
     pub alpha_test_function: u32,
     pub alpha_test_reference: f32,
     pub texture_projection: u32,
+    pub color_write: u32,
+    pub flat_shadow_primary: u32,
+    pub raster_texture_source_slot: u32,
+    pub raster_texture_coordinates: [[f32; 4]; 8],
+    pub portable_shader_slot: u32,
 }
 
 fn valid_alpha_test(st: &CoinWgpuRenderState) -> bool {
@@ -350,16 +389,40 @@ fn valid_texture_program(p: &[[f32; 4]; 4]) -> bool {
 }
 
 fn valid_texture_payload(st: &CoinWgpuRenderState) -> bool {
-    st.texture_projection <= 1 && st.texture_combines.iter().all(valid_texture_program)
+    st.flat_shadow_primary <= 1 && st.texture_projection <= 1 && st.texture_combines.iter().all(valid_texture_program)
         && st.extra_textures.iter().all(|t| t.enabled <= 1 && (t.enabled == 0
             || (t.model <= 3 && t.matrix.iter().chain(t.blend_color.iter()).all(|v| v.is_finite()))))
 }
 
 // Direct FFI callers obey the same nonsingular primitive contract as the
 // common capture. Inactive units permit zeroed transport, including q=0.
-fn validate_texture_coordinates(st: &CoinWgpuRenderState, topology: u32,
-    vertices: &[CoinWgpuVertex], indices: &[u32]) -> Result<(), String> {
+fn cube_direction_primitive_valid(d:&[[f64;3]])->bool{
+    let cross=|a:[f64;3],b:[f64;3]|[a[1]*b[2]-a[2]*b[1],a[2]*b[0]-a[0]*b[2],a[0]*b[1]-a[1]*b[0]];
+    let dot=|a:[f64;3],b:[f64;3]|a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+    if d.len()<2{return true;}
+    let scale=d.iter().flatten().fold(0.0f64,|a,b|a.max(b.abs()));
+    let v:Vec<[f64;3]>=d.iter().map(|p|[p[0]/scale,p[1]/scale,p[2]/scale]).collect();
+    for i in 0..v.len(){for j in i+1..v.len(){if cross(v[i],v[j])==[0.0;3]&&dot(v[i],v[j])<=0.0{return false;}}}
+    if v.len()==3{
+        let ab=cross(v[0],v[1]);let bc=cross(v[1],v[2]);let ca=cross(v[2],v[0]);
+        let normal=if ab!=[0.0;3]{ab}else if bc!=[0.0;3]{bc}else{ca};
+        if normal!=[0.0;3]&&v.iter().all(|p|dot(normal,*p)==0.0){
+            let x=dot(ab,normal);let y=dot(bc,normal);let z=dot(ca,normal);
+            if (x>=0.0&&y>=0.0&&z>=0.0)||(x<=0.0&&y<=0.0&&z<=0.0){return false;}
+        }
+    }
+    true
+}
+// Retain the pre-cube private validator for callers without image metadata.
+#[allow(dead_code)]
+fn validate_texture_coordinates(st:&CoinWgpuRenderState,topology:u32,vertices:&[CoinWgpuVertex],indices:&[u32])->Result<(),String>{
+    validate_texture_coordinates_with_images(st,topology,vertices,indices,&[])
+}
+fn validate_texture_coordinates_with_images(st: &CoinWgpuRenderState, topology: u32,
+    vertices: &[CoinWgpuVertex], indices: &[u32], textures: &[CoinWgpuTexture]) -> Result<(), String> {
     if st.texture_projection > 1 { return Err("Invalid texture projection policy".into()); }
+    // The trusted module Core validates the consumed DAG, not fixed sampling.
+    if st.portable_shader_slot != 0 { return Ok(()); }
     if st.has_texture == 0 && st.extra_textures.iter().all(|t| t.enabled == 0) {
         return Ok(());
     }
@@ -373,7 +436,11 @@ fn validate_texture_coordinates(st: &CoinWgpuRenderState, topology: u32,
             if layer.enabled == 0 { continue; }
             &layer.matrix
         };
+        let slot=if unit==0{st.texture_slot}else{st.extra_textures[unit-1].texture_slot};
+        let cube=textures.get(slot as usize).is_some_and(|t|t.format==12);
+        let volume=textures.get(slot as usize).is_some_and(|t|t.format==11);
         for primitive in indices.chunks_exact(primitive_size) {
+            let mut cube_directions=Vec::new();
             let mut previous_negative = None;
             for index in primitive {
                 let vertex = vertices.get(*index as usize).ok_or_else(||
@@ -390,8 +457,16 @@ fn validate_texture_coordinates(st: &CoinWgpuRenderState, topology: u32,
                         + matrix[8 + row] * coordinate[2]
                         + matrix[12 + row] * coordinate[3];
                 }
+                if cube {
+                    if !transformed.iter().all(|v|v.is_finite()) || transformed[..3].iter().all(|v|*v==0.0){
+                        return Err("Invalid cube direction".into());
+                    }
+                    cube_directions.push([f64::from(transformed[0]),f64::from(transformed[1]),f64::from(transformed[2])]);
+                    continue;
+                }
                 if st.texture_projection == 1 {
-                    if !transformed[..2].iter().all(|v| v.is_finite()) {
+                    let axes=if volume {3} else {2};
+                    if !transformed[..axes].iter().all(|v| v.is_finite()) {
                         return Err("Non-finite transformed direct ST texture coordinate".into());
                     }
                     continue;
@@ -405,11 +480,13 @@ fn validate_texture_coordinates(st: &CoinWgpuRenderState, topology: u32,
                     return Err("Projective texture Q is zero or changes sign within a primitive".into());
                 }
                 if q.abs() < f32::MIN_POSITIVE || !(transformed[0] / q).is_finite()
-                    || !(transformed[1] / q).is_finite() {
+                    || !(transformed[1] / q).is_finite()
+                    || (volume && !(transformed[2] / q).is_finite()) {
                     return Err("Projective texture coordinate exceeds finite sampling precision".into());
                 }
                 previous_negative = Some(negative);
             }
+            if cube && !cube_direction_primitive_valid(&cube_directions){return Err("Cube primitive crosses a zero direction".into());}
         }
     }
     Ok(())
@@ -429,10 +506,13 @@ const _: () = {
     assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1096);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1768);
     assert!(std::mem::size_of::<CoinWgpuVertex>() == 164);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2292);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2436);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, raster_texture_source_slot) == 2300);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, raster_texture_coordinates) == 2304);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_function) == 2280);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_reference) == 2284);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_projection) == 2288);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, color_write) == 2292);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
     assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
@@ -482,6 +562,7 @@ pub struct CoinWgpuShadowDraw {
     pub reserved: u32,
     pub model_view: [f32; 16],
     pub model_view_projection: [f32; 16],
+    pub viewport: [i32; 4],
 }
 
 #[repr(C)]
@@ -606,6 +687,1956 @@ pub struct CoinWgpuFrameView {
     pub instance_range_count: u64,
     pub texture_output_flags: u32,
     pub texture_sampling_policy: u32,
+    pub rasterization_policy: u32,
+    pub bump_vertices: *const CoinWgpuBumpVertex,
+    pub bump_vertex_count: u64,
+    pub bump_images: *const CoinWgpuBumpImage,
+    pub bump_image_count: u64,
+    pub portable_modules: *const CoinWgpuPortableModule,
+    pub portable_module_count: u64,
+}
+
+fn bump_payload_present(frame: &CoinWgpuFrameView) -> bool {
+    frame.bump_vertex_count != 0 || !frame.bump_vertices.is_null() ||
+        frame.bump_image_count != 0 || !frame.bump_images.is_null()
+}
+
+#[allow(dead_code)]
+struct ValidatedBumpImage {
+    width: u32,
+    height: u32,
+    clamp_s: bool,
+    clamp_t: bool,
+    rgb: Vec<u8>,
+}
+
+#[allow(dead_code)]
+struct ValidatedBumpPayload {
+    vertices: Vec<CoinWgpuBumpVertex>,
+    images: Vec<ValidatedBumpImage>,
+}
+
+#[allow(dead_code)]
+struct GpuBumpImage {
+    texture: wgpu::Texture,
+    view: wgpu::TextureView,
+    sampler: wgpu::Sampler,
+}
+
+#[allow(dead_code)]
+struct GpuBumpPayload {
+    vertices: wgpu::Buffer,
+    images: Vec<GpuBumpImage>,
+}
+
+#[derive(Clone)]
+struct GpuBumpBaseImage {
+    _texture: wgpu::Texture,
+    view: wgpu::TextureView,
+    sampler: wgpu::Sampler,
+}
+
+#[derive(Hash, PartialEq, Eq, Clone)]
+struct BumpBaseKey {
+    width: u32,
+    height: u32,
+    format: u32,
+    digest: u64,
+    wrap_s: u32,
+    wrap_t: u32,
+    filter: u32,
+    anisotropy: u32,
+}
+
+struct BumpBaseCacheEntry {
+    image: GpuBumpBaseImage,
+    pixels_copy: Vec<u8>,
+    last_used_serial: u64,
+}
+
+#[derive(Default)]
+struct BumpBaseCache {
+    entries: HashMap<BumpBaseKey, BumpBaseCacheEntry>,
+    retired: Vec<(GpuBumpBaseImage, u64)>,
+    uploads: u64,
+    hits: u64,
+}
+
+struct GpuBumpBaseDraw {
+    image_index: usize,
+    uniform: wgpu::Buffer,
+}
+
+// ABI60 reserves bits 0..3 for anisotropy-minus-one and bit 4 for
+// wrap-R. R addressing has no effect on a 2D base image, but remains valid.
+fn bump_base_anisotropy(settings: &CoinWgpuSampler)
+    -> Result<u16, (CoinWgpuStatus, String)> {
+    if settings.wrap_s > 1 || settings.wrap_t > 1 || settings.filter > 3 ||
+        settings.reserved & !31 != 0 {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid bump base sampler bits".into()));
+    }
+    texture_profile::anisotropy(settings.reserved & 15, settings.filter)
+}
+
+fn upload_bump_base_image(device: &wgpu::Device, queue: &wgpu::Queue,
+    source: &CoinWgpuTexture, settings: &CoinWgpuSampler,
+) -> Result<GpuBumpBaseImage, (CoinWgpuStatus, String)> {
+    let anisotropy = bump_base_anisotropy(settings)?;
+    let levels = texture_levels(source.width, source.height, source.format)?;
+    let texture = device.create_texture(&wgpu::TextureDescriptor {
+        label: Some("Coin bump base image"),
+        size: wgpu::Extent3d { width: source.width, height: source.height, depth_or_array_layers: 1 },
+        mip_level_count: levels.len() as u32, sample_count: 1,
+        dimension: wgpu::TextureDimension::D2,
+        format: if matches!(source.format, 3 | 4) {
+            wgpu::TextureFormat::Rgba8UnormSrgb
+        } else { wgpu::TextureFormat::Rgba8Unorm },
+        usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+        view_formats: &[],
+    });
+    let pixels = unsafe { std::slice::from_raw_parts(source.pixels, source.pixel_bytes_len as usize) };
+    for (level, &(width, height, offset)) in levels.iter().enumerate() {
+        let bytes = u64::from(width) * u64::from(height) * 4;
+        queue.write_texture(wgpu::TexelCopyTextureInfo {
+            texture: &texture, mip_level: level as u32,
+            origin: wgpu::Origin3d::ZERO, aspect: wgpu::TextureAspect::All,
+        }, &pixels[offset as usize..(offset + bytes) as usize],
+            wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(width * 4),
+                rows_per_image: Some(height) },
+            wgpu::Extent3d { width, height, depth_or_array_layers: 1 });
+    }
+    let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let address = |wrap| if wrap == 0 { wgpu::AddressMode::Repeat } else { wgpu::AddressMode::ClampToEdge };
+    let filter = if settings.filter == 0 { wgpu::FilterMode::Nearest } else { wgpu::FilterMode::Linear };
+    let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+        address_mode_u: address(settings.wrap_s), address_mode_v: address(settings.wrap_t),
+        mag_filter: filter,
+        min_filter: if settings.filter == 2 { wgpu::FilterMode::Nearest } else { filter },
+        mipmap_filter: if settings.filter >= 2 { wgpu::FilterMode::Linear } else { wgpu::FilterMode::Nearest },
+        lod_max_clamp: if settings.filter >= 2 { 32.0 } else { 0.0 },
+        anisotropy_clamp: anisotropy,
+        ..Default::default()
+    });
+    Ok(GpuBumpBaseImage { _texture: texture, view, sampler })
+}
+
+#[cfg(test)]
+thread_local! {
+    static LAST_BUMP_BASE_IMAGE_UPLOADS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
+}
+
+fn upload_bump_payload(device: &wgpu::Device, queue: &wgpu::Queue,
+                       payload: &ValidatedBumpPayload) -> Result<GpuBumpPayload, String> {
+    if payload.vertices.is_empty() || payload.images.is_empty() {
+        return Err("Empty bump GPU payload".to_string());
+    }
+    if payload.images.iter().any(|image|
+        image.width > device.limits().max_texture_dimension_2d ||
+        image.height > device.limits().max_texture_dimension_2d) {
+        return Err("Bump image exceeds GPU texture dimension limit".to_string());
+    }
+    let vertex_bytes = bytemuck::cast_slice(&payload.vertices);
+    let vertices = device.create_buffer(&wgpu::BufferDescriptor {
+        label: Some("Coin bump vertex stream"), size: vertex_bytes.len() as u64,
+        usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST |
+            wgpu::BufferUsages::COPY_SRC,
+        mapped_at_creation: false,
+    });
+    queue.write_buffer(&vertices, 0, vertex_bytes);
+    let mut images = Vec::with_capacity(payload.images.len());
+    for source in &payload.images {
+        let mut rgba = Vec::with_capacity(source.rgb.len() / 3 * 4);
+        for rgb in source.rgb.chunks_exact(3) {
+            rgba.extend_from_slice(&[rgb[0], rgb[1], rgb[2], 255]);
+        }
+        let texture = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Coin bump normal image"),
+            size: wgpu::Extent3d { width: source.width, height: source.height,
+                depth_or_array_layers: 1 },
+            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST |
+                wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        queue.write_texture(texture.as_image_copy(), &rgba,
+            wgpu::TexelCopyBufferLayout { offset: 0,
+                bytes_per_row: Some(source.width * 4), rows_per_image: Some(source.height) },
+            texture.size());
+        let view = texture.create_view(&wgpu::TextureViewDescriptor::default());
+        let sampler = device.create_sampler(&wgpu::SamplerDescriptor {
+            address_mode_u: if source.clamp_s { wgpu::AddressMode::ClampToEdge }
+                else { wgpu::AddressMode::Repeat },
+            address_mode_v: if source.clamp_t { wgpu::AddressMode::ClampToEdge }
+                else { wgpu::AddressMode::Repeat },
+            mag_filter: wgpu::FilterMode::Linear,
+            min_filter: wgpu::FilterMode::Linear,
+            ..Default::default()
+        });
+        images.push(GpuBumpImage { texture, view, sampler });
+    }
+    Ok(GpuBumpPayload { vertices, images })
+}
+
+#[repr(C)]
+#[allow(dead_code)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct BumpUniforms {
+    model_view_projection: [f32; 16],
+    light_position_type: [f32; 4],
+    diffuse: [f32; 4],
+    eye_position: [f32; 4],
+    specular: [f32; 4],
+    shininess: [f32; 4],
+}
+
+const _: () = assert!(std::mem::size_of::<BumpUniforms>() == 144);
+
+#[repr(C)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+struct BumpBaseUniforms { texture_matrix: [f32; 16] }
+const _: () = assert!(std::mem::size_of::<BumpBaseUniforms>() == 64);
+
+#[allow(dead_code)]
+fn bump_uniforms_from_state(state: &CoinWgpuRenderState,
+                            material: &CoinWgpuMaterial) -> Result<BumpUniforms, String> {
+    if state.light_count != 1 ||
+        !matches!(state.lights[0].position_type[3], 0.0 | 1.0) ||
+        state.model_view[3] != 0.0 || state.model_view[7] != 0.0 ||
+        state.model_view[11] != 0.0 || state.model_view[15] != 1.0 ||
+        material.transparency != 0.0 || material.diffuse[3] != 1.0 {
+        return Err("Bump lighting state is outside the initial opaque one-light profile".to_string());
+    }
+    let matrices_finite = state.model_view.iter().chain(state.model_view_projection.iter())
+        .chain(state.normal_matrix.iter()).all(|v| v.is_finite());
+    let light = &state.lights[0];
+    if !matrices_finite || !light.position_type.iter().all(|v| v.is_finite()) ||
+        !light.direction_cutoff.iter().all(|v| v.is_finite()) ||
+        !light.color_intensity.iter().all(|v| v.is_finite()) ||
+        !material.diffuse.iter().chain(material.specular.iter()).all(|v| v.is_finite()) ||
+        !material.shininess.is_finite() || !(0.0..=1.0).contains(&material.shininess) {
+        return Err("Nonfinite or invalid bump lighting state".to_string());
+    }
+    // normal_matrix is inverse(model_view linear)^T. Its transpose converts a
+    // view-space direction back to the object's S/T/N input space.
+    let inverse_direction = |v: [f32; 3]| -> [f32; 3] {
+        let n = &state.normal_matrix;
+        [n[0]*v[0] + n[1]*v[1] + n[2]*v[2],
+         n[4]*v[0] + n[5]*v[1] + n[6]*v[2],
+         n[8]*v[0] + n[9]*v[1] + n[10]*v[2]]
+    };
+    let translation = [state.model_view[12], state.model_view[13], state.model_view[14]];
+    let view_light = [light.position_type[0], light.position_type[1],
+                      light.position_type[2]];
+    let object_light = if light.position_type[3] == 0.0 {
+        inverse_direction([-light.direction_cutoff[0], -light.direction_cutoff[1],
+                           -light.direction_cutoff[2]])
+    } else {
+        inverse_direction([view_light[0] - translation[0],
+                           view_light[1] - translation[1],
+                           view_light[2] - translation[2]])
+    };
+    let object_eye = inverse_direction([-translation[0], -translation[1], -translation[2]]);
+    if !object_light.iter().chain(object_eye.iter()).all(|v| v.is_finite()) {
+        return Err("Bump object-space light or eye overflows".to_string());
+    }
+    let intensity = light.color_intensity[3];
+    if intensity < 0.0 {
+        return Err("Negative bump light intensity".to_string());
+    }
+    let mut diffuse = [0.0; 4];
+    let mut specular = material.specular;
+    for axis in 0..3 {
+        diffuse[axis] = material.diffuse[axis] * light.color_intensity[axis] * intensity;
+    }
+    diffuse[3] = 1.0;
+    specular[3] = 1.0;
+    if !diffuse.iter().all(|v| v.is_finite()) {
+        return Err("Bump diffuse light product overflows".to_string());
+    }
+    Ok(BumpUniforms {
+        model_view_projection: state.model_view_projection,
+        light_position_type: [object_light[0], object_light[1], object_light[2],
+                              light.position_type[3]],
+        diffuse, eye_position: [object_eye[0], object_eye[1], object_eye[2], 1.0],
+        specular, shininess: [material.shininess, 0.0, 0.0, 0.0],
+    })
+}
+
+#[allow(dead_code)]
+fn create_bump_pipeline(device: &wgpu::Device, color_format: wgpu::TextureFormat,
+                        depth_stencil: Option<wgpu::DepthStencilState>,
+                        fragment_entry: &str,
+                        blend: Option<wgpu::BlendState>) -> wgpu::RenderPipeline {
+    create_bump_pipeline_samples(device, color_format, depth_stencil,
+        fragment_entry, blend, 1, wgpu::ColorWrites::ALL)
+}
+
+fn create_bump_pipeline_samples(device: &wgpu::Device, color_format: wgpu::TextureFormat,
+                                depth_stencil: Option<wgpu::DepthStencilState>,
+                                fragment_entry: &str, blend: Option<wgpu::BlendState>,
+                                sample_count: u32, color_writes: wgpu::ColorWrites) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("coin_bump.wgsl"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/coin_bump.wgsl").into()),
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("Coin bump lighting pipeline"), layout: None,
+        vertex: wgpu::VertexState {
+            module: &shader, entry_point: Some("vs_main"),
+            compilation_options: Default::default(),
+            buffers: &[
+                wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<CoinWgpuVertex>() as u64,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![0 => Float32x3, 1 => Float32x3],
+                },
+                wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<CoinWgpuBumpVertex>() as u64,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![2 => Float32x4, 3 => Float32x3,
+                        4 => Float32x3],
+                },
+            ],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader, entry_point: Some(fragment_entry),
+            compilation_options: Default::default(),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format,
+                blend, write_mask: color_writes,
+            })],
+        }),
+        primitive: wgpu::PrimitiveState { cull_mode: None, ..Default::default() },
+        depth_stencil,
+        multisample: wgpu::MultisampleState { count: sample_count, ..Default::default() },
+        multiview: None, cache: None,
+    })
+}
+
+fn create_bump_base_pipeline(device: &wgpu::Device, color_format: wgpu::TextureFormat,
+                             depth_stencil: Option<wgpu::DepthStencilState>) -> wgpu::RenderPipeline {
+    create_bump_base_pipeline_samples(device, color_format, depth_stencil, 1, wgpu::ColorWrites::ALL)
+}
+
+fn create_bump_base_pipeline_samples(device: &wgpu::Device, color_format: wgpu::TextureFormat,
+                                     depth_stencil: Option<wgpu::DepthStencilState>,
+                                     sample_count: u32, color_writes: wgpu::ColorWrites) -> wgpu::RenderPipeline {
+    let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+        label: Some("coin_bump.wgsl base texture"),
+        source: wgpu::ShaderSource::Wgsl(include_str!("../../shaders/coin_bump.wgsl").into()),
+    });
+    device.create_render_pipeline(&wgpu::RenderPipelineDescriptor {
+        label: Some("Coin bump base texture pipeline"), layout: None,
+        vertex: wgpu::VertexState {
+            module: &shader, entry_point: Some("vs_base"),
+            compilation_options: Default::default(),
+            buffers: &[
+                wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<CoinWgpuVertex>() as u64,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &[
+                        wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x3,
+                            offset: 0, shader_location: 0 },
+                        wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x3,
+                            offset: 12, shader_location: 1 },
+                        wgpu::VertexAttribute { format: wgpu::VertexFormat::Float32x4,
+                            offset: 24, shader_location: 5 },
+                    ],
+                },
+                wgpu::VertexBufferLayout {
+                    array_stride: std::mem::size_of::<CoinWgpuBumpVertex>() as u64,
+                    step_mode: wgpu::VertexStepMode::Vertex,
+                    attributes: &wgpu::vertex_attr_array![2 => Float32x4, 3 => Float32x3,
+                        4 => Float32x3],
+                },
+            ],
+        },
+        fragment: Some(wgpu::FragmentState {
+            module: &shader, entry_point: Some("fs_base"),
+            compilation_options: Default::default(),
+            targets: &[Some(wgpu::ColorTargetState {
+                format: color_format, blend: None, write_mask: color_writes,
+            })],
+        }),
+        primitive: wgpu::PrimitiveState { cull_mode: None, ..Default::default() },
+        depth_stencil,
+        multisample: wgpu::MultisampleState { count: sample_count, ..Default::default() },
+        multiview: None, cache: None,
+    })
+}
+
+#[derive(Hash, PartialEq, Eq)]
+struct BumpPipelineKey {
+    color_format: wgpu::TextureFormat,
+    depth_compare: wgpu::CompareFunction,
+    sample_count: u32,
+    color_writes: u32,
+}
+
+struct BumpPipelines {
+    diffuse: wgpu::RenderPipeline,
+    specular: wgpu::RenderPipeline,
+    base: wgpu::RenderPipeline,
+}
+
+fn create_bump_pipelines(device: &wgpu::Device, color_format: wgpu::TextureFormat,
+                         depth_compare: wgpu::CompareFunction,
+                         sample_count: u32, color_writes: wgpu::ColorWrites) -> BumpPipelines {
+    let depth_write = Some(wgpu::DepthStencilState {
+        format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: true,
+        depth_compare, stencil: Default::default(), bias: Default::default(),
+    });
+    let depth_read = Some(wgpu::DepthStencilState {
+        format: wgpu::TextureFormat::Depth32Float, depth_write_enabled: false,
+        depth_compare: wgpu::CompareFunction::LessEqual,
+        stencil: Default::default(), bias: Default::default(),
+    });
+    BumpPipelines {
+        base: create_bump_base_pipeline_samples(device, color_format, depth_write.clone(), sample_count, color_writes),
+        diffuse: create_bump_pipeline_samples(device, color_format, depth_write, "fs_main", None,
+            sample_count, color_writes),
+        specular: create_bump_pipeline_samples(device, color_format, depth_read, "fs_specular",
+            Some(wgpu::BlendState {
+                color: wgpu::BlendComponent { src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One, operation: wgpu::BlendOperation::Add },
+                alpha: wgpu::BlendComponent { src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One, operation: wgpu::BlendOperation::Add },
+            }), sample_count, color_writes),
+    }
+}
+
+// Dedicated encoder for the first opaque bump profile. It is deliberately
+// separate from the standard shader: that shader has no free interpolators
+// for the captured S/T basis. Callers must preflight every draw before this
+// function changes a target.
+fn encode_bump_opaque_frame(
+    device: &wgpu::Device, queue: &wgpu::Queue,
+    pipeline_cache: Option<&Mutex<HashMap<BumpPipelineKey, Arc<BumpPipelines>>>>,
+    base_cache: Option<(&Mutex<BumpBaseCache>, u64, u64)>,
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    states: &[CoinWgpuRenderState], materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    payload: &ValidatedBumpPayload, color_view: &wgpu::TextureView,
+    color_format: wgpu::TextureFormat, depth_view: &wgpu::TextureView,
+    target_size: [u32; 2], clear_color: [f32; 4],
+) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
+    encode_bump_opaque_frame_samples(device, queue, pipeline_cache, base_cache,
+        vertices, indices, draws, states, materials, textures, samplers, payload,
+        color_view, None, color_format, depth_view, target_size, clear_color, 1)
+}
+
+fn validate_bump_draw_profile(
+    device: &wgpu::Device, vertices: &[CoinWgpuVertex], indices: &[u32],
+    draws: &[CoinWgpuDraw], states: &[CoinWgpuRenderState], materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler], target_size: [u32; 2],
+    consumed: &[bool],
+) -> Result<(Vec<BumpUniforms>, Option<u32>), (CoinWgpuStatus, String)> {
+    let unsupported = |msg: &str| (CoinWgpuStatus::Unsupported, msg.to_string());
+    let mut uniforms = Vec::with_capacity(draws.len());
+    let mut depth_function = None;
+    if consumed.len() != draws.len() {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid bump occurrence count".into()));
+    }
+    for (draw, active) in draws.iter().zip(consumed) {
+        let st = states.get(draw.render_state_slot as usize)
+            .ok_or((CoinWgpuStatus::InvalidArgument, "Bump state slot out of bounds".into()))?;
+        let material = materials.get(st.material_slot as usize)
+            .ok_or((CoinWgpuStatus::InvalidArgument, "Bump material slot out of bounds".into()))?;
+        if st.extra_textures.iter().any(|unit| unit.enabled != 0) ||
+            st.fog_mode != 0 || st.depth_test != 1 || st.depth_write != 1 ||
+            !matches!(st.depth_function, 2 | 3) || st.cull_mode != 0 ||
+            (st.viewport != [0,0,0,0] &&
+             st.viewport != [0,0,target_size[0] as i32,target_size[1] as i32]) ||
+            draw.composition_flags != 0 ||
+            draw.clear_depth_before != 0 {
+            return Err(unsupported(&format!("Bump frame needs opaque, full-target depth rendering (fog={}, depth={}/{}/{}, cull={}, viewport={:?}, composition={}, clear_depth={})",
+                st.fog_mode, st.depth_test, st.depth_write, st.depth_function,
+                st.cull_mode, st.viewport, draw.composition_flags, draw.clear_depth_before)));
+        }
+        if st.has_texture != 0 {
+            if st.texture_model != 0 || st.texture_projection != 0 {
+                return Err(unsupported("Bump base texture requires projective MODULATE"));
+            }
+            let texture = textures.get(st.texture_slot as usize)
+                .ok_or((CoinWgpuStatus::InvalidArgument, "Bump base texture slot out of bounds".into()))?;
+            let sampler = samplers.get(st.sampler_slot as usize)
+                .ok_or((CoinWgpuStatus::InvalidArgument, "Bump base sampler slot out of bounds".into()))?;
+            let levels = texture_levels(texture.width, texture.height, texture.format)?;
+            let byte_count = levels.last().and_then(|&(width, height, offset)|
+                u64::from(width).checked_mul(u64::from(height))
+                    .and_then(|pixels| pixels.checked_mul(4))
+                    .and_then(|bytes| offset.checked_add(bytes)));
+            if !matches!(texture.format, 0 | 2 | 3 | 4) || texture.width == 0 || texture.height == 0 ||
+                texture.width > device.limits().max_texture_dimension_2d ||
+                texture.height > device.limits().max_texture_dimension_2d ||
+                byte_count != Some(texture.pixel_bytes_len) ||
+                texture.pixel_bytes_len > 48 * 1024 * 1024 || texture.pixels.is_null() ||
+                sampler.wrap_s > 1 || sampler.wrap_t > 1 || sampler.filter > 3 ||
+                (sampler.filter >= 2 && !matches!(texture.format, 2 | 4)) ||
+                bump_base_anisotropy(sampler).is_err() ||
+                !st.texture_matrix.iter().all(|v| v.is_finite()) {
+                return Err(unsupported(&format!("Bump base image or sampler is outside opaque RGBA8 profile (format={}, size={}x{}, bytes={}, wraps={}/{}, filter={}, anisotropy={})",
+                    texture.format, texture.width, texture.height, texture.pixel_bytes_len,
+                    sampler.wrap_s, sampler.wrap_t, sampler.filter, sampler.reserved)));
+            }
+            let pixels = unsafe { std::slice::from_raw_parts(texture.pixels,
+                texture.pixel_bytes_len as usize) };
+            if pixels.chunks_exact(4).any(|rgba| rgba[3] != 255) {
+                return Err(unsupported("Bump base image alpha needs transparency composition"));
+            }
+            let start = draw.first_index as usize;
+            let end = start + draw.index_count as usize;
+            validate_texture_coordinates_with_images(st, draw.topology, vertices, &indices[start..end], textures)
+                .map_err(|e| (CoinWgpuStatus::InvalidArgument, e))?;
+        }
+        if depth_function.is_some_and(|function| function != st.depth_function) {
+            return Err(unsupported("Bump draws with different depth functions need separate pipelines"));
+        }
+        depth_function = Some(st.depth_function);
+        if *active {
+            if st.light_model != 1 { return Err(unsupported("Consumed bump requires PHONG")); }
+            uniforms.push(bump_uniforms_from_state(st, material)
+                .map_err(|e| (CoinWgpuStatus::Unsupported, e))?);
+        }
+    }
+    Ok((uniforms, depth_function))
+}
+
+fn encode_bump_opaque_frame_samples(
+    device: &wgpu::Device, queue: &wgpu::Queue,
+    pipeline_cache: Option<&Mutex<HashMap<BumpPipelineKey, Arc<BumpPipelines>>>>,
+    base_cache: Option<(&Mutex<BumpBaseCache>, u64, u64)>,
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    states: &[CoinWgpuRenderState], materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    payload: &ValidatedBumpPayload, color_view: &wgpu::TextureView,
+    resolve_view: Option<&wgpu::TextureView>, color_format: wgpu::TextureFormat,
+    depth_view: &wgpu::TextureView, target_size: [u32; 2], clear_color: [f32; 4],
+    sample_count: u32,
+) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
+    if resolve_view.is_some() != (sample_count > 1) {
+        return Err((CoinWgpuStatus::InvalidArgument,
+            "Bump MSAA attachments require matching sample count and color resolve".into()));
+    }
+    encode_bump_opaque_run(device, queue, pipeline_cache, base_cache, vertices,
+        indices, draws, states, materials, textures, samplers, payload, color_view,
+        resolve_view, color_format, depth_view, target_size, clear_color, sample_count, true)
+}
+
+fn encode_bump_opaque_run(
+    device: &wgpu::Device, queue: &wgpu::Queue,
+    pipeline_cache: Option<&Mutex<HashMap<BumpPipelineKey, Arc<BumpPipelines>>>>,
+    base_cache: Option<(&Mutex<BumpBaseCache>, u64, u64)>,
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    states: &[CoinWgpuRenderState], materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    payload: &ValidatedBumpPayload, color_view: &wgpu::TextureView,
+    resolve_view: Option<&wgpu::TextureView>, color_format: wgpu::TextureFormat,
+    depth_view: &wgpu::TextureView, target_size: [u32; 2], clear_color: [f32; 4],
+    sample_count: u32, clear_attachments: bool,
+) -> Result<wgpu::CommandBuffer, (CoinWgpuStatus, String)> {
+    use wgpu::util::DeviceExt;
+    let unsupported = |msg: &str| (CoinWgpuStatus::Unsupported, msg.to_string());
+    if !matches!(sample_count, 1 | 2 | 4) || (resolve_view.is_some() && sample_count == 1) {
+        return Err((CoinWgpuStatus::InvalidArgument,
+            "Bump MSAA attachments require matching sample count and color resolve".into()));
+    }
+    if draws.is_empty() || payload.vertices.len() != vertices.len() ||
+        !clear_color.iter().all(|v| v.is_finite()) {
+        return Err((CoinWgpuStatus::InvalidArgument,
+            "Invalid bump frame geometry or clear color".into()));
+    }
+    let slots = bump_image_slots_for_draws(payload, indices, draws)
+        .map_err(|e| (CoinWgpuStatus::InvalidArgument, e))?;
+    if slots.iter().any(Option::is_none) {
+        return Err(unsupported("Mixed bump and non-bump draws need the normal base pass"));
+    }
+    let (uniforms, depth_function) = validate_bump_draw_profile(device, vertices, indices,
+        draws, states, materials, textures, samplers, target_size,
+        &slots.iter().map(Option::is_some).collect::<Vec<_>>())?;
+    let gpu = upload_bump_payload(device, queue, payload)
+        .map_err(|e| (CoinWgpuStatus::Unsupported, e))?;
+    let main_vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Coin bump positions/normals"),
+        contents: bytemuck::cast_slice(vertices), usage: wgpu::BufferUsages::VERTEX,
+    });
+    let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        label: Some("Coin bump indices"),
+        contents: bytemuck::cast_slice(indices), usage: wgpu::BufferUsages::INDEX,
+    });
+    let depth_compare = if depth_function == Some(2) {
+        wgpu::CompareFunction::Less
+    } else { wgpu::CompareFunction::LessEqual };
+    // Channel writes belong to each occurrence, including adjacent draws in
+    // one bump run. Keep the matching auto-layout pipelines and bindgroups
+    // together; a cached ALL pipeline cannot stand in for a partial mask.
+    let mut pipelines = Vec::with_capacity(draws.len());
+    let mut run_pipelines = HashMap::<u32, Arc<BumpPipelines>>::new();
+    for draw in draws {
+        let encoded = states[draw.render_state_slot as usize].color_write;
+        let color_writes = if encoded == 1 { wgpu::ColorWrites::ALL }
+            else { wgpu::ColorWrites::from_bits_truncate(encoded & 0x0f) };
+        if let Some(pipeline) = run_pipelines.get(&color_writes.bits()) {
+            pipelines.push(pipeline.clone());
+            continue;
+        }
+        let key = BumpPipelineKey { color_format, depth_compare, sample_count,
+            color_writes: color_writes.bits() };
+        let pipeline = if let Some(cache) = pipeline_cache {
+            let mut cache = cache.lock().map_err(|e|
+                (CoinWgpuStatus::BackendError, format!("Bump pipeline cache lock failed: {e}")))?;
+            cache.entry(key).or_insert_with(|| Arc::new(create_bump_pipelines(
+                device, color_format, depth_compare, sample_count, color_writes))).clone()
+        } else { Arc::new(create_bump_pipelines(device, color_format, depth_compare,
+                                               sample_count, color_writes)) };
+        run_pipelines.insert(color_writes.bits(), pipeline.clone());
+        pipelines.push(pipeline);
+    }
+    let mut uniform_buffers = Vec::with_capacity(uniforms.len());
+    for uniform in &uniforms {
+        uniform_buffers.push(device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Coin bump uniforms"), contents: bytemuck::bytes_of(uniform),
+            usage: wgpu::BufferUsages::UNIFORM,
+        }));
+    }
+    let make_binds = |specular: bool| {
+        draws.iter().enumerate().map(|(i, _)| {
+            let pipeline = if specular { &pipelines[i].specular } else { &pipelines[i].diffuse };
+            let image = &gpu.images[slots[i].unwrap()];
+            device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Coin bump draw image"), layout: &pipeline.get_bind_group_layout(0),
+                entries: &[
+                    wgpu::BindGroupEntry { binding: 0,
+                        resource: uniform_buffers[i].as_entire_binding() },
+                    wgpu::BindGroupEntry { binding: 1,
+                        resource: wgpu::BindingResource::TextureView(&image.view) },
+                    wgpu::BindGroupEntry { binding: 2,
+                        resource: wgpu::BindingResource::Sampler(&image.sampler) },
+                ],
+            })
+        }).collect::<Vec<_>>()
+    };
+    let diffuse_binds = make_binds(false);
+    let specular_binds = make_binds(true);
+    let mut base_resources = Vec::with_capacity(draws.len());
+    let mut base_images = Vec::<GpuBumpBaseImage>::new();
+    let mut image_slots = HashMap::<(u32,u32),usize>::new();
+    for draw in draws {
+        let st = &states[draw.render_state_slot as usize];
+        if st.has_texture == 0 { base_resources.push(None); continue; }
+        let key = (st.texture_slot, st.sampler_slot);
+        let image_index = if let Some(&index) = image_slots.get(&key) { index } else {
+            let source = &textures[st.texture_slot as usize];
+            let settings = &samplers[st.sampler_slot as usize];
+            let pixels = unsafe { std::slice::from_raw_parts(source.pixels, source.pixel_bytes_len as usize) };
+            let image = if let Some((cache, serial, completed)) = base_cache {
+                let mut cache = cache.lock().map_err(|e|
+                    (CoinWgpuStatus::BackendError, format!("Bump base cache lock failed: {e}")))?;
+                cache.retired.retain(|(_, retired_at)| *retired_at > completed);
+                let cache_key = BumpBaseKey {
+                    width: source.width, height: source.height, format: source.format,
+                    digest: source.content_digest, wrap_s: settings.wrap_s,
+                    wrap_t: settings.wrap_t, filter: settings.filter, anisotropy: settings.reserved & 15,
+                };
+                let hit = cache.entries.get_mut(&cache_key).and_then(|entry| {
+                    if entry.pixels_copy == pixels {
+                        entry.last_used_serial = serial;
+                        Some(entry.image.clone())
+                    } else { None }
+                });
+                if let Some(image) = hit {
+                    cache.hits += 1;
+                    image
+                } else {
+                    let image = upload_bump_base_image(device, queue, source, settings)?;
+                    let old = cache.entries.insert(cache_key, BumpBaseCacheEntry {
+                        image: image.clone(), pixels_copy: pixels.to_vec(),
+                        last_used_serial: serial,
+                    });
+                    if let Some(old) = old {
+                        cache.retired.push((old.image, old.last_used_serial));
+                    }
+                    cache.uploads += 1;
+                    image
+                }
+            } else { upload_bump_base_image(device, queue, source, settings)? };
+            let index = base_images.len();
+            base_images.push(image);
+            image_slots.insert(key, index);
+            index
+        };
+        let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Coin bump base transform"),
+            contents: bytemuck::bytes_of(&BumpBaseUniforms { texture_matrix: st.texture_matrix }),
+            usage: wgpu::BufferUsages::UNIFORM,
+        });
+        base_resources.push(Some(GpuBumpBaseDraw { image_index, uniform }));
+    }
+    if let Some((cache, serial, _)) = base_cache {
+        let mut cache = cache.lock().map_err(|e|
+            (CoinWgpuStatus::BackendError, format!("Bump base cache lock failed: {e}")))?;
+        let stale: Vec<_> = cache.entries.iter().filter(|(_, entry)|
+            serial.saturating_sub(entry.last_used_serial) > 8)
+            .map(|(key, _)| key.clone()).collect();
+        for key in stale {
+            if let Some(entry) = cache.entries.remove(&key) {
+                cache.retired.push((entry.image, entry.last_used_serial));
+            }
+        }
+    }
+    #[cfg(test)]
+    LAST_BUMP_BASE_IMAGE_UPLOADS.with(|count| count.set(base_images.len()));
+    let base_binds = draws.iter().enumerate().map(|(i, _)| {
+        base_resources[i].as_ref().map(|resource| {
+            let base_pipeline = &pipelines[i].base;
+            let image = &gpu.images[slots[i].unwrap()];
+            let base_image = &base_images[resource.image_index];
+            let group0 = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Coin bump textured draw"), layout: &base_pipeline.get_bind_group_layout(0),
+                entries: &[
+                    wgpu::BindGroupEntry { binding: 0, resource: uniform_buffers[i].as_entire_binding() },
+                    wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&image.view) },
+                    wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(&image.sampler) },
+                ],
+            });
+            let group1 = device.create_bind_group(&wgpu::BindGroupDescriptor {
+                label: Some("Coin bump base draw"), layout: &base_pipeline.get_bind_group_layout(1),
+                entries: &[
+                    wgpu::BindGroupEntry { binding: 0, resource: resource.uniform.as_entire_binding() },
+                    wgpu::BindGroupEntry { binding: 1, resource: wgpu::BindingResource::TextureView(&base_image.view) },
+                    wgpu::BindGroupEntry { binding: 2, resource: wgpu::BindingResource::Sampler(&base_image.sampler) },
+                ],
+            });
+            (group0, group1)
+        })
+    }).collect::<Vec<_>>();
+    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("Coin opaque bump frame"),
+    });
+    {
+        let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Coin opaque bump draws"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: color_view, resolve_target: resolve_view,
+                ops: wgpu::Operations { load: if clear_attachments { wgpu::LoadOp::Clear(wgpu::Color {
+                    r: clear_color[0] as f64, g: clear_color[1] as f64,
+                    b: clear_color[2] as f64, a: clear_color[3] as f64 }) } else { wgpu::LoadOp::Load },
+                    store: wgpu::StoreOp::Store },
+            })],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view: depth_view, depth_ops: Some(wgpu::Operations {
+                    load: if clear_attachments { wgpu::LoadOp::Clear(1.0) } else { wgpu::LoadOp::Load }, store: wgpu::StoreOp::Store }),
+                stencil_ops: None,
+            }), timestamp_writes: None, occlusion_query_set: None,
+        });
+        pass.set_vertex_buffer(0, main_vertices.slice(..));
+        pass.set_vertex_buffer(1, gpu.vertices.slice(..));
+        pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+        for (i, draw) in draws.iter().enumerate() {
+            let range = draw.first_index..draw.first_index + draw.index_count;
+            if let Some((group0, group1)) = &base_binds[i] {
+                pass.set_pipeline(&pipelines[i].base);
+                pass.set_bind_group(0, group0, &[]);
+                pass.set_bind_group(1, group1, &[]);
+            } else {
+                pass.set_pipeline(&pipelines[i].diffuse);
+                pass.set_bind_group(0, &diffuse_binds[i], &[]);
+            }
+            pass.draw_indexed(range.clone(), 0, 0..1);
+            pass.set_pipeline(&pipelines[i].specular);
+            pass.set_bind_group(0, &specular_binds[i], &[]);
+            pass.draw_indexed(range, 0, 0..1);
+        }
+    }
+    Ok(encoder.finish())
+}
+
+fn validate_bump_payload(
+    frame: &CoinWgpuFrameView,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> Result<Option<ValidatedBumpPayload>, CoinWgpuStatus> {
+    if !bump_payload_present(frame) { return Ok(None); }
+    let invalid = |message: &str| {
+        set_error(error_buf, error_buf_len, message);
+        CoinWgpuStatus::InvalidArgument
+    };
+    if frame.bump_vertex_count == 0 || frame.bump_image_count == 0 ||
+        frame.bump_vertex_count != frame.vertex_count || frame.bump_image_count > 4096 {
+        return Err(invalid("Bump payload count does not match emitted geometry or images"));
+    }
+    let vertices = validate_slice(frame.bump_vertices, frame.bump_vertex_count,
+        "bump vertices", error_buf, error_buf_len)?;
+    let images = validate_slice(frame.bump_images, frame.bump_image_count,
+        "bump images", error_buf, error_buf_len)?;
+    if vertices.iter().any(|v| v.image_slot > frame.bump_image_count as u32 ||
+        v.coord.iter().chain(v.tangent_s.iter()).chain(v.tangent_t.iter())
+            .any(|x| !x.is_finite()) || (v.image_slot != 0 && v.coord[3] == 0.0)) {
+        return Err(invalid("Invalid bump vertex slot, coordinate or tangent"));
+    }
+    let mut total_bytes = 0u64;
+    let mut owned_images = Vec::with_capacity(images.len());
+    for image in images {
+        let expected = u64::from(image.width).checked_mul(u64::from(image.height))
+            .and_then(|pixels| pixels.checked_mul(3));
+        if image.width == 0 || image.height == 0 || image.width > 32767 ||
+            image.height > 32767 || image.clamp_s > 1 || image.clamp_t > 1 ||
+            expected != Some(image.rgb_len) || image.rgb_len > 48 * 1024 * 1024 ||
+            image.rgb.is_null() {
+            return Err(invalid("Invalid bump image dimensions, flags or bytes"));
+        }
+        total_bytes = total_bytes.checked_add(image.rgb_len)
+            .ok_or_else(|| invalid("Bump image byte count overflow"))?;
+        if total_bytes > 256 * 1024 * 1024 {
+            return Err(invalid("Bump images exceed the transport budget"));
+        }
+        let bytes = validate_slice(image.rgb, image.rgb_len,
+            "bump RGB bytes", error_buf, error_buf_len)?;
+        owned_images.push(ValidatedBumpImage {
+            width: image.width, height: image.height,
+            clamp_s: image.clamp_s != 0, clamp_t: image.clamp_t != 0,
+            rgb: bytes.to_vec(),
+        });
+    }
+    Ok(Some(ValidatedBumpPayload { vertices: vertices.to_vec(), images: owned_images }))
+}
+
+// The bump image is bound per draw, while its slot travels per vertex in the
+// captured plan. Resolve that boundary before encoding; interpolating slots
+// across a primitive would silently sample the wrong normal image.
+fn bump_image_slots_for_draws(payload: &ValidatedBumpPayload, indices: &[u32],
+                              draws: &[CoinWgpuDraw]) -> Result<Vec<Option<usize>>, String> {
+    let mut slots = Vec::with_capacity(draws.len());
+    for (draw_number, draw) in draws.iter().enumerate() {
+        if draw.topology != 0 || draw.index_count == 0 || draw.index_count % 3 != 0 {
+            return Err(format!("Bump draw {draw_number} requires indexed triangles"));
+        }
+        let start = draw.first_index as usize;
+        let end = start.checked_add(draw.index_count as usize)
+            .ok_or_else(|| format!("Bump draw {draw_number} index range overflows"))?;
+        let draw_indices = indices.get(start..end)
+            .ok_or_else(|| format!("Bump draw {draw_number} index range is out of bounds"))?;
+        let first = payload.vertices.get(draw_indices[0] as usize)
+            .ok_or_else(|| format!("Bump draw {draw_number} vertex is out of bounds"))?
+            .image_slot;
+        if first as usize > payload.images.len() {
+            return Err(format!("Bump draw {draw_number} image slot is out of bounds"));
+        }
+        for &index in draw_indices {
+            let vertex = payload.vertices.get(index as usize)
+                .ok_or_else(|| format!("Bump draw {draw_number} vertex is out of bounds"))?;
+            if vertex.image_slot != first {
+                return Err(format!("Bump draw {draw_number} mixes normal image slots"));
+            }
+        }
+        slots.push(if first == 0 { None } else { Some(first as usize - 1) });
+    }
+    Ok(slots)
+}
+
+#[cfg(test)]
+mod bump_abi_tests {
+    use super::*;
+
+    #[test]
+    fn bump_draws_route_one_image_per_indexed_draw() {
+        let vertex = |slot| CoinWgpuBumpVertex { image_slot: slot,
+            coord: [0.0,0.0,0.0,1.0], tangent_s: [1.0,0.0,0.0],
+            tangent_t: [0.0,1.0,0.0] };
+        let payload = ValidatedBumpPayload {
+            vertices: vec![vertex(1), vertex(1), vertex(1),
+                           vertex(2), vertex(2), vertex(2),
+                           vertex(0), vertex(0), vertex(0)],
+            images: (0..2).map(|_| ValidatedBumpImage { width: 1, height: 1,
+                clamp_s: false, clamp_t: false, rgb: vec![128,128,255] }).collect(),
+        };
+        let mut draws = [CoinWgpuDraw::zeroed(); 3];
+        for (i, draw) in draws.iter_mut().enumerate() {
+            draw.first_index = (i * 3) as u32;
+            draw.index_count = 3;
+        }
+        let indices: Vec<u32> = (0..9).collect();
+        assert_eq!(bump_image_slots_for_draws(&payload, &indices, &draws).unwrap(),
+                   [Some(0), Some(1), None]);
+        let mut mixed = indices.clone();
+        mixed[2] = 3;
+        assert!(bump_image_slots_for_draws(&payload, &mixed, &draws).is_err());
+        draws[0].first_index = 8;
+        assert!(bump_image_slots_for_draws(&payload, &indices, &draws).is_err());
+    }
+
+    #[test]
+    fn bump_lighting_state_converts_view_to_object_space() {
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.model_view = [2.0,0.0,0.0,0.0, 0.0,3.0,0.0,0.0,
+                            0.0,0.0,4.0,0.0, 10.0,20.0,30.0,1.0];
+        state.normal_matrix = [0.5,0.0,0.0,0.0, 0.0,1.0/3.0,0.0,0.0,
+                               0.0,0.0,0.25,0.0, 0.0,0.0,0.0,1.0];
+        state.model_view_projection[15] = 1.0;
+        state.light_count = 1;
+        state.lights[0].position_type = [12.0,23.0,34.0,1.0];
+        state.lights[0].color_intensity = [1.0,1.0,1.0,1.0];
+        let mut material = CoinWgpuMaterial::zeroed();
+        material.diffuse = [0.8,0.2,0.1,1.0];
+        material.specular = [0.5,0.25,0.125,1.0];
+        material.shininess = 0.5;
+        let uniforms = bump_uniforms_from_state(&state, &material).unwrap();
+        assert_eq!(uniforms.light_position_type, [1.0,1.0,1.0,1.0]);
+        assert!((uniforms.eye_position[0] + 5.0).abs() < 1e-6);
+        assert!((uniforms.eye_position[1] + 20.0/3.0).abs() < 1e-6);
+        assert!((uniforms.eye_position[2] + 7.5).abs() < 1e-6);
+        assert_eq!(uniforms.diffuse, [0.8,0.2,0.1,1.0]);
+        state.lights[0].position_type = [0.0,0.0,0.0,0.0];
+        state.lights[0].direction_cutoff = [0.0,0.0,-4.0,0.0];
+        assert_eq!(bump_uniforms_from_state(&state, &material).unwrap()
+                   .light_position_type, [0.0,0.0,1.0,0.0]);
+        state.lights[0].position_type[3] = 0.5;
+        assert!(bump_uniforms_from_state(&state, &material).is_err());
+        state.lights[0].position_type[3] = 1.0;
+        state.lights[0].color_intensity[3] = -1.0;
+        assert!(bump_uniforms_from_state(&state, &material).is_err());
+    }
+
+    #[test]
+    fn optional_bump_payload_cannot_be_silently_ignored() {
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        assert!(!bump_payload_present(&frame));
+        frame.bump_vertex_count = 1;
+        assert!(bump_payload_present(&frame));
+        frame.bump_vertex_count = 0;
+        let vertex = CoinWgpuBumpVertex::zeroed();
+        frame.bump_vertices = &vertex;
+        assert!(bump_payload_present(&frame));
+        frame.bump_vertices = std::ptr::null();
+        frame.bump_image_count = 1;
+        assert!(bump_payload_present(&frame));
+    }
+
+    #[test]
+    fn bump_payload_validates_and_owns_image_bytes() {
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        let vertex = CoinWgpuBumpVertex {
+            coord: [0.25, 0.5, 0.0, 1.0], tangent_s: [1.0, 0.0, 0.0],
+            tangent_t: [0.0, 1.0, 0.0], image_slot: 1,
+        };
+        let mut rgb = [128u8, 128, 255];
+        let mut image = CoinWgpuBumpImage {
+            width: 1, height: 1, clamp_s: 0, clamp_t: 1,
+            rgb: rgb.as_ptr(), rgb_len: 3,
+        };
+        frame.vertex_count = 1;
+        frame.bump_vertices = &vertex;
+        frame.bump_vertex_count = 1;
+        frame.bump_images = &image;
+        frame.bump_image_count = 1;
+        let owned = validate_bump_payload(&frame, std::ptr::null_mut(), 0)
+            .unwrap().unwrap();
+        rgb[0] = 0;
+        assert_eq!(owned.vertices[0].image_slot, 1);
+        assert_eq!(owned.images[0].rgb, [128, 128, 255]);
+        assert!(owned.images[0].clamp_t);
+        image.rgb_len = 2;
+        frame.bump_images = &image;
+        assert!(matches!(validate_bump_payload(&frame, std::ptr::null_mut(), 0),
+            Err(CoinWgpuStatus::InvalidArgument)));
+        image.rgb_len = 3;
+        frame.bump_vertex_count = 2;
+        assert!(matches!(validate_bump_payload(&frame, std::ptr::null_mut(), 0),
+            Err(CoinWgpuStatus::InvalidArgument)));
+        frame.bump_vertex_count = 1;
+        let bad_slot = CoinWgpuBumpVertex { image_slot: 2, ..vertex };
+        frame.bump_vertices = &bad_slot;
+        assert!(matches!(validate_bump_payload(&frame, std::ptr::null_mut(), 0),
+            Err(CoinWgpuStatus::InvalidArgument)));
+        let bad_coord = CoinWgpuBumpVertex { coord: [0.0, 0.0, 0.0, 0.0], ..vertex };
+        frame.bump_vertices = &bad_coord;
+        assert!(matches!(validate_bump_payload(&frame, std::ptr::null_mut(), 0),
+            Err(CoinWgpuStatus::InvalidArgument)));
+        frame.bump_vertices = &vertex;
+        image.clamp_s = 2;
+        assert!(matches!(validate_bump_payload(&frame, std::ptr::null_mut(), 0),
+            Err(CoinWgpuStatus::InvalidArgument)));
+        image.clamp_s = 0;
+        frame.bump_images = std::ptr::null();
+        assert!(matches!(validate_bump_payload(&frame, std::ptr::null_mut(), 0),
+            Err(CoinWgpuStatus::InvalidArgument)));
+    }
+
+    #[test]
+    #[ignore = "requires a selected physical GPU; run with --ignored"]
+    fn bump_payload_uploads_exact_vertices_and_rgb() {
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        let vertex = CoinWgpuBumpVertex {
+            coord: [0.25, 0.5, 0.0, 1.0], tangent_s: [1.0, 0.0, 0.0],
+            tangent_t: [0.0, 1.0, 0.0], image_slot: 1,
+        };
+        let rgb = [128u8, 128, 255, 240, 128, 128];
+        let image = CoinWgpuBumpImage {
+            width: 2, height: 1, clamp_s: 1, clamp_t: 0,
+            rgb: rgb.as_ptr(), rgb_len: rgb.len() as u64,
+        };
+        frame.vertex_count = 1;
+        frame.bump_vertices = &vertex;
+        frame.bump_vertex_count = 1;
+        frame.bump_images = &image;
+        frame.bump_image_count = 1;
+        let owned = validate_bump_payload(&frame, std::ptr::null_mut(), 0)
+            .unwrap().unwrap();
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::from_env().unwrap_or(wgpu::Backends::all()),
+            ..Default::default()
+        });
+        let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: None, force_fallback_adapter: false,
+        })).expect("physical bump upload adapter");
+        eprintln!("bump_upload_adapter {:?}", adapter.get_info());
+        let (device, queue) = pollster::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor::default(), None)).expect("bump upload device");
+        let oversized = ValidatedBumpPayload {
+            vertices: owned.vertices.clone(),
+            images: vec![ValidatedBumpImage {
+                width: device.limits().max_texture_dimension_2d + 1,
+                height: 1, clamp_s: false, clamp_t: false, rgb: Vec::new(),
+            }],
+        };
+        assert!(upload_bump_payload(&device, &queue, &oversized).is_err());
+        let gpu = upload_bump_payload(&device, &queue, &owned).expect("bump upload");
+        let image_bytes = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump image readback"), size: 256,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let vertex_bytes = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump vertex readback"), size: 44,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
+        encoder.copy_texture_to_buffer(gpu.images[0].texture.as_image_copy(),
+            wgpu::TexelCopyBufferInfo { buffer: &image_bytes,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                    bytes_per_row: Some(256), rows_per_image: Some(1) } },
+            wgpu::Extent3d { width: 2, height: 1, depth_or_array_layers: 1 });
+        encoder.copy_buffer_to_buffer(&gpu.vertices, 0, &vertex_bytes, 0, 44);
+        queue.submit([encoder.finish()]);
+        let map = |buffer: &wgpu::Buffer| {
+            let (sender, receiver) = std::sync::mpsc::channel();
+            buffer.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+                let _ = sender.send(result);
+            });
+            let _ = device.poll(wgpu::Maintain::Wait);
+            receiver.recv_timeout(std::time::Duration::from_secs(20))
+                .expect("bump upload readback callback").expect("bump upload readback");
+            let bytes = buffer.slice(..).get_mapped_range().to_vec();
+            buffer.unmap();
+            bytes
+        };
+        let pixels = map(&image_bytes);
+        let vertices = map(&vertex_bytes);
+        eprintln!("bump_upload_pixels {:?}", &pixels[..8]);
+        assert_eq!(&pixels[..8], &[128, 128, 255, 255, 240, 128, 128, 255]);
+        assert_eq!(&vertices[..], bytemuck::bytes_of(&vertex));
+    }
+
+    #[test]
+    #[ignore = "requires a selected physical GPU; run with --ignored"]
+    fn bump_abi_payload_renders_with_dedicated_shader() {
+        let bump_vertex = CoinWgpuBumpVertex {
+            coord: [0.5, 0.5, 0.0, 1.0], tangent_s: [1.0, 0.0, 0.0],
+            tangent_t: [0.0, 1.0, 0.0], image_slot: 1,
+        };
+        let bump_vertices = [bump_vertex, bump_vertex, bump_vertex,
+            CoinWgpuBumpVertex { image_slot: 2, ..bump_vertex },
+            CoinWgpuBumpVertex { image_slot: 2, ..bump_vertex },
+            CoinWgpuBumpVertex { image_slot: 2, ..bump_vertex }];
+        let rgb = [128u8, 128, 255];
+        let inverted_rgb = [128u8, 128, 0];
+        let images = [CoinWgpuBumpImage {
+            width: 1, height: 1, clamp_s: 0, clamp_t: 0,
+            rgb: rgb.as_ptr(), rgb_len: 3,
+        }, CoinWgpuBumpImage {
+            width: 1, height: 1, clamp_s: 0, clamp_t: 0,
+            rgb: inverted_rgb.as_ptr(), rgb_len: 3,
+        }];
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.vertex_count = 6;
+        frame.bump_vertices = bump_vertices.as_ptr();
+        frame.bump_vertex_count = 6;
+        frame.bump_images = images.as_ptr();
+        frame.bump_image_count = 2;
+        let owned = validate_bump_payload(&frame, std::ptr::null_mut(), 0)
+            .unwrap().unwrap();
+        let indices = [0u32, 1, 2, 3, 4, 5];
+        let draw = CoinWgpuDraw { topology: 0, first_index: 0, index_count: 3,
+            ..CoinWgpuDraw::zeroed() };
+        let inverted_draw = CoinWgpuDraw { first_index: 3, ..draw };
+        let slots = bump_image_slots_for_draws(&owned, &indices, &[draw, inverted_draw])
+            .expect("two image slots");
+        assert_eq!(slots, [Some(0), Some(1)]);
+        let instance = wgpu::Instance::new(&wgpu::InstanceDescriptor {
+            backends: wgpu::Backends::from_env().unwrap_or(wgpu::Backends::all()),
+            ..Default::default()
+        });
+        let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
+            power_preference: wgpu::PowerPreference::HighPerformance,
+            compatible_surface: None, force_fallback_adapter: false,
+        })).expect("physical bump draw adapter");
+        eprintln!("bump_abi_draw_adapter {:?}", adapter.get_info());
+        let (device, queue) = pollster::block_on(adapter.request_device(
+            &wgpu::DeviceDescriptor::default(), None)).expect("bump draw device");
+        let gpu = upload_bump_payload(&device, &queue, &owned).expect("bump draw upload");
+        let pipeline = create_bump_pipeline(&device, wgpu::TextureFormat::Rgba8Unorm,
+                                            None, "fs_main", None);
+        let base_pipeline = create_bump_base_pipeline(&device,
+            wgpu::TextureFormat::Rgba8Unorm, None);
+        let specular_pipeline = create_bump_pipeline(&device,
+            wgpu::TextureFormat::Rgba8Unorm, None, "fs_specular", None);
+        let additive_specular_pipeline = create_bump_pipeline(&device,
+            wgpu::TextureFormat::Rgba8Unorm, None, "fs_specular",
+            Some(wgpu::BlendState {
+                color: wgpu::BlendComponent {
+                    src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One,
+                    operation: wgpu::BlendOperation::Add,
+                },
+                alpha: wgpu::BlendComponent {
+                    src_factor: wgpu::BlendFactor::One,
+                    dst_factor: wgpu::BlendFactor::One,
+                    operation: wgpu::BlendOperation::Add,
+                },
+            }));
+        let mut vertices = [CoinWgpuVertex::zeroed(); 6];
+        vertices[0].position = [-1.0, -1.0, 0.0];
+        vertices[1].position = [3.0, -1.0, 0.0];
+        vertices[2].position = [-1.0, 3.0, 0.0];
+        vertices[3] = vertices[0];
+        vertices[4] = vertices[1];
+        vertices[5] = vertices[2];
+        for vertex in &mut vertices {
+            vertex.normal = [0.0, 0.0, 1.0];
+            vertex.texcoord = [0.5,0.5,0.0,1.0];
+        }
+        let positions = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI main vertices"),
+            size: std::mem::size_of_val(&vertices) as u64,
+            usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        queue.write_buffer(&positions, 0, bytemuck::cast_slice(&vertices));
+        let index_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI indices"), size: std::mem::size_of_val(&indices) as u64,
+            usage: wgpu::BufferUsages::INDEX | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        queue.write_buffer(&index_buffer, 0, bytemuck::cast_slice(&indices));
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.model_view = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0, 0.0,0.0,-5.0,1.0];
+        state.model_view_projection = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+                                       0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0];
+        state.normal_matrix = state.model_view_projection;
+        state.light_count = 1;
+        state.lights[0].position_type = [0.0,0.0,0.0,0.0];
+        state.lights[0].direction_cutoff = [0.0,0.0,-1.0,0.0];
+        state.lights[0].color_intensity = [1.0,1.0,1.0,1.0];
+        let mut material = CoinWgpuMaterial::zeroed();
+        material.diffuse = [0.8,0.2,0.1,1.0];
+        material.specular = [0.5,0.25,0.125,1.0];
+        material.shininess = 0.5;
+        let uniforms = bump_uniforms_from_state(&state, &material)
+            .expect("bump state uniforms");
+        let uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI uniforms"), size: std::mem::size_of_val(&uniforms) as u64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        queue.write_buffer(&uniform_buffer, 0, bytemuck::bytes_of(&uniforms));
+        let bind = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bump ABI image"), layout: &pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&gpu.images[0].view) },
+                wgpu::BindGroupEntry { binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&gpu.images[0].sampler) },
+            ],
+        });
+        let inverted_bind = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bump ABI second image"),
+            layout: &pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&gpu.images[slots[1].unwrap()].view) },
+                wgpu::BindGroupEntry { binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&gpu.images[slots[1].unwrap()].sampler) },
+            ],
+        });
+        let specular_bind = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bump ABI specular image"),
+            layout: &specular_pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&gpu.images[0].view) },
+                wgpu::BindGroupEntry { binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&gpu.images[0].sampler) },
+            ],
+        });
+        let additive_specular_bind = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bump ABI additive specular image"),
+            layout: &additive_specular_pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&gpu.images[0].view) },
+                wgpu::BindGroupEntry { binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&gpu.images[0].sampler) },
+            ],
+        });
+        let base_image = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("bump ABI opaque base image"),
+            size: wgpu::Extent3d { width: 1, height: 1, depth_or_array_layers: 1 },
+            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::TEXTURE_BINDING | wgpu::TextureUsages::COPY_DST,
+            view_formats: &[],
+        });
+        queue.write_texture(base_image.as_image_copy(), &[128,128,128,255],
+            wgpu::TexelCopyBufferLayout { offset: 0, bytes_per_row: Some(4),
+                rows_per_image: Some(1) }, base_image.size());
+        let base_image_view = base_image.create_view(&wgpu::TextureViewDescriptor::default());
+        let base_sampler = device.create_sampler(&wgpu::SamplerDescriptor::default());
+        let base_uniforms = BumpBaseUniforms { texture_matrix: [
+            1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+            0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0,
+        ] };
+        let base_uniform_buffer = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI base matrix"),
+            size: std::mem::size_of_val(&base_uniforms) as u64,
+            usage: wgpu::BufferUsages::UNIFORM | wgpu::BufferUsages::COPY_DST,
+            mapped_at_creation: false,
+        });
+        queue.write_buffer(&base_uniform_buffer, 0, bytemuck::bytes_of(&base_uniforms));
+        let base_bump_bind = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bump ABI base normal map"),
+            layout: &base_pipeline.get_bind_group_layout(0),
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0, resource: uniform_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&gpu.images[0].view) },
+                wgpu::BindGroupEntry { binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&gpu.images[0].sampler) },
+            ],
+        });
+        let base_texture_bind = device.create_bind_group(&wgpu::BindGroupDescriptor {
+            label: Some("bump ABI base color image"),
+            layout: &base_pipeline.get_bind_group_layout(1),
+            entries: &[
+                wgpu::BindGroupEntry { binding: 0,
+                    resource: base_uniform_buffer.as_entire_binding() },
+                wgpu::BindGroupEntry { binding: 1,
+                    resource: wgpu::BindingResource::TextureView(&base_image_view) },
+                wgpu::BindGroupEntry { binding: 2,
+                    resource: wgpu::BindingResource::Sampler(&base_sampler) },
+            ],
+        });
+        let target = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("bump ABI color"),
+            size: wgpu::Extent3d { width: 8, height: 8, depth_or_array_layers: 1 },
+            mip_level_count: 1, sample_count: 1, dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC,
+            view_formats: &[],
+        });
+        let target_view = target.create_view(&wgpu::TextureViewDescriptor::default());
+        let readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI color readback"), size: 8 * 256,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let specular_readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI specular readback"), size: 8 * 256,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let composed_readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI composed readback"), size: 8 * 256,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let base_readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI opaque base readback"), size: 8 * 256,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let inverted_readback = device.create_buffer(&wgpu::BufferDescriptor {
+            label: Some("bump ABI second image readback"), size: 8 * 256,
+            usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+            mapped_at_creation: false,
+        });
+        let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("bump ABI diffuse"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &target_view, resolve_target: None,
+                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store },
+                })],
+                depth_stencil_attachment: None, timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            pass.set_pipeline(&pipeline);
+            pass.set_bind_group(0, &bind, &[]);
+            pass.set_vertex_buffer(0, positions.slice(..));
+            pass.set_vertex_buffer(1, gpu.vertices.slice(..));
+            pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(draw.first_index..draw.first_index + draw.index_count, 0, 0..1);
+        }
+        encoder.copy_texture_to_buffer(target.as_image_copy(),
+            wgpu::TexelCopyBufferInfo { buffer: &readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                    bytes_per_row: Some(256), rows_per_image: Some(8) } }, target.size());
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("bump ABI specular"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &target_view, resolve_target: None,
+                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store },
+                })],
+                depth_stencil_attachment: None, timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            pass.set_pipeline(&specular_pipeline);
+            pass.set_bind_group(0, &specular_bind, &[]);
+            pass.set_vertex_buffer(0, positions.slice(..));
+            pass.set_vertex_buffer(1, gpu.vertices.slice(..));
+            pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(draw.first_index..draw.first_index + draw.index_count, 0, 0..1);
+        }
+        encoder.copy_texture_to_buffer(target.as_image_copy(),
+            wgpu::TexelCopyBufferInfo { buffer: &specular_readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                    bytes_per_row: Some(256), rows_per_image: Some(8) } }, target.size());
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("bump ABI diffuse and additive specular"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &target_view, resolve_target: None,
+                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store },
+                })],
+                depth_stencil_attachment: None, timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            pass.set_pipeline(&pipeline);
+            pass.set_bind_group(0, &bind, &[]);
+            pass.set_vertex_buffer(0, positions.slice(..));
+            pass.set_vertex_buffer(1, gpu.vertices.slice(..));
+            pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(draw.first_index..draw.first_index + draw.index_count, 0, 0..1);
+            pass.set_pipeline(&additive_specular_pipeline);
+            pass.set_bind_group(0, &additive_specular_bind, &[]);
+            pass.draw_indexed(draw.first_index..draw.first_index + draw.index_count, 0, 0..1);
+        }
+        encoder.copy_texture_to_buffer(target.as_image_copy(),
+            wgpu::TexelCopyBufferInfo { buffer: &composed_readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                    bytes_per_row: Some(256), rows_per_image: Some(8) } }, target.size());
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("bump ABI opaque base texture"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &target_view, resolve_target: None,
+                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store },
+                })],
+                depth_stencil_attachment: None, timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            pass.set_pipeline(&base_pipeline);
+            pass.set_bind_group(0, &base_bump_bind, &[]);
+            pass.set_bind_group(1, &base_texture_bind, &[]);
+            pass.set_vertex_buffer(0, positions.slice(..));
+            pass.set_vertex_buffer(1, gpu.vertices.slice(..));
+            pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(draw.first_index..draw.first_index + draw.index_count, 0, 0..1);
+        }
+        encoder.copy_texture_to_buffer(target.as_image_copy(),
+            wgpu::TexelCopyBufferInfo { buffer: &base_readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                    bytes_per_row: Some(256), rows_per_image: Some(8) } }, target.size());
+        {
+            let mut pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label: Some("bump ABI second normal image"),
+                color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                    view: &target_view, resolve_target: None,
+                    ops: wgpu::Operations { load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
+                        store: wgpu::StoreOp::Store },
+                })],
+                depth_stencil_attachment: None, timestamp_writes: None,
+                occlusion_query_set: None,
+            });
+            pass.set_pipeline(&pipeline);
+            pass.set_bind_group(0, &inverted_bind, &[]);
+            pass.set_vertex_buffer(0, positions.slice(..));
+            pass.set_vertex_buffer(1, gpu.vertices.slice(..));
+            pass.set_index_buffer(index_buffer.slice(..), wgpu::IndexFormat::Uint32);
+            pass.draw_indexed(inverted_draw.first_index..inverted_draw.first_index +
+                              inverted_draw.index_count, 0, 0..1);
+        }
+        encoder.copy_texture_to_buffer(target.as_image_copy(),
+            wgpu::TexelCopyBufferInfo { buffer: &inverted_readback,
+                layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                    bytes_per_row: Some(256), rows_per_image: Some(8) } }, target.size());
+        queue.submit([encoder.finish()]);
+        let (sender, receiver) = std::sync::mpsc::channel();
+        readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+        let _ = device.poll(wgpu::Maintain::Wait);
+        receiver.recv_timeout(std::time::Duration::from_secs(20))
+            .expect("bump ABI color callback").expect("bump ABI color readback");
+        let mapped = readback.slice(..).get_mapped_range();
+        let offset = 4 * 256 + 4 * 4;
+        let pixel: [u8; 4] = mapped[offset..offset + 4].try_into().unwrap();
+        drop(mapped);
+        readback.unmap();
+        eprintln!("bump_abi_draw_pixel {:?}", pixel);
+        assert!(pixel[0].abs_diff(204) <= 1 && pixel[1].abs_diff(51) <= 1 &&
+            pixel[2].abs_diff(26) <= 1 && pixel[3] == 255);
+        let (sender, receiver) = std::sync::mpsc::channel();
+        composed_readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+        let _ = device.poll(wgpu::Maintain::Wait);
+        receiver.recv_timeout(std::time::Duration::from_secs(20))
+            .expect("bump composed callback").expect("bump composed readback");
+        let mapped = composed_readback.slice(..).get_mapped_range();
+        let composed: [u8; 4] = mapped[offset..offset + 4].try_into().unwrap();
+        drop(mapped);
+        composed_readback.unmap();
+        eprintln!("bump_abi_composed_pixel {:?}", composed);
+        assert!(composed[0] == 255 && composed[1].abs_diff(115) <= 1 &&
+            composed[2].abs_diff(57) <= 1 && composed[3] == 255);
+        let (sender, receiver) = std::sync::mpsc::channel();
+        base_readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+        let _ = device.poll(wgpu::Maintain::Wait);
+        receiver.recv_timeout(std::time::Duration::from_secs(20))
+            .expect("bump base callback").expect("bump base readback");
+        let mapped = base_readback.slice(..).get_mapped_range();
+        let base_pixel: [u8; 4] = mapped[offset..offset + 4].try_into().unwrap();
+        drop(mapped);
+        base_readback.unmap();
+        eprintln!("bump_abi_base_pixel {:?}", base_pixel);
+        assert!(base_pixel[0].abs_diff(102) <= 1 &&
+            base_pixel[1].abs_diff(26) <= 1 &&
+            base_pixel[2].abs_diff(13) <= 1 && base_pixel[3] == 255);
+        let (sender, receiver) = std::sync::mpsc::channel();
+        inverted_readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+        let _ = device.poll(wgpu::Maintain::Wait);
+        receiver.recv_timeout(std::time::Duration::from_secs(20))
+            .expect("bump second image callback").expect("bump second image readback");
+        let mapped = inverted_readback.slice(..).get_mapped_range();
+        let inverted: [u8; 4] = mapped[offset..offset + 4].try_into().unwrap();
+        drop(mapped);
+        inverted_readback.unmap();
+        eprintln!("bump_abi_second_image_pixel {:?}", inverted);
+        assert_eq!(inverted, [0,0,0,255]);
+        let (sender, receiver) = std::sync::mpsc::channel();
+        specular_readback.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+            let _ = sender.send(result);
+        });
+        let _ = device.poll(wgpu::Maintain::Wait);
+        receiver.recv_timeout(std::time::Duration::from_secs(20))
+            .expect("bump ABI specular callback").expect("bump ABI specular readback");
+        let mapped = specular_readback.slice(..).get_mapped_range();
+        let specular: [u8; 4] = mapped[offset..offset + 4].try_into().unwrap();
+        drop(mapped);
+        specular_readback.unmap();
+        eprintln!("bump_abi_specular_pixel {:?}", specular);
+        for (actual, expected) in specular.iter().zip([127u8,64,32,254]) {
+            assert!(actual.abs_diff(expected) <= 1, "specular ABI pixel {specular:?}");
+        }
+        state.depth_test = 1;
+        state.depth_write = 1;
+        state.depth_function = 3;
+        // Private ABI: 0 disables channel writes; 1 explicitly enables RGBA.
+        state.color_write = 1;
+        state.viewport = [0,0,8,8];
+        let depth = device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("bump encoder depth"),
+            size: target.size(), mip_level_count: 1, sample_count: 1,
+            dimension: wgpu::TextureDimension::D2,
+            format: wgpu::TextureFormat::Depth32Float,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+            view_formats: &[],
+        });
+        let depth_view = depth.create_view(&wgpu::TextureViewDescriptor::default());
+        let pipeline_cache = Mutex::new(HashMap::new());
+        let read_encoder_pixel = |draw_vertices: &[CoinWgpuVertex], draws: &[CoinWgpuDraw],
+                                  st: CoinWgpuRenderState,
+                                  textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler]| {
+            let command = encode_bump_opaque_frame(&device, &queue, Some(&pipeline_cache), None, draw_vertices,
+                &indices, draws, &[st], &[material], textures, samplers, &owned, &target_view,
+                wgpu::TextureFormat::Rgba8Unorm, &depth_view, [8,8], [0.0,0.0,0.0,1.0])
+                .expect("bump frame encoder");
+            let output = device.create_buffer(&wgpu::BufferDescriptor {
+                label: Some("bump frame encoder readback"), size: 8 * 256,
+                usage: wgpu::BufferUsages::COPY_DST | wgpu::BufferUsages::MAP_READ,
+                mapped_at_creation: false,
+            });
+            let mut copy = device.create_command_encoder(&wgpu::CommandEncoderDescriptor::default());
+            copy.copy_texture_to_buffer(target.as_image_copy(),
+                wgpu::TexelCopyBufferInfo { buffer: &output,
+                    layout: wgpu::TexelCopyBufferLayout { offset: 0,
+                        bytes_per_row: Some(256), rows_per_image: Some(8) } }, target.size());
+            queue.submit([command, copy.finish()]);
+            let (sender, receiver) = std::sync::mpsc::channel();
+            output.slice(..).map_async(wgpu::MapMode::Read, move |result| {
+                let _ = sender.send(result);
+            });
+            let _ = device.poll(wgpu::Maintain::Wait);
+            receiver.recv_timeout(std::time::Duration::from_secs(20))
+                .expect("bump encoder callback").expect("bump encoder readback");
+            let mapped = output.slice(..).get_mapped_range();
+            let pixel: [u8; 4] = mapped[offset..offset + 4].try_into().unwrap();
+            drop(mapped);
+            output.unmap();
+            pixel
+        };
+        let encoded = read_encoder_pixel(&vertices, &[draw], state, &[], &[]);
+        eprintln!("bump_frame_encoded_pixel {:?}", encoded);
+        assert_eq!(encoded, [255,115,57,255]);
+        let encoded_two = read_encoder_pixel(&vertices, &[draw, inverted_draw], state, &[], &[]);
+        eprintln!("bump_frame_two_draws_pixel {:?}", encoded_two);
+        assert_eq!(encoded_two, [0,0,0,255]);
+        let mut textured = state;
+        textured.has_texture = 1;
+        textured.texture_matrix = base_uniforms.texture_matrix;
+        let base_rgba = [128u8,128,128,255];
+        let base_source = CoinWgpuTexture { width: 1, height: 1, format: 0, reserved: 0,
+            content_digest: 0, pixels: base_rgba.as_ptr(), pixel_bytes_len: 4 };
+        let base_settings = CoinWgpuSampler { wrap_s: 0, wrap_t: 0, filter: 0, reserved: 0 };
+        let encoded_base = read_encoder_pixel(&vertices, &[draw], textured, &[base_source], &[base_settings]);
+        eprintln!("bump_frame_textured_pixel {:?}", encoded_base);
+        for (actual, expected) in encoded_base.iter().zip([229u8,90,45,255]) {
+            assert!(actual.abs_diff(expected) <= 1, "textured bump encoder {encoded_base:?}");
+        }
+        let srgb_source = CoinWgpuTexture { format: 3, ..base_source };
+        let encoded_srgb = read_encoder_pixel(&vertices, &[draw], textured, &[srgb_source], &[base_settings]);
+        eprintln!("bump_frame_srgb_base_pixel {:?}", encoded_srgb);
+        // 128 sRGB decodes to 0.21586 linear. The diffuse contribution
+        // changes; the independently lit specular contribution does not.
+        for (actual, expected) in encoded_srgb.iter().zip([171u8,75,37,255]) {
+            assert!(actual.abs_diff(expected) <= 2, "sRGB bump base {encoded_srgb:?}");
+        }
+        let repeated_base = encode_bump_opaque_frame(&device, &queue,
+            Some(&pipeline_cache), None, &vertices, &indices, &[draw,draw], &[textured],
+            &[material], &[base_source], &[base_settings], &owned, &target_view,
+            wgpu::TextureFormat::Rgba8Unorm, &depth_view, [8,8], [0.0,0.0,0.0,1.0])
+            .expect("two draws sharing a bump base image");
+        drop(repeated_base);
+        LAST_BUMP_BASE_IMAGE_UPLOADS.with(|count| assert_eq!(count.get(), 1,
+            "two draws sharing texture and sampler upload the base image once"));
+        eprintln!("bump_frame_shared_base draws=2 image_uploads=1");
+        let base_cache = Mutex::new(BumpBaseCache::default());
+        for serial in 1..=2 {
+            let command = encode_bump_opaque_frame(&device, &queue,
+                Some(&pipeline_cache), Some((&base_cache, serial, serial - 1)),
+                &vertices, &indices, &[draw], &[textured], &[material],
+                &[base_source], &[base_settings], &owned, &target_view,
+                wgpu::TextureFormat::Rgba8Unorm, &depth_view, [8,8], [0.0,0.0,0.0,1.0])
+                .expect("stable bump base across frames");
+            queue.submit([command]);
+        }
+        let changed_rgba = [64u8,128,128,255];
+        let changed_source = CoinWgpuTexture { pixels: changed_rgba.as_ptr(), ..base_source };
+        let command = encode_bump_opaque_frame(&device, &queue,
+            Some(&pipeline_cache), Some((&base_cache, 3, 2)),
+            &vertices, &indices, &[draw], &[textured], &[material],
+            &[changed_source], &[base_settings], &owned, &target_view,
+            wgpu::TextureFormat::Rgba8Unorm, &depth_view, [8,8], [0.0,0.0,0.0,1.0])
+            .expect("changed bytes with unchanged digest invalidate bump base");
+        queue.submit([command]);
+        let _ = device.poll(wgpu::Maintain::Wait);
+        let cache = base_cache.lock().unwrap();
+        assert_eq!(cache.uploads, 2);
+        assert_eq!(cache.hits, 1);
+        eprintln!("bump_base_cross_frame_cache uploads={} hits={}", cache.uploads, cache.hits);
+        drop(cache);
+        let command = encode_bump_opaque_frame(&device, &queue,
+            Some(&pipeline_cache), Some((&base_cache, 4, 3)),
+            &vertices, &indices, &[draw], &[textured], &[material],
+            &[srgb_source], &[base_settings], &owned, &target_view,
+            wgpu::TextureFormat::Rgba8Unorm, &depth_view, [8,8], [0.0,0.0,0.0,1.0])
+            .expect("sRGB and linear base must have different cache entries");
+        queue.submit([command]);
+        assert_eq!(base_cache.lock().unwrap().uploads, 3,
+            "sRGB reinterpretation must upload a separate texture");
+        let large_pixels = vec![128u8; 512 * 512 * 4];
+        let mut large_pixels = large_pixels;
+        for alpha in large_pixels.iter_mut().skip(3).step_by(4) { *alpha = 255; }
+        let large_source = CoinWgpuTexture { width: 512, height: 512,
+            content_digest: 0xBACE, pixels: large_pixels.as_ptr(),
+            pixel_bytes_len: large_pixels.len() as u64, ..base_source };
+        let timing_cache = Mutex::new(BumpBaseCache::default());
+        let mut uncached_base_ms = Vec::new();
+        let mut cached_base_ms = Vec::new();
+        let mut serial = 1;
+        for cached in [false, true, true, false] {
+            for _ in 0..12 {
+                let start = std::time::Instant::now();
+                let cache = if cached { Some((&timing_cache, serial, serial - 1)) }
+                    else { None };
+                let command = encode_bump_opaque_frame(&device, &queue,
+                    Some(&pipeline_cache), cache, &vertices, &indices, &[draw],
+                    &[textured], &[material], &[large_source], &[base_settings],
+                    &owned, &target_view, wgpu::TextureFormat::Rgba8Unorm,
+                    &depth_view, [8,8], [0.0,0.0,0.0,1.0])
+                    .expect("large bump base timing frame");
+                queue.submit([command]);
+                let _ = device.poll(wgpu::Maintain::Wait);
+                let elapsed_ms = start.elapsed().as_secs_f64() * 1000.0;
+                if cached { cached_base_ms.push(elapsed_ms); }
+                else { uncached_base_ms.push(elapsed_ms); }
+                serial += 1;
+            }
+        }
+        uncached_base_ms.sort_by(f64::total_cmp);
+        cached_base_ms.sort_by(f64::total_cmp);
+        let timing_counts = timing_cache.lock().unwrap();
+        eprintln!("bump_base_cache_bench image=512x512 rgba8 samples=24 uncached_median_ms={:.6} cached_median_ms={:.6} uploads={} hits={}",
+            uncached_base_ms[12], cached_base_ms[12],
+            timing_counts.uploads, timing_counts.hits);
+        drop(timing_counts);
+        let mip_pixels = [128u8,128,128,255, 128,128,128,255,
+                          128,128,128,255, 128,128,128,255, 128,128,128,255];
+        let mip_source = CoinWgpuTexture { width: 2, height: 2, format: 2, reserved: 0,
+            content_digest: 0, pixels: mip_pixels.as_ptr(), pixel_bytes_len: 20 };
+        let mip_settings = CoinWgpuSampler { wrap_s: 0, wrap_t: 0, filter: 2, reserved: 0 };
+        let encoded_mip = read_encoder_pixel(&vertices, &[draw], textured, &[mip_source], &[mip_settings]);
+        eprintln!("bump_frame_mipmapped_pixel {:?}", encoded_mip);
+        for (actual, expected) in encoded_mip.iter().zip([229u8,90,45,255]) {
+            assert!(actual.abs_diff(expected) <= 1, "mipmapped bump encoder {encoded_mip:?}");
+        }
+        let srgb_mip_source = CoinWgpuTexture { format: 4, ..mip_source };
+        let encoded_srgb_mip = read_encoder_pixel(&vertices, &[draw], textured,
+            &[srgb_mip_source], &[mip_settings]);
+        eprintln!("bump_frame_srgb_mip_pixel {:?}", encoded_srgb_mip);
+        for (actual, expected) in encoded_srgb_mip.iter().zip([171u8,75,37,255]) {
+            assert!(actual.abs_diff(expected) <= 2,
+                "mipmapped sRGB bump base {encoded_srgb_mip:?}");
+        }
+        for factor in [2u32,4,8,16] {
+            let anisotropic = CoinWgpuSampler { filter: 3, reserved: factor - 1,
+                ..mip_settings };
+            let pixel = read_encoder_pixel(&vertices, &[draw], textured,
+                &[mip_source], &[anisotropic]);
+            for (actual, expected) in pixel.iter().zip([229u8,90,45,255]) {
+                assert!(actual.abs_diff(expected) <= 1,
+                    "anisotropic bump factor {factor}: {pixel:?}");
+            }
+        }
+        eprintln!("bump_base_anisotropy factors=2,4,8,16 pixel=[229,90,45,255]");
+        let mut stripe_level = vec![0u8; 256 * 256 * 4];
+        for y in 0..256 {
+            for x in 0..256 {
+                let offset = (y * 256 + x) * 4;
+                stripe_level[offset] = if (y / 8) % 2 == 0 { 255 } else { 0 };
+                stripe_level[offset + 3] = 255;
+            }
+        }
+        let mut stripe_chain = Vec::new();
+        let mut side = 256usize;
+        loop {
+            stripe_chain.extend_from_slice(&stripe_level);
+            if side == 1 { break; }
+            let next_side = side / 2;
+            let mut next = vec![0u8; next_side * next_side * 4];
+            for y in 0..next_side {
+                for x in 0..next_side {
+                    for channel in 0..4 {
+                        let sum: u32 = [(0,0),(1,0),(0,1),(1,1)].iter()
+                            .map(|(dx,dy)| u32::from(stripe_level[
+                                (((2*y+dy)*side + 2*x+dx)*4)+channel]))
+                            .sum();
+                        next[(y*next_side+x)*4+channel] = ((sum+2)/4) as u8;
+                    }
+                }
+            }
+            stripe_level = next;
+            side = next_side;
+        }
+        let stripe_source = CoinWgpuTexture { width: 256, height: 256,
+            format: 2, content_digest: 0x5a71, pixels: stripe_chain.as_ptr(),
+            pixel_bytes_len: stripe_chain.len() as u64, ..base_source };
+        let mut patterned_vertices = vertices;
+        patterned_vertices[0].texcoord = [0.0,0.0,0.0,1.0];
+        patterned_vertices[1].texcoord = [2.0,0.0,0.0,1.0];
+        patterned_vertices[2].texcoord = [0.0,0.25,0.0,1.0];
+        let mut stripe_samples = [Vec::<u8>::new(), Vec::<u8>::new()];
+        for (index, factor) in [1u32,8].iter().enumerate() {
+            let settings = CoinWgpuSampler { filter: 3, reserved: factor-1,
+                ..mip_settings };
+            for step in 0..8 {
+                let mut translated = textured;
+                translated.texture_matrix[13] = step as f32 * 4.0 / 256.0;
+                let pixel = read_encoder_pixel(&patterned_vertices, &[draw],
+                    translated, &[stripe_source], &[settings]);
+                stripe_samples[index].push(pixel[0]);
+            }
+        }
+        eprintln!("bump_base_anisotropy_stripes factor1={:?} factor8={:?}",
+            stripe_samples[0], stripe_samples[1]);
+        let span = |values: &[u8]| values.iter().max().unwrap() - values.iter().min().unwrap();
+        assert!(span(&stripe_samples[0]) <= 4 && span(&stripe_samples[1]) >= 64,
+            "anisotropic filtering must retain the oblique stripe signal");
+        for rejected in [CoinWgpuSampler { filter: 3, reserved: 2, ..mip_settings },
+                         CoinWgpuSampler { filter: 2, reserved: 1, ..mip_settings }] {
+            assert!(encode_bump_opaque_frame(&device, &queue,
+                Some(&pipeline_cache), None, &vertices, &indices, &[draw],
+                &[textured], &[material], &[mip_source], &[rejected],
+                &owned, &target_view, wgpu::TextureFormat::Rgba8Unorm,
+                &depth_view, [8,8], [0.0,0.0,0.0,1.0]).is_err(),
+                "invalid anisotropy must reject before submission");
+        }
+        assert_eq!(pipeline_cache.lock().unwrap().len(), 1,
+            "untextured, textured and mipmapped draws reuse one pipeline set");
+        let mut no_color = state;
+        no_color.color_write = 0;
+        let encoded_no_color = read_encoder_pixel(&vertices, &[draw], no_color, &[], &[]);
+        eprintln!("bump_frame_zero_write_pixel {:?}", encoded_no_color);
+        assert_eq!(encoded_no_color, [0,0,0,255],
+            "zero channel writes preserve the authorial opaque black clear");
+        let encoded_restored = read_encoder_pixel(&vertices, &[draw], state, &[], &[]);
+        assert_eq!(encoded_restored, [255,115,57,255],
+            "restoring RGBA writes cannot reuse the zero-mask cached pipeline");
+        {
+            let cache = pipeline_cache.lock().unwrap();
+            let all = BumpPipelineKey { color_format: wgpu::TextureFormat::Rgba8Unorm,
+                depth_compare: wgpu::CompareFunction::LessEqual, sample_count: 1,
+                color_writes: wgpu::ColorWrites::ALL.bits() };
+            let none = BumpPipelineKey { color_format: wgpu::TextureFormat::Rgba8Unorm,
+                depth_compare: wgpu::CompareFunction::LessEqual, sample_count: 1,
+                color_writes: wgpu::ColorWrites::empty().bits() };
+            assert!(cache.contains_key(&all) && cache.contains_key(&none),
+                "color write ALL and NONE require their own exact pipeline keys");
+            assert_eq!(cache.len(), 2,
+                "the mask contracontrol adds only NONE to the original shared ALL pipeline");
+        }
+        let mut uncached_ms = Vec::new();
+        let mut cached_ms = Vec::new();
+        // Measure CPU encoding only. Alternating blocks limits drift, and the
+        // test deliberately makes no cross-driver latency assertion.
+        for cached in [false, true, true, false] {
+            for _ in 0..16 {
+                let start = std::time::Instant::now();
+                let command = encode_bump_opaque_frame(&device, &queue,
+                    if cached { Some(&pipeline_cache) } else { None }, None, &vertices,
+                    &indices, &[draw], &[state], &[material], &[], &[], &owned,
+                    &target_view, wgpu::TextureFormat::Rgba8Unorm, &depth_view,
+                    [8,8], [0.0,0.0,0.0,1.0]).expect("bump encoder timing");
+                let elapsed = start.elapsed().as_secs_f64() * 1000.0;
+                drop(command);
+                if cached { cached_ms.push(elapsed); } else { uncached_ms.push(elapsed); }
+            }
+        }
+        uncached_ms.sort_by(f64::total_cmp);
+        cached_ms.sort_by(f64::total_cmp);
+        eprintln!("bump_pipeline_cache_bench encoding_only samples=32 uncached_median_ms={:.6} cached_median_ms={:.6}",
+            uncached_ms[16], cached_ms[16]);
+        let mut uncached_submit_ms = Vec::new();
+        let mut cached_submit_ms = Vec::new();
+        for cached in [true, false, false, true] {
+            for _ in 0..16 {
+                let start = std::time::Instant::now();
+                let command = encode_bump_opaque_frame(&device, &queue,
+                    if cached { Some(&pipeline_cache) } else { None }, None, &vertices,
+                    &indices, &[draw], &[state], &[material], &[], &[], &owned,
+                    &target_view, wgpu::TextureFormat::Rgba8Unorm, &depth_view,
+                    [8,8], [0.0,0.0,0.0,1.0]).expect("bump submit timing");
+                queue.submit([command]);
+                let _ = device.poll(wgpu::Maintain::Wait);
+                let elapsed = start.elapsed().as_secs_f64() * 1000.0;
+                if cached { cached_submit_ms.push(elapsed); }
+                else { uncached_submit_ms.push(elapsed); }
+            }
+        }
+        uncached_submit_ms.sort_by(f64::total_cmp);
+        cached_submit_ms.sort_by(f64::total_cmp);
+        eprintln!("bump_pipeline_cache_bench encode_submit_wait samples=32 uncached_median_ms={:.6} cached_median_ms={:.6}",
+            uncached_submit_ms[16], cached_submit_ms[16]);
+        let mut emissive = material;
+        emissive.emission[0] = 0.1;
+        emissive.ambient[1] = 0.9;
+        assert!(encode_bump_opaque_frame(&device, &queue, None, None, &vertices,
+            &indices, &[draw], &[state], &[emissive], &[], &[], &owned, &target_view,
+            wgpu::TextureFormat::Rgba8Unorm, &depth_view, [8,8], [0.0,0.0,0.0,1.0]).is_ok());
+    }
+
+    #[test]
+    #[ignore = "requires a selected physical GPU; run with --ignored"]
+    fn bump_offscreen_ffi_submission_renders_pixel() {
+        let mut vertices = [CoinWgpuVertex::zeroed(); 3];
+        vertices[0].position = [-1.0,-1.0,0.0];
+        vertices[1].position = [3.0,-1.0,0.0];
+        vertices[2].position = [-1.0,3.0,0.0];
+        for vertex in &mut vertices { vertex.normal = [0.0,0.0,1.0]; }
+        let indices = [0u32,1,2];
+        let draw = CoinWgpuDraw { topology: 0, first_index: 0, index_count: 3,
+            render_state_slot: 0, ..CoinWgpuDraw::zeroed() };
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.model_view = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0, 0.0,0.0,-5.0,1.0];
+        state.model_view_projection = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+                                       0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0];
+        state.normal_matrix = state.model_view_projection;
+        state.light_count = 1;
+        state.lights[0].position_type = [0.0,0.0,0.0,0.0];
+        state.lights[0].direction_cutoff = [0.0,0.0,-1.0,0.0];
+        state.lights[0].color_intensity = [1.0,1.0,1.0,1.0];
+        state.depth_test = 1;
+        state.depth_write = 1;
+        state.depth_function = 3;
+        // Private ABI: 0 disables channel writes; 1 explicitly enables RGBA.
+        state.color_write = 1;
+        state.viewport = [0,0,8,8];
+        let mut material = CoinWgpuMaterial::zeroed();
+        material.diffuse = [0.8,0.2,0.1,1.0];
+        material.specular = [0.5,0.25,0.125,1.0];
+        material.shininess = 0.5;
+        let bump_vertex = CoinWgpuBumpVertex { coord: [0.5,0.5,0.0,1.0],
+            tangent_s: [1.0,0.0,0.0], tangent_t: [0.0,1.0,0.0], image_slot: 1 };
+        let bump_vertices = [bump_vertex; 3];
+        let rgb = [128u8,128,255];
+        let image = CoinWgpuBumpImage { width: 1, height: 1, clamp_s: 0,
+            clamp_t: 0, rgb: rgb.as_ptr(), rgb_len: 3 };
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.abi_version = COIN_WGPU_ABI_VERSION;
+        frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
+        frame.vertices = vertices.as_ptr(); frame.vertex_count = 3;
+        frame.indices = indices.as_ptr(); frame.index_count = 3;
+        frame.draws = &draw; frame.draw_count = 1;
+        frame.materials = &material; frame.material_count = 1;
+        frame.states = &state; frame.state_count = 1;
+        frame.bump_vertices = bump_vertices.as_ptr(); frame.bump_vertex_count = 3;
+        frame.bump_images = &image; frame.bump_image_count = 1;
+        frame.width = 8; frame.height = 8;
+        frame.clear_color = [0.0,0.0,0.0,1.0];
+        frame.sorted_layers_passes = 1;
+        let mut pixels = [0u8; 8 * 8 * 4];
+        let mut depth = [0.0f32; 8 * 8];
+        let mut target = CoinWgpuTarget { width: 8, height: 8,
+            color_buffer: pixels.as_mut_ptr(), color_buffer_len: pixels.len() as u64,
+            depth_buffer: depth.as_mut_ptr(), depth_buffer_len: depth.len() as u64,
+            submission_serial: 0, device_id: 0, sample_count: 1 };
+        let mut error = [0i8; 512];
+        let status = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
+        let message = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
+        assert_eq!(status, CoinWgpuStatus::Ok, "{message}");
+        let offset = (4 * 8 + 4) * 4;
+        let pixel: [u8; 4] = pixels[offset..offset+4].try_into().unwrap();
+        eprintln!("bump_offscreen_ffi_pixel {:?}", pixel);
+        assert_eq!(pixel, [255,115,57,255]);
+        assert!(target.submission_serial > 0);
+        let before_zero_write = target.submission_serial;
+        state.color_write = 0;
+        pixels.fill(0x65);
+        let status = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
+        let message = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
+        assert_eq!(status, CoinWgpuStatus::Ok, "{message}");
+        let no_color: [u8; 4] = pixels[offset..offset+4].try_into().unwrap();
+        eprintln!("bump_offscreen_ffi_zero_write_pixel {:?}", no_color);
+        assert_eq!(no_color, [0,0,0,255],
+            "zero channel writes preserve authorial clear rather than stale color");
+        assert!(target.submission_serial > before_zero_write);
+        let before_write_recovery = target.submission_serial;
+        state.color_write = 1;
+        let status = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
+        let message = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
+        assert_eq!(status, CoinWgpuStatus::Ok, "{message}");
+        let recovered: [u8; 4] = pixels[offset..offset+4].try_into().unwrap();
+        assert_eq!(recovered, [255,115,57,255],
+            "same target restores the complete diffuse plus specular result");
+        assert!(target.submission_serial > before_write_recovery);
+        let first_serial = target.submission_serial;
+        state.depth_function = 2;
+        pixels.fill(0);
+        let status = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
+        let message = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
+        assert_eq!(status, CoinWgpuStatus::Ok, "{message}");
+        let less_pixel: [u8; 4] = pixels[offset..offset+4].try_into().unwrap();
+        eprintln!("bump_offscreen_ffi_less_pixel {:?}", less_pixel);
+        assert_eq!(less_pixel, [255,115,57,255]);
+        assert!(target.submission_serial > first_serial);
+    }
+
+    #[test]
+    #[ignore = "requires a selected physical GPU; run with --ignored"]
+    fn msaa_offscreen_ffi_resolves_partial_edge() {
+        let mut vertices = [CoinWgpuVertex::zeroed(); 3];
+        vertices[0].position = [-1.0, -1.0, 0.0];
+        vertices[1].position = [1.0, -1.0, 0.0];
+        vertices[2].position = [-1.0, 0.83, 0.0];
+        for vertex in &mut vertices { vertex.normal = [0.0, 0.0, 1.0]; }
+        let indices = [0u32, 1, 2];
+        let draw = CoinWgpuDraw { topology: 0, first_index: 0, index_count: 3,
+            render_state_slot: 0, ..CoinWgpuDraw::zeroed() };
+        let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.model_view = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+                            0.0,0.0,1.0,0.0, 0.0,0.0,-5.0,1.0];
+        state.model_view_projection = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
+                                       0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0];
+        state.normal_matrix = state.model_view_projection;
+        state.viewport = [0, 0, 32, 32];
+        state.depth_test = 1;
+        state.depth_write = 1;
+        state.depth_function = 3;
+        state.color_write = 1;
+        state.polygon_offset_primitive_style = 1;
+        let mut material = CoinWgpuMaterial::zeroed();
+        material.diffuse = [1.0, 0.0, 0.0, 1.0];
+        material.emission = [1.0, 0.0, 0.0, 1.0];
+        let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.abi_version = COIN_WGPU_ABI_VERSION;
+        frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
+        frame.vertices = vertices.as_ptr(); frame.vertex_count = 3;
+        frame.indices = indices.as_ptr(); frame.index_count = 3;
+        frame.draws = &draw; frame.draw_count = 1;
+        frame.materials = &material; frame.material_count = 1;
+        frame.states = &state; frame.state_count = 1;
+        frame.width = 32; frame.height = 32;
+        frame.clear_color = [0.0, 0.0, 0.0, 0.0];
+        frame.sorted_layers_passes = 1;
+        let mut captures = Vec::new();
+        for sample_count in [1, 2, 4] {
+            let mut pixels = vec![0u8; 32 * 32 * 4];
+            let mut target = CoinWgpuTarget { width: 32, height: 32,
+                color_buffer: pixels.as_mut_ptr(), color_buffer_len: pixels.len() as u64,
+                depth_buffer: std::ptr::null_mut(), depth_buffer_len: 0,
+                submission_serial: 0, device_id: 0, sample_count };
+            let mut error = [0i8; 512];
+            let status = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
+            let message = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
+            assert_eq!(status, CoinWgpuStatus::Ok, "{sample_count}x: {message}");
+            assert!(target.submission_serial > 0);
+            let partial = pixels.chunks_exact(4).filter(|pixel| pixel[3] > 0 && pixel[3] < 255).count();
+            eprintln!("msaa_offscreen sample_count={sample_count} partial_alpha={partial}");
+            captures.push((pixels, partial));
+        }
+        assert_eq!(captures[0].1, 0);
+        assert!(captures[1].1 > 0 && captures[2].1 > 0);
+        assert_ne!(captures[0].0, captures[2].0);
+    }
 }
 
 #[repr(C)]
@@ -619,7 +2650,9 @@ pub struct CoinWgpuTarget {
     pub depth_buffer_len: u64,
     pub submission_serial: u64,
     pub device_id: CoinWgpuDeviceId,
+    pub sample_count: u32,
 }
+const _: () = assert!(std::mem::size_of::<CoinWgpuTarget>() == 64);
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug)]
@@ -783,6 +2816,7 @@ struct PipelineKey {
     legacy_blend_alpha: bool,
     peel: bool,
     depth_write: bool,
+    color_write: u32,
     depth_compare: wgpu::CompareFunction,
     resolved_depth_bias: bool,
     depth_bias_constant: i32,
@@ -831,6 +2865,8 @@ struct RttTexture {
     opaque: bool,
     format: u32,
     mip_count: u32,
+    cube_face_size: u32,
+    cube_mipmapped: bool,
 }
 struct RetiredRttTexture {
     #[allow(dead_code)] // Retirement keeps the view alive until the submission fence.
@@ -997,10 +3033,12 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         a.alpha_test_reference.to_bits() != b.alpha_test_reference.to_bits() { return false; }
     a.light_direction == b.light_direction && a.light_color == b.light_color
         && a.light_intensity == b.light_intensity && a.has_light == b.has_light
-        && a.material_slot == b.material_slot && a.cull_mode == b.cull_mode
+        && a.material_slot == b.material_slot && a.flat_shadow_primary == b.flat_shadow_primary && a.cull_mode == b.cull_mode
         && a.front_face == b.front_face && a.light_model == b.light_model
         && a.texture_matrix == b.texture_matrix && a.has_texture == b.has_texture
         && a.texture_slot == b.texture_slot && a.sampler_slot == b.sampler_slot
+        && a.raster_texture_source_slot == b.raster_texture_source_slot
+        && a.raster_texture_coordinates == b.raster_texture_coordinates
         && a.extra_textures == b.extra_textures && a.texture_combines == b.texture_combines
         && a.texture_model == b.texture_model
         && a.texture_blend_color == b.texture_blend_color && a.viewport == b.viewport
@@ -1008,6 +3046,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
         && a.ambient_light == b.ambient_light && a.fog_mode == b.fog_mode
         && a.fog_color == b.fog_color && a.fog_start == b.fog_start
         && a.depth_test == b.depth_test && a.depth_write == b.depth_write
+        && a.color_write == b.color_write
         && a.depth_function == b.depth_function && a.depth_range == b.depth_range
         && a.polygon_offset_enabled == b.polygon_offset_enabled
         && a.polygon_offset_factor == b.polygon_offset_factor
@@ -1096,6 +3135,7 @@ fn camera_scene_eligible(
         && textures.is_empty() && samplers.is_empty()
         && states.iter().all(|s| (s.light_model == 0 || opaque_camera_batch(states, draws, order))
             && s.fog_mode == 0 && s.has_texture == 0 && s.texture_projection <= 1
+            && s.flat_shadow_primary == 0
             && s.extra_textures.iter().all(|t| t.enabled == 0))
         && materials.iter().all(|m| m.diffuse[3] == 1.0 && m.transparency == 0.0)
         && order.iter().all(|item| !item.blend)
@@ -1116,7 +3156,7 @@ fn camera_base(device: &DeviceState, f: &CoinWgpuFrameView,
 
 fn owned_camera_base(scene: &Arc<ValidatedScene>, generation: u64, f: &CoinWgpuFrameView,
                      states: &[CoinWgpuRenderState]) -> Option<Arc<ValidatedScene>> {
-    if f.frame_revision == 0 || f.texture_count != 0 || f.sampler_count != 0 { return None; }
+    if f.portable_module_count != 0 || f.frame_revision == 0 || f.texture_count != 0 || f.sampler_count != 0 { return None; }
     let geometry = &scene.geometry;
     if !geometry.instances.is_empty() && instancing::validate_counts(f).is_err() { return None; }
     if scene.generation != generation || scene.width != f.width || scene.height != f.height
@@ -1210,6 +3250,10 @@ mod camera_scene_tests;
 
 struct SurfaceSamplingProfile {
     policy: SamplingPolicy,
+    multisampled_peel: bool,
+    sample_depth: bool,
+    shadow_multitexture: bool,
+    bump_receiver: bool,
     shader_module: wgpu::ShaderModule,
     instanced_shader: wgpu::ShaderModule,
     instanced_bind_group_layout: wgpu::BindGroupLayout,
@@ -1228,44 +3272,65 @@ struct SurfaceSamplingProfile {
 }
 
 fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapter,
-                                   policy: SamplingPolicy) -> SurfaceSamplingProfile {
+                                   policy: SamplingPolicy, multisampled_peel: bool, sample_depth: bool, shadow_multitexture: bool) -> SurfaceSamplingProfile {
+    create_surface_sampling_profile_impl(device, adapter, policy, multisampled_peel, sample_depth, shadow_multitexture, false, None)
+}
+
+fn create_surface_sampling_profile_impl(device: &wgpu::Device, adapter: &wgpu::Adapter,
+                                   policy: SamplingPolicy, multisampled_peel: bool, sample_depth: bool, shadow_multitexture: bool, bump_receiver: bool,
+                                   portable_module: Option<(&portable::Module,u32)>) -> SurfaceSamplingProfile {
     let gl_depth_loads = adapter.get_info().backend == wgpu::Backend::Gl;
-    let shader_source = |source: &str| shader_profile::depth_load_profile(
-        &shader_profile::texture_specialization(&shader_profile::sampling_profile(source,
-            policy != SamplingPolicy::Native)), gl_depth_loads);
+    let shader_source = |source: &str| {
+        let source = portable_module.map_or_else(|| source.to_owned(), |(module,_)| portable::shader_source(source,module));
+        shader_profile::depth_load_profile(
+            &shader_profile::sample_depth_profile(&shader_profile::peeling_msaa_profile(
+                &shader_profile::texture_specialization(&shader_profile::sampling_profile(&source,
+                policy != SamplingPolicy::Native)), multisampled_peel), sample_depth), gl_depth_loads)
+    };
+    let trace_compile = |family: &str| {
+        if let Some((module,_)) = portable_module {
+            portable::trace_compile(module,policy,multisampled_peel,sample_depth,shadow_multitexture,family);
+        }
+    };
+    let module_mode = portable_module.map_or(0,|(_,mode)|mode);
+    trace_compile(match module_mode { 1 => "shadow4", 2 => "shadow8", _ => "surface" });
+    let main_source = if module_mode == 1 { shadow_receiver::four_map_multitexture_source() }
+        else if module_mode == 2 { shadow_receiver::eight_map_multitexture_source() }
+        else if bump_receiver { bump_receiver::source() }
+        else { shader_profile::without_shadows(WGSL_SHADER) };
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_standard.wgsl"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
-            &format!("{}{}",shader_profile::without_shadows(WGSL_SHADER),weighted::FRAGMENT)).into()),
+            &format!("{}{}",main_source,weighted::FRAGMENT)).into()),
     });
 
-    let instanced_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+    let instanced_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin opaque instances"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}", shader_profile::sampling_profile(&instancing::shader_source(), false), weighted::FRAGMENT)).into()),
-    });
+    }) };
 
-    let shadow_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+    let shadow_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin quality shadow receivers"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
-            &format!("{}{}",shadow_receiver::four_map_source(),weighted::FRAGMENT)).into()),
-    });
-    let shadow_eight_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            &format!("{}{}",if bump_receiver { bump_receiver::source() } else if shadow_multitexture { shadow_receiver::four_map_multitexture_source() } else { shadow_receiver::four_map_source() },weighted::FRAGMENT)).into()),
+    }) };
+    let shadow_eight_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin eight shadow receivers"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
-            &format!("{}{}",shadow_receiver::eight_map_source(),weighted::FRAGMENT)).into()),
-    });
-    let line_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+            &format!("{}{}",if bump_receiver { bump_receiver::eight_source() } else if shadow_multitexture { shadow_receiver::eight_map_multitexture_source() } else { shadow_receiver::eight_map_source() },weighted::FRAGMENT)).into()),
+    }) };
+    let line_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_line.wgsl"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",WGSL_LINE_SHADER,weighted::FRAGMENT)).into()),
-    });
+    }) };
 
-    let point_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
+    let point_shader = if portable_module.is_some() { shader.clone() } else { device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("coin_point.wgsl"),
         source: wgpu::ShaderSource::Wgsl(shader_source(
             &format!("{}{}",WGSL_POINT_SHADER,weighted::FRAGMENT)).into()),
-    });
+    }) };
 
     let storage_visibility = if device.limits().max_storage_buffers_per_shader_stage >= 1 {
         wgpu::ShaderStages::VERTEX_FRAGMENT
@@ -1307,7 +3372,7 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
                 sample_type: if gl_depth_loads { wgpu::TextureSampleType::Float { filterable: false } }
                     else { wgpu::TextureSampleType::Depth },
                 view_dimension: wgpu::TextureViewDimension::D2,
-                multisampled: false,
+                multisampled: multisampled_peel,
             },
             count: None,
         });
@@ -1317,11 +3382,12 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
         visibility: wgpu::ShaderStages::FRAGMENT,
         ty: wgpu::BindingType::Texture {
             sample_type: wgpu::TextureSampleType::Float { filterable: false },
-            view_dimension: wgpu::TextureViewDimension::D2,
+            view_dimension: if shadow_multitexture { wgpu::TextureViewDimension::D2Array } else { wgpu::TextureViewDimension::D2 },
             multisampled: false,
         },
         count: None,
     });
+    if !shadow_multitexture {
     layout_entries.push(wgpu::BindGroupLayoutEntry {
         binding: 21,
         visibility: wgpu::ShaderStages::FRAGMENT,
@@ -1346,6 +3412,21 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
             view_dimension: wgpu::TextureViewDimension::D2, multisampled: false,
         }, count: None,
     });
+    }
+    if bump_receiver {
+      layout_entries.push(wgpu::BindGroupLayoutEntry {binding:25,visibility:wgpu::ShaderStages::FRAGMENT,
+        ty:wgpu::BindingType::Texture {sample_type:wgpu::TextureSampleType::Float {filterable:true},view_dimension:wgpu::TextureViewDimension::D2,multisampled:false},count:None});
+      layout_entries.push(wgpu::BindGroupLayoutEntry {binding:26,visibility:wgpu::ShaderStages::FRAGMENT,
+        ty:wgpu::BindingType::Sampler(wgpu::SamplerBindingType::Filtering),count:None});
+    }
+    if portable_module.is_some() {
+        layout_entries.push(wgpu::BindGroupLayoutEntry {
+            binding: 27, visibility: wgpu::ShaderStages::FRAGMENT,
+            ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
+                has_dynamic_offset: false, min_binding_size: std::num::NonZeroU64::new(4096) },
+            count: None,
+        });
+    }
     let bind_group_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("Coin eight-unit texture program"),
         entries: &layout_entries,
@@ -1359,7 +3440,8 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
 
     let mut instanced_entries = layout_entries.clone();
     instanced_entries[0].ty = wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
-        has_dynamic_offset: true, min_binding_size: std::num::NonZeroU64::new(NATIVE_UNIFORM_BYTES as u64) };
+        has_dynamic_offset: true,
+        min_binding_size: std::num::NonZeroU64::new(std::mem::size_of::<CoinWgpuUniforms>() as u64) };
     instanced_entries.push(wgpu::BindGroupLayoutEntry {
         binding: 24, visibility: wgpu::ShaderStages::VERTEX,
         ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Storage { read_only: true },
@@ -1375,7 +3457,7 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
     });
 
     let eight_entries: Vec<_> = layout_entries.iter().copied()
-        .filter(|entry| !(10..18).contains(&entry.binding)).collect();
+        .filter(|entry| shadow_multitexture || !(10..18).contains(&entry.binding)).collect();
     let shadow_eight_layout = device.create_bind_group_layout(&wgpu::BindGroupLayoutDescriptor {
         label: Some("Coin bounded eight-map scene bindings"), entries: &eight_entries,
     });
@@ -1384,7 +3466,7 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
         ty: wgpu::BindingType::Buffer { ty: wgpu::BufferBindingType::Uniform,
             has_dynamic_offset: false, min_binding_size: None }, count: None,
     }];
-    for binding in 1..5 {
+    for binding in (1..5).filter(|_| !shadow_multitexture) {
         extra_entries.push(wgpu::BindGroupLayoutEntry {
             binding, visibility: wgpu::ShaderStages::FRAGMENT,
             ty: wgpu::BindingType::Texture {
@@ -1402,7 +3484,7 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
     });
 
     SurfaceSamplingProfile {
-        policy,
+        policy, multisampled_peel, sample_depth, shadow_multitexture, bump_receiver,
         shader_module: shader,
         instanced_shader, instanced_bind_group_layout, instanced_pipeline_layout,
         shadow_shader, shadow_eight_shader, shadow_eight_layout, shadow_extra_layout, shadow_eight_pipeline_layout,
@@ -1416,12 +3498,47 @@ fn create_surface_sampling_profile(device: &wgpu::Device, adapter: &wgpu::Adapte
 }
 
 impl DeviceState {
+    fn bump_receiver_profile(&self, policy: SamplingPolicy) -> Arc<SurfaceSamplingProfile> {
+        let key = (if policy == SamplingPolicy::Native { 0 } else { 1 }, false);
+        let mut cache = self.bump_receivers.lock().unwrap();
+        cache.entry(key).or_insert_with(|| Arc::new(create_surface_sampling_profile_impl(
+            &self.device, &self.adapter, policy, false, false, true, true, None))).clone()
+    }
     fn surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
         match policy {
             SamplingPolicy::Native => &self.surface_native,
             SamplingPolicy::Portable => self.surface_portable.get_or_init(||
-                create_surface_sampling_profile(&self.device, &self.adapter, policy)),
+                create_surface_sampling_profile(&self.device, &self.adapter, policy, false, false, false)),
         }
+    }
+    fn sample_depth_surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
+        let cache = match policy {
+            SamplingPolicy::Native => &self.surface_depth_native,
+            SamplingPolicy::Portable => &self.surface_depth_portable,
+        };
+        cache.get_or_init(|| create_surface_sampling_profile(&self.device, &self.adapter, policy, false, true, false))
+    }
+    fn shadow_multitexture_surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
+        let cache = match policy { SamplingPolicy::Native => &self.surface_shadow_multitexture_native,
+            SamplingPolicy::Portable => &self.surface_shadow_multitexture_portable };
+        cache.get_or_init(|| create_surface_sampling_profile(&self.device, &self.adapter, policy, false, false, true))
+    }
+    fn shadow_multitexture_depth_surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
+        let cache = match policy { SamplingPolicy::Native => &self.surface_shadow_multitexture_depth_native,
+            SamplingPolicy::Portable => &self.surface_shadow_multitexture_depth_portable };
+        cache.get_or_init(|| create_surface_sampling_profile(&self.device, &self.adapter, policy, false, true, true))
+    }
+    fn shadow_multitexture_peeling_surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
+        let cache = match policy { SamplingPolicy::Native => &self.surface_shadow_multitexture_peel_native,
+            SamplingPolicy::Portable => &self.surface_shadow_multitexture_peel_portable };
+        cache.get_or_init(|| create_surface_sampling_profile(&self.device, &self.adapter, policy, true, false, true))
+    }
+    fn peeling_surface_profile(&self, policy: SamplingPolicy) -> &SurfaceSamplingProfile {
+        let cache = match policy {
+            SamplingPolicy::Native => &self.surface_peel_native,
+            SamplingPolicy::Portable => &self.surface_peel_portable,
+        };
+        cache.get_or_init(|| create_surface_sampling_profile(&self.device, &self.adapter, policy, true, false, false))
     }
 }
 
@@ -1432,7 +3549,27 @@ struct DeviceState {
     queue: wgpu::Queue,
     surface_native: SurfaceSamplingProfile,
     surface_portable: OnceLock<SurfaceSamplingProfile>,
-    annotation_depth_pipeline: Mutex<Option<wgpu::RenderPipeline>>,
+    surface_depth_native: OnceLock<SurfaceSamplingProfile>,
+    surface_depth_portable: OnceLock<SurfaceSamplingProfile>,
+    surface_peel_native: OnceLock<SurfaceSamplingProfile>,
+    surface_peel_portable: OnceLock<SurfaceSamplingProfile>,
+    surface_shadow_multitexture_peel_native: OnceLock<SurfaceSamplingProfile>,
+    surface_shadow_multitexture_peel_portable: OnceLock<SurfaceSamplingProfile>,
+    shadow_multitexture_alpha_admission: Mutex<HashMap<(u32,u32),bool>>,
+    surface_shadow_multitexture_native: OnceLock<SurfaceSamplingProfile>,
+    surface_shadow_multitexture_portable: OnceLock<SurfaceSamplingProfile>,
+    surface_shadow_multitexture_depth_native: OnceLock<SurfaceSamplingProfile>,
+    surface_shadow_multitexture_depth_portable: OnceLock<SurfaceSamplingProfile>,
+    shadow_multitexture_depth_admission: [OnceLock<bool>; 3],
+    shadow_multitexture_admission: [OnceLock<bool>; 3],
+    annotation_depth_pipeline: Mutex<HashMap<u32, wgpu::RenderPipeline>>,
+    weighted_sample_support: Mutex<HashMap<u32, bool>>,
+    peeling_sample_support: Mutex<HashMap<u32, bool>>,
+    raster_image_pipeline: OnceLock<raster_image::Pipeline>,
+    bump_pipelines: Mutex<HashMap<BumpPipelineKey, Arc<BumpPipelines>>>,
+    bump_base_cache: Mutex<BumpBaseCache>,
+    bump_receivers: Mutex<HashMap<(u32,bool),Arc<SurfaceSamplingProfile>>>,
+    portable_profiles: Mutex<portable::ProfileCache>,
     depth_readback: Mutex<Option<depth_transfer::DepthTransfer>>,
     depth_snapshot: Mutex<Option<depth_transfer::DepthTransfer>>,
     pipeline_compilations: AtomicU64,
@@ -1529,12 +3666,16 @@ struct SurfaceRecord {
     config: Option<wgpu::SurfaceConfiguration>,
     framebuffer_size: (u32, u32),
     color_format: wgpu::TextureFormat,
+    sample_count: u32,
     suspended: bool,
     needs_reconfigure: bool,
     surface_generation: u64,
     configured_device_generation: u64,
     depth_texture: Option<wgpu::Texture>,
     depth_view: Option<wgpu::TextureView>,
+    msaa_color_texture: Option<wgpu::Texture>,
+    msaa_color_view: Option<wgpu::TextureView>,
+    presentation: Option<surface_present::Presentation>,
 }
 
 type ReadbackMapResult = Result<(), wgpu::BufferAsyncError>;
@@ -1667,6 +3808,18 @@ fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
 }
 
 static RUNTIME_CTX: Mutex<Option<RuntimeContext>> = Mutex::new(None);
+#[cfg(test)]
+fn gpu_test_instance() -> wgpu::Instance {
+    static INSTANCE: std::sync::OnceLock<wgpu::Instance> = std::sync::OnceLock::new();
+    let backends = wgpu::Backends::from_env().unwrap_or(wgpu::Backends::all());
+    let create = || wgpu::Instance::new(&wgpu::InstanceDescriptor {
+        backends, ..Default::default()
+    });
+    // A GL adapter's EGL context is thread-bound. The Vulkan tests can share
+    // one Instance while independently requesting logical Devices in parallel.
+    if backends == wgpu::Backends::GL { create() }
+    else { INSTANCE.get_or_init(create).clone() }
+}
 #[cfg(target_os = "android")]
 static ANDROID_RUNTIME_GENERATION: AtomicU64 = AtomicU64::new(0);
 static VALIDATED_FRAME_CACHE: Mutex<Option<(u64, Vec<composition::CompositionItem>)>> =
@@ -2109,14 +4262,28 @@ fn get_or_init_device_impl<'a>(
         && adapter.features().contains(timestamp_features);
     let mut required_features = if enable_timestamps { timestamp_features }
         else { wgpu::Features::empty() };
+    if adapter.features().contains(wgpu::Features::FLOAT32_FILTERABLE) {
+        required_features |= wgpu::Features::FLOAT32_FILTERABLE;
+    }
     if adapter.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
         required_features |= wgpu::Features::TEXTURE_COMPRESSION_BC;
+    }
+    // MULTISAMPLE_X2 is format-specific in wgpu. Enabling the adapter feature
+    // here makes the advertised 2x capability usable by future target profiles.
+    if adapter.features().contains(wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES) {
+        required_features |= wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES;
+    }
+    let mut required_limits = wgpu::Limits::default();
+    // Negotiate the real extended interface without excluding devices that
+    // still support the established smaller profiles.
+    if adapter.limits().max_inter_stage_shader_components >= 80 {
+        required_limits.max_inter_stage_shader_components = 80;
     }
     let (device, queue) = block_on(adapter.request_device(
         &wgpu::DeviceDescriptor {
             label: Some("Coin3D WebGPU Device"),
             required_features,
-            required_limits: wgpu::Limits::default(),
+            required_limits,
             memory_hints: wgpu::MemoryHints::Performance,
         },
         None,
@@ -2154,7 +4321,7 @@ fn get_or_init_device_impl<'a>(
         }));
     }
 
-    let surface_native = create_surface_sampling_profile(&device, &adapter, SamplingPolicy::Native);
+    let surface_native = create_surface_sampling_profile(&device, &adapter, SamplingPolicy::Native, false, false, false);
 
     if !isolated {
         DEVICE_LOST_OCCURRED.store(false, Ordering::SeqCst);
@@ -2229,7 +4396,27 @@ fn get_or_init_device_impl<'a>(
         queue,
         surface_native,
         surface_portable: OnceLock::new(),
-        annotation_depth_pipeline: Mutex::new(None),
+        surface_depth_native: OnceLock::new(),
+        surface_depth_portable: OnceLock::new(),
+        surface_peel_native: OnceLock::new(),
+        surface_peel_portable: OnceLock::new(),
+        surface_shadow_multitexture_peel_native: OnceLock::new(),
+        surface_shadow_multitexture_peel_portable: OnceLock::new(),
+        shadow_multitexture_alpha_admission: Mutex::new(HashMap::new()),
+        surface_shadow_multitexture_native: OnceLock::new(),
+        surface_shadow_multitexture_portable: OnceLock::new(),
+        surface_shadow_multitexture_depth_native: OnceLock::new(),
+        surface_shadow_multitexture_depth_portable: OnceLock::new(),
+        shadow_multitexture_depth_admission: std::array::from_fn(|_| OnceLock::new()),
+        shadow_multitexture_admission: std::array::from_fn(|_| OnceLock::new()),
+        annotation_depth_pipeline: Mutex::new(HashMap::new()),
+        weighted_sample_support: Mutex::new(HashMap::new()),
+        peeling_sample_support: Mutex::new(HashMap::new()),
+        raster_image_pipeline: OnceLock::new(),
+        bump_pipelines: Mutex::new(HashMap::new()),
+        bump_base_cache: Mutex::new(BumpBaseCache::default()),
+        bump_receivers: Mutex::new(HashMap::new()),
+        portable_profiles: Mutex::new(portable::ProfileCache::default()),
         depth_readback: Mutex::new(None),
         depth_snapshot: Mutex::new(None),
         pipeline_compilations: AtomicU64::new(0),
@@ -2271,11 +4458,12 @@ fn get_or_init_device<'a>(
     get_or_init_device_impl(runtime, target_surface, false, 0)
 
 }
-fn make_extra_device(id: CoinWgpuDeviceId, generation: u64) -> Result<DeviceState, String> {
+fn make_extra_device(runtime: &RuntimeContext, id: CoinWgpuDeviceId, generation: u64) -> Result<DeviceState, String> {
     // Only the default context owns surfaces. Every extra context requests its
-    // own logical Device/Queue; the physical adapter may be shared.
+    // own logical Device/Queue. Share the process runtime's Instance so device
+    // recreation does not race Vulkan loader instance teardown on other threads.
     let mut isolated = RuntimeContext {
-        instance: wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default()),
+        instance: runtime.instance.clone(),
         surfaces: HashMap::new(),
         device_state: None,
         device_generation: 0,
@@ -2319,7 +4507,7 @@ fn offscreen_device<'a>(runtime: &'a mut RuntimeContext, id: CoinWgpuDeviceId)
     let generation = *runtime.extra_generations.get(&id)
         .ok_or_else(|| format!("Unknown or destroyed WebGPU device {}", id))?;
     if !runtime.extra_devices.contains_key(&id) {
-        runtime.extra_devices.insert(id, make_extra_device(id, generation)?);
+        runtime.extra_devices.insert(id, make_extra_device(runtime, id, generation)?);
     }
     Ok(runtime.extra_devices.get_mut(&id).unwrap())
 }
@@ -2347,7 +4535,7 @@ pub extern "C" fn coin_wgpu_device_create(
             set_error(error_buf, error_buf_len, "WebGPU device ID space exhausted");
             return CoinWgpuStatus::OutOfMemory;
         }
-        let state = match make_extra_device(id, id) {
+        let state = match make_extra_device(runtime, id, id) {
             Ok(state) => state,
             Err(message) => {
                 set_error(error_buf, error_buf_len, &message);
@@ -2408,6 +4596,9 @@ fn configure_surface_record(
         record.needs_reconfigure = true;
         record.depth_texture = None;
         record.depth_view = None;
+        record.msaa_color_texture = None;
+        record.msaa_color_view = None;
+        record.presentation = None;
         return Ok(());
     }
 
@@ -2429,6 +4620,29 @@ fn configure_surface_record(
     } else {
         caps.formats[0]
     };
+    let presentation_format = if record.sample_count > 1 {
+        Some(surface_present::linear_format(chosen_format)
+            .ok_or("MSAA window presentation requires an RGBA8/BGRA8 surface")?)
+    } else { None };
+    if record.sample_count > 1 {
+        let required = if record.sample_count == 2 {
+            wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X2
+        } else {
+            wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4
+        };
+        if !device_state.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba8Unorm).flags.contains(required) ||
+            !device_state.adapter.get_texture_format_features(wgpu::TextureFormat::Depth32Float).flags.contains(required) ||
+            (record.sample_count == 2 && !device_state.device.features().contains(
+                wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES)) {
+            return Err("Exact window MSAA sample count unavailable for color/depth".into());
+        }
+    }
+
+    if presentation_format.is_some() &&
+        !device_state.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba8Unorm)
+            .allowed_usages.contains(wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING) {
+        return Err("MSAA window resolve requires renderable/sampleable RGBA8".into());
+    }
 
     // The opt-in benchmark needs a non-vsync surface to compare with GLX/BGFX.
     // Refuse the campaign when the surface cannot provide one.
@@ -2460,7 +4674,8 @@ fn configure_surface_record(
         height,
         present_mode: chosen_present,
         alpha_mode: chosen_alpha,
-        view_formats: vec![],
+        view_formats: presentation_format.filter(|format| *format != chosen_format)
+            .into_iter().collect(),
         desired_maximum_frame_latency: 2,
     };
 
@@ -2475,19 +4690,38 @@ fn configure_surface_record(
             depth_or_array_layers: 1,
         },
         mip_level_count: 1,
-        sample_count: 1,
+        sample_count: record.sample_count,
         dimension: wgpu::TextureDimension::D2,
         format: wgpu::TextureFormat::Depth32Float,
-        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
+        // A live surface may switch from ordinary draws to peeling without
+        // reconfiguration. Its opaque depth must always support the GPU snapshot.
+        usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING |
+            if record.sample_count == 1 { wgpu::TextureUsages::COPY_SRC }
+            else { wgpu::TextureUsages::empty() },
         view_formats: &[],
     };
     let depth_texture = device_state.device.create_texture(&depth_desc);
     let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
+    let msaa_color_texture = if record.sample_count > 1 {
+        Some(device_state.device.create_texture(&wgpu::TextureDescriptor {
+            label: Some("Window MSAA color"),
+            size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
+            mip_level_count: 1, sample_count: record.sample_count,
+            dimension: wgpu::TextureDimension::D2, format: wgpu::TextureFormat::Rgba8Unorm,
+            usage: wgpu::TextureUsages::RENDER_ATTACHMENT, view_formats: &[],
+        }))
+    } else { None };
+    let msaa_color_view = msaa_color_texture.as_ref().map(|texture|
+        texture.create_view(&wgpu::TextureViewDescriptor::default()));
 
+    record.presentation = presentation_format.map(|format|
+        surface_present::Presentation::new(&device_state.device, width, height, format));
     record.config = Some(config);
     record.color_format = chosen_format;
     record.depth_texture = Some(depth_texture);
     record.depth_view = Some(depth_view);
+    record.msaa_color_texture = msaa_color_texture;
+    record.msaa_color_view = msaa_color_view;
     record.suspended = false;
     record.needs_reconfigure = false;
     record.configured_device_generation = device_generation;
@@ -2555,7 +4789,7 @@ mod polygon_depth_tests;
 
 // A depth-only fullscreen triangle, clipped to the annotation viewport. Loading
 // depth here preserves the rest of the target; color is never attached.
-fn annotation_depth_clear_pipeline(device: &wgpu::Device) -> wgpu::RenderPipeline {
+fn annotation_depth_clear_pipeline(device: &wgpu::Device, sample_count: u32) -> wgpu::RenderPipeline {
     let shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
         label: Some("Coin Annotation Depth Clear Shader"),
         source: wgpu::ShaderSource::Wgsl(std::borrow::Cow::Borrowed(r#"
@@ -2580,7 +4814,7 @@ fn annotation_depth_clear_pipeline(device: &wgpu::Device) -> wgpu::RenderPipelin
             depth_write_enabled: true, depth_compare: wgpu::CompareFunction::Always,
             stencil: wgpu::StencilState::default(), bias: wgpu::DepthBiasState::default(),
         }),
-        multisample: wgpu::MultisampleState::default(),
+        multisample: wgpu::MultisampleState { count: sample_count, ..Default::default() },
         multiview: None, cache: None,
     })
 }
@@ -2591,6 +4825,7 @@ fn get_or_create_pipeline<'a>(
     topology: u32,
     color_format: wgpu::TextureFormat,
     depth_format: wgpu::TextureFormat,
+    sample_count: u32,
     cull_face: Option<wgpu::Face>,
     front_face: wgpu::FrontFace,
     blend: bool,
@@ -2598,6 +4833,7 @@ fn get_or_create_pipeline<'a>(
     legacy_blend_alpha: bool,
     peel: bool,
     depth_write: bool,
+    color_write: u32,
     depth_compare: wgpu::CompareFunction,
     depth_bias: wgpu::DepthBiasState,
     resolved_depth_bias: bool,
@@ -2621,7 +4857,7 @@ fn get_or_create_pipeline<'a>(
         instanced, eight_shadows, shadow_profile, weighted, topology, textured,
         color_format,
         depth_format,
-        sample_count: 1,
+        sample_count,
         cull_mode: effective_cull,
         front_face,
         blend,
@@ -2629,6 +4865,7 @@ fn get_or_create_pipeline<'a>(
         legacy_blend_alpha,
         peel,
         depth_write,
+        color_write,
         depth_compare,
         resolved_depth_bias,
         depth_bias_constant: depth_bias.constant,
@@ -2719,7 +4956,8 @@ fn get_or_create_pipeline<'a>(
         } else {
             wgpu::BlendState::REPLACE
         }),
-        write_mask: wgpu::ColorWrites::ALL,
+        write_mask: if color_write == 1 { wgpu::ColorWrites::ALL }
+                    else { wgpu::ColorWrites::from_bits_truncate(color_write & 0x0f) },
     })];
     if weighted {
         let additive=wgpu::BlendComponent { src_factor:wgpu::BlendFactor::One,
@@ -2740,21 +4978,21 @@ fn get_or_create_pipeline<'a>(
     // wgpu-hal 24's GL program cache keys module IDs/entry points but omits
     // override constants. Give textured/untextured variants distinct modules
     // so switching profiles cannot reuse the first profile's GL program.
-    let selected_shader = if !instanced && !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+    let selected_shader = if !profile.bump_receiver && !instanced && !textured && ctx.adapter.get_info().backend == wgpu::Backend::Gl {
         let mut profiles = profile.untextured_shaders.lock().map_err(|e| e.to_string())?;
         profiles.entry((topology, shadow_profile, eight_shadows)).or_insert_with(|| {
             let source = match topology {
                 1 => WGSL_LINE_SHADER.to_owned(),
                 2 => WGSL_POINT_SHADER.to_owned(),
-                _ if eight_shadows => shadow_receiver::eight_map_source(),
-                _ if shadow_profile => shadow_receiver::four_map_source(),
+                _ if eight_shadows => if profile.shadow_multitexture { shadow_receiver::eight_map_multitexture_source() } else { shadow_receiver::eight_map_source() },
+                _ if shadow_profile => if profile.shadow_multitexture { shadow_receiver::four_map_multitexture_source() } else { shadow_receiver::four_map_source() },
                 _ => shader_profile::without_shadows(WGSL_SHADER),
             };
             ctx.device.create_shader_module(wgpu::ShaderModuleDescriptor {
                 label: Some("Coin untextured shader profile"),
                 source: wgpu::ShaderSource::Wgsl(shader_profile::depth_load_profile(
-                    &shader_profile::texture_specialization(
-                        &shader_profile::sampling_profile(&format!("{}{}", source, weighted::FRAGMENT), profile.policy != SamplingPolicy::Native)), true).into()),
+                    &shader_profile::sample_depth_profile(&shader_profile::peeling_msaa_profile(&shader_profile::texture_specialization(
+                        &shader_profile::sampling_profile(&format!("{}{}", source, weighted::FRAGMENT), profile.policy != SamplingPolicy::Native)), profile.multisampled_peel), profile.sample_depth), true).into()),
             })
         }).clone()
     } else { selected_shader.clone() };
@@ -2798,7 +5036,7 @@ fn get_or_create_pipeline<'a>(
                 stencil: wgpu::StencilState::default(),
                 bias: depth_bias,
             }),
-            multisample: wgpu::MultisampleState::default(),
+            multisample: wgpu::MultisampleState { count: sample_count, ..Default::default() },
             multiview: None,
             cache: None,
         });
@@ -2811,6 +5049,198 @@ fn get_or_create_pipeline<'a>(
 // Transport validation only: chain generation belongs to Coin/Core.
 fn texture_levels(width:u32,height:u32,format:u32)->Result<Vec<(u32,u32,u64)>,(CoinWgpuStatus,String)> {
     texture_profile::levels(width,height,format)
+}
+
+// The texture metadata declaration changes admission only: source
+// alpha remains available to every texture combine, including SOURCE_ALPHA.
+const TEXTURE_DECLARED_OPAQUE: u32 = 1 << 31;
+
+fn texture_metadata(image: &CoinWgpuTexture) -> u32 {
+    image.reserved & !TEXTURE_DECLARED_OPAQUE
+}
+
+fn validate_texture_declarations(textures: &[CoinWgpuTexture]) -> Result<(), String> {
+    for image in textures {
+        let allowed = match image.format {
+            0 | 2..=10 => 0,
+            1 => 31,
+            11 => 0x01ff_ffff,
+            12 => 511,
+            _ => return Err("Invalid texture format in declaration metadata".into()),
+        };
+        if texture_metadata(image) & !allowed != 0 {
+            return Err("Texture metadata has unknown reserved bits".into());
+        }
+    }
+    Ok(())
+}
+
+fn gpu_texture_token(image: &CoinWgpuTexture) -> bool {
+    image.format==1 || (image.format==12 && texture_metadata(image)&256!=0)
+}
+
+// Format 12 keeps a face-local chain in an RGBA8 2D transport atlas.
+// reserved: log2(face size)[0..3], source components[4..6], mip flag[7].
+fn cube_atlas_metadata(t:&CoinWgpuTexture)->Result<Option<(u32,u32,bool)>,(CoinWgpuStatus,String)>{
+    if t.format!=12{return Ok(None);}
+    let exponent=texture_metadata(t)&15;let components=(texture_metadata(t)>>4)&7;let mips=texture_metadata(t)&128!=0;
+    if texture_metadata(t) & !511 != 0 || exponent>11 || !(1..=4).contains(&components){
+        return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube atlas metadata".into()));
+    }
+    let n=1u32<<exponent;let width=2*n;let mut size=n;let mut texels=0u64;
+    loop{texels+=6*u64::from(size)*u64::from(size);if !mips||size==1{break;}size/=2;}
+    let height=texels.div_ceil(u64::from(width));let bytes=u64::from(width)*height*4;
+    if t.width!=width || u64::from(t.height)!=height || t.height>8192 || bytes>128*1024*1024 ||
+       (if texture_metadata(t)&256!=0 {t.pixel_bytes_len!=0 || !t.pixels.is_null() || t.content_digest==0 || components!=4}
+        else {t.pixel_bytes_len!=bytes || t.pixels.is_null()}){
+        return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube atlas extent or pixels".into()));
+    }
+    if texture_metadata(t)&256!=0 {return Ok(Some((n,components,mips)));}
+    let pixels=unsafe{std::slice::from_raw_parts(t.pixels,bytes as usize)};
+    if pixels[texels as usize*4..].iter().any(|v|*v!=0){
+        return Err((CoinWgpuStatus::InvalidArgument,"Nonzero cube atlas padding".into()));
+    }
+    Ok(Some((n,components,mips)))
+}
+fn validate_cube_resources(states:&[CoinWgpuRenderState],textures:&[CoinWgpuTexture],samplers:&[CoinWgpuSampler])
+    ->Result<(),(CoinWgpuStatus,String)>{
+    validate_spatial_resources(states,textures,samplers)?;
+    for image in textures{cube_atlas_metadata(image)?;}
+    if !textures.iter().any(|t|t.format==12){return Ok(());}
+    for state in states{for unit in 0..8{
+        let (enabled,image,sampler,model)=if unit==0{(state.has_texture,state.texture_slot,state.sampler_slot,state.texture_model)}
+            else{let t=&state.extra_textures[unit-1];(t.enabled,t.texture_slot,t.sampler_slot,t.model)};
+        if enabled==0{continue;}
+        let image=textures.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube image slot out of bounds".into()))?;
+        if image.format!=12{continue;}
+        let (_,components,_)=cube_atlas_metadata(image)?.unwrap();
+        let sampler=samplers.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube sampler slot out of bounds".into()))?;
+        if sampler.wrap_s!=1||sampler.wrap_t!=1||sampler.reserved!=16||sampler.filter>3||model>3||(model==2&&components<3){
+            return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube sampler or model".into()));
+        }
+    }}
+    Ok(())
+}
+
+fn validate_cube_draws(states:&[CoinWgpuRenderState],textures:&[CoinWgpuTexture],vertices:&[CoinWgpuVertex],
+    indices:&[u32],draws:&[CoinWgpuDraw])->Result<(),(CoinWgpuStatus,String)>{
+    if !textures.iter().any(|t|t.format==11||t.format==12){return Ok(());}
+    for draw in draws{
+        let state=states.get(draw.render_state_slot as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube draw state out of bounds".into()))?;
+        let cube=(0..8).any(|unit|{
+            let (enabled,slot)=if unit==0{(state.has_texture,state.texture_slot)}else{let t=&state.extra_textures[unit-1];(t.enabled,t.texture_slot)};
+            enabled!=0&&textures.get(slot as usize).is_some_and(|t|t.format==11||t.format==12)
+        });
+        if !cube{continue;}
+        let end=draw.first_index.checked_add(draw.index_count).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube draw index overflow".into()))?;
+        let primitive=match draw.topology{0=>3,1=>2,2=>1,_=>return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube topology".into()))};
+        if draw.index_count%primitive!=0{return Err((CoinWgpuStatus::InvalidArgument,"Incomplete cube primitive".into()));}
+        let range=indices.get(draw.first_index as usize..end as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube draw indices out of bounds".into()))?;
+        validate_texture_coordinates_with_images(state,draw.topology,vertices,range,textures).map_err(|message|(CoinWgpuStatus::InvalidArgument,message))?;
+    }
+    Ok(())
+}
+
+fn spatial_atlas_metadata(t: &CoinWgpuTexture)
+    -> Result<Option<(u32,u32,u32,bool)>,(CoinWgpuStatus,String)> {
+    if t.format != 11 { return Ok(None); }
+    if texture_metadata(t) & !0x01ff_ffff != 0 { return Err((CoinWgpuStatus::InvalidArgument,
+        "Spatial atlas metadata has reserved bits".into())); }
+    let w=(texture_metadata(t) & 255)+1;
+    let h=((texture_metadata(t) >> 8) & 255)+1;
+    let d=((texture_metadata(t) >> 16) & 255)+1;
+    let mips=texture_metadata(t) & (1<<24) != 0;
+    let mut columns=1u32;
+    while columns*columns<d { columns*=2; }
+    let mut rows=0u32;
+    let (mut lw,mut lh,mut ld)=(w,h,d);
+    loop {
+        rows=rows.checked_add(lh*((ld+columns-1)/columns)).ok_or_else(||
+            (CoinWgpuStatus::Unsupported,"Spatial atlas row count overflow".into()))?;
+        if !mips || (lw==1 && lh==1 && ld==1) { break; }
+        lw=(lw/2).max(1); lh=(lh/2).max(1); ld=(ld/2).max(1);
+    }
+    if t.width != w*columns || t.height != rows ||
+       t.width > 8192 || t.height > 8192 ||
+       u64::from(t.width)*u64::from(t.height)*4 > 128*1024*1024 ||
+       t.pixels.is_null() || t.pixel_bytes_len != u64::from(t.width)*u64::from(t.height)*4 {
+        return Err((CoinWgpuStatus::InvalidArgument,
+            "Spatial atlas physical extent or byte budget mismatch".into()));
+    }
+    Ok(Some((w,h,d,mips)))
+}
+
+// Validate every transported volume before target acquisition or cache changes,
+// including unused resources and padding that must never become authored data.
+fn validate_spatial_resources(states:&[CoinWgpuRenderState],textures:&[CoinWgpuTexture],samplers:&[CoinWgpuSampler])
+    ->Result<(),(CoinWgpuStatus,String)>{
+    for image in textures {
+        if let Some((mut w,mut h,mut d,mips))=spatial_atlas_metadata(image)? {
+            let mut columns=1;
+            while columns*columns<d {columns*=2;}
+            let pixels=unsafe{std::slice::from_raw_parts(image.pixels,image.pixel_bytes_len as usize)};
+            let mut base=0;
+            loop {
+                let rows=(d+columns-1)/columns;
+                for row in 0..rows {
+                    let used=(d-row*columns).min(columns)*w;
+                    for y in 0..h {
+                        let start=((base+row*h+y)*image.width+used) as usize*4;
+                        let end=((base+row*h+y+1)*image.width) as usize*4;
+                        if pixels[start..end].iter().any(|v|*v!=0) {
+                            return Err((CoinWgpuStatus::InvalidArgument,"Nonzero spatial atlas padding".into()));
+                        }
+                    }
+                }
+                base+=h*rows;
+                if !mips || (w==1&&h==1&&d==1) {break;}
+                w=(w/2).max(1);h=(h/2).max(1);d=(d/2).max(1);
+            }
+        }
+    }
+    if !textures.iter().any(|t|t.format==11) {return Ok(());}
+    for sampler in samplers {
+        if sampler.wrap_s>1 || sampler.wrap_t>1 || sampler.filter>3 || sampler.reserved&!31!=0 ||
+           texture_profile::anisotropy(sampler.reserved&15,sampler.filter).is_err() {
+            return Err((CoinWgpuStatus::InvalidArgument,"Invalid spatial frame sampler".into()));
+        }
+    }
+    for state in states {for unit in 0..8 {
+        let (enabled,image,sampler,model)=if unit==0 {(state.has_texture,state.texture_slot,state.sampler_slot,state.texture_model)}
+            else {let layer=&state.extra_textures[unit-1];(layer.enabled,layer.texture_slot,layer.sampler_slot,layer.model)};
+        if enabled==0 {continue;}
+        let image=textures.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Volume frame image slot out of bounds".into()))?;
+        if image.format!=11 {continue;}
+        let sampler=samplers.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Volume sampler slot out of bounds".into()))?;
+        if sampler.wrap_s>1 || sampler.wrap_t>1 || sampler.filter>3 || sampler.reserved&!16!=0 || model>3 ||
+           (sampler.filter>=2 && texture_metadata(image)&(1<<24)==0) {
+            return Err((CoinWgpuStatus::InvalidArgument,"Invalid volume sampler or model".into()));
+        }
+    }}
+    Ok(())
+}
+fn admit_spatial_resources(ctx:&DeviceState,textures:&[CoinWgpuTexture])->Result<(),(CoinWgpuStatus,String)>{
+    for image in textures.iter().filter(|image|image.format==12) {
+        let (n,_,mips)=cube_atlas_metadata(image)?.unwrap();
+        if image.width>ctx.device.limits().max_texture_dimension_2d || image.height>ctx.device.limits().max_texture_dimension_2d {
+            return Err((CoinWgpuStatus::Unsupported,"Cube atlas exceeds GPU texture dimension limit".into()));
+        }
+        if gpu_texture_token(image) {
+            let registry=ctx.rtt_textures.lock().unwrap();
+            let entry=registry.active.get(&image.content_digest).ok_or_else(||
+                (CoinWgpuStatus::InvalidArgument,"Cube token is stale or from another device/generation".into()))?;
+            if entry.width!=image.width || entry.height!=image.height || entry.cube_face_size!=n ||
+                entry.cube_mipmapped!=mips || entry.format!=0 || entry.mip_count!=1 {
+                return Err((CoinWgpuStatus::InvalidArgument,"Cube token metadata mismatch".into()));
+            }
+        }
+    }
+
+    if textures.iter().any(|t|t.format==11 && (t.width>ctx.device.limits().max_texture_dimension_2d ||
+        t.height>ctx.device.limits().max_texture_dimension_2d)) {
+        return Err((CoinWgpuStatus::Unsupported,"Spatial atlas exceeds GPU texture dimension limit".into()));
+    }
+    Ok(())
 }
 
 fn resolved_viewport(state: &CoinWgpuRenderState, width: u32, height: u32)
@@ -2862,6 +5292,1103 @@ struct ShadowFrame<'a> {
     kind: u32,
 }
 
+// Both the offscreen and window encoders consume the same validated VSM payload.
+// Reject malformed pass lists before acquiring a swapchain texture or allocating
+// offscreen attachments; the shared encoder then owns the map execution.
+fn validate_shadow_frame<'a>(
+    f: &CoinWgpuFrameView,
+    state_count: usize,
+    camera_patch: bool,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> Result<Option<ShadowFrame<'a>>, CoinWgpuStatus> {
+    let shadow_frame = if f.shadow_map_size == 0 {
+            if f.shadow_map_size_second != 0 || f.shadow_map_size_third != 0 ||
+                f.shadow_map_size_fourth != 0 || f.extra_shadow_pass_count != 0 ||
+                !f.extra_shadow_passes.is_null() || !f.shadow_casters.is_null() || f.shadow_caster_count != 0 || f.shadow_kind != 0
+                || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0
+                || !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0
+                || !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 ||
+            !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
+            !f.shadow_receivers_third.is_null() || f.shadow_receiver_count_third != 0 ||
+            !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
+            !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 {
+                set_error(error_buf, error_buf_len, "Shadow payload has data without a map");
+                return Err(CoinWgpuStatus::InvalidArgument);
+            }
+            None
+        } else {
+            if camera_patch || f.camera_base_revision != 0
+                || f.shadow_receiver_count != state_count as u64
+                || f.shadow_kind > 1
+                || !f.shadow_map_size.is_power_of_two() || f.shadow_map_size > 2048
+                || !f.shadow_near_distance.is_finite()
+                || !f.shadow_far_distance.is_finite()
+                || (f.shadow_kind == 1 && f.shadow_near_distance <= 0.0)
+                || f.shadow_far_distance <= f.shadow_near_distance
+                || !f.shadow_epsilon.is_finite() || f.shadow_epsilon < 0.0
+                || !f.shadow_threshold.is_finite() || !(0.0..1.0).contains(&f.shadow_threshold) {
+                set_error(error_buf, error_buf_len, "Invalid or unsupported shadow frame parameters");
+                return Err(CoinWgpuStatus::InvalidArgument);
+            }
+            let casters = match validate_slice(f.shadow_casters, f.shadow_caster_count,
+                "shadow casters", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return Err(st),
+            };
+            let receivers = match validate_slice(f.shadow_receivers, f.shadow_receiver_count,
+                "shadow receivers", error_buf, error_buf_len) {
+                Ok(s) => s, Err(st) => return Err(st),
+            };
+            let second = if f.shadow_map_size_second == 0 {
+                if !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0 ||
+                    !f.shadow_receivers_second.is_null() ||
+                    f.shadow_receiver_count_second != 0 || f.shadow_map_size_second != 0 ||
+                    f.shadow_kind_second != 0 || f.shadow_epsilon_second != 0.0 ||
+                    f.shadow_threshold_second != 0.0 {
+                    set_error(error_buf, error_buf_len, "Partial second shadow pass");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                None
+            } else {
+                if f.shadow_receiver_count_second != state_count as u64 ||
+                    f.shadow_kind_second > 1 ||
+                    !f.shadow_map_size_second.is_power_of_two() || f.shadow_map_size_second > 2048 ||
+                    !f.shadow_near_distance_second.is_finite() ||
+                    !f.shadow_far_distance_second.is_finite() ||
+                    (f.shadow_kind_second == 1 && f.shadow_near_distance_second <= 0.0) ||
+                    f.shadow_far_distance_second <= f.shadow_near_distance_second ||
+                    !f.shadow_epsilon_second.is_finite() || f.shadow_epsilon_second < 0.0 ||
+                    !f.shadow_threshold_second.is_finite() ||
+                    !(0.0..1.0).contains(&f.shadow_threshold_second) {
+                    set_error(error_buf, error_buf_len, "Invalid second shadow pass parameters");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                let second_casters = match validate_slice(f.shadow_casters_second,
+                    f.shadow_caster_count_second, "second shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                let second_receivers = match validate_slice(f.shadow_receivers_second,
+                    f.shadow_receiver_count_second, "second shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                Some(ShadowPass {
+                    casters: second_casters, receivers: second_receivers,
+                    map_size: f.shadow_map_size_second, near: f.shadow_near_distance_second,
+                    far: f.shadow_far_distance_second,
+                    epsilon: f.shadow_epsilon_second, threshold: f.shadow_threshold_second,
+                    kind: f.shadow_kind_second,
+                })
+            };
+            let third = if f.shadow_map_size_third == 0 {
+                if !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
+                    !f.shadow_receivers_third.is_null() ||
+                    f.shadow_receiver_count_third != 0 || f.shadow_map_size_third != 0 ||
+                    f.shadow_kind_third != 0 || f.shadow_epsilon_third != 0.0 ||
+                    f.shadow_threshold_third != 0.0 {
+                    set_error(error_buf, error_buf_len, "Partial third shadow pass");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                None
+            } else {
+                if second.is_none() ||
+                    f.shadow_receiver_count_third != state_count as u64 ||
+                    f.shadow_kind_third > 1 ||
+                    !f.shadow_map_size_third.is_power_of_two() || f.shadow_map_size_third > 2048 ||
+                    !f.shadow_near_distance_third.is_finite() ||
+                    !f.shadow_far_distance_third.is_finite() ||
+                    (f.shadow_kind_third == 1 && f.shadow_near_distance_third <= 0.0) ||
+                    f.shadow_far_distance_third <= f.shadow_near_distance_third ||
+                    !f.shadow_epsilon_third.is_finite() || f.shadow_epsilon_third < 0.0 ||
+                    !f.shadow_threshold_third.is_finite() ||
+                    !(0.0..1.0).contains(&f.shadow_threshold_third) {
+                    set_error(error_buf, error_buf_len, "Invalid third shadow pass parameters");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                let pass_casters = match validate_slice(f.shadow_casters_third,
+                    f.shadow_caster_count_third, "third shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                let pass_receivers = match validate_slice(f.shadow_receivers_third,
+                    f.shadow_receiver_count_third, "third shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                Some(ShadowPass {
+                    casters: pass_casters, receivers: pass_receivers,
+                    map_size: f.shadow_map_size_third, near: f.shadow_near_distance_third,
+                    far: f.shadow_far_distance_third,
+                    epsilon: f.shadow_epsilon_third, threshold: f.shadow_threshold_third,
+                    kind: f.shadow_kind_third,
+                })
+            };
+            let fourth = if f.shadow_map_size_fourth == 0 {
+                if !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
+                    !f.shadow_receivers_fourth.is_null() ||
+                    f.shadow_receiver_count_fourth != 0 || f.shadow_map_size_fourth != 0 ||
+                    f.shadow_kind_fourth != 0 || f.shadow_epsilon_fourth != 0.0 ||
+                    f.shadow_threshold_fourth != 0.0 {
+                    set_error(error_buf, error_buf_len, "Partial fourth shadow pass");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                None
+            } else {
+                if third.is_none() ||
+                    f.shadow_receiver_count_fourth != state_count as u64 ||
+                    f.shadow_kind_fourth > 1 ||
+                    !f.shadow_map_size_fourth.is_power_of_two() || f.shadow_map_size_fourth > 2048 ||
+                    !f.shadow_near_distance_fourth.is_finite() ||
+                    !f.shadow_far_distance_fourth.is_finite() ||
+                    (f.shadow_kind_fourth == 1 && f.shadow_near_distance_fourth <= 0.0) ||
+                    f.shadow_far_distance_fourth <= f.shadow_near_distance_fourth ||
+                    !f.shadow_epsilon_fourth.is_finite() || f.shadow_epsilon_fourth < 0.0 ||
+                    !f.shadow_threshold_fourth.is_finite() ||
+                    !(0.0..1.0).contains(&f.shadow_threshold_fourth) {
+                    set_error(error_buf, error_buf_len, "Invalid fourth shadow pass parameters");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                let pass_casters = match validate_slice(f.shadow_casters_fourth,
+                    f.shadow_caster_count_fourth, "fourth shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                let pass_receivers = match validate_slice(f.shadow_receivers_fourth,
+                    f.shadow_receiver_count_fourth, "fourth shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                Some(ShadowPass {
+                    casters: pass_casters, receivers: pass_receivers,
+                    map_size: f.shadow_map_size_fourth, near: f.shadow_near_distance_fourth,
+                    far: f.shadow_far_distance_fourth,
+                    epsilon: f.shadow_epsilon_fourth, threshold: f.shadow_threshold_fourth,
+                    kind: f.shadow_kind_fourth,
+                })
+            };
+            let extra_views = if f.extra_shadow_pass_count == 0 {
+                if !f.extra_shadow_passes.is_null() {
+                    set_error(error_buf, error_buf_len, "Partial extra shadow pass list");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                &[][..]
+            } else {
+                if fourth.is_none() || f.extra_shadow_pass_count > 4 {
+                    set_error(error_buf, error_buf_len, "Extra shadow passes require four base maps and at most four additions");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                match validate_slice(f.extra_shadow_passes, f.extra_shadow_pass_count,
+                    "extra shadow passes", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                }
+            };
+            let mut extra = Vec::with_capacity(extra_views.len());
+            for (slot, pass) in extra_views.iter().enumerate() {
+                if pass.receiver_count != state_count as u64 ||
+                    pass.kind > 1 || !pass.map_size.is_power_of_two() ||
+                    pass.map_size > 2048 || !pass.near_distance.is_finite() ||
+                    !pass.far_distance.is_finite() || (pass.kind == 1 && pass.near_distance <= 0.0) ||
+                    pass.far_distance <= pass.near_distance ||
+                    !pass.epsilon.is_finite() || pass.epsilon < 0.0 ||
+                    !pass.threshold.is_finite() || !(0.0..1.0).contains(&pass.threshold) {
+                    set_error(error_buf, error_buf_len, &format!("Invalid extra shadow pass {slot}"));
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                let casters = match validate_slice(pass.casters, pass.caster_count,
+                    "extra shadow casters", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                let receivers = match validate_slice(pass.receivers, pass.receiver_count,
+                    "extra shadow receivers", error_buf, error_buf_len) {
+                    Ok(s) => s, Err(st) => return Err(st),
+                };
+                if receivers.iter().any(|r| !r.model_view.iter()
+                    .chain(r.model_view_projection.iter()).all(|v| v.is_finite())) {
+                    set_error(error_buf, error_buf_len, "Invalid extra shadow casters or receiver matrices");
+                    return Err(CoinWgpuStatus::InvalidArgument);
+                }
+                extra.push(ShadowPass { casters, receivers,
+                    map_size: pass.map_size, near: pass.near_distance,
+                    far: pass.far_distance, epsilon: pass.epsilon,
+                    threshold: pass.threshold, kind: pass.kind });
+            }
+            Some(ShadowFrame {
+                second, third, fourth, extra,
+                casters, receivers, map_size: f.shadow_map_size,
+                near: f.shadow_near_distance, far: f.shadow_far_distance,
+                epsilon: f.shadow_epsilon, threshold: f.shadow_threshold, kind: f.shadow_kind,
+            })
+        };
+
+    if let Some(frame) = shadow_frame.as_ref() {
+        let passes = frame.second.iter().chain(frame.third.iter()).chain(frame.fourth.iter())
+            .chain(frame.extra.iter());
+        for (casters, size) in std::iter::once((frame.casters, frame.map_size))
+            .chain(passes.map(|pass| (pass.casters, pass.map_size))) {
+            if let Err(message) = shadow::validate_caster_viewports(casters, size) {
+                set_error(error_buf, error_buf_len, &message);
+                return Err(CoinWgpuStatus::InvalidArgument);
+            }
+        }
+    }
+    Ok(shadow_frame)
+}
+
+fn peeling_supported(ctx: &DeviceState, samples: u32) -> bool {
+    let mut cache = ctx.peeling_sample_support.lock().unwrap();
+    *cache.entry(samples).or_insert_with(|| peeling::adapter_supported(&ctx.adapter, &ctx.device, samples))
+}
+
+fn weighted_supported(ctx: &DeviceState, samples: u32) -> bool {
+    let mut cached = ctx.weighted_sample_support.lock().unwrap();
+    *cached.entry(samples).or_insert_with(||
+        weighted::adapter_supported(&ctx.adapter, &ctx.device, samples))
+}
+
+fn custom_shadow_sample_depth(state: &CoinWgpuRenderState) -> bool {
+    state.depth_range != [0.0, 1.0] ||
+        (state.polygon_offset_enabled != 0 && state.polygon_offset_styles & state.polygon_offset_primitive_style != 0 &&
+         (state.polygon_offset_factor != 0.0 || state.polygon_offset_units != 0.0 || state.polygon_offset_slope_bias != 0.0))
+}
+
+fn shadow_multitexture_depth_supported(ctx: &DeviceState) -> bool {
+    shadow_multitexture_supported(ctx) &&
+        ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::MULTISAMPLED_SHADING)
+}
+
+// Shared admission for the extended receiver. Window submission must run this
+// before acquiring a WSI image: dropping rejected Vulkan acquisitions can
+// exhaust the swapchain even though no queue submission or serial was issued.
+fn textures_for_shadow(state:&CoinWgpuRenderState,textures:&[CoinWgpuTexture])->bool {
+    textures.get(state.texture_slot as usize).is_some_and(|image|matches!(image.format,11|12))
+}
+
+fn validate_shadow_multitexture_profile(
+    ctx: &DeviceState,
+    textures_slice: &[CoinWgpuTexture],
+    states_slice: &[CoinWgpuRenderState],
+    draws_slice: &[CoinWgpuDraw],
+    draw_order: &[composition::CompositionItem],
+    shadow_frame: Option<&ShadowFrame>,
+    sample_count: u32,
+    rasterization_policy: u32,
+) -> Result<bool, (CoinWgpuStatus, String)> {
+    // Inherited raster source states are compute inputs, not surface draws.
+    let shadow_multitexture = shadow_frame.is_some() && draws_slice.iter()
+        .filter_map(|draw| states_slice.get(draw.render_state_slot as usize))
+        .any(|state| state.extra_textures.iter().any(|unit| unit.enabled != 0) ||
+            (state.has_texture!=0 && textures_for_shadow(state,textures_slice)));
+    if shadow_multitexture && sample_count > 1 && rasterization_policy != 0 {
+        return Err((CoinWgpuStatus::Unsupported, "Shadow multitexture MSAA requires native rasterization".into()));
+    }
+    if shadow_multitexture && sample_count > 1 && states_slice.iter().any(custom_shadow_sample_depth) &&
+        !shadow_multitexture_depth_supported(ctx) {
+        return Err((CoinWgpuStatus::Unsupported, "Shadow multitexture custom MSAA depth requires 80 interstage components and sample shading".into()));
+    }
+    if shadow_multitexture && !shadow_multitexture_supported(ctx) {
+        return Err((CoinWgpuStatus::Unsupported, "Shadow multitexture requires 80 interstage components, 11 sampled textures and 8 samplers".into()));
+    }
+    if shadow_multitexture {
+        let shadow = shadow_frame.unwrap();
+        let count = 1 + usize::from(shadow.second.is_some()) + usize::from(shadow.third.is_some()) +
+            usize::from(shadow.fourth.is_some()) + shadow.extra.len();
+        let extent = [shadow.second.as_ref(),shadow.third.as_ref(),shadow.fourth.as_ref()].into_iter()
+            .flatten().chain(shadow.extra.iter()).map(|pass| pass.map_size).fold(shadow.map_size,u32::max);
+        let source_bytes=std::iter::once(shadow.map_size).chain(
+            [shadow.second.as_ref(),shadow.third.as_ref(),shadow.fourth.as_ref()].into_iter().flatten()
+                .chain(shadow.extra.iter()).map(|pass|pass.map_size)).map(|size|u64::from(size)*u64::from(size)*20).sum::<u64>();
+        let array_bytes=u64::from(extent)*u64::from(extent)*16*u64::from(shadow::array_layer_count(count as u32));
+        if source_bytes+array_bytes>128*1024*1024 {
+            return Err((CoinWgpuStatus::Unsupported,"Shadow source attachments and moment array exceed 128 MiB per apply".into()));
+        }
+        let modes = 1 | if draw_order.iter().any(|item| item.weighted) { 2 } else { 0 } |
+            if draw_order.iter().any(|item| item.peel) { 4 } else { 0 };
+        if !shadow_array_supported(ctx,extent,count as u32) || !shadow_multitexture_alpha_supported(ctx,sample_count,modes) {
+            return Err((CoinWgpuStatus::Unsupported,"Complete shadow multitexture composition pipeline or moment array unavailable".into()));
+        }
+    }
+    Ok(shadow_multitexture)
+}
+
+// The extended profile is selected only for an actual directional bump receiver
+// or for directional bump plus a texture cascade. Legacy unit-zero bump retains
+// its original two-pass renderer and exact cache semantics.
+fn extended_bump_profile(
+    states: &[CoinWgpuRenderState],
+    textures: &[CoinWgpuTexture],
+    draws: &[CoinWgpuDraw],
+    shadow: Option<&ShadowFrame>, payload: &ValidatedBumpPayload, indices: &[u32],
+) -> bool {
+    let consumed = match bump_consumption_for_draws(payload, indices, draws) {
+        Ok(consumed) => consumed,
+        Err(_) => return true, // Full admission reports the malformed occurrence.
+    };
+    shadow.is_some()
+        || draws
+            .iter()
+            .zip(consumed)
+            .filter_map(|(draw, active)| states.get(draw.render_state_slot as usize).map(|state| (state, active)))
+            .any(|(state, active)| {
+                if (active && state.light_count > 1) || state.extra_textures.iter().any(|unit| unit.enabled != 0) {
+                    return true;
+                }
+                state.has_texture != 0
+                    && (state.texture_model != 0
+                        || state.texture_projection != 0
+                        || state.texture_combines[0][0][0] != 0.0
+                        || textures
+                            .get(state.texture_slot as usize)
+                            .is_some_and(|image| !matches!(image.format, 0 | 2 | 3 | 4)))
+            })
+}
+
+fn bump_consumption_for_draws(payload: &ValidatedBumpPayload, indices: &[u32],
+    draws: &[CoinWgpuDraw]) -> Result<Vec<bool>, String>
+{
+    draws.iter().map(|draw| {
+        let first = draw.first_index as usize;
+        let end = first.checked_add(draw.index_count as usize)
+            .ok_or("Bump occurrence index range overflow")?;
+        let range = indices.get(first..end).ok_or("Bump occurrence index range is invalid")?;
+        let mut consumed = false;
+        for &index in range {
+            let vertex = payload.vertices.get(index as usize).ok_or("Bump occurrence vertex is invalid")?;
+            if vertex.image_slot as usize > payload.images.len() {
+                return Err("Bump occurrence image slot is invalid".into());
+            }
+            consumed |= vertex.image_slot != 0;
+        }
+        Ok(consumed)
+    }).collect()
+}
+
+// No device, allocation or encoder is needed to reject malformed consumed
+// lighting. Ordinary occurrences retain the common surface lighting contract.
+fn validate_bump_lighting_occurrences(payload: &ValidatedBumpPayload,
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    states: &[CoinWgpuRenderState], materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture], shadow: Option<&ShadowFrame>)
+    -> Result<(), (CoinWgpuStatus, String)>
+{
+    let consumed = bump_consumption_for_draws(payload, indices, draws)
+        .map_err(|message| (CoinWgpuStatus::InvalidArgument, message))?;
+    if payload.vertices.len() != vertices.len() {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid bump stream extent".into()));
+    }
+    let extended = extended_bump_profile(states, textures, draws, shadow, payload, indices);
+    for (draw, active) in draws.iter().zip(consumed) {
+        if !active { continue; }
+        let state = states.get(draw.render_state_slot as usize)
+            .ok_or((CoinWgpuStatus::InvalidArgument, "Invalid bump lighting state slot".into()))?;
+        if state.light_model != 1 || state.light_count == 0 ||
+            state.light_count > (if extended { 8 } else { 1 }) {
+            return Err((CoinWgpuStatus::Unsupported,
+                "Consumed bump requires PHONG and qualified lighting".into()));
+        }
+        let material = materials.get(state.material_slot as usize)
+            .ok_or((CoinWgpuStatus::InvalidArgument, "Invalid bump lighting material slot".into()))?;
+        for light in &state.lights[..state.light_count as usize] {
+            if extended && light.position_type[3] != 0.0 {
+                return Err((CoinWgpuStatus::Unsupported, "Extended bump requires directional lights".into()));
+            }
+            let mut one = *state;
+            one.light_count = 1;
+            one.lights[0] = *light;
+            bump_uniforms_from_state(&one, material)
+                .map_err(|message| (CoinWgpuStatus::Unsupported, message))?;
+        }
+    }
+    Ok(())
+}
+
+// Respect the authored RTT NONE declaration before inspecting image alpha.
+// Otherwise check authored texels, never zero-filled physical atlas padding.
+fn bump_receiver_texture_opaque(
+    ctx: &DeviceState,
+    image: &CoinWgpuTexture,
+) -> Result<bool, (CoinWgpuStatus, String)> {
+    let declared_opaque = image.reserved & TEXTURE_DECLARED_OPAQUE != 0;
+    if gpu_texture_token(image) {
+        let registry = ctx.rtt_textures.lock().unwrap();
+        let entry = registry.active.get(&image.content_digest).ok_or((
+            CoinWgpuStatus::InvalidArgument,
+            "Bump receiver RTT token is stale or from another device/generation".into(),
+        ))?;
+        // Token metadata can validate a positive claim, but an unset claim
+        // does not establish opacity. NONE is the explicit author override;
+        // otherwise only the owning registry may prove the resource opaque.
+        return Ok(declared_opaque || entry.opaque);
+    }
+    if image.pixels.is_null() {
+        return Err((
+            CoinWgpuStatus::InvalidArgument,
+            "Null bump receiver texture pixels".into(),
+        ));
+    }
+    let pixels =
+        unsafe { std::slice::from_raw_parts(image.pixels, image.pixel_bytes_len as usize) };
+    let alpha = |pixel: usize| pixels.get(pixel * 4 + 3).is_some_and(|value| *value == 255);
+    if let Some((n, _, _)) = cube_atlas_metadata(image)? {
+        return Ok(declared_opaque || (0..6 * n as usize * n as usize).all(alpha));
+    }
+    if let Some((width, height, depth, _)) = spatial_atlas_metadata(image)? {
+        if declared_opaque {
+            return Ok(true);
+        }
+        let columns = image.width / width;
+        for z in 0..depth {
+            for y in 0..height {
+                for x in 0..width {
+                    let pixel = ((z / columns * height + y) * image.width + z % columns * width + x)
+                        as usize;
+                    if !alpha(pixel) {
+                        return Ok(false);
+                    }
+                }
+            }
+        }
+        return Ok(true);
+    }
+    let levels = texture_levels(image.width, image.height, image.format)?;
+    let &(width, height, offset) = levels.last().ok_or((
+        CoinWgpuStatus::InvalidArgument,
+        "Empty bump texture levels".into(),
+    ))?;
+    let format = texture_profile::format(image.format)?.0;
+    if offset.checked_add(texture_profile::level_bytes(width, height, format))
+        != Some(image.pixel_bytes_len)
+    {
+        return Err((
+            CoinWgpuStatus::InvalidArgument,
+            "Bump receiver texture byte count mismatch".into(),
+        ));
+    }
+    if declared_opaque {
+        return Ok(true);
+    }
+    match image.format {
+        0 | 2 | 3 | 4 => Ok((0..image.width as usize * image.height as usize).all(alpha)),
+        5 | 6 => Ok(pixels
+            .chunks_exact(8)
+            .take(image.width as usize * image.height as usize)
+            .all(|pixel| u16::from_le_bytes([pixel[6], pixel[7]]) >= 0x3c00)),
+        7..=10 => {
+            let blocks = (image.width + 3) / 4;
+            for y in 0..image.height {
+                for x in 0..image.width {
+                    let offset = ((y / 4 * blocks + x / 4) * 16) as usize;
+                    let block = pixels.get(offset..offset + 16).ok_or((
+                        CoinWgpuStatus::InvalidArgument,
+                        "Short BC3 bump base".into(),
+                    ))?;
+                    let bits = block[2..8]
+                        .iter()
+                        .enumerate()
+                        .fold(0u64, |bits, (i, b)| bits | (u64::from(*b) << (8 * i)));
+                    let code = (bits >> (3 * ((y % 4) * 4 + x % 4))) & 7;
+                    let a0 = u32::from(block[0]);
+                    let a1 = u32::from(block[1]);
+                    let value = match code {
+                        0 => a0,
+                        1 => a1,
+                        7 if a0 <= a1 => 255,
+                        6 if a0 <= a1 => 0,
+                        _ if a0 > a1 => ((8 - code as u32) * a0 + (code as u32 - 1) * a1) / 7,
+                        _ => ((6 - code as u32) * a0 + (code as u32 - 1) * a1) / 5,
+                    };
+                    if value != 255 {
+                        return Ok(false);
+                    }
+                }
+            }
+            Ok(true)
+        }
+        _ => Err((
+            CoinWgpuStatus::InvalidArgument,
+            "Invalid bump receiver texture format".into(),
+        )),
+    }
+}
+
+fn validate_extended_bump_profile(
+    ctx: &DeviceState,
+    vertices: &[CoinWgpuVertex],
+    indices: &[u32],
+    draws: &[CoinWgpuDraw],
+    states: &[CoinWgpuRenderState],
+    materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture],
+    samplers: &[CoinWgpuSampler],
+    payload: &ValidatedBumpPayload,
+    shadow: Option<&ShadowFrame>,
+    target_size: [u32; 2],
+) -> Result<(), (CoinWgpuStatus, String)> {
+    let unsupported = |message: &str| (CoinWgpuStatus::Unsupported, message.to_owned());
+    if let Some(shadow) = shadow {
+        if shadow.kind != 0 || shadow.second.iter().chain(shadow.third.iter())
+            .chain(shadow.fourth.iter()).chain(shadow.extra.iter()).any(|pass|pass.kind!=0)
+        {
+            return Err(unsupported("Bump shadows require directional maps"));
+        }
+    }
+    if ctx.device.limits().max_inter_stage_shader_components < 80
+        || ctx.device.limits().max_sampled_textures_per_shader_stage < 12
+        || ctx.device.limits().max_samplers_per_shader_stage < 9
+        || ctx.device.limits().max_storage_buffers_per_shader_stage < 1
+    {
+        return Err(unsupported("Bump receiver needs 80 varying components, 12 texture bindings, nine samplers and vertex storage"));
+    }
+    admit_spatial_resources(ctx, textures)?;
+    {
+        let registry = ctx.rtt_textures.lock().unwrap();
+        for image in textures.iter().filter(|image| image.format == 1) {
+            let entry = registry.active.get(&image.content_digest).ok_or((
+                CoinWgpuStatus::InvalidArgument,
+                "Bump receiver RTT token is stale or from another device/generation".into(),
+            ))?;
+            if entry.width != image.width
+                || entry.height != image.height
+                || entry.cube_face_size != 0
+                || texture_metadata(image) & !31 != 0
+                || (texture_metadata(image) & 1 != 0 && !entry.opaque)
+                || texture_metadata(image) >> 2 != entry.format
+                || !image.pixels.is_null()
+                || image.pixel_bytes_len != 0
+                || (texture_metadata(image) & 2 != 0
+                    && entry.mip_count <= 1
+                    && (image.width > 1 || image.height > 1))
+            {
+                return Err((
+                    CoinWgpuStatus::InvalidArgument,
+                    "Bump receiver RTT token metadata mismatch".into(),
+                ));
+            }
+        }
+    }
+    let mut largest_draw = 0usize;
+    for draw in draws {
+        let start = draw.first_index as usize;
+        let end = start
+            .checked_add(draw.index_count as usize)
+            .filter(|end| *end <= indices.len())
+            .ok_or_else(|| unsupported("Bump receiver draw indices out of bounds"))?;
+        let unique: std::collections::HashSet<_> = indices[start..end].iter().copied().collect();
+        largest_draw = largest_draw.max(unique.len());
+    }
+    let material_count = largest_draw
+        .checked_add(1)
+        .and_then(|count| count.checked_mul(std::mem::size_of::<GpuMaterial>()))
+        .ok_or_else(|| unsupported("Bump receiver material stream overflow"))?;
+    if material_count as u64 > u64::from(ctx.device.limits().max_storage_buffer_binding_size)
+        || material_count as u64 > ctx.device.limits().max_buffer_size
+    {
+        return Err(unsupported(
+            "Bump receiver corner stream exceeds the device buffer binding limit",
+        ));
+    }
+    if payload.vertices.len() != vertices.len()
+        || payload.images.iter().any(|image| {
+            image.width > ctx.device.limits().max_texture_dimension_2d
+                || image.height > ctx.device.limits().max_texture_dimension_2d
+        })
+    {
+        return Err(unsupported(
+            "Bump receiver vertex count or normal image extent is invalid",
+        ));
+    }
+    bump_image_slots_for_draws(payload, indices, draws)
+        .map_err(|message| (CoinWgpuStatus::InvalidArgument, message))?;
+    let consumed = bump_consumption_for_draws(payload, indices, draws)
+        .map_err(|message| (CoinWgpuStatus::InvalidArgument, message))?;
+    for (draw, active) in draws.iter().zip(consumed) {
+        let state = states
+            .get(draw.render_state_slot as usize)
+            .ok_or_else(|| unsupported("Bump receiver state slot out of bounds"))?;
+        if draw.topology != 0
+            || draw.render_layer != 0
+            || draw.composition_flags != 0
+            || draw.clear_depth_before != 0
+            || (active && (state.light_model != 1 || state.light_count == 0 || state.light_count > 8
+                || state.lights[..state.light_count.min(8) as usize].iter()
+                    .any(|light|light.position_type[3]!=0.0)))
+            || state.fog_mode != 0
+            || state.depth_test != 1
+            || state.depth_write != 1
+            || state.cull_mode != 0
+            || !matches!(state.depth_function, 2 | 3)
+            || state.depth_range != [0.0, 1.0]
+            || state.polygon_offset_enabled != 0
+            || state.clip_plane_count != 0
+            || state.alpha_test_function != 0
+            || (state.viewport != [0, 0, 0, 0]
+                && state.viewport != [0, 0, target_size[0] as i32, target_size[1] as i32])
+        {
+            return Err(unsupported("Bump receiver requires opaque one-directional-light triangles and default full-target depth"));
+        }
+        let end = draw.first_index as usize + draw.index_count as usize;
+        let draw_indices = &indices[draw.first_index as usize..end];
+        validate_texture_coordinates_with_images(
+            state,
+            draw.topology,
+            vertices,
+            draw_indices,
+            textures,
+        )
+        .map_err(|message| (CoinWgpuStatus::InvalidArgument, message))?;
+        for triangle in draw_indices.chunks_exact(3) {
+            let first = &payload.vertices[triangle[0] as usize];
+            if first.image_slot == 0 {
+                continue;
+            }
+            for &index in triangle {
+                if state.light_count > 1 {
+                    let corner_material = &materials[vertices[index as usize].material_slot as usize];
+                    if corner_material.transparency != 0.0 || corner_material.diffuse[3] != 1.0 ||
+                        !corner_material.shininess.is_finite() ||
+                        !(0.0..=1.0).contains(&corner_material.shininess) ||
+                        state.lights[..state.light_count as usize].iter().any(|light| {
+                            (0..3).any(|channel| !(corner_material.diffuse[channel] *
+                                light.color_intensity[channel] * light.color_intensity[3]).is_finite())
+                        }) {
+                        return Err(unsupported("Invalid multilight bump corner material product"));
+                    }
+                }
+                let coord = payload.vertices[index as usize].coord;
+                if coord[3].abs() < f32::MIN_POSITIVE
+                    || coord[3].is_sign_negative() != first.coord[3].is_sign_negative()
+                    || !(coord[0] / coord[3]).is_finite()
+                    || !(coord[1] / coord[3]).is_finite()
+                {
+                    return Err(unsupported("Invalid bump receiver projected Q"));
+                }
+            }
+        }
+        let material = materials
+            .get(state.material_slot as usize)
+            .ok_or_else(|| unsupported("Bump receiver material slot out of bounds"))?;
+        for index in 0..(if active { state.light_count as usize } else { 0 }) {
+            let mut one=*state;
+            one.light_count=1;
+            one.lights[0]=state.lights[index];
+            bump_uniforms_from_state(&one, material)
+                .map_err(|message| (CoinWgpuStatus::Unsupported, message))?;
+        }
+        let layers: [CoinWgpuTextureUnit; 8] = std::array::from_fn(|unit| {
+            if unit == 0 {
+                CoinWgpuTextureUnit {
+                    matrix: state.texture_matrix,
+                    enabled: state.has_texture,
+                    texture_slot: state.texture_slot,
+                    sampler_slot: state.sampler_slot,
+                    model: state.texture_model,
+                    blend_color: state.texture_blend_color,
+                }
+            } else {
+                state.extra_textures[unit - 1]
+            }
+        });
+        for layer in layers.iter().filter(|layer| layer.enabled != 0) {
+            let image = textures
+                .get(layer.texture_slot as usize)
+                .ok_or_else(|| unsupported("Bump receiver texture slot out of bounds"))?;
+            if state.light_count>1 && matches!(image.format,1|11|12) {
+                return Err(unsupported("Multilight bump supports stored 2D receiver textures"));
+            }
+            if !bump_receiver_texture_opaque(ctx, image)? {
+                return Err(unsupported("Bump receiver textures must be opaque"));
+            }
+        }
+    }
+    validate_spatial_resources(states, textures, samplers)?;
+    Ok(())
+}
+
+// GPU material storage is indexed per corner only in the dedicated receiver.
+// Its five vec4s preserve the original single-light packing. Multi-DIR packs
+// coord, per-corner diffuse/specular/shininess and S/T/N in the same 80 bytes.
+// The VS projects each directional L and E before interpolation. All thirteen
+// geometry attributes and the private STRQ transport remain intact.
+fn encode_extended_bump_draw(
+    ctx: &DeviceState,
+    vertices: &[CoinWgpuVertex],
+    indices: &[u32],
+    draw: &CoinWgpuDraw,
+    states: &[CoinWgpuRenderState],
+    materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture],
+    samplers: &[CoinWgpuSampler],
+    payload: &ValidatedBumpPayload,
+    image: &GpuBumpImage,
+    shadow: Option<&ShadowFrame>,
+    color_view: &wgpu::TextureView,
+    resolve_view: Option<&wgpu::TextureView>,
+    color_format: wgpu::TextureFormat,
+    depth_view: &wgpu::TextureView,
+    depth_texture: &wgpu::Texture,
+    target_size: [u32; 2],
+    clear_color: [f32; 4],
+    sample_count: u32,
+    sampling_policy: u32,
+    clear: bool,
+    shared_shadow: Option<&(Vec<shadow::ShadowMap>, shadow::ShadowArray)>,
+) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
+    let state = &states[draw.render_state_slot as usize];
+    let mut first_light=*state;
+    first_light.light_count=1;
+    let uniform = bump_uniforms_from_state(&first_light, &materials[state.material_slot as usize])
+        .map_err(|message| (CoinWgpuStatus::Unsupported, message))?;
+    let source_material = materials[state.material_slot as usize];
+    let mut geometry = Vec::new();
+    let mut compact_indices = Vec::with_capacity(draw.index_count as usize);
+    let mut remap = HashMap::new();
+    let mut cpu_materials = vec![source_material];
+    let mut gpu_materials = pack_gpu_materials(&cpu_materials);
+    let normalize = |mut vector: [f32; 3]| {
+        let square = vector.iter().map(|x| x * x).sum::<f32>();
+        if square > 0.0 {
+            for value in &mut vector {
+                *value /= square.sqrt();
+            }
+        }
+        vector
+    };
+    let dot = |a: [f32; 3], b: [f32; 3]| a.iter().zip(b).map(|(a, b)| a * b).sum::<f32>();
+    let end = draw.first_index as usize + draw.index_count as usize;
+    for &index in &indices[draw.first_index as usize..end] {
+        if let Some(&mapped) = remap.get(&index) {
+            compact_indices.push(mapped);
+            continue;
+        }
+        let mapped = geometry.len() as u32;
+        remap.insert(index, mapped);
+        compact_indices.push(mapped);
+        let mut vertex = vertices[index as usize];
+        let corner_material=materials[vertex.material_slot as usize];
+        vertex.material_slot = gpu_materials.len() as u32;
+        let corner = &payload.vertices[index as usize];
+        let light = normalize([
+            uniform.light_position_type[0],
+            uniform.light_position_type[1],
+            uniform.light_position_type[2],
+        ]);
+        let eye = normalize(std::array::from_fn(|axis| {
+            uniform.eye_position[axis] - vertex.position[axis]
+        }));
+        let tangent_light = [
+            dot(corner.tangent_s, light),
+            dot(corner.tangent_t, light),
+            dot(vertex.normal, light),
+        ];
+        let tangent_eye = [
+            dot(corner.tangent_s, eye),
+            dot(corner.tangent_t, eye),
+            dot(vertex.normal, eye),
+        ];
+        if state.light_count>1 {
+            // Same five vec4s per corner: coord, per-corner material and the
+            // original S/T/N basis. No new vertex attribute or wire field.
+            gpu_materials.push(GpuMaterial {
+                ambient:corner.coord,
+                diffuse:[corner_material.diffuse[0],corner_material.diffuse[1],
+                         corner_material.diffuse[2],corner_material.shininess],
+                specular:[corner_material.specular[0],corner_material.specular[1],
+                          corner_material.specular[2],vertex.normal[0]],
+                emission:[corner.tangent_s[0],corner.tangent_s[1],corner.tangent_s[2],vertex.normal[1]],
+                params:[corner.tangent_t[0],corner.tangent_t[1],corner.tangent_t[2],vertex.normal[2]],
+            });
+        } else {
+        gpu_materials.push(GpuMaterial {
+            ambient: corner.coord,
+            diffuse: uniform.diffuse,
+            specular: uniform.specular,
+            emission: [tangent_light[0], tangent_light[1], tangent_light[2], 0.0],
+            params: [
+                uniform.shininess[0],
+                tangent_eye[0],
+                tangent_eye[1],
+                tangent_eye[2],
+            ],
+        });
+        }
+        cpu_materials.push(if state.light_count>1 {corner_material}else{source_material});
+        geometry.push(vertex);
+    }
+    let mut draw = *draw;
+    draw.stable_node_id = 0;
+    draw.first_vertex = 0;
+    draw.vertex_count = geometry.len() as u32;
+    draw.first_index = 0;
+    let mut states = states.to_vec();
+    for state in &mut states {
+        state.material_slot = 0;
+    }
+    let order = composition::order(
+        &geometry,
+        &compact_indices,
+        &[draw],
+        &cpu_materials,
+        &states,
+        textures,
+    )?;
+    encode_frame_impl(
+        ctx,
+        0,
+        clear_color,
+        target_size[0],
+        target_size[1],
+        &geometry,
+        &compact_indices,
+        &[draw],
+        &order,
+        &cpu_materials,
+        &states,
+        &[],
+        textures,
+        samplers,
+        shadow,
+        None,
+        &[],
+        &[],
+        None,
+        color_view,
+        resolve_view,
+        color_format,
+        depth_view,
+        depth_texture,
+        sample_count,
+        0,
+        sampling_policy,
+        0,
+        clear,
+        Some((&image.view, &image.sampler, &gpu_materials)),
+        shared_shadow,
+    )
+}
+
+// Opaque runs share attachments and one public submission, while each encoder
+// owns its uniforms and geometry buffers. The inactive runs use the established
+// Phong encoder, including its base texture and depth semantics.
+fn encode_mixed_bump_frame(
+    ctx: &DeviceState,
+    pipeline_cache: Option<&Mutex<HashMap<BumpPipelineKey, Arc<BumpPipelines>>>>,
+    base_cache: Option<(&Mutex<BumpBaseCache>, u64, u64)>,
+    vertices: &[CoinWgpuVertex],
+    indices: &[u32],
+    draws: &[CoinWgpuDraw],
+    states: &[CoinWgpuRenderState],
+    portable_modules: &[portable::Module],
+    materials: &[CoinWgpuMaterial],
+    textures: &[CoinWgpuTexture],
+    samplers: &[CoinWgpuSampler],
+    payload: &ValidatedBumpPayload,
+    shadow_frame: Option<&ShadowFrame>,
+    color_view: &wgpu::TextureView,
+    resolve_view: Option<&wgpu::TextureView>,
+    color_format: wgpu::TextureFormat,
+    depth_view: &wgpu::TextureView,
+    target_size: [u32; 2],
+    clear_color: [f32; 4],
+    sample_count: u32,
+    depth_texture: &wgpu::Texture,
+    sampling_policy: u32,
+) -> Result<(Vec<wgpu::CommandBuffer>, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
+    if !matches!(sample_count, 1 | 2 | 4)
+        || resolve_view.is_some() != (sample_count > 1)
+        || draws.is_empty()
+        || payload.vertices.len() != vertices.len()
+        || !clear_color.iter().all(|value| value.is_finite())
+    {
+        return Err((
+            CoinWgpuStatus::InvalidArgument,
+            "Invalid mixed bump attachments or geometry".into(),
+        ));
+    }
+    let slots = bump_image_slots_for_draws(payload, indices, draws)
+        .map_err(|message| (CoinWgpuStatus::InvalidArgument, message))?;
+    // Validate the complete profile before any run allocates/uploads resources.
+    // Lighting requirements belong only to active normal-map consumers;
+    // ordinary runs retain their own BASE_COLOR/Phong surface executor.
+    let extended = extended_bump_profile(states, textures, draws, shadow_frame, payload, indices);
+    if extended {
+        validate_extended_bump_profile(
+            ctx,
+            vertices,
+            indices,
+            draws,
+            states,
+            materials,
+            textures,
+            samplers,
+            payload,
+            shadow_frame,
+            target_size,
+        )?;
+    } else {
+        validate_bump_draw_profile(
+            &ctx.device,
+            vertices,
+            indices,
+            draws,
+            states,
+            materials,
+            textures,
+            samplers,
+            target_size,
+            &slots.iter().map(Option::is_some).collect::<Vec<_>>(),
+        )?;
+    }
+    let extended_gpu = if extended {
+        Some(
+            upload_bump_payload(&ctx.device, &ctx.queue, payload)
+                .map_err(|message| (CoinWgpuStatus::Unsupported, message))?,
+        )
+    } else {
+        None
+    };
+    if payload.images.iter().any(|image| {
+        image.width > ctx.device.limits().max_texture_dimension_2d
+            || image.height > ctx.device.limits().max_texture_dimension_2d
+    }) {
+        return Err((
+            CoinWgpuStatus::Unsupported,
+            "Bump image exceeds GPU texture dimension limit".into(),
+        ));
+    }
+    let mut commands = Vec::new();
+    // One geometric caster pass per frame, shared by every ordered surface run.
+    // Cloned handles retain the same allocations through the single queue submit.
+    let shared_shadow = if extended {
+        if let Some(shadow) = shadow_frame {
+            let mut encoder = ctx
+                .device
+                .create_command_encoder(&wgpu::CommandEncoderDescriptor {
+                    label: Some("Coin shared bump receiver moments"),
+                });
+            let mut maps=Vec::new();
+            maps.push(shadow::encode_moments(&ctx.device,&mut encoder,vertices,indices,
+                shadow.casters,states,shadow.map_size,shadow.near,shadow.far,shadow.kind,false)
+                .map_err(|message|(CoinWgpuStatus::InvalidArgument,message))?);
+            for pass in shadow.second.iter().chain(shadow.third.iter())
+                .chain(shadow.fourth.iter()).chain(shadow.extra.iter()) {
+                maps.push(shadow::encode_moments(&ctx.device,&mut encoder,vertices,indices,
+                    pass.casters,states,pass.map_size,pass.near,pass.far,pass.kind,false)
+                    .map_err(|message|(CoinWgpuStatus::InvalidArgument,message))?);
+            }
+            let references:Vec<_>=maps.iter().collect();
+            let array=shadow::encode_array(&ctx.device,&mut encoder,&references)
+                .map_err(|message|(CoinWgpuStatus::Unsupported,message))?;
+            commands.push(encoder.finish());
+            Some((maps, array))
+        } else {
+            None
+        }
+    } else {
+        None
+    };
+    let mut start = 0;
+    while start < draws.len() {
+        let active = slots[start].is_some();
+        let mut end = start + 1;
+        while end < draws.len() && slots[end].is_some() == active && !(extended && active) {
+            end += 1;
+        }
+        let run = &draws[start..end];
+        let resolve = if end == draws.len() {
+            resolve_view
+        } else {
+            None
+        };
+        if active && extended {
+            let image = &extended_gpu.as_ref().unwrap().images[slots[start].unwrap()];
+            commands.push(
+                encode_extended_bump_draw(
+                    ctx,
+                    vertices,
+                    indices,
+                    &draws[start],
+                    states,
+                    materials,
+                    textures,
+                    samplers,
+                    payload,
+                    image,
+                    shadow_frame,
+                    color_view,
+                    resolve,
+                    color_format,
+                    depth_view,
+                    depth_texture,
+                    target_size,
+                    clear_color,
+                    sample_count,
+                    sampling_policy,
+                    start == 0,
+                    shared_shadow.as_ref(),
+                )?
+                .0,
+            );
+        } else if active {
+            commands.push(encode_bump_opaque_run(
+                &ctx.device,
+                &ctx.queue,
+                pipeline_cache,
+                base_cache,
+                vertices,
+                indices,
+                run,
+                states,
+                materials,
+                textures,
+                samplers,
+                payload,
+                color_view,
+                resolve,
+                color_format,
+                depth_view,
+                target_size,
+                clear_color,
+                sample_count,
+                start == 0,
+            )?);
+        } else {
+            let order = composition::order(vertices, indices, run, materials, states, textures)?;
+            // Revision zero and no camera/instance proof keep per-run material
+            // and uniform allocations independent before the single submit.
+            let (command, _) = encode_frame_impl(
+                ctx,
+                0,
+                clear_color,
+                target_size[0],
+                target_size[1],
+                vertices,
+                indices,
+                run,
+                &order,
+                materials,
+                states,
+                portable_modules,
+                textures,
+                samplers,
+                shadow_frame,
+                None,
+                &[],
+                &[],
+                None,
+                color_view,
+                resolve,
+                color_format,
+                depth_view,
+                depth_texture,
+                sample_count,
+                0,
+                sampling_policy,
+                0,
+                start == 0,
+                None,
+                shared_shadow.as_ref(),
+            )?;
+            commands.push(command);
+        }
+        start = end;
+    }
+    Ok((commands, None))
+}
+
 // Pure shared command encoder function strictly common to offscreen and window targets
 fn encode_frame(
     ctx: &DeviceState,
@@ -2875,6 +6402,7 @@ fn encode_frame(
     draw_order: &[composition::CompositionItem],
     materials_slice: &[CoinWgpuMaterial],
     states_slice: &[CoinWgpuRenderState],
+    portable_modules: &[portable::Module],
     textures_slice: &[CoinWgpuTexture],
     samplers_slice: &[CoinWgpuSampler],
     shadow_frame: Option<&ShadowFrame>,
@@ -2883,30 +6411,117 @@ fn encode_frame(
     instance_ranges: &[CoinWgpuInstanceRange],
     timestamp_query: Option<&wgpu::QuerySet>,
     color_view: &wgpu::TextureView,
+    resolve_view: Option<&wgpu::TextureView>,
     color_format: wgpu::TextureFormat,
     depth_view: &wgpu::TextureView,
     depth_texture: &wgpu::Texture,
+    sample_count: u32,
     peel_passes: u32,
     requested_sampling_policy: u32,
+    rasterization_policy: u32,
+    clear_attachments: bool,
+) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
+    encode_frame_impl(
+        ctx,
+        frame_revision,
+        clear_color,
+        target_width,
+        target_height,
+        vertices_slice,
+        indices_slice,
+        draws_slice,
+        draw_order,
+        materials_slice,
+        states_slice,
+        portable_modules,
+        textures_slice,
+        samplers_slice,
+        shadow_frame,
+        camera_geometry,
+        instances_slice,
+        instance_ranges,
+        timestamp_query,
+        color_view,
+        resolve_view,
+        color_format,
+        depth_view,
+        depth_texture,
+        sample_count,
+        peel_passes,
+        requested_sampling_policy,
+        rasterization_policy,
+        clear_attachments,
+        None,
+        None,
+    )
+}
+
+fn encode_frame_impl(
+    ctx: &DeviceState,
+    frame_revision: u64,
+    clear_color: [f32; 4],
+    target_width: u32,
+    target_height: u32,
+    vertices_slice: &[CoinWgpuVertex],
+    indices_slice: &[u32],
+    draws_slice: &[CoinWgpuDraw],
+    draw_order: &[composition::CompositionItem],
+    materials_slice: &[CoinWgpuMaterial],
+    states_slice: &[CoinWgpuRenderState],
+    portable_modules: &[portable::Module],
+    textures_slice: &[CoinWgpuTexture],
+    samplers_slice: &[CoinWgpuSampler],
+    shadow_frame: Option<&ShadowFrame>,
+    camera_geometry: Option<&Arc<ValidatedGeometry>>,
+    instances_slice: &[CoinWgpuInstance],
+    instance_ranges: &[CoinWgpuInstanceRange],
+    timestamp_query: Option<&wgpu::QuerySet>,
+    color_view: &wgpu::TextureView,
+    resolve_view: Option<&wgpu::TextureView>,
+    color_format: wgpu::TextureFormat,
+    depth_view: &wgpu::TextureView,
+    depth_texture: &wgpu::Texture,
+    sample_count: u32,
+    peel_passes: u32,
+    requested_sampling_policy: u32,
+    rasterization_policy: u32,
+    clear_attachments: bool,
+    bump_binding: Option<(&wgpu::TextureView,&wgpu::Sampler,&[GpuMaterial])>,
+    shared_bump_shadow: Option<&(Vec<shadow::ShadowMap>, shadow::ShadowArray)>,
 ) -> Result<(wgpu::CommandBuffer, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
     use wgpu::util::DeviceExt;
+    admit_spatial_resources(ctx,textures_slice)?;
+    validate_cube_resources(states_slice,textures_slice,samplers_slice)?;
+    validate_cube_draws(states_slice,textures_slice,vertices_slice,indices_slice,draws_slice)?;
+    raster_image::admit(ctx,states_slice,textures_slice,samplers_slice.len())?;
     if !states_slice.iter().all(valid_alpha_test) {
         return Err((CoinWgpuStatus::InvalidArgument, "Invalid alpha comparison function or reference".into()));
     }
     if states_slice.iter().any(|st| st.texture_projection > 1) {
         return Err((CoinWgpuStatus::InvalidArgument, "Invalid texture projection policy".into()));
     }
-    if shadow_frame.is_some() && states_slice.iter().any(|st|
-        st.alpha_test_function != 0 && st.alpha_test_function != 2) {
-        return Err((CoinWgpuStatus::Unsupported, "Active alpha test requires alpha-aware shadow-map casters".into()));
+    if rasterization_policy > 1 {
+        return Err((CoinWgpuStatus::InvalidArgument, "Invalid rasterization policy".into()));
+    }
+    if rasterization_policy == 1 && draws_slice.iter().any(|draw| draw.topology != 0) {
+        return Err((CoinWgpuStatus::Unsupported, "Canonical coverage requires triangle surfaces".into()));
+    }
+    if sample_count > 1 && (rasterization_policy == 1 || states_slice.iter().any(|st| st.polygon_offset_enabled != 0 || st.depth_range[0] > st.depth_range[1])) &&
+        !ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::MULTISAMPLED_SHADING) {
+        return Err((CoinWgpuStatus::Unsupported, "Custom MSAA depth requires sample-frequency shading".into()));
     }
     let instanced = !instances_slice.is_empty();
     let requested_policy = SamplingPolicy::from_raw(requested_sampling_policy)?;
     // Non-textured/instanced frames retain the original native prefix and pipelines.
-    let policy = if instanced || !samplers_slice.iter().any(|s| s.filter == 2) {
+    let policy = if !portable_modules.is_empty() { requested_policy }
+        else if instanced || !samplers_slice.iter().any(|s| s.filter == 2) {
         SamplingPolicy::Native
     } else { requested_policy };
-    let profile = ctx.surface_profile(policy);
+    let shadow_multitexture = validate_shadow_multitexture_profile(ctx, textures_slice, states_slice, draws_slice,
+        draw_order, shadow_frame, sample_count, rasterization_policy)? || bump_binding.is_some() ||
+        (!portable_modules.is_empty() && shadow_frame.is_some());
+    let bump_profile = bump_binding.map(|_| ctx.bump_receiver_profile(policy));
+    let profile = if let Some(p)=bump_profile.as_ref(){p.as_ref()} else if shadow_multitexture { ctx.shadow_multitexture_surface_profile(policy) } else { ctx.surface_profile(policy) };
 
     if instanced && (ctx.device.limits().max_storage_buffers_per_shader_stage < 2
         || instancing::gpu_bytes(instances_slice.len())
@@ -2914,13 +6529,13 @@ fn encode_frame(
         return Err((CoinWgpuStatus::Unsupported,
             "Instancing exceeds enabled vertex storage buffer limits".into()));
     }
-    if draw_order.iter().any(|item| item.peel) && !peeling::device_supported(&ctx.device) {
+    if draw_order.iter().any(|item| item.peel) && !peeling_supported(ctx, sample_count) {
         return Err((
             CoinWgpuStatus::Unsupported,
             "Peeling lacks enabled device formats/attachments; no fallback was applied".into(),
         ));
     }
-    if draw_order.iter().any(|item| item.weighted) && !weighted::device_supported(&ctx.device) {
+    if draw_order.iter().any(|item| item.weighted) && !weighted_supported(ctx, sample_count) {
         return Err((CoinWgpuStatus::Unsupported,"Weighted OIT lacks enabled formats/attachments; no fallback was applied".into()));
     }
     // Composition was preflighted before surface acquisition or target allocation.
@@ -3041,7 +6656,10 @@ fn encode_frame(
             if enabled==0 {continue;}
             let image=textures_slice.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 image slot out of bounds".into()))?;
             let sampler=samplers_slice.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"P07 sampler slot out of bounds".into()))?;
-            if sampler.filter>=2 && !(if image.format==1 {image.reserved&2!=0} else {texture_profile::format(image.format)?.1}) {
+            if sampler.filter>=2 && !(if image.format==1 {texture_metadata(image)&2!=0}
+                else if image.format==11 {texture_metadata(image)&(1<<24)!=0}
+                else if image.format==12 {texture_metadata(image)&128!=0}
+                else {texture_profile::format(image.format)?.1}) {
                 return Err((CoinWgpuStatus::Unsupported,"P07 mip sampler requires complete stored-image chain".into()));
             }
         }
@@ -3079,7 +6697,7 @@ fn encode_frame(
 
 
     for image in textures_slice {
-        if image.format==1 {continue;}
+        if gpu_texture_token(image) {continue;}
         let format=texture_profile::format(image.format)?.0;
         if format.is_compressed() && !ctx.device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
             return Err((CoinWgpuStatus::Unsupported,"BC compression unavailable on selected adapter".into()));
@@ -3090,7 +6708,7 @@ fn encode_frame(
         }
     }
     for sampler in samplers_slice {
-        let max=texture_profile::anisotropy(sampler.reserved,sampler.filter)?;
+        let max=texture_profile::anisotropy(sampler.reserved & 15,sampler.filter)?;
         if max>1 && !ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::ANISOTROPIC_FILTERING) {
             return Err((CoinWgpuStatus::Unsupported,"Anisotropic filtering unavailable".into()));
         }
@@ -3132,20 +6750,27 @@ fn encode_frame(
                 format!("Texture {} dimensions invalid: {}x{}", t_idx, t.width, t.height),
             ));
         }
-        if t.format == 1 {
+        if gpu_texture_token(t) {
             let entry = rtt_cache.active.get(&t.content_digest).ok_or_else(|| (
                 CoinWgpuStatus::InvalidArgument,
                 format!("Texture {} has stale or unknown RTT token", t_idx),
             ))?;
-            if entry.width != t.width || entry.height != t.height
-                || (t.reserved&!31!=0 || (t.reserved&1!=0 && !entry.opaque) ||
-                    (t.reserved>>2)!=entry.format || (t.reserved&2!=0 && entry.mip_count<=1 && (t.width>1 || t.height>1)))
+            let metadata_mismatch=if t.format==12 {
+                let (n,_,mips)=cube_atlas_metadata(t)?.unwrap();
+                entry.cube_face_size!=n || entry.cube_mipmapped!=mips || entry.format!=0 || entry.mip_count!=1
+            } else {
+                entry.cube_face_size!=0 || texture_metadata(t)&!31!=0 || (texture_metadata(t)&1!=0 && !entry.opaque) ||
+                (texture_metadata(t)>>2)!=entry.format || (texture_metadata(t)&2!=0 && entry.mip_count<=1 && (t.width>1 || t.height>1))
+            };
+            if entry.width != t.width || entry.height != t.height || metadata_mismatch
                 || !t.pixels.is_null() || t.pixel_bytes_len != 0 {
                 return Err((CoinWgpuStatus::InvalidArgument,
                     format!("Texture {} RTT token metadata mismatch", t_idx)));
             }
             continue;
         }
+        spatial_atlas_metadata(t)?;
+        cube_atlas_metadata(t)?;
         let levels = texture_levels(t.width,t.height,t.format)?;
         let &(last_width,last_height,last_offset)=levels.last().unwrap();
         let gpu_format=texture_profile::format(t.format)?.0;
@@ -3258,7 +6883,8 @@ fn encode_frame(
 
     // Upload and cache frame samplers
     for s in samplers_slice {
-        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || texture_profile::anisotropy(s.reserved,s.filter).is_err() {
+        if s.filter>3 || s.wrap_s>1 || s.wrap_t>1 || s.reserved & !31 != 0 ||
+            texture_profile::anisotropy(s.reserved & 15,s.filter).is_err() {
             return Err((CoinWgpuStatus::InvalidArgument,"Invalid P07 sampler".into()));
         }
         let key = SamplerKey {
@@ -3285,7 +6911,7 @@ fn encode_frame(
             };
             let samp = ctx.device.create_sampler(&wgpu::SamplerDescriptor {
                 label: Some("Coin Cached Sampler"),
-                anisotropy_clamp: texture_profile::anisotropy(s.reserved,s.filter)?,
+                anisotropy_clamp: texture_profile::anisotropy(s.reserved & 15,s.filter)?,
                 lod_max_clamp: if s.filter>=2 {32.0} else {0.0},
                 address_mode_u: addr_u,
                 address_mode_v: addr_v,
@@ -3408,7 +7034,7 @@ fn encode_frame(
     let payload_hit = instance_hit && material_hit;
     let material_buffer_hit = material_hit || frame_buffers.is_some() || camera_bindings.is_some();
     let profile_material_pack = trace_materials.then(std::time::Instant::now);
-    let gpu_materials = if let Some(literal) = literal_gpu_materials { literal }
+    let gpu_materials = if let Some((_,_,values))=bump_binding {values.to_vec()} else if let Some(literal) = literal_gpu_materials { literal }
     else if !material_buffer_hit {
         pack_gpu_materials(materials_slice)
     } else { Vec::new() };
@@ -3731,42 +7357,55 @@ fn encode_frame(
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin Frame Encoder"),
         });
-    let shadow_map = if let Some(shadow) = shadow_frame {
+    let raster_images = raster_image::encode(ctx, &mut encoder, states_slice,
+        textures_slice, samplers_slice, &tex_cache, &samp_cache, &rtt_cache)?;
+    let shadow_map = if let Some((maps, _)) = shared_bump_shadow { maps.first().cloned() } else if let Some(shadow) = shadow_frame {
         if FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_SHADOW_MAP_ALLOC {
             FAULT_INJECTION.store(0, Ordering::SeqCst);
             return Err((CoinWgpuStatus::OutOfMemory,
                 "Injected shadow-map attachment allocation failure".into()));
         }
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, shadow.casters, states_slice, shadow.map_size, shadow.near, shadow.far, shadow.kind)
+            indices_slice, shadow.casters, states_slice, shadow.map_size, shadow.near, shadow.far, shadow.kind, rasterization_policy == 1)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
-    let shadow_map_second = if let Some(second) = shadow_frame.and_then(|shadow| shadow.second.as_ref()) {
+    let shadow_map_second = if let Some((maps,_))=shared_bump_shadow { maps.get(1).cloned() } else if let Some(second) = shadow_frame.and_then(|shadow| shadow.second.as_ref()) {
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, second.casters, states_slice, second.map_size, second.near, second.far, second.kind)
+            indices_slice, second.casters, states_slice, second.map_size, second.near, second.far, second.kind, rasterization_policy == 1)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
 
-    let shadow_map_third = if let Some(pass) = shadow_frame.and_then(|shadow| shadow.third.as_ref()) {
+    let shadow_map_third = if let Some((maps,_))=shared_bump_shadow { maps.get(2).cloned() } else if let Some(pass) = shadow_frame.and_then(|shadow| shadow.third.as_ref()) {
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, pass.casters, states_slice, pass.map_size, pass.near, pass.far, pass.kind)
+            indices_slice, pass.casters, states_slice, pass.map_size, pass.near, pass.far, pass.kind, rasterization_policy == 1)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
-    let shadow_map_fourth = if let Some(pass) = shadow_frame.and_then(|shadow| shadow.fourth.as_ref()) {
+    let shadow_map_fourth = if let Some((maps,_))=shared_bump_shadow { maps.get(3).cloned() } else if let Some(pass) = shadow_frame.and_then(|shadow| shadow.fourth.as_ref()) {
         Some(shadow::encode_moments(&ctx.device, &mut encoder, vertices_slice,
-            indices_slice, pass.casters, states_slice, pass.map_size, pass.near, pass.far, pass.kind)
+            indices_slice, pass.casters, states_slice, pass.map_size, pass.near, pass.far, pass.kind, rasterization_policy == 1)
             .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?)
     } else { None };
     let mut extra_shadow_maps = Vec::new();
-    if let Some(shadow) = shadow_frame {
+    if let Some((maps,_))=shared_bump_shadow {
+        extra_shadow_maps.extend(maps.iter().skip(4).cloned());
+    } else if let Some(shadow) = shadow_frame {
         for pass in &shadow.extra {
             extra_shadow_maps.push(shadow::encode_moments(&ctx.device, &mut encoder,
                 vertices_slice, indices_slice, pass.casters, states_slice,
-                pass.map_size, pass.near, pass.far, pass.kind)
+                pass.map_size, pass.near, pass.far, pass.kind, rasterization_policy == 1)
                 .map_err(|msg| (CoinWgpuStatus::InvalidArgument, msg))?);
         }
     }
-    {
+    let shadow_array = if shadow_multitexture && shared_bump_shadow.is_some() {
+        Some(shared_bump_shadow.unwrap().1.clone())
+    } else if shadow_multitexture {
+        let maps: Vec<&shadow::ShadowMap> = [shadow_map.as_ref(), shadow_map_second.as_ref(),
+            shadow_map_third.as_ref(), shadow_map_fourth.as_ref()].into_iter().flatten()
+            .chain(extra_shadow_maps.iter()).collect();
+        Some(shadow::encode_array(&ctx.device, &mut encoder, &maps)
+            .map_err(|message| (CoinWgpuStatus::Unsupported, message))?)
+    } else { None };
+    if clear_attachments {
         let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Coin initial attachments clear"),
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
@@ -3799,17 +7438,18 @@ fn encode_frame(
         });
     }
     let peeling = draw_order.iter().any(|item| item.peel).then(|| {
-        peeling::Peeling::new(
+        peeling::Peeling::new_samples(
             &ctx.device,
             target_width,
             target_height,
             color_format,
             peel_passes as usize,
             ctx.adapter.get_info().backend == wgpu::Backend::Gl,
+            sample_count,
         )
     });
     let weighted=draw_order.iter().any(|item|item.weighted).then(||
-        weighted::Weighted::new(&ctx.device,target_width,target_height,color_format));
+        weighted::Weighted::new_samples(&ctx.device,target_width,target_height,color_format,sample_count));
     let passes = composition::passes(draw_order, draws_slice);
     let uniform_records = draw_order.iter().try_fold(0usize, |count, item| {
         count.checked_add(if item.peel { peel_passes as usize } else { 1 })
@@ -3819,12 +7459,24 @@ fn encode_frame(
     let mut uniform_arena = uniform_arena::UniformArena::new(&ctx.device, uniform_records, uniform_size);
     // Resources are stable while the texture/RTT caches are locked. A disabled
     // unit always binds the same defaults; unused eight-shadow units are omitted.
-    let mut draw_bindings: HashMap<(usize, [(u32, u32); 8], usize), wgpu::BindGroup> = HashMap::new();
+    let mut draw_bindings: HashMap<(usize, [(u32, u32); 8], usize, u32), wgpu::BindGroup> = HashMap::new();
+    // A distinct immutable buffer for each occurrence prevents later runs from
+    // overwriting parameters referenced by an earlier command in one submit.
+    let mut module_buffers = Vec::with_capacity(portable_modules.len());
+    for module in portable_modules {
+        let mut parameters = [0.0f32;1024];
+        parameters[..module.parameters.len()].copy_from_slice(&module.parameters);
+        module_buffers.push(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            label: Some("Coin portable shader occurrence parameters"),
+            contents: bytemuck::cast_slice(&parameters), usage: wgpu::BufferUsages::UNIFORM,
+        }));
+    }
     let depth_clear_pipeline = if draws_slice.iter().any(|draw| draw.clear_depth_before != 0) {
         let mut cached = ctx.annotation_depth_pipeline.lock().unwrap();
         Some(
             cached
-                .get_or_insert_with(|| annotation_depth_clear_pipeline(&ctx.device))
+                .entry(sample_count)
+                .or_insert_with(|| annotation_depth_clear_pipeline(&ctx.device, sample_count))
                 .clone(),
         )
     } else {
@@ -3833,8 +7485,15 @@ fn encode_frame(
     for (pass_index, range) in passes.iter().enumerate() {
         if let Some(item) = draw_order.get(range.start) {
             let draw = &draws_slice[item.draw_index];
-            if draw.clear_depth_before != 0 &&
-                states_slice[draw.render_state_slot as usize].viewport != [0, 0, 0, 1] {
+            // A scene's opaque/deferred sorting may move its captured barrier.
+            // Execute it once at layer entry, using the original clear viewport.
+            let entering_layer = pass_index == 0 || passes.get(pass_index - 1)
+                .and_then(|previous| draw_order.get(previous.start))
+                .is_some_and(|previous| draws_slice[previous.draw_index].render_layer != draw.render_layer);
+            let barrier = entering_layer.then(|| draws_slice.iter().find(|candidate|
+                candidate.render_layer == draw.render_layer && candidate.clear_depth_before != 0)).flatten();
+            if let Some(draw) = barrier.filter(|barrier|
+                states_slice[barrier.render_state_slot as usize].viewport != [0, 0, 0, 1]) {
                 let viewport = resolved_viewport(
                     &states_slice[draw.render_state_slot as usize],
                     target_width,
@@ -3866,10 +7525,17 @@ fn encode_frame(
         }
         let is_peel = draw_order.get(range.start).is_some_and(|item| item.peel);
         let is_weighted = draw_order.get(range.start).is_some_and(|item|item.weighted);
+        let sample_depth = peeling.is_some() && sample_count > 1;
+        let profile = if sample_depth {
+            if shadow_multitexture { ctx.shadow_multitexture_peeling_surface_profile(policy) }
+            else { ctx.peeling_surface_profile(policy) }
+        } else { profile };
         if is_peel {
-            if ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+            if sample_count > 1 {
+                peeling.as_ref().unwrap().snapshot_depth(&ctx.device, &mut encoder, depth_view);
+            } else if ctx.adapter.get_info().backend == wgpu::Backend::Gl {
                 let mut converter = ctx.depth_snapshot.lock().unwrap();
-                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new(&ctx.device, true));
+                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new_gl(&ctx.device, true));
                 converter.copy_depth(&ctx.device, &mut encoder, depth_view, &peeling.as_ref().unwrap().opaque_view);
             } else {
                 encoder.copy_texture_to_texture(
@@ -3906,10 +7572,21 @@ fn encode_frame(
             };
             let mut color_attachments = vec![Some(wgpu::RenderPassColorAttachment {
                 view: selected_color,
-                resolve_target: None,
+                // Resolve together with the final composed draw. A separate
+                // empty pass can discard the previously rendered MSAA color
+                // on Vulkan implementations even when its load op is Load.
+                resolve_target: if !is_peel && !is_weighted &&
+                    pass_index + 1 == passes.len() && peel_step == 0 {
+                    resolve_view
+                } else { None },
                 ops: wgpu::Operations {
                     load: if is_peel || is_weighted {
                         wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT)
+                    } else if sample_count > 1 && pass_index == 0 && clear_attachments {
+                        wgpu::LoadOp::Clear(wgpu::Color {
+                            r: clear_color[0] as f64, g: clear_color[1] as f64,
+                            b: clear_color[2] as f64, a: clear_color[3] as f64,
+                        })
                     } else {
                         wgpu::LoadOp::Load
                     },
@@ -3938,7 +7615,7 @@ fn encode_frame(
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: selected_depth,
                     depth_ops: Some(wgpu::Operations {
-                        load: if is_peel {
+                        load: if is_peel || (sample_count > 1 && pass_index == 0 && clear_attachments) {
                             wgpu::LoadOp::Clear(1.0)
                         } else {
                             wgpu::LoadOp::Load
@@ -4000,7 +7677,32 @@ fn encode_frame(
                 // WebGPU viewport intervals must be ascending. The existing
                 // fragment-depth path maps a reversed Coin interval without
                 // changing clipping or projection.
-                let resolved_depth_bias = resolved_offset || st.depth_range[0] > st.depth_range[1];
+                // Deferred selectors/weighted fragments map custom intervals in
+                // the shader. Coplanar 1x writers must use that same expression,
+                // since native viewport mapping can round it differently. At the
+                // default 0..1 interval with zero bias, mix(0,1,FragCoord.z) is
+                // exactly FragCoord.z; retain ordinary early depth there. MSAA
+                // weighted keeps its existing shared sample-depth delivery.
+                let shared_shadow_shader_depth = shadow_multitexture && draw_order.iter()
+                    .any(|item| (sample_count > 1 && item.weighted) ||
+                        (sample_count == 1 && st.depth_range != [0.0,1.0] && (item.weighted || item.peel)));
+                let resolved_depth_bias = shared_shadow_shader_depth || sample_depth || resolved_offset || st.depth_range[0] > st.depth_range[1] || rasterization_policy == 1 ||
+                    (shadow_multitexture && sample_count > 1 && custom_shadow_sample_depth(st));
+                // Ordinary MSAA uses hardware depth and must not introduce a
+                // sample-interpolated module on devices that lack sample shading.
+                // Only the fragment-depth entry point needs the private profile;
+                // peeling already selected its multisampled-resource layout above.
+                let profile = if sample_count > 1 && !sample_depth && (!is_weighted || shadow_multitexture) && resolved_depth_bias {
+                    if shadow_multitexture { ctx.shadow_multitexture_depth_surface_profile(policy) }
+                    else { ctx.sample_depth_surface_profile(policy) }
+                } else { profile };
+                let map_mode = shadow_frame.map_or(0, |shadow| if shadow.extra.is_empty() {1} else {2});
+                let module_profile = if st.portable_shader_slot != 0 {
+                    let module = portable_modules.get(st.portable_shader_slot as usize-1)
+                        .ok_or_else(|| (CoinWgpuStatus::InvalidArgument,"Invalid portable shader draw occurrence".into()))?;
+                    Some(portable::profile(ctx,module,profile,sample_count,map_mode)?)
+                } else { None };
+                let profile = module_profile.as_ref().map_or(profile,|profile|profile.as_ref());
                 let native_depth_bias = polygon_depth_bias(st, draw.topology).map_err(|e| {
                     (
                         CoinWgpuStatus::InvalidArgument,
@@ -4023,6 +7725,12 @@ fn encode_frame(
                     native_depth_bias
                 };
                 let eight_shadows = shadow_frame.is_some_and(|s| !s.extra.is_empty());
+                if bump_binding.is_some() && trace_materials {
+                    eprintln!("COIN_RENDER_PHASE wgpu_bump_run_profile render_state_slot={} light_model={} light_count={} profile_bump_receiver={} shadow_frame={} bump_binding={} portable_shader_slot={} material_slot={}",
+                        draw.render_state_slot, st.light_model, st.light_count,
+                        profile.bump_receiver, shadow_frame.is_some(), bump_binding.is_some(),
+                        st.portable_shader_slot, st.material_slot);
+                }
                 let pipeline = match get_or_create_pipeline(
                     ctx, profile,
                     draw.topology,
@@ -4032,13 +7740,15 @@ fn encode_frame(
                         color_format
                     },
                     wgpu::TextureFormat::Depth32Float,
+                    sample_count,
                     cull_face,
                     front_face,
                     item.blend && !is_peel && !is_weighted,
                     item.additive,
                     item.legacy_blend_alpha,
                     is_peel,
-                    is_peel || (st.depth_test != 0 && st.depth_write != 0),
+                    is_peel || (!is_weighted && st.depth_test != 0 && st.depth_write != 0),
+                    st.color_write,
                     if is_peel {
                         wgpu::CompareFunction::LessEqual
                     } else {
@@ -4049,7 +7759,7 @@ fn encode_frame(
                     eight_shadows,
                     shadow_frame.is_some(),
                     is_weighted,
-                    st.has_texture != 0 || st.extra_textures.iter().any(|unit| unit.enabled != 0),
+                    st.portable_shader_slot != 0 || bump_binding.is_some() || st.has_texture != 0 || st.extra_textures.iter().any(|unit| unit.enabled != 0),
                     instanced,
                 ) {
                     Ok(p) => p,
@@ -4083,8 +7793,14 @@ fn encode_frame(
                     }
                 });
                 let texture_bindings: Vec<_> = layers
-                    .iter()
-                    .map(|layer| {
+                    .iter().enumerate()
+                    .map(|(unit, layer)| {
+                        if unit == 0 {
+                            if let Some(image) = raster_images.get(&(draw.render_state_slot as usize)) {
+                                return (&image.view, &image.sampler,
+                                    [image.width as f32, image.height as f32, 0.0, 3.0]);
+                            }
+                        }
                         if layer.enabled == 0 {
                             return (&ctx.default_texture_view, &ctx.default_sampler, [1.0, 1.0, 0.0, 0.0]);
                         }
@@ -4102,15 +7818,27 @@ fn encode_frame(
                             filter: s.filter,
             max_anisotropy_minus_one: s.reserved,
                         };
-                        let (view, width, height) = if t.format == 1 {
+                        let (view, width, height) = if gpu_texture_token(t) {
                             let resource = rtt_cache.active.get(&t.content_digest)
                                 .expect("RTT token preflighted before encoding");
                             (&resource.view, if policy == SamplingPolicy::Portable {resource.width} else {1}, if policy == SamplingPolicy::Portable {resource.height} else {1})
                         } else if let Some(entry) = tex_cache.entries.get(&tk) {
                             (&entry.view, if policy == SamplingPolicy::Portable {entry.texture.width()} else {1}, if policy == SamplingPolicy::Portable {entry.texture.height()} else {1})
                         } else { (&ctx.default_texture_view, 1, 1) };
-                        (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),
-                         [width as f32, height as f32, s.filter as f32, (s.wrap_s + 2 * s.wrap_t) as f32])
+                        let supplied = if t.format == 12 {
+                            let (n,_,mips)=cube_atlas_metadata(t).expect("cube atlas preflighted").unwrap();
+                            [n as f32,if mips{1.0}else{0.0},(8+s.filter) as f32,0.0]
+                        } else if t.format == 11 {
+                            let (w,h,d,mips)=spatial_atlas_metadata(t).expect("spatial atlas preflighted")
+                                .expect("spatial atlas format");
+                            let flags=s.wrap_s+2*s.wrap_t+4*((s.reserved>>4)&1)+
+                                if mips {8} else {0};
+                            [w as f32,h as f32,(4+s.filter) as f32,(d*16+flags) as f32]
+                        } else {
+                            [width as f32,height as f32,s.filter as f32,
+                             (s.wrap_s+2*s.wrap_t) as f32]
+                        };
+                        (view, samp_cache.entries.get(&sk).unwrap_or(&ctx.default_sampler),supplied)
                     })
                     .collect();
                 let extra_texture_matrices = std::array::from_fn(|unit| {
@@ -4163,7 +7891,13 @@ fn encode_frame(
                 });
                 let uniforms = CoinWgpuUniforms {
                     alpha_test: [st.alpha_test_function as f32, st.alpha_test_reference, 0.0, 0.0],
+                    raster_viewport: if rasterization_policy == 1 {
+                        let viewport = resolved_viewport(st, target_width, target_height)?;
+                        [viewport[0] as f32, (target_height as i32 - viewport[1] - viewport[3]) as f32,
+                         viewport[2] as f32, viewport[3] as f32]
+                    } else { [0.0; 4] },
                     sampling_texture_sizes: std::array::from_fn(|unit| texture_bindings[unit].2),
+                    flat_shadow_primary: [st.material_slot, st.flat_shadow_primary, 0, 0],
                     model_view_projection: mvp,
                     model_view: mv,
                     normal_matrix: nm,
@@ -4245,8 +7979,8 @@ fn encode_frame(
                     shadow_meta: receiver.map_or([0.0; 4], |(r, shadow)|
                         [shadow.threshold, r.lighting_index as f32, shadow.kind as f32,
                          r.max_shadow_distance]),
-                    shadow_falloff: receiver.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
+                    shadow_falloff: receiver.map_or([0.0; 4], |(r, map)|
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, map.map_size as f32, 0.0]),
                     shadow_model_view_projection_second: receiver_second.map_or(
                         [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
@@ -4261,8 +7995,8 @@ fn encode_frame(
                     shadow_meta_second: receiver_second.map_or([0.0; 4], |(r, second)|
                         [second.threshold, r.lighting_index as f32,
                          second.kind as f32, r.max_shadow_distance]),
-                    shadow_falloff_second: receiver_second.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
+                    shadow_falloff_second: receiver_second.map_or([0.0; 4], |(r, map)|
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, map.map_size as f32, 0.0]),
                     shadow_model_view_projection_third: receiver_third.map_or(
                         [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
@@ -4277,8 +8011,8 @@ fn encode_frame(
                     shadow_meta_third: receiver_third.map_or([0.0; 4], |(r, pass)|
                         [pass.threshold, r.lighting_index as f32,
                          pass.kind as f32, r.max_shadow_distance]),
-                    shadow_falloff_third: receiver_third.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
+                    shadow_falloff_third: receiver_third.map_or([0.0; 4], |(r, map)|
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, map.map_size as f32, 0.0]),
                     shadow_model_view_projection_fourth: receiver_fourth.map_or(
                         [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0],
                          [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]],
@@ -4293,8 +8027,8 @@ fn encode_frame(
                     shadow_meta_fourth: receiver_fourth.map_or([0.0; 4], |(r, pass)|
                         [pass.threshold, r.lighting_index as f32,
                          pass.kind as f32, r.max_shadow_distance]),
-                    shadow_falloff_fourth: receiver_fourth.map_or([0.0; 4], |(r, _)|
-                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0]),
+                    shadow_falloff_fourth: receiver_fourth.map_or([0.0; 4], |(r, map)|
+                        [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, map.map_size as f32, 0.0]),
                 };
 
                 let extra_passes = shadow_frame.map_or(&[][..], |shadow| shadow.extra.as_slice());
@@ -4333,7 +8067,7 @@ fn encode_frame(
                         },
                     ];
                     for (unit, (view, sampler, _size)) in texture_bindings.iter().enumerate() {
-                        if eight_shadows && unit >= 4 { continue; }
+                        if eight_shadows && !profile.shadow_multitexture && unit >= 4 { continue; }
                         entries.push(wgpu::BindGroupEntry {
                             binding: 2 + 2 * unit as u32,
                             resource: wgpu::BindingResource::TextureView(view),
@@ -4345,10 +8079,12 @@ fn encode_frame(
                     }
                     let previous = if is_peel && peel_step > 0 {
                         &peeling.as_ref().unwrap().depths[peel_step - 1]
+                    } else if sample_depth {
+                        &peeling.as_ref().unwrap().opaque_view
                     } else {
                         &ctx.default_depth_view
                     };
-                    let opaque = if is_peel {
+                    let opaque = if is_peel || sample_depth {
                         &peeling.as_ref().unwrap().opaque_view
                     } else {
                         &ctx.default_depth_view
@@ -4361,6 +8097,10 @@ fn encode_frame(
                         binding: 19,
                         resource: wgpu::BindingResource::TextureView(opaque),
                     });
+                    if profile.shadow_multitexture {
+                        entries.push(wgpu::BindGroupEntry { binding: 20,
+                            resource: wgpu::BindingResource::TextureView(&shadow_array.as_ref().unwrap().view) });
+                    } else {
                     entries.push(wgpu::BindGroupEntry {
                         binding: 20,
                         resource: wgpu::BindingResource::TextureView(shadow_views[0]),
@@ -4377,6 +8117,15 @@ fn encode_frame(
                         binding: 23,
                         resource: wgpu::BindingResource::TextureView(shadow_views[3]),
                     });
+                    }
+                    if let Some((image,sampler,_))=bump_binding {
+                      entries.push(wgpu::BindGroupEntry {binding:25,resource:wgpu::BindingResource::TextureView(image)});
+                      entries.push(wgpu::BindGroupEntry {binding:26,resource:wgpu::BindingResource::Sampler(sampler)});
+                    }
+                    if st.portable_shader_slot != 0 {
+                        entries.push(wgpu::BindGroupEntry { binding: 27,
+                            resource: module_buffers[st.portable_shader_slot as usize-1].as_entire_binding() });
+                    }
                     if let Some(buffer) = instances_buffer.as_ref() {
                         entries.push(wgpu::BindGroupEntry { binding: 24,
                             resource: buffer.as_entire_binding() });
@@ -4401,7 +8150,7 @@ fn encode_frame(
                             view_to_light: shadow_matrix(&r.model_view),
                             params: [(r.receives & 1) as f32, p.near, p.far, p.epsilon],
                             meta: [p.threshold, r.lighting_index as f32, p.kind as f32, r.max_shadow_distance],
-                            falloff: [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, 0.0, 0.0],
+                            falloff: [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, p.map_size as f32, 0.0],
                         };
                     }
                     let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
@@ -4409,7 +8158,7 @@ fn encode_frame(
                         usage: wgpu::BufferUsages::UNIFORM,
                     });
                     let mut entries = vec![wgpu::BindGroupEntry { binding: 0, resource: buffer.as_entire_binding() }];
-                    for (slot, view) in extra_shadow_views.iter().enumerate() {
+                    for (slot, view) in extra_shadow_views.iter().enumerate().filter(|_| !profile.shadow_multitexture) {
                         entries.push(wgpu::BindGroupEntry { binding: slot as u32 + 1,
                             resource: wgpu::BindingResource::TextureView(view) });
                     }
@@ -4431,11 +8180,11 @@ fn encode_frame(
                 let (chunk, uniform_offset) = uniform_arena.push(&ctx.device, &uniforms);
                 let units = std::array::from_fn(|unit| {
                     let layer = &layers[unit];
-                    if layer.enabled == 0 || (eight_shadows && unit >= 4) {
+                    if layer.enabled == 0 || (eight_shadows && !profile.shadow_multitexture && unit >= 4) {
                         (u32::MAX, u32::MAX)
                     } else { (layer.texture_slot, layer.sampler_slot) }
                 });
-                let key = (chunk, units, if is_peel { peel_step } else { usize::MAX });
+                let key = (chunk, units, if is_peel { peel_step } else { usize::MAX }, st.portable_shader_slot);
                 let binding = draw_bindings.entry(key).or_insert_with(|| {
                     create_binding(uniform_arena.buffer(chunk), base_shadow_views)
                 });
@@ -4524,12 +8273,17 @@ fn encode_frame(
 
             }
         }
-        if is_weighted { weighted.as_ref().unwrap().composite(&mut encoder,color_view,if pass_index + 1 == passes.len() { timestamp_query } else { None }); }
+        if is_weighted {
+            weighted.as_ref().unwrap().composite_samples(&mut encoder, color_view,
+                if pass_index + 1 == passes.len() { resolve_view } else { None },
+                if pass_index + 1 == passes.len() { timestamp_query } else { None });
+        }
         if is_peel {
-            peeling.as_ref().unwrap().composite(
+            peeling.as_ref().unwrap().composite_samples(
                 &mut encoder,
                 color_view,
                 depth_view,
+                if pass_index + 1 == passes.len() { resolve_view } else { None },
                 if pass_index + 1 == passes.len() {
                     timestamp_query
                 } else {
@@ -4552,6 +8306,21 @@ fn encode_frame(
     uniform_arena.upload(&ctx.queue);
     ctx.draw_bind_groups.store(draw_bindings.len() as u32, Ordering::Relaxed);
     ctx.uniform_chunks.store(uniform_arena.chunk_count() as u32, Ordering::Relaxed);
+    if passes.is_empty() {
+      if let Some(resolve_view) = resolve_view {
+        let _resolve = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Coin empty-frame MSAA color resolve"),
+            color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+                view: color_view,
+                resolve_target: Some(resolve_view),
+                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Discard },
+            })],
+            depth_stencil_attachment: None,
+            timestamp_writes: None,
+            occlusion_query_set: None,
+        });
+      }
+    }
     Ok((encoder.finish(), pending_instances))
 }
 
@@ -4677,6 +8446,290 @@ pub extern "C" fn coin_wgpu_default_device_generation() -> u64 {
             .map_or(0, |device| device.generation.checked_add(1).unwrap_or(0))
     })
     .unwrap_or(0)
+}
+
+fn shadow_multitexture_supported(ctx: &DeviceState) -> bool {
+    let limits = ctx.device.limits();
+    limits.max_inter_stage_shader_components >= 80 && limits.max_sampled_textures_per_shader_stage >= 11 && limits.max_samplers_per_shader_stage >= 8
+}
+
+fn shadow_array_supported(ctx: &DeviceState,extent:u32,layers:u32)->bool {
+    extent>0 && layers>0 && extent<=ctx.device.limits().max_texture_dimension_2d &&
+        shadow::array_layer_count(layers)<=ctx.device.limits().max_texture_array_layers &&
+        ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba32Float).allowed_usages
+            .contains(wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_DST|wgpu::TextureUsages::COPY_SRC|wgpu::TextureUsages::RENDER_ATTACHMENT)
+}
+
+// Pure admission: materialize each selected complete program before producers
+// or WSI acquisition. No output commands are submitted by these probes.
+fn shadow_multitexture_alpha_supported(ctx:&DeviceState,samples:u32,modes:u32)->bool {
+    if !matches!(samples,1|2|4) || !shadow_multitexture_supported(ctx) { return false; }
+    if modes&2!=0 && !weighted_supported(ctx,samples) || modes&4!=0 && !peeling_supported(ctx,samples) { return false; }
+    if samples>1 && modes&6!=0 && !shadow_multitexture_depth_supported(ctx) { return false; }
+    let mut cache=ctx.shadow_multitexture_alpha_admission.lock().unwrap();
+    *cache.entry((samples,modes)).or_insert_with(|| {
+        ctx.device.push_error_scope(wgpu::ErrorFilter::Validation);
+        let mut valid=true;
+        for policy in [SamplingPolicy::Native,SamplingPolicy::Portable] {
+            for eight in [false,true] {
+                for mode in [1u32,2,4] {
+                    if modes&mode==0 {continue;}
+                    let profile=if mode==4 && samples>1 {ctx.shadow_multitexture_peeling_surface_profile(policy)}
+                        else if mode==2 && samples>1 {ctx.shadow_multitexture_depth_surface_profile(policy)}
+                        else {ctx.shadow_multitexture_surface_profile(policy)};
+                    valid &= get_or_create_pipeline(ctx,profile,0,if mode==1 {wgpu::TextureFormat::Rgba8Unorm} else {wgpu::TextureFormat::Rgba16Float},
+                        wgpu::TextureFormat::Depth32Float,samples,None,wgpu::FrontFace::Ccw,
+                        mode==1,false,false,mode==4,true,1,wgpu::CompareFunction::LessEqual,
+                        wgpu::DepthBiasState::default(),(mode!=1 && samples>1) || (samples==1 && modes&6!=0),
+                        eight,true,mode==2,true,false).is_ok();
+                }
+            }
+        }
+        block_on(ctx.device.pop_error_scope()).is_none() && valid
+    })
+}
+
+// Append-only private admission; the public options and frame-view layout are intact.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_bump_receiver(
+    samples: u32,
+    vertices: u64,
+    materials: u64,
+    image_axis: u32,
+    sampling_policy: u32,
+) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if !matches!(samples, 1 | 2 | 4) || sampling_policy > 1 {
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        let guard = RUNTIME_CTX.lock().unwrap();
+        let Some(ctx) = guard
+            .as_ref()
+            .and_then(|runtime| runtime.device_state.as_ref())
+        else {
+            return CoinWgpuStatus::NotReady;
+        };
+        let limits = ctx.device.limits();
+        let bytes = vertices
+            .checked_add(materials)
+            .and_then(|count| count.checked_mul(std::mem::size_of::<GpuMaterial>() as u64));
+        if limits.max_inter_stage_shader_components < 80
+            || limits.max_vertex_attributes < 13
+            || limits.max_sampled_textures_per_shader_stage < 12
+            || limits.max_samplers_per_shader_stage < 9
+            || limits.max_storage_buffers_per_shader_stage < 1
+            || image_axis > limits.max_texture_dimension_2d
+            || bytes.is_none_or(|bytes| {
+                bytes > u64::from(limits.max_storage_buffer_binding_size)
+                    || bytes > limits.max_buffer_size
+            })
+        {
+            return CoinWgpuStatus::Unsupported;
+        }
+        if samples > 1 {
+            let required = if samples == 2 {
+                wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X2
+            } else {
+                wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4
+            };
+            if (samples == 2
+                && !ctx
+                    .device
+                    .features()
+                    .contains(wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES))
+                || [
+                    wgpu::TextureFormat::Rgba8Unorm,
+                    wgpu::TextureFormat::Depth32Float,
+                ]
+                .into_iter()
+                .any(|format| {
+                    !ctx.adapter
+                        .get_texture_format_features(format)
+                        .flags
+                        .contains(required)
+                })
+            {
+                return CoinWgpuStatus::Unsupported;
+            }
+        }
+        ctx.device.push_error_scope(wgpu::ErrorFilter::Validation);
+        let policy = if sampling_policy == 0 {
+            SamplingPolicy::Native
+        } else {
+            SamplingPolicy::Portable
+        };
+        let profile = ctx.bump_receiver_profile(policy);
+        let valid = get_or_create_pipeline(
+            ctx,
+            &profile,
+            0,
+            wgpu::TextureFormat::Rgba8Unorm,
+            wgpu::TextureFormat::Depth32Float,
+            samples,
+            None,
+            wgpu::FrontFace::Ccw,
+            false,
+            false,
+            false,
+            false,
+            true,
+            0xf,
+            wgpu::CompareFunction::Less,
+            wgpu::DepthBiasState::default(),
+            false,
+            false,
+            true,
+            false,
+            true,
+            false,
+        )
+        .is_ok();
+        if block_on(ctx.device.pop_error_scope()).is_none() && valid {
+            CoinWgpuStatus::Ok
+        } else {
+            CoinWgpuStatus::Unsupported
+        }
+    })
+    .unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_shadow_multitexture_alpha(samples:u32,modes:u32,extent:u32,layers:u32)->CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if modes&!7!=0 || modes==0 || !matches!(samples,1|2|4) {return CoinWgpuStatus::InvalidArgument;}
+        let guard=RUNTIME_CTX.lock().unwrap();
+        let Some(ctx)=guard.as_ref().and_then(|runtime|runtime.device_state.as_ref()) else {return CoinWgpuStatus::NotReady;};
+        if shadow_array_supported(ctx,extent,layers) && shadow_multitexture_alpha_supported(ctx,samples,modes) {
+            CoinWgpuStatus::Ok
+        } else {CoinWgpuStatus::Unsupported}
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_shadow_multitexture(sample_count: u32) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        let guard = RUNTIME_CTX.lock().unwrap();
+        let Some(runtime) = guard.as_ref() else { return CoinWgpuStatus::NotReady; };
+        let Some(ctx) = runtime.device_state.as_ref() else { return CoinWgpuStatus::NotReady; };
+        if !shadow_multitexture_supported(ctx) { return CoinWgpuStatus::Unsupported; }
+        let slot = match sample_count { 1 => 0, 2 => 1, 4 => 2, _ => return CoinWgpuStatus::InvalidArgument };
+        if sample_count == 2 && !ctx.device.features().contains(wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES) {
+            return CoinWgpuStatus::Unsupported;
+        }
+        if sample_count > 1 {
+            let required = if sample_count == 2 { wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X2 }
+                else { wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4 };
+            if [wgpu::TextureFormat::Rgba8Unorm, wgpu::TextureFormat::Depth32Float].into_iter().any(|format|
+                !ctx.adapter.get_texture_format_features(format).flags.contains(required)) {
+                return CoinWgpuStatus::Unsupported;
+            }
+        }
+        let admitted = *ctx.shadow_multitexture_admission[slot].get_or_init(|| {
+            ctx.device.push_error_scope(wgpu::ErrorFilter::Validation);
+            let mut valid = true;
+            for policy in [SamplingPolicy::Native, SamplingPolicy::Portable] {
+                let profile = ctx.shadow_multitexture_surface_profile(policy);
+                for eight in [false, true] {
+                    valid &= get_or_create_pipeline(ctx, profile, 0, wgpu::TextureFormat::Rgba8Unorm,
+                        wgpu::TextureFormat::Depth32Float, sample_count, None, wgpu::FrontFace::Ccw,
+                        false, false, false, false, true, 1, wgpu::CompareFunction::Less,
+                        wgpu::DepthBiasState::default(), false, eight, true, false, true, false).is_ok();
+                }
+            }
+            block_on(ctx.device.pop_error_scope()).is_none() && valid
+        });
+        if admitted { CoinWgpuStatus::Ok } else { CoinWgpuStatus::Unsupported }
+
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_shadow_multitexture_depth(sample_count: u32) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        let guard = RUNTIME_CTX.lock().unwrap();
+        let Some(runtime) = guard.as_ref() else { return CoinWgpuStatus::NotReady; };
+        let Some(ctx) = runtime.device_state.as_ref() else { return CoinWgpuStatus::NotReady; };
+        if !shadow_multitexture_depth_supported(ctx) { return CoinWgpuStatus::Unsupported; }
+        let slot = match sample_count { 1 => 0, 2 => 1, 4 => 2, _ => return CoinWgpuStatus::InvalidArgument };
+        if sample_count == 2 && !ctx.device.features().contains(wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES) {
+            return CoinWgpuStatus::Unsupported;
+        }
+        if sample_count > 1 {
+            let required = if sample_count == 2 { wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X2 }
+                else { wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4 };
+            if [wgpu::TextureFormat::Rgba8Unorm, wgpu::TextureFormat::Depth32Float].into_iter().any(|format|
+                !ctx.adapter.get_texture_format_features(format).flags.contains(required)) {
+                return CoinWgpuStatus::Unsupported;
+            }
+        }
+        let admitted = *ctx.shadow_multitexture_depth_admission[slot].get_or_init(|| {
+            ctx.device.push_error_scope(wgpu::ErrorFilter::Validation);
+            let mut valid = true;
+            for policy in [SamplingPolicy::Native, SamplingPolicy::Portable] {
+                let profile = ctx.shadow_multitexture_depth_surface_profile(policy);
+                for eight in [false, true] {
+                    valid &= get_or_create_pipeline(ctx, profile, 0, wgpu::TextureFormat::Rgba8Unorm,
+                        wgpu::TextureFormat::Depth32Float, sample_count, None, wgpu::FrontFace::Ccw,
+                        false, false, false, false, true, 1, wgpu::CompareFunction::Less,
+                        wgpu::DepthBiasState::default(), true, eight, true, false, true, false).is_ok();
+                }
+            }
+            block_on(ctx.device.pop_error_scope()).is_none() && valid
+        });
+        if admitted { CoinWgpuStatus::Ok } else { CoinWgpuStatus::Unsupported }
+
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_sample_depth(samples: u32) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if !matches!(samples, 1 | 2 | 4) { return CoinWgpuStatus::InvalidArgument; }
+        let guard = RUNTIME_CTX.lock().unwrap();
+        let Some(runtime) = guard.as_ref() else { return CoinWgpuStatus::NotReady; };
+        let Some(ctx) = runtime.device_state.as_ref() else { return CoinWgpuStatus::NotReady; };
+        if samples == 1 || ctx.adapter.get_downlevel_capabilities().flags.contains(wgpu::DownlevelFlags::MULTISAMPLED_SHADING) {
+            CoinWgpuStatus::Ok
+        } else { CoinWgpuStatus::Unsupported }
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_peeling(samples: u32) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if !matches!(samples, 1 | 2 | 4) { return CoinWgpuStatus::InvalidArgument; }
+        let guard = RUNTIME_CTX.lock().unwrap();
+        let Some(runtime) = guard.as_ref() else { return CoinWgpuStatus::NotReady; };
+        let Some(ctx) = runtime.device_state.as_ref() else { return CoinWgpuStatus::NotReady; };
+        if peeling_supported(ctx, samples) { CoinWgpuStatus::Ok } else { CoinWgpuStatus::Unsupported }
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_weighted(samples: u32) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if !matches!(samples, 1 | 2 | 4) { return CoinWgpuStatus::InvalidArgument; }
+        let mut guard = RUNTIME_CTX.lock().unwrap();
+        let Some(runtime) = guard.as_mut() else { return CoinWgpuStatus::NotReady; };
+        let Some(ctx) = runtime.device_state.as_ref() else { return CoinWgpuStatus::NotReady; };
+        if weighted_supported(ctx, samples) {
+            CoinWgpuStatus::Ok
+        } else { CoinWgpuStatus::Unsupported }
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_raster_images(outputs:u32,width:u32,height:u32,bytes:u64)->CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if outputs==0 {return CoinWgpuStatus::Ok;}
+        if outputs>4096 || width==0 || height==0 || bytes>128*1024*1024 {return CoinWgpuStatus::Unsupported;}
+        let guard=match RUNTIME_CTX.lock(){Ok(g)=>g,Err(_)=>return CoinWgpuStatus::BackendError};
+        let Some(ctx)=guard.as_ref().and_then(|runtime|runtime.device_state.as_ref()) else {return CoinWgpuStatus::NotReady;};
+        if width>ctx.device.limits().max_texture_dimension_2d || height>ctx.device.limits().max_texture_dimension_2d {
+            return CoinWgpuStatus::Unsupported;
+        }
+        match raster_image::prepare(ctx) {Ok(_)=>CoinWgpuStatus::Ok,Err((status,_))=>status}
+    }).unwrap_or(CoinWgpuStatus::BackendError)
 }
 
 #[no_mangle]
@@ -4883,6 +8936,11 @@ pub extern "C" fn coin_wgpu_surface_create(
             set_error(error_buf, error_buf_len, "Invalid requested surface renderer");
             return CoinWgpuStatus::InvalidArgument;
         }
+        let sample_count = if inf.sample_count == 0 { 1 } else { inf.sample_count };
+        if !matches!(sample_count, 1 | 2 | 4) {
+            set_error(error_buf, error_buf_len, "Window MSAA sample count must be 1, 2 or 4");
+            return CoinWgpuStatus::InvalidArgument;
+        }
         if inf.native.reserved != 0 {
             set_error(
                 error_buf,
@@ -4963,12 +9021,16 @@ pub extern "C" fn coin_wgpu_surface_create(
             config: None,
             framebuffer_size: (inf.width, inf.height),
             color_format: wgpu::TextureFormat::Bgra8Unorm,
+            sample_count,
             suspended: (inf.width == 0 || inf.height == 0),
             needs_reconfigure: true,
             surface_generation: 0,
             configured_device_generation: 0,
             depth_texture: None,
             depth_view: None,
+            msaa_color_texture: None,
+            msaa_color_view: None,
+            presentation: None,
         };
 
         if inf.width > 0 && inf.height > 0 {
@@ -4980,7 +9042,8 @@ pub extern "C" fn coin_wgpu_surface_create(
                 inf.height,
             ) {
                 set_error(error_buf, error_buf_len, &e);
-                return CoinWgpuStatus::BackendError;
+                return if e.contains("MSAA") { CoinWgpuStatus::Unsupported }
+                       else { CoinWgpuStatus::BackendError };
             }
         }
 
@@ -5047,6 +9110,9 @@ pub extern "C" fn coin_wgpu_surface_resize(
             record.needs_reconfigure = true;
             record.depth_texture = None;
             record.depth_view = None;
+            record.msaa_color_texture = None;
+            record.msaa_color_view = None;
+            record.presentation = None;
             return CoinWgpuStatus::Ok;
         }
 
@@ -5199,24 +9265,18 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
-        if f.shadow_map_size != 0 || f.shadow_caster_count != 0 {
-            set_error(error_buf, error_buf_len,
-                "Shadow caster transport is present, but the wgpu VSM encoder is not connected");
+        let portable_modules = match portable::modules(f) {
+            Ok(modules) => modules,
+            Err((status,message)) => { set_error(error_buf,error_buf_len,&message); return status; }
+        };
+        if !portable_modules.is_empty() && (f.instance_count != 0 || f.instance_range_count != 0) {
+            set_error(error_buf,error_buf_len,"Portable shader modules require ordinary non-instanced vertex delivery");
             return CoinWgpuStatus::Unsupported;
         }
-        if !f.shadow_casters.is_null() || f.shadow_map_size != 0 || f.shadow_kind != 0 ||
-            !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0 ||
-            !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0 ||
-            !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 ||
-            !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
-            !f.shadow_receivers_third.is_null() || f.shadow_receiver_count_third != 0 ||
-            !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
-            !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 ||
-            !f.extra_shadow_passes.is_null() || f.extra_shadow_pass_count != 0 {
-            set_error(error_buf, error_buf_len,
-                "Shadow payload has data without a map");
-            return CoinWgpuStatus::InvalidArgument;
-        }
+        let bump_payload = match validate_bump_payload(f, error_buf, error_buf_len) {
+            Ok(payload) => payload,
+            Err(status) => return status,
+        };
 
         // 4. Dimensions validation: zero dimensions = suspended -> NOT_READY
         if f.width == 0 || f.height == 0 {
@@ -5311,6 +9371,11 @@ fn coin_wgpu_surface_submit_internal(
             &[]
         };
 
+        if let Err(message) = validate_texture_declarations(textures_slice) {
+            set_error(error_buf, error_buf_len, &message);
+            return CoinWgpuStatus::InvalidArgument;
+        }
+
         let samplers_slice = if f.sampler_count > 0 {
             match validate_slice(f.samplers, f.sampler_count, "samplers", error_buf, error_buf_len) {
                 Ok(s) => s,
@@ -5320,6 +9385,19 @@ fn coin_wgpu_surface_submit_internal(
             &[]
         };
 
+        if let Err((status,message)) = portable::validate_bump_occurrences(states_slice,draws_slice,indices_slice,
+            bump_payload.as_ref().map_or(&[],|payload|payload.vertices.as_slice())) {
+            set_error(error_buf,error_buf_len,&message);return status;
+        }
+        if let Err((status,message)) = portable::validate_draws(&portable_modules,vertices_slice,indices_slice,
+            draws_slice,materials_slice,states_slice,textures_slice) {
+            set_error(error_buf,error_buf_len,&message);return status;
+        }
+        if let Err((status,message)) = validate_cube_resources(states_slice,textures_slice,samplers_slice)
+            .and_then(|()|validate_cube_draws(states_slice,textures_slice,vertices_slice,indices_slice,draws_slice))
+            .and_then(|()|raster_image::validate_with_images(states_slice,textures_slice,samplers_slice.len())) {
+            set_error(error_buf,error_buf_len,&message);return status;
+        }
         let unchecked_draws = if owned_patch.is_some() { &[] } else { draws_slice };
         for (i, draw) in unchecked_draws.iter().enumerate() {
             let idx_end = match draw.first_index.checked_add(draw.index_count) {
@@ -5392,8 +9470,8 @@ fn coin_wgpu_surface_submit_internal(
                 set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
                 return CoinWgpuStatus::InvalidArgument;
             }
-            if let Err(message) = validate_texture_coordinates(st, draw.topology, vertices_slice,
-                &indices_slice[draw.first_index as usize..idx_end]) {
+            if let Err(message) = validate_texture_coordinates_with_images(st, draw.topology, vertices_slice,
+                &indices_slice[draw.first_index as usize..idx_end], textures_slice) {
                 set_error(error_buf, error_buf_len, &format!("Draw {i}: {message}"));
                 return CoinWgpuStatus::InvalidArgument;
             }
@@ -5464,6 +9542,21 @@ fn coin_wgpu_surface_submit_internal(
             return status;
         }
 
+        let shadow_frame = match validate_shadow_frame(f, states_slice.len(),
+            owned_patch.is_some(), error_buf, error_buf_len) {
+            Ok(shadow) => shadow,
+            Err(status) => return status,
+        };
+
+        if let Some(payload) = bump_payload.as_ref() {
+            if let Err((status, message)) = validate_bump_lighting_occurrences(payload,
+                vertices_slice, indices_slice, draws_slice, states_slice, materials_slice,
+                textures_slice, shadow_frame.as_ref()) {
+                set_error(error_buf, error_buf_len, &message);
+                return status;
+            }
+        }
+
         // 6. Lock RuntimeContext and resolve surface
         let mut guard = match RUNTIME_CTX.lock() {
             Ok(g) => g,
@@ -5501,6 +9594,24 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
         let dev = unsafe { &mut *device_state };
+        if bump_payload.is_some() && (f.rasterization_policy != 0 ||
+            !instances_slice.is_empty() || !instance_ranges.is_empty()) {
+            set_error(error_buf, error_buf_len, "Bump requires native non-instanced geometry");
+            return CoinWgpuStatus::Unsupported;
+        }
+
+        if let Some(payload) = bump_payload.as_ref() {
+            if extended_bump_profile(states_slice, textures_slice, draws_slice, shadow_frame.as_ref(), payload, indices_slice) {
+                if let Err((status, message)) = validate_extended_bump_profile(dev,
+                    vertices_slice, indices_slice, draws_slice, states_slice,
+                    materials_slice, textures_slice, samplers_slice, payload,
+                    shadow_frame.as_ref(), [f.width, f.height]) {
+                    set_error(error_buf, error_buf_len, &message);
+                    return status;
+                }
+            }
+        }
+
 
         if let Some(scene) = owned_patch.as_ref() {
             if scene.generation != dev.generation {
@@ -5515,13 +9626,49 @@ fn coin_wgpu_surface_submit_internal(
         let capture_scene = !instances_slice.is_empty() || dev.camera_snapshot_policy.capture(
             dev.validated_scene.as_ref().map(|scene| scene.revision), f.frame_revision,
             f.camera_base_revision, owned_patch.is_some());
-        let next_scene = if capture_scene {
+        let next_scene = if capture_scene && shadow_frame.is_none() {
             camera_scene(dev.generation, f, vertices_slice, indices_slice, draws_slice,
                 materials_slice, states_slice, &draw_order, textures_slice, samplers_slice,
                 instances_slice, instance_ranges, owned_patch.as_ref())
         } else { None };
 
+        if let Err((status,message))=admit_spatial_resources(dev,textures_slice)
+            .and_then(|()|raster_image::admit(dev,states_slice,textures_slice,samplers_slice.len())) {
+            set_error(error_buf,error_buf_len,&message); return status;
+        }
         let record = runtime.surfaces.get_mut(&surface_id).unwrap();
+        if let Err((status, message)) = validate_shadow_multitexture_profile(dev, textures_slice, states_slice, draws_slice,
+            &draw_order, shadow_frame.as_ref(), record.sample_count, f.rasterization_policy) {
+            set_error(error_buf, error_buf_len, &message);
+            return status;
+        }
+        if draw_order.iter().any(|item| item.peel) {
+            if let Err((status, message)) = peeling::validate_request_samples(f.sorted_layers_passes,
+                f.transparency_reserved, f.transparency_budget_bytes, f.width, f.height, true, record.sample_count) {
+                set_error(error_buf, error_buf_len, &message); return status;
+            }
+            if !peeling_supported(dev, record.sample_count) {
+                set_error(error_buf, error_buf_len, "Peeling formats cannot sample/render at the requested count");
+                return CoinWgpuStatus::Unsupported;
+            }
+        }
+        if draw_order.iter().any(|item| item.weighted) {
+            if let Err((status, message)) = weighted::validate_budget(f.width, f.height, record.sample_count, f.transparency_budget_bytes) {
+                set_error(error_buf, error_buf_len, &message);
+                return status;
+            }
+        }
+        if draw_order.iter().any(|item| item.weighted) &&
+            !weighted_supported(dev, record.sample_count) {
+            set_error(error_buf, error_buf_len, "Weighted MSAA color formats cannot blend/sample at the requested count");
+            return CoinWgpuStatus::Unsupported;
+        }
+        if record.sample_count > 1 &&
+            draw_order.iter().any(|item| bump_payload.is_some() && item.blend) {
+            set_error(error_buf, error_buf_len,
+                "Window MSAA translucent bump needs a separate profile");
+            return CoinWgpuStatus::Unsupported;
+        }
 
         // 7. Reconfigure if device generation changed or size changed
         if record.suspended {
@@ -5559,11 +9706,6 @@ fn coin_wgpu_surface_submit_internal(
                 set_error(error_buf, error_buf_len, "Window RGBA output size mismatch");
                 return CoinWgpuStatus::InvalidArgument;
             }
-            if !record.config.as_ref().is_some_and(|config|
-                config.usage.contains(wgpu::TextureUsages::COPY_SRC)) {
-                set_error(error_buf, error_buf_len, "Window surface does not support COPY_SRC readback");
-                return CoinWgpuStatus::Unsupported;
-            }
             if !matches!(record.color_format, wgpu::TextureFormat::Bgra8Unorm |
                 wgpu::TextureFormat::Rgba8Unorm |
                 wgpu::TextureFormat::Bgra8UnormSrgb |
@@ -5574,6 +9716,13 @@ fn coin_wgpu_surface_submit_internal(
         }
 
         let profile_validated = trace_phases.then(std::time::Instant::now);
+        if let Err((status,message)) = portable::prepare(dev,&portable_modules,states_slice,draws_slice,
+            &draw_order,record.sample_count,f.texture_sampling_policy,f.rasterization_policy,
+            shadow_frame.as_ref().map_or(0,|shadow|if shadow.extra.is_empty(){1}else{2}),
+            if record.presentation.is_some() {wgpu::TextureFormat::Rgba8Unorm} else {record.color_format}) {
+            set_error(error_buf,error_buf_len,&message); return status;
+        }
+
         // 8. Acquire texture with strictly 1 recovery attempt
         let mut acquire_result = if fault == FAULT_SURFACE_OUTDATED_ONCE
             && FAULT_SURFACE_OUTDATED_COUNT.fetch_add(1, Ordering::SeqCst) == 0
@@ -5697,6 +9846,23 @@ fn coin_wgpu_surface_submit_internal(
         let color_view = surface_texture
             .texture
             .create_view(&wgpu::TextureViewDescriptor::default());
+        // Capture the same image that is presented even when WSI lacks COPY_SRC.
+        // MSAA already has a private resolved image; ordinary 1x creates one
+        // only for this requested readback, preserving the surface scene format.
+        let capture_presentation = if !readback_rgba.is_null() && record.presentation.is_none() &&
+            !record.config.as_ref().unwrap().usage.contains(wgpu::TextureUsages::COPY_SRC) {
+            Some(surface_present::Presentation::with_source_format(&dev.device,
+                f.width, f.height, record.color_format, record.color_format))
+        } else { None };
+        let presentation = record.presentation.as_ref().or(capture_presentation.as_ref());
+        let resolved_view = presentation.map_or(&color_view, |p| &p.view);
+        let capture_texture = presentation.map_or(&surface_texture.texture, |p| &p.texture);
+        let capture_format = if record.presentation.is_some() {
+            wgpu::TextureFormat::Rgba8Unorm
+        } else { record.color_format };
+        let scene_format = if record.presentation.is_some() {
+            wgpu::TextureFormat::Rgba8Unorm
+        } else { record.color_format };
         let depth_view = match &record.depth_view {
             Some(v) => v,
             None => {
@@ -5705,7 +9871,27 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
 
-        let (cmd_buffer, pending_instances) = match encode_frame(
+        let encoded = if let Some(payload) = bump_payload.as_ref() {
+            if !instances_slice.is_empty() || !instance_ranges.is_empty() ||
+                draw_order.iter().any(|item| item.peel || item.weighted) ||
+                f.rasterization_policy != 0 {
+                Err((CoinWgpuStatus::Unsupported,
+                    "Window bump frame cannot combine instancing or composition".into()))
+            } else {
+                encode_mixed_bump_frame(dev, Some(&dev.bump_pipelines),
+                    Some((&dev.bump_base_cache,
+                        dev.last_submitted_serial.load(Ordering::SeqCst) + 1,
+                        dev.completed_serial.load(Ordering::SeqCst))),
+                    vertices_slice, indices_slice, draws_slice, states_slice,
+                    &portable_modules,
+                    materials_slice, textures_slice, samplers_slice, payload, shadow_frame.as_ref(),
+                    record.msaa_color_view.as_ref().unwrap_or(resolved_view),
+                    record.msaa_color_view.as_ref().map(|_| resolved_view),
+                    scene_format, depth_view,
+                    [f.width, f.height], f.clear_color, record.sample_count,
+                    record.depth_texture.as_ref().unwrap(), f.texture_sampling_policy)
+            }
+        } else { encode_frame(
             dev,
             f.frame_revision,
             f.clear_color,
@@ -5717,29 +9903,60 @@ fn coin_wgpu_surface_submit_internal(
             &draw_order,
             materials_slice,
             states_slice,
+            &portable_modules,
             textures_slice,
             samplers_slice,
-            None, // window shadows remain preflight-rejected
+            shadow_frame.as_ref(),
             next_scene.as_ref().map(|scene| &scene.geometry),
             instances_slice, instance_ranges,
             audit_probe.as_ref().map(|p|&p.queries),
-            &color_view,
-            record.color_format,
+            record.msaa_color_view.as_ref().unwrap_or(resolved_view),
+            record.msaa_color_view.as_ref().map(|_| resolved_view),
+            scene_format,
             depth_view,
             record.depth_texture.as_ref().unwrap(),
+            record.sample_count,
             f.sorted_layers_passes,
             f.texture_sampling_policy,
-        ) {
+            f.rasterization_policy,
+            true,
+        ).map(|(command, instances)| (vec![command], instances)) };
+        let (cmd_buffers, pending_instances) = match encoded {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
                 set_error(error_buf, error_buf_len, &msg);
-                // Texture is dropped without calling present()
+                // Vulkan's discarded surface image is not returned to its swapchain.
+                // Release every reference before recreating the same configuration,
+                // so any rejected MSAA encoder (including shadow allocation
+                // failures) cannot exhaust subsequent acquisitions. Known profile
+                // rejections are checked before acquisition above.
+                if record.sample_count > 1 {
+                    drop(color_view);
+                    drop(surface_texture);
+                    record.surface.configure(&dev.device, record.config.as_ref().unwrap());
+                }
                 return status;
             }
         };
 
+        if record.sample_count > 1 && fault == 307 {
+            set_error(error_buf, error_buf_len,
+                "Injected MSAA failure after encoding, before queue submission");
+            drop(cmd_buffers);
+            drop(color_view);
+            drop(surface_texture);
+            record.surface.configure(&dev.device, record.config.as_ref().unwrap());
+            return CoinWgpuStatus::OutOfMemory;
+        }
+
         let mut capture_buffer = None;
-        let mut commands = vec![cmd_buffer];
+        let mut commands = cmd_buffers;
+        if let Some(presentation) = presentation {
+            let target = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor {
+                format: Some(presentation.format), ..Default::default()
+            });
+            commands.push(presentation.encode(&dev.device, &target));
+        }
         if !readback_rgba.is_null() {
             let bytes_per_row = (f.width * 4 + 255) & !255;
             let staging = dev.device.create_buffer(&wgpu::BufferDescriptor {
@@ -5753,7 +9970,7 @@ fn coin_wgpu_surface_submit_internal(
             });
             copy.copy_texture_to_buffer(
                 wgpu::TexelCopyTextureInfo {
-                    texture: &surface_texture.texture,
+                    texture: capture_texture,
                     mip_level: 0,
                     origin: wgpu::Origin3d::ZERO,
                     aspect: wgpu::TextureAspect::All,
@@ -5805,7 +10022,7 @@ fn coin_wgpu_surface_submit_internal(
             }
             let mapped = slice.get_mapped_range();
             let mut pixels = vec![0u8; readback_len];
-            let bgra = matches!(record.color_format, wgpu::TextureFormat::Bgra8Unorm |
+            let bgra = matches!(capture_format, wgpu::TextureFormat::Bgra8Unorm |
                 wgpu::TextureFormat::Bgra8UnormSrgb);
             for y in 0..f.height as usize {
                 let source = &mapped[y * bytes_per_row as usize..y * bytes_per_row as usize + f.width as usize * 4];
@@ -6121,6 +10338,35 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
+        let portable_modules = match portable::modules(f) {
+            Ok(modules) => modules,
+            Err((status,message)) => { set_error(error_buf,error_buf_len,&message); return status; }
+        };
+        if !portable_modules.is_empty() && (f.instance_count != 0 || f.instance_range_count != 0) {
+            set_error(error_buf,error_buf_len,"Portable shader modules require ordinary non-instanced vertex delivery");
+            return CoinWgpuStatus::Unsupported;
+        }
+        let bump_payload = match validate_bump_payload(f, error_buf, error_buf_len) {
+            Ok(payload) => payload,
+            Err(status) => return status,
+        };
+        if bump_payload.is_some() && (!out_ticket.is_null() ||
+            (!out_texture.is_null() && f.texture_output_flags != 0)) {
+            set_error(error_buf, error_buf_len,
+                "Bump frame needs synchronous RGBA8 offscreen or direct RTT output in this profile");
+            return CoinWgpuStatus::Unsupported;
+        }
+        // Zero is the default of existing zero-initialized private FFI pods.
+        let sample_count = if tgt.sample_count == 0 { 1 } else { tgt.sample_count };
+        if !matches!(sample_count, 1 | 2 | 4) {
+            set_error(error_buf, error_buf_len, "MSAA sample count must be 1, 2 or 4");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        if sample_count > 1 && !out_ticket.is_null() {
+            set_error(error_buf, error_buf_len,
+                "MSAA currently supports synchronous offscreen or direct RTT output");
+            return CoinWgpuStatus::Unsupported;
+        }
 
         // 4. Dimensions and buffer boundary validation
         if f.width == 0 || f.height == 0 || tgt.width == 0 || tgt.height == 0 {
@@ -6281,6 +10527,11 @@ fn coin_wgpu_submit_internal(
             &[]
         };
 
+        if let Err(message) = validate_texture_declarations(textures_slice) {
+            set_error(error_buf, error_buf_len, &message);
+            return CoinWgpuStatus::InvalidArgument;
+        }
+
         let samplers_slice = if owned_patch.is_some() { &[] } else if f.sampler_count > 0 {
             match validate_slice(f.samplers, f.sampler_count, "samplers", error_buf, error_buf_len) {
                 Ok(s) => s,
@@ -6290,232 +10541,53 @@ fn coin_wgpu_submit_internal(
             &[]
         };
 
+        if owned_patch.is_none() {
+            if let Err((status,message)) = portable::validate_bump_occurrences(states_slice,draws_slice,indices_slice,
+                bump_payload.as_ref().map_or(&[],|payload|payload.vertices.as_slice())) {
+                set_error(error_buf,error_buf_len,&message);return status;
+            }
+            if let Err((status,message)) = portable::validate_draws(&portable_modules,vertices_slice,indices_slice,
+                draws_slice,materials_slice,states_slice,textures_slice) {
+                set_error(error_buf,error_buf_len,&message);return status;
+            }
+            if let Err((status,message)) = validate_cube_resources(states_slice,textures_slice,samplers_slice)
+                .and_then(|()|validate_cube_draws(states_slice,textures_slice,vertices_slice,indices_slice,draws_slice))
+            .and_then(|()|raster_image::validate_with_images(states_slice,textures_slice,samplers_slice.len())) {
+                set_error(error_buf,error_buf_len,&message);return status;
+            }
+        }
+
         // Shadow payload is optional, but a partial payload is never accepted.
         // Keep it out of the camera patch until state/geometry matching is qualified.
         // A nonzero map size identifies a pass even when Core selected no
         // casters. Such a pass still clears its moments and lights receivers.
-        let shadow_frame = if f.shadow_map_size == 0 {
-            if f.shadow_map_size_second != 0 || f.shadow_map_size_third != 0 ||
-                f.shadow_map_size_fourth != 0 || f.extra_shadow_pass_count != 0 ||
-                !f.extra_shadow_passes.is_null() || !f.shadow_casters.is_null() || f.shadow_caster_count != 0 || f.shadow_kind != 0
-                || !f.shadow_receivers.is_null() || f.shadow_receiver_count != 0
-                || !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0
-                || !f.shadow_receivers_second.is_null() || f.shadow_receiver_count_second != 0 ||
-            !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
-            !f.shadow_receivers_third.is_null() || f.shadow_receiver_count_third != 0 ||
-            !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
-            !f.shadow_receivers_fourth.is_null() || f.shadow_receiver_count_fourth != 0 {
-                set_error(error_buf, error_buf_len, "Shadow payload has data without a map");
-                return CoinWgpuStatus::InvalidArgument;
-            }
-            None
-        } else {
-            if owned_patch.is_some() || f.camera_base_revision != 0
-                || f.shadow_receiver_count != states_slice.len() as u64
-                || f.shadow_kind > 1
-                || !f.shadow_map_size.is_power_of_two() || f.shadow_map_size > 2048
-                || !f.shadow_near_distance.is_finite()
-                || !f.shadow_far_distance.is_finite()
-                || f.shadow_near_distance <= 0.0
-                || f.shadow_far_distance <= f.shadow_near_distance
-                || !f.shadow_epsilon.is_finite() || f.shadow_epsilon < 0.0
-                || !f.shadow_threshold.is_finite() || !(0.0..1.0).contains(&f.shadow_threshold) {
-                set_error(error_buf, error_buf_len, "Invalid or unsupported shadow frame parameters");
-                return CoinWgpuStatus::InvalidArgument;
-            }
-            let casters = match validate_slice(f.shadow_casters, f.shadow_caster_count,
-                "shadow casters", error_buf, error_buf_len) {
-                Ok(s) => s, Err(st) => return st,
-            };
-            let receivers = match validate_slice(f.shadow_receivers, f.shadow_receiver_count,
-                "shadow receivers", error_buf, error_buf_len) {
-                Ok(s) => s, Err(st) => return st,
-            };
-            let second = if f.shadow_map_size_second == 0 {
-                if !f.shadow_casters_second.is_null() || f.shadow_caster_count_second != 0 ||
-                    !f.shadow_receivers_second.is_null() ||
-                    f.shadow_receiver_count_second != 0 || f.shadow_map_size_second != 0 ||
-                    f.shadow_kind_second != 0 || f.shadow_epsilon_second != 0.0 ||
-                    f.shadow_threshold_second != 0.0 {
-                    set_error(error_buf, error_buf_len, "Partial second shadow pass");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                None
-            } else {
-                if f.shadow_receiver_count_second != states_slice.len() as u64 ||
-                    f.shadow_kind_second > 1 ||
-                    !f.shadow_map_size_second.is_power_of_two() || f.shadow_map_size_second > 2048 ||
-                    !f.shadow_near_distance_second.is_finite() ||
-                    !f.shadow_far_distance_second.is_finite() ||
-                    f.shadow_near_distance_second <= 0.0 ||
-                    f.shadow_far_distance_second <= f.shadow_near_distance_second ||
-                    !f.shadow_epsilon_second.is_finite() || f.shadow_epsilon_second < 0.0 ||
-                    !f.shadow_threshold_second.is_finite() ||
-                    !(0.0..1.0).contains(&f.shadow_threshold_second) {
-                    set_error(error_buf, error_buf_len, "Invalid second shadow pass parameters");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                let second_casters = match validate_slice(f.shadow_casters_second,
-                    f.shadow_caster_count_second, "second shadow casters", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                let second_receivers = match validate_slice(f.shadow_receivers_second,
-                    f.shadow_receiver_count_second, "second shadow receivers", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                Some(ShadowPass {
-                    casters: second_casters, receivers: second_receivers,
-                    map_size: f.shadow_map_size_second, near: f.shadow_near_distance_second,
-                    far: f.shadow_far_distance_second,
-                    epsilon: f.shadow_epsilon_second, threshold: f.shadow_threshold_second,
-                    kind: f.shadow_kind_second,
-                })
-            };
-            let third = if f.shadow_map_size_third == 0 {
-                if !f.shadow_casters_third.is_null() || f.shadow_caster_count_third != 0 ||
-                    !f.shadow_receivers_third.is_null() ||
-                    f.shadow_receiver_count_third != 0 || f.shadow_map_size_third != 0 ||
-                    f.shadow_kind_third != 0 || f.shadow_epsilon_third != 0.0 ||
-                    f.shadow_threshold_third != 0.0 {
-                    set_error(error_buf, error_buf_len, "Partial third shadow pass");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                None
-            } else {
-                if second.is_none() ||
-                    f.shadow_receiver_count_third != states_slice.len() as u64 ||
-                    f.shadow_kind_third > 1 ||
-                    !f.shadow_map_size_third.is_power_of_two() || f.shadow_map_size_third > 2048 ||
-                    !f.shadow_near_distance_third.is_finite() ||
-                    !f.shadow_far_distance_third.is_finite() ||
-                    f.shadow_near_distance_third <= 0.0 ||
-                    f.shadow_far_distance_third <= f.shadow_near_distance_third ||
-                    !f.shadow_epsilon_third.is_finite() || f.shadow_epsilon_third < 0.0 ||
-                    !f.shadow_threshold_third.is_finite() ||
-                    !(0.0..1.0).contains(&f.shadow_threshold_third) {
-                    set_error(error_buf, error_buf_len, "Invalid third shadow pass parameters");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                let pass_casters = match validate_slice(f.shadow_casters_third,
-                    f.shadow_caster_count_third, "third shadow casters", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                let pass_receivers = match validate_slice(f.shadow_receivers_third,
-                    f.shadow_receiver_count_third, "third shadow receivers", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                Some(ShadowPass {
-                    casters: pass_casters, receivers: pass_receivers,
-                    map_size: f.shadow_map_size_third, near: f.shadow_near_distance_third,
-                    far: f.shadow_far_distance_third,
-                    epsilon: f.shadow_epsilon_third, threshold: f.shadow_threshold_third,
-                    kind: f.shadow_kind_third,
-                })
-            };
-            let fourth = if f.shadow_map_size_fourth == 0 {
-                if !f.shadow_casters_fourth.is_null() || f.shadow_caster_count_fourth != 0 ||
-                    !f.shadow_receivers_fourth.is_null() ||
-                    f.shadow_receiver_count_fourth != 0 || f.shadow_map_size_fourth != 0 ||
-                    f.shadow_kind_fourth != 0 || f.shadow_epsilon_fourth != 0.0 ||
-                    f.shadow_threshold_fourth != 0.0 {
-                    set_error(error_buf, error_buf_len, "Partial fourth shadow pass");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                None
-            } else {
-                if third.is_none() ||
-                    f.shadow_receiver_count_fourth != states_slice.len() as u64 ||
-                    f.shadow_kind_fourth > 1 ||
-                    !f.shadow_map_size_fourth.is_power_of_two() || f.shadow_map_size_fourth > 2048 ||
-                    !f.shadow_near_distance_fourth.is_finite() ||
-                    !f.shadow_far_distance_fourth.is_finite() ||
-                    f.shadow_near_distance_fourth <= 0.0 ||
-                    f.shadow_far_distance_fourth <= f.shadow_near_distance_fourth ||
-                    !f.shadow_epsilon_fourth.is_finite() || f.shadow_epsilon_fourth < 0.0 ||
-                    !f.shadow_threshold_fourth.is_finite() ||
-                    !(0.0..1.0).contains(&f.shadow_threshold_fourth) {
-                    set_error(error_buf, error_buf_len, "Invalid fourth shadow pass parameters");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                let pass_casters = match validate_slice(f.shadow_casters_fourth,
-                    f.shadow_caster_count_fourth, "fourth shadow casters", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                let pass_receivers = match validate_slice(f.shadow_receivers_fourth,
-                    f.shadow_receiver_count_fourth, "fourth shadow receivers", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                Some(ShadowPass {
-                    casters: pass_casters, receivers: pass_receivers,
-                    map_size: f.shadow_map_size_fourth, near: f.shadow_near_distance_fourth,
-                    far: f.shadow_far_distance_fourth,
-                    epsilon: f.shadow_epsilon_fourth, threshold: f.shadow_threshold_fourth,
-                    kind: f.shadow_kind_fourth,
-                })
-            };
-            let extra_views = if f.extra_shadow_pass_count == 0 {
-                if !f.extra_shadow_passes.is_null() {
-                    set_error(error_buf, error_buf_len, "Partial extra shadow pass list");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                &[][..]
-            } else {
-                if fourth.is_none() || f.extra_shadow_pass_count > 4 {
-                    set_error(error_buf, error_buf_len, "Extra shadow passes require four base maps and at most four additions");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                match validate_slice(f.extra_shadow_passes, f.extra_shadow_pass_count,
-                    "extra shadow passes", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                }
-            };
-            let mut extra = Vec::with_capacity(extra_views.len());
-            for (slot, pass) in extra_views.iter().enumerate() {
-                if pass.receiver_count != states_slice.len() as u64 ||
-                    pass.kind > 1 || !pass.map_size.is_power_of_two() ||
-                    pass.map_size > 2048 || !pass.near_distance.is_finite() ||
-                    !pass.far_distance.is_finite() || pass.near_distance <= 0.0 ||
-                    pass.far_distance <= pass.near_distance ||
-                    !pass.epsilon.is_finite() || pass.epsilon < 0.0 ||
-                    !pass.threshold.is_finite() || !(0.0..1.0).contains(&pass.threshold) {
-                    set_error(error_buf, error_buf_len, &format!("Invalid extra shadow pass {slot}"));
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                let casters = match validate_slice(pass.casters, pass.caster_count,
-                    "extra shadow casters", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                let receivers = match validate_slice(pass.receivers, pass.receiver_count,
-                    "extra shadow receivers", error_buf, error_buf_len) {
-                    Ok(s) => s, Err(st) => return st,
-                };
-                if receivers.iter().any(|r| !r.model_view.iter()
-                    .chain(r.model_view_projection.iter()).all(|v| v.is_finite())) {
-                    set_error(error_buf, error_buf_len, "Invalid extra shadow casters or receiver matrices");
-                    return CoinWgpuStatus::InvalidArgument;
-                }
-                extra.push(ShadowPass { casters, receivers,
-                    map_size: pass.map_size, near: pass.near_distance,
-                    far: pass.far_distance, epsilon: pass.epsilon,
-                    threshold: pass.threshold, kind: pass.kind });
-            }
-            Some(ShadowFrame {
-                second, third, fourth, extra,
-                casters, receivers, map_size: f.shadow_map_size,
-                near: f.shadow_near_distance, far: f.shadow_far_distance,
-                epsilon: f.shadow_epsilon, threshold: f.shadow_threshold, kind: f.shadow_kind,
-            })
+        let shadow_frame = match validate_shadow_frame(f, states_slice.len(),
+            owned_patch.is_some(), error_buf, error_buf_len) {
+            Ok(shadow) => shadow,
+            Err(status) => return status,
         };
+
+        if let Some(payload) = bump_payload.as_ref() {
+            if let Err((status, message)) = validate_bump_lighting_occurrences(payload,
+                vertices_slice, indices_slice, draws_slice, states_slice, materials_slice,
+                textures_slice, shadow_frame.as_ref()) {
+                set_error(error_buf, error_buf_len, &message);
+                return status;
+            }
+        }
 
         // 6. Strict validation and composition are immutable for one private CoinRenderFramePlan revision.
         // A camera hint without an owned base readmits a new snapshot only
         // after this submission validates the full geometry, even if another
         // device previously validated the same private frame revision.
-        let cached_draw_order = if instances_slice.is_empty() && owned_patch.is_none() && f.camera_base_revision == 0
+        let cached_draw_order = if portable_modules.is_empty() && instances_slice.is_empty() && owned_patch.is_none() && f.camera_base_revision == 0
             && f.frame_revision != 0 {
             VALIDATED_FRAME_CACHE.lock().ok().and_then(|cache| {
                 cache.as_ref().and_then(|(revision, order)| {
-                    if *revision == f.frame_revision { Some(order.clone()) } else { None }
+                    if *revision == f.frame_revision && order.len() == draws_slice.len() &&
+                        order.iter().all(|item| item.draw_index < draws_slice.len()) {
+                        Some(order.clone())
+                    } else { None }
                 })
             })
         } else {
@@ -6598,8 +10670,8 @@ fn coin_wgpu_submit_internal(
                 set_error(error_buf, error_buf_len, "Invalid normalized texture program or extra unit state");
                 return CoinWgpuStatus::InvalidArgument;
             }
-            if let Err(message) = validate_texture_coordinates(st, draw.topology, vertices_slice,
-                &indices_slice[draw.first_index as usize..idx_end]) {
+            if let Err(message) = validate_texture_coordinates_with_images(st, draw.topology, vertices_slice,
+                &indices_slice[draw.first_index as usize..idx_end], textures_slice) {
                 set_error(error_buf, error_buf_len, &format!("Draw {i}: {message}"));
                 return CoinWgpuStatus::InvalidArgument;
             }
@@ -6655,7 +10727,7 @@ fn coin_wgpu_submit_internal(
                 return status;
             }
         };
-        if instances_slice.is_empty() && f.frame_revision != 0 {
+        if portable_modules.is_empty() && instances_slice.is_empty() && f.frame_revision != 0 {
             if let Ok(mut cache) = VALIDATED_FRAME_CACHE.lock() {
                 *cache = Some((f.frame_revision, computed_draw_order.clone()));
             }
@@ -6664,16 +10736,31 @@ fn coin_wgpu_submit_internal(
         computed_draw_order
         };
 
-        if let Err((status, message)) = peeling::validate_request(
+        if let Err((status, message)) = peeling::validate_request_samples(
             if draw_order.iter().any(|item| item.peel) { f.sorted_layers_passes } else { 1 },
             f.transparency_reserved,
             f.transparency_budget_bytes,
             f.width,
             f.height,
             draw_order.iter().any(|item| item.peel || item.weighted),
+            sample_count,
         ) {
             set_error(error_buf, error_buf_len, &message);
             return status;
+        }
+
+        if draw_order.iter().any(|item| item.weighted) {
+            if let Err((status, message)) = weighted::validate_budget(f.width, f.height, sample_count, f.transparency_budget_bytes) {
+                set_error(error_buf, error_buf_len, &message);
+                return status;
+            }
+        }
+
+        if sample_count > 1 &&
+            draw_order.iter().any(|item| bump_payload.is_some() && item.blend) {
+            set_error(error_buf, error_buf_len,
+                "MSAA translucent bump needs a separate profile");
+            return CoinWgpuStatus::Unsupported;
         }
 
         // 7. Initialize WebGPU Device
@@ -6706,6 +10793,28 @@ fn coin_wgpu_submit_internal(
             }
         };
         let ctx = unsafe { &mut *device_state };
+        if bump_payload.is_some() && (f.rasterization_policy != 0 ||
+            !instances_slice.is_empty() || !instance_ranges.is_empty()) {
+            set_error(error_buf, error_buf_len, "Bump requires native non-instanced geometry");
+            return CoinWgpuStatus::Unsupported;
+        }
+
+        if let Some(payload) = bump_payload.as_ref() {
+            if extended_bump_profile(states_slice, textures_slice, draws_slice, shadow_frame.as_ref(), payload, indices_slice) {
+                if let Err((status, message)) = validate_extended_bump_profile(ctx,
+                    vertices_slice, indices_slice, draws_slice, states_slice,
+                    materials_slice, textures_slice, samplers_slice, payload,
+                    shadow_frame.as_ref(), [f.width, f.height]) {
+                    set_error(error_buf, error_buf_len, &message);
+                    return status;
+                }
+            }
+        }
+
+        if let Err((status,message))=admit_spatial_resources(ctx,textures_slice)
+            .and_then(|()|raster_image::admit(ctx,states_slice,textures_slice,samplers_slice.len())) {
+            set_error(error_buf,error_buf_len,&message); return status;
+        }
         if let Some(scene) = owned_patch.as_ref() {
             if scene.generation != ctx.generation {
                 set_error(error_buf, error_buf_len, "Camera base belongs to a lost device generation");
@@ -6743,8 +10852,36 @@ fn coin_wgpu_submit_internal(
             set_error(error_buf,error_buf_len,"Invalid RTT clear color or half range");
             return CoinWgpuStatus::InvalidArgument;
         }
+        if draw_order.iter().any(|item| item.peel) && !peeling_supported(ctx, sample_count) {
+            set_error(error_buf, error_buf_len, "Peeling formats cannot sample/render at the requested count");
+            return CoinWgpuStatus::Unsupported;
+        }
+        if draw_order.iter().any(|item| item.weighted) &&
+            !weighted_supported(ctx, sample_count) {
+            set_error(error_buf, error_buf_len, "Weighted MSAA color formats cannot blend/sample at the requested count");
+            return CoinWgpuStatus::Unsupported;
+        }
         let output_format=if f.texture_output_flags&1!=0 {wgpu::TextureFormat::Rgba16Float} else {wgpu::TextureFormat::Rgba8Unorm};
+        if let Err((status,message)) = portable::prepare(ctx,&portable_modules,states_slice,draws_slice,
+            &draw_order,sample_count,f.texture_sampling_policy,f.rasterization_policy,
+            shadow_frame.as_ref().map_or(0,|shadow|if shadow.extra.is_empty(){1}else{2}),output_format) {
+            set_error(error_buf,error_buf_len,&message); return status;
+        }
         let output_mips=if f.texture_output_flags&2!=0 {width.max(height).ilog2()+1} else {1};
+        if sample_count > 1 {
+            let required = if sample_count == 2 {
+                wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X2
+            } else {
+                wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4
+            };
+            if !ctx.adapter.get_texture_format_features(output_format).flags.contains(required) ||
+                !ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Depth32Float).flags.contains(required) ||
+                (sample_count == 2 && !ctx.device.features().contains(
+                    wgpu::Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES)) {
+                set_error(error_buf, error_buf_len, "Exact MSAA sample count unavailable for color/depth on this device");
+                return CoinWgpuStatus::Unsupported;
+            }
+        }
         if !out_texture.is_null() &&
            (width > ctx.device.limits().max_texture_dimension_2d ||
             height > ctx.device.limits().max_texture_dimension_2d) {
@@ -6757,15 +10894,17 @@ fn coin_wgpu_submit_internal(
             set_error(error_buf,error_buf_len,"Direct RTT format/mip storage unavailable");
             return CoinWgpuStatus::Unsupported;
         }
+        let depth_requested = tgt.depth_buffer_len >= (width as u64) * (height as u64)
+            && (!out_ticket.is_null() || !tgt.depth_buffer.is_null());
         // 8. A completed synchronous frame may lend its attachments to the
         // next synchronous frame on this device. Async and RTT submissions
         // are excluded: their textures can still be in use by the GPU.
-        let attachment_cache_enabled = out_ticket.is_null() && out_texture.is_null()
+        let attachment_cache_enabled = sample_count == 1 && out_ticket.is_null() && out_texture.is_null()
             && std::env::var("COIN_WGPU_ATTACHMENT_CACHE").as_deref() == Ok("1")
             && (width as u64).checked_mul(height as u64)
                 .and_then(|pixels| pixels.checked_mul(8))
                 .is_some_and(|bytes| bytes <= CachedOffscreenAttachments::MAX_BYTES);
-        let cached = if out_ticket.is_null() && out_texture.is_null() {
+        let cached = if sample_count == 1 && out_ticket.is_null() && out_texture.is_null() {
             ctx.cached_offscreen_attachments.take()
                 .filter(|entry| attachment_cache_enabled
                     && entry.width == width && entry.height == height)
@@ -6802,7 +10941,13 @@ fn coin_wgpu_submit_internal(
                 sample_count: 1,
                 dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Depth32Float,
-                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::COPY_SRC | wgpu::TextureUsages::TEXTURE_BINDING,
+                // With MSAA the render pass uses the separate multisampled
+                // attachment below. Keep the 1x depth copy contract intact,
+                // but do not require depth-buffer copies merely to allocate
+                // the unused single-sample companion on GL adapters.
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING |
+                    if sample_count == 1 { wgpu::TextureUsages::COPY_SRC }
+                    else { wgpu::TextureUsages::empty() },
                 view_formats: &[],
             };
             let depth_texture = ctx.device.create_texture(&depth_desc);
@@ -6813,6 +10958,27 @@ fn coin_wgpu_submit_internal(
             let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
             (color_texture, color_view, depth_texture, depth_view)
         };
+        let msaa_attachments = if sample_count > 1 {
+            let extent = wgpu::Extent3d { width, height, depth_or_array_layers: 1 };
+            let color = ctx.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("Coin MSAA color"), size: extent, mip_level_count: 1,
+                sample_count, dimension: wgpu::TextureDimension::D2,
+                format: output_format, usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                view_formats: &[],
+            });
+            let depth = ctx.device.create_texture(&wgpu::TextureDescriptor {
+                label: Some("Coin MSAA depth"), size: extent, mip_level_count: 1,
+                sample_count, dimension: wgpu::TextureDimension::D2,
+                format: wgpu::TextureFormat::Depth32Float,
+                // Peeling samples opaque depth even for GPU-only RTT and
+                // targets that do not request synchronous depth readback.
+                usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+                view_formats: &[],
+            });
+            let color_view = color.create_view(&wgpu::TextureViewDescriptor::default());
+            let depth_view = depth.create_view(&wgpu::TextureViewDescriptor::default());
+            Some((color, color_view, depth, depth_view))
+        } else { None };
         let profile_attachments_created = trace_phases.then(std::time::Instant::now);
 
         let capture_scene = !instances_slice.is_empty() || ctx.camera_snapshot_policy.capture(
@@ -6825,7 +10991,28 @@ fn coin_wgpu_submit_internal(
         } else { None };
 
         // 9. Encode draw calls with the exact same shared encode_frame
-        let (cmd_buffer, pending_instances) = match encode_frame(
+        let encoded = if let Some(payload) = bump_payload.as_ref() {
+            if !instances_slice.is_empty() || !instance_ranges.is_empty() ||
+                draw_order.iter().any(|item| item.peel || item.weighted) ||
+                f.rasterization_policy != 0 {
+                Err((CoinWgpuStatus::Unsupported,
+                    "Bump frame cannot yet combine shadows, instancing or composition".into()))
+            } else {
+                encode_mixed_bump_frame(ctx, Some(&ctx.bump_pipelines),
+                    Some((&ctx.bump_base_cache,
+                        ctx.last_submitted_serial.load(Ordering::SeqCst) + 1,
+                        ctx.completed_serial.load(Ordering::SeqCst))),
+                    vertices_slice, indices_slice, draws_slice, states_slice,
+                    &portable_modules,
+                    materials_slice, textures_slice, samplers_slice, payload, shadow_frame.as_ref(),
+                    msaa_attachments.as_ref().map_or(&color_view, |attachments| &attachments.1),
+                    msaa_attachments.as_ref().map(|_| &color_view), output_format,
+                    msaa_attachments.as_ref().map_or(&depth_view, |attachments| &attachments.3),
+                    [width,height], f.clear_color, sample_count,
+                    msaa_attachments.as_ref().map_or(&depth_texture, |attachments| &attachments.2),
+                    f.texture_sampling_policy)
+            }
+        } else { encode_frame(
             ctx,
             f.frame_revision,
             f.clear_color,
@@ -6837,25 +11024,35 @@ fn coin_wgpu_submit_internal(
             &draw_order,
             materials_slice,
             states_slice,
+            &portable_modules,
             textures_slice,
             samplers_slice,
             shadow_frame.as_ref(),
             next_scene.as_ref().map(|scene| &scene.geometry),
             instances_slice, instance_ranges,
             gpu_probe.as_ref().map(|probe| &probe.queries),
-            &color_view,
+            msaa_attachments.as_ref().map_or(&color_view, |attachments| &attachments.1),
+            msaa_attachments.as_ref().map(|_| &color_view),
             output_format,
-            &depth_view,
-            &depth_texture,
+            msaa_attachments.as_ref().map_or(&depth_view, |attachments| &attachments.3),
+            msaa_attachments.as_ref().map_or(&depth_texture, |attachments| &attachments.2),
+            sample_count,
             f.sorted_layers_passes,
             f.texture_sampling_policy,
-        ) {
+            f.rasterization_policy,
+            true,
+        ).map(|(command, instances)| (vec![command], instances)) };
+        let (cmd_buffers, pending_instances) = match encoded {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
                 set_error(error_buf, error_buf_len, &msg);
                 return status;
             }
         };
+        if sample_count > 1 && fault == 307 {
+            set_error(error_buf, error_buf_len, "Injected MSAA failure after encoding, before queue submission");
+            return CoinWgpuStatus::OutOfMemory;
+        }
         let profile_draw_encoded = trace_phases.then(std::time::Instant::now);
         // Any successful full frame replaces the device's current scene even
         // when its revision is zero or snapshot admission is suspended.
@@ -6863,7 +11060,7 @@ fn coin_wgpu_submit_internal(
         let profile_encoded = std::time::Instant::now();
 
         if !out_texture.is_null() {
-            let mut commands=vec![cmd_buffer];
+            let mut commands=cmd_buffers;
             if output_mips>1 {
                 if fault==306 {set_error(error_buf,error_buf_len,"Injected RTT mip encoding failure");return CoinWgpuStatus::OutOfMemory;}
                 match texture_mips::encode(&ctx.device,&color_texture,output_format,output_mips,width,height,ctx.adapter.get_info().backend==wgpu::Backend::Gl) {
@@ -6896,7 +11093,7 @@ fn coin_wgpu_submit_internal(
                 width,
                 height,
                 format: if f.texture_output_flags&1!=0 {2} else {0},
-                mip_count:output_mips,
+                mip_count:output_mips, cube_face_size:0, cube_mipmapped:false,
             });
             tgt.submission_serial = serial;
             unsafe { *out_texture = token; }
@@ -6944,16 +11141,31 @@ fn coin_wgpu_submit_internal(
         let depth_unpadded = width * 4;
         let depth_bytes_per_row = (depth_unpadded + 255) & !255;
         let depth_staging_size = (depth_bytes_per_row as u64) * (height as u64);
-        let depth_requested = tgt.depth_buffer_len >= (width as u64) * (height as u64)
-            && (!out_ticket.is_null() || !tgt.depth_buffer.is_null());
         let depth_staging_info = if depth_requested
         {
             let (dbuf, _) = ctx.readback_pool
                 .lock().unwrap().acquire(&ctx.device, depth_staging_size);
-            let converted = if !ctx.adapter.get_downlevel_capabilities().flags
+            let converted = if sample_count > 1 {
+                let mut converter = ctx.depth_readback.lock().unwrap();
+                let converter = converter.get_or_insert_with(|| {
+                    if ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+                        depth_transfer::DepthTransfer::new_gl(&ctx.device, false)
+                    } else {
+                        depth_transfer::DepthTransfer::new(&ctx.device, false)
+                    }
+                });
+                Some(converter.encode_msaa(&ctx.device, &mut copy_encoder,
+                    &msaa_attachments.as_ref().unwrap().3, width, height, sample_count))
+            } else if !ctx.adapter.get_downlevel_capabilities().flags
                 .contains(wgpu::DownlevelFlags::DEPTH_TEXTURE_AND_BUFFER_COPIES) {
                 let mut converter = ctx.depth_readback.lock().unwrap();
-                let converter = converter.get_or_insert_with(|| depth_transfer::DepthTransfer::new(&ctx.device, false));
+                let converter = converter.get_or_insert_with(|| {
+                    if ctx.adapter.get_info().backend == wgpu::Backend::Gl {
+                        depth_transfer::DepthTransfer::new_gl(&ctx.device, false)
+                    } else {
+                        depth_transfer::DepthTransfer::new(&ctx.device, false)
+                    }
+                });
                 Some(converter.encode(&ctx.device, &mut copy_encoder, &depth_view, width, height))
             } else { None };
             copy_encoder.copy_texture_to_buffer(
@@ -6995,7 +11207,9 @@ fn coin_wgpu_submit_internal(
         LAST_SUBMITTED_SERIAL.store(sub_serial, Ordering::SeqCst);
         let local_serial = ctx.last_submitted_serial.fetch_add(1, Ordering::SeqCst) + 1;
         let profile_submit_begin = std::time::Instant::now();
-        ctx.queue.submit([cmd_buffer, copy_encoder.finish()]);
+        let mut commands = cmd_buffers;
+        commands.push(copy_encoder.finish());
+        ctx.queue.submit(commands);
         let profile_submitted = std::time::Instant::now();
         let completed = ctx.completed_serial.clone();
         ctx.queue.on_submitted_work_done(move || {
@@ -7382,6 +11596,123 @@ pub extern "C" fn coin_wgpu_submit_texture(
     }
     unsafe { *out_token = 0; }
     coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), out_token, error_buf, error_buf_len)
+}
+
+fn cube_rtt_layout(n:u32,mips:bool)->Result<(u32,u32),(CoinWgpuStatus,String)> {
+    if n==0 || n>2048 || !n.is_power_of_two(){return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube RTT face extent".into()));}
+    let width=2*n;let mut extent=n;let mut texels=0u64;
+    loop {texels+=6*u64::from(extent)*u64::from(extent);if !mips||extent==1{break;}extent/=2;}
+    let height=texels.div_ceil(u64::from(width));
+    if height>8192 || u64::from(width)*height*4>128*1024*1024 {
+        return Err((CoinWgpuStatus::Unsupported,"Cube RTT atlas exceeds 128 MiB".into()));
+    }
+    Ok((width,height as u32))
+}
+fn admit_cube_rtt(ctx:&DeviceState,n:u32,mips:bool,samples:u32)->Result<(u32,u32),(CoinWgpuStatus,String)> {
+    let (width,height)=cube_rtt_layout(n,mips)?;
+    if !matches!(samples,1|2|4) || width>ctx.device.limits().max_texture_dimension_2d || height>ctx.device.limits().max_texture_dimension_2d {
+        return Err((CoinWgpuStatus::Unsupported,"Cube RTT samples or atlas extent unavailable".into()));
+    }
+    let color=ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba8Unorm);
+    let depth=ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Depth32Float);
+    let required=if samples==2 {wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X2}
+        else if samples==4 {wgpu::TextureFormatFeatureFlags::MULTISAMPLE_X4} else {wgpu::TextureFormatFeatureFlags::empty()};
+    if !color.allowed_usages.contains(wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|
+        wgpu::TextureUsages::COPY_SRC|wgpu::TextureUsages::COPY_DST) ||
+       !color.flags.contains(required) || !depth.flags.contains(required) {
+        return Err((CoinWgpuStatus::Unsupported,"Cube RTT color/depth copy or sample format unavailable".into()));
+    }
+    Ok((width,height))
+}
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_cube_rtt(n:u32,mips:u32,samples:u32)->CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if mips>1{return CoinWgpuStatus::InvalidArgument;}
+        let Ok(guard)=RUNTIME_CTX.lock() else{return CoinWgpuStatus::BackendError;};
+        let Some(ctx)=guard.as_ref().and_then(|runtime|runtime.device_state.as_ref()) else{return CoinWgpuStatus::NotReady;};
+        match admit_cube_rtt(ctx,n,mips!=0,samples){Ok(_)=>CoinWgpuStatus::Ok,Err((status,_))=>status}
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+#[no_mangle]
+pub extern "C" fn coin_wgpu_assemble_cube_rtt(faces:*const u64,n:u32,mips:u32,generation:u64,
+    out_token:*mut u64,error_buf:*mut std::os::raw::c_char,error_buf_len:usize)->CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if out_token.is_null() || (out_token as usize)%std::mem::align_of::<u64>()!=0 || mips>1 {
+            set_error(error_buf,error_buf_len,"Invalid cube RTT output pointer or mip flag");return CoinWgpuStatus::InvalidArgument;
+        }
+        unsafe{*out_token=0;}
+        let faces=match validate_slice(faces,6,"cube RTT face tokens",error_buf,error_buf_len){Ok(v)=>v,Err(status)=>return status};
+        let Ok(mut guard)=RUNTIME_CTX.lock() else{set_error(error_buf,error_buf_len,"Cube RTT runtime lock failed");return CoinWgpuStatus::BackendError;};
+        let Some(ctx)=guard.as_mut().and_then(|runtime|runtime.device_state.as_mut()) else{set_error(error_buf,error_buf_len,"Cube RTT default device is not prepared");return CoinWgpuStatus::NotReady;};
+        // The public connector domain uses raw generation + 1, preserving
+        // zero as unavailable while accepting the first raw generation (0).
+        // Match the existing query's checked epoch conversion on overflow.
+        if generation==0 || ctx.generation.checked_add(1)!=Some(generation) {
+            set_error(error_buf,error_buf_len,"Cube RTT belongs to another device generation");return CoinWgpuStatus::DeviceLost;
+        }
+        let (width,height)=match admit_cube_rtt(ctx,n,mips!=0,1){Ok(v)=>v,Err((status,message))=>{set_error(error_buf,error_buf_len,&message);return status;}};
+        let mut registry=ctx.rtt_textures.lock().unwrap();
+        if registry.active.len()>=64{set_error(error_buf,error_buf_len,"Cube RTT atlas exceeds retained texture capacity");return CoinWgpuStatus::OutOfMemory;}
+        let mut sources=Vec::with_capacity(6);
+        let levels=if mips!=0 {n.ilog2()+1}else{1};
+        for (face,&token) in faces.iter().enumerate() {
+            if token==0 || faces[..face].contains(&token) {
+                set_error(error_buf,error_buf_len,"Cube RTT faces alias or have a zero token");return CoinWgpuStatus::InvalidArgument;
+            }
+            let Some(source)=registry.active.get(&token) else {
+                set_error(error_buf,error_buf_len,"Cube RTT face token is stale or belongs to another device");return CoinWgpuStatus::InvalidArgument;
+            };
+            if source.width!=n || source.height!=n || source.format!=0 || source.cube_face_size!=0 || source.mip_count<levels {
+                set_error(error_buf,error_buf_len,"Cube RTT face token metadata mismatch");return CoinWgpuStatus::InvalidArgument;
+            }
+            sources.push(source.texture.clone());
+        }
+        let texture=ctx.device.create_texture(&wgpu::TextureDescriptor {
+            label:Some("Coin cube RTT canonical atlas"),size:wgpu::Extent3d{width,height,depth_or_array_layers:1},
+            mip_level_count:1,sample_count:1,dimension:wgpu::TextureDimension::D2,format:wgpu::TextureFormat::Rgba8Unorm,
+            usage:wgpu::TextureUsages::RENDER_ATTACHMENT|wgpu::TextureUsages::TEXTURE_BINDING|wgpu::TextureUsages::COPY_SRC|wgpu::TextureUsages::COPY_DST,
+            view_formats:&[],
+        });
+        let view=texture.create_view(&Default::default());
+        let mut encoder=ctx.device.create_command_encoder(&wgpu::CommandEncoderDescriptor{label:Some("Coin six-face cube RTT assembly")});
+        {
+            let _clear=encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+                label:Some("Coin cube atlas zero padding"),
+                color_attachments:&[Some(wgpu::RenderPassColorAttachment{view:&view,resolve_target:None,
+                    ops:wgpu::Operations{load:wgpu::LoadOp::Clear(wgpu::Color::TRANSPARENT),store:wgpu::StoreOp::Store}})],
+                depth_stencil_attachment:None,timestamp_writes:None,occlusion_query_set:None,
+            });
+        }
+        let mut level_offset=0u64;let mut extent=n;
+        for level in 0..levels {
+            for (face,source) in sources.iter().enumerate() {
+                for y in 0..extent {
+                    let mut x=0;
+                    while x<extent {
+                        let linear=level_offset+face as u64*u64::from(extent)*u64::from(extent)+u64::from(y)*u64::from(extent)+u64::from(x);
+                        let dx=(linear%u64::from(width)) as u32;let dy=(linear/u64::from(width)) as u32;
+                        let count=(extent-x).min(width-dx);
+                        encoder.copy_texture_to_texture(
+                            wgpu::TexelCopyTextureInfo{texture:source,mip_level:level,origin:wgpu::Origin3d{x,y:extent-1-y,z:0},aspect:wgpu::TextureAspect::All},
+                            wgpu::TexelCopyTextureInfo{texture:&texture,mip_level:0,origin:wgpu::Origin3d{x:dx,y:dy,z:0},aspect:wgpu::TextureAspect::All},
+                            wgpu::Extent3d{width:count,height:1,depth_or_array_layers:1});
+                        x+=count;
+                    }
+                }
+            }
+            level_offset+=6*u64::from(extent)*u64::from(extent);extent=(extent/2).max(1);
+        }
+        let token=NEXT_RTT_TOKEN.fetch_add(1,Ordering::SeqCst);
+        if token==0{set_error(error_buf,error_buf_len,"Cube RTT token space exhausted");return CoinWgpuStatus::OutOfMemory;}
+        let serial=GLOBAL_SUBMISSION_SERIAL.fetch_add(1,Ordering::SeqCst);
+        LAST_SUBMITTED_SERIAL.store(serial,Ordering::SeqCst);
+        let local_serial=ctx.last_submitted_serial.fetch_add(1,Ordering::SeqCst)+1;
+        ctx.queue.submit([encoder.finish()]);
+        let completed=ctx.completed_serial.clone();
+        ctx.queue.on_submitted_work_done(move||{completed.fetch_max(local_serial,Ordering::SeqCst);GLOBAL_COMPLETED_SERIAL.fetch_max(serial,Ordering::SeqCst);});
+        registry.active.insert(token,RttTexture{texture,view,width,height,opaque:false,format:0,mip_count:1,cube_face_size:n,cube_mipmapped:mips!=0});
+        unsafe{*out_token=token;}CoinWgpuStatus::Ok
+    }).unwrap_or_else(|_|{set_error(error_buf,error_buf_len,"Cube RTT assembly panicked");CoinWgpuStatus::BackendError})
 }
 
 #[no_mangle]

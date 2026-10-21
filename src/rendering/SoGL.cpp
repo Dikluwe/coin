@@ -1290,7 +1290,8 @@ namespace { namespace SoGL { namespace FaceSet {
                      const int32_t *texindices,
                        SoVertexAttributeBundle * const attribs,
                        const int dotexture,
-                       const int doattribs)
+                       const int doattribs,
+                       const uint8_t *edgeflags)
   {
 
     // just in case someone forgot
@@ -1312,6 +1313,10 @@ namespace { namespace SoGL { namespace FaceSet {
     // This is the same code as in SoGLCoordinateElement::send().
     // It is inlined here for speed (~15% speed increase).
 #define SEND_VERTEX(_idx_)                                           \
+    if (edgeflags) {                                                   \
+      while (edgecursor < edgeend && *edgecursor == 2) ++edgecursor;   \
+      if (edgecursor < edgeend) glEdgeFlag(*edgecursor++ ? GL_TRUE : GL_FALSE); \
+    }                                                                  \
     if (is3d) glVertex3fv((const GLfloat*) (coords3d + _idx_));             \
     else glVertex4fv((const GLfloat*) (coords4d + _idx_));
 
@@ -1320,6 +1325,10 @@ namespace { namespace SoGL { namespace FaceSet {
     const int32_t *viptr = vertexindices;
     const int32_t *vistartptr = vertexindices;
     const int32_t *viendptr = viptr + numindices;
+    const uint8_t *edgecursor = edgeflags;
+    const uint8_t *edgeend = edgeflags ? edgeflags + numindices : NULL;
+    GLboolean savedEdgeFlag = GL_TRUE;
+    if (edgeflags) glGetBooleanv(GL_EDGE_FLAG, &savedEdgeFlag);
     int32_t v1, v2, v3, v4, v5 = 0; // v5 init unnecessary, but kills a compiler warning.
     int numverts = vertexlist->getNum();
 
@@ -1655,6 +1664,7 @@ namespace { namespace SoGL { namespace FaceSet {
     }
     // check if triangle or quad
     if (mode != GL_POLYGON) glEnd();
+    if (edgeflags) glEdgeFlag(savedEdgeFlag);
   }
 
 } } } // namespace
@@ -1744,7 +1754,8 @@ sogl_render_faceset(const SoGLCoordinateElement * const vertexlist,
                     const int mbind,
                     const int attribbind,
                     const int dotexture,
-                    const int doattribs)
+                    const int doattribs,
+                    const uint8_t *edgeflags)
 {
   SOGL_FACESET_GLRENDER(nbind, mbind, attribbind, (vertexlist,
                                                    vertexindices,
@@ -1757,7 +1768,8 @@ sogl_render_faceset(const SoGLCoordinateElement * const vertexlist,
                                                    texindices,
                                                    attribs,
                                                    dotexture,
-                                                   doattribs));
+                                                   doattribs,
+                                                   edgeflags));
 }
 
 #undef SOGL_FACESET_GLRENDER

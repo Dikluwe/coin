@@ -1,11 +1,13 @@
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
 #include <utility>
+#include <algorithm>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
 #include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
@@ -45,21 +47,26 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
                                                        const CoinRenderFramePlan& root,
                                                        CoinRenderFramePlan& resolvedRoot) {
   std::string diagnostic;
-  tokens.reserve(graph.producers.size());
+  tokens.reserve(graph.tokenCount());
   resources.entries.reserve(graph.producers.size());
   if (target && (target->suspended || target->size[0] <= 0 || target->size[1] <= 0))
     return {CoinRenderBackendStatus::NOT_READY,
             "Scene texture consumer target is suspended or has zero size"};
   if (!graph.validate(root, diagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+  if (root.rasterizationPolicy != options.rasterizationPolicy)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "RTT root rasterization policy differs from target"};
   if (root.textureSamplingPolicy != options.textureSamplingPolicy || !coin_render_valid_sampling(root, diagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic.empty() ? "RTT root sampling policy differs from target policy" : diagnostic};
   const bool staged = graph.mode == COIN_RENDER_SCENE_TEXTURE_STAGED;
-  for (const auto& producer : graph.producers) {
-    if (producer.plan.textureSamplingPolicy != root.textureSamplingPolicy ||
-        !coin_render_valid_sampling(producer.plan, diagnostic))
+  for (const auto& producer : graph.producers) for(size_t face=0;face<producer.faceCount();++face) {
+    const auto & producerFrame=producer.face(face);
+    if (producerFrame.rasterizationPolicy != root.rasterizationPolicy)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "RTT producer rasterization policy differs from consumer"};
+    if (producerFrame.textureSamplingPolicy != root.textureSamplingPolicy ||
+        !coin_render_valid_sampling(producerFrame, diagnostic))
       return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic.empty() ? "RTT producer sampling policy differs from consumer policy" : diagnostic};
-    auto check = CoinRenderTargetP::validateProfile(producer.plan, producer.size, staged);
+    auto check = CoinRenderTargetP::validateProfile(producerFrame, producer.size, staged);
     if (check.status != CoinRenderBackendStatus::SUCCESS)
       return check;
   }
@@ -78,6 +85,14 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     preflightBackend = CoinRenderTargetP::createBackend();
     inspector = preflightBackend.get();
   }
+
+  bool portableExecution = root.hasPortableShaderDraws();
+  for (const auto &producer : graph.producers)
+    for (size_t face = 0; face < producer.faceCount(); ++face)
+      portableExecution = portableExecution || producer.face(face).hasPortableShaderDraws();
+  if (portableExecution && (!inspector || !inspector->isGpuBackend()))
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "Portable shader module executor is unavailable before scene texture production"};
 
   // Pure/known connector limits must reject before device preparation. A
   // second inspection after prepare checks selected-adapter format facts.
@@ -118,6 +133,71 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
   const CoinRenderResourceStamp capturedStamp = stamp();
   for (size_t i = 0; i < graph.producers.size(); ++i) {
     const auto& producer = graph.producers[i];
+    if(producer.cube) {
+      CoinRenderTextureImageSnapshot resultTexture;
+      const bool mips=graph.requestsMips(i+1,root);
+      if(!CoinRenderCubeTextureCore::describe(uint32_t(producer.size[0]),mips,resultTexture))
+        return {CoinRenderBackendStatus::UNSUPPORTED,"Invalid cube RTT layout"};
+      std::array<uint64_t,6> faceTokens={{0,0,0,0,0,0}};
+      std::array<CoinRenderCubeTextureCore::Face,6> faceImages;
+      for(size_t face=0;face<6;++face) {
+        CoinRenderFramePlan frame;
+        if(!resources.resolve(producer.face(face),stamp(),frame,diagnostic))
+          return {CoinRenderBackendStatus::UNSUPPORTED,diagnostic};
+        frame.outputColorFormat=CoinRenderTextureFormat::RGBA8_LINEAR;
+        frame.outputMipmaps=directBackend && mips;
+        if(directBackend) {
+          uint64_t token=0;
+          const auto result=directBackend->submitRtt(frame,producer.size,producer.sourceRevision,*target,token);
+          if(token)tokens.push_back(token);
+          if(result.status!=CoinRenderBackendStatus::SUCCESS) {
+            if(result.status==CoinRenderBackendStatus::DEVICE_LOST)target->deviceLost();return result;
+          }
+          if(!token)return {CoinRenderBackendStatus::BACKEND_ERROR,"Cube RTT face returned no token"};
+          faceTokens[face]=token;
+        } else {
+          std::unique_ptr<CoinRenderTarget> child(CoinRenderTarget::createOffscreen(producer.size,options));
+          if(!child||child->getStatus()!=CoinRenderTarget::TARGET_READY||!child->setDepthReadbackEnabled(FALSE))
+            return {CoinRenderBackendStatus::BACKEND_ERROR,"Cannot allocate staged cube RTT face"};
+          const auto result=child->getPimpl()->executeFrame(frame);
+          if(result.status!=CoinRenderBackendStatus::SUCCESS)return result;
+          auto & image=faceImages[face];image.width=producer.size[0];image.height=producer.size[1];image.components=4;
+          child->readbackRGBA(image.pixels);
+          if(!CoinRenderImageCore::flipRgba8Rows(image.pixels,producer.size))
+            return {CoinRenderBackendStatus::BACKEND_ERROR,"Incomplete staged cube face readback"};
+        }
+        if(!(stamp()==capturedStamp))return {CoinRenderBackendStatus::DEVICE_LOST,"Cube RTT generation changed between faces"};
+      }
+      if(directBackend) {
+        uint64_t token=0;
+        const auto result=directBackend->assembleCubeRtt(faceTokens,uint32_t(producer.size[0]),mips,*target,token);
+        if(token)tokens.push_back(token);
+        if(result.status!=CoinRenderBackendStatus::SUCCESS) {
+          if(result.status==CoinRenderBackendStatus::DEVICE_LOST)target->deviceLost();return result;
+        }
+        if(!token)return {CoinRenderBackendStatus::BACKEND_ERROR,"Cube RTT assembly returned no token"};
+        if(!(stamp()==capturedStamp))return {CoinRenderBackendStatus::DEVICE_LOST,"Cube RTT assembly changed generation"};
+        // The atlas owns independent storage. Retire only our six temporary
+        // faces after their last assembly use has been submitted. Backends keep
+        // the actual allocations alive through their existing fences/queues.
+        const std::vector<uint64_t> completedFaces(faceTokens.begin(),faceTokens.end());
+        directBackend->retireRtt(completedFaces);
+        tokens.erase(std::remove_if(tokens.begin(),tokens.end(),[&completedFaces](uint64_t candidate) {
+          return std::find(completedFaces.begin(),completedFaces.end(),candidate)!=completedFaces.end();
+        }),tokens.end());
+        resultTexture.gpuToken=token;resultTexture.contentDigest=token;
+      } else {
+        CoinRenderCubeTextureCore::Atlas atlas;
+        if(!CoinRenderCubeTextureCore::prepare(faceImages,mips,atlas))
+          return {CoinRenderBackendStatus::BACKEND_ERROR,"Cannot assemble staged cube RTT"};
+        resultTexture.pixelsRgba=std::move(atlas.pixelsRgba);
+        resultTexture.contentDigest=CoinRenderImageCore::rgba8Digest(resultTexture.pixelsRgba);
+      }
+      if(!(stamp()==capturedStamp))return {CoinRenderBackendStatus::DEVICE_LOST,"Cube RTT assembly changed generation"};
+      if(!resources.bind(i+1,producer.sourceRevision,capturedStamp,std::move(resultTexture),diagnostic))
+        return {CoinRenderBackendStatus::BACKEND_ERROR,diagnostic};
+      continue;
+    }
     CoinRenderFramePlan frame;
     if (!resources.resolve(producer.plan, stamp(), frame, diagnostic))
       return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};

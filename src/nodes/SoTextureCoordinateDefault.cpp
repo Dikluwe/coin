@@ -98,9 +98,9 @@ SoTextureCoordinateDefault::doAction(SoAction * action)
 void
 SoTextureCoordinateDefault::GLRender(SoGLRenderAction * action)
 {
-  /*int unit = */SoTextureUnitElement::get(action->getState());
+  const int unit = SoTextureUnitElement::get(action->getState());
   SoGLMultiTextureCoordinateElement::setTexGen(action->getState(),
-                                               this, 0, NULL);
+                                               this, unit, NULL);
   SoTextureCoordinateDefault::doAction((SoAction *)action);
 }
 

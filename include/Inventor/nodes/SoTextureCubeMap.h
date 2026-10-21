@@ -96,6 +96,8 @@ protected:
   void setReadStatus(int s);
 
 private:
+  friend class CoinRenderFramePlanBuilder;
+  SbBool coinRenderFilenamePendingOrFailed(void) const;
   SbBool loadFilename(const SbString & filename, SoSFImage * image);
   static void filenameSensorCB(void *, SoSensor *);
   SoSFImage * getImageField(const int idx);

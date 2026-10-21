@@ -3,6 +3,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include <algorithm>
 #include <cmath>
 
@@ -139,6 +140,58 @@ bool
 CoinRenderTextureSamplingCore::validMipImage(const CoinRenderTextureImageSnapshot &image)
 {
   using Format = CoinRenderTextureFormatCore;
+  if (image.cubeFaceSize) return CoinRenderCubeTextureCore::valid(image);
+  if (image.cubeSourceComponents || image.cubeMipmapped) return false;
+  if (image.volumeDepth != 0) {
+    if (image.format != CoinRenderTextureFormat::RGBA8_LINEAR ||
+        image.producerId || image.gpuToken || image.mipmapped ||
+        !image.mipmapsRgba.empty() || image.components != 4 ||
+        !image.volumeWidth || !image.volumeHeight ||
+        !image.volumeDepth || !powerOfTwo(image.volumeColumns) ||
+        image.volumeWidth > 256 || image.volumeHeight > 256 ||
+        image.volumeDepth > 256 || image.volumeSourceComponents < 1 ||
+        image.volumeSourceComponents > 4)
+      return false;
+    uint32_t cols = 1;
+    while (cols * cols < image.volumeDepth) cols <<= 1;
+    if (cols != image.volumeColumns || image.width != cols * image.volumeWidth)
+      return false;
+    uint32_t rows = 0;
+    for (uint32_t w = image.volumeWidth, h = image.volumeHeight,
+                  d = image.volumeDepth;;) {
+      rows += h * ((d + cols - 1) / cols);
+      if (!image.volumeMipmapped || (w == 1 && h == 1 && d == 1)) break;
+      w = std::max(1u, w / 2);
+      h = std::max(1u, h / 2);
+      d = std::max(1u, d / 2);
+    }
+    if (image.height != rows || image.width > 8192 || rows > 8192 ||
+        uint64_t(image.width) * rows * 4 > 128ull * 1024ull * 1024ull ||
+        image.pixelsRgba.size() != uint64_t(image.width) * rows * 4)
+      return false;
+    uint32_t base = 0;
+    for (uint32_t w = image.volumeWidth, h = image.volumeHeight,
+                  d = image.volumeDepth;;) {
+      const uint32_t levelRows = (d + cols - 1) / cols;
+      for (uint32_t row = 0; row < levelRows; ++row) {
+        const uint32_t used = std::min(cols, d - row * cols) * w;
+        for (uint32_t y = 0; y < h; ++y) {
+          const size_t start = (size_t(base + row * h + y) * image.width + used) * 4;
+          const size_t end = size_t(base + row * h + y + 1) * image.width * 4;
+          if (std::any_of(image.pixelsRgba.begin() + start, image.pixelsRgba.begin() + end,
+                          [](uint8_t value) { return value != 0; }))
+            return false;
+        }
+      }
+      base += h * levelRows;
+      if (!image.volumeMipmapped || (w == 1 && h == 1 && d == 1)) break;
+      w = std::max(1u, w / 2); h = std::max(1u, h / 2); d = std::max(1u, d / 2);
+    }
+    return true;
+  }
+  if (image.volumeWidth || image.volumeHeight || image.volumeColumns ||
+      image.volumeSourceComponents || image.volumeMipmapped)
+    return false;
   const size_t base = Format::levelBytes(image.width, image.height, image.format);
   if (!base || base + mipBytes(image.width, image.height, image.format) > 128u * 1024u * 1024u)
     return false;
@@ -264,5 +317,120 @@ CoinRenderTextureSamplingCore::generate(CoinRenderTextureImageSnapshot &image)
   }
   image.mipmapsRgba.swap(result);
   image.mipmapped = true;
+  return true;
+}
+
+bool
+CoinRenderTextureSamplingCore::packVolumeAtlas(const std::vector<uint8_t> &rgba,
+    uint32_t width, uint32_t height, uint32_t depth, uint32_t sourceComponents,
+    bool withMips, CoinRenderTextureImageSnapshot &image)
+{
+  constexpr uint64_t budget = 128ull * 1024ull * 1024ull;
+  if (!width || !height || !depth ||
+      width > 256 || height > 256 || depth > 256 ||
+      sourceComponents < 1 || sourceComponents > 4 ||
+      uint64_t(width) * height * depth * 4 != rgba.size())
+    return false;
+
+  uint32_t columns = 1;
+  while (columns * columns < depth) columns <<= 1;
+  const uint32_t atlasWidth = width * columns;
+  uint32_t atlasHeight = 0;
+  for (uint32_t w = width, h = height, d = depth;;) {
+    const uint32_t rows = (d + columns - 1) / columns;
+    if (h > (8192u - atlasHeight) / rows) return false;
+    atlasHeight += h * rows;
+    if (!withMips || (w == 1 && h == 1 && d == 1)) break;
+    w = std::max(1u, w / 2);
+    h = std::max(1u, h / 2);
+    d = std::max(1u, d / 2);
+  }
+  const uint64_t atlasBytes = uint64_t(atlasWidth) * atlasHeight * 4;
+  if (atlasWidth > 8192 || atlasHeight > 8192 || atlasBytes > budget)
+    return false;
+
+  std::vector<uint8_t> packed(size_t(atlasBytes), 0);
+  const std::vector<uint8_t> *level = &rgba;
+  std::vector<uint8_t> generated;
+  uint32_t yBase = 0;
+  for (uint32_t w = width, h = height, d = depth;;) {
+    for (uint32_t z = 0; z < d; ++z) {
+      const uint32_t xBase = (z % columns) * w;
+      const uint32_t sliceY = yBase + (z / columns) * h;
+      for (uint32_t y = 0; y < h; ++y) {
+        const size_t source = ((size_t(z) * h + y) * w) * 4;
+        const size_t dest = ((size_t(sliceY + y) * atlasWidth) + xBase) * 4;
+        std::copy_n(level->data() + source, size_t(w) * 4, packed.data() + dest);
+      }
+    }
+    yBase += h * ((d + columns - 1) / columns);
+    if (!withMips || (w == 1 && h == 1 && d == 1)) break;
+    const uint32_t nw = std::max(1u, w / 2), nh = std::max(1u, h / 2),
+                   nd = std::max(1u, d / 2);
+    std::vector<uint8_t> next(size_t(nw) * nh * nd * 4);
+    if ((w == 1 || w % 2 == 0) && (h == 1 || h % 2 == 0) &&
+        (d == 1 || d % 2 == 0)) {
+      // Preserve the established POT box path, also exact for even NPOT axes.
+      const uint32_t count = (w > 1 ? 2u : 1u) * (h > 1 ? 2u : 1u) *
+                             (d > 1 ? 2u : 1u);
+      for (uint32_t z = 0; z < nd; ++z)
+        for (uint32_t y = 0; y < nh; ++y)
+          for (uint32_t x = 0; x < nw; ++x)
+            for (uint32_t c = 0; c < 4; ++c) {
+              uint32_t sum = 0;
+              for (uint32_t dz = 0; dz < (d > 1 ? 2u : 1u); ++dz)
+                for (uint32_t dy = 0; dy < (h > 1 ? 2u : 1u); ++dy)
+                  for (uint32_t dx = 0; dx < (w > 1 ? 2u : 1u); ++dx)
+                    sum += (*level)[(((size_t(z * 2 + dz) * h + y * 2 + dy) * w +
+                                       x * 2 + dx) * 4) + c];
+              next[((size_t(z) * nh + y) * nw + x) * 4 + c] =
+                  uint8_t((sum + count / 2) / count);
+            }
+    } else {
+      // Integer overlap numerators make each box integral exact, including
+      // odd borders. Their common denominator cancels on normalization; use
+      // 64 bits for the weighted channel sum and round only once per level.
+      const uint64_t area = uint64_t(w) * h * d;
+      for (uint32_t z = 0; z < nd; ++z)
+        for (uint32_t y = 0; y < nh; ++y)
+          for (uint32_t x = 0; x < nw; ++x) {
+            const uint32_t x0 = x * w, x1 = (x + 1) * w;
+            const uint32_t y0 = y * h, y1 = (y + 1) * h;
+            const uint32_t z0 = z * d, z1 = (z + 1) * d;
+            uint64_t sums[4] = {};
+            for (uint32_t sz = z0 / nd; sz < (z1 + nd - 1) / nd; ++sz) {
+              const uint32_t wz = std::min(z1, (sz + 1) * nd) - std::max(z0, sz * nd);
+              for (uint32_t sy = y0 / nh; sy < (y1 + nh - 1) / nh; ++sy) {
+                const uint32_t wy = std::min(y1, (sy + 1) * nh) - std::max(y0, sy * nh);
+                for (uint32_t sx = x0 / nw; sx < (x1 + nw - 1) / nw; ++sx) {
+                  const uint32_t wx = std::min(x1, (sx + 1) * nw) - std::max(x0, sx * nw);
+                  const uint64_t weight = uint64_t(wx) * wy * wz;
+                  const size_t source = ((size_t(sz) * h + sy) * w + sx) * 4;
+                  for (uint32_t c = 0; c < 4; ++c)
+                    sums[c] += (*level)[source + c] * weight;
+                }
+              }
+            }
+            for (uint32_t c = 0; c < 4; ++c)
+              next[((size_t(z) * nh + y) * nw + x) * 4 + c] =
+                  uint8_t((sums[c] + area / 2) / area);
+          }
+    }
+    generated.swap(next);
+    level = &generated;
+    w = nw; h = nh; d = nd;
+  }
+  image.format = CoinRenderTextureFormat::RGBA8_LINEAR;
+  image.width = atlasWidth;
+  image.height = atlasHeight;
+  image.volumeWidth = width;
+  image.volumeHeight = height;
+  image.volumeDepth = depth;
+  image.volumeColumns = columns;
+  image.volumeSourceComponents = sourceComponents;
+  image.volumeMipmapped = withMips;
+  image.mipmapped = false; // The atlas has an explicit spatial chain, not 2D hardware mips.
+  image.mipmapsRgba.clear();
+  image.pixelsRgba.swap(packed);
   return true;
 }

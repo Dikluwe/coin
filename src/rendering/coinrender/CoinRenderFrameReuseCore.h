@@ -83,6 +83,16 @@ struct CoinRenderPositionUpdate {
   CoinRenderPositionUpdate(uint32_t slot, const SbVec3f & position)
     : slot(slot), position(position) {}
 };
+struct CoinRenderCubeRangeUpdate {
+  uint32_t firstVertex = 0;
+  uint32_t vertexCount = 0;
+  SbVec3f halfExtents;
+};
+struct CoinRenderCubeRangeUndo {
+  uint32_t firstVertex = 0;
+  uint32_t vertexCount = 0;
+  SbVec3f halfExtents;
+};
 // Both pending positions and their undo fit within 32 MiB. Full vertex
 // attributes and the source plan are never copied for an object overlay.
 static const size_t COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS =
@@ -99,6 +109,7 @@ struct CoinRenderObjectOverlayUndo {
   CoinRenderTranslationOverlayUndo transforms;
   std::vector<CoinRenderMaterialUpdate> materials;
   std::vector<CoinRenderPositionUpdate> positions;
+  std::vector<CoinRenderCubeRangeUndo> cubeRanges;
   std::vector<CoinRenderDrawSourceUpdate> draws;
   bool active = false;
 };
@@ -138,6 +149,12 @@ public:
   COIN_RENDER_DLL_API static bool beginObjectOverlay(
     CoinRenderFramePlan &, const std::vector<CoinRenderModelUpdate> &,
     const std::vector<CoinRenderMaterialUpdate> &, const std::vector<CoinRenderPositionUpdate> &,
+    const std::vector<CoinRenderDrawSourceUpdate> &, uint64_t, CoinRenderObjectOverlayUndo &);
+  /** Compact path for proven axis-aligned Cubes; rejects before mutation if
+   * any previous vertex differs from the range's three absolute magnitudes. */
+  COIN_RENDER_DLL_API static bool beginCubeObjectOverlay(
+    CoinRenderFramePlan &, const std::vector<CoinRenderModelUpdate> &,
+    const std::vector<CoinRenderMaterialUpdate> &, const std::vector<CoinRenderCubeRangeUpdate> &,
     const std::vector<CoinRenderDrawSourceUpdate> &, uint64_t, CoinRenderObjectOverlayUndo &);
   COIN_RENDER_DLL_API static void rollbackObjectOverlay(CoinRenderFramePlan &, CoinRenderObjectOverlayUndo &);
 };

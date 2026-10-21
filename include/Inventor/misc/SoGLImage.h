@@ -180,6 +180,8 @@ private:
 
   class SoGLImageP * pimpl;
   friend class SoGLImageP;
+  friend class SoGLMultiTextureImageElement;
+  SoGLDisplayList * getGLDisplayListForQuality(SoState * state, const float quality);
   static void cleanupClass(void);
 
 public:

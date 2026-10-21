@@ -637,10 +637,39 @@ SoOffscreenRenderer::getGLRenderAction(void) const
 // *************************************************************************
 
 static void
-pre_render_cb(void * COIN_UNUSED_ARG(userdata), SoGLRenderAction * action)
+pre_render_cb(void * userdata, SoGLRenderAction * action)
 {
+  // A manager may reapply the action for superimpositions. Consume only the
+  // clear armed by the offscreen renderer for this frame or tile.
+  SbBool * clearpending = static_cast<SbBool *>(userdata);
+  if (!*clearpending) return;
+  *clearpending = FALSE;
   glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
   action->setRenderingIsRemote(FALSE);
+}
+
+namespace {
+class SoOffscreenClearCallback {
+public:
+  explicit SoOffscreenClearCallback(SoGLRenderAction * action)
+    : action(action), clearpending(FALSE)
+  {
+    this->action->addPreRenderCallback(pre_render_cb, &this->clearpending);
+  }
+  ~SoOffscreenClearCallback() { this->detach(); }
+  void arm() { this->clearpending = TRUE; }
+  void detach() {
+    if (this->action) {
+      this->action->removePreRenderCallback(pre_render_cb, &this->clearpending);
+      this->action = NULL;
+    }
+  }
+private:
+  SoOffscreenClearCallback(const SoOffscreenClearCallback &);
+  SoOffscreenClearCallback & operator=(const SoOffscreenClearCallback &);
+  SoGLRenderAction * action;
+  SbBool clearpending;
+};
 }
 
 // *************************************************************************
@@ -699,6 +728,7 @@ SoOffscreenRendererP::GLRenderAbortCallback(void *userData)
 SbBool
 SoOffscreenRendererP::renderFromBase(SoBase * base)
 {
+  SoGLRenderAction * const entryaction = this->renderaction;
   if (SoOffscreenRendererP::offscreenContextsNotSupported()) {
     static SbBool first = TRUE;
     if (first) {
@@ -799,7 +829,7 @@ SoOffscreenRendererP::renderFromBase(SoBase * base)
 
   // needed to clear viewport after glViewport() is called from
   // SoGLRenderAction
-  this->renderaction->addPreRenderCallback(pre_render_cb, NULL);
+  SoOffscreenClearCallback clearcallback(entryaction);
 
   // For debugging purposes, it has been made possible to use an
   // envvar to *force* tiled rendering even when it can be done in a
@@ -860,6 +890,7 @@ SoOffscreenRendererP::renderFromBase(SoBase * base)
 
         SbViewportRegion subviewport = SbViewportRegion(SbVec2s(this->subsize[0], this->subsize[1]));
         this->renderaction->setViewportRegion(subviewport);
+        clearcallback.arm();
 
         if (base->isOfType(SoNode::getClassTypeId()))
           this->renderaction->apply((SoNode *)base);
@@ -924,6 +955,7 @@ SoOffscreenRendererP::renderFromBase(SoBase * base)
     this->renderaction->setViewportRegion(region);
 
     SbTime t = SbTime::getTimeOfDay(); // for profiling
+    clearcallback.arm();
 
     if (base->isOfType(SoNode::getClassTypeId()))
       this->renderaction->apply((SoNode *)base);
@@ -947,7 +979,7 @@ SoOffscreenRendererP::renderFromBase(SoBase * base)
     }
   }
 
-  this->renderaction->removePreRenderCallback(pre_render_cb, NULL);
+  clearcallback.detach();
 
   // Restore old value.
   (void)SoGLBigImage::setChangeLimit(bigimagechangelimit);

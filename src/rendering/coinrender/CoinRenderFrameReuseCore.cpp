@@ -43,6 +43,11 @@ sameTextures(const std::vector<CoinRenderTextureImageSnapshot> & a,
     const CoinRenderTextureImageSnapshot & x = a[i];
     const CoinRenderTextureImageSnapshot & y = b[i];
     if (x.width != y.width || x.height != y.height || x.components != y.components ||
+        x.cubeFaceSize != y.cubeFaceSize || x.cubeSourceComponents != y.cubeSourceComponents ||
+        x.cubeMipmapped != y.cubeMipmapped || x.volumeWidth != y.volumeWidth || x.volumeHeight != y.volumeHeight ||
+        x.volumeDepth != y.volumeDepth || x.volumeColumns != y.volumeColumns ||
+        x.volumeSourceComponents != y.volumeSourceComponents ||
+        x.volumeMipmapped != y.volumeMipmapped ||
         x.contentDigest != y.contentDigest || x.producerId != y.producerId ||
         x.gpuToken != y.gpuToken || x.gpuOpaque != y.gpuOpaque ||
         x.format != y.format || x.sceneTransparencyFunction != y.sceneTransparencyFunction || x.pixelsRgba != y.pixelsRgba || x.mipmapped != y.mipmapped || x.mipmapsRgba != y.mipmapsRgba)
@@ -188,7 +193,7 @@ sameDrawStructure(const CoinRenderDrawPacket & a, const CoinRenderDrawPacket & b
     a.drawOrdinal == b.drawOrdinal &&
     a.hasSortingCenter == b.hasSortingCenter &&
     (!a.hasSortingCenter || std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) == 0) &&
-    a.renderLayer == b.renderLayer &&
+    a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene &&
     a.clearDepthBefore == b.clearDepthBefore;
 }
 
@@ -637,16 +642,21 @@ bool CoinRenderFrameReuseCore::beginObjectOverlay(
   }
   size_t sortedPositions = 0, positionScratchBytes = 0;
   const char * positionMode = nullptr;
+  PositionClock::time_point positionScanEnd;
+  if (tracePositions) positionScanEnd = PositionClock::now();
   if (!positionValidation.unique(sortedPositions, positionScratchBytes, positionMode)) return false;
   positionValidation.releaseScratch();
   if (tracePositions) {
-    const double elapsed = std::chrono::duration<double, std::milli>(PositionClock::now() - positionBegin).count();
+    const auto positionEnd = PositionClock::now();
+    const double scanMs = std::chrono::duration<double, std::milli>(positionScanEnd - positionBegin).count();
+    const double uniqueMs = std::chrono::duration<double, std::milli>(positionEnd - positionScanEnd).count();
+    const double elapsed = scanMs + uniqueMs;
     // No sample for empty/rejected position lists. scratch_bytes is the
     // collision-scratch capacity used during this phase, excluding mandatory
     // position undo and allocator overhead. Cleanup is included in elapsed.
-    std::fprintf(stderr, "COIN_RENDER_PHASE geometry_overlay_validation positions=%zu runs=%zu mode=%s sorted_items=%zu scratch_bytes=%zu validation_ms=%.6f\n",
+    std::fprintf(stderr, "COIN_RENDER_PHASE geometry_overlay_validation positions=%zu runs=%zu mode=%s sorted_items=%zu scratch_bytes=%zu validation_ms=%.6f scan_ms=%.6f unique_ms=%.6f\n",
       positions.size(), positionValidation.runCount(positionMode), positionMode,
-      sortedPositions, positionScratchBytes, elapsed);
+      sortedPositions, positionScratchBytes, elapsed, scanMs, uniqueMs);
   }
   slots.clear();
   for (const auto & update : draws) {
@@ -665,6 +675,79 @@ bool CoinRenderFrameReuseCore::beginObjectOverlay(
   return true;
 }
 
+bool CoinRenderFrameReuseCore::beginCubeObjectOverlay(
+  CoinRenderFramePlan & plan, const std::vector<CoinRenderModelUpdate> & models,
+  const std::vector<CoinRenderMaterialUpdate> & materials,
+  const std::vector<CoinRenderCubeRangeUpdate> & ranges,
+  const std::vector<CoinRenderDrawSourceUpdate> & draws, uint64_t revision,
+  CoinRenderObjectOverlayUndo & undo)
+{
+  if (undo.active || !plan.revision || !revision || revision == plan.revision ||
+      (models.empty() && materials.empty() && ranges.empty()) || models.size() > 65536 ||
+      materials.size() > 65536 || draws.size() > 65536 ||
+      ranges.size() > COIN_RENDER_OBJECT_OVERLAY_MAX_POSITIONS / 24) return false;
+  CoinRenderObjectOverlayUndo prepared;
+  prepared.revision = plan.revision;
+  prepared.materials.reserve(materials.size());
+  prepared.draws.reserve(draws.size());
+  prepared.cubeRanges.reserve(ranges.size());
+  std::unordered_set<uint32_t> slots;
+  for (const auto & update : materials) {
+    if (update.slot >= plan.materials.size() || !slots.insert(update.slot).second ||
+        update.material.transparency != 0 || update.material.diffuse[3] != 1 ||
+        !std::isfinite(update.material.shininess) || update.material.shininess < 0 ||
+        update.material.shininess > 1) return false;
+    for (const float * color : {update.material.ambient, update.material.diffuse,
+                               update.material.specular, update.material.emission})
+      for (int axis = 0; axis < 4; ++axis)
+        if (!std::isfinite(color[axis]) || color[axis] < 0 || color[axis] > 1) return false;
+    prepared.materials.push_back({update.slot, plan.materials[update.slot]});
+  }
+  std::vector<std::pair<size_t, size_t>> ordered;
+  ordered.reserve(ranges.size());
+  for (const auto & range : ranges) {
+    if (range.vertexCount != 24 || range.firstVertex > plan.vertices.size() ||
+        range.vertexCount > plan.vertices.size() - range.firstVertex) return false;
+    ordered.emplace_back(size_t(range.firstVertex), size_t(range.firstVertex) + range.vertexCount);
+    CoinRenderCubeRangeUndo previous;
+    previous.firstVertex = range.firstVertex;
+    previous.vertexCount = range.vertexCount;
+    for (int axis = 0; axis < 3; ++axis) {
+      const float next = range.halfExtents[axis];
+      const float old = std::abs(plan.vertices[range.firstVertex].position[axis]);
+      if (!std::isfinite(next) || std::abs(next) > 32768.0f || !std::isfinite(old)) return false;
+      previous.halfExtents[axis] = old;
+      for (uint32_t offset = 1; offset < range.vertexCount; ++offset) {
+        const float position = plan.vertices[size_t(range.firstVertex) + offset].position[axis];
+        if (!std::isfinite(position) || std::abs(position) != old) return false;
+      }
+    }
+    prepared.cubeRanges.push_back(previous);
+  }
+  std::sort(ordered.begin(), ordered.end());
+  for (size_t index = 1; index < ordered.size(); ++index)
+    if (ordered[index].first < ordered[index - 1].second) return false;
+  slots.clear();
+  for (const auto & update : draws) {
+    if (update.slot >= plan.draws.size() || !update.sourceNodeId ||
+        !slots.insert(update.slot).second) return false;
+    prepared.draws.push_back({update.slot, plan.draws[update.slot].sourceNodeId});
+  }
+  if (!models.empty() && !beginTranslationOverlay(plan, models, revision, prepared.transforms)) return false;
+  for (const auto & update : materials) plan.materials[update.slot] = update.material;
+  for (const auto & range : ranges)
+    for (uint32_t offset = 0; offset < range.vertexCount; ++offset)
+      for (int axis = 0; axis < 3; ++axis) {
+        float & position = plan.vertices[size_t(range.firstVertex) + offset].position[axis];
+        position = std::copysign(range.halfExtents[axis], position);
+      }
+  for (const auto & update : draws) plan.draws[update.slot].sourceNodeId = update.sourceNodeId;
+  plan.revision = revision;
+  prepared.active = true;
+  undo = std::move(prepared);
+  return true;
+}
+
 void CoinRenderFrameReuseCore::rollbackObjectOverlay(CoinRenderFramePlan & plan, CoinRenderObjectOverlayUndo & undo)
 {
   if (!undo.active) return;
@@ -672,6 +755,12 @@ void CoinRenderFrameReuseCore::rollbackObjectOverlay(CoinRenderFramePlan & plan,
   for (const auto & previous : undo.materials) plan.materials[previous.slot] = previous.material;
   for (const auto & previous : undo.positions)
     previous.position.getValue(plan.vertices[previous.slot].position[0], plan.vertices[previous.slot].position[1], plan.vertices[previous.slot].position[2]);
+  for (const auto & range : undo.cubeRanges)
+    for (uint32_t offset = 0; offset < range.vertexCount; ++offset)
+      for (int axis = 0; axis < 3; ++axis) {
+        float & position = plan.vertices[size_t(range.firstVertex) + offset].position[axis];
+        position = std::copysign(range.halfExtents[axis], position);
+      }
   for (const auto & previous : undo.draws) plan.draws[previous.slot].sourceNodeId = previous.sourceNodeId;
   plan.revision = undo.revision;
   undo.active = false;

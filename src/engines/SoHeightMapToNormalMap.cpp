@@ -118,7 +118,8 @@ SoHeightMapToNormalMap::convert(const unsigned char * srcptr, SbVec2s size, int 
   int height = size[1];
   std::unique_ptr<unsigned char[]> dstarray(new unsigned char[width*height*3]);
   unsigned char * dstptr = dstarray.get();
-  unsigned char red;
+  int red;
+  int sobelx, sobely;
   SbVec3f n;
 
 #define GET_PIXEL_RED(x_, y_) \
@@ -126,44 +127,48 @@ SoHeightMapToNormalMap::convert(const unsigned char * srcptr, SbVec2s size, int 
 
   for (int y = 0; y < height; y++) {
     for (int x = 0; x < width; x++) {
+      // Accumulate the integer Sobel weights before normalization. A constant
+      // height offset must cancel exactly, including at the flat-normal bin.
       // do Y Sobel filter
       red = GET_PIXEL_RED((x-1+width) % width, (y+1) % height);
-      dy  = static_cast<float>(red) / 255.0f * -1.0f;
+      sobely  = red * -1;
 
       red = GET_PIXEL_RED(x % width, (y+1) % height);
-      dy += static_cast<float>(red) / 255.0f * -2.0f;
+      sobely += red * -2;
 
       red = GET_PIXEL_RED((x+1) % width, (y+1) % height);
-      dy += static_cast<float>(red) / 255.0f * -1.0f;
+      sobely += red * -1;
 
       red = GET_PIXEL_RED((x-1+width) % width, (y-1+height) % height);
-      dy += static_cast<float>(red) / 255.0f *  1.0f;
+      sobely += red *  1;
 
       red = GET_PIXEL_RED(x % width, (y-1+height) % height);
-      dy += static_cast<float>(red) / 255.0f *  2.0f;
+      sobely += red *  2;
 
       red = GET_PIXEL_RED((x+1) % width, (y-1+height) % height);
-      dy += static_cast<float>(red) / 255.0f *  1.0f;
+      sobely += red *  1;
 
       // Do X Sobel filter
       red = GET_PIXEL_RED((x-1+width) % width, (y-1+height) % height);
-      dx  = static_cast<float>(red) / 255.0f * -1.0f;
+      sobelx  = red * -1;
 
       red = GET_PIXEL_RED((x-1+width) % width, y % height);
-      dx += static_cast<float>(red) / 255.0f * -2.0f;
+      sobelx += red * -2;
 
       red = GET_PIXEL_RED((x-1+width) % width, (y+1) % height);
-      dx += static_cast<float>(red) / 255.0f * -1.0f;
+      sobelx += red * -1;
 
       red = GET_PIXEL_RED((x+1) % width, (y-1+height) % height);
-      dx += static_cast<float>(red) / 255.0f *  1.0f;
+      sobelx += red *  1;
 
       red = GET_PIXEL_RED((x+1) % width, y % height);
-      dx += static_cast<float>(red) / 255.0f *  2.0f;
+      sobelx += red *  2;
 
       red = GET_PIXEL_RED((x+1) % width, (y+1) % height);
-      dx += static_cast<float>(red) / 255.0f *  1.0f;
+      sobelx += red *  1;
 
+      dx = static_cast<float>(sobelx) / 255.0f;
+      dy = static_cast<float>(sobely) / 255.0f;
       n[0] = -dx;
       n[1] = -dy;
       n[2] = 1.0f;

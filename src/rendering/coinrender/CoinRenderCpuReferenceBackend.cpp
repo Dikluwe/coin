@@ -1,9 +1,11 @@
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderLightingCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCore.h"
 #include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include <atomic>
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -27,6 +29,7 @@ struct ShadedVertex {
   SbVec4f litColor;
   SbVec3f texCoord;
   SbVec3f extraTexcoords[COIN_RENDER_MAX_TEXTURE_UNITS - 1];
+  float textureR[COIN_RENDER_MAX_TEXTURE_UNITS] = {};
 };
 
 inline float edgeFunction(const SbVec2f & a, const SbVec2f & b, const SbVec2f & c) {
@@ -41,6 +44,8 @@ inline ShadedVertex interpolateVertex(const ShadedVertex & a, const ShadedVertex
   out.texCoord = a.texCoord + (b.texCoord - a.texCoord) * t;
   for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++u)
     out.extraTexcoords[u] = a.extraTexcoords[u] + (b.extraTexcoords[u] - a.extraTexcoords[u]) * t;
+  for (size_t u = 0; u < COIN_RENDER_MAX_TEXTURE_UNITS; ++u)
+    out.textureR[u] = a.textureR[u] + (b.textureR[u] - a.textureR[u]) * t;
   return out;
 }
 
@@ -118,6 +123,70 @@ inline SbVec4f sampleTexture(const CoinRenderTextureImageSnapshot & tex,const Co
   return a+(b-a)*(lod-lo);
 }
 
+inline SbVec4f sampleVolumeLevel(const CoinRenderTextureImageSnapshot &tex,
+                                const CoinRenderSamplerSnapshot &samp,
+                                float s, float t, float r, unsigned level, bool linear) {
+  uint32_t w = tex.volumeWidth, h = tex.volumeHeight, d = tex.volumeDepth;
+  uint32_t yBase = 0;
+  for (unsigned l = 0; l < level; ++l) {
+    yBase += h * ((d + tex.volumeColumns - 1) / tex.volumeColumns);
+    w = std::max(1u, w / 2); h = std::max(1u, h / 2); d = std::max(1u, d / 2);
+  }
+  auto bound = [](int v, uint32_t extent, CoinRenderTextureWrap mode) {
+    if (mode == CoinRenderTextureWrap::REPEAT)
+      return uint32_t((v % int(extent) + int(extent)) % int(extent));
+    return uint32_t(std::max(0, std::min(int(extent) - 1, v)));
+  };
+  auto normalize = [](float coordinate, CoinRenderTextureWrap mode) {
+    return mode == CoinRenderTextureWrap::REPEAT ? coordinate - std::floor(coordinate) :
+        std::max(0.0f, std::min(1.0f, coordinate));
+  };
+  s = normalize(s, samp.wrapS);
+  t = normalize(t, samp.wrapT);
+  r = normalize(r, samp.wrapR);
+  auto fetch = [&](int x, int y, int z) {
+    const uint32_t ix = bound(x, w, samp.wrapS), iy = bound(y, h, samp.wrapT),
+                   iz = bound(z, d, samp.wrapR);
+    const uint32_t ax = (iz % tex.volumeColumns) * w + ix;
+    const uint32_t ay = yBase + (iz / tex.volumeColumns) * h + iy;
+    const size_t offset = (size_t(ay) * tex.width + ax) * 4;
+    return SbVec4f(tex.pixelsRgba[offset] / 255.0f,
+                   tex.pixelsRgba[offset + 1] / 255.0f,
+                   tex.pixelsRgba[offset + 2] / 255.0f,
+                   tex.pixelsRgba[offset + 3] / 255.0f);
+  };
+  if (!linear) return fetch(int(std::floor(s * w)), int(std::floor(t * h)),
+                            int(std::floor(r * d)));
+  const float fx = s * w - .5f, fy = t * h - .5f, fz = r * d - .5f;
+  const int x = int(std::floor(fx)), y = int(std::floor(fy)), z = int(std::floor(fz));
+  const float wx = fx - std::floor(fx), wy = fy - std::floor(fy), wz = fz - std::floor(fz);
+  const SbVec4f a = fetch(x,y,z) + (fetch(x+1,y,z) - fetch(x,y,z)) * wx;
+  const SbVec4f b = fetch(x,y+1,z) + (fetch(x+1,y+1,z) - fetch(x,y+1,z)) * wx;
+  const SbVec4f c = fetch(x,y,z+1) + (fetch(x+1,y,z+1) - fetch(x,y,z+1)) * wx;
+  const SbVec4f e = fetch(x,y+1,z+1) + (fetch(x+1,y+1,z+1) - fetch(x,y+1,z+1)) * wx;
+  return (a + (b-a)*wy) + ((c + (e-c)*wy) - (a + (b-a)*wy)) * wz;
+}
+
+inline SbVec4f sampleVolume(const CoinRenderTextureImageSnapshot &tex,
+                            const CoinRenderSamplerSnapshot &samp,
+                            float s, float t, float r, float lod = 0) {
+  const bool linear = samp.filter == CoinRenderTextureFilter::LINEAR ||
+                      samp.filter == CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+  if (!tex.volumeMipmapped || !CoinRenderTextureSamplingCore::mipFilter(samp.filter))
+    return sampleVolumeLevel(tex, samp, s, t, r, 0, linear);
+  if (lod <= 0.0f)
+    return sampleVolumeLevel(tex, samp, s, t, r, 0, true);
+  unsigned maximum = 0;
+  for (uint32_t w=tex.volumeWidth,h=tex.volumeHeight,d=tex.volumeDepth;
+       w>1 || h>1 || d>1;
+       w=std::max(1u,w/2),h=std::max(1u,h/2),d=std::max(1u,d/2)) ++maximum;
+  lod = std::max(0.0f, std::min(float(maximum), lod));
+  const unsigned lo = unsigned(std::floor(lod)), hi = std::min(maximum, lo+1);
+  const SbVec4f a = sampleVolumeLevel(tex,samp,s,t,r,lo,linear);
+  const SbVec4f b = sampleVolumeLevel(tex,samp,s,t,r,hi,linear);
+  return a + (b-a) * (lod-lo);
+}
+
 inline void applyFog(const CoinRenderRenderStateSnapshot & rs, float eyeDepth,
                      float & red, float & green, float & blue) {
   if (rs.fogMode == CoinRenderFogMode::NONE) return;
@@ -162,10 +231,18 @@ inline SbVec4f rawFragmentColor(const CoinRenderFramePlan & frame,
     const auto layer = coin_render_texture_unit(state, unit);
     if (!layer.enabled) continue;
     const SbVec4f transformed = coin_render_transformed_texture_coordinate(vertex, unit, layer.matrix);
-    const SbVec2f projected = coin_render_project_texture_coordinate(
+    const auto &image = frame.textures[layer.imageSlot];
+    const SbVec2f projected = image.cubeFaceSize ? SbVec2f(0, 0) : coin_render_project_texture_coordinate(
       SbVec3f(transformed[0], transformed[1], transformed[3]), state.textureProjection);
-    const SbVec4f tex = sampleTexture(frame.textures[layer.imageSlot], frame.samplers[layer.samplerSlot],
-                                    projected[0], projected[1]);
+    const auto &sampler = frame.samplers[layer.samplerSlot];
+    const float projectedR = image.cubeFaceSize || state.textureProjection == CoinRenderTextureProjection::DIRECT_ST ?
+        transformed[2] : transformed[2] / transformed[3];
+    SbVec4f tex;
+    if (image.cubeFaceSize)
+      CoinRenderCubeTextureCore::sample(image, SbVec3f(transformed[0], transformed[1], transformed[2]),
+                                        0.0f, sampler.filter, tex);
+    else tex = image.volumeDepth ? sampleVolume(image, sampler, projected[0], projected[1], projectedR) :
+                                   sampleTexture(image, sampler, projected[0], projected[1]);
     if (state.textureCombines[unit].instructions[0][0] > .5f)
       color = coin_render_texture_combine(state.textureCombines[unit], primary, tex, color);
     else if (layer.model == CoinRenderTextureModel::REPLACE) color = tex;
@@ -176,7 +253,61 @@ inline SbVec4f rawFragmentColor(const CoinRenderFramePlan & frame,
       color[3] *= tex[3];
     } else for (int c = 0; c < 4; ++c) color[c] *= tex[c];
   }
+  if (state.rasterTextureSourceSlot != UINT32_MAX) {
+    CoinRenderVertexSnapshot raster;
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const auto & raw = state.rasterTextureCoordinates[unit];
+      float * st = unit ? raster.extraTexcoords[unit - 1] : raster.texcoord;
+      st[0] = raw[0]; st[1] = raw[1];
+      raster.textureR[unit] = raw[2]; raster.textureQ[unit] = raw[3];
+    }
+    color = rawFragmentColor(frame, frame.renderStates[state.rasterTextureSourceSlot], raster, color);
+  }
   return color;
+}
+
+// New raster references are checked before clear/publication even for private
+// executor callers that did not run the full geometry validator. O(states*8).
+inline bool rasterTextureStatesValid(const CoinRenderFramePlan & frame, std::string & diagnostic) {
+  if (!CoinRenderCubeTextureCore::validate(frame, diagnostic)) return false;
+  for (const auto & state : frame.renderStates) {
+    if (state.rasterTextureSourceSlot == UINT32_MAX) continue;
+    if (!state.rasterPixels || !state.hasTexture ||
+        state.textureImageSlot >= frame.textures.size() || state.samplerSlot >= frame.samplers.size() ||
+        state.rasterTextureSourceSlot >= frame.renderStates.size()) {
+      diagnostic = "Invalid raster inherited texture source or payload"; return false;
+    }
+    const auto & source = frame.renderStates[state.rasterTextureSourceSlot];
+    if (source.rasterPixels || source.rasterTextureSourceSlot != UINT32_MAX ||
+        static_cast<unsigned>(source.textureProjection) > 1) {
+      diagnostic = "Recursive or invalid raster inherited texture source"; return false;
+    }
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      if (state.rasterTextureProvenance[unit] > 1) {
+        diagnostic = "Invalid raster texture provenance"; return false;
+      }
+      const auto & raw = state.rasterTextureCoordinates[unit];
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(raw[c])) {
+        diagnostic = "Non-finite raster texture coordinate"; return false;
+      }
+      const auto layer = coin_render_texture_unit(source, unit);
+      if (!layer.enabled) continue;
+      if (layer.imageSlot >= frame.textures.size() || layer.samplerSlot >= frame.samplers.size()) {
+        diagnostic = "Invalid raster inherited texture resource slot"; return false;
+      }
+      SbVec4f transformed;
+      layer.matrix.multVecMatrix(raw, transformed);
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(transformed[c])) {
+        diagnostic = "Non-finite raster texture matrix result"; return false;
+      }
+      if (!frame.textures[layer.imageSlot].cubeFaceSize && source.textureProjection == CoinRenderTextureProjection::PROJECTIVE &&
+          (transformed[3] == 0 || !std::isfinite(transformed[0]/transformed[3]) ||
+           !std::isfinite(transformed[1]/transformed[3]) || !std::isfinite(transformed[2]/transformed[3]))) {
+        diagnostic = "Invalid raster texture projective coordinate"; return false;
+      }
+    }
+  }
+  return true;
 }
 
 inline bool depthPass(float z, float stored, const CoinRenderRenderStateSnapshot & state) {
@@ -195,7 +326,8 @@ inline bool depthPass(float z, float stored, const CoinRenderRenderStateSnapshot
 }
 
 inline void writePixel(std::vector<uint8_t> & color, size_t offset,
-                       float red, float green, float blue, float alpha, bool blend, bool legacyBlendAlpha = false) {
+                       float red, float green, float blue, float alpha, bool blend,
+                       bool legacyBlendAlpha = false, uint8_t writeMask = 0x0f) {
   if (offset + 3 >= color.size()) return;
   auto clamp01 = [](float value) { return std::max(0.0f, std::min(1.0f, value)); };
   red = clamp01(red); green = clamp01(green); blue = clamp01(blue); alpha = clamp01(alpha);
@@ -206,10 +338,10 @@ inline void writePixel(std::vector<uint8_t> & color, size_t offset,
     blue = blue * alpha + (color[offset + 2] / 255.0f) * inverse;
     alpha = (legacyBlendAlpha ? alpha * alpha : alpha) + (color[offset + 3] / 255.0f) * inverse;
   }
-  color[offset] = static_cast<uint8_t>(std::lround(clamp01(red) * 255.0f));
-  color[offset + 1] = static_cast<uint8_t>(std::lround(clamp01(green) * 255.0f));
-  color[offset + 2] = static_cast<uint8_t>(std::lround(clamp01(blue) * 255.0f));
-  color[offset + 3] = static_cast<uint8_t>(std::lround(clamp01(alpha) * 255.0f));
+  if (writeMask & 1) color[offset] = static_cast<uint8_t>(std::lround(clamp01(red) * 255.0f));
+  if (writeMask & 2) color[offset + 1] = static_cast<uint8_t>(std::lround(clamp01(green) * 255.0f));
+  if (writeMask & 4) color[offset + 2] = static_cast<uint8_t>(std::lround(clamp01(blue) * 255.0f));
+  if (writeMask & 8) color[offset + 3] = static_cast<uint8_t>(std::lround(clamp01(alpha) * 255.0f));
 }
 
 struct CpuPeelFragment {
@@ -239,7 +371,8 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
 
 
   for (int k = 0; k < 3; ++k) {
-    float w = (sv[k]->clipPos[3] > 1e-6f ? sv[k]->clipPos[3] : 1e-6f);
+    const float minimumW = frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT ? 1e-20f : 1e-6f;
+    float w = std::max(sv[k]->clipPos[3], minimumW);
     invW[k] = 1.0f / w;
     float nx = sv[k]->clipPos[0] * invW[k];
     float ny = sv[k]->clipPos[1] * invW[k];
@@ -248,11 +381,14 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
                        viewportTop + (1.0f - (ny + 1.0f) * 0.5f) * viewport.height);
   }
 
+  const SbVec2f interpolationPos[3] = {scrPos[0], scrPos[1], scrPos[2]};
   // Reference coverage uses eight fractional window-coordinate bits. Keeping
   // arbitrary float positions makes shared/coincident stroke triangles choose
   // different samples and depth owners from the qualified GPU rasterizers.
   for (auto & position : scrPos) {
     for (int axis = 0; axis < 2; ++axis)
+      // Hardware also quantizes vertices introduced by clipping. Original
+      // canonical vertices already lie exactly on this lattice.
       position[axis] = std::round(position[axis] * 256.0f) / 256.0f;
   }
 
@@ -267,7 +403,11 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
   int minY = std::max(viewportTop, static_cast<int>(std::floor(std::min({scrPos[0][1], scrPos[1][1], scrPos[2][1]}))));
   int maxY = std::min(viewportTop + viewport.height - 1, static_cast<int>(std::ceil(std::max({scrPos[0][1], scrPos[1][1], scrPos[2][1]}))));
 
-  float invArea = 1.0f / area;
+  const bool canonical = frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT;
+  const SbVec2f * attributePos = canonical ? interpolationPos : scrPos;
+  const float attributeArea = canonical ? edgeFunction(attributePos[0], attributePos[1], attributePos[2]) : area;
+  if (std::abs(attributeArea) < 1e-20f) return;
+  float invArea = 1.0f / attributeArea;
   minX = std::max(0, minX);
   maxX = std::min(width - 1, maxX);
   minY = std::max(0, minY);
@@ -294,6 +434,11 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
           !covered(w1, scrPos[2], scrPos[0]) ||
           !covered(w2, scrPos[0], scrPos[1])) continue;
 
+      if (canonical) {
+        w0 = edgeFunction(attributePos[1], attributePos[2], p);
+        w1 = edgeFunction(attributePos[2], attributePos[0], p);
+        w2 = edgeFunction(attributePos[0], attributePos[1], p);
+      }
       float l0 = w0 * invArea;
       float l1 = w1 * invArea;
       float l2 = w2 * invArea;
@@ -341,28 +486,55 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
         if (!layer.enabled) continue;
         const SbVec3f tc = unit == 0 ? sv0.texCoord * b0 + sv1.texCoord * b1 + sv2.texCoord * b2 :
           sv0.extraTexcoords[unit - 1] * b0 + sv1.extraTexcoords[unit - 1] * b1 + sv2.extraTexcoords[unit - 1] * b2;
-        const SbVec2f projected = coin_render_project_texture_coordinate(tc, rs.textureProjection);
-        float lod=0; SbVec2f majorFootprint(0,0); unsigned anisotropicTaps=1;
         const auto & image=frame.textures[layer.imageSlot];
+        const SbVec2f projected = image.cubeFaceSize ? SbVec2f(0, 0) :
+          coin_render_project_texture_coordinate(tc, rs.textureProjection);
+        const float interpolatedR = unit == 0 ?
+            sv0.textureR[0]*b0 + sv1.textureR[0]*b1 + sv2.textureR[0]*b2 :
+            sv0.textureR[unit]*b0 + sv1.textureR[unit]*b1 + sv2.textureR[unit]*b2;
+        float lod=0; SbVec2f majorFootprint(0,0); unsigned anisotropicTaps=1;
         const auto & sampler=frame.samplers[layer.samplerSlot];
-        if(image.mipmapped && static_cast<uint32_t>(sampler.filter)>=2) {
+        const float projectedR = image.cubeFaceSize || rs.textureProjection == CoinRenderTextureProjection::DIRECT_ST ?
+            interpolatedR : interpolatedR / tc[2];
+        if(!image.cubeFaceSize && (image.mipmapped || image.volumeMipmapped) &&
+           static_cast<uint32_t>(sampler.filter)>=2) {
           const SbVec3f ts[3]={unit ? sv0.extraTexcoords[unit-1] : sv0.texCoord,
                               unit ? sv1.extraTexcoords[unit-1] : sv1.texCoord,
                               unit ? sv2.extraTexcoords[unit-1] : sv2.texCoord};
           auto uvAt=[&](float x,float y){const SbVec2f at(x,y);
-            const float a=edgeFunction(scrPos[1],scrPos[2],at)*invArea*invW[0],
-                        b=edgeFunction(scrPos[2],scrPos[0],at)*invArea*invW[1],
-                        c=edgeFunction(scrPos[0],scrPos[1],at)*invArea*invW[2];
+            const float a=edgeFunction(attributePos[1],attributePos[2],at)*invArea*invW[0],
+                        b=edgeFunction(attributePos[2],attributePos[0],at)*invArea*invW[1],
+                        c=edgeFunction(attributePos[0],attributePos[1],at)*invArea*invW[2];
             return coin_render_project_texture_coordinate((ts[0]*a+ts[1]*b+ts[2]*c)/(a+b+c),rs.textureProjection);
           };
           // Match fragment-quad finite differences, including homogeneous Q.
           const float x=float(px & ~1)+.5f,y=float(py & ~1)+.5f;
           const auto dx=uvAt(x+1,float(py)+.5f)-uvAt(x,float(py)+.5f);
           const auto dy=uvAt(float(px)+.5f,y+1)-uvAt(float(px)+.5f,y);
-          const SbVec2f gx(dx[0]*image.width,dx[1]*image.height),gy(dy[0]*image.width,dy[1]*image.height);
-          const float rho=std::max(std::hypot(gx[0],gx[1]),std::hypot(gy[0],gy[1]));
+          const uint32_t logicalWidth = image.volumeDepth ? image.volumeWidth : image.width;
+          const uint32_t logicalHeight = image.volumeDepth ? image.volumeHeight : image.height;
+          const SbVec2f gx(dx[0]*logicalWidth,dx[1]*logicalHeight),
+                        gy(dy[0]*logicalWidth,dy[1]*logicalHeight);
+          float rho=std::max(std::hypot(gx[0],gx[1]),std::hypot(gy[0],gy[1]));
+          if (image.volumeDepth) {
+            auto rAt=[&](float pxAt,float pyAt) {
+              const SbVec2f at(pxAt,pyAt);
+              const float a=edgeFunction(attributePos[1],attributePos[2],at)*invArea*invW[0],
+                          b=edgeFunction(attributePos[2],attributePos[0],at)*invArea*invW[1],
+                          c=edgeFunction(attributePos[0],attributePos[1],at)*invArea*invW[2];
+              const float inv=a+b+c;
+              const float r=(sv0.textureR[unit]*a+sv1.textureR[unit]*b+
+                             sv2.textureR[unit]*c)/inv;
+              const float q=(ts[0][2]*a+ts[1][2]*b+ts[2][2]*c)/inv;
+              return rs.textureProjection == CoinRenderTextureProjection::DIRECT_ST ? r : r/q;
+            };
+            const float drx=(rAt(x+1,float(py)+.5f)-rAt(x,float(py)+.5f))*image.volumeDepth;
+            const float dry=(rAt(float(px)+.5f,y+1)-rAt(float(px)+.5f,y))*image.volumeDepth;
+            rho=std::max(std::sqrt(gx[0]*gx[0]+gx[1]*gx[1]+drx*drx),
+                         std::sqrt(gy[0]*gy[0]+gy[1]*gy[1]+dry*dry));
+          }
           if(rho>0)lod=std::log2(rho);
-          if(sampler.maxAnisotropy>1) {
+          if(!image.volumeDepth && sampler.maxAnisotropy>1) {
             const float a=gx[0]*gx[0]+gy[0]*gy[0],b=gx[0]*gx[1]+gy[0]*gy[1],c=gx[1]*gx[1]+gy[1]*gy[1];
             const float disc=std::hypot(a-c,2*b),large=std::max(0.f,(a+c+disc)*.5f),small=std::max(0.f,(a+c-disc)*.5f);
             const float major=std::sqrt(large),minor=std::max(1.f,std::max(std::sqrt(small),major/sampler.maxAnisotropy));
@@ -375,9 +547,52 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
           }
         }
         SbVec4f texCol(0,0,0,0);
-        for(unsigned tap=0;tap<anisotropicTaps;++tap) {
+        if (image.cubeFaceSize) {
+          const SbVec3f direction(tc[0], tc[1], interpolatedR);
+          if (static_cast<unsigned>(sampler.filter) >= 2) {
+            auto directionAt = [&](float x, float y) {
+              const SbVec2f at(x, y);
+              const float a=edgeFunction(attributePos[1],attributePos[2],at)*invArea*invW[0],
+                          b=edgeFunction(attributePos[2],attributePos[0],at)*invArea*invW[1],
+                          c=edgeFunction(attributePos[0],attributePos[1],at)*invArea*invW[2];
+              const SbVec3f t0=unit ? sv0.extraTexcoords[unit-1] : sv0.texCoord,
+                            t1=unit ? sv1.extraTexcoords[unit-1] : sv1.texCoord,
+                            t2=unit ? sv2.extraTexcoords[unit-1] : sv2.texCoord;
+              SbVec3f d((t0[0]*a+t1[0]*b+t2[0]*c)/(a+b+c),
+                (t0[1]*a+t1[1]*b+t2[1]*c)/(a+b+c),
+                (sv0.textureR[unit]*a+sv1.textureR[unit]*b+sv2.textureR[unit]*c)/(a+b+c));
+              return d;
+            };
+            const float x=float(px & ~1)+.5f, y=float(py & ~1)+.5f;
+            const float scale=std::max(std::fabs(direction[0]),std::max(std::fabs(direction[1]),std::fabs(direction[2])));
+            const auto dx=(directionAt(x+1,float(py)+.5f)-directionAt(x,float(py)+.5f))/scale;
+            const auto dy=(directionAt(float(px)+.5f,y+1)-directionAt(float(px)+.5f,y))/scale;
+            const auto d=direction/scale;
+            uint32_t face; SbVec2f st;
+            CoinRenderCubeTextureCore::project(direction,face,st);
+            auto chart = [face](const SbVec3f & v) {
+              switch(face) {
+              case 0:return SbVec3f(-v[2],-v[1],v[0]);
+              case 1:return SbVec3f(v[2],-v[1],-v[0]);
+              case 2:return SbVec3f(v[0],v[2],v[1]);
+              case 3:return SbVec3f(v[0],-v[2],-v[1]);
+              case 4:return SbVec3f(v[0],-v[1],v[2]);
+              default:return SbVec3f(-v[0],-v[1],-v[2]);
+              }
+            };
+            const auto v=chart(d), vx=chart(dx), vy=chart(dy);
+            const float factor=.5f*float(image.cubeFaceSize)/(v[2]*v[2]);
+            const SbVec2f gx((vx[0]*v[2]-v[0]*vx[2])*factor,(vx[1]*v[2]-v[1]*vx[2])*factor),
+                          gy((vy[0]*v[2]-v[0]*vy[2])*factor,(vy[1]*v[2]-v[1]*vy[2])*factor);
+            const float rho=std::max(gx.length(),gy.length());
+            lod=std::log2(std::max(rho,0.000001f));
+          }
+          CoinRenderCubeTextureCore::sample(image, direction, lod, sampler.filter, texCol);
+        }
+        for(unsigned tap=0; !image.cubeFaceSize && tap<anisotropicTaps;++tap) {
           const auto uv=projected+majorFootprint*((tap+.5f)/anisotropicTaps-.5f);
-          texCol+=sampleTexture(image,sampler,uv[0],uv[1],lod)/float(anisotropicTaps);
+          texCol+=(image.volumeDepth ? sampleVolume(image,sampler,uv[0],uv[1],projectedR,lod) :
+                   sampleTexture(image,sampler,uv[0],uv[1],lod))/float(anisotropicTaps);
         }
         if (rs.textureCombines[unit].instructions[0][0] > .5f) {
           const SbVec4f combined = coin_render_texture_combine(rs.textureCombines[unit], color,
@@ -401,10 +616,27 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
         }
       }
 
+      if (rs.rasterTextureSourceSlot != UINT32_MAX) {
+        // Payload sampling has produced PRIMARY. Inherited texture coordinates
+        // are constant across the raster, hence magnification/base mip and no
+        // derivative footprint. Keep all channels in float through alpha test.
+        CoinRenderVertexSnapshot raster;
+        for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+          const auto & raw = rs.rasterTextureCoordinates[unit];
+          float * st = unit ? raster.extraTexcoords[unit - 1] : raster.texcoord;
+          st[0] = raw[0]; st[1] = raw[1];
+          raster.textureR[unit] = raw[2]; raster.textureQ[unit] = raw[3];
+        }
+        const SbVec4f inherited = rawFragmentColor(frame,
+          frame.renderStates[rs.rasterTextureSourceSlot], raster,
+          SbVec4f(finalR, finalG, finalB, sourceAlpha));
+        finalR = inherited[0]; finalG = inherited[1]; finalB = inherited[2]; sourceAlpha = inherited[3];
+      }
       if (!coin_render_alpha_test_pass(rs.alphaTestFunction, rs.alphaTestReference, sourceAlpha))
         continue;
       if (rs.depthTest && rs.depthWrite && !peeled)
         depthBuffer[pIdx] = zVal;
+      if (!rs.colorWrite || rs.colorWriteMask == 0) continue;
       applyFog(rs, -vPos[2], finalR, finalG, finalB);
       if (peeled) {
         auto& layers = (*peeled)[pIdx];
@@ -435,17 +667,17 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
           finalR = std::max(0.0f, std::min(1.0f, finalR)) * sourceAlpha + dstR * invAlpha;
           finalG = std::max(0.0f, std::min(1.0f, finalG)) * sourceAlpha + dstG * invAlpha;
           finalB = std::max(0.0f, std::min(1.0f, finalB)) * sourceAlpha + dstB * invAlpha;
-          colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::max(
+          if (rs.colorWriteMask & 8) colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::max(
               0.0f,
               std::min(255.0f, (((composition.additive || frame.legacyBlendAlpha) ? sourceAlpha * sourceAlpha : sourceAlpha) +
                                 dstA * invAlpha) *
                                    255.0f)));
-        } else
+        } else if (rs.colorWriteMask & 8)
           colorBuffer[cIdx + 3] = static_cast<uint8_t>(
               std::lround(std::max(0.0f, std::min(1.0f, sourceAlpha)) * 255.0f));
-        colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalR * 255.0f)));
-        colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalG * 255.0f)));
-        colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalB * 255.0f)));
+        if (rs.colorWriteMask & 1) colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalR * 255.0f)));
+        if (rs.colorWriteMask & 2) colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalG * 255.0f)));
+        if (rs.colorWriteMask & 4) colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalB * 255.0f)));
       }
     }
   }
@@ -484,11 +716,25 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
 CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
+  if (frame.hasPortableShaderDraws())
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "CPU reference backend does not execute portable shader modules"};
+
+  // This rasterizer has no shadow-map receiver pass. Reject before clear or
+  // publication, including the flat-primary receiver extension.
+  if (!frame.shadowGroups.empty() || !frame.shadowLights.empty() ||
+      std::any_of(frame.renderStates.begin(), frame.renderStates.end(),
+                  [](const CoinRenderRenderStateSnapshot &state) { return state.flatShadowPrimary; }))
+    return {CoinRenderBackendStatus::UNSUPPORTED,
+            "CPU reference backend has no shadow-map receiver path"};
   if(frame.outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR || frame.outputMipmaps)
     return {CoinRenderBackendStatus::UNSUPPORTED,"CPU output supports RGBA8 base only; HDR/mip RTT requires a direct GPU route"};
   for (const auto & state : frame.renderStates)
     if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference))
       return {CoinRenderBackendStatus::UNSUPPORTED, "Invalid alpha comparison function or reference"};
+  std::string rasterDiagnostic;
+  if (!rasterTextureStatesValid(frame, rasterDiagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, rasterDiagnostic};
   for (const auto& texture : frame.textures) {
     if (texture.producerId || texture.gpuToken)
       return {CoinRenderBackendStatus::UNSUPPORTED,
@@ -569,13 +815,20 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
       draw.geometry.firstIndex = order[dIdx].firstIndex;
       draw.geometry.indexCount = order[dIdx].indexCount;
       const bool peel =
-          order[dIdx].blend && order[dIdx].deferred && draw.renderLayer == 0 &&
+          order[dIdx].blend && order[dIdx].deferred && draw.isSceneLayer() &&
           order[dIdx].transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
       if (!peel)
         flushPeeling();
       hasPeeled = hasPeeled || peel;
-      if (draw.clearDepthBefore) {
-        const CoinRenderRenderStateSnapshot & barrierState = frame.renderStates[draw.renderStateSlot];
+      const CoinRenderDrawPacket * depthBarrier = nullptr;
+      if (dIdx == 0 || frame.draws[order[dIdx - 1].drawIndex].renderLayer != draw.renderLayer)
+        for (const auto & candidate : frame.draws)
+          if (candidate.renderLayer == draw.renderLayer && candidate.clearDepthBefore) {
+            depthBarrier = &candidate;
+            break;
+          }
+      if (depthBarrier) {
+        const CoinRenderRenderStateSnapshot & barrierState = frame.renderStates[depthBarrier->renderStateSlot];
         const CoinRenderViewportSnapshot & clearViewport = frame.viewports[barrierState.viewportSlot];
         const int64_t clearTop = int64_t(height) - clearViewport.y - clearViewport.height;
         const int left = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width, clearViewport.x)));
@@ -646,8 +899,33 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
 
         for (int k = 0; k < 3; ++k) {
           SbVec4f objPos(rawV[k]->position[0], rawV[k]->position[1], rawV[k]->position[2], 1.0f);
-          mvpWgpu.multVecMatrix(objPos, sv[k].clipPos);
+          if (frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT) {
+            // Define the same two float stages as the portable surface paths.
+            // Precomposing the projection can move a vertex across a snap tie.
+            SbVec4f eyePosition;
+            modelView.multVecMatrix(objPos, eyePosition);
+            projWgpu.multVecMatrix(eyePosition, sv[k].clipPos);
+          } else mvpWgpu.multVecMatrix(objPos, sv[k].clipPos);
           sv[k].clipPos *= rawV[k]->screenSpaceW;
+          // The vertex shader snaps before homogeneous clipping. Generated
+          // clip vertices must retain interpolated coordinates, not be snapped
+          // again. Match its positive-W and finite window-coordinate guards.
+          if (frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT && sv[k].clipPos[3] > 1e-6f) {
+            const float w = sv[k].clipPos[3];
+            const float nx = sv[k].clipPos[0] / w, ny = sv[k].clipPos[1] / w;
+            const auto & vp = frame.viewports[rs.viewportSlot];
+            const float wx = float(vp.x) + (nx + 1.0f) * .5f * float(vp.width);
+            const float wy = float(vp.y) + (ny + 1.0f) * .5f * float(vp.height);
+            if (std::abs(wx) <= 32768.0f && std::abs(wy) <= 32768.0f) {
+              for (int axis = 0; axis < 2; ++axis) {
+                const float origin = axis ? float(vp.y) : float(vp.x);
+                const float extent = axis ? float(vp.height) : float(vp.width);
+                const float ndc = axis ? ny : nx;
+                const float window = (std::floor((origin + (ndc + 1.0f) * .5f * extent) * 128.0f) + .5f) / 128.0f;
+                sv[k].clipPos[axis] = ((window - origin) * 2.0f / extent - 1.0f) * w;
+              }
+            }
+          }
 
           SbVec3f objP3(rawV[k]->position[0], rawV[k]->position[1], rawV[k]->position[2]);
           modelView.multVecMatrix(objP3, sv[k].viewPos);
@@ -665,7 +943,49 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
             const SbVec4f uv = coin_render_transformed_texture_coordinate(*rawV[k], unit, layer.matrix);
             SbVec3f & destination = unit ? sv[k].extraTexcoords[unit - 1] : sv[k].texCoord;
             destination.setValue(uv[0], uv[1], uv[3]);
+            sv[k].textureR[unit] = uv[2];
           }
+        }
+
+        if (frame.rasterizationPolicy == COIN_RENDER_RASTER_CANONICAL_8BIT) {
+          // Near/far are evaluated per fragment in the canonical profile,
+          // preserving the original interpolation plane across APIs. Clip XY
+          // only when crossing the eye or exceeding the representable lattice.
+          bool clipXY = false;
+          const auto & vp = frame.viewports[rs.viewportSlot];
+          for (const auto & vertex : sv) {
+            const auto & p = vertex.clipPos;
+            if (p[3] <= 0.0f) { clipXY = true; break; }
+            const float x = float(vp.x) + (p[0] / p[3] + 1.0f) * .5f * float(vp.width);
+            const float y = float(vp.y) + (p[1] / p[3] + 1.0f) * .5f * float(vp.height);
+            if (std::abs(x) > 32768.0f || std::abs(y) > 32768.0f) clipXY = true;
+          }
+          std::vector<ShadedVertex> polygon = {sv[0], sv[1], sv[2]};
+          for (int plane = 0; clipXY && plane < 4 && polygon.size() >= 3; ++plane) {
+            const auto distance = [plane](const ShadedVertex & v) {
+              const auto & p = v.clipPos;
+              switch (plane) {
+              case 0: return p[0] + p[3];
+              case 1: return p[3] - p[0];
+              case 2: return p[1] + p[3];
+              default: return p[3] - p[1];
+              }
+            };
+            std::vector<ShadedVertex> clipped;
+            for (size_t k = 0; k < polygon.size(); ++k) {
+              const auto & a = polygon[k];
+              const auto & b = polygon[(k + 1) % polygon.size()];
+              const float da = distance(a), db = distance(b);
+              if ((da >= 0) != (db >= 0)) clipped.push_back(interpolateVertex(a, b, da / (da - db)));
+              if (db >= 0) clipped.push_back(b);
+            }
+            polygon.swap(clipped);
+          }
+          for (size_t k = 1; k + 1 < polygon.size(); ++k)
+            rasterizeTriangle(polygon[0], polygon[k], polygon[k + 1], width, height, rs, frame,
+                              composition, peel ? &peeled : nullptr, frame.transparency.layers,
+                              target.depthBuffer, target.colorBuffer);
+          continue;
         }
 
         // B09: Robust frustum clipping against eye near and near depth plane
@@ -796,9 +1116,10 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
                 const SbVec4f rgba = rawFragmentColor(frame, rs, sample, SbVec4f(r,g,b,alpha));
                 if (!coin_render_alpha_test_pass(rs.alphaTestFunction, rs.alphaTestReference, rgba[3])) continue;
                 if (rs.depthTest && rs.depthWrite) target.depthBuffer[pIdx] = z;
+                if (!rs.colorWrite || rs.colorWriteMask == 0) continue;
                 r = rgba[0]; g = rgba[1]; b = rgba[2];
                 applyFog(rs, -((1.0f - t) * view0[2] + t * view1[2]), r, g, b);
-                writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend, frame.legacyBlendAlpha);
+                writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend, frame.legacyBlendAlpha, rs.colorWriteMask);
               }
             }
           }
@@ -840,9 +1161,10 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
               const SbVec4f rgba = rawFragmentColor(frame, rs, v0, SbVec4f(r,g,b,m0.diffuse[3]));
               if (!coin_render_alpha_test_pass(rs.alphaTestFunction, rs.alphaTestReference, rgba[3])) continue;
               if (rs.depthTest && rs.depthWrite) target.depthBuffer[pIdx] = z;
+              if (!rs.colorWrite || rs.colorWriteMask == 0) continue;
               r = rgba[0]; g = rgba[1]; b = rgba[2];
               applyFog(rs, -view0[2], r, g, b);
-              writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend, frame.legacyBlendAlpha);
+              writePixel(target.colorBuffer, pIdx * 4, r, g, b, rgba[3], blend, frame.legacyBlendAlpha, rs.colorWriteMask);
             }
           }
         }

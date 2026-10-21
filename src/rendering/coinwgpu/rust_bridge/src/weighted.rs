@@ -41,11 +41,15 @@ pub(super) struct Weighted {
     pub accumulation: TextureView,
     pub revealage: TextureView,
     binding: BindGroup,
-    pipeline: RenderPipeline,
+    pipelines: Vec<RenderPipeline>,
 }
 
 impl Weighted {
     pub fn new(device: &Device, width: u32, height: u32, format: TextureFormat) -> Self {
+        Self::new_samples(device, width, height, format, 1)
+    }
+    pub fn new_samples(device: &Device, width: u32, height: u32, format: TextureFormat,
+                       sample_count: u32) -> Self {
         let texture = |format, label| {
             device
                 .create_texture(&TextureDescriptor {
@@ -56,7 +60,7 @@ impl Weighted {
                         depth_or_array_layers: 1,
                     },
                     mip_level_count: 1,
-                    sample_count: 1,
+                    sample_count,
                     dimension: TextureDimension::D2,
                     format,
                     usage: TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING,
@@ -73,7 +77,7 @@ impl Weighted {
                 ty: BindingType::Texture {
                     sample_type: TextureSampleType::Float { filterable: false },
                     view_dimension: TextureViewDimension::D2,
-                    multisampled: false,
+                    multisampled: sample_count > 1,
                 },
                 count: None,
             })
@@ -101,11 +105,18 @@ impl Weighted {
             bind_group_layouts: &[&layout],
             push_constant_ranges: &[],
         });
+        // Each draw reads and writes exactly one sample. This requires no
+        // sample-frequency shader feature, and never resolves intermediate OIT.
+        let pipelines = (0..if sample_count > 1 { sample_count } else { 1 }).map(|sample| {
+        let source = if sample_count > 1 {
+            COMPOSITE.replace("texture_2d<f32>", "texture_multisampled_2d<f32>")
+                .replace(",xy,0)", &format!(",xy,{sample})"))
+        } else { COMPOSITE.to_owned() };
         let shader = device.create_shader_module(ShaderModuleDescriptor {
             label: Some("Coin weighted composite shader"),
-            source: ShaderSource::Wgsl(COMPOSITE.into()),
+            source: ShaderSource::Wgsl(source.into()),
         });
-        let pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
+        device.create_render_pipeline(&RenderPipelineDescriptor {
             label: Some("Coin weighted composite pipeline"),
             layout: Some(&pipeline_layout),
             vertex: VertexState {
@@ -126,15 +137,18 @@ impl Weighted {
             }),
             primitive: PrimitiveState::default(),
             depth_stencil: None,
-            multisample: MultisampleState::default(),
+            multisample: MultisampleState {count: sample_count,
+                mask: if sample_count > 1 { 1u64 << sample } else { !0 },
+                alpha_to_coverage_enabled: false},
             multiview: None,
             cache: None,
-        });
+        })
+        }).collect();
         Self {
             accumulation,
             revealage,
             binding,
-            pipeline,
+            pipelines,
         }
     }
     pub fn composite(
@@ -143,11 +157,15 @@ impl Weighted {
         color: &TextureView,
         timestamp: Option<&QuerySet>,
     ) {
+        self.composite_samples(encoder, color, None, timestamp);
+    }
+    pub fn composite_samples(&self, encoder: &mut CommandEncoder, color: &TextureView,
+                             resolve: Option<&TextureView>, timestamp: Option<&QuerySet>) {
         let mut pass = encoder.begin_render_pass(&RenderPassDescriptor {
             label: Some("Coin weighted resolve"),
             color_attachments: &[Some(RenderPassColorAttachment {
                 view: color,
-                resolve_target: None,
+                resolve_target: resolve,
                 ops: Operations {
                     load: LoadOp::Load,
                     store: StoreOp::Store,
@@ -161,9 +179,11 @@ impl Weighted {
             }),
             occlusion_query_set: None,
         });
-        pass.set_pipeline(&self.pipeline);
         pass.set_bind_group(0, &self.binding, &[]);
-        pass.draw(0..3, 0..1);
+        for pipeline in &self.pipelines {
+            pass.set_pipeline(pipeline);
+            pass.draw(0..3, 0..1);
+        }
     }
 }
 
@@ -179,6 +199,36 @@ pub(super) fn device_supported(device: &Device) -> bool {
                         .flags
                         .contains(TextureFormatFeatureFlags::BLENDABLE)
             })
+}
+
+pub(super) fn adapter_supported(adapter: &Adapter, device: &Device, samples: u32) -> bool {
+    if !device_supported(device) || !matches!(samples, 1 | 2 | 4) ||
+        (samples == 2 && !device.features().contains(Features::TEXTURE_ADAPTER_SPECIFIC_FORMAT_FEATURES)) {
+        return false;
+    }
+    let count = match samples {
+        2 => TextureFormatFeatureFlags::MULTISAMPLE_X2,
+        4 => TextureFormatFeatureFlags::MULTISAMPLE_X4,
+        _ => TextureFormatFeatureFlags::empty(),
+    };
+    [TextureFormat::Rgba16Float, TextureFormat::R16Float].iter().all(|format| {
+        let f = adapter.get_texture_format_features(*format);
+        f.allowed_usages.contains(TextureUsages::RENDER_ATTACHMENT | TextureUsages::TEXTURE_BINDING) &&
+            f.flags.contains(TextureFormatFeatureFlags::BLENDABLE | count)
+    })
+}
+
+pub(super) fn validate_budget(width: u32, height: u32, samples: u32, budget: u64)
+    -> Result<(), (super::CoinWgpuStatus, String)> {
+    let required = u64::from(width).checked_mul(u64::from(height))
+        .and_then(|pixels| pixels.checked_mul(24))
+        .and_then(|bytes| bytes.checked_mul(u64::from(samples)))
+        .ok_or((super::CoinWgpuStatus::Unsupported, "Weighted MSAA attachment budget overflows".into()))?;
+    if required > budget {
+        return Err((super::CoinWgpuStatus::Unsupported,
+            format!("Weighted MSAA attachment budget exceeded: required={required} available={budget}")));
+    }
+    Ok(())
 }
 
 #[cfg(test)]

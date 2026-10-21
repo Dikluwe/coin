@@ -33,6 +33,8 @@
 #include "shapenodes/soshape_primdata.h"
 
 #include <cstring>
+#include <cstddef>
+#include <cstdint>
 
 #include <Inventor/SbTesselator.h>
 #include <Inventor/SoPrimitiveVertex.h>
@@ -366,6 +368,21 @@ soshape_primdata::getPointDetailIndex(const SoPrimitiveVertex * v) const
 {
   const ptrdiff_t d = v - this->vertsArray.getArrayPtr();
   return (int)d;
+}
+
+int
+soshape_primdata::findPointDetailIndex(const SoPrimitiveVertex * v) const
+{
+  // Callback subclasses may supply their own vertices. Compare addresses
+  // rather than subtracting unrelated pointers, which is undefined behavior.
+  const SoPrimitiveVertex * base = this->vertsArray.getArrayPtr();
+  const uintptr_t start = reinterpret_cast<uintptr_t>(base);
+  const uintptr_t address = reinterpret_cast<uintptr_t>(v);
+  const size_t count = static_cast<size_t>(this->vertsArray.getLength());
+  if (address >= start && (address - start) / sizeof(*base) < count &&
+      (address - start) % sizeof(*base) == 0)
+    return static_cast<int>((address - start) / sizeof(*base));
+  return -1;
 }
 
 SoDetail *

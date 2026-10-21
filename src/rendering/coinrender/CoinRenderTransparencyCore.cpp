@@ -44,3 +44,27 @@ coin_render_transparency_budget(uint32_t width, uint32_t height,
   }
   return true;
 }
+
+bool
+coin_render_transparency_sample_budget(uint32_t width, uint32_t height,
+    const CoinRenderTransparencyOptions & options, bool allocateLayers, uint32_t samples,
+    uint64_t & required, std::string & diagnostic)
+{
+  if (samples != 1 && samples != 2 && samples != 4) {
+    diagnostic = "Transparency sample count must be 1, 2 or 4";
+    return false;
+  }
+  if (!coin_render_transparency_budget(width, height, options, allocateLayers, required, diagnostic))
+    return false;
+  if (required > std::numeric_limits<uint64_t>::max() / samples) {
+    diagnostic = "Multisample transparency attachment budget overflows";
+    return false;
+  }
+  required *= samples;
+  if (required > options.bufferBudget) {
+    diagnostic = "Multisample transparency attachment budget exceeded: required=" +
+      std::to_string(required) + " available=" + std::to_string(options.bufferBudget);
+    return false;
+  }
+  return true;
+}

@@ -20,20 +20,34 @@ COIN_RENDER_DLL_API SbVec4f coin_render_transformed_texture_coordinate(
 template <typename VertexAt>
 inline bool coin_render_validate_texture_coordinates(
   const CoinRenderRenderStateSnapshot & state, size_t count,
-  VertexAt vertexAt, std::string & diagnostic) {
+  VertexAt vertexAt, std::string & diagnostic, const CoinRenderFramePlan * frame = nullptr) {
+  // A portable module replaces fixed sampling. Its Core DAG validates only
+  // the coordinates actually used by TEXCOORD/SAMPLE, after field finitude.
+  if (state.portableShaderSlot) return true;
   const bool direct = state.textureProjection == CoinRenderTextureProjection::DIRECT_ST;
   for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
     if (!coin_render_texture_unit_enabled(state, unit)) continue;
     const auto layer = coin_render_texture_unit(state, unit);
+    const bool cube = frame && layer.imageSlot < frame->textures.size() &&
+                      frame->textures[layer.imageSlot].cubeFaceSize != 0;
+    const bool volume = frame && layer.imageSlot < frame->textures.size() &&
+                        frame->textures[layer.imageSlot].volumeDepth != 0;
     bool negative = false;
     for (size_t i = 0; i < count; ++i) {
       const SbVec4f coordinate =
         coin_render_transformed_texture_coordinate(vertexAt(i), unit, layer.matrix);
-      for (int c = 0; c < (direct ? 2 : 4); ++c) {
+      for (int c = 0; c < (cube ? 4 : (direct ? (volume ? 3 : 2) : 4)); ++c) {
         if (!coin_render_is_finite(coordinate[c])) {
           diagnostic = "Non-finite transformed homogeneous texture coordinate";
           return false;
         }
+      }
+      if (cube) {
+        if (coordinate[0] == 0.0f && coordinate[1] == 0.0f && coordinate[2] == 0.0f) {
+          diagnostic = "Cube texture direction is zero";
+          return false;
+        }
+        continue; // Q is immaterial to cube selection, including Q=0.
       }
       if (direct) continue;
       const float q = coordinate[3];
@@ -42,7 +56,8 @@ inline bool coin_render_validate_texture_coordinates(
         return false;
       }
       if (std::abs(q) < std::numeric_limits<float>::min() ||
-          !coin_render_is_finite(coordinate[0] / q) || !coin_render_is_finite(coordinate[1] / q)) {
+          !coin_render_is_finite(coordinate[0] / q) || !coin_render_is_finite(coordinate[1] / q) ||
+          (volume && !coin_render_is_finite(coordinate[2] / q))) {
         diagnostic = "Projective texture coordinate exceeds finite sampling precision";
         return false;
       }

@@ -1,5 +1,5 @@
 #include "rendering/coinwgpu/CoinWgpuShadowFrame.h"
-
+#include <Inventor/SbVec4f.h>
 #include <cmath>
 #include <cstring>
 #include <utility>
@@ -94,9 +94,30 @@ CoinWgpuShadowFrame::prepare(const CoinRenderFramePlan &frame, std::string &diag
       receiver.lighting_index = pass.lightingIndexByState[stateSlot];
       receiver.max_shadow_distance = pass.maxShadowDistance;
       receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
-      const SbMatrix modelView =
+      SbMatrix modelView =
           passSlot < 2 ? state.model * pass.view : state.view.inverse() * pass.view;
-      const SbMatrix mvp = modelView * projectionWgpu;
+      SbMatrix mvp = modelView * projectionWgpu;
+      if (state.rasterShadowAnchorValid) {
+        SbVec3f lightAnchor;
+        SbVec4f clipAnchor;
+        pass.view.multVecMatrix(state.rasterShadowAnchorWorld, lightAnchor);
+        (pass.view * projectionWgpu).multVecMatrix(
+          SbVec4f(state.rasterShadowAnchorWorld[0], state.rasterShadowAnchorWorld[1],
+                  state.rasterShadowAnchorWorld[2], 1.0f), clipAnchor);
+        if (!coin_render_shadow_finite(lightAnchor) ||
+            !std::isfinite(clipAnchor[0]) || !std::isfinite(clipAnchor[1]) ||
+            !std::isfinite(clipAnchor[2]) || !std::isfinite(clipAnchor[3]) ||
+            clipAnchor[3] <= 0.0f) {
+          diagnostic = "Raster shadow receiver has a non-finite light anchor";
+          return false;
+        }
+        modelView = SbMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                             lightAnchor[0], lightAnchor[1], lightAnchor[2], 1);
+        // Retain homogeneous W for perspective maps. The receiver shader
+        // performs the same perspective division as ordinary geometry.
+        mvp = SbMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                       clipAnchor[0], clipAnchor[1], clipAnchor[2], clipAnchor[3]);
+      }
       std::memcpy(receiver.model_view, modelView.getValue(), sizeof(receiver.model_view));
       std::memcpy(receiver.model_view_projection, mvp.getValue(),
                   sizeof(receiver.model_view_projection));
@@ -136,8 +157,21 @@ CoinWgpuShadowFrame::prepare(const CoinRenderFramePlan &frame, std::string &diag
       packed.first_index = draw.geometry.firstIndex;
       packed.index_count = draw.geometry.indexCount;
       packed.render_state_slot = draw.renderStateSlot;
-      const SbMatrix modelView = frame.renderStates[draw.renderStateSlot].model * pass.view;
-      const SbMatrix mvp = modelView * projectionWgpu;
+      const auto &state = frame.renderStates[draw.renderStateSlot];
+      const SbMatrix modelView = state.model *
+        (state.shadowMapCameraOverride ? state.view : pass.view);
+      const SbMatrix casterProjection = state.shadowMapCameraOverride ?
+        state.projectionCoin * clipConversion : projectionWgpu;
+      SbMatrix viewportTransform;
+      int32_t scissor[4];
+      if (!coin_render_shadow_caster_viewport(frame, state, pass.mapSize, viewportTransform,
+                                              scissor, diagnostic))
+        return false;
+      packed.viewport[0] = scissor[0];
+      packed.viewport[1] = int32_t(pass.mapSize) - scissor[1] - scissor[3];
+      packed.viewport[2] = scissor[2];
+      packed.viewport[3] = scissor[3];
+      const SbMatrix mvp = modelView * casterProjection * viewportTransform;
       std::memcpy(packed.model_view, modelView.getValue(), sizeof(packed.model_view));
       std::memcpy(packed.model_view_projection, mvp.getValue(),
                   sizeof(packed.model_view_projection));

@@ -3,9 +3,56 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderShadowCore.h"
+#include "rendering/coinrender/CoinRenderScreenRasterCore.h"
+#include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderShadowCameraMath.h"
 #include <utility>
 #include <algorithm>
 #include <cmath>
+#include <limits>
+
+bool coin_render_shadow_map_size(float precision, uint32_t &size, std::string &diagnostic)
+{
+  if (!std::isfinite(precision) || precision <= 0.0f || precision > 1.0f) {
+    diagnostic = "Invalid shadow-map precision";
+    return false;
+  }
+  const uint32_t requested = static_cast<uint32_t>(std::ceil(precision * 2048.0f));
+  size = 1;
+  while (size < requested)
+    size <<= 1;
+  return true;
+}
+
+bool coin_render_shadow_caster_viewport(const CoinRenderFramePlan &frame,
+                                        const CoinRenderRenderStateSnapshot &state,
+                                        uint32_t mapSize, SbMatrix &transform, int32_t scissor[4],
+                                        std::string &diagnostic)
+{
+  CoinRenderViewportSnapshot viewport;
+  viewport.width = viewport.height = int32_t(mapSize);
+  if (state.shadowMapSize) {
+    if (state.shadowMapSize != mapSize || state.viewportSlot >= frame.viewports.size()) {
+      diagnostic = "Shadow caster viewport belongs to another map or has an invalid slot";
+      return false;
+    }
+    viewport = frame.viewports[state.viewportSlot];
+  }
+  if (!mapSize || mapSize > 2048 || viewport.width < 0 || viewport.height < 0 ||
+      int64_t(viewport.x) + viewport.width > INT32_MAX ||
+      int64_t(viewport.y) + viewport.height > INT32_MAX) {
+    diagnostic = "Shadow caster viewport has invalid extent or overflow";
+    return false;
+  }
+  const int32_t bounds[4] = {viewport.x, viewport.y, viewport.width, viewport.height};
+  if (!CoinRenderTransformCore::clipViewport(bounds, mapSize, mapSize, scissor)) {
+    std::fill(scissor, scissor + 4, 0);
+    transform = SbMatrix::identity();
+    return true;
+  }
+  transform = CoinRenderTransformCore::viewportTransform(viewport, mapSize, mapSize);
+  return true;
+}
 
 bool
 coin_render_shadow_finite(const SbVec3f &value)
@@ -55,6 +102,25 @@ coin_render_shadow_group_bounds(const CoinRenderFramePlan &frame, uint32_t group
     const auto &state = frame.renderStates[draw.renderStateSlot];
     if (!coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot))
       continue;
+    // Observer raster quads live in NDC, not in the group's world bounds.
+    // A receiver-only SoImage still contributes its original world anchor:
+    // otherwise an image-only group with a custom caster scene has empty
+    // bounds and its real maps are incorrectly replaced by neutral maps.
+    if (state.rasterPixels) {
+      if (!draw.shadowLightSlot && state.rasterShadowImagePhong &&
+          state.rasterShadowAnchorValid && (state.shadowStyle & 2u)) {
+        if (!coin_render_shadow_finite(state.rasterShadowAnchorWorld)) {
+          diagnostic = "Raster shadow receiver has a non-finite world anchor";
+          return false;
+        }
+        bounds.extendBy(state.rasterShadowAnchorWorld);
+      }
+      continue;
+    }
+    // Map-only geometry remains excluded: creating a caster must not change
+    // the source scene bounds used to fit its own camera.
+    if (draw.rasterShadowCaster)
+      continue;
     // A partial main traversal still uses the whole group's bounds for maps.
     // An implicit group capture supplies the omitted shapes; external custom
     // scenes keep Coin's camera bounds tied to the original group.
@@ -77,6 +143,19 @@ coin_render_shadow_group_bounds(const CoinRenderFramePlan &frame, uint32_t group
       }
       bounds.extendBy(world);
     }
+  }
+  for (const auto &occurrence : frame.rasterOccurrences) {
+    if (occurrence.sourceStateSlot >= frame.renderStates.size())
+      continue;
+    if (occurrence.shadowLightSlot &&
+        (occurrence.shadowLightSlot > frame.shadowLights.size() ||
+         frame.shadowLights[occurrence.shadowLightSlot - 1].hasCustomScene))
+      continue;
+    const auto &state = frame.renderStates[occurrence.sourceStateSlot];
+    if (coin_render_shadow_descends_from(frame, state.shadowGroupSlot, groupSlot) &&
+        (state.shadowStyle & 1u) && !state.transparentMaterial &&
+        (occurrence.kind == CoinRenderRasterOccurrence::IMAGE || !occurrence.runs.empty()))
+      bounds.extendBy(occurrence.anchorWorld);
   }
   return true;
 }
@@ -107,7 +186,8 @@ bool
 coin_render_shadow_view_volume(const CoinRenderCameraSnapshot &camera, SbViewVolume &volume,
                                std::string &diagnostic)
 {
-  if (camera.nearDistance <= 0.0f || camera.farDistance <= camera.nearDistance ||
+  if ((camera.isPerspective && camera.nearDistance <= 0.0f) ||
+      camera.farDistance <= camera.nearDistance ||
       std::abs(camera.projectionMatrixCoin.det4()) < 1.0e-12f ||
       std::abs(camera.viewMatrix.det4()) < 1.0e-12f) {
     diagnostic = "Directional shadow camera has invalid clip planes or matrices";
@@ -231,27 +311,26 @@ coin_render_shadow_camera(const CoinRenderShadowGroupSnapshot &group,
       pass.visible = false;
       return true;
     }
+    // SoShadowGroup::updateDirectionalCamera calls
+    // SoOrthographicCamera::viewBoundingBox(isect, 1, 1). That camera fits
+    // the circumscribed sphere, not the tight light-space XY rectangle.
+    // The distinction is observable when an authored map camera projects
+    // casters while receivers still use this light-owned matrix.
     const SbVec3f size = bounds.getSize();
-    const float extent = std::max(1.0f, std::max(size[0], std::max(size[1], size[2])));
-    const SbVec3f position = bounds.getCenter() - direction * (extent * 2.0f);
-    const SbBox3f fitCameraBounds = coin_render_shadow_camera_bounds(bounds, position, orientation);
+    const float radius = std::max(0.01f, 0.5f * size.length());
+    const SbVec3f position = bounds.getCenter() - direction * radius;
     const SbBox3f depthCameraBounds =
         coin_render_shadow_camera_bounds(fullBounds, position, orientation);
-    const SbVec3f &lo = fitCameraBounds.getMin();
-    const SbVec3f &hi = fitCameraBounds.getMax();
-    const float halfWidth = std::max(0.01f, (hi[0] - lo[0]) * 0.505f);
-    const float halfHeight = std::max(0.01f, (hi[1] - lo[1]) * 0.505f);
-    const float centerX = (lo[0] + hi[0]) * 0.5f;
-    const float centerY = (lo[1] + hi[1]) * 0.5f;
-    pass.nearDistance = std::max(0.001f, -depthCameraBounds.getMax()[2] * 0.99f);
+    pass.nearDistance = -depthCameraBounds.getMax()[2] * 1.01f;
     pass.farDistance = -depthCameraBounds.getMin()[2] * 1.01f;
-    if (!std::isfinite(pass.farDistance) || pass.farDistance <= pass.nearDistance) {
+    if (!std::isfinite(pass.nearDistance) || !std::isfinite(pass.farDistance) ||
+        pass.farDistance <= pass.nearDistance) {
       diagnostic = "Shadow directional light has an invalid volume";
       return false;
     }
     pass.vsmFarDistance = pass.farDistance * 1.1f;
-    volume.ortho(centerX - halfWidth, centerX + halfWidth, centerY - halfHeight,
-                 centerY + halfHeight, pass.nearDistance, pass.farDistance);
+    volume.ortho(-radius, radius, -radius, radius,
+                 pass.nearDistance, pass.farDistance);
     volume.rotateCamera(orientation);
     volume.translateCamera(position);
   }
@@ -267,14 +346,22 @@ bool
 coin_render_shadow_transparent_shape(const CoinRenderFramePlan &frame,
                                      const CoinRenderRenderStateSnapshot &state)
 {
+  if (state.portableShaderSlot && state.portableShaderSlot <= frame.portableShaders.size())
+    return frame.portableShaders[state.portableShaderSlot - 1].ir.alphaMayVary ||
+           state.screenDoorTransparency > 0.0f;
+
   if (state.transparentMaterial || state.transparentTexture ||
       state.screenDoorTransparency > 0.0f ||
       (state.materialSlot < frame.materials.size() &&
        frame.materials[state.materialSlot].transparency > 0.0f))
     return true;
-  if (!state.hasTexture || state.textureImageSlot >= frame.textures.size())
-    return false;
-  return coin_render_texture_has_transparency(frame.textures[state.textureImageSlot]);
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+    const auto layer = coin_render_texture_unit(state, unit);
+    if (layer.enabled && layer.imageSlot < frame.textures.size() &&
+        coin_render_texture_has_transparency(frame.textures[layer.imageSlot]))
+      return true;
+  }
+  return false;
 }
 
 void
@@ -286,6 +373,10 @@ coin_render_append_shadow_scene(CoinRenderFramePlan &frame, const CoinRenderFram
   const uint32_t lighting = frame.lightingStates.size(), cameras = frame.cameras.size();
   const uint32_t viewports = frame.viewports.size(), textures = frame.textures.size();
   const uint32_t samplers = frame.samplers.size();
+  const uint32_t bumpImages = frame.bumpImages.size();
+  const uint32_t bumpTransforms = frame.bumpTransforms.size();
+  const uint32_t portableShaders = frame.portableShaders.size();
+  frame.portableShaders.insert(frame.portableShaders.end(), scene.portableShaders.begin(), scene.portableShaders.end());
   frame.materials.insert(frame.materials.end(), scene.materials.begin(), scene.materials.end());
   frame.lightingStates.insert(frame.lightingStates.end(), scene.lightingStates.begin(),
                               scene.lightingStates.end());
@@ -293,13 +384,27 @@ coin_render_append_shadow_scene(CoinRenderFramePlan &frame, const CoinRenderFram
   frame.viewports.insert(frame.viewports.end(), scene.viewports.begin(), scene.viewports.end());
   frame.textures.insert(frame.textures.end(), scene.textures.begin(), scene.textures.end());
   frame.samplers.insert(frame.samplers.end(), scene.samplers.begin(), scene.samplers.end());
+  frame.bumpImages.insert(frame.bumpImages.end(), scene.bumpImages.begin(), scene.bumpImages.end());
+  frame.bumpTransforms.insert(frame.bumpTransforms.end(), scene.bumpTransforms.begin(), scene.bumpTransforms.end());
   for (auto vertex : scene.vertices) {
     vertex.materialSlot += materials;
     frame.vertices.push_back(vertex);
   }
+  for (auto bump : scene.bumpCoords) {
+    bump.vertexIndex += vertices;
+    if (bump.imageSlot) bump.imageSlot += bumpImages;
+    if (bump.transformSlot) bump.transformSlot += bumpTransforms;
+    frame.bumpCoords.push_back(bump);
+  }
+  for (auto bump : scene.bumpTangents) {
+    bump.vertexIndex += vertices;
+    frame.bumpTangents.push_back(bump);
+  }
   for (auto index : scene.indices)
     frame.indices.push_back(index + vertices);
   for (auto state : scene.renderStates) {
+    if (state.portableShaderSlot) state.portableShaderSlot += portableShaders;
+    if (state.rasterTextureSourceSlot != UINT32_MAX) state.rasterTextureSourceSlot += states;
     state.materialSlot += materials;
     state.lightingSlot += lighting;
     state.cameraSlot += cameras;
@@ -318,11 +423,28 @@ coin_render_append_shadow_scene(CoinRenderFramePlan &frame, const CoinRenderFram
     // the model matrix. The common pass uses world coordinates.
     const auto &entryModel = frame.shadowGroups[state.shadowGroupSlot - 1].entryModel;
     state.model = state.model * entryModel;
+    if (state.shadowMapCameraOverride)
+      state.view = entryModel.inverse() * state.view;
+    if (state.rasterShadowAnchorValid) {
+      SbVec3f worldAnchor;
+      entryModel.multVecMatrix(state.rasterShadowAnchorWorld, worldAnchor);
+      state.rasterShadowAnchorWorld = worldAnchor;
+    }
     // Entry planes are already world-space; only planes added by the
     // independent traversal need the group-local to world conversion.
     for (size_t i = inheritedClipPlaneCount; i < state.clipPlanesWorld.size(); ++i)
       state.clipPlanesWorld[i].transform(entryModel);
     frame.renderStates.push_back(std::move(state));
+  }
+  for (auto occurrence : scene.rasterOccurrences) {
+    occurrence.sourceStateSlot += states;
+    occurrence.shadowLightSlot = lightSlot;
+    const auto &state = frame.renderStates[occurrence.sourceStateSlot];
+    SbVec3f worldAnchor;
+    frame.shadowGroups[state.shadowGroupSlot - 1].entryModel.multVecMatrix(
+      occurrence.anchorWorld, worldAnchor);
+    occurrence.anchorWorld = worldAnchor;
+    frame.rasterOccurrences.push_back(std::move(occurrence));
   }
   for (auto draw : scene.draws) {
     draw.geometry.firstVertex += vertices;
@@ -354,10 +476,9 @@ coin_render_plan_shadows(const CoinRenderFramePlan &frame, CoinRenderShadowPlan 
     if (!coin_render_shadow_group_bounds(frame, static_cast<uint32_t>(g + 1), groupBounds,
                                          diagnostic))
       return false;
-    uint32_t mapSize = 1;
-    const uint32_t requested = static_cast<uint32_t>(std::ceil(group.precision * 2048.0f));
-    while (mapSize < requested)
-      mapSize <<= 1;
+    uint32_t mapSize = 0;
+    if (!coin_render_shadow_map_size(group.precision, mapSize, diagnostic))
+      return false;
     for (size_t l = 0; l < frame.shadowLights.size(); ++l) {
       const auto &light = frame.shadowLights[l];
       if (light.groupSlot != g + 1 || !light.enabled || !light.shadowEligible)
@@ -406,7 +527,12 @@ coin_render_plan_shadows(const CoinRenderFramePlan &frame, CoinRenderShadowPlan 
           source.color[c] = light.color[c];
           source.attenuation[c] = light.attenuation[c];
         }
-        const SbMatrix modelView = light.model * state.view;
+        // Raster coverage uses an identity view and NDC quads. Its lighting
+        // position is the original glRasterPos in the observer's eye space.
+        const SbMatrix &receiverView =
+          state.rasterShadowAnchorValid && state.cameraSlot < frame.cameras.size()
+            ? frame.cameras[state.cameraSlot].viewMatrix : state.view;
+        const SbMatrix modelView = light.model * receiverView;
         SbVec3f direction;
         modelView.multDirMatrix(light.direction, direction);
         if (!coin_render_shadow_finite(direction) || direction.normalize() == 0.0f) {
@@ -445,16 +571,36 @@ coin_render_plan_shadows(const CoinRenderFramePlan &frame, CoinRenderShadowPlan 
         const auto &state = frame.renderStates[draw.renderStateSlot];
         if (state.shadowGroupSlot != pass.groupSlot)
           continue;
-        const bool casterScene =
-            light.mapSceneCaptured ? draw.shadowLightSlot == l + 1 : draw.shadowLightSlot == 0;
+        // Observer raster quads are screen-space coverage only. Even when
+        // captured inside an authored map scene, only the per-map raster
+        // reconstruction may cast a shadow.
+        const bool casterScene = !state.rasterPixels &&
+            (draw.shadowLightSlot == l + 1 ||
+             (!light.mapSceneCaptured && draw.shadowLightSlot == 0));
         if (casterScene && (state.shadowStyle & 1u) != 0 &&
-            !coin_render_shadow_transparent_shape(frame, state))
-          pass.casterDraws.push_back(static_cast<uint32_t>(d));
+            !coin_render_shadow_transparent_shape(frame, state)) {
+          SbMatrix viewportTransform;
+          int32_t scissor[4];
+          if (!coin_render_shadow_caster_viewport(frame, state, mapSize, viewportTransform, scissor,
+                                                  diagnostic))
+            return false;
+          if (scissor[2] && scissor[3])
+            pass.casterDraws.push_back(static_cast<uint32_t>(d));
+        }
         if (!draw.shadowLightSlot && (state.shadowStyle & 2u) != 0)
           pass.receiverDraws.push_back(static_cast<uint32_t>(d));
       }
       if (!coin_render_shadow_camera(group, light, groupBounds, mainViewPtr, pass, diagnostic))
         return false;
+      if (!pass.visible) {
+        // A directional fit can miss an observer face (or be beyond its
+        // shadow distance) while the captured scene/light remain valid.
+        // Keep the resolved lighting/stage and a finite neutral map, whose
+        // WHITE clear gives visibility one. Never render the old caster list
+        // using the default I/I map camera left by the empty intersection.
+        pass.casterDraws.clear();
+        pass.receiverDraws.clear();
+      }
       const uint64_t bytes = uint64_t(mapSize) * mapSize * 16u; // RGBA32F moments.
       const uint64_t budget = uint64_t(128) * 1024 * 1024;
       if (bytes > budget || candidate.attachmentBytes > budget - bytes) {
@@ -476,6 +622,174 @@ coin_render_plan_shadows(const CoinRenderFramePlan &frame, CoinRenderShadowPlan 
 }
 
 bool
+coin_render_materialize_raster_casters(CoinRenderFramePlan &frame,
+                                       const CoinRenderShadowPlan &shadows,
+                                       std::string &diagnostic)
+{
+  if (frame.rasterOccurrences.empty()) return true;
+  const uint64_t budget = uint64_t(128) * 1024 * 1024;
+  uint64_t geometryBytes = 0;
+  for (const auto &pass : shadows.passes) {
+    if (!pass.visible || pass.lightSlot >= frame.shadowLights.size() || !pass.mapSize)
+      continue;
+    const auto &light = frame.shadowLights[pass.lightSlot];
+    CoinRenderViewportSnapshot viewport;
+    viewport.width = viewport.height = static_cast<int32_t>(pass.mapSize);
+    for (const auto &occurrence : frame.rasterOccurrences) {
+      if (occurrence.sourceStateSlot >= frame.renderStates.size() ||
+          (light.mapSceneCaptured ? occurrence.shadowLightSlot != pass.lightSlot + 1 :
+                                    occurrence.shadowLightSlot != 0))
+        continue;
+      const auto source = frame.renderStates[occurrence.sourceStateSlot];
+      SbMatrix viewportTransform;
+      int32_t scissor[4];
+      if (!coin_render_shadow_caster_viewport(frame, source, pass.mapSize, viewportTransform,
+                                              scissor, diagnostic))
+        return false;
+      if (!scissor[2] || !scissor[3])
+        continue;
+      viewport = source.shadowMapSize ? frame.viewports[source.viewportSlot]
+                                      : CoinRenderViewportSnapshot();
+      if (!source.shadowMapSize)
+        viewport.width = viewport.height = int32_t(pass.mapSize);
+      const SbMatrix camera = source.shadowMapCameraOverride ?
+        source.view * source.projectionCoin : pass.view * pass.projectionCoin;
+      SbMatrix inverse;
+      const bool validCamera = source.shadowMapCameraOverride ?
+        coin_render_shadow_camera_math::inverse(camera, inverse) :
+        std::isfinite(camera.det4()) && std::abs(camera.det4()) >= 1.0e-12f;
+      if (!validCamera) {
+        diagnostic = "Raster shadow map has a non-invertible camera";
+        return false;
+      }
+      if (!source.shadowMapCameraOverride) inverse = camera.inverse();
+      if (source.shadowGroupSlot != pass.groupSlot || !(source.shadowStyle & 1u) ||
+          source.transparentMaterial)
+        continue;
+      bool userClipped = false;
+      for (const auto &plane : source.clipPlanesWorld)
+        if (!plane.isInHalfSpace(occurrence.anchorWorld)) userClipped = true;
+      if (userClipped) continue;
+      // Raster nodes establish a viewport-local raster position themselves:
+      // Image aligns/crops it, Text2 clamps negative origins then shifts with
+      // glBitmap, and Marker validates its bitmap origin. Do not replace those
+      // operations with a generic world-anchor XY/W veto.
+      SbVec3f ndc;
+      camera.multVecMatrix(occurrence.anchorWorld, ndc);
+      if (!coin_render_shadow_finite(ndc)) {
+        diagnostic = "Raster shadow map has a non-finite projected anchor";
+        return false;
+      }
+      CoinRenderScreenRasterAnchor anchor;
+      anchor.pixelX = (ndc[0] + 1.0f) * 0.5f * viewport.width;
+      anchor.pixelY = (ndc[1] + 1.0f) * 0.5f * viewport.height;
+      anchor.depthCoin = ndc[2];
+      if (!std::isfinite(anchor.pixelX) || !std::isfinite(anchor.pixelY)) {
+        diagnostic = "Raster shadow map has a non-finite pixel anchor";
+        return false;
+      }
+      if (anchor.depthCoin < -1.0f || anchor.depthCoin > 1.0f) continue;
+      auto mapState = source;
+      mapState.model = SbMatrix::identity();
+      mapState.rasterPixels = false;
+      mapState.rasterShadowAnchorValid = false;
+      mapState.rasterShadowImagePhong = false;
+      mapState.hasTexture = false;
+      mapState.transparentTexture = false;
+      mapState.rasterTransparent = false;
+      mapState.rasterForceBlend = false;
+      mapState.clipPlanesWorld.clear(); // glRasterPos clips the anchor once.
+      if (frame.renderStates.size() >= UINT32_MAX ||
+          frame.vertices.size() >= UINT32_MAX || frame.indices.size() >= UINT32_MAX) {
+        diagnostic = "Raster shadow caster exceeds frame index capacity";
+        return false;
+      }
+      const uint32_t stateSlot = static_cast<uint32_t>(frame.renderStates.size());
+      frame.renderStates.push_back(std::move(mapState));
+      CoinRenderDrawPacket draw;
+      draw.topology = CoinRenderPrimitiveTopology::TRIANGLE_LIST;
+      draw.renderStateSlot = stateSlot;
+      draw.shadowLightSlot = pass.lightSlot + 1;
+      draw.rasterShadowCaster = true;
+      draw.geometry.firstVertex = static_cast<uint32_t>(frame.vertices.size());
+      draw.geometry.firstIndex = static_cast<uint32_t>(frame.indices.size());
+      const auto emit = [&](const CoinRenderScreenRasterQuad &quad) -> bool {
+        if (!quad.visible) return true;
+        const uint64_t charge = 4u * sizeof(CoinRenderVertexSnapshot) + 6u * sizeof(uint32_t);
+        if (geometryBytes > budget - charge || frame.vertices.size() > UINT32_MAX - 4u ||
+            frame.indices.size() > UINT32_MAX - 6u) {
+          diagnostic = "Raster shadow caster geometry exceeds 128 MiB or index capacity";
+          return false;
+        }
+        geometryBytes += charge;
+        const uint32_t first = static_cast<uint32_t>(frame.vertices.size());
+        for (auto vertex : quad.vertices) {
+          SbVec3f world;
+          inverse.multVecMatrix(SbVec3f(vertex.position), world);
+          if (!coin_render_shadow_finite(world)) {
+            diagnostic = "Raster shadow caster has a non-finite world vertex";
+            return false;
+          }
+          world.getValue(vertex.position[0], vertex.position[1], vertex.position[2]);
+          vertex.materialSlot = source.materialSlot;
+          frame.vertices.push_back(vertex);
+        }
+        for (uint32_t index : {0u, 1u, 2u, 0u, 2u, 3u}) frame.indices.push_back(first + index);
+        draw.geometry.vertexCount += 4;
+        draw.geometry.indexCount += 6;
+        return true;
+      };
+      std::string layoutDiagnostic;
+      if (occurrence.kind == CoinRenderRasterOccurrence::IMAGE) {
+        CoinRenderScreenImageLayout layout;
+        if (!CoinRenderScreenRasterCore::imageLayout(anchor, viewport,
+              occurrence.originalWidth, occurrence.originalHeight,
+              occurrence.requestedWidth, occurrence.requestedHeight,
+              occurrence.horizontalAlignment, occurrence.verticalAlignment,
+              source.materialSlot, layout, layoutDiagnostic)) {
+          diagnostic = layoutDiagnostic;
+          return false;
+        }
+        if (!emit(layout.quad)) return false;
+      } else {
+        float baseX = anchor.pixelX, baseY = anchor.pixelY;
+        if (occurrence.kind == CoinRenderRasterOccurrence::MARKER) {
+          baseX -= float(occurrence.originalWidth - 1) * 0.5f;
+          baseY -= float(occurrence.originalHeight - 1) * 0.5f;
+          if (!CoinRenderScreenRasterCore::markerBitmapOrigin(viewport, baseX, baseY,
+                baseX, baseY, layoutDiagnostic)) continue;
+        } else {
+          if (baseX > viewport.width || baseY > viewport.height) continue;
+          if (occurrence.kind == CoinRenderRasterOccurrence::TEXT_MONO)
+            baseY = std::trunc(baseY);
+          else {
+            baseX = std::floor(baseX + 0.5f);
+            baseY = std::floor(baseY + 0.5f);
+          }
+        }
+        baseX += occurrence.offsetX;
+        baseY += occurrence.offsetY;
+        const float uv[4] = {0, 0, 0, 0};
+        for (const auto &run : occurrence.runs) {
+          CoinRenderScreenRasterQuad quad;
+          if (!CoinRenderScreenRasterCore::pixelQuad(viewport, baseX + run.x,
+                baseY + run.y, run.width, 1.0f, anchor.depthCoin,
+                uv, source.materialSlot, quad, layoutDiagnostic)) {
+            diagnostic = layoutDiagnostic;
+            return false;
+          }
+          if (!emit(quad)) return false;
+        }
+      }
+      if (draw.geometry.indexCount) frame.draws.push_back(std::move(draw));
+      else frame.renderStates.pop_back();
+    }
+  }
+  diagnostic.clear();
+  return true;
+}
+
+bool
 coin_render_shadow_object_profile(const CoinRenderFramePlan &frame,
                                   const CoinRenderShadowPlan &shadows, size_t lightCount,
                                   std::string &diagnostic)
@@ -490,14 +804,15 @@ coin_render_shadow_object_profile(const CoinRenderFramePlan &frame,
     if (pass.groupSlot == 0 || pass.groupSlot > frame.shadowGroups.size() ||
         pass.lightSlot >= frame.shadowLights.size() ||
         frame.shadowLights[pass.lightSlot].groupSlot != pass.groupSlot ||
-        !frame.shadowLights[pass.lightSlot].shadowEligible || !pass.visible ||
+        !frame.shadowLights[pass.lightSlot].shadowEligible ||
+        (!pass.visible && (!pass.casterDraws.empty() || !pass.receiverDraws.empty())) ||
         pass.epsilon < 0.0f || pass.threshold < 0.0f || pass.threshold >= 1.0f ||
         std::any_of(
             shadows.passes.begin(), shadows.passes.begin() + p,
             [&](const CoinRenderShadowPass &previous) {
               return previous.lightSlot == pass.lightSlot;
             })) {
-      diagnostic = "Shadow object profile requires visible independent passes with receivers";
+      diagnostic = "Shadow object profile requires independent valid passes or neutral invisible maps";
       return false;
     }
   }
@@ -507,28 +822,57 @@ coin_render_shadow_object_profile(const CoinRenderFramePlan &frame,
       return false;
     }
     const auto &state = frame.renderStates[draw.renderStateSlot];
+    // BASE_COLOR draws outside a shadow group (for example manager layers)
+    // use their ordinary diffuse color. Receiver shaders already bypass all
+    // lighting and VSM contributions for this light model; no map owns them.
     if (state.shadowGroupSlot > frame.shadowGroups.size() ||
         draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
-        (!draw.shadowLightSlot && state.lightModel != CoinRenderLightModel::PHONG) ||
-        state.fogMode != CoinRenderFogMode::NONE || state.materialSlot >= frame.materials.size() ||
-        state.lightingSlot >= frame.lightingStates.size() ||
-        std::any_of(std::begin(state.extraTextures), std::end(state.extraTextures),
-                    [](const CoinRenderTextureUnitSnapshot &unit) { return unit.enabled; })) {
-      diagnostic = "Shadow object profile supports PHONG triangles without extra texture units";
+        (!draw.shadowLightSlot && state.lightModel != CoinRenderLightModel::PHONG &&
+         !(state.rasterPixels && state.rasterShadowAnchorValid &&
+           state.lightModel == CoinRenderLightModel::BASE_COLOR) &&
+         !((!state.shadowGroupSlot || !(state.shadowStyle & 2u)) &&
+           state.lightModel == CoinRenderLightModel::BASE_COLOR)) ||
+        state.materialSlot >= frame.materials.size() ||
+        state.lightingSlot >= frame.lightingStates.size()) {
+      diagnostic = "Shadow object profile requires PHONG receivers or unshadowed BASE_COLOR triangles";
       return false;
     }
-    if (state.hasTexture) {
-      if (shadows.passes.size() > 4 && (state.textureModel != CoinRenderTextureModel::MODULATE ||
-                                        state.textureCombines[0].instructions[0][0] != 0.0f)) {
-        diagnostic = "Five to eight shadow maps require linear MODULATE texture";
-        return false;
+    const bool spatial = state.hasTexture && state.textureImageSlot < frame.textures.size() &&
+      (frame.textures[state.textureImageSlot].volumeDepth || frame.textures[state.textureImageSlot].cubeFaceSize);
+    const bool multitexture = spatial || std::any_of(std::begin(state.extraTextures), std::end(state.extraTextures),
+      [](const CoinRenderTextureUnitSnapshot &unit) { return unit.enabled; });
+    if (multitexture) {
+      if (state.rasterPixels || state.rasterTextureSourceSlot != UINT32_MAX) {
+        diagnostic = "Shadow multitexture geometric profile excludes raster sources"; return false;
       }
+      for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+        const bool enabled = unit == 0 ? state.hasTexture : state.extraTextures[unit-1].enabled;
+        if (!enabled) continue;
+        const auto imageSlot = unit == 0 ? state.textureImageSlot : state.extraTextures[unit-1].imageSlot;
+        const auto samplerSlot = unit == 0 ? state.samplerSlot : state.extraTextures[unit-1].samplerSlot;
+        if (imageSlot >= frame.textures.size() || samplerSlot >= frame.samplers.size()) {
+          diagnostic = "Shadow multitexture references an invalid image or sampler"; return false;
+        }
+      }
+    }
+    if (state.hasTexture) {
       if (state.textureImageSlot >= frame.textures.size() ||
           state.samplerSlot >= frame.samplers.size()) {
         diagnostic = "Shadow receiver references an invalid texture";
         return false;
       }
       const auto &image = frame.textures[state.textureImageSlot];
+      // Receiver surface programs already apply the shared 2D REPLACE equation
+      // (including texture alpha) after lighting, for every shadow-map count.
+      // Keep custom combines and the other previously unqualified models gated.
+      const bool replace2d = state.textureModel == CoinRenderTextureModel::REPLACE &&
+        !image.volumeDepth && !image.cubeFaceSize && image.format == CoinRenderTextureFormat::RGBA8_LINEAR;
+      if (!multitexture && shadows.passes.size() > 4 && !state.rasterPixels &&
+          ((state.textureModel != CoinRenderTextureModel::MODULATE && !replace2d) ||
+           state.textureCombines[0].instructions[0][0] != 0.0f)) {
+        diagnostic = "Five to eight shadow maps require linear MODULATE or RGBA8 2D REPLACE texture";
+        return false;
+      }
       const uint64_t pixelCount = uint64_t(image.width) * image.height;
       const bool sceneTexture = image.producerId || image.gpuToken;
       if (!pixelCount || pixelCount > SIZE_MAX / 4 ||
@@ -542,9 +886,10 @@ coin_render_shadow_object_profile(const CoinRenderFramePlan &frame,
       }
       {
         const bool hasAlpha = coin_render_texture_has_transparency(image);
-        if (hasAlpha && (state.textureModel != CoinRenderTextureModel::MODULATE ||
-                         state.textureCombines[0].instructions[0][0] != 0.0f)) {
-          diagnostic = "Alpha shadow texture requires linear MODULATE composition";
+        if (!multitexture && hasAlpha && !state.rasterPixels &&
+            ((state.textureModel != CoinRenderTextureModel::MODULATE && !replace2d) ||
+             state.textureCombines[0].instructions[0][0] != 0.0f)) {
+          diagnostic = "Alpha shadow texture requires linear MODULATE or RGBA8 2D REPLACE composition";
           return false;
         }
       }

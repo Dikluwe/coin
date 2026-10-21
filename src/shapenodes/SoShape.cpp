@@ -72,9 +72,11 @@
 #include <Inventor/details/SoFaceDetail.h>
 #include <Inventor/details/SoLineDetail.h>
 #include <Inventor/elements/SoBumpMapElement.h>
+#include <Inventor/elements/SoBumpMapCoordinateElement.h>
 #include <Inventor/elements/SoCacheElement.h>
 #include <Inventor/elements/SoComplexityElement.h>
 #include <Inventor/elements/SoCoordinateElement.h>
+#include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoCullElement.h>
 #include <Inventor/elements/SoGLCacheContextElement.h>
 #include <Inventor/elements/SoGLLazyElement.h>
@@ -102,6 +104,10 @@
 #include <Inventor/misc/SoGLDriverDatabase.h>
 #include <Inventor/misc/SoState.h>
 #include <Inventor/nodes/SoLight.h>
+#include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoIndexedMarkerSet.h>
+#include <Inventor/nodes/SoMarkerSet.h>
+#include <Inventor/nodes/SoText2.h>
 #include <Inventor/nodes/SoVertexProperty.h>
 #include <Inventor/nodes/SoVertexShape.h>
 #include <Inventor/system/gl.h>
@@ -594,7 +600,14 @@ SoShape::shouldGLRender(SoGLRenderAction * action)
   }
 
   // test if we should sort triangles before rendering
-  if (transparent && (shapestyleflags & SoShapeStyleElement::TRANSP_SORTED_TRIANGLES)) {
+  // Screen-space raster shapes have no sortable triangle representation:
+  // Text2 has no primitives, while Image's primitive quad loses its pixel
+  // mask. Keep the sorted object traversal, then run their GLRender path.
+  if (transparent && (shapestyleflags & SoShapeStyleElement::TRANSP_SORTED_TRIANGLES) &&
+      !this->isOfType(SoText2::getClassTypeId()) &&
+      !this->isOfType(SoImage::getClassTypeId()) &&
+      !this->isOfType(SoMarkerSet::getClassTypeId()) &&
+      !this->isOfType(SoIndexedMarkerSet::getClassTypeId())) {
     // lock since pvcache is shared among all threads
     PRIVATE(this)->lock();
     this->validatePVCache(action);
@@ -1050,7 +1063,25 @@ SoShape::invokeTriangleCallbacks(SoAction * const action,
   }
   else if (action->getTypeId().isDerivedFrom(SoCallbackAction::getClassTypeId())) {
     SoCallbackAction * ca = (SoCallbackAction *) action;
-    ca->invokeTriangleCallbacks(this, v1, v2, v3);
+    int lastTextureUnit = 0;
+    const SbBool * enabledUnits =
+      SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastTextureUnit);
+    bool needsCorner = SoBumpMapCoordinateElement::getInstance(action->getState())->getNum() > 0 ||
+      SoDrawStyleElement::get(action->getState()) == SoDrawStyleElement::LINES ||
+      SoDrawStyleElement::get(action->getState()) == SoDrawStyleElement::POINTS;
+    for (int unit = 1; unit <= lastTextureUnit && !needsCorner; ++unit)
+      needsCorner = enabledUnits[unit] != FALSE;
+    if (!needsCorner) {
+      ca->invokeTriangleCallbacks(this, v1, v2, v3);
+      return;
+    }
+    soshape_staticdata * shapedata = soshape_get_staticdata();
+    const int pointDetailIndices[3] = {
+      shapedata->primdata->findPointDetailIndex(v1),
+      shapedata->primdata->findPointDetailIndex(v2),
+      shapedata->primdata->findPointDetailIndex(v3)
+    };
+    ca->invokeTriangleCallbacks(this, v1, v2, v3, pointDetailIndices);
   }
   else if (action->getTypeId().isDerivedFrom(SoGetPrimitiveCountAction::getClassTypeId())) {
     SoGetPrimitiveCountAction * ga = (SoGetPrimitiveCountAction *) action;

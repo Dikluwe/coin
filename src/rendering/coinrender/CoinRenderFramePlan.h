@@ -1,8 +1,11 @@
 #ifndef COIN_RENDER_FRAME_PLAN_H
 #define COIN_RENDER_FRAME_PLAN_H
 
+#include <Inventor/rendering/CoinRenderOptions.h>
 #include <Inventor/CoinRenderExport.h>
 #include "rendering/coinrender/CoinRenderTransparencyCore.h"
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
+#include "rendering/coinrender/CoinRenderShaderModuleCore.h"
 #include <Inventor/SbColor4f.h>
 #include <Inventor/SbColor.h>
 #include <Inventor/SbMatrix.h>
@@ -10,6 +13,7 @@
 #include <Inventor/SbVec2f.h>
 #include <Inventor/SbVec2i32.h>
 #include <Inventor/SbVec3f.h>
+#include <Inventor/SbVec4f.h>
 #include <Inventor/misc/SoBase.h>
 
 #include <vector>
@@ -38,6 +42,18 @@ struct CoinRenderVertexSnapshot {
   float textureQ[COIN_RENDER_MAX_TEXTURE_UNITS] = {1,1,1,1,1,1,1,1};
 };
 
+struct CoinRenderBumpCoordOverride {
+  uint32_t vertexIndex = 0;
+  uint32_t imageSlot = 0; // One-based; zero means only an authored UV override.
+  uint32_t transformSlot = 0; // One-based; zero is the identity bump matrix.
+  float coord[2] = {0.0f, 0.0f};
+};
+
+struct CoinRenderBumpTangentOverride {
+  uint32_t vertexIndex = 0;
+  CoinRenderBumpTangents tangent;
+};
+
 enum class CoinRenderPrimitiveTopology : uint32_t {
   TRIANGLE_LIST = 0,
   LINE_LIST = 1,
@@ -56,6 +72,7 @@ struct CoinRenderDrawPacket {
   CoinRenderGeometryRange geometry = {};
   uint32_t renderStateSlot = 0;
   uint32_t shadowLightSlot = 0; // One-based owner; nonzero draws belong only to its shadow map.
+  bool rasterShadowCaster = false; // Generated from source pixels for this map camera.
   uint32_t frameNodeOrdinal = 0; // estável apenas dentro do frame/log
   SbUniqueId sourceNodeId = 0;   // cache/invalidação; não entra no golden log
   uint64_t stableNodeId = 0;
@@ -64,9 +81,51 @@ struct CoinRenderDrawPacket {
   bool hasSortingCenter = false;
   float sortingCenterWorld[3] = {0, 0, 0};
   uint32_t renderLayer = 0;
+  // Explicit identity of the authored scene when manager backgrounds precede it.
+  bool authoredScene = false;
+  bool isSceneLayer() const { return renderLayer == 0 || authoredScene; }
   bool clearDepthBefore = false;
   // Capture-only strip identity; consumed and cleared by StrokeCore before GPU submission.
   uint64_t lineStripId = 0; // Zero means independent segments.
+};
+
+// An authored raster occurrence before clipping to the observer's viewport.
+// Shadow-map rendering projects its anchor through each light camera and
+// rebuilds pixel-space coverage there; the observer's display quads cannot
+// serve as caster geometry.
+struct CoinRenderRasterRun {
+  float x = 0.0f, y = 0.0f, width = 0.0f;
+  CoinRenderRasterRun() = default;
+  CoinRenderRasterRun(float xValue, float yValue, float widthValue)
+    : x(xValue), y(yValue), width(widthValue) {}
+  bool operator==(const CoinRenderRasterRun &other) const {
+    return x == other.x && y == other.y && width == other.width;
+  }
+};
+
+struct CoinRenderRasterOccurrence {
+  enum Kind : uint32_t { IMAGE = 0, TEXT_MONO = 1, TEXT_GRAY = 2, MARKER = 3 };
+  Kind kind = IMAGE;
+  uint32_t sourceStateSlot = 0;
+  uint32_t shadowLightSlot = 0; // Nonzero belongs to a captured custom map scene.
+  SbVec3f anchorWorld = SbVec3f(0, 0, 0);
+  int32_t originalWidth = 0, originalHeight = 0;
+  int32_t requestedWidth = 0, requestedHeight = 0;
+  int32_t horizontalAlignment = 0, verticalAlignment = 0;
+  // For text, offsets precede observer clipping. Mono y is relative to the
+  // truncated anchor; gray x/y are relative to its rounded anchor.
+  float offsetX = 0.0f, offsetY = 0.0f;
+  std::vector<CoinRenderRasterRun> runs;
+  bool operator==(const CoinRenderRasterOccurrence &other) const {
+    return kind == other.kind && sourceStateSlot == other.sourceStateSlot &&
+      shadowLightSlot == other.shadowLightSlot &&
+      anchorWorld == other.anchorWorld && originalWidth == other.originalWidth &&
+      originalHeight == other.originalHeight && requestedWidth == other.requestedWidth &&
+      requestedHeight == other.requestedHeight &&
+      horizontalAlignment == other.horizontalAlignment &&
+      verticalAlignment == other.verticalAlignment && offsetX == other.offsetX &&
+      offsetY == other.offsetY && runs == other.runs;
+  }
 };
 
 struct CoinRenderMaterialSnapshot {
@@ -235,6 +294,19 @@ enum class CoinRenderTextureFormat : uint32_t {
 
 struct CoinRenderTextureImageSnapshot {
   CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
+  // A volume is uploaded as a packed RGBA8 2D atlas. width/height remain the
+  // physical resource extent; these three fields describe the logical image.
+  // A zero depth denotes the pre-existing 2D texture representation.
+  // Six square faces packed linearly, with complete face-local mip levels.
+  // Independent of volume and ordinary hardware 2D mip representations.
+  uint32_t cubeFaceSize = 0, cubeSourceComponents = 0;
+  bool cubeMipmapped = false;
+  uint32_t volumeWidth = 0;
+  uint32_t volumeHeight = 0;
+  uint32_t volumeDepth = 0;
+  uint32_t volumeColumns = 0;
+  uint32_t volumeSourceComponents = 0;
+  bool volumeMipmapped = false;
   uint32_t width = 0;
   uint32_t height = 0;
   uint32_t components = 4; // Four channels; format defines byte layout and RGB interpretation.
@@ -251,6 +323,7 @@ struct CoinRenderTextureImageSnapshot {
 struct CoinRenderSamplerSnapshot {
   CoinRenderTextureWrap wrapS = CoinRenderTextureWrap::REPEAT;
   CoinRenderTextureWrap wrapT = CoinRenderTextureWrap::REPEAT;
+  CoinRenderTextureWrap wrapR = CoinRenderTextureWrap::REPEAT;
   CoinRenderTextureFilter filter = CoinRenderTextureFilter::LINEAR;
   uint32_t maxAnisotropy = 1; // Explicit power of two, 1..16; all filters linear when >1.
 };
@@ -317,6 +390,7 @@ private:
 };
 
 struct CoinRenderRenderStateSnapshot {
+  uint32_t portableShaderSlot = 0; // One-based immutable occurrence; zero selects fixed texturing.
   std::vector<SbPlane> clipPlanesWorld; // Captured at plane traversal, not shape traversal.
   SbMatrix model = SbMatrix::identity();
   SbMatrix view = SbMatrix::identity();
@@ -329,6 +403,8 @@ struct CoinRenderRenderStateSnapshot {
   CoinRenderFrontFace frontFace = CoinRenderFrontFace::CCW;
   bool depthTest = true;
   bool depthWrite = true;
+  bool colorWrite = true;
+  uint8_t colorWriteMask = 0x0f; // R=1, G=2, B=4, A=8; effective only when colorWrite.
   CoinRenderTextureProjection textureProjection = CoinRenderTextureProjection::PROJECTIVE;
   CoinRenderAlphaTestFunction alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
   float alphaTestReference = 0.5f; // GL resolves the reference into [0,1].
@@ -344,12 +420,31 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t polygonOffsetPrimitiveStyle = 1; // Retained across line/point expansion.
   uint32_t shadowGroupSlot = 0; // Zero outside active SoShadowGroup.
   uint32_t shadowStyle = 3; // SoShadowStyleElement default: casts and receives.
+  uint32_t shadowMapSize = 0;           // Nonzero: viewport captured in this custom map target.
+  bool shadowMapCameraOverride = false; // Authored camera currently active in a custom map scene.
+  bool flatShadowPrimary = false; // GL_FLAT primary color; shadow lighting varyings remain smooth.
   bool transparentMaterial = false; // Coin lazy material flag over the bound array.
   bool transparentTexture = false; // Image alpha affects casting even at texture quality zero.
   // Raster's GL traversal classification is independent of its pixel alpha:
   // Text2's gray coverage forces blending, but only Coin shape flags defer it.
   bool rasterPixels = false;
   bool rasterTransparent = false;
+  // glRasterPos establishes one position for the entire bitmap. Shadow
+  // receivers use this constant world anchor, never the observer's NDC quad.
+  bool rasterShadowAnchorValid = false;
+  SbVec3f rasterShadowAnchorWorld = SbVec3f(0, 0, 0);
+  bool rasterShadowImagePhong = false; // SoImage keeps authored PHONG only with real maps.
+  // Image pixels supply PRIMARY; inherited units sample one persistent raw
+  // raster coordinate each. UINT32_MAX disables this separate texture stage.
+  // The source is a non-raster state, so all eight inherited units remain usable.
+  uint32_t rasterTextureSourceSlot = UINT32_MAX;
+  // 0=initial persistent attribute; 1=recorded native OBJECT_LINEAR at anchor.
+  std::array<uint8_t, COIN_RENDER_MAX_TEXTURE_UNITS> rasterTextureProvenance{};
+  std::array<SbVec4f, COIN_RENDER_MAX_TEXTURE_UNITS> rasterTextureCoordinates = [] {
+    std::array<SbVec4f, COIN_RENDER_MAX_TEXTURE_UNITS> result;
+    for (auto & coordinate : result) coordinate = SbVec4f(0, 0, 0, 1);
+    return result;
+  }();
   CoinRenderLightModel lightModel = CoinRenderLightModel::PHONG;
   float lineWidth = 1.0f;
   float pointSize = 1.0f;
@@ -387,6 +482,7 @@ COIN_RENDER_DLL_API CoinRenderTextureUnitSnapshot coin_render_texture_unit(const
 struct CoinRenderFramePlan {
   uint64_t revision = 0;
   CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
+  CoinRenderRasterizationPolicy rasterizationPolicy = COIN_RENDER_RASTER_NATIVE;
   CoinRenderTextureFormat outputColorFormat = CoinRenderTextureFormat::RGBA8_LINEAR;
   bool outputMipmaps = false; // Execution-owned RTT request, never an implicit root fallback.
   // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.
@@ -394,6 +490,13 @@ struct CoinRenderFramePlan {
   CoinRenderTransparencyOptions transparency;
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<CoinRenderVertexSnapshot> vertices;
+  // Sparse because authored bump UVs are rare and GPU vertex strides stay fixed.
+  // Vertices without an entry use their unit-0 texcoord.
+  std::vector<CoinRenderBumpCoordOverride> bumpCoords;
+  std::vector<CoinRenderBumpTangentOverride> bumpTangents;
+  std::vector<CoinRenderBumpImage> bumpImages;
+  std::vector<CoinRenderShaderInstance> portableShaders;
+  std::vector<SbMatrix> bumpTransforms;
   std::vector<uint32_t> indices;
   std::vector<CoinRenderMaterialSnapshot> materials;
   std::vector<CoinRenderLightingSnapshot> lightingStates;
@@ -405,6 +508,13 @@ struct CoinRenderFramePlan {
   std::vector<CoinRenderTextureImageSnapshot> textures;
   std::vector<CoinRenderSamplerSnapshot> samplers;
   std::vector<CoinRenderDrawPacket> draws;
+  std::vector<CoinRenderRasterOccurrence> rasterOccurrences;
+
+  COIN_RENDER_DLL_API bool hasPortableShaderDraws() const;
+
+  // Shared narrow ingress check: preserve non-finite input rejection and
+  // nondegenerate camera clip ranges, including unused table entries.
+  COIN_RENDER_DLL_API bool hasFiniteNormalizedInputs(std::string * outDiagnostic = nullptr) const;
 
   /**
    * Checks semantic and range invariants before a backend consumes the plan.

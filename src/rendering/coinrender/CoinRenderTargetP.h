@@ -49,6 +49,8 @@ public:
   static bool isGpuBackendAvailable();
   // Admission uses implementation facts without preparing a GPU/device.
   bool supportsOffscreenShadows(bool asynchronous) const;
+  bool supportsOpaqueBump(bool asynchronous) const;
+  bool supportsPortableShaderModules() const;
   CoinRenderBackendStatus prepareBackend();
   CoinRenderSubmitResult preflightSubmission(bool asynchronous);
   void deviceLost();

@@ -20,7 +20,7 @@ COIN_RENDER_DLL_API CoinRenderMaterialSnapshot coin_render_bake_vertex_material(
     const CoinRenderVertexSnapshot &provoking, const CoinRenderMaterialSnapshot &material,
     const CoinRenderRenderStateSnapshot &state, const CoinRenderLightingSnapshot &lighting);
 
-// Original convex polygon ring; no scene traversal, Coin elements or GPU calls.
+// Original polygon ring; no scene traversal, Coin elements or GPU calls.
 // Outputs a clipped, culled ring with Gouraud colors baked before interpolation.
 COIN_RENDER_DLL_API bool coin_render_resolve_polygon_style(
     const std::vector<CoinRenderVertexSnapshot>& ring, const CoinRenderRenderStateSnapshot& state,
@@ -32,6 +32,9 @@ enum class CoinRenderPolygonStyle { LINES, POINTS };
 struct CoinRenderPolygonStyleResult {
   std::vector<CoinRenderPolygonStyleVertex> vertices;
   std::vector<uint32_t> indices;
+  // Nonplanar polygon offset is resolved per originating triangle edge/point.
+  std::vector<float> primitiveSlopeBias;
+  std::vector<float> primitiveMaximumDepth;
   CoinRenderRenderStateSnapshot state;
   CoinRenderPrimitiveTopology topology = CoinRenderPrimitiveTopology::LINE_LIST;
 };
@@ -40,5 +43,7 @@ COIN_RENDER_DLL_API bool coin_render_prepare_polygon_style(
     const std::vector<CoinRenderMaterialSnapshot>& materials,
     const CoinRenderLightingSnapshot& lighting, CoinRenderPolygonStyle style,
     CoinRenderPolygonStyleResult& result, std::string& diagnostic,
-    const CoinRenderViewportSnapshot& viewport, bool preserveDegenerateContour = false);
+    const CoinRenderViewportSnapshot& viewport, bool preserveDegenerateContour = false,
+    const std::vector<CoinRenderVertexSnapshot>* triangles = nullptr,
+    const CoinRenderFramePlan* frame = nullptr);
 #endif

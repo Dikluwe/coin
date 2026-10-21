@@ -649,6 +649,10 @@ SoTexture2::GLRender(SoGLRenderAction * action)
     // ignore the texture here so that all texture for non-supported
     // units will be ignored. pederb, 2003-11-04
   }
+  if (this->isOverride() && unit == 0) {
+    SoTextureOverrideElement::setImageOverride(state, TRUE);
+  }
+
 }
 
 // Documented in superclass.
@@ -689,6 +693,10 @@ SoTexture2::doAction(SoAction * action)
     SoMultiTextureImageElement::setDefault(state, this, unit);
     SoMultiTextureEnabledElement::set(state, this, unit, FALSE);
   }
+  if (this->isOverride() && unit == 0) {
+    SoTextureOverrideElement::setImageOverride(state, TRUE);
+  }
+
 }
 
 // doc from parent

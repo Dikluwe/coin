@@ -536,6 +536,12 @@ SoTextureCubeMap::readImage(const SbString & COIN_UNUSED_ARG(fname), int & COIN_
 /*!
   Returns read status. 1 for success, 0 for failure.
 */
+SbBool
+SoTextureCubeMap::coinRenderFilenamePendingOrFailed(void) const
+{
+  return PRIVATE(this)->filenames_sensor->isScheduled() || !PRIVATE(this)->readstatus;
+}
+
 int
 SoTextureCubeMap::getReadStatus(void)
 {

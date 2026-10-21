@@ -167,6 +167,7 @@ public:
   };
 
 protected:
+  friend class CoinRenderFramePlanBuilder;
   const UnitData & getUnitData(const int unit) const;
   int getNumUnits() const;
   

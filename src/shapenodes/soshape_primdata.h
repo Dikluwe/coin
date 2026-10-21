@@ -64,6 +64,7 @@ public:
   void shapeVertex(const SoPrimitiveVertex * const v);
 
   int getPointDetailIndex(const SoPrimitiveVertex * v) const;
+  int findPointDetailIndex(const SoPrimitiveVertex * v) const;
 
 private:
   void copyVertex(const int src, const int dest);

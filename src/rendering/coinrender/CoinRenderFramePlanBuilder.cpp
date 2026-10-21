@@ -4,14 +4,18 @@
 #include "src/config.h"
 #endif
 #include "rendering/coinrender/CoinRenderBoundingBoxCore.h"
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #include <cstdio>
+#include <limits>
 #include <utility>
 #include "rendering/coinrender/CoinRenderClipCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderDepthCore.h"
 #include "rendering/coinrender/CoinRenderDepthPolicyElement.h"
+#include "rendering/coinrender/CoinRenderShaderModuleElement.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderFramePlanBuilder.h"
+#include "rendering/coinrender/CoinRenderShadowCameraMath.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
@@ -20,6 +24,7 @@
 #include "rendering/coinrender/CoinRenderScreenRasterCore.h"
 #include "rendering/coinrender/CoinRenderStrokeCore.h"
 #include "rendering/coinrender/CoinRenderText2Capture.h"
+#include "rendering/coinrender/CoinRenderText2ShadowCapture.h"
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
@@ -28,14 +33,30 @@
 #include <Inventor/details/SoCylinderDetail.h>
 #include <Inventor/C/tidbits.h>
 #include <Inventor/elements/SoClipPlaneElement.h>
+#include <Inventor/elements/SoBumpMapCoordinateElement.h>
+#include <Inventor/elements/SoBumpMapElement.h>
+#include <Inventor/elements/SoBumpMapMatrixElement.h>
 #include <Inventor/elements/SoDrawStyleElement.h>
 #include <Inventor/elements/SoMaterialBindingElement.h>
 #include <Inventor/elements/SoNormalBindingElement.h>
 #include <Inventor/elements/SoNormalElement.h>
 #include <Inventor/nodes/SoCone.h>
+#include <Inventor/nodes/SoBumpMap.h>
 #include <Inventor/nodes/SoCube.h>
+#include <Inventor/nodes/SoTextureCubeMap.h>
+#include <Inventor/elements/SoTextureOverrideElement.h>
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include <Inventor/nodes/SoCylinder.h>
 #include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoFaceSet.h>
+#include <Inventor/nodes/SoPointSet.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoVertexShape.h>
+#include <Inventor/nodes/SoTextureCoordinateObject.h>
+#include <Inventor/nodes/SoTextureCoordinatePlane.h>
+#include <Inventor/nodes/SoTextureCoordinateEnvironment.h>
+#include <Inventor/nodes/SoTextureCoordinateReflectionMap.h>
+#include <Inventor/nodes/SoTextureCoordinateNormalMap.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
 #include <Inventor/nodes/SoIndexedMarkerSet.h>
 #include <Inventor/nodes/SoIndexedTriangleStripSet.h>
@@ -53,11 +74,13 @@
 #include <Inventor/SoPrimitiveVertex.h>
 #include <Inventor/bundles/SoTextureCoordinateBundle.h>
 #include <Inventor/nodes/SoNode.h>
+#include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoLight.h>
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/elements/SoLightElement.h>
+#include <Inventor/elements/SoViewVolumeElement.h>
 #include <Inventor/annex/FXViz/elements/SoShadowStyleElement.h>
 #include <Inventor/elements/SoEnvironmentElement.h>
 #include <Inventor/SbViewVolume.h>
@@ -93,6 +116,7 @@
 #include <algorithm>
 #include <atomic>
 #include <cmath>
+#include <cfloat> // _logb on builds that select CoinGL's legacy weight path
 #include <cstdlib>
 #include <cstring>
 #include <new>
@@ -115,6 +139,24 @@ CoinRenderFramePlanBuilder::captureCamera(SoCallbackAction * action)
   return camSnap;
 }
 
+void
+CoinRenderFramePlanBuilder::registerShadowMapCamera(const SoCamera *camera)
+{
+  if (camera) this->shadowMapCameras[camera->getNodeId()] = camera;
+}
+
+void
+CoinRenderFramePlanBuilder::registerShadowMapCameraPose(const SoCamera *camera,
+                                                         const SbMatrix &model,
+                                                         const SbMatrix &view)
+{
+  if (!camera) return;
+  auto &poses = this->shadowMapCameraPoses[camera->getNodeId()];
+  const auto existing = std::find_if(poses.begin(), poses.end(),
+    [&](const ShadowMapCameraPose &pose) { return pose.model == model && pose.view == view; });
+  if (existing == poses.end()) poses.push_back({model, view});
+}
+
 CoinRenderFramePlanBuilder::CoinRenderFramePlanBuilder()
   : currentDrawIndex(0),
     nodeCounter(0),
@@ -127,6 +169,7 @@ CoinRenderFramePlanBuilder::CoinRenderFramePlanBuilder()
     nextAnnotationLayer(1),
     annotationDepthClearPending(false)
 {
+  this->rasterQPlanes.fill(SbVec4f(0,0,0,0));
 }
 
 CoinRenderFramePlanBuilder::~CoinRenderFramePlanBuilder()
@@ -137,6 +180,8 @@ void
 CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbViewportRegion & /*viewport*/)
 {
   this->reset();
+  this->colorWriteEnabled = true;
+  this->linePatternOverride = false;
   this->currentPlan.clearColor = clearColor;
   this->inFrame = true;
 }
@@ -161,15 +206,29 @@ void
 CoinRenderFramePlanBuilder::reset()
 {
   this->endShape();
+  this->rasterGenerators.clear();
   const char * disabledCubeTemplates = std::getenv("COIN_RENDER_DISABLE_CUBE_TEMPLATE_CACHE");
   this->cubeGeometryCore.reset(!(disabledCubeTemplates && std::strcmp(disabledCubeTemplates, "1") == 0));
   this->cubeReplayHits = 0;
   this->polygonNode = nullptr;
   this->polygonVertices.clear();
+  this->polygonTriangleVertices.clear();
   this->polygonPositions.clear();
   this->polygonCaptured.clear();
   this->polygonTriangles = 0;
+  this->shadowMapCameras.clear();
+  this->shadowMapCameraPoses.clear();
   this->currentPlan.vertices.clear();
+  this->currentPlan.bumpCoords.clear();
+  this->currentPlan.bumpTangents.clear();
+  this->currentPlan.bumpImages.clear();
+  this->currentPlan.portableShaders.clear();
+  this->portableShaderSlots.clear();
+  this->currentPlan.bumpTransforms.clear();
+  this->lastBumpSource = nullptr;
+  this->lastBumpRevision = 0;
+  this->lastBumpSlot = 0;
+  this->bumpImageSlots.clear();
   this->currentPlan.indices.clear();
   this->currentPlan.materials.clear();
   this->materialHeads.clear();
@@ -187,12 +246,17 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.textures.clear();
   this->currentPlan.samplers.clear();
   this->currentPlan.draws.clear();
+  this->currentPlan.rasterOccurrences.clear();
   this->currentDrawIndex = 0;
   this->lineNode = nullptr;
   this->lineIndex = -1;
   this->lineStripId = this->nextLineStripId = 0;
   this->stripMaterialNode = nullptr;
   this->stripMaterialPart = -1;
+  this->quadShadowNode = nullptr;
+  this->quadShadowPart = -1;
+  this->quadShadowFace = -1;
+  this->quadShadowTriangle = 0;
   this->stripMaterialNextFace = 0;
   this->nodeCounter = 0;
   this->captureReserveEstimate = 0;
@@ -208,23 +272,319 @@ CoinRenderFramePlanBuilder::reset()
   this->annotationDepth = 0;
   this->currentAnnotationLayer = 0;
   this->nextAnnotationLayer = 1;
+  this->authoredSceneLayer = UINT32_MAX;
+  this->authoredSceneParentLayer = 0;
+  this->authoredSceneParentClear = false;
   this->annotationDepthClearPending = false;
+  this->deferredDepthClear = false;
   this->builderError.clear();
   this->sceneTextures.clear();
   this->authoredTextureImages.clear(); this->compressedTextureImages.clear();
+  this->authoredVolumeImages.clear();
+  this->compressedVolumeImages.clear();
   this->authoredTextureSources.clear();
+  this->authoredVolumeSources.clear();
+  this->capturedVolumeImages.clear();
+  this->cubeSources.clear();
+  this->capturedCubeImages.clear();
   this->nodeOccurrenceCount.clear();
   this->lightAttenuationByIndex.clear();
   this->lightModelByIndex.clear();
   this->lightCaptureScratch.clear();
 }
 
+CoinRenderFramePlanBuilder::RasterHistory
+CoinRenderFramePlanBuilder::rasterHistory() const
+{
+  RasterHistory result;
+  for (size_t i = 0; i < COIN_RENDER_MAX_TEXTURE_UNITS; ++i)
+    result.coordinates[i] = uint8_t(this->rasterCoordinateHistory[i]);
+  result.normal = this->rasterNormal;
+  result.normalKnown = this->rasterNormalKnown;
+  result.qPlanes = this->rasterQPlanes;
+  return result;
+}
+
+void
+CoinRenderFramePlanBuilder::restoreRasterHistory(const RasterHistory & saved)
+{
+  for (size_t i = 0; i < COIN_RENDER_MAX_TEXTURE_UNITS; ++i)
+    this->rasterCoordinateHistory[i] = RasterCoordinateHistory(saved.coordinates[i]);
+  this->rasterNormal = saved.normal;
+  this->rasterNormalKnown = saved.normalKnown;
+  this->rasterQPlanes = saved.qPlanes;
+}
+
+void
+CoinRenderFramePlanBuilder::recordRasterGenerator(SoCallbackAction * action, const SoNode * node)
+{
+  if (!action || !node || !action->getState()) return;
+  const int unit = SoTextureUnitElement::get(action->getState());
+  if (unit < 0 || unit >= int(COIN_RENDER_MAX_TEXTURE_UNITS)) return;
+  const auto * element = SoMultiTextureCoordinateElement::getInstance(action->getState());
+  const auto & data = element->getUnitData(unit);
+  if (data.nodeid != node->getNodeId() || data.whatKind != SoMultiTextureCoordinateElement::FUNCTION) return;
+  const auto type = node->getTypeId();
+  if (this->rasterGenerators.size() >= 65536 && !this->rasterGenerators.count(data.nodeid)) {
+    this->isUnsupported = true;
+    this->builderError = "UNSUPPORTED: raster generator registry exceeds 65536 sources";
+    return;
+  }
+  auto & recorded = this->rasterGenerators[data.nodeid];
+  recorded.callback = reinterpret_cast<const void *>(data.funcCB);
+  recorded.setsQ = false;
+  if (type == SoTextureCoordinateObject::getClassTypeId()) {
+    recorded.kind = RasterGeneratorKind::OBJECT;
+    recorded.qPlane = static_cast<const SoTextureCoordinateObject *>(node)->factorQ.getValue();
+    recorded.setsQ = true;
+  } else if (type == SoTextureCoordinatePlane::getClassTypeId()) {
+    recorded.kind = RasterGeneratorKind::OBJECT;
+    recorded.qPlane = SbVec4f(0,0,0,1);
+    recorded.setsQ = true;
+  } else if (type == SoTextureCoordinateEnvironment::getClassTypeId()) {
+    recorded.kind = RasterGeneratorKind::SPHERE;
+    recorded.qPlane = SbVec4f(0,0,0,1);
+    recorded.setsQ = true;
+  } else if (type == SoTextureCoordinateReflectionMap::getClassTypeId()) {
+    recorded.kind = RasterGeneratorKind::REFLECTION;
+  } else if (type == SoTextureCoordinateNormalMap::getClassTypeId()) {
+    recorded.kind = RasterGeneratorKind::NORMAL;
+  } else {
+    // Base registrations also see subclasses, whose GLRender may install an
+    // unrelated texgen callback. Only the audited native exact types qualify.
+    recorded.kind = RasterGeneratorKind::UNSUPPORTED;
+  }
+  this->synchronizeRasterGenerators(action);
+}
+
+void
+CoinRenderFramePlanBuilder::synchronizeRasterGenerators(SoCallbackAction * action)
+{
+  if (!action || !action->getState() || this->rasterGenerators.empty()) return;
+  const auto * coordinates = SoMultiTextureCoordinateElement::getInstance(action->getState());
+  const size_t count = std::min(size_t(coordinates->getMaxUnits()), size_t(COIN_RENDER_MAX_TEXTURE_UNITS));
+  for (size_t unit = 0; unit < count; ++unit) {
+    const auto & data = coordinates->getUnitData(int(unit));
+    const auto found = this->rasterGenerators.find(data.nodeid);
+    if (data.whatKind == SoMultiTextureCoordinateElement::FUNCTION &&
+        found != this->rasterGenerators.end() &&
+        found->second.callback == reinterpret_cast<const void *>(data.funcCB) && found->second.setsQ)
+      this->rasterQPlanes[unit] = found->second.qPlane;
+  }
+}
+
+void
+CoinRenderFramePlanBuilder::recordRasterNormal(SoCallbackAction * action, const SoNode * node)
+{
+  if (!action || !node || !action->getState()) return;
+  const auto type = node->getTypeId();
+  if (type == SoText2::getClassTypeId() ||
+      node->isOfType(SoMarkerSet::getClassTypeId()) || node->isOfType(SoIndexedMarkerSet::getClassTypeId())) return;
+  // An invisible/empty shape never reaches native geometry submission.
+  if (SoDrawStyleElement::get(action->getState()) == SoDrawStyleElement::INVISIBLE ||
+      this->currentPlan.draws.empty() || this->currentPlan.draws.back().sourceNodeId != node->getNodeId()) return;
+  // shouldGLRender can replace a triangle shape (including Image's native
+  // primitive quad) with the bump cache before its ordinary normal emissions.
+  // The specular pass may enable a normal array. Diffuse-only rendering
+  // preserves current normal instead of emitting the shape's usual normal.
+  bool activeBump = (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::BUMPMAP) != 0;
+  const SoNode * bumpSource = SoBumpMapElement::getSource(action->getState());
+  if (bumpSource && bumpSource->isOfType(SoBumpMap::getClassTypeId())) {
+    SbVec2s size; int components = 0;
+    const auto * pixels = static_cast<const SoBumpMap *>(bumpSource)->image.getValue(size, components);
+    activeBump = pixels && size[0] > 0 && size[1] > 0;
+  }
+  // Native validatePVCache calls generatePrimitives, retaining triangle
+  // indices even when our draw-style expansion emits lines or points.
+  if (activeBump && SoLightElement::getLights(action->getState()).getLength() &&
+      action->getComplexityType() != SoComplexity::BOUNDING_BOX &&
+      type != SoPointSet::getClassTypeId()) {
+    const SbColor & specular = SoLazyElement::getSpecular(action->getState());
+    const bool nativeBumpPath = type == SoImage::getClassTypeId() || type == SoFaceSet::getClassTypeId() ||
+      type == SoCube::getClassTypeId() || type == SoCone::getClassTypeId() ||
+      type == SoCylinder::getClassTypeId() || type == SoSphere::getClassTypeId() ||
+      type == SoIndexedFaceSet::getClassTypeId() || type == SoIndexedTriangleStripSet::getClassTypeId();
+    // Exact black skips renderBumpSpecular. The forced CPU diffuse path and
+    // renderNormal submit no normal array or glNormal, preserving even an
+    // unknown incoming value. Unclassified custom shapes remain unknown.
+    if (!nativeBumpPath || specular[0] != 0.0f || specular[1] != 0.0f || specular[2] != 0.0f)
+      this->rasterNormalKnown = false;
+    return;
+  }
+  if (type == SoImage::getClassTypeId()) return;
+  const auto & drawState = this->currentPlan.renderStates[this->currentPlan.draws.back().renderStateSlot];
+  if (type == SoFaceSet::getClassTypeId() &&
+      !static_cast<const SoFaceSet *>(node)->vertexProperty.getValue() &&
+      SoLazyElement::getLightModel(action->getState()) == SoLazyElement::BASE_COLOR &&
+      SoDrawStyleElement::get(action->getState()) == SoDrawStyleElement::FILLED &&
+      action->getComplexityType() != SoComplexity::BOUNDING_BOX &&
+      !drawState.transparentMaterial && !drawState.transparentTexture) {
+    int lastUnit = -1;
+    const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
+    bool textured = false;
+    for (int unit = 0; unit <= lastUnit; ++unit) textured |= enabled[unit];
+    // Native untextured BASE_COLOR FaceSet sets nbind=OVERALL and
+    // needNormals=false: its immediate template skips glNormal, the array
+    // path disables the normal array, and the convex path uses binding NONE
+    // without its guarded overall glNormal. Culling also emits no normal.
+    // Preserve an unknown history too: this shape cannot establish a value.
+    if (!textured) return;
+  }
+  const int transparency = SoShapeStyleElement::getTransparencyType(action->getState());
+  if ((drawState.transparentMaterial || drawState.transparentTexture) &&
+      transparency != SoGLRenderAction::NONE && transparency != SoGLRenderAction::SCREEN_DOOR &&
+      transparency != SoGLRenderAction::BLEND && transparency != SoGLRenderAction::ADD) {
+    // Deferred native traversal can emit in a different order (and sorted
+    // triangles may use arrays). Capture order cannot prove current normal.
+    this->rasterNormalKnown = false;
+    return;
+  }
+  const bool audited = type == SoCube::getClassTypeId() || type == SoCone::getClassTypeId() ||
+    type == SoCylinder::getClassTypeId() || type == SoSphere::getClassTypeId() ||
+    type == SoPointSet::getClassTypeId() || type == SoIndexedFaceSet::getClassTypeId() || type == SoIndexedTriangleStripSet::getClassTypeId() ||
+    action->getComplexityType() == SoComplexity::BOUNDING_BOX;
+  if (!audited) { this->rasterNormalKnown = false; return; }
+  // Native shouldGLRender may cull a valid bounding-box cache before any
+  // normal emission. If a shape is wholly outside the frustum, cache presence
+  // determines whether it emits; do not claim either result from callbacks.
+  SbBox3f box; SbVec3f center;
+  const_cast<SoShape *>(static_cast<const SoShape *>(node))->computeBBox(action, box, center);
+  if (!box.isEmpty()) {
+    SbPlane planes[6]; action->getViewVolume().getViewVolumePlanes(planes);
+    for (const auto & plane : planes) {
+      bool anyInside = false;
+      for (int corner = 0; corner < 8; ++corner) {
+        SbVec3f point((corner & 1) ? box.getMax()[0] : box.getMin()[0],
+                      (corner & 2) ? box.getMax()[1] : box.getMin()[1],
+                      (corner & 4) ? box.getMax()[2] : box.getMin()[2]);
+        action->getModelMatrix().multVecMatrix(point, point);
+        anyInside |= plane.isInHalfSpace(point);
+      }
+      if (!anyInside) { this->rasterNormalKnown = false; return; }
+    }
+  }
+  const bool sendsNormals = SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR ||
+    SoMultiTextureCoordinateElement::getType(action->getState(), 0) == SoMultiTextureCoordinateElement::FUNCTION;
+  auto setNormal = [this](const SbVec3f & value) { this->rasterNormal = value; this->rasterNormalKnown = true; };
+  // These helpers use immediate glNormal, independently of array capabilities.
+  if (action->getComplexityType() == SoComplexity::BOUNDING_BOX) {
+    // SoShape::GLRenderBoundingBox always requests immediate cube normals.
+    setNormal(SbVec3f(0,-1,0));
+  } else if (type == SoCube::getClassTypeId()) {
+    if (sendsNormals) setNormal(SbVec3f(0,-1,0));
+  } else if (type == SoCone::getClassTypeId()) {
+    const auto * cone = static_cast<const SoCone *>(node);
+    const int parts = cone->parts.getValue();
+    if (parts & SoCone::BOTTOM) setNormal(SbVec3f(0,-1,0));
+    else if ((parts & SoCone::SIDES) && sendsNormals) {
+      const double angle = atan(cone->height.getValue() / cone->bottomRadius.getValue());
+      setNormal(SbVec3f(0, float(cos(angle)), -float(sin(angle))));
+    }
+  } else if (type == SoCylinder::getClassTypeId()) {
+    const int parts = static_cast<const SoCylinder *>(node)->parts.getValue();
+    if (parts & SoCylinder::BOTTOM) setNormal(SbVec3f(0,-1,0));
+    else if (parts & SoCylinder::TOP) setNormal(SbVec3f(0,1,0));
+    else if ((parts & SoCylinder::SIDES) && sendsNormals) setNormal(SbVec3f(0,0,-1));
+  } else if (type == SoSphere::getClassTypeId()) {
+    float complexity = action->getComplexity();
+    if (action->getComplexityType() == SoComplexity::SCREEN_SPACE) {
+      SbBox3f box; SbVec3f center;
+      const_cast<SoShape *>(static_cast<const SoShape *>(node))->computeBBox(action, box, center);
+      SbVec2s size;
+      SoShape::getScreenSize(action->getState(), box, size);
+      complexity *= float(sqrt(float(std::max(size[0], size[1])))) * 0.4f;
+    }
+    complexity = std::max(0.0f, std::min(1.0f, complexity));
+    const int stacks = std::max(3, int(30.0f * complexity));
+    const int slices = std::min(128, std::max(4, int(30.0f * complexity)));
+    const float drho = float(M_PI) / float(stacks-1);
+    const float dtheta = 2.0f * float(M_PI) / float(slices);
+    // Reproduce the last explicit immediate-mode glNormal in
+    // sogl_render_sphere, including its repeated float angle additions.
+    float rho = drho, theta = 0.0f;
+    for (int j = 1; j <= slices; ++j) theta += dtheta;
+    float tc = float(cos(rho)), ts = -float(sin(rho));
+    rho += drho;
+    for (int i = 2; i < stacks-1; ++i) {
+      tc = float(cos(rho)); ts = -float(sin(rho));
+      theta = 0.0f;
+      for (int j = 0; j < slices; ++j) theta += dtheta;
+      rho += drho;
+    }
+    setNormal(SbVec3f(float(sin(theta))*ts, tc, float(cos(theta))*ts));
+  } else if (type == SoPointSet::getClassTypeId()) {
+    const auto * points = static_cast<const SoPointSet *>(node);
+    if (points->vertexProperty.getValue()) this->rasterNormalKnown = false;
+    else {
+      bool needNormals = SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR;
+      // Native SoTextureCoordinateBundle::isFunction covers every enabled
+      // unit, including its generated default coordinates. Quality zero
+      // disables these effective GL units, but does not disable PHONG normals.
+      if (!needNormals && SoTextureQualityElement::get(action->getState()) > 0.0f) {
+        int lastUnit = -1;
+        const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
+        const auto * coordinates = SoMultiTextureCoordinateElement::getInstance(action->getState());
+        for (int unit = 0; unit <= lastUnit; ++unit) {
+          if (!enabled[unit]) continue;
+          const auto kind = coordinates->getType(unit);
+          if (kind != SoMultiTextureCoordinateElement::EXPLICIT || coordinates->getNum(unit) == 0)
+            needNormals = true;
+        }
+      }
+      const auto * normals = SoNormalElement::getInstance(action->getState());
+      // Unlike IndexedShape, PointSet does not generate missing normals;
+      // it turns normal submission off and preserves GL_CURRENT_NORMAL.
+      if (needNormals && normals->getNum()) {
+        if (SoNormalBindingElement::get(action->getState()) == SoNormalBindingElement::OVERALL)
+          setNormal(normals->get(0)); // Explicit glNormal, normal array disabled.
+        else this->rasterNormalKnown = false; // Per-point arrays may be enabled.
+      }
+    }
+  } else if (type == SoIndexedFaceSet::getClassTypeId() ||
+             type == SoIndexedTriangleStripSet::getClassTypeId()) {
+    const auto * vertexShape = static_cast<const SoVertexShape *>(node);
+    // VertexProperty overrides are applied inside native GLRender. Until
+    // audited independently, do not read a popped outer normal as its value.
+    if (vertexShape->vertexProperty.getValue()) this->rasterNormalKnown = false;
+    else {
+      const bool emit = type == SoIndexedTriangleStripSet::getClassTypeId()
+        ? SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR : sendsNormals;
+      if (emit) {
+        if (SoNormalBindingElement::get(action->getState()) == SoNormalBindingElement::OVERALL) {
+          const auto * normals = SoNormalElement::getInstance(action->getState());
+          if (normals->getNum()) setNormal(normals->get(0));
+          else this->rasterNormalKnown = false; // Native may generate a normal cache.
+        } else this->rasterNormalKnown = false;
+      }
+    }
+  } else {
+    // No inference from generated callback corners: native enabled normal
+    // arrays leave the current normal indeterminate after DrawArrays/Elements.
+    this->rasterNormalKnown = false;
+  }
+}
+
+void
+CoinRenderFramePlanBuilder::invalidateRasterCoordinates(SoCallbackAction * action)
+{
+  if (!action || !action->getState() ||
+      !(SoTextureQualityElement::get(action->getState()) > 0.0f)) return;
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+    if (SoMultiTextureEnabledElement::get(action->getState(), int(unit)))
+      this->rasterCoordinateHistory[unit] = RasterCoordinateHistory::INDETERMINATE;
+}
+
 void
 CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode * node)
 {
+  this->invalidateRasterCoordinates(action);
   this->endShape();
   this->stripMaterialNode = nullptr;
   this->stripMaterialPart = -1;
+  this->quadShadowNode = nullptr;
+  this->quadShadowPart = -1;
+  this->quadShadowFace = -1;
+  this->quadShadowTriangle = 0;
   this->stripMaterialNextFace = 0;
   if (!action || !node || polygonDrawStyle(action) != SoDrawStyleElement::FILLED) return;
   // These exact built-in generators do not modify render state between
@@ -233,6 +593,15 @@ CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode *
   if (type != SoCube::getClassTypeId() && type != SoCone::getClassTypeId() &&
       type != SoCylinder::getClassTypeId() && type != SoSphere::getClassTypeId()) return;
   SoState * state = action->getState();
+  // Native template replay has no per-corner bump coordinate payload.
+  if (SoBumpMapCoordinateElement::getInstance(state)->getNum() > 0) return;
+  const SoNode * bumpSource = SoBumpMapElement::getSource(state);
+  if (bumpSource && bumpSource->isOfType(SoBumpMap::getClassTypeId())) {
+    SbVec2s bumpSize;
+    int bumpComponents = 0;
+    static_cast<const SoBumpMap *>(bumpSource)->image.getValue(bumpSize, bumpComponents);
+    if (bumpSize != SbVec2s(0, 0)) return;
+  }
   int last = -1;
   const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(state, last);
   for (int unit = 0; unit <= last; ++unit)
@@ -261,6 +630,27 @@ CoinRenderFramePlanBuilder::beginShape(SoCallbackAction * action, const SoNode *
 void
 CoinRenderFramePlanBuilder::endShape()
 {
+  if (!this->hasError && !this->isUnsupported && !this->bumpShapeTriangleIndices.empty()) {
+    std::vector<CoinRenderBumpTangents> tangents;
+    std::string diagnostic;
+    if (!coin_render_legacy_bump_corner_tangents(this->bumpShapeCorners,
+                                                 this->bumpShapeTriangleIndices,
+                                                 tangents, diagnostic)) {
+      this->hasError = true;
+      this->builderError = diagnostic;
+    } else {
+      for (size_t i = 0; i < tangents.size(); ++i) {
+        CoinRenderBumpTangentOverride entry;
+        entry.vertexIndex = this->bumpShapeVertices[i];
+        entry.tangent = tangents[i];
+        this->currentPlan.bumpTangents.push_back(entry);
+      }
+    }
+  }
+  this->bumpShapeCorners.clear();
+  this->bumpShapeVertices.clear();
+  this->bumpShapeTriangleIndices.clear();
+  this->bumpCornerByVertex.clear();
   if (this->captureCubeTemplate)
     this->cubeGeometryCore.learn(this->currentPlan, this->cubeCaptureFirstVertex,
       this->cubeCaptureFirstIndex, this->cubeCaptureFirstDraw,
@@ -269,6 +659,20 @@ CoinRenderFramePlanBuilder::endShape()
   this->stableShape = nullptr;
   this->reuseCubeVertices = false;
   this->shapeRenderStates.clear();
+}
+
+void
+CoinRenderFramePlanBuilder::recordBumpTriangle(uint32_t a, uint32_t b, uint32_t c)
+{
+  if (this->bumpShapeCorners.empty()) return;
+  const auto x = this->bumpCornerByVertex.find(a);
+  const auto y = this->bumpCornerByVertex.find(b);
+  const auto z = this->bumpCornerByVertex.find(c);
+  if (x == this->bumpCornerByVertex.end() || y == this->bumpCornerByVertex.end() ||
+      z == this->bumpCornerByVertex.end()) return;
+  this->bumpShapeTriangleIndices.push_back(x->second);
+  this->bumpShapeTriangleIndices.push_back(y->second);
+  this->bumpShapeTriangleIndices.push_back(z->second);
 }
 
 bool
@@ -439,9 +843,34 @@ CoinRenderFramePlanBuilder::beginAnnotation(bool clearDepth)
     this->savedAnnotationLayer = this->currentAnnotationLayer;
     this->savedAnnotationClear = this->annotationDepthClearPending;
     this->currentAnnotationLayer = this->nextAnnotationLayer++;
-    this->annotationDepthClearPending = clearDepth;
+    this->annotationDepthClearPending = clearDepth || this->deferredDepthClear;
+    this->deferredDepthClear = false;
     this->hasActiveDraw = false;
   }
+}
+
+void
+CoinRenderFramePlanBuilder::beginAuthoredScene(bool clearDepth)
+{
+  // A manager scene boundary orders the base after its backgrounds; it is not
+  // an SoAnnotation nesting level. An annotation inside this scene must enter
+  // its own immediate layer and then restore the authored scene's state.
+  this->authoredSceneParentLayer = this->currentAnnotationLayer;
+  this->authoredSceneParentClear = this->annotationDepthClearPending;
+  this->currentAnnotationLayer = this->nextAnnotationLayer++;
+  this->authoredSceneLayer = this->currentAnnotationLayer;
+  this->annotationDepthClearPending = clearDepth || this->deferredDepthClear;
+  this->deferredDepthClear = false;
+  this->hasActiveDraw = false;
+}
+
+void
+CoinRenderFramePlanBuilder::endAuthoredScene()
+{
+  this->deferredDepthClear = this->deferredDepthClear || this->annotationDepthClearPending;
+  this->currentAnnotationLayer = this->authoredSceneParentLayer;
+  this->annotationDepthClearPending = this->authoredSceneParentClear;
+  this->hasActiveDraw = false;
 }
 
 void
@@ -449,25 +878,30 @@ CoinRenderFramePlanBuilder::beginForeground()
 {
   this->foregroundLayer = this->currentAnnotationLayer;
   this->currentAnnotationLayer = this->nextAnnotationLayer++;
-  this->annotationDepthClearPending = false;
+  this->annotationDepthClearPending = this->deferredDepthClear;
+  this->deferredDepthClear = false;
   this->hasActiveDraw = false;
 }
 
 void
 CoinRenderFramePlanBuilder::endForeground()
 {
+  this->deferredDepthClear = this->deferredDepthClear || this->annotationDepthClearPending;
   this->currentAnnotationLayer = this->foregroundLayer;
   this->annotationDepthClearPending = false;
   this->hasActiveDraw = false;
 }
 
-void
+uint32_t
 CoinRenderFramePlanBuilder::reserveDelayedLayers(uint32_t count)
 {
-  // Reserve one shared pass between scene and ordinary foreground annotations.
+  // Delayed paths follow the authored scene, including when manager backgrounds
+  // precede it. Only foreground layers move to make room for these paths.
+  const uint32_t first = this->authoredSceneLayer == UINT32_MAX ? 1 : this->authoredSceneLayer + 1;
   for (CoinRenderDrawPacket & draw : this->currentPlan.draws)
-    if (draw.renderLayer) draw.renderLayer += count;
+    if (draw.renderLayer >= first) draw.renderLayer += count;
   this->nextAnnotationLayer += count;
+  return first;
 }
 
 void
@@ -477,6 +911,9 @@ CoinRenderFramePlanBuilder::beginDelayedAnnotations(uint32_t layer, bool clearDe
   this->savedAnnotationClear = false;
   this->annotationDepth = 1;
   this->currentAnnotationLayer = layer;
+  // Delayed paths are replayed after traversal but ordered before ordinary
+  // annotation layers. A clear deferred by an ordinary layer cannot flow
+  // backwards into these earlier passes.
   this->annotationDepthClearPending = clearDepth;
   this->hasActiveDraw = false;
 }
@@ -486,6 +923,7 @@ CoinRenderFramePlanBuilder::endAnnotation()
 {
   if (this->annotationDepth == 0) return;
   if (--this->annotationDepth == 0) {
+    this->deferredDepthClear = this->deferredDepthClear || this->annotationDepthClearPending;
     this->currentAnnotationLayer = this->savedAnnotationLayer;
     this->annotationDepthClearPending = this->savedAnnotationClear;
     this->hasActiveDraw = false;
@@ -495,9 +933,9 @@ CoinRenderFramePlanBuilder::endAnnotation()
 void CoinRenderFramePlanBuilder::registerSceneTexture(const unsigned char* image,
                                                       uint64_t producerId, uint32_t width,
                                                       uint32_t height, bool opaque,
-                                                      int32_t transparencyFunction,CoinRenderTextureFormat format) {
+                                                      int32_t transparencyFunction,CoinRenderTextureFormat format,uint32_t cubeFaceSize) {
   this->sceneTextures[image] =
-      SceneTexture{producerId, width, height, opaque, transparencyFunction,format};
+      SceneTexture{producerId, width, height, opaque, transparencyFunction,format,cubeFaceSize};
 }
 
 void
@@ -511,6 +949,20 @@ CoinRenderFramePlanBuilder::registerAuthoredTextureImage(const unsigned char * b
     authoredTextureSources[bytes] = {source, revision};
     if(compressed) compressedTextureImages.insert(bytes);
     else compressedTextureImages.erase(bytes);
+  }
+}
+
+void
+CoinRenderFramePlanBuilder::registerAuthoredVolumeImage(const unsigned char * bytes,
+                                                        bool compressed,
+                                                        const SoTexture3 * source,
+                                                        SbUniqueId revision)
+{
+  if (bytes) {
+    this->authoredVolumeImages.insert(bytes);
+    this->authoredVolumeSources[bytes] = {source, revision};
+    if (compressed) this->compressedVolumeImages.insert(bytes);
+    else this->compressedVolumeImages.erase(bytes);
   }
 }
 
@@ -689,6 +1141,63 @@ CoinRenderFramePlanBuilder::captureMaterial(SoCallbackAction * action, int mater
 }
 
 bool
+CoinRenderFramePlanBuilder::captureCubeNode(SoCallbackAction * action,
+                                           const SoTextureCubeMap * node,
+                                           std::string & diagnostic)
+{
+  SoState * state = action->getState();
+  if (SoTextureOverrideElement::getImageOverride(state)) return true;
+  const int unit = SoTextureUnitElement::get(state);
+  auto fail = [&](const char * message) {
+    diagnostic = this->builderError = message;
+    this->isUnsupported = true;
+    return false;
+  };
+  const SoSFImage * fields[] = {&node->imagePosX, &node->imageNegX, &node->imagePosY,
+    &node->imageNegY, &node->imagePosZ, &node->imageNegZ};
+  SbVec2s sizes[6]; int components[6]; const uint8_t * bytes[6];
+  bool any = false, filenames = false;
+  for (int i = 0; i < node->filenames.getNum(); ++i)
+    filenames = filenames || node->filenames[i].getLength() != 0;
+  for (int i = 0; i < 6; ++i) {
+    bytes[i] = fields[i]->getValue(sizes[i], components[i]);
+    any = any || sizes[i] != SbVec2s(0, 0);
+  }
+  if (!any && !filenames) return true;
+  if (filenames && node->coinRenderFilenamePendingOrFailed())
+    return fail("Cube texture filename is pending or failed to load");
+  if (unit < 0 || unit >= int(COIN_RENDER_MAX_TEXTURE_UNITS))
+    return fail("At most eight cube texture units are supported");
+  const int n = sizes[0][0];
+  if (n <= 0 || n > 2048 || (n & (n - 1)) || components[0] < 1 || components[0] > 4)
+    return fail("Cube textures require square POT faces 1..2048 and components 1..4");
+  for (int i = 0; i < 6; ++i)
+    if (!bytes[i] || sizes[i] != SbVec2s(short(n), short(n)) || components[i] != components[0])
+      return fail("Cube texture has missing or mismatched faces, or pending filenames");
+  const int model = node->model.getValue();
+  if ((model != SoTextureCubeMap::MODULATE && model != SoTextureCubeMap::REPLACE &&
+       model != SoTextureCubeMap::DECAL && model != SoTextureCubeMap::BLEND) ||
+      (model == SoTextureCubeMap::DECAL && components[0] < 3))
+    return fail("Cube texture model is invalid for the source components");
+  const float quality = SoTextureQualityElement::get(state);
+  CoinRenderTextureFilter filter;
+  if (!CoinRenderTextureSamplingCore::quality(quality, filter))
+    return fail("Cube texture quality must be finite in [0,1]");
+  if (this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR ||
+      (quality > .85f && this->maxTextureAnisotropy > 1))
+    return fail("Cube textures require linear RGBA8 without anisotropy");
+  for (int c = 0; c < 3; ++c) if (!std::isfinite(node->blendColor.getValue()[c]))
+    return fail("Cube texture blend color is non-finite");
+  this->cubeSources[node->getNodeId()] = node;
+  auto * mutableNode = const_cast<SoTextureCubeMap *>(node);
+  SoMultiTextureImageElement::set(state, mutableNode, unit, sizes[0], components[0], bytes[0],
+    SoMultiTextureImageElement::CLAMP, SoMultiTextureImageElement::CLAMP,
+    static_cast<SoMultiTextureImageElement::Model>(model), node->blendColor.getValue());
+  SoMultiTextureEnabledElement::enableCubeMap(state, mutableNode, unit);
+  return true;
+}
+
+bool
 CoinRenderFramePlanBuilder::captureTexture(SoCallbackAction * action, CoinRenderRenderStateSnapshot & rs, std::string * outError)
 {
   if (!captureTextureUnit(action, 0, rs, outError)) return false;
@@ -745,6 +1254,222 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     const auto policy = this->sceneTextures.find(bytes);
     if (policy != this->sceneTextures.end())
       rs.transparentTexture = coin_render_scene_texture_forces_transparency(policy->second.transparencyFunction);
+    return true;
+  }
+
+  if (SoMultiTextureEnabledElement::getMode(state, unit) == SoMultiTextureEnabledElement::CUBEMAP) {
+    auto fail = [&](const char * message) {
+      this->isUnsupported = true; this->builderError = message;
+      if (outError) *outError = message;
+      return false;
+    };
+    SbVec2s markerSize; int markerComponents=0;
+    const auto * marker=SoMultiTextureImageElement::getImage(state,unit,markerSize,markerComponents);
+    const auto logical=this->sceneTextures.find(marker);
+    if (logical!=this->sceneTextures.end() && logical->second.cubeFaceSize) {
+      const auto & source=logical->second;
+      CoinRenderSamplerSnapshot sampler;
+      sampler.wrapS=sampler.wrapT=sampler.wrapR=CoinRenderTextureWrap::CLAMP;
+      const float quality=SoTextureQualityElement::get(state);
+      if (!CoinRenderTextureSamplingCore::quality(quality,sampler.filter) ||
+          (quality>.85f && this->maxTextureAnisotropy>1) ||
+          this->storedTextureColorSpace!=COIN_RENDER_TEXTURE_LINEAR)
+        return fail("Cube RTT requires linear RGBA8 and non-anisotropic cube filtering");
+      if (quality==0) {rs.hasTexture=false;return true;}
+      CoinRenderTextureImageSnapshot image;
+      if (!CoinRenderCubeTextureCore::describe(source.cubeFaceSize,
+          CoinRenderTextureSamplingCore::mipFilter(sampler.filter),image))
+        return fail("Invalid cube RTT atlas layout");
+      image.producerId=source.producerId;image.sceneTransparencyFunction=source.transparencyFunction;
+      image.gpuOpaque=source.opaque;
+      rs.textureImageSlot=CoinRenderPlanAssemblyCore::texture(this->currentPlan,std::move(image));
+      rs.samplerSlot=CoinRenderPlanAssemblyCore::sampler(this->currentPlan,sampler);
+      SoMultiTextureImageElement::Wrap ws,wt;SoMultiTextureImageElement::Model model;SbColor blend;
+      SoMultiTextureImageElement::get(state,unit,markerSize,markerComponents,ws,wt,model,blend);
+      rs.textureModel=CoinRenderTextureModel(uint32_t(model)==uint32_t(SoMultiTextureImageElement::MODULATE)?0:
+        model==SoMultiTextureImageElement::REPLACE?1:model==SoMultiTextureImageElement::DECAL?2:3);
+      for(int c=0;c<3;++c)rs.textureBlendColor[c]=blend[c];rs.textureBlendColor[3]=1;
+      rs.textureMatrix=SoMultiTextureMatrixElement::get(state,unit);
+      rs.transparentTexture=coin_render_scene_texture_forces_transparency(source.transparencyFunction);
+      rs.hasTexture=true;return true;
+    }
+    const auto * element = static_cast<const SoMultiTextureImageElement *>(
+      SoElement::getConstElement(state, SoMultiTextureImageElement::getClassStackIndex()));
+    const auto source = this->cubeSources.find(element->getUnitData(unit).nodeid);
+    if (source == this->cubeSources.end()) return fail("Unrecorded cube texture source");
+    const auto * node = source->second;
+    const SoSFImage * fields[] = {&node->imagePosX, &node->imageNegX, &node->imagePosY,
+      &node->imageNegY, &node->imagePosZ, &node->imageNegZ};
+    CoinRenderSamplerSnapshot sampler;
+    sampler.wrapS = sampler.wrapT = sampler.wrapR = CoinRenderTextureWrap::CLAMP;
+    const float quality = SoTextureQualityElement::get(state);
+    if (!CoinRenderTextureSamplingCore::quality(quality, sampler.filter) ||
+        (quality > .85f && this->maxTextureAnisotropy > 1))
+      return fail("Cube texture filter or anisotropy is unsupported");
+    const bool mips = CoinRenderTextureSamplingCore::mipFilter(sampler.filter);
+    SbVec2s size; int components;
+    fields[0]->getValue(size, components);
+    const int model = node->model.getValue();
+    rs.textureModel = model == SoTextureCubeMap::MODULATE ? CoinRenderTextureModel::MODULATE :
+      model == SoTextureCubeMap::REPLACE ? CoinRenderTextureModel::REPLACE :
+      model == SoTextureCubeMap::DECAL ? CoinRenderTextureModel::DECAL : CoinRenderTextureModel::BLEND;
+    if (model == SoTextureCubeMap::REPLACE && (components == 1 || components == 3))
+      rs.textureCombines[0] = coin_render_replace_rgb_preserve_alpha();
+    for (int c = 0; c < 3; ++c) rs.textureBlendColor[c] = node->blendColor.getValue()[c];
+    rs.textureBlendColor[3] = 1.0f;
+    rs.transparentTexture = false;
+    for (const auto * field : fields) {
+      SbVec2s extent; int nc; const auto * bytes = field->getValue(extent, nc);
+      rs.transparentTexture = rs.transparentTexture || coin_render_image_has_transparency(
+        bytes, size_t(extent[0]) * extent[1], nc);
+    }
+    if (quality == 0.0f) { rs.hasTexture = false; return true; }
+    auto cached = this->capturedCubeImages.find(node->getNodeId());
+    if (cached == this->capturedCubeImages.end())
+      cached = this->capturedCubeImages.emplace(node->getNodeId(), std::array<int64_t, 2>{{-1, -1}}).first;
+    if (cached->second[mips ? 1 : 0] < 0) {
+      std::array<CoinRenderCubeTextureCore::Face, 6> faces;
+      for (size_t i = 0; i < 6; ++i) {
+        SbVec2s extent; int nc; const auto * bytes = fields[i]->getValue(extent, nc);
+        faces[i].width = extent[0]; faces[i].height = extent[1]; faces[i].components = nc;
+        faces[i].pixels.assign(bytes, bytes + size_t(extent[0]) * extent[1] * nc);
+      }
+      CoinRenderCubeTextureCore::Atlas atlas;
+      if (!CoinRenderCubeTextureCore::prepare(faces, mips, atlas))
+        return fail("Cube texture atlas exceeds the supported layout or 128 MiB");
+      CoinRenderTextureImageSnapshot image;
+      image.width = atlas.width; image.height = atlas.height;
+      image.cubeFaceSize = atlas.faceSize; image.cubeSourceComponents = atlas.sourceComponents;
+      image.cubeMipmapped = atlas.mipmapped; image.pixelsRgba = std::move(atlas.pixelsRgba);
+      image.contentDigest = CoinRenderImageCore::rgba8Digest(image.pixelsRgba) ^
+        (uint64_t(image.cubeFaceSize) << 32) ^ (uint64_t(image.cubeSourceComponents) << 8) ^ uint64_t(mips);
+      cached->second[mips ? 1 : 0] = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
+    }
+    rs.textureImageSlot = uint32_t(cached->second[mips ? 1 : 0]);
+    rs.samplerSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampler);
+    rs.textureMatrix = SoMultiTextureMatrixElement::get(state, unit);
+    rs.hasTexture = true;
+    return true;
+  }
+
+  SbVec3s volumeSize;
+  int volumeComponents = 0;
+  SoMultiTextureImageElement::Wrap volumeWrapS, volumeWrapT, volumeWrapR;
+  SoMultiTextureImageElement::Model volumeModel;
+  SbColor volumeBlend;
+  const unsigned char * volumeBytes = SoMultiTextureImageElement::get(
+      state, unit, volumeSize, volumeComponents, volumeWrapS, volumeWrapT,
+      volumeWrapR, volumeModel, volumeBlend);
+  if (SoMultiTextureEnabledElement::getMode(state, unit) ==
+      SoMultiTextureEnabledElement::TEXTURE3D) {
+    auto failVolume = [&](const char * message) {
+      this->isUnsupported = true;
+      this->builderError = message;
+      if (outError) *outError = message;
+      return false;
+    };
+    if (!volumeBytes || volumeSize[0] <= 0 || volumeSize[1] <= 0 || volumeSize[2] <= 0 ||
+        volumeComponents < 1 || volumeComponents > 4)
+      return failVolume("Invalid SoTexture3 image extent or components");
+    const uint32_t vw = uint32_t(volumeSize[0]), vh = uint32_t(volumeSize[1]),
+                   vd = uint32_t(volumeSize[2]);
+    if (vw > 256 || vh > 256 || vd > 256)
+      return failVolume("SoTexture3 requires extents in 1..256 per axis");
+    const uint64_t voxelCount = uint64_t(vw) * vh * vd;
+    if (voxelCount * 4 > 128ull * 1024ull * 1024ull)
+      return failVolume("SoTexture3 base image exceeds 128 MiB");
+    if (!this->authoredVolumeImages.count(volumeBytes) && vw == 2 && vh == 2 && vd == 2 &&
+        volumeComponents == 1 &&
+        std::all_of(volumeBytes, volumeBytes + 8, [](uint8_t v) { return v == 0xff; }))
+      return failVolume("Pending or missing SoTexture3 filename produced Coin's dummy image");
+    if (this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR)
+      return failVolume("SoTexture3 first profile requires RGBA8 linear storage");
+    if (this->compressedVolumeImages.count(volumeBytes))
+      return failVolume("Compressed SoTexture3 images are outside the RGBA8 linear profile");
+    if (SoTextureScalePolicyElement::get(state) == SoTextureScalePolicyElement::FRACTURE)
+      return failVolume("SoTexture3 with FRACTURE scale policy is unsupported");
+    auto wrap = [](SoMultiTextureImageElement::Wrap value, CoinRenderTextureWrap &result) {
+      if (value == SoMultiTextureImageElement::REPEAT) {
+        result = CoinRenderTextureWrap::REPEAT; return true;
+      }
+      if (value == SoMultiTextureImageElement::CLAMP) {
+        result = CoinRenderTextureWrap::CLAMP; return true;
+      }
+      return false;
+    };
+    CoinRenderSamplerSnapshot sampler;
+    if (!wrap(volumeWrapS, sampler.wrapS) || !wrap(volumeWrapT, sampler.wrapT) ||
+        !wrap(volumeWrapR, sampler.wrapR))
+      return failVolume("SoTexture3 wrap must be REPEAT or CLAMP in all three axes");
+    const float quality = SoTextureQualityElement::get(state);
+    if (!CoinRenderTextureSamplingCore::quality(quality, sampler.filter))
+      return failVolume("SoTexture3 quality must be finite in [0,1]");
+    if (quality > .85f && this->maxTextureAnisotropy > 1)
+      return failVolume("SoTexture3 anisotropic sampling has no portable contract");
+    if (volumeModel == SoMultiTextureImageElement::MODULATE)
+      rs.textureModel = CoinRenderTextureModel::MODULATE;
+    else if (volumeModel == SoMultiTextureImageElement::REPLACE) {
+      rs.textureModel = CoinRenderTextureModel::REPLACE;
+      if (volumeComponents == 1 || volumeComponents == 3)
+        // captureTextureUnit returns one layer through slot zero; its caller
+        // moves that normalized combine to the requested extra unit.
+        rs.textureCombines[0] = coin_render_replace_rgb_preserve_alpha();
+    } else if (volumeModel == SoMultiTextureImageElement::DECAL) {
+      if (volumeComponents < 3) return failVolume("SoTexture3 DECAL requires RGB or RGBA");
+      rs.textureModel = CoinRenderTextureModel::DECAL;
+    } else if (volumeModel == SoMultiTextureImageElement::BLEND)
+      rs.textureModel = CoinRenderTextureModel::BLEND;
+    else return failVolume("Unsupported SoTexture3 texture model");
+    rs.textureBlendColor[0] = volumeBlend[0];
+    rs.textureBlendColor[1] = volumeBlend[1];
+    rs.textureBlendColor[2] = volumeBlend[2];
+    rs.textureBlendColor[3] = 1.0f;
+    if (quality == 0.0f) {
+      rs.transparentTexture = coin_render_image_has_transparency(
+          volumeBytes, size_t(voxelCount), volumeComponents);
+      rs.hasTexture = false;
+      rs.textureImageSlot = rs.samplerSlot = 0;
+      return true;
+    }
+    const bool needsMips = CoinRenderTextureSamplingCore::mipFilter(sampler.filter);
+    const auto source = this->authoredVolumeSources.find(volumeBytes);
+    const auto cached = this->capturedVolumeImages.find(volumeBytes);
+    if (source != this->authoredVolumeSources.end() &&
+        cached != this->capturedVolumeImages.end() &&
+        cached->second.node == source->second.node &&
+        cached->second.revision == source->second.revision &&
+        cached->second.width == vw && cached->second.height == vh &&
+        cached->second.depth == vd && cached->second.components == uint32_t(volumeComponents) &&
+        cached->second.mipmapped == needsMips &&
+        cached->second.imageSlot < this->currentPlan.textures.size()) {
+      rs.transparentTexture = cached->second.transparent;
+      rs.textureImageSlot = cached->second.imageSlot;
+      rs.samplerSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampler);
+      rs.textureMatrix = SoMultiTextureMatrixElement::get(state, unit);
+      rs.hasTexture = true;
+      return true;
+    }
+    rs.transparentTexture = coin_render_image_has_transparency(
+        volumeBytes, size_t(voxelCount), volumeComponents);
+    std::vector<uint8_t> rgba;
+    if (!CoinRenderImageCore::convertToRgba8(
+            volumeBytes, size_t(voxelCount), volumeComponents, rgba))
+      return failVolume("SoTexture3 RGBA8 conversion failed");
+    CoinRenderTextureImageSnapshot image;
+    if (!CoinRenderTextureSamplingCore::packVolumeAtlas(rgba, vw, vh, vd,
+          uint32_t(volumeComponents), needsMips, image))
+      return failVolume("SoTexture3 atlas or mip chain exceeds supported memory and dimensions");
+    image.contentDigest = CoinRenderImageCore::rgba8Digest(image.pixelsRgba) ^
+        (uint64_t(vw) << 48) ^ (uint64_t(vh) << 32) ^ (uint64_t(vd) << 16) ^
+        (uint64_t(volumeComponents) << 8) ^ uint64_t(image.volumeMipmapped);
+    rs.textureImageSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
+    if (source != this->authoredVolumeSources.end())
+      this->capturedVolumeImages[volumeBytes] = {source->second.node, source->second.revision,
+          vw, vh, vd, uint32_t(volumeComponents), needsMips,
+          rs.textureImageSlot, rs.transparentTexture};
+    rs.samplerSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampler);
+    rs.textureMatrix = SoMultiTextureMatrixElement::get(state, unit);
+    rs.hasTexture = true;
     return true;
   }
 
@@ -1094,7 +1819,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 
 uint32_t
 CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int materialIndex, bool captureTextures,
-                                               bool boundingBox)
+                                               bool boundingBox, bool captureRasterLighting)
 {
   const bool stable = captureTextures && this->stableShape && action->getCurPathTail() == this->stableShape;
   if (stable)
@@ -1104,7 +1829,8 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   uint32_t materialSlot = this->captureMaterial(action, materialIndex, boundingBox);
 
   // 2. Lighting & CoinRenderLightModel
-  CoinRenderLightModel lm = captureTextures ? CoinRenderLightModel::PHONG : CoinRenderLightModel::BASE_COLOR;
+  CoinRenderLightModel lm = captureTextures || captureRasterLighting
+    ? CoinRenderLightModel::PHONG : CoinRenderLightModel::BASE_COLOR;
   CoinRenderLightingSnapshot lightSnap;
   lightSnap.lights.swap(this->lightCaptureScratch);
 
@@ -1217,12 +1943,48 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   // for every occurrence. Live Coin state is still captured below each time.
   static const CoinRenderRenderStateSnapshot defaultRenderState;
   CoinRenderRenderStateSnapshot rs = defaultRenderState;
+  rs.colorWrite = this->colorWriteEnabled;
   rs.model = action->getModelMatrix();
   rs.view = camSnap.viewMatrix;
   rs.projectionCoin = camSnap.projectionMatrixCoin;
   rs.materialSlot = materialSlot;
   rs.transparentMaterial = SoLazyElement::getInstance(state)->isTransparent() != FALSE;
   rs.shadowGroupSlot = this->activeShadowGroupSlot();
+  if (!this->shadowMapCameras.empty()) {
+    const auto *view = static_cast<const SoViewVolumeElement *>(
+      state->getConstElement(SoViewVolumeElement::getClassStackIndex()));
+    const auto camera = view ? this->shadowMapCameras.find(view->getNodeId()) :
+      this->shadowMapCameras.end();
+    if (camera != this->shadowMapCameras.end()) {
+      // SoGLViewingMatrixElement loads V after the camera, then computes
+      // its reset matrix from the model M at that camera. Preserve Coin's
+      // exact matrix-operation order: (V*M^-1)*M, then M^-1 on the left.
+      // Subsequent model transforms are multiplied on the left, so the
+      // captured model P*M and this reset view yield P*V. A repeated camera
+      // node can have different poses; match the current element's view.
+      const auto found = this->shadowMapCameraPoses.find(view->getNodeId());
+      const ShadowMapCameraPose *pose = nullptr;
+      if (found != this->shadowMapCameraPoses.end())
+        for (auto it = found->second.rbegin(); it != found->second.rend(); ++it)
+          if (it->view == rs.view) { pose = &*it; break; }
+      SbMatrix inverseView, inverseModel;
+      if (!pose || !coin_render_shadow_camera_math::inverse(rs.view, inverseView) ||
+          !coin_render_shadow_camera_math::inverse(pose->model, inverseModel)) {
+        this->hasError = this->isUnsupported = true;
+        this->builderError = "shadowMapScene camera pose is unavailable or non-invertible";
+      } else {
+        SbMatrix reset = rs.view;
+        reset.multRight(pose->model);
+        reset.multLeft(inverseModel);
+        if (!coin_render_shadow_camera_math::inverse(reset, inverseView)) {
+          this->hasError = this->isUnsupported = true;
+          this->builderError = "shadowMapScene camera reset produces a non-invertible view";
+        }
+        rs.view = reset;
+        rs.shadowMapCameraOverride = true;
+      }
+    }
+  }
   if (rs.shadowGroupSlot) rs.shadowStyle = static_cast<uint32_t>(SoShadowStyleElement::get(state));
   if (rs.shadowGroupSlot && (rs.shadowStyle & 2u))
     rs.textureProjection = CoinRenderTextureProjection::DIRECT_ST;
@@ -1292,6 +2054,10 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     ? static_cast<uint32_t>(SoLinePatternElement::get(state)) : 0xffffu;
   rs.linePatternScaleFactor = state
     ? SoLinePatternElement::getScaleFactor(state) : 1;
+  if (this->linePatternOverride) {
+    rs.linePattern = this->linePatternValue;
+    rs.linePatternScaleFactor = this->linePatternFactor;
+  }
 
   CoinRenderPlanAssemblyCore::normalizeState(rs, camSnap);
 
@@ -1310,6 +2076,40 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
     this->captureStoredTextureAlpha(action, inheritedTextureAlpha);
     rs.transparentTexture = rs.transparentTexture || inheritedTextureAlpha ||
       (SoShapeStyleElement::get(state)->getFlags() & SoShapeStyleElement::TRANSP_TEXTURE) != 0;
+  }
+
+  if (state->isElementEnabled(CoinRenderShaderModuleElement::getClassStackIndex())) {
+    const auto registration = CoinRenderShaderModuleElement::get(state);
+    if (registration) {
+      CoinRenderShaderInstance instance;
+      instance.module = registration->module;
+      if (!coin_render_shader_ir(instance.module, instance.ir, this->builderError) ||
+          !coin_render_shader_parameters(*registration, instance.parameters, this->builderError)) {
+        this->hasError = this->isUnsupported = true;
+      } else {
+        // Coordinates exist independently of image enablement. The module
+        // observes STRQ after each authored matrix, before projective divide.
+        rs.textureMatrix = SoMultiTextureMatrixElement::get(state, 0);
+        for (unsigned unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+          if (instance.ir.coordinateMask & (1u << unit))
+            rs.extraTextures[unit - 1].matrix = SoMultiTextureMatrixElement::get(state, unit);
+        std::string identity = coin_render_shader_key(instance.module, instance.ir);
+        if (!instance.parameters.empty())
+          identity.append(reinterpret_cast<const char *>(instance.parameters.data()),
+                          instance.parameters.size() * sizeof(float));
+        const auto existing = this->portableShaderSlots.find(identity);
+        if (existing != this->portableShaderSlots.end()) {
+          rs.portableShaderSlot = existing->second;
+        } else if (this->currentPlan.portableShaders.size() >= std::numeric_limits<uint32_t>::max()) {
+          this->hasError = this->isUnsupported = true;
+          this->builderError = "Portable shader occurrence table exceeds its slot domain";
+        } else {
+          this->currentPlan.portableShaders.push_back(std::move(instance));
+          rs.portableShaderSlot = static_cast<uint32_t>(this->currentPlan.portableShaders.size());
+          this->portableShaderSlots.emplace(std::move(identity), rs.portableShaderSlot);
+        }
+      }
+    }
   }
 
   const uint32_t rsSlot = CoinRenderPlanAssemblyCore::state(
@@ -1362,8 +2162,6 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
   }
   if (property) property->doAction(action);
   if (isShapeInvisible(action)) return true;
-  if (this->hasActiveShadowGroup())
-    return fail("UNSUPPORTED: marker raster inside an active shadow group", true);
   const uint32_t shapeFlags = SoShapeStyleElement::get(state)->getFlags();
   if (shapeFlags & SoShapeStyleElement::BBOXCMPLX)
     return fail("UNSUPPORTED: marker bounding-box complexity requires bounding-box capture", true);
@@ -1375,9 +2173,6 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
      transparencyType == SoGLRenderAction::SORTED_OBJECT_BLEND ||
      transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
      transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
-  if (traversalAlpha && (transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
-                         transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND))
-    return fail("UNSUPPORTED: transparent markers with sorted-triangle traversal require Coin's primitive-cache policy", true);
   if (indexed) {
     SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
     SoMultiTextureEnabledElement::disableAll(state);
@@ -1516,7 +2311,8 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
     for (int axis = 0; axis < 3; ++axis)
       if (!std::isfinite(sortingCenter[axis])) return fail("Marker sorting center is not finite");
   }
-  const auto source = this->currentPlan.renderStates[this->captureRenderState(action, 0, false)];
+  const uint32_t sourceSlot = this->captureRenderState(action, 0, false, false, true);
+  const auto source = this->currentPlan.renderStates[sourceSlot];
   if (this->hasError || this->isUnsupported) return false;
   const auto viewport = this->currentPlan.viewports[source.viewportSlot];
   const SbMatrix mvp = source.model * source.view * source.projectionCoin;
@@ -1567,6 +2363,28 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
     source.model.multVecMatrix(point, world);
     for (int axis = 0; axis < 3; ++axis)
       if (!std::isfinite(world[axis])) return fail("Marker world position is not finite");
+    if (source.shadowGroupSlot && (source.shadowStyle & 1u) &&
+        !source.transparentMaterial && !inheritedTextureAlpha) {
+      CoinRenderRasterOccurrence occurrence;
+      occurrence.kind = CoinRenderRasterOccurrence::MARKER;
+      occurrence.sourceStateSlot = sourceSlot;
+      occurrence.anchorWorld = world;
+      occurrence.originalWidth = image.width;
+      occurrence.originalHeight = image.height;
+      for (int runY = 0; runY < image.height; ++runY) {
+        for (int runX = 0; runX < image.width;) {
+          const auto covered = [&](int x) {
+            return (image.bytes[size_t(runY) * image.stride + size_t(x / 8)] &
+                    (0x80u >> (x & 7))) != 0;
+          };
+          if (!covered(runX)) { ++runX; continue; }
+          const int begin = runX;
+          while (runX < image.width && covered(runX)) ++runX;
+          occurrence.runs.push_back({float(begin), float(runY), float(runX - begin)});
+        }
+      }
+      this->currentPlan.rasterOccurrences.push_back(std::move(occurrence));
+    }
     bool culled = false;
     for (const auto & plane : viewPlanes) if (!plane.isInHalfSpace(world)) culled = true;
     for (const auto & plane : source.clipPlanesWorld) if (!plane.isInHalfSpace(world)) culled = true;
@@ -1605,6 +2423,10 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
       rasterMaterials.emplace(material, materialSlot);
     }
     rasterState.materialSlot = materialSlot;
+    if (source.shadowGroupSlot) {
+      rasterState.rasterShadowAnchorValid = true;
+      rasterState.rasterShadowAnchorWorld = world;
+    }
     const uint32_t stateSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
     for (int y = 0; y < image.height; ++y) {
       auto covered = [&](int x) { return (image.bytes[size_t(y) * image.stride + size_t(x / 8)] & (0x80u >> (x & 7))) != 0; };
@@ -1668,26 +2490,30 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
       if (empty) return true;
     }
   }
-  if (this->hasActiveShadowGroup())
-    return fail("UNSUPPORTED: screen raster nodes inside an active shadow group", true);
 
-  // Text2 disables inherited texturing. SoImage with active inherited texture
-  // state requires GL's persistent raster UV attributes, outside this profile.
-  // Capture remaining state without admitting inherited texture profiles.
-  const auto source = this->currentPlan.renderStates[this->captureRenderState(action, 0, false)];
+  if (isImage) {
+    int lastUnit = -1;
+    SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
+    if (lastUnit >= int(COIN_RENDER_MAX_TEXTURE_UNITS))
+      return fail("UNSUPPORTED: At most eight texture units are supported", true);
+  }
+  // Image pixels are PRIMARY, independently of material color. Keep the
+  // inherited units in a separate source state so payload + eight units fit.
+  // Text2 explicitly disables texturing and leaves current attributes intact.
+  const uint32_t sourceSlot = this->captureRenderState(action, 0, isImage, false, true);
+  const auto source = this->currentPlan.renderStates[sourceSlot];
   if (this->hasError || this->isUnsupported) return false;
   const uint32_t shapeFlags = SoShapeStyleElement::get(action->getState())->getFlags();
   const bool traversalAlpha = (shapeFlags &
     (SoShapeStyleElement::TRANSP_MATERIAL | SoShapeStyleElement::TRANSP_TEXTURE)) != 0;
-  if (traversalAlpha && (source.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD ||
-                         source.transparencyType == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND))
-    return fail("UNSUPPORTED: transparent screen raster with sorted-triangle traversal requires Coin's primitive-cache policy", true);
   const auto viewport = this->currentPlan.viewports[source.viewportSlot];
   std::string diagnostic;
   CoinRenderScreenImageLayout imageLayout;
   CoinRenderText2Raster text;
   CoinRenderTextureImageSnapshot image;
   bool imageTransparent = false;
+  auto rasterCoordinates = source.rasterTextureCoordinates;
+  auto rasterProvenance = source.rasterTextureProvenance;
   if (isImage) {
     const auto & imageNode = *static_cast<const SoImage *>(node);
     SbVec2s size; int components = 0;
@@ -1695,24 +2521,138 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
     if (!size[0] || !size[1]) return true;
     int lastUnit = -1;
     const SbBool * enabled = SoMultiTextureEnabledElement::getEnabledUnits(action->getState(), lastUnit);
-    for (int unit = 0; unit <= lastUnit; ++unit)
-      if (enabled[unit])
-        return fail("UNSUPPORTED: SoImage with active inherited texturing requires current raster texture-coordinate capture", true);
+    const auto * coordinates = SoMultiTextureCoordinateElement::getInstance(action->getState());
+    for (int unit = 0; unit <= lastUnit; ++unit) {
+      if (!enabled[unit]) continue;
+      if (unit >= int(COIN_RENDER_MAX_TEXTURE_UNITS))
+        return fail("UNSUPPORTED: At most eight texture units are supported", true);
+      // Quality zero disables the effective GL unit. Neither persistent UV
+      // history nor texgen participates in DrawPixels while it is inactive.
+      if (!coin_render_texture_unit_enabled(source, size_t(unit))) continue;
+      const auto & data = coordinates->getUnitData(unit);
+      const auto recorded = this->rasterGenerators.find(data.nodeid);
+      if (recorded != this->rasterGenerators.end() &&
+          recorded->second.callback == reinterpret_cast<const void *>(data.funcCB)) {
+        if (recorded->second.kind == RasterGeneratorKind::UNSUPPORTED)
+          return fail("UNSUPPORTED: raster texgen subclass has no audited native contract", true);
+        if (recorded->second.kind != RasterGeneratorKind::OBJECT && !this->rasterNormalKnown)
+          return fail("UNSUPPORTED: raster texgen current normal is not determined for the native geometry history", true);
+        // Native object-linear generators define all four components. Defer
+        // evaluation until layout establishes SoImage's pixel-space RasterPos.
+        rasterProvenance[size_t(unit)] = 1;
+        continue;
+      }
+      if (this->rasterCoordinateHistory[size_t(unit)] != RasterCoordinateHistory::INITIAL)
+        return fail("UNSUPPORTED: SoImage inherited raster texture coordinate is indeterminate after geometry", true);
+      if (coordinates->getType(unit) == SoMultiTextureCoordinateElement::TEXGEN)
+        return fail("UNSUPPORTED: SoImage raster texgen requires a recorded generator", true);
+    }
     CoinRenderScreenRasterAnchor anchor;
     if (!CoinRenderScreenRasterCore::imageAnchor(source.model, action->getViewVolume(),
-                                                viewport, anchor, diagnostic) ||
-        !CoinRenderScreenRasterCore::imageLayout(anchor, viewport, size[0], size[1],
+                                                viewport, anchor, diagnostic))
+      return fail(diagnostic, diagnostic.find("UNSUPPORTED:") == 0);
+    if (source.shadowGroupSlot && (source.shadowStyle & 1u) &&
+        !source.transparentMaterial && !source.transparentTexture &&
+        !coin_render_image_has_transparency(bytes,
+          size_t(size[0]) * size_t(size[1]), components)) {
+      CoinRenderRasterOccurrence occurrence;
+      occurrence.kind = CoinRenderRasterOccurrence::IMAGE;
+      occurrence.sourceStateSlot = sourceSlot;
+      source.model.multVecMatrix(SbVec3f(0, 0, 0), occurrence.anchorWorld);
+      occurrence.originalWidth = size[0];
+      occurrence.originalHeight = size[1];
+      occurrence.requestedWidth = imageNode.width.getValue();
+      occurrence.requestedHeight = imageNode.height.getValue();
+      occurrence.horizontalAlignment = imageNode.horAlignment.getValue();
+      occurrence.verticalAlignment = imageNode.vertAlignment.getValue();
+      this->currentPlan.rasterOccurrences.push_back(std::move(occurrence));
+    }
+    if (!CoinRenderScreenRasterCore::imageLayout(anchor, viewport, size[0], size[1],
           imageNode.width.getValue(), imageNode.height.getValue(),
           imageNode.horAlignment.getValue(), imageNode.vertAlignment.getValue(),
           source.materialSlot, imageLayout, diagnostic))
       return fail(diagnostic, diagnostic.find("UNSUPPORTED:") == 0);
     if (!imageLayout.quad.visible) return true;
+    // SoImage replaces MODELVIEW with identity and installs pixel glOrtho
+    // before glRasterPos(rpx,rpy,-nilpoint.z). OBJECT_LINEAR therefore sees
+    // the aligned, cropped viewport-local pixel anchor, not object origin.
+    const SbVec3f rasterPosition(imageLayout.rasterX, imageLayout.rasterY, -anchor.depthCoin);
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      if (rasterProvenance[unit] != 1) continue;
+      const auto & generator = this->rasterGenerators.at(coordinates->getUnitData(int(unit)).nodeid);
+      if (generator.kind == RasterGeneratorKind::OBJECT) {
+        rasterCoordinates[unit] = coordinates->get(int(unit), rasterPosition, this->rasterNormal);
+        continue;
+      }
+      // CoinGL enables NORMALIZE. SoImage's MODELVIEW is identity, hence
+      // normalize the persistent raw normal, never the prior model transform.
+      SbVec3f normal = this->rasterNormal;
+      for (int axis = 0; axis < 3; ++axis)
+        if (!std::isfinite(normal[axis]) || !std::isfinite(rasterPosition[axis]))
+          return fail("Non-finite raster normal or eye position", false);
+      if (!(normal.normalize() > 0.0f))
+        return fail("UNSUPPORTED: raster texgen current normal has zero length", true);
+      SbVec3f generated = normal;
+      if (generator.kind != RasterGeneratorKind::NORMAL) {
+        SbVec3f eye = rasterPosition;
+        if (!(eye.normalize() > 0.0f))
+          return fail("UNSUPPORTED: raster reflection eye position has zero length", true);
+        generated = eye - normal * (2.0f * normal.dot(eye));
+      }
+      const auto & plane = this->rasterQPlanes[unit];
+      const float q = plane[0]*rasterPosition[0] + plane[1]*rasterPosition[1] +
+                      plane[2]*rasterPosition[2] + plane[3];
+      if (generator.kind == RasterGeneratorKind::SPHERE) {
+        const float m = 2.0f * sqrtf(generated[0]*generated[0] + generated[1]*generated[1] +
+                                    (generated[2]+1.0f)*(generated[2]+1.0f));
+        if (!(m > 0.0f)) return fail("UNSUPPORTED: raster sphere-map divisor is zero", true);
+        rasterCoordinates[unit] = SbVec4f(generated[0]/m+0.5f, generated[1]/m+0.5f, 1, 1);
+      } else rasterCoordinates[unit] = SbVec4f(generated[0], generated[1], generated[2], q);
+    }
     if (!CoinRenderScreenRasterCore::imagePayload(bytes,
           size_t(size[0]) * size_t(size[1]) * size_t(components),
           size[0], size[1], components, image, imageTransparent, diagnostic))
       return fail(diagnostic, diagnostic.find("UNSUPPORTED:") == 0);
   } else {
     CoinRenderText2Capture::Status status;
+    if (source.shadowGroupSlot && (source.shadowStyle & 1u) &&
+        !source.transparentMaterial) {
+      CoinRenderText2Raster shadowText;
+      if (!coin_render_capture_text2_for_shadow(*static_cast<const SoText2 *>(node),
+              action->getState(), shadowText, status, diagnostic))
+        return fail(diagnostic, status == CoinRenderText2Capture::Status::UNSUPPORTED);
+      SbVec3f worldAnchor;
+      source.model.multVecMatrix(SbVec3f(0, 0, 0), worldAnchor);
+      for (const auto & pass : shadowText.passes) {
+        CoinRenderRasterOccurrence occurrence;
+        occurrence.kind = pass.mono ? CoinRenderRasterOccurrence::TEXT_MONO :
+                                      CoinRenderRasterOccurrence::TEXT_GRAY;
+        occurrence.sourceStateSlot = sourceSlot;
+        occurrence.anchorWorld = worldAnchor;
+        occurrence.originalWidth = static_cast<int32_t>(pass.image.width);
+        occurrence.originalHeight = static_cast<int32_t>(pass.image.height);
+        // Coin's mono bitmap keeps the floating x raster position and truncates
+        // y. The final gray DrawPixels rounds both anchor coordinates first.
+        // Store only glyph/layout offsets so each map can apply its own camera's
+        // raster-position rounding instead of inheriting the observer's phase.
+        occurrence.offsetX = pass.pixelX - (pass.mono ? shadowText.anchor.pixelX :
+          float(std::floor(double(shadowText.anchor.pixelX) + 0.5)));
+        occurrence.offsetY = pass.pixelY - (pass.mono ?
+          float(int(shadowText.anchor.pixelY)) :
+          float(std::floor(double(shadowText.anchor.pixelY) + 0.5)));
+        for (uint32_t y = 0; y < pass.image.height; ++y) {
+          for (uint32_t x = 0; x < pass.image.width;) {
+            if (!pass.coverageMask[size_t(y) * pass.image.width + x]) { ++x; continue; }
+            const uint32_t begin = x;
+            while (x < pass.image.width &&
+                   pass.coverageMask[size_t(y) * pass.image.width + x]) ++x;
+            occurrence.runs.emplace_back(float(begin), float(y), float(x - begin));
+          }
+        }
+        if (!occurrence.runs.empty())
+          this->currentPlan.rasterOccurrences.push_back(std::move(occurrence));
+      }
+    }
     if (!CoinRenderText2Capture::capture(*static_cast<const SoText2 *>(node), action->getState(),
                                        text, status, diagnostic))
       return fail(diagnostic, status == CoinRenderText2Capture::Status::UNSUPPORTED);
@@ -1721,7 +2661,15 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
 
   auto rasterState = source;
   rasterState.rasterPixels = true;
+  rasterState.rasterTextureCoordinates = rasterCoordinates;
+  rasterState.rasterTextureProvenance = rasterProvenance;
   rasterState.rasterTransparent = traversalAlpha;
+  if (source.shadowGroupSlot) {
+    rasterState.rasterShadowAnchorValid = true;
+    source.model.multVecMatrix(SbVec3f(0, 0, 0), rasterState.rasterShadowAnchorWorld);
+    rasterState.rasterShadowImagePhong = isImage &&
+      source.lightModel == CoinRenderLightModel::PHONG;
+  }
   rasterState.model = rasterState.view = rasterState.projectionCoin = SbMatrix::identity();
   rasterState.lightModel = CoinRenderLightModel::BASE_COLOR;
   rasterState.cullMode = CoinRenderCullMode::NONE;
@@ -1730,7 +2678,16 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
   rasterState.polygonLinePattern = false;
   rasterState.clipPlanesWorld.clear(); // glRasterPos tests the anchor once below.
   rasterState.textureMatrix = SbMatrix::identity();
+  rasterState.extraTextures = decltype(rasterState.extraTextures)();
+  rasterState.textureCombines = decltype(rasterState.textureCombines)();
   rasterState.hasTexture = true;
+  if (isImage) {
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit)
+      if (coin_render_texture_unit_enabled(source, unit)) {
+        rasterState.rasterTextureSourceSlot = sourceSlot;
+        break;
+      }
+  }
   if (rasterState.transparencyType == SoGLRenderAction::SCREEN_DOOR)
     rasterState.transparencyType = SoGLRenderAction::NONE; // Polygon stipple never masks raster pixels.
   // Disabling GL_DEPTH_TEST disables depth writes as well as comparisons.
@@ -1783,7 +2740,7 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
     rasterState.materialSlot = whiteSlot;
     rasterState.textureModel = CoinRenderTextureModel::REPLACE;
     rasterState.transparentMaterial = false;
-    rasterState.transparentTexture = imageTransparent;
+    rasterState.transparentTexture = imageTransparent || source.transparentTexture;
     rasterState.rasterTransparent = rasterState.rasterTransparent || imageTransparent;
     rasterState.textureImageSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
     const uint32_t slot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
@@ -1842,6 +2799,7 @@ CoinRenderVertexSnapshot
 CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPrimitiveVertex * pv,
   uint32_t materialSlot, const CoinRenderRenderStateSnapshot & rs)
 {
+  this->invalidateRasterCoordinates(action);
   CoinRenderVertexSnapshot v;
   const SbVec3f & pt = pv->getPoint();
   const SbVec3f & n = pv->getNormal();
@@ -1854,7 +2812,8 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     shapeType == SoSphere::getClassTypeId();
   // Other generators already evaluated the primary callback. Preserve that
   // value, including R/Q, rather than calling a user function twice.
-  if (rs.hasTexture && canonicalGenerator &&
+  if ((rs.hasTexture || (rs.portableShaderSlot &&
+       (this->currentPlan.portableShaders[rs.portableShaderSlot - 1].ir.coordinateMask & 1u))) && canonicalGenerator &&
       coords->getType(0) == SoMultiTextureCoordinateElement::FUNCTION)
     tc = coords->get(0, pt, n);
 
@@ -1872,7 +2831,8 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
   v.textureQ[0] = tc[3];
   v.materialSlot = materialSlot;
 
-  bool hasExtraCoordinates = false;
+  bool hasExtraCoordinates = rs.portableShaderSlot &&
+    (this->currentPlan.portableShaders[rs.portableShaderSlot - 1].ir.coordinateMask & 0xfeu);
   for (const auto & texture : rs.extraTextures)
     if (texture.enabled) hasExtraCoordinates = true;
   if (!hasExtraCoordinates) return v;
@@ -1891,13 +2851,25 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
     texIndex = static_cast<const SoPointDetail *>(detail)->getTextureCoordIndex();
   else if (detail && detail->isOfType(SoFaceDetail::getClassTypeId())) {
     const auto * face = static_cast<const SoFaceDetail *>(detail);
-    for (int i = 0; i < face->getNumPoints(); ++i) matchPoint(face->getPoint(i));
+    const int corner = action->getCurrentTrianglePointDetailIndex(pv);
+    // QUAD_STRIP's assembler stores vertices in GL stream order 0,1,2,3,
+    // but its SoFaceDetail lists polygon order 0,1,3,2. The callback index
+    // names the former; map the right pair before looking up UV for this
+    // exact vertex. Flat paths pass copies and use the position fallback.
+    const int detailCorner = shapeType == SoQuadMesh::getClassTypeId() &&
+        face->getNumPoints() == 4 && (corner == 2 || corner == 3) ?
+        5 - corner : corner;
+    if (detailCorner >= 0 && detailCorner < face->getNumPoints())
+      texIndex = face->getPoint(detailCorner)->getTextureCoordIndex();
+    else
+      for (int i = 0; i < face->getNumPoints(); ++i) matchPoint(face->getPoint(i));
   } else if (detail && detail->isOfType(SoLineDetail::getClassTypeId())) {
     const auto * line = static_cast<const SoLineDetail *>(detail);
     matchPoint(line->getPoint0()); matchPoint(line->getPoint1());
   }
   for (size_t unit = 1; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
-    if (!rs.extraTextures[unit - 1].enabled) continue;
+    if (!rs.extraTextures[unit - 1].enabled &&
+        (!rs.portableShaderSlot || !(this->currentPlan.portableShaders[rs.portableShaderSlot - 1].ir.coordinateMask & (1u << unit)))) continue;
     const auto type = coords->getType(unit);
     if (type == SoMultiTextureCoordinateElement::FUNCTION ||
         (canonicalGenerator && type == SoMultiTextureCoordinateElement::DEFAULT)) {
@@ -1920,6 +2892,90 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
       this->isUnsupported = true;
       this->builderError = "Texture coordinate generator unavailable for unit " + std::to_string(unit);
       continue;
+    }
+    // The precise QuadMesh fan emits its center with texture index -1.
+    // Reconstruct each additional unit from that quad's four explicit,
+    // homogeneous coordinates using the same quantized weights as CoinGL.
+    if (texIndex < 0 && shapeType == SoQuadMesh::getClassTypeId() &&
+        detail && detail->isOfType(SoFaceDetail::getClassTypeId())) {
+      const auto * face = static_cast<const SoFaceDetail *>(detail);
+      // addTriangle may pass a copied SoPrimitiveVertex for flat lighting;
+      // then the action cannot map its address back to a point-detail slot.
+      // A TRIANGLE_FAN keeps the center at detail point zero, and the center
+      // position is the exact average emitted by SoQuadMesh.
+      if (face->getNumPoints() > 0 &&
+          face->getPoint(0)->getCoordinateIndex() < 0) {
+        const auto * mesh = static_cast<const SoQuadMesh *>(action->getCurPathTail());
+        const int64_t row = face->getPartIndex(), col = face->getFaceIndex();
+        const int64_t rowsize = mesh->verticesPerRow.getValue();
+        const int64_t colsize = mesh->verticesPerColumn.getValue();
+        const int64_t start = mesh->startIndex.getValue();
+        if (rowsize < 2 || colsize < 2 || start < 0 ||
+            row < 0 || row >= colsize-1 || col < 0 || col >= rowsize-1) {
+          this->hasError = true;
+          this->builderError = "Invalid precise QuadMesh center face indices";
+          continue;
+        }
+        const int64_t wideIndex[4] = {row*rowsize+col, (row+1)*rowsize+col,
+                                      row*rowsize+col+1, (row+1)*rowsize+col+1};
+        bool valid = true;
+        for (int k=0;k<4;++k)
+          valid = valid && wideIndex[k] >= 0 &&
+                    wideIndex[k] < coords->getNum(unit) &&
+                    start+wideIndex[k] < positions->getNum();
+        if (!valid) {
+          this->hasError = true;
+          this->builderError = "Precise QuadMesh center needs four valid texture coordinates per unit";
+          continue;
+        }
+        int index[4];
+        SbVec3f points[4];
+        for (int k=0;k<4;++k) {
+          index[k]=int(wideIndex[k]);
+          points[k]=positions->get3(int(start+wideIndex[k]));
+        }
+        const SbVec3f center=(points[0]+points[1]+points[2]+points[3])*.25f;
+        // Other fan corners still use their own explicit indices.
+        if (!pv->getPoint().equals(center,1.0e-12f)) {
+          // The point detail can be shared by copied primitive vertices.
+          // A corner with a missing index is invalid, never a center.
+          this->hasError = true;
+          this->builderError = "Precise QuadMesh corner has no texture coordinate index";
+          continue;
+        }
+        const float d0=(points[0]-center).sqrLength(), d1=(points[1]-center).sqrLength();
+        const float d2=(points[2]-center).sqrLength(), d3=(points[3]-center).sqrLength();
+        auto quantizedWeight=[](float ratio) {
+          // Match SoQuadMesh::qmeshGetWeight's configured fallback exactly.
+          // Some Coin builds do not detect ilogb and use exponent 16 for
+          // every quad, including asymmetric ones.
+#if defined(HAVE_ILOGB)
+          const int exponent=std::ilogb(ratio)+16;
+#elif defined(HAVE__LOGB)
+          const int exponent=int(::_logb(ratio))+16;
+#else
+          (void)ratio;
+          const int exponent=16;
+#endif
+          if (exponent < 0) return 0.0f;
+          if (exponent >= 32) return 1.0f;
+          const double p=std::sqrt(std::ldexp(.75,exponent-16));
+          return float(p/(1.0+p));
+        };
+        const float w0=.5f*quantizedWeight(d0/d3);
+        const float w1=.5f*quantizedWeight(d1/d2);
+        const float weights[4]={w0,w1,.5f-w1,.5f-w0};
+        SbVec4f uv(0,0,0,0);
+        for (int k=0;k<4;++k) {
+          const SbVec4f cornerUv=coords->get4(unit,index[k]);
+          uv+=cornerUv*weights[k];
+        }
+        v.extraTexcoords[unit-1][0]=uv[0];
+        v.extraTexcoords[unit-1][1]=uv[1];
+        v.textureR[unit]=uv[2];
+        v.textureQ[unit]=uv[3];
+        continue;
+      }
     }
     if (texIndex < 0 || texIndex >= coords->getNum(unit)) {
       this->hasError = true;
@@ -1953,8 +3009,65 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
   const auto & rs = this->currentPlan.renderStates[
     this->currentPlan.draws[this->currentDrawIndex].renderStateSlot];
   const CoinRenderVertexSnapshot vertex = this->captureVertex(action, pv, materialSlot, rs);
+  const SoNode * bumpSource = SoBumpMapElement::getSource(action->getState());
+  const SbUniqueId bumpRevision = bumpSource ? bumpSource->getNodeId() : 0;
+  if (bumpSource != this->lastBumpSource || bumpRevision != this->lastBumpRevision) {
+    this->lastBumpSource = bumpSource;
+    this->lastBumpRevision = bumpRevision;
+    this->lastBumpSlot = 0;
+    if (bumpSource && bumpSource->isOfType(SoBumpMap::getClassTypeId())) {
+      const auto cached = this->bumpImageSlots.find(bumpSource);
+      if (cached != this->bumpImageSlots.end() && cached->second.first == bumpRevision) {
+        this->lastBumpSlot = cached->second.second;
+      } else {
+        CoinRenderBumpImage image;
+        std::string diagnostic;
+        if (!coin_render_capture_bump_node(*static_cast<const SoBumpMap *>(bumpSource),
+                                            image, diagnostic)) {
+          this->hasError = true;
+          this->builderError = diagnostic;
+          return 0;
+        }
+        if (!image.rgb.empty()) {
+          this->currentPlan.bumpImages.push_back(std::move(image));
+          this->lastBumpSlot = static_cast<uint32_t>(this->currentPlan.bumpImages.size());
+        }
+        this->bumpImageSlots[bumpSource] = {bumpRevision, this->lastBumpSlot};
+      }
+    }
+  }
+  const uint32_t bumpSlot = this->lastBumpSlot;
+  uint32_t bumpTransformSlot = 0;
+  if (bumpSlot) {
+    const SbMatrix & matrix = SoBumpMapMatrixElement::get(action->getState());
+    const SbMatrix identity = SbMatrix::identity();
+    if (std::memcmp(matrix.getValue(), identity.getValue(), sizeof(float) * 16) != 0) {
+      for (size_t i = 0; i < this->currentPlan.bumpTransforms.size(); ++i)
+        if (std::memcmp(matrix.getValue(), this->currentPlan.bumpTransforms[i].getValue(),
+                        sizeof(float) * 16) == 0) {
+          bumpTransformSlot = static_cast<uint32_t>(i + 1);
+          break;
+        }
+      if (!bumpTransformSlot) {
+        this->currentPlan.bumpTransforms.push_back(matrix);
+        bumpTransformSlot = static_cast<uint32_t>(this->currentPlan.bumpTransforms.size());
+      }
+    }
+  }
+  const bool authoredBumpCoords =
+    SoBumpMapCoordinateElement::getInstance(action->getState())->getNum() > 0;
+  CoinRenderBumpCoord bumpCoord(vertex.texcoord[0], vertex.texcoord[1]);
+  if (authoredBumpCoords) {
+    std::string diagnostic;
+    if (!coin_render_capture_bump_coord(action, pv, bumpCoord, diagnostic)) {
+      this->hasError = true;
+      this->builderError = diagnostic;
+      return 0;
+    }
+  }
   uint32_t * cubeSlot = nullptr;
-  if (this->reuseCubeVertices && action->getCurPathTail() == this->stableShape) {
+  if (!authoredBumpCoords && !bumpSlot && this->reuseCubeVertices &&
+      action->getCurPathTail() == this->stableShape) {
     // A face/corner key finds candidates without per-vertex heap allocation.
     // The full captured bytes decide equality: material, normal, coordinates
     // and expanded attributes must all match. Collisions only miss reuse.
@@ -1971,6 +3084,47 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
   }
   const uint32_t index = static_cast<uint32_t>(this->currentPlan.vertices.size());
   this->currentPlan.vertices.push_back(vertex);
+  if (bumpSlot || bumpCoord.s != vertex.texcoord[0] || bumpCoord.t != vertex.texcoord[1]) {
+    CoinRenderBumpCoordOverride override;
+    override.vertexIndex = index;
+    override.imageSlot = bumpSlot;
+    override.transformSlot = bumpTransformSlot;
+    override.coord[0] = bumpCoord.s;
+    override.coord[1] = bumpCoord.t;
+    this->currentPlan.bumpCoords.push_back(override);
+  }
+  if (bumpSlot) {
+    CoinRenderBumpLegacyCorner corner;
+    for (int axis = 0; axis < 3; ++axis) {
+      corner.position[axis] = pv->getPoint()[axis];
+      corner.normal[axis] = pv->getNormal()[axis];
+    }
+    for (int axis = 0; axis < 4; ++axis)
+      corner.textureCoord0[axis] = pv->getTextureCoords()[axis];
+    corner.bumpCoord[0] = bumpCoord.s;
+    corner.bumpCoord[1] = bumpCoord.t;
+    const SoDetail * detail = pv->getDetail();
+    if (detail && detail->isOfType(SoFaceDetail::getClassTypeId())) {
+      const auto * face = static_cast<const SoFaceDetail *>(detail);
+      const int point = action->getCurrentTrianglePointDetailIndex(pv);
+      if (point >= 0 && point < face->getNumPoints())
+        corner.textureCoordIndex = face->getPoint(point)->getTextureCoordIndex();
+    }
+    const SoLazyElement * lazy = SoLazyElement::getInstance(action->getState());
+    const int diffuse = std::max(0, std::min(pv->getMaterialIndex(), lazy->getNumDiffuse() - 1));
+    if (lazy->isPacked()) {
+      corner.rgba = lazy->getPackedPointer()[diffuse];
+    } else {
+      const int transparency = std::max(0, std::min(pv->getMaterialIndex(),
+                                                   lazy->getNumTransparencies() - 1));
+      corner.rgba = lazy->getDiffusePointer()[diffuse].getPackedValue(
+        lazy->getTransparencyPointer()[transparency]);
+    }
+    const uint32_t local = static_cast<uint32_t>(this->bumpShapeCorners.size());
+    this->bumpShapeCorners.push_back(corner);
+    this->bumpShapeVertices.push_back(index);
+    this->bumpCornerByVertex.emplace(index, local);
+  }
   if (cubeSlot) *cubeSlot = index;
   return index;
 }
@@ -2000,6 +3154,7 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
   dp.frameNodeOrdinal = ++this->nodeCounter;
   dp.sourceNodeId = nodeId;
   dp.renderLayer = this->currentAnnotationLayer;
+  dp.authoredScene = dp.renderLayer != 0 && dp.renderLayer == this->authoredSceneLayer;
   dp.clearDepthBefore = dp.renderLayer != 0 && this->annotationDepthClearPending;
   if (dp.clearDepthBefore) this->annotationDepthClearPending = false;
   dp.geometry.firstVertex = static_cast<uint32_t>(this->currentPlan.vertices.size());
@@ -2063,11 +3218,13 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
     }
   }
   if (centered) {
+    const auto * coordinates = SoMultiTextureCoordinateElement::getInstance(action->getState());
     for (int unit = 1; unit < int(COIN_RENDER_MAX_TEXTURE_UNITS); ++unit) {
-      if (SoMultiTextureEnabledElement::get(action->getState(), unit)) {
+      if (SoMultiTextureEnabledElement::get(action->getState(), unit) &&
+          coordinates->getType(unit) != SoMultiTextureCoordinateElement::EXPLICIT) {
         this->isUnsupported = true;
         this->builderError =
-            "UNSUPPORTED: centered QuadMesh needs per-unit center texture coordinates";
+            "UNSUPPORTED: centered QuadMesh requires explicit coordinates in every additional texture unit";
         return;
       }
     }
@@ -2168,6 +3325,9 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
         const uint32_t captured = this->addVertex(action, source, material);
         this->currentPlan.indices.push_back(captured);
       }
+      this->recordBumpTriangle(this->currentPlan.indices[this->currentPlan.indices.size() - 3],
+                               this->currentPlan.indices[this->currentPlan.indices.size() - 2],
+                               this->currentPlan.indices.back());
       auto &draw = this->currentPlan.draws[this->currentDrawIndex];
       draw.geometry.vertexCount =
           static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
@@ -2186,27 +3346,41 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
       // CoinGL enables GL_FLAT for either face binding. A precise QuadMesh
       // draws a separate fan per quad, so each triangle takes its lit color
       // from the final vertex rather than interpolating the corner colors.
+      // Inside SoShadowGroup, however, CoinGL's shader interpolates its own
+      // lighting varyings while GL_FLAT selects only gl_Color. Keep the
+      // provoking diffuse material but retain PHONG for that shader profile.
       uint32_t rsSlot = this->captureRenderState(action, v2->getMaterialIndex());
       auto rs = this->currentPlan.renderStates[rsSlot];
+      const bool shadowShader = rs.shadowGroupSlot && (rs.shadowStyle & 2u);
+      rs.flatShadowPrimary = shadowShader;
       const uint32_t sourceMaterial = this->captureMaterial(action, v2->getMaterialIndex());
-      CoinRenderVertexSnapshot provoking;
-      for (int c = 0; c < 3; ++c) {
-        provoking.position[c] = v2->getPoint()[c];
-        provoking.normal[c] = v2->getNormal()[c];
+      uint32_t material = sourceMaterial;
+      if (!shadowShader) {
+        CoinRenderVertexSnapshot provoking;
+        for (int c = 0; c < 3; ++c) {
+          provoking.position[c] = v2->getPoint()[c];
+          provoking.normal[c] = v2->getNormal()[c];
+        }
+        material = this->internMaterial(
+            coin_render_bake_vertex_material(provoking, this->currentPlan.materials[sourceMaterial],
+                                             rs, this->currentPlan.lightingStates[rs.lightingSlot]));
+        rs.lightModel = CoinRenderLightModel::BASE_COLOR;
       }
-      const uint32_t material = this->internMaterial(
-          coin_render_bake_vertex_material(provoking, this->currentPlan.materials[sourceMaterial],
-                                           rs, this->currentPlan.lightingStates[rs.lightingSlot]));
-      rs.lightModel = CoinRenderLightModel::BASE_COLOR;
       rs.materialSlot = material;
       rsSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
       this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot,
                              action->getCurPathTail());
       this->captureSortingCenter(action);
       for (const auto *source : {v0, v1, v2}) {
-        const uint32_t captured = this->addVertex(action, source, material);
+        SoPrimitiveVertex copy = *source;
+        const uint32_t vertexMaterial = shadowShader
+            ? this->captureMaterial(action, source->getMaterialIndex()) : material;
+        const uint32_t captured = this->addVertex(action, &copy, vertexMaterial);
         this->currentPlan.indices.push_back(captured);
       }
+      this->recordBumpTriangle(this->currentPlan.indices[this->currentPlan.indices.size() - 3],
+                               this->currentPlan.indices[this->currentPlan.indices.size() - 2],
+                               this->currentPlan.indices.back());
       auto &draw = this->currentPlan.draws[this->currentDrawIndex];
       draw.geometry.vertexCount =
           static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
@@ -2241,6 +3415,25 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
       }
       uint32_t rsSlot = this->captureRenderState(action, v0->getMaterialIndex());
       auto rs = this->currentPlan.renderStates[rsSlot];
+      const bool shadowShader = rs.shadowGroupSlot && (rs.shadowStyle & 2u);
+      rs.flatShadowPrimary = shadowShader;
+      bool firstTriangle = false;
+      if (shadowShader) {
+        const SoNode *node = action->getCurPathTail();
+        if (this->quadShadowNode != node || this->quadShadowPart != detail->getPartIndex() ||
+            this->quadShadowFace != detail->getFaceIndex()) {
+          this->quadShadowNode = node;
+          this->quadShadowPart = detail->getPartIndex();
+          this->quadShadowFace = detail->getFaceIndex();
+          this->quadShadowTriangle = 0;
+        }
+        if (this->quadShadowTriangle >= 2) {
+          this->hasError = true;
+          this->builderError = "Invalid QuadMesh strip triangle sequence";
+          return;
+        }
+        firstTriangle = this->quadShadowTriangle++ == 0;
+      }
       const uint32_t sourceMaterial = this->captureMaterial(
           action, faceMaterial ? v0->getMaterialIndex() : pv->getMaterialIndex());
       SoPrimitiveVertex provoking = *pv;
@@ -2253,26 +3446,42 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
         provoking.setNormal(faceNormalValue);
       }
       CoinRenderVertexSnapshot vertex;
-      for (int c = 0; c < 3; ++c) {
-        vertex.position[c] = provoking.getPoint()[c];
-        vertex.normal[c] = provoking.getNormal()[c];
+      uint32_t material = sourceMaterial;
+      if (!shadowShader) {
+        for (int c = 0; c < 3; ++c) {
+          vertex.position[c] = provoking.getPoint()[c];
+          vertex.normal[c] = provoking.getNormal()[c];
+        }
+        material = this->internMaterial(
+            coin_render_bake_vertex_material(vertex, this->currentPlan.materials[sourceMaterial], rs,
+                                             this->currentPlan.lightingStates[rs.lightingSlot]));
+        rs.lightModel = CoinRenderLightModel::BASE_COLOR;
       }
-      const uint32_t material = this->internMaterial(
-          coin_render_bake_vertex_material(vertex, this->currentPlan.materials[sourceMaterial], rs,
-                                           this->currentPlan.lightingStates[rs.lightingSlot]));
-      rs.lightModel = CoinRenderLightModel::BASE_COLOR;
       rs.materialSlot = material;
       rsSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
       this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, rsSlot,
                              action->getCurPathTail());
       this->captureSortingCenter(action);
+      int corner = 0;
       for (const auto *source : {v0, v1, v2}) {
         SoPrimitiveVertex copy = *source;
-        if (faceNormal)
+        if (faceNormal && !shadowShader)
           copy.setNormal(faceNormalValue);
-        const uint32_t captured = this->addVertex(action, &copy, material);
+        // The callback copies the current face's material index to all four
+        // vertices. Native GL_QUAD_STRIP did not resend it on the left pair
+        // after the first quad of each row; recover those two raw indices.
+        if (shadowShader && faceMaterial && detail->getFaceIndex() > 0 &&
+            (corner == 0 || (firstTriangle && corner == 1)))
+          copy.setMaterialIndex(source->getMaterialIndex() - 1);
+        const uint32_t vertexMaterial = shadowShader
+            ? this->captureMaterial(action, copy.getMaterialIndex()) : material;
+        const uint32_t captured = this->addVertex(action, &copy, vertexMaterial);
         this->currentPlan.indices.push_back(captured);
+        ++corner;
       }
+      this->recordBumpTriangle(this->currentPlan.indices[this->currentPlan.indices.size() - 3],
+                               this->currentPlan.indices[this->currentPlan.indices.size() - 2],
+                               this->currentPlan.indices.back());
       auto &draw = this->currentPlan.draws[this->currentDrawIndex];
       draw.geometry.vertexCount =
           static_cast<uint32_t>(this->currentPlan.vertices.size()) - draw.geometry.firstVertex;
@@ -2298,6 +3507,7 @@ CoinRenderFramePlanBuilder::addTriangle(SoCallbackAction * action,
   this->currentPlan.indices.push_back(i0);
   this->currentPlan.indices.push_back(i1);
   this->currentPlan.indices.push_back(i2);
+  this->recordBumpTriangle(i0, i1, i2);
 
   CoinRenderDrawPacket & dp = this->currentPlan.draws[this->currentDrawIndex];
   dp.geometry.vertexCount = static_cast<uint32_t>(this->currentPlan.vertices.size()) - dp.geometry.firstVertex;
@@ -2405,10 +3615,10 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
   const SoFaceDetail* face = detail && detail->isOfType(SoFaceDetail::getClassTypeId())
                                  ? static_cast<const SoFaceDetail*>(detail)
                                  : nullptr;
-  const bool cube = node->getTypeId() == SoCube::getClassTypeId();
-  const bool cone = node->getTypeId() == SoCone::getClassTypeId();
-  const bool cylinder = node->getTypeId() == SoCylinder::getClassTypeId();
-  const bool sphere = node->getTypeId() == SoSphere::getClassTypeId();
+  const bool cube = node->isOfType(SoCube::getClassTypeId());
+  const bool cone = node->isOfType(SoCone::getClassTypeId());
+  const bool cylinder = node->isOfType(SoCylinder::getClassTypeId());
+  const bool sphere = node->isOfType(SoSphere::getClassTypeId());
   const auto* cylinderDetail =
       cylinder && detail && detail->isOfType(SoCylinderDetail::getClassTypeId())
           ? static_cast<const SoCylinderDetail*>(detail)
@@ -2453,6 +3663,7 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
     this->polygonPartIndex = face ? face->getPartIndex() : -1;
     this->polygonPositions.clear();
     this->polygonVertices.assign(count, CoinRenderVertexSnapshot{});
+    this->polygonTriangleVertices.clear();
     this->polygonCaptured.assign(count, false);
     if (face) {
       const auto* coordinates = SoCoordinateElement::getInstance(action->getState());
@@ -2463,11 +3674,6 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
           return;
         }
         const SbVec3f position = coordinates->get3(index);
-        for (const auto& previous : this->polygonPositions)
-          if (previous == position) {
-            reject("Ambiguous repeated coordinate in polygon contour");
-            return;
-          }
         this->polygonPositions.push_back(position);
       }
     } else {
@@ -2509,20 +3715,33 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
   const auto state = this->currentPlan.renderStates[this->polygonState];
   for (int i = 0; i < 3; ++i) {
     size_t slot = this->polygonPositions.size();
+    // SoShape supplies the original point-detail slot for styled callbacks.
+    // Position alone cannot identify an occurrence when a contour revisits a
+    // coordinate with a different material, normal or texture coordinate.
+    const int occurrence = face ? action->getCurrentTrianglePointDetailIndex(i) : -1;
+    if (occurrence >= 0 && static_cast<size_t>(occurrence) < this->polygonPositions.size() &&
+        vertices[i]->getPoint() == this->polygonPositions[occurrence])
+      slot = static_cast<size_t>(occurrence);
     // The quad's not-yet-captured fourth corner is intentionally excluded.
     const size_t available =
         quad && this->polygonTriangles == 0 ? 3 : this->polygonPositions.size();
-    for (size_t j = 0; j < available; ++j)
-      if (vertices[i]->getPoint() == this->polygonPositions[j]) {
-        slot = j;
-        break;
-      }
+    if (slot == this->polygonPositions.size()) {
+      for (size_t j = 0; j < available; ++j)
+        if (vertices[i]->getPoint() == this->polygonPositions[j]) {
+          if (slot != this->polygonPositions.size()) {
+            reject("Ambiguous polygon occurrence without a point-detail index");
+            return;
+          }
+          slot = j;
+        }
+    }
     if (slot == this->polygonPositions.size()) {
       reject("Triangle callback lost the original face contour");
       return;
     }
     const uint32_t material = this->captureMaterial(action, vertices[i]->getMaterialIndex());
     const auto captured = this->captureVertex(action, vertices[i], material, state);
+    this->polygonTriangleVertices.push_back(captured);
     if (!this->polygonCaptured[slot]) {
       this->polygonVertices[slot] = captured;
       this->polygonCaptured[slot] = true;
@@ -2551,6 +3770,7 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
     this->polygonNode = nullptr;
     this->polygonPositions.clear();
     this->polygonVertices.clear();
+    this->polygonTriangleVertices.clear();
     this->polygonCaptured.clear();
   }
 }
@@ -2579,6 +3799,8 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action, boo
         this->currentPlan.lightingStates[sourceState.lightingSlot]));
     for (auto &vertex : this->polygonVertices)
       vertex.materialSlot = material;
+    for (auto &vertex : this->polygonTriangleVertices)
+      vertex.materialSlot = material;
     sourceState.lightModel = CoinRenderLightModel::BASE_COLOR;
     sourceState.materialSlot = material;
   }
@@ -2591,7 +3813,8 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action, boo
                                          this->currentPlan.materials,
                                          this->currentPlan.lightingStates[sourceState.lightingSlot],
                                          style, resolved, diagnostic,
-                                         this->currentPlan.viewports[sourceState.viewportSlot], preserveDegenerateContour)) {
+                                         this->currentPlan.viewports[sourceState.viewportSlot], preserveDegenerateContour,
+                                         &this->polygonTriangleVertices, &this->currentPlan)) {
     if (diagnostic.compare(0, 12, "UNSUPPORTED:") == 0)
       this->isUnsupported = true;
     else
@@ -2601,6 +3824,42 @@ void CoinRenderFramePlanBuilder::emitStyledPolygon(SoCallbackAction* action, boo
   }
   if (resolved.vertices.empty())
     return;
+  if (!resolved.primitiveSlopeBias.empty()) {
+    const uint32_t corners = style == CoinRenderPolygonStyle::LINES ? 2u : 1u;
+    if (resolved.primitiveSlopeBias.size() != resolved.primitiveMaximumDepth.size() ||
+        resolved.indices.size() != resolved.primitiveSlopeBias.size() * corners) {
+      this->hasError = true;
+      this->builderError = "Invalid per-primitive polygon offset metadata";
+      return;
+    }
+    const uint64_t strip = style == CoinRenderPolygonStyle::LINES
+                               ? ++this->nextLineStripId : 0;
+    for (size_t primitive = 0; primitive < resolved.primitiveSlopeBias.size(); ++primitive) {
+      CoinRenderPolygonStyleResult partial;
+      partial.state = resolved.state;
+      partial.state.polygonOffsetSlopeBias = resolved.primitiveSlopeBias[primitive];
+      partial.state.polygonOffsetMaxDepth = resolved.primitiveMaximumDepth[primitive];
+      partial.topology = resolved.topology;
+      for (uint32_t corner = 0; corner < corners; ++corner) {
+        const uint32_t index = resolved.indices[primitive * corners + corner];
+        if (index >= resolved.vertices.size()) {
+          this->hasError = true;
+          this->builderError = "Invalid per-primitive polygon offset index";
+          return;
+        }
+        partial.vertices.push_back(resolved.vertices[index]);
+        partial.indices.push_back(corner);
+      }
+      const uint32_t stateSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
+      this->currentPlan.renderStates.push_back(partial.state);
+      this->ensureDrawPacket(partial.topology, stateSlot, this->polygonNode, true);
+      this->currentPlan.draws[this->currentDrawIndex].lineStripId = strip;
+      this->captureSortingCenter(action);
+      CoinRenderPlanAssemblyCore::appendPolygon(this->currentPlan,
+          this->currentPlan.draws[this->currentDrawIndex], partial);
+    }
+    return;
+  }
   const uint32_t stateSlot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
   this->currentPlan.renderStates.push_back(resolved.state);
   this->ensureDrawPacket(resolved.topology, stateSlot, this->polygonNode, true);
@@ -2772,6 +4031,17 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
     return CoinRenderFastPathResult::INVALID_SCENE;
   }
   if (isShapeInvisible(action)) return CoinRenderFastPathResult::SUCCESS_PRUNE;
+  if (SoBumpMapCoordinateElement::getInstance(action->getState())->getNum() > 0)
+    return CoinRenderFastPathResult::FALLBACK_CONTINUE;
+  const SoNode * bumpSource = SoBumpMapElement::getSource(action->getState());
+  if (bumpSource && bumpSource->isOfType(SoBumpMap::getClassTypeId())) {
+    SbVec2s size;
+    int components = 0;
+    const auto * bump = static_cast<const SoBumpMap *>(bumpSource);
+    bump->image.getValue(size, components);
+    if (size != SbVec2s(0, 0) || bump->filename.getValue().getLength())
+      return CoinRenderFastPathResult::FALLBACK_CONTINUE;
+  }
   // The callback path carries original face details; direct triangulation loses them.
   if (polygonDrawStyle(action) != SoDrawStyleElement::FILLED)
     return CoinRenderFastPathResult::FALLBACK_CONTINUE;
@@ -2825,6 +4095,7 @@ CoinRenderFramePlanBuilder::processIndexedFaceSet(
   this->captureSortingCenter(action);
 
   CoinRenderDrawPacket & packet = this->currentPlan.draws[this->currentDrawIndex];
+  this->invalidateRasterCoordinates(action);
   CoinRenderPlanAssemblyCore::appendIndexed(this->currentPlan, packet, transformed);
   const uint64_t stableId = reinterpret_cast<uint64_t>(node);
   packet.stableNodeId = stableId;
@@ -2895,6 +4166,7 @@ CoinRenderFramePlanBuilder::processIndexedLineSet(
   this->captureSortingCenter(action);
 
   CoinRenderDrawPacket & packet = this->currentPlan.draws[this->currentDrawIndex];
+  this->invalidateRasterCoordinates(action);
   CoinRenderPlanAssemblyCore::appendIndexed(this->currentPlan, packet, transformed);
   const uint64_t stableId = reinterpret_cast<uint64_t>(node);
   packet.stableNodeId = stableId;

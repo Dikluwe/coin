@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 51
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 63
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -34,6 +34,7 @@ typedef enum CoinWgpuStatus {
 #define COIN_WGPU_FAULT_RTT_BIND_GROUP 304
 #define COIN_WGPU_FAULT_SHADOW_MAP_ALLOC 305
 #define COIN_WGPU_FAULT_RTT_MIP_ENCODING 306
+#define COIN_WGPU_FAULT_MSAA_AFTER_ENCODE 307
 
 typedef enum CoinWgpuNativeSurfaceType {
   COIN_WGPU_NATIVE_XLIB = 1,
@@ -58,6 +59,7 @@ typedef struct CoinWgpuSurfaceCreateInfo {
   uint32_t width;
   uint32_t height;
   uint32_t renderer; /* CoinRenderRenderer; 0 selects the runtime default */
+  uint32_t sample_count; /* 0/1=default single sample; 2 or 4 explicit MSAA */
 } CoinWgpuSurfaceCreateInfo;
 
 typedef struct CoinWgpuVertex {
@@ -70,6 +72,23 @@ typedef struct CoinWgpuVertex {
   float extra_texcoords[7][4];
 } CoinWgpuVertex;
 
+/* Optional R26 bump stream, indexed exactly like the emitted vertex buffer. */
+typedef struct CoinWgpuBumpVertex {
+  float coord[4];
+  float tangent_s[3];
+  float tangent_t[3];
+  uint32_t image_slot; /* One-based; zero means no bump for this vertex. */
+} CoinWgpuBumpVertex;
+
+typedef struct CoinWgpuBumpImage {
+  uint32_t width;
+  uint32_t height;
+  uint32_t clamp_s;
+  uint32_t clamp_t;
+  const uint8_t * rgb;
+  uint64_t rgb_len;
+} CoinWgpuBumpImage;
+
 typedef struct CoinWgpuDraw {
   uint32_t topology;
   uint32_t first_vertex;
@@ -79,7 +98,7 @@ typedef struct CoinWgpuDraw {
   uint32_t render_state_slot;
   uint64_t stable_node_id;
   uint32_t draw_ordinal;
-  uint32_t composition_flags; /* 0=blend, 1=additive, 2=screen door, 3=peel, 4=weighted; bit 5=legacy producer alpha; bits 8..14=door level */
+  uint32_t composition_flags; /* 0=blend, 1=additive, 2=screen door, 3=peel, 4=weighted; bit 5=legacy producer alpha; bit 6=authored scene layer; bits 8..14=door level */
   uint64_t source_revision;
   uint32_t render_layer; /* zero=base; overlays retain traversal order */
   uint32_t clear_depth_before; /* 0/1: clear only this draw's viewport */
@@ -109,11 +128,13 @@ typedef struct CoinWgpuMaterial {
   float transparency;
 } CoinWgpuMaterial;
 
+#define COIN_WGPU_TEXTURE_DECLARED_OPAQUE (1u << 31)
+
 typedef struct CoinWgpuTexture {
   uint32_t width;
   uint32_t height;
-  uint32_t format; /* 0=RGBA8 linear base; 1=GPU RTT token; 2=RGBA8 linear mips; 3/4=SRGB base/mips; 5/6=RGBA16F; 7/8=BC3 linear; 9/10=BC3 SRGB */
-  uint32_t reserved; /* RTT only: opaque bit0, mips bit1, Coin format in bits2..4 */
+  uint32_t format; /* 0=RGBA8 base; 1=RTT; 2=RGBA8 mips; 3..10=advanced 2D; 11=RGBA8 spatial atlas; 12=RGBA8 cube atlas */
+  uint32_t reserved; /* bit31=SoSceneTexture2 NONE declaration; lower bits: RTT policy, or atlas (W-1)/(H-1)/(D-1) in bytes 0..2 and spatial mips bit24; cube log2(face) bits0..3, source components bits4..6, mips bit7 */
   uint64_t content_digest;
   const uint8_t * pixels;
   uint64_t pixel_bytes_len;
@@ -123,7 +144,7 @@ typedef struct CoinWgpuSampler {
   uint32_t wrap_s; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
   uint32_t wrap_t; /* 0=REPEAT, 1=CLAMP_TO_EDGE */
   uint32_t filter; /* 0=NEAREST, 1=LINEAR, 2=NEAREST_MIPMAP_LINEAR, 3=LINEAR_MIPMAP_LINEAR */
-  uint32_t reserved; /* max anisotropy minus one, 0/1/3/7/15 */
+  uint32_t reserved; /* anisotropy minus one in bits0..3; spatial wrapR in bit4 */
 } CoinWgpuSampler;
 
 
@@ -185,15 +206,21 @@ typedef struct CoinWgpuRenderState {
   uint32_t alpha_test_function; /* semantic 0=None,1=Never,2=Always,3=Less,4=LEqual,5=Equal,6=GEqual,7=Greater,8=NotEqual */
   float alpha_test_reference; /* finite and clamped to [0,1] */
   uint32_t texture_projection; /* 0=project ST/Q; 1=native Coin shadow-shader direct ST */
+  uint32_t color_write; /* 0=depth-only, 1=RGBA (legacy), 0x10|mask=partial RGBA mask */
+  uint32_t flat_shadow_primary; /* 1=fragment gl_Color uses the state's material; vertex lighting uses vertex materials */
+  uint32_t raster_texture_source_slot; /* one-based source state, zero disables */
+  float raster_texture_coordinates[8][4]; /* raw persistent raster attributes */
+  uint32_t portable_shader_slot; /* protocol63: one-based Core IR occurrence; zero is fixed texturing */
 } CoinWgpuRenderState;
 
 typedef struct CoinWgpuShadowDraw {
   uint32_t first_index;
   uint32_t index_count;
   uint32_t render_state_slot;
-  uint32_t reserved;
+  uint32_t reserved; /* must be zero */
   float model_view[16];
   float model_view_projection[16];
+  int32_t viewport[4]; /* Protocol62: clipped top-left map-pixel scissor; zero extent is empty. */
 } CoinWgpuShadowDraw;
 
 typedef struct CoinWgpuShadowReceiver {
@@ -217,6 +244,41 @@ typedef struct CoinWgpuShadowPassView {
   float epsilon;
   float threshold;
 } CoinWgpuShadowPassView;
+
+/* Protocol63: typed, topologically ordered Core IR, never shader source.
+   Only active op fields carry semantics. All counts/pointers/domains are checked
+   before creating resources; params are dense logical f32 (at most 4 KiB). */
+typedef struct CoinWgpuPortableNode {
+  uint32_t op, type;
+  uint32_t inputs[3];
+  float value[4];
+  uint32_t resource;
+} CoinWgpuPortableNode;
+typedef struct CoinWgpuPortableModule {
+  const CoinWgpuPortableNode *nodes;
+  uint64_t node_count;
+  const float *parameters;
+  uint64_t parameter_count;
+  uint32_t output;
+  uint32_t alpha_may_vary;
+  const uint8_t *signature;
+  uint64_t signature_bytes;
+} CoinWgpuPortableModule;
+
+typedef struct CoinWgpuPortableRange {
+  double lower[4], upper[4];
+} CoinWgpuPortableRange;
+/* Registered by trusted C++ wiring, never supplied by a frame packet. The
+   callback copies generated WGSL to caller storage and never exposes an owned
+   C++ pointer. Null ranges perform structural/parameter validation only.
+   V2 passes the existing State projection policy: 0 PROJECTIVE, 1 DIRECT_ST.
+   Its distinct installer prevents registration of the old callback prototype. */
+typedef CoinWgpuStatus (*CoinWgpuPortableCoreLowerV2)(const CoinWgpuPortableModule *,
+  const CoinWgpuPortableRange *primary, const CoinWgpuPortableRange *coordinates,
+  const CoinWgpuPortableRange *samples, uint32_t texture_projection,
+  char *wgsl, uint64_t wgsl_capacity,
+  uint64_t *wgsl_required, char *error, uint64_t error_capacity);
+CoinWgpuStatus coin_wgpu_install_portable_core_v2(CoinWgpuPortableCoreLowerV2);
 
 typedef struct CoinWgpuFrameView {
   uint32_t abi_version;
@@ -296,7 +358,20 @@ typedef struct CoinWgpuFrameView {
   uint64_t instance_range_count;
   uint32_t texture_output_flags; /* bit 0=RGBA16F direct RTT; bit 1=generate full RTT mip chain */
   uint32_t texture_sampling_policy; /* 0=native, 1=portable isotropic nearest/mip-linear */
+  uint32_t rasterization_policy; /* 0=native, 1=canonical 1/256 pixel */
+  const CoinWgpuBumpVertex * bump_vertices;
+  uint64_t bump_vertex_count;
+  const CoinWgpuBumpImage * bump_images;
+  uint64_t bump_image_count;
+  const CoinWgpuPortableModule *portable_modules;
+  uint64_t portable_module_count;
 } CoinWgpuFrameView;
+
+/* Compile consumed modules/pipelines on the prepared default device, without
+   encoding commands or acquiring/publishing a target image. */
+CoinWgpuStatus coin_wgpu_prepare_portable_frame(const CoinWgpuFrameView *,
+  uint32_t sample_count, char *error, size_t error_capacity);
+
 
 typedef struct CoinWgpuTarget {
   uint32_t width;
@@ -307,6 +382,7 @@ typedef struct CoinWgpuTarget {
   uint64_t depth_buffer_len;
   uint64_t submission_serial;
   CoinWgpuDeviceId device_id;
+  uint32_t sample_count;
 } CoinWgpuTarget;
 
 typedef struct CoinWgpuReadbackTicket {
@@ -352,6 +428,9 @@ typedef struct CoinWgpuPerformanceStats {
 } CoinWgpuPerformanceStats;
 
 int32_t coin_wgpu_is_available(void);
+CoinWgpuStatus coin_wgpu_preflight_cube_rtt(uint32_t face_size, uint32_t mipmapped, uint32_t samples);
+CoinWgpuStatus coin_wgpu_assemble_cube_rtt(const uint64_t * faces, uint32_t face_size,
+  uint32_t mipmapped, uint64_t generation, uint64_t * out_token, char * error_buf, size_t error_buf_len);
 
 CoinWgpuStatus coin_wgpu_device_create(CoinWgpuDeviceId * out_id,
   char * error_buf, size_t error_buf_len);
@@ -372,7 +451,19 @@ CoinWgpuStatus coin_wgpu_query_runtime_capabilities(CoinWgpuRuntimeCapabilities*
                                                     size_t output_size);
 
 // Hardware admission only; no allocation or submission. Formats use Core enum bits.
+// Additive private query; no layout or existing protocol signature changes.
+CoinWgpuStatus coin_wgpu_preflight_weighted(uint32_t sample_count);
+CoinWgpuStatus coin_wgpu_preflight_peeling(uint32_t sample_count);
+CoinWgpuStatus coin_wgpu_preflight_sample_depth(uint32_t sample_count);
+CoinWgpuStatus coin_wgpu_preflight_shadow_multitexture(uint32_t sample_count);
+CoinWgpuStatus coin_wgpu_preflight_bump_receiver(uint32_t samples, uint64_t vertices,
+                                                 uint64_t materials, uint32_t image_axis,
+                                                 uint32_t sampling_policy);
+CoinWgpuStatus coin_wgpu_preflight_shadow_multitexture_alpha(uint32_t sample_count, uint32_t modes, uint32_t extent, uint32_t layers);
+CoinWgpuStatus coin_wgpu_preflight_shadow_multitexture_depth(uint32_t sample_count);
 CoinWgpuStatus coin_wgpu_preflight_texture_profile(uint32_t formats, uint32_t outputs, uint32_t anisotropy);
+// Private pipeline/extent admission; no output image allocation or GPU submission.
+CoinWgpuStatus coin_wgpu_preflight_raster_images(uint32_t outputs, uint32_t width, uint32_t height, uint64_t bytes);
 
 CoinWgpuStatus coin_wgpu_submit(
   CoinWgpuTarget * target,

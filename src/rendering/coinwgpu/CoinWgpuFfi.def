@@ -1,5 +1,7 @@
 ; Private Rust bridge entry points used by CoinRender integration tests.
 EXPORTS
+    coin_wgpu_install_portable_core_v2
+    coin_wgpu_prepare_portable_frame
     coin_wgpu_device_create
     coin_wgpu_device_destroy
     coin_wgpu_inject_device_fault

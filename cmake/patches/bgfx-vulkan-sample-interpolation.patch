@@ -1,0 +1,71 @@
+diff --git a/include/bgfx/defines.h b/include/bgfx/defines.h
+--- a/include/bgfx/defines.h
++++ b/include/bgfx/defines.h
+@@ -486,6 +486,44 @@
+ #define BGFX_CAPS_VIDEO_DECODE                    UINT64_C(0x0000000000100000) //!< Hardware video decode is supported.
+ #define BGFX_CAPS_VIEWPORT_LAYER_ARRAY            UINT64_C(0x0000000000200000) //!< Viewport layer is available in vertex shader.
+ 
++/* CoinRender dependency extension v1, pinned to bgfx
++ * 81d81fba72c42d348c589514c774bbfe01e110fa (API 161).
++ * Bit 62 is private to this controlled checkout, not an upstream allocation.
++ * Audit/reassign it before rebasing; do not copy these defines to stock headers.
++ * Caps::supported reports an ENABLED Vulkan feature, respecting Init::capabilities.
++ */
++#if BGFX_API_VERSION != UINT32_C(161)
++# error "CoinRender sample interpolation extension requires the pinned BGFX API 161"
++#endif
++#define COIN_BGFX_SAMPLE_INTERPOLATION_EXTENSION_VERSION 1
++#define COIN_BGFX_SAMPLE_INTERPOLATION_SOURCE_REVISION "81d81fba72c42d348c589514c774bbfe01e110fa"
++#define COIN_BGFX_CAPS_SAMPLE_INTERPOLATION UINT64_C(0x4000000000000000)
++#if (COIN_BGFX_CAPS_SAMPLE_INTERPOLATION & (BGFX_CAPS_BLEND_INDEPENDENT \
++    | BGFX_CAPS_COMPUTE \
++    | BGFX_CAPS_CONSERVATIVE_RASTER \
++    | BGFX_CAPS_DRAW_INDIRECT \
++    | BGFX_CAPS_DRAW_INDIRECT_COUNT \
++    | BGFX_CAPS_FRAGMENT_ORDERING \
++    | BGFX_CAPS_GRAPHICS_DEBUGGER \
++    | BGFX_CAPS_HDR10 \
++    | BGFX_CAPS_IMAGE_RW \
++    | BGFX_CAPS_INDEX32 \
++    | BGFX_CAPS_PRIMITIVE_ID \
++    | BGFX_CAPS_RENDERER_MULTITHREADED \
++    | BGFX_CAPS_SWAP_CHAIN \
++    | BGFX_CAPS_TEXTURE_CUBE_ARRAY \
++    | BGFX_CAPS_TEXTURE_DIRECT_ACCESS \
++    | BGFX_CAPS_TEXTURE_EXTERNAL \
++    | BGFX_CAPS_TEXTURE_EXTERNAL_SHARED \
++    | BGFX_CAPS_TRANSPARENT_BACKBUFFER \
++    | BGFX_CAPS_VARIABLE_RATE_SHADING \
++    | BGFX_CAPS_VERTEX_ATTRIB_UINT10 \
++    | BGFX_CAPS_VIDEO_DECODE \
++    | BGFX_CAPS_VIEWPORT_LAYER_ARRAY)) != 0
++# error "CoinRender sample interpolation cap collides with an upstream BGFX cap"
++#endif
++
++
+ #define BGFX_CAPS_FORMAT_TEXTURE_NONE             UINT32_C(0x00000000) //!< Texture format is not supported.
+ #define BGFX_CAPS_FORMAT_TEXTURE_2D               UINT32_C(0x00000001) //!< Texture format is supported.
+ #define BGFX_CAPS_FORMAT_TEXTURE_2D_SRGB          UINT32_C(0x00000002) //!< Texture as sRGB format is supported.
+diff --git a/src/renderer_vk.cpp b/src/renderer_vk.cpp
+--- a/src/renderer_vk.cpp
++++ b/src/renderer_vk.cpp
+@@ -1859,7 +1859,10 @@
+ 						,
+ 					.geometryShader                          = supportedFeatures.geometryShader,
+ 					.tessellationShader                      = VK_FALSE,
+-					.sampleRateShading                       = VK_FALSE,
++					.sampleRateShading                       = true
++						&& supportedFeatures.sampleRateShading
++						&& (_init.capabilities & COIN_BGFX_CAPS_SAMPLE_INTERPOLATION)
++						,
+ 					.dualSrcBlend                            = VK_FALSE,
+ 					.logicOp                                 = VK_FALSE,
+ 					.multiDrawIndirect                       = true
+@@ -1940,6 +1943,7 @@
+ 
+ 				g_caps.supported |= ( 0
+ 					| (m_deviceFeatures.independentBlend ? BGFX_CAPS_BLEND_INDEPENDENT : 0)
++					| (m_deviceFeatures.sampleRateShading ? COIN_BGFX_CAPS_SAMPLE_INTERPOLATION : 0)
+ 					| BGFX_CAPS_COMPUTE
+ 					| (indirectDrawSupport ? BGFX_CAPS_DRAW_INDIRECT : 0)
+ 					| BGFX_CAPS_IMAGE_RW

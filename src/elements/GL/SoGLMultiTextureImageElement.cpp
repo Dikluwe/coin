@@ -78,11 +78,13 @@ public:
   void ensureCapacity(int unit) const {
     while (unit >= this->unitdata.getLength()) {
       this->unitdata.append(SoGLMultiTextureImageElement::GLUnitData());
+      this->quality.append(SoTextureQualityElement::getDefault());
     }
   }
 
   SoGLMultiTextureImageElement::GLUnitData defaultdata;
   mutable SbList<SoGLMultiTextureImageElement::GLUnitData> unitdata;
+  mutable SbList<float> quality;
   SoState * state;
   uint32_t cachecontext;
 };
@@ -149,6 +151,7 @@ SoGLMultiTextureImageElement::push(SoState * state)
   PRIVATE(this)->state = state;
   PRIVATE(this)->cachecontext = PRIVATE(prev)->cachecontext;
   PRIVATE(this)->unitdata = PRIVATE(prev)->unitdata;
+  PRIVATE(this)->quality = PRIVATE(prev)->quality;
   
   // capture previous element since we might or might not change the
   // GL state in set/pop
@@ -183,7 +186,17 @@ SoGLMultiTextureImageElement::pop(SoState * state,
       PRIVATE(this)->unitdata[i] :
       PRIVATE(this)->defaultdata;
 
-    if (thisud.glimage != prevud.glimage) this->updateGL(i);
+    const float thisquality = (i < PRIVATE(this)->quality.getLength()) ?
+      PRIVATE(this)->quality[i] : SoTextureQualityElement::getDefault();
+    const float prevquality = (i < PRIVATE(prev)->quality.getLength()) ?
+      PRIVATE(prev)->quality[i] : SoTextureQualityElement::getDefault();
+    const SbBool qualityVolume = thisud.glimage &&
+      thisud.glimage->getTypeId() == SoGLImage::getClassTypeId() &&
+      thisud.glimage->getImage() && thisud.glimage->getImage()->getSize()[2] > 0;
+    if (thisud.glimage != prevud.glimage ||
+        (qualityVolume && thisquality != prevquality)) {
+      this->updateGL(i, thisquality);
+    }
     str.sprintf("coin_texunit%d_model", i);
     if (prog) prog->updateCoinParameter(state, SbName(str.getString()),
                                         thisud.glimage != NULL ? this->getUnitData(i).model : 0);
@@ -316,6 +329,15 @@ SoGLMultiTextureImageElement::hasTransparency(const int unit) const
 void
 SoGLMultiTextureImageElement::updateGL(const int unit)
 {
+  const float quality = SoTextureQualityElement::get(PRIVATE(this)->state);
+  PRIVATE(this)->ensureCapacity(unit);
+  PRIVATE(this)->quality[unit] = quality;
+  this->updateGL(unit, quality);
+}
+
+void
+SoGLMultiTextureImageElement::updateGL(const int unit, const float quality)
+{
   const GLUnitData & glud = 
     (unit < PRIVATE(this)->unitdata.getLength()) ? 
     PRIVATE(this)->unitdata[unit] :
@@ -327,7 +349,14 @@ SoGLMultiTextureImageElement::updateGL(const int unit)
 
     const UnitData & ud = this->getUnitData(unit);
     SoState * state = PRIVATE(this)->state;
-    SoGLDisplayList * dl = glud.glimage->getGLDisplayList(state);
+    // Pass restored quality only to volumes. Keep the legacy 2D path and the
+    // virtual implementation for cubemaps, big images and other special targets.
+    const SbBool qualityVolume =
+      glud.glimage->getTypeId() == SoGLImage::getClassTypeId() &&
+      glud.glimage->getImage() && glud.glimage->getImage()->getSize()[2] > 0;
+    SoGLDisplayList * dl = qualityVolume ?
+      glud.glimage->getGLDisplayListForQuality(state, quality) :
+      glud.glimage->getGLDisplayList(state);
 
     // tag image (for GLImage LRU cache).
     SoGLImage::tagImage(state, glud.glimage);

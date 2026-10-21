@@ -54,11 +54,14 @@ public:
                   SoGLImage * image);
   
   static SoGLImage * get(SoState * const state);
+  // Source node for callback-based consumers; may be present when GL image is null.
+  static const SoNode * getSource(SoState * const state);
 
 protected:
   virtual void setElt(SoGLImage * image);
 
   SoGLImage * image;
+  const SoNode * source;
 
 };
 

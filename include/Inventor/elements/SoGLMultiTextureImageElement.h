@@ -81,6 +81,7 @@ public:
   
 private:
   void updateGL(const int unit);
+  void updateGL(const int unit, const float quality);
   SoGLMultiTextureImageElementP * pimpl;
 
  public: // Coin-3 support

@@ -73,6 +73,7 @@ SoBumpMapElement::init(SoState * state)
 {
   inherited::init(state);
   this->image = NULL;
+  this->source = NULL;
 }
 
 //! FIXME: write doc.
@@ -92,6 +93,7 @@ SoBumpMapElement::set(SoState * state, SoNode * node,
     return;
   }
   elem->setElt(image);
+  elem->source = node;
 }
 
 //! FIXME: write doc.
@@ -111,6 +113,14 @@ SoBumpMapElement::get(SoState * const state)
   }
 
   return elem->image;
+}
+
+const SoNode *
+SoBumpMapElement::getSource(SoState * const state)
+{
+  const SoBumpMapElement * elem = coin_safe_cast<const SoBumpMapElement *>(
+    getConstElement(state, classStackIndex));
+  return elem ? elem->source : NULL;
 }
 
 //! FIXME: write doc.

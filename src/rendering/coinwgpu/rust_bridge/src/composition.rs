@@ -43,19 +43,24 @@ pub(super) fn order(
             ));
         }
     }
+    let authored_layer = draws.iter().find(|draw| draw.composition_flags & 64 != 0)
+        .map(|draw| draw.render_layer);
     let mut ordered = Vec::with_capacity(draws.len());
     for (draw_index, draw) in draws.iter().enumerate() {
-        if draw.composition_flags & !0x7f3f != 0
+        if draw.composition_flags & !0x7f7f != 0
             || (draw.composition_flags & 32 != 0 && (draw.composition_flags & 1 == 0 || draw.composition_flags & 30 != 0))
             || (draw.composition_flags >> 8) > 64
             || (draw.composition_flags & 2 != 0 && draw.composition_flags & 1 == 0)
             || (draw.composition_flags >> 8 != 0 && draw.composition_flags & 4 == 0)
             || (draw.composition_flags & 8 != 0
-                && (draw.composition_flags & 1 == 0 || draw.render_layer != 0))
+                && (draw.composition_flags & 1 == 0 || (draw.render_layer != 0 && draw.composition_flags & 64 == 0)))
             || (draw.composition_flags & 4 != 0 && draw.composition_flags & 1 != 0)
             || (draw.composition_flags & 8 != 0 && draw.composition_flags & 2 != 0)
             || (draw.composition_flags & 16 != 0 &&
-                (draw.composition_flags & 1 == 0 || draw.composition_flags & 14 != 0 || draw.render_layer != 0))
+                (draw.composition_flags & 1 == 0 || draw.composition_flags & 14 != 0 || (draw.render_layer != 0 && draw.composition_flags & 64 == 0)))
+            || (authored_layer.is_some() && draw.render_layer == 0)
+            || authored_layer.is_some_and(|layer|
+                (draw.render_layer == layer) != (draw.composition_flags & 64 != 0))
             || draw.clear_depth_before > 1
             || (draw.render_layer == 0 && draw.clear_depth_before != 0)
             || (draw_index > 0 && draw.render_layer < draws[draw_index - 1].render_layer)
@@ -146,10 +151,10 @@ pub(super) fn passes(
         let previous = &draws[order[i - 1].draw_index];
         let current = &draws[order[i].draw_index];
         if previous.render_layer != current.render_layer
-            || current.clear_depth_before != 0
             || order[i - 1].peel != order[i].peel
             || order[i - 1].weighted != order[i].weighted
-            || (current.render_layer == 0 && order[i - 1].blend != order[i].blend)
+            || ((current.render_layer == 0 || current.composition_flags & 64 != 0)
+                && order[i - 1].blend != order[i].blend)
         {
             passes.push(start..i);
             start = i;

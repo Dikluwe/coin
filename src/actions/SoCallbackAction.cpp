@@ -360,6 +360,8 @@ public:
   SbViewportRegion viewport;
   SoCallbackAction::Response response;
   SoNode * currentnode;
+  int trianglePointDetailIndices[3] = {-1, -1, -1};
+  const SoPrimitiveVertex * triangleVertices[3] = {NULL, NULL, NULL};
 
   mutable SbList <SoCallbackData *> precallback;
   mutable SbList <SoCallbackData *> postcallback;
@@ -1273,10 +1275,61 @@ SoCallbackAction::invokeTriangleCallbacks(const SoShape * const shape,
                                           const SoPrimitiveVertex * const v2,
                                           const SoPrimitiveVertex * const v3)
 {
+  this->invokeTriangleCallbacks(shape, v1, v2, v3, NULL);
+}
+
+void
+SoCallbackAction::invokeTriangleCallbacks(const SoShape * const shape,
+                                          const SoPrimitiveVertex * const v1,
+                                          const SoPrimitiveVertex * const v2,
+                                          const SoPrimitiveVertex * const v3,
+                                          const int pointDetailIndices[3])
+{
+  int previous[3];
+  const SoPrimitiveVertex * previousVertices[3];
+  const SoPrimitiveVertex * currentVertices[3] = {v1, v2, v3};
+  for (int corner = 0; corner < 3; ++corner) {
+    previous[corner] = PRIVATE(this)->trianglePointDetailIndices[corner];
+    previousVertices[corner] = PRIVATE(this)->triangleVertices[corner];
+    PRIVATE(this)->trianglePointDetailIndices[corner] =
+      pointDetailIndices ? pointDetailIndices[corner] : -1;
+    PRIVATE(this)->triangleVertices[corner] = currentVertices[corner];
+  }
+  struct RestoreIndices {
+    int * target;
+    const SoPrimitiveVertex ** vertices;
+    int values[3];
+    const SoPrimitiveVertex * previousVertices[3];
+    ~RestoreIndices() {
+      for (int corner = 0; corner < 3; ++corner) {
+        target[corner] = values[corner];
+        vertices[corner] = previousVertices[corner];
+      }
+    }
+  } restore = {PRIVATE(this)->trianglePointDetailIndices,
+               PRIVATE(this)->triangleVertices,
+               {previous[0], previous[1], previous[2]},
+               {previousVertices[0], previousVertices[1], previousVertices[2]}};
   PRIVATE(this)->refreshDerivedTypes();
   int idx = static_cast<int>(shape->getTypeId().getData());
   if (idx < PRIVATE(this)->trianglecallback.getLength() && PRIVATE(this)->trianglecallback[idx] != NULL)
     PRIVATE(this)->trianglecallback[idx]->doTriangleCallbacks(this, v1, v2, v3);
+}
+
+int
+SoCallbackAction::getCurrentTrianglePointDetailIndex(int corner) const
+{
+  if (corner < 0 || corner >= 3) return -1;
+  return PRIVATE(this)->trianglePointDetailIndices[corner];
+}
+
+int
+SoCallbackAction::getCurrentTrianglePointDetailIndex(const SoPrimitiveVertex * vertex) const
+{
+  for (int corner = 0; corner < 3; ++corner)
+    if (PRIVATE(this)->triangleVertices[corner] == vertex)
+      return PRIVATE(this)->trianglePointDetailIndices[corner];
+  return -1;
 }
 
 SbBool

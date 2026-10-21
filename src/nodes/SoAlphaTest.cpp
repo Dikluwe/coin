@@ -210,6 +210,11 @@ SoAlphaTest::GLRender(SoGLRenderAction * action)
   default:
     break;
   }
-  SoLazyElement::setAlphaTest(action->getState(),
-                              glfunc, this->value.getValue());
+  // Normalize the node's reference explicitly. Float-color OpenGL may keep
+  // an unclamped AlphaFunc argument even when queries return a clamped value.
+  // Comparisons also clamp infinities while preserving native NaN behavior.
+  const float reference = this->value.getValue();
+  const float normalized = reference < 0.0f ? 0.0f :
+                           (reference > 1.0f ? 1.0f : reference);
+  SoLazyElement::setAlphaTest(action->getState(), glfunc, normalized);
 }
