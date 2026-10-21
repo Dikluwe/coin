@@ -1,6 +1,6 @@
 # P03/P15/P16/P24/P28 — contratos além do primeiro perfil
 
-Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1 implementa o primeiro perfil de volumes POT em CPU, BGFX e wgpu; R27 possui perfis MSAA. Shaders autorais, cubos e multipass possuem implementação; seus perfis de execução e pendências estão delimitados na matriz. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
+Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1/R23.2 implementam volumes POT/NPOT e R23.3 amplia o formato para sRGB em CPU, BGFX e wgpu; R27 possui perfis MSAA. Shaders autorais, cubos e multipass possuem implementação; seus perfis de execução e pendências estão delimitados na matriz. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
 
 ## Shaders próprios: primeiro contrato portátil
 
@@ -45,7 +45,7 @@ produtores contam separadamente. O Core valida a soma completa antes de
 compilar, executar produtores ou publicar. O ingresso privado Rust também
 admite a tabela inteira antes de chamar o Core para o primeiro módulo. Não é
 uma estimativa da memória do driver nem substitui o cache de programas e os
-orçamentos próprios de texturas, attachments e multipass. ABI65 preservada.
+orçamentos próprios de texturas, attachments e multipass. A entrega R22 preservou a ABI65; a revisão corrente é 66 em R23.3.
 
 Core valida AST/assinatura, ordena operações e produz um IR único. Infra emite
 WGSL e as variantes de shader BGFX a partir desse IR, verifica limites reais e
@@ -69,7 +69,23 @@ As 14 execuções Linux de R23.1 passaram com CPU/GPU/CoinGL em sete células e 
 
 R23.2 amplia o mesmo atlas RGBA8 linear para todos os eixos inteiros de 1 a 256, preservando a extensão e os voxels autorais. Cada mip usa `max(1, floor(eixo/2))`; cada voxel novo integra a área completa das células do nível anterior nos três eixos e arredonda ao inteiro mais próximo, com empate para cima, uma única vez por nível. Linhas/fatias finais ímpares participam; volumes POT mantêm os bytes anteriores. Padding físico deve ser zero. O máximo físico acima também vale no domínio completo de 16.777.216 extensões.
 
-O protocolo privado wgpu 60 conserva os tamanhos das estruturas e codifica, no formato 11, W−1 nos bits 0–7, H−1 em 8–15, D−1 em 16–23 e presença de mips no bit 24; bits 25–31 são zero. Comprimento, dimensões, padding e coordenadas R/Q são validados antes do cache e da publicação, inclusive para linhas/pontos. Nenhuma extensão inválida é reduzida silenciosamente. A matriz R23.2 delimita os perfis aprovados; B63 sincroniza a primeira captura de janela BGFX. Não há exigência de pixels idênticos entre máquinas.
+O protocolo privado wgpu 60 original de R23.2 conserva os tamanhos das estruturas e codifica, no formato 11, W−1 nos bits 0–7, H−1 em 8–15, D−1 em 16–23 e presença de mips no bit 24; bits 25–31 são zero. Comprimento, dimensões, padding e coordenadas R/Q são validados antes do cache e da publicação, inclusive para linhas/pontos. Nenhuma extensão inválida é reduzida silenciosamente. A matriz R23.2 delimita os perfis aprovados; B63 sincroniza a primeira captura de janela BGFX. Não há exigência de pixels idênticos entre máquinas.
+
+R23.3 estende `CoinRenderOptions::storedTextureColorSpace` às imagens autorais
+`SoTexture3`. O atlas admite RGBA8 linear ou sRGB, preservando os bytes originais
+do nível base. Cada voxel RGB sRGB é decodificado antes da interpolação espacial
+e entre níveis; alpha permanece linear. Os mips RGB integram em espaço linear
+as mesmas áreas completas, incluindo bordas NPOT ímpares, e codificam uma vez
+por nível. O alpha conserva a média inteira e o arredondamento existentes;
+o caminho linear mantém seus bytes. A cor de saída permanece RGBA8 linear.
+
+A ABI privada 66 mantém o formato 11 e os tamanhos das estruturas, com sRGB no
+bit 25 dos metadados do volume; bits 26–30 permanecem reservados e zero. O bit
+31 conserva a declaração geral de opacidade, sem modificar o alpha autoral. Dimensões,
+padding, comprimento e flags são validados antes do reuso por revisão. O formato
+participa da identidade/cache; a revisão anterior 65 é recusada explicitamente.
+O símbolo anterior de `packVolumeAtlas` conserva a semântica linear; a sobrecarga
+com formato admite somente RGBA8 linear/sRGB e preserva a saída na falha.
 
 C17.2 preserva coordenadas STRQ independentes em misturas de até oito unidades
 2D/volume/cubo junto de sombras. O perfil shadowed DIRECT_ST usa STR transformado
@@ -84,8 +100,9 @@ offscreen, janela e RTT; não encerra as demais combinações de C17.
 A representação comum para extensões futuras terá `dimension` (2D/3D/cube), extensão xyz, formato, mip levels,
 face/layer e bytes/pitches por subrecurso. A identidade inclui todos os descritores
 e payloads; a conversão de L/LA/RGB/RGBA para RGBA8 acontece uma única vez no
-Core. O primeiro perfil espacial será RGBA8 linear; compressão, depth, sRGB e
-float/HDR aguardam P24. Limites iniciais de admissão: volume 256 por eixo,
+Core. O perfil de volumes admite RGBA8 linear/sRGB; o perfil de cubos permanece
+RGBA8 linear. Compressão, depth e float/HDR espaciais exigem contrato próprio,
+assim como anisotropia maior que 1; as solicitações sem suporte são recusadas. Limites iniciais de admissão: volume 256 por eixo,
 cubo 2048 por face, 128 MiB somando subrecursos/mips por imagem. Os limites reais
 do executor podem ser menores e devem ser verificados antes de alocar.
 
