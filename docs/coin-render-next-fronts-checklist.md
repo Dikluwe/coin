@@ -2,7 +2,7 @@
 
 Etapa 1 de inventário e reconciliação **encerrada em 16/10/2026**: [auditoria, inventários e critérios](coin-render-stage1-audit.md), com [ledger individual das campanhas visuais](coin-render-visual-case-ledger.md). Recursos e combinações continuam acompanhados na matriz.
 
-**Estado em 21/10/2026:** etapa 2 encerrada por decisão explícita do usuário, com **B34 como falha externa aberta, sem correção**. B03.2, B34.1, B34.2, C21.12 e B87 permanecem históricos não reproduzidos na revalidação atual. A recriação reprovada de B34 não é qualificada. [Decisão, resultados e limites do fechamento](coin-render-feature-matrix.md#fechamento-da-etapa-2), publicados na branch `codex/stage2-review-20261021`. **Etapas 3/4 e R28/ABI65 permanecem suspensos.**
+**Estado em 21/10/2026:** etapa 2 encerrada por decisão explícita do usuário, com **B34 como falha externa aberta, sem correção**. B03.2, B34.1, B34.2, C21.12 e B87 permanecem históricos não reproduzidos na revalidação atual. A recriação reprovada de B34 não é qualificada. [Decisão, resultados e limites do fechamento](coin-render-feature-matrix.md#fechamento-da-etapa-2), publicados na branch `codex/stage2-review-20261021`. A etapa 3 foi retomada somente para [R28/ABI65, agora integrado e qualificado no perfil Linux](coin-render-feature-matrix.md#r28--multipass-integrado--21102026); os demais itens continuam abertos. **A etapa 4 permanece suspensa.**
 
 Os registros de progressão abaixo preservam os resultados e escopos anteriores; menções a etapas abertas descrevem o estado de cada campanha, não substituem o fechamento atual.
 

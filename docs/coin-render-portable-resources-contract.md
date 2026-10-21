@@ -1,6 +1,6 @@
 # P03/P15/P16/P24/P28 — contratos além do primeiro perfil
 
-Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1 implementa o primeiro perfil de volumes POT em CPU, BGFX e wgpu; R27 possui perfis MSAA. Shaders autorais, cubos e multipass geral continuam com execução pendente. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
+Este documento define os planos de shaders próprios, texturas espaciais e MSAA/multipass. A execução é delimitada pela [matriz de recursos](coin-render-feature-matrix.md): R23.1 implementa o primeiro perfil de volumes POT em CPU, BGFX e wgpu; R27 possui perfis MSAA. Shaders autorais, cubos e multipass possuem implementação; seus perfis de execução e pendências estão delimitados na matriz. Uma qualificação de perfil não cobre automaticamente os recursos e cruzamentos restantes.
 
 ## Shaders próprios: primeiro contrato portátil
 
@@ -176,6 +176,43 @@ janela/offscreen, resize/suspend, limites/pitches/overflow, falha de alocação 
 device loss com pixels/serial/tickets preservados e recuperação. Planos de
 amostras/cor precisam chegar ao protocolo privado; ABI pública Coin preservada,
 ABI experimental versionada se for necessário acrescentar campos.
+
+### Multipass da action — R28
+
+`CoinRenderAction` e `CoinRenderSceneManager` oferecem `setNumPasses(int)` e
+`getNumPasses()`. O padrão é 1; o valor pedido é preservado. No render/apply,
+valores menores que 1 produzem `INVALID_SCENE`, maiores que 16 produzem
+`UNSUPPORTED`, antes de executar produtores ou o consumidor. O adaptador do
+manager encaminha a contagem nativa. `passUpdate` com mais de uma passagem é
+recusado explicitamente: este perfil publica somente o resultado final.
+Callbacks específicos por passagem e demais opções nativas continuam em R34.
+
+A captura ocorre uma vez por atualização lógica, admitindo reuso exato do plano.
+Cada amostra aplica o jitter nativo à projeção do viewport efetivo da ocorrência,
+a partir da matriz original. Marker/Text2 são materializados depois desse
+jitter e antes do snap/layout; SoImage mantém a âncora nativa não jitterada.
+Produtores RTT e mapas VSM independentes da câmera consumidora executam uma vez.
+BGFX/wgpu acumulam RGBA em float na GPU e publicam a média linear uma vez;
+a profundidade é a da última amostra. O alvo conserva sua contagem MSAA 1/2/4.
+
+`setMultipassBufferBudget(uint64_t)`/`getMultipassBufferBudget()` definem um
+orçamento de 256 MiB por padrão. Zero admite uma passagem e recusa multipass
+com `OUT_OF_MEMORY`. A admissão considera os recursos simultâneos da composição:
+anexos de cena/MSAA, resolve, somas float, OIT/peeling, VSM, RTT/staging/mips,
+saída/readback, tickets retidos e recursos pendentes na fila. Usa aritmética
+checada e precede os produtores e o consumidor. Uma recusa preserva exatamente
+RGBA, profundidade e serial anteriormente publicados; recuperação usa o mesmo
+alvo, action ou manager. O orçamento não substitui limites próprios de texturas
+residentes nem mede toda a memória do driver.
+
+O transporte privado wgpu é ABI65, `FrameView` de 544 bytes. Acrescenta contagem,
+reservado zero, orçamento e matrizes MVP por amostra/estado; a contagem das
+matrizes é em floats. Uma passagem usa ponteiro nulo e contagem zero. Os bits
+15..30 de `composition_flags` selecionam amostras (zero significa todas); o
+bit 31 identifica raster já materializado. Bits inferiores conservam o contrato
+anterior. Metadados inconsistentes são recusados antes de uploads/submissão.
+Não se podem misturar headers/executáveis ABI63 com bibliotecas ABI65.
+Os limites de qualificação permanecem na [matriz](coin-render-feature-matrix.md#r28--multipass-integrado--21102026).
 
 ## Host, subclasses e certificação
 

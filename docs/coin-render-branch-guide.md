@@ -13,9 +13,11 @@ por decisão explícita do usuário, com **B34 externo aberto, sem correção** 
 qualificar a recriação reprovada. Os cinco intermitentes revalidados permanecem
 históricos não reproduzidos na campanha atual, sem correção causal comprovada.
 O [fechamento consolidado](coin-render-feature-matrix.md#fechamento-da-etapa-2)
-registra resultados, evidências e limites. **Etapas 3/4 e R28/ABI65 permanecem
-suspensos**, sem retomada automática. As referências ao checkout canônico
-abaixo descrevem a organização anterior a esta publicação.
+registra resultados, evidências e limites. A etapa 3 foi retomada somente para
+[integrar e qualificar R28/ABI65](coin-render-feature-matrix.md#r28--multipass-integrado--21102026);
+os demais itens da etapa 3 continuam abertos. **A etapa 4 permanece suspensa.**
+As referências ao checkout canônico abaixo descrevem a organização anterior a
+esta publicação.
 
 ## Acompanhamento funcional
 
