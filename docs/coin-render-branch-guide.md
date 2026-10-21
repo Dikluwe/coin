@@ -8,15 +8,20 @@ A continuação revisável está em `codex/stage2-review-20261021`, no repositó
 [Dikluwe/coin](https://github.com/Dikluwe/coin/tree/codex/stage2-review-20261021).
 A árvore anterior `codex/coin-render` foi preservada. A [matriz](coin-render-feature-matrix.md)
 registra os commits de baseline/candidato e os comandos de reprodução de B90–B92.
-Código, testes e matriz foram separados. Os bloqueios históricos da etapa2 seguem
-abertos e etapas3/4 permanecem suspensas. As referências ao checkout canônico
+Código, testes e matriz foram separados. A **etapa 2 foi encerrada em 21/10/2026**,
+por decisão explícita do usuário, com **B34 externo aberto, sem correção** e sem
+qualificar a recriação reprovada. Os cinco intermitentes revalidados permanecem
+históricos não reproduzidos na campanha atual, sem correção causal comprovada.
+O [fechamento consolidado](coin-render-feature-matrix.md#fechamento-da-etapa-2)
+registra resultados, evidências e limites. **Etapas 3/4 e R28/ABI65 permanecem
+suspensos**, sem retomada automática. As referências ao checkout canônico
 abaixo descrevem a organização anterior a esta publicação.
 
 ## Acompanhamento funcional
 
 Use a [matriz consolidada](coin-render-feature-matrix.md) para acompanhar recursos, combinações, plataformas e falhas até a cobertura completa. Ela separa implementação de qualificação e remete aos contratos e relatórios históricos. PBR permanece fora dessa matriz.
 
-Este checkout canônico está na branch `codex/coin-render` e organiza a
+Na organização anterior, o checkout canônico estava na branch `codex/coin-render` e organizava a
 implementação CoinRender para revisão. O checkout original de desenvolvimento
 evidenciado pelos relatórios foi preservado no bundle da consolidação, no
 estado local de referência `c28812338b8c6d51f7a1a8bd7eea6d997a291013`. Os links
@@ -81,9 +86,10 @@ A configuração é opt-in: `COIN_BUILD_RENDER=ON`, com
 os GPUs específicos usados em cada campanha.
 
 
-## Frente única após a consolidação de 16/10/2026
+## Histórico da frente única após a consolidação de 16/10/2026
 
-Continuar CoinRender somente na branch `codex/coin-render`, neste checkout.
+A consolidação de 16/10 concentrava CoinRender na branch `codex/coin-render`.
+A continuação publicada atual é `codex/stage2-review-20261021`, conforme acima.
 A antiga branch `codex/coin-render-clean` foi absorvida pelo nome canônico.
 O estado local original, incluindo as 17 modificações e a documentação nova,
 foi preservado em snapshot e bundle restaurado independentemente antes da troca.
