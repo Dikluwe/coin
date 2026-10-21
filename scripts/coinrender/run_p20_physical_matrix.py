@@ -61,7 +61,11 @@ def main():
     parser.add_argument('--output-dir', type=Path, required=True)
     parser.add_argument('--session', choices=('isolated', 'physical'), default='isolated')
     parser.add_argument('--targets', choices=('window', 'offscreen'), nargs='+', default=['window', 'offscreen'])
+    parser.add_argument('--rasterization-policy', choices=('native', 'canonical'), default='native')
+    parser.add_argument('--cpu-reference-dir', type=Path, help='CPU canonical captures for the two original camera contracts')
     args = parser.parse_args()
+    if args.rasterization_policy == 'canonical' and args.cpu_reference_dir is None:
+        parser.error('canonical qualification requires --cpu-reference-dir')
     if args.session == 'isolated' and not os.getenv('COIN_TEST_ISOLATED_X11'):
         parser.error('run inside testsuite/qt-quarter/run_isolated.py')
     if args.session == 'physical' and not os.getenv('DISPLAY'):
@@ -107,6 +111,7 @@ def main():
         if 'CMAKE_BUILD_TYPE:STRING=Release' not in (build / 'CMakeCache.txt').read_text():
             raise RuntimeError('P20 requires Release build: ' + str(build))
     results = {'device': args.device, 'expected_ids': [device['vendor'], device['device']],
+               'cpu_reference_sha256': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in args.cpu_reference_dir.glob('*.ppm')} if args.cpu_reference_dir else None,
                'gl_renderer': renderer.group(1), 'icd': device['icd'],
                'vulkan_driver': re.findall(r'^\s*(?:driverName|driverInfo)\s*=\s*(.+)$', vulkan, re.M),
                'git_commit': run(['git', 'rev-parse', 'HEAD']).strip(),
@@ -117,7 +122,7 @@ def main():
                                      'coin_render_gl_benchmark').read_bytes()).hexdigest()}
                           for name, build in builds.items()},
                'uname': run(['uname', '-srmo']).strip(), 'scenes': scenes, 'size': 128, 'warmup': 1, 'frames': 3,
-               'session': args.session, 'targets': args.targets,
+               'rasterization_policy': args.rasterization_policy, 'session': args.session, 'targets': args.targets,
                'runs': [], 'failures': [], 'comparisons': []}
     result_file = args.output_dir / 'results.json'
     for target in args.targets:
@@ -131,18 +136,26 @@ def main():
                             'wgpu' if backend == 'wgpu-vulkan' else 'bgfx')
                 command = [str(executable), '--backend', mapped, '--scene', scenes[scene_name]['path'],
                            '--warmup', '1', '--frames', '3']
+                command += ['--rasterization-policy', 'native' if backend == 'coin-gl' else args.rasterization_policy]
                 command += (['--width', '128', '--height', '128', '--capture-window']
                             if target == 'window' else ['--size', '128'])
                 env = dict(os.environ, LD_LIBRARY_PATH=str(build / 'lib') + ':' +
                            os.environ.get('LD_LIBRARY_PATH', ''),
                            COIN_GLX_PIXMAP_DIRECT_RENDERING='1')
                 env.pop('COIN_RENDER_TRACE_PHASES', None)
-                env['COIN_RENDER_TRACE_PHASES'] = '1' if backend == 'bgfx-opengl' else '0'
+                env['COIN_RENDER_TRACE_PHASES'] = '1'
                 env['COIN_BGFX_TRACE_GL_ADAPTER'] = '1'
                 command += ['--image-output', str(args.output_dir / (key + '.ppm'))]
+                env['WGPU_BACKEND'] = 'vulkan'
                 env['COIN_BGFX_RENDERER'] = ('opengl' if backend == 'bgfx-opengl' else 'vulkan')
                 try:
                     output = run(command, env=env, log=args.output_dir / (key + '.log'))
+                    policy = 'native' if backend == 'coin-gl' else args.rasterization_policy
+                    if backend != 'coin-gl' and f'rasterization_policy={policy}\n' not in output:
+                        raise RuntimeError('benchmark did not confirm requested rasterization policy')
+                    expected_api = 'opengl' if backend == 'bgfx-opengl' else 'vulkan'
+                    if backend != 'coin-gl' and f'renderer={expected_api} ' not in output.lower():
+                        raise RuntimeError('submission trace did not confirm requested API')
                     image = (args.output_dir / (key+'.ppm')).read_bytes().split(b'\n',3)[-1]
                     colors = {image[i:i+3] for i in range(0,len(image),3)}
                     if len(image) != 128*128*3 or len(colors) < 3:
@@ -178,7 +191,7 @@ def main():
                     if target == 'window' and field(report, 'readback') != 'rgba-on-request':
                         raise RuntimeError('unexpected window readback mode')
                     results['runs'].append({'key': key, 'target': target, 'scene': scene_name,
-                                            'backend': backend, 'adapter': adapter,
+                                            'backend': backend, 'api_verified': backend != 'coin-gl', 'physical_gpu_verified': True, 'rasterization_policy': 'native' if backend == 'coin-gl' else args.rasterization_policy, 'adapter': adapter,
                                             'vendor_id': vendor, 'device_id': product,
                                             'rgba_fnv64': hashes[0] if hashes else None,
                                             'qualification': 'capture; see RGB comparisons',
@@ -223,10 +236,33 @@ def main():
                 passed = metrics['max'] <= 2 and metrics['mae'] <= 1.0
                 results['comparisons'].append({'target': target, 'scene': scene,
                     'backends': ['coin-gl', backend], 'policy': 'top-down RGB max<=2 MAE<=1.0',
+                    'qualification_gate': args.rasterization_policy == 'native',
                     'metrics': metrics, 'passed': passed})
-                if not passed:
+                if not passed and args.rasterization_policy == 'native':
                     results['failures'].append({'key': f'{args.device}-{target}-{scene}-{backend}-CoinGL',
                                                'error': 'RGB exceeds the declared gate', 'metrics': metrics})
+    if args.rasterization_policy == 'canonical':
+        for scene in SCENES:
+            for target in args.targets:
+                reference = indexed.get((target, scene, 'bgfx-vulkan'))
+                for backend in BACKENDS[1:]:
+                    other = indexed.get((target, scene, backend))
+                    if not reference or not other:
+                        results['failures'].append({'key': f'{target}-{scene}-{backend}', 'error': 'missing canonical comparison cell'})
+                        continue
+                    cpu_path = args.cpu_reference_dir / f'cpu-{target}-{scene}.ppm'
+                    cpu_metrics = rgb_metrics(cpu_path, args.output_dir / (other['key']+'.ppm'))
+                    cpu_passed = cpu_metrics['max'] <= 2 and cpu_metrics['mae'] <= 1.0
+                    results['comparisons'].append({'target': target, 'scene': scene, 'backends': ['canonical-CPU', backend], 'policy': 'RGB max<=2 MAE<=1.0', 'metrics': cpu_metrics, 'passed': cpu_passed})
+                    if not cpu_passed:
+                        results['failures'].append({'key': other['key'], 'error': 'canonical CPU RGB mismatch', 'metrics': cpu_metrics})
+                    if backend == 'bgfx-vulkan':
+                        continue
+                    metrics = rgb_metrics(args.output_dir / (reference['key']+'.ppm'), args.output_dir / (other['key']+'.ppm'))
+                    passed = metrics['max'] <= 2 and metrics['mae'] <= 1.0
+                    results['comparisons'].append({'target': target, 'scene': scene, 'backends': [target + '/bgfx-vulkan', backend], 'policy': 'canonical RGB max<=2 MAE<=1.0; native CoinGL comparisons diagnostic only', 'metrics': metrics, 'passed': passed})
+                    if not passed:
+                        results['failures'].append({'key': other['key'], 'error': 'canonical RGB mismatch', 'metrics': metrics})
     result_file.write_text(json.dumps(results, indent=2) + '\n')
     return 1 if results['failures'] or len(results['runs']) != 8*len(args.targets) else 0
 
