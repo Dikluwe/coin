@@ -197,10 +197,10 @@ bool transport(const Source &source, const CoinRenderFramePlan &frame,
     return false;
   const auto &view = ffi.getView();
   unsigned witnesses = 0;
-  bool ok = check(view.abi_version == 65 && frame.shadowGroups.empty() &&
+  bool ok = check(view.abi_version == 66 && frame.shadowGroups.empty() &&
                       view.shadow_map_size == 0 && view.bump_image_count == 1 &&
                       view.bump_vertex_count == frame.vertices.size(),
-                  "ABI65 legacy bump stream is complete without shadow or "
+                  "ABI66 legacy bump stream is complete without shadow or "
                   "multilamp substitution");
   if (!ok)
     return false;
@@ -272,7 +272,7 @@ bool transport(const Source &source, const CoinRenderFramePlan &frame,
       ok &= check(
           s.colorWrite == enabled && s.colorWriteMask == expectedMask &&
               g.color_write == encoded,
-          "actual consumed draw retains bool/mask and ABI65 channel mapping");
+          "actual consumed draw retains bool/mask and ABI66 channel mapping");
       ok &=
           check(s.depthTest && s.depthWrite && g.depth_test && g.depth_write &&
                     g.depth_function == unsigned(s.depthFunction),

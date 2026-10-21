@@ -253,7 +253,7 @@
         frame.multipass_budget_bytes = 256 * 1024 * 1024;
         frame.multipass_matrices = std::ptr::null();
         frame.multipass_matrix_count = 0;
-        frame.abi_version = 65; // Independent current protocol assertion.
+        frame.abi_version = 66; // Independent current protocol assertion.
         frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
         frame.shadow_map_size = 64;
         frame.shadow_kind = 1;

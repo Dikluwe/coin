@@ -23,7 +23,7 @@ bool raw63(Run &run) {
   if (!packed)
     return false;
   auto view = ffi.getView();
-  if (!check(view.abi_version == 65 && view.portable_module_count == 1 &&
+  if (!check(view.abi_version == 66 && view.portable_module_count == 1 &&
                  view.portable_modules &&
                  view.portable_modules[0].node_count == 1 &&
                  view.portable_modules[0].parameter_count == 4 &&
@@ -130,7 +130,7 @@ bool raw63(Run &run) {
   view = validMultipass;
   view.abi_version = 62;
   ok &= reject("obsolete protocol62");
-  view.abi_version = 65;
+  view.abi_version = 66;
   view.struct_size = 496;
   ok &= reject("truncated pre-module frame layout");
   view.struct_size = sizeof(CoinWgpuFrameView);

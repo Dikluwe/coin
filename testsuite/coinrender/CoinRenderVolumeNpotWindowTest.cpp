@@ -31,7 +31,11 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include "CoinRenderVolumeSrgbOracle.h"
 namespace {
+bool srgb=false;
+std::array<unsigned char,3> displayColor(std::array<unsigned char,3> rgb){if(srgb)for(auto&c:rgb)c=uint8_t(std::lround(255*volume_srgb_oracle::decode(c)));return rgb;}
+
 bool check(bool good,const char * label) {
   if(!good) std::cerr << "texture2d_window FAIL " << label << '\n';
   return good;
@@ -135,7 +139,8 @@ int main(int argc,char ** argv) {
   bool canonical=false,portable=false,readback=false;unsigned samples=1;
   for(int i=1;i<argc;++i) {
     const std::string arg(argv[i]);
-    if(arg=="--msaa2") samples=2;
+    if(arg=="--srgb")srgb=true;
+    else if(arg=="--msaa2") samples=2;
     else if(arg=="--msaa4") samples=4;
     else if(arg=="--canonical-raster") canonical=true;
     else if(arg=="--portable-sampling") portable=true;
@@ -163,7 +168,7 @@ int main(int argc,char ** argv) {
   native.abiVersion=COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
   native.structSize=sizeof(native);native.type=COIN_RENDER_SURFACE_XLIB;
   native.native.xlib.display=display;native.native.xlib.window=window;
-  CoinRenderOptions options{};options.sampleCount=samples;
+  CoinRenderOptions options{};options.sampleCount=samples;if(srgb)options.storedTextureColorSpace=COIN_RENDER_TEXTURE_SRGB;
   options.renderer=static_cast<CoinRenderRenderer>(caps.renderer);
   if(canonical) options.rasterizationPolicy=COIN_RENDER_RASTER_CANONICAL_8BIT;
   if(portable) options.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
@@ -176,7 +181,8 @@ int main(int argc,char ** argv) {
   Scene scene;
   uint64_t serial=0;
   std::vector<uint8_t> lastReadback;
-  const auto frame=[&](const std::array<unsigned char,3> & expected,const char * phase) {
+  const auto frame=[&](const std::array<unsigned char,3> & authored,const char * phase) {
+    const auto expected=displayColor(authored);
     const bool requested=!readback || bool(target->requestWindowReadbackRGBA());
     const auto start=std::chrono::steady_clock::now();
     action.apply(scene.root); // Exactly one submission per phase.
@@ -219,7 +225,7 @@ int main(int argc,char ** argv) {
   scene.texture->images.setValue(SbVec3s(257,1,1),4,oversized.data());
   target->requestWindowReadbackRGBA();action.apply(scene.root);
   std::vector<uint8_t> rejected;target->readbackRGBA(rejected);
-  ok &= check(action.getLastStatus()!=CoinRenderAction::SUCCESS&&target->getLastSubmissionSerial()==serial&&(!readback||rejected==lastReadback)&&observe(display,window,size,current,"invalid-volume"),"NPOT invalid extent preserves physical/readback/serial");
+  ok &= check(action.getLastStatus()!=CoinRenderAction::SUCCESS&&target->getLastSubmissionSerial()==serial&&(!readback||rejected==lastReadback)&&observe(display,window,size,displayColor(current),"invalid-volume"),"NPOT invalid extent preserves physical/readback/serial");
   scene.set(current);ok &=frame(current,"volume-recovered");
   scene.alpha->value=std::numeric_limits<float>::quiet_NaN();
   action.apply(scene.root);
@@ -230,7 +236,7 @@ int main(int argc,char ** argv) {
   }
   ok &= check(action.getLastStatus()!=CoinRenderAction::SUCCESS &&
     target->getLastSubmissionSerial()==serial && retained &&
-    observe(display,window,size,current,"invalid-preserved"),
+    observe(display,window,size,displayColor(current),"invalid-preserved"),
     "invalid input preserves physical frame, readback and serial");
   scene.alpha->value=.5f;ok &= frame(current,"recovered");
   action.setRenderTarget(nullptr);target.reset();

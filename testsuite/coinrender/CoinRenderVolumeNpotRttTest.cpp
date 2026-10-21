@@ -25,8 +25,13 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include "CoinRenderVolumeSrgbOracle.h"
 
 namespace {
+bool srgb=false;
+const std::array<uint8_t,3> encoded={{96,160,224}};
+unsigned char resultByte(unsigned char primary,unsigned c){return srgb?uint8_t(std::lround(primary*volume_srgb_oracle::decode(encoded[c]))):primary;}
+
 constexpr int side=64;
 bool check(bool good,const char * label) {
   if(!good) std::cerr << "CoinRenderVolumeNpotRttTest: " << label << '\n';
@@ -86,7 +91,7 @@ struct Scene {
   void setVolume(bool invalid) {
     if(invalid){std::vector<uint8_t> bad(257*4,255);volume->images.setValue(SbVec3s(257,1,1),4,bad.data());return;}
     std::vector<uint8_t> data(3*5*7*4,0);for(size_t a=3;a<data.size();a+=4)data[a]=255;
-    for(int c=0;c<4;++c)data[size_t(6*5*3)*4+c]=255;
+    for(int c=0;c<4;++c)data[size_t(6*5*3)*4+c]=srgb&&c<3?encoded[c]:255;
     volume->images.setValue(SbVec3s(3,5,7),4,data.data());
   }
   SoTexture3* volume=nullptr;
@@ -103,7 +108,7 @@ bool caseOne(bool direct,bool portable) {
     caps.renderer!=COIN_RENDER_RENDERER_UNKNOWN;
   if(!check(available,"real GPU adapter and renderer required")) return false;
   const auto requestedRenderer=static_cast<CoinRenderRenderer>(caps.renderer);
-  CoinRenderOptions options{};if(portable)options.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
+  CoinRenderOptions options{};if(srgb)options.storedTextureColorSpace=COIN_RENDER_TEXTURE_SRGB;if(portable)options.textureSamplingPolicy=COIN_RENDER_SAMPLING_PORTABLE;
   if(options.renderer==COIN_RENDER_RENDERER_UNKNOWN) options.renderer=requestedRenderer;
   options.sceneTexture=direct?COIN_RENDER_SCENE_TEXTURE_DIRECT:COIN_RENDER_SCENE_TEXTURE_STAGED;
   std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side,side),options));
@@ -143,7 +148,7 @@ bool caseOne(bool direct,bool portable) {
               << " within3=" << good << '\n';
     return good;
   };
-  const unsigned char red[]={220,30,40},green[]={30,210,50},blue[]={40,50,230};
+  const unsigned char red[]={resultByte(220,0),resultByte(30,1),resultByte(40,2)},green[]={resultByte(30,0),resultByte(210,1),resultByte(50,2)},blue[]={resultByte(40,0),resultByte(50,1),resultByte(230,2)};
   Frame lowerLeft,lowerRight,upperLeft,rejected,recovered,mutated,restoredProducer;
   scene.coordinate(0,0);
   const bool firstCaptured=capture(lowerLeft,"RTT lower-left");
@@ -176,7 +181,7 @@ bool caseOne(bool direct,bool portable) {
   auto * material=static_cast<SoMaterial *>(scene.lowerRight->getChild(0));
   material->diffuseColor.setValue(240.f/255,130.f/255,20.f/255);
   scene.coordinate(.75f,0);
-  const unsigned char changed[]={240,130,20};
+  const unsigned char changed[]={resultByte(240,0),resultByte(130,1),resultByte(20,2)};
   const bool mutationCaptured=capture(mutated,"RTT producer mutation");
   ok &= mutationCaptured && center(mutated,changed,"RTT producer mutation") &&
         (!secondCaptured || mutated.rgba!=lowerRight.rgba) &&
@@ -201,7 +206,8 @@ int main(int argc,char ** argv) {
   bool direct=false,portable=false;
   for(int index=1;index<argc;++index) {
     const std::string option=argv[index];
-    if(option=="--portable-sampling")portable=true;
+    if(option=="--srgb")srgb=true;
+    else if(option=="--portable-sampling")portable=true;
     else if(option=="--direct") direct=true;
     else if(option=="--staged") direct=false;
     else {std::cerr << "Usage: CoinRenderVolumeNpotRttTest --staged|--direct\n";return 2;}

@@ -67,7 +67,7 @@ bool resources() {
   // 512 real, legal signatures produce precisely 32 MiB. This is the
   // production threshold, not a reduced test-only budget.
   const auto unit=named(65364);
-  ok &= check(logical(unit)==65536,"independent ABI65 byte arithmetic for 64KiB instance");
+  ok &= check(logical(unit)==65536,"independent ABI66 byte arithmetic for 64KiB instance");
   f=CoinRenderFramePlan{}; f.portableShaders.assign(512,unit);
   ok &= count(f,budget,"32MiB inclusive exact table boundary");
   f.portableShaders.back()=named(65365);

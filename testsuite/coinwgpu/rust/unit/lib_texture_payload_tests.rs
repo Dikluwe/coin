@@ -137,8 +137,8 @@
                 // DECLARED_OPAQUE is an authorial policy, orthogonal to all
                 // atlas axes, explicit mip levels, digest and payload bytes.
                 let source=t;
-                for declaration in [0u32, 1u32<<31] {
-                    let t=CoinWgpuTexture{reserved:source.reserved|declaration,..source};
+                for declaration in [0u32, 1u32<<31] {for color_space in [0u32, 1u32<<25] {
+                    let t=CoinWgpuTexture{reserved:source.reserved|declaration|color_space,..source};
                     assert_eq!(t.pixels,source.pixels);
                     assert_eq!(t.pixel_bytes_len,source.pixel_bytes_len);
                     assert_eq!(t.content_digest,source.content_digest);
@@ -155,14 +155,15 @@
                     bad=t;bad.pixel_bytes_len-=1;assert!(spatial_atlas_metadata(&bad).is_err(),"short atlas payload");
                     bad=t;bad.pixel_bytes_len+=1;assert!(spatial_atlas_metadata(&bad).is_err(),"oversized atlas payload");
                     bad=t;bad.pixel_bytes_len=0;assert!(spatial_atlas_metadata(&bad).is_err(),"empty atlas payload");
-                    for bit in 25..31 {bad=t;bad.reserved|=1<<bit;assert!(spatial_atlas_metadata(&bad).is_err(),"reserved bit {bit}");}
+                    assert_eq!(t.reserved&(1u32<<25),color_space,"bit25 carries stored sRGB independently of dimensions and declaration");
+                    for bit in 26..31 {bad=t;bad.reserved|=1<<bit;assert!(spatial_atlas_metadata(&bad).is_err(),"reserved bit {bit}");}
                     assert_eq!(spatial_atlas_metadata(&t).unwrap(),Some((w,h,d,mips)),"decoder recovery after malformed metadata");
                     assert_eq!(texture_levels(t.width,t.height,t.format).unwrap(),
                                texture_levels(source.width,source.height,source.format).unwrap(),
                                "declaration leaves physical chain unchanged");
                     assert_eq!(unsafe {std::slice::from_raw_parts(t.pixels,t.pixel_bytes_len as usize)},
-                               _pixels.as_slice(),"declaration preserves every raw byte");
-                }
+                               _pixels.as_slice(),"color space and declaration preserve every raw byte");
+                }}
             }
         }
     }

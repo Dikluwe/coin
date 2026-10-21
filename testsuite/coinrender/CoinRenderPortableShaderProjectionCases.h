@@ -131,7 +131,7 @@ bool projectionDelivery(Run &run, SbUniqueId source, SoCoordinate3 *positions,
   for (unsigned i = 0; i < 4; ++i)
     corners[i] = {{positions->point[i][0] / (direct ? 2. : 1.),
                    positions->point[i][1] / (direct ? 2. : 1.)}};
-  ok &= check(v.abi_version == 65 && portableFfiQuad(v, packedDraws, corners) &&
+  ok &= check(v.abi_version == 66 && portableFfiQuad(v, packedDraws, corners) &&
                   packedSlots.size() == v.portable_module_count,
               "packed module occurrences retain complete disjoint quad and "
               "exactly consumed payloads");

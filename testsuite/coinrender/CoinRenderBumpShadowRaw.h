@@ -17,7 +17,7 @@ inline bool raw(Scene &scene, Harness &h, unsigned samples) {
     return false;
   const auto original = owner.getView();
   bool ok =
-      check(original.abi_version == 65 && original.bump_image_count == 1 &&
+      check(original.abi_version == 66 && original.bump_image_count == 1 &&
                 original.shadow_map_size && original.shadow_receiver_count,
             "raw positive contains actual simultaneous packets");
   const uint32_t policy =
@@ -186,7 +186,7 @@ inline bool raw(Scene &scene, Harness &h, unsigned samples) {
     }
   };
   auto scissorRecovery = [&]() {
-    return submit(original, "raw ABI65 scissor original recovery") &&
+    return submit(original, "raw ABI66 scissor original recovery") &&
            oracle(scene, output) &&
            check(output.rgba == stableRGBA && output.depth == stableDepth,
                  "raw scissor mutation restores original color/depth exactly");
@@ -230,7 +230,7 @@ inline bool raw(Scene &scene, Harness &h, unsigned samples) {
     error[0] = 0;
     const auto status =
         coin_wgpu_submit(&target, &scissorView, error, sizeof(error));
-    std::cout << "raw_ABI65_scissor_invalid fault=" << fault
+    std::cout << "raw_ABI66_scissor_invalid fault=" << fault
               << " status=" << status << " error=" << error << '\n';
     ok &= check(
         status == COIN_WGPU_INVALID_ARGUMENT && error[0] &&
@@ -274,7 +274,7 @@ inline bool raw(Scene &scene, Harness &h, unsigned samples) {
         bad += output.rgba[4 * pixel + 3] != 255;
         bad += std::abs(output.depth[pixel] - .375f) > 1e-6;
       }
-    std::cout << "raw_ABI65_half_scissor left=" << left << " right=" << right
+    std::cout << "raw_ABI66_half_scissor left=" << left << " right=" << right
               << " bad=" << bad << '\n';
     ok &= check(left >= 8 && right >= 8 && bad == 0,
                 "half-map scissor preserves left shadow and clears right "
