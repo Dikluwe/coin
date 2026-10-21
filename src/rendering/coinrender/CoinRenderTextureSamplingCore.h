@@ -25,6 +25,9 @@ public:
   COIN_RENDER_DLL_API static bool quality(float q, CoinRenderTextureFilter &filter);
   COIN_RENDER_DLL_API static bool mipFilter(CoinRenderTextureFilter filter);
   COIN_RENDER_DLL_API static bool validMipImage(const CoinRenderTextureImageSnapshot &image);
+  // Revalidate spatial resources before revision/cache shortcuts or publication.
+  COIN_RENDER_DLL_API static bool validVolumeFrame(const CoinRenderFramePlan &frame,
+                                                  std::string &diagnostic);
 
   COIN_RENDER_DLL_API static bool compress(CoinRenderTextureImageSnapshot &image);
 
@@ -34,5 +37,9 @@ public:
   COIN_RENDER_DLL_API static bool packVolumeAtlas(const std::vector<uint8_t> &rgba,
       uint32_t width, uint32_t height, uint32_t depth, uint32_t sourceComponents,
       bool mipmapped, CoinRenderTextureImageSnapshot &image);
+  COIN_RENDER_DLL_API static bool packVolumeAtlas(const std::vector<uint8_t> &rgba,
+      uint32_t width, uint32_t height, uint32_t depth, uint32_t sourceComponents,
+      bool mipmapped, CoinRenderTextureImageSnapshot &image,
+      CoinRenderTextureFormat format);
 };
 #endif

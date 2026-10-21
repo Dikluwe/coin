@@ -5073,6 +5073,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX submission requires a prepared backend on its API thread";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY, this->lastError);
   }
+  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   PortablePreflightRelease releasePreflight{this};
   for(const auto & image:frame.textures)if(image.cubeFaceSize && image.gpuToken) {
     if(!CoinRenderCubeTextureCore::valid(image))return {CoinRenderBackendStatus::UNSUPPORTED,"Invalid GPU cube atlas metadata"};

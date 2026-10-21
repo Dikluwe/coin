@@ -4,6 +4,7 @@
 
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
+#include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
 #include <algorithm>
 #include <cmath>
 
@@ -143,7 +144,8 @@ CoinRenderTextureSamplingCore::validMipImage(const CoinRenderTextureImageSnapsho
   if (image.cubeFaceSize) return CoinRenderCubeTextureCore::valid(image);
   if (image.cubeSourceComponents || image.cubeMipmapped) return false;
   if (image.volumeDepth != 0) {
-    if (image.format != CoinRenderTextureFormat::RGBA8_LINEAR ||
+    if ((image.format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+         image.format != CoinRenderTextureFormat::RGBA8_SRGB) ||
         image.producerId || image.gpuToken || image.mipmapped ||
         !image.mipmapsRgba.empty() || image.components != 4 ||
         !image.volumeWidth || !image.volumeHeight ||
@@ -207,6 +209,101 @@ CoinRenderTextureSamplingCore::validMipImage(const CoinRenderTextureImageSnapsho
   if (image.producerId || image.gpuToken)
     return image.pixelsRgba.empty() && image.mipmapsRgba.empty();
   return image.mipmapsRgba.size() == mipBytes(image.width, image.height, image.format);
+}
+
+bool
+CoinRenderTextureSamplingCore::validVolumeFrame(const CoinRenderFramePlan &frame,
+                                                std::string &diagnostic)
+{
+  bool hasVolume = false;
+  for (const auto &image : frame.textures) {
+    if (!image.volumeWidth && !image.volumeHeight && !image.volumeDepth &&
+        !image.volumeColumns && !image.volumeSourceComponents && !image.volumeMipmapped)
+      continue;
+    hasVolume = true;
+    if (!validMipImage(image)) {
+      diagnostic = "Invalid SoTexture3 atlas format, dimensions, payload or padding";
+      return false;
+    }
+  }
+  if (!hasVolume) return true;
+  auto volumeState = [&](const CoinRenderRenderStateSnapshot &state) {
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const auto layer = coin_render_texture_unit(state, unit);
+      if (layer.enabled && layer.imageSlot < frame.textures.size() &&
+          frame.textures[layer.imageSlot].volumeDepth) return true;
+    }
+    return false;
+  };
+  for (const auto &state : frame.renderStates) {
+    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+      const auto layer = coin_render_texture_unit(state, unit);
+      if (!layer.enabled || layer.imageSlot >= frame.textures.size() ||
+          !frame.textures[layer.imageSlot].volumeDepth) continue;
+      if (layer.samplerSlot >= frame.samplers.size()) {
+        diagnostic = "SoTexture3 sampler slot is out of bounds";
+        return false;
+      }
+      const auto &sampler = frame.samplers[layer.samplerSlot];
+      if (uint32_t(sampler.wrapS) > 1 || uint32_t(sampler.wrapT) > 1 ||
+          uint32_t(sampler.wrapR) > 1 || uint32_t(sampler.filter) > 3 ||
+          sampler.maxAnisotropy != 1 ||
+          (mipFilter(sampler.filter) && !frame.textures[layer.imageSlot].volumeMipmapped)) {
+        diagnostic = "SoTexture3 requires valid isotropic sampling and a complete spatial mip chain";
+        return false;
+      }
+      for (unsigned row = 0; row < 4; ++row)
+        for (unsigned col = 0; col < 4; ++col)
+          if (!std::isfinite(layer.matrix[row][col])) {
+            diagnostic = "Non-finite SoTexture3 coordinate matrix";
+            return false;
+          }
+      if (state.portableShaderSlot) {
+        diagnostic = "Portable shader modules cannot sample SoTexture3";
+        return false;
+      }
+    }
+    if (state.rasterTextureSourceSlot != UINT32_MAX &&
+        state.rasterTextureSourceSlot < frame.renderStates.size()) {
+      const auto &source = frame.renderStates[state.rasterTextureSourceSlot];
+      if (!volumeState(source)) continue;
+      CoinRenderVertexSnapshot vertex{};
+      for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+        const auto &raw = state.rasterTextureCoordinates[unit];
+        float *st = unit ? vertex.extraTexcoords[unit - 1] : vertex.texcoord;
+        st[0] = raw[0]; st[1] = raw[1];
+        vertex.textureR[unit] = raw[2]; vertex.textureQ[unit] = raw[3];
+      }
+      if (!coin_render_validate_texture_coordinates(source, 1,
+          [&](size_t) -> const CoinRenderVertexSnapshot & { return vertex; },
+          diagnostic, &frame)) return false;
+    }
+  }
+  for (const auto &draw : frame.draws) {
+    if (draw.renderStateSlot >= frame.renderStates.size()) continue;
+    const auto &state = frame.renderStates[draw.renderStateSlot];
+    if (!volumeState(state)) continue;
+    const auto &geometry = draw.geometry;
+    const uint32_t stride = draw.topology == CoinRenderPrimitiveTopology::TRIANGLE_LIST ? 3 :
+        draw.topology == CoinRenderPrimitiveTopology::LINE_LIST ? 2 : 1;
+    if (geometry.firstIndex > frame.indices.size() ||
+        geometry.indexCount > frame.indices.size() - geometry.firstIndex ||
+        geometry.indexCount % stride != 0) {
+      diagnostic = "Invalid SoTexture3 primitive index range";
+      return false;
+    }
+    for (uint32_t i = 0; i < geometry.indexCount; i += stride) {
+      const auto *indices = frame.indices.data() + geometry.firstIndex + i;
+      for (uint32_t corner = 0; corner < stride; ++corner)
+        if (indices[corner] >= frame.vertices.size()) {
+          diagnostic = "SoTexture3 primitive vertex index is out of bounds";
+          return false;
+        }
+      if (!coin_render_validate_texture_primitive(frame, state, indices, stride, diagnostic))
+        return false;
+    }
+  }
+  return true;
 }
 
 bool
@@ -325,8 +422,19 @@ CoinRenderTextureSamplingCore::packVolumeAtlas(const std::vector<uint8_t> &rgba,
     uint32_t width, uint32_t height, uint32_t depth, uint32_t sourceComponents,
     bool withMips, CoinRenderTextureImageSnapshot &image)
 {
+  return packVolumeAtlas(rgba, width, height, depth, sourceComponents, withMips,
+                         image, CoinRenderTextureFormat::RGBA8_LINEAR);
+}
+
+bool
+CoinRenderTextureSamplingCore::packVolumeAtlas(const std::vector<uint8_t> &rgba,
+    uint32_t width, uint32_t height, uint32_t depth, uint32_t sourceComponents,
+    bool withMips, CoinRenderTextureImageSnapshot &image, CoinRenderTextureFormat format)
+{
   constexpr uint64_t budget = 128ull * 1024ull * 1024ull;
-  if (!width || !height || !depth ||
+  if ((format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+       format != CoinRenderTextureFormat::RGBA8_SRGB) ||
+      !width || !height || !depth ||
       width > 256 || height > 256 || depth > 256 ||
       sourceComponents < 1 || sourceComponents > 4 ||
       uint64_t(width) * height * depth * 4 != rgba.size())
@@ -349,6 +457,15 @@ CoinRenderTextureSamplingCore::packVolumeAtlas(const std::vector<uint8_t> &rgba,
   if (atlasWidth > 8192 || atlasHeight > 8192 || atlasBytes > budget)
     return false;
 
+  // Keep authored sRGB bytes intact; decode only while integrating each mip.
+  // A lookup avoids repeated transfer-function evaluation for every overlap.
+  double decoded[256] = {};
+  if (format == CoinRenderTextureFormat::RGBA8_SRGB && withMips)
+    for (unsigned i = 0; i < 256; ++i) {
+      const double encoded = double(i) / 255.0;
+      decoded[i] = encoded <= .04045 ? encoded / 12.92 :
+          std::pow((encoded + .055) / 1.055, 2.4);
+    }
   std::vector<uint8_t> packed(size_t(atlasBytes), 0);
   const std::vector<uint8_t> *level = &rgba;
   std::vector<uint8_t> generated;
@@ -368,8 +485,44 @@ CoinRenderTextureSamplingCore::packVolumeAtlas(const std::vector<uint8_t> &rgba,
     const uint32_t nw = std::max(1u, w / 2), nh = std::max(1u, h / 2),
                    nd = std::max(1u, d / 2);
     std::vector<uint8_t> next(size_t(nw) * nh * nd * 4);
-    if ((w == 1 || w % 2 == 0) && (h == 1 || h % 2 == 0) &&
-        (d == 1 || d % 2 == 0)) {
+    if (format == CoinRenderTextureFormat::RGBA8_SRGB) {
+      // Integer overlap weights include odd borders exactly. RGB is integrated
+      // in linear light and encoded once; alpha keeps integer half-up rounding.
+      const uint64_t area = uint64_t(w) * h * d;
+      for (uint32_t z = 0; z < nd; ++z)
+        for (uint32_t y = 0; y < nh; ++y)
+          for (uint32_t x = 0; x < nw; ++x) {
+            const uint32_t x0 = x * w, x1 = (x + 1) * w;
+            const uint32_t y0 = y * h, y1 = (y + 1) * h;
+            const uint32_t z0 = z * d, z1 = (z + 1) * d;
+            double rgb[3] = {};
+            uint64_t alpha = 0;
+            for (uint32_t sz = z0 / nd; sz < (z1 + nd - 1) / nd; ++sz) {
+              const uint32_t wz = std::min(z1, (sz + 1) * nd) - std::max(z0, sz * nd);
+              for (uint32_t sy = y0 / nh; sy < (y1 + nh - 1) / nh; ++sy) {
+                const uint32_t wy = std::min(y1, (sy + 1) * nh) - std::max(y0, sy * nh);
+                for (uint32_t sx = x0 / nw; sx < (x1 + nw - 1) / nw; ++sx) {
+                  const uint32_t wx = std::min(x1, (sx + 1) * nw) - std::max(x0, sx * nw);
+                  const uint64_t weight = uint64_t(wx) * wy * wz;
+                  const size_t source = ((size_t(sz) * h + sy) * w + sx) * 4;
+                  for (unsigned c = 0; c < 3; ++c)
+                    rgb[c] += decoded[(*level)[source + c]] * double(weight);
+                  alpha += (*level)[source + 3] * weight;
+                }
+              }
+            }
+            const size_t dest = ((size_t(z) * nh + y) * nw + x) * 4;
+            for (unsigned c = 0; c < 3; ++c) {
+              const double linear = rgb[c] / double(area);
+              const double encoded = linear <= .0031308 ? linear * 12.92 :
+                  1.055 * std::pow(linear, 1.0 / 2.4) - .055;
+              next[dest + c] = uint8_t(std::floor(std::max(0.0,
+                  std::min(1.0, encoded)) * 255.0 + .5));
+            }
+            next[dest + 3] = uint8_t((alpha + area / 2) / area);
+          }
+    } else if ((w == 1 || w % 2 == 0) && (h == 1 || h % 2 == 0) &&
+               (d == 1 || d % 2 == 0)) {
       // Preserve the established POT box path, also exact for even NPOT axes.
       const uint32_t count = (w > 1 ? 2u : 1u) * (h > 1 ? 2u : 1u) *
                              (d > 1 ? 2u : 1u);
@@ -420,7 +573,7 @@ CoinRenderTextureSamplingCore::packVolumeAtlas(const std::vector<uint8_t> &rgba,
     level = &generated;
     w = nw; h = nh; d = nd;
   }
-  image.format = CoinRenderTextureFormat::RGBA8_LINEAR;
+  image.format = format;
   image.width = atlasWidth;
   image.height = atlasHeight;
   image.volumeWidth = width;

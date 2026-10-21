@@ -39,7 +39,7 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 65;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 66;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -2879,7 +2879,16 @@ struct TextureKey {
     width: u32,
     height: u32,
     format: u32,
+    metadata: u32,
     content_digest: u64,
+}
+
+impl TextureKey {
+    fn from_texture(image: &CoinWgpuTexture) -> Self {
+        Self { width: image.width, height: image.height, format: image.format,
+            metadata: if image.format == 11 { texture_metadata(image) } else { 0 },
+            content_digest: image.content_digest }
+    }
 }
 
 #[allow(dead_code)]
@@ -5168,9 +5177,21 @@ fn texture_levels(width:u32,height:u32,format:u32)->Result<Vec<(u32,u32,u64)>,(C
 // The texture metadata declaration changes admission only: source
 // alpha remains available to every texture combine, including SOURCE_ALPHA.
 const TEXTURE_DECLARED_OPAQUE: u32 = 1 << 31;
+const TEXTURE_VOLUME_SRGB: u32 = 1 << 25;
 
 fn texture_metadata(image: &CoinWgpuTexture) -> u32 {
     image.reserved & !TEXTURE_DECLARED_OPAQUE
+}
+
+// Hardware sRGB decoding applies independently to each fetched atlas texel,
+// before our explicit 3D spatial/LOD interpolation, and leaves alpha linear.
+fn texture_gpu_format(image: &CoinWgpuTexture)
+    -> Result<wgpu::TextureFormat, (CoinWgpuStatus, String)> {
+    if image.format == 11 && texture_metadata(image) & TEXTURE_VOLUME_SRGB != 0 {
+        Ok(wgpu::TextureFormat::Rgba8UnormSrgb)
+    } else {
+        Ok(texture_profile::format(image.format)?.0)
+    }
 }
 
 fn validate_texture_declarations(textures: &[CoinWgpuTexture]) -> Result<(), String> {
@@ -5178,7 +5199,7 @@ fn validate_texture_declarations(textures: &[CoinWgpuTexture]) -> Result<(), Str
         let allowed = match image.format {
             0 | 2..=10 => 0,
             1 => 31,
-            11 => 0x01ff_ffff,
+            11 => 0x03ff_ffff,
             12 => 511,
             _ => return Err("Invalid texture format in declaration metadata".into()),
         };
@@ -5258,7 +5279,7 @@ fn validate_cube_draws(states:&[CoinWgpuRenderState],textures:&[CoinWgpuTexture]
 fn spatial_atlas_metadata(t: &CoinWgpuTexture)
     -> Result<Option<(u32,u32,u32,bool)>,(CoinWgpuStatus,String)> {
     if t.format != 11 { return Ok(None); }
-    if texture_metadata(t) & !0x01ff_ffff != 0 { return Err((CoinWgpuStatus::InvalidArgument,
+    if texture_metadata(t) & !0x03ff_ffff != 0 { return Err((CoinWgpuStatus::InvalidArgument,
         "Spatial atlas metadata has reserved bits".into())); }
     let w=(texture_metadata(t) & 255)+1;
     let h=((texture_metadata(t) >> 8) & 255)+1;
@@ -5863,7 +5884,7 @@ fn bump_receiver_texture_opaque(
         CoinWgpuStatus::InvalidArgument,
         "Empty bump texture levels".into(),
     ))?;
-    let format = texture_profile::format(image.format)?.0;
+    let format = texture_gpu_format(image)?;
     if offset.checked_add(texture_profile::level_bytes(width, height, format))
         != Some(image.pixel_bytes_len)
     {
@@ -7055,7 +7076,7 @@ fn encode_frame_impl(
 
     for image in textures_slice {
         if gpu_texture_token(image) {continue;}
-        let format=texture_profile::format(image.format)?.0;
+        let format=texture_gpu_format(image)?;
         if format.is_compressed() && !ctx.device.features().contains(wgpu::Features::TEXTURE_COMPRESSION_BC) {
             return Err((CoinWgpuStatus::Unsupported,"BC compression unavailable on selected adapter".into()));
         }
@@ -7130,7 +7151,7 @@ fn encode_frame_impl(
         cube_atlas_metadata(t)?;
         let levels = texture_levels(t.width,t.height,t.format)?;
         let &(last_width,last_height,last_offset)=levels.last().unwrap();
-        let gpu_format=texture_profile::format(t.format)?.0;
+        let gpu_format=texture_gpu_format(t)?;
         let expected_bytes=last_offset+texture_profile::level_bytes(last_width,last_height,gpu_format);
         if t.pixel_bytes_len != expected_bytes || t.pixels.is_null() {
             return Err((
@@ -7143,12 +7164,7 @@ fn encode_frame_impl(
         if gpu_format==wgpu::TextureFormat::Rgba16Float && pixel_bytes.chunks_exact(2).any(|p| u16::from_le_bytes([p[0],p[1]])&0x7c00==0x7c00) {
             return Err((CoinWgpuStatus::InvalidArgument,"Non-finite half texture payload".into()));
         }
-        let key = TextureKey {
-            width: t.width,
-            height: t.height,
-            format: t.format,
-            content_digest: t.content_digest,
-        };
+        let key = TextureKey::from_texture(t);
 
         if let Some(entry) = tex_cache.entries.get_mut(&key) {
             if entry.pixels_copy == pixel_bytes {
@@ -8176,12 +8192,7 @@ fn encode_frame_impl(
                         }
                         let t = &textures_slice[layer.texture_slot as usize];
                         let s = &samplers_slice[layer.sampler_slot as usize];
-                        let tk = TextureKey {
-                            width: t.width,
-                            height: t.height,
-                            format: t.format,
-                            content_digest: t.content_digest,
-                        };
+                        let tk = TextureKey::from_texture(t);
                         let sk = SamplerKey {
                             wrap_s: s.wrap_s,
                             wrap_t: s.wrap_t,

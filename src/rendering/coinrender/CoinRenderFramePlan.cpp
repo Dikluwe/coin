@@ -856,6 +856,11 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
           *outDiagnostic = "RenderState references out-of-bounds sampler slot";
         return false;
       }
+      if (this->textures[tex.imageSlot].volumeDepth &&
+          this->samplers[tex.samplerSlot].maxAnisotropy != 1) {
+        if (outDiagnostic) *outDiagnostic = "SoTexture3 requires isotropic anisotropy 1";
+        return false;
+      }
       if (CoinRenderTextureSamplingCore::mipFilter(this->samplers[tex.samplerSlot].filter) &&
           !this->textures[tex.imageSlot].mipmapped &&
           !(this->textures[tex.imageSlot].volumeDepth &&

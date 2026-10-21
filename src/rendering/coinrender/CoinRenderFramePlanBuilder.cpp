@@ -1507,10 +1507,13 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
         volumeComponents == 1 &&
         std::all_of(volumeBytes, volumeBytes + 8, [](uint8_t v) { return v == 0xff; }))
       return failVolume("Pending or missing SoTexture3 filename produced Coin's dummy image");
-    if (this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR)
-      return failVolume("SoTexture3 first profile requires RGBA8 linear storage");
+    if (this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR &&
+        this->storedTextureColorSpace != COIN_RENDER_TEXTURE_SRGB)
+      return failVolume("Invalid SoTexture3 stored color space");
+    const auto volumeFormat = this->storedTextureColorSpace == COIN_RENDER_TEXTURE_SRGB ?
+        CoinRenderTextureFormat::RGBA8_SRGB : CoinRenderTextureFormat::RGBA8_LINEAR;
     if (this->compressedVolumeImages.count(volumeBytes))
-      return failVolume("Compressed SoTexture3 images are outside the RGBA8 linear profile");
+      return failVolume("Compressed SoTexture3 images are outside the stored RGBA8 profile");
     if (SoTextureScalePolicyElement::get(state) == SoTextureScalePolicyElement::FRACTURE)
       return failVolume("SoTexture3 with FRACTURE scale policy is unsupported");
     auto wrap = [](SoMultiTextureImageElement::Wrap value, CoinRenderTextureWrap &result) {
@@ -1566,7 +1569,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
         cached->second.width == vw && cached->second.height == vh &&
         cached->second.depth == vd && cached->second.components == uint32_t(volumeComponents) &&
         cached->second.mipmapped == needsMips &&
-        cached->second.imageSlot < this->currentPlan.textures.size()) {
+        cached->second.imageSlot < this->currentPlan.textures.size() &&
+        this->currentPlan.textures[cached->second.imageSlot].format == volumeFormat &&
+        CoinRenderTextureSamplingCore::validMipImage(
+            this->currentPlan.textures[cached->second.imageSlot])) {
       rs.transparentTexture = cached->second.transparent;
       rs.textureImageSlot = cached->second.imageSlot;
       rs.samplerSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampler);
@@ -1582,11 +1588,12 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       return failVolume("SoTexture3 RGBA8 conversion failed");
     CoinRenderTextureImageSnapshot image;
     if (!CoinRenderTextureSamplingCore::packVolumeAtlas(rgba, vw, vh, vd,
-          uint32_t(volumeComponents), needsMips, image))
+          uint32_t(volumeComponents), needsMips, image, volumeFormat))
       return failVolume("SoTexture3 atlas or mip chain exceeds supported memory and dimensions");
     image.contentDigest = CoinRenderImageCore::rgba8Digest(image.pixelsRgba) ^
         (uint64_t(vw) << 48) ^ (uint64_t(vh) << 32) ^ (uint64_t(vd) << 16) ^
-        (uint64_t(volumeComponents) << 8) ^ uint64_t(image.volumeMipmapped);
+        (uint64_t(volumeComponents) << 8) ^ uint64_t(image.volumeMipmapped) ^
+        (uint64_t(image.format) << 1);
     rs.textureImageSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
     if (source != this->authoredVolumeSources.end())
       this->capturedVolumeImages[volumeBytes] = {source->second.node, source->second.revision,

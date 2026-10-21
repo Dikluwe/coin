@@ -25,8 +25,7 @@ fn texture_view<'a>(texture: &CoinWgpuTexture, cache: &'a TextureCache,
     let view = if gpu_texture_token(texture) {
         rtt.active.get(&texture.content_digest).map(|entry| &entry.view)
     } else {
-        cache.entries.get(&TextureKey { width: texture.width, height: texture.height,
-            format: texture.format, content_digest: texture.content_digest }).map(|entry| &entry.view)
+        cache.entries.get(&TextureKey::from_texture(texture)).map(|entry| &entry.view)
     };
     view.ok_or_else(|| (CoinWgpuStatus::InvalidArgument, "Missing inherited image GPU texture".into()))
 }

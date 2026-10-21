@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 65
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 66
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -129,12 +129,13 @@ typedef struct CoinWgpuMaterial {
 } CoinWgpuMaterial;
 
 #define COIN_WGPU_TEXTURE_DECLARED_OPAQUE (1u << 31)
+#define COIN_WGPU_TEXTURE_VOLUME_SRGB (1u << 25)
 
 typedef struct CoinWgpuTexture {
   uint32_t width;
   uint32_t height;
   uint32_t format; /* 0=RGBA8 base; 1=RTT; 2=RGBA8 mips; 3..10=advanced 2D; 11=RGBA8 spatial atlas; 12=RGBA8 cube atlas */
-  uint32_t reserved; /* bit31=SoSceneTexture2 NONE declaration; lower bits: RTT policy, or atlas (W-1)/(H-1)/(D-1) in bytes 0..2 and spatial mips bit24; cube log2(face) bits0..3, source components bits4..6, mips bit7 */
+  uint32_t reserved; /* bit31=SoSceneTexture2 NONE declaration; lower bits: RTT policy, or atlas (W-1)/(H-1)/(D-1) in bytes 0..2 and spatial mips bit24, sRGB bit25 (bits26..30 zero); cube log2(face) bits0..3, source components bits4..6, mips bit7 */
   uint64_t content_digest;
   const uint8_t * pixels;
   uint64_t pixel_bytes_len;

@@ -549,7 +549,8 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
     const uint32_t metadata = (image.sceneTransparencyFunction == SoSceneTexture2::NONE ?
       COIN_WGPU_TEXTURE_DECLARED_OPAQUE : 0u) | (image.volumeDepth ?
       ((image.volumeWidth - 1) | ((image.volumeHeight - 1) << 8) |
-       ((image.volumeDepth - 1) << 16) | (image.volumeMipmapped ? 1u << 24 : 0u)) :
+       ((image.volumeDepth - 1) << 16) | (image.volumeMipmapped ? 1u << 24 : 0u) |
+       (image.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
       (exponent | (image.cubeSourceComponents << 4) | (image.cubeMipmapped ? 128u : 0u) | (image.gpuToken ? 256u : 0u)));
     if (i >= this->textures.size() || i >= this->texturePixels.size() ||
         this->textures[i].format != (image.volumeDepth ? 11u : 12u) || this->textures[i].width != image.width ||
@@ -698,7 +699,8 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
     dst.reserved = src.cubeFaceSize ?
       (exponent(src.cubeFaceSize) | (src.cubeSourceComponents << 4) | (src.cubeMipmapped ? 128u : 0u) | (src.gpuToken ? 256u : 0u)) : src.volumeDepth ?
       ((src.volumeWidth - 1) | ((src.volumeHeight - 1)<<8) |
-       ((src.volumeDepth - 1)<<16) | (src.volumeMipmapped ? 1u<<24 : 0u)) :
+       ((src.volumeDepth - 1)<<16) | (src.volumeMipmapped ? 1u<<24 : 0u) |
+       (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
       src.gpuToken?((src.gpuOpaque?1:0)|(src.mipmapped?2:0)|(uint32_t(src.format)<<2)):0;
     if (src.sceneTransparencyFunction == SoSceneTexture2::NONE)
       dst.reserved |= COIN_WGPU_TEXTURE_DECLARED_OPAQUE;

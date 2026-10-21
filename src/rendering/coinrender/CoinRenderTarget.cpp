@@ -1,6 +1,7 @@
 #include "rendering/coinrender/CoinRenderShaderModuleCore.h"
 #include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
+#include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include <utility>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -315,6 +316,9 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight,
     const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
     CoinRenderCompositionTransferTrace * transfers) {
+  std::string volumeDiagnostic;
+  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, volumeDiagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, volumeDiagnostic};
   uint64_t shaderBytes = 0;
   std::string shaderDiagnostic;
   if (!coin_render_shader_resource_bytes(frame, shaderBytes, shaderDiagnostic))
@@ -657,6 +661,9 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
+  // Private revisions are hints, not proof that a transported atlas is intact.
+  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   const auto outputAdmission = this->preflightMultipass(frame, outTicket != nullptr);
   if (outputAdmission.status != CoinRenderBackendStatus::SUCCESS) return outputAdmission;
   if (!CoinRenderMultipassCore::projectionsFinite(frame))

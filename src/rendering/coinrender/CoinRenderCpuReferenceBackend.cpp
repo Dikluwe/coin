@@ -150,11 +150,9 @@ inline SbVec4f sampleVolumeLevel(const CoinRenderTextureImageSnapshot &tex,
                    iz = bound(z, d, samp.wrapR);
     const uint32_t ax = (iz % tex.volumeColumns) * w + ix;
     const uint32_t ay = yBase + (iz / tex.volumeColumns) * h + iy;
-    const size_t offset = (size_t(ay) * tex.width + ax) * 4;
-    return SbVec4f(tex.pixelsRgba[offset] / 255.0f,
-                   tex.pixelsRgba[offset + 1] / 255.0f,
-                   tex.pixelsRgba[offset + 2] / 255.0f,
-                   tex.pixelsRgba[offset + 3] / 255.0f);
+    // Format decoding happens per fetched voxel, before spatial or LOD mixing.
+    return CoinRenderTextureFormatCore::texel(tex.pixelsRgba, 0, tex.width,
+                                              tex.format, ax, ay);
   };
   if (!linear) return fetch(int(std::floor(s * w)), int(std::floor(t * h)),
                             int(std::floor(r * d)));
@@ -747,6 +745,8 @@ CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
   static std::atomic<uint64_t> globalCpuSerial(1);
+  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   CoinRenderSubmitResult admission = this->preflightMultipass(frame, target.size);
   if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
   if (frame.numPasses == 1) {

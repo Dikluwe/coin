@@ -25,7 +25,7 @@ struct CoinRenderOptions {
   CoinRenderRenderer renderer = COIN_RENDER_RENDERER_UNKNOWN;
   CoinRenderTransparencyMode transparency = COIN_RENDER_TRANSPARENCY_COIN;
   CoinRenderSceneTextureMode sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
-  // Explicit interpretation of stored SoTexture2 RGB, alpha remains linear.
+  // Explicit interpretation of stored SoTexture2/SoTexture3 RGB, alpha remains linear.
   CoinRenderStoredTextureColorSpace storedTextureColorSpace = COIN_RENDER_TEXTURE_LINEAR;
   uint32_t maxTextureAnisotropy = 16; // q>0.85 requests this limit; no effect below it.
   // Native is the default. Portable reconstructs nearest/mip-linear using
