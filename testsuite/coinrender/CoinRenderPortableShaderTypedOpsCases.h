@@ -123,7 +123,7 @@ bool typedOpDelivery(Run &run, const Module &module,
   for (unsigned i = 0; i < 4; ++i)
     corners[i] = {
         {run.scene.positions->point[i][0], run.scene.positions->point[i][1]}};
-  return check(v.abi_version == 63 && v.portable_module_count == 1 &&
+  return check(v.abi_version == 65 && v.portable_module_count == 1 &&
                    portableFfiQuad(v, packed, corners),
                "typed FFI instance and geometry association are complete") &&
          ok;

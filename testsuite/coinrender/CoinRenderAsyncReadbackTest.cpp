@@ -26,6 +26,11 @@ CoinWgpuFrameView clearFrame(uint32_t width, uint32_t height,
                              const CoinWgpuMaterial * material,
                              float red, float green, float blue) {
   CoinWgpuFrameView frame{};
+  frame.multipass_count = 1;
+  frame.multipass_reserved = 0;
+  frame.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  frame.multipass_matrices = nullptr;
+  frame.multipass_matrix_count = 0;
   frame.abi_version = COIN_WGPU_ABI_VERSION;
   frame.struct_size = sizeof(frame);
   frame.width = width;

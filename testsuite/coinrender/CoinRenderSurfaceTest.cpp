@@ -120,6 +120,11 @@ static int nativePhongCamera(Display * dpy, bool requireVulkan)
   state.lights[0].attenuation_exponent[2] = 1;
   const CoinWgpuRenderState baseState = state;
   CoinWgpuFrameView patchFrame{};
+  patchFrame.multipass_count = 1;
+  patchFrame.multipass_reserved = 0;
+  patchFrame.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  patchFrame.multipass_matrices = nullptr;
+  patchFrame.multipass_matrix_count = 0;
   patchFrame.abi_version = COIN_WGPU_ABI_VERSION;
   patchFrame.struct_size = sizeof(patchFrame);
   const uint64_t initialRevision = 53001;

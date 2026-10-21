@@ -229,6 +229,11 @@ bool checkInvalidBridgeFog() {
   state.fog_mode = 4;
   state.fog_end = 10.0f;
   CoinWgpuFrameView frame{};
+  frame.multipass_count = 1;
+  frame.multipass_reserved = 0;
+  frame.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  frame.multipass_matrices = nullptr;
+  frame.multipass_matrix_count = 0;
   frame.abi_version = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
   frame.struct_size = sizeof(frame);
   frame.states = &state;

@@ -7,6 +7,11 @@
         state.alpha_test_function = 7;
         state.alpha_test_reference = 0.25;
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.multipass_count = 1;
+        frame.multipass_reserved = 0;
+        frame.multipass_budget_bytes = 256 * 1024 * 1024;
+        frame.multipass_matrices = std::ptr::null();
+        frame.multipass_matrix_count = 0;
         frame.abi_version = COIN_WGPU_ABI_VERSION;
         frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
         frame.width = 4;
@@ -105,6 +110,11 @@
             pixels: pixels.as_ptr(), pixel_bytes_len: pixels.len() as u64,
         };
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.multipass_count = 1;
+        frame.multipass_reserved = 0;
+        frame.multipass_budget_bytes = 256 * 1024 * 1024;
+        frame.multipass_matrices = std::ptr::null();
+        frame.multipass_matrix_count = 0;
         frame.abi_version = COIN_WGPU_ABI_VERSION;
         frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
         frame.frame_revision = 41;
@@ -238,7 +248,12 @@
             receiver.model_view_projection[diagonal] = 1.0;
         }
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
-        frame.abi_version = 62; // Independent current protocol assertion.
+        frame.multipass_count = 1;
+        frame.multipass_reserved = 0;
+        frame.multipass_budget_bytes = 256 * 1024 * 1024;
+        frame.multipass_matrices = std::ptr::null();
+        frame.multipass_matrix_count = 0;
+        frame.abi_version = 65; // Independent current protocol assertion.
         frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
         frame.shadow_map_size = 64;
         frame.shadow_kind = 1;

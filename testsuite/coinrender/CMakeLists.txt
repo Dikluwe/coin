@@ -5067,3 +5067,222 @@ if(TARGET CoinRenderBumpProfileTest)
     set_tests_properties(CoinRenderBumpTotalWindow PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
   endif()
 endif()
+
+# R28: independent numerical AA resolve/capture and baseline-manager control.
+if(TARGET CoinRender)
+  add_executable(CoinRenderMultipassTest CoinRenderMultipassTest.cpp)
+  add_executable(CoinRenderMultipassLegacyManagerTest CoinRenderMultipassTest.cpp)
+  target_compile_definitions(CoinRenderMultipassLegacyManagerTest PRIVATE COIN_MULTIPASS_LEGACY_MANAGER)
+  foreach(_multipass_target CoinRenderMultipassTest CoinRenderMultipassLegacyManagerTest)
+    target_compile_definitions(${_multipass_target} PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_include_directories(${_multipass_target} PRIVATE
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    target_link_libraries(${_multipass_target} CoinRender Coin)
+  endforeach()
+  add_test(NAME CoinRenderMultipassApi COMMAND CoinRenderMultipassTest --core)
+  add_test(NAME CoinRenderMultipassCpu COMMAND CoinRenderMultipassTest --cpu)
+  add_test(NAME CoinRenderMultipassCpuManager COMMAND CoinRenderMultipassTest --cpu --manager --passes 4)
+  set_tests_properties(CoinRenderMultipassApi CoinRenderMultipassCpu CoinRenderMultipassCpuManager PROPERTIES TIMEOUT 60)
+  foreach(_multipass_count 2 3 4 7 8 16)
+    add_test(NAME CoinRenderMultipassGpu${_multipass_count}
+      COMMAND CoinRenderMultipassTest --gpu --passes ${_multipass_count})
+    set_tests_properties(CoinRenderMultipassGpu${_multipass_count} PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+  endforeach()
+  add_test(NAME CoinRenderMultipassGpuManager4 COMMAND CoinRenderMultipassTest --gpu --manager --passes 4)
+  set_tests_properties(CoinRenderMultipassGpuManager4 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: per-occurrence pixel viewport/camera delivery, with independent FFI proof.
+if(TARGET CoinRenderMultipassTest)
+  target_sources(CoinRenderMultipassTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuShadowFrame.cpp)
+  add_test(NAME CoinRenderMultipassCpuViewports COMMAND CoinRenderMultipassTest --cpu --viewports --passes 3)
+  set_tests_properties(CoinRenderMultipassCpuViewports PROPERTIES TIMEOUT 60)
+  add_test(NAME CoinRenderMultipassGpuViewports3 COMMAND CoinRenderMultipassTest --gpu --viewports --passes 3)
+  set_tests_properties(CoinRenderMultipassGpuViewports3 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: one-apply physical multipass publication and same native target resize.
+if(TARGET CoinRenderMultipassTest AND UNIX AND NOT APPLE AND X11_FOUND)
+  target_compile_definitions(CoinRenderMultipassTest PRIVATE COIN_MULTIPASS_X11)
+  target_include_directories(CoinRenderMultipassTest PRIVATE ${X11_INCLUDE_DIR})
+  target_link_libraries(CoinRenderMultipassTest ${X11_LIBRARIES})
+  add_test(NAME CoinRenderMultipassWindow3 COMMAND CoinRenderMultipassTest --window --passes 3)
+  set_tests_properties(CoinRenderMultipassWindow3 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: real M-sample resolve remains independent of N multipass accumulation.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassMsaa2N3 COMMAND CoinRenderMultipassTest --gpu --msaa --samples 2 --passes 3)
+  add_test(NAME CoinRenderMultipassMsaa4N7 COMMAND CoinRenderMultipassTest --gpu --msaa --samples 4 --passes 7)
+  set_tests_properties(CoinRenderMultipassMsaa2N3 CoinRenderMultipassMsaa4N7 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: real unique RTT producer consumed by both shared occurrences under N4.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassRttDirect4 COMMAND CoinRenderMultipassTest --rtt --direct --passes 4)
+  add_test(NAME CoinRenderMultipassRttStaged4Portable COMMAND CoinRenderMultipassTest --rtt --staged --passes 4 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassRttDirect4 CoinRenderMultipassRttStaged4Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: consumer jitter must not move VSM lookup/casters or truncate high maps.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassShadow1N4 COMMAND CoinRenderMultipassTest --shadows --maps 1 --passes 4)
+  add_test(NAME CoinRenderMultipassShadow8N7Portable COMMAND CoinRenderMultipassTest --shadows --maps 8 --passes 7 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassShadow1N4 CoinRenderMultipassShadow8N7Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: valid 1x-target multipass tickets survive refusal and owner destruction.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassTickets COMMAND CoinRenderMultipassTest --tickets)
+  set_tests_properties(CoinRenderMultipassTickets PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: fog is evaluated per sample before averaging; clip stays in world space.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuFogClip3 COMMAND CoinRenderMultipassTest --cpu --fog-clip --passes 3)
+  set_tests_properties(CoinRenderMultipassCpuFogClip3 PROPERTIES TIMEOUT 60)
+  add_test(NAME CoinRenderMultipassGpuFogClip4Portable COMMAND CoinRenderMultipassTest --gpu --fog-clip --passes 4 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassGpuFogClip4Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28 native raster distinction: fixed Image; jitter-before-snap Marker.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuRaster3 COMMAND CoinRenderMultipassTest --cpu --raster --passes 3)
+  set_tests_properties(CoinRenderMultipassCpuRaster3 PROPERTIES TIMEOUT 60)
+  add_test(NAME CoinRenderMultipassGpuRaster3Portable COMMAND CoinRenderMultipassTest --gpu --raster --passes 3 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassGpuRaster3Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: portable output is evaluated per sample before fog, clipping and resolve.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassModule7Portable COMMAND CoinRenderMultipassTest --module --passes 7 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassModule7Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: native mono Text2 snap/layout and mutation with an authored glyph oracle.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuText2N3 COMMAND CoinRenderMultipassTest --cpu --text2 --passes 3)
+  set_tests_properties(CoinRenderMultipassCpuText2N3 PROPERTIES TIMEOUT 60)
+  add_test(NAME CoinRenderMultipassGpuText2N3Portable COMMAND CoinRenderMultipassTest --gpu --text2 --passes 3 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassGpuText2N3Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: jitter uses each camera's cropped pixel viewport, in both occurrence orders.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuCrop3 COMMAND CoinRenderMultipassTest --cpu --crop --passes 3)
+  set_tests_properties(CoinRenderMultipassCpuCrop3 PROPERTIES TIMEOUT 60)
+  add_test(NAME CoinRenderMultipassGpuCrop3 COMMAND CoinRenderMultipassTest --gpu --crop --passes 3)
+  set_tests_properties(CoinRenderMultipassGpuCrop3 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: alpha-test/OIT/peeling composition before averaging, and live resources.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuPeeling4 COMMAND CoinRenderMultipassTest --cpu --transparency --passes 4)
+  set_tests_properties(CoinRenderMultipassCpuPeeling4 PROPERTIES TIMEOUT 60)
+  foreach(_multipass_feature Peeling Weighted)
+    if(_multipass_feature STREQUAL "Weighted")
+      set(_multipass_transparency --weighted)
+    else()
+      set(_multipass_transparency --transparency)
+    endif()
+    add_test(NAME CoinRenderMultipassGpu${_multipass_feature}4 COMMAND CoinRenderMultipassTest --gpu ${_multipass_transparency} --passes 4)
+    set_tests_properties(CoinRenderMultipassGpu${_multipass_feature}4 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+  endforeach()
+  foreach(_multipass_route Direct Staged)
+    if(_multipass_route STREQUAL "Direct")
+      set(_multipass_route_arg --direct)
+    else()
+      set(_multipass_route_arg --staged)
+    endif()
+    add_test(NAME CoinRenderMultipassBudgetRtt${_multipass_route} COMMAND CoinRenderMultipassTest --budget ${_multipass_route_arg})
+    set_tests_properties(CoinRenderMultipassBudgetRtt${_multipass_route} PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+  endforeach()
+  add_test(NAME CoinRenderMultipassBudgetVsm COMMAND CoinRenderMultipassTest --budget --shadows)
+  set_tests_properties(CoinRenderMultipassBudgetVsm PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: weighted OIT live MSAA attachments dominate its same-budget opaque control.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassWeightedMsaa4N2Budget COMMAND CoinRenderMultipassTest --gpu --weighted --msaa --samples 4 --passes 2)
+  set_tests_properties(CoinRenderMultipassWeightedMsaa4N2Budget PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: first physical publication and resized window preserve real MSAA M/N.
+if(TARGET CoinRenderMultipassTest AND UNIX AND NOT APPLE AND X11_FOUND)
+  add_test(NAME CoinRenderMultipassWindowMsaa2N3 COMMAND CoinRenderMultipassTest --window --msaa --samples 2 --passes 3)
+  add_test(NAME CoinRenderMultipassWindowMsaa4N7 COMMAND CoinRenderMultipassTest --window --msaa --samples 4 --passes 7)
+  set_tests_properties(CoinRenderMultipassWindowMsaa2N3 CoinRenderMultipassWindowMsaa4N7 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: active normal-map delivery and sample-local layers/annotation depth.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassBump4 COMMAND CoinRenderMultipassTest --bump --passes 4)
+  set_tests_properties(CoinRenderMultipassBump4 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+  foreach(_multipass_layer Layers Annotations)
+    if(_multipass_layer STREQUAL "Layers")
+      set(_multipass_layer_arg --layers)
+    else()
+      set(_multipass_layer_arg --annotations)
+    endif()
+    add_test(NAME CoinRenderMultipassCpu${_multipass_layer}3 COMMAND CoinRenderMultipassTest --cpu ${_multipass_layer_arg} --passes 3)
+    set_tests_properties(CoinRenderMultipassCpu${_multipass_layer}3 PROPERTIES TIMEOUT 60)
+    add_test(NAME CoinRenderMultipassGpu${_multipass_layer}3 COMMAND CoinRenderMultipassTest --gpu ${_multipass_layer_arg} --passes 3)
+    set_tests_properties(CoinRenderMultipassGpu${_multipass_layer}3 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+  endforeach()
+endif()
+
+# R28: real producer plus effective source/consumer VSM coexist under AA.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassRttVsmDirect3 COMMAND CoinRenderMultipassTest --rtt --shadows --direct --passes 3)
+  add_test(NAME CoinRenderMultipassRttVsmStaged4Portable COMMAND CoinRenderMultipassTest --rtt --shadows --staged --passes 4 --portable-sampling)
+  set_tests_properties(CoinRenderMultipassRttVsmDirect3 CoinRenderMultipassRttVsmStaged4Portable PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: native passUpdate remains admitted in the unchanged one-pass domain.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuManager1 COMMAND CoinRenderMultipassTest --cpu --manager --passes 1)
+  set_tests_properties(CoinRenderMultipassCpuManager1 PROPERTIES TIMEOUT 60)
+endif()
+
+# R28: fixed geometric palettes reject both forms of repeated8bit quantization.
+if(TARGET CoinRenderMultipassTest)
+  add_test(NAME CoinRenderMultipassCpuPrecision16 COMMAND CoinRenderMultipassTest --cpu --precision)
+  set_tests_properties(CoinRenderMultipassCpuPrecision16 PROPERTIES TIMEOUT 60)
+  add_test(NAME CoinRenderMultipassGpuPrecision16 COMMAND CoinRenderMultipassTest --gpu --precision)
+  set_tests_properties(CoinRenderMultipassGpuPrecision16 PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+# R28: process shutdown must retire the complete wgpu runtime after ordinary
+# device use and before pre-existing graphics-driver exit handlers. The child
+# process keeps multiple targets, RTTs, readbacks and explicit devices alive;
+# a pipe makes both sides of the atexit ordering observable without timing.
+if(TARGET CoinRender AND COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE"
+   AND UNIX AND NOT ANDROID AND NOT EMSCRIPTEN)
+  add_executable(CoinWgpuExitShutdownTest
+    ../coinwgpu/CoinWgpuExitShutdownTest.cpp)
+  set_target_properties(CoinWgpuExitShutdownTest PROPERTIES
+    COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+  target_include_directories(CoinWgpuExitShutdownTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/include
+    ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_BINARY_DIR}/include
+    ${PROJECT_BINARY_DIR}/src
+    ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  target_link_libraries(CoinWgpuExitShutdownTest CoinRender Coin)
+
+  add_test(NAME CoinWgpuExitShutdown
+    COMMAND CoinWgpuExitShutdownTest)
+  add_test(NAME CoinWgpuExitShutdownResetReinit
+    COMMAND CoinWgpuExitShutdownTest --reset-reinit)
+  set_tests_properties(
+    CoinWgpuExitShutdown
+    CoinWgpuExitShutdownResetReinit
+    PROPERTIES
+      TIMEOUT 120
+      SKIP_RETURN_CODE 77
+      RESOURCE_LOCK coinrender_gpu
+      LABELS "coinrender_gpu;wgpu_shutdown")
+endif()

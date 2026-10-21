@@ -204,6 +204,11 @@ bool checkBridgeLimit() {
   state.color_write = 1;
   state.light_count = 9;
   CoinWgpuFrameView frame{};
+  frame.multipass_count = 1;
+  frame.multipass_reserved = 0;
+  frame.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  frame.multipass_matrices = nullptr;
+  frame.multipass_matrix_count = 0;
   frame.abi_version = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
   frame.struct_size = sizeof(frame);
   frame.states = &state;

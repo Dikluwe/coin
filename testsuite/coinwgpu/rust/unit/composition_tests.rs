@@ -100,12 +100,41 @@
         assert_eq!(resolved[2].screen_door_level, 64);
         assert!(resolved[3].weighted);
         assert_eq!(passes(&resolved, &draws), vec![0..1, 1..2, 2..3, 3..4]);
-        for flags in [32, 35, 41, 49, 2, 8, 5, 11, 16, 19, 21, 25, 0x4104, 0x100, 0x80, 0x8000] {
+        for flags in [32, 35, 41, 49, 2, 8, 5, 11, 16, 19, 21, 25, 0x4104, 0x100, 0x80] {
             draws[0].composition_flags = flags;
             assert!(
                 order(&[], &[], &draws, &materials, &states, &[]).is_err(),
                 "flags={flags}"
             );
+        }
+    }
+    #[test]
+    fn multipass_metadata_preserves_resolved_modes_and_lower_flag_validation() {
+        let (mut draws, materials, states) = fixture(&[0, 0, 0, 0], &[0.5, 0.5, 0.5, 0.5]);
+        // Bits15..30 carry the16-sample mask; bit31 says the raster
+        // layout was materialized for its sample. This schedule has no
+        // frame-N argument: mask-versus-N validation belongs to ingress.
+        for metadata in [1u32 << 15, 0x8001u32 << 15, 0xffffu32 << 15,
+                         1u32 << 31, (0xffffu32 << 15) | (1u32 << 31)] {
+            draws[0].composition_flags = 3 | metadata;
+            draws[1].composition_flags = 9 | metadata;
+            draws[2].composition_flags = 0x4004 | metadata;
+            draws[3].composition_flags = 17 | metadata;
+            let resolved = order(&[], &[], &draws, &materials, &states, &[]).unwrap();
+            assert!(resolved[0].blend && resolved[0].additive);
+            assert!(resolved[1].blend && resolved[1].peel);
+            assert!(resolved[2].screen_door);
+            assert_eq!(resolved[2].screen_door_level, 64);
+            assert!(resolved[3].blend && resolved[3].weighted);
+            assert_eq!(resolved.iter().map(|item| item.draw_index).collect::<Vec<_>>(),
+                       vec![0, 1, 2, 3]);
+            assert_eq!(passes(&resolved, &draws), vec![0..1, 1..2, 2..3, 3..4]);
+            for invalid in [32, 35, 41, 49, 2, 8, 5, 11, 16, 19, 21, 25,
+                            0x4104, 0x100, 0x80] {
+                draws[0].composition_flags = invalid | metadata;
+                assert!(order(&[], &[], &draws, &materials, &states, &[]).is_err(),
+                        "invalid lower flags={invalid:#x} metadata={metadata:#x}");
+            }
         }
     }
     #[test]

@@ -40,6 +40,11 @@
     #[test]
     fn phong_camera_scene_owns_and_preserves_geometry_arc() {
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.multipass_count = 1;
+        frame.multipass_reserved = 0;
+        frame.multipass_budget_bytes = 256 * 1024 * 1024;
+        frame.multipass_matrices = std::ptr::null();
+        frame.multipass_matrix_count = 0;
         frame.frame_revision = 1; frame.width = 64; frame.height = 64;
         frame.vertex_count = 3; frame.index_count = 3; frame.draw_count = 1;
         frame.material_count = 1; frame.state_count = 1;

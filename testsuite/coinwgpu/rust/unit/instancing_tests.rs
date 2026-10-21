@@ -4,6 +4,11 @@
     fn fixture() -> (CoinWgpuFrameView, [CoinWgpuVertex; 3], [CoinWgpuDraw; 1],
         [CoinWgpuMaterial; 1], [CoinWgpuRenderState; 1], [CoinWgpuInstance; 2], [CoinWgpuInstanceRange; 1]) {
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.multipass_count = 1;
+        frame.multipass_reserved = 0;
+        frame.multipass_budget_bytes = 256 * 1024 * 1024;
+        frame.multipass_matrices = std::ptr::null();
+        frame.multipass_matrix_count = 0;
         frame.frame_revision = 1; frame.width = 16; frame.height = 16;
         frame.vertex_count = 3; frame.index_count = 3; frame.draw_count = 1;
         frame.material_count = 1; frame.state_count = 1;

@@ -53,6 +53,11 @@ static bool testAbiVersionCheck() {
 
   // Also test submit with invalid ABI version
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = 999;
   fView.struct_size = sizeof(CoinWgpuFrameView);
   uint8_t colBuf[64 * 64 * 4] = {0};
@@ -341,6 +346,11 @@ static bool testStorageBufferLimitsAndSlotValidation() {
   st.light_model = 1;
 
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
   fView.width = 64;
@@ -418,6 +428,11 @@ static bool testBaseColorVsPhongLitAndUnlitGpu() {
   st.has_light = 0;
 
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
   fView.width = W;
@@ -512,6 +527,11 @@ static bool testShininessZeroAndExponentConversion() {
   st.light_intensity = 1.0f;
 
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
   fView.width = W;
@@ -582,6 +602,11 @@ static bool testOpaqueRuleForAlpha() {
   st.has_light = 0;
 
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
   fView.width = W;
@@ -687,6 +712,11 @@ static bool testMaterialMutationWithGeometryCacheHit() {
   st.light_model = 0;
 
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = COIN_WGPU_ABI_VERSION;
   fView.struct_size = sizeof(CoinWgpuFrameView);
   fView.width = W;

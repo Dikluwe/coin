@@ -587,6 +587,11 @@ int main() {
   tPod.color_buffer_len = dummyBuf.size();
 
   CoinWgpuFrameView fView{};
+  fView.multipass_count = 1;
+  fView.multipass_reserved = 0;
+  fView.multipass_budget_bytes = uint64_t(256) * 1024 * 1024;
+  fView.multipass_matrices = nullptr;
+  fView.multipass_matrix_count = 0;
   fView.abi_version = 999; // Invalid ABI version
   fView.struct_size = sizeof(CoinWgpuFrameView);
   fView.width = 128;

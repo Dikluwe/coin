@@ -371,7 +371,7 @@ bool volumeMetadataPacking() {
   std::string diagnostic;
   if (!check(packed.prepare(frame,64,64,diagnostic),"volume ABI packing failed")) return false;
   const auto & view=packed.getView();
-  if (!check(view.abi_version==63 && view.textures[0].format==11 &&
+  if (!check(view.abi_version==65 && view.textures[0].format==11 &&
              view.textures[0].width==4 && view.textures[0].height==2 &&
              view.textures[0].reserved==0x010101 &&
              view.textures[0].pixel_bytes_len==32 &&
@@ -407,7 +407,7 @@ bool npotVolumeMetadataPacking() {
     if(!check(CoinRenderTextureSamplingCore::packVolumeAtlas(pixels,dims[0],dims[1],dims[2],4,mips,image),"NPOT FFI authored atlas"))return false;
     frame.textures.push_back(image);if(!check(packed.prepare(frame,64,64,diagnostic),"NPOT FFI prepare"))return false;
     const uint32_t expected=(dims[0]-1)|((dims[1]-1)<<8)|((dims[2]-1)<<16)|(mips?1u<<24:0);
-    const auto& t=packed.getView().textures[0];ok &= check(packed.getView().abi_version==63&&t.reserved==expected&&t.format==11&&t.width==image.width&&t.height==image.height&&t.pixel_bytes_len==image.pixelsRgba.size(),"NPOT exact XYZ/mip metadata bits");
+    const auto& t=packed.getView().textures[0];ok &= check(packed.getView().abi_version==65&&t.reserved==expected&&t.format==11&&t.width==image.width&&t.height==image.height&&t.pixel_bytes_len==image.pixelsRgba.size(),"NPOT exact XYZ/mip metadata bits");
     // Revision is only a reuse hint. A valid changed resource must never
     // borrow an older volume packet under an unchanged frame revision.
     const auto currentPacket=[&](const CoinRenderFramePlan& input,const char* gate) {
@@ -415,7 +415,7 @@ bool npotVolumeMetadataPacking() {
       if(!check(cold.prepare(input,64,64,coldError)&&packed.prepare(input,64,64,diagnostic),gate))return false;
       const auto& warm=packed.getView();const auto& fresh=cold.getView();const auto& image=input.textures[0];
       const uint32_t bits=(image.volumeWidth-1)|((image.volumeHeight-1)<<8)|((image.volumeDepth-1)<<16)|(image.volumeMipmapped?1u<<24:0);
-      if(!check(warm.abi_version==63&&warm.texture_count==1&&fresh.texture_count==1,gate))return false;
+      if(!check(warm.abi_version==65&&warm.texture_count==1&&fresh.texture_count==1,gate))return false;
       const auto& a=warm.textures[0];const auto& b=fresh.textures[0];
       const bool exact=a.width==image.width&&a.height==image.height&&a.format==11&&a.reserved==bits&&
         a.pixel_bytes_len==image.pixelsRgba.size()&&a.pixels&&
@@ -1057,7 +1057,7 @@ bool cubeAtlasPreflightBeforeReuse() {
   }
   const auto preserved=[&]() {
     const auto & a=packed.getView(),& b=independent.getView();
-    if(a.abi_version!=63 || a.texture_count!=1 ||
+    if(a.abi_version!=65 || a.texture_count!=1 ||
        a.textures[0].format!=12 || a.textures[0].reserved!=0x41 ||
        a.textures[0].width!=4 || a.textures[0].height!=6 ||
        a.textures[0].pixel_bytes_len!=96 ||
@@ -2512,7 +2512,15 @@ main(int argc, char ** argv)
                "canonical rasterization policy must cross the private ABI")) return 1;
   }
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 63 && sizeof(CoinWgpuFrameView) == 512 &&
+  if (!check(first.abi_version == 65 && sizeof(CoinWgpuFrameView) == 544 &&
+             offsetof(CoinWgpuFrameView, multipass_count) == 512 &&
+             offsetof(CoinWgpuFrameView, multipass_reserved) == 516 &&
+             offsetof(CoinWgpuFrameView, multipass_budget_bytes) == 520 &&
+             offsetof(CoinWgpuFrameView, multipass_matrices) == 528 &&
+             offsetof(CoinWgpuFrameView, multipass_matrix_count) == 536 &&
+             first.multipass_count == 1 && first.multipass_reserved == 0 &&
+             first.multipass_budget_bytes == uint64_t(256) * 1024 * 1024 &&
+             first.multipass_matrices == nullptr && first.multipass_matrix_count == 0 &&
              sizeof(CoinWgpuShadowDraw) == 160 &&
              offsetof(CoinWgpuShadowDraw, viewport) == 144 &&
              first.texture_sampling_policy == 0 && first.rasterization_policy == 0 && sizeof(CoinWgpuVertex) == 164 &&

@@ -23,7 +23,7 @@ bool raw63(Run &run) {
   if (!packed)
     return false;
   auto view = ffi.getView();
-  if (!check(view.abi_version == 63 && view.portable_module_count == 1 &&
+  if (!check(view.abi_version == 65 && view.portable_module_count == 1 &&
                  view.portable_modules &&
                  view.portable_modules[0].node_count == 1 &&
                  view.portable_modules[0].parameter_count == 4 &&
@@ -43,6 +43,10 @@ bool raw63(Run &run) {
   std::vector<CoinWgpuRenderState> states(view.states,
                                           view.states + view.state_count);
   view.states = states.data();
+  if (!check(view.draw_count > 0 && view.draws,
+             "raw module fixture has consumed draw metadata")) return false;
+  std::vector<CoinWgpuDraw> draws(view.draws, view.draws + view.draw_count);
+  view.draws = draws.data();
   std::vector<uint8_t> rgba(64 * 64 * 4, 0x65);
   std::vector<float> depth(64 * 64, .8765f);
   CoinWgpuTarget target{};
@@ -107,9 +111,26 @@ bool raw63(Run &run) {
   };
   const auto validModule = module;
   const auto validNode = nodes[0];
+  const auto validMultipass = view;
+  const auto validDraw = draws[0];
+  for (unsigned sample : {1u, 15u}) {
+    draws[0].composition_flags = validDraw.composition_flags | (1u << (15 + sample));
+    ok &= reject("draw sample mask beyond current N rejects before work/publication");
+  }
+  draws[0] = validDraw;
+  view.multipass_count = 0;
+  ok &= reject("zero multipass count before compilation/upload/publication");
+  view = validMultipass; view.multipass_count = 17;
+  ok &= reject("unsupported multipass count before compilation/upload/publication");
+  view = validMultipass; view.multipass_reserved = 1;
+  ok &= reject("nonzero multipass reserved bits");
+  view = validMultipass; view.multipass_count = 2;
+  view.multipass_matrices = nullptr; view.multipass_matrix_count = 1;
+  ok &= reject("nonzero multipass matrix count with null payload");
+  view = validMultipass;
   view.abi_version = 62;
   ok &= reject("obsolete protocol62");
-  view.abi_version = 63;
+  view.abi_version = 65;
   view.struct_size = 496;
   ok &= reject("truncated pre-module frame layout");
   view.struct_size = sizeof(CoinWgpuFrameView);

@@ -284,10 +284,10 @@ bool occurrenceDelivery(const OccurrenceScene &s, const CoinRenderFramePlan &f,
   if (!packed)
     return false;
   const auto &v = ffi.getView();
-  ok &= check(v.abi_version == 63 && v.bump_image_count == 1 &&
+  ok &= check(v.abi_version == 65 && v.bump_image_count == 1 &&
                   v.bump_vertex_count == stream.size() &&
                   v.portable_module_count == (s.adapted ? 1u : 0u),
-              "ABI63 owns exact consumed normalmap and module resources");
+              "ABI65 owns exact consumed normalmap and module resources");
   if (v.bump_image_count != 1 || v.bump_vertex_count != stream.size())
     return false;
   ok &= check(v.bump_images[0].width == 1 && v.bump_images[0].height == 1 &&
@@ -605,7 +605,7 @@ bool occurrenceImage(const OccurrenceScene &s, const Frame &f, unsigned side,
 }
 #ifdef COIN_PORTABLE_MODULE_RUST
 // Mutations below bypass both Action and the C++ packer. Only the valid
-// predecessor is packed; each malformed ABI63 view goes directly to Rust.
+// predecessor is packed; each malformed ABI65 view goes directly to Rust.
 bool occurrenceRaw(Run &run, const OccurrenceScene &scene) {
   const auto publicBefore = run.read();
   if (!check(coin_wgpu_install_cpp_portable_core() == COIN_WGPU_OK,
@@ -654,7 +654,7 @@ bool occurrenceRaw(Run &run, const OccurrenceScene &scene) {
                       "neighbor"))
       return false;
   }
-  if (!check(original.abi_version == 63 && consumedDraw != UINT32_MAX &&
+  if (!check(original.abi_version == 65 && consumedDraw != UINT32_MAX &&
                  !consumedVertices.empty() && bumpCorners == 6 &&
                  neighborCorners == 6,
              "raw mixed packet has complete independent consumed/unconsumed "
