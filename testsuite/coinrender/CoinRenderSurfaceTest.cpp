@@ -110,6 +110,7 @@ static int nativePhongCamera(Display * dpy, bool requireVulkan)
   material.diffuse[0] = .8f; material.diffuse[1] = .25f; material.diffuse[3] = 1;
   material.specular[0] = .2f; material.shininess = .25f;
   CoinWgpuRenderState state{};
+  state.color_write = 1;
   state.light_model = 1; state.light_count = 1; state.polygon_offset_primitive_style = 1;
   state.lights[0].position_type[2] = 3; state.lights[0].position_type[3] = 1;
   for (int c = 0; c < 4; ++c) {

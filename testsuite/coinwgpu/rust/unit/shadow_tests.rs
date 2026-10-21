@@ -3,7 +3,7 @@
     #[test]
     fn captured_casters_write_front_moments() {
         let required = std::env::var("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU").as_deref() == Ok("1");
-        let instance = wgpu::Instance::default();
+        let instance = crate::gpu_test_instance();
         let adapter = pollster::block_on(instance.request_adapter(&wgpu::RequestAdapterOptions {
             power_preference: wgpu::PowerPreference::LowPower,
             compatible_surface: None,
@@ -63,11 +63,13 @@
             reserved: 0,
             model_view: light_view,
             model_view_projection: identity,
+            viewport: [0, 0, 64, 64],
         };
         let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin shadow caster test"),
         });
         let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.color_write = 1;
         state.model_view = identity;
         state.clip_plane_count = 1;
         state.clip_planes[0] = [1.0, 0.0, 0.0, 0.0];
@@ -82,6 +84,7 @@
             0.1,
             1.1,
             1,
+            false,
         )
         .expect("encode captured casters");
         let readback = device.create_buffer(&wgpu::BufferDescriptor {
@@ -92,7 +95,7 @@
         });
         encoder.copy_texture_to_buffer(
             wgpu::TexelCopyTextureInfo {
-                texture: &map._moments,
+                texture: &map.moments,
                 mip_level: 0,
                 origin: wgpu::Origin3d::ZERO,
                 aspect: wgpu::TextureAspect::All,

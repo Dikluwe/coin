@@ -105,8 +105,10 @@ main()
   normalsView.normalBinding=SoNormalBindingElement::PER_FACE_INDEXED;
   normalsView.normalIndex=CoinRenderSpan<int32_t>(overriddenMaterialIndices,5);
   const auto absentNormal=CoinRenderIndexedGeometryCore::buildFaces(normalsView,baseColor);
-  ok &= check(absentNormal.status==CoinRenderFastPathResult::FALLBACK_CONTINUE && absentNormal.vertices.empty(),
-              "unavailable authored normal falls back atomically to Coin");
+  ok &= check(absentNormal.status==CoinRenderFastPathResult::INVALID_SCENE &&
+                  absentNormal.vertices.empty() && absentNormal.indices.empty() &&
+                  absentNormal.diagnostic.find("normal") != std::string::npos,
+              "unavailable consumed authored normal is rejected atomically with a normal diagnostic");
 
   const int32_t invalidIndices[] = {0, 1, 7, -1};
   const CoinRenderIndexedGeometryResult invalid =
@@ -222,9 +224,10 @@ main()
   const int32_t invalidLineNormal[] = {8};
   lineView.normalIndex = CoinRenderSpan<int32_t>(invalidLineNormal, 1);
   const auto normalFallback = CoinRenderIndexedGeometryCore::buildLines(lineView, baseColor);
-  ok &= check(normalFallback.status == CoinRenderFastPathResult::FALLBACK_CONTINUE &&
-                  normalFallback.vertices.empty() && normalFallback.indices.empty(),
-              "invalid line normal index falls back atomically");
+  ok &= check(normalFallback.status == CoinRenderFastPathResult::INVALID_SCENE &&
+                  normalFallback.vertices.empty() && normalFallback.indices.empty() &&
+                  normalFallback.diagnostic.find("normal") != std::string::npos,
+              "invalid consumed line normal index is rejected atomically with a normal diagnostic");
 
   std::vector<CoinRenderIndexedVertex> digestVertices = quadResult.vertices;
   const uint64_t digest =

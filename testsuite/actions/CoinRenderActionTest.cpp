@@ -2383,9 +2383,9 @@ int testDepthStateCapture() {
   const std::string log(action.getRecordingLog().getString());
   TEST_ASSERT(action.getLastStatus() == CoinRenderAction::SUCCESS,
               "SoDepthBuffer capture should succeed");
-  TEST_ASSERT(log.find("depthTest=1 depthWrite=1 depthFunction=LEQUAL") != std::string::npos,
+  TEST_ASSERT(log.find("depthTest=1 depthWrite=1 colorWrite=1 depthFunction=LEQUAL") != std::string::npos,
               "cube branch should capture depth write plus LEQUAL");
-  TEST_ASSERT(log.find("depthTest=1 depthWrite=0 depthFunction=LEQUAL") != std::string::npos,
+  TEST_ASSERT(log.find("depthTest=1 depthWrite=0 colorWrite=1 depthFunction=LEQUAL") != std::string::npos,
               "label branch should capture test-only LEQUAL");
   root->unref();
   return 0;

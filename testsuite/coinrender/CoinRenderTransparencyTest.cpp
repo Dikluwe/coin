@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
@@ -49,6 +50,39 @@ const int modes[] = {A::NONE,
                      A::SORTED_OBJECT_SORTED_TRIANGLE_ADD,
                      A::SORTED_OBJECT_SORTED_TRIANGLE_BLEND,
                      A::SORTED_LAYERS_BLEND};
+
+bool screenDoorRankMatrix() {
+  // Independent CoinGL Bayer construction in bottom-left pixel coordinates.
+  // The 2x2 seed is row-major (bottom row first); each doubling adds one
+  // quadrant digit to four times the previous rank.
+  constexpr std::array<uint16_t,4> twoByTwo{{0,2,3,1}};
+  std::array<uint16_t,1024> matrix{};
+  matrix[0]=twoByTwo[0]; matrix[1]=twoByTwo[1];
+  matrix[2]=twoByTwo[2]; matrix[3]=twoByTwo[3];
+  for (unsigned size=2;size<32;size*=2) {
+    std::array<uint16_t,1024> next{};
+    for (unsigned y=0;y<2*size;++y)
+      for (unsigned x=0;x<2*size;++x)
+        next[y*(2*size)+x]=uint16_t(4*matrix[(y%size)*size+(x%size)] +
+          twoByTwo[(y/size)*2+(x/size)]);
+    matrix=next;
+  }
+  unsigned matched=0,levelsMatched=0;
+  for (unsigned y=0;y<32;++y)
+    for (unsigned x=0;x<32;++x)
+      matched+=coin_render_screen_door_rank(x,y)==matrix[y*32+x];
+  for (unsigned level=0;level<=64;++level) {
+    unsigned covered=0;
+    for (unsigned y=0;y<32;++y)
+      for (unsigned x=0;x<32;++x)
+        covered+=coin_render_screen_door_rank(x,y)>=level*16;
+    levelsMatched+=covered==1024-level*16;
+  }
+  std::cout << "screen_door_rank_matrix=" << matched << "/1024"
+            << " levels=" << levelsMatched << "/65\n";
+  return check(matched==1024 && levelsMatched==65,
+               "CoinGL SCREEN_DOOR rank matrix or level counts differ");
+}
 struct Scene {
   SoSeparator* root = new SoSeparator;
   SoMaterial* nearMaterial = nullptr;
@@ -113,6 +147,9 @@ struct Runner {
   bool cpu;
   bool compareRGB = true;
   bool reference = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
+  int topologyContext = -1;
+  float alphaContext = -1;
+  int fastContext = -1;
   Runner(bool cpu)
       : target(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64))),
         action(SbViewportRegion(64, 64)), gl(SbViewportRegion(64, 64)), cpu(cpu) {
@@ -150,19 +187,35 @@ struct Runner {
   }
   bool sample(const std::vector<uint8_t>& pixels, int x, int y,
               const std::array<float, 3>& expected, int mode) {
+    // The sample coordinate is bottom-left based: CoinRenderTarget readback
+    // is top-down, while SoOffscreenRenderer's GL buffer is bottom-up.
+    const size_t corePixel = (size_t(63-y)*64u+size_t(x))*4u;
+    const size_t glPixel = (size_t(y)*64u+size_t(x))*4u;
     for (int c = 0; c < 3; ++c) {
-      const int actual = pixels[((63 - y) * 64 + x) * 4 + c];
+      const int actual = pixels[corePixel+c];
       if (std::abs(actual - int(std::lround(expected[c] * 255))) > 5) {
         std::cerr << "numeric CPU=" << cpu << " mode=" << mode << " at " << x << ',' << y
+                  << " topology=" << topologyContext << " alpha=" << alphaContext
+                  << " fast=" << fastContext
                   << " channel=" << c << " expected=" << expected[c] * 255 << " actual=" << actual
                   << '\n';
         return false;
       }
       if (reference && compareRGB &&
-          std::abs(actual - int(gl.getBuffer()[(y * 64 + x) * 4 + c])) > 5) {
+          std::abs(actual - int(gl.getBuffer()[glPixel+c])) > 5) {
         std::cerr << "GL CPU=" << cpu << " mode=" << mode << " at " << x << ',' << y
+                  << " topology=" << topologyContext << " alpha=" << alphaContext
+                  << " fast=" << fastContext
                   << " channel=" << c << " Core=" << actual
-                  << " GL=" << int(gl.getBuffer()[(y * 64 + x) * 4 + c]) << '\n';
+                  << " GL=" << int(gl.getBuffer()[glPixel+c])
+                  << " CoreRGB="
+                  << int(pixels[corePixel]) << ','
+                  << int(pixels[corePixel+1]) << ','
+                  << int(pixels[corePixel+2])
+                  << " GLRGB="
+                  << int(gl.getBuffer()[glPixel]) << ','
+                  << int(gl.getBuffer()[glPixel+1]) << ','
+                  << int(gl.getBuffer()[glPixel+2]) << '\n';
         return false;
       }
     }
@@ -177,6 +230,9 @@ bool modeMatrix(bool cpu) {
     for (float alpha : {0.f, .25f, .5f, 1.f})
       for (int fast : {0, 1})
         for (int mode : modes) {
+          runner.topologyContext=topology;
+          runner.alphaContext=alpha;
+          runner.fastContext=fast;
           scene.nearMaterial->transparency = 1 - alpha;
           scene.farMaterial->transparency = 1 - alpha;
           runner.action.setFastPathEnabled(fast ? TRUE : FALSE);
@@ -187,13 +243,17 @@ bool modeMatrix(bool cpu) {
           const bool add = mode == A::ADD || mode == A::DELAYED_ADD ||
                            mode == A::SORTED_OBJECT_ADD ||
                            mode == A::SORTED_OBJECT_SORTED_TRIANGLE_ADD;
+          const int x = topology == 2 ? 56 : topology == 4 ? 8 : 40;
+          const int y = topology == 0 ? 32 : 8;
           std::array<float, 3> expected;
-          if (mode == A::NONE || alpha == 1 || (mode == A::SCREEN_DOOR && topology != 0))
+          // Polygon stipple is specified for filled polygons. Polygon LINE/
+          // POINT rasterization and native lines/points keep their geometry.
+          if (mode == A::NONE || alpha == 1 ||
+              (mode == A::SCREEN_DOOR && topology != 0))
             expected = {{1, 0, 0}};
           else if (mode == A::SCREEN_DOOR) {
             const uint32_t level = uint32_t((1 - alpha) * 64);
-            const bool hole = coin_render_screen_door_rank(topology == 2 || topology == 4 ? 8 : 40,
-                                                           topology == 0 ? 32 : 8) < level * 16;
+            const bool hole = coin_render_screen_door_rank(x,y) < level * 16;
             expected = hole ? std::array<float, 3>{{0, 0, 1}} : std::array<float, 3>{{1, 0, 0}};
           } else if (immediate)
             expected = {{alpha, 0, 0}};
@@ -203,7 +263,6 @@ bool modeMatrix(bool cpu) {
             expected = {{alpha * (1 - alpha), alpha, (1 - alpha) * (1 - alpha)}};
           else
             expected = {{alpha, alpha * (1 - alpha), (1 - alpha) * (1 - alpha)}};
-          const int x = topology == 2 ? 56 : topology == 4 ? 8 : 40, y = topology == 0 ? 32 : 8;
           if (!runner.sample(pixels, x, y, expected, mode))
             return false;
           if (mode == A::SCREEN_DOOR && topology == 0) {
@@ -460,6 +519,7 @@ bool outputAlpha(bool cpu) {
 int main() {
   SoDB::init();
   CoinRenderAction::initClass();
+  if (!screenDoorRankMatrix()) return 1;
   std::cout << "CPU transparency matrices" << std::endl;
   if (!modeMatrix(true) || !triangleRuns(true) || !crossingLayers(true) || !outputAlpha(true) ||
       !check(textureAlphaModes(true), "CPU texture alpha matrix") ||

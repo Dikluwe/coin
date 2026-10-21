@@ -334,6 +334,7 @@ static bool testStorageBufferLimitsAndSlotValidation() {
   mat.diffuse[0] = 1.0f; mat.diffuse[3] = 1.0f;
 
   CoinWgpuRenderState st{};
+  st.color_write = 1;
   st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.cull_mode = 0;
   st.front_face = 0;
@@ -407,6 +408,7 @@ static bool testBaseColorVsPhongLitAndUnlitGpu() {
   mat.emission[0] = 0.0f; mat.emission[1] = 1.0f; mat.emission[2] = 0.0f; mat.emission[3] = 1.0f;
 
   CoinWgpuRenderState st{};
+  st.color_write = 1;
   st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   // Identity matrices
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
@@ -498,6 +500,7 @@ static bool testShininessZeroAndExponentConversion() {
   mat.shininess = 0.0f; // Shininess zero must be valid!
 
   CoinWgpuRenderState st{};
+  st.color_write = 1;
   st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;
@@ -570,6 +573,7 @@ static bool testOpaqueRuleForAlpha() {
   mat.transparency = 0.5f;
 
   CoinWgpuRenderState st{};
+  st.color_write = 1;
   st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;
@@ -675,6 +679,7 @@ static bool testMaterialMutationWithGeometryCacheHit() {
   mat1.diffuse[0] = 1.0f; mat1.diffuse[3] = 1.0f;
 
   CoinWgpuRenderState st{};
+  st.color_write = 1;
   st.polygon_offset_primitive_style = 1; // Offset disabled; valid triangle style.
   st.model_view[0] = 1.0f; st.model_view[5] = 1.0f; st.model_view[10] = 1.0f; st.model_view[15] = 1.0f;
   st.model_view_projection[0] = 1.0f; st.model_view_projection[5] = 1.0f; st.model_view_projection[10] = 1.0f; st.model_view_projection[15] = 1.0f;

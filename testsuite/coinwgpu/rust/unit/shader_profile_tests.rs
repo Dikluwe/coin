@@ -16,6 +16,29 @@
     }
 
     #[test]
+    fn bump_lighting_passes_validate_for_wgpu_and_glsl() {
+        let source = include_str!("../../../../src/rendering/coinwgpu/shaders/coin_bump.wgsl");
+        let module = naga::front::wgsl::parse_str(source).expect("parse bump diffuse pass");
+        let info = Validator::new(ValidationFlags::all(), Capabilities::all())
+            .validate(&module).expect("validate bump diffuse pass");
+        for (entry, stage) in [("vs_main", naga::ShaderStage::Vertex),
+                               ("fs_main", naga::ShaderStage::Fragment),
+                               ("fs_specular", naga::ShaderStage::Fragment)] {
+            assert!(module.entry_points.iter().any(|point|
+                point.name == entry && point.stage == stage));
+            let mut glsl = String::new();
+            let pipeline = naga::back::glsl::PipelineOptions {
+                shader_stage: stage, entry_point: entry.into(), multiview: None,
+            };
+            naga::back::glsl::Writer::new(&mut glsl, &module, &info,
+                &naga::back::glsl::Options::default(), &pipeline,
+                naga::proc::BoundsCheckPolicies::default()).expect("create bump GLSL writer")
+                .write().expect("translate bump GLSL pass");
+            assert!(glsl.contains("void main"));
+        }
+    }
+
+    #[test]
     fn sampling_profiles_preserve_uniform_abi_with_lf_and_crlf_inputs() {
         for source in [include_str!("../../../../src/rendering/coinwgpu/shaders/coin_standard.wgsl").to_owned(),
             super::super::shadow_receiver::four_map_source(),
@@ -30,7 +53,7 @@
                         .validate(&module).expect("sampling uniform contract");
                     let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
                     if let naga::TypeInner::Struct {span,..}=uniform.inner {
-                        assert_eq!(span, if portable {3168} else {3040});
+                        assert_eq!(span, 3200);
                     } else {panic!("uniform is not a struct");}
                 }
             }
@@ -43,12 +66,13 @@
             super::super::shadow_receiver::four_map_source(), super::super::shadow_receiver::eight_map_source(),
             super::super::instancing::shader_source()] {
             let source = texture_specialization(&format!("{}{}", sampling_profile(&source, false), super::super::weighted::FRAGMENT));
-            assert!(!source.contains("sampling_texture_sizes") && !source.contains("fn coin_portable_") && !source.contains("dpdxFine"));
+            assert!(source.contains("sampling_texture_sizes") && source.contains("textureSample("),
+                "native profile retains volume metadata and 2D hardware sampling");
             let module = naga::front::wgsl::parse_str(&source).expect("native profile parse");
             Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module).expect("native profile validate");
             let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
             if let naga::TypeInner::Struct {span,..}=uniform.inner {
-                assert_eq!(span as usize,super::super::NATIVE_UNIFORM_BYTES);
+                assert_eq!(span,3200);
             } else {panic!("uniform is not a struct");}
             // Naga's standalone GLSL writer needs resolved overrides, as wgpu
             // supplies them during pipeline compilation. Qualify both profiles.
@@ -84,6 +108,47 @@
                 .validate(&module).expect("validate specialized profile");
             for entry in ["vs_main", "fs_main", "fs_peel", "fs_weighted", "fs_depth_bias"] {
                 assert!(module.entry_points.iter().any(|point| point.name == entry));
+            }
+        }
+    }
+
+    #[test]
+    fn every_final_wgsl_variant_parses_and_validates_without_a_gpu() {
+        // Reconstruct the exact public shader-module assembly order used by
+        // the bridge. This catches a missing varying or invalid specialized
+        // fragment before any pipeline/device is requested.
+        let standard = include_str!("../../../../src/rendering/coinwgpu/shaders/coin_standard.wgsl");
+        let variants = [
+            ("ordinary", without_shadows(standard)),
+            ("instanced", super::super::instancing::shader_source()),
+            ("line", include_str!("../../../../src/rendering/coinwgpu/shaders/coin_line.wgsl").to_owned()),
+            ("point", include_str!("../../../../src/rendering/coinwgpu/shaders/coin_point.wgsl").to_owned()),
+            ("four-shadow-maps", super::super::shadow_receiver::four_map_source()),
+            ("eight-shadow-maps", super::super::shadow_receiver::eight_map_source()),
+        ];
+        for (name, source) in variants {
+            for portable in [false, true] {
+                for gl_depth_loads in [false, true] {
+                    let label = format!("{name}/portable={portable}/gl_depth_loads={gl_depth_loads}");
+                    let source = format!("{}{}", source, super::super::weighted::FRAGMENT);
+                    let final_source = depth_load_profile(
+                        &texture_specialization(&sampling_profile(&source, portable)),
+                        gl_depth_loads,
+                    );
+                    let module = wgpu::naga::front::wgsl::parse_str(&final_source)
+                        .unwrap_or_else(|error| panic!("{label}: WGSL parse: {}",
+                            error.emit_to_string(&final_source)));
+                    wgpu::naga::valid::Validator::new(
+                        wgpu::naga::valid::ValidationFlags::all(),
+                        wgpu::naga::valid::Capabilities::all(),
+                    ).validate(&module).unwrap_or_else(|error| panic!(
+                        "{label}: WGSL validation: {}",
+                        error.emit_to_string(&final_source)));
+                    for entry in ["vs_main", "fs_main", "fs_peel", "fs_weighted", "fs_depth_bias"] {
+                        assert!(module.entry_points.iter().any(|point| point.name == entry),
+                            "{label}: missing {entry}");
+                    }
+                }
             }
         }
     }

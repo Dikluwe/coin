@@ -4,6 +4,7 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoLightModel.h>
@@ -35,6 +36,18 @@
 #include <vector>
 
 namespace {
+CoinRenderRenderer requestedRenderer=COIN_RENDER_RENDERER_UNKNOWN;
+bool selectGpuRenderer() {
+  CoinRenderCapabilities caps{};
+  if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+      &caps,sizeof(caps))!=0 || !caps.gpu_available ||
+     caps.renderer==COIN_RENDER_RENDERER_UNKNOWN) return false;
+  requestedRenderer=static_cast<CoinRenderRenderer>(caps.renderer);
+  std::cout << "peeling backend=" << caps.backend << " renderer="
+            << caps.renderer << " vendor=" << caps.vendor_id << " adapter="
+            << caps.adapter_name << '\n';
+  return true;
+}
 using Color = std::array<float, 4>;
 bool check(bool value, const char* message) {
   if (!value)
@@ -216,18 +229,23 @@ struct Scene {
   }
 };
 struct Runner {
-  std::unique_ptr<CoinRenderTarget> target{CoinRenderTarget::createOffscreen(SbVec2i32(64, 64))};
+  std::unique_ptr<CoinRenderTarget> target;
   CoinRenderAction action{SbViewportRegion(64, 64)};
   bool cpu;
   Runner(bool cpu, CoinRenderOptions options = {}) : cpu(cpu) {
+    if(options.renderer==COIN_RENDER_RENDERER_UNKNOWN)
+      options.renderer=requestedRenderer;
     target.reset(CoinRenderTarget::createOffscreen(SbVec2i32(64, 64), options));
-    if (cpu)
+    if(target && requestedRenderer!=COIN_RENDER_RENDERER_UNKNOWN &&
+       target->getOptions().renderer!=requestedRenderer) target.reset();
+    if (cpu && target)
       target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
     action.setRenderTarget(target.get());
     action.setTransparencyType(CoinRenderAction::SORTED_LAYERS_BLEND);
   }
   bool render(Scene& scene, int layers, const Color& expected, bool glReference = false,
               int sampleX = 32) {
+    if(!check(bool(target),"target must use queried renderer")) return false;
     action.setSortedLayersNumPasses(layers);
     action.apply(scene.root);
     if (!check(action.getLastStatus() == CoinRenderAction::SUCCESS,
@@ -353,9 +371,6 @@ bool matrix(bool cpu) {
     Scene overrides({.5f, .5f});
     if (!runner.render(overrides, 4, overrides.expected(4)))
       return false;
-    std::vector<uint8_t> previous;
-    runner.target->readbackRGBA(previous);
-    const auto previousSerial = runner.target->getLastSubmissionSerial();
     std::vector<SoDepthBuffer*> nodes;
     for (int i = 0; i < 2; ++i) {
       auto* depth = new SoDepthBuffer;
@@ -365,24 +380,10 @@ bool matrix(bool cpu) {
       static_cast<SoGroup*>(overrides.root->getChild(i + 3))->insertChild(depth, 0);
       nodes.push_back(depth);
     }
-#ifdef HAVE_COIN_BGFX
-    if (!cpu) {
-      runner.action.apply(overrides.root);
-      std::vector<uint8_t> preserved;
-      runner.target->readbackRGBA(preserved);
-      if (!check(runner.action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-                     preserved == previous &&
-                     runner.target->getLastSubmissionSerial() == previousSerial,
-                 "unsupported BGFX peeling depth preserves publication"))
-        return false;
-    } else
-#endif
-    {
-      overrides.referenceDepth = overrideCase == 0 ? 6.f / 29 : 12.f / 29;
-      if (!runner.render(overrides, 4,
-                         overrideCase == 2 ? overrides.background : overrides.expected(4)))
-        return false;
-    }
+    overrides.referenceDepth = overrideCase == 0 ? 6.f / 29 : 12.f / 29;
+    if (!runner.render(overrides, 4,
+                       overrideCase == 2 ? overrides.background : overrides.expected(4)))
+      return false;
     for (auto* node : nodes) {
       node->write = FALSE;
       node->test = TRUE;
@@ -548,7 +549,7 @@ int main(int argc, char** argv) {
   CoinRenderAction::initClass();
   if (argc == 4 && std::string(argv[1]) == "--shadow") {
 #if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (!CoinRenderAction::isGpuBackendAvailable()) return 77;
+    if (!CoinRenderAction::isGpuBackendAvailable() || !selectGpuRenderer()) return 77;
     const unsigned maps = std::atoi(argv[2]);
     if (maps < 1 || maps > 8) return 1;
     return shadowMatrix(std::atoi(argv[3]) == 2, maps) ? 0 : 1;
@@ -558,7 +559,7 @@ int main(int argc, char** argv) {
   }
   if (argc == 2 && std::string(argv[1]) == "--weighted") {
 #if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-    if (!CoinRenderAction::isGpuBackendAvailable())
+    if (!CoinRenderAction::isGpuBackendAvailable() || !selectGpuRenderer())
       return 77;
     if (!weightedMatrix())
       return 1;
@@ -570,7 +571,7 @@ int main(int argc, char** argv) {
   }
   if (!budgetCore() || !matrix(true))
     return 1;
-  if (!CoinRenderAction::isGpuBackendAvailable())
+  if (!CoinRenderAction::isGpuBackendAvailable() || !selectGpuRenderer())
     return 77;
   if (!matrix(false))
     return 1;

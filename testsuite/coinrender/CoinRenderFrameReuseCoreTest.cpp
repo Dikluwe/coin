@@ -74,6 +74,18 @@ bool testDrawPadding() {
   return ok;
 }
 
+bool testFlatShadowPrimaryIdentity() {
+  auto first=makePlan(301), second=first;
+  first.renderStates[0].flatShadowPrimary=false;
+  second.renderStates[0].flatShadowPrimary=true;
+  const auto changed=CoinRenderFrameReuseCore::classify(first,second);
+  std::cout << "flat_shadow_primary_reuse_kind=" << int(changed.kind) << '\n';
+  return check(!first.hasSamePayload(second) &&
+               (changed.kind==CoinRenderFrameReuseKind::RESOURCE_REBUILD ||
+                changed.kind==CoinRenderFrameReuseKind::FULL_REBUILD),
+               "flat primary color change must invalidate cached shadow payload");
+}
+
 bool nearValue(float a, float b) {
   return std::abs(a-b) <= 2.0e-5f * (1.0f + std::abs(b));
 }
@@ -230,11 +242,89 @@ bool testObjectPayloadTransaction() {
   }
   return ok;
 }
+
+bool testCompactCubeOverlay() {
+  bool ok = true;
+  auto original = makePlan(1650);
+  original.vertices.resize(48);
+  for (uint32_t slot = 0; slot < 48; ++slot)
+    for (int axis = 0; axis < 3; ++axis)
+      original.vertices[slot].position[axis] =
+        std::copysign(axis == 0 ? 0.0f : (axis == 1 ? .25f : 1.5f),
+                      ((slot + axis) & 1) ? -1.0f : 1.0f);
+  std::vector<CoinRenderCubeRangeUpdate> ranges(2);
+  ranges[0].firstVertex = 0; ranges[0].vertexCount = 24;
+  ranges[0].halfExtents.setValue(.5f, .75f, 2.0f);
+  ranges[1].firstVertex = 24; ranges[1].vertexCount = 24;
+  ranges[1].halfExtents.setValue(0.0f, .5f, 1.0f);
+  std::vector<CoinRenderPositionUpdate> literal;
+  for (const auto & range : ranges)
+    for (uint32_t offset = 0; offset < range.vertexCount; ++offset) {
+      const uint32_t slot = range.firstVertex + offset;
+      SbVec3f value;
+      for (int axis = 0; axis < 3; ++axis)
+        value[axis] = std::copysign(range.halfExtents[axis], original.vertices[slot].position[axis]);
+      literal.push_back({slot, value});
+    }
+  auto compact = original, generic = original;
+  CoinRenderObjectOverlayUndo compactUndo, genericUndo;
+  ok &= check(CoinRenderFrameReuseCore::beginCubeObjectOverlay(
+                compact, {}, {}, ranges, {}, 1651, compactUndo) &&
+              CoinRenderFrameReuseCore::beginObjectOverlay(
+                generic, {}, {}, literal, {}, 1651, genericUndo) &&
+              compact.hasSamePayload(generic) && compactUndo.positions.empty() &&
+              compactUndo.cubeRanges.size() == 2,
+              "compact Cube update must match every generic position bit");
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(compact, compactUndo);
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(generic, genericUndo);
+  ok &= check(compact.hasSamePayload(original) && generic.hasSamePayload(original) &&
+              compact.revision == original.revision,
+              "compact Cube undo must restore signed zeros and all payload bits");
+  CoinRenderMaterialUpdate material;
+  material.material = original.materials[0];
+  material.material.diffuse[0] = .3f;
+  CoinRenderModelUpdate model;
+  model.model[3][0] = .4f;
+  CoinRenderDrawSourceUpdate draw;
+  draw.sourceNodeId = 500;
+  ok &= check(CoinRenderFrameReuseCore::beginCubeObjectOverlay(
+                compact, {model}, {material}, ranges, {draw}, 1652, compactUndo) &&
+              CoinRenderFrameReuseCore::beginObjectOverlay(
+                generic, {model}, {material}, literal, {draw}, 1652, genericUndo) &&
+              compact.hasSamePayload(generic),
+              "compact Cube update must preserve joint model/material/source semantics");
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(compact, compactUndo);
+  CoinRenderFrameReuseCore::rollbackObjectOverlay(generic, genericUndo);
+  ok &= check(compact.hasSamePayload(original) && generic.hasSamePayload(original),
+              "joint compact Cube rollback must restore the prior plan");
+  for (int kind = 0; kind < 6; ++kind) {
+    auto invalid = ranges;
+    auto candidate = original;
+    if (kind == 0) invalid.push_back(invalid.front());
+    if (kind == 1) invalid[1].firstVertex = 12;
+    if (kind == 2) invalid[0].halfExtents[0] = std::numeric_limits<float>::quiet_NaN();
+    if (kind == 3) candidate.vertices[25].position[1] = .125f;
+    if (kind == 4) invalid[1].vertexCount = 25;
+    CoinRenderDrawSourceUpdate invalidDraw = draw;
+    if (kind == 5) invalidDraw.slot = UINT32_MAX;
+    const auto before = candidate;
+    CoinRenderObjectOverlayUndo rejected;
+    ok &= check(!CoinRenderFrameReuseCore::beginCubeObjectOverlay(
+                  candidate, {}, {}, invalid, kind == 5
+                    ? std::vector<CoinRenderDrawSourceUpdate>{invalidDraw}
+                    : std::vector<CoinRenderDrawSourceUpdate>{}, 1651, rejected) &&
+                !rejected.active && candidate.hasSamePayload(before) &&
+                candidate.revision == before.revision,
+                "invalid Cube range must reject before mutating any payload");
+  }
+  return ok;
+}
 bool sameObjectUndo(const CoinRenderObjectOverlayUndo & a, const CoinRenderObjectOverlayUndo & b) {
   if (a.revision != b.revision || a.active != b.active ||
       a.transforms.revision != b.transforms.revision || a.transforms.active != b.transforms.active ||
       a.transforms.states.size() != b.transforms.states.size() || a.materials.size() != b.materials.size() ||
-      a.positions.size() != b.positions.size() || a.draws.size() != b.draws.size()) return false;
+      a.positions.size() != b.positions.size() || a.cubeRanges.size() != b.cubeRanges.size() ||
+      a.draws.size() != b.draws.size()) return false;
   for (size_t i = 0; i < a.transforms.states.size(); ++i) {
     const auto & x = a.transforms.states[i]; const auto & y = b.transforms.states[i];
     if (x.state.stateSlot != y.state.stateSlot || x.state.sortingDrawSlot != y.state.sortingDrawSlot ||
@@ -247,6 +337,11 @@ bool sameObjectUndo(const CoinRenderObjectOverlayUndo & a, const CoinRenderObjec
   for (size_t i = 0; i < a.positions.size(); ++i)
     if (a.positions[i].slot != b.positions[i].slot ||
         std::memcmp(a.positions[i].position.getValue(), b.positions[i].position.getValue(), 3 * sizeof(float))) return false;
+  for (size_t i = 0; i < a.cubeRanges.size(); ++i)
+    if (a.cubeRanges[i].firstVertex != b.cubeRanges[i].firstVertex ||
+        a.cubeRanges[i].vertexCount != b.cubeRanges[i].vertexCount ||
+        std::memcmp(a.cubeRanges[i].halfExtents.getValue(),
+                    b.cubeRanges[i].halfExtents.getValue(), 3 * sizeof(float))) return false;
   for (size_t i = 0; i < a.draws.size(); ++i)
     if (a.draws[i].slot != b.draws[i].slot || a.draws[i].sourceNodeId != b.draws[i].sourceNodeId) return false;
   return true;
@@ -772,10 +867,11 @@ int
 main()
 {
   SoDB::init();
-  const bool paddingOk = testDrawPadding();
+  const bool paddingOk = testDrawPadding() && testFlatShadowPrimaryIdentity();
   bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
     testExactAuthoredLightOverlay() && testCompactCameraUndo() &&
-    testTranslationOverlay() && testObjectPayloadTransaction() && testGeometryIntervalValidation();
+    testTranslationOverlay() && testObjectPayloadTransaction() &&
+    testCompactCubeOverlay() && testGeometryIntervalValidation();
   CoinRenderTextureImageSnapshot alphaImage;
   alphaImage.width = alphaImage.height = 1;
   alphaImage.producerId = 1;

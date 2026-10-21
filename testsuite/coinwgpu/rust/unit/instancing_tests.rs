@@ -13,6 +13,7 @@
         let mut draw = CoinWgpuDraw::zeroed(); draw.index_count = 3; draw.vertex_count = 3;
         let mut material = CoinWgpuMaterial::zeroed(); material.diffuse[3] = 1.0;
         let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.color_write = 1;
         state.light_model = 1;
         let mut instance = CoinWgpuInstance::zeroed();
         for i in 0..4 {
@@ -21,6 +22,16 @@
         }
         (frame, vertices, [draw], [material], [state], [instance; 2],
             [CoinWgpuInstanceRange { draw_index: 0, first_instance: 0, instance_count: 2, reserved: 0 }])
+    }
+
+    #[test]
+    fn flat_shadow_primary_is_a_boolean_abi_field() {
+        let (frame, vertices, draws, materials, mut states, instances, ranges) = fixture();
+        let accepted = |states: &[CoinWgpuRenderState]| validate_payload(
+            &frame, &vertices, &[0, 1, 2], &draws, &materials, states, &instances, &ranges);
+        assert!(accepted(&states).is_ok());
+        states[0].flat_shadow_primary = 2;
+        assert!(accepted(&states).is_err(), "non-boolean flat-primary payload must be rejected");
     }
 
     #[test]

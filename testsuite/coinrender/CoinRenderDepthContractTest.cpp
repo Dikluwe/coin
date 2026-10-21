@@ -16,6 +16,7 @@
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoCube.h>
@@ -624,6 +625,45 @@ bool subnormalCpuDepthQuantum() {
                "D32 CPU subnormal quantum remains one representable step, not zero");
 }
 
+bool cpuShadowPublicationRollback() {
+  CoinRenderTargetP target(SbVec2i32(32,32));
+  target.backend.reset(new CoinRenderCpuReferenceBackend);
+  target.depthReadbackEnabled=true;
+  auto ordinary=fixture();
+  ordinary.revision=401;
+  if (!check(target.executeFrame(ordinary).status==CoinRenderBackendStatus::SUCCESS,
+             "ordinary CPU baseline failed")) return false;
+  const auto rgba=target.colorBuffer;
+  const auto depth=target.depthBuffer;
+  const uint64_t serial=target.lastSubmissionSerial;
+  for (int mode=0;mode<2;++mode) {
+    auto unsupported=ordinary;
+    unsupported.revision=402+mode;
+    unsupported.shadowGroups.push_back(CoinRenderShadowGroupSnapshot{});
+    unsupported.renderStates[0].shadowGroupSlot=1;
+    unsupported.renderStates[0].shadowStyle=3;
+    unsupported.renderStates[0].lightModel=CoinRenderLightModel::PHONG;
+    unsupported.renderStates[0].flatShadowPrimary=(mode==0);
+    CoinRenderShadowLightSnapshot light;
+    light.groupSlot=1;
+    light.type=CoinRenderLightType::SPOT;
+    light.enabled=true;
+    light.shadowEligible=true;
+    unsupported.shadowLights.push_back(light);
+    const auto rejected=target.executeFrame(unsupported);
+    if (!check(rejected.status==CoinRenderBackendStatus::UNSUPPORTED &&
+               target.colorBuffer==rgba && target.depthBuffer==depth &&
+               target.lastSubmissionSerial==serial,
+               "CPU unsupported shadow frame changed published RGBA, depth, or serial")) return false;
+  }
+  ordinary.revision=405;
+  const auto retry=target.executeFrame(ordinary);
+  return check(retry.status==CoinRenderBackendStatus::SUCCESS &&
+               target.colorBuffer==rgba && target.depthBuffer==depth &&
+               target.lastSubmissionSerial>serial,
+               "ordinary CPU frame did not recover after unsupported shadow profiles");
+}
+
 bool annotationTransport() {
   CoinRenderFramePlan frame = fixture();
   frame.revision = 101;
@@ -703,7 +743,88 @@ bool lowerAndCache() {
   return ok;
 }
 
+bool colorWriteDepthOnly(bool useGpu) {
+  if (useGpu) {
+    CoinRenderCapabilities caps{};
+    if (!check(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+                &caps, sizeof(caps)) == 0 && caps.gpu_available,
+               "depth-only GPU capability receipt unavailable")) return false;
+    std::cout << "color_write_adapter name=" << caps.adapter_name
+              << " renderer=" << unsigned(caps.renderer)
+              << " vendor=0x" << std::hex << caps.vendor_id << std::dec << '\n';
+  }
+  CoinRenderTargetP target(SbVec2i32(32, 32));
+  target.depthReadbackEnabled = false;
+  if (!useGpu) target.backend.reset(new CoinRenderCpuReferenceBackend);
+  auto ordinary = fixture();
+  auto masked = ordinary;
+  masked.renderStates[0].colorWrite = false;
+  if (!check(!ordinary.hasSamePayload(masked) &&
+             CoinRenderFrameReuseCore::classify(ordinary, masked).kind !=
+               CoinRenderFrameReuseKind::REUSE,
+             "color-mask mutation reused the prior frame")) return false;
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  if (!check(packed.prepare(masked, 32, 32, diagnostic) &&
+             packed.getView().states[0].color_write == 0 &&
+             packed.getView().states[1].color_write == 1,
+             "color-mask state lost in the wgpu transport")) return false;
+  const size_t pixel = (16 * 32 + 20) * 4;
+  for (int mode = 0; mode < 3; ++mode) {
+    auto frame = fixture();
+    frame.revision = 300 + mode;
+    frame.renderStates[0].colorWrite = mode != 0;
+    frame.renderStates[0].depthWrite = mode != 2;
+    const auto result = target.executeFrame(frame);
+    if (!check(result.status == CoinRenderBackendStatus::SUCCESS,
+               "depth-only color-mask frame failed")) return false;
+    if (!check(target.backend && target.backend->isGpuBackend() == useGpu,
+               "color-mask test selected the wrong executor")) return false;
+    const uint8_t * rgba = target.colorBuffer.data() + pixel;
+    const bool expected = mode == 0 ? rgba[0] < 5 && rgba[1] < 5 :
+      mode == 1 ? rgba[0] > 240 && rgba[1] < 5 :
+                  rgba[1] > 240 && rgba[0] < 5;
+    if (!check(expected, "depth-only face must occlude green without writing red")) return false;
+  }
+  std::cout << "color_write_depth_only PASS gpu=" << int(useGpu) << '\n';
+  return true;
+}
+
+bool colorWriteChannels(bool useGpu) {
+  CoinRenderTargetP target(SbVec2i32(32, 32));
+  if (!useGpu) target.backend.reset(new CoinRenderCpuReferenceBackend);
+  auto frame = fixture();
+  frame.renderStates[0].depthTest = false;
+  frame.renderStates[0].depthWrite = false;
+  frame.renderStates[0].colorWriteMask = 1;
+  frame.renderStates[1].depthTest = false;
+  frame.renderStates[1].depthWrite = false;
+  frame.renderStates[1].colorWriteMask = 2;
+  const auto ordinary = fixture();
+  if (!check(!ordinary.hasSamePayload(frame) &&
+             CoinRenderFrameReuseCore::classify(ordinary, frame).kind !=
+               CoinRenderFrameReuseKind::REUSE,
+             "per-channel mask mutation reused the prior frame")) return false;
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  if (!check(packed.prepare(frame, 32, 32, diagnostic) &&
+             packed.getView().states[0].color_write == 0x11 &&
+             packed.getView().states[1].color_write == 0x12,
+             "per-channel masks lost in the wgpu transport")) return false;
+  const auto result = target.executeFrame(frame);
+  if (!check(result.status == CoinRenderBackendStatus::SUCCESS,
+             "per-channel color-write frame failed")) return false;
+  const size_t pixel = (16 * 32 + 20) * 4;
+  const uint8_t * rgba = target.colorBuffer.data() + pixel;
+  const bool ok = check(rgba[0] > 240 && rgba[1] > 240 && rgba[2] < 5 && rgba[3] == 255,
+                        "red and green passes did not compose while preserving blue and alpha");
+  if (ok) std::cout << "color_write_channels PASS gpu=" << int(useGpu) << '\n';
+  return ok;
+}
+
 int gpu() {
+  if (!colorWriteDepthOnly(true)) return 1;
+  if (!colorWriteChannels(true)) return 1;
   CoinRenderTargetP target(SbVec2i32(32,32));
   target.depthReadbackEnabled = false;
   auto render = [&](const CoinRenderFramePlan & frame, bool green, const char * message) {
@@ -783,7 +904,9 @@ int main(int argc, char ** argv) {
   if (argc == 2 && std::string(argv[1]) == "--gpu") return gpu();
   return materialInterning() && cubeTemplateLifecycle() && stateInterning() && capture() &&
                  lowerAndCache() && annotationTransport() && triangleDepthMetric() &&
-                 resolvedDepthPixels(false) && subnormalCpuDepthQuantum()
+                 resolvedDepthPixels(false) && subnormalCpuDepthQuantum() &&
+                 cpuShadowPublicationRollback() &&
+                 colorWriteDepthOnly(false) && colorWriteChannels(false)
              ? 0
              : 1;
 }

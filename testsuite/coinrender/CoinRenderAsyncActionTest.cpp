@@ -29,6 +29,15 @@
 #include <vector>
 
 namespace {
+CoinRenderOptions selectedOptions{};
+CoinRenderTarget* makeSelectedTarget(const SbVec2i32& size) {
+  CoinRenderTarget* target = CoinRenderTarget::createOffscreen(size, selectedOptions);
+  if (target && target->getOptions().sceneTexture != selectedOptions.sceneTexture) {
+    std::cerr << "CoinRenderAsyncActionTest: target did not retain requested public RTT route\n";
+    std::exit(1);
+  }
+  return target;
+}
 
 bool check(bool condition, const char * message) {
   if (!condition) std::cerr << "CoinRenderAsyncActionTest: " << message << "\n";
@@ -54,6 +63,11 @@ CoinRenderTarget::ReadbackStatus pollUntilReady(
 int main() {
   SoDB::init();
   CoinRenderAction::initClass();
+  const char* requestedDirect = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
+  selectedOptions.sceneTexture = requestedDirect && requestedDirect[0] == '1' &&
+      requestedDirect[1] == '\0' ? COIN_RENDER_SCENE_TEXTURE_DIRECT :
+                                  COIN_RENDER_SCENE_TEXTURE_STAGED;
+  std::cout << "async_action requested_route=" << selectedOptions.sceneTexture << '\n';
   if (!CoinRenderAction::isGpuBackendAvailable()) {
     std::cout << "No WebGPU adapter; async action test skipped\n";
     return 0;
@@ -80,7 +94,7 @@ int main() {
   if (!check(noTarget.getLastStatus() == CoinRenderAction::NO_TARGET &&
              missing.token == 0, "applyAsync without target must fail explicitly")) return 1;
 
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  CoinRenderTarget * target = makeSelectedTarget(SbVec2i32(64, 64));
   CoinRenderAction * action = new CoinRenderAction(SbViewportRegion(64, 64));
   action->setRenderTarget(target);
   action->setBackgroundColor(SbColor4f(0.05f, 0.05f, 0.1f, 1.0f));
@@ -122,7 +136,7 @@ int main() {
     return 1;
   }
 
-  CoinRenderTarget * synchronous = CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
+  CoinRenderTarget * synchronous = makeSelectedTarget(SbVec2i32(64, 64));
   CoinRenderAction syncAction(SbViewportRegion(64, 64));
   syncAction.setRenderTarget(synchronous);
   syncAction.setBackgroundColor(SbColor4f(0.05f, 0.05f, 0.1f, 1.0f));
@@ -412,7 +426,7 @@ int main() {
                    inFlight[j].token != 0, "RTT stress submit")) return 1;
       }
       CoinRenderTarget * replacement =
-        CoinRenderTarget::createOffscreen(SbVec2i32(64, 64));
+        makeSelectedTarget(SbVec2i32(64, 64));
       if (!check(replacement && replacement->getStatus() == CoinRenderTarget::TARGET_READY,
                  "RTT stress target replacement")) return 1;
       syncAction.setRenderTarget(replacement);

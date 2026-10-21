@@ -18,6 +18,8 @@
 #include <Inventor/nodes/SoGroup.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoShape.h>
+#include <Inventor/SoPrimitiveVertex.h>
+#include <Inventor/nodes/SoShapeHints.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoIndexedLineSet.h>
@@ -62,6 +64,35 @@ public:
   static void initClass() { SO_NODE_INIT_CLASS(DerivedStyleCube, SoCube, "Cube"); }
 };
 SO_NODE_SOURCE(DerivedStyleCube);
+// This shape supplies triangles for FILLED, but deliberately supplies no
+// SoFaceDetail or original polygon contour for technical LINES/POINTS.
+class UndetailedTriangle : public SoShape {
+  SO_NODE_HEADER(UndetailedTriangle);
+public:
+  UndetailedTriangle() { SO_NODE_CONSTRUCTOR(UndetailedTriangle); }
+  static void initClass() { SO_NODE_INIT_CLASS(UndetailedTriangle, SoShape, "Shape"); }
+protected:
+  ~UndetailedTriangle() override = default;
+  void computeBBox(SoAction *, SbBox3f & box, SbVec3f & center) override {
+    box.setBounds(SbVec3f(-.7f,-.7f,0),SbVec3f(.7f,.7f,0));
+    center=SbVec3f(0,0,0);
+  }
+  void generatePrimitives(SoAction * current) override {
+    // These can be two authored triangles or one tessellated quad. Without
+    // face details, the shared diagonal cannot be classified as a contour.
+    const SbVec3f points[]={SbVec3f(-.7f,-.7f,0),
+      SbVec3f(.7f,-.7f,0),SbVec3f(.7f,.7f,0),
+      SbVec3f(-.7f,-.7f,0),SbVec3f(.7f,.7f,0),SbVec3f(-.7f,.7f,0)};
+    beginShape(current, TRIANGLES); // No face detail or polygon ownership.
+    for(const auto & point : points) {
+      SoPrimitiveVertex vertex;
+      vertex.setPoint(point);vertex.setNormal(SbVec3f(0,0,1));
+      vertex.setMaterialIndex(0);shapeVertex(&vertex);
+    }
+    endShape();
+  }
+};
+SO_NODE_SOURCE(UndetailedTriangle);
 bool check(bool condition, const char * message) {
   if (!condition) std::cerr << "CoinRenderDrawStyleTest: " << message << '\n';
   return condition;
@@ -217,8 +248,10 @@ bool polygonCoreContract() {
   std::vector<CoinRenderVertexSnapshot> concave(5);
   const float concaveXY[5][2]={{-.8f,-.8f},{.8f,-.8f},{0,0},{.8f,.8f},{-.8f,.8f}};
   for(int i=0;i<5;++i) {concave[i].position[0]=concaveXY[i][0];concave[i].position[1]=concaveXY[i][1];}
-  ok=check(!coin_render_prepare_polygon_style(concave,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    resolved,error,CoinRenderViewportSnapshot{}),"concave contours are rejected instead of joined incorrectly") && ok;
+  ok=check(coin_render_prepare_polygon_style(concave,state,materials,lighting,CoinRenderPolygonStyle::LINES,
+    resolved,error,CoinRenderViewportSnapshot{}) && resolved.vertices.size()==5 &&
+    resolved.indices==std::vector<uint32_t>({0,1,1,2,2,3,3,4,4,0}),
+    "valid concave contour retains exactly its five original edges") && ok;
   state=CoinRenderRenderStateSnapshot{};state.cullMode=CoinRenderCullMode::NONE;
   state.linePattern=0xaaaau;
   ok=check(coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
@@ -258,9 +291,74 @@ bool slopeCoreContract() {
     result,error,CoinRenderViewportSnapshot{}) && result.state.polygonOffsetSlopeBias==0,
     "inactive style mask leaves slope disabled") && ok;
   state.polygonOffsetStyles=6;ring[2].position[2]+=.1f;
-  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
-    result,error,CoinRenderViewportSnapshot{}) && error.find("planar original face")!=std::string::npos,
-    "nonplanar original faces reject ambiguous slope even after clipping") && ok;
+  state.polygonOffsetFactor=12;
+  CoinRenderViewportSnapshot nonplanarViewport;
+  nonplanarViewport.width=64;nonplanarViewport.height=64;
+  error.clear();
+  ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,
+    CoinRenderPolygonStyle::LINES,result,error,nonplanarViewport) && !error.empty(),
+    "nonplanar offset without source triangles must reject with a diagnostic") && ok;
+  // The source mesh, not a polygon-style triangulation, supplies the two
+  // provoking triangles. Edges 0/1 belong to the first; 2/3 to the second.
+  const std::vector<CoinRenderVertexSnapshot> triangles={
+    ring[0],ring[1],ring[2],ring[0],ring[2],ring[3]};
+  auto slope=[](const CoinRenderVertexSnapshot & a,
+                const CoinRenderVertexSnapshot & b,
+                const CoinRenderVertexSnapshot & c) {
+    const double x1=(b.position[0]-a.position[0])*32.,y1=(b.position[1]-a.position[1])*32.;
+    const double x2=(c.position[0]-a.position[0])*32.,y2=(c.position[1]-a.position[1])*32.;
+    const double z1=(b.position[2]-a.position[2])*.5,z2=(c.position[2]-a.position[2])*.5;
+    const double determinant=x1*y2-x2*y1;
+    return std::max(std::abs((z1*y2-z2*y1)/determinant),
+                    std::abs((x1*z2-x2*z1)/determinant));
+  };
+  const double firstSlope=slope(triangles[0],triangles[1],triangles[2]);
+  const double secondSlope=slope(triangles[3],triangles[4],triangles[5]);
+  error.clear();
+  const bool prepared=coin_render_prepare_polygon_style(ring,state,materials,lighting,
+    CoinRenderPolygonStyle::LINES,result,error,nonplanarViewport,false,&triangles);
+  ok=check(prepared && result.indices.size()==8 &&
+    result.primitiveSlopeBias.size()==4 && result.primitiveMaximumDepth.size()==4,
+    "nonplanar contour keeps four original edges and per-edge source-triangle metadata") && ok;
+  if(prepared && result.indices.size()==8 && result.primitiveSlopeBias.size()==4) {
+    auto sameVertex=[](const CoinRenderVertexSnapshot & a,
+                       const CoinRenderVertexSnapshot & b) {
+      if(a.materialSlot!=b.materialSlot) return false;
+      for(int axis=0;axis<3;++axis)
+        if(std::abs(a.position[axis]-b.position[axis])>1e-6f ||
+           std::abs(a.normal[axis]-b.normal[axis])>1e-6f) return false;
+      for(int axis=0;axis<2;++axis)
+        if(std::abs(a.texcoord[axis]-b.texcoord[axis])>1e-6f) return false;
+      return true;
+    };
+    int edgeCount[4]={0,0,0,0};
+    for(int primitive=0;primitive<4;++primitive) {
+      const uint32_t first=result.indices[2*primitive];
+      const uint32_t second=result.indices[2*primitive+1];
+      ok=check(first<result.vertices.size() && second<result.vertices.size(),
+        "nonplanar contour references valid authored occurrences") && ok;
+      if(first>=result.vertices.size() || second>=result.vertices.size()) continue;
+      int ownedEdge=-1;
+      for(int edge=0;edge<4;++edge) {
+        const auto & a=ring[edge],& b=ring[(edge+1)%4];
+        const bool forward=sameVertex(result.vertices[first].vertex,a) &&
+          sameVertex(result.vertices[second].vertex,b);
+        const bool reverse=sameVertex(result.vertices[first].vertex,b) &&
+          sameVertex(result.vertices[second].vertex,a);
+        if(forward || reverse) {ownedEdge=edge;++edgeCount[edge];break;}
+      }
+      ok=check(ownedEdge>=0,"nonplanar style must emit only authored boundary edges") && ok;
+      if(ownedEdge>=0) {
+        const double expected=12*(ownedEdge<2 ? firstSlope : secondSlope);
+        std::cout << "nonplanar_core_slope edge=" << ownedEdge << " expected=" << expected
+                  << " actual=" << result.primitiveSlopeBias[primitive] << '\n';
+        ok=check(std::abs(result.primitiveSlopeBias[primitive]-expected)<1e-7,
+          "each nonplanar boundary edge uses its source triangle's slope") && ok;
+      }
+    }
+    for(int edge=0;edge<4;++edge)
+      ok=check(edgeCount[edge]==1,"each authored edge occurs exactly once without a diagonal") && ok;
+  }
   ring[2].position[2]-=.1f;
   state.model.setScale(SbVec3f(0,1,1));
   ok=check(!coin_render_prepare_polygon_style(ring,state,materials,lighting,CoinRenderPolygonStyle::LINES,
@@ -596,26 +694,39 @@ bool polygonUnsupportedActionContract(bool cpu) {
   SoGroup* geometry=new SoGroup;root->addChild(geometry);
   DerivedStyleCube* cube=new DerivedStyleCube;cube->width=cube->height=cube->depth=.5f;geometry->addChild(cube);
   CoinRenderAction action(SbViewportRegion(64,64));action.setRenderTarget(target.get());bool ok=true;
-  for(int shape=0;shape<2;++shape) {
+  for(int shape=0;shape<3;++shape) {
     if(shape) {
-      geometry->removeAllChildren();SoCoordinate3* coords=new SoCoordinate3;
-      const SbVec3f concave[]={SbVec3f(-.8f,-.8f,0),SbVec3f(.8f,-.8f,0),SbVec3f(0,0,0),
-        SbVec3f(.8f,.8f,0),SbVec3f(-.8f,.8f,0)};
-      coords->point.setValues(0,5,concave);geometry->addChild(coords);
-      SoFaceSet* face=new SoFaceSet;face->numVertices=5;geometry->addChild(face);
+      geometry->removeAllChildren();
+      if(shape==1) {
+        SoShapeHints* hints=new SoShapeHints;
+        hints->faceType=SoShapeHints::UNKNOWN_FACE_TYPE;
+        geometry->addChild(hints);
+        SoCoordinate3* coords=new SoCoordinate3;
+        const SbVec3f concave[]={SbVec3f(-.8f,-.8f,0),SbVec3f(.8f,-.8f,0),SbVec3f(0,0,0),
+          SbVec3f(.8f,.8f,0),SbVec3f(-.8f,.8f,0)};
+        coords->point.setValues(0,5,concave);geometry->addChild(coords);
+        SoFaceSet* face=new SoFaceSet;face->numVertices=5;geometry->addChild(face);
+      } else geometry->addChild(new UndetailedTriangle);
     }
     drawStyle->style=SoDrawStyle::FILLED;action.apply(root);
-    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"unsupported style contour remains valid when FILLED") && ok;
+    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,
+      "inherited, concave and undetailed source shapes render when FILLED") && ok;
     std::vector<uint8_t> before,image;target->readbackRGBA(before);const uint64_t serial=target->getLastSubmissionSerial();
     for(int mode:{SoDrawStyle::LINES,SoDrawStyle::POINTS}) {
       drawStyle->style=mode;action.apply(root);target->readbackRGBA(image);
-      ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && serial==target->getLastSubmissionSerial() &&
-        image==before,"subclasses without recoverable face details and concave contours reject without publication") && ok;
+      const bool expected=shape!=2 ? action.getLastStatus()==CoinRenderAction::SUCCESS &&
+        target->getLastSubmissionSerial()>serial && image.size()==before.size() :
+        action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+        serial==target->getLastSubmissionSerial() && image==before;
+      ok=check(expected,shape==2 ?
+        "custom source without recoverable face details rejects without publication" :
+        "inherited or concave shape with valid primitive generation renders and publishes") && ok;
     }
     drawStyle->style=SoDrawStyle::INVISIBLE;action.apply(root);
     ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"INVISIBLE needs no contour recovery") && ok;
     drawStyle->style=SoDrawStyle::FILLED;action.apply(root);
-    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"valid style recovers after unsupported contour") && ok;
+    ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,
+      "FILLED style recovers after valid and unsupported contour transitions") && ok;
   }
   root->unref();return ok;
 }
@@ -1304,16 +1415,18 @@ bool slopeActionContract(bool cpu) {
         sample(image,x,13,factor<0 ? 255 : 0,0,factor<0 ? 0 : 255),
         "original slope offset controls coplanar stroke oclusion, range, clipping and depth writes") && ok;
     }
-  // A non-planar contour cannot silently use a gradient from one tessellation triangle.
+  // A non-planar contour remains valid with offset; its original boundary,
+  // rather than an arbitrary tessellation diagonal, controls the stroke.
   std::vector<uint8_t> before,image;target->readbackRGBA(before);
   const uint64_t serial=target->getLastSubmissionSerial();
   SbVec3f position=foreground->point[2];position[2]+=.15f;foreground->point.set1Value(2,position);
   action.apply(root);target->readbackRGBA(image);
-  ok=check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED && image==before &&
-    target->getLastSubmissionSerial()==serial,"unsupported non-planar slope preserves publication") && ok;
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS &&
+    target->getLastSubmissionSerial()>serial && image.size()==before.size(),
+    "non-planar stroke with polygon offset publishes a valid frame") && ok;
   position[2]-=.15f;foreground->point.set1Value(2,position);
   offset->factor=-4;action.apply(root);
-  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"slope action recovers after rejection") && ok;
+  ok=check(action.getLastStatus()==CoinRenderAction::SUCCESS,"planar stroke remains valid after non-planar state") && ok;
   if(!cpu) {
     // Units and slope can oppose each other; the sum decides coplanar occlusion.
     for(int sign:{-1,1}) {
@@ -1396,7 +1509,7 @@ bool actionContract(bool cpu) {
 }
 }
 int main(int argc, char ** argv) {
-  SoDB::init();DerivedStyleCube::initClass();CoinRenderAction::initClass();
+  SoDB::init();DerivedStyleCube::initClass();UndetailedTriangle::initClass();CoinRenderAction::initClass();
   if (argc == 2 && std::strcmp(argv[1], "--probe-clipped-boundary") == 0)
     return polygonClippedStippleActionContract(true) ? 0 : 1;
   if (argc == 2 && std::strcmp(argv[1], "--probe-original-polygon-stipple") == 0)

@@ -225,6 +225,7 @@ bool checkInvalidBridgeFog() {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (!FogRenderAction::isGpuBackendAvailable()) return true;
   CoinWgpuRenderState state{};
+  state.color_write = 1;
   state.fog_mode = 4;
   state.fog_end = 10.0f;
   CoinWgpuFrameView frame{};

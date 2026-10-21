@@ -11,6 +11,7 @@
 #include <Inventor/system/gl.h>
 #include "actions/CoinRenderActionP.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
@@ -62,6 +63,7 @@
 #include <fstream>
 #include <vector>
 #include <memory>
+#include <utility>
 
 class ShadowViewportFixture : public SoNode {
   SO_NODE_HEADER(ShadowViewportFixture);
@@ -84,6 +86,24 @@ SO_NODE_SOURCE(ShadowViewportFixture);
 
 namespace {
 static const int side = 128;
+static CoinRenderOptions shadowTestOptions() {
+  std::string diagnostic;
+  auto options = CoinRenderDiagnosticShell::renderOptions(diagnostic);
+  if (!diagnostic.empty()) options.renderer = static_cast<CoinRenderRenderer>(999);
+  return options;
+}
+static CoinRenderTarget * shadowTestOffscreen(const SbVec2i32 & size, CoinRenderOptions options = shadowTestOptions()) {
+  if (options.renderer == COIN_RENDER_RENDERER_UNKNOWN) {
+    std::string rendererDiagnostic;
+    options.renderer = CoinRenderDiagnosticShell::rendererOption(rendererDiagnostic);
+    if (!rendererDiagnostic.empty()) options.renderer = static_cast<CoinRenderRenderer>(999);
+  }
+  if (std::getenv("COIN_RENDER_SHADOW_REFERENCE_CANONICAL_COVERAGE")) {
+    options.rasterizationPolicy = COIN_RENDER_RASTER_CANONICAL_8BIT;
+  }
+  return CoinRenderTarget::createOffscreen(size, options);
+}
+
 
 int luminance(const std::vector<unsigned char> & rgb, int x, int y)
 {
@@ -160,7 +180,7 @@ bool qualifyShadowWiring(SoSeparator * source)
   scene->ref();
   auto * group=static_cast<SoShadowGroup *>(scene->getChild(1));
   auto * ground=static_cast<SoSeparator *>(group->getChild(2));
-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side,side)));
+  std::unique_ptr<CoinRenderTarget> target(shadowTestOffscreen(SbVec2i32(side,side)));
   CoinRenderAction action(SbViewportRegion(side,side));
   action.setRenderTarget(target.get());
   SoOffscreenRenderer gl(SbViewportRegion(side,side));
@@ -320,7 +340,7 @@ bool qualifyShadowQuality(SoSeparator * source, int maps, bool directional)
   ordinary->location.setValue(-1.5f,-1,4); ordinary->intensity=.35f;
   ordinary->on = maps < 8;
   scene->insertChild(ordinary,2);
-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side,side)));
+  std::unique_ptr<CoinRenderTarget> target(shadowTestOffscreen(SbVec2i32(side,side)));
   CoinRenderAction action(SbViewportRegion(side,side)); action.setRenderTarget(target.get());
   bool qualified=true;
   std::vector<unsigned char> previous;
@@ -374,87 +394,275 @@ bool qualifyShadowQuality(SoSeparator * source, int maps, bool directional)
 
 bool qualifyPreciseQuadMeshShadow(SoSeparator * source)
 {
+  CoinRenderCapabilities caps{};
+  const bool gpuReady=coin_render_query_capabilities(
+    COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))==0 && caps.gpu_available;
+  std::cout << "precise_quadmesh_runtime backend=" << caps.backend
+            << " renderer=" << caps.renderer << " vendor=" << caps.vendor_id
+            << " device=" << caps.device_id << " adapter=" << caps.adapter_name
+            << " gpu_available=" << caps.gpu_available << '\n';
+  if (!gpuReady) return false;
   auto * scene = static_cast<SoSeparator *>(source->copy(TRUE));
   scene->ref();
   auto * group = static_cast<SoShadowGroup *>(scene->getChild(1));
   auto * ground = static_cast<SoSeparator *>(group->getChild(2));
+  auto * groundStyle = static_cast<SoShadowStyle *>(ground->getChild(0));
   auto * material = static_cast<SoMaterial *>(ground->getChild(1));
-  material->diffuseColor.set1Value(0, SbColor(.8f, .8f, .8f));
-  material->diffuseColor.set1Value(1, SbColor(.45f, .7f, .9f));
-  auto * binding = new SoMaterialBinding;
-  binding->value = SoMaterialBinding::PER_FACE;
-  ground->insertChild(binding, 2);
+  // Native QuadMesh can request a terminal material index beyond its four
+  // generated quads. Supply a full 3x3 table so CoinGL never reads past it.
+  const SbColor colors[] = {SbColor(.85f,.35f,.27f),SbColor(.3f,.8f,.47f),
+                            SbColor(.32f,.46f,.9f),SbColor(.92f,.72f,.23f),
+                            SbColor(.78f,.4f,.66f),SbColor(.25f,.72f,.84f),
+                            SbColor(.94f,.55f,.31f),SbColor(.46f,.82f,.38f),
+                            SbColor(.73f,.64f,.91f)};
+  material->diffuseColor.setValues(0,9,colors);
   auto * surface = new SoSeparator;
+  auto * shift = new SoTranslation;
+  shift->translation.setValue(.13f,-.11f,.04f);
+  surface->addChild(shift);
+  auto * tilt = new SoRotation;
+  tilt->rotation.setValue(SbVec3f(0,1,0),.13f);
+  surface->addChild(tilt);
   auto * positions = new SoCoordinate3;
-  for (int y = 0; y < 2; ++y)
+  for (int y = 0; y < 3; ++y)
     for (int x = 0; x < 3; ++x)
-      positions->point.set1Value(y * 3 + x, SbVec3f((x - 1) * 3.f, (y * 2 - 1) * 3.f, 0));
+      positions->point.set1Value(y * 3 + x,
+        SbVec3f((x - 1) * 2.8f,(y - 1) * 2.7f,
+                .06f * x - .09f * y + (x==1 && y==1 ? .14f : 0)));
   surface->addChild(positions);
+  auto * normals = new SoNormal;
+  // The first four also serve the face-binding cases. All nine are valid,
+  // asymmetric vertex normals for the PER_VERTEX interpolation probe.
+  const SbVec3f authoredNormals[] = {
+    SbVec3f(.05f,.12f,1),SbVec3f(-.14f,.04f,1),SbVec3f(.13f,-.09f,1),
+    SbVec3f(-.05f,-.15f,1),SbVec3f(.18f,.03f,1),SbVec3f(-.11f,.17f,1),
+    SbVec3f(.08f,-.18f,1),SbVec3f(-.17f,-.05f,1),SbVec3f(.14f,.15f,1)
+  };
+  normals->vector.setValues(0,9,authoredNormals);
+  surface->addChild(normals);
+  auto * texture = new SoTexture2;
+  texture->model = SoTexture2::MODULATE;
+  const unsigned char texels[] = {255,210,180,255, 160,240,255,255,
+                                  220,255,175,255, 255,190,235,255};
+  texture->image.setValue(SbVec2s(2,2),4,texels);
+  surface->addChild(texture);
+  auto * uv = new SoTextureCoordinate2;
+  for (int y=0;y<3;++y) for(int x=0;x<3;++x)
+    uv->point.set1Value(y*3+x,SbVec2f(float(x)/2,float(y)/2));
+  surface->addChild(uv);
   auto * mesh = new SoQuadMesh;
   mesh->verticesPerRow = 3;
-  mesh->verticesPerColumn = 2;
+  mesh->verticesPerColumn = 3;
   surface->addChild(mesh);
-  ground->replaceChild(4, surface);
-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(side, side)));
+  ground->replaceChild(3, surface);
+  auto * binding = new SoMaterialBinding;
+  ground->insertChild(binding,2);
+  auto * normalBinding = new SoNormalBinding;
+  ground->insertChild(normalBinding,3);
+  std::unique_ptr<CoinRenderTarget> target(shadowTestOffscreen(SbVec2i32(side, side)));
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target.get());
-  action.apply(source);
-  bool qualified = action.getLastStatus() == CoinRenderAction::SUCCESS;
-  std::vector<unsigned char> before, after;
-  if (qualified) target->readbackRGBA(before);
-  qualified = qualified && before.size() == size_t(side * side * 4);
-  for (float quality : {0.2f, 1.f}) {
-    group->quality = quality;
-    action.apply(scene);
-    qualified = qualified && action.getLastStatus() == CoinRenderAction::UNSUPPORTED;
-    const auto & rejected = action.getPimpl()->lastRejectedShadowFrame;
-    qualified = qualified && std::any_of(rejected.renderStates.begin(), rejected.renderStates.end(),
-      [](const CoinRenderRenderStateSnapshot & state) {
-        return state.shadowGroupSlot && state.lightModel == CoinRenderLightModel::BASE_COLOR;
-      });
-    if (qualified) target->readbackRGBA(after);
-    qualified = qualified && before == after;
-    std::cout << "precise QuadMesh flat shadow quality=" << quality
-              << " rejected without publication=" << qualified << "\n";
-  }
-  group->quality = 1.f;
-  ground->removeChild(binding);
-  material->diffuseColor.setValue(.8f, .8f, .8f);
-  action.apply(scene);
-  qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS;
-  std::vector<unsigned char> gpu, reference;
-  if (qualified) {
-    target->readbackRGBA(gpu);
-    qualified = gpu.size() == size_t(side * side * 4);
-  }
   SoOffscreenRenderer gl(SbViewportRegion(side, side));
   gl.setComponents(SoOffscreenRenderer::RGB);
-  if (qualified) qualified = render(gl, scene, reference);
-  double mean = 0;
-  int maximum = 0;
-  size_t changed = 0;
-  if (qualified)
-    for (size_t i = 0; i < gpu.size(); i += 4)
-      if (gpu[i] != before[i] || gpu[i + 1] != before[i + 1] || gpu[i + 2] != before[i + 2])
-        ++changed;
-  if (qualified) {
-    for (int y = 22; y < 106; ++y)
-      for (int x = 22; x < 106; ++x)
-        for (int c = 0; c < 3; ++c) {
-          const int error = std::abs(int(reference[(y * side + x) * 3 + c]) -
-            int(gpu[((side - 1 - y) * side + x) * 4 + c]));
-          mean += error;
-          maximum = std::max(maximum, error);
-        }
-    mean /= 84 * 84 * 3;
+  bool qualified=target && target->setDepthReadbackEnabled(TRUE);
+  if (!qualified) {
+    action.setRenderTarget(nullptr);
+    scene->unref();
+    return false;
   }
-  std::cout << "precise QuadMesh shadow recovery changed=" << changed
-            << " GL/GPU mean/max=" << mean << '/' << maximum
-            << " qualified=" << qualified << "\n";
+  auto capture = [&](std::vector<unsigned char> & gpu,std::vector<float> & depth,
+                     std::vector<unsigned char> & reference) {
+    const uint64_t before=target->getLastSubmissionSerial();
+    action.apply(scene);
+    if (action.getLastStatus()!=CoinRenderAction::SUCCESS ||
+        target->getLastSubmissionSerial()<=before) return false;
+    target->readbackRGBA(gpu); target->readbackDepth(depth);
+    return gpu.size()==size_t(side*side*4) && depth.size()==size_t(side*side) &&
+           render(gl,scene,reference) && reference.size()==size_t(side*side*3);
+  };
+  auto comparison = [&](const std::vector<unsigned char> & gpu,
+                        const std::vector<unsigned char> & reference,
+                        int matBinding,int normalMode,float quality,const char * label) {
+    double sum=0; int maximum=0,maxInterior=0,worstX=-1,worstY=-1,worstChannel=-1;
+    size_t bad=0,badBoundary=0,badInterior=0;
+    for (int y=22;y<106;++y) for(int x=22;x<106;++x) {
+      const size_t glPixel=size_t(y*side+x)*3;
+      bool boundary=false;
+      for (const auto adjacent : {std::pair<int,int>{x-1,y},
+                                  std::pair<int,int>{x+1,y},
+                                  std::pair<int,int>{x,y-1},
+                                  std::pair<int,int>{x,y+1}}) {
+        const size_t neighbor=size_t(adjacent.second*side+adjacent.first)*3;
+        for (int c=0;c<3;++c)
+          boundary |= std::abs(int(reference[glPixel+c])-int(reference[neighbor+c]))>24;
+      }
+      for(int c=0;c<3;++c) {
+        // CoinGL's offscreen buffer is bottom-up; target RGBA is top-down.
+        const int delta=std::abs(int(reference[glPixel+c])-
+                                 int(gpu[((side-1-y)*side+x)*4+c]));
+        sum+=delta;
+        if (delta>maximum) { maximum=delta; worstX=x; worstY=y; worstChannel=c; }
+        if (!boundary) maxInterior=std::max(maxInterior,delta);
+        bad+=delta>16;
+        badBoundary+=boundary && delta>16;
+        badInterior+=!boundary && delta>16;
+      }
+    }
+    const double mean=sum/(84*84*3);
+    const bool same=mean<=3 && maximum<=80 && bad<100;
+    std::cout << "precise_quadmesh_shadow material=" << matBinding << " normal=" << normalMode
+              << " quality=" << quality << " case=" << label << " mean=" << mean
+              << " max=" << maximum << " worst=" << worstX << ',' << worstY << ','
+              << worstChannel << " max_interior=" << maxInterior
+              << " bad=" << bad << " boundary/interior=" << badBoundary << '/'
+              << badInterior << " pass=" << same << '\n';
+    return same;
+  };
+  const char * dumpDirectory=std::getenv("COIN_RENDER_C02_DUMP_DIR");
+  auto dumpFrame = [&](const char * label,const std::vector<unsigned char> & gpu,
+                       const std::vector<float> & depth,
+                       const std::vector<unsigned char> & reference) {
+    if (!dumpDirectory || !*dumpDirectory || gpu.size()!=size_t(side*side*4) ||
+        depth.size()!=size_t(side*side) || reference.size()!=size_t(side*side*3)) return;
+    const std::string prefix=std::string(dumpDirectory)+"/c02_"+label;
+    std::ofstream gpuFile(prefix+"_gpu.ppm",std::ios::binary);
+    std::ofstream glFile(prefix+"_gl.ppm",std::ios::binary);
+    std::ofstream depthFile(prefix+"_depth.pfm",std::ios::binary);
+    if (!gpuFile || !glFile || !depthFile) {
+      std::cerr << "precise_quadmesh_dump open failed prefix=" << prefix << '\n';
+      return;
+    }
+    gpuFile << "P6\n" << side << ' ' << side << "\n255\n";
+    glFile << "P6\n" << side << ' ' << side << "\n255\n";
+    depthFile << "Pf\n" << side << ' ' << side << "\n-1.0\n";
+    for (int y=0;y<side;++y) for(int x=0;x<side;++x) {
+      const size_t gpuAt=size_t(y*side+x)*4;
+      const size_t glAt=size_t((side-1-y)*side+x)*3;
+      gpuFile.write(reinterpret_cast<const char *>(&gpu[gpuAt]),3);
+      glFile.write(reinterpret_cast<const char *>(&reference[glAt]),3);
+    }
+    // PFM stores bottom row first; the target depth readback is top-down.
+    for (int y=side-1;y>=0;--y)
+      depthFile.write(reinterpret_cast<const char *>(&depth[size_t(y)*side]),
+                      sizeof(float)*side);
+    std::cout << "precise_quadmesh_dump prefix=" << prefix << '\n';
+  };
+  for (int materialMode : {int(SoMaterialBinding::PER_FACE),int(SoMaterialBinding::PER_FACE_INDEXED),
+                           int(SoMaterialBinding::PER_VERTEX),int(SoMaterialBinding::PER_VERTEX_INDEXED)})
+    for (int normalMode : {int(SoNormalBinding::PER_FACE),int(SoNormalBinding::PER_FACE_INDEXED),
+                           int(SoNormalBinding::OVERALL),int(SoNormalBinding::PER_VERTEX)})
+      for (float quality : {.2f,1.f}) {
+        // Vertex material plus face normal is the distinct-channel case.
+        // The other normal bindings remain the face-material control matrix.
+        if ((materialMode==SoMaterialBinding::PER_VERTEX ||
+             materialMode==SoMaterialBinding::PER_VERTEX_INDEXED) &&
+            normalMode!=SoNormalBinding::PER_FACE &&
+            normalMode!=SoNormalBinding::PER_FACE_INDEXED) continue;
+        binding->value=materialMode;
+        normalBinding->value=normalMode;
+        group->quality=quality;
+        groundStyle->style=SoShadowStyle::SHADOWED;
+        std::vector<unsigned char> gpuShadow,glShadow,gpuPlain,glPlain;
+        std::vector<float> depthShadow,depthPlain;
+        const bool shadowCaptured=capture(gpuShadow,depthShadow,glShadow);
+        if (!shadowCaptured) {
+          std::cerr << "precise_quadmesh_shadow capture failed material=" << materialMode
+                    << " normal=" << normalMode << " quality=" << quality << " case=shadowed "
+                    << action.getLastError().getString() << '\n';
+          qualified=false;
+          continue;
+        }
+        qualified &= comparison(gpuShadow,glShadow,materialMode,normalMode,quality,"shadowed");
+        if (materialMode==SoMaterialBinding::PER_FACE &&
+            normalMode==SoNormalBinding::PER_FACE && quality==.2f)
+          dumpFrame("face_face_q02_shadowed",gpuShadow,depthShadow,glShadow);
+        groundStyle->style=SoShadowStyle::NO_SHADOWING;
+        const bool plainCaptured=capture(gpuPlain,depthPlain,glPlain);
+        if (!plainCaptured) {
+          std::cerr << "precise_quadmesh_shadow capture failed material=" << materialMode
+                    << " normal=" << normalMode << " quality=" << quality << " case=unshadowed "
+                    << action.getLastError().getString() << '\n';
+          qualified=false;
+          continue;
+        }
+        qualified &= comparison(gpuPlain,glPlain,materialMode,normalMode,quality,"unshadowed");
+        if (materialMode==SoMaterialBinding::PER_FACE &&
+            normalMode==SoNormalBinding::PER_FACE && quality==.2f)
+          dumpFrame("face_face_q02_unshadowed",gpuPlain,depthPlain,glPlain);
+        size_t gpuDarkened=0,glDarkened=0;
+        for (int y=22;y<106;++y) for(int x=22;x<106;++x) {
+          const size_t g=size_t(y*side+x)*3;
+          const size_t r=size_t((side-1-y)*side+x)*4;
+          const int gpuDiff=int(gpuPlain[r])+gpuPlain[r+1]+gpuPlain[r+2]-
+                            int(gpuShadow[r])-gpuShadow[r+1]-gpuShadow[r+2];
+          const int glDiff=int(glPlain[g])+glPlain[g+1]+glPlain[g+2]-
+                           int(glShadow[g])-glShadow[g+1]-glShadow[g+2];
+          gpuDarkened+=gpuDiff>24; glDarkened+=glDiff>24;
+        }
+        const bool shadowPositive=gpuDarkened>50 && glDarkened>50 && depthPlain==depthShadow;
+        std::cout << "precise_quadmesh_shadow material=" << materialMode << " normal=" << normalMode
+                  << " quality=" << quality << " darkened_gpu/gl=" << gpuDarkened << '/'
+                  << glDarkened << " depth_same=" << (depthPlain==depthShadow) << '\n';
+        qualified &= shadowPositive;
+        groundStyle->style=SoShadowStyle::SHADOWED;
+        if (quality==1.f) {
+          const bool vertexMaterial=materialMode==SoMaterialBinding::PER_VERTEX ||
+            materialMode==SoMaterialBinding::PER_VERTEX_INDEXED;
+          if (vertexMaterial) {
+            SbColor uniformColors[9];
+            for (auto & color : uniformColors) color=colors[0];
+            material->diffuseColor.setValues(0,9,uniformColors);
+          } else {
+            binding->value=SoMaterialBinding::OVERALL;
+          }
+          std::vector<unsigned char> gpuOverall,glOverall;
+          std::vector<float> depthOverall;
+          const bool overallCaptured=capture(gpuOverall,depthOverall,glOverall);
+          qualified &= overallCaptured;
+          if (overallCaptured)
+            qualified &= comparison(gpuOverall,glOverall,materialMode,normalMode,quality,
+                                    vertexMaterial ? "uniform_vertex_control" : "overall_control");
+          if (overallCaptured && materialMode==SoMaterialBinding::PER_FACE &&
+              normalMode==SoNormalBinding::PER_FACE)
+            dumpFrame("face_face_q1_overall",gpuOverall,depthOverall,glOverall);
+          size_t gpuChanged=0,glChanged=0;
+          if (overallCaptured) for (int y=22;y<106;++y) for(int x=22;x<106;++x) {
+            const size_t g=size_t(y*side+x)*3;
+            const size_t r=size_t((side-1-y)*side+x)*4;
+            gpuChanged+=gpuOverall[r]!=gpuShadow[r] || gpuOverall[r+1]!=gpuShadow[r+1] || gpuOverall[r+2]!=gpuShadow[r+2];
+            glChanged+=glOverall[g]!=glShadow[g] || glOverall[g+1]!=glShadow[g+1] || glOverall[g+2]!=glShadow[g+2];
+          }
+          qualified &= overallCaptured && gpuChanged>100 && glChanged>100 && depthOverall==depthShadow;
+          std::cout << "precise_quadmesh_flat_control material=" << materialMode
+                    << " changed_gpu/gl=" << gpuChanged << '/'
+                    << glChanged << " depth_same=" << (depthOverall==depthShadow) << '\n';
+          if (vertexMaterial) material->diffuseColor.setValues(0,9,colors);
+          else binding->value=materialMode;
+        }
+        if (materialMode==SoMaterialBinding::PER_FACE &&
+            normalMode==SoNormalBinding::PER_FACE) {
+          std::vector<unsigned char> stable,after,recovered,glRecovered;
+          std::vector<float> stableDepth,afterDepth,recoveredDepth;
+          const bool stableCaptured=capture(stable,stableDepth,glRecovered);
+          qualified &= stableCaptured;
+          const uint64_t serial=target->getLastSubmissionSerial();
+          group->smoothBorder=-1.0f;
+          action.apply(scene);
+          target->readbackRGBA(after); target->readbackDepth(afterDepth);
+          const bool atomic=action.getLastStatus()==CoinRenderAction::UNSUPPORTED &&
+            target->getLastSubmissionSerial()==serial && stable==after && stableDepth==afterDepth;
+          group->smoothBorder=0.0f;
+          const bool recoveredCaptured=capture(recovered,recoveredDepth,glRecovered);
+          const bool recovery=recoveredCaptured && recovered==stable && recoveredDepth==stableDepth;
+          qualified &= stableCaptured && atomic && recovery;
+          std::cout << "precise_quadmesh_invalid quality=" << quality
+                    << " atomic=" << atomic << " recovery=" << recovery << '\n';
+        }
+      }
   if (!qualified) std::cerr << action.getLastError().getString() << '\n';
   action.setRenderTarget(nullptr);
   scene->unref();
-  return qualified && changed > 100 && mean <= 2;
+  return qualified;
 }
 
 // Exercise the public path with a fresh Action, so capture references held by
@@ -532,7 +740,7 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
   if (mechanism >= 0) options.transparency = mechanism == 1 ?
     COIN_RENDER_TRANSPARENCY_PEELING : COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
   options.sceneTexture = rttMode == 1 ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options);
+  CoinRenderTarget * target = shadowTestOffscreen(SbVec2i32(side, side), options);
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target);
   bool qualified = true;
@@ -734,19 +942,31 @@ bool qualifyShadowTransparency(SoSeparator * source, bool alphaTexture = false,
     additive->insertChild(additiveMode, 0);
     shadowGroup->addChild(additive);
     additiveStyle->style = SoShadowStyle::SHADOWED;
+    const uint64_t beforeShadow = target->getLastSubmissionSerial();
     action.apply(scene);
+    const auto shadowStatus = action.getLastStatus();
+    const std::string shadowError = action.getLastError().getString();
+    const uint64_t shadowSerial = target->getLastSubmissionSerial();
+    const bool shadowPublished = shadowStatus == CoinRenderAction::SUCCESS && shadowSerial == beforeShadow + 1;
     std::vector<unsigned char> shadowed, clear;
-    target->readbackRGBA(shadowed);
-    qualified = action.getLastStatus() == CoinRenderAction::SUCCESS;
+    if (shadowPublished) target->readbackRGBA(shadowed);
     additiveStyle->style = SoShadowStyle::NO_SHADOWING;
     action.apply(scene);
-    target->readbackRGBA(clear);
+    const auto clearStatus = action.getLastStatus();
+    const std::string clearError = action.getLastError().getString();
+    const uint64_t clearSerial = target->getLastSubmissionSerial();
+    const bool clearPublished = clearStatus == CoinRenderAction::SUCCESS && clearSerial == shadowSerial + 1;
+    if (clearPublished) target->readbackRGBA(clear);
     int delta = 0;
-    qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS && shadowed.size() == clear.size();
-    if (qualified) for (size_t pixel = 0; pixel < clear.size(); ++pixel)
-      delta = std::max(delta, std::abs(int(shadowed[pixel]) - int(clear[pixel])));
+    qualified = shadowPublished && clearPublished && shadowed.size() == size_t(side * side * 4) && shadowed.size() == clear.size();
+    if (qualified) for (size_t pixel = 0; pixel < clear.size(); pixel += 4)
+      for (int channel = 0; channel < 3; ++channel)
+        delta = std::max(delta, std::abs(int(shadowed[pixel + channel]) - int(clear[pixel + channel])));
     qualified = qualified && delta > 20;
     std::cout << "shadow additive after compositor maps=" << shadowLightCount << " mechanism=" << mechanism
+      << " shadow_status=" << int(shadowStatus) << " shadow_serial=" << beforeShadow << ',' << shadowSerial
+      << " shadow_error=" << shadowError << " clear_status=" << int(clearStatus)
+      << " clear_serial=" << shadowSerial << ',' << clearSerial << " clear_error=" << clearError
       << " delta=" << delta << " qualified=" << qualified << '\n';
     shadowGroup->removeChild(additive);
   }
@@ -952,7 +1172,7 @@ bool qualifyIndependentShadowScenes(SoSeparator * source)
     };
     setScene(first, external);
     setScene(second, empty);
-    CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * target = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction action(SbViewportRegion(side, side));
     action.setRenderTarget(target);
     CoinRenderAction capture(SbViewportRegion(side, side));
@@ -1015,15 +1235,40 @@ bool qualifyIndependentShadowScenes(SoSeparator * source)
       std::vector<unsigned char> before, after;
       target->readbackRGBA(before);
       const uint64_t serial = target->getLastSubmissionSerial();
+      std::vector<unsigned char> glWithoutCamera, glWithCamera;
+      const bool compareNativeCamera = std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE") != nullptr;
+      bool glCameraRendered = true;
+      if (compareNativeCamera) {
+        SoOffscreenRenderer renderer(SbViewportRegion(side, side));
+        renderer.setComponents(SoOffscreenRenderer::RGB);
+        glCameraRendered = render(renderer, root, glWithoutCamera);
+      }
       auto * ownCamera = new SoOrthographicCamera;
       external->insertChild(ownCamera, 0);
+      if (compareNativeCamera) {
+        SoOffscreenRenderer renderer(SbViewportRegion(side, side));
+        renderer.setComponents(SoOffscreenRenderer::RGB);
+        glCameraRendered = glCameraRendered && render(renderer, root, glWithCamera);
+        int cameraDelta = 0;
+        if (glCameraRendered) for (int y = 20; y < 105; ++y)
+          for (int x = 20; x < 105; ++x)
+            cameraDelta = std::max(cameraDelta, std::abs(
+              luminance(glWithoutCamera, x, y) - luminance(glWithCamera, x, y)));
+        std::cout << "custom shadow scene camera CoinGL directional=" << directional
+                  << " delta=" << cameraDelta << " rendered=" << glCameraRendered << '\n';
+        qualified = qualified && glCameraRendered && cameraDelta > 10;
+      }
       action.apply(root);
       target->readbackRGBA(after);
-      qualified = action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-        target->getLastSubmissionSerial() == serial && before == after;
+      const bool cameraPublished = action.getLastStatus() == CoinRenderAction::SUCCESS &&
+        target->getLastSubmissionSerial() > serial && before != after;
+      const uint64_t cameraSerial = target->getLastSubmissionSerial();
+      qualified = qualified && cameraPublished;
       external->removeChild(ownCamera);
       action.apply(root);
-      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS;
+      target->readbackRGBA(after);
+      qualified = qualified && action.getLastStatus() == CoinRenderAction::SUCCESS &&
+        target->getLastSubmissionSerial() > cameraSerial && before == after;
       auto * wrapper = new SoShadowGroup;
       wrapper->ref();
       wrapper->addChild(external);
@@ -1062,10 +1307,10 @@ bool qualifyEmptyShadowMaps(SoSeparator * source)
   spot->intensity = 0.08f;
   auto * caster = static_cast<SoSeparator *>(group->getChild(1));
   static_cast<SoShadowStyle *>(caster->getChild(0))->style = SoShadowStyle::SHADOWED;
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderTarget * target = shadowTestOffscreen(SbVec2i32(side, side));
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target);
-  CoinRenderTarget * captureTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderTarget * captureTarget = shadowTestOffscreen(SbVec2i32(side, side));
   captureTarget->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
   CoinRenderAction captureAction(SbViewportRegion(side, side));
   captureAction.setRenderTarget(captureTarget);
@@ -1189,7 +1434,7 @@ bool qualifyNpotShadowTransparency(SoSeparator * source, int mechanism,
   options.transparency = mechanism == 1 ? COIN_RENDER_TRANSPARENCY_PEELING :
     COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
   std::unique_ptr<CoinRenderTarget> target(
-    CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options));
+    shadowTestOffscreen(SbVec2i32(side, side), options));
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target.get());
   action.apply(producer);
@@ -1395,7 +1640,7 @@ bool qualifyShadowComposition(SoSeparator * source, bool annotation, unsigned ma
     CoinRenderOptions options{};
     options.sceneTexture = mode == 2 ? COIN_RENDER_SCENE_TEXTURE_DIRECT : COIN_RENDER_SCENE_TEXTURE_STAGED;
     options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
-    auto * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options);
+    auto * target = shadowTestOffscreen(SbVec2i32(side, side), options);
     CoinRenderAction action(SbViewportRegion(side, side));
     action.setRenderTarget(target);
     std::vector<unsigned char> initialGpu, initialGl, previousGpu, previousGl;
@@ -1532,7 +1777,7 @@ bool qualifyEightLightRtt(
     options.sceneTexture = mode == 0 ?
       COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
     options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
-    CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * rttTarget = shadowTestOffscreen(
       SbVec2i32(side, side), options);
     CoinRenderAction rttAction(SbViewportRegion(side, side));
     rttAction.setRenderTarget(rttTarget);
@@ -1600,7 +1845,7 @@ bool qualifyEightLightRtt(
 bool bgfxLightDelta(SoNode * root, SoLight * switched, int & difference)
 {
   difference = 0;
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderTarget * target = shadowTestOffscreen(SbVec2i32(side, side));
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target);
   switched->on = FALSE;
@@ -1632,7 +1877,7 @@ bool shadowViewportCrop(SoSeparator *root, SoShadowGroup *group) {
   auto *vp = new ShadowViewportFixture;
   root->insertChild(vp, 1);
   group->quality = 0;
-  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(128, 128)));
+  std::unique_ptr<CoinRenderTarget> target(shadowTestOffscreen(SbVec2i32(128, 128)));
   target->setDepthReadbackEnabled(FALSE);
   CoinRenderAction action(SbViewportRegion(128, 128));
   action.setRenderTarget(target.get());
@@ -1705,6 +1950,12 @@ int main(int argc, char ** argv)
   std::cout << std::unitbuf;
   SoDB::init();
   CoinRenderAction::initClass();
+  if (std::getenv("COIN_RENDER_SHADOW_REFERENCE_CANONICAL_COVERAGE")) {
+    CoinRenderCapabilities caps{};
+    if (coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps))!=0 || !caps.gpu_available) return 77;
+    std::cout << "shadow_coverage_policy=canonical adapter=" << caps.adapter_name
+      << " renderer=" << caps.renderer << " vendor=" << caps.vendor_id << " device=" << caps.device_id << '\n';
+  }
 
   SoSeparator * root = new SoSeparator;
   root->ref();
@@ -1875,7 +2126,7 @@ int main(int argc, char ** argv)
     return ok ? 0 : 1;
   }
 
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+  CoinRenderTarget * target = shadowTestOffscreen(SbVec2i32(side, side));
   target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
   CoinRenderAction action(SbViewportRegion(side, side));
   action.setRenderTarget(target);
@@ -1920,7 +2171,7 @@ int main(int argc, char ** argv)
   if (smoothBorderQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * borderTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * borderTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction borderAction(SbViewportRegion(side, side));
     borderAction.setRenderTarget(borderTarget);
     borderAction.apply(root);
@@ -1962,7 +2213,7 @@ int main(int argc, char ** argv)
   if (lowQualitySpotQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * lowSpotTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * lowSpotTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction lowSpotAction(SbViewportRegion(side, side));
     lowSpotAction.setRenderTarget(lowSpotTarget);
     lowSpotAction.apply(root);
@@ -2010,7 +2261,7 @@ int main(int argc, char ** argv)
   std::vector<unsigned char> bgfxShadowImage;
   bool bgfxShadowSubmitted = true;
   if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU")) {
-    CoinRenderTarget * bgfxTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * bgfxTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderFramePlan withoutShadows = captured;
     withoutShadows.revision = 0;
     withoutShadows.draws.erase(std::remove_if(withoutShadows.draws.begin(), withoutShadows.draws.end(),
@@ -2042,7 +2293,7 @@ int main(int argc, char ** argv)
                   << clear << " -> " << shadow << '\n';
     }
     if (bgfxShadowSubmitted) {
-      CoinRenderTarget * actionTarget = CoinRenderTarget::createOffscreen(
+      CoinRenderTarget * actionTarget = shadowTestOffscreen(
         SbVec2i32(side, side));
       CoinRenderAction bgfxAction(SbViewportRegion(side, side));
       bgfxAction.setRenderTarget(actionTarget);
@@ -2152,7 +2403,7 @@ int main(int argc, char ** argv)
   std::vector<unsigned char> wgpuShadow, wgpuUnshadowed;
   bool wgpuShadowSubmitted = true;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
-    CoinRenderTarget * shadowTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * shadowTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     shadowTarget->getPimpl()->backend.reset(new CoinWgpuBackend);
     CoinRenderFramePlan withoutShadows = captured;
@@ -2174,7 +2425,7 @@ int main(int argc, char ** argv)
     }
     delete shadowTarget;
     // Exercise the public Action gate as well as the direct backend seam.
-    CoinRenderTarget * actionTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * actionTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction gpuAction(SbViewportRegion(side, side));
     gpuAction.setRenderTarget(actionTarget);
@@ -2323,7 +2574,7 @@ int main(int argc, char ** argv)
     auto * clip = new SoClipPlane;
     clip->plane = SbPlane(SbVec3f(1, 0, 0), 0.1f);
     cutCaster->insertChild(clip, 1);
-    CoinRenderTarget * clipTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * clipTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction clipAction(SbViewportRegion(side, side));
     clipAction.setRenderTarget(clipTarget);
@@ -2368,8 +2619,8 @@ int main(int argc, char ** argv)
   bool shadowTargetsIndependent = true;
   if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
       std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
-    CoinRenderTarget * first = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
-    CoinRenderTarget * second = CoinRenderTarget::createOffscreen(SbVec2i32(160, 160));
+    CoinRenderTarget * first = shadowTestOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * second = shadowTestOffscreen(SbVec2i32(160, 160));
     CoinRenderAction firstAction(SbViewportRegion(side, side));
     CoinRenderAction secondAction(SbViewportRegion(160, 160));
     firstAction.setRenderTarget(first);
@@ -2422,7 +2673,7 @@ int main(int argc, char ** argv)
         secondGroundStyle = static_cast<SoShadowStyle *>(groundBranch->getChild(0));
       }
     }
-    CoinRenderTarget * siblingTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * siblingTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction siblingAction(SbViewportRegion(side, side));
     siblingAction.setRenderTarget(siblingTarget);
@@ -2643,7 +2894,7 @@ int main(int argc, char ** argv)
         options.sceneTexture = mode == 0 ?
           COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
         options.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
-        CoinRenderTarget * rttTarget = CoinRenderTarget::createOffscreen(
+        CoinRenderTarget * rttTarget = shadowTestOffscreen(
           SbVec2i32(side, side), options);
         CoinRenderAction rttAction(SbViewportRegion(side, side));
         rttAction.setRenderTarget(rttTarget);
@@ -2717,7 +2968,7 @@ int main(int argc, char ** argv)
   if (ordinaryLightQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * ordinaryTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * ordinaryTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction ordinaryAction(SbViewportRegion(side, side));
     ordinaryAction.setRenderTarget(ordinaryTarget);
@@ -2783,7 +3034,7 @@ int main(int argc, char ** argv)
   if (internalOrdinaryQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * internalTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * internalTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction internalAction(SbViewportRegion(side, side));
     internalAction.setRenderTarget(internalTarget);
@@ -2833,7 +3084,7 @@ int main(int argc, char ** argv)
   if (inheritedPointQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * pointTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * pointTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction pointAction(SbViewportRegion(side, side));
     pointAction.setRenderTarget(pointTarget);
@@ -2901,7 +3152,7 @@ int main(int argc, char ** argv)
   if (internalPointQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * pointTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * pointTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction pointAction(SbViewportRegion(side, side));
     pointAction.setRenderTarget(pointTarget);
@@ -2968,7 +3219,7 @@ int main(int argc, char ** argv)
   if (texturedShadowQualified &&
       (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU") ||
        std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU"))) {
-    CoinRenderTarget * texturedTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * texturedTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction texturedAction(SbViewportRegion(side, side));
     texturedAction.setRenderTarget(texturedTarget);
@@ -3143,7 +3394,7 @@ int main(int argc, char ** argv)
   bool twoLightBgfxSubmitted = true;
   int twoLightBgfxDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_BGFX_SHADOW_GPU")) {
-    CoinRenderTarget * dualTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * dualTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction dualAction(SbViewportRegion(side, side));
     dualAction.setRenderTarget(dualTarget);
     secondShadowLight->on = FALSE;
@@ -3516,7 +3767,7 @@ int main(int argc, char ** argv)
   bool twoLightSubmittedOnGpu = true;
   int twoLightWgpuDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU")) {
-    CoinRenderTarget * dualTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * dualTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction dualAction(SbViewportRegion(side, side));
     dualAction.setRenderTarget(dualTarget);
@@ -3704,7 +3955,7 @@ int main(int argc, char ** argv)
           gpuDelta > 0 && std::abs(glDelta - gpuDelta) <= 130;
       }
       if (twoLightSubmittedOnGpu) {
-        CoinRenderTarget * faultTarget = CoinRenderTarget::createOffscreen(
+        CoinRenderTarget * faultTarget = shadowTestOffscreen(
           SbVec2i32(side, side));
         CoinRenderAction faultAction(SbViewportRegion(side, side));
         faultAction.setRenderTarget(faultTarget);
@@ -4003,7 +4254,7 @@ int main(int argc, char ** argv)
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int orderedWgpuDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && capturedOrder) {
-      CoinRenderTarget * orderedTarget = CoinRenderTarget::createOffscreen(
+      CoinRenderTarget * orderedTarget = shadowTestOffscreen(
         SbVec2i32(side, side));
       CoinRenderAction orderedAction(SbViewportRegion(side, side));
       orderedAction.setRenderTarget(orderedTarget);
@@ -4102,7 +4353,7 @@ int main(int argc, char ** argv)
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   int bothLateWgpuDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && bothLateOk) {
-    CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * lateTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction lateAction(SbViewportRegion(side, side));
     lateAction.setRenderTarget(lateTarget);
@@ -4217,7 +4468,7 @@ int main(int argc, char ** argv)
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int reversedWgpuDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && reversedOk) {
-      CoinRenderTarget * reversedTarget = CoinRenderTarget::createOffscreen(
+      CoinRenderTarget * reversedTarget = shadowTestOffscreen(
         SbVec2i32(side, side));
       CoinRenderAction reversedAction(SbViewportRegion(side, side));
       reversedAction.setRenderTarget(reversedTarget);
@@ -4315,7 +4566,7 @@ int main(int argc, char ** argv)
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
     int wgpuDifference = 0;
     if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && pairOk) {
-      CoinRenderTarget * pairTarget = CoinRenderTarget::createOffscreen(
+      CoinRenderTarget * pairTarget = shadowTestOffscreen(
         SbVec2i32(side, side));
       CoinRenderAction pairAction(SbViewportRegion(side, side));
       pairAction.setRenderTarget(pairTarget);
@@ -4419,7 +4670,7 @@ int main(int argc, char ** argv)
   std::vector<unsigned char> mixedSpotPixels, mixedSpotNoReceivePixels;
   bool lateSpotSubmitted = true;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && lateSpotProfile) {
-    CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * lateTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction lateAction(SbViewportRegion(side, side));
     lateAction.setRenderTarget(lateTarget);
@@ -4568,7 +4819,7 @@ int main(int argc, char ** argv)
     std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU");
   int lowQualityGpuDelta = 0;
   if (lowQualityDirectionalQualified && lowQualityGpuRequested) {
-    CoinRenderTarget * lowTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * lowTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction lowAction(SbViewportRegion(side, side));
     lowAction.setRenderTarget(lowTarget);
     lowAction.apply(root);
@@ -4668,7 +4919,7 @@ int main(int argc, char ** argv)
         action.getPimpl()->lastRejectedShadowPlan, lateDirectionalDiagnostic);
     wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && lateDirectionalProfile;
     if (wgpuDirectionalSubmitted) {
-      CoinRenderTarget * lateTarget = CoinRenderTarget::createOffscreen(
+      CoinRenderTarget * lateTarget = shadowTestOffscreen(
         SbVec2i32(side, side));
       CoinRenderAction lateAction(SbViewportRegion(side, side));
       lateAction.setRenderTarget(lateTarget);
@@ -4747,7 +4998,7 @@ int main(int argc, char ** argv)
     if (!wgpuDirectionalSubmitted)
       std::cerr << "directional profile: " << directionalProfileDiagnostic << '\n';
     if (wgpuDirectionalSubmitted) {
-      CoinRenderTarget * directionalTarget = CoinRenderTarget::createOffscreen(
+      CoinRenderTarget * directionalTarget = shadowTestOffscreen(
         SbVec2i32(side, side));
       directionalTarget->getPimpl()->backend.reset(new CoinWgpuBackend);
       CoinRenderFramePlan unshadowed = directionalGpuFrame;
@@ -4784,17 +5035,25 @@ int main(int argc, char ** argv)
           }
         wgpuDirectionalSubmitted = wgpuDirectionalDifference > 100;
         std::cout << "wgpu directional max_delta=" << wgpuDirectionalDifference << '\n';
+        const CoinRenderFramePlan directionalFullWitness = directionalGpuFrame;
+        const CoinRenderShadowPlan directionalFullPlanWitness = directionalGpuPlan;
+        const uint64_t directionalFullRevision = directionalCapture->getNodeId();
         CoinRenderTarget * directionalActionTarget =
-          CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+          shadowTestOffscreen(SbVec2i32(side, side));
+        const bool directionalDepthEnabled = directionalActionTarget->setDepthReadbackEnabled(TRUE);
         CoinRenderAction directionalAction(SbViewportRegion(side, side));
         directionalAction.setRenderTarget(directionalActionTarget);
         directionalAction.apply(root);
         std::vector<unsigned char> actionPixels;
-        if (directionalAction.getLastStatus() == CoinRenderAction::SUCCESS)
+        std::vector<float> actionDepth;
+        if (directionalAction.getLastStatus() == CoinRenderAction::SUCCESS) {
           directionalActionTarget->readbackRGBA(actionPixels);
+          directionalActionTarget->readbackDepth(actionDepth);
+        }
         wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
           directionalAction.getLastStatus() == CoinRenderAction::SUCCESS &&
-          actionPixels == shadowPixels;
+          actionPixels == shadowPixels && directionalDepthEnabled &&
+          actionDepth.size() == size_t(side * side);
         wgpuDirectionalFullPixels = actionPixels;
         if (!wgpuDirectionalSubmitted)
           std::cerr << "wgpu directional Action: "
@@ -4816,15 +5075,272 @@ int main(int argc, char ** argv)
           std::cerr << "wgpu directional max distance: "
                     << directionalAction.getLastError().getString() << '\n';
         const uint64_t distanceSerial = directionalActionTarget->getLastSubmissionSerial();
-        directionalCapture->maxShadowDistance = 0.5f; // Before the camera near plane.
+        std::vector<float> distanceDepth;
+        directionalActionTarget->readbackDepth(distanceDepth);
+        directionalCapture->maxShadowDistance = 0.5f; // Finite but before camera near: neutral map.
         directionalAction.apply(root);
         std::vector<unsigned char> afterInvisibleDistance;
+        std::vector<float> invisibleDepth;
         directionalActionTarget->readbackRGBA(afterInvisibleDistance);
-        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted &&
-          directionalAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-          directionalActionTarget->getLastSubmissionSerial() == distanceSerial &&
-          afterInvisibleDistance == wgpuDistancePixels;
+        directionalActionTarget->readbackDepth(invisibleDepth);
+        const uint64_t invisibleSerial = directionalActionTarget->getLastSubmissionSerial();
+        // The previously rendered base is an independent ordinary-light control:
+        // its map draws and group/light shadow metadata were explicitly removed.
+        unsigned neutralBad = 0, neutralChecked = 0;
+        int neutralMaximum = 0, neutralVsFullMaximum = 0;
+        const bool neutralSize = afterInvisibleDistance.size() == basePixels.size() &&
+          basePixels.size() == size_t(side * side * 4);
+        if (neutralSize) for (size_t pixel = 0; pixel < basePixels.size(); pixel += 4) {
+          for (unsigned channel = 0; channel < 3; ++channel) {
+            const int delta = std::abs(int(afterInvisibleDistance[pixel + channel]) -
+                                       int(basePixels[pixel + channel]));
+            neutralMaximum = std::max(neutralMaximum, delta);
+            if (delta > 3 && neutralBad++ < 4)
+              std::cerr << "directional_neutral_first pixel=" << pixel / 4
+                        << " channel=" << channel << " expected="
+                        << int(basePixels[pixel + channel]) << " actual="
+                        << int(afterInvisibleDistance[pixel + channel]) << '\n';
+            if (actionPixels.size() == basePixels.size())
+              neutralVsFullMaximum = std::max(neutralVsFullMaximum,
+                std::abs(int(afterInvisibleDistance[pixel + channel]) -
+                         int(actionPixels[pixel + channel])));
+          }
+          neutralBad += afterInvisibleDistance[pixel + 3] != basePixels[pixel + 3];
+          ++neutralChecked;
+        }
+        // Capture-only inspection cannot replace the successful GPU publication.
+        // It verifies that neutrality preserves the light/stage instead of deleting it.
+        action.apply(root);
+        const auto captureStatus = action.getLastStatus();
+        const bool acceptedCapture = captureStatus == CoinRenderAction::SUCCESS &&
+          action.getPimpl()->hasLastValidPlan;
+        const bool rejectedCapture = captureStatus == CoinRenderAction::UNSUPPORTED;
+        const auto neutralFrame = acceptedCapture ? action.getPimpl()->lastValidPlan :
+          action.getPimpl()->lastRejectedShadowFrame;
+        CoinRenderShadowPlan neutralPlan;
+        std::string neutralPlanDiagnostic;
+        const bool neutralPlanned = (acceptedCapture || rejectedCapture) &&
+          coin_render_plan_shadows(neutralFrame, neutralPlan, neutralPlanDiagnostic);
+        size_t fullLightIndex = directionalFullWitness.shadowLights.size();
+        size_t neutralLightIndex = neutralFrame.shadowLights.size();
+        unsigned fullMatches = 0, neutralMatches = 0;
+        for (size_t i = 0; i < directionalFullWitness.shadowLights.size(); ++i) {
+          const auto& candidate = directionalFullWitness.shadowLights[i];
+          if (candidate.sourceRevision == directionalFullRevision &&
+              candidate.type == CoinRenderLightType::DIRECTIONAL) {
+            fullLightIndex = i;++fullMatches;
+          }
+        }
+        if (fullMatches == 1) {
+          const auto& fullLight = directionalFullWitness.shadowLights[fullLightIndex];
+          for (size_t i = 0; i < neutralFrame.shadowLights.size(); ++i) {
+            const auto& candidate = neutralFrame.shadowLights[i];
+            if (candidate.sourceRevision == directionalCapture->getNodeId() &&
+                candidate.type == fullLight.type && candidate.groupSlot == fullLight.groupSlot &&
+                candidate.model == fullLight.model &&
+                candidate.modelViewAtLight == fullLight.modelViewAtLight) {
+              neutralLightIndex = i;++neutralMatches;
+            }
+          }
+        }
+        bool allLightsPreserved = fullMatches == 1 && neutralMatches == 1 &&
+          neutralFrame.shadowLights.size() == directionalFullWitness.shadowLights.size();
+        std::vector<bool> matchedLights(neutralFrame.shadowLights.size(), false);
+        auto compareLight = [&](const CoinRenderShadowLightSnapshot& expected,
+                                const CoinRenderShadowLightSnapshot& actual,
+                                bool selected, size_t expectedIndex, size_t actualIndex) {
+          bool same = true;
+          auto field = [&](bool equal, const char* name) {
+            if (!equal) std::cout << "directional_neutral_light_mismatch full_index="
+              << expectedIndex << " neutral_index=" << actualIndex << " field=" << name << '\n';
+            same = same && equal;
+          };
+          field(actual.sourceRevision == (selected ? directionalCapture->getNodeId() :
+                                          expected.sourceRevision), "sourceRevision");
+          field(actual.groupSlot == expected.groupSlot, "groupSlot");
+          field(actual.type == expected.type, "type");
+          field(actual.enabled == expected.enabled, "enabled");
+          field(actual.shadowEligible == expected.shadowEligible, "shadowEligible");
+          field(actual.hasCustomScene == expected.hasCustomScene, "hasCustomScene");
+          field(actual.mapSceneCaptured == expected.mapSceneCaptured, "mapSceneCaptured");
+          field(actual.customSceneNodeId == expected.customSceneNodeId, "customSceneNodeId");
+          field(actual.color == expected.color, "color");
+          field(actual.intensity == expected.intensity, "intensity");
+          field(actual.attenuation == expected.attenuation, "attenuation");
+          field(actual.model == expected.model, "model");
+          field(actual.modelViewAtLight == expected.modelViewAtLight, "modelViewAtLight");
+          field(actual.position == expected.position, "position");
+          field(actual.direction == expected.direction, "direction");
+          field(actual.cutOffAngle == expected.cutOffAngle, "cutOffAngle");
+          field(actual.dropOffRate == expected.dropOffRate, "dropOffRate");
+          field(actual.nearDistance == expected.nearDistance, "nearDistance");
+          field(actual.farDistance == expected.farDistance, "farDistance");
+          field(actual.maxShadowDistance == (selected ? .5f : expected.maxShadowDistance),
+                "maxShadowDistance");
+          field(actual.bboxCenter == expected.bboxCenter, "bboxCenter");
+          field(actual.bboxSize == expected.bboxSize, "bboxSize");
+          return same;
+        };
+        for (size_t fullIndex = 0; fullIndex < directionalFullWitness.shadowLights.size(); ++fullIndex) {
+          const auto& expected = directionalFullWitness.shadowLights[fullIndex];
+          const bool selected = fullIndex == fullLightIndex && fullMatches == 1;
+          size_t match = neutralFrame.shadowLights.size();
+          for (size_t i = 0; i < neutralFrame.shadowLights.size(); ++i) {
+            const auto& actual = neutralFrame.shadowLights[i];
+            if (!matchedLights[i] &&
+                actual.sourceRevision == (selected ? directionalCapture->getNodeId() :
+                                         expected.sourceRevision) &&
+                actual.type == expected.type && actual.groupSlot == expected.groupSlot &&
+                actual.model == expected.model && actual.modelViewAtLight == expected.modelViewAtLight) {
+              match = i;break;
+            }
+          }
+          bool fieldsPreserved = false;
+          if (match < neutralFrame.shadowLights.size()) {
+            matchedLights[match] = true;
+            fieldsPreserved = compareLight(expected, neutralFrame.shadowLights[match],
+                                            selected, fullIndex, match);
+          }
+          allLightsPreserved = allLightsPreserved && fieldsPreserved;
+          std::cout << "directional_neutral_light full_index=" << fullIndex
+                    << " neutral_index=" << match << " selected=" << selected
+                    << " type=" << int(expected.type) << " enabled=" << expected.enabled
+                    << " eligible=" << expected.shadowEligible << " group=" << expected.groupSlot
+                    << " matched=" << (match < neutralFrame.shadowLights.size())
+                    << " all_fields=" << fieldsPreserved << '\n';
+        }
+        const bool oneNeutralPass = neutralPlan.passes.size() == 1;
+        bool neutralMetadata = neutralPlanned && allLightsPreserved &&
+          neutralFrame.shadowGroups.size() == directionalFullWitness.shadowGroups.size() &&
+          !neutralFrame.shadowGroups.empty() && oneNeutralPass &&
+          directionalFullPlanWitness.passes.size() == 1;
+        unsigned retainedLightingStates = 0, eligibleLightingStates = 0;
+        bool lightMetadata = false, passMetadata = false, lightingMetadata = false;
+        if (neutralMetadata) {
+          const auto& pass = neutralPlan.passes[0];
+          const auto& fullPass = directionalFullPlanWitness.passes[0];
+          const auto& light = neutralFrame.shadowLights[neutralLightIndex];
+          lightMetadata = light.enabled && light.shadowEligible &&
+            light.type == CoinRenderLightType::DIRECTIONAL &&
+            light.sourceRevision == directionalCapture->getNodeId() &&
+            light.maxShadowDistance == .5f &&
+            light.intensity == directionalCapture->intensity.getValue() &&
+            light.color == directionalCapture->color.getValue();
+          // A pass selects its zero-based captured-light index; disabled
+          // captured lights remain present and need not own a map pass.
+          passMetadata = pass.lightSlot == neutralLightIndex &&
+            fullPass.lightSlot == fullLightIndex &&
+            pass.groupSlot == light.groupSlot && pass.groupSlot != 0 &&
+            pass.groupSlot <= neutralFrame.shadowGroups.size() && !pass.visible &&
+            pass.maxShadowDistance == .5f && pass.mapSize == fullPass.mapSize &&
+            pass.mapSize > 0 && pass.perFragmentLighting == fullPass.perFragmentLighting &&
+            pass.epsilon == fullPass.epsilon && pass.threshold == fullPass.threshold &&
+            pass.distanceFalloffCoefficient == fullPass.distanceFalloffCoefficient &&
+            pass.casterDraws.empty() && pass.receiverDraws.empty();
+          for (unsigned row = 0; row < 4; ++row)
+            for (unsigned col = 0; col < 4; ++col)
+              passMetadata = passMetadata && std::isfinite(pass.view[row][col]) &&
+                std::isfinite(pass.projectionCoin[row][col]);
+          lightingMetadata =
+            pass.lightingIndexByState.size() == neutralFrame.renderStates.size() &&
+            pass.resolvedLightByState.size() == neutralFrame.renderStates.size();
+          for (size_t stateSlot = 0; stateSlot < neutralFrame.renderStates.size(); ++stateSlot) {
+            const auto& state = neutralFrame.renderStates[stateSlot];
+            int expectedIndex = -1;
+            if (state.shadowGroupSlot == pass.groupSlot &&
+                state.lightingSlot < neutralFrame.lightingStates.size()) {
+              const auto& lights = neutralFrame.lightingStates[state.lightingSlot].lights;
+              for (size_t index = 0; index < lights.size(); ++index)
+                if (lights[index].sourceRevision == light.sourceRevision &&
+                    lights[index].sourceModel == light.modelViewAtLight &&
+                    lights[index].type == CoinRenderLightType::DIRECTIONAL) {
+                  expectedIndex = int(index);break;
+                }
+            }
+            if (expectedIndex >= 0) ++eligibleLightingStates;
+            if (stateSlot >= pass.lightingIndexByState.size() ||
+                stateSlot >= pass.resolvedLightByState.size()) {
+              lightingMetadata = false;continue;
+            }
+            const int actualIndex = pass.lightingIndexByState[stateSlot];
+            lightingMetadata = lightingMetadata && actualIndex == expectedIndex;
+            if (actualIndex >= 0) {
+              ++retainedLightingStates;
+              const auto& resolved = pass.resolvedLightByState[stateSlot];
+              lightingMetadata = lightingMetadata &&
+                resolved.type == CoinRenderLightType::DIRECTIONAL &&
+                resolved.sourceRevision == light.sourceRevision &&
+                resolved.intensity == light.intensity;
+            }
+          }
+          neutralMetadata = lightMetadata && passMetadata && lightingMetadata &&
+            retainedLightingStates == eligibleLightingStates;
+        }
+        std::cout << "wgpu_directional_neutral_capture cpu_status=" << captureStatus
+                  << " accepted=" << acceptedCapture << " rejected=" << rejectedCapture
+                  << " has_valid=" << action.getPimpl()->hasLastValidPlan
+                  << " selected_groups=" << neutralFrame.shadowGroups.size()
+                  << " full_lights=" << directionalFullWitness.shadowLights.size()
+                  << " selected_lights=" << neutralFrame.shadowLights.size()
+                  << " full_matches=" << fullMatches << " selected_matches=" << neutralMatches
+                  << " full_light_index=" << fullLightIndex
+                  << " selected_light_index=" << neutralLightIndex
+                  << " all_lights_preserved=" << allLightsPreserved
+                  << " selected_states=" << neutralFrame.renderStates.size()
+                  << " selected_draws=" << neutralFrame.draws.size()
+                  << " core_planned=" << neutralPlanned << " passes=" << neutralPlan.passes.size()
+                  << " light_fields=" << lightMetadata << " pass_fields=" << passMetadata
+                  << " lighting_fields=" << lightingMetadata
+                  << " eligible_states=" << eligibleLightingStates
+                  << " retained_states=" << retainedLightingStates;
+        if (oneNeutralPass) {
+          const auto& pass = neutralPlan.passes[0];
+          std::cout << " visible=" << pass.visible << " light_index=" << pass.lightSlot
+                    << " group_slot=" << pass.groupSlot << " max_distance=" << pass.maxShadowDistance
+                    << " casters=" << pass.casterDraws.size() << " receivers=" << pass.receiverDraws.size();
+        }
+        std::cout << " action_error=" << action.getLastError().getString()
+                  << " core_error=" << neutralPlanDiagnostic << '\n';
+        const bool neutralDepth = distanceDepth.size() == size_t(side * side) &&
+          invisibleDepth == distanceDepth;
+        const bool neutralSubmission = directionalAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          invisibleSerial > distanceSerial && neutralSize && neutralChecked == unsigned(side * side) &&
+          neutralBad == 0 &&
+          neutralVsFullMaximum >= std::max(1, (wgpuDirectionalDifference + 2) / 3 - 3) &&
+          neutralDepth && neutralMetadata;
+        std::cout << "wgpu_directional_invisible_distance status="
+                  << directionalAction.getLastStatus() << " serial=" << distanceSerial
+                  << ',' << invisibleSerial << " bytes=" << afterInvisibleDistance.size()
+                  << " checked=" << neutralChecked << " bad=" << neutralBad
+                  << " max_delta_unshadowed=" << neutralMaximum
+                  << " max_delta_full_shadow=" << neutralVsFullMaximum
+                  << " depth=" << neutralDepth << " neutral_metadata=" << neutralMetadata
+                  << " retained_lighting_states=" << retainedLightingStates
+                  << " error=" << directionalAction.getLastError().getString() << '\n';
+        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && neutralSubmission;
+        directionalCapture->maxShadowDistance = 10.0f;
+        directionalAction.apply(root);
+        std::vector<unsigned char> distanceRestored;
+        std::vector<float> distanceDepthRestored;
+        directionalActionTarget->readbackRGBA(distanceRestored);
+        directionalActionTarget->readbackDepth(distanceDepthRestored);
+        const uint64_t distanceRestoredSerial = directionalActionTarget->getLastSubmissionSerial();
+        const bool distanceABA = directionalAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          distanceRestoredSerial > invisibleSerial && distanceRestored == wgpuDistancePixels &&
+          distanceDepthRestored == distanceDepth;
         directionalCapture->maxShadowDistance = -1.0f;
+        directionalAction.apply(root);
+        std::vector<unsigned char> fullRestored;
+        std::vector<float> fullDepthRestored;
+        directionalActionTarget->readbackRGBA(fullRestored);
+        directionalActionTarget->readbackDepth(fullDepthRestored);
+        const bool fullABA = directionalAction.getLastStatus() == CoinRenderAction::SUCCESS &&
+          directionalActionTarget->getLastSubmissionSerial() > distanceRestoredSerial &&
+          fullRestored == actionPixels && fullDepthRestored == actionDepth;
+        std::cout << "wgpu_directional_distance_recovery limited_RGBA_depth_ABA=" << distanceABA
+                  << " full_RGBA_depth_ABA=" << fullABA << " error="
+                  << directionalAction.getLastError().getString() << '\n';
+        wgpuDirectionalSubmitted = wgpuDirectionalSubmitted && distanceABA && fullABA;
         directionalAction.setRenderTarget(nullptr);
         delete directionalActionTarget;
       }
@@ -4880,7 +5396,7 @@ int main(int argc, char ** argv)
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   int multiCameraWgpuDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && multipleCameras) {
-    CoinRenderTarget * cameraTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * cameraTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction cameraAction(SbViewportRegion(side, side));
     cameraAction.setRenderTarget(cameraTarget);
@@ -4964,7 +5480,7 @@ int main(int argc, char ** argv)
 #ifdef HAVE_COIN_WGPU_RUST_BRIDGE
   int perspectiveWgpuDifference = 0;
   if (std::getenv("COIN_RENDER_REQUIRE_WGPU_SHADOW_GPU") && perspectiveFrustum) {
-    CoinRenderTarget * perspectiveTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * perspectiveTarget = shadowTestOffscreen(
       SbVec2i32(side, side));
     CoinRenderAction perspectiveAction(SbViewportRegion(side, side));
     perspectiveAction.setRenderTarget(perspectiveTarget);
@@ -5125,7 +5641,7 @@ int main(int argc, char ** argv)
       subtreeFrame, subtreePlan, subtreeDiagnostic);
   customLight->shadowMapScene = nullptr;
   if (directCustomSceneQualified && lowQualityGpuRequested) {
-    CoinRenderTarget * customTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * customTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction customAction(SbViewportRegion(side, side));
     customAction.setRenderTarget(customTarget);
     customLight->shadowMapScene = selectedCaster;
@@ -5188,7 +5704,7 @@ int main(int argc, char ** argv)
     delete customTarget;
   }
   if (subtreeCustomSceneQualified && lowQualityGpuRequested) {
-    CoinRenderTarget * subtreeTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * subtreeTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction subtreeAction(SbViewportRegion(side, side));
     subtreeAction.setRenderTarget(subtreeTarget);
     customLight->shadowMapScene = otherCaster;
@@ -5251,7 +5767,7 @@ int main(int argc, char ** argv)
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 1 &&
     action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].mapSceneCaptured;
   if (styledCustomSceneQualified && lowQualityGpuRequested) {
-    CoinRenderTarget * styledTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * styledTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction styledAction(SbViewportRegion(side, side));
     styledAction.setRenderTarget(styledTarget);
     nestedShadowStyle->style = SoShadowStyle::CASTS_SHADOW_AND_SHADOWED;
@@ -5310,7 +5826,7 @@ int main(int argc, char ** argv)
     action.getPimpl()->lastRejectedShadowFrame.shadowLights.size() == 1 &&
     action.getPimpl()->lastRejectedShadowFrame.shadowLights[0].mapSceneCaptured;
   if (clippedSubtreeQualified && lowQualityGpuRequested) {
-    CoinRenderTarget * clippedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * clippedTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction clippedAction(SbViewportRegion(side, side));
     clippedAction.setRenderTarget(clippedTarget);
     subtreeClip->on = FALSE;
@@ -5364,7 +5880,7 @@ int main(int argc, char ** argv)
     CoinRenderOptions stagedOptions{};
     stagedOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_STAGED;
     stagedOptions.transparency = COIN_RENDER_TRANSPARENCY_OBJECT;
-    CoinRenderTarget * stagedTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * stagedTarget = shadowTestOffscreen(
       SbVec2i32(side, side), stagedOptions);
     CoinRenderAction stagedAction(SbViewportRegion(side, side));
     stagedAction.setRenderTarget(stagedTarget);
@@ -5515,7 +6031,7 @@ int main(int argc, char ** argv)
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE) || defined(HAVE_COIN_BGFX)
     CoinRenderOptions directOptions = stagedOptions;
     directOptions.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
-    CoinRenderTarget * directTarget = CoinRenderTarget::createOffscreen(
+    CoinRenderTarget * directTarget = shadowTestOffscreen(
       SbVec2i32(side, side), directOptions);
     CoinRenderAction directAction(SbViewportRegion(side, side));
     directAction.setRenderTarget(directTarget);
@@ -5695,7 +6211,7 @@ int main(int argc, char ** argv)
         CoinRenderOptions receiverOptions = stagedOptions;
         receiverOptions.sceneTexture = mode == 0 ?
           COIN_RENDER_SCENE_TEXTURE_STAGED : COIN_RENDER_SCENE_TEXTURE_DIRECT;
-        CoinRenderTarget * receiverTarget = CoinRenderTarget::createOffscreen(
+        CoinRenderTarget * receiverTarget = shadowTestOffscreen(
           SbVec2i32(side, side), receiverOptions);
         CoinRenderAction receiverAction(SbViewportRegion(side, side));
         receiverAction.setRenderTarget(receiverTarget);
@@ -5774,7 +6290,7 @@ int main(int argc, char ** argv)
       inheritedFrame.shadowLights[0].mapSceneCaptured &&
       coin_render_shadow_object_profile(inheritedFrame, inheritedPlan, 1,
                                        inheritedDiagnostic);
-    CoinRenderTarget * inheritedTarget = CoinRenderTarget::createOffscreen(SbVec2i32(side, side));
+    CoinRenderTarget * inheritedTarget = shadowTestOffscreen(SbVec2i32(side, side));
     CoinRenderAction inheritedAction(SbViewportRegion(side, side));
     inheritedAction.setRenderTarget(inheritedTarget);
     inheritedAction.apply(customRoot);
@@ -5878,7 +6394,20 @@ int main(int argc, char ** argv)
               << " rtt=" << stagedShadowRttQualified << '/' << directShadowRttQualified << '/' << shadowedRttReceiverQualified
               << " expanded=" << shadowCompositionQualified << '/' << independentShadowScenesQualified
               << '/' << emptyShadowMapsQualified << '/' << alphaRttQualified << '/' << shadowTransparencyQualified
-              << " alpha_validation=" << inconsistentAlphaRejected << '\n';
+              << " alpha_validation=" << inconsistentAlphaRejected
+              << " smoothBorderQualified=" << smoothBorderQualified
+              << " lateLightResolved=" << lateLightResolved
+              << " mixedOrderResolved=" << mixedOrderResolved
+              << " spotRangeCaptured=" << spotRangeCaptured
+              << " directionalCaptured=" << directionalCaptured
+              << " directionalProjectionCoversGroup=" << directionalProjectionCoversGroup
+#ifdef HAVE_COIN_WGPU_RUST_BRIDGE
+              << " wgpuShadowSubmitted=" << wgpuShadowSubmitted
+              << " wgpuDirectionalSubmitted=" << wgpuDirectionalSubmitted
+              << " lateSpotSubmitted=" << lateSpotSubmitted
+              << " twoLightSubmittedOnGpu=" << twoLightSubmittedOnGpu
+#endif
+              << '\n';
     root->unref();
     return 1;
   }

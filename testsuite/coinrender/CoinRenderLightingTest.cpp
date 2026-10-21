@@ -34,11 +34,12 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 51,
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 57,
               "Shadow, opaque-instance, alpha-test, projective-UV and sampling-policy bridge protocol");
 static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
-static_assert(sizeof(CoinWgpuRenderState) == 2292, "Texture projection policy bridge layout");
+static_assert(sizeof(CoinWgpuRenderState) == 2300, "Flat shadow primary bridge layout");
 static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection policy bridge tail");
+static_assert(offsetof(CoinWgpuRenderState, flat_shadow_primary) == 2296, "Flat shadow primary bridge tail");
 
 namespace {
 enum SceneLight { DIRECTIONAL, POINT, SPOT_INSIDE, SPOT_OUTSIDE };
@@ -200,6 +201,7 @@ bool checkBridgeLimit() {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   if (!gpuAvailable()) return true;
   CoinWgpuRenderState state{};
+  state.color_write = 1;
   state.light_count = 9;
   CoinWgpuFrameView frame{};
   frame.abi_version = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;

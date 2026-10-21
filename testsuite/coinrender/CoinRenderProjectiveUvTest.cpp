@@ -7,6 +7,7 @@
 #include <Inventor/system/gl.h>
 #endif
 #include <Inventor/actions/CoinRenderAction.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
@@ -84,6 +85,7 @@ SO_NODE_SOURCE(ProjectiveCoordinates);
 int ProjectiveCoordinates::fixedFunctionTextureUnits = 0;
 
 namespace {
+CoinRenderRenderer requestedRenderer=COIN_RENDER_RENDERER_UNKNOWN;
 constexpr int width = 96, height = 80, textureSize = 16;
 size_t nativeGlComparisons = 0, projectedGlComparisons = 0;
 size_t equivalentOneLayerGlComparisons = 0;
@@ -242,13 +244,19 @@ struct Harness {
     , gl(SbViewportRegion(width, height))
 #endif
   {
-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), options));
+    CoinRenderOptions resolved=options;
+    if(resolved.renderer==COIN_RENDER_RENDERER_UNKNOWN)
+      resolved.renderer=requestedRenderer;
+    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), resolved));
+    if(cpu && requestedRenderer!=COIN_RENDER_RENDERER_UNKNOWN &&
+       cpu->getOptions().renderer!=requestedRenderer) cpu.reset();
     if (cpu) {
       observer = new CaptureBackend; cpu->getPimpl()->backend.reset(observer);
       cpu->getPimpl()->depthBuffer.assign(width * height, 1.0f); cpuAction.setRenderTarget(cpu.get());
     }
     if (gpu) {
-      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), options));
+      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), resolved));
+      if(native && native->getOptions().renderer!=requestedRenderer) native.reset();
       if (native) gpuAction.setRenderTarget(native.get());
     }
     cpuAction.setFastPathEnabled(fast); gpuAction.setFastPathEnabled(fast);
@@ -478,14 +486,29 @@ bool twoDimensional(bool gpu) {
     const float s = raw[i][0], t = raw[i][1], q = .9f * s + .25f * t + .8f;
     divided[i].setValue((.7f * s + .12f) / q, (.65f * t + .14f) / q);
   }
+  // The pre-divided coordinates are not affine across the quad. State one
+  // diagonal explicitly so CoinGL and the CPU compare the same two triangles
+  // rather than a driver's independent quad tessellation choice.
+  auto * face=static_cast<SoIndexedFaceSet *>(surface.geometry->getChild(0));
+  const int32_t triangles[]={0,1,2,-1,0,2,3,-1};
+  face->coordIndex.setValues(0,8,triangles);
   stage.uv2->point.setValues(0, 4, divided); stage.matrix->matrix = SbMatrix::identity();
   if (!test.render(scene.root, "uv2/predivided-counterfactual") ||
       !changed(originalCpu, test.lastCpu, "uv2/predivided-CPU") ||
       (gpu && !changed(originalGl, test.reference, "uv2/predivided-CoinGL"))) return false;
+  const int32_t quad[]={0,1,2,3,-1};
+  face->coordIndex.setValues(0,5,quad);
+  face->coordIndex.setNum(5);
   stage.uv2->point.setValues(0, 4, raw); stage.matrix->matrix = projective();
   if (!test.render(scene.root, "uv2/predivided-return-to-A") || !restored(test, originalCpu, originalNative, "uv2/predivide")) return false;
+  // The changed corners below are not an affine quad either. Fix the same
+  // diagonal for this B-only comparison, then restore the original quad for
+  // the exact A/B/A recovery check.
+  face->coordIndex.setValues(0,8,triangles);
   stage.uv2->point.set1Value(1, .65f, .15f); stage.uv2->point.set1Value(2, .65f, .85f);
   if (!test.render(scene.root, "uv2/coordinate-B") || !changed(originalCpu, test.lastCpu, "uv2/coordinate")) return false;
+  face->coordIndex.setValues(0,5,quad);
+  face->coordIndex.setNum(5);
   stage.uv2->point.setValues(0, 4, raw);
   return test.render(scene.root, "uv2/coordinate-A-restored") && restored(test, originalCpu, originalNative, "uv2/coordinate");
 }
@@ -961,10 +984,18 @@ bool classicLayeredProjectiveSampling(bool gpu) {
     stage.matrix->matrix = projective();
     if (!render("Q-A-restored") ||
         !check(test.lastNative == originalNative && test.reference == originalGl, label + ": Q A/B/A differs")) return false;
+    // Pre-dividing corners produces a non-affine quad. Use the same explicit
+    // diagonal in CoinGL and CoinRender for this counterfactual only.
+    auto * face=static_cast<SoIndexedFaceSet *>(surface.geometry->getChild(0));
+    const int32_t triangles[]={0,1,2,-1,0,2,3,-1};
+    face->coordIndex.setValues(0,8,triangles);
     stageInput(stage, 0, true, 0);
     if (!render("predivided-counterfactual") ||
         !changed(originalNative, test.lastNative, label + "/GPU-predivide") ||
         !changed(originalGl, test.reference, label + "/CoinGL-predivide")) return false;
+    const int32_t quad[]={0,1,2,3,-1};
+    face->coordIndex.setValues(0,5,quad);
+    face->coordIndex.setNum(5);
     stageInput(stage, 0, false, 0);
     if (!render("predivided-A-restored") ||
         !check(test.lastNative == originalNative && test.reference == originalGl, label + ": predivide A/B/A differs")) return false;
@@ -1099,6 +1130,16 @@ int main(int argc, char ** argv) {
   SoDB::init(); CoinRenderAction::initClass(); ProjectiveCoordinates::initClass();
   if (gpu && !CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr << "CoinRenderProjectiveUvTest requires the selected GPU backend\n"; return 77;
+  }
+  if(gpu) {
+    CoinRenderCapabilities caps{};
+    if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+        &caps,sizeof(caps))!=0 || !caps.gpu_available ||
+       caps.renderer==COIN_RENDER_RENDERER_UNKNOWN) return 77;
+    requestedRenderer=static_cast<CoinRenderRenderer>(caps.renderer);
+    std::cout << "projective_uv backend=" << caps.backend << " renderer="
+              << caps.renderer << " vendor=" << caps.vendor_id << " adapter="
+              << caps.adapter_name << '\n';
   }
 #if !COIN_HAVE_LEGACY_GL_RENDERER
   if (gpu) {

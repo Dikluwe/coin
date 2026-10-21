@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 // Diagnostic campaign only: differences are measurements, never relaxed gates.
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -265,12 +266,12 @@ CoinRenderFramePlan bake(const CoinRenderFramePlan & source, const std::string &
 }
 int main(int argc,char ** argv) {
   if(argc!=7 && argc!=8) {
-    std::cerr<<"Usage: CoinRenderRasterStudy camera|sphere|cone frame width filled|lines native|float|double|snap8 output-directory [--polygons]\n";
+    std::cerr<<"Usage: CoinRenderRasterStudy camera|sphere|cone frame width filled|lines native|float|double|snap8|canonical output-directory [--polygons]\n";
     return 2;
   }
   try {
     const std::string kind=argv[1],mode=argv[5],directory=argv[6];
-    if(mode!="native" && mode!="float" && mode!="double" && mode!="snap8") throw std::runtime_error("unknown projection mode");
+    if(mode!="native" && mode!="float" && mode!="double" && mode!="snap8" && mode!="canonical") throw std::runtime_error("unknown projection mode");
     int side=kind=="camera"?256:80;
     SoDB::init(); CoinRenderAction::initClass(); RasterWitness::initClass();
     CoinRenderCapabilities caps{};
@@ -281,8 +282,10 @@ int main(int argc,char ** argv) {
     std::cout<<"scene="<<kind<<" frame="<<argv[2]<<" width="<<argv[3]<<" style="<<argv[4]<<" transform="<<mode<<'\n';
     auto * root=scene(kind,std::stoi(argv[2]),std::stof(argv[3]),std::string(argv[4])=="filled");
     auto * witness=new RasterWitness; witness->side=side; root->addChild(witness);
-    std::unique_ptr<CoinRenderTarget> cpu(CoinRenderTarget::createOffscreen(SbVec2i32(side,side)));
-    std::unique_ptr<CoinRenderTarget> gpu(CoinRenderTarget::createOffscreen(SbVec2i32(side,side)));
+    std::string optionDiagnostic; CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionDiagnostic);
+    if(mode=="canonical") options.rasterizationPolicy=COIN_RENDER_RASTER_CANONICAL_8BIT;
+    std::unique_ptr<CoinRenderTarget> cpu(CoinRenderTarget::createOffscreen(SbVec2i32(side,side),options));
+    std::unique_ptr<CoinRenderTarget> gpu(CoinRenderTarget::createOffscreen(SbVec2i32(side,side),options));
     auto * capture=new StudyCapture; cpu->getPimpl()->backend.reset(capture);
     CoinRenderAction action(SbViewportRegion(side,side)); action.setRenderTarget(cpu.get());
     action.setFastPathEnabled(FALSE); action.setBackgroundColor(SbColor4f(0,0,0,1));
@@ -304,7 +307,7 @@ int main(int argc,char ** argv) {
     // Disable culling identically in native scenes (default UNKNOWN_FACE_TYPE)
     // and study plans to keep replay coverage comparisons on the same input.
     for(auto & s:p.renderStates) s.cullMode=CoinRenderCullMode::NONE;
-    p=bake(p,mode,side,directory); ++p.revision;
+    p=bake(p,mode=="canonical"?"native":mode,side,directory); ++p.revision;
     for (auto * target : {cpu.get(), gpu.get()}) {
       auto result=target->getPimpl()->executeFrame(p);
       if(result.status!=CoinRenderBackendStatus::SUCCESS) throw std::runtime_error(result.diagnostic);

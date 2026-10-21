@@ -17,6 +17,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
@@ -364,6 +365,44 @@ bool instancedOpaque(const CoinRenderFramePlan & base)
     }
   }
   ok &= instancedCamera(frame, instanced);
+  // The OpenGL profile keeps LESS instancing in eye space too. It must
+  // still patch the instance buffer without rebuilding mesh/index payloads,
+  // including after the CPU instance payload has been released on upload.
+  for (const bool homogeneousDepth : {false, true}) {
+    CoinBgfxPlan eyeSpace, movedEyeSpace;
+    CoinRenderFramePlan moved = frame;
+    SbMatrix view;
+    view.setRotate(SbRotation(SbVec3f(0.2f, 0.7f, 1.0f), 0.19f));
+    view[3][0] = 0.25f; view[3][1] = -0.13f; view[3][2] = -0.1f;
+    for (auto & state : moved.renderStates) state.view = view;
+    if (!check(CoinBgfxLowering::lowerInstanced(frame, 4, 4, homogeneousDepth,
+                 eyeSpace, diagnostic, nullptr, false) &&
+               !eyeSpace.instancedWorldSpace && eyeSpace.instancedCameraPatchable &&
+               eyeSpace.instancePositionScales.size() == frame.draws.size() &&
+               eyeSpace.instances.size() == 300 && eyeSpace.draws.size() == 1 &&
+               CoinBgfxLowering::lowerInstanced(moved, 4, 4, homogeneousDepth,
+                 movedEyeSpace, diagnostic, nullptr, false),
+               "eye-space LESS must retain instancing and camera patch eligibility")) return false;
+    for (const bool releaseInstances : {false, true}) {
+      CoinBgfxPlan retained = eyeSpace;
+      if (releaseInstances) {
+        const uint64_t metadataBudget =
+          uint64_t(retained.draws.capacity() + retained.shadowDraws.capacity()) * sizeof(CoinBgfxDraw) +
+          uint64_t(retained.textures.capacity()) * sizeof(CoinBgfxTexture) +
+          uint64_t(retained.instancePositionScales.capacity()) * sizeof(std::array<float, 3>) + 16;
+        if (!check(CoinBgfxLowering::retainForReuse(retained,
+                     32u * 1024u * 1024u, metadataBudget, true) && retained.instances.empty(),
+                   "eye-space LESS must release CPU instance payload at the metadata budget")) return false;
+      }
+      std::vector<CoinBgfxDraw> patchedDraws;
+      std::vector<CoinBgfxInstance> patchedInstances;
+      ok &= check(CoinBgfxLowering::patchCamera(moved, 4, 4, homogeneousDepth,
+                    retained, patchedDraws, diagnostic, &patchedInstances) &&
+                  sameBytes(patchedInstances, movedEyeSpace.instances) &&
+                  sameBytes(patchedDraws, movedEyeSpace.draws),
+                  "eye-space LESS camera patch must match a full rebake byte for byte");
+    }
+  }
   // All instances share an identical plane/transform. Keeping the alternating
   // material sequence is essential for the traversal winner under LEQUAL.
   CoinRenderFramePlan coplanar = frame;
@@ -622,10 +661,10 @@ bool diagonalInstancing(const CoinRenderFramePlan & base)
 
 bool projectiveTextureLowering(const CoinRenderFramePlan & base)
 {
-  bool ok = check(sizeof(CoinBgfxVertex) == 220 &&
-                  sizeof(CoinBgfxVertexPrefix) == 124 &&
-                  offsetof(CoinBgfxVertex, extraTexcoords) == 124 &&
-                  offsetof(CoinBgfxVertex, extraTextureQ) == 188 &&
+  bool ok = check(sizeof(CoinBgfxVertex) == 236 &&
+                  sizeof(CoinBgfxVertexPrefix) == 140 &&
+                  offsetof(CoinBgfxVertex, extraTexcoords) == 140 &&
+                  offsetof(CoinBgfxVertex, extraTextureQ) == 204 &&
                   sizeof(CoinBgfxInstancedVertex) == 24 && sizeof(CoinBgfxInstance) == 160,
                   "projective transport changed the compact or instanced vertex layout");
   CoinRenderFramePlan frame = base;
@@ -693,8 +732,11 @@ bool projectiveTextureLowering(const CoinRenderFramePlan & base)
       ok &= check(!near(packedSt[0], expectedS / expectedQ),
                   "BGFX lowering divided projective coordinates before fragment interpolation");
     }
-    ok &= check(lowered.extraTextureQ[1][3] == 1.0f,
-                "unused final texture Q packing lane must retain its neutral value");
+    // This lane carries transformed R for unit 6. The authored matrix changes
+    // S, T and Q while leaving R unchanged, so the expected value comes from
+    // the source coordinate rather than the packed output.
+    ok &= check(near(lowered.extraTextureQ[1][3], source.textureR[6]),
+                "texture unit 6 R must survive projective BGFX packing");
   }
   CoinBgfxPlan materialUpdate = plan;
   materialUpdate.vertices[1].color[0] = .25f;
@@ -837,6 +879,67 @@ int main()
   frame.shadowGroups.clear();
   ok &= check(CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic),
               "valid BASE_COLOR triangle rejected");
+  {
+    frame.renderStates[0].alphaTestFunction = CoinRenderAlphaTestFunction::GREATER;
+    frame.renderStates[0].alphaTestReference = .25f;
+    ok &= check(CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic) &&
+      plan.draws.size() == 1 &&
+      plan.draws[0].alphaTestFunction == CoinRenderAlphaTestFunction::GREATER &&
+      plan.draws[0].alphaTestReference == .25f,
+      "valid active alpha state reaches BGFX lowerer");
+    const CoinBgfxPlan accepted = plan;
+    const auto reject = [&](CoinRenderAlphaTestFunction function,float reference,
+                            const char * label) {
+      frame.renderStates[0].alphaTestFunction = function;
+      frame.renderStates[0].alphaTestReference = reference;
+      const bool refused = !CoinBgfxLowering::lower(frame,4,4,false,plan,diagnostic);
+      return check(refused && !diagnostic.empty() &&
+        sameBytes(plan.draws,accepted.draws) &&
+        sameBytes(plan.vertices,accepted.vertices) &&
+        sameBytes(plan.indices,accepted.indices),label);
+    };
+    ok &= reject(static_cast<CoinRenderAlphaTestFunction>(9),.25f,
+      "BGFX alpha enum 9 must reject without replacing packet");
+    ok &= reject(static_cast<CoinRenderAlphaTestFunction>(UINT32_MAX),.25f,
+      "BGFX alpha UINT_MAX must reject without replacing packet");
+    for(float reference:{std::numeric_limits<float>::quiet_NaN(),
+                         std::numeric_limits<float>::infinity(),
+                         -std::numeric_limits<float>::infinity(),-.01f,1.01f})
+      ok &= reject(CoinRenderAlphaTestFunction::GREATER,reference,
+        "BGFX malformed alpha reference must preserve previous packet");
+    frame.renderStates[0].alphaTestFunction = CoinRenderAlphaTestFunction::GREATER;
+    frame.renderStates[0].alphaTestReference = .25f;
+    ok &= check(CoinBgfxLowering::lower(frame,4,4,false,plan,diagnostic) &&
+      sameBytes(plan.draws,accepted.draws),
+      "BGFX alpha lowerer recovers exact valid draw after malformed inputs");
+    frame.renderStates[0].alphaTestFunction = CoinRenderAlphaTestFunction::NONE;
+    frame.renderStates[0].alphaTestReference = .5f;
+  }
+  CoinRenderBumpImage bumpImage;
+  bumpImage.width = bumpImage.height = 1;
+  bumpImage.rgb = {128, 128, 255};
+  frame.bumpImages.push_back(bumpImage);
+  CoinRenderBumpCoordOverride bumpCoord;
+  bumpCoord.vertexIndex = 0;
+  bumpCoord.imageSlot = 1;
+  frame.bumpCoords.push_back(bumpCoord);
+  CoinRenderBumpTangentOverride bumpTangent;
+  bumpTangent.vertexIndex = 0;
+  bumpTangent.tangent.s[0] = 1.0f;
+  bumpTangent.tangent.t[1] = 1.0f;
+  frame.bumpTangents.push_back(bumpTangent);
+  const CoinBgfxPlan beforeUnlitBump = plan;
+  ok &= check(!CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic) &&
+              diagnostic == "Consumed bump requires PHONG and the qualified point/directional lighting profile" &&
+              sameBytes(plan.draws, beforeUnlitBump.draws) &&
+              sameBytes(plan.vertices, beforeUnlitBump.vertices) &&
+              sameBytes(plan.indices, beforeUnlitBump.indices),
+              "BGFX lowerer must reject consumed unlit bump without replacing the previous packet");
+  frame.bumpCoords.clear();
+  frame.bumpTangents.clear();
+  frame.bumpImages.clear();
+  ok &= check(CoinBgfxLowering::lower(frame, 4, 4, false, plan, diagnostic) &&
+              diagnostic.empty(), "BGFX lowerer must recover after bump rejection");
   ok &= check(plan.draws[0].viewport[0] == 0 && plan.draws[0].viewport[1] == 0 &&
               plan.draws[0].viewport[2] == 4 && plan.draws[0].viewport[3] == 4,
               "full viewport was not preserved during lowering");
@@ -1242,20 +1345,37 @@ int main()
     CoinBgfxPlan accepted;
     ok &= check(CoinBgfxLowering::lower(layers, 4, 4, false, accepted, diagnostic),
                 "default sorted layers profile rejected");
-    const auto beforeVertices = accepted.vertices.size();
-    const auto beforeDraws = accepted.draws.size();
-    for (int unsupported = 0; unsupported < 3; ++unsupported) {
+    const CoinBgfxPlan baseline = accepted;
+    for (int variant = 0; variant < 3; ++variant) {
       auto request = layers;
       auto& requested = request.renderStates[0];
       requested.explicitDepthMask = 15;
-      requested.depthWrite = unsupported == 0;
-      requested.depthTest = unsupported != 1;
-      requested.depthFunction = unsupported == 2 ? CoinRenderDepthFunction::GREATER : CoinRenderDepthFunction::LEQUAL;
-      ok &= check(!CoinBgfxLowering::lower(request, 4, 4, false, accepted, diagnostic) &&
-                      diagnostic.find("BGFX sorted layers requires") != std::string::npos &&
-                      accepted.vertices.size() == beforeVertices && accepted.draws.size() == beforeDraws,
-                  "unsupported layer depth state must preserve the lowered plan");
+      requested.depthWrite = variant == 0;
+      requested.depthTest = variant != 1;
+      requested.depthFunction = variant == 2 ? CoinRenderDepthFunction::GREATER : CoinRenderDepthFunction::LEQUAL;
+      const bool effectiveWrite = requested.depthTest && requested.depthWrite;
+      ok &= check(CoinBgfxLowering::lower(request, 4, 4, false, accepted, diagnostic) &&
+                      accepted.draws.size() == 1 &&
+                      accepted.draws[0].depthTest == requested.depthTest &&
+                      accepted.draws[0].depthWrite == effectiveWrite &&
+                      accepted.draws[0].depthFunction == requested.depthFunction,
+                  "sorted layers must transport captured depth test/function and effective write");
     }
+    const CoinBgfxPlan previous = accepted;
+    auto invalid = layers;
+    invalid.renderStates[0].explicitDepthMask = 15;
+    invalid.renderStates[0].depthFunction = static_cast<CoinRenderDepthFunction>(99);
+    ok &= check(!CoinBgfxLowering::lower(invalid, 4, 4, false, accepted, diagnostic) &&
+                    !diagnostic.empty() &&
+                    sameBytes(accepted.vertices, previous.vertices) &&
+                    sameBytes(accepted.indices, previous.indices) &&
+                    sameBytes(accepted.draws, previous.draws),
+                "invalid depth enum must preserve the previous sorted-layers packet");
+    ok &= check(CoinBgfxLowering::lower(layers, 4, 4, false, accepted, diagnostic) &&
+                    sameBytes(accepted.vertices, baseline.vertices) &&
+                    sameBytes(accepted.indices, baseline.indices) &&
+                    sameBytes(accepted.draws, baseline.draws),
+                "sorted layers must recover its original valid packet after invalid depth enum");
   }
   frame.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
   frame.lightingStates[0].ambientIntensity = 1.0f;

@@ -22,9 +22,14 @@
 #include <vector>
 
 namespace {
+CoinRenderOptions selectedOptions{};
 
 CoinRenderTarget * makeColorTarget(const SbVec2i32 & size) {
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(size);
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(size, selectedOptions);
+  if (target && target->getOptions().sceneTexture != selectedOptions.sceneTexture) {
+    std::cerr << "CoinRenderSceneTextureBudgetTest: target did not retain requested public RTT route\n";
+    std::exit(1);
+  }
   if (target) target->setDepthReadbackEnabled(FALSE);
   return target;
 }
@@ -104,6 +109,11 @@ bool isBudgetError(const CoinRenderAction & action) {
 int main() {
   SoDB::init();
   CoinRenderAction::initClass();
+  const char * directMode = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
+  const bool direct = directMode && directMode[0] == '1' && directMode[1] == '\0';
+  selectedOptions.sceneTexture = direct ? COIN_RENDER_SCENE_TEXTURE_DIRECT :
+                                         COIN_RENDER_SCENE_TEXTURE_STAGED;
+  std::cout << "scene_texture_budget requested_route=" << selectedOptions.sceneTexture << '\n';
 
   CoinRenderTarget * target = makeColorTarget(SbVec2i32(16, 16));
   if (!target || target->getStatus() != CoinRenderTarget::TARGET_READY) {
@@ -120,8 +130,6 @@ int main() {
   exactLimit->ref();
   exactLimit->addChild(makeSkippedByQuality());
   exactLimit->addChild(makeSkippedByOverride());
-  const char * directMode = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
-  const bool direct = directMode && directMode[0] == '1' && directMode[1] == '\0';
   const std::vector<SbVec2s> exactLarge(direct ? 2 : 4, SbVec2s(2048, 2048));
   exactLimit->addChild(makeChain(exactLarge));
 

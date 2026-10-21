@@ -6,23 +6,39 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+#include "rendering/coinwgpu/CoinWgpuBackend.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "../coinrender/CoinRenderTestEnvironment.h"
 
 #include <cstdint>
+#include <cstddef>
+#include <array>
 #include <cmath>
 #include <cfenv>
 #include <cstdlib>
 #include <cstring>
 #include <functional>
 #include <limits>
+#include <memory>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbVec4f.h>
 #include <Inventor/SbViewVolume.h>
+#include <Inventor/SoDB.h>
+#include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/nodes/SoComplexity.h>
+#include <Inventor/nodes/SoCoordinate3.h>
+#include <Inventor/nodes/SoIndexedFaceSet.h>
+#include <Inventor/nodes/SoLightModel.h>
+#include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoOrthographicCamera.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include <Inventor/nodes/SoTextureCoordinate3.h>
+#include <Inventor/nodes/SoTextureCubeMap.h>
 #include <iostream>
 #include <string>
 
@@ -73,6 +89,256 @@ CoinRenderFramePlan opaqueFrame(bool shared)
   return frame;
 }
 
+bool activeBumpBoundary() {
+  auto frame = opaqueFrame(false);
+  CoinWgpuFfiFrame packed;
+  std::string error;
+  if (!check(packed.prepare(frame, 64, 64, error),
+             "ordinary frame must prepare before the bump boundary")) return false;
+  CoinRenderBumpImage image;
+  image.width = image.height = 1;
+  image.rgb = {128, 128, 255};
+  frame.bumpImages.push_back(image);
+  CoinRenderBumpCoordOverride coord;
+  coord.vertexIndex = 0;
+  coord.imageSlot = 1;
+  frame.bumpCoords.push_back(coord);
+  CoinRenderBumpTangentOverride tangent;
+  tangent.vertexIndex = 0;
+  tangent.tangent.s[0] = 1.0f;
+  tangent.tangent.t[1] = 1.0f;
+  frame.bumpTangents.push_back(tangent);
+  std::vector<uint32_t> emittedSources(frame.vertices.size());
+  for (size_t i = 0; i < emittedSources.size(); ++i)
+    emittedSources[i] = static_cast<uint32_t>(i);
+  emittedSources[1] = 0; // A duplicated emitted vertex retains its bump payload.
+  if (!check(packed.prepareBumpPayload(frame, emittedSources, error),
+             "R26 bump payload must pack from explicit emitted source IDs")) return false;
+  const auto & payload = packed.getView();
+  if (!check(payload.bump_vertex_count == payload.vertex_count &&
+             payload.bump_image_count == 1 &&
+             payload.bump_vertices[0].image_slot == 1 &&
+             payload.bump_vertices[1].image_slot == 1 &&
+             payload.bump_vertices[1].tangent_s[0] == 1.0f &&
+             payload.bump_images[0].width == 1 && payload.bump_images[0].rgb_len == 3 &&
+             payload.bump_images[0].rgb[0] == 128,
+             "bump FFI packet must retain remapped vertices and owned image bytes")) return false;
+  frame.bumpImages[0].rgb[0] = 129;
+  if (!check(payload.bump_images[0].rgb[0] == 128,
+             "bump FFI image must outlive changes to the source frame")) return false;
+  frame.bumpImages[0].rgb[0] = 128;
+  if (!check(!packed.prepareBumpPayload(frame, {0}, error) &&
+             error == "Bump source mapping does not match packed wgpu frame" &&
+             packed.getView().bump_vertex_count == payload.bump_vertex_count,
+             "bump FFI packet must match the emitted vertex count")) return false;
+  frame.bumpImages[0].rgb.pop_back();
+  if (!check(!packed.prepareBumpPayload(frame, emittedSources, error) &&
+             error == "Invalid bump image at wgpu transport boundary" &&
+             packed.getView().bump_images[0].rgb_len == 3,
+             "invalid bump image must preserve the previous FFI packet")) return false;
+  frame.bumpImages[0].rgb.push_back(255);
+  emittedSources[0] = static_cast<uint32_t>(frame.vertices.size());
+  if (!check(!packed.prepareBumpPayload(frame, emittedSources, error) &&
+             error == "Bump emitted vertex has no source vertex" &&
+             packed.getView().bump_vertices == payload.bump_vertices &&
+             packed.getView().bump_images[0].rgb[0] == 128,
+             "invalid bump mapping must leave the previous FFI packet intact")) return false;
+  // Raw remapping above intentionally permits a partial bump payload. A
+  // directly executable frame instead requires one consistent slot per draw,
+  // PHONG and qualified light input for every consumed bump corner.
+  auto directFrame = frame;
+  directFrame.lightingStates.resize(1);
+  CoinRenderLightSourceSnapshot light;
+  light.type = CoinRenderLightType::DIRECTIONAL; light.direction[2] = -1;
+  directFrame.lightingStates[0].lights.push_back(light);
+  for (auto &state : directFrame.renderStates) {
+    state.lightModel = CoinRenderLightModel::PHONG; state.lightingSlot = 0;
+  }
+  directFrame.bumpCoords.clear(); directFrame.bumpTangents.clear();
+  for (uint32_t i = 0; i < directFrame.vertices.size(); ++i) {
+    directFrame.vertices[i].normal[0] = 0; directFrame.vertices[i].normal[2] = 1;
+    CoinRenderBumpCoordOverride uv; uv.vertexIndex = i; uv.imageSlot = 1;
+    uv.coord[0] = float(i % 3) * .25f; uv.coord[1] = float((i / 3) % 4) * .25f;
+    directFrame.bumpCoords.push_back(uv);
+    CoinRenderBumpTangentOverride basis; basis.vertexIndex = i;
+    basis.tangent.s[0] = 1; basis.tangent.t[1] = 1;
+    directFrame.bumpTangents.push_back(basis);
+  }
+  CoinWgpuFfiFrame directBump;
+  if (!check(directBump.prepareBumpFrame(directFrame, 64, 64, error) &&
+             directBump.getView().vertex_count == directFrame.vertices.size() &&
+             directBump.getView().bump_vertex_count == directFrame.vertices.size() &&
+             directBump.getView().bump_image_count == 1 &&
+             directBump.getView().bump_vertices[0].image_slot == 1 &&
+             directBump.getView().bump_vertices[1].image_slot == 1 &&
+             directBump.getView().instance_count == 0 &&
+             directBump.getView().draw_count == directFrame.draws.size() &&
+             directBump.getView().index_count == directFrame.indices.size(),
+             "R26 direct pack must preserve source vertex order and attach bump packet")) return false;
+  for (size_t i = 0; i < directFrame.vertices.size(); ++i) {
+    if (!check(std::memcmp(directBump.getView().vertices[i].position,
+                           directFrame.vertices[i].position, sizeof(directFrame.vertices[i].position)) == 0,
+               "R26 direct pack must keep every original vertex at its index")) return false;
+  }
+  if (!check(std::memcmp(directBump.getView().indices, directFrame.indices.data(),
+                         directFrame.indices.size() * sizeof(directFrame.indices[0])) == 0,
+             "R26 direct pack must keep the original index order")) return false;
+  for (size_t i = 0; i < directFrame.vertices.size(); ++i)
+    if (!check(directBump.getView().bump_vertices[i].image_slot == 1 &&
+               directBump.getView().bump_vertices[i].coord[0] == directFrame.bumpCoords[i].coord[0] &&
+               directBump.getView().bump_vertices[i].coord[1] == directFrame.bumpCoords[i].coord[1],
+               "every direct corner keeps its own authored bump UV and slot")) return false;
+  // The legacy C++ transport permits slot-zero corners. Rust execution has
+  // a separate consumed-draw admission boundary; do not confuse these APIs.
+  auto partial = directFrame;
+  partial.bumpCoords.erase(partial.bumpCoords.begin() + 1);
+  CoinWgpuFfiFrame partialPacket;
+  if (!check(partialPacket.prepareBumpFrame(partial,64,64,error) &&
+             partialPacket.getView().bump_vertices[0].image_slot==1 &&
+             partialPacket.getView().bump_vertices[1].image_slot==0 &&
+             partialPacket.getView().bump_vertices[2].image_slot==1,
+             "legacy direct transport retains an explicit slot-zero corner without guessing its bump")) return false;
+  const auto retained = directBump.getView();
+  const std::vector<CoinWgpuBumpVertex> retainedBump(retained.bump_vertices,
+                                                  retained.bump_vertices + retained.bump_vertex_count);
+  auto invalidProfile = directFrame;
+  invalidProfile.renderStates.back().lightModel=CoinRenderLightModel::BASE_COLOR;
+  if (!check(!directBump.prepareBumpFrame(invalidProfile, 64, 64, error) && !error.empty() &&
+             directBump.getView().vertices == retained.vertices &&
+             directBump.getView().indices == retained.indices &&
+             directBump.getView().draw_count == retained.draw_count &&
+             directBump.getView().bump_vertices == retained.bump_vertices &&
+             std::memcmp(directBump.getView().bump_vertices, retainedBump.data(),
+                         retainedBump.size() * sizeof(retainedBump[0])) == 0 &&
+             directBump.getView().bump_images[0].rgb[0] == 128,
+             "invalid consumed lighting in final draw preserves complete prior direct packet atomically")) return false;
+  directFrame.bumpImages[0].rgb[0] = 7;
+  if (!check(directBump.getView().bump_images[0].rgb[0] == 128,
+             "direct packet owns image bytes independently of valid source")) return false;
+  directFrame.bumpImages[0].rgb[0] = 128;
+  if (!check(directBump.prepareBumpFrame(directFrame, 64, 64, error) && error.empty(),
+             "first valid direct frame recovers after invalid consumed lighting refusal")) return false;
+  if (!check(!packed.prepare(frame, 64, 64, error) &&
+             error == "wgpu bump shader execution is not yet supported",
+             "active bump must not reuse a same-revision wgpu packet")) return false;
+  frame.bumpCoords.clear();
+  frame.bumpTangents.clear();
+  frame.bumpImages.clear();
+  return check(packed.prepare(frame, 64, 64, error) && error.empty(),
+               "wgpu packer must recover after bump rejection");
+}
+
+bool backendBumpOffscreenGpu(bool withBaseTexture)
+{
+  CoinRenderFramePlan frame;
+  frame.revision = 9701;
+  frame.vertices.resize(3);
+  frame.vertices[0].position[0] = -1.0f;
+  frame.vertices[0].position[1] = -1.0f;
+  frame.vertices[1].position[0] = 3.0f;
+  frame.vertices[1].position[1] = -1.0f;
+  frame.vertices[2].position[0] = -1.0f;
+  frame.vertices[2].position[1] = 3.0f;
+  for (auto & vertex : frame.vertices) {
+    vertex.normal[2] = 1.0f;
+    vertex.screenSpaceW = 1.0f;
+    if (withBaseTexture) {
+      vertex.texcoord[0] = vertex.texcoord[1] = 0.5f;
+    }
+  }
+  frame.indices = {0, 1, 2};
+  frame.draws.resize(1);
+  frame.draws[0].geometry.vertexCount = 3;
+  frame.draws[0].geometry.indexCount = 3;
+  frame.materials.resize(1);
+  auto & material = frame.materials[0];
+  material.diffuse[0] = 0.8f;
+  material.diffuse[1] = 0.2f;
+  material.diffuse[2] = 0.1f;
+  material.specular[0] = 0.5f;
+  material.specular[1] = 0.25f;
+  material.specular[2] = 0.125f;
+  material.shininess = 0.5f;
+  frame.renderStates.resize(1);
+  auto & state = frame.renderStates[0];
+  state.cullMode = CoinRenderCullMode::NONE;
+  state.transparencyType = SoGLRenderAction::NONE;
+  state.view = SbMatrix(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,-5,1);
+  state.projectionCoin = SbMatrix(1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,5,1);
+  if (withBaseTexture) {
+    state.hasTexture = true;
+    CoinRenderTextureImageSnapshot base;
+    base.width = base.height = 1;
+    base.pixelsRgba = {128,128,128,255};
+    frame.textures.push_back(base);
+    frame.samplers.resize(1);
+  }
+  frame.lightingStates.resize(1);
+  CoinRenderLightSourceSnapshot light;
+  light.type = CoinRenderLightType::DIRECTIONAL;
+  light.direction[2] = -1.0f;
+  frame.lightingStates[0].lights.push_back(light);
+  CoinRenderBumpImage image;
+  image.width = image.height = 1;
+  image.rgb = {128,128,255};
+  frame.bumpImages.push_back(image);
+  for (uint32_t i = 0; i < 3; ++i) {
+    CoinRenderBumpCoordOverride uv;
+    uv.vertexIndex = i; uv.imageSlot = 1;
+    uv.coord[0] = uv.coord[1] = 0.5f;
+    frame.bumpCoords.push_back(uv);
+    CoinRenderBumpTangentOverride tangent;
+    tangent.vertexIndex = i;
+    tangent.tangent.s[0] = tangent.tangent.t[1] = 1.0f;
+    frame.bumpTangents.push_back(tangent);
+  }
+  CoinRenderTargetP target(SbVec2i32(8,8));
+  CoinWgpuFfiFrame staging;
+  std::string stagingDiagnostic;
+  if (!check(staging.prepareBumpFrame(frame, 8, 8, stagingDiagnostic),
+             stagingDiagnostic.c_str())) return false;
+  const auto & packedState = staging.getView().states[0];
+  const auto & packedMaterial = staging.getView().materials[0];
+  if (!check(packedState.light_count == 1 &&
+             packedState.lights[0].position_type[3] == 0.0f &&
+             packedState.lights[0].direction_cutoff[2] == -1.0f &&
+             packedMaterial.ambient[0] == 0.2f &&
+             staging.getView().draws[0].composition_flags == 0,
+             "R26 packed directional light or opaque profile differs")) return false;
+  CoinWgpuBackend backend;
+  if (!check(backend.prepare(target) == CoinRenderBackendStatus::SUCCESS,
+             "R26 backend GPU prepare failed")) return false;
+  const CoinRenderSubmitResult result = backend.submit(frame, target);
+  if (!check(result.status == CoinRenderBackendStatus::SUCCESS,
+             backend.getLastError().c_str())) return false;
+  const size_t offset = (4 * 8 + 4) * 4;
+  const uint8_t expected[4] = {withBaseTexture ? uint8_t(229) : uint8_t(255),
+                               withBaseTexture ? uint8_t(90) : uint8_t(115),
+                               withBaseTexture ? uint8_t(45) : uint8_t(57),255};
+  if (!check(target.colorBuffer.size() >= offset + 4 &&
+             std::memcmp(target.colorBuffer.data() + offset, expected, 4) == 0,
+             "R26 backend bump pixel differs from ABI GPU oracle")) return false;
+  if (!check(result.submissionSerial > 0,
+             "R26 backend bump frame did not publish a serial")) return false;
+  if (withBaseTexture) {
+    const auto previousColor = target.colorBuffer;
+    const uint64_t previousPublishedSerial = target.lastSubmissionSerial;
+    ++frame.revision;
+    frame.textures[0].pixelsRgba[3] = 128;
+    const CoinRenderSubmitResult rejected = backend.submit(frame, target);
+    if (!check(rejected.status == CoinRenderBackendStatus::UNSUPPORTED &&
+               target.colorBuffer == previousColor &&
+               target.lastSubmissionSerial == previousPublishedSerial &&
+               rejected.submissionSerial == 0,
+               "R26 translucent base must reject before publication")) return false;
+  }
+  std::cout << "R26 backend bump GPU PASS: adapter=" << CoinWgpuBackend::getAdapterInfo()
+            << " base=" << withBaseTexture << " pixel=[" << int(expected[0]) << ','
+            << int(expected[1]) << ',' << int(expected[2]) << ",255] serial="
+            << result.submissionSerial << '\n';
+  return true;
+}
+
 bool mipPayloadPacking() {
   CoinRenderFramePlan frame;frame.revision=991;
   CoinRenderTextureImageSnapshot image;image.width=image.height=2;
@@ -87,6 +353,93 @@ bool mipPayloadPacking() {
   ++frame.revision;frame.textures[0].mipmapsRgba[0]=7;
   return check(packed.prepare(frame,64,64,error)&&packed.getView().textures[0].pixels[16]==7,
                "lower-level mutation cannot reuse stale base-digest payload");
+}
+
+bool volumeMetadataPacking() {
+  CoinRenderFramePlan frame;
+  frame.revision=992;
+  CoinRenderTextureImageSnapshot image;
+  image.width=4; image.height=2; // 2x2x2, two slices per atlas row.
+  image.volumeWidth=2; image.volumeHeight=2; image.volumeDepth=2;
+  image.volumeColumns=2; image.volumeSourceComponents=4;
+  image.pixelsRgba.resize(4*2*4,255);
+  frame.textures.push_back(image);
+  CoinRenderSamplerSnapshot sampler;
+  sampler.wrapR=CoinRenderTextureWrap::CLAMP;
+  frame.samplers.push_back(sampler);
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  if (!check(packed.prepare(frame,64,64,diagnostic),"volume ABI packing failed")) return false;
+  const auto & view=packed.getView();
+  if (!check(view.abi_version==63 && view.textures[0].format==11 &&
+             view.textures[0].width==4 && view.textures[0].height==2 &&
+             view.textures[0].reserved==0x010101 &&
+             view.textures[0].pixel_bytes_len==32 &&
+             view.samplers[0].reserved==16,
+             "volume atlas dimensions, exact XYZ minus one, and wrapR lost across ABI")) return false;
+  auto changed=frame;
+  changed.samplers[0].wrapR=CoinRenderTextureWrap::REPEAT;
+  if (!check(!frame.hasSamePayload(changed),"wrapR must be part of frame identity")) return false;
+  ++changed.revision;
+  if (!check(packed.prepare(changed,64,64,diagnostic) && !packed.reusedLastPrepare() &&
+             packed.getView().samplers[0].reserved==0,
+             "wrapR mutation must repack without borrowing the previous sampler")) return false;
+  changed.textures[0].volumeDepth=1;
+  if (!check(!frame.hasSamePayload(changed),"volume depth must be part of frame identity")) return false;
+  auto invalid=frame;
+  invalid.revision=994;
+  invalid.textures[0].volumeDepth=3; // Non-POT and more slices than this atlas owns.
+  if (!check(!packed.prepare(invalid,64,64,diagnostic),
+             "invalid spatial atlas metadata must reject before transport")) return false;
+  frame.revision=995;
+  if (!check(packed.prepare(frame,64,64,diagnostic) &&
+             packed.getView().textures[0].format==11 &&
+             packed.getView().textures[0].reserved==0x010101,
+             "valid spatial atlas must recover after invalid metadata")) return false;
+  return true;
+}
+
+bool npotVolumeMetadataPacking() {
+  CoinWgpuFfiFrame packed;std::string diagnostic;bool ok=true;
+  for(bool mips:{false,true})for(auto dims:{std::array<uint32_t,3>{3,5,7},{7,3,5},{255,1,1},{1,1,255},{256,1,1},{1,1,1}}){
+    CoinRenderFramePlan frame;frame.revision=1880;
+    CoinRenderTextureImageSnapshot image;std::vector<uint8_t> pixels(size_t(dims[0])*dims[1]*dims[2]*4,123);
+    if(!check(CoinRenderTextureSamplingCore::packVolumeAtlas(pixels,dims[0],dims[1],dims[2],4,mips,image),"NPOT FFI authored atlas"))return false;
+    frame.textures.push_back(image);if(!check(packed.prepare(frame,64,64,diagnostic),"NPOT FFI prepare"))return false;
+    const uint32_t expected=(dims[0]-1)|((dims[1]-1)<<8)|((dims[2]-1)<<16)|(mips?1u<<24:0);
+    const auto& t=packed.getView().textures[0];ok &= check(packed.getView().abi_version==63&&t.reserved==expected&&t.format==11&&t.width==image.width&&t.height==image.height&&t.pixel_bytes_len==image.pixelsRgba.size(),"NPOT exact XYZ/mip metadata bits");
+    // Revision is only a reuse hint. A valid changed resource must never
+    // borrow an older volume packet under an unchanged frame revision.
+    const auto currentPacket=[&](const CoinRenderFramePlan& input,const char* gate) {
+      CoinWgpuFfiFrame cold;std::string coldError;
+      if(!check(cold.prepare(input,64,64,coldError)&&packed.prepare(input,64,64,diagnostic),gate))return false;
+      const auto& warm=packed.getView();const auto& fresh=cold.getView();const auto& image=input.textures[0];
+      const uint32_t bits=(image.volumeWidth-1)|((image.volumeHeight-1)<<8)|((image.volumeDepth-1)<<16)|(image.volumeMipmapped?1u<<24:0);
+      if(!check(warm.abi_version==63&&warm.texture_count==1&&fresh.texture_count==1,gate))return false;
+      const auto& a=warm.textures[0];const auto& b=fresh.textures[0];
+      const bool exact=a.width==image.width&&a.height==image.height&&a.format==11&&a.reserved==bits&&
+        a.pixel_bytes_len==image.pixelsRgba.size()&&a.pixels&&
+        std::memcmp(a.pixels,image.pixelsRgba.data(),image.pixelsRgba.size())==0&&
+        a.width==b.width&&a.height==b.height&&a.format==b.format&&a.reserved==b.reserved&&
+        a.content_digest==b.content_digest&&a.pixel_bytes_len==b.pixel_bytes_len&&b.pixels&&
+        std::memcmp(a.pixels,b.pixels,size_t(a.pixel_bytes_len))==0;
+      return check(exact,gate);
+    };
+    auto changed=frame;changed.textures[0].pixelsRgba[0]^=127;
+    ok &=check(!frame.hasSamePayload(changed)&&packed.prepare(changed,64,64,diagnostic)&&!packed.reusedLastPrepare()&&packed.getView().textures[0].pixels[0]==(123^127),"NPOT voxel mutation must invalidate prepared transport");
+    ok &=currentPacket(changed,"NPOT unchanged revision must expose every changed payload byte");
+    ok &=currentPacket(frame,"NPOT original bytes recover at unchanged revision");
+    auto alternate=frame;std::vector<uint8_t> alternatePixels(5*7*3*4);
+    for(size_t byte=0;byte<alternatePixels.size();++byte)alternatePixels[byte]=uint8_t(17+byte*37);
+    CoinRenderTextureImageSnapshot alternateImage;
+    if(!check(CoinRenderTextureSamplingCore::packVolumeAtlas(alternatePixels,5,7,3,4,!mips,alternateImage),"NPOT alternate logical volume atlas is valid"))return false;
+    alternate.textures[0]=alternateImage;
+    ok &=check(alternate.revision==frame.revision&&!frame.hasSamePayload(alternate),"NPOT alternate logical resource retains frame revision");
+    ok &=currentPacket(alternate,"NPOT unchanged revision must expose alternate dimensions/mips and complete bytes");
+    ok &=currentPacket(frame,"NPOT original dimensions/mips/bytes recover at unchanged revision");
+    for(int field=0;field<5;++field){auto invalid=frame;invalid.revision+=field+2;auto& v=invalid.textures[0];if(field==0)v.volumeWidth=257;if(field==1)v.volumeHeight=0;if(field==2)v.volumeDepth=0;if(field==3)v.volumeColumns*=2;if(field==4)v.pixelsRgba.pop_back();ok &=check(!packed.prepare(invalid,64,64,diagnostic),"NPOT malformed metadata/bytes rejected");}
+    frame.revision+=10;ok &=check(packed.prepare(frame,64,64,diagnostic)&&packed.getView().textures[0].reserved==expected&&packed.getView().textures[0].pixels[0]==123,"NPOT FFI recovery after malformed atlas");
+  }return ok;
 }
 
 bool externalViewportPacking() {
@@ -476,11 +829,289 @@ bool samePacked(const CoinWgpuFrameView & a, const CoinWgpuFrameView & b) {
       a.instance_range_count*sizeof(CoinWgpuInstanceRange)) == 0);
 }
 
+bool authoredSceneLayerPacking() {
+  auto frame=opaqueFrame(false);
+  frame.revision=9401;
+  frame.draws.resize(3);frame.renderStates.resize(3);
+  frame.vertices.resize(9);frame.indices.resize(9);
+  frame.cameras.resize(1);frame.viewports.resize(1);frame.lightingStates.resize(1);
+  frame.viewports[0].width=frame.viewports[0].height=64;
+  frame.transparency.mode=COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT;
+  frame.materials[0].transparency=.5f;frame.materials[0].diffuse[3]=.5f;
+  for(uint32_t i=0;i<3;++i){
+    auto &draw=frame.draws[i];
+    draw.geometry.firstVertex=draw.geometry.firstIndex=i*3;
+    draw.geometry.vertexCount=draw.geometry.indexCount=3;
+    draw.renderStateSlot=i;draw.renderLayer=i+1;draw.drawOrdinal=i;
+    frame.renderStates[i].transparencyType=SoGLRenderAction::SORTED_OBJECT_BLEND;
+  }
+  frame.draws[1].authoredScene=true;
+  CoinWgpuFfiFrame packed,reference;std::string error;
+  auto valid=frame;
+  if(!check(packed.prepare(valid,64,64,error)&&reference.prepare(valid,64,64,error),
+    "remapped authored scene and surrounding layers pack normally"))return false;
+  auto bits=[&](size_t i){return packed.getView().draws[i].composition_flags&64u;};
+  bool ok=check(packed.getView().draw_count==3&&
+    packed.getView().draws[0].render_layer==1&&
+    packed.getView().draws[1].render_layer==2&&
+    packed.getView().draws[2].render_layer==3&&
+    !bits(0)&&bits(1)&&!bits(2),
+    "FFI bit 6 belongs only to the authored remapped scene");
+  auto rejects=[&](const CoinRenderFramePlan &bad,const char *label){
+    error.clear();
+    return check(!packed.prepare(bad,64,64,error)&&!error.empty()&&
+      samePacked(packed.getView(),reference.getView()),label);
+  };
+  auto bad=valid;bad.draws[2].renderLayer=2;
+  ok&=rejects(bad,"mixed authored flags in one layer refuse without replacing FFI packet");
+  bad=valid;bad.draws[0].authoredScene=true;
+  ok&=rejects(bad,"a second authored layer refuses without replacing FFI packet");
+  bad=valid;bad.draws[0].renderLayer=0;bad.draws[1].renderLayer=0;
+  ok&=rejects(bad,"implicit layer zero mixed with explicit authored flag refuses atomically");
+  frame=valid;frame.draws[1].authoredScene=false;frame.draws[2].authoredScene=true;
+  ok&=check(packed.prepare(frame,64,64,error)&&!packed.reusedLastPrepare()&&
+    !bits(1)&&bits(2),
+    "same-revision authored identity move repacks FFI composition bits");
+  frame=valid;frame.draws[1].renderLayer=4;frame.draws[2].renderLayer=5;
+  ok&=check(packed.prepare(frame,64,64,error)&&!packed.reusedLastPrepare()&&
+    packed.getView().draws[1].render_layer==4&&
+    packed.getView().draws[2].render_layer==5,
+    "same-revision layer move repacks FFI draw ownership");
+  frame=valid;frame.draws[1].clearDepthBefore=true;
+  ok&=check(packed.prepare(frame,64,64,error)&&!packed.reusedLastPrepare()&&
+    packed.getView().draws[1].clear_depth_before==1,
+    "same-revision depth barrier repacks FFI draw boundary");
+  ok&=check(packed.prepare(valid,64,64,error)&&!packed.reusedLastPrepare()&&
+    bits(1)&&!bits(2)&&samePacked(packed.getView(),reference.getView()),
+    "valid authored layer packet recovers exactly after same-revision mutations");
+  return ok;
+}
+
+bool inheritedRasterPreflightBeforeReuse() {
+  // Construct a valid non-raster texture source and a separate raster proxy.
+  // The same revision is deliberately reused for every adversarial frame:
+  // validation must precede the immutable-revision fast path.
+  auto frame=opaqueFrame(false);
+  frame.revision=88008;
+  frame.draws.resize(1);
+  frame.vertices.resize(3);
+  frame.indices.resize(3);
+  frame.renderStates.resize(2);
+  frame.draws[0].renderStateSlot=1;
+  CoinRenderTextureImageSnapshot image;
+  image.width=image.height=1;
+  image.pixelsRgba={37,149,231,255};
+  frame.textures.push_back(image);
+  frame.samplers.emplace_back();
+  auto & source=frame.renderStates[0];
+  source.hasTexture=true;
+  source.textureImageSlot=0;
+  source.samplerSlot=0;
+  auto & raster=frame.renderStates[1];
+  raster.rasterPixels=true;
+  raster.rasterTextureSourceSlot=0;
+  raster.hasTexture=true;
+  raster.textureImageSlot=0;
+  raster.samplerSlot=0;
+  for(size_t unit=0;unit<8;++unit) {
+    raster.rasterTextureCoordinates[unit]=SbVec4f(0,0,0,1);
+    raster.rasterTextureProvenance[unit]=0;
+  }
+  CoinWgpuFfiFrame packed,independent;
+  std::string diagnostic;
+  if(!check(packed.prepare(frame,64,64,diagnostic),
+            "valid inherited-raster FFI primer") ||
+     !check(independent.prepare(frame,64,64,diagnostic),
+            "independent inherited-raster packet")) {
+    std::cerr << "inherited-raster primer diagnostic=" << diagnostic << '\n';
+    return false;
+  }
+  const auto preserved=[&]() {
+    const auto & a=packed.getView();
+    const auto & b=independent.getView();
+    return samePacked(a,b) && a.texture_count==1 && b.texture_count==1 &&
+      a.sampler_count==1 && b.sampler_count==1 &&
+      a.textures[0].pixel_bytes_len==b.textures[0].pixel_bytes_len &&
+      std::memcmp(a.textures[0].pixels,b.textures[0].pixels,
+                  a.textures[0].pixel_bytes_len)==0;
+  };
+  if(!check(preserved(),"independent inherited-raster packet bytes")) return false;
+  const auto reject=[&](const CoinRenderFramePlan & changed,const char * label) {
+    diagnostic.clear();
+    const bool refused=!packed.prepare(changed,64,64,diagnostic) &&
+      !diagnostic.empty() && preserved();
+    std::cout << "inherited-raster FFI " << label << " refused=" << refused
+              << " diagnostic=" << diagnostic << '\n';
+    return check(refused,label);
+  };
+  bool ok=true;
+  auto changed=frame;
+  changed.renderStates[1].rasterTextureSourceSlot=uint32_t(changed.renderStates.size());
+  ok &= reject(changed,"out-of-range inherited source before reuse");
+  changed=frame;
+  changed.renderStates[1].rasterTextureSourceSlot=1;
+  ok &= reject(changed,"self-referential inherited source before reuse");
+  changed=frame;
+  changed.renderStates[0].rasterPixels=true;
+  changed.renderStates[0].rasterTextureSourceSlot=1;
+  ok &= reject(changed,"recursive inherited source before reuse");
+  changed=frame;
+  changed.renderStates[1].rasterTextureCoordinates[0][3]=0;
+  ok &= reject(changed,"zero inherited Q before reuse");
+  changed=frame;
+  changed.renderStates[1].rasterTextureCoordinates[0][0]=
+    std::numeric_limits<float>::quiet_NaN();
+  ok &= reject(changed,"nonfinite inherited S before reuse");
+  changed=frame;
+  changed.renderStates[1].rasterTextureProvenance[0]=255;
+  ok &= reject(changed,"invalid inherited provenance before reuse");
+  changed=frame;
+  changed.renderStates[0].textureImageSlot=uint32_t(changed.textures.size());
+  ok &= reject(changed,"invalid inherited image resource before reuse");
+  changed=frame;
+  changed.renderStates[0].samplerSlot=uint32_t(changed.samplers.size());
+  ok &= reject(changed,"invalid inherited sampler resource before reuse");
+  diagnostic.clear();
+  ok &= check(packed.prepare(frame,64,64,diagnostic) && diagnostic.empty() &&
+    preserved(),"same-revision valid inherited raster recovers without replacing packet");
+  return ok;
+}
+
+class CubeCaptureBackend : public CoinRenderCpuReferenceBackend {
+public:
+  CoinRenderFramePlan plan;
+  bool captured=false;
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
+                                CoinRenderTargetP & target) override {
+    plan=frame;
+    captured=true;
+    return CoinRenderCpuReferenceBackend::submit(frame,target);
+  }
+};
+
+bool cubeAtlasPreflightBeforeReuse() {
+  SoSeparator * root=new SoSeparator;
+  root->ref();
+  auto * camera=new SoOrthographicCamera;
+  camera->position.setValue(0,0,3);camera->height=2;
+  camera->nearDistance=.1f;camera->farDistance=10;
+  root->addChild(camera);
+  auto * lighting=new SoLightModel;lighting->model=SoLightModel::BASE_COLOR;
+  root->addChild(lighting);
+  auto * material=new SoMaterial;material->diffuseColor.setValue(1,1,1);
+  root->addChild(material);
+  auto * quality=new SoComplexity;quality->textureQuality=.1f;
+  root->addChild(quality);
+  auto * cube=new SoTextureCubeMap;
+  cube->model=SoTextureCubeMap::REPLACE;
+  std::array<std::array<uint8_t,16>,6> faces;
+  for(int face=0;face<6;++face) for(int texel=0;texel<4;++texel) {
+    faces[face][texel*4]=uint8_t(23+face*29);
+    faces[face][texel*4+1]=uint8_t(37+face*17);
+    faces[face][texel*4+2]=uint8_t(61+face*13);
+    faces[face][texel*4+3]=255;
+  }
+  cube->imagePosX.setValue(SbVec2s(2,2),4,faces[0].data());
+  cube->imageNegX.setValue(SbVec2s(2,2),4,faces[1].data());
+  cube->imagePosY.setValue(SbVec2s(2,2),4,faces[2].data());
+  cube->imageNegY.setValue(SbVec2s(2,2),4,faces[3].data());
+  cube->imagePosZ.setValue(SbVec2s(2,2),4,faces[4].data());
+  cube->imageNegZ.setValue(SbVec2s(2,2),4,faces[5].data());
+  root->addChild(cube);
+  auto * vertices=new SoCoordinate3;
+  const SbVec3f points[]={SbVec3f(-.7f,-.7f,0),SbVec3f(.7f,-.7f,0),
+    SbVec3f(.7f,.7f,0),SbVec3f(-.7f,.7f,0)};
+  vertices->point.setValues(0,4,points);root->addChild(vertices);
+  auto * coordinates=new SoTextureCoordinate3;
+  const SbVec3f rays[]={SbVec3f(1,0,0),SbVec3f(1,0,0),
+    SbVec3f(1,0,0),SbVec3f(1,0,0)};
+  coordinates->point.setValues(0,4,rays);root->addChild(coordinates);
+  auto * shape=new SoIndexedFaceSet;
+  const int32_t indices[]={0,1,2,3,-1};
+  shape->coordIndex.setValues(0,5,indices);root->addChild(shape);
+  std::unique_ptr<CoinRenderTarget> capturedTarget(
+    CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
+  if(!check(bool(capturedTarget),"cube FFI capture target")) {
+    root->unref();return false;
+  }
+  auto * capture=new CubeCaptureBackend;
+  capturedTarget->getPimpl()->backend.reset(capture);
+  CoinRenderAction action(SbViewportRegion(64,64));
+  action.setRenderTarget(capturedTarget.get());
+  action.apply(root);
+  const bool captured=capture->captured &&
+    action.getLastStatus()==CoinRenderAction::SUCCESS;
+  CoinRenderFramePlan frame=capture->plan;
+  action.setRenderTarget(nullptr);
+  root->unref();
+  if(!check(captured && frame.textures.size()==1 && !frame.vertices.empty(),
+            "valid cube FramePlan captured for FFI")) return false;
+  frame.revision=88024;
+  CoinWgpuFfiFrame packed,independent;
+  std::string diagnostic;
+  if(!check(packed.prepare(frame,64,64,diagnostic) &&
+            independent.prepare(frame,64,64,diagnostic),
+            "valid cube transport primer")) {
+    std::cerr << "cube FFI primer diagnostic=" << diagnostic << '\n';
+    return false;
+  }
+  const auto preserved=[&]() {
+    const auto & a=packed.getView(),& b=independent.getView();
+    if(a.abi_version!=63 || a.texture_count!=1 ||
+       a.textures[0].format!=12 || a.textures[0].reserved!=0x41 ||
+       a.textures[0].width!=4 || a.textures[0].height!=6 ||
+       a.textures[0].pixel_bytes_len!=96 ||
+       b.textures[0].pixel_bytes_len!=a.textures[0].pixel_bytes_len) return false;
+    return std::memcmp(a.textures[0].pixels,b.textures[0].pixels,
+                       a.textures[0].pixel_bytes_len)==0;
+  };
+  const auto fullyPreserved=[&]() {
+    return preserved() && samePacked(packed.getView(),independent.getView());
+  };
+  if(!check(fullyPreserved(),"cube FFI format12, face/component bits and physical bytes")) return false;
+  const auto reject=[&](const CoinRenderFramePlan & changed,const char * name) {
+    diagnostic.clear();
+    const bool refused=!packed.prepare(changed,64,64,diagnostic) &&
+      !diagnostic.empty() && fullyPreserved();
+    std::cout << "cube FFI " << name << " refused=" << refused
+              << " diagnostic=" << diagnostic << '\n';
+    return check(refused,name);
+  };
+  bool ok=true;
+  auto changed=frame;
+  changed.textures[0].width+=1;
+  ok &= reject(changed,"cube physical width before same-revision reuse");
+  changed=frame;changed.textures[0].height+=1;
+  ok &= reject(changed,"cube physical height before same-revision reuse");
+  changed=frame;changed.textures[0].pixelsRgba.pop_back();
+  ok &= reject(changed,"cube truncated physical bytes before same-revision reuse");
+  changed=frame;changed.textures[0].components=5;
+  ok &= reject(changed,"cube invalid components before same-revision reuse");
+  changed=frame;changed.vertices[0].texcoord[0]=0;
+  changed.vertices[0].texcoord[1]=0;changed.vertices[0].textureR[0]=0;
+  ok &= reject(changed,"cube zero direction before same-revision reuse");
+  changed=frame;changed.vertices[0].textureR[0]=
+    std::numeric_limits<float>::quiet_NaN();
+  ok &= reject(changed,"cube NaN direction before same-revision reuse");
+  changed=frame;for(auto & vertex:changed.vertices) vertex.textureQ[0]=0;
+  diagnostic.clear();
+  ok &= check(packed.prepare(changed,64,64,diagnostic) && preserved(),
+    "cube finite Q zero leaves direction and packet valid");
+  changed=frame;for(auto & vertex:changed.vertices) vertex.textureQ[0]=-1;
+  diagnostic.clear();
+  ok &= check(packed.prepare(changed,64,64,diagnostic) && preserved(),
+    "cube finite negative Q leaves direction and packet valid");
+  diagnostic.clear();
+  ok &= check(packed.prepare(frame,64,64,diagnostic) && fullyPreserved(),
+    "cube valid same-revision FramePlan recovers exact FFI packet");
+  return ok;
+}
+
 bool sameOpaqueHeader(const CoinWgpuFrameView & a, const CoinWgpuFrameView & b) {
-  const uint32_t flagsA[] = {a.abi_version, a.struct_size, a.sorted_layers_passes, a.transparency_reserved,
+  const uint32_t flagsA[] = {a.abi_version, a.struct_size, a.rasterization_policy, a.sorted_layers_passes, a.transparency_reserved,
     a.shadow_map_size, a.shadow_kind, a.shadow_map_size_second, a.shadow_kind_second,
     a.shadow_map_size_third, a.shadow_kind_third, a.shadow_map_size_fourth, a.shadow_kind_fourth};
-  const uint32_t flagsB[] = {b.abi_version, b.struct_size, b.sorted_layers_passes, b.transparency_reserved,
+  const uint32_t flagsB[] = {b.abi_version, b.struct_size, b.rasterization_policy, b.sorted_layers_passes, b.transparency_reserved,
     b.shadow_map_size, b.shadow_kind, b.shadow_map_size_second, b.shadow_kind_second,
     b.shadow_map_size_third, b.shadow_kind_third, b.shadow_map_size_fourth, b.shadow_kind_fourth};
   const float shadowA[] = {a.shadow_near_distance, a.shadow_far_distance, a.shadow_epsilon, a.shadow_threshold,
@@ -1819,11 +2450,19 @@ bool zeroScreenDoorOpaqueProfiles()
 }
 
 int
-main()
+main(int argc, char ** argv)
 {
+  SoDB::init();
+  CoinRenderAction::initClass();
+  if (argc == 2 && std::strcmp(argv[1], "--gpu-bump") == 0)
+    return backendBumpOffscreenGpu(false) ? 0 : 1;
+  if (argc == 2 && std::strcmp(argv[1], "--gpu-bump-base") == 0)
+    return backendBumpOffscreenGpu(true) ? 0 : 1;
+  if (!authoredSceneLayerPacking() || !inheritedRasterPreflightBeforeReuse() ||
+      !cubeAtlasPreflightBeforeReuse()) return 1;
   InstancingSwitch instancing;
   instancing.disable(true); // These controls specifically exercise baked storage.
-  if (!mipPayloadPacking() || !externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
+  if (!activeBumpBoundary() || !mipPayloadPacking() || !volumeMetadataPacking() || !npotVolumeMetadataPacking() || !externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
       !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true) ||
       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
       !boundedIncrementalBatch()) return 1;
@@ -1865,10 +2504,21 @@ main()
   if (!check(packed.prepare(frame, 64, 32, diagnostic), "initial packing failed") ||
       !check(!packed.reusedLastPrepare(), "initial packing reported reuse")) return 1;
 
+  {
+    auto canonical = frame; canonical.rasterizationPolicy = COIN_RENDER_RASTER_CANONICAL_8BIT;
+    CoinWgpuFfiFrame transport;
+    if (!check(transport.prepare(canonical, 64, 32, diagnostic) &&
+               transport.getView().rasterization_policy == 1,
+               "canonical rasterization policy must cross the private ABI")) return 1;
+  }
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 51 && sizeof(CoinWgpuFrameView) == 456 &&
-             first.texture_sampling_policy == 0 && sizeof(CoinWgpuVertex) == 164 &&
-             sizeof(CoinWgpuRenderState) == 2292 && first.states[0].texture_projection == 1,
+  if (!check(first.abi_version == 63 && sizeof(CoinWgpuFrameView) == 512 &&
+             sizeof(CoinWgpuShadowDraw) == 160 &&
+             offsetof(CoinWgpuShadowDraw, viewport) == 144 &&
+             first.texture_sampling_policy == 0 && first.rasterization_policy == 0 && sizeof(CoinWgpuVertex) == 164 &&
+             sizeof(CoinWgpuRenderState) == 2436 && first.states[0].texture_projection == 1 && first.states[0].color_write == 1 &&
+             first.bump_vertices == NULL && first.bump_vertex_count == 0 &&
+             first.bump_images == NULL && first.bump_image_count == 0,
              "sampling/projective private protocol and frame/vertex layout")) return 1;
   for (size_t unit = 0; unit < 8; ++unit) {
     const float * packedUv = unit ? first.vertices[0].extra_texcoords[unit - 1] : first.vertices[0].texcoord;
@@ -2069,6 +2719,91 @@ main()
              shadowPacked.getView().shadow_receivers[1].lighting_index == 0,
              "spot receiver state was not transported"))
     return 1;
+  if (!check(shadowPacked.getView().states[1].flat_shadow_primary == 0,
+             "ordinary shadow state must transport a clear flat-primary flag")) return 1;
+  {
+    shadow.renderStates[0].alphaTestFunction = CoinRenderAlphaTestFunction::GREATER;
+    shadow.renderStates[0].alphaTestReference = .25f;
+    ++shadow.revision;
+    if (!check(shadowPacked.prepare(shadow,64,64,diagnostic) &&
+               shadowPacked.getView().states[0].alpha_test_function == 7 &&
+               shadowPacked.getView().states[0].alpha_test_reference == .25f,
+               "valid active caster AlphaTest must cross wgpu FFI")) return 1;
+    const auto oldFunction=shadowPacked.getView().states[0].alpha_test_function;
+    const auto oldReference=shadowPacked.getView().states[0].alpha_test_reference;
+    const auto oldCasterCount=shadowPacked.getView().shadow_caster_count;
+    const auto oldStates=shadowPacked.getView().states;
+    const auto oldCasters=shadowPacked.getView().shadow_casters;
+    const auto rejectAlpha=[&](CoinRenderAlphaTestFunction function,float reference,
+                               const char * label) {
+      shadow.renderStates[0].alphaTestFunction=function;
+      shadow.renderStates[0].alphaTestReference=reference;
+      ++shadow.revision;
+      const bool refused=!shadowPacked.prepare(shadow,64,64,diagnostic);
+      const auto & view=shadowPacked.getView();
+      const bool complete=view.states!=nullptr && view.state_count>0;
+      const bool preserved=complete &&
+        view.states[0].alpha_test_function==oldFunction &&
+        view.states[0].alpha_test_reference==oldReference &&
+        view.shadow_caster_count==oldCasterCount;
+      if(!refused || diagnostic.empty() || !preserved)
+        std::cerr << "wgpu alpha FFI boundary " << label
+                  << " refused=" << refused << " diagnostic='" << diagnostic
+                  << "' requested_function=" << static_cast<uint32_t>(function)
+                  << " requested_reference=" << reference
+                  << " old_function=" << oldFunction
+                  << " new_function=" << (complete?view.states[0].alpha_test_function:UINT32_MAX)
+                  << " old_reference=" << oldReference
+                  << " new_reference=" << (complete?view.states[0].alpha_test_reference:0.f)
+                  << " old_casters=" << oldCasterCount
+                  << " new_casters=" << view.shadow_caster_count
+                  << " old_states_ptr=" << static_cast<const void *>(oldStates)
+                  << " new_states_ptr=" << static_cast<const void *>(view.states)
+                  << " old_casters_ptr=" << static_cast<const void *>(oldCasters)
+                  << " new_casters_ptr=" << static_cast<const void *>(view.shadow_casters)
+                  << '\n';
+      return check(refused && !diagnostic.empty() && preserved,label);
+    };
+    if (!rejectAlpha(static_cast<CoinRenderAlphaTestFunction>(9),.25f,
+          "wgpu FFI rejects alpha enum 9 without replacing packet") ||
+        !rejectAlpha(static_cast<CoinRenderAlphaTestFunction>(UINT32_MAX),.25f,
+          "wgpu FFI rejects alpha UINT_MAX without replacing packet")) return 1;
+    for(float reference:{std::numeric_limits<float>::quiet_NaN(),
+                         std::numeric_limits<float>::infinity(),
+                         -std::numeric_limits<float>::infinity(),-.01f,1.01f})
+      if(!rejectAlpha(CoinRenderAlphaTestFunction::GREATER,reference,
+           "wgpu FFI rejects malformed alpha reference without replacing packet")) return 1;
+    shadow.renderStates[0].alphaTestFunction=CoinRenderAlphaTestFunction::GREATER;
+    shadow.renderStates[0].alphaTestReference=.25f;
+    shadow.renderStates[0].shadowStyle=99;
+    ++shadow.revision;
+    if (!check(!shadowPacked.prepare(shadow,64,64,diagnostic) &&
+        shadowPacked.getView().shadow_caster_count==oldCasterCount &&
+        shadowPacked.getView().states[0].alpha_test_function==oldFunction,
+        "malformed shadow caster style must preserve previous wgpu FFI packet")) return 1;
+    shadow.renderStates[0].shadowStyle=1;
+    ++shadow.revision;
+    if (!check(shadowPacked.prepare(shadow,64,64,diagnostic) &&
+        shadowPacked.getView().states[0].alpha_test_function==7 &&
+        shadowPacked.getView().shadow_caster_count==oldCasterCount,
+        "wgpu FFI recovers valid active caster after malformed inputs")) return 1;
+    shadow.renderStates[0].alphaTestFunction=CoinRenderAlphaTestFunction::NONE;
+    shadow.renderStates[0].alphaTestReference=.5f;
+    ++shadow.revision;
+    if(!check(shadowPacked.prepare(shadow,64,64,diagnostic),
+        "wgpu FFI restores ordinary shadow fixture after alpha validation")) return 1;
+  }
+  shadow.renderStates[1].flatShadowPrimary = true;
+  ++shadow.revision;
+  if (!check(shadowPacked.prepare(shadow,64,64,diagnostic) &&
+             !shadowPacked.reusedLastPrepare() &&
+             shadowPacked.getView().states[1].flat_shadow_primary == 1,
+             "flat primary shadow state must transport one without old payload reuse")) return 1;
+  shadow.renderStates[1].flatShadowPrimary = false;
+  ++shadow.revision;
+  if (!check(shadowPacked.prepare(shadow,64,64,diagnostic) &&
+             shadowPacked.getView().states[1].flat_shadow_primary == 0,
+             "flat primary shadow state must clear on recovery")) return 1;
   // Coin's float field is compared with double literals at these boundaries.
   for (const auto & sample : {std::pair<float,uint32_t>{0.2999f,11u},
                               {0.3f,9u}, {0.7f,9u}, {0.7001f,13u}}) {

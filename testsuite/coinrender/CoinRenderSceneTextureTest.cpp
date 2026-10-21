@@ -8,6 +8,7 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoPerspectiveCamera.h>
 #include <Inventor/nodes/SoMaterial.h>
@@ -31,9 +32,14 @@
 #include <vector>
 
 namespace {
+CoinRenderOptions selectedOptions{};
 
 CoinRenderTarget * makeColorTarget(const SbVec2i32 & size) {
-  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(size);
+  CoinRenderTarget * target = CoinRenderTarget::createOffscreen(size,selectedOptions);
+  if (target && target->getOptions().sceneTexture != selectedOptions.sceneTexture) {
+    std::cerr << "CoinRenderSceneTextureTest: target did not retain requested public RTT route\n";
+    std::exit(1);
+  }
   if (target) target->setDepthReadbackEnabled(FALSE);
   return target;
 }
@@ -82,6 +88,20 @@ SoPerspectiveCamera * makeCamera() {
 int main() {
   SoDB::init();
   CoinRenderAction::initClass();
+  const char* requestedDirect = std::getenv("COIN_RENDER_RTT_GPU_DIRECT");
+  selectedOptions.sceneTexture = requestedDirect && requestedDirect[0] == '1' &&
+      requestedDirect[1] == '\0' ? COIN_RENDER_SCENE_TEXTURE_DIRECT :
+                                  COIN_RENDER_SCENE_TEXTURE_STAGED;
+  std::cout << "scene_texture requested_route=" << selectedOptions.sceneTexture << '\n';
+  CoinRenderCapabilities caps{};
+  if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+      &caps,sizeof(caps))==0 && caps.gpu_available &&
+     caps.renderer!=COIN_RENDER_RENDERER_UNKNOWN) {
+    selectedOptions.renderer=static_cast<CoinRenderRenderer>(caps.renderer);
+    std::cout << "scene_texture backend=" << caps.backend << " renderer="
+              << caps.renderer << " vendor=" << caps.vendor_id << " adapter="
+              << caps.adapter_name << '\n';
+  }
 
   SoSeparator * child = new SoSeparator;
   child->ref();
@@ -125,6 +145,11 @@ int main() {
   parent->addChild(makeTexturedQuad(sceneTexture));
 
   CoinRenderTarget * target = makeColorTarget(SbVec2i32(64, 64));
+  if(target && selectedOptions.renderer!=COIN_RENDER_RENDERER_UNKNOWN &&
+     target->getOptions().renderer!=selectedOptions.renderer) {
+    std::cerr << "CoinRenderSceneTextureTest: target renderer differs from queried renderer\n";
+    return 1;
+  }
   CoinRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(parent);
@@ -291,7 +316,7 @@ int main() {
 
   sceneTexture->scene.setValue(parent);
   action.apply(parent);
-  if (!check(action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
+  if (!check(action.getLastStatus() == CoinRenderAction::INVALID_SCENE &&
              std::string(action.getLastError().getString()).find("cycle") != std::string::npos,
              "recursive scene-texture dependency was not rejected", action)) return 1;
   sceneTexture->scene.setValue(child);
@@ -651,6 +676,10 @@ int main() {
   {
     std::unique_ptr<CoinRenderTarget> alphaTarget(
         CoinRenderTarget::createOffscreen(SbVec2i32(32, 32), stagedOptions));
+    if (!alphaTarget || alphaTarget->getOptions().sceneTexture != COIN_RENDER_SCENE_TEXTURE_STAGED) {
+      std::cerr << "CoinRenderSceneTextureTest: explicit staged alpha target lost its route\n";
+      return 1;
+    }
     alphaTarget->setDepthReadbackEnabled(FALSE);
     CoinRenderAction alphaAction(SbViewportRegion(32, 32));
     alphaAction.setRenderTarget(alphaTarget.get());

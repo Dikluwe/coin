@@ -109,7 +109,9 @@ int main() {
   const char * renderer = std::getenv("COIN_BGFX_RENDERER");
   // GL window readback is not guaranteed by XGetImage. Its render status and
   // the interleaved GPU offscreen pixels are still mandatory, never skipped.
-  const bool readWindow = !renderer || std::string(renderer) != "opengl";
+  const bool requireWindowPixels = std::getenv("COIN_BGFX_TEST_REQUIRE_X11_PIXELS") != nullptr;
+  const bool readWindow = requireWindowPixels || !renderer || std::string(renderer) != "opengl";
+  std::cout << "multiwindow_x11_pixels=" << (readWindow ? "required" : "not_observed") << '\n';
   std::unique_ptr<CoinRenderTarget> offscreen;
   CoinRenderAction offscreenAction(SbViewportRegion(48, 48));
   auto createOffscreen = [&]() {

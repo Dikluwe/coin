@@ -23,12 +23,14 @@
 #include <Inventor/nodes/SoTextureMatrixTransform.h>
 #include <Inventor/nodes/SoTextureUnit.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/system/gl.h>
 #include <cstdlib>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <vector>
+static CoinRenderRenderer requestedRenderer=COIN_RENDER_RENDERER_UNKNOWN;
 class RttViewport : public SoNode {
   SO_NODE_HEADER(RttViewport);
 
@@ -238,10 +240,16 @@ int runCase(int local, float quality, const std::string &mode, bool external) {
   const bool direct = mode == "--direct", gpu = mode == "--gpu" || direct;
   for (int backend = direct ? 1 : 0; backend < (gpu ? 2 : 1); ++backend) {
     CoinRenderOptions options;
+    if(options.renderer==COIN_RENDER_RENDERER_UNKNOWN)
+      options.renderer=requestedRenderer;
     if (direct)
       options.sceneTexture = COIN_RENDER_SCENE_TEXTURE_DIRECT;
     std::unique_ptr<CoinRenderTarget> target(
         CoinRenderTarget::createOffscreen(SbVec2i32(64, 64), options));
+    if(!target || (gpu && target->getOptions().renderer!=requestedRenderer)) {
+      std::cerr << "RTT matrix target differs from queried renderer\n";
+      return 1;
+    }
     if (!backend)
       target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
     CoinRenderAction action(SbViewportRegion(64, 64));
@@ -278,6 +286,16 @@ int main(int argc, char **argv) {
   TextureWitness::initClass();
   RttViewport::initClass();
   const std::string mode = argc > 1 ? argv[1] : "";
+  if(mode=="--gpu" || mode=="--direct") {
+    CoinRenderCapabilities caps{};
+    if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+        &caps,sizeof(caps))!=0 || !caps.gpu_available ||
+       caps.renderer==COIN_RENDER_RENDERER_UNKNOWN) return 77;
+    requestedRenderer=static_cast<CoinRenderRenderer>(caps.renderer);
+    std::cout << "rtt_matrix backend=" << caps.backend << " renderer="
+              << caps.renderer << " vendor=" << caps.vendor_id << " adapter="
+              << caps.adapter_name << '\n';
+  }
   if (mode == "--gl" && !std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE"))
     return 77;
   for (float quality : {.1f, .3f, .5f})

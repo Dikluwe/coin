@@ -28,6 +28,7 @@
         let states = (0..layers.len())
             .map(|i| CoinWgpuRenderState {
                 material_slot: i as u32,
+                color_write: 1,
                 ..unsafe { std::mem::zeroed() }
             })
             .collect();
@@ -47,11 +48,29 @@
         assert_eq!(passes(&order, &draws), vec![0..1, 1..2, 2..4, 4..6]);
     }
     #[test]
-    fn depth_barrier_splits_even_within_one_overlay_layer() {
-        let (mut draws, materials, states) = fixture(&[1, 1, 1], &[1.0, 0.5, 1.0]);
+    fn overlay_barrier_metadata_preserves_order_and_layer_boundaries() {
+        let (mut draws, materials, states) =
+            fixture(&[1, 1, 1, 2, 2], &[1.0, 0.5, 1.0, 0.5, 1.0]);
+        // A marked draw can follow another draw in the resolved layer. The
+        // executor consumes this metadata when entering the annotation layer;
+        // the composition schedule must not split or reorder that layer.
         draws[1].clear_depth_before = 1;
-        let order = order(&[], &[], &draws, &materials, &states, &[]).unwrap();
-        assert_eq!(passes(&order, &draws), vec![0..1, 1..3]);
+        draws[4].clear_depth_before = 1;
+        let resolved = order(&[], &[], &draws, &materials, &states, &[]).unwrap();
+        assert_eq!(
+            resolved.iter().map(|item| item.draw_index).collect::<Vec<_>>(),
+            vec![0, 1, 2, 3, 4]
+        );
+        assert_eq!(
+            resolved.iter().map(|item| draws[item.draw_index].clear_depth_before)
+                .collect::<Vec<_>>(),
+            vec![0, 1, 0, 0, 1]
+        );
+        assert_eq!(
+            resolved.iter().map(|item| item.blend).collect::<Vec<_>>(),
+            vec![false, true, false, true, false]
+        );
+        assert_eq!(passes(&resolved, &draws), vec![0..3, 3..5]);
     }
     #[test]
     fn rejects_invalid_resolved_flags_and_layer_sequence() {

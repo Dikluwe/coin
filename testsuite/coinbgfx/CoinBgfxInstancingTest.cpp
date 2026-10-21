@@ -46,6 +46,7 @@ private:
 
 CoinRenderFramePlan makeFrame(int width, int height) {
   CoinRenderFramePlan frame;
+  if (std::getenv("COIN_RENDER_INSTANCING_CANONICAL_COVERAGE")) frame.rasterizationPolicy=COIN_RENDER_RASTER_CANONICAL_8BIT;
   frame.revision = 1000;
   frame.clearColor = SbColor4f(.03f, .045f, .065f, 1);
   frame.materials.resize(2);
@@ -157,11 +158,12 @@ CoinRenderFramePlan makeFrame(int width, int height) {
 
 bool requireLoweringProfile(const CoinRenderFramePlan & frame, int width, int height,
                            bool eligible, const std::string & label) {
-  for (const bool homogeneousDepth : {false, true}) {
+  for (const bool homogeneousDepth : {false, true})
+  for (const bool allowWorldSpace : {false, true}) {
     CoinBgfxPlan lowered;
     std::string diagnostic;
     const bool accepted = CoinBgfxLowering::lowerInstanced(
-      frame, width, height, homogeneousDepth, lowered, diagnostic);
+      frame, width, height, homogeneousDepth, lowered, diagnostic, nullptr, allowWorldSpace);
     if (!check(accepted == eligible, label + " instancing qualification mismatch: " + diagnostic)) return false;
     if (accepted && !check(lowered.usesInstancing && lowered.draws.size() == 2 &&
         lowered.instances.size() == 400 && lowered.instancedVertices.size() == 8 &&
@@ -368,6 +370,7 @@ int main() {
   EnvironmentScope batching("COIN_BGFX_DISABLE_DRAW_BATCHING", "0");
   EnvironmentScope readback("COIN_BGFX_READBACK_PIPELINE_DEPTH", "1");
   CoinRenderTargetP target(SbVec2i32(256, 256));
+  if (std::getenv("COIN_RENDER_INSTANCING_CANONICAL_COVERAGE")) target.options.rasterizationPolicy=COIN_RENDER_RASTER_CANONICAL_8BIT;
   target.depthReadbackEnabled = false;
   auto frame = makeFrame(256, 256);
   const CoinRenderFrameReuseDecision rebuild(CoinRenderFrameReuseKind::FULL_REBUILD, 0);

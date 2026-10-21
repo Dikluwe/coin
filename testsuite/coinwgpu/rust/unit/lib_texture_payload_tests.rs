@@ -118,3 +118,85 @@
         state.extra_textures[6].matrix[12] = f32::INFINITY;
         assert!(!valid_texture_payload(&state));
     }
+
+    fn npot_transport(w:u32,h:u32,d:u32,mips:bool)->(CoinWgpuTexture,Vec<u8>) {
+        let mut columns=1;while columns*columns<d {columns*=2;}
+        let (mut x,mut y,mut z)=(w,h,d);let mut rows=0;
+        loop {rows+=y*((z+columns-1)/columns);if !mips||(x==1&&y==1&&z==1){break;}x=(x/2).max(1);y=(y/2).max(1);z=(z/2).max(1);}
+        let pixels=vec![0x7bu8;(u64::from(w*columns)*u64::from(rows)*4) as usize];
+        let texture=CoinWgpuTexture {width:w*columns,height:rows,format:11,
+            reserved:(w-1)|((h-1)<<8)|((d-1)<<16)|if mips {1<<24}else{0},
+            content_digest:717,pixels:pixels.as_ptr(),pixel_bytes_len:pixels.len() as u64};
+        (texture,pixels)
+    }
+    #[test]
+    fn npot_exact_axis_minus_one_metadata_and_floor_chain_ingress() {
+        for (w,h,d) in [(3,5,7),(7,3,5),(5,7,3),(255,1,1),(1,255,1),(1,1,255),(256,256,241),(1,1,1),(2,4,8)] {
+            for mips in [false,true] {
+                let (t,_pixels)=npot_transport(w,h,d,mips);
+                // DECLARED_OPAQUE is an authorial policy, orthogonal to all
+                // atlas axes, explicit mip levels, digest and payload bytes.
+                let source=t;
+                for declaration in [0u32, 1u32<<31] {
+                    let t=CoinWgpuTexture{reserved:source.reserved|declaration,..source};
+                    assert_eq!(t.pixels,source.pixels);
+                    assert_eq!(t.pixel_bytes_len,source.pixel_bytes_len);
+                    assert_eq!(t.content_digest,source.content_digest);
+                    assert_eq!(spatial_atlas_metadata(&t).unwrap(),Some((w,h,d,mips)));
+                    assert_eq!(t.reserved&255,w-1);assert_eq!((t.reserved>>8)&255,h-1);
+                    assert_eq!((t.reserved>>16)&255,d-1);assert_eq!((t.reserved>>24)&1,u32::from(mips));
+                    let levels=texture_levels(t.width,t.height,t.format).unwrap();
+                    assert_eq!(levels.len(),1,"physical atlas must have no hardware mip chain");
+                    let mut bad=t;bad.width+=1;assert!(spatial_atlas_metadata(&bad).is_err());
+                    bad=t;bad.height+=1;assert!(spatial_atlas_metadata(&bad).is_err());
+                    bad=t;bad.width=0;assert!(spatial_atlas_metadata(&bad).is_err());
+                    bad=t;bad.height=0;assert!(spatial_atlas_metadata(&bad).is_err());
+                    bad=t;bad.pixels=std::ptr::null();assert!(spatial_atlas_metadata(&bad).is_err(),"null atlas payload");
+                    bad=t;bad.pixel_bytes_len-=1;assert!(spatial_atlas_metadata(&bad).is_err(),"short atlas payload");
+                    bad=t;bad.pixel_bytes_len+=1;assert!(spatial_atlas_metadata(&bad).is_err(),"oversized atlas payload");
+                    bad=t;bad.pixel_bytes_len=0;assert!(spatial_atlas_metadata(&bad).is_err(),"empty atlas payload");
+                    for bit in 25..31 {bad=t;bad.reserved|=1<<bit;assert!(spatial_atlas_metadata(&bad).is_err(),"reserved bit {bit}");}
+                    assert_eq!(spatial_atlas_metadata(&t).unwrap(),Some((w,h,d,mips)),"decoder recovery after malformed metadata");
+                    assert_eq!(texture_levels(t.width,t.height,t.format).unwrap(),
+                               texture_levels(source.width,source.height,source.format).unwrap(),
+                               "declaration leaves physical chain unchanged");
+                    assert_eq!(unsafe {std::slice::from_raw_parts(t.pixels,t.pixel_bytes_len as usize)},
+                               _pixels.as_slice(),"declaration preserves every raw byte");
+                }
+            }
+        }
+    }
+    #[test]
+    fn npot_metadata_rejects_legacy_log2_and_mip_flag_aliases() {
+        let (t,_pixels)=npot_transport(3,5,7,true);
+        for reserved in [0x1222,0x111,0x1000,0x02060502,0x80000000,0xffffffff] {
+            let bad=CoinWgpuTexture{reserved,..t};assert!(spatial_atlas_metadata(&bad).is_err(),"legacy/malformed {reserved:x}");
+        }
+        let mut changed=t;changed.reserved ^=1<<24;assert!(spatial_atlas_metadata(&changed).is_err(),"mip bit changes physical extent admission");
+        for (w,h,d) in [(256,1,1),(1,256,1),(1,1,256)] {
+            let (t,_pixels)=npot_transport(w,h,d,false);assert_eq!(spatial_atlas_metadata(&t).unwrap(),Some((w,h,d,false)));
+        }
+    }
+
+    #[test]
+    fn npot_volume_projective_r_is_checked_for_every_topology_and_texture_unit() {
+        let (image,_pixels)=npot_transport(3,5,7,false);
+        for topology in [0,1,2] {for unit in [0usize,7] {
+            let (mut st,mut vertices)=projective_fixture();st.has_texture=0;
+            if unit==0 {st.has_texture=1;}else {st.extra_textures[unit-1].enabled=1;for i in 0..4 {st.extra_textures[unit-1].matrix[i*5]=1.0;}}
+            for v in &mut vertices {if unit==0 {v.texcoord=[0.2,0.3,0.9,1.0];}else {v.extra_texcoords[unit-1]=[0.2,0.3,0.9,1.0];}}
+            let count=match topology {1=>2,2=>1,_=>3};let indices=&[0u32,1,2][..count];
+            assert!(validate_texture_coordinates_with_images(&st,topology,&vertices,indices,&[image]).is_ok());
+            let stable=vertices;let coordinate=if unit==0 {&mut vertices[0].texcoord}else{&mut vertices[0].extra_texcoords[unit-1]};coordinate[2]=f32::NAN;
+            assert!(validate_texture_coordinates_with_images(&st,topology,&vertices,indices,&[image]).is_err());
+            vertices=stable;let coordinate=if unit==0 {&mut vertices[0].texcoord}else{&mut vertices[0].extra_texcoords[unit-1]};coordinate[2]=f32::MAX;coordinate[3]=0.5;
+            assert!(validate_texture_coordinates_with_images(&st,topology,&vertices,indices,&[image]).is_err(),"volume R/Q overflow topology {topology} unit {unit}");
+            vertices=stable;let coordinate=if unit==0 {&mut vertices[0].texcoord}else{&mut vertices[0].extra_texcoords[unit-1]};coordinate[2]=f32::MAX;
+            let matrix=if unit==0 {&mut st.texture_matrix}else{&mut st.extra_textures[unit-1].matrix};matrix[10]=2.0;
+            assert!(validate_texture_coordinates_with_images(&st,topology,&vertices,indices,&[image]).is_err(),"volume transformed R overflow topology {topology} unit {unit}");
+            if unit==0 {st.texture_matrix[10]=1.0;}else {st.extra_textures[unit-1].matrix[10]=1.0;}
+            vertices=stable;let coordinate=if unit==0 {&mut vertices[0].texcoord}else{&mut vertices[0].extra_texcoords[unit-1]};coordinate[3]=0.0;
+            assert!(validate_texture_coordinates_with_images(&st,topology,&vertices,indices,&[image]).is_err());
+            assert!(validate_texture_coordinates_with_images(&st,topology,&stable,indices,&[image]).is_ok(),"NPOT coordinates recover after invalid payload");
+        }}
+    }

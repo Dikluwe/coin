@@ -35,8 +35,13 @@ int main()
     draws.back() = original;
     return result;
   };
-  draws.back().blend = true; ok &= rejected("blending was admitted");
-  draws.back().alpha = 0.5f; ok &= rejected("nonopaque material was admitted");
+  const auto admitted = [&](const char * message) {
+    const bool result = check(coin_bgfx_solid_program(draws, false, object), message);
+    draws.back() = original;
+    return result;
+  };
+  draws.back().blend = true; ok &= admitted("equivalent blending was rejected");
+  draws.back().alpha = 0.5f; ok &= admitted("fractional material alpha was rejected");
   draws.back().hasTexture = true; ok &= rejected("primary texture was admitted");
   for (auto & layer : draws.back().extraTextures) {
     layer.enabled = true;
@@ -46,7 +51,7 @@ int main()
   draws.back().fogColorMode[3] = 1.0f; ok &= rejected("fog was admitted");
   draws.back().clipMeta[0] = 1.0f; ok &= rejected("clip plane was admitted");
   draws.back().screenDoor[0] = 1.0f; ok &= rejected("stipple was admitted");
-  draws.back().screenDoor[3] = 1.0f; ok &= rejected("forced alpha was admitted");
+  draws.back().screenDoor[3] = 1.0f; ok &= admitted("zero-level screen door forced alpha was rejected");
   draws.back().fogColorMode[3] = std::numeric_limits<float>::quiet_NaN();
   ok &= rejected("nonfinite feature metadata was admitted");
   draws.back().fogColorMode[3] = -1.0f;

@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -19,6 +20,8 @@
 #include <Inventor/nodes/SoSpotLight.h>
 #include <Inventor/nodes/SoTransform.h>
 #include "actions/CoinRenderActionP.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
+#include "rendering/coinrender/CoinRenderTargetP.h"
 #include <algorithm>
 #include <cmath>
 #include <cstdlib>
@@ -160,8 +163,17 @@ bool run(bool perspective, bool requireGl) {
       return target->readbackCenterSampledRGBA(unsigned(factor), pixels) == TRUE &&
         pixels.size() == size_t(side * side * 4);
     };
-    std::unique_ptr<CoinRenderTarget> optimized(CoinRenderTarget::createOffscreen(SbVec2i32(targetSide, targetSide)));
-    std::unique_ptr<CoinRenderTarget> rebuilt(CoinRenderTarget::createOffscreen(SbVec2i32(targetSide, targetSide)));
+    std::string optionDiagnostic; CoinRenderOptions options=CoinRenderDiagnosticShell::renderOptions(optionDiagnostic);
+    const bool canonicalCoverage = std::getenv("COIN_RENDER_CAMERA_REFERENCE_CANONICAL_COVERAGE") != nullptr;
+    if (canonicalCoverage) options.rasterizationPolicy = COIN_RENDER_RASTER_CANONICAL_8BIT;
+    std::unique_ptr<CoinRenderTarget> optimized(CoinRenderTarget::createOffscreen(SbVec2i32(targetSide, targetSide), options));
+    std::unique_ptr<CoinRenderTarget> rebuilt(CoinRenderTarget::createOffscreen(SbVec2i32(targetSide, targetSide), options));
+    std::unique_ptr<CoinRenderTarget> coverageCpu;
+    if (canonicalCoverage) {
+      if (factor != 1) { root->unref(); return false; }
+      coverageCpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(side, side), options));
+      coverageCpu->getPimpl().get().backend.reset(new CoinRenderCpuReferenceBackend);
+    }
     if (!optimized || !rebuilt) { root->unref(); return false; }
     std::vector<uint8_t> unavailable(1, 7);
     ok &= check(!optimized->readbackCenterSampledRGBA(unsigned(factor), unavailable) &&
@@ -221,6 +233,21 @@ bool run(bool perspective, bool requireGl) {
                     "even center-sample scale was accepted");
       }
       ok &= compare(fastPixels, fullPixels, 4, false, perspective ? "perspective/rebuild" : "ortho/rebuild", frame);
+      if (coverageCpu) {
+        const auto result = coverageCpu->getPimpl().get().executeFrame(fast.getPimpl()->lastValidPlan);
+        ok &= check(result.status == CoinRenderBackendStatus::SUCCESS, result.diagnostic.c_str());
+        std::vector<uint8_t> expected; coverageCpu->readbackRGBA(expected);
+        size_t coverageXor = 0;
+        if (expected.size() != fastPixels.size()) { root->unref(); return false; }
+        for (size_t pixel = 0; pixel < expected.size()/4; ++pixel) {
+          const bool a = fastPixels[pixel*4] || fastPixels[pixel*4+1] || fastPixels[pixel*4+2];
+          const bool b = expected[pixel*4] || expected[pixel*4+1] || expected[pixel*4+2];
+          coverageXor += a != b;
+        }
+        std::cout << (perspective ? "perspective" : "ortho") << "/canonical-CPU frame=" << frame
+                  << " coverage_xor=" << coverageXor << '\n';
+        ok &= check(coverageXor == 0, "canonical coverage differs from eight-bit CPU reference");
+      }
       if (frame == 0) anchorPixels = fastPixels;
       else if (frame == 8) ok &= check(fastPixels == anchorPixels, "return to the camera anchor drifted");
       else ok &= check(fastPixels != anchorPixels, "camera image did not move");

@@ -21,7 +21,16 @@
         assert!(levels(3, 4, 7).is_err());
         assert!(levels(0, 1, 0).is_err());
         assert!(levels(8192, 8192, 5).is_err());
-        assert!(format(11).is_err());
+        let (atlas_format, _) = format(11).expect("format 11 is a physical RGBA8 volume atlas");
+        assert_eq!(atlas_format, wgpu::TextureFormat::Rgba8Unorm);
+        assert_eq!(levels(4, 4, 11).unwrap(), vec![(4, 4, 0)]);
+        assert_eq!(levels(8, 12, 11).unwrap(), vec![(8, 12, 0)]);
+        assert_eq!(level_bytes(8, 12, atlas_format), 8 * 12 * 4);
+        let (cube_format, _) = format(12).expect("format 12 is a physical RGBA8 cube atlas");
+        assert_eq!(cube_format, wgpu::TextureFormat::Rgba8Unorm);
+        assert_eq!(levels(8, 16, 12).unwrap(), vec![(8, 16, 0)]);
+        assert_eq!(level_bytes(8, 16, cube_format), 8 * 16 * 4);
+        assert!(format(13).is_err());
     }
     #[test]
     fn anisotropy_is_explicit_and_validated() {

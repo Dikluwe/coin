@@ -365,6 +365,7 @@ bool cacheIsolation() {
   material.diffuse[2] = 1.0f;
   material.diffuse[3] = 1.0f;
   CoinWgpuRenderState state{};
+  state.color_write = 1;
   state.polygon_offset_primitive_style = 1; // Valid triangle style, with offset disabled.
   for (unsigned i = 0; i < 4; ++i) {
     state.model_view[i * 5] = 1.0f;
@@ -437,6 +438,7 @@ bool validatedCameraSceneOwnership() {
   material.diffuse[2] = 0.1f;
   material.diffuse[3] = 1.0f;
   CoinWgpuRenderState state{};
+  state.color_write = 1;
   state.polygon_offset_primitive_style = 1; // Valid triangle style, with offset disabled.
   for (unsigned i = 0; i < 4; ++i) {
     state.model_view[i * 5] = 1.0f;
@@ -612,6 +614,7 @@ bool ownedPhongCameraBuffers() {
   material.diffuse[0] = .8f; material.diffuse[1] = .25f; material.diffuse[3] = 1;
   material.specular[0] = .2f; material.shininess = .25f;
   CoinWgpuRenderState state{};
+  state.color_write = 1;
   state.light_model = 1; state.light_count = 1; state.polygon_offset_primitive_style = 1;
   state.lights[0].position_type[2] = 3; state.lights[0].position_type[3] = 1;
   state.lights[0].color_intensity[0] = state.lights[0].color_intensity[1] = 1;
@@ -759,7 +762,7 @@ bool instancedOpaqueOwnership() {
   }
   materials[0].diffuse[0] = .85f; materials[0].diffuse[1] = .2f;
   materials[1].diffuse[1] = .65f; materials[1].diffuse[2] = .3f;
-  CoinWgpuRenderState state{}; state.polygon_offset_primitive_style = 1;
+  CoinWgpuRenderState state{}; state.color_write = 1; state.polygon_offset_primitive_style = 1;
   state.light_model = 1; state.light_count = 1;
   state.depth_test = 1; state.depth_write = 1; state.depth_function = 2;
   state.depth_range[1] = 1;
@@ -1012,7 +1015,7 @@ bool instancedOpaqueDrawOrder() {
   }
   CoinWgpuMaterial materials[3]{};
   for (unsigned i = 0; i < 3; ++i) { materials[i].diffuse[i] = 1; materials[i].diffuse[3] = 1; }
-  CoinWgpuRenderState state{}; state.polygon_offset_primitive_style = 1; state.depth_test = state.depth_write = 1; state.depth_range[1] = 1;
+  CoinWgpuRenderState state{}; state.color_write = 1; state.polygon_offset_primitive_style = 1; state.depth_test = state.depth_write = 1; state.depth_range[1] = 1;
   CoinWgpuInstance instances[3]{};
   for (unsigned i = 0; i < 4; ++i) {
     state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
@@ -1221,6 +1224,7 @@ bool normalizedCuboidTransport(bool largeMaterialTable = false) {
       output.shininess = source.shininess; output.transparency = source.transparency;
     }
     CoinWgpuRenderState state{};
+    state.color_write = 1;
     for (unsigned i = 0; i < 4; ++i)
       state.model_view[i*5] = state.model_view_projection[i*5] = state.normal_matrix[i*5] = 1;
     // Coin's identity projection has [-1,1] depth; WebGPU uses [0,1].
@@ -1395,6 +1399,42 @@ bool concurrentSubmissions() {
          submitClear(0, 20, 40, 60);
 }
 
+bool concurrentDeviceLifetimes() {
+  std::atomic<unsigned> ready(0);
+  std::atomic<bool> start(false);
+  std::atomic<bool> passed(true);
+  const auto deviceWorker = [&](unsigned channel) {
+    ready.fetch_add(1, std::memory_order_release);
+    while (!start.load(std::memory_order_acquire)) std::this_thread::yield();
+    for (unsigned iteration = 0; iteration < 8; ++iteration) {
+      CoinWgpuDeviceId id = 0;
+      if (!createDevice(id)) { passed.store(false, std::memory_order_release); return; }
+      const uint8_t intensity = static_cast<uint8_t>(40u + iteration * 17u);
+      const bool ok = channel == 0 ? submitClear(id, intensity, 0, 0) :
+                                     submitClear(id, 0, intensity, 0);
+      if (coin_wgpu_device_destroy(id) != COIN_WGPU_OK || !ok) {
+        passed.store(false, std::memory_order_release); return;
+      }
+    }
+  };
+  const auto defaultWorker = [&]() {
+    ready.fetch_add(1, std::memory_order_release);
+    while (!start.load(std::memory_order_acquire)) std::this_thread::yield();
+    for (unsigned iteration = 0; iteration < 32; ++iteration) {
+      if (!submitClear(0, 0, 0, static_cast<uint8_t>(iteration * 7u))) {
+        passed.store(false, std::memory_order_release); return;
+      }
+    }
+  };
+  std::thread red(deviceWorker, 0u), green(deviceWorker, 1u), blue(defaultWorker);
+  while (ready.load(std::memory_order_acquire) != 3u) std::this_thread::yield();
+  start.store(true, std::memory_order_release);
+  red.join(); green.join(); blue.join();
+  return check(passed.load(std::memory_order_acquire),
+               "parallel device create, submit and destroy failed") &&
+         submitClear(0, 10, 20, 30);
+}
+
 bool stress() {
   CoinWgpuDeviceId first = 0, second = 0;
   if (!createDevice(first) || !createDevice(second)) return false;
@@ -1440,7 +1480,7 @@ int main(int argc, char ** argv) {
   const bool passed = runStress ? stress() :
                       (invalidHandles() && lifecycleAndIsolation() && rttOwnership() &&
                        cacheIsolation() && validatedCameraSceneOwnership() && ownedPhongCameraBuffers() && instancedOpaqueOwnership() && instancedOpaqueDrawOrder() && normalizedCuboidTransport() && normalizedCuboidTransport(true) &&
-                       concurrentSubmissions());
+                       concurrentSubmissions() && concurrentDeviceLifetimes());
   if (passed) std::cout << "CoinWgpuMultiDeviceTest passed"
                         << (runStress ? " (stress)" : "") << '\n';
   return passed ? 0 : 1;

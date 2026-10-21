@@ -7,7 +7,9 @@
         assert!(validate_request(8, 0, u64::MAX, u32::MAX, u32::MAX, true).is_err());
         assert!(validate_request(8, 0, 0, 64, 64, true).is_err());
         assert!(validate_request(8, 1, u64::MAX, 64, 64, true).is_err());
-        let physical_bytes = 64 * 64 * (8 * 13 + 4);
+        // Public admission uses the conservative Core budget, not only the
+        // concrete wgpu attachments (13 bytes/layer plus 4 bytes/pixel).
+        let physical_bytes = 64 * 64 * (8 * 16 + 8);
         assert!(validate_request(8, 0, physical_bytes - 1, 64, 64, true).is_err());
         assert!(validate_request(8, 0, physical_bytes, 64, 64, true).is_ok());
         assert!(validate_request(0, 0, 0, 64, 64, false).is_ok());

@@ -20,9 +20,14 @@
 #include <Inventor/nodes/SoTextureCubeMap.h>
 #include <Inventor/nodes/SoSceneTextureCubeMap.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
+#include <Inventor/annex/FXViz/nodes/SoShadowSpotLight.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <iostream>
 #include <memory>
+#include <algorithm>
+#include <cctype>
+#include <limits>
+#include <string>
 
 // Characterization of P15 blockers, not certification of these features.
 class InventoryGlOnlyNode : public SoNode {
@@ -339,40 +344,77 @@ int main() {
   root->removeChild(program);
   ok &= check(capture(new SoTexture3) && capture(new SoTextureCubeMap),
               "empty texture nodes must remain inert");
-  const unsigned beforeEffects = witness.submits;
   auto* volume = new SoTexture3;
   const unsigned char whiteVolume[8] = {255,255,255,255,255,255,255,255};
   volume->images.setValue(SbVec3s(2, 2, 2), 1, whiteVolume);
-  ok &= check(!capture(volume) &&
-              action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-              witness.submits == beforeEffects &&
-              action.getLastError().find("SoTexture3") >= 0,
-              "3D texture must fail before publication");
+  ok &= check(capture(volume) && action.getLastStatus() == CoinRenderAction::SUCCESS,
+              "valid 3D texture must publish a captured frame");
+  const unsigned beforeEffects = witness.submits;
+  const auto beforeEffectFrame = witness.frame;
+  auto diagnosticHas = [&](const char* text) {
+    std::string message = action.getLastError().getString();
+    std::transform(message.begin(), message.end(), message.begin(),
+                   [](unsigned char c) { return char(std::tolower(c)); });
+    return message.find(text) != std::string::npos;
+  };
   auto* cubeMap = new SoTextureCubeMap;
   const unsigned char whiteFace[4] = {255,255,255,255};
   cubeMap->imagePosX.setValue(SbVec2s(2, 2), 1, whiteFace);
-  ok &= check(!capture(cubeMap) &&
+  auto* incompleteCubeScene = new SoSeparator;
+  incompleteCubeScene->addChild(cubeMap);
+  incompleteCubeScene->addChild(new SoCube); // Force use of the malformed image.
+  ok &= check(!capture(incompleteCubeScene) &&
               action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
               witness.submits == beforeEffects &&
-              action.getLastError().find("SoTextureCubeMap") >= 0,
-              "cube texture must fail before publication");
+              witness.frame.hasSamePayload(beforeEffectFrame) &&
+              diagnosticHas("cube") && (diagnosticHas("face") || diagnosticHas("image")),
+              "used cube texture with only one of six faces fails before publication");
   auto* cubeRtt = new SoSceneTextureCubeMap;
   cubeRtt->scene = new SoCube;
+  cubeRtt->size.setValue(16, 0);
   ok &= check(!capture(cubeRtt) &&
               action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
               witness.submits == beforeEffects &&
-              action.getLastError().find("SoSceneTextureCubeMap") >= 0,
-              "cube scene texture must fail before publication");
+              witness.frame.hasSamePayload(beforeEffectFrame) &&
+              diagnosticHas("cube") &&
+              (diagnosticHas("dimension") || diagnosticHas("square") ||
+               diagnosticHas("size") || diagnosticHas("extent") || diagnosticHas("power")),
+              "incomplete cube scene texture dimensions fail before publication");
   auto* shadows = new SoShadowGroup;
   shadows->ref();
   shadows->addChild(new SoCube);
-  ok &= check(!capture(shadows) &&
+  const unsigned beforeShadows = witness.submits;
+  shadows->quality = std::numeric_limits<float>::quiet_NaN();
+  ok &= check(capture(shadows) && witness.submits == beforeShadows + 1 &&
+              !witness.frame.draws.empty(),
+              "unconsumed shadow quality without an effective map light remains inert");
+  const auto beforeInvalidShadowFrame = witness.frame;
+  auto* mapLight = new SoShadowSpotLight;
+  mapLight->location.setValue(0, 0, 5);
+  mapLight->direction.setValue(0, 0, -1);
+  mapLight->nearDistance = 1;
+  mapLight->farDistance = 10;
+  mapLight->cutOffAngle = .6f;
+  shadows->insertChild(mapLight, 0);
+  const bool invalidShadowCaptured = capture(shadows);
+  std::cout << "inventory_effective_shadow_quality status=" << action.getLastStatus()
+            << " submits=" << witness.submits << " error="
+            << action.getLastError().getString() << '\n';
+  ok &= check(!invalidShadowCaptured &&
               action.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
-              witness.submits == beforeEffects &&
-              action.getLastError().find("SoShadowGroup") >= 0,
-              "active shadow group must fail before publication");
+              witness.submits == beforeShadows + 1 &&
+              witness.frame.hasSamePayload(beforeInvalidShadowFrame) &&
+              diagnosticHas("shadow") &&
+              (diagnosticHas("quality") || diagnosticHas("scalar") ||
+               diagnosticHas("finite") || diagnosticHas("parameter")),
+              "nonfinite shadow quality consumed by an effective map light fails before publication");
+  shadows->removeChild(mapLight);
+  shadows->quality = .5f;
+  ok &= check(capture(shadows) && witness.submits == beforeShadows + 2 &&
+              !witness.frame.draws.empty(),
+              "valid active shadow group without lights recovers ordinary geometry");
   shadows->isActive = FALSE;
-  ok &= check(capture(shadows) && witness.submits == beforeEffects + 1 &&
+  ok &= check(capture(shadows) && witness.submits == beforeShadows + 3 &&
               !witness.frame.draws.empty(),
               "inactive shadow group must preserve ordinary child traversal");
   shadows->unref();

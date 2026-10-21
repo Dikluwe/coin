@@ -4,6 +4,7 @@
 #include <Inventor/SoDB.h>
 #if COIN_HAVE_LEGACY_GL_RENDERER
 #include <Inventor/SoOffscreenRenderer.h>
+#include <Inventor/system/gl.h>
 #endif
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoCallbackAction.h>
@@ -12,7 +13,9 @@
 #include <Inventor/annex/FXViz/nodes/SoShadowDirectionalLight.h>
 #include <Inventor/elements/SoLazyElement.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/nodes/SoAlphaTest.h>
+#include <Inventor/nodes/SoCallback.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoCube.h>
@@ -50,6 +53,7 @@
 
 namespace {
 constexpr int width = 96, height = 80;
+CoinRenderRenderer requestedRenderer=COIN_RENDER_RENDERER_UNKNOWN;
 using Color = std::array<int, 3>;
 bool check(bool condition, const std::string & message) {
   if (!condition) std::cerr << "CoinRenderFragmentPolicyTest: " << message << '\n';
@@ -153,13 +157,18 @@ struct Harness {
       , gl(SbViewportRegion(width, height))
 #endif
   {
-    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), options));
+    CoinRenderOptions resolved=options;
+    if(resolved.renderer==COIN_RENDER_RENDERER_UNKNOWN)
+      resolved.renderer=requestedRenderer;
+    cpu.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), resolved));
     if (cpu) {
       observer = new CaptureBackend; cpu->getPimpl()->backend.reset(observer);
       cpu->getPimpl()->depthBuffer.assign(width * height, 1.0f); cpuAction.setRenderTarget(cpu.get());
     }
     if (gpu) {
-      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), options));
+      native.reset(CoinRenderTarget::createOffscreen(SbVec2i32(width, height), resolved));
+      if(native && native->getOptions().renderer!=resolved.renderer)
+        std::cerr << "CoinRenderFragmentPolicyTest: target renderer differs from requested renderer\n";
       if (native) gpuAction.setRenderTarget(native.get());
     }
     cpuAction.setTransparencyType(CoinRenderAction::BLEND);
@@ -237,22 +246,62 @@ struct Harness {
     if (!check(visible ? colored(reference) >= 8 : colored(reference) == 0,
                label + ": CoinGL control is vacuous or disagrees with the specified visibility")) return false;
     gpuAction.apply(root); native->readbackRGBA(lastNative);
-    if (!check(gpuAction.getLastStatus() == CoinRenderAction::SUCCESS &&
-               lastNative.size() == reference.size() &&
-               (visible ? colored(lastNative) >= 8 : colored(lastNative) == 0),
+    const bool submitted=gpuAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    const bool complete=lastNative.size() == reference.size();
+    const size_t nativeVisible=colored(lastNative);
+    const bool visibility=visible ? nativeVisible >= 8 : nativeVisible == 0;
+    if (!(submitted && complete && visibility))
+      std::cerr << label << " GPU gate submitted=" << submitted
+                << " status=" << int(gpuAction.getLastStatus())
+                << " captured_bytes=" << lastNative.size()
+                << " expected_bytes=" << reference.size()
+                << " native_colored=" << nativeVisible
+                << " CoinGL_colored=" << colored(reference)
+                << " requested_visible=" << visible << '\n';
+    if (!check(submitted && complete && visibility,
                label + ": GPU submission failed: " + gpuAction.getLastError().getString())) return false;
     ++comparisons;
     return !compareFullRaster ||
            (compare(lastCpu, label + "/CPU") && compare(lastNative, label + "/GPU"));
   }
   bool renderGpuOnly(SoNode * root, const std::string & label,
-                     SoNode * referenceRoot = nullptr, bool compareRaster = true) {
+                     SoNode * referenceRoot = nullptr, bool compareRaster = true,
+                     bool visible = true) {
     if (!check(gpu && native && referencePixels(referenceRoot ? referenceRoot : root, label),
                label + ": native/reference targets missing")) return false;
+    const uint64_t beforeSerial=native->getLastSubmissionSerial();
     gpuAction.apply(root); native->readbackRGBA(lastNative);
-    if (!check(gpuAction.getLastStatus() == CoinRenderAction::SUCCESS &&
-               lastNative.size() == reference.size() && colored(lastNative) >= 8 && colored(reference) >= 8,
+    const bool submitted=gpuAction.getLastStatus() == CoinRenderAction::SUCCESS;
+    const bool complete=lastNative.size() == reference.size();
+    const size_t nativeVisible=colored(lastNative);
+    const size_t referenceVisible=colored(reference);
+    const bool fresh=native->getLastSubmissionSerial()>beforeSerial;
+    const bool visibleAsExpected=visible ? nativeVisible>=8 && referenceVisible>=8 :
+      nativeVisible==0 && referenceVisible==0;
+    if (!(submitted && complete && fresh && visibleAsExpected))
+      std::cerr << label << " GPU-only gate submitted=" << submitted
+                << " status=" << int(gpuAction.getLastStatus())
+                << " captured_bytes=" << lastNative.size()
+                << " expected_bytes=" << reference.size()
+                << " native_colored=" << nativeVisible
+                << " CoinGL_colored=" << referenceVisible
+                << " before_serial=" << beforeSerial
+                << " after_serial=" << native->getLastSubmissionSerial()
+                << " requested_visible=" << visible << '\n';
+    if (!check(submitted && complete && fresh && visibleAsExpected,
                label + ": required GPU/control frame failed: " + gpuAction.getLastError().getString())) return false;
+    if(!visible) {
+      std::vector<float> depth;
+      native->readbackDepth(depth);
+      bool background=depth.size()==size_t(width*height);
+      for(size_t pixel=0;background && pixel<size_t(width*height);++pixel) {
+        const size_t at=pixel*4;
+        background=lastNative[at]==0 && lastNative[at+1]==0 &&
+          lastNative[at+2]==0 && lastNative[at+3]==255 && depth[pixel]==1.0f;
+      }
+      if(!check(background,label+": discarded frame must publish exact RGBA/depth background"))
+        return false;
+    }
     return !compareRaster || compare(lastNative, label + "/GPU");
   }
   bool reject(SoNode * root, const std::string & label, CoinRenderAction::Status expected,
@@ -364,6 +413,25 @@ bool depthDisabled(bool gpu) {
 
 bool alphaFunctions(bool gpu) {
   Scene scene; Harness test(gpu); Quad content; scene.root->addChild(content.group);
+#if COIN_HAVE_LEGACY_GL_RENDERER
+  bool traceBoundary=false;
+  auto * boundaryState=new SoCallback;
+  boundaryState->setCallback([](void * context,SoAction * action) {
+    if(!*static_cast<bool *>(context) ||
+       !action->isOfType(SoGLRenderAction::getClassTypeId())) return;
+    GLint function=0,alphaBits=0;
+    GLfloat reference=0;
+    const GLboolean enabled=glIsEnabled(GL_ALPHA_TEST);
+    glGetIntegerv(GL_ALPHA_TEST_FUNC,&function);
+    glGetFloatv(GL_ALPHA_TEST_REF,&reference);
+    glGetIntegerv(GL_ALPHA_BITS,&alphaBits);
+    const GLenum error=glGetError();
+    std::cerr << "alpha/reference-clamped-one CoinGL state enabled=" << int(enabled)
+              << " function=" << function << " reference=" << reference
+              << " alpha_bits=" << alphaBits << " gl_error=" << error << '\n';
+  },&traceBoundary);
+  content.group->addChild(boundaryState);
+#endif
   // CoinGL sends material alpha through SbColor::getPackedValue/glColor4ub:
   // material .5 becomes 128/255. This is the exact native equality boundary.
   const float reference = 128.f / 255.f;
@@ -397,8 +465,47 @@ bool alphaFunctions(bool gpu) {
   if (!test.render(scene.root, "alpha/reference-clamped-zero") ||
       !test.captured(SoAlphaTest::GREATER, 0, "clamped-zero")) return false;
   content.alpha->function = SoAlphaTest::LESS; content.alpha->value = 2;
+#if COIN_HAVE_LEGACY_GL_RENDERER
+  traceBoundary=gpu;
+#endif
   return test.render(scene.root, "alpha/reference-clamped-one", false) &&
          test.captured(SoAlphaTest::LESS, 1, "clamped-one");
+}
+
+bool alphaReferenceExtremes(bool gpu) {
+  Scene scene; Harness test(gpu); Quad content; scene.root->addChild(content.group);
+  test.transparency(CoinRenderAction::NONE);
+  const int functions[]={SoAlphaTest::NONE,SoAlphaTest::NEVER,SoAlphaTest::ALWAYS,
+    SoAlphaTest::LESS,SoAlphaTest::LEQUAL,SoAlphaTest::EQUAL,
+    SoAlphaTest::GEQUAL,SoAlphaTest::GREATER,SoAlphaTest::NOTEQUAL};
+  const float references[]={-std::numeric_limits<float>::infinity(),-1.f,0.f,
+    1.f,2.f,std::numeric_limits<float>::infinity()};
+  const auto passes=[](int function,float alpha,float reference) {
+    switch(function) {
+    case SoAlphaTest::NONE:case SoAlphaTest::ALWAYS:return true;
+    case SoAlphaTest::NEVER:return false;
+    case SoAlphaTest::LESS:return alpha<reference;
+    case SoAlphaTest::LEQUAL:return alpha<=reference;
+    case SoAlphaTest::EQUAL:return alpha==reference;
+    case SoAlphaTest::GEQUAL:return alpha>=reference;
+    case SoAlphaTest::GREATER:return alpha>reference;
+    case SoAlphaTest::NOTEQUAL:return alpha!=reference;
+    default:return false;
+    }
+  };
+  for(int function:functions) for(float authored:references) for(float alpha:{0.f,1.f}) {
+    const float effective=std::max(0.f,std::min(1.f,authored));
+    const bool visible=passes(function,alpha,effective);
+    content.alpha->function=function;
+    content.alpha->value=authored;
+    content.material->transparency=1.f-alpha;
+    const std::string label="alpha/extreme/function-"+std::to_string(function)+
+      "/reference-"+std::to_string(authored)+"/alpha-"+std::to_string(alpha);
+    if(!test.render(scene.root,label,visible) ||
+       !test.captured(function,effective,label) ||
+       !test.sample(53,37,{{visible?255:0,0,0}},label)) return false;
+  }
+  return true;
 }
 
 bool alphaTextureDepth(bool gpu) {
@@ -850,15 +957,28 @@ bool shadowAlphaRejection(bool gpu) {
   // alpha rejection. Its lighting/map quality is not claimed pixel-identical.
   std::vector<uint8_t> shadowControl;
   if (gpu) {
+    test.native->setDepthReadbackEnabled(TRUE);
     if (!test.renderGpuOnly(scene.root,"alpha/shadow-none-control",nullptr,false)) return false;
     shadowControl = test.lastNative;
+    if(!check(colored(shadowControl)>=8,
+      "PHONG shadow control must contain geometry before NEVER")) return false;
   }
-  for (int function : {SoAlphaTest::NEVER,SoAlphaTest::GREATER}) {
-    alpha->function = function; alpha->value = .5f;
-    if (!test.reject(scene.root,"alpha/active-shadow-function-" + std::to_string(function),
-                     CoinRenderAction::UNSUPPORTED)) return false;
-  }
-  if (gpu) {
+  if (!gpu) {
+    // CPU still has no real shadow-map receiver executor (B13). The active
+    // group must reject transactionally until that executor exists.
+    for (int function : {SoAlphaTest::NEVER,SoAlphaTest::GREATER}) {
+      alpha->function = function; alpha->value = .5f;
+      if (!test.reject(scene.root,"alpha/active-shadow-CPU-" + std::to_string(function),
+                       CoinRenderAction::UNSUPPORTED)) return false;
+    }
+  } else {
+    alpha->function = SoAlphaTest::NEVER;alpha->value = .5f;
+    if (!test.renderGpuOnly(scene.root,"alpha/shadow-never-admitted",nullptr,false,false) ||
+        !check(test.lastNative != shadowControl,
+          "NEVER did not change the qualified shadow scene")) return false;
+    alpha->function = SoAlphaTest::GREATER;alpha->value = .5f;
+    if (!test.renderGpuOnly(scene.root,"alpha/shadow-greater-admitted",nullptr,false))
+      return false;
     alpha->function = SoAlphaTest::ALWAYS;
     if (!test.renderGpuOnly(scene.root,"alpha/shadow-always-admitted",nullptr,false) ||
         !check(test.lastNative == shadowControl,"inert ALWAYS changed the qualified shadow result")) return false;
@@ -884,6 +1004,19 @@ int main(int argc, char ** argv) {
   if (gpu && !CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr << "CoinRenderFragmentPolicyTest requires the selected GPU backend\n"; return 77;
   }
+  if(gpu) {
+    CoinRenderCapabilities caps{};
+    if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+        &caps,sizeof(caps))!=0 || !caps.gpu_available ||
+       caps.renderer==COIN_RENDER_RENDERER_UNKNOWN) {
+      std::cerr << "CoinRenderFragmentPolicyTest requires a resolved GPU renderer\n";
+      return 77;
+    }
+    requestedRenderer=static_cast<CoinRenderRenderer>(caps.renderer);
+    std::cout << "fragment_policy backend=" << caps.backend << " renderer="
+              << caps.renderer << " vendor=" << caps.vendor_id << " adapter="
+              << caps.adapter_name << '\n';
+  }
 #if !COIN_HAVE_LEGACY_GL_RENDERER
   if (gpu) {
     std::cerr << "CoinRenderFragmentPolicyTest mandatory CoinGL oracle was not compiled\n"; return 1;
@@ -895,7 +1028,7 @@ int main(int argc, char ** argv) {
               << " passed\n";
     return 0;
   }
-  if (!alphaFunctions(gpu) || !alphaTextureDepth(gpu) ||
+  if (!alphaReferenceExtremes(gpu) || !alphaFunctions(gpu) || !alphaTextureDepth(gpu) ||
       !screenDoorAlpha(gpu) || !tinyTransparencyDepth(gpu) ||
       !inheritanceAndMutation(gpu) || !replaceComponents(gpu) || !replaceUnusedMaterialTransparency(gpu) ||
       !multipleUnitsAndCombine(gpu) || !alphaCallbacks(gpu) ||

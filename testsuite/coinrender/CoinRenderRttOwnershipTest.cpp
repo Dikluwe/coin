@@ -455,27 +455,51 @@ int main() {
 #elif defined(HAVE_COIN_BGFX)
   {
     CoinRenderRttPlan limited(COIN_RENDER_SCENE_TEXTURE_DIRECT);
-    limited.append(producer(10), id, diagnostic);
+    ok &= check(limited.append(producer(10), id, diagnostic), "capture valid first direct producer");
     auto layers = producer(11, 4);
     layers.plan = triangle(true);
-    limited.append(layers, id, diagnostic);
+    layers.plan.transparency.mode = COIN_RENDER_TRANSPARENCY_PEELING;
+    ok &= check(limited.append(layers, id, diagnostic), "capture valid second peeling producer");
     CoinRenderTargetP noWork(SbVec2i32(4, 4));
-    CoinRenderRttExecution execution(&noWork, options);
-    CoinRenderFramePlan resolved;
-    const auto result = execution.prepare(limited, consumer(2, 4), resolved);
-    if (result.status != CoinRenderBackendStatus::UNSUPPORTED ||
-        result.diagnostic.find("transparency") == std::string::npos)
-      std::cerr << "BGFX direct preflight: " << result.diagnostic << '\n';
-    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !noWork.backend &&
-                    result.diagnostic.find("transparency") != std::string::npos,
-                "unavailable second producer peeling rejected before BGFX initializes");
+    noWork.colorBuffer.assign(4u * 4u * 4u, 51);
+    noWork.depthBuffer.assign(4u * 4u, .375f);
+    noWork.lastSubmissionSerial = 123;
     auto inspector = CoinRenderTargetP::createBackend();
+    const auto initialInspectorStatus = inspector->getStatus();
+    const auto validPreflight = inspector->preflightRtt(limited, consumer(2, 4), SbVec2i32(4, 4));
+    if (validPreflight.status != CoinRenderBackendStatus::SUCCESS)
+      std::cerr << "BGFX peeling preflight: " << validPreflight.diagnostic << '\n';
+    ok &= check(validPreflight.status == CoinRenderBackendStatus::SUCCESS &&
+                    inspector->getStatus() == initialInspectorStatus && !noWork.backend &&
+                    noWork.lastSubmissionSerial == 123,
+                "valid transparent peeling producer passes pure preflight without preparing a GPU backend");
+    // Keep the complete second producer except for one out-of-bounds index.
+    // The first producer must not execute while a later producer is invalid.
+    auto invalid = limited;
+    invalid.producers[1].plan.indices[2] = 999;
+    std::string invalidDiagnostic;
+    ok &= check(!invalid.producers[1].plan.isValid(&invalidDiagnostic) && !invalidDiagnostic.empty(),
+                "second direct producer is genuinely invalid rather than an unavailable compositor");
+    const auto beforeColor = noWork.colorBuffer;
+    const auto beforeDepth = noWork.depthBuffer;
+    CoinRenderFramePlan resolved = consumer(777);
+    resolved.revision = 991;
+    const auto beforeResolved = resolved;
+    CoinRenderRttExecution execution(&noWork, options);
+    const auto result = execution.prepare(invalid, consumer(2, 4), resolved);
+    std::cout << "BGFX invalid second producer preflight status=" << int(result.status)
+              << " diagnostic=" << result.diagnostic << '\n';
+    ok &= check(result.status == CoinRenderBackendStatus::UNSUPPORTED && !result.diagnostic.empty() &&
+                    !noWork.backend && noWork.lastSubmissionSerial == 123 &&
+                    noWork.colorBuffer == beforeColor && noWork.depthBuffer == beforeDepth &&
+                    resolved.revision == beforeResolved.revision && resolved.hasSamePayload(beforeResolved),
+                "invalid second producer rejects atomically before backend creation, producer execution or output replacement");
     limited.producers[1].plan = triangle(false);
     const auto opaquePreflight = inspector->preflightRtt(limited, consumer(2, 4), SbVec2i32(4, 4));
     if (opaquePreflight.status != CoinRenderBackendStatus::SUCCESS)
       std::cerr << "BGFX opaque preflight: " << opaquePreflight.diagnostic << '\n';
-    ok &= check(opaquePreflight.status ==
-                    CoinRenderBackendStatus::SUCCESS,
+    ok &= check(opaquePreflight.status == CoinRenderBackendStatus::SUCCESS &&
+                    inspector->getStatus() == initialInspectorStatus && !noWork.backend,
                 "opaque producer using Coin sorted layers does not require peeling");
   }
 #endif

@@ -7,14 +7,18 @@
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/annex/FXViz/nodes/SoShadowGroup.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
+#include <Inventor/rendering/CoinRenderCapabilities.h>
 #include <Inventor/nodes/SoCamera.h>
+#include <Inventor/nodes/SoAlphaTest.h>
 #include <Inventor/nodes/SoComplexity.h>
 #include <Inventor/nodes/SoClipPlane.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoDepthBuffer.h>
 #include <Inventor/nodes/SoEnvironment.h>
+#include <Inventor/nodes/SoFaceSet.h>
 #include <Inventor/nodes/SoFont.h>
 #include <Inventor/nodes/SoImage.h>
+#include <Inventor/nodes/SoGroup.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
@@ -24,7 +28,17 @@
 #include <Inventor/nodes/SoSwitch.h>
 #include <Inventor/nodes/SoText2.h>
 #include <Inventor/nodes/SoTexture2.h>
+#include <Inventor/nodes/SoTextureCoordinate2.h>
+#include <Inventor/nodes/SoTextureCoordinateEnvironment.h>
+#include <Inventor/nodes/SoTextureCoordinateNormalMap.h>
+#include <Inventor/nodes/SoTextureCoordinateObject.h>
+#include <Inventor/nodes/SoTextureCoordinatePlane.h>
+#include <Inventor/nodes/SoTextureCoordinateReflectionMap.h>
+#include <Inventor/nodes/SoTexture3.h>
+#include <Inventor/nodes/SoTextureCombine.h>
 #include <Inventor/nodes/SoTexture2Transform.h>
+#include <Inventor/nodes/SoTextureMatrixTransform.h>
+#include <Inventor/nodes/SoTextureUnit.h>
 #include <Inventor/nodes/SoTransform.h>
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
@@ -191,6 +205,30 @@ bool compare(const std::vector<uint8_t> & actual, const std::vector<uint8_t> & r
                label + ": differs from Coin/OpenGL or the reference is vacuous");
 }
 
+// SoNode::copy(TRUE) preserves the child path, even after a test moves the
+// screen switch beneath SoShadowGroup. Locate it by that path in the copied
+// graph; never use getChild(-1) or hide a different switch silently.
+int hideCopiedScreen(SoGroup * original, SoGroup * copied, SoSwitch * screen) {
+  if(original->getNumChildren()!=copied->getNumChildren()) return -1;
+  int found=0;
+  for(int index=0;index<original->getNumChildren();++index) {
+    SoNode * source=original->getChild(index);
+    SoNode * target=copied->getChild(index);
+    if(source==screen) {
+      if(!target->isOfType(SoSwitch::getClassTypeId())) return -1;
+      static_cast<SoSwitch *>(target)->whichChild=SO_SWITCH_NONE;
+      ++found;
+    } else if(source->isOfType(SoGroup::getClassTypeId())) {
+      if(!target->isOfType(SoGroup::getClassTypeId())) return -1;
+      const int nested=hideCopiedScreen(
+        static_cast<SoGroup *>(source),static_cast<SoGroup *>(target),screen);
+      if(nested<0) return -1;
+      found+=nested;
+    }
+  }
+  return found;
+}
+
 struct Harness {
   explicit Harness(bool useGpu) : gpu(useGpu), size(initialSize), cpuAction(SbViewportRegion(160, 120)),
       gpuAction(SbViewportRegion(160, 120)), gl(SbViewportRegion(160, 120)) {
@@ -228,17 +266,25 @@ struct Harness {
   bool reject(Scene & scene, const std::string & label, CoinRenderAction::Status expected) {
     const auto beforeCpu = lastCpu, beforeNative = lastNative;
     const size_t before = observer->submissions;
+    std::vector<float> beforeCpuDepth, beforeNativeDepth;
+    cpu->readbackDepth(beforeCpuDepth);
+    const uint64_t beforeCpuSerial=cpu->getLastSubmissionSerial();
+    uint64_t beforeNativeSerial=0;
+    if (gpu) { native->readbackDepth(beforeNativeDepth); beforeNativeSerial=native->getLastSubmissionSerial(); }
     cpuAction.apply(scene.root);
-    std::vector<uint8_t> pixels; cpu->readbackRGBA(pixels);
+    std::vector<uint8_t> pixels; std::vector<float> depth;
+    cpu->readbackRGBA(pixels); cpu->readbackDepth(depth);
     bool ok = check(cpuAction.getLastStatus() == expected &&
                     cpuAction.getLastError().getLength() != 0 &&
-                    observer->submissions == before && pixels == beforeCpu,
-                    label + ": CPU rejection must be explicit and preserve the previous frame");
+                    observer->submissions == before && pixels == beforeCpu &&
+                    depth == beforeCpuDepth && cpu->getLastSubmissionSerial() == beforeCpuSerial,
+                    label + ": CPU rejection must preserve RGBA, depth and submission serial");
     if (gpu) {
-      gpuAction.apply(scene.root); native->readbackRGBA(pixels);
+      gpuAction.apply(scene.root); native->readbackRGBA(pixels); native->readbackDepth(depth);
       ok &= check(gpuAction.getLastStatus() == expected &&
-                  gpuAction.getLastError().getLength() != 0 && pixels == beforeNative,
-                  label + ": GPU rejection must be explicit and preserve the previous frame");
+                  gpuAction.getLastError().getLength() != 0 && pixels == beforeNative &&
+                  depth == beforeNativeDepth && native->getLastSubmissionSerial() == beforeNativeSerial,
+                  label + ": GPU rejection must preserve RGBA, depth and submission serial");
     }
     return ok;
   }
@@ -262,13 +308,28 @@ struct Harness {
       gpuAction.apply(scene.root);
       if (!check(gpuAction.getLastStatus() == CoinRenderAction::SUCCESS,
                  label + ": GPU capture failed: " + gpuAction.getLastError().getString())) return false;
+      if (!reportedGpu) {
+        CoinRenderCapabilities caps{};
+        const bool queried=coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,
+                                                            &caps,sizeof(caps))==0;
+        if (!check(queried && caps.gpu_available,
+                   label + ": GPU submission requires a real GPU adapter")) return false;
+        std::cout << "CoinRenderScreenContentTest runtime backend=" << caps.backend
+                  << " renderer=" << caps.renderer << " vendor=" << caps.vendor_id
+                  << " adapter=" << caps.adapter_name << " gpu_available=" << caps.gpu_available
+                  << '\n';
+        reportedGpu=true;
+      }
       std::vector<uint8_t> pixels; native->readbackRGBA(pixels);
+      if (!glReference) { lastNative = pixels; lastCpu = cpuPixels; return true; }
       // Callback mutations are visible in the reference too. A fresh copy
       // removes only screen content; the original graph is never toggled.
       std::vector<uint8_t> bare, reference;
       auto * without = static_cast<SoSeparator *>(scene.root->copy(TRUE)); without->ref();
-      auto * hidden = static_cast<SoSwitch *>(without->getChild(scene.root->findChild(scene.screen)));
-      hidden->whichChild = SO_SWITCH_NONE;
+      const int hidden=hideCopiedScreen(scene.root,without,scene.screen);
+      if(!check(hidden==1,label+": copied scene must contain exactly one screen switch")) {
+        without->unref();return false;
+      }
       const bool rendered = glPixels(gl, without, size, bare); without->unref();
       if (!rendered) return false;
       if (prunedReference) reference = bare;
@@ -280,6 +341,8 @@ struct Harness {
     lastCpu = cpuPixels; return true;
   }
   bool gpu; SbVec2i32 size;
+  bool glReference = true;
+  bool reportedGpu = false;
   std::unique_ptr<CoinRenderTarget> cpu, native;
   CaptureCpuBackend * observer = nullptr;
   CoinRenderAction cpuAction, gpuAction;
@@ -457,22 +520,662 @@ bool effects(bool gpu, bool withText, const char * fontName) {
   return true;
 }
 
-bool inheritedImage(bool gpu) {
+bool inheritedImage(bool gpu, bool portableOnly = false) {
   Scene scene(false); Harness harness(gpu);
+  harness.glReference = !portableOnly;
   setImage(scene.image, 4);
   if (!harness.render(scene, "image/inherited-negative-anchor")) return false;
+  const auto ordinaryCpu=harness.lastCpu;
+  const auto ordinaryNative=harness.lastNative;
   const unsigned char cyan[] = {20, 230, 210, 255};
   scene.inheritedTexture->image.setValue(SbVec2s(1, 1), 4, cyan);
-  if (!harness.reject(scene, "image/active-inherited-texture", CoinRenderAction::UNSUPPORTED)) return false;
+  if (!harness.render(scene, "image/active-inherited-texture") ||
+      !check(harness.lastCpu!=ordinaryCpu && (!gpu || harness.lastNative!=ordinaryNative),
+             "inherited 1x1 texture must visibly change SoImage pixels")) return false;
+  // Exercise actual texel selection and payload conversion. The 1x1 case
+  // alone cannot distinguish inherited sampling from a constant-color path.
+  const unsigned char texels2d[] = {
+    23, 211, 37, 255, 227, 31, 83, 128,
+    57, 73, 239, 0, 181, 149, 19, 255
+  };
+  // Coin disables SoTexture2 at quality zero; .1 is the active nearest band.
+  scene.quality->textureQuality = .1f;
+  scene.inheritedTexture->wrapS = SoTexture2::CLAMP;
+  scene.inheritedTexture->wrapT = SoTexture2::CLAMP;
+  scene.inheritedTexture->image.setValue(SbVec2s(2, 2), 4, texels2d);
+  auto * content = static_cast<SoSeparator *>(scene.screen->getChild(0));
+  for (int model : {SoTexture2::REPLACE, SoTexture2::MODULATE}) {
+    scene.inheritedTexture->model = model;
+    for (int components = 1; components <= 4; ++components) {
+      setImage(scene.image, components);
+      if (!harness.render(scene, "image/inherited-2d/model-" + std::to_string(model) +
+                          "/components-" + std::to_string(components))) return false;
+    }
+  }
+  if (portableOnly) {
+    // The portable inherited coordinate starts at (0,0,0,1). Sampling a
+    // CLAMP/nearest 2x2 texture therefore selects texel zero, independent of
+    // OpenGL's persistent current attribute after earlier drawing.
+    std::vector<unsigned char> solidImage(16 * 16 * 3);
+    for (size_t pixel = 0; pixel < 16 * 16; ++pixel) {
+      solidImage[3 * pixel] = 180;
+      solidImage[3 * pixel + 1] = 80;
+      solidImage[3 * pixel + 2] = 40;
+    }
+    scene.image->image.setValue(SbVec2s(16, 16), 3, solidImage.data());
+    const unsigned char numericTexels2d[] = {
+      23,211,37,255, 227,31,83,255,
+      57,73,239,255, 181,149,19,255
+    };
+    scene.inheritedTexture->image.setValue(SbVec2s(2, 2), 4, numericTexels2d);
+    scene.inheritedTexture->model = SoTexture2::REPLACE;
+    if (!harness.render(scene, "image/inherited-2d/default-coordinate-numeric")) return false;
+    const size_t center = (size_t(60) * size_t(initialSize[0]) + 80) * 4;
+    const auto matchesTexelZero = [center](const std::vector<uint8_t> & rgba) {
+      return rgba.size() >= center + 4 &&
+             std::abs(int(rgba[center]) - 23) <= 2 &&
+             std::abs(int(rgba[center + 1]) - 211) <= 2 &&
+             std::abs(int(rgba[center + 2]) - 37) <= 2;
+    };
+    if (!check(matchesTexelZero(harness.lastCpu) &&
+               (!gpu || matchesTexelZero(harness.lastNative)),
+               "default inherited coordinate must select the authored first texel")) return false;
+    scene.quality->textureQuality = 0;
+    if (!harness.render(scene, "image/inherited-2d/quality-zero")) return false;
+    const auto matchesPayload = [center](const std::vector<uint8_t> & rgba) {
+      return rgba.size() >= center + 4 &&
+             std::abs(int(rgba[center]) - 180) <= 2 &&
+             std::abs(int(rgba[center + 1]) - 80) <= 2 &&
+             std::abs(int(rgba[center + 2]) - 40) <= 2;
+    };
+    if (!check(matchesPayload(harness.lastCpu) &&
+               (!gpu || matchesPayload(harness.lastNative)),
+               "texture quality zero must leave SoImage payload untextured")) return false;
+    scene.quality->textureQuality = .1f;
+    auto * projective = new SoTextureMatrixTransform;
+    SbMatrix matrix = SbMatrix::identity();
+    matrix[3][0] = .75f;
+    projective->matrix = matrix;
+    content->insertChild(projective, content->findChild(scene.material));
+    if (!harness.render(scene, "image/inherited-2d/translated-s")) return false;
+    const auto matchesTexelOne = [center](const std::vector<uint8_t> & rgba) {
+      return rgba.size() >= center + 4 &&
+             std::abs(int(rgba[center]) - 227) <= 2 &&
+             std::abs(int(rgba[center + 1]) - 31) <= 2 &&
+             std::abs(int(rgba[center + 2]) - 83) <= 2;
+    };
+    if (!check(matchesTexelOne(harness.lastCpu) &&
+               (!gpu || matchesTexelOne(harness.lastNative)),
+               "texture-matrix S translation must select authored texel one")) return false;
+    matrix[3][3] = 2.0f;
+    projective->matrix = matrix;
+    if (!harness.render(scene, "image/inherited-2d/projective-q")) return false;
+    if (!check(matchesTexelZero(harness.lastCpu) &&
+               (!gpu || matchesTexelZero(harness.lastNative)),
+               "homogeneous Q must divide inherited texture coordinates")) return false;
+    const auto stableCpu = harness.lastCpu, stableNative = harness.lastNative;
+    matrix[3][3] = 0.0f;
+    projective->matrix = matrix;
+    const bool zeroRejected = harness.reject(scene, "image/inherited-2d/zero-q",
+                                             CoinRenderAction::INVALID_SCENE);
+    matrix[3][3] = 2.0f;
+    matrix[3][0] = std::numeric_limits<float>::quiet_NaN();
+    projective->matrix = matrix;
+    const bool nanRejected = harness.reject(scene, "image/inherited-2d/nan-matrix",
+                                            CoinRenderAction::INVALID_SCENE);
+    matrix[3][0] = .75f;
+    projective->matrix = matrix;
+    if (!zeroRejected || !nanRejected ||
+        !harness.render(scene, "image/inherited-2d/matrix-recovered") ||
+        !check(harness.lastCpu == stableCpu && (!gpu || harness.lastNative == stableNative),
+               "invalid Q and NaN matrix must recover the exact previous frame")) return false;
+    content->removeChild(projective);
+  }
+  // A volume's two slices differ at every texel, so the inherited volume
+  // path cannot be represented by the 2D texture descriptor above.
+  const unsigned char texels3d[] = {
+    23,211,37,255, 227,31,83,128, 57,73,239,0, 181,149,19,255,
+    247,29,211,255, 31,197,101,128, 139,41,59,0, 83,233,173,255
+  };
+  auto * volume = new SoTexture3;
+  volume->images.setValue(SbVec3s(2, 2, 2), 4, texels3d);
+  volume->wrapS = SoTexture3::CLAMP;
+  volume->wrapT = SoTexture3::CLAMP;
+  volume->wrapR = SoTexture3::CLAMP;
+  volume->model = SoTexture3::MODULATE;
+  scene.inheritedTexture->ref();
+  content->replaceChild(scene.inheritedTexture, volume);
+  setImage(scene.image, 4);
+  const bool volumeRendered = harness.render(scene, "image/inherited-3d/two-slices");
+  bool volumeNumeric = true;
+  if (volumeRendered && portableOnly) {
+    std::vector<unsigned char> whiteImage(16 * 16 * 3, 255);
+    scene.image->image.setValue(SbVec2s(16, 16), 3, whiteImage.data());
+    auto * depthTranslation = new SoTextureMatrixTransform;
+    SbMatrix textureMatrix = SbMatrix::identity();
+    textureMatrix[3][2] = .75f;
+    depthTranslation->matrix = textureMatrix;
+    content->insertChild(depthTranslation, content->findChild(scene.material));
+    volumeNumeric = harness.render(scene, "image/inherited-3d/slice-one-numeric");
+    if (volumeNumeric) {
+      const size_t center = (size_t(60) * size_t(initialSize[0]) + 80) * 4;
+      const auto matchesSliceOne = [center](const std::vector<uint8_t> & rgba) {
+        return rgba.size() >= center + 4 &&
+               std::abs(int(rgba[center]) - 247) <= 2 &&
+               std::abs(int(rgba[center + 1]) - 29) <= 2 &&
+               std::abs(int(rgba[center + 2]) - 211) <= 2;
+      };
+      volumeNumeric = check(matchesSliceOne(harness.lastCpu) &&
+                            (!gpu || matchesSliceOne(harness.lastNative)),
+                            "texture-matrix R must select the authored second volume slice");
+    }
+    content->removeChild(depthTranslation);
+  }
+  content->replaceChild(volume, scene.inheritedTexture);
+  scene.inheritedTexture->unref();
+  if (!volumeRendered || !volumeNumeric) return false;
+  if (portableOnly) {
+    // Eight distinct texture units must compose in traversal order. A last
+    // unit mutation is observable even when all earlier units are unchanged.
+    const unsigned char baseTexel[] = {249, 246, 243, 255};
+    const unsigned char changedTexel[] = {61, 223, 117, 255};
+    scene.inheritedTexture->image.setValue(SbVec2s(1, 1), 4, baseTexel);
+    scene.inheritedTexture->model = SoTexture2::MODULATE;
+    std::vector<unsigned char> whiteImage(16 * 16 * 3, 255);
+    scene.image->image.setValue(SbVec2s(16, 16), 3, whiteImage.data());
+    std::vector<SoNode *> unitNodes;
+    SoTexture2 * lastTexture = nullptr;
+    for (int index = 1; index != 8; ++index) {
+      auto * unit = new SoTextureUnit; unit->unit = index;
+      auto * texture = new SoTexture2;
+      texture->image.setValue(SbVec2s(1, 1), 4, baseTexel);
+      texture->model = SoTexture2::MODULATE;
+      content->insertChild(unit, content->findChild(scene.image));
+      content->insertChild(texture, content->findChild(scene.image));
+      unitNodes.push_back(unit); unitNodes.push_back(texture);
+      lastTexture = texture;
+    }
+    const size_t center = (size_t(60) * size_t(initialSize[0]) + 80) * 4;
+    const auto matchesProduct = [center, gpu, &harness](const unsigned char * finalTexel) {
+      float expected[3] = {1, 1, 1};
+      for (int index = 0; index < 7; ++index)
+        for (int channel = 0; channel < 3; ++channel)
+          expected[channel] *= float(249 - 3 * channel) / 255.0f;
+      for (int channel = 0; channel < 3; ++channel)
+        expected[channel] *= float(finalTexel[channel]) / 255.0f;
+      const auto matches = [center, &expected](const std::vector<uint8_t> & rgba) {
+        if (rgba.size() < center + 4) return false;
+        for (int channel = 0; channel < 3; ++channel)
+          if (std::abs(int(rgba[center + channel]) - int(std::lround(255 * expected[channel]))) > 3)
+            return false;
+        return true;
+      };
+      return matches(harness.lastCpu) && (!gpu || matches(harness.lastNative));
+    };
+    if (!harness.render(scene, "image/inherited-eight-units/initial") ||
+        !check(matchesProduct(baseTexel),
+               "all eight inherited MODULATE units must contribute numerically")) return false;
+    lastTexture->image.setValue(SbVec2s(1, 1), 4, changedTexel);
+    if (!harness.render(scene, "image/inherited-eight-units/last-unit-mutated") ||
+        !check(matchesProduct(changedTexel),
+               "mutating unit seven must alter the eight-unit composition")) return false;
+    const auto stableCpu = harness.lastCpu, stableNative = harness.lastNative;
+    auto * overflow = new SoTextureUnit; overflow->unit = 8;
+    content->insertChild(overflow, content->findChild(scene.image));
+    auto * overflowTexture = new SoTexture2;
+    overflowTexture->image.setValue(SbVec2s(1, 1), 4, baseTexel);
+    overflowTexture->model = SoTexture2::MODULATE;
+    content->insertChild(overflowTexture, content->findChild(scene.image));
+    const bool rejected = harness.reject(scene, "image/inherited-eight-units/overflow",
+                                         CoinRenderAction::UNSUPPORTED);
+    content->removeChild(overflowTexture);
+    content->removeChild(overflow);
+    if (!rejected || !harness.render(scene, "image/inherited-eight-units/recovered") ||
+        !check(harness.lastCpu == stableCpu && (!gpu || harness.lastNative == stableNative),
+               "unit overflow recovery must reproduce the last accepted frame")) return false;
+    for (auto it = unitNodes.rbegin(); it != unitNodes.rend(); ++it) content->removeChild(*it);
+    // PRIMARY_COLOR is the SoImage pixel before textures; PREVIOUS is the
+    // result of unit zero. Both are defined here and deliberately unequal.
+    const unsigned char primaryImage[] = {180, 80, 40};
+    std::vector<unsigned char> primaryPixels(16 * 16 * 3);
+    for (size_t pixel = 0; pixel < 16 * 16; ++pixel)
+      for (int channel = 0; channel < 3; ++channel)
+        primaryPixels[3 * pixel + channel] = primaryImage[channel];
+    scene.image->image.setValue(SbVec2s(16, 16), 3, primaryPixels.data());
+    const unsigned char previousTexel[] = {37, 149, 231, 255};
+    const unsigned char whiteTexel[] = {255, 255, 255, 255};
+    scene.inheritedTexture->image.setValue(SbVec2s(1, 1), 4, previousTexel);
+    scene.inheritedTexture->model = SoTexture2::REPLACE;
+    auto * nextUnit = new SoTextureUnit; nextUnit->unit = 1;
+    auto * nextTexture = new SoTexture2;
+    nextTexture->image.setValue(SbVec2s(1, 1), 4, whiteTexel);
+    auto * combine = new SoTextureCombine;
+    combine->rgbOperation = SoTextureCombine::REPLACE;
+    combine->rgbOperand.set1Value(0, SoTextureCombine::SRC_COLOR);
+    combine->alphaOperation = SoTextureCombine::REPLACE;
+    combine->alphaSource.set1Value(0, SoTextureCombine::TEXTURE);
+    combine->alphaOperand.set1Value(0, SoTextureCombine::SRC_ALPHA);
+    content->insertChild(nextUnit, content->findChild(scene.image));
+    content->insertChild(nextTexture, content->findChild(scene.image));
+    content->insertChild(combine, content->findChild(scene.image));
+    const auto matchesColor = [center, gpu, &harness](const unsigned char * expected) {
+      const auto matches = [center, expected](const std::vector<uint8_t> & rgba) {
+        if (rgba.size() < center + 4) return false;
+        for (int channel = 0; channel < 3; ++channel)
+          if (std::abs(int(rgba[center + channel]) - int(expected[channel])) > 2) return false;
+        return true;
+      };
+      return matches(harness.lastCpu) && (!gpu || matches(harness.lastNative));
+    };
+    combine->rgbSource.set1Value(0, SoTextureCombine::PREVIOUS);
+    if (!harness.render(scene, "image/inherited-combine/previous") ||
+        !check(matchesColor(previousTexel),
+               "PREVIOUS must read the result of inherited unit zero")) return false;
+    combine->rgbSource.set1Value(0, SoTextureCombine::PRIMARY_COLOR);
+    if (!harness.render(scene, "image/inherited-combine/primary") ||
+        !check(matchesColor(primaryImage),
+               "PRIMARY_COLOR must read the original SoImage fragment")) return false;
+    content->removeChild(combine);
+    content->removeChild(nextTexture);
+    content->removeChild(nextUnit);
+  }
   // An empty screen node is inert even if the preceding texture is active.
   scene.image->image.setValue(SbVec2s(0, 0), 0, nullptr);
   if (!harness.render(scene, "image/empty-with-active-texture", false)) return false;
+  const auto emptyCpu=harness.lastCpu, emptyNative=harness.lastNative;
+  // (128/255)^2 is above .2512. Quantizing that product back to RGBA8
+  // before SoAlphaTest would yield 64/255, below .2512, and lose the image.
+  const unsigned char halfAlphaTexel[] = {255, 255, 255, 128};
+  scene.inheritedTexture->image.setValue(SbVec2s(1, 1), 4, halfAlphaTexel);
+  scene.inheritedTexture->model = SoTexture2::MODULATE;
+  std::vector<unsigned char> halfAlphaImage(16 * 16 * 4, 255);
+  for (size_t pixel = 0; pixel < 16 * 16; ++pixel) halfAlphaImage[4 * pixel + 3] = 128;
+  scene.image->image.setValue(SbVec2s(16, 16), 4, halfAlphaImage.data());
+  auto * alphaTest = new SoAlphaTest;
+  alphaTest->function = SoAlphaTest::GREATER;
+  alphaTest->value = .2512f;
+  content->insertChild(alphaTest, content->findChild(scene.image));
+  if (!harness.render(scene, "image/inherited-alpha-precision/pass") ||
+      !check(harness.lastCpu != emptyCpu && (!gpu || harness.lastNative != emptyNative),
+             "the unrounded product of image and inherited texture alpha must pass .2512")) return false;
+  alphaTest->value = .2525f;
+  if (!harness.render(scene, "image/inherited-alpha-precision/reject", false) ||
+      !check(harness.lastCpu == emptyCpu && (!gpu || harness.lastNative == emptyNative),
+             "the same alpha product must fail .2525 without publishing image pixels")) return false;
+  alphaTest->function = SoAlphaTest::EQUAL;
+  alphaTest->value = (128.0f / 255.0f) * (128.0f / 255.0f);
+  if (!harness.render(scene, "image/inherited-alpha-precision/equal-f32") ||
+      !check(harness.lastCpu != emptyCpu && (!gpu || harness.lastNative != emptyNative),
+             "the exact f32 alpha product must survive intermediate precision")) return false;
+  content->removeChild(alphaTest);
   scene.inheritedTexture->image.setValue(SbVec2s(0, 0), 0, nullptr);
   setImage(scene.image, 4);
-  if (!harness.render(scene, "image/inherited-negative-repair")) return false;
+  if (!harness.render(scene, "image/inherited-negative-repair") ||
+      !check(harness.lastCpu==ordinaryCpu && (!gpu || harness.lastNative==ordinaryNative),
+             "removing inherited texture must restore original SoImage frame")) return false;
   scene.material->transparency = .55f;
   harness.transparency(SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
-  return harness.reject(scene, "image/sorted-triangle-profile", CoinRenderAction::UNSUPPORTED);
+  return harness.render(scene, "image/sorted-triangle-profile");
+}
+
+bool inheritedHistory(bool gpu) {
+  Scene scene(false); Harness harness(gpu);
+  harness.glReference = false;
+  scene.quality->textureQuality = .1f;
+  scene.inheritedTexture->wrapS = SoTexture2::CLAMP;
+  scene.inheritedTexture->wrapT = SoTexture2::CLAMP;
+  scene.inheritedTexture->model = SoTexture2::REPLACE;
+  const unsigned char texels[] = {
+    23,211,37,255, 227,31,83,255,
+    57,73,239,255, 181,149,19,255
+  };
+  scene.inheritedTexture->image.setValue(SbVec2s(2,2),4,texels);
+  const unsigned char payload[] = {180,80,40};
+  std::vector<unsigned char> image(16*16*3);
+  for(size_t pixel=0;pixel<16*16;++pixel)
+    for(int channel=0;channel<3;++channel) image[3*pixel+channel]=payload[channel];
+  scene.image->image.setValue(SbVec2s(16,16),3,image.data());
+  auto * content=static_cast<SoSeparator *>(scene.screen->getChild(0));
+  const size_t center=(size_t(60)*size_t(initialSize[0])+80)*4;
+  const auto matches=[&harness,gpu,center](const unsigned char * expected) {
+    const auto one=[center,expected](const std::vector<uint8_t> & rgba) {
+      if(rgba.size()<center+4) return false;
+      for(int channel=0;channel<3;++channel)
+        if(std::abs(int(rgba[center+channel])-int(expected[channel]))>2) return false;
+      return true;
+    };
+    return one(harness.lastCpu) && (!gpu || one(harness.lastNative));
+  };
+  auto * points=new SoCoordinate3;
+  const SbVec3f vertices[]={{-70,-50,-1},{-65,-50,-1},{-70,-45,-1}};
+  points->point.setValues(0,3,vertices);
+  auto * face=new SoFaceSet;face->numVertices.set1Value(0,3);
+  const int originalTextureIndex=content->findChild(scene.inheritedTexture);
+  scene.inheritedTexture->ref();
+  content->removeChild(scene.inheritedTexture);
+  content->insertChild(points,content->findChild(scene.image));
+  content->insertChild(face,content->findChild(scene.image));
+  content->insertChild(scene.inheritedTexture,content->findChild(scene.image));
+  if(!harness.render(scene,"image/inherited-history/untextured-precursor") ||
+     !check(matches(texels),"untextured precursor preserves the default inherited UV")) return false;
+  // An array draw with varying UVs makes OpenGL's current coordinate
+  // indeterminate (§2.8). Reject that texture history before publication.
+  content->removeChild(scene.inheritedTexture);
+  content->insertChild(scene.inheritedTexture,originalTextureIndex);
+  auto * uv=new SoTextureCoordinate2;
+  const SbVec2f distinct[]={{.25f,0},{.75f,0},{.25f,.75f}};
+  uv->point.setValues(0,3,distinct);
+  content->insertChild(uv,content->findChild(face));
+  const bool rejected=harness.reject(scene,"image/inherited-history/indeterminate-array-current",
+                                     CoinRenderAction::UNSUPPORTED);
+  // Texture quality zero disables the effective unit. Even the indeterminate
+  // current coordinate left by an active array cannot affect glDrawPixels
+  // while the unit is disabled. Reactivating the array remains unsupported.
+  scene.quality->textureQuality=0;
+  const bool disabled=rejected &&
+    harness.render(scene,"image/inherited-history/quality-zero-after-array") &&
+    check(matches(payload),"disabled texture ignores indeterminate array UV");
+  scene.quality->textureQuality=.1f;
+  const bool reactivated=disabled &&
+    harness.reject(scene,"image/inherited-history/quality-restored-array",
+                   CoinRenderAction::UNSUPPORTED);
+  content->removeChild(uv);
+  content->removeChild(scene.inheritedTexture);
+  const bool recovered=reactivated &&
+    harness.render(scene,"image/inherited-history/recovered-untextured") &&
+    check(matches(payload),"untextured recovery does not invent a current UV");
+  content->insertChild(scene.inheritedTexture,originalTextureIndex);
+  scene.inheritedTexture->unref();
+  content->removeChild(face);content->removeChild(points);
+  return recovered;
+}
+
+bool inheritedDisabledGenerators(bool gpu) {
+  const unsigned char payload[]={180,80,40};
+  const unsigned char texel[]={23,211,37,255};
+  for(int kind=0;kind<3;++kind) {
+    Scene scene(false);Harness harness(gpu);harness.glReference=false;
+    struct EnvironmentCapture : CaptureCpuBackend {
+      CoinRenderFramePlan frame;
+      CoinRenderSubmitResult submit(const CoinRenderFramePlan & candidate,CoinRenderTargetP & target) override {
+        frame=candidate;return CaptureCpuBackend::submit(candidate,target);
+      }
+    };
+    EnvironmentCapture * environmentCapture=nullptr;
+    if(kind==1) {environmentCapture=new EnvironmentCapture;harness.cpu->getPimpl()->backend.reset(environmentCapture);harness.observer=environmentCapture;}
+    auto * content=static_cast<SoSeparator *>(scene.screen->getChild(0));
+    scene.quality->textureQuality=0;
+    scene.inheritedTexture->image.setValue(SbVec2s(1,1),4,texel);
+    scene.inheritedTexture->model=SoTexture2::REPLACE;
+    std::vector<unsigned char> pixels(16*16*3);
+    for(size_t p=0;p<16*16;++p) for(int c=0;c<3;++c)
+      pixels[3*p+c]=payload[c];
+    scene.image->image.setValue(SbVec2s(16,16),3,pixels.data());
+    SoNode * generator=kind==0 ? static_cast<SoNode *>(new SoTextureCoordinateNormalMap) :
+      kind==1 ? static_cast<SoNode *>(new SoTextureCoordinateEnvironment) :
+                static_cast<SoNode *>(new SoTextureCoordinateReflectionMap);
+    content->insertChild(generator,content->findChild(scene.image));
+    const std::string label=std::string("image/quality-zero/")+
+      (kind==0 ? "normal-map" : kind==1 ? "environment" : "reflection-map");
+    const size_t center=(size_t(60)*size_t(initialSize[0])+80)*4;
+    const auto payloadMatches=[&harness,gpu,center,&payload]() {
+      const auto one=[center,&payload](const std::vector<uint8_t> & rgba) {
+        if(rgba.size()<center+4) return false;
+        for(int c=0;c<3;++c)
+          if(std::abs(int(rgba[center+c])-int(payload[c]))>2) return false;
+        return true;
+      };
+      return one(harness.lastCpu)&&(!gpu||one(harness.lastNative));
+    };
+    if(!harness.render(scene,label+"/disabled") ||
+       !check(payloadMatches(),label+" disabled unit preserves image PRIMARY color"))
+      return false;
+    const auto stableCpu=harness.lastCpu,stableGpu=harness.lastNative;
+    scene.quality->textureQuality=.1f;
+    if(kind==1) {
+      // Environment defines R/Q=1 and initial GL normalZ is defined. The
+      // other two fresh generators retain default Q=0 for projected2D.
+      if(!harness.render(scene,label+"/enabled-defined-environment"))return false;
+      const auto outputMatches=[center,&texel](const std::vector<uint8_t>&rgba) {
+        if(rgba.size()<center+4)return false;for(int c=0;c<3;++c)if(std::abs(int(rgba[center+c])-int(texel[c]))>2)return false;return true;
+      };
+      if(!check(outputMatches(harness.lastCpu)&&(!gpu||outputMatches(harness.lastNative)),label+" enabled Environment samples inherited REPLACE texel"))return false;
+      const auto&frame=environmentCapture->frame;unsigned images=0;bool delivered=true;
+      const double x=72,y=52,z=1.-2.*9./39.,length=std::sqrt(x*x+y*y+z*z),rx=x/length,ry=y/length,rz=-z/length;
+      const double m=2.*std::sqrt(rx*rx+ry*ry+(rz+1)*(rz+1));const double expected[]={rx/m+.5,ry/m+.5,1,1};
+      for(const auto&draw:frame.draws)if(draw.sourceNodeId==scene.image->getNodeId()&&draw.renderStateSlot<frame.renderStates.size()) {
+        const auto&state=frame.renderStates[draw.renderStateSlot];if(!state.rasterPixels)continue;++images;
+        delivered &= state.rasterTextureSourceSlot<frame.renderStates.size();
+        for(int c=0;c<4;++c)delivered &= std::abs(double(state.rasterTextureCoordinates[0][c])-expected[c])<=8.*std::numeric_limits<float>::epsilon();
+        if(state.rasterTextureSourceSlot<frame.renderStates.size()) {const auto&source=frame.renderStates[state.rasterTextureSourceSlot];delivered &= !source.rasterPixels&&source.hasTexture&&source.textureImageSlot<frame.textures.size();
+          if(source.textureImageSlot<frame.textures.size())delivered &= frame.textures[source.textureImageSlot].pixelsRgba==std::vector<uint8_t>(texel,texel+4);}
+      }
+      if(!check(images==1&&delivered,label+" Environment Core keeps aligned RasterPos formula, native R/Q1 and actual inherited texture"))return false;
+    } else {
+      // The now implemented generator can be recognized while projected Q0
+      // is invalid. Both explicit unsupported-profile and invalid-input
+      // rejection are legitimate; publication invariants remain identical.
+      const auto refusesQzero=[](CoinRenderAction::Status status) {return status==CoinRenderAction::UNSUPPORTED||status==CoinRenderAction::INVALID_SCENE;};
+      const size_t calls=harness.observer->submissions;const uint64_t cpuSerial=harness.cpu->getLastSubmissionSerial();
+      std::vector<float>beforeCpuDepth,afterDepth;std::vector<uint8_t>after;harness.cpu->readbackDepth(beforeCpuDepth);
+      harness.cpuAction.apply(scene.root);harness.cpu->readbackRGBA(after);harness.cpu->readbackDepth(afterDepth);
+      const bool cpuCalls=harness.observer->submissions==calls,cpuRgba=after==stableCpu,cpuDepth=afterDepth==beforeCpuDepth,cpuPublication=harness.cpu->getLastSubmissionSerial()==cpuSerial;
+      std::cout<<label<<"/enabled-Qzero CPU status="<<int(harness.cpuAction.getLastStatus())<<" error="<<harness.cpuAction.getLastError().getString()
+        <<" zero_submits="<<cpuCalls<<" rgba_preserved="<<cpuRgba<<" depth_preserved="<<cpuDepth<<" serial_preserved="<<cpuPublication<<'\n';
+      bool refused=check(refusesQzero(harness.cpuAction.getLastStatus())&&harness.cpuAction.getLastError().getLength()!=0&&cpuCalls&&cpuRgba&&cpuDepth&&cpuPublication,
+        label+" projected Qzero must refuse explicitly before changing CPU RGBA, depth, serial or submit count");
+      if(gpu) {const uint64_t gpuSerial=harness.native->getLastSubmissionSerial();std::vector<float>beforeGpuDepth;harness.native->readbackDepth(beforeGpuDepth);
+        harness.gpuAction.apply(scene.root);harness.native->readbackRGBA(after);harness.native->readbackDepth(afterDepth);
+        const bool gpuRgba=after==stableGpu,gpuDepth=afterDepth==beforeGpuDepth,gpuPublication=harness.native->getLastSubmissionSerial()==gpuSerial;
+        std::cout<<label<<"/enabled-Qzero GPU status="<<int(harness.gpuAction.getLastStatus())<<" error="<<harness.gpuAction.getLastError().getString()
+          <<" rgba_preserved="<<gpuRgba<<" depth_preserved="<<gpuDepth<<" serial_preserved="<<gpuPublication<<'\n';
+        refused &= check(refusesQzero(harness.gpuAction.getLastStatus())&&harness.gpuAction.getLastError().getLength()!=0&&gpuRgba&&gpuDepth&&gpuPublication,
+          label+" projected Qzero must refuse explicitly before changing GPU RGBA, depth or submission serial");
+      }
+      if(!refused)return false;
+    }
+    scene.quality->textureQuality=0;
+    if(!harness.render(scene,label+"/disabled-recovery") ||
+       !check(harness.lastCpu==stableCpu && (!gpu||harness.lastNative==stableGpu),
+         label+" recovery reproduces image after enabled generator control"))
+      return false;
+  }
+  return true;
+}
+
+bool inheritedQualityZeroPrecursor(bool gpu) {
+  Scene scene(false);Harness harness(gpu);harness.glReference=false;
+  auto * content=static_cast<SoSeparator *>(scene.screen->getChild(0));
+  const unsigned char payload[]={180,80,40};
+  const unsigned char texel[]={23,211,37,255};
+  std::vector<unsigned char> pixels(16*16*3);
+  for(size_t p=0;p<16*16;++p) for(int c=0;c<3;++c)
+    pixels[3*p+c]=payload[c];
+  scene.image->image.setValue(SbVec2s(16,16),3,pixels.data());
+  scene.inheritedTexture->image.setValue(SbVec2s(1,1),4,texel);
+  scene.inheritedTexture->model=SoTexture2::REPLACE;
+  scene.quality->textureQuality=0;
+  auto * points=new SoCoordinate3;
+  const SbVec3f vertices[]={{-70,-50,-1},{-65,-50,-1},{-70,-45,-1}};
+  points->point.setValues(0,3,vertices);
+  auto * uv=new SoTextureCoordinate2;
+  const SbVec2f varying[]={{.15f,.2f},{.8f,.2f},{.2f,.85f}};
+  uv->point.setValues(0,3,varying);
+  auto * face=new SoFaceSet;face->numVertices.set1Value(0,3);
+  content->insertChild(uv,content->findChild(scene.image));
+  content->insertChild(points,content->findChild(scene.image));
+  content->insertChild(face,content->findChild(scene.image));
+  const size_t center=(size_t(60)*size_t(initialSize[0])+80)*4;
+  const auto matches=[&harness,gpu,center](const unsigned char * expected) {
+    const auto one=[center,expected](const std::vector<uint8_t> & rgba) {
+      if(rgba.size()<center+4) return false;
+      for(int c=0;c<3;++c)
+        if(std::abs(int(rgba[center+c])-int(expected[c]))>2) return false;
+      return true;
+    };
+    return one(harness.lastCpu)&&(!gpu||one(harness.lastNative));
+  };
+  if(!harness.render(scene,"image/quality-zero/precursor-and-image") ||
+     !check(matches(payload),"quality-zero geometry and image ignore varying UV"))
+    return false;
+  // The same geometry is drawn with quality zero, then the inherited image
+  // alone enables texturing later in this traversal. No texture coordinate
+  // array was submitted for the precursor, so current UV remains defined.
+  auto * enable=new SoComplexity;enable->textureQuality=.1f;
+  content->insertChild(enable,content->findChild(scene.image));
+  return harness.render(scene,"image/quality-zero/precursor-then-enable") &&
+    check(matches(texel),"disabled precursor must preserve default UV when image enables unit");
+}
+
+bool inheritedTexgen(bool gpu) {
+  Scene scene(false); Harness harness(gpu); harness.glReference=false;
+  auto * content=static_cast<SoSeparator *>(scene.screen->getChild(0));
+  scene.quality->textureQuality=.1f;
+  scene.inheritedTexture->wrapS=SoTexture2::CLAMP;
+  scene.inheritedTexture->wrapT=SoTexture2::CLAMP;
+  scene.inheritedTexture->model=SoTexture2::REPLACE;
+  const unsigned char texels[] = {
+    23,211,37,255, 227,31,83,255,
+    57,73,239,255, 181,149,19,255
+  };
+  scene.inheritedTexture->image.setValue(SbVec2s(2,2),4,texels);
+  std::vector<unsigned char> white(16*16*3,255);
+  scene.image->image.setValue(SbVec2s(16,16),3,white.data());
+  const size_t center=(size_t(60)*size_t(initialSize[0])+80)*4;
+  const auto matches=[&harness,gpu,center](const unsigned char * expected) {
+    const auto one=[center,expected](const std::vector<uint8_t> & rgba) {
+      if(rgba.size()<center+4) return false;
+      for(int channel=0;channel<3;++channel)
+        if(std::abs(int(rgba[center+channel])-int(expected[channel]))>2) return false;
+      return true;
+    };
+    return one(harness.lastCpu)&&(!gpu||one(harness.lastNative));
+  };
+  auto * object=new SoTextureCoordinateObject;
+  object->factorS=SbVec4f(0,0,0,.75f);
+  object->factorT=SbVec4f(0,0,0,0);
+  object->factorR=SbVec4f(0,0,0,0);
+  object->factorQ=SbVec4f(0,0,0,1);
+  content->insertChild(object,content->findChild(scene.image));
+  if(!harness.render(scene,"image/inherited-object-gen/anchor-s") ||
+     !check(matches(texels+4),"OBJECT_LINEAR must evaluate S at the raster anchor")) return false;
+  object->factorQ=SbVec4f(0,0,0,2);
+  if(!harness.render(scene,"image/inherited-object-gen/q-two") ||
+     !check(matches(texels),"OBJECT_LINEAR Q must divide generated S")) return false;
+  // CoinGL evaluates OBJECT_LINEAR at glRasterPos in its temporary pixel
+  // projection: CENTER/HALF puts a 16x16 image at (72,52), LEFT at (80,52).
+  object->factorS=SbVec4f(.01f,0,0,.03f);
+  object->factorQ=SbVec4f(0,0,0,1);
+  if(!harness.render(scene,"image/inherited-object-gen/pixel-anchor-72") ||
+     !check(matches(texels+4),"object plane .01*x+.03 must sample S=.75 at x=72")) return false;
+  object->factorS=SbVec4f(.0625f,0,0,-4.25f);
+  if(!harness.render(scene,"image/inherited-object-gen/center-origin") ||
+     !check(matches(texels),"CENTER alignment must generate S=.25 at x=72")) return false;
+  scene.image->horAlignment=SoImage::LEFT;
+  const size_t leftInterior=(size_t(60)*size_t(initialSize[0])+84)*4;
+  const auto matchesLeft=[&harness,gpu,leftInterior](const unsigned char * expected) {
+    const auto one=[leftInterior,expected](const std::vector<uint8_t> & rgba) {
+      if(rgba.size()<leftInterior+4) return false;
+      for(int channel=0;channel<3;++channel)
+        if(std::abs(int(rgba[leftInterior+channel])-int(expected[channel]))>2) return false;
+      return true;
+    };
+    return one(harness.lastCpu)&&(!gpu||one(harness.lastNative));
+  };
+  if(!harness.render(scene,"image/inherited-object-gen/left-origin") ||
+     !check(matchesLeft(texels+4),"LEFT alignment must generate S=.75 at x=80")) return false;
+  scene.image->horAlignment=SoImage::CENTER;
+  object->factorS=SbVec4f(0,0,0,0);
+  object->factorQ=SbVec4f(0,0,0,1);
+  auto * matrixNode=new SoTextureMatrixTransform;
+  SbMatrix matrix=SbMatrix::identity();matrix[3][0]=.75f;
+  matrixNode->matrix=matrix;
+  content->insertChild(matrixNode,content->findChild(scene.image));
+  if(!harness.render(scene,"image/inherited-object-gen/matrix-after") ||
+     !check(matches(texels+4),"texture matrix must act after OBJECT_LINEAR generation")) return false;
+  content->removeChild(matrixNode);
+  content->removeChild(object);
+  auto * plane=new SoTextureCoordinatePlane;
+  plane->directionS.setValue(.01f,0,0);
+  plane->directionT.setValue(0,0,0);
+  content->insertChild(plane,content->findChild(scene.image));
+  if(!harness.render(scene,"image/inherited-plane-gen/anchor-72") ||
+     !check(matches(texels+4),"Plane OBJECT_LINEAR must generate S=.72 at raster x=72")) return false;
+  auto * planeMatrix=new SoTextureMatrixTransform;
+  SbMatrix planeProjective=SbMatrix::identity();planeProjective[3][3]=2;
+  planeMatrix->matrix=planeProjective;
+  content->insertChild(planeMatrix,content->findChild(scene.image));
+  if(!harness.render(scene,"image/inherited-plane-gen/matrix-after") ||
+     !check(matches(texels),"texture-matrix Q must divide Plane-generated S=.72")) return false;
+  content->removeChild(planeMatrix);
+  content->removeChild(plane);
+  const unsigned char volumeTexels[] = {
+    23,211,37,255, 227,31,83,255, 57,73,239,255, 181,149,19,255,
+    247,29,211,255, 31,197,101,255, 139,41,59,255, 83,233,173,255
+  };
+  auto * volume=new SoTexture3;
+  volume->images.setValue(SbVec3s(2,2,2),4,volumeTexels);
+  volume->wrapS=SoTexture3::CLAMP;
+  volume->wrapT=SoTexture3::CLAMP;
+  volume->wrapR=SoTexture3::CLAMP;
+  volume->model=SoTexture3::MODULATE;
+  scene.inheritedTexture->ref();
+  content->replaceChild(scene.inheritedTexture,volume);
+  auto * volumeGen=new SoTextureCoordinateObject;
+  volumeGen->factorS=SbVec4f(0,0,0,0);
+  volumeGen->factorT=SbVec4f(0,0,0,0);
+  volumeGen->factorR=SbVec4f(0,0,0,.75f);
+  volumeGen->factorQ=SbVec4f(0,0,0,1);
+  content->insertChild(volumeGen,content->findChild(scene.image));
+  const bool volumeGood=harness.render(scene,"image/inherited-object-gen/volume-r") &&
+    check(matches(volumeTexels+16),"OBJECT_LINEAR R must select volume slice one");
+  content->removeChild(volumeGen);
+  content->replaceChild(volume,scene.inheritedTexture);
+  scene.inheritedTexture->unref();
+  return volumeGood;
+}
+
+bool inheritedModels(bool gpu) {
+  Scene scene(false); Harness harness(gpu); harness.glReference=false;
+  scene.quality->textureQuality=.1f;
+  const unsigned char source[]={180,80,40};
+  std::vector<unsigned char> image(16*16*3);
+  for(size_t pixel=0;pixel<16*16;++pixel)
+    for(int channel=0;channel<3;++channel) image[3*pixel+channel]=source[channel];
+  scene.image->image.setValue(SbVec2s(16,16),3,image.data());
+  const size_t center=(size_t(60)*size_t(initialSize[0])+80)*4;
+  const auto matches=[&harness,gpu,center](const float expected[3]) {
+    const auto one=[center,expected](const std::vector<uint8_t> & rgba) {
+      if(rgba.size()<center+4) return false;
+      for(int channel=0;channel<3;++channel)
+        if(std::abs(int(rgba[center+channel])-int(std::lround(expected[channel])))>2) return false;
+      return true;
+    };
+    return one(harness.lastCpu)&&(!gpu||one(harness.lastNative));
+  };
+  const unsigned char texel[]={100,200,50,128};
+  scene.inheritedTexture->image.setValue(SbVec2s(1,1),4,texel);
+  scene.inheritedTexture->model=SoTexture2::DECAL;
+  const float alpha=128.0f/255.0f;
+  const float decal[]={source[0]*(1-alpha)+texel[0]*alpha,
+                       source[1]*(1-alpha)+texel[1]*alpha,
+                       source[2]*(1-alpha)+texel[2]*alpha};
+  if(!harness.render(scene,"image/inherited-model/decal") ||
+     !check(matches(decal),"DECAL must mix image and texture RGB by texture alpha")) return false;
+  const unsigned char opaqueTexel[]={100,200,50,255};
+  scene.inheritedTexture->image.setValue(SbVec2s(1,1),4,opaqueTexel);
+  scene.inheritedTexture->model=SoTexture2::BLEND;
+  const unsigned char constant[]={20,220,130};
+  scene.inheritedTexture->blendColor.setValue(float(constant[0])/255,
+                                               float(constant[1])/255,
+                                               float(constant[2])/255);
+  float blended[3];
+  for(int channel=0;channel<3;++channel) {
+    const float weight=float(opaqueTexel[channel])/255.0f;
+    blended[channel]=source[channel]*(1-weight)+constant[channel]*weight;
+  }
+  return harness.render(scene,"image/inherited-model/blend") &&
+    check(matches(blended),"BLEND must use image RGB, texture RGB and constant color");
 }
 
 struct ScreenHook { int mode = 0; };
@@ -530,27 +1233,40 @@ bool limits(bool gpu, const char * fontName) {
              "repair after rejected text must restore the exact previous image")) return false;
   scene.material->transparency = .55f;
   harness.transparency(SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
-  if (!harness.reject(scene, "text/sorted-triangle-profile", CoinRenderAction::UNSUPPORTED)) return false;
+  if (!harness.render(scene, "text/sorted-triangle-profile")) return false;
   harness.transparency(SoGLRenderAction::BLEND); scene.material->transparency = 0;
   scene.screen->ref(); scene.root->removeChild(scene.screen);
   auto * shadow = new SoShadowGroup;
   shadow->isActive = TRUE; shadow->addChild(scene.screen); scene.screen->unref();
   scene.root->addChild(shadow);
-  return harness.reject(scene, "text/active-shadow-profile", CoinRenderAction::UNSUPPORTED);
+  return harness.render(scene, "text/active-shadow-without-maps");
 }
 }
 int main(int argc, char ** argv) {
-  bool gpu = false; const char * font = "DejaVu Sans";
+  bool gpu = false, inheritedOnly = false, inheritedPortableOnly = false; const char * font = "DejaVu Sans";
   for (int i = 1; i < argc; ++i) {
     const std::string argument = argv[i];
     if (argument == "--gpu") gpu = true;
     else if (argument == "--capture") gpu = false;
+    else if (argument == "--inherited-only") inheritedOnly = true;
+    else if (argument == "--inherited-portable-only") inheritedPortableOnly = true;
     else if (argument == "--font" && i + 1 < argc) font = argv[++i];
-    else { std::cerr << "Usage: CoinRenderScreenContentTest --capture|--gpu [--font NAME]\n"; return 2; }
+    else { std::cerr << "Usage: CoinRenderScreenContentTest --capture|--gpu [--inherited-only|--inherited-portable-only] [--font NAME]\n"; return 2; }
   }
   SoDB::init(); CoinRenderAction::initClass();
   if (gpu && !CoinRenderAction::isGpuBackendAvailable()) {
     std::cerr << "CoinRenderScreenContentTest requires the selected GPU backend\n"; return 77;
+  }
+  if (inheritedOnly || inheritedPortableOnly) {
+    if (!inheritedImage(gpu, inheritedPortableOnly) ||
+        (inheritedPortableOnly && (!inheritedHistory(gpu) ||
+          !inheritedDisabledGenerators(gpu) || !inheritedQualityZeroPrecursor(gpu) ||
+          !inheritedTexgen(gpu) || !inheritedModels(gpu)))) return 1;
+    std::cout << "CoinRenderScreenContentTest inherited-image "
+              << (inheritedPortableOnly ? "portable-numeric " : "CoinGL-strict ")
+              << (gpu ? (inheritedPortableOnly ? "GPU/CPU" : "GPU/CoinGL") : "capture/CPU")
+              << " passed\n";
+    return 0;
   }
   if (!images(gpu) || !text(gpu, font) || !depth(gpu, false, "image") ||
       !depth(gpu, true, "defaultFont") || !depth(gpu, true, font) ||

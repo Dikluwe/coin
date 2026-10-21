@@ -23,6 +23,7 @@
 
     fn phong_state() -> CoinWgpuRenderState {
         let mut state: CoinWgpuRenderState = unsafe { std::mem::zeroed() };
+        state.color_write = 1;
         state.light_model = 1;
         state.light_count = 1;
         state.lights[0].position_type = [0.0, 0.0, 3.0, 1.0];
