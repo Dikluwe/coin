@@ -8,6 +8,8 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderImageCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
+#include "rendering/coinrender/CoinRenderDiagnosticShell.h"
+#include <cstdio>
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 #endif
@@ -86,6 +88,7 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     inspector = preflightBackend.get();
   }
 
+  if (target) inspector->configureMultipassTarget(*target);
   bool portableExecution = root.hasPortableShaderDraws();
   for (const auto &producer : graph.producers)
     for (size_t face = 0; face < producer.faceCount(); ++face)
@@ -94,6 +97,14 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     return {CoinRenderBackendStatus::UNSUPPORTED,
             "Portable shader module executor is unavailable before scene texture production"};
 
+  check = inspector->preflightMultipassGraph(graph, root, target ? target->size : SbVec2i32(640, 480));
+  if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+  check = inspector->preflightMultipass(root, target ? target->size : SbVec2i32(640, 480));
+  if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+  for (const auto & producer : graph.producers) for (size_t face=0; face<producer.faceCount(); ++face) {
+    check = inspector->preflightMultipass(producer.face(face), producer.size);
+    if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+  }
   // Pure/known connector limits must reject before device preparation. A
   // second inspection after prepare checks selected-adapter format facts.
   check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
@@ -126,6 +137,14 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     }
   }
   if (target && target->backend) inspector = target->backend.get();
+  check = inspector->preflightMultipassGraph(graph, root, target ? target->size : SbVec2i32(640,480));
+  if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+  check = inspector->preflightMultipass(root, target ? target->size : SbVec2i32(640,480));
+  if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+  for (const auto & producer : graph.producers) for (size_t face=0; face<producer.faceCount(); ++face) {
+    check = inspector->preflightMultipass(producer.face(face), producer.size);
+    if (check.status != CoinRenderBackendStatus::SUCCESS) return check;
+  }
   check = inspector->preflightRtt(graph, root, target ? target->size : SbVec2i32(640, 480));
   if (check.status != CoinRenderBackendStatus::SUCCESS)
     return check;
@@ -196,6 +215,12 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
       if(!(stamp()==capturedStamp))return {CoinRenderBackendStatus::DEVICE_LOST,"Cube RTT assembly changed generation"};
       if(!resources.bind(i+1,producer.sourceRevision,capturedStamp,std::move(resultTexture),diagnostic))
         return {CoinRenderBackendStatus::BACKEND_ERROR,diagnostic};
+      if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
+        std::fprintf(stderr,"COIN_RENDER_PHASE rtt_producer_complete producer_id=%llu source_revision=%llu route=%s faces=6\n",
+          static_cast<unsigned long long>(i+1), static_cast<unsigned long long>(producer.sourceRevision),
+          directBackend ? "direct" : "staged");
+        std::fflush(stderr);
+      }
       continue;
     }
     CoinRenderFramePlan frame;
@@ -252,6 +277,12 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
     if (!resources.bind(i + 1, producer.sourceRevision, capturedStamp, std::move(resultTexture),
                         diagnostic))
       return {CoinRenderBackendStatus::BACKEND_ERROR, diagnostic};
+    if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
+      std::fprintf(stderr,"COIN_RENDER_PHASE rtt_producer_complete producer_id=%llu source_revision=%llu route=%s faces=1\n",
+        static_cast<unsigned long long>(i+1), static_cast<unsigned long long>(producer.sourceRevision),
+        directBackend ? "direct" : "staged");
+      std::fflush(stderr);
+    }
   }
   if (!resources.resolve(root, stamp(), resolvedRoot, diagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};

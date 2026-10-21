@@ -133,6 +133,8 @@ public:
   SbColor4f overlayColor = SbColor4f(1.0f, 0.0f, 0.0f, 1.0f);
   SbBool texturesEnabled = TRUE;
   CoinRenderTransparencyOptions transparencyOptions;
+  int numPasses = 1;
+  uint64_t multipassBufferBudget = UINT64_C(256) * 1024 * 1024;
   CoinRenderOptions executionOptions;
   CoinRenderAction::Status lastStatus;
   CoinRenderDiagnosticDomain lastDiagnosticDomain;
@@ -168,6 +170,7 @@ public:
   std::vector<DelayedAnnotation> delayedAnnotations;
   std::vector<DelayedAnnotation> delayedOverlays;
   std::vector<std::tuple<const SoNode *, bool, int>> managerLayerBoundaries;
+  std::vector<std::tuple<const SoNode *, bool, int>> capturedManagerLayerBoundaries;
   std::vector<uint32_t> managerCapturedLayers;
   unsigned int managerHighlightDepth = 0;
   bool replayingAnnotations = false;

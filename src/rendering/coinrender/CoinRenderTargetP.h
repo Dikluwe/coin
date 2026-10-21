@@ -53,6 +53,8 @@ public:
   bool supportsPortableShaderModules() const;
   CoinRenderBackendStatus prepareBackend();
   CoinRenderSubmitResult preflightSubmission(bool asynchronous);
+  CoinRenderSubmitResult preflightMultipass(const CoinRenderFramePlan &,
+    bool asynchronous, const CoinRenderRttPlan * graph = nullptr);
   void deviceLost();
   CoinRenderDeviceDomain preparedDomain;
 

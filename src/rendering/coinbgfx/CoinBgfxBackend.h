@@ -23,6 +23,11 @@ public:
   bool initializesCpuDepthBuffer() const override { return false; }
   bool resetOnActionDetach() const override { return true; }
   bool isGpuBackend() const override { return true; }
+  void configureMultipassTarget(const CoinRenderTargetP &) override;
+  bool multipassOutputBytes(const CoinRenderTargetP &, bool, uint64_t &) const override;
+  CoinRenderSubmitResult preflightMultipassGraph(const CoinRenderRttPlan &,
+    const CoinRenderFramePlan &, const SbVec2i32 &) const override;
+  CoinRenderSubmitResult preflightMultipass(const CoinRenderFramePlan &, const SbVec2i32 &) const override;
   bool supportsOffscreenShadows() const override { return true; }
   bool supportsOpaqueBump() const override { return true; }
   uint64_t getAvailableTransparencyMechanisms(bool window = false) const {
@@ -121,6 +126,7 @@ private:
   // programs and uniform banks belong to the existing shared device runtime.
   std::map<std::pair<std::string, PortableFamily>, std::string> portableProgramRoutes;
   bool prepareFullscreenResources();
+  bool prepareMultipassPrograms();
   bool prepareNpotMipProgram();
   bool prepareRasterImageResources();
   CoinRenderSubmitResult encodeRasterImages(const CoinRenderFramePlan & frame,
@@ -329,6 +335,12 @@ private:
   bgfx::UniformHandle peelMsaaDepthSampler = BGFX_INVALID_HANDLE;
   bgfx::ProgramHandle compositeProgram;
   bgfx::ProgramHandle compositeDepthProgram;
+  bgfx::ProgramHandle multipassSumProgram = BGFX_INVALID_HANDLE;
+  bgfx::ProgramHandle multipassMeanProgram = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle multipassSceneSampler = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle multipassPreviousSampler = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle multipassInfoUniform = BGFX_INVALID_HANDLE;
+  bool multipassSceneRequired = false;
   bgfx::ProgramHandle npotMipProgram;
   bgfx::ProgramHandle rasterImageProgram = BGFX_INVALID_HANDLE;
   bgfx::UniformHandle rasterPrimarySampler = BGFX_INVALID_HANDLE;
@@ -389,6 +401,8 @@ private:
   uint64_t lastPublishedSequence;
   std::vector<DirectTextureResource> directTextures;
   uint64_t cachedRevision;
+  int cachedPassCount = 1;
+  uint64_t cachedPassBudget = UINT64_C(256) * 1024 * 1024;
   int cachedWidth;
   int cachedHeight;
   bool cachedHomogeneousDepth;

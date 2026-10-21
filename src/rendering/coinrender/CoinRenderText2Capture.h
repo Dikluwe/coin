@@ -24,6 +24,7 @@ struct CoinRenderText2RasterPass {
   float pixelX = 0.0f;
   float pixelY = 0.0f;
   float depthCoin = 0.0f;
+  int glyphX = 0, glyphY = 0; // Original cache offsets, before anchor arithmetic.
   float alphaCutoff = -1.0f;
   bool mono = false;
   bool forceBlend = false;
@@ -36,6 +37,7 @@ struct CoinRenderText2Raster {
   int bboxMin[2] = {0, 0};
   int bboxMax[2] = {0, 0};
   int maxWidth = 0;
+  int justification = 1;
   std::vector<int> lineWidths;
   std::vector<CoinRenderText2RasterPass> passes;
   bool empty = true;

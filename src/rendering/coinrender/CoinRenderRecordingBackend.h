@@ -13,6 +13,7 @@ public:
   bool isGpuBackend() const override { return false; }
   CoinRenderBackendStatus getStatus() const override;
   CoinRenderBackendStatus prepare(CoinRenderTargetP & target) override;
+  CoinRenderSubmitResult preflightMultipass(const CoinRenderFramePlan &, const SbVec2i32 &) const override;
   CoinRenderSubmitResult submit(const CoinRenderFramePlan & frame,
                       CoinRenderTargetP & target) override;
   void poll() override;

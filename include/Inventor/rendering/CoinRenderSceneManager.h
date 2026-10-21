@@ -47,6 +47,12 @@ public:
   CoinRenderAction::DrawMode getDrawMode() const;
   void setOverlayColor(const SbColor4f & color);
   const SbColor4f & getOverlayColor() const;
+  // Requested multipass count: 1..16, default 1. Validation occurs at render/apply.
+  void setNumPasses(int passes);
+  int getNumPasses() const;
+  // Extra multipass attachments/accumulation budget, default 256 MiB.
+  void setMultipassBufferBudget(uint64_t bytes);
+  uint64_t getMultipassBufferBudget() const;
   void setTexturesEnabled(SbBool enabled);
   SbBool isTexturesEnabled() const;
   void clearManagerLayerBoundaries();

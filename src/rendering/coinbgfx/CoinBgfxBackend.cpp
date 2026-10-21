@@ -117,6 +117,11 @@
 #include "coin_bgfx_fs_peel_next_spirv.h"
 #include "coin_bgfx_fs_composite_glsl.h"
 #include "coin_bgfx_fs_composite_spirv.h"
+#include "coin_bgfx_fs_multipass_sum_glsl.h"
+#include "coin_bgfx_fs_multipass_sum_spirv.h"
+#include "coin_bgfx_fs_multipass_mean_glsl.h"
+#include "coin_bgfx_fs_multipass_mean_spirv.h"
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "coin_bgfx_fs_composite_depth_glsl.h"
 #include "coin_bgfx_fs_composite_depth_spirv.h"
 #include "coin_bgfx_fs_weighted_oit_glsl.h"
@@ -300,6 +305,8 @@
 #include "coin_bgfx_fs_instanced_color_dx11.h"
 #include "coin_bgfx_fs_peel_next_dx11.h"
 #include "coin_bgfx_fs_composite_dx11.h"
+#include "coin_bgfx_fs_multipass_sum_dx11.h"
+#include "coin_bgfx_fs_multipass_mean_dx11.h"
 #include "coin_bgfx_fs_composite_depth_dx11.h"
 #include "coin_bgfx_fs_weighted_oit_dx11.h"
 #include "coin_bgfx_fs_weighted_composite_dx11.h"
@@ -2065,6 +2072,10 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->peelMsaaDepthSampler)) bgfx::destroy(this->peelMsaaDepthSampler);
   if (bgfx::isValid(this->compositeProgram)) bgfx::destroy(this->compositeProgram);
   if (bgfx::isValid(this->compositeDepthProgram)) bgfx::destroy(this->compositeDepthProgram);
+  for (auto handle : {this->multipassSumProgram, this->multipassMeanProgram})
+    if (bgfx::isValid(handle)) bgfx::destroy(handle);
+  for (auto handle : {this->multipassSceneSampler, this->multipassPreviousSampler, this->multipassInfoUniform})
+    if (bgfx::isValid(handle)) bgfx::destroy(handle);
   if (bgfx::isValid(this->npotMipProgram)) bgfx::destroy(this->npotMipProgram);
   if (bgfx::isValid(this->rasterImageProgram)) bgfx::destroy(this->rasterImageProgram);
   if (bgfx::isValid(this->rasterPrimarySampler)) bgfx::destroy(this->rasterPrimarySampler);
@@ -2734,7 +2745,7 @@ bool CoinBgfxBackend::prepareBumpReceiverPrograms(const CoinBgfxDraw &draw, bool
     colorFormat = bgfx::TextureFormat::RGBA8;
   else if (windowTarget && this->presentToWindow &&
            caps->rendererType != bgfx::RendererType::OpenGL &&
-           !bgfx::isValid(this->windowSceneFrameBuffer))
+           !bgfx::isValid(this->windowSceneFrameBuffer) && !this->multipassSceneRequired)
     colorFormat = sharedRuntime().backbufferColorFormat;
   const uint64_t state = drawState(draw);
   const uint32_t formats = uint32_t(colorFormat) | (uint32_t(depthFormat) << 16);
@@ -3083,6 +3094,96 @@ void CoinBgfxBackend::submitPortableDraw(bgfx::ViewId view, bgfx::ProgramHandle 
     std::fflush(stderr);
   }
   bgfx::submit(view, program->second.program, depth, discard);
+}
+
+void CoinBgfxBackend::configureMultipassTarget(const CoinRenderTargetP & target) {
+  this->sampleCount = target.options.sampleCount;
+}
+bool CoinBgfxBackend::multipassOutputBytes(const CoinRenderTargetP & target, bool asynchronous,
+    uint64_t & bytes) const {
+  if (!CoinRenderBackend::multipassOutputBytes(target, asynchronous, bytes)) return false;
+  if (target.size[0] < 0 || target.size[1] < 0) return false;
+  const uint64_t width = uint64_t(target.size[0]), height = uint64_t(target.size[1]);
+  if (target.kind == CoinRenderTargetP::KIND_WINDOW) {
+    // Private scene attachments are in requiredBytes; the acquired surface is
+    // an independent final color image. Window APIs expose no depth readback.
+    if (!CoinRenderMultipassCore::addAttachmentBytes(width,height,4,1,bytes)) return false;
+    if (!target.windowReadbackRequested) return true;
+  } else if (target.directTextureOutput) return true;
+  const uint64_t channels = target.kind == CoinRenderTargetP::KIND_WINDOW ? 4 :
+    target.depthReadbackEnabled ? 8 : 4;
+  const uint64_t copies = target.kind == CoinRenderTargetP::KIND_WINDOW ? 2 :
+    uint64_t(this->readbackPipelineDepth) * 2 + (asynchronous ? 2 : 0);
+  return CoinRenderMultipassCore::addAttachmentBytes(width,height,channels,copies,bytes) &&
+    (!target.depthReadbackEnabled || target.kind == CoinRenderTargetP::KIND_WINDOW ||
+     CoinRenderMultipassCore::addAttachmentBytes(width,height,4,1,bytes));
+}
+
+CoinRenderSubmitResult CoinBgfxBackend::preflightMultipassGraph(const CoinRenderRttPlan & graph,
+    const CoinRenderFramePlan & root, const SbVec2i32 & extent) const {
+  if (root.numPasses == 1) return {};
+  uint64_t retained = 0;
+  if (!CoinRenderMultipassCore::graphBytes(graph, root, extent, this->sampleCount,
+        CoinRenderMultipassCore::Executor::BGFX, retained) || retained > root.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass simultaneous RTT resources exceed the buffer budget"};
+  CoinRenderFramePlan admitted = root;
+  admitted.multipassBufferBudget -= retained;
+  return this->preflightMultipass(admitted, extent);
+}
+
+CoinRenderSubmitResult CoinBgfxBackend::preflightMultipass(const CoinRenderFramePlan & frame,
+                                                           const SbVec2i32 & extent) const {
+  if (frame.numPasses == 1) return {};
+  uint64_t required = 0;
+  uint64_t jobs = 0, ticketBytes = 0;
+  this->readbackLoad(jobs, ticketBytes);
+
+  if (!CoinRenderMultipassCore::requiredBytes(frame,extent,this->sampleCount,required,
+        CoinRenderMultipassCore::Executor::BGFX,bgfxShadowMultitexture(frame)) ||
+      required > frame.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY,"Multipass attachments exceed the buffer budget"};
+  // BGFX has both CPU staging and a readback texture; wgpu reports the
+  // physical, row-aligned ticket buffers through its concrete resource owner.
+  if (!CoinRenderMultipassCore::addAttachmentBytes(ticketBytes, 1, 2, 1, required) ||
+      required > frame.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass attachments and retained tickets exceed the buffer budget"};
+  uint64_t rasterBytes = 0;
+  if (!CoinRenderMultipassCore::rasterPayloadBytes(frame, sizeof(CoinBgfxVertex), sizeof(CoinBgfxDraw), false, rasterBytes) ||
+      rasterBytes > frame.multipassBufferBudget - required)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass raster payload exceeds the buffer budget"};
+  const auto * caps = sharedRuntime().references ? bgfx::getCaps() : nullptr;
+  if (caps && (extent[0] > caps->limits.maxTextureSize || extent[1] > caps->limits.maxTextureSize ||
+      !(caps->formats[bgfx::TextureFormat::RGBA32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+      !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::RGBA32F,
+        BGFX_TEXTURE_RT | BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+        BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT)))
+    return {CoinRenderBackendStatus::UNSUPPORTED,"Multipass RGBA32F accumulation format or extent unavailable"};
+  if (this->initialized && !const_cast<CoinBgfxBackend *>(this)->prepareMultipassPrograms())
+    return {CoinRenderBackendStatus::BACKEND_ERROR,this->lastError};
+  return {};
+}
+
+bool CoinBgfxBackend::prepareMultipassPrograms() {
+  if (!this->prepareFullscreenResources()) return false;
+  if (!bgfx::isValid(this->multipassSumProgram))
+    this->multipassSumProgram=createLayerProgram(COIN_BGFX_SHADER_DATA(coin_bgfx_vs),COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+      COIN_BGFX_SHADER_DATA(coin_bgfx_fs_multipass_sum),COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_multipass_sum));
+  if (!bgfx::isValid(this->multipassMeanProgram))
+    this->multipassMeanProgram=createLayerProgram(COIN_BGFX_SHADER_DATA(coin_bgfx_vs),COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+      COIN_BGFX_SHADER_DATA(coin_bgfx_fs_multipass_mean),COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_multipass_mean));
+  if (!bgfx::isValid(this->multipassSceneSampler))
+    this->multipassSceneSampler=bgfx::createUniform("s_multipassScene",bgfx::UniformType::Sampler);
+  if (!bgfx::isValid(this->multipassPreviousSampler))
+    this->multipassPreviousSampler=bgfx::createUniform("s_multipassPrevious",bgfx::UniformType::Sampler);
+  if (!bgfx::isValid(this->multipassInfoUniform))
+    this->multipassInfoUniform=bgfx::createUniform("u_multipassInfo",bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->multipassSumProgram) || !bgfx::isValid(this->multipassMeanProgram) ||
+      !bgfx::isValid(this->multipassSceneSampler) || !bgfx::isValid(this->multipassPreviousSampler) ||
+      !bgfx::isValid(this->multipassInfoUniform)) {
+    this->lastError="Multipass accumulation program/resource creation failed";
+    return false;
+  }
+  return true;
 }
 
 bool
@@ -3514,7 +3615,7 @@ CoinBgfxBackend::prepareTransparencyPrograms(CoinBgfxTransparencyStrategy strate
 {
   if (strategy != CoinBgfxTransparencyStrategy::OBJECT && !this->prepareFullscreenResources()) return false;
   if (this->presentToWindow &&
-      (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL ||
+      (this->multipassSceneRequired || bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL ||
        strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS)) {
     if (!this->prepareFullscreenResources()) return false;
     if (!bgfx::isValid(this->compositeProgram))
@@ -3673,7 +3774,8 @@ CoinBgfxBackend::destroyFrameBuffers()
 bool
 CoinBgfxBackend::resize(int newWidth, int newHeight)
 {
-  if (newWidth == this->width && newHeight == this->height) return true;
+  if (newWidth == this->width && newHeight == this->height &&
+      !(this->presentToWindow && this->multipassSceneRequired && !bgfx::isValid(this->windowSceneFrameBuffer))) return true;
   if (newWidth <= 0 || newHeight <= 0 || newWidth > 16384 || newHeight > 16384) {
     this->lastError = "Invalid BGFX target dimensions";
     return false;
@@ -3690,9 +3792,9 @@ CoinBgfxBackend::resize(int newWidth, int newHeight)
   // Resolve multisample textures in the producing context. Only the resolved
   // single-sample color crosses into the secondary native-window context.
   const bool prepareWindowScene = this->presentToWindow &&
-    (existingWindow || glWindowMsaa) &&
+    (this->multipassSceneRequired || ((existingWindow || glWindowMsaa) &&
     (bgfx::getCaps()->rendererType == bgfx::RendererType::OpenGL ||
-     this->activeTransparencyStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS);
+     this->activeTransparencyStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS)));
   if (glWindowMsaa && uint64_t(newWidth) * uint64_t(newHeight) *
         (8ull * this->sampleCount + 8ull) > 128ull * 1024 * 1024) {
     this->lastError = "BGFX MSAA and window resolve attachments exceed 128 MiB";
@@ -4733,7 +4835,8 @@ static bool bgfxCompositionViewBudget(const CoinRenderFramePlan & frame,
   (void)direct;
   const bool images = std::any_of(frame.renderStates.begin(), frame.renderStates.end(),
     [](const CoinRenderRenderStateSnapshot & state) { return state.rasterTextureSourceSlot != UINT32_MAX; });
-  uint64_t views = (images ? 1 : 0) + shadowViews + (shadowViews && bgfxShadowMultitexture(frame) ? 1 : 0);
+  const uint64_t fixedViews = (images ? 1 : 0) + shadowViews + (shadowViews && bgfxShadowMultitexture(frame) ? 1 : 0);
+  uint64_t views = fixedViews;
   views += 1 + bgfxDeferredViewCount(draws, strategy == CoinBgfxTransparencyStrategy::OBJECT,
     strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS ? frame.transparency.layers + 1 : 2,
     [](const CoinBgfxDraw & draw) { return draw.isSceneLayer() && draw.blend && draw.deferred; },
@@ -4752,7 +4855,10 @@ static bool bgfxCompositionViewBudget(const CoinRenderFramePlan & frame,
     if (layer.second && CoinBgfxLowering::clipViewport(layer.second->viewport, width, height, clipped))
       ++views;
   }
-  views += outputViews + (multisampled ? 1 : 0);
+  views += (multisampled ? 1 : 0);
+  if (frame.numPasses > 1)
+    views = fixedViews + (views - fixedViews + 1) * uint64_t(frame.numPasses) + 1;
+  views += outputViews;
   const uint32_t maximumViews = bgfx::getCaps() ? bgfx::getCaps()->limits.maxViews : targetViewCount;
   if (requiredViews) *requiredViews = uint32_t(views);
   if (views > maximumViews) {
@@ -4852,6 +4958,12 @@ static bool bgfxMsaaFrameViewBudget(const CoinRenderFramePlan & frame,
       int32_t clipped[4];
       if (CoinBgfxLowering::clipViewport(viewport, width, height, clipped)) ++views;
     }
+  }
+  if (frame.numPasses > 1) {
+    const uint64_t fixedViews = (images ? 1 : 0) + shadows.passes.size() +
+      (!shadows.passes.empty() && bgfxShadowMultitexture(frame) ? 1 : 0);
+    views = fixedViews + (views - fixedViews - outputViews + 1) *
+      uint64_t(frame.numPasses) + 1 + outputViews;
   }
   const uint32_t maximumViews = targetCaps ? targetCaps->limits.maxViews : targetViewCount;
   if (requiredViews) *requiredViews = uint32_t(views);
@@ -4983,10 +5095,20 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX supports native window presentation or offscreen readback";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
+  const auto multipassAdmission = this->preflightMultipass(frame,target.size);
+  if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
+  const bool releaseMultipassWindow = this->presentToWindow && this->multipassSceneRequired && frame.numPasses == 1;
+  this->multipassSceneRequired = frame.numPasses > 1;
   const auto textureAdmission = bgfxTextureProfile(frame);
   if (textureAdmission.status != CoinRenderBackendStatus::SUCCESS) return textureAdmission;
   const auto msaaAdmission = this->msaaProfile(frame);
   if (msaaAdmission.status != CoinRenderBackendStatus::SUCCESS) return msaaAdmission;
+  if (releaseMultipassWindow) {
+    const bgfx::FrameBufferHandle nativeOutput = this->frameBuffer;
+    this->frameBuffer = BGFX_INVALID_HANDLE;
+    this->destroyFrameBuffers();
+    this->frameBuffer = nativeOutput;
+  }
   if (std::any_of(frame.renderStates.begin(), frame.renderStates.end(), [](const CoinRenderRenderStateSnapshot & state) {
         return state.rasterTextureSourceSlot != UINT32_MAX;
       }) && !this->prepareRasterImageResources())
@@ -5070,11 +5192,12 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
 #else
   const bool instanceCaps = true;
 #endif
-  const bool instancingEnabled = !hasShadows && this->drawBatchingEnabled &&
+  const bool instancingEnabled = frame.numPasses == 1 && !hasShadows && this->drawBatchingEnabled &&
     !(disableInstancing && std::strcmp(disableInstancing, "1") == 0) &&
     instanceCaps &&
     caps->limits.maxInstanceData >= 10 && caps->limits.maxVertexAttributes >= 12;
   const bool cacheDimensionsMatch =
+    this->cachedPassCount == frame.numPasses && this->cachedPassBudget == frame.multipassBufferBudget &&
     target.size[0] == this->cachedWidth &&
     target.size[1] == this->cachedHeight &&
     homogeneousDepth == this->cachedHomogeneousDepth;
@@ -5085,7 +5208,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::isValid(this->cachedIndexBuffer);
   const bool portableFrame = !frame.portableShaders.empty() || std::any_of(this->cachedPlan.draws.begin(), this->cachedPlan.draws.end(),
     [](const CoinBgfxDraw &draw) { return draw.portableShaderSlot != 0; });
-  const bool cacheHit = !portableFrame && !hasShadows && cacheDimensionsMatch &&
+  const bool cacheHit = frame.numPasses == 1 && !portableFrame && !hasShadows && cacheDimensionsMatch &&
     (bumpPayloadHit || (!activeBump && !cachedBump && frame.revision!=0 && frame.revision==this->cachedRevision)) &&
     (!this->cachedPlan.usesInstancing ||
       (instancingEnabled && bgfx::isValid(this->cachedInstanceBuffer)));
@@ -5103,7 +5226,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const bool instancedCameraPatchEnabled = instancingEnabled &&
     !(disableInstancedCameraPatch && std::strcmp(disableInstancedCameraPatch, "1") == 0) &&
     bgfx::isValid(this->cachedInstanceBuffer);
-  const bool cameraPatchEligible =
+  const bool cameraPatchEligible = frame.numPasses == 1 &&
     !portableFrame && !activeBump && !cachedBump && !hasShadows && this->cameraPatchEnabled &&
     (!this->cachedPlan.usesInstancing || instancedCameraPatchEnabled) &&
     reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
@@ -5140,14 +5263,14 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         static_cast<unsigned int>(caps->limits.maxVertexAttributes), this->lastError.c_str());
     if (!instanced && !CoinBgfxLowering::lower(frame, target.size[0], target.size[1],
                               homogeneousDepth, freshPlan, this->lastError, hasShadows,
-                              this->drawBatchingEnabled, target.submissionPreflight(frame), compact)) {
+                              this->drawBatchingEnabled && frame.numPasses == 1, target.submissionPreflight(frame), compact)) {
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
     }
     bgfxSplitSamplerViews(freshPlan);
     plan = &freshPlan;
   }
   std::vector<CoinBgfxVertexRange> materialRanges;
-  const bool materialPatchEligible = !portableFrame && !activeBump && !cachedBump && !cacheHit && !cameraPatchUsed &&
+  const bool materialPatchEligible = frame.numPasses == 1 && !portableFrame && !activeBump && !cachedBump && !cacheHit && !cameraPatchUsed &&
     !this->cachedPlan.usesInstancing && !freshPlan.usesInstancing &&
     reuse.kind == CoinRenderFrameReuseKind::RESOURCE_REBUILD &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
@@ -5168,7 +5291,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     (selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS &&
      this->peelPassCount != frame.transparency.layers) ||
     this->width != target.size[0] || this->height != target.size[1];
-  const bool presentSceneTarget = rebuildSceneTarget ?
+  const bool presentSceneTarget = this->presentToWindow && frame.numPasses > 1 ? true : rebuildSceneTarget ?
     (this->presentToWindow &&
      (bgfx::isValid(this->frameBuffer) ||
       (this->sampleCount > 1 && caps->rendererType == bgfx::RendererType::OpenGL)) &&
@@ -5182,13 +5305,15 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         shadowPlan.passes.size(), false, target.size[0], target.size[1],
         outputViews, this->sampleCount > 1, this->lastError, &requiredViews) || !this->reserveViews(requiredViews))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  if (frame.numPasses > 1 && !this->prepareMultipassPrograms())
+    return {CoinRenderBackendStatus::BACKEND_ERROR,this->lastError};
   if (!this->prepareTransparencyPrograms(selectedStrategy, bgfxNeedsFixedSurfacePrograms(strategyDraws)))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (!this->prepareBaseProgram(strategyDraws, hasShadows, selectedStrategy, plan->usesInstancing,
-                                this->presentToWindow, coinBgfxTextureFormat(frame.outputColorFormat)))
+                                this->presentToWindow && frame.numPasses == 1, coinBgfxTextureFormat(frame.outputColorFormat)))
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   if (!this->preparePortablePrograms(frame, strategyDraws, hasShadows, selectedStrategy,
-        this->presentToWindow, coinBgfxTextureFormat(frame.outputColorFormat)))
+        this->presentToWindow && frame.numPasses == 1, coinBgfxTextureFormat(frame.outputColorFormat)))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   if (hasShadows && !bgfxShadowMultitexture(frame) && selectedStrategy != CoinBgfxTransparencyStrategy::OBJECT &&
       !this->prepareShadowTransparencyPrograms())
@@ -5287,6 +5412,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
     this->cachedPlan = std::move(freshPlan);
     this->cachedRevision = frame.revision;
+    this->cachedPassCount = frame.numPasses;
+    this->cachedPassBudget = frame.multipassBufferBudget;
     this->cachedWidth = target.size[0];
     this->cachedHeight = target.size[1];
     this->cachedHomogeneousDepth = homogeneousDepth;
@@ -5351,7 +5478,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
           32u * 1024u * 1024u, 128u * 1024u * 1024u, true)) {
       this->cachedPlan = std::move(freshPlan);
       this->cachedRevision = frame.revision;
-      this->cachedWidth = target.size[0];
+      this->cachedPassCount = frame.numPasses;
+    this->cachedPassBudget = frame.multipassBufferBudget;
+    this->cachedWidth = target.size[0];
       this->cachedHeight = target.size[1];
       this->cachedHomogeneousDepth = homogeneousDepth;
       plan = &this->cachedPlan;
@@ -5461,6 +5590,30 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   if (rasterResult.status != CoinRenderBackendStatus::SUCCESS) { destroyTextures(); return rasterResult; }
   const bgfx::ViewId rasterViewOffset = rasterImages.textures.empty() ? 0 : 1;
   const Clock::time_point uploaded = Clock::now();
+  // Private floating sums never share an attachment with the scene: every
+  // sample resolves first, then reads the preceding sum and writes the other.
+  struct MultipassTargets {
+    CoinBgfxCallback * callback;
+    bgfx::FrameBufferHandle sums[2] = {BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE};
+    explicit MultipassTargets(CoinBgfxCallback * value) : callback(value) {}
+    ~MultipassTargets() {
+      if (callback && callback->failed()) return;
+      for (auto handle : sums) if (bgfx::isValid(handle)) bgfx::destroy(handle);
+    }
+  } accumulation(static_cast<CoinBgfxCallback *>(this->callback.get()));
+  if (frame.numPasses > 1) {
+    for (unsigned int i = 0; i < 2; ++i) {
+      accumulation.sums[i] = bgfx::createFrameBuffer(this->width, this->height,
+        bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_RT |
+          BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+          BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+      if (!bgfx::isValid(accumulation.sums[i])) {
+        destroyTextures();
+        return {CoinRenderBackendStatus::OUT_OF_MEMORY,
+          "BGFX multipass float attachment allocation failed"};
+      }
+    }
+  }
   struct ShadowMapOwner {
     CoinBgfxCallback * callback;
     std::vector<bgfx::FrameBufferHandle> buffers;
@@ -5561,10 +5714,6 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   bgfx::ViewId opaqueView = this->viewBase + rasterViewOffset + (hasShadows ? static_cast<bgfx::ViewId>(shadowPlan.passes.size()) : 0);
   if (this->shadowArrayActive) this->encodeShadowArray(shadowPlan,shadowMaps.buffers,opaqueView++);
-  bgfx::setViewName(opaqueView, "opaque");
-  bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
-  bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(this->width),
-                    static_cast<uint16_t>(this->height));
   const bgfx::FrameBufferHandle resolvedOutput = bgfx::isValid(this->windowSceneFrameBuffer)
     ? this->windowSceneFrameBuffer : this->frameBuffer;
   const bgfx::FrameBufferHandle sceneOutput = this->sampleCount > 1 ?
@@ -5575,6 +5724,50 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED,
       "BGFX sorted layers requires a sampleable opaque depth attachment");
   }
+  const std::vector<CoinBgfxDraw> & sourceDraws =
+    cameraPatchUsed ? cameraDraws : plan->draws;
+  std::vector<CoinBgfxDraw> groupedDraws;
+  const bool groupDraws = frame.numPasses == 1 && this->drawGroupingEnabled && !activeBump && !hasShadows && !plan->usesInstancing;
+  if (groupDraws)
+    CoinBgfxLowering::groupOpaqueDraws(sourceDraws, groupedDraws);
+  const std::vector<CoinBgfxDraw> & baseDraws =
+    groupDraws ? groupedDraws : sourceDraws;
+  const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, baseDraws);
+  const bool useSortedLayers =
+    selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
+  const bgfx::TextureHandle surfaceSampleDepth = useSortedLayers && this->sampleCount > 1 ?
+    bgfx::getTexture(this->peelFrameBuffers[0], 2) : bgfx::TextureHandle BGFX_INVALID_HANDLE;
+  bgfx::ViewId nextView = opaqueView;
+  for (int pass = 0; pass < frame.numPasses; ++pass) {
+    opaqueView = nextView;
+    std::vector<CoinBgfxDraw> jitteredDraws;
+    if (frame.numPasses > 1) {
+      jitteredDraws = baseDraws;
+      for (CoinBgfxDraw & draw : jitteredDraws) {
+        if (draw.multipassRasterFixed) continue;
+        const auto & state = frame.renderStates[draw.renderStateSlot];
+        const auto & viewport = frame.viewports[state.viewportSlot];
+        SbMatrix shifted;
+        CoinRenderMultipassCore::projection(state.projectionCoin, frame.numPasses, pass, viewport, shifted);
+        const SbMatrix projection = CoinRenderTransformCore::projection(shifted, homogeneousDepth);
+        const SbMatrix mvp = state.model * state.view * projection *
+          CoinRenderTransformCore::viewportTransform(viewport, this->width, this->height);
+        std::memcpy(draw.mvp, mvp.getValue(), sizeof(draw.mvp));
+      }
+      // Retain layer barriers even when this sample has no pixels from the
+      // bitmap which originally established them. They submit no geometry.
+      for (CoinBgfxDraw & draw : jitteredDraws)
+        if (draw.multipassMask && !(draw.multipassMask & (1u << pass)) &&
+            (draw.clearDepthBefore || draw.authoredScene)) draw.indexCount = 0;
+      jitteredDraws.erase(std::remove_if(jitteredDraws.begin(), jitteredDraws.end(),
+        [pass](const CoinBgfxDraw & draw) { return draw.multipassMask && !(draw.multipassMask & (1u << pass)) &&
+          !draw.clearDepthBefore && !draw.authoredScene; }), jitteredDraws.end());
+    }
+    const std::vector<CoinBgfxDraw> & draws = frame.numPasses > 1 ? jitteredDraws : baseDraws;
+  bgfx::setViewName(opaqueView, "opaque");
+  bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
+  bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(this->width),
+                    static_cast<uint16_t>(this->height));
   bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
   // The packed clear API quantizes Coin's float color before the GL clear.
   // Keep the float until the renderer converts it to its target format.
@@ -5582,19 +5775,6 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
   bgfx::setViewTransform(opaqueView, nullptr, nullptr);
   bgfx::touch(opaqueView);
-  const std::vector<CoinBgfxDraw> & sourceDraws =
-    cameraPatchUsed ? cameraDraws : plan->draws;
-  std::vector<CoinBgfxDraw> groupedDraws;
-  const bool groupDraws = this->drawGroupingEnabled && !activeBump && !hasShadows && !plan->usesInstancing;
-  if (groupDraws)
-    CoinBgfxLowering::groupOpaqueDraws(sourceDraws, groupedDraws);
-  const std::vector<CoinBgfxDraw> & draws =
-    groupDraws ? groupedDraws : sourceDraws;
-  const LogicalDrawStats drawStats = logicalDrawStats(sourceDraws, draws);
-  const bool useSortedLayers =
-    selectedStrategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
-  const bgfx::TextureHandle surfaceSampleDepth = useSortedLayers && this->sampleCount > 1 ?
-    bgfx::getTexture(this->peelFrameBuffers[0], 2) : bgfx::TextureHandle BGFX_INVALID_HANDLE;
   if (std::any_of(draws.begin(), draws.end(), [](const CoinBgfxDraw & draw) { return draw.authoredScene; })) {
     // The original view clears the frame once; backgrounds execute before the
     // authored scene and its depth barrier without clearing their color.
@@ -5609,9 +5789,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::setViewTransform(opaqueView, nullptr, nullptr);
     bgfx::touch(opaqueView);
   }
-  bgfx::ViewId nextView = opaqueView + 2;
+  nextView = opaqueView + 2;
   for (const CoinBgfxDraw & draw : draws) {
-    if (!draw.isSceneLayer() || (draw.blend && draw.deferred)) continue;
+    if (!draw.indexCount || !draw.isSceneLayer() || (draw.blend && draw.deferred)) continue;
     // A skipped draw has no submit to discard its instance binding. Cull it
     // before encoding any geometry so later fullscreen passes stay ordinary.
     if (!setDrawScissor(draw, this->width, this->height)) continue;
@@ -5637,6 +5817,54 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   if (this->sampleCount > 1)
     this->encodeMsaaResolve(nextView++, resolvedOutput, this->width, this->height, 1.0f);
+    if (frame.numPasses > 1) {
+      const bgfx::ViewId sumView = nextView++;
+      bgfx::setViewName(sumView, "multipass_sum");
+      bgfx::setViewMode(sumView, bgfx::ViewMode::Sequential);
+      bgfx::setViewRect(sumView, 0, 0, this->width, this->height);
+      bgfx::setViewFrameBuffer(sumView, accumulation.sums[pass & 1]);
+      bgfx::setViewClear(sumView, BGFX_CLEAR_NONE);
+      bgfx::setViewTransform(sumView, nullptr, nullptr);
+      const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+      const float info[4] = {1.0f / this->width, 1.0f / this->height,
+        pass ? 1.0f : 0.0f, 1.0f / frame.numPasses};
+      const uint32_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+        BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
+      bgfx::setTransform(identity);
+      bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+      bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+      bgfx::setUniform(this->multipassInfoUniform, info);
+      bgfx::setTexture(0, this->multipassSceneSampler, bgfx::getTexture(resolvedOutput, 0), flags);
+      // Bind a valid texture even when the branch does not consume a prior sum.
+      bgfx::setTexture(1, this->multipassPreviousSampler,
+        pass ? bgfx::getTexture(accumulation.sums[(pass - 1) & 1], 0) :
+          bgfx::getTexture(resolvedOutput, 0), flags);
+      bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+      bgfx::submit(sumView, this->multipassSumProgram);
+    }
+  }
+  if (frame.numPasses > 1) {
+    const bgfx::ViewId meanView = nextView++;
+    bgfx::setViewName(meanView, "multipass_mean");
+    bgfx::setViewMode(meanView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(meanView, 0, 0, this->width, this->height);
+    bgfx::setViewFrameBuffer(meanView, resolvedOutput);
+    bgfx::setViewClear(meanView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(meanView, nullptr, nullptr);
+    const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    const float info[4] = {1.0f / this->width, 1.0f / this->height,
+      0.0f, 1.0f / frame.numPasses};
+    bgfx::setTransform(identity);
+    bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+    bgfx::setUniform(this->multipassInfoUniform, info);
+    bgfx::setTexture(0, this->multipassSceneSampler,
+      bgfx::getTexture(accumulation.sums[(frame.numPasses - 1) & 1], 0),
+      BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+      BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+    bgfx::submit(meanView, this->multipassMeanProgram);
+  }
   if (bgfx::isValid(this->windowSceneFrameBuffer)) {
     const bgfx::ViewId presentView = nextView++;
     bgfx::setViewName(presentView, "window_scene_present");
@@ -6247,6 +6475,10 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     else transparency.layers.push_back(buffer);
   }
 
+  const auto multipassAdmission = this->preflightMultipass(frame, size);
+  if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
+  if (frame.numPasses > 1 && !this->prepareMultipassPrograms())
+    return {CoinRenderBackendStatus::BACKEND_ERROR, this->lastError};
   DirectTextureResource * cachedResource = NULL;
   for (DirectTextureResource & resource : this->directTextures) {
     if (resource.producerKey == producerKey && !resource.inUse) {
@@ -6485,10 +6717,61 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       bgfx::setScissor();
     }
   }
+  // Private floating sums never share an attachment with the scene: every
+  // sample resolves first, then reads the preceding sum and writes the other.
+  struct MultipassTargets {
+    CoinBgfxCallback * callback;
+    bgfx::FrameBufferHandle sums[2] = {BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE};
+    explicit MultipassTargets(CoinBgfxCallback * value) : callback(value) {}
+    ~MultipassTargets() {
+      if (callback && callback->failed()) return;
+      for (auto handle : sums) if (bgfx::isValid(handle)) bgfx::destroy(handle);
+    }
+  } accumulation(static_cast<CoinBgfxCallback *>(this->callback.get()));
+  if (frame.numPasses > 1) {
+    for (unsigned int i = 0; i < 2; ++i) {
+      accumulation.sums[i] = bgfx::createFrameBuffer(static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]),
+        bgfx::TextureFormat::RGBA32F, BGFX_TEXTURE_RT |
+          BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+          BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+      if (!bgfx::isValid(accumulation.sums[i])) {
+        cleanupDirect();
+        return {CoinRenderBackendStatus::OUT_OF_MEMORY,
+          "BGFX multipass float attachment allocation failed"};
+      }
+    }
+  }
   const bgfx::FrameBufferHandle sceneOutput = this->sampleCount > 1 ?
     this->msaaFrameBuffer : output;
   bgfx::ViewId opaqueView = this->viewBase + rasterViewOffset + static_cast<bgfx::ViewId>(shadowPlan.passes.size());
   if (this->shadowArrayActive) this->encodeShadowArray(shadowPlan,shadowMaps.buffers,opaqueView++);
+  bgfx::ViewId nextView = opaqueView;
+  for (int pass = 0; pass < frame.numPasses; ++pass) {
+    opaqueView = nextView;
+    std::vector<CoinBgfxDraw> jitteredDraws;
+    if (frame.numPasses > 1) {
+      jitteredDraws = plan.draws;
+      for (CoinBgfxDraw & draw : jitteredDraws) {
+        if (draw.multipassRasterFixed) continue;
+        const auto & state = frame.renderStates[draw.renderStateSlot];
+        const auto & viewport = frame.viewports[state.viewportSlot];
+        SbMatrix shifted;
+        CoinRenderMultipassCore::projection(state.projectionCoin, frame.numPasses, pass, viewport, shifted);
+        const SbMatrix projection = CoinRenderTransformCore::projection(shifted, bgfx::getCaps()->homogeneousDepth);
+        const SbMatrix mvp = state.model * state.view * projection *
+          CoinRenderTransformCore::viewportTransform(viewport, size[0], size[1]);
+        std::memcpy(draw.mvp, mvp.getValue(), sizeof(draw.mvp));
+      }
+      // Retain layer barriers even when this sample has no pixels from the
+      // bitmap which originally established them. They submit no geometry.
+      for (CoinBgfxDraw & draw : jitteredDraws)
+        if (draw.multipassMask && !(draw.multipassMask & (1u << pass)) &&
+            (draw.clearDepthBefore || draw.authoredScene)) draw.indexCount = 0;
+      jitteredDraws.erase(std::remove_if(jitteredDraws.begin(), jitteredDraws.end(),
+        [pass](const CoinBgfxDraw & draw) { return draw.multipassMask && !(draw.multipassMask & (1u << pass)) &&
+          !draw.clearDepthBefore && !draw.authoredScene; }), jitteredDraws.end());
+    }
+    const auto & sampleDraws = frame.numPasses > 1 ? jitteredDraws : plan.draws;
   bgfx::setPaletteColor(0, plan.clearColor);
   bgfx::setViewName(opaqueView, "rtt_opaque");
   bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
@@ -6499,9 +6782,9 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   bgfx::touch(opaqueView);
   const bgfx::TextureHandle surfaceSampleDepth = strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS && this->sampleCount > 1 ?
     bgfx::getTexture(transparency.layers[0], 2) : bgfx::TextureHandle BGFX_INVALID_HANDLE;
-  if (std::any_of(plan.draws.begin(), plan.draws.end(), [](const CoinBgfxDraw & draw) { return draw.authoredScene; })) {
+  if (std::any_of(sampleDraws.begin(), sampleDraws.end(), [](const CoinBgfxDraw & draw) { return draw.authoredScene; })) {
     ++opaqueView;
-    this->encodeOverlayLayers(plan.draws, vb, ib, sceneOutput, textures, opaqueView,
+    this->encodeOverlayLayers(sampleDraws, vb, ib, sceneOutput, textures, opaqueView,
       size[0], size[1], frame, shadowPlan, shadowMaps.buffers, true, surfaceSampleDepth);
     bgfx::setViewName(opaqueView, "rtt_authored_scene");
     bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
@@ -6511,8 +6794,8 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::setViewTransform(opaqueView, nullptr, nullptr);
     bgfx::touch(opaqueView);
   }
-  for (const CoinBgfxDraw & draw : plan.draws) {
-    if (!draw.isSceneLayer() || (draw.blend && draw.deferred)) continue;
+  for (const CoinBgfxDraw & draw : sampleDraws) {
+    if (!draw.indexCount || !draw.isSceneLayer() || (draw.blend && draw.deferred)) continue;
     bgfx::setTransform(draw.mvp);
     bgfx::setVertexBuffer(0, vb);
     bgfx::setIndexBuffer(ib, draw.firstIndex, draw.indexCount);
@@ -6522,16 +6805,64 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       size[0], size[1], surfaceSampleDepth);
   }
 
-  bgfx::ViewId nextView = this->encodeDeferredRuns(plan.draws,vb,ib,sceneOutput,textures,opaqueView+1,
+  nextView = this->encodeDeferredRuns(sampleDraws,vb,ib,sceneOutput,textures,opaqueView+1,
     size[0],size[1],frame,shadowPlan,shadowMaps.buffers,strategy,transparency.layers,transparency.oit,surfaceSampleDepth);
 
-  if (!this->encodeOverlayLayers(plan.draws, vb, ib, sceneOutput, textures, nextView,
+  if (!this->encodeOverlayLayers(sampleDraws, vb, ib, sceneOutput, textures, nextView,
                                 size[0], size[1], frame, shadowPlan, shadowMaps.buffers, false, surfaceSampleDepth)) {
     cleanupDirect();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
   if (this->sampleCount > 1)
     this->encodeMsaaResolve(nextView++, output, size[0], size[1], 1.0f);
+    if (frame.numPasses > 1) {
+      const bgfx::ViewId sumView = nextView++;
+      bgfx::setViewName(sumView, "multipass_sum");
+      bgfx::setViewMode(sumView, bgfx::ViewMode::Sequential);
+      bgfx::setViewRect(sumView, 0, 0, size[0], size[1]);
+      bgfx::setViewFrameBuffer(sumView, accumulation.sums[pass & 1]);
+      bgfx::setViewClear(sumView, BGFX_CLEAR_NONE);
+      bgfx::setViewTransform(sumView, nullptr, nullptr);
+      const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+      const float info[4] = {1.0f / size[0], 1.0f / size[1],
+        pass ? 1.0f : 0.0f, 1.0f / frame.numPasses};
+      const uint32_t flags = BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+        BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT;
+      bgfx::setTransform(identity);
+      bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+      bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+      bgfx::setUniform(this->multipassInfoUniform, info);
+      bgfx::setTexture(0, this->multipassSceneSampler, bgfx::getTexture(output, 0), flags);
+      // Bind a valid texture even when the branch does not consume a prior sum.
+      bgfx::setTexture(1, this->multipassPreviousSampler,
+        pass ? bgfx::getTexture(accumulation.sums[(pass - 1) & 1], 0) :
+          bgfx::getTexture(output, 0), flags);
+      bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+      bgfx::submit(sumView, this->multipassSumProgram);
+    }
+  }
+  if (frame.numPasses > 1) {
+    const bgfx::ViewId meanView = nextView++;
+    bgfx::setViewName(meanView, "multipass_mean");
+    bgfx::setViewMode(meanView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(meanView, 0, 0, size[0], size[1]);
+    bgfx::setViewFrameBuffer(meanView, output);
+    bgfx::setViewClear(meanView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(meanView, nullptr, nullptr);
+    const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+    const float info[4] = {1.0f / size[0], 1.0f / size[1],
+      0.0f, 1.0f / frame.numPasses};
+    bgfx::setTransform(identity);
+    bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+    bgfx::setUniform(this->multipassInfoUniform, info);
+    bgfx::setTexture(0, this->multipassSceneSampler,
+      bgfx::getTexture(accumulation.sums[(frame.numPasses - 1) & 1], 0),
+      BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP |
+      BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
+    bgfx::submit(meanView, this->multipassMeanProgram);
+  }
   bgfx::frame();
   if (manualMips) {
     auto runtimeStatus = this->checkRuntimeFailure("BGFX direct RTT base render failed");
@@ -7004,6 +7335,12 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
   if(!bumpViewport(root,size))return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX bump requires the full target viewport"};
   for(const auto & producer:graph.producers)if(!bumpViewport(producer.plan,producer.size))
     return {CoinRenderBackendStatus::UNSUPPORTED,"BGFX bump producer requires its full target viewport"};
+  bool multipassProgramsNeeded = root.numPasses > 1;
+  for (const auto & producer : graph.producers)
+    multipassProgramsNeeded = multipassProgramsNeeded || producer.plan.numPasses > 1;
+  if (this->initialized && multipassProgramsNeeded &&
+      !const_cast<CoinBgfxBackend *>(this)->prepareMultipassPrograms())
+    return {CoinRenderBackendStatus::BACKEND_ERROR, this->lastError};
   const auto prepareBumpFrame = [this](const CoinRenderFramePlan &frame, bool windowTarget) {
     if (!this->initialized || !bgfxFrameProgramNeeds(frame).bump)
       return true;
@@ -7038,7 +7375,7 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
     }
     return true;
   };
-  if (!prepareBumpFrame(root, this->presentToWindow))
+  if (!prepareBumpFrame(root, this->presentToWindow && root.numPasses == 1))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   for (const auto &producer : graph.producers)
     if (!prepareBumpFrame(producer.plan, false))
@@ -7222,9 +7559,9 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
       if (!CoinBgfxLowering::selectTransparencyStrategy(plan.draws, backend->transparencyMode,
             backend->weightedOitSupported, backend->sortedLayersSupported, strategy, backend->lastError)) return false;
       if (!backend->prepareTransparencyPrograms(strategy, bgfxNeedsFixedSurfacePrograms(plan.draws)) ||
-          !backend->prepareBaseProgram(plan.draws, shadows, strategy, false, window,
+          !backend->prepareBaseProgram(plan.draws, shadows, strategy, false, window && frame.numPasses == 1,
                                       colorFormat)) return false;
-      return backend->preparePortablePrograms(frame, plan.draws, shadows, strategy, window, colorFormat, true);
+      return backend->preparePortablePrograms(frame, plan.draws, shadows, strategy, window && frame.numPasses == 1, colorFormat, true);
     };
     if (!prepareModules(root, size, this->presentToWindow, coinBgfxTextureFormat(root.outputColorFormat)))
       return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};

@@ -123,6 +123,7 @@ bool captureImpl(const SoText2 & node, SoState * state, CoinRenderText2Raster & 
   const int justification = node.justification.getValue();
   if (justification != SoText2::LEFT && justification != SoText2::RIGHT && justification != SoText2::CENTER)
     return fail(Status::INVALID_INPUT, "SoText2 justification is invalid", status, diagnostic);
+  candidate.justification = justification;
   const float spacing = node.spacing.getValue();
   if (!std::isfinite(spacing))
     return fail(Status::INVALID_INPUT, "SoText2 spacing is not finite", status, diagnostic);
@@ -282,6 +283,7 @@ bool captureImpl(const SoText2 & node, SoState * state, CoinRenderText2Raster & 
       CoinRenderText2RasterPass pass;
       if (!initializePass(pass, bitmap.width, bitmap.height, used, status, diagnostic)) return false;
       pass.mono = true;
+      pass.glyphX = rasterX; pass.glyphY = rasterY;
       pass.pixelX = float(rasterX) + screenOffsetX;
       pass.pixelY = float(rasterY) + float(monoAnchorY);
       pass.depthCoin = candidate.anchor.depthCoin;

@@ -30,6 +30,8 @@ naga = { version = "24", features = ["wgsl-in", "glsl-out"] }
 # texelFetch for depth multisample textures.
 naga = { path = "vendor/naga-24.0.0" }
 wgpu-hal = { path = "vendor/wgpu-hal-24.0.4" }
+# Permit same-thread teardown after diagnostic TLS has been destroyed.
+wgpu-core = { path = "vendor/wgpu-core-24.0.5" }
 glow = { path = "vendor/glow-0.16.0" }
 
 [[test]]

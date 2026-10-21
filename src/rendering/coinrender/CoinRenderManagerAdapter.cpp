@@ -335,6 +335,13 @@ CoinRenderManagerAdapter::syncFromRenderManager()
     this->pimpl->error = "CoinRender manager color-index mode is not implemented";
     return FALSE;
   }
+  SoGLRenderAction * sourceAction = this->pimpl->source->getGLRenderAction();
+  if (sourceAction->getNumPasses() > 1 && sourceAction->isPassUpdate()) {
+    this->pimpl->status = CoinRenderAction::UNSUPPORTED;
+    this->pimpl->error = "Multipass passUpdate conflicts with atomic publication";
+    return FALSE;
+  }
+  this->pimpl->renderer->setNumPasses(sourceAction->getNumPasses());
   CoinRenderAction::DrawMode drawMode;
   switch (this->pimpl->source->getRenderMode()) {
   case SoRenderManager::AS_IS: drawMode = CoinRenderAction::DrawMode::SCENE; break;

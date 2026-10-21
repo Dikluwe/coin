@@ -8,6 +8,7 @@ mod raster_image;
 mod texture_profile;
 mod texture_mips;
 mod surface_present;
+mod multipass;
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
@@ -38,11 +39,11 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 63;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 65;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 512);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 544);
     assert!(std::mem::size_of::<CoinWgpuPortableNode>() == 40);
     assert!(std::mem::size_of::<CoinWgpuPortableModule>() == 56);
     assert!(std::mem::size_of::<CoinWgpuPortableRange>() == 64);
@@ -694,6 +695,11 @@ pub struct CoinWgpuFrameView {
     pub bump_image_count: u64,
     pub portable_modules: *const CoinWgpuPortableModule,
     pub portable_module_count: u64,
+    pub multipass_count: u32,
+    pub multipass_reserved: u32,
+    pub multipass_budget_bytes: u64,
+    pub multipass_matrices: *const f32,
+    pub multipass_matrix_count: u64,
 }
 
 fn bump_payload_present(frame: &CoinWgpuFrameView) -> bool {
@@ -717,6 +723,7 @@ struct ValidatedBumpPayload {
 }
 
 #[allow(dead_code)]
+#[derive(Clone)]
 struct GpuBumpImage {
     texture: wgpu::Texture,
     view: wgpu::TextureView,
@@ -724,6 +731,7 @@ struct GpuBumpImage {
 }
 
 #[allow(dead_code)]
+#[derive(Clone)]
 struct GpuBumpPayload {
     vertices: wgpu::Buffer,
     images: Vec<GpuBumpImage>,
@@ -825,8 +833,47 @@ thread_local! {
     static LAST_BUMP_BASE_IMAGE_UPLOADS: std::cell::Cell<usize> = const { std::cell::Cell::new(0) };
 }
 
+// One scope belongs to one immutable AA replay. Exact byte keys share uploads
+// even for uncached/oversized draws and portable/bump material expansions.
+// It never escapes the call, retains a device/runtime, or affects one-pass work.
+#[derive(Default)]
+struct MultipassUploads {
+    buffers: HashMap<(u32,Vec<u8>),wgpu::Buffer>,
+    bump: Option<GpuBumpPayload>,
+    peeling: HashMap<(u32,u32,wgpu::TextureFormat,usize,u32),Arc<peeling::Peeling>>,
+    weighted: HashMap<(u32,u32,wgpu::TextureFormat,u32),Arc<weighted::Weighted>>,
+    raster: Option<Arc<HashMap<usize,raster_image::Image>>>,
+}
+thread_local! {
+    static MULTIPASS_UPLOADS: std::cell::RefCell<Option<MultipassUploads>> = const { std::cell::RefCell::new(None) };
+}
+struct MultipassUploadScope(Option<MultipassUploads>);
+impl MultipassUploadScope {
+    fn begin() -> Self {
+        Self(MULTIPASS_UPLOADS.with(|slot|slot.replace(Some(MultipassUploads::default()))))
+    }
+}
+impl Drop for MultipassUploadScope {
+    fn drop(&mut self) {
+        MULTIPASS_UPLOADS.with(|slot| { slot.replace(self.0.take()); });
+    }
+}
+fn multipass_upload_buffer(device:&wgpu::Device, descriptor:&wgpu::util::BufferInitDescriptor<'_>) -> wgpu::Buffer {
+    use wgpu::util::DeviceExt;
+    MULTIPASS_UPLOADS.with(|slot| {
+        let mut slot=slot.borrow_mut();
+        if let Some(replay)=slot.as_mut() {
+            let key=(descriptor.usage.bits(),descriptor.contents.to_vec());
+            replay.buffers.entry(key).or_insert_with(||device.create_buffer_init(descriptor)).clone()
+        } else { device.create_buffer_init(descriptor) }
+    })
+}
+
 fn upload_bump_payload(device: &wgpu::Device, queue: &wgpu::Queue,
                        payload: &ValidatedBumpPayload) -> Result<GpuBumpPayload, String> {
+    if let Some(cached)=MULTIPASS_UPLOADS.with(|slot|slot.borrow().as_ref().and_then(|replay|replay.bump.clone())) {
+        return Ok(cached);
+    }
     if payload.vertices.is_empty() || payload.images.is_empty() {
         return Err("Empty bump GPU payload".to_string());
     }
@@ -875,7 +922,11 @@ fn upload_bump_payload(device: &wgpu::Device, queue: &wgpu::Queue,
         });
         images.push(GpuBumpImage { texture, view, sampler });
     }
-    Ok(GpuBumpPayload { vertices, images })
+    let result=GpuBumpPayload { vertices, images };
+    MULTIPASS_UPLOADS.with(|slot| {
+        if let Some(replay)=slot.borrow_mut().as_mut() { replay.bump=Some(result.clone()); }
+    });
+    Ok(result)
 }
 
 #[repr(C)]
@@ -1257,11 +1308,11 @@ fn encode_bump_opaque_run(
         &slots.iter().map(Option::is_some).collect::<Vec<_>>())?;
     let gpu = upload_bump_payload(device, queue, payload)
         .map_err(|e| (CoinWgpuStatus::Unsupported, e))?;
-    let main_vertices = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+    let main_vertices = multipass_upload_buffer(device, &wgpu::util::BufferInitDescriptor {
         label: Some("Coin bump positions/normals"),
         contents: bytemuck::cast_slice(vertices), usage: wgpu::BufferUsages::VERTEX,
     });
-    let index_buffer = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+    let index_buffer = multipass_upload_buffer(device, &wgpu::util::BufferInitDescriptor {
         label: Some("Coin bump indices"),
         contents: bytemuck::cast_slice(indices), usage: wgpu::BufferUsages::INDEX,
     });
@@ -1295,7 +1346,7 @@ fn encode_bump_opaque_run(
     }
     let mut uniform_buffers = Vec::with_capacity(uniforms.len());
     for uniform in &uniforms {
-        uniform_buffers.push(device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        uniform_buffers.push(multipass_upload_buffer(device, &wgpu::util::BufferInitDescriptor {
             label: Some("Coin bump uniforms"), contents: bytemuck::bytes_of(uniform),
             usage: wgpu::BufferUsages::UNIFORM,
         }));
@@ -1366,7 +1417,7 @@ fn encode_bump_opaque_run(
             image_slots.insert(key, index);
             index
         };
-        let uniform = device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let uniform = multipass_upload_buffer(device, &wgpu::util::BufferInitDescriptor {
             label: Some("Coin bump base transform"),
             contents: bytemuck::bytes_of(&BumpBaseUniforms { texture_matrix: st.texture_matrix }),
             usage: wgpu::BufferUsages::UNIFORM,
@@ -3570,6 +3621,7 @@ struct DeviceState {
     bump_base_cache: Mutex<BumpBaseCache>,
     bump_receivers: Mutex<HashMap<(u32,bool),Arc<SurfaceSamplingProfile>>>,
     portable_profiles: Mutex<portable::ProfileCache>,
+    multipass_programs: multipass::Cache,
     depth_readback: Mutex<Option<depth_transfer::DepthTransfer>>,
     depth_snapshot: Mutex<Option<depth_transfer::DepthTransfer>>,
     pipeline_compilations: AtomicU64,
@@ -3808,6 +3860,56 @@ fn reap_cancelled_readbacks(runtime: &mut RuntimeContext) {
 }
 
 static RUNTIME_CTX: Mutex<Option<RuntimeContext>> = Mutex::new(None);
+static RUNTIME_EXIT_STARTED: AtomicBool = AtomicBool::new(false);
+
+extern "C" {
+    fn atexit(callback: extern "C" fn()) -> std::os::raw::c_int;
+}
+
+// Rust statics have no process-exit Drop. Register after native initialization,
+// rather than at library load: exit callbacks run in reverse registration order,
+// so our GPU objects must be released before the driver's own exit callbacks.
+// A new device or lazy program cache may initialize another native module and
+// therefore registers again. Earlier callbacks are harmless once take() is done.
+fn register_runtime_exit() -> Result<(), String> {
+    if unsafe { atexit(shutdown_runtime_at_exit) } == 0 { Ok(()) }
+    else { Err("Cannot register WebGPU runtime process-exit cleanup".into()) }
+}
+
+extern "C" fn shutdown_runtime_at_exit() {
+    // Drop directly on the thread executing process exit: no transfer to a
+    // cleanup thread or native-context affinity change. The vendored wgpu-core
+    // tolerates unavailable diagnostic TLS during these late resource Drops.
+    // Recover a poisoned lock so an earlier failed call cannot retain a device.
+    let _ = std::panic::catch_unwind(|| {
+        let runtime = {
+            let mut guard = RUNTIME_CTX.lock().unwrap_or_else(|error| error.into_inner());
+            RUNTIME_EXIT_STARTED.store(true, Ordering::SeqCst);
+            guard.take()
+        };
+        if let Some(mut runtime) = runtime {
+            // Serialize with API users through RUNTIME_CTX above, then let GPU
+            // completions run without that mutex. Callbacks use only their own
+            // signals/channels. No ticket or resource is invalidated during
+            // normal operation; this path is entered only by process exit.
+            if let Some(state) = runtime.device_state.as_ref() {
+                let _ = state.device.poll(wgpu::Maintain::Wait);
+            }
+            for state in runtime.extra_devices.values() {
+                let _ = state.device.poll(wgpu::Maintain::Wait);
+            }
+            // Surface drop unconfigures presentation while devices/Instance
+            // are still live. Retire mapped buffers before their owning pools
+            // and cached programs, then release all logical devices.
+            runtime.surfaces.clear();
+            runtime.pending_readbacks.clear();
+            runtime.retired_readbacks.clear();
+            runtime.device_state = None;
+            runtime.extra_devices.clear();
+            drop(runtime);
+        }
+    });
+}
 #[cfg(test)]
 fn gpu_test_instance() -> wgpu::Instance {
     static INSTANCE: std::sync::OnceLock<wgpu::Instance> = std::sync::OnceLock::new();
@@ -4126,6 +4228,9 @@ fn init_runtime_if_needed() -> Result<(), String> {
     #[cfg(target_os = "android")]
     android_log::init();
     let mut guard = RUNTIME_CTX.lock().map_err(|e| e.to_string())?;
+    if RUNTIME_EXIT_STARTED.load(Ordering::SeqCst) {
+        return Err("WebGPU runtime is shutting down with the process".into());
+    }
     if guard.is_none() {
         *guard = Some(RuntimeContext {
             instance: wgpu::Instance::new(&wgpu::InstanceDescriptor::from_env_or_default()),
@@ -4143,6 +4248,10 @@ fn init_runtime_if_needed() -> Result<(), String> {
             extra_generations: HashMap::new(),
             dead_readbacks: HashMap::new(),
         });
+        if let Err(error) = register_runtime_exit() {
+            *guard = None;
+            return Err(error);
+        }
     }
     Ok(())
 }
@@ -4417,6 +4526,7 @@ fn get_or_init_device_impl<'a>(
         bump_base_cache: Mutex::new(BumpBaseCache::default()),
         bump_receivers: Mutex::new(HashMap::new()),
         portable_profiles: Mutex::new(portable::ProfileCache::default()),
+        multipass_programs: multipass::Cache::default(),
         depth_readback: Mutex::new(None),
         depth_snapshot: Mutex::new(None),
         pipeline_compilations: AtomicU64::new(0),
@@ -4449,6 +4559,10 @@ fn get_or_init_device_impl<'a>(
         injected_fault: AtomicI32::new(0),
     });
 
+    if let Err(error) = register_runtime_exit() {
+        runtime.device_state = None;
+        return Err(error);
+    }
     Ok(runtime.device_state.as_mut().unwrap())
 }
 fn get_or_init_device<'a>(
@@ -6186,6 +6300,7 @@ fn encode_mixed_bump_frame(
     sample_count: u32,
     depth_texture: &wgpu::Texture,
     sampling_policy: u32,
+    outer_shadow: Option<&(Vec<shadow::ShadowMap>, shadow::ShadowArray)>,
 ) -> Result<(Vec<wgpu::CommandBuffer>, Option<InstancedGpuBuffers>), (CoinWgpuStatus, String)> {
     if !matches!(sample_count, 1 | 2 | 4)
         || resolve_view.is_some() != (sample_count > 1)
@@ -6252,7 +6367,7 @@ fn encode_mixed_bump_frame(
     let mut commands = Vec::new();
     // One geometric caster pass per frame, shared by every ordered surface run.
     // Cloned handles retain the same allocations through the single queue submit.
-    let shared_shadow = if extended {
+    let owned_shadow = if extended && outer_shadow.is_none() {
         if let Some(shadow) = shadow_frame {
             let mut encoder = ctx
                 .device
@@ -6280,6 +6395,7 @@ fn encode_mixed_bump_frame(
     } else {
         None
     };
+    let shared_shadow = outer_shadow.or(owned_shadow.as_ref());
     let mut start = 0;
     while start < draws.len() {
         let active = slots[start].is_some();
@@ -6318,7 +6434,7 @@ fn encode_mixed_bump_frame(
                     sample_count,
                     sampling_policy,
                     start == 0,
-                    shared_shadow.as_ref(),
+                    shared_shadow,
                 )?
                 .0,
             );
@@ -6380,7 +6496,7 @@ fn encode_mixed_bump_frame(
                 0,
                 start == 0,
                 None,
-                shared_shadow.as_ref(),
+                shared_shadow,
             )?;
             commands.push(command);
         }
@@ -6389,7 +6505,248 @@ fn encode_mixed_bump_frame(
     Ok((commands, None))
 }
 
+// Private multipass metadata is validated before any adapter acquisition,
+// resource/cache mutation or producer command. It never dereferences a payload
+// until the common pointer/count/alignment proof succeeds.
+fn validate_multipass_metadata(frame:&CoinWgpuFrameView,
+    error:*mut std::os::raw::c_char, error_len:usize) -> Result<(),CoinWgpuStatus> {
+    let invalid=|message:&str| {set_error(error,error_len,message);CoinWgpuStatus::InvalidArgument};
+    if !(1..=16).contains(&frame.multipass_count) || frame.multipass_reserved!=0 {
+        return Err(invalid("Invalid multipass count or reserved field"));
+    }
+    if frame.multipass_matrix_count==0 {
+        if !frame.multipass_matrices.is_null() {return Err(invalid("Unexpected multipass matrix pointer"));}
+    } else {
+        let expected=frame.state_count.checked_mul(u64::from(frame.multipass_count)).and_then(|n|n.checked_mul(16));
+        if frame.multipass_count==1 || expected!=Some(frame.multipass_matrix_count) {
+            return Err(invalid("Invalid multipass matrix payload count"));
+        }
+        let values=validate_slice(frame.multipass_matrices,frame.multipass_matrix_count,"multipass matrices",error,error_len)?;
+        if values.iter().any(|value|!value.is_finite()) {return Err(invalid("Non-finite multipass matrix payload"));}
+    }
+    let draws=validate_slice(frame.draws,frame.draw_count,"multipass draws",error,error_len)?;
+    for draw in draws {
+        let mask=(draw.composition_flags>>15)&0xffff;
+        if mask>>frame.multipass_count!=0 || (frame.multipass_count>1 &&
+            draw.composition_flags&0x80000000!=0 && frame.multipass_matrix_count==0) {
+            return Err(invalid("Invalid multipass draw mask or missing raster matrices"));
+        }
+    }
+    if frame.multipass_count>1 {
+        let minimum=multipass::bytes(frame.width,frame.height)
+            .and_then(|n|frame.multipass_matrix_count.checked_mul(4).and_then(|m|n.checked_add(m)));
+        if minimum.is_none_or(|bytes|bytes>frame.multipass_budget_bytes) {
+            set_error(error,error_len,"Multipass accumulation and projection payload exceed budget");
+            return Err(CoinWgpuStatus::OutOfMemory);
+        }
+    }
+    Ok(())
+}
+
+// Raw ABI callers receive the same simultaneous-resource admission as the
+// C++ connector. All slices used here were structurally validated by ingress.
+fn multipass_pending_bytes(runtime: Option<&RuntimeContext>) -> Option<u64> {
+    runtime.map_or(Some(0), |runtime| runtime.pending_readbacks.values()
+        .chain(runtime.retired_readbacks.iter()).try_fold(0u64,|sum,job|
+            sum.checked_add(job.color.size())?.checked_add(job.depth.as_ref().map_or(0,|depth|depth.size()))))
+}
+fn admit_multipass_resources(frame:&CoinWgpuFrameView, samples:u32,
+    states:&[CoinWgpuRenderState], textures:&[CoinWgpuTexture],
+    order:&[composition::CompositionItem], shadow:Option<&ShadowFrame>,
+    window:bool, readback:bool, depth:bool, pending:Option<u64>)
+    -> Result<(),(CoinWgpuStatus,String)> {
+    if frame.multipass_count==1 {return Ok(());}
+    let bytes=(|| -> Option<u64> {
+        let width=u64::from(frame.width); let height=u64::from(frame.height);
+        let mut total=pending?;
+        let mut charge=|w:u64,h:u64,b:u64,n:u64| -> Option<()> {
+            total=total.checked_add(w.checked_mul(h)?.checked_mul(b)?.checked_mul(n)?)?;
+            Some(())
+        };
+        let color=if frame.texture_output_flags&1!=0 {8}else{4};
+        charge(width,height,32,1)?;
+        charge(width,height,color+4,u64::from(samples))?;
+        if samples>1 {charge(width,height,color+4,1)?;}
+        charge(frame.multipass_matrix_count,1,4,1)?;
+        if window {charge(width,height,4,1)?;}
+        if readback {
+            let pitch=width.checked_mul(4)?.checked_add(255)? & !255;
+            charge(pitch,height,1,if depth {2}else{1})?;
+            if depth && samples>1 {charge(width,height,4,1)?;}
+        }
+        if frame.texture_output_flags&2!=0 {
+            let mut w=width;let mut h=height;
+            while w>1 || h>1 {w=(w/2).max(1);h=(h/2).max(1);charge(w,h,color,1)?;}
+        }
+        if order.iter().any(|item|item.peel) {
+            charge(width,height,4,u64::from(samples))?;
+            charge(width,height,13,u64::from(samples).checked_mul(u64::from(frame.sorted_layers_passes))?)?;
+        }
+        if order.iter().any(|item|item.weighted) {charge(width,height,10,u64::from(samples))?;}
+        if let Some(shadow)=shadow {
+            let sizes:Vec<_>=std::iter::once(shadow.map_size).chain(shadow.second.iter()
+                .chain(shadow.third.iter()).chain(shadow.fourth.iter()).chain(shadow.extra.iter())
+                .map(|pass|pass.map_size)).collect();
+            for &size in &sizes {charge(u64::from(size),u64::from(size),20,1)?;}
+            let size=u64::from(*sizes.iter().max()?);
+            charge(size,size,16,u64::from(shadow::array_layer_count(sizes.len() as u32)))?;
+        }
+        let mut tokens=std::collections::HashSet::new();
+        for image in textures.iter().filter(|image|gpu_texture_token(image)) {
+            if !tokens.insert(image.content_digest) {continue;}
+            let format=if image.format==1 {texture_metadata(image)>>2}else{0};
+            let bpp=if format==2 {8}else{4};
+            charge(u64::from(image.width),u64::from(image.height),bpp,1)?;
+            if image.format==1 && texture_metadata(image)&2!=0 {
+                let mut w=u64::from(image.width);let mut h=u64::from(image.height);
+                while w>1 || h>1 {w=(w/2).max(1);h=(h/2).max(1);charge(w,h,bpp,1)?;}
+            }
+        }
+        for state in states.iter().filter(|state|state.raster_texture_source_slot!=0) {
+            let image=textures.get(state.texture_slot as usize)?;
+            charge(u64::from(image.width),u64::from(image.height),16,1)?;
+        }
+        Some(total)
+    })();
+    if bytes.is_none_or(|bytes|bytes>frame.multipass_budget_bytes) {
+        Err((CoinWgpuStatus::OutOfMemory,"Multipass simultaneous scene, composition, shadow, RTT and staging resources exceed budget".into()))
+    } else {Ok(())}
+}
+
 // Pure shared command encoder function strictly common to offscreen and window targets
+fn encode_scene_samples(
+    ctx: &DeviceState, frame: &CoinWgpuFrameView, size: [u32;2],
+    vertices: &[CoinWgpuVertex], indices: &[u32], draws: &[CoinWgpuDraw],
+    order: &[composition::CompositionItem], materials: &[CoinWgpuMaterial],
+    states: &[CoinWgpuRenderState], modules: &[portable::Module],
+    textures: &[CoinWgpuTexture], samplers: &[CoinWgpuSampler],
+    bump: Option<&ValidatedBumpPayload>, shadow: Option<&ShadowFrame>,
+    camera_geometry: Option<&Arc<ValidatedGeometry>>,
+    instances: &[CoinWgpuInstance], instance_ranges: &[CoinWgpuInstanceRange],
+    timestamp: Option<&wgpu::QuerySet>, color: &wgpu::TextureView,
+    resolved: Option<&wgpu::TextureView>, format: wgpu::TextureFormat,
+    depth: &wgpu::TextureView, depth_texture: &wgpu::Texture, samples: u32,
+) -> Result<(Vec<wgpu::CommandBuffer>,Option<InstancedGpuBuffers>),(CoinWgpuStatus,String)> {
+    let count=frame.multipass_count;
+    if !(1..=16).contains(&count) || frame.multipass_reserved!=0 {
+        return Err((CoinWgpuStatus::InvalidArgument,"Invalid multipass request".into()));
+    }
+    if bump.is_some() && (!instances.is_empty() || !instance_ranges.is_empty()
+        || order.iter().any(|item|item.peel||item.weighted) || frame.rasterization_policy!=0) {
+        return Err((CoinWgpuStatus::Unsupported,"Bump frame cannot combine instancing or composition".into()));
+    }
+    let matrix_count=(states.len() as u64).checked_mul(u64::from(count)).and_then(|n|n.checked_mul(16))
+        .ok_or((CoinWgpuStatus::InvalidArgument,"Multipass matrix count overflows".into()))?;
+    let matrices=if frame.multipass_matrix_count==0 {
+        if !frame.multipass_matrices.is_null() {
+            return Err((CoinWgpuStatus::InvalidArgument,"Unexpected multipass matrix pointer".into()));
+        }
+        &[][..]
+    } else {
+        if count==1 || frame.multipass_matrix_count!=matrix_count {
+            return Err((CoinWgpuStatus::InvalidArgument,"Invalid multipass matrix payload count".into()));
+        }
+        validate_slice(frame.multipass_matrices,frame.multipass_matrix_count,
+            "multipass matrices",std::ptr::null_mut(),0)
+            .map_err(|status|(status,"Invalid multipass matrix pointer/count/alignment".into()))?
+    };
+    if matrices.iter().any(|value|!value.is_finite()) || draws.iter().any(|draw|
+        ((draw.composition_flags>>15)&0xffff)>>count != 0) {
+        return Err((CoinWgpuStatus::InvalidArgument,"Invalid multipass matrices or sample mask".into()));
+    }
+    let sample_states = |sample:u32| {
+        if matrices.is_empty() { multipass::jitter_states(states,count,sample) }
+        else {
+            let mut output=states.to_vec();
+            for (slot,state) in output.iter_mut().enumerate() {
+                let first=(sample as usize*states.len()+slot)*16;
+                state.model_view_projection.copy_from_slice(&matrices[first..first+16]);
+            }
+            output
+        }
+    };
+    let encode = |sample_states:&[CoinWgpuRenderState], sample_draws:&[CoinWgpuDraw],
+                  sample_order:&[composition::CompositionItem], shared, single:bool| {
+        if let Some(payload)=bump {
+            encode_mixed_bump_frame(ctx,Some(&ctx.bump_pipelines),
+                Some((&ctx.bump_base_cache,ctx.last_submitted_serial.load(Ordering::SeqCst)+1,
+                    ctx.completed_serial.load(Ordering::SeqCst))),vertices,indices,sample_draws,sample_states,
+                modules,materials,textures,samplers,payload,shadow,color,resolved,format,depth,
+                size,frame.clear_color,samples,depth_texture,frame.texture_sampling_policy,shared)
+        } else {
+            encode_frame_impl(ctx,if single{frame.frame_revision}else{0},frame.clear_color,
+                size[0],size[1],vertices,indices,sample_draws,sample_order,materials,sample_states,modules,textures,
+                samplers,shadow,if single{camera_geometry}else{None},instances,instance_ranges,
+                if single{timestamp}else{None},color,resolved,format,depth,depth_texture,samples,
+                frame.sorted_layers_passes,frame.texture_sampling_policy,frame.rasterization_policy,
+                true,None,shared).map(|(command,instances)|(vec![command],instances))
+        }
+    };
+    if count==1 {return encode(states,draws,order,None,true);}
+    let required=multipass::bytes(size[0],size[1])
+        .ok_or((CoinWgpuStatus::OutOfMemory,"Multipass accumulation extent overflows".into()))?;
+    if required>frame.multipass_budget_bytes {
+        return Err((CoinWgpuStatus::OutOfMemory,"Multipass accumulation exceeds its buffer budget".into()));
+    }
+    let usage=wgpu::TextureUsages::STORAGE_BINDING|wgpu::TextureUsages::TEXTURE_BINDING;
+    if !ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba32Float).allowed_usages.contains(usage) {
+        return Err((CoinWgpuStatus::Unsupported,"Multipass RGBA32F accumulation unavailable".into()));
+    }
+    // Validate every translated matrix before issuing any sample commands.
+    for sample in 0..count {
+        if sample_states(sample).iter()
+            .any(|state|state.model_view_projection.iter().any(|value|!value.is_finite())) {
+            return Err((CoinWgpuStatus::InvalidArgument,"Multipass jitter projection overflows".into()));
+        }
+    }
+    let _uploads=MultipassUploadScope::begin();
+    let programs=ctx.multipass_programs.get(&ctx.device,format)
+        .map_err(|error|(CoinWgpuStatus::BackendError,error))?;
+    let accumulator=multipass::Accumulation::new(&ctx.device,size[0],size[1],count,programs);
+    let shared_shadow=if let Some(shadow)=shadow {
+        if FAULT_INJECTION.load(Ordering::SeqCst)==FAULT_SHADOW_MAP_ALLOC {
+            FAULT_INJECTION.store(0,Ordering::SeqCst);
+            return Err((CoinWgpuStatus::OutOfMemory,"Injected shadow-map attachment allocation failure".into()));
+        }
+        let mut encoder=ctx.device.create_command_encoder(&Default::default());
+        let mut maps=Vec::new();
+        maps.push(shadow::encode_moments(&ctx.device,&mut encoder,vertices,indices,
+            shadow.casters,states,shadow.map_size,shadow.near,shadow.far,shadow.kind,
+            frame.rasterization_policy==1).map_err(|error|(CoinWgpuStatus::InvalidArgument,error))?);
+        for pass in shadow.second.iter().chain(shadow.third.iter()).chain(shadow.fourth.iter()).chain(shadow.extra.iter()) {
+            maps.push(shadow::encode_moments(&ctx.device,&mut encoder,vertices,indices,
+                pass.casters,states,pass.map_size,pass.near,pass.far,pass.kind,
+                frame.rasterization_policy==1).map_err(|error|(CoinWgpuStatus::InvalidArgument,error))?);
+        }
+        let refs:Vec<_>=maps.iter().collect();
+        let array=shadow::encode_array(&ctx.device,&mut encoder,&refs)
+            .map_err(|error|(CoinWgpuStatus::Unsupported,error))?;
+        ctx.queue.submit([encoder.finish()]);
+        Some((maps,array))
+    } else {None};
+    let sample_view=resolved.unwrap_or(color);
+    for sample in 0..count {
+        let states_for_sample=sample_states(sample);
+        let selected_draws:Vec<_>=draws.iter().filter_map(|draw| {
+            let mask=(draw.composition_flags>>15)&0xffff;
+            if mask==0 || mask&(1u32<<sample)!=0 {Some(*draw)}
+            else if draw.clear_depth_before!=0 || draw.composition_flags&64!=0 {
+                let mut barrier=*draw;
+                barrier.index_count=0; barrier.vertex_count=0;
+                Some(barrier)
+            } else {None}
+        }).collect();
+        let selected_order=composition::order(vertices,indices,&selected_draws,materials,&states_for_sample,textures)?;
+        let (mut commands,_)=encode(&states_for_sample,&selected_draws,&selected_order,shared_shadow.as_ref(),false)?;
+        commands.push(accumulator.accumulate(&ctx.device,sample_view,sample));
+        // A later encoder may update retained uniform buffers. Ordered private
+        // submits make those writes follow this sample's draw commands; none
+        // acquires/presents, publishes a serial or performs a readback.
+        ctx.queue.submit(commands);
+    }
+    Ok((vec![accumulator.resolve(&ctx.device,sample_view)],None))
+}
+
 fn encode_frame(
     ctx: &DeviceState,
     frame_revision: u64,
@@ -7053,7 +7410,7 @@ fn encode_frame_impl(
         Some(previous_instances.as_ref().unwrap().instances_buffer.clone())
     } else {
         let gpu_instances = instancing::pack_gpu(instances_slice);
-        Some(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        Some(multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
             label: Some("Coin compact affine instance storage"), contents: bytemuck::cast_slice(&gpu_instances),
             usage: wgpu::BufferUsages::STORAGE,
         }))
@@ -7067,7 +7424,7 @@ fn encode_frame_impl(
         entry.materials_buffer.clone()
     } else {
         debug_assert_eq!(material_bytes.len(), material_byte_len);
-        let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        let buffer = multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
             label: Some("Frame Materials Storage Buffer"),
             contents: material_bytes,
             usage: wgpu::BufferUsages::STORAGE,
@@ -7109,8 +7466,7 @@ fn encode_frame_impl(
         Some(entry.vertex_buffer.clone())
     } else if draws_slice.iter().any(|d| d.stable_node_id == 0) && !vertices_slice.is_empty() {
         Some(
-            ctx.device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                     label: Some("Coin Uncached Vertex Buffer"),
                     contents: bytemuck::cast_slice(vertices_slice),
                     usage: wgpu::BufferUsages::VERTEX,
@@ -7130,8 +7486,7 @@ fn encode_frame_impl(
         && !indices_slice.is_empty()
     {
         Some(
-            ctx.device
-                .create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                     label: Some("Coin Uncached Index Buffer"),
                     contents: bytemuck::cast_slice(indices_slice),
                     usage: wgpu::BufferUsages::INDEX,
@@ -7168,12 +7523,12 @@ fn encode_frame_impl(
                     .ok_or_else(|| (CoinWgpuStatus::Unsupported,
                         format!("Draw {} references vertices outside its range; cannot split oversized frame", draw_index))))
                 .collect::<Result<_, _>>()?;
-            let vertex_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            let vertex_buffer = multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                 label: Some("Coin Split Uncached Vertex Buffer"),
                 contents: bytemuck::cast_slice(draw_vertices),
                 usage: wgpu::BufferUsages::VERTEX,
             });
-            let index_buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            let index_buffer = multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                 label: Some("Coin Split Uncached Index Buffer"),
                 contents: bytemuck::cast_slice(&local_indices),
                 usage: wgpu::BufferUsages::INDEX,
@@ -7302,12 +7657,12 @@ fn encode_frame_impl(
             cache.evict_for_budget(total_bytes, &frame_active_keys);
 
             // Transactional allocation: allocate buffers before touching existing cache entry
-            let v_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            let v_buf = multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                 label: Some("Coin Cached Draw Vertex Buffer"),
                 contents: bytemuck::cast_slice(draw_vertices),
                 usage: wgpu::BufferUsages::VERTEX,
             });
-            let i_buf = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+            let i_buf = multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                 label: Some("Coin Cached Draw Index Buffer"),
                 contents: bytemuck::cast_slice(&local_indices),
                 usage: wgpu::BufferUsages::INDEX,
@@ -7357,8 +7712,16 @@ fn encode_frame_impl(
         .create_command_encoder(&wgpu::CommandEncoderDescriptor {
             label: Some("Coin Frame Encoder"),
         });
-    let raster_images = raster_image::encode(ctx, &mut encoder, states_slice,
-        textures_slice, samplers_slice, &tex_cache, &samp_cache, &rtt_cache)?;
+    let raster_images = if let Some(images)=MULTIPASS_UPLOADS.with(|slot|
+        slot.borrow().as_ref().and_then(|replay|replay.raster.clone())) {images}
+    else {
+        let images=Arc::new(raster_image::encode(ctx, &mut encoder, states_slice,
+            textures_slice, samplers_slice, &tex_cache, &samp_cache, &rtt_cache)?);
+        MULTIPASS_UPLOADS.with(|slot| {
+            if let Some(replay)=slot.borrow_mut().as_mut() {replay.raster=Some(images.clone());}
+        });
+        images
+    };
     let shadow_map = if let Some((maps, _)) = shared_bump_shadow { maps.first().cloned() } else if let Some(shadow) = shadow_frame {
         if FAULT_INJECTION.load(Ordering::SeqCst) == FAULT_SHADOW_MAP_ALLOC {
             FAULT_INJECTION.store(0, Ordering::SeqCst);
@@ -7438,18 +7801,25 @@ fn encode_frame_impl(
         });
     }
     let peeling = draw_order.iter().any(|item| item.peel).then(|| {
-        peeling::Peeling::new_samples(
-            &ctx.device,
-            target_width,
-            target_height,
-            color_format,
-            peel_passes as usize,
-            ctx.adapter.get_info().backend == wgpu::Backend::Gl,
-            sample_count,
-        )
+        MULTIPASS_UPLOADS.with(|slot| {
+            let mut slot=slot.borrow_mut();
+            let create=||Arc::new(peeling::Peeling::new_samples(&ctx.device,target_width,target_height,
+                color_format,peel_passes as usize,ctx.adapter.get_info().backend==wgpu::Backend::Gl,sample_count));
+            if let Some(replay)=slot.as_mut() {
+                replay.peeling.entry((target_width,target_height,color_format,peel_passes as usize,sample_count))
+                    .or_insert_with(create).clone()
+            } else {create()}
+        })
     });
-    let weighted=draw_order.iter().any(|item|item.weighted).then(||
-        weighted::Weighted::new_samples(&ctx.device,target_width,target_height,color_format,sample_count));
+    let weighted=draw_order.iter().any(|item|item.weighted).then(|| {
+        MULTIPASS_UPLOADS.with(|slot| {
+            let mut slot=slot.borrow_mut();
+            let create=||Arc::new(weighted::Weighted::new_samples(&ctx.device,target_width,target_height,color_format,sample_count));
+            if let Some(replay)=slot.as_mut() {
+                replay.weighted.entry((target_width,target_height,color_format,sample_count)).or_insert_with(create).clone()
+            } else {create()}
+        })
+    });
     let passes = composition::passes(draw_order, draws_slice);
     let uniform_records = draw_order.iter().try_fold(0usize, |count, item| {
         count.checked_add(if item.peel { peel_passes as usize } else { 1 })
@@ -7466,7 +7836,7 @@ fn encode_frame_impl(
     for module in portable_modules {
         let mut parameters = [0.0f32;1024];
         parameters[..module.parameters.len()].copy_from_slice(&module.parameters);
-        module_buffers.push(ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+        module_buffers.push(multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
             label: Some("Coin portable shader occurrence parameters"),
             contents: bytemuck::cast_slice(&parameters), usage: wgpu::BufferUsages::UNIFORM,
         }));
@@ -8153,7 +8523,7 @@ fn encode_frame_impl(
                             falloff: [r.distance_falloff_coefficient, ((r.receives & 2) != 0) as u32 as f32, p.map_size as f32, 0.0],
                         };
                     }
-                    let buffer = ctx.device.create_buffer_init(&wgpu::util::BufferInitDescriptor {
+                    let buffer = multipass_upload_buffer(&ctx.device, &wgpu::util::BufferInitDescriptor {
                         label: Some("Coin extra shadow receivers"), contents: bytemuck::cast_slice(&receivers),
                         usage: wgpu::BufferUsages::UNIFORM,
                     });
@@ -8430,6 +8800,35 @@ fn portable_format_features(features: wgpu::TextureFormatFeatures) -> u32 {
 
 // Read-only epoch of the existing default device. Zero means unavailable;
 // this query never creates or reconstructs a device.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_preflight_multipass(width:u32,height:u32,format:u32,surface:u64) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        let guard=RUNTIME_CTX.lock().unwrap();
+        let Some(ctx)=guard.as_ref().and_then(|runtime|runtime.device_state.as_ref()) else {
+            return CoinWgpuStatus::NotReady;
+        };
+        let usage=wgpu::TextureUsages::STORAGE_BINDING|wgpu::TextureUsages::TEXTURE_BINDING;
+        if width>ctx.device.limits().max_texture_dimension_2d || height>ctx.device.limits().max_texture_dimension_2d ||
+            !ctx.adapter.get_texture_format_features(wgpu::TextureFormat::Rgba32Float).allowed_usages.contains(usage) {
+            return CoinWgpuStatus::Unsupported;
+        }
+        let output=if surface!=0 {
+            let Some(record)=guard.as_ref().unwrap().surfaces.get(&surface) else {return CoinWgpuStatus::InvalidArgument;};
+            if record.presentation.is_some() {wgpu::TextureFormat::Rgba8Unorm} else {record.color_format}
+        } else {
+            match format {0=>wgpu::TextureFormat::Rgba8Unorm,1=>wgpu::TextureFormat::Rgba8UnormSrgb,
+                2=>wgpu::TextureFormat::Rgba16Float,_=>return CoinWgpuStatus::Unsupported}
+        };
+        ctx.device.push_error_scope(wgpu::ErrorFilter::Validation);
+        let programs=ctx.multipass_programs.get(&ctx.device,output);
+        if pollster::block_on(ctx.device.pop_error_scope()).is_some() {
+            return CoinWgpuStatus::Unsupported;
+        }
+        if programs.is_err() { return CoinWgpuStatus::BackendError; }
+        CoinWgpuStatus::Ok
+    }).unwrap_or(CoinWgpuStatus::BackendError)
+}
+
 #[no_mangle]
 pub extern "C" fn coin_wgpu_default_device_generation() -> u64 {
     std::panic::catch_unwind(|| {
@@ -9265,6 +9664,7 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
+        if let Err(status)=validate_multipass_metadata(f,error_buf,error_buf_len) {return status;}
         let portable_modules = match portable::modules(f) {
             Ok(modules) => modules,
             Err((status,message)) => { set_error(error_buf,error_buf_len,&message); return status; }
@@ -9578,6 +9978,13 @@ fn coin_wgpu_surface_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
+        if let Err((status,message))=admit_multipass_resources(f,
+            runtime.surfaces.get(&surface_id).unwrap().sample_count,states_slice,textures_slice,
+            &draw_order,shadow_frame.as_ref(),true,!readback_rgba.is_null(),false,
+            multipass_pending_bytes(Some(runtime))) {
+            set_error(error_buf,error_buf_len,&message);return status;
+        }
+
         // Ensure device is ready
         let target_surface_ptr: *const wgpu::Surface = runtime
             .surfaces
@@ -9849,8 +10256,8 @@ fn coin_wgpu_surface_submit_internal(
         // Capture the same image that is presented even when WSI lacks COPY_SRC.
         // MSAA already has a private resolved image; ordinary 1x creates one
         // only for this requested readback, preserving the surface scene format.
-        let capture_presentation = if !readback_rgba.is_null() && record.presentation.is_none() &&
-            !record.config.as_ref().unwrap().usage.contains(wgpu::TextureUsages::COPY_SRC) {
+        let capture_presentation = if record.presentation.is_none() && (f.multipass_count > 1 ||
+            (!readback_rgba.is_null() && !record.config.as_ref().unwrap().usage.contains(wgpu::TextureUsages::COPY_SRC))) {
             Some(surface_present::Presentation::with_source_format(&dev.device,
                 f.width, f.height, record.color_format, record.color_format))
         } else { None };
@@ -9871,56 +10278,18 @@ fn coin_wgpu_surface_submit_internal(
             }
         };
 
-        let encoded = if let Some(payload) = bump_payload.as_ref() {
-            if !instances_slice.is_empty() || !instance_ranges.is_empty() ||
-                draw_order.iter().any(|item| item.peel || item.weighted) ||
-                f.rasterization_policy != 0 {
-                Err((CoinWgpuStatus::Unsupported,
-                    "Window bump frame cannot combine instancing or composition".into()))
-            } else {
-                encode_mixed_bump_frame(dev, Some(&dev.bump_pipelines),
-                    Some((&dev.bump_base_cache,
-                        dev.last_submitted_serial.load(Ordering::SeqCst) + 1,
-                        dev.completed_serial.load(Ordering::SeqCst))),
-                    vertices_slice, indices_slice, draws_slice, states_slice,
-                    &portable_modules,
-                    materials_slice, textures_slice, samplers_slice, payload, shadow_frame.as_ref(),
-                    record.msaa_color_view.as_ref().unwrap_or(resolved_view),
-                    record.msaa_color_view.as_ref().map(|_| resolved_view),
-                    scene_format, depth_view,
-                    [f.width, f.height], f.clear_color, record.sample_count,
-                    record.depth_texture.as_ref().unwrap(), f.texture_sampling_policy)
-            }
-        } else { encode_frame(
-            dev,
-            f.frame_revision,
-            f.clear_color,
-            f.width,
-            f.height,
-            vertices_slice,
-            indices_slice,
-            draws_slice,
-            &draw_order,
-            materials_slice,
-            states_slice,
-            &portable_modules,
-            textures_slice,
-            samplers_slice,
-            shadow_frame.as_ref(),
-            next_scene.as_ref().map(|scene| &scene.geometry),
-            instances_slice, instance_ranges,
-            audit_probe.as_ref().map(|p|&p.queries),
-            record.msaa_color_view.as_ref().unwrap_or(resolved_view),
-            record.msaa_color_view.as_ref().map(|_| resolved_view),
-            scene_format,
-            depth_view,
-            record.depth_texture.as_ref().unwrap(),
-            record.sample_count,
-            f.sorted_layers_passes,
-            f.texture_sampling_policy,
-            f.rasterization_policy,
-            true,
-        ).map(|(command, instances)| (vec![command], instances)) };
+        if f.multipass_count > 1 && record.sample_count > 1 && fault == 307 {
+            set_error(error_buf,error_buf_len,"Injected MSAA failure before multipass queue submission");
+            drop(color_view); drop(surface_texture);
+            record.surface.configure(&dev.device,record.config.as_ref().unwrap());
+            return CoinWgpuStatus::OutOfMemory;
+        }
+        let encoded = encode_scene_samples(
+            dev, f, [f.width,f.height], vertices_slice, indices_slice, draws_slice, &draw_order,
+            materials_slice, states_slice, &portable_modules, textures_slice, samplers_slice,
+            bump_payload.as_ref(), shadow_frame.as_ref(), next_scene.as_ref().map(|s| &s.geometry),
+            instances_slice, instance_ranges, audit_probe.as_ref().map(|p| &p.queries),
+            record.msaa_color_view.as_ref().unwrap_or(resolved_view), record.msaa_color_view.as_ref().map(|_| resolved_view), scene_format, depth_view, record.depth_texture.as_ref().unwrap(), record.sample_count);
         let (cmd_buffers, pending_instances) = match encoded {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
@@ -10338,6 +10707,7 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::InvalidArgument;
         }
 
+        if let Err(status)=validate_multipass_metadata(f,error_buf,error_buf_len) {return status;}
         let portable_modules = match portable::modules(f) {
             Ok(modules) => modules,
             Err((status,message)) => { set_error(error_buf,error_buf_len,&message); return status; }
@@ -10763,6 +11133,14 @@ fn coin_wgpu_submit_internal(
             return CoinWgpuStatus::Unsupported;
         }
 
+        let pending_multipass=RUNTIME_CTX.lock().ok().and_then(|runtime|multipass_pending_bytes(runtime.as_ref()));
+        let multipass_depth=tgt.depth_buffer_len>=u64::from(f.width)*u64::from(f.height) &&
+            (!out_ticket.is_null() || !tgt.depth_buffer.is_null());
+        if let Err((status,message))=admit_multipass_resources(f,sample_count,states_slice,textures_slice,
+            &draw_order,shadow_frame.as_ref(),false,out_texture.is_null(),multipass_depth,pending_multipass) {
+            set_error(error_buf,error_buf_len,&message);return status;
+        }
+
         // 7. Initialize WebGPU Device
         if let Err(e) = init_runtime_if_needed() {
             set_error(error_buf, error_buf_len, &e);
@@ -10991,57 +11369,16 @@ fn coin_wgpu_submit_internal(
         } else { None };
 
         // 9. Encode draw calls with the exact same shared encode_frame
-        let encoded = if let Some(payload) = bump_payload.as_ref() {
-            if !instances_slice.is_empty() || !instance_ranges.is_empty() ||
-                draw_order.iter().any(|item| item.peel || item.weighted) ||
-                f.rasterization_policy != 0 {
-                Err((CoinWgpuStatus::Unsupported,
-                    "Bump frame cannot yet combine shadows, instancing or composition".into()))
-            } else {
-                encode_mixed_bump_frame(ctx, Some(&ctx.bump_pipelines),
-                    Some((&ctx.bump_base_cache,
-                        ctx.last_submitted_serial.load(Ordering::SeqCst) + 1,
-                        ctx.completed_serial.load(Ordering::SeqCst))),
-                    vertices_slice, indices_slice, draws_slice, states_slice,
-                    &portable_modules,
-                    materials_slice, textures_slice, samplers_slice, payload, shadow_frame.as_ref(),
-                    msaa_attachments.as_ref().map_or(&color_view, |attachments| &attachments.1),
-                    msaa_attachments.as_ref().map(|_| &color_view), output_format,
-                    msaa_attachments.as_ref().map_or(&depth_view, |attachments| &attachments.3),
-                    [width,height], f.clear_color, sample_count,
-                    msaa_attachments.as_ref().map_or(&depth_texture, |attachments| &attachments.2),
-                    f.texture_sampling_policy)
-            }
-        } else { encode_frame(
-            ctx,
-            f.frame_revision,
-            f.clear_color,
-            f.width,
-            f.height,
-            vertices_slice,
-            indices_slice,
-            draws_slice,
-            &draw_order,
-            materials_slice,
-            states_slice,
-            &portable_modules,
-            textures_slice,
-            samplers_slice,
-            shadow_frame.as_ref(),
-            next_scene.as_ref().map(|scene| &scene.geometry),
-            instances_slice, instance_ranges,
-            gpu_probe.as_ref().map(|probe| &probe.queries),
-            msaa_attachments.as_ref().map_or(&color_view, |attachments| &attachments.1),
-            msaa_attachments.as_ref().map(|_| &color_view),
-            output_format,
-            msaa_attachments.as_ref().map_or(&depth_view, |attachments| &attachments.3),
-            msaa_attachments.as_ref().map_or(&depth_texture, |attachments| &attachments.2),
-            sample_count,
-            f.sorted_layers_passes,
-            f.texture_sampling_policy,
-            f.rasterization_policy,
-            true,
-        ).map(|(command, instances)| (vec![command], instances)) };
+        if f.multipass_count > 1 && sample_count > 1 && fault == 307 {
+            set_error(error_buf,error_buf_len,"Injected MSAA failure before multipass queue submission");
+            return CoinWgpuStatus::OutOfMemory;
+        }
+        let encoded = encode_scene_samples(
+            ctx, f, [width,height], vertices_slice, indices_slice, draws_slice, &draw_order,
+            materials_slice, states_slice, &portable_modules, textures_slice, samplers_slice,
+            bump_payload.as_ref(), shadow_frame.as_ref(), next_scene.as_ref().map(|s| &s.geometry),
+            instances_slice, instance_ranges, gpu_probe.as_ref().map(|p| &p.queries),
+            msaa_attachments.as_ref().map_or(&color_view, |a| &a.1), msaa_attachments.as_ref().map(|_| &color_view), output_format, msaa_attachments.as_ref().map_or(&depth_view, |a| &a.3), msaa_attachments.as_ref().map_or(&depth_texture, |a| &a.2), sample_count);
         let (cmd_buffers, pending_instances) = match encoded {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
@@ -11770,7 +12107,7 @@ pub extern "C" fn coin_wgpu_readback_resource_load(jobs: *mut u64, bytes: *mut u
                 .pending_readbacks
                 .values()
                 .chain(runtime.retired_readbacks.iter())
-                .map(|job| job.ticket.color_bytes + job.ticket.depth_bytes)
+                .map(|job| job.color.size() + job.depth.as_ref().map_or(0,|depth|depth.size()))
                 .sum::<u64>();
             (count as u64, payload)
         } else {

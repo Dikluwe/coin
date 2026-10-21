@@ -271,6 +271,17 @@ CoinRenderSceneManager::getOverlayColor() const
   return this->pimpl->action->getOverlayColor();
 }
 
+void CoinRenderSceneManager::setNumPasses(int passes) {
+  this->pimpl->action->setNumPasses(passes);
+}
+int CoinRenderSceneManager::getNumPasses() const { return this->pimpl->action->getNumPasses(); }
+void CoinRenderSceneManager::setMultipassBufferBudget(uint64_t bytes) {
+  this->pimpl->action->setMultipassBufferBudget(bytes);
+}
+uint64_t CoinRenderSceneManager::getMultipassBufferBudget() const {
+  return this->pimpl->action->getMultipassBufferBudget();
+}
+
 void
 CoinRenderSceneManager::setTexturesEnabled(SbBool enabled)
 {

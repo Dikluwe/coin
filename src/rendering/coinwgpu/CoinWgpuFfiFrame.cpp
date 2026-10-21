@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -36,7 +37,7 @@
 static_assert(sizeof(CoinWgpuPortableNode) == 40, "Portable IR statement ABI size changed");
 static_assert(sizeof(CoinWgpuPortableModule) == 56, "Portable module ABI size changed");
 static_assert(sizeof(CoinWgpuPortableRange) == 64, "Portable range ABI size changed");
-static_assert(sizeof(CoinWgpuFrameView) == 512, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 544, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuBumpVertex) == 44, "Bump vertex ABI size changed");
 static_assert(sizeof(CoinWgpuBumpImage) == 32, "Bump image ABI size changed");
 static_assert(offsetof(CoinWgpuFrameView, bump_vertices) == 464, "Bump ABI tail offset changed");
@@ -396,6 +397,20 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
                               bool allowInstancing, bool allowBump, bool allowUnresolved)
 {
   outDiagnostic.clear();
+  if (frame.numPasses > 1) {
+    // Per-sample projection payloads require the ordinary state-preserving
+    // packer; specialized immutable/instancing snapshots describe one MVP.
+    allowInstancing = false;
+  }
+  if (frame.numPasses < 1 || frame.numPasses > 16) {
+    outDiagnostic = "Invalid multipass count at wgpu transport";
+    return false;
+  }
+  if (!CoinRenderMultipassCore::projectionsFinite(frame)) {
+    outDiagnostic = "Multipass translated projection is non-finite or invalid";
+    return false;
+  }
+
   if (!frame.hasFiniteNormalizedInputs(&outDiagnostic)) return false;
   if (!frame.portableShaders.empty()) {
     // The new typed ingress shares the Core resource and finite-operation proof.
@@ -419,6 +434,14 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
     }
     if (state.shadowStyle > 3u) {
       outDiagnostic = "Invalid shadow style";
+      return false;
+    }
+  }
+  for (const auto & draw : frame.draws) {
+    if ((draw.multipassMask >> frame.numPasses) != 0 ||
+        (draw.multipassRasterFixed && (draw.renderStateSlot >= frame.renderStates.size() ||
+          !frame.renderStates[draw.renderStateSlot].rasterPixels))) {
+      outDiagnostic = "Invalid multipass draw mask or raster identity";
       return false;
     }
   }
@@ -474,6 +497,7 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
   } guard(this->opaqueIncrementalValid, this->opaqueCameraPatchable, this->opaqueInstanced,
           this->opaqueCameraMatricesQualified, this->opaqueMatrixCache.valid,
           this->opaqueMatrixCache.candidate, this->packedRevision, this->prepareKind);
+  if (frame.numPasses > 1) this->packedRevision = 0;
   if (!allowBump && std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
       [](const CoinRenderBumpCoordOverride & coord) { return coord.imageSlot != 0; })) {
     outDiagnostic = "wgpu bump shader execution is not yet supported";
@@ -632,7 +656,7 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
     dst.transparency = src.transparency;
   }
 
-  if (!portableFrame && !allowBump && ((allowInstancing && this->tryOpaqueInstancing(frame, width, height, preflight)) ||
+  if (frame.numPasses == 1 && !portableFrame && !allowBump && ((allowInstancing && this->tryOpaqueInstancing(frame, width, height, preflight)) ||
       this->tryEarlyOpaqueBatch(frame, width, height, preflight))) {
     this->rememberOpaqueCamera(frame, width, height);
     this->textures.clear();
@@ -1850,6 +1874,8 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
                              const CoinRenderFramePreflight * preflight)
 {
   this->states.assign(frame.renderStates.size(), CoinWgpuRenderState{});
+  this->sourceStateSlots.resize(frame.renderStates.size());
+  for (size_t i = 0; i < frame.renderStates.size(); ++i) this->sourceStateSlots[i] = uint32_t(i);
   for (size_t i = 0; i < frame.renderStates.size(); ++i) {
     const CoinRenderRenderStateSnapshot & src = frame.renderStates[i];
     CoinWgpuRenderState & dst = this->states[i];
@@ -1958,6 +1984,7 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
         if (restoreBumpLighting(src.renderStateSlot, bumpState)) {
           bumpSlot = static_cast<uint32_t>(this->states.size());
           this->states.push_back(bumpState);
+          this->sourceStateSlots.push_back(src.renderStateSlot);
           shadow.appendReceiverState(src.renderStateSlot);
         }
       }
@@ -1976,7 +2003,8 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
         (frame.legacyBlendAlpha && item.blend && !item.additive &&
           item.transparencyStrategy != CoinRenderCompositionItem::SORTED_LAYERS &&
           item.transparencyStrategy != CoinRenderCompositionItem::WEIGHTED_OIT ? 32u : 0u) |
-        (src.authoredScene ? 64u : 0u) | (item.screenDoorLevel << 8);
+        (src.authoredScene ? 64u : 0u) | (item.screenDoorLevel << 8) |
+        (src.multipassMask << 15) | (src.multipassRasterFixed ? 0x80000000u : 0u);
     dst.source_revision = src.sourceRevision;
     dst.render_layer = src.renderLayer;
     dst.clear_depth_before = src.clearDepthBefore ? 1u : 0u;
@@ -1992,11 +2020,40 @@ CoinWgpuFfiFrame::packStates(const CoinRenderFramePlan & frame,
       resolved.depth_range[1] = item.depthRange[1];
       dst.render_state_slot = static_cast<uint32_t>(this->states.size());
       this->states.push_back(resolved);
+      this->sourceStateSlots.push_back(this->sourceStateSlots[receiverSource]);
       shadow.appendReceiverState(receiverSource);
     }
     resolvedDraws.push_back(dst);
   }
   this->draws.swap(resolvedDraws);
+  this->multipassMatrices.clear();
+  if (frame.numPasses > 1) {
+    if (this->states.size() > SIZE_MAX / (16u * size_t(frame.numPasses))) {
+      outDiagnostic = "Multipass MVP payload count overflows";
+      return false;
+    }
+    this->multipassMatrices.reserve(this->states.size() * 16u * size_t(frame.numPasses));
+    for (int pass = 0; pass < frame.numPasses; ++pass)
+      for (size_t slot = 0; slot < this->states.size(); ++slot) {
+        auto source = frame.renderStates[this->sourceStateSlots[slot]];
+        if (!source.rasterPixels &&
+            !CoinRenderMultipassCore::projection(source.projectionCoin, frame.numPasses, pass,
+              frame.viewports[source.viewportSlot], source.projectionCoin)) {
+          outDiagnostic = "Invalid multipass projection payload";
+          return false;
+        }
+        const SbMatrix mvp = source.model * source.view *
+          coinWgpuProjection(frame, source, targetWidth, targetHeight);
+        const float * values = &mvp.getValue()[0][0];
+        for (size_t component = 0; component < 16; ++component) {
+          if (!std::isfinite(values[component])) {
+            outDiagnostic = "Non-finite multipass MVP payload";
+            return false;
+          }
+          this->multipassMatrices.push_back(values[component]);
+        }
+      }
+  }
   return true;
 }
 
@@ -2038,6 +2095,12 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view = CoinWgpuFrameView{};
   this->view.portable_modules = this->portableViews.empty() ? nullptr : this->portableViews.data();
   this->view.portable_module_count = this->portableViews.size();
+  this->view.multipass_count = static_cast<uint32_t>(frame.numPasses);
+  this->view.multipass_reserved = 0;
+  this->view.multipass_budget_bytes = frame.multipassBufferBudget;
+  this->view.multipass_matrices = frame.numPasses > 1 && !this->multipassMatrices.empty() ? this->multipassMatrices.data() : nullptr;
+  this->view.multipass_matrix_count = frame.numPasses > 1 ? this->multipassMatrices.size() : 0;
+
   this->view.abi_version = COIN_WGPU_ABI_VERSION;
   this->view.struct_size = sizeof(CoinWgpuFrameView);
   this->view.frame_revision = frame.revision;

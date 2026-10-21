@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -190,7 +191,9 @@ bool sameBumpImages(const std::vector<CoinRenderBumpImage> & a,
 bool
 CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan &other) const
 {
-  if (this->rasterizationPolicy != other.rasterizationPolicy ||
+  if (this->numPasses != other.numPasses ||
+      this->multipassBufferBudget != other.multipassBufferBudget ||
+      this->rasterizationPolicy != other.rasterizationPolicy ||
       this->textureSamplingPolicy != other.textureSamplingPolicy ||
       this->legacyBlendAlpha != other.legacyBlendAlpha ||
       !coin_render_same_transparency_options(this->transparency, other.transparency))
@@ -309,6 +312,14 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
   std::string cubeDiagnostic;
   if (!CoinRenderCubeTextureCore::validate(*this, cubeDiagnostic)) {
     if (outDiagnostic) *outDiagnostic = cubeDiagnostic;
+    return false;
+  }
+  if (numPasses < 1 || numPasses > 16) {
+    if (outDiagnostic) *outDiagnostic = "Invalid multipass count (expected 1..16)";
+    return false;
+  }
+  if (!CoinRenderMultipassCore::projectionsFinite(*this)) {
+    if (outDiagnostic) *outDiagnostic = "Multipass translated projection is non-finite or invalid";
     return false;
   }
   CoinRenderPhaseTimer timer("validation_detail");
@@ -867,6 +878,13 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
     if (i == 0)
       timer.mark("render_states");
     const CoinRenderDrawPacket &draw = this->draws[i];
+    if ((draw.multipassMask >> numPasses) != 0 ||
+        (draw.multipassRasterFixed && (draw.renderStateSlot >= renderStates.size() ||
+          !renderStates[draw.renderStateSlot].rasterPixels))) {
+      if (outDiagnostic) *outDiagnostic = "Invalid multipass draw mask or raster identity";
+      return false;
+    }
+
     if (draw.hasSortingCenter &&
         (!isFiniteF(draw.sortingCenterWorld[0]) || !isFiniteF(draw.sortingCenterWorld[1]) ||
          !isFiniteF(draw.sortingCenterWorld[2]))) {

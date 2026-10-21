@@ -73,6 +73,11 @@ struct CoinRenderDrawPacket {
   uint32_t renderStateSlot = 0;
   uint32_t shadowLightSlot = 0; // One-based owner; nonzero draws belong only to its shadow map.
   bool rasterShadowCaster = false; // Generated from source pixels for this map camera.
+  // Fit the existing alignment gap before frameNodeOrdinal; preserve the
+  // private draw stride and every pre-existing field offset.
+  bool multipassRasterFixed = false; // Raster layout already includes native sample snap.
+  uint16_t multipassMask = 0; // Zero: every sample; otherwise one bit per sample.
+
   uint32_t frameNodeOrdinal = 0; // estável apenas dentro do frame/log
   SbUniqueId sourceNodeId = 0;   // cache/invalidação; não entra no golden log
   uint64_t stableNodeId = 0;
@@ -481,6 +486,8 @@ COIN_RENDER_DLL_API CoinRenderTextureUnitSnapshot coin_render_texture_unit(const
  */
 struct CoinRenderFramePlan {
   uint64_t revision = 0;
+  int numPasses = 1;
+  uint64_t multipassBufferBudget = UINT64_C(256) * 1024 * 1024;
   CoinRenderTextureSamplingPolicy textureSamplingPolicy = COIN_RENDER_SAMPLING_NATIVE;
   CoinRenderRasterizationPolicy rasterizationPolicy = COIN_RENDER_RASTER_NATIVE;
   CoinRenderTextureFormat outputColorFormat = CoinRenderTextureFormat::RGBA8_LINEAR;

@@ -145,7 +145,9 @@ bool
 sameCameraIndependentPayload(const CoinRenderFramePlan & previous,
                              const CoinRenderFramePlan & current)
 {
-  if (!sameColor(previous.clearColor, current.clearColor) ||
+  if (previous.numPasses != current.numPasses ||
+      previous.multipassBufferBudget != current.multipassBufferBudget ||
+      !sameColor(previous.clearColor, current.clearColor) ||
       !samePlainSnapshots(previous.vertices, current.vertices) ||
       previous.indices != current.indices ||
       !samePlainSnapshots(previous.materials, current.materials) ||
@@ -223,7 +225,9 @@ CoinRenderFrameReuseDecision
 CoinRenderFrameReuseCore::classify(const CoinRenderFramePlan & previous,
                                const CoinRenderFramePlan & current)
 {
-  if (!coin_render_same_transparency_options(previous.transparency, current.transparency))
+  if (previous.numPasses != current.numPasses ||
+      previous.multipassBufferBudget != current.multipassBufferBudget ||
+      !coin_render_same_transparency_options(previous.transparency, current.transparency))
     return CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, previous.revision);
   if (previous.revision == 0 || current.revision == 0 ||
       hasOpaqueConnectorResource(previous) ||

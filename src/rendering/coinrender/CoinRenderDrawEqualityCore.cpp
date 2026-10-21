@@ -14,6 +14,7 @@ coin_render_same_draw(const CoinRenderDrawPacket &a, const CoinRenderDrawPacket 
          a.geometry.indexCount == b.geometry.indexCount && a.renderStateSlot == b.renderStateSlot &&
          a.shadowLightSlot == b.shadowLightSlot &&
          a.rasterShadowCaster == b.rasterShadowCaster &&
+         a.multipassMask == b.multipassMask && a.multipassRasterFixed == b.multipassRasterFixed &&
          a.frameNodeOrdinal == b.frameNodeOrdinal &&
          a.sourceNodeId == b.sourceNodeId && a.stableNodeId == b.stableNodeId &&
          a.drawOrdinal == b.drawOrdinal && a.sourceRevision == b.sourceRevision &&

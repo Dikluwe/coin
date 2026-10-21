@@ -190,7 +190,9 @@ int compareBytes(const void * lhs, const void * rhs, size_t bytes)
 int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
                            const CoinBgfxDraw & rhs)
 {
-  int result = compareValue(lhs.authoredScene, rhs.authoredScene);
+  int result = compareValue(lhs.multipassMask, rhs.multipassMask);
+  if (result == 0) result = compareValue(lhs.multipassRasterFixed, rhs.multipassRasterFixed);
+  if (result == 0) result = compareValue(lhs.authoredScene, rhs.authoredScene);
   if (result != 0) return result;
   result = compareValue(lhs.renderLayer, rhs.renderLayer);
   if (result == 0) result = compareValue(lhs.cullMode, rhs.cullMode);
@@ -991,6 +993,8 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
       modelView * projection * viewportTransform;
     CoinBgfxDraw lowered{};
     lowered.sourceDrawSlot = item.drawIndex;
+    lowered.multipassMask = draw.multipassMask;
+    lowered.multipassRasterFixed = draw.multipassRasterFixed;
     lowered.renderStateSlot = draw.renderStateSlot;
     lowered.portableShaderSlot = state.portableShaderSlot;
     std::memcpy(lowered.mvp, mvp.getValue(), sizeof(lowered.mvp));

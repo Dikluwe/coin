@@ -1,3 +1,5 @@
+#include <map>
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #else
@@ -178,12 +180,21 @@ CoinRenderFramePlanBuilder::~CoinRenderFramePlanBuilder()
 }
 
 void
-CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbViewportRegion & /*viewport*/)
+CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport)
+{
+  this->beginFrame(clearColor, viewport, 1);
+}
+
+void
+CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbViewportRegion & /*viewport*/, int numPasses)
 {
   this->reset();
   this->colorWriteEnabled = true;
   this->linePatternOverride = false;
   this->currentPlan.clearColor = clearColor;
+  this->currentPlan.numPasses = numPasses;
+  this->currentMultipassMask = 0;
+  this->currentMultipassRasterFixed = false;
   this->inFrame = true;
 }
 
@@ -2466,6 +2477,14 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
   const float uv[] = {0,0,0,0};
   std::string diagnostic;
   size_t coveredRuns = 0;
+  struct RasterSampleScope {
+    uint32_t & mask; bool & fixed;
+    uint32_t previousMask; bool previousFixed;
+    RasterSampleScope(uint32_t & m, bool & f, bool enabled)
+      : mask(m), fixed(f), previousMask(m), previousFixed(f) { mask = 0; fixed = enabled; }
+    ~RasterSampleScope() { mask = previousMask; fixed = previousFixed; }
+  } sampleScope(this->currentMultipassMask, this->currentMultipassRasterFixed,
+                this->currentPlan.numPasses > 1);
   std::unordered_map<int, uint32_t> rasterMaterials;
   for (int i = 0; i < count; ++i) {
     const int marker = markerIndex(i);
@@ -2505,16 +2524,26 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
     if (culled) continue;
     SbVec3f projected;
     mvp.multVecMatrix(point, projected);
-    const float rasterX = (projected[0] + 1.0f) * 0.5f * viewport.width - (image.width - 1) / 2;
-    const float rasterY = (projected[1] + 1.0f) * 0.5f * viewport.height - (image.height - 1) / 2;
-    bool visible;
-    if (!CoinRenderScreenRasterCore::rasterVisible(rasterState, viewport, rasterX, rasterY,
-                                                  projected[2], visible, diagnostic, false))
-      return fail(diagnostic);
-    if (!visible) continue;
-    float xOrigin, yOrigin;
-    if (!CoinRenderScreenRasterCore::markerBitmapOrigin(viewport, rasterX, rasterY,
-                                                        xOrigin, yOrigin, diagnostic)) return fail(diagnostic);
+    std::map<std::pair<float,float>,uint32_t> origins;
+    for (int pass = 0; pass < this->currentPlan.numPasses; ++pass) {
+      SbMatrix shifted;
+      if (!CoinRenderMultipassCore::projection(source.projectionCoin, this->currentPlan.numPasses,
+            pass, viewport, shifted)) return fail("Invalid marker multipass projection");
+      const SbMatrix sampleMvp = source.model * source.view * shifted;
+      SbVec3f samplePoint;
+      sampleMvp.multVecMatrix(point, samplePoint);
+      const float rasterX = (samplePoint[0] + 1.0f) * 0.5f * viewport.width - (image.width - 1) / 2;
+      const float rasterY = (samplePoint[1] + 1.0f) * 0.5f * viewport.height - (image.height - 1) / 2;
+      bool visible;
+      if (!CoinRenderScreenRasterCore::rasterVisible(rasterState, viewport, rasterX, rasterY,
+            samplePoint[2], visible, diagnostic, false)) return fail(diagnostic);
+      if (!visible) continue;
+      float xOrigin, yOrigin;
+      if (!CoinRenderScreenRasterCore::markerBitmapOrigin(viewport, rasterX, rasterY,
+            xOrigin, yOrigin, diagnostic)) return fail(diagnostic);
+      origins[{xOrigin,yOrigin}] |= 1u << pass;
+    }
+    if (origins.empty()) continue;
     int material;
     if (!materialIndex(i, coordinateIndex(i), material)) return fail("Marker material index changed during capture");
     auto cachedMaterial = rasterMaterials.find(material);
@@ -2542,32 +2571,38 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
       rasterState.rasterShadowAnchorWorld = world;
     }
     const uint32_t stateSlot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rasterState);
-    for (int y = 0; y < image.height; ++y) {
-      auto covered = [&](int x) { return (image.bytes[size_t(y) * image.stride + size_t(x / 8)] & (0x80u >> (x & 7))) != 0; };
-      for (int x = 0; x < image.width;) {
-        if (!covered(x)) { ++x; continue; }
-        const int begin = x;
-        while (x < image.width && covered(x)) ++x;
-        if (++coveredRuns > 65536)
-          return fail("UNSUPPORTED: marker raster exceeds 65536 covered runs per node", true);
-        if (this->currentPlan.vertices.size() > UINT32_MAX - 4 || this->currentPlan.indices.size() > UINT32_MAX - 6)
-          return fail("UNSUPPORTED: marker raster geometry exceeds index capacity", true);
-        CoinRenderScreenRasterQuad quad;
-        if (!CoinRenderScreenRasterCore::pixelQuad(viewport, xOrigin + begin, yOrigin + y,
-              float(x - begin), 1.0f, projected[2], uv, materialSlot, quad, diagnostic)) return fail(diagnostic);
-        if (!quad.visible) continue;
-        this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot, const_cast<SoNode *>(node));
-        auto & draw = this->currentPlan.draws[this->currentDrawIndex];
-        if (draw.geometry.indexCount == 0 && needsSortingCenter && sortingOccurrences)
-          CoinRenderPlanAssemblyCore::sortingCenter(draw, source.model, sortingCenter);
-        const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
-        for (auto vertex : quad.vertices) {
-          vertex.fogEyeDepth = CoinRenderScreenRasterCore::planarRasterFogDepth(projected[2]);
-          this->currentPlan.vertices.push_back(vertex);
+    bool countOriginalRuns = true;
+    for (const auto & origin : origins) {
+      const float xOrigin = origin.first.first, yOrigin = origin.first.second;
+      this->currentMultipassMask = this->currentPlan.numPasses > 1 ? origin.second : 0;
+      for (int y = 0; y < image.height; ++y) {
+        auto covered = [&](int x) { return (image.bytes[size_t(y) * image.stride + size_t(x / 8)] & (0x80u >> (x & 7))) != 0; };
+        for (int x = 0; x < image.width;) {
+          if (!covered(x)) { ++x; continue; }
+          const int begin = x;
+          while (x < image.width && covered(x)) ++x;
+          if (countOriginalRuns && ++coveredRuns > 65536)
+            return fail("UNSUPPORTED: marker raster exceeds 65536 covered runs per node", true);
+          if (this->currentPlan.vertices.size() > UINT32_MAX - 4 || this->currentPlan.indices.size() > UINT32_MAX - 6)
+            return fail("UNSUPPORTED: marker raster geometry exceeds index capacity", true);
+          CoinRenderScreenRasterQuad quad;
+          if (!CoinRenderScreenRasterCore::pixelQuad(viewport, xOrigin + begin, yOrigin + y,
+                float(x - begin), 1.0f, projected[2], uv, materialSlot, quad, diagnostic)) return fail(diagnostic);
+          if (!quad.visible) continue;
+          this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, stateSlot, const_cast<SoNode *>(node));
+          auto & draw = this->currentPlan.draws[this->currentDrawIndex];
+          if (draw.geometry.indexCount == 0 && needsSortingCenter && sortingOccurrences)
+            CoinRenderPlanAssemblyCore::sortingCenter(draw, source.model, sortingCenter);
+          const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
+          for (auto vertex : quad.vertices) {
+            vertex.fogEyeDepth = CoinRenderScreenRasterCore::planarRasterFogDepth(projected[2]);
+            this->currentPlan.vertices.push_back(vertex);
+          }
+          for (uint32_t index : {0u,1u,2u,0u,2u,3u}) this->currentPlan.indices.push_back(first + index);
+          draw.geometry.vertexCount += 4; draw.geometry.indexCount += 6;
         }
-        for (uint32_t index : {0u,1u,2u,0u,2u,3u}) this->currentPlan.indices.push_back(first + index);
-        draw.geometry.vertexCount += 4; draw.geometry.indexCount += 6;
       }
+      countOriginalRuns = false;
     }
   }
   return true;
@@ -2579,6 +2614,14 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
 bool
 CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, const SoNode * node)
 {
+  struct RasterSampleScope {
+    uint32_t & mask; bool & fixed;
+    uint32_t previousMask; bool previousFixed;
+    RasterSampleScope(uint32_t & m, bool & f, bool enabled)
+      : mask(m), fixed(f), previousMask(m), previousFixed(f) { mask = 0; fixed = enabled; }
+    ~RasterSampleScope() { mask = previousMask; fixed = previousFixed; }
+  } sampleScope(this->currentMultipassMask, this->currentMultipassRasterFixed,
+                this->currentPlan.numPasses > 1);
   this->screenContentCaptured = true;
   this->endShape();
   auto fail = [&](const std::string & diagnostic, bool unsupported = false) {
@@ -2711,6 +2754,7 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
       return fail(diagnostic, diagnostic.find("UNSUPPORTED:") == 0);
   } else {
     CoinRenderText2Capture::Status status;
+    bool haveFullText = false;
     if (source.shadowGroupSlot && (source.shadowStyle & 1u) &&
         !source.transparentMaterial) {
       CoinRenderText2Raster shadowText;
@@ -2748,8 +2792,18 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
         if (!occurrence.runs.empty())
           this->currentPlan.rasterOccurrences.push_back(std::move(occurrence));
       }
+      if (this->currentPlan.numPasses > 1) {
+        text = std::move(shadowText);
+        haveFullText = true;
+      }
     }
-    if (!CoinRenderText2Capture::capture(*static_cast<const SoText2 *>(node), action->getState(),
+    if (this->currentPlan.numPasses > 1 && !haveFullText) {
+      if (!coin_render_capture_text2_for_shadow(*static_cast<const SoText2 *>(node),
+            action->getState(), text, status, diagnostic))
+        return fail(diagnostic, status == CoinRenderText2Capture::Status::UNSUPPORTED);
+      haveFullText = true;
+    }
+    if (!haveFullText && !CoinRenderText2Capture::capture(*static_cast<const SoText2 *>(node), action->getState(),
                                        text, status, diagnostic))
       return fail(diagnostic, status == CoinRenderText2Capture::Status::UNSUPPORTED);
     if (text.empty) return true;
@@ -2797,9 +2851,10 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
   const uint32_t whiteSlot = this->internMaterial(white);
 
   size_t rasterQuads = 0;
+  bool countOriginalQuad = true;
   auto emit = [&](CoinRenderScreenRasterQuad quad, uint32_t stateSlot) {
     if (!quad.visible) return true;
-    if (++rasterQuads > 65536)
+    if (countOriginalQuad && ++rasterQuads > 65536)
       return fail("UNSUPPORTED: screen raster exceeds 65536 covered runs per node", true);
     if (this->currentPlan.vertices.size() > UINT32_MAX - 4 ||
         this->currentPlan.indices.size() > UINT32_MAX - 6)
@@ -2853,9 +2908,36 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
   }
 
   for (auto & pass : text.passes) {
-    bool admitted;
-    if (!visible(pass.pixelX, pass.pixelY, pass.depthCoin, admitted)) return false;
-    if (!admitted) continue;
+    std::map<std::pair<float,float>,uint32_t> origins;
+    for (int sample = 0; sample < this->currentPlan.numPasses; ++sample) {
+      float pixelX = pass.pixelX, pixelY = pass.pixelY;
+      if (this->currentPlan.numPasses > 1) {
+        SbMatrix shifted;
+        if (!CoinRenderMultipassCore::projection(source.projectionCoin, this->currentPlan.numPasses,
+              sample, viewport, shifted)) return fail("Invalid text multipass projection");
+        CoinRenderScreenRasterAnchor anchor;
+        const SbMatrix mvp = source.model * source.view * shifted;
+        if (!CoinRenderScreenRasterCore::matrixAnchor(mvp, viewport, anchor, diagnostic))
+          return fail(diagnostic);
+        if (double(anchor.pixelY) < std::numeric_limits<int>::min() ||
+            double(anchor.pixelY) > std::numeric_limits<int>::max())
+          return fail("Text sample anchor exceeds raster integer limits");
+        float screenOffsetX = anchor.pixelX + float(text.bboxMin[0]);
+        if (text.justification == SoText2::RIGHT) screenOffsetX -= float(text.maxWidth);
+        else if (text.justification == SoText2::CENTER) screenOffsetX -= float(text.maxWidth) / 2.0f;
+        pixelX = pass.mono ? float(pass.glyphX) + screenOffsetX :
+          float(std::floor(double(screenOffsetX) + 0.5));
+        pixelY = pass.mono ? float(pass.glyphY) + float(int(anchor.pixelY)) :
+          float(std::floor(double(anchor.pixelY) + 0.5) - pass.image.height + text.bboxMax[1]);
+      }
+      bool admitted;
+      if (!visible(pixelX, pixelY, pass.depthCoin, admitted)) return false;
+      if (!admitted) continue;
+      const float rasterX = pass.mono ? std::floor(pixelX) : pixelX;
+      const float rasterY = pass.mono ? std::floor(pixelY) : pixelY;
+      origins[{rasterX,rasterY}] |= 1u << sample;
+    }
+    if (origins.empty()) continue;
     auto rs = rasterState;
     // Gray DrawPixels installs its own GL_GREATER test after every mono glyph;
     // Bitmap and SoImage retain the inherited test from the scene state.
@@ -2879,22 +2961,26 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
     const auto & texture = this->currentPlan.textures[rs.textureImageSlot];
     const uint32_t width = texture.width, height = texture.height;
     const uint32_t slot = CoinRenderPlanAssemblyCore::state(this->currentPlan, this->renderStatesByModel, rs);
-    const float rasterX = pass.mono ? std::floor(pass.pixelX) : pass.pixelX;
-    const float rasterY = pass.mono ? std::floor(pass.pixelY) : pass.pixelY;
-    // Horizontal covered runs preserve glBitmap/alpha-test holes, including
-    // depth, with the existing texture/geometry contract in both executors.
-    for (uint32_t y = 0; y < height; ++y) {
-      for (uint32_t x = 0; x < width;) {
-        if (!pass.coverageMask[size_t(y) * width + x]) { ++x; continue; }
-        const uint32_t begin = x;
-        while (x < width && pass.coverageMask[size_t(y) * width + x]) ++x;
-        const float uv[] = {float(begin)/width, float(y)/height, float(x)/width, float(y+1)/height};
-        CoinRenderScreenRasterQuad quad;
-        if (!CoinRenderScreenRasterCore::pixelQuad(viewport, rasterX + begin, rasterY + y,
-               float(x - begin), 1.0f, pass.depthCoin, uv, rs.materialSlot, quad, diagnostic))
-          return fail(diagnostic);
-        if (!emit(quad, slot)) return false;
+    countOriginalQuad = true;
+    for (const auto & origin : origins) {
+      const float rasterX = origin.first.first, rasterY = origin.first.second;
+      this->currentMultipassMask = this->currentPlan.numPasses > 1 ? origin.second : 0;
+      // Horizontal covered runs preserve glBitmap/alpha-test holes, including
+      // depth, with the existing texture/geometry contract in both executors.
+      for (uint32_t y = 0; y < height; ++y) {
+        for (uint32_t x = 0; x < width;) {
+          if (!pass.coverageMask[size_t(y) * width + x]) { ++x; continue; }
+          const uint32_t begin = x;
+          while (x < width && pass.coverageMask[size_t(y) * width + x]) ++x;
+          const float uv[] = {float(begin)/width, float(y)/height, float(x)/width, float(y+1)/height};
+          CoinRenderScreenRasterQuad quad;
+          if (!CoinRenderScreenRasterCore::pixelQuad(viewport, rasterX + begin, rasterY + y,
+                 float(x - begin), 1.0f, pass.depthCoin, uv, rs.materialSlot, quad, diagnostic))
+            return fail(diagnostic);
+          if (!emit(quad, slot)) return false;
+        }
       }
+      countOriginalQuad = false;
     }
   }
   return true;
@@ -3242,6 +3328,8 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
     CoinRenderDrawPacket & active = this->currentPlan.draws[this->currentDrawIndex];
     if (active.topology == topology &&
         active.renderStateSlot == renderStateSlot &&
+        active.multipassMask == this->currentMultipassMask &&
+        active.multipassRasterFixed == this->currentMultipassRasterFixed &&
         active.renderLayer == this->currentAnnotationLayer &&
         active.sourceNodeId == nodeId) {
       // A shared range can live before another draw's indices. Make its index
@@ -3256,6 +3344,8 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
   CoinRenderDrawPacket dp;
   dp.topology = topology;
   dp.renderStateSlot = renderStateSlot;
+  dp.multipassMask = this->currentMultipassMask;
+  dp.multipassRasterFixed = this->currentMultipassRasterFixed;
   dp.frameNodeOrdinal = ++this->nodeCounter;
   dp.sourceNodeId = nodeId;
   dp.renderLayer = this->currentAnnotationLayer;

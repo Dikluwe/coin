@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderRecordingBackend.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 
@@ -68,6 +69,17 @@ CoinRenderRecordingBackend::prepare(CoinRenderTargetP & /*target*/)
 }
 
 CoinRenderSubmitResult
+CoinRenderRecordingBackend::preflightMultipass(const CoinRenderFramePlan & frame,
+                                                const SbVec2i32 & extent) const
+{
+  uint64_t bytes = 0;
+  if (!CoinRenderMultipassCore::requiredBytes(frame, extent, 1, bytes) ||
+      (frame.numPasses > 1 && bytes > frame.multipassBufferBudget))
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Recorded multipass budget exceeded"};
+  return {};
+}
+
+CoinRenderSubmitResult
 CoinRenderRecordingBackend::submit(const CoinRenderFramePlan & frame,
                                CoinRenderTargetP & /*target*/)
 {
@@ -76,6 +88,12 @@ CoinRenderRecordingBackend::submit(const CoinRenderFramePlan & frame,
             "Recording backend does not execute portable shader modules"};
 
   this->lastRecordingLog = this->recordToString(frame);
+  if (frame.numPasses > 1) {
+    std::ostringstream declaration;
+    declaration << "Multipass count=" << frame.numPasses << " budget=" << frame.multipassBufferBudget << "\n";
+    this->lastRecordingLog += declaration.str();
+  }
+
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->submissionSerial);
 }
 

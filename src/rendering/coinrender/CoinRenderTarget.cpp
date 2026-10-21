@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
 #include <utility>
 #ifdef HAVE_CONFIG_H
@@ -622,6 +623,17 @@ CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
   return this->executeFrameInternal(frame, &outTicket, reuse, capturedPreflight);
 }
 
+CoinRenderSubmitResult
+CoinRenderTargetP::preflightMultipass(const CoinRenderFramePlan & frame,
+    bool asynchronous, const CoinRenderRttPlan * graph) {
+  if (frame.numPasses == 1) return {};
+  std::unique_ptr<CoinRenderBackend> inspector;
+  CoinRenderBackend * selected = this->backend.get();
+  if (!selected) { inspector = createBackend(); selected = inspector.get(); }
+  selected->configureMultipassTarget(*this);
+  return selected->preflightMultipassOutput(frame, *this, asynchronous, graph);
+}
+
 CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           CoinRenderReadbackTicket * outTicket,
@@ -640,6 +652,16 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
+  const auto outputAdmission = this->preflightMultipass(frame, outTicket != nullptr);
+  if (outputAdmission.status != CoinRenderBackendStatus::SUCCESS) return outputAdmission;
+  if (!CoinRenderMultipassCore::projectionsFinite(frame))
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Multipass translated projection is non-finite or invalid"};
+  if (frame.numPasses > 1 && frame.multipassBufferBudget == 0)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass attachment budget is zero"};
+  if (this->backend) {
+    const auto admission = this->backend->preflightMultipass(frame, this->size);
+    if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  }
   if (frame.hasPortableShaderDraws() && !this->supportsPortableShaderModules())
     return {CoinRenderBackendStatus::UNSUPPORTED,
             "Portable shader module execution is unavailable in this backend"};
@@ -762,6 +784,8 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     }
   }
 
+  const auto multipassAdmission = this->backend->preflightMultipass(frame, this->size);
+  if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
   const auto phasePrepared = PhaseClock::now();
   CoinRenderSubmitResult res = outTicket
     ? this->backend->submitAsync(frame, *this, *submitTicket, reuse)

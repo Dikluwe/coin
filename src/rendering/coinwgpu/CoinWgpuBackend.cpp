@@ -15,6 +15,7 @@
 #include "rendering/coinrender/CoinRenderRttCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderShadowCore.h"
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinwgpu/CoinWgpuFfi.h"
 
 #include <algorithm>
@@ -79,7 +80,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 908, "CoinWgpuRenderSt
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 912, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 64, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 512, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 544, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
@@ -202,6 +203,8 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
       }
       target.needsReconfigure = false;
     }
+    this->preparedSurfaceId = target.surfaceId;
+    this->multipassDevicePrepared = true;
     return CoinRenderBackendStatus::SUCCESS;
   }
 
@@ -214,6 +217,8 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
     this->lastError = "Target size must be positive";
     return CoinRenderBackendStatus::NOT_READY;
   }
+  this->preparedSurfaceId = 0;
+  this->multipassDevicePrepared = true;
   return CoinRenderBackendStatus::SUCCESS;
 }
 
@@ -456,6 +461,71 @@ void CoinWgpuBackend::retireRtt(const std::vector<uint64_t>& tokens) {
   // Release active registrations now; the bridge retains their texture/views
   // until the last local submission fence, including cube assembly, completes.
   for (uint64_t token : tokens) coin_wgpu_release_texture(token);
+}
+
+void CoinWgpuBackend::configureMultipassTarget(const CoinRenderTargetP & target) {
+  this->sampleCount = target.options.sampleCount;
+}
+bool CoinWgpuBackend::multipassOutputBytes(const CoinRenderTargetP & target, bool asynchronous,
+    uint64_t & bytes) const {
+  if (!CoinRenderBackend::multipassOutputBytes(target, asynchronous, bytes)) return false;
+  if (target.size[0] < 0 || target.size[1] < 0) return false;
+  const uint64_t width = uint64_t(target.size[0]), height = uint64_t(target.size[1]);
+  if (target.kind == CoinRenderTargetP::KIND_WINDOW) {
+    // Private scene attachments are in requiredBytes; the acquired surface is
+    // an independent final color image. Window APIs expose no depth readback.
+    if (!CoinRenderMultipassCore::addAttachmentBytes(width,height,4,1,bytes)) return false;
+    if (!target.windowReadbackRequested) return true;
+  } else if (target.directTextureOutput) return true;
+  const uint64_t pitch = ((width * 4 + 255) / 256) * 256;
+  return CoinRenderMultipassCore::addAttachmentBytes(pitch,height,1,
+    target.kind == CoinRenderTargetP::KIND_WINDOW ? 1 : target.depthReadbackEnabled ? 2 : 1,bytes);
+}
+
+CoinRenderSubmitResult CoinWgpuBackend::preflightMultipassGraph(const CoinRenderRttPlan & graph,
+    const CoinRenderFramePlan & root, const SbVec2i32 & extent) const {
+  if (root.numPasses == 1) return {};
+  uint64_t retained = 0;
+  if (!CoinRenderMultipassCore::graphBytes(graph, root, extent, this->sampleCount,
+        CoinRenderMultipassCore::Executor::WGPU, retained) || retained > root.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass simultaneous RTT resources exceed the buffer budget"};
+  CoinRenderFramePlan admitted = root;
+  admitted.multipassBufferBudget -= retained;
+  return this->preflightMultipass(admitted, extent);
+}
+
+CoinRenderSubmitResult CoinWgpuBackend::preflightMultipass(const CoinRenderFramePlan & frame,
+                                                         const SbVec2i32 & extent) const {
+  if (frame.numPasses == 1) return {};
+  uint64_t required = 0;
+  uint64_t jobs = 0, ticketBytes = 0;
+  this->readbackLoad(jobs, ticketBytes);
+
+  if (!CoinRenderMultipassCore::requiredBytes(frame, extent, this->sampleCount, required) ||
+      required > frame.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY,"Multipass attachments exceed the buffer budget"};
+  // BGFX has both CPU staging and a readback texture; wgpu reports the
+  // physical, row-aligned ticket buffers through its concrete resource owner.
+  if (!CoinRenderMultipassCore::addAttachmentBytes(ticketBytes, 1, 1, 1, required) ||
+      required > frame.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass attachments and retained tickets exceed the buffer budget"};
+  uint64_t rasterBytes = 0;
+  if (!CoinRenderMultipassCore::rasterPayloadBytes(frame, sizeof(CoinWgpuVertex), sizeof(CoinWgpuDraw), true, rasterBytes) ||
+      rasterBytes > frame.multipassBufferBudget - required)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass raster payload exceeds the buffer budget"};
+  required += rasterBytes;
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  if (!packed.preparePortablePreflight(frame, uint32_t(extent[0]), uint32_t(extent[1]), diagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+  const uint64_t floats = packed.getView().multipass_matrix_count;
+  if (floats > (frame.multipassBufferBudget - required) / sizeof(float))
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass projection payload exceeds the buffer budget"};
+  if (this->multipassDevicePrepared && coin_wgpu_default_device_generation() &&
+      coin_wgpu_preflight_multipass(uint32_t(extent[0]),uint32_t(extent[1]),
+        uint32_t(frame.outputColorFormat), this->preparedSurfaceId) != COIN_WGPU_OK)
+    return {CoinRenderBackendStatus::UNSUPPORTED,"Multipass RGBA32F storage/extent unavailable on this device"};
+  return {};
 }
 
 CoinRenderSubmitResult CoinWgpuBackend::preflightRtt(const CoinRenderRttPlan& graph,

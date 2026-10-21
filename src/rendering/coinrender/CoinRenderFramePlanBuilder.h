@@ -31,6 +31,7 @@ public:
   CoinRenderFramePlanBuilder & operator=(CoinRenderFramePlanBuilder &&) = default;
 
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport);
+  void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport, int numPasses);
   // Allocation hint only. Captured values and deduplication stay unchanged.
   void reserveCaptureStorage(size_t estimate);
   void reset();
@@ -227,6 +228,8 @@ private:
   std::unordered_map<std::string, uint32_t> portableShaderSlots;
   size_t captureReserveEstimate = 0;
   uint32_t currentDrawIndex;
+  uint32_t currentMultipassMask = 0;
+  bool currentMultipassRasterFixed = false;
   uint32_t nodeCounter;
   bool inFrame;
   bool hasActiveDraw;

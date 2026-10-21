@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 63
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 65
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -98,7 +98,7 @@ typedef struct CoinWgpuDraw {
   uint32_t render_state_slot;
   uint64_t stable_node_id;
   uint32_t draw_ordinal;
-  uint32_t composition_flags; /* 0=blend, 1=additive, 2=screen door, 3=peel, 4=weighted; bit 5=legacy producer alpha; bit 6=authored scene layer; bits 8..14=door level */
+  uint32_t composition_flags; /* 0=blend, 1=additive, 2=screen door, 3=peel, 4=weighted; bit 5=legacy producer alpha; bit 6=authored scene layer; bits 8..14=door level; 15..30=sample mask (zero=all); 31=raster layout already sampled */
   uint64_t source_revision;
   uint32_t render_layer; /* zero=base; overlays retain traversal order */
   uint32_t clear_depth_before; /* 0/1: clear only this draw's viewport */
@@ -365,10 +365,17 @@ typedef struct CoinWgpuFrameView {
   uint64_t bump_image_count;
   const CoinWgpuPortableModule *portable_modules;
   uint64_t portable_module_count;
+  uint32_t multipass_count; /* 1..16, including a single unjittered pass */
+  uint32_t multipass_reserved; /* must be zero */
+  uint64_t multipass_budget_bytes;
+  const float * multipass_matrices; /* optional sample-major/state-major MVPs; 16 floats each */
+  uint64_t multipass_matrix_count; /* float count, exactly N*state_count*16 when nonzero */
 } CoinWgpuFrameView;
 
 /* Compile consumed modules/pipelines on the prepared default device, without
    encoding commands or acquiring/publishing a target image. */
+CoinWgpuStatus coin_wgpu_preflight_multipass(uint32_t width, uint32_t height, uint32_t format, uint64_t surface);
+
 CoinWgpuStatus coin_wgpu_prepare_portable_frame(const CoinWgpuFrameView *,
   uint32_t sample_count, char *error, size_t error_capacity);
 

@@ -47,11 +47,11 @@ pub(super) fn order(
         .map(|draw| draw.render_layer);
     let mut ordered = Vec::with_capacity(draws.len());
     for (draw_index, draw) in draws.iter().enumerate() {
-        if draw.composition_flags & !0x7f7f != 0
+        if draw.composition_flags & 0x80 != 0
             || (draw.composition_flags & 32 != 0 && (draw.composition_flags & 1 == 0 || draw.composition_flags & 30 != 0))
-            || (draw.composition_flags >> 8) > 64
+            || ((draw.composition_flags >> 8) & 0x7f) > 64
             || (draw.composition_flags & 2 != 0 && draw.composition_flags & 1 == 0)
-            || (draw.composition_flags >> 8 != 0 && draw.composition_flags & 4 == 0)
+            || (draw.composition_flags & 0x7f00 != 0 && draw.composition_flags & 4 == 0)
             || (draw.composition_flags & 8 != 0
                 && (draw.composition_flags & 1 == 0 || (draw.render_layer != 0 && draw.composition_flags & 64 == 0)))
             || (draw.composition_flags & 4 != 0 && draw.composition_flags & 1 != 0)
@@ -131,7 +131,7 @@ pub(super) fn order(
             additive: draw.composition_flags & 2 != 0,
             legacy_blend_alpha: draw.composition_flags & 32 != 0,
             screen_door: draw.composition_flags & 4 != 0,
-            screen_door_level: draw.composition_flags >> 8,
+            screen_door_level: (draw.composition_flags >> 8) & 0x7f,
             peel: draw.composition_flags & 8 != 0,
             weighted: draw.composition_flags & 16 != 0,
         });

@@ -28,6 +28,11 @@ public:
   virtual ~CoinWgpuBackend();
 
   bool isGpuBackend() const override { return true; }
+  void configureMultipassTarget(const CoinRenderTargetP &) override;
+  bool multipassOutputBytes(const CoinRenderTargetP &, bool, uint64_t &) const override;
+  CoinRenderSubmitResult preflightMultipassGraph(const CoinRenderRttPlan &,
+    const CoinRenderFramePlan &, const SbVec2i32 &) const override;
+  CoinRenderSubmitResult preflightMultipass(const CoinRenderFramePlan &, const SbVec2i32 &) const override;
   bool supportsOffscreenShadows() const override { return true; }
   bool supportsOpaqueBump() const override { return true; }
   CoinRenderBackendStatus getStatus() const override;
@@ -67,6 +72,8 @@ private:
                               CoinRenderReadbackTicket * outTicket,
                               const CoinRenderFrameReuseDecision & reuse);
   uint32_t sampleCount = 1;
+  uint64_t preparedSurfaceId = 0;
+  bool multipassDevicePrepared = false;
   CoinRenderBackendStatus status;
   std::string lastError;
   std::unique_ptr<CoinWgpuFfiFrame> ffiFrame;

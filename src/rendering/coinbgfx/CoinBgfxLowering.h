@@ -62,6 +62,8 @@ struct CoinBgfxDraw {
   // apply its camera delta; columns 3..5 transform normals. 3.w enables it.
   float instanceCamera[6][4] = {};
   uint32_t sourceDrawSlot = 0;
+  uint32_t multipassMask = 0;
+  bool multipassRasterFixed = false;
   uint32_t renderStateSlot = 0;
   uint32_t portableShaderSlot = 0;
   uint32_t firstVertex;

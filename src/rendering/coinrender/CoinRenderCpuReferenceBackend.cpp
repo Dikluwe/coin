@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
@@ -648,9 +649,17 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
         if (next != layers.end() && next->depth == zVal)
           *next = fragment;
         else if (next != layers.end() || layers.size() < layerCount) {
-          layers.insert(next, fragment);
-          if (layers.size() > layerCount)
-            layers.pop_back();
+          if (frame.numPasses > 1) {
+            // Keep the per-pixel allocation within the preflighted nominal
+            // layer count, including insertion into an already full vector.
+            const size_t position = size_t(next - layers.begin());
+            if (layers.capacity() < layerCount) layers.reserve(layerCount);
+            if (layers.size() == layerCount) layers.pop_back();
+            layers.insert(layers.begin() + position, fragment);
+          } else {
+            layers.insert(next, fragment);
+            if (layers.size() > layerCount) layers.pop_back();
+          }
         }
         continue;
       }
@@ -716,7 +725,71 @@ CoinRenderCpuReferenceBackend::prepare(CoinRenderTargetP & target)
 }
 
 CoinRenderSubmitResult
+CoinRenderCpuReferenceBackend::preflightMultipass(const CoinRenderFramePlan & frame,
+                                                  const SbVec2i32 & extent) const
+{
+  if (frame.numPasses == 1) return {};
+  uint64_t bytes = 0;
+  // CPU needs one float sum and a private color/depth sample. No GPU fallback.
+  if (extent[0] < 0 || extent[1] < 0 ||
+      !CoinRenderMultipassCore::requiredBytes(frame, extent, 1, bytes,
+        CoinRenderMultipassCore::Executor::CPU) ||
+      bytes > frame.multipassBufferBudget)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "CPU multipass attachment budget exceeded"};
+  uint64_t rasterBytes = 0;
+  if (!CoinRenderMultipassCore::rasterPayloadBytes(frame, 0, 0, true, rasterBytes) ||
+      rasterBytes > frame.multipassBufferBudget - bytes)
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "CPU multipass raster payload exceeds the buffer budget"};
+  return {};
+}
+
+CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
+{
+  static std::atomic<uint64_t> globalCpuSerial(1);
+  CoinRenderSubmitResult admission = this->preflightMultipass(frame, target.size);
+  if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  if (frame.numPasses == 1) {
+    CoinRenderSubmitResult result = this->renderSingle(frame, frame.renderStates, target, 0);
+    if (result.status == CoinRenderBackendStatus::SUCCESS)
+      result.submissionSerial = globalCpuSerial.fetch_add(1);
+    return result;
+  }
+  try {
+    CoinRenderTargetP sample(target.size);
+    // The private target has no injected backend. In a BGFX build its default
+    // constructor deliberately omits CPU depth; this explicit CPU executor
+    // owns the complete software sample, independently of the compiled GPU.
+    sample.depthBuffer.resize(size_t(target.size[0]) * size_t(target.size[1]), 1.0f);
+    std::vector<float> sum(size_t(target.size[0]) * size_t(target.size[1]) * 4, 0.0f);
+    std::vector<CoinRenderRenderStateSnapshot> states(frame.renderStates);
+    for (int pass = 0; pass < frame.numPasses; ++pass) {
+      for (size_t slot = 0; slot < states.size(); ++slot) {
+        const auto & original = frame.renderStates[slot];
+        if (!original.rasterPixels && !CoinRenderMultipassCore::projection(original.projectionCoin, frame.numPasses,
+              pass, frame.viewports[original.viewportSlot], states[slot].projectionCoin))
+          return {CoinRenderBackendStatus::UNSUPPORTED, "CPU multipass projection is invalid"};
+      }
+      CoinRenderSubmitResult result = this->renderSingle(frame, states, sample, pass);
+      if (result.status != CoinRenderBackendStatus::SUCCESS) return result;
+      for (size_t channel = 0; channel < sum.size(); ++channel)
+        sum[channel] += float(sample.colorBuffer[channel]) / 255.0f;
+    }
+    for (size_t channel = 0; channel < sum.size(); ++channel)
+      sample.colorBuffer[channel] = uint8_t(std::lround(std::max(0.0f,
+        std::min(1.0f, sum[channel] / frame.numPasses)) * 255.0f));
+    target.colorBuffer.swap(sample.colorBuffer);
+    target.depthBuffer.swap(sample.depthBuffer); // exactly the last sample
+    target.status = CoinRenderTarget::TARGET_READY;
+    return {CoinRenderBackendStatus::SUCCESS, "", globalCpuSerial.fetch_add(1)};
+  } catch (const std::bad_alloc &) {
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "CPU multipass allocation failed"};
+  }
+}
+
+CoinRenderSubmitResult
+CoinRenderCpuReferenceBackend::renderSingle(const CoinRenderFramePlan & frame,
+  const std::vector<CoinRenderRenderStateSnapshot> & renderStates, CoinRenderTargetP & target, int sample)
 {
   if (frame.hasPortableShaderDraws())
     return {CoinRenderBackendStatus::UNSUPPORTED,
@@ -725,13 +798,13 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
   // This rasterizer has no shadow-map receiver pass. Reject before clear or
   // publication, including the flat-primary receiver extension.
   if (!frame.shadowGroups.empty() || !frame.shadowLights.empty() ||
-      std::any_of(frame.renderStates.begin(), frame.renderStates.end(),
+      std::any_of(renderStates.begin(), renderStates.end(),
                   [](const CoinRenderRenderStateSnapshot &state) { return state.flatShadowPrimary; }))
     return {CoinRenderBackendStatus::UNSUPPORTED,
             "CPU reference backend has no shadow-map receiver path"};
   if(frame.outputColorFormat!=CoinRenderTextureFormat::RGBA8_LINEAR || frame.outputMipmaps)
     return {CoinRenderBackendStatus::UNSUPPORTED,"CPU output supports RGBA8 base only; HDR/mip RTT requires a direct GPU route"};
-  for (const auto & state : frame.renderStates)
+  for (const auto & state : renderStates)
     if (!coin_render_alpha_test_valid(state.alphaTestFunction, state.alphaTestReference))
       return {CoinRenderBackendStatus::UNSUPPORTED, "Invalid alpha comparison function or reference"};
   std::string rasterDiagnostic;
@@ -814,14 +887,9 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
     };
     for (size_t dIdx = 0; dIdx < order.size(); ++dIdx) {
       CoinRenderDrawPacket draw = frame.draws[order[dIdx].drawIndex];
+
       draw.geometry.firstIndex = order[dIdx].firstIndex;
       draw.geometry.indexCount = order[dIdx].indexCount;
-      const bool peel =
-          order[dIdx].blend && order[dIdx].deferred && draw.isSceneLayer() &&
-          order[dIdx].transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
-      if (!peel)
-        flushPeeling();
-      hasPeeled = hasPeeled || peel;
       const CoinRenderDrawPacket * depthBarrier = nullptr;
       if (dIdx == 0 || frame.draws[order[dIdx - 1].drawIndex].renderLayer != draw.renderLayer)
         for (const auto & candidate : frame.draws)
@@ -830,7 +898,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
             break;
           }
       if (depthBarrier) {
-        const CoinRenderRenderStateSnapshot & barrierState = frame.renderStates[depthBarrier->renderStateSlot];
+        const CoinRenderRenderStateSnapshot & barrierState = renderStates[depthBarrier->renderStateSlot];
         const CoinRenderViewportSnapshot & clearViewport = frame.viewports[barrierState.viewportSlot];
         const int64_t clearTop = int64_t(height) - clearViewport.y - clearViewport.height;
         const int left = static_cast<int>(std::max<int64_t>(0, std::min<int64_t>(width, clearViewport.x)));
@@ -847,10 +915,17 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
       }
       const bool blend = order[dIdx].blend;
       // Process supported topologies
-      if (draw.renderStateSlot >= frame.renderStates.size()) {
+      if (draw.multipassMask && !(draw.multipassMask & (1u << sample))) continue;
+      const bool peel =
+          order[dIdx].blend && order[dIdx].deferred && draw.isSceneLayer() &&
+          order[dIdx].transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
+      if (!peel)
+        flushPeeling();
+      hasPeeled = hasPeeled || peel;
+      if (draw.renderStateSlot >= renderStates.size()) {
         continue;
       }
-      auto rs = frame.renderStates[draw.renderStateSlot];
+      auto rs = renderStates[draw.renderStateSlot];
       const auto & composition = order[dIdx];
       rs.depthTest = composition.depthTest;
       rs.depthWrite = composition.depthWrite;
@@ -1177,8 +1252,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
     flushPeeling();
     this->status = CoinRenderBackendStatus::SUCCESS;
     this->lastError.clear();
-    static std::atomic<uint64_t> globalCpuSerial(1);
-  return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", globalCpuSerial.fetch_add(1));
+    return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS);
   } catch (const std::bad_alloc &) {
     this->status = CoinRenderBackendStatus::OUT_OF_MEMORY;
     this->lastError = "Out of memory during software rasterization";

@@ -82,6 +82,16 @@ public:
   // Retire only these owned candidates after their last queued use. Distinct
   // from finishRtt, which may also prune/recycle the backend's retained cache.
   virtual void retireRtt(const std::vector<uint64_t>&) {}
+  // Copy immutable target facts into an unprepared executor without creating
+  // a device. In particular, first-frame admission must see the real MSAA count.
+  virtual void configureMultipassTarget(const CoinRenderTargetP &) {}
+  virtual bool multipassOutputBytes(const CoinRenderTargetP &, bool asynchronous, uint64_t &) const;
+  CoinRenderSubmitResult preflightMultipassOutput(const CoinRenderFramePlan &,
+    const CoinRenderTargetP &, bool asynchronous, const CoinRenderRttPlan * = nullptr) const;
+  virtual CoinRenderSubmitResult preflightMultipassGraph(const CoinRenderRttPlan &,
+    const CoinRenderFramePlan &, const SbVec2i32 &) const;
+  virtual CoinRenderSubmitResult preflightMultipass(const CoinRenderFramePlan &,
+                                                    const SbVec2i32 &) const;
 };
 
 #endif // !COIN_RENDER_BACKEND_H

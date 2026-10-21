@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
@@ -786,6 +787,23 @@ SbBool
 CoinRenderAction::isTexturesEnabled(void) const
 {
   return this->pimpl->texturesEnabled;
+}
+
+void CoinRenderAction::setNumPasses(int passes) {
+  if (this->pimpl->numPasses != passes) {
+    this->pimpl->numPasses = passes;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+int CoinRenderAction::getNumPasses() const { return this->pimpl->numPasses; }
+void CoinRenderAction::setMultipassBufferBudget(uint64_t bytes) {
+  if (this->pimpl->multipassBufferBudget != bytes) {
+    this->pimpl->multipassBufferBudget = bytes;
+    this->pimpl->cachedRoot = NULL;
+  }
+}
+uint64_t CoinRenderAction::getMultipassBufferBudget() const {
+  return this->pimpl->multipassBufferBudget;
 }
 
 void CoinRenderAction::setSortedLayersNumPasses(int passes) {
@@ -2109,6 +2127,17 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
                      : optionsDiagnostic.c_str())));
     return;
   }
+  if (this->numPasses < 1 || this->numPasses > 16) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      this->numPasses < 1 ? CoinRenderAction::INVALID_SCENE : CoinRenderAction::UNSUPPORTED,
+      CoinRenderDiagnosticDomain::ACTION, SbString("Multipass AA requires a requested count in 1..16")));
+    return;
+  }
+  if (this->numPasses > 1 && this->multipassBufferBudget == 0) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::OUT_OF_MEMORY,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Multipass AA buffer budget is zero")));
+    return;
+  }
   const bool tracePhases = CoinRenderDiagnosticShell::phaseTracingEnabled();
   if (this->isApplying) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
@@ -2177,6 +2206,13 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   for (const auto& texture : this->lastValidPlan.textures)
     if (texture.producerId)
       planCacheAllowed = false;
+  // The adapter rebuilds the list with clear/add on every sync. Compare its
+  // final effective configuration once per logical apply, so changing only a
+  // depth barrier is captured while identical lists keep the existing reuse.
+  if (this->capturedManagerLayerBoundaries != this->managerLayerBoundaries) {
+    this->cachedRoot = NULL;
+    this->capturedManagerLayerBoundaries = this->managerLayerBoundaries;
+  }
   const bool qualifyCapturedCamera = !this->hasLastValidPlan || this->cachedRoot != cacheRoot;
   const bool traversalSkipped = planCacheAllowed && cacheRoot && this->hasLastValidPlan &&
     this->cachedRoot == cacheRoot && this->cachedRootId == cacheRoot->getNodeId() &&
@@ -2228,7 +2264,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->frameStereoStates.clear();
     this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
       (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
-    this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion());
+    this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion(), this->numPasses);
     this->managerCapturedLayers.clear();
     this->builder.configureTextures(this->executionOptions);
     this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
@@ -2302,6 +2338,15 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
+  plan.numPasses = this->numPasses;
+  plan.multipassBufferBudget = this->multipassBufferBudget;
+  if (!CoinRenderMultipassCore::projectionsFinite(plan)) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Multipass translated projection is non-finite or invalid")));
+    return;
+  }
+
+
   // Visiting a bump declaration is not consumption: a later empty map may
   // neutralize it before every shape. The builder captures and validates each
   // effective map while emitting its vertices; failed capture is still handled
@@ -2661,6 +2706,22 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   if (this->target) {
     const auto admission =
         this->target->getPimpl().get().preflightSubmission(this->asyncTicket != nullptr);
+    if (admission.status != CoinRenderBackendStatus::SUCCESS) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(admission));
+      return;
+    }
+  }
+  if (this->target) {
+    const auto admission = this->target->getPimpl().get().preflightMultipass(
+      capturedPlan, this->asyncTicket != nullptr, this->sceneTexturePlan.get());
+    if (admission.status != CoinRenderBackendStatus::SUCCESS) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(admission));
+      return;
+    }
+  } else {
+    const SbVec2s viewport = this->master->getViewportRegion().getWindowSize();
+    const auto admission = this->recordingBackend.preflightMultipassGraph(
+      *this->sceneTexturePlan, capturedPlan, SbVec2i32(viewport[0], viewport[1]));
     if (admission.status != CoinRenderBackendStatus::SUCCESS) {
       this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(admission));
       return;

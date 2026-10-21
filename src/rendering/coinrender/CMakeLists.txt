@@ -18,6 +18,7 @@ set(COIN_RENDER_SOURCES
 	CoinRenderLightingCore.cpp
 	CoinRenderLineStippleCore.cpp
 	CoinRenderNativeSurfaceCore.cpp
+	CoinRenderMultipassCore.cpp
 	CoinRenderPhaseTimer.cpp
 	CoinRenderPolygonStyleCore.cpp
 	CoinRenderReadbackCore.cpp
@@ -165,7 +166,7 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		${_coin_bgfx_shader_dir}/coin_peel_msaa_composite.sh)
 	configure_file(${_coin_bgfx_shader_dir}/fs_peel_msaa_composite_glsl.sc.in
 		${_coin_bgfx_generated_dir}/fs_peel_msaa_composite_glsl.sc @ONLY)
-	foreach(_shader surface_native_depth surface_sample_depth solid_color texture2d texture2d_native_depth texture2d_sample_depth peel_next peel_next_msaa peel_msaa_composite composite composite_depth weighted_oit weighted_composite weighted_composite_msaa depth_readback mip_area msaa_resolve)
+	foreach(_shader surface_native_depth surface_sample_depth solid_color texture2d texture2d_native_depth texture2d_sample_depth peel_next peel_next_msaa peel_msaa_composite composite composite_depth multipass_sum multipass_mean weighted_oit weighted_composite weighted_composite_msaa depth_readback mip_area msaa_resolve)
 		foreach(_renderer ${_coin_bgfx_renderers})
 			set(_shader_platform linux)
 			if(_renderer STREQUAL "dx11")
