@@ -39,7 +39,7 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 66;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 67;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
@@ -2886,7 +2886,7 @@ struct TextureKey {
 impl TextureKey {
     fn from_texture(image: &CoinWgpuTexture) -> Self {
         Self { width: image.width, height: image.height, format: image.format,
-            metadata: if image.format == 11 { texture_metadata(image) } else { 0 },
+            metadata: if image.format == 11 || image.format == 12 { texture_metadata(image) } else { 0 },
             content_digest: image.content_digest }
     }
 }
@@ -5178,16 +5178,18 @@ fn texture_levels(width:u32,height:u32,format:u32)->Result<Vec<(u32,u32,u64)>,(C
 // alpha remains available to every texture combine, including SOURCE_ALPHA.
 const TEXTURE_DECLARED_OPAQUE: u32 = 1 << 31;
 const TEXTURE_VOLUME_SRGB: u32 = 1 << 25;
+const TEXTURE_CUBE_SRGB: u32 = 1 << 9;
 
 fn texture_metadata(image: &CoinWgpuTexture) -> u32 {
     image.reserved & !TEXTURE_DECLARED_OPAQUE
 }
 
 // Hardware sRGB decoding applies independently to each fetched atlas texel,
-// before our explicit 3D spatial/LOD interpolation, and leaves alpha linear.
+// before our explicit volume/cube spatial/LOD interpolation, and leaves alpha linear.
 fn texture_gpu_format(image: &CoinWgpuTexture)
     -> Result<wgpu::TextureFormat, (CoinWgpuStatus, String)> {
-    if image.format == 11 && texture_metadata(image) & TEXTURE_VOLUME_SRGB != 0 {
+    if (image.format == 11 && texture_metadata(image) & TEXTURE_VOLUME_SRGB != 0) ||
+       (image.format == 12 && texture_metadata(image) & TEXTURE_CUBE_SRGB != 0) {
         Ok(wgpu::TextureFormat::Rgba8UnormSrgb)
     } else {
         Ok(texture_profile::format(image.format)?.0)
@@ -5200,7 +5202,7 @@ fn validate_texture_declarations(textures: &[CoinWgpuTexture]) -> Result<(), Str
             0 | 2..=10 => 0,
             1 => 31,
             11 => 0x03ff_ffff,
-            12 => 511,
+            12 => 1023,
             _ => return Err("Invalid texture format in declaration metadata".into()),
         };
         if texture_metadata(image) & !allowed != 0 {
@@ -5215,18 +5217,18 @@ fn gpu_texture_token(image: &CoinWgpuTexture) -> bool {
 }
 
 // Format 12 keeps a face-local chain in an RGBA8 2D transport atlas.
-// reserved: log2(face size)[0..3], source components[4..6], mip flag[7].
+// reserved: log2(face size)[0..3], source components[4..6], mip flag[7], GPU token[8], sRGB[9].
 fn cube_atlas_metadata(t:&CoinWgpuTexture)->Result<Option<(u32,u32,bool)>,(CoinWgpuStatus,String)>{
     if t.format!=12{return Ok(None);}
     let exponent=texture_metadata(t)&15;let components=(texture_metadata(t)>>4)&7;let mips=texture_metadata(t)&128!=0;
-    if texture_metadata(t) & !511 != 0 || exponent>11 || !(1..=4).contains(&components){
+    if texture_metadata(t) & !1023 != 0 || exponent>11 || !(1..=4).contains(&components){
         return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube atlas metadata".into()));
     }
     let n=1u32<<exponent;let width=2*n;let mut size=n;let mut texels=0u64;
     loop{texels+=6*u64::from(size)*u64::from(size);if !mips||size==1{break;}size/=2;}
     let height=texels.div_ceil(u64::from(width));let bytes=u64::from(width)*height*4;
     if t.width!=width || u64::from(t.height)!=height || t.height>8192 || bytes>128*1024*1024 ||
-       (if texture_metadata(t)&256!=0 {t.pixel_bytes_len!=0 || !t.pixels.is_null() || t.content_digest==0 || components!=4}
+       (if texture_metadata(t)&256!=0 {t.pixel_bytes_len!=0 || !t.pixels.is_null() || t.content_digest==0 || components!=4 || texture_metadata(t)&TEXTURE_CUBE_SRGB!=0}
         else {t.pixel_bytes_len!=bytes || t.pixels.is_null()}){
         return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube atlas extent or pixels".into()));
     }
@@ -5248,9 +5250,13 @@ fn validate_cube_resources(states:&[CoinWgpuRenderState],textures:&[CoinWgpuText
         if enabled==0{continue;}
         let image=textures.get(image as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube image slot out of bounds".into()))?;
         if image.format!=12{continue;}
-        let (_,components,_)=cube_atlas_metadata(image)?.unwrap();
+        let (_,components,mips)=cube_atlas_metadata(image)?.unwrap();
+        let matrix=if unit==0{&state.texture_matrix}else{&state.extra_textures[unit-1].matrix};
+        if state.texture_projection>1 || state.portable_shader_slot!=0 || !matrix.iter().all(|v|v.is_finite()) {
+            return Err((CoinWgpuStatus::InvalidArgument,"Unsupported cube shader or invalid coordinate matrix".into()));
+        }
         let sampler=samplers.get(sampler as usize).ok_or_else(||(CoinWgpuStatus::InvalidArgument,"Cube sampler slot out of bounds".into()))?;
-        if sampler.wrap_s!=1||sampler.wrap_t!=1||sampler.reserved!=16||sampler.filter>3||model>3||(model==2&&components<3){
+        if sampler.wrap_s!=1||sampler.wrap_t!=1||sampler.reserved!=16||sampler.filter>3||model>3||(model==2&&components<3)||(sampler.filter>=2&&!mips){
             return Err((CoinWgpuStatus::InvalidArgument,"Invalid cube sampler or model".into()));
         }
     }}

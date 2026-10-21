@@ -4,6 +4,7 @@
 
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderTextureCoordinateCore.h"
+#include "rendering/coinrender/CoinRenderTextureFormatCore.h"
 #include <algorithm>
 #include <cmath>
 #include <new>
@@ -16,17 +17,21 @@ struct CubeView {
   uint32_t faceSize, sourceComponents, width, height;
   bool mipmapped;
   const std::vector<uint8_t> & pixelsRgba;
+  CoinRenderTextureFormat format;
 };
 CubeView cubeView(const CoinRenderCubeTextureCore::Atlas & atlas) {
   return {atlas.faceSize, atlas.sourceComponents, atlas.width, atlas.height,
-          atlas.mipmapped, atlas.pixelsRgba};
+          atlas.mipmapped, atlas.pixelsRgba, atlas.format};
 }
 CubeView cubeView(const CoinRenderTextureImageSnapshot & image) {
   return {image.cubeFaceSize, image.cubeSourceComponents, image.width, image.height,
-          image.cubeMipmapped, image.pixelsRgba};
+          image.cubeMipmapped, image.pixelsRgba, image.format};
 }
 bool cubeImageFields(const CoinRenderTextureImageSnapshot & image) {
-  return image.format == CoinRenderTextureFormat::RGBA8_LINEAR && image.components == 4 &&
+  return (image.format == CoinRenderTextureFormat::RGBA8_LINEAR ||
+          image.format == CoinRenderTextureFormat::RGBA8_SRGB) &&
+    (!(image.producerId || image.gpuToken) || image.format == CoinRenderTextureFormat::RGBA8_LINEAR) &&
+    image.components == 4 &&
     !image.volumeWidth && !image.volumeHeight && !image.volumeDepth && !image.volumeColumns &&
     !image.volumeSourceComponents && !image.volumeMipmapped && !(image.producerId && image.gpuToken) &&
     !image.mipmapped && image.mipmapsRgba.empty();
@@ -71,10 +76,13 @@ SbVec4f cubeTexel(const CubeView & atlas, uint64_t faceOffset,
   x = std::max(0, std::min(int(size) - 1, x));
   y = std::max(0, std::min(int(size) - 1, y));
   const size_t offset = size_t((faceOffset + uint64_t(y) * size + uint32_t(x)) * 4);
-  return SbVec4f(atlas.pixelsRgba[offset] / 255.0f,
+  SbVec4f value(atlas.pixelsRgba[offset] / 255.0f,
                 atlas.pixelsRgba[offset + 1] / 255.0f,
                 atlas.pixelsRgba[offset + 2] / 255.0f,
                 atlas.pixelsRgba[offset + 3] / 255.0f);
+  if (atlas.format == CoinRenderTextureFormat::RGBA8_SRGB)
+    for (int c = 0; c < 3; ++c) value[c] = CoinRenderTextureFormatCore::decodeSrgb(value[c]);
+  return value;
 }
 
 SbVec4f cubeLerp(const SbVec4f & a, const SbVec4f & b, float weight)
@@ -133,6 +141,15 @@ bool
 CoinRenderCubeTextureCore::prepare(const std::array<Face, 6> & faces, bool mipmapped,
                                     Atlas & output)
 {
+  return prepare(faces, mipmapped, output, CoinRenderTextureFormat::RGBA8_LINEAR);
+}
+
+bool
+CoinRenderCubeTextureCore::prepare(const std::array<Face, 6> & faces, bool mipmapped,
+                                    Atlas & output, CoinRenderTextureFormat format)
+{
+  if (format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+      format != CoinRenderTextureFormat::RGBA8_SRGB) return false;
   CubeLayout layout;
   const uint32_t size = faces[0].width;
   const uint32_t components = faces[0].components;
@@ -149,6 +166,7 @@ CoinRenderCubeTextureCore::prepare(const std::array<Face, 6> & faces, bool mipma
   candidate.width = layout.width;
   candidate.height = layout.height;
   candidate.mipmapped = mipmapped;
+  candidate.format = format;
   try {
     candidate.pixelsRgba.assign(size_t(layout.bytes), 0);
   }
@@ -166,6 +184,13 @@ CoinRenderCubeTextureCore::prepare(const std::array<Face, 6> & faces, bool mipma
                                      (components == 4 ? bytes[src + 3] : 255);
     }
   }
+  double decoded[256] = {};
+  if (format == CoinRenderTextureFormat::RGBA8_SRGB && mipmapped)
+    for (unsigned i = 0; i < 256; ++i) {
+      const double encoded = double(i) / 255.0;
+      decoded[i] = encoded <= .04045 ? encoded / 12.92 :
+        std::pow((encoded + .055) / 1.055, 2.4);
+    }
   uint64_t previousOffset = 0;
   uint32_t previousSize = size;
   for (uint32_t level = 1; level < layout.levels; ++level) {
@@ -183,7 +208,16 @@ CoinRenderCubeTextureCore::prepare(const std::array<Face, 6> & faces, bool mipma
               candidate.pixelsRgba[size_t((source + 1) * 4) + c] +
               candidate.pixelsRgba[size_t((source + previousSize) * 4) + c] +
               candidate.pixelsRgba[size_t((source + previousSize + 1) * 4) + c];
-            candidate.pixelsRgba[dst + c] = uint8_t((sum + 2) / 4);
+            if (c < 3 && format == CoinRenderTextureFormat::RGBA8_SRGB) {
+              const double linear = (decoded[candidate.pixelsRgba[size_t(source * 4) + c]] +
+                decoded[candidate.pixelsRgba[size_t((source + 1) * 4) + c]] +
+                decoded[candidate.pixelsRgba[size_t((source + previousSize) * 4) + c]] +
+                decoded[candidate.pixelsRgba[size_t((source + previousSize + 1) * 4) + c]]) / 4.0;
+              const double encoded = linear <= .0031308 ? linear * 12.92 :
+                1.055 * std::pow(linear, 1.0 / 2.4) - .055;
+              candidate.pixelsRgba[dst + c] = uint8_t(std::floor(
+                std::max(0.0, std::min(1.0, encoded)) * 255.0 + .5));
+            } else candidate.pixelsRgba[dst + c] = uint8_t((sum + 2) / 4);
           }
         }
       }
@@ -199,7 +233,9 @@ static bool
 validCubeView(const CubeView & atlas)
 {
   CubeLayout layout;
-  if (!cubeLayout(atlas.faceSize, atlas.mipmapped, layout) ||
+  if ((atlas.format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+       atlas.format != CoinRenderTextureFormat::RGBA8_SRGB) ||
+      !cubeLayout(atlas.faceSize, atlas.mipmapped, layout) ||
       atlas.sourceComponents < 1 || atlas.sourceComponents > 4 ||
       atlas.width != layout.width || atlas.height != layout.height ||
       uint64_t(atlas.pixelsRgba.size()) != layout.bytes)
@@ -320,8 +356,17 @@ bool CoinRenderCubeTextureCore::validate(const CoinRenderFramePlan & frame, std:
       if (sampler.maxAnisotropy != 1 || sampler.wrapS != CoinRenderTextureWrap::CLAMP ||
           sampler.wrapT != CoinRenderTextureWrap::CLAMP || sampler.wrapR != CoinRenderTextureWrap::CLAMP ||
           static_cast<unsigned>(sampler.filter) > 3 || static_cast<unsigned>(layer.model) > 3 ||
+          (static_cast<unsigned>(sampler.filter) >= 2 && !image.cubeMipmapped) ||
           (layer.model == CoinRenderTextureModel::DECAL && image.cubeSourceComponents < 3)) {
         diagnostic = "Unsupported cube sampler or source-component model"; return false;
+      }
+      for (unsigned row = 0; row < 4; ++row)
+        for (unsigned col = 0; col < 4; ++col)
+          if (!std::isfinite(layer.matrix[row][col])) {
+            diagnostic = "Non-finite cube texture coordinate matrix"; return false;
+          }
+      if (state.portableShaderSlot) {
+        diagnostic = "Portable shader modules cannot sample cube textures"; return false;
       }
     }
     if (state.rasterTextureSourceSlot != UINT32_MAX) {

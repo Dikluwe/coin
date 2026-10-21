@@ -5049,6 +5049,31 @@ static bool bgfxBumpSnapshotFits(const CoinRenderFramePlan & frame)
   return bytes<=8u*1024u*1024u;
 }
 
+// Original image slots retain their order in the lowered plan. GL may append
+// base-only views for 2D images, but cube atlases never acquire those views.
+// A private revision does not establish the identity of transported cube bytes.
+static bool bgfxSameCubeTextures(const CoinRenderFramePlan & frame,
+                                const CoinBgfxPlan & plan)
+{
+  const size_t count = std::max(frame.textures.size(), plan.textures.size());
+  for (size_t i = 0; i < count; ++i) {
+    const bool sourceCube = i < frame.textures.size() && frame.textures[i].cubeFaceSize;
+    const bool cachedCube = i < plan.textures.size() && plan.textures[i].cubeFaceSize;
+    if (!sourceCube && !cachedCube) continue;
+    if (!sourceCube || !cachedCube) return false;
+    const auto & source = frame.textures[i];
+    const auto & cached = plan.textures[i];
+    if (source.producerId || source.format != cached.format ||
+        source.width != cached.width || source.height != cached.height ||
+        source.cubeFaceSize != cached.cubeFaceSize ||
+        source.cubeSourceComponents != cached.cubeSourceComponents ||
+        source.cubeMipmapped != cached.cubeMipmapped ||
+        source.gpuToken != cached.gpuToken || source.pixelsRgba != cached.pixelsRgba)
+      return false;
+  }
+  return true;
+}
+
 static bool bgfxSameBumpTextures(const std::vector<CoinBgfxTexture> & a,
                                  const std::vector<CoinBgfxTexture> & b)
 {
@@ -5073,7 +5098,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError = "BGFX submission requires a prepared backend on its API thread";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY, this->lastError);
   }
-  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+  if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
+      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   PortablePreflightRelease releasePreflight{this};
   for(const auto & image:frame.textures)if(image.cubeFaceSize && image.gpuToken) {
@@ -5210,7 +5236,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::isValid(this->cachedIndexBuffer);
   const bool portableFrame = !frame.portableShaders.empty() || std::any_of(this->cachedPlan.draws.begin(), this->cachedPlan.draws.end(),
     [](const CoinBgfxDraw &draw) { return draw.portableShaderSlot != 0; });
+  const bool cubeTexturesMatch = bgfxSameCubeTextures(frame, this->cachedPlan);
   const bool cacheHit = frame.numPasses == 1 && !portableFrame && !hasShadows && cacheDimensionsMatch &&
+    cubeTexturesMatch &&
     (bumpPayloadHit || (!activeBump && !cachedBump && frame.revision!=0 && frame.revision==this->cachedRevision)) &&
     (!this->cachedPlan.usesInstancing ||
       (instancingEnabled && bgfx::isValid(this->cachedInstanceBuffer)));
@@ -5230,6 +5258,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::isValid(this->cachedInstanceBuffer);
   const bool cameraPatchEligible = frame.numPasses == 1 &&
     !portableFrame && !activeBump && !cachedBump && !hasShadows && this->cameraPatchEnabled &&
+    cubeTexturesMatch &&
     (!this->cachedPlan.usesInstancing || instancedCameraPatchEnabled) &&
     reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&
@@ -6313,6 +6342,9 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
                                        uint64_t producerKey,
                                        uint64_t & token)
 {
+  if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
+      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   token = 0;
   const auto outputFormat=coinBgfxTextureFormat(frame.outputColorFormat);
   const auto * runtimeCaps=bgfx::getCaps();

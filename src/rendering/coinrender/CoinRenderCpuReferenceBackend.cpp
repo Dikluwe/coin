@@ -745,7 +745,8 @@ CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
   static std::atomic<uint64_t> globalCpuSerial(1);
-  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+  if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
+      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   CoinRenderSubmitResult admission = this->preflightMultipass(frame, target.size);
   if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;

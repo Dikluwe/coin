@@ -1308,9 +1308,10 @@ CoinRenderFramePlanBuilder::captureCubeNode(SoCallbackAction * action,
   CoinRenderTextureFilter filter;
   if (!CoinRenderTextureSamplingCore::quality(quality, filter))
     return fail("Cube texture quality must be finite in [0,1]");
-  if (this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR ||
+  if ((this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR &&
+       this->storedTextureColorSpace != COIN_RENDER_TEXTURE_SRGB) ||
       (quality > .85f && this->maxTextureAnisotropy > 1))
-    return fail("Cube textures require linear RGBA8 without anisotropy");
+    return fail("Cube textures require stored RGBA8 linear/sRGB without anisotropy");
   for (int c = 0; c < 3; ++c) if (!std::isfinite(node->blendColor.getValue()[c]))
     return fail("Cube texture blend color is non-finite");
   this->cubeSources[node->getNodeId()] = node;
@@ -1388,6 +1389,10 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       if (outError) *outError = message;
       return false;
     };
+    const auto * cubeCoordinates = SoMultiTextureCoordinateElement::getInstance(state);
+    if (SoTextureQualityElement::get(state) > 0.0f &&
+        cubeCoordinates->getType(unit) == SoMultiTextureCoordinateElement::TEXGEN)
+      return fail("Cube texture coordinate generator has no CPU callback");
     SbVec2s markerSize; int markerComponents=0;
     const auto * marker=SoMultiTextureImageElement::getImage(state,unit,markerSize,markerComponents);
     const auto logical=this->sceneTextures.find(marker);
@@ -1398,7 +1403,8 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       const float quality=SoTextureQualityElement::get(state);
       if (!CoinRenderTextureSamplingCore::quality(quality,sampler.filter) ||
           (quality>.85f && this->maxTextureAnisotropy>1) ||
-          this->storedTextureColorSpace!=COIN_RENDER_TEXTURE_LINEAR)
+          (this->storedTextureColorSpace != COIN_RENDER_TEXTURE_LINEAR &&
+           this->storedTextureColorSpace != COIN_RENDER_TEXTURE_SRGB))
         return fail("Cube RTT requires linear RGBA8 and non-anisotropic cube filtering");
       if (quality==0) {rs.hasTexture=false;return true;}
       CoinRenderTextureImageSnapshot image;
@@ -1460,14 +1466,17 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
         faces[i].pixels.assign(bytes, bytes + size_t(extent[0]) * extent[1] * nc);
       }
       CoinRenderCubeTextureCore::Atlas atlas;
-      if (!CoinRenderCubeTextureCore::prepare(faces, mips, atlas))
+      const auto format = this->storedTextureColorSpace == COIN_RENDER_TEXTURE_SRGB ?
+        CoinRenderTextureFormat::RGBA8_SRGB : CoinRenderTextureFormat::RGBA8_LINEAR;
+      if (!CoinRenderCubeTextureCore::prepare(faces, mips, atlas, format))
         return fail("Cube texture atlas exceeds the supported layout or 128 MiB");
       CoinRenderTextureImageSnapshot image;
-      image.width = atlas.width; image.height = atlas.height;
+      image.width = atlas.width; image.height = atlas.height; image.format = atlas.format;
       image.cubeFaceSize = atlas.faceSize; image.cubeSourceComponents = atlas.sourceComponents;
       image.cubeMipmapped = atlas.mipmapped; image.pixelsRgba = std::move(atlas.pixelsRgba);
       image.contentDigest = CoinRenderImageCore::rgba8Digest(image.pixelsRgba) ^
-        (uint64_t(image.cubeFaceSize) << 32) ^ (uint64_t(image.cubeSourceComponents) << 8) ^ uint64_t(mips);
+        (uint64_t(image.cubeFaceSize) << 32) ^ (uint64_t(image.cubeSourceComponents) << 8) ^
+        (uint64_t(image.format) << 48) ^ uint64_t(mips);
       cached->second[mips ? 1 : 0] = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(image));
     }
     rs.textureImageSlot = uint32_t(cached->second[mips ? 1 : 0]);
@@ -3004,6 +3013,22 @@ CoinRenderFramePlanBuilder::captureVertex(SoCallbackAction * action, const SoPri
   SbVec4f tc = pv->getTextureCoords();
   SoState * state = action->getState();
   const auto * coords = SoMultiTextureCoordinateElement::getInstance(state);
+  for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS; ++unit) {
+    const auto layer = coin_render_texture_unit(rs, unit);
+    if (!layer.enabled || layer.imageSlot >= this->currentPlan.textures.size() ||
+        !this->currentPlan.textures[layer.imageSlot].cubeFaceSize) continue;
+    const auto & data = coords->getUnitData(int(unit));
+    const auto generator = this->rasterGenerators.find(data.nodeid);
+    // Coin's NormalMap callback supplies only a dummy zero STR. Its GL
+    // texgen has no CPU geometry contract, even if a matrix moves that zero.
+    if (generator != this->rasterGenerators.end() &&
+        generator->second.callback == reinterpret_cast<const void *>(data.funcCB) &&
+        generator->second.kind == RasterGeneratorKind::NORMAL) {
+      this->isUnsupported = true;
+      this->builderError = "Cube NormalMap geometry requires hardware texgen unavailable in CPU capture";
+      return v;
+    }
+  }
   const SoType shapeType = action->getCurPathTail()->getTypeId();
   const bool canonicalGenerator = shapeType == SoCube::getClassTypeId() ||
     shapeType == SoCone::getClassTypeId() || shapeType == SoCylinder::getClassTypeId() ||

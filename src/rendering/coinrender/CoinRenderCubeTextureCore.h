@@ -27,6 +27,7 @@ public:
     uint32_t faceSize = 0, sourceComponents = 0, width = 0, height = 0;
     bool mipmapped = false;
     std::vector<uint8_t> pixelsRgba;
+    CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
   };
 
   static COIN_RENDER_DLL_API bool describe(uint32_t faceSize, bool mipmapped,
@@ -34,6 +35,9 @@ public:
   static COIN_RENDER_DLL_API bool validate(const CoinRenderFramePlan &, std::string & diagnostic);
   static COIN_RENDER_DLL_API bool prepare(const std::array<Face, 6> & faces,
                                           bool mipmapped, Atlas & output);
+  static COIN_RENDER_DLL_API bool prepare(const std::array<Face, 6> & faces,
+                                          bool mipmapped, Atlas & output,
+                                          CoinRenderTextureFormat format);
   static COIN_RENDER_DLL_API bool valid(const Atlas & atlas);
   static COIN_RENDER_DLL_API bool valid(const CoinRenderTextureImageSnapshot & image);
   static COIN_RENDER_DLL_API bool sample(const CoinRenderTextureImageSnapshot & image,

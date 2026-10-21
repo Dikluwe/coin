@@ -2,6 +2,7 @@
 #include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
+#include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include <utility>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -317,7 +318,8 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
     CoinRenderCompositionTransferTrace * transfers) {
   std::string volumeDiagnostic;
-  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, volumeDiagnostic))
+  if (!CoinRenderCubeTextureCore::validate(frame, volumeDiagnostic) ||
+      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, volumeDiagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, volumeDiagnostic};
   uint64_t shaderBytes = 0;
   std::string shaderDiagnostic;
@@ -662,7 +664,8 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
   // Private revisions are hints, not proof that a transported atlas is intact.
-  if (!CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+  if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
+      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   const auto outputAdmission = this->preflightMultipass(frame, outTicket != nullptr);
   if (outputAdmission.status != CoinRenderBackendStatus::SUCCESS) return outputAdmission;

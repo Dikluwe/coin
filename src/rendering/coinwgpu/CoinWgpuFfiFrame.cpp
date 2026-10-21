@@ -551,7 +551,8 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
       ((image.volumeWidth - 1) | ((image.volumeHeight - 1) << 8) |
        ((image.volumeDepth - 1) << 16) | (image.volumeMipmapped ? 1u << 24 : 0u) |
        (image.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
-      (exponent | (image.cubeSourceComponents << 4) | (image.cubeMipmapped ? 128u : 0u) | (image.gpuToken ? 256u : 0u)));
+      (exponent | (image.cubeSourceComponents << 4) | (image.cubeMipmapped ? 128u : 0u) | (image.gpuToken ? 256u : 0u) |
+       (image.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_CUBE_SRGB : 0u)));
     if (i >= this->textures.size() || i >= this->texturePixels.size() ||
         this->textures[i].format != (image.volumeDepth ? 11u : 12u) || this->textures[i].width != image.width ||
         this->textures[i].height != image.height || this->textures[i].reserved != metadata ||
@@ -697,7 +698,8 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
       3+(uint32_t(src.format)-1)*2+(src.mipmapped?1:0);
     auto exponent = [](uint32_t v) { uint32_t bits=0; while (v>1) {v>>=1;++bits;} return bits; };
     dst.reserved = src.cubeFaceSize ?
-      (exponent(src.cubeFaceSize) | (src.cubeSourceComponents << 4) | (src.cubeMipmapped ? 128u : 0u) | (src.gpuToken ? 256u : 0u)) : src.volumeDepth ?
+      (exponent(src.cubeFaceSize) | (src.cubeSourceComponents << 4) | (src.cubeMipmapped ? 128u : 0u) | (src.gpuToken ? 256u : 0u) |
+       (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_CUBE_SRGB : 0u)) : src.volumeDepth ?
       ((src.volumeWidth - 1) | ((src.volumeHeight - 1)<<8) |
        ((src.volumeDepth - 1)<<16) | (src.volumeMipmapped ? 1u<<24 : 0u) |
        (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
