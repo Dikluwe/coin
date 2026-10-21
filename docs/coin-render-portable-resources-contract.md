@@ -4,11 +4,11 @@ Este documento define os planos de shaders próprios, texturas espaciais e MSAA/
 
 ## Shaders próprios: primeiro contrato portátil
 
-A entrada será um módulo tipado do produto, versionado e imutável, com assinatura
+A entrada é um módulo tipado do produto, versionado e imutável, com assinatura
 verificada no Core. GLSL legado (`SoShaderProgram`, ARB/Cg, built-ins `gl_*`), WGSL
 ou binário BGFX não são essa entrada. Wiring identifica o programa Coin ativo e
-seus parâmetros; uma integração futura deve fornecer uma adaptação explícita
-para o módulo. Sem adaptação, rejeita antes da publicação. Tradução automática
+seus parâmetros; a aplicação associa a adaptação explicitamente por
+`CoinRenderAction::setPortableShaderModule`. Sem adaptação, rejeita antes da publicação. Tradução automática
 arbitrária de fonte GL permanece fora do primeiro contrato.
 
 O primeiro módulo altera apenas a cor de fragmento de triângulos. Posição,
@@ -30,6 +30,22 @@ Uma futura operação discard requer contrato separado para depth/alpha/seleçã
 | Identidade | Digest de versão, AST, assinatura e perfil; parâmetros e imagens têm revisões próprias; cache inclui dispositivo/geração/formato/amostras |
 | Composição | Alpha do módulo declarado como potencialmente variável força scheduling conservador; programas opacos precisam prova estrutural, nunca inferência dos pixels de um quadro |
 | Falha | Validação/compilação incompatível falha antes do submit dos produtores; erro de runtime posterior preserva a publicação anterior e permite recuperação |
+
+A assinatura canônica completa, incluindo nomes, tem limite inclusivo de
+65.536 bytes. A função gerada tem limite de 262.144 bytes, excluindo o NUL
+do transporte privado. Comprimentos são verificados antes de ler/copiar a
+assinatura ou alocar a fonte anunciada pelo callback. Uma associação inválida
+preserva a associação anterior; saídas auxiliares permanecem intactas na falha.
+
+O transporte lógico de módulos tem orçamento inclusivo de 32 MiB por frame e
+por grafo raiz/produtores. Cada instância armazenada custa `64 + 40*N + 4*P + S`
+bytes: descritor, N nós IR, P floats de parâmetros e S bytes da assinatura.
+Vários draws no mesmo slot contam uma vez; slots distintos e faces dos
+produtores contam separadamente. O Core valida a soma completa antes de
+compilar, executar produtores ou publicar. O ingresso privado Rust também
+admite a tabela inteira antes de chamar o Core para o primeiro módulo. Não é
+uma estimativa da memória do driver nem substitui o cache de programas e os
+orçamentos próprios de texturas, attachments e multipass. ABI65 preservada.
 
 Core valida AST/assinatura, ordena operações e produz um IR único. Infra emite
 WGSL e as variantes de shader BGFX a partir desse IR, verifica limites reais e

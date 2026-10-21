@@ -13,8 +13,9 @@ por decisão explícita do usuário, com **B34 externo aberto, sem correção** 
 qualificar a recriação reprovada. Os cinco intermitentes revalidados permanecem
 históricos não reproduzidos na campanha atual, sem correção causal comprovada.
 O [fechamento consolidado](coin-render-feature-matrix.md#fechamento-da-etapa-2)
-registra resultados, evidências e limites. A etapa 3 foi retomada somente para
-[integrar e qualificar R28/ABI65](coin-render-feature-matrix.md#r28--multipass-integrado--21102026);
+registra resultados, evidências e limites. A etapa 3 integrou
+[R28/ABI65](coin-render-feature-matrix.md#r28--multipass-integrado--21102026) e concluiu o
+[contrato portátil R22](coin-render-feature-matrix.md#r22--contrato-portátil-v1-concluído--21102026);
 os demais itens da etapa 3 continuam abertos. **A etapa 4 permanece suspensa.**
 As referências ao checkout canônico abaixo descrevem a organização anterior a
 esta publicação.
