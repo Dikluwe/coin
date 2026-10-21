@@ -88,10 +88,15 @@ CoinWgpuShadowFrame::prepare(const CoinRenderFramePlan &frame, std::string &diag
       if (state.shadowGroupSlot != pass.groupSlot)
         continue;
       CoinWgpuShadowReceiver &receiver = packedPass.receivers[stateSlot];
+      // BASE_COLOR raster states may retain the authored lighting snapshot,
+      // but packState publishes no lights for them. Only PHONG consumes a map
+      // light; do not advertise an index outside the transported light list.
+      const int32_t lightingIndex = state.lightModel == CoinRenderLightModel::PHONG
+        ? pass.lightingIndexByState[stateSlot] : -1;
       receiver.receives =
           coin_render_shadow_shading_flags(frame, state) |
-          ((state.shadowStyle & 2u) != 0 && pass.lightingIndexByState[stateSlot] >= 0 ? 1u : 0u);
-      receiver.lighting_index = pass.lightingIndexByState[stateSlot];
+          ((state.shadowStyle & 2u) != 0 && lightingIndex >= 0 ? 1u : 0u);
+      receiver.lighting_index = lightingIndex;
       receiver.max_shadow_distance = pass.maxShadowDistance;
       receiver.distance_falloff_coefficient = pass.distanceFalloffCoefficient;
       SbMatrix modelView =
