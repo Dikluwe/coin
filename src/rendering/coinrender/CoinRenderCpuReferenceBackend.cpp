@@ -667,17 +667,19 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
           finalR = std::max(0.0f, std::min(1.0f, finalR)) * sourceAlpha + dstR * invAlpha;
           finalG = std::max(0.0f, std::min(1.0f, finalG)) * sourceAlpha + dstG * invAlpha;
           finalB = std::max(0.0f, std::min(1.0f, finalB)) * sourceAlpha + dstB * invAlpha;
-          if (rs.colorWriteMask & 8) colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::max(
+          if (rs.colorWriteMask & 8) colorBuffer[cIdx + 3] = static_cast<uint8_t>(std::lround(std::max(
               0.0f,
               std::min(255.0f, (((composition.additive || frame.legacyBlendAlpha) ? sourceAlpha * sourceAlpha : sourceAlpha) +
                                 dstA * invAlpha) *
-                                   255.0f)));
+                                   255.0f))));
         } else if (rs.colorWriteMask & 8)
           colorBuffer[cIdx + 3] = static_cast<uint8_t>(
               std::lround(std::max(0.0f, std::min(1.0f, sourceAlpha)) * 255.0f));
-        if (rs.colorWriteMask & 1) colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalR * 255.0f)));
-        if (rs.colorWriteMask & 2) colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalG * 255.0f)));
-        if (rs.colorWriteMask & 4) colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::max(0.0f, std::min(255.0f, finalB * 255.0f)));
+        // Match writePixel: round each RGBA8 publication, avoiding a cumulative
+        // downward bias when several transparent primitives share a pixel.
+        if (rs.colorWriteMask & 1) colorBuffer[cIdx + 0] = static_cast<uint8_t>(std::lround(std::max(0.0f, std::min(255.0f, finalR * 255.0f))));
+        if (rs.colorWriteMask & 2) colorBuffer[cIdx + 1] = static_cast<uint8_t>(std::lround(std::max(0.0f, std::min(255.0f, finalG * 255.0f))));
+        if (rs.colorWriteMask & 4) colorBuffer[cIdx + 2] = static_cast<uint8_t>(std::lround(std::max(0.0f, std::min(255.0f, finalB * 255.0f))));
       }
     }
   }
