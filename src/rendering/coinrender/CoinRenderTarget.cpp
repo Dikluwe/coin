@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderShaderModuleCore.h"
 #include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
 #include <utility>
@@ -314,6 +315,10 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     bool deferUnresolvedAlpha, CoinRenderFramePreflight * preflight,
     const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
     CoinRenderCompositionTransferTrace * transfers) {
+  uint64_t shaderBytes = 0;
+  std::string shaderDiagnostic;
+  if (!coin_render_shader_resource_bytes(frame, shaderBytes, shaderDiagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, shaderDiagnostic};
   // The same admission applies to root targets and direct RTT producers.
   if (const char * diagnostic = canonicalCoverageDiagnostic(frame))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};

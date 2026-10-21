@@ -28,6 +28,47 @@ unsigned arity(CoinRenderShaderOp op) {
   default: return 0;
   }
 }
+// Compute the entire canonical envelope before copying any authored name.
+// Topological sorting changes indices, but never the encoded statement size.
+template <typename Nodes>
+bool signatureBytes(const CoinRenderShaderModule &module, const Nodes &nodes,
+                    uint64_t &bytes, std::string &error)
+{
+  uint64_t total = 32;
+  const auto add = [&](uint64_t count) {
+    if (count > COIN_RENDER_SHADER_SIGNATURE_BYTES - total) {
+      error = "Portable shader canonical signature exceeds 65536 byte budget";
+      return false;
+    }
+    total += count;
+    return true;
+  };
+  if (module.uniforms.size() > 1024 || nodes.empty() || nodes.size() > 256) {
+    error = "Portable shader signature has invalid uniform or expression count";
+    return false;
+  }
+  for (const auto &uniform : module.uniforms) {
+    const int length = uniform.name.getLength();
+    if (length <= 0 || !validType(uniform.type)) {
+      error = "Portable shader signature has invalid uniform name or type";
+      return false;
+    }
+    if (!add(8) || !add(static_cast<uint64_t>(length))) return false;
+  }
+  for (const auto &node : nodes) {
+    if (!validType(node.type) || static_cast<uint32_t>(node.op) > static_cast<uint32_t>(CoinRenderShaderOp::SAMPLE_2D)) {
+      error = "Portable shader signature has invalid operation or type";
+      return false;
+    }
+    uint64_t count = 8 + 4 * arity(node.op);
+    if (node.op == CoinRenderShaderOp::CONSTANT) count += 4 * width(node.type);
+    if (node.op == CoinRenderShaderOp::UNIFORM || node.op == CoinRenderShaderOp::TEXCOORD ||
+        node.op == CoinRenderShaderOp::SAMPLE_2D) count += 4;
+    if (!add(count)) return false;
+  }
+  bytes = total;
+  return true;
+}
 struct Known {
   std::array<float,4> value = {{0,0,0,0}};
   std::array<bool,4> known = {{false,false,false,false}};
@@ -45,6 +86,8 @@ bool coin_render_shader_ir(const CoinRenderShaderModule &module,
   if(module.output>=module.expressions.size() ||
      module.expressions[module.output].type!=CoinRenderShaderValueType::FLOAT4)
     return fail("output must name a FLOAT4 expression");
+  uint64_t signatureSize = 0;
+  if (!signatureBytes(module, module.expressions, signatureSize, error)) return false;
   CoinRenderShaderIr ir;
   ir.alphaMayVary=module.alphaMayVary!=FALSE;
   std::map<std::string,std::pair<CoinRenderShaderValueType,uint32_t>> uniforms;
@@ -99,6 +142,9 @@ bool coin_render_shader_ir(const CoinRenderShaderModule &module,
       ir.coordinateMask |= 1u << source.textureUnit;
       break;
     case CoinRenderShaderOp::UNIFORM: {
+      if (source.uniformName.getLength() <= 0 ||
+          uint64_t(source.uniformName.getLength()) > COIN_RENDER_SHADER_SIGNATURE_BYTES)
+        return fail("uniform expression name exceeds its signature envelope");
       const auto found=uniforms.find(name(source.uniformName));
       if(found==uniforms.end() || found->second.first!=source.type)
         return fail("uniform expression does not match its signature");
@@ -198,6 +244,17 @@ std::string literal(float value,bool wgsl) {
 
 std::string coin_render_shader_function(const CoinRenderShaderIr &ir,bool wgsl)
 {
+  // The bounded IR has a worst case well below the function envelope. Reject
+  // untrusted direct-helper IR before growing the stream or indexing operands.
+  if (ir.nodes.empty() || ir.nodes.size() > 256 || ir.output >= ir.nodes.size()) return {};
+  for (size_t index = 0; index < ir.nodes.size(); ++index) {
+    const auto &node = ir.nodes[index];
+    if (!validType(node.type) || uint32_t(node.op) > uint32_t(CoinRenderShaderOp::SAMPLE_2D)) return {};
+    for (unsigned input = 0; input < arity(node.op); ++input)
+      if (node.inputs[input] >= index) return {};
+    if ((node.op == CoinRenderShaderOp::TEXCOORD || node.op == CoinRenderShaderOp::SAMPLE_2D) && node.resource >= 8) return {};
+    if (node.op == CoinRenderShaderOp::UNIFORM && node.resource > 1024 - width(node.type)) return {};
+  }
   std::ostringstream out;out.imbue(std::locale::classic());
   out<<(wgsl?"fn coinPortableModule(primary:vec4<f32>":"vec4 coinPortableModule(vec4 primary");
   for(unsigned unit=0;unit<8;++unit)
@@ -241,7 +298,9 @@ std::string coin_render_shader_function(const CoinRenderShaderIr &ir,bool wgsl)
     }
     out<<";\n";
   }
-  out<<"return e"<<ir.output<<";\n}\n";return out.str();
+  out<<"return e"<<ir.output<<";\n}\n";
+  if (out.tellp() > std::streampos(COIN_RENDER_SHADER_FUNCTION_BYTES)) return {};
+  return out.str();
 }
 
 
@@ -311,7 +370,16 @@ bool coin_render_shader_parameters(const CoinRenderShaderRegistration &registrat
       for(unsigned c=0;c<width(type);++c)if(!std::isfinite(value[c])) {
         error="Portable shader parameter is nonfinite";return false;
       }
-      if(base->name.getValue().getLength()==0 || !values.emplace(name(base->name.getValue()),std::make_pair(type,value)).second) {
+      const int nameLength = base->name.getValue().getLength();
+      if (nameLength <= 0 || uint64_t(nameLength) > COIN_RENDER_SHADER_SIGNATURE_BYTES) {
+        error="Portable shader parameter name exceeds its signature envelope or is empty";return false;
+      }
+      const auto declaration = std::find_if(registration.module.uniforms.begin(), registration.module.uniforms.end(),
+        [&](const CoinRenderShaderUniform &uniform) { return uniform.name == base->name.getValue(); });
+      if (declaration == registration.module.uniforms.end() || declaration->type != type) {
+        error="Portable shader parameter name or type differs from its uniform signature";return false;
+      }
+      if(!values.emplace(name(declaration->name),std::make_pair(type,value)).second) {
         error="Portable shader parameter name is empty or duplicated";return false;
       }
     }
@@ -339,7 +407,11 @@ bool coin_render_shader_parameters(const CoinRenderShaderRegistration &registrat
 
 std::string coin_render_shader_key(const CoinRenderShaderModule &module, const CoinRenderShaderIr &ir)
 {
+  uint64_t bytes = 0;
+  std::string error;
+  if (!signatureBytes(module, ir.nodes, bytes, error)) return {};
   std::string key;
+  key.reserve(static_cast<size_t>(bytes));
   const auto word = [&](uint32_t value) {
     for (unsigned shift = 0; shift < 32; shift += 8) key.push_back(char(value >> shift));
   };
@@ -520,6 +592,10 @@ bool coin_render_shader_decode(const uint8_t *bytes, size_t length, CoinRenderSh
 {
   // This decoder is the private typed transport adapter, not a source parser.
   // Its result goes back through the same authorial validator and exact key.
+  if (!bytes || !length || length > COIN_RENDER_SHADER_SIGNATURE_BYTES) {
+    error = "Portable shader canonical signature length exceeds 65536 byte budget or is empty";
+    return false;
+  }
   size_t cursor = 0;
   const auto fail = [&]() { error = "Malformed portable shader Core signature"; return false; };
   const auto word = [&](uint32_t &value) {
@@ -591,6 +667,8 @@ bool coin_render_shader_decode(const uint8_t *bytes, size_t length, CoinRenderSh
 
 bool coin_render_shader_execution_profile(const CoinRenderFramePlan &frame, std::string &error)
 {
+  uint64_t bytes = 0;
+  if (!coin_render_shader_resource_bytes(frame, bytes, error)) return false;
   if (!frame.hasPortableShaderDraws()) return true;
   std::vector<bool> bump(frame.vertices.size(), false);
   for (const auto &coordinate : frame.bumpCoords)
@@ -606,5 +684,39 @@ bool coin_render_shader_execution_profile(const CoinRenderFramePlan &frame, std:
         return false;
       }
   }
+  return true;
+}
+
+bool coin_render_shader_resource_bytes(const CoinRenderFramePlan &frame, uint64_t &bytes, std::string &error)
+{
+  uint64_t total = 0;
+  // Every stored slot is a separate instance, even when its content is equal.
+  if (frame.portableShaders.size() > COIN_RENDER_SHADER_RESOURCE_BYTES / 64) {
+    error = "Portable shader module table exceeds 32 MiB resource budget";
+    return false;
+  }
+  for (const auto &instance : frame.portableShaders) {
+    uint64_t signature = 0;
+    if (!signatureBytes(instance.module, instance.ir.nodes, signature, error)) return false;
+    if (instance.parameters.size() > 1024) {
+      error = "Portable shader parameter payload exceeds 4 KiB";
+      return false;
+    }
+    // Domain checks above bound both products. Subtraction precedes addition,
+    // so neither arithmetic overflow nor a huge table can bypass admission.
+    const uint64_t charge = 64 + 40 * uint64_t(instance.ir.nodes.size()) +
+      4 * uint64_t(instance.parameters.size()) + signature;
+    if (charge > COIN_RENDER_SHADER_RESOURCE_BYTES - total) {
+      error = "Portable shader module table exceeds 32 MiB resource budget";
+      return false;
+    }
+    total += charge;
+  }
+  // Do not construct a canonical key or validate one module via a callback
+  // until the complete table has passed its aggregate arithmetic admission.
+  for (const auto &instance : frame.portableShaders)
+    if (!coin_render_shader_instance_valid(instance, error)) return false;
+  bytes = total;
+  error.clear();
   return true;
 }

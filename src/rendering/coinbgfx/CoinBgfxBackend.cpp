@@ -7292,6 +7292,10 @@ CoinBgfxBackend::poll()
 CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& graph,
                                                      const CoinRenderFramePlan& root,
                                                      const SbVec2i32& size) const {
+  uint64_t shaderBytes = 0;
+  std::string shaderDiagnostic;
+  if (!graph.shaderResourceBytes(root, shaderBytes, shaderDiagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, shaderDiagnostic};
   if(std::any_of(graph.producers.begin(),graph.producers.end(),[](const CoinRenderRttProducer & p){return p.cube;})) {
     uint64_t nominal=0;std::string diagnostic;
     if(!graph.cubeNominalBytes(root,this->sampleCount,nominal,diagnostic))return {CoinRenderBackendStatus::UNSUPPORTED,diagnostic};

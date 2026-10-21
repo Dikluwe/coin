@@ -49,13 +49,13 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
                                                        const CoinRenderFramePlan& root,
                                                        CoinRenderFramePlan& resolvedRoot) {
   std::string diagnostic;
-  tokens.reserve(graph.tokenCount());
-  resources.entries.reserve(graph.producers.size());
   if (target && (target->suspended || target->size[0] <= 0 || target->size[1] <= 0))
     return {CoinRenderBackendStatus::NOT_READY,
             "Scene texture consumer target is suspended or has zero size"};
   if (!graph.validate(root, diagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
+  tokens.reserve(graph.tokenCount());
+  resources.entries.reserve(graph.producers.size());
   if (root.rasterizationPolicy != options.rasterizationPolicy)
     return {CoinRenderBackendStatus::UNSUPPORTED, "RTT root rasterization policy differs from target"};
   if (root.textureSamplingPolicy != options.textureSamplingPolicy || !coin_render_valid_sampling(root, diagnostic))

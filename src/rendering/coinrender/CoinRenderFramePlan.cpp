@@ -297,6 +297,12 @@ CoinRenderFramePlan::hasFiniteNormalizedInputs(std::string *outDiagnostic) const
 bool
 CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
 {
+  uint64_t shaderBytes = 0;
+  std::string shaderError;
+  if (!coin_render_shader_resource_bytes(*this, shaderBytes, shaderError)) {
+    if (outDiagnostic) *outDiagnostic = shaderError;
+    return false;
+  }
   if (!this->hasFiniteNormalizedInputs(outDiagnostic)) return false;
   if (rasterizationPolicy != COIN_RENDER_RASTER_NATIVE && rasterizationPolicy != COIN_RENDER_RASTER_CANONICAL_8BIT) {
     if (outDiagnostic) *outDiagnostic = "Invalid rasterization policy";
@@ -631,13 +637,6 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
     if (light.type == CoinRenderLightType::SPOT && light.enabled && !anyAttenuation) {
       if (outDiagnostic)
         *outDiagnostic = "Degenerate captured spot attenuation";
-      return false;
-    }
-  }
-  for (const auto &instance : this->portableShaders) {
-    std::string error;
-    if (!coin_render_shader_instance_valid(instance, error)) {
-      if (outDiagnostic) *outDiagnostic = error;
       return false;
     }
   }

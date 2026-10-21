@@ -36,7 +36,7 @@ CoinWgpuStatus lower(const CoinWgpuPortableModule *packet, const CoinWgpuPortabl
     if (textureProjection > 1 || !aligned(packet) || !aligned(required) || !packet->node_count || packet->node_count > 256 ||
         !aligned(packet->nodes) || packet->parameter_count > 1024 ||
         (packet->parameter_count && !aligned(packet->parameters)) || !packet->signature ||
-        !packet->signature_bytes || packet->signature_bytes > uint64_t(std::numeric_limits<ptrdiff_t>::max()) ||
+        !packet->signature_bytes || packet->signature_bytes > COIN_RENDER_SHADER_SIGNATURE_BYTES ||
         packet->alpha_may_vary > 1 || outputCapacity > uint64_t(std::numeric_limits<ptrdiff_t>::max()) ||
         (outputCapacity && !output)) return fail("Invalid portable shader Core transport");
     if ((primary || coordinates || samples) &&
@@ -81,11 +81,13 @@ CoinWgpuStatus lower(const CoinWgpuPortableModule *packet, const CoinWgpuPortabl
       if (!coin_render_shader_numeric(instance, primaryRange, coordinateRanges, sampleRanges, message, textureProjection == 0)) return fail(message.c_str());
     }
     const std::string source = coin_render_shader_function(instance.ir, true);
-    *required = static_cast<uint64_t>(source.size()) + 1;
-    if (outputCapacity) {
-      if (outputCapacity < *required) return fail("Portable shader generated-source buffer is too small");
-      std::memcpy(output, source.c_str(), source.size() + 1);
-    }
+    if (source.empty() || source.size() > COIN_RENDER_SHADER_FUNCTION_BYTES)
+      return fail("Portable shader Core function exceeds 262144 byte source budget or is invalid");
+    const uint64_t needed = static_cast<uint64_t>(source.size()) + 1;
+    if (outputCapacity && outputCapacity < needed)
+      return fail("Portable shader generated-source buffer is too small");
+    if (outputCapacity) std::memcpy(output, source.c_str(), source.size() + 1);
+    *required = needed;
     diagnostic(error, errorCapacity, "");
     return COIN_WGPU_OK;
   } catch (const std::bad_alloc &) {

@@ -41,6 +41,11 @@ COIN_RENDER_DLL_API bool coin_render_shader_ir(const CoinRenderShaderModule &, C
 // Validate the complete active-object parameter set against the signature.
 // Returns packed logical floats only; no GL traversal or source loading.
 struct CoinRenderFramePlan;
+// Logical transport/source envelopes; these do not estimate driver allocations.
+constexpr uint64_t COIN_RENDER_SHADER_SIGNATURE_BYTES = 65536;
+constexpr uint64_t COIN_RENDER_SHADER_FUNCTION_BYTES = 262144;
+constexpr uint64_t COIN_RENDER_SHADER_RESOURCE_BYTES = uint64_t(32) * 1024 * 1024;
+COIN_RENDER_DLL_API bool coin_render_shader_resource_bytes(const CoinRenderFramePlan &, uint64_t &, std::string &);
 COIN_RENDER_DLL_API bool coin_render_shader_execution_profile(const CoinRenderFramePlan &, std::string &);
 COIN_RENDER_DLL_API bool coin_render_shader_active(const SoShaderProgram *, bool &, std::string &);
 COIN_RENDER_DLL_API bool coin_render_shader_active(const CoinRenderShaderRegistration &, bool &, std::string &);

@@ -53,6 +53,8 @@ public:
   COIN_RENDER_DLL_API bool append(CoinRenderRttProducer producer, uint64_t& id, std::string& diagnostic);
 
   COIN_RENDER_DLL_API bool validate(const CoinRenderFramePlan& root, std::string& diagnostic) const;
+  COIN_RENDER_DLL_API bool shaderResourceBytes(const CoinRenderFramePlan& root, uint64_t& bytes,
+                                              std::string& diagnostic) const;
 
   COIN_RENDER_DLL_API CoinRenderRttPlan inspection(const CoinRenderFramePlan & root) const;
   // Peak live graph tokens in topological execution, excluding external owners.

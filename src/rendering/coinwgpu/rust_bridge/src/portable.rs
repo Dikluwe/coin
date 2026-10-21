@@ -54,6 +54,9 @@ pub(super) struct Module<'a> {
     pub texture_mask: u32,
     pub coordinate_mask: u32,
 }
+const SIGNATURE_BYTES: u64 = 65536;
+const FUNCTION_BYTES: u64 = 262144;
+const RESOURCE_BYTES: u64 = 32 * 1024 * 1024;
 type Error = (CoinWgpuStatus, String);
 fn invalid(message: &str) -> Error { (CoinWgpuStatus::InvalidArgument, message.into()) }
 fn slice<'a, T>(pointer: *const T, count: u64, label: &str) -> Result<&'a [T], Error> {
@@ -76,18 +79,37 @@ fn call(packet: &CoinWgpuPortableModule, ranges: Option<(&CoinWgpuPortableRange,
     if result != CoinWgpuStatus::Ok {
         return Err((result, unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy().into_owned()));
     }
-    usize::try_from(required).ok().filter(|size| *size > 0 && *size <= isize::MAX as usize)
-        .ok_or_else(|| invalid("Portable shader Core returned an invalid source length"))
+    // required includes the NUL; the envelope covers the function alone.
+    if required == 0 || required > FUNCTION_BYTES + 1 {
+        return Err(invalid("Portable shader Core function exceeds 262144 byte source budget or has invalid length"));
+    }
+    usize::try_from(required).map_err(|_| invalid("Portable shader Core returned an invalid source length"))
 }
 
 pub(super) fn modules<'a>(frame: &'a CoinWgpuFrameView) -> Result<Vec<Module<'a>>, Error> {
+    if frame.portable_module_count > RESOURCE_BYTES / 64 {
+        return Err((CoinWgpuStatus::OutOfMemory, "Portable shader module table exceeds 32 MiB resource budget".into()));
+    }
     let packets = slice(frame.portable_modules, frame.portable_module_count, "portable modules")?;
-    let mut result = Vec::with_capacity(packets.len());
+    let mut total = 0u64;
+    // Admit the whole table before dereferencing signatures, invoking Core,
+    // generating source or allocating a per-module owned payload.
     for packet in packets {
         if packet.node_count == 0 || packet.node_count > 256 || packet.parameter_count > 1024 ||
-           packet.alpha_may_vary > 1 || packet.output as u64 >= packet.node_count {
+           packet.alpha_may_vary > 1 || packet.output as u64 >= packet.node_count ||
+           packet.signature_bytes == 0 || packet.signature_bytes > SIGNATURE_BYTES {
             return Err(invalid("Invalid portable shader packet domains"));
         }
+        let charge = packet.node_count.checked_mul(40)
+            .and_then(|n| packet.parameter_count.checked_mul(4).and_then(|p| n.checked_add(p)))
+            .and_then(|n| n.checked_add(packet.signature_bytes))
+            .and_then(|n| n.checked_add(64))
+            .ok_or_else(|| invalid("Portable shader module resource arithmetic overflow"))?;
+        total = total.checked_add(charge).filter(|n| *n <= RESOURCE_BYTES)
+            .ok_or((CoinWgpuStatus::OutOfMemory, "Portable shader module table exceeds 32 MiB resource budget".into()))?;
+    }
+    let mut result = Vec::with_capacity(packets.len());
+    for packet in packets {
         let nodes = slice(packet.nodes, packet.node_count, "portable IR nodes")?;
         let parameters = slice(packet.parameters, packet.parameter_count, "portable parameters")?;
         let signature = slice(packet.signature, packet.signature_bytes, "portable signature")?;

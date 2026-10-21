@@ -3,6 +3,7 @@
 #endif
 
 #include "rendering/coinrender/CoinRenderRttCore.h"
+#include "rendering/coinrender/CoinRenderShaderModuleCore.h"
 #include <cmath>
 #include <utility>
 #include <algorithm>
@@ -103,8 +104,34 @@ CoinRenderRttPlan::append(CoinRenderRttProducer producer, uint64_t &id, std::str
 }
 
 bool
+CoinRenderRttPlan::shaderResourceBytes(const CoinRenderFramePlan &root, uint64_t &bytes,
+                                       std::string &diagnostic) const
+{
+  uint64_t total = 0;
+  const auto charge = [&](const CoinRenderFramePlan &frame) {
+    uint64_t count = 0;
+    if (!coin_render_shader_resource_bytes(frame, count, diagnostic)) return false;
+    if (count > COIN_RENDER_SHADER_RESOURCE_BYTES - total) {
+      diagnostic = "Portable shader root and producer graph exceeds 32 MiB resource budget";
+      return false;
+    }
+    total += count;
+    return true;
+  };
+  if (!charge(root)) return false;
+  for (const auto &producer : producers)
+    for (size_t face = 0; face < producer.faceCount(); ++face)
+      if (!charge(producer.face(face))) return false;
+  bytes = total;
+  diagnostic.clear();
+  return true;
+}
+
+bool
 CoinRenderRttPlan::validate(const CoinRenderFramePlan &root, std::string &diagnostic) const
 {
+  uint64_t shaderBytes = 0;
+  if (!shaderResourceBytes(root, shaderBytes, diagnostic)) return false;
   if (mode != COIN_RENDER_SCENE_TEXTURE_STAGED && mode != COIN_RENDER_SCENE_TEXTURE_DIRECT) {
     diagnostic = "Invalid scene texture graph mode";
     return false;
