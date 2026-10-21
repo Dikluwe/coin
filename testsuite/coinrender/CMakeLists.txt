@@ -4975,12 +4975,27 @@ if(TARGET CoinRenderCubeOverlayCaptureTest AND
   set_tests_properties(CoinRenderCubeOverlayGpu PROPERTIES TIMEOUT 90 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
 endif()
 
-# B87: exact 33-submit masks path, with passive ownership/destructor boundaries.
+# B87: preserve the functional 180-second deadline; bounded diagnosis and
+# cleanup run afterwards. CTest's 195 seconds is only an outer failsafe.
 if(TARGET CoinRenderTexture2dMsaaStartupTest AND UNIX AND NOT APPLE AND X11_FOUND)
+  find_package(Python3 3.7 REQUIRED COMPONENTS Interpreter)
   add_test(NAME CoinRenderTexture2dMsaaStartupWindowMasks2ShutdownAudit
-    COMMAND CoinRenderTexture2dMsaaStartupTest --window --samples 2 --mode masks --portable-sampling --audit-shutdown)
+    COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/scripts/coinrender/run_with_timeout.py
+      --timeout 180 --diagnostic-timeout 10
+      --diagnostic-dir ${CMAKE_CURRENT_BINARY_DIR}/shutdown-audit-diagnostics --
+      $<TARGET_FILE:CoinRenderTexture2dMsaaStartupTest>
+      --window --samples 2 --mode masks --portable-sampling --audit-shutdown)
   set_tests_properties(CoinRenderTexture2dMsaaStartupWindowMasks2ShutdownAudit PROPERTIES
-    TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+    TIMEOUT 195 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu)
+endif()
+
+if(COIN_BUILD_RENDER AND CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  find_package(Python3 3.7 REQUIRED COMPONENTS Interpreter)
+  add_test(NAME CoinRenderWatchdogContractCpu
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_run_with_timeout.py
+      --runner ${PROJECT_SOURCE_DIR}/scripts/coinrender/run_with_timeout.py
+      --temporary-root ${CMAKE_CURRENT_BINARY_DIR}/watchdog-contract-tmp)
+  set_tests_properties(CoinRenderWatchdogContractCpu PROPERTIES TIMEOUT 120)
 endif()
 
 # C05.2: alpha on indexed/shared subclass contours and actual multi-object order.
