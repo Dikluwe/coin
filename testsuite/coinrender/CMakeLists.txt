@@ -5286,3 +5286,67 @@ if(TARGET CoinRender AND COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE"
       RESOURCE_LOCK coinrender_gpu
       LABELS "coinrender_gpu;wgpu_shutdown")
 endif()
+
+# R22 completion: transport envelopes and real aggregate logical resource cost.
+if(TARGET CoinRender)
+  foreach(completion_cpu Budget Envelope)
+    add_executable(CoinRenderPortableShader${completion_cpu}Test CoinRenderPortableShader${completion_cpu}Test.cpp)
+    target_compile_definitions(CoinRenderPortableShader${completion_cpu}Test PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderPortableShader${completion_cpu}Test CoinRender Coin)
+    target_include_directories(CoinRenderPortableShader${completion_cpu}Test PRIVATE
+      ${PROJECT_SOURCE_DIR}/testsuite/coinrender ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderPortableShader${completion_cpu}Cpu COMMAND CoinRenderPortableShader${completion_cpu}Test)
+    set_tests_properties(CoinRenderPortableShader${completion_cpu}Cpu PROPERTIES TIMEOUT 60)
+  endforeach()
+  target_sources(CoinRenderPortableShaderBudgetTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuShadowFrame.cpp)
+  if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+    add_executable(CoinRenderPortableShaderRustEnvelopeTest CoinRenderPortableShaderRustEnvelopeTest.cpp)
+    target_compile_definitions(CoinRenderPortableShaderRustEnvelopeTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+    target_link_libraries(CoinRenderPortableShaderRustEnvelopeTest CoinRender Coin)
+    target_include_directories(CoinRenderPortableShaderRustEnvelopeTest PRIVATE
+      ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+      ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+    add_test(NAME CoinRenderPortableShaderRustEnvelopeCpu COMMAND CoinRenderPortableShaderRustEnvelopeTest)
+    set_tests_properties(CoinRenderPortableShaderRustEnvelopeCpu PROPERTIES TIMEOUT 60)
+  endif()
+endif()
+
+if(TARGET CoinRenderPortableShaderModuleTest AND
+   (COIN_RENDER_BACKEND STREQUAL "BGFX" OR COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE"))
+  add_executable(CoinRenderPortableShaderCompletionTest CoinRenderPortableShaderCompletionTest.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiFrame.cpp
+    ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuShadowFrame.cpp)
+  target_compile_definitions(CoinRenderPortableShaderCompletionTest PRIVATE COIN_INTERNAL HAVE_CONFIG_H)
+  if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+    target_compile_definitions(CoinRenderPortableShaderCompletionTest PRIVATE COIN_PORTABLE_MODULE_RUST)
+  elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
+    target_compile_definitions(CoinRenderPortableShaderCompletionTest PRIVATE COIN_PORTABLE_MODULE_BGFX)
+  endif()
+  target_link_libraries(CoinRenderPortableShaderCompletionTest CoinRender Coin)
+  target_include_directories(CoinRenderPortableShaderCompletionTest PRIVATE
+    ${PROJECT_SOURCE_DIR}/testsuite/coinrender ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+    ${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+  function(coin_portable_completion name)
+    add_test(NAME CoinRenderPortableShaderCompletion_${name} COMMAND CoinRenderPortableShaderCompletionTest ${ARGN})
+    set_tests_properties(CoinRenderPortableShaderCompletion_${name} PROPERTIES
+      TIMEOUT 180 SKIP_RETURN_CODE 77 RESOURCE_LOCK coinrender_gpu RUN_SERIAL TRUE)
+  endfunction()
+  coin_portable_completion(FormatsLinearNative --mode textures)
+  coin_portable_completion(FormatsSrgbPortable --mode textures --srgb --portable-sampling)
+  coin_portable_completion(Composition1 --mode composition)
+  coin_portable_completion(Composition2 --mode composition --samples 2)
+  coin_portable_completion(Composition4 --mode composition --samples 4)
+  coin_portable_completion(ScreenDoor1 --mode screen)
+  coin_portable_completion(ScreenDoor4 --mode screen --samples 4)
+  coin_portable_completion(Weighted1 --mode composition --weighted)
+  coin_portable_completion(Weighted4 --mode composition --weighted --samples 4)
+  coin_portable_completion(Peeling1 --mode composition --peeling)
+  coin_portable_completion(Peeling4 --mode composition --peeling --samples 4)
+  coin_portable_completion(RttSrgbDirect --mode rtt-srgb --srgb --direct)
+  coin_portable_completion(RttSrgbStaged --mode rtt-srgb --srgb --staged --portable-sampling)
+  coin_portable_completion(BudgetDirect --mode budget --direct)
+  coin_portable_completion(BudgetStaged --mode budget --staged)
+endif()

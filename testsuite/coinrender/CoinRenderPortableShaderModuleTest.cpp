@@ -112,12 +112,16 @@ struct Run {
   explicit Run(
       const CoinRenderCapabilities &caps, bool portable = false,
       unsigned requestedSamples = 1, bool shown = false,
-      CoinRenderSceneTextureMode route = COIN_RENDER_SCENE_TEXTURE_STAGED)
+      CoinRenderSceneTextureMode route = COIN_RENDER_SCENE_TEXTURE_STAGED,
+      bool srgb = false,
+      CoinRenderTransparencyMode strategy = COIN_RENDER_TRANSPARENCY_COIN)
       : samples(requestedSamples), window(shown) {
     CoinRenderOptions options{};
     options.renderer = static_cast<CoinRenderRenderer>(caps.renderer);
     options.sampleCount = samples;
     options.sceneTexture = route;
+    options.storedTextureColorSpace = srgb ? COIN_RENDER_TEXTURE_SRGB : COIN_RENDER_TEXTURE_LINEAR;
+    options.transparency = strategy;
     if (portable)
       options.textureSamplingPolicy = COIN_RENDER_SAMPLING_PORTABLE;
 #ifdef COIN_PORTABLE_MODULE_X11
