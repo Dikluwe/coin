@@ -5488,3 +5488,6 @@ if(TARGET CoinRender)
 endif()
 
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderCubeRttCompletionTests.cmake)
+
+# R26 finite opaque legacy completion: independent arithmetic and actual factory delivery.
+include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderBumpCompletionTests.cmake)
