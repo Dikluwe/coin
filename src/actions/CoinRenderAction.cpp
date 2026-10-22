@@ -1110,8 +1110,14 @@ CoinRenderAction::captureScreenContent(SoNode * node)
 void
 CoinRenderAction::beginForegroundPass()
 {
+  this->beginForegroundPass(FALSE);
+}
+
+void
+CoinRenderAction::beginForegroundPass(SbBool clearDepth)
+{
   if (this->pimpl->isApplying && !this->pimpl->replayingAnnotations)
-    this->pimpl->builder.beginForeground();
+    this->pimpl->builder.beginForeground(clearDepth != FALSE);
 }
 
 void

@@ -151,6 +151,10 @@ public:
   SbBool deferOverlayPath(SoPath * path = nullptr, int priority = 0);
   /** Viewer foreground pass: preserve depth state, do not clear depth. */
   void beginForegroundPass();
+  /** A host overlay may clear depth in the viewport of its first draw.
+   * Foreground scopes can nest; closing one restores its enclosing pass.
+   */
+  void beginForegroundPass(SbBool clearDepth);
   void endForegroundPass();
   /** Manager adapter only: mark an owned separator as a foreground pass.
    * The action borrows the pointer for the next apply; the scene owns it.

@@ -1,0 +1,1711 @@
+--- a/src/Gui/CMakeLists.txt
++++ b/src/Gui/CMakeLists.txt
+@@ -129,12 +129,13 @@
+     list(APPEND FreeCADGui_LIBS ${COIN3D_LIBRARIES})
+ endif()
+ 
+-option(FREECAD_COIN_WGPU_EXPERIMENTAL "Render QuarterWidget through CoinWgpuExperimental when FREECAD_COIN_WGPU=1" OFF)
++option(FREECAD_COIN_WGPU_EXPERIMENTAL "Render QuarterWidget through CoinRender when FREECAD_COIN_WGPU=1" OFF)
+ if (FREECAD_COIN_WGPU_EXPERIMENTAL)
+-    find_package(CoinWgpuExperimental CONFIG REQUIRED)
++    find_package(CoinRender CONFIG REQUIRED)
+     find_package(X11 REQUIRED)
+     list(APPEND FreeCADGui_LIBS
+-        CoinWgpuExperimental::CoinWgpuExperimental
++        CoinRender::CoinRender
++        ${X11_X11_LIB}
+         ${X11_Xfixes_LIB}
+     )
+     target_compile_definitions(FreeCADGui PRIVATE FREECAD_COIN_WGPU_EXPERIMENTAL)
+--- a/src/Gui/Inventor/Draggers/SoTransformDragger.cpp
++++ b/src/Gui/Inventor/Draggers/SoTransformDragger.cpp
+@@ -26,6 +26,7 @@
+ 
+ #include <Inventor/SbRotation.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/engines/SoComposeVec3f.h>
+ #include <Inventor/nodes/SoLightModel.h>
+ #include <Inventor/nodes/SoDrawStyle.h>
+@@ -522,6 +523,16 @@
+     if (!sudoThis->idleSensor.isScheduled()) {
+         sudoThis->idleSensor.schedule();
+     }
++}
++
++void SoTransformDragger::callback(SoCallbackAction* action)
++{
++    if (!scaleInited) {
++        scaleInited = true;
++        updateDraggerCache(action->getCurPath());
++    }
++    updateAxisScale();
++    inherited::callback(action);
+ }
+ 
+ void SoTransformDragger::GLRender(SoGLRenderAction* action)
+--- a/src/Gui/Inventor/Draggers/SoTransformDragger.h
++++ b/src/Gui/Inventor/Draggers/SoTransformDragger.h
+@@ -162,6 +162,7 @@
+     //@}
+ 
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+ 
+ protected:
+     SbBool setUpConnections(SbBool onoff, SbBool doitalways = FALSE) override;
+--- a/src/Gui/Inventor/SoAxisCrossKit.cpp
++++ b/src/Gui/Inventor/SoAxisCrossKit.cpp
+@@ -27,6 +27,7 @@
+ 
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/elements/SoModelMatrixElement.h>
+ #include <Inventor/elements/SoViewportRegionElement.h>
+ #include <Inventor/elements/SoViewVolumeElement.h>
+@@ -80,6 +81,12 @@
+     SO_KIT_INIT_CLASS(SoShapeScale, SoBaseKit, "BaseKit");
+ }
+ 
++void SoShapeScale::callback(SoCallbackAction* action)
++{
++    updateScale(action ? action->getState() : nullptr);
++    inherited::callback(action);
++}
++
+ void SoShapeScale::GLRender(SoGLRenderAction* action)
+ {
+     updateScale(action ? action->getState() : nullptr);
+--- a/src/Gui/Inventor/SoAxisCrossKit.h
++++ b/src/Gui/Inventor/SoAxisCrossKit.h
+@@ -69,6 +69,7 @@
+     void doAction(SoAction* action) override;
+     void updateScale(SoState* state);
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     ~SoShapeScale() override;
+ };
+ 
+--- a/src/Gui/Inventor/SoFCBoundingBox.cpp
++++ b/src/Gui/Inventor/SoFCBoundingBox.cpp
+@@ -36,6 +36,15 @@
+ #endif
+ 
+ #include <sstream>
++#include <cmath>
++#include <Inventor/SbVec4f.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/elements/SoDepthBufferElement.h>
++#include <Inventor/elements/SoViewingMatrixElement.h>
++#include <Inventor/elements/SoProjectionMatrixElement.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ 
+ #include <Inventor/SbBox.h>
+ #include <Inventor/elements/SoLazyElement.h>
+@@ -124,6 +133,42 @@
+     bboxSep->unref();
+     textSep->unref();
+     dimSep->unref();
++}
++
++void SoFCBoundingBox::callback(SoCallbackAction* action)
++{
++    if (!action) return;
++    SoState* state = action->getState();
++    prepareGeometry(state);
++    state->push();
++    if (ViewParams::instance()->getRenderProjectedBBox())
++        SoModelMatrixElement::makeIdentity(state, this);
++    const SbMatrix transform = SoModelMatrixElement::get(state)
++        * SoViewingMatrixElement::get(state) * SoProjectionMatrixElement::get(state);
++    for(int i=0;i<8;++i) {
++        const auto& point=bboxCoords->point[i];
++        SbVec4f clip(point[0],point[1],point[2],1);
++        transform.multVecMatrix(clip,clip);
++        if (!std::isfinite(clip[2]) || !std::isfinite(clip[3]) || clip[3]<=0
++            || clip[2]<-clip[3] || clip[2]>clip[3]) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++            if (action->isOfType(CoinRenderAction::getClassTypeId()))
++                static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCBoundingBox: geometric depth clamp is outside the portable profile");
++#endif
++            state->pop();
++            return;
++        }
++    }
++    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
++    const SbBool test=SoDepthBufferElement::getTestEnable(state);
++    const SbBool write=SoDepthBufferElement::getWriteEnable(state);
++    const auto range=SoDepthBufferElement::getRange(state);
++    SoDepthBufferElement::set(state,test,write,SoDepthBufferElement::LEQUAL,range);
++    bboxSep->callback(action);
++    SoDepthBufferElement::set(state,test,write,SoDepthBufferElement::ALWAYS,range);
++    if(coordsOn.getValue()) textSep->callback(action);
++    if(dimensionsOn.getValue()) dimSep->callback(action);
++    state->pop();
+ }
+ 
+ void SoFCBoundingBox::GLRender(SoGLRenderAction* action)
+--- a/src/Gui/Inventor/SoFCBoundingBox.h
++++ b/src/Gui/Inventor/SoFCBoundingBox.h
+@@ -72,6 +72,7 @@
+ protected:
+     ~SoFCBoundingBox() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void generatePrimitives(SoAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+ 
+--- a/src/Gui/Inventor/SoNaviCube.cpp
++++ b/src/Gui/Inventor/SoNaviCube.cpp
+@@ -33,9 +33,13 @@
+ #include <limits>
+ #include <memory>
+ #include <numbers>
++#include "CoinRenderGeneratedImage.h"
+ 
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/actions/SoCallbackAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/actions/SoRayPickAction.h>
+ #include <Inventor/details/SoFaceDetail.h>
+ #include <Inventor/lists/SoPickedPointList.h>
+@@ -470,7 +474,7 @@
+         slot.texture->model = SoTexture2::MODULATE;
+     }
+ 
+-    slot.texture->image.setValue(size, numComponents, pixels, SoSFImage::COPY);
++    Gui::setGeneratedTextureImage(slot.texture->image, size, numComponents, pixels);
+     sceneDirty = true;
+ }
+ 
+@@ -1382,6 +1386,19 @@
+     }
+ 
+     const SbVec4f& rect = viewportRect.getValue();
++    // SbViewportRegion stores signed short pixels. Validate before lround and
++    // narrowing so malformed host state cannot wrap into another viewport.
++    for (int i = 0; i < 4; ++i) {
++        if (!std::isfinite(rect[i]) || rect[i] < std::numeric_limits<short>::min()
++            || rect[i] > std::numeric_limits<short>::max()) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++            if (action->isOfType(CoinRenderAction::getClassTypeId()))
++                static_cast<CoinRenderAction*>(action)->rejectUnsupported(
++                    "SoNaviCube: viewport pixels must be finite signed-short values");
++#endif
++            return;
++        }
++    }
+     const int viewportX = static_cast<int>(std::lround(rect[0]));
+     const int viewportY = static_cast<int>(std::lround(rect[1]));
+     const int viewportWidth = static_cast<int>(std::lround(rect[2]));
+@@ -1423,10 +1440,26 @@
+     SoShapeStyleElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+     SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+     SoShapeStyleElement::setTransparencyType(state, SoGLRenderAction::BLEND);
+-
+-    // The frame-plan texture contract currently accepts the standard linear quality value.
++    SoLazyElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++
+     SoTextureQualityElement::set(state, this, 0.5F);
+-    action->traverse(callbackRoot);
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action->isOfType(CoinRenderAction::getClassTypeId())) {
++        auto* renderAction = static_cast<CoinRenderAction*>(action);
++        // The ordinary Annotation wrapper does not clear depth. The native
++        // viewport pass mirrors clearOverlayDepth: one scissored clear followed
++        // by the retained cube's own depth policy, even inside a foreground or
++        // annotation. It restores the enclosing pass after this viewport.
++        renderAction->beginForegroundPass(TRUE);
++        struct PassScope {
++            CoinRenderAction* action;
++            ~PassScope() { action->endForegroundPass(); }
++        } pass {renderAction};
++        action->traverse(sceneRoot);
++    }
++    else
++#endif
++        action->traverse(callbackRoot);
+ 
+     state->pop();
+ }
+--- a/src/Gui/Quarter/QuarterWidget.cpp
++++ b/src/Gui/Quarter/QuarterWidget.cpp
+@@ -79,11 +79,16 @@
+ #include <Inventor/SoRenderManager.h>
+ #include <Gui/Selection/Selection.h>
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-#include <Inventor/rendering/SoWgpuNativeSurface.h>
+-#include <Inventor/rendering/SoWgpuRenderManagerAdapter.h>
++#include <Inventor/rendering/CoinRenderNativeSurface.h>
++#include <Inventor/rendering/CoinRenderManagerAdapter.h>
++#include <Inventor/rendering/CoinRenderSceneManager.h>
++#include <Inventor/rendering/CoinRenderTarget.h>
+ #include <QtGui/qguiapplication_platform.h>
+ #include <X11/extensions/shape.h>
+ #include <X11/extensions/Xfixes.h>
++#include <QTabBar>
++#include <QRegion>
++#include <vector>
+ #endif
+ #include <Inventor/nodes/SoCamera.h>
+ #include <Inventor/nodes/SoDirectionalLight.h>
+@@ -159,10 +164,58 @@
+             frameCallback();
+     }
+ 
++
++    void updateVisibleClip()
++    {
++        auto* x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
++        if (!x11)
++            return;
++        QRegion clip(rect());
++        for (QWidget* ancestor = parentWidget(); ancestor; ancestor = ancestor->parentWidget()) {
++            const QPoint origin = mapFromGlobal(ancestor->mapToGlobal(QPoint()));
++            clip &= QRegion(QRect(origin, ancestor->size()));
++            if (!ancestor->mask().isEmpty())
++                clip &= ancestor->mask().translated(origin);
++            if (ancestor->isWindow())
++                break;
++        }
++        // Alien Qt tab bars paint above the viewport, but an Xlib child would
++        // otherwise cover them. Clip presentation, not the camera or picking.
++        for (QTabBar* bar : window()->findChildren<QTabBar*>()) {
++            if (bar->isVisible())
++                clip -= QRegion(QRect(mapFromGlobal(bar->mapToGlobal(QPoint())), bar->size()));
++        }
++        const qreal ratio = devicePixelRatioF();
++        if (clipInitialized && clip == lastClip && ratio == lastClipRatio)
++            return;
++        std::vector<XRectangle> rectangles;
++        for (const QRect& area : clip) {
++            const int x0 = qRound(area.x() * ratio);
++            const int y0 = qRound(area.y() * ratio);
++            const int x1 = qRound((area.x() + area.width()) * ratio);
++            const int y1 = qRound((area.y() + area.height()) * ratio);
++            rectangles.push_back({static_cast<short>(x0), static_cast<short>(y0),
++                                  static_cast<unsigned short>(x1 - x0),
++                                  static_cast<unsigned short>(y1 - y0)});
++        }
++        const XserverRegion region = XFixesCreateRegion(
++            x11->display(), rectangles.empty() ? nullptr : rectangles.data(),
++            static_cast<int>(rectangles.size()));
++        XFixesSetWindowShapeRegion(x11->display(), static_cast<::Window>(winId()),
++                                  ShapeBounding, 0, 0, region);
++        XFixesDestroyRegion(x11->display(), region);
++        XFlush(x11->display());
++        lastClip = clip;
++        lastClipRatio = ratio;
++        clipInitialized = true;
++    }
++
+ protected:
+     bool event(QEvent* event) override
+     {
+         const QEvent::Type type = event->type();
++        if (type == QEvent::WinIdChange)
++            clipInitialized = false;
+         const bool handled = QWidget::event(event);
+         if (type == QEvent::Show || type == QEvent::Resize ||
+             type == QEvent::WinIdChange || type == QEvent::WindowStateChange)
+@@ -174,6 +227,9 @@
+ 
+ private:
+     FrameCallback frameCallback;
++    QRegion lastClip;
++    qreal lastClipRatio = 0;
++    bool clipInitialized = false;
+ };
+ #endif
+ 
+@@ -327,6 +383,7 @@
+   PRIVATE(this)->wgpuformat = format;
+   PRIVATE(this)->wgpuenabled = qEnvironmentVariableIntValue("FREECAD_COIN_WGPU") == 1;
+   setProperty("wgpuFrameCount", QVariant::fromValue(qulonglong(0)));
++  setProperty("wgpuFrameSerial", QVariant::fromValue(qulonglong(0)));
+   connect(this, &QuarterWidget::devicePixelRatioChanged, this, [this](qreal) {
+       this->requestWgpuFrame();
+   });
+@@ -378,6 +435,7 @@
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+   delete PRIVATE(this)->wgpuadapter;
+   PRIVATE(this)->wgpuadapter = nullptr;
++  setProperty("wgpuFrameSerial", QVariant::fromValue(qulonglong(0)));
+   delete PRIVATE(this)->wgpupresent;
+   PRIVATE(this)->wgpupresent = nullptr;
+   if (PRIVATE(this)->wgpuenabled && !PRIVATE(this)->wgpufailed) {
+@@ -760,6 +818,7 @@
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+   delete PRIVATE(this)->wgpuadapter;
+   PRIVATE(this)->wgpuadapter = nullptr;
++  setProperty("wgpuFrameSerial", QVariant::fromValue(qulonglong(0)));
+ #endif
+   bool carrydata = false;
+   SoNode * scene = nullptr;
+@@ -930,8 +989,11 @@
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+     if (PRIVATE(this)->wgpupresent)
+         PRIVATE(this)->wgpupresent->setGeometry(viewport()->rect());
+-    if (PRIVATE(this)->wgpuadapter)
++    if (PRIVATE(this)->wgpuadapter) {
+         PRIVATE(this)->wgpuadapter->resize(SbVec2i32(width, height));
++        setProperty("wgpuFrameSerial", QVariant::fromValue(qulonglong(
++            PRIVATE(this)->wgpuadapter->getSceneManager()->getRenderTarget()->getLastSubmissionSerial())));
++    }
+     this->requestWgpuFrame();
+ #endif
+     if (scene())
+@@ -959,8 +1021,11 @@
+         PRIVATE(this)->sorendermanager->setViewportRegion(vp);
+         PRIVATE(this)->soeventmanager->setViewportRegion(vp);
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-        if (PRIVATE(this)->wgpuadapter)
++        if (PRIVATE(this)->wgpuadapter) {
+             PRIVATE(this)->wgpuadapter->resize(SbVec2i32(width, height));
++            setProperty("wgpuFrameSerial", QVariant::fromValue(qulonglong(
++                PRIVATE(this)->wgpuadapter->getSceneManager()->getRenderTarget()->getLastSubmissionSerial())));
++        }
+ #endif
+     }
+ 
+@@ -1031,8 +1096,12 @@
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+ bool QuarterWidget::requestWgpuFrame()
+ {
+-    if (!PRIVATE(this)->wgpuenabled || PRIVATE(this)->wgpufailed)
++    if (!PRIVATE(this)->wgpuenabled)
+         return false;
++    // A failed explicit native backend still owns this raster viewport. Never
++    // let paintEvent/redraw reinterpret it as a QOpenGLWidget.
++    if (PRIVATE(this)->wgpufailed)
++        return true;
+     if (!PRIVATE(this)->wgpuframequeued) {
+         PRIVATE(this)->wgpuframequeued = true;
+         QMetaObject::invokeMethod(this, [this] {
+@@ -1086,26 +1155,28 @@
+         present->show();
+     }
+     PRIVATE(this)->wgpupresent->setGeometry(viewport()->rect());
++    static_cast<WgpuPresentWidget*>(PRIVATE(this)->wgpupresent)->updateVisibleClip();
+     const quintptr windowId = PRIVATE(this)->wgpupresent->winId();
+     if (PRIVATE(this)->wgpuadapter && PRIVATE(this)->wgpuwindow != windowId) {
+         delete PRIVATE(this)->wgpuadapter;
+         PRIVATE(this)->wgpuadapter = nullptr;
++        setProperty("wgpuFrameSerial", QVariant::fromValue(qulonglong(0)));
+     }
+     QString reason;
+     if (!PRIVATE(this)->wgpuadapter) {
+         auto * x11 = qGuiApp->nativeInterface<QNativeInterface::QX11Application>();
+         if (x11) {
+-            SoWgpuNativeSurfaceDescriptor surface{};
+-            surface.abiVersion = COIN_WGPU_NATIVE_SURFACE_ABI_VERSION;
++            CoinRenderNativeSurfaceDescriptor surface{};
++            surface.abiVersion = COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;
+             surface.structSize = sizeof(surface);
+-            surface.type = COIN_WGPU_SURFACE_XLIB;
++            surface.type = COIN_RENDER_SURFACE_XLIB;
+             surface.native.xlib.display = x11->display();
+             const ::Window presentwindow = static_cast<::Window>(PRIVATE(this)->wgpupresent->winId());
+             XserverRegion inputregion = XFixesCreateRegion(x11->display(), nullptr, 0);
+             XFixesSetWindowShapeRegion(x11->display(), presentwindow, ShapeInput, 0, 0, inputregion);
+             XFixesDestroyRegion(x11->display(), inputregion);
+             surface.native.xlib.window = static_cast<uint64_t>(presentwindow);
+-            PRIVATE(this)->wgpuadapter = new SoWgpuRenderManagerAdapter(
++            PRIVATE(this)->wgpuadapter = new CoinRenderManagerAdapter(
+                 *getSoRenderManager(), surface, size);
+             PRIVATE(this)->wgpuwindow = windowId;
+         }
+@@ -1114,16 +1185,39 @@
+         }
+     }
+     bool rendered = false;
++    auto candidateStatus = CoinRenderAction::BACKEND_ERROR;
+     if (PRIVATE(this)->wgpuadapter) {
+         PRIVATE(this)->wgpuadapter->setSceneGraphOverride(this->getWgpuSceneGraph());
+-        if (PRIVATE(this)->wgpuadapter->resize(size))
+-            rendered = PRIVATE(this)->wgpuadapter->render() == SoWgpuRenderAction::SUCCESS;
++        if (PRIVATE(this)->wgpuadapter->resize(size)) {
++            candidateStatus = PRIVATE(this)->wgpuadapter->render();
++            rendered = candidateStatus == CoinRenderAction::SUCCESS;
++        }
++        else {
++            candidateStatus = PRIVATE(this)->wgpuadapter->getLastStatus();
++        }
+         if (!rendered)
+             reason = QString::fromUtf8(PRIVATE(this)->wgpuadapter->getLastError().getString());
+     }
+     PRIVATE(this)->autoredrawenabled = true;
+     PRIVATE(this)->processdelayqueue = true;
+     PRIVATE(this)->wgpuframerunning = false;
++    const qulonglong publicationSerial = PRIVATE(this)->wgpuadapter
++        ? qulonglong(PRIVATE(this)->wgpuadapter->getSceneManager()->getRenderTarget()->getLastSubmissionSerial())
++        : qulonglong(0);
++    setProperty("wgpuFrameSerial", QVariant::fromValue(publicationSerial));
++    setProperty("wgpuFrameStatus", int(candidateStatus));
++    setProperty("wgpuFrameError", rendered ? QString() : reason);
++    const bool rejected = candidateStatus == CoinRenderAction::UNSUPPORTED
++        || candidateStatus == CoinRenderAction::INVALID_SCENE;
++    if (!rendered && rejected && PRIVATE(this)->wgpuadapter
++        && PRIVATE(this)->wgpuadapter->getSceneManager()->getRenderTarget()->getStatus()
++            == CoinRenderTarget::TARGET_READY) {
++        // Admission does not invalidate a healthy target, including a cold
++        // target that has not published yet. An edited scene can recover on
++        // its next redraw without a preparatory GL frame or a backend switch.
++        qWarning() << "CoinRender frame rejected; native target retained:" << reason;
++        return;
++    }
+     if (rendered) {
+         const auto frames = property("wgpuFrameCount").toULongLong() + 1;
+         setProperty("wgpuFrameCount", QVariant::fromValue(frames));
+@@ -1136,30 +1230,11 @@
+         this->finishWgpuFrame();
+         return;
+     }
+-    qWarning() << "Coin WGPU initialization/render failed; switching viewport to Coin/GL:" << reason;
+-    setProperty("wgpuFallbackReason", reason);
++    qWarning() << "CoinRender initialization/render failed:" << reason;
+     PRIVATE(this)->wgpufailed = true;
+-    delete PRIVATE(this)->wgpuadapter;
+-    PRIVATE(this)->wgpuadapter = nullptr;
+-    PRIVATE(this)->wgpupresent->hide();
+-    delete PRIVATE(this)->wgpupresent;
+-    PRIVATE(this)->wgpupresent = nullptr;
+-    // Construct without a parent while the old raster viewport is still installed.
+-    // Parenting a QOpenGLWidget into a hierarchy that still owns a native child
+-    // can crash Qt/XCB in QWindow::setFlags(); setViewport() reparents it safely.
+-    auto * gl = new CustomGLWidget(PRIVATE(this)->wgpuformat, nullptr);
+-    // Qt can recreate the top-level surface when a GL viewport replaces a
+-    // raster/native one. Render again only after the new widget's FBO is ready.
+-    connect(gl, &QOpenGLWidget::resized, this, [this] {
+-        initialized = false;
+-        this->redraw();
+-    }, Qt::QueuedConnection);
+-    PRIVATE(this)->replaceGLWidget(gl);
+-    setViewport(gl);
+-    viewport()->setAutoFillBackground(false);
+-    viewport()->setMouseTracking(true);
+-    initialized = false;
+-    viewport()->update();
++    // Keep the selected viewport and its diagnostic visible to the host.
++    // Recovery from device/surface failure requires explicit owner recreation;
++    // neither constructing a GL viewport nor retrying is an implicit policy.
+ }
+ #endif
+ 
+--- a/src/Gui/Quarter/QuarterWidgetP.h
++++ b/src/Gui/Quarter/QuarterWidgetP.h
+@@ -46,7 +46,7 @@
+ class SoCamera;
+ class SoRenderManager;
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-class SoWgpuRenderManagerAdapter;
++class CoinRenderManagerAdapter;
+ #endif
+ class SoEventManager;
+ class SoDirectionalLight;
+@@ -90,7 +90,7 @@
+   InteractionMode * interactionmode;
+   SoRenderManager * sorendermanager;
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+-  SoWgpuRenderManagerAdapter * wgpuadapter {nullptr};
++  CoinRenderManagerAdapter * wgpuadapter {nullptr};
+   QWidget * wgpupresent {nullptr};
+   bool wgpuenabled {false};
+   bool wgpufailed {false};
+--- a/src/Gui/SoDatumLabel.cpp
++++ b/src/Gui/SoDatumLabel.cpp
+@@ -33,6 +33,7 @@
+ #include <Inventor/SbVec2f.h>
+ #include <Inventor/SoPrimitiveVertex.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/elements/SoFocalDistanceElement.h>
+ #include <Inventor/elements/SoModelMatrixElement.h>
+ #include <Inventor/elements/SoLazyElement.h>
+@@ -60,6 +61,8 @@
+ #include <Gui/Tools.h>
+ 
+ #include "SoDatumLabel.h"
++#include "Inventor/CoinRenderGeneratedImage.h"
++#include <Inventor/elements/SoShapeStyleElement.h>
+ 
+ // NOLINTBEGIN(readability-magic-numbers,cppcoreguidelines-pro-bounds-pointer-arithmetic)
+ constexpr const float ZCONSTR {0.006F};
+@@ -1549,6 +1552,10 @@
+         return;
+     }
+ 
++    // Retain the logical text dimensions; normalize only the sampled payload.
++    if (m_TextTexture->image.isConnected()) m_TextTexture->image.disconnect();
++    Gui::setGeneratedTextureImage(m_TextTexture->image, imgsize, nc, dataptr);
++
+     const SbViewVolume& vv = SoViewVolumeElement::get(state);
+     const SbVec3f z = vv.zVector();
+     const bool flip = norm.getValue().dot(z) > std::numeric_limits<float>::epsilon();
+@@ -1656,6 +1663,21 @@
+     }
+ 
+     return hasText;
++}
++
++void SoDatumLabel::callback(SoCallbackAction* action)
++{
++    if (!action) return;
++    SoState* state = action->getState();
++    state->push();
++    SoLazyElement::setBackfaceCulling(state, FALSE);
++    if (prepareRenderScene(state)) {
++        SoTextureQualityElement::set(state, this, 0.49F);
++        SoShapeStyleElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++        SoLazyElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++    }
++    if (m_Root) m_Root->callback(action);
++    state->pop();
+ }
+ 
+ void SoDatumLabel::GLRender(SoGLRenderAction* action)
+--- a/src/Gui/SoDatumLabel.h
++++ b/src/Gui/SoDatumLabel.h
+@@ -110,6 +110,7 @@
+ protected:
+     ~SoDatumLabel() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction*, SbBox3f& box, SbVec3f& center) override;
+     void generatePrimitives(SoAction* action) override;
+     void notify(SoNotList* l) override;
+--- a/src/Gui/SoFCColorBar.cpp
++++ b/src/Gui/SoFCColorBar.cpp
+@@ -26,6 +26,8 @@
+ 
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/elements/SoViewportRegionElement.h>
+ #include <Inventor/actions/SoHandleEventAction.h>
+ #include <Inventor/events/SoMouseButtonEvent.h>
+ #include <Inventor/SbBox2f.h>
+@@ -519,6 +521,12 @@
+     return *colorScale;
+ }
+ 
++void SoFCColorBar::callback(SoCallbackAction* action)
++{
++    prepareViewport(SoViewportRegionElement::get(action->getState()).getWindowSize());
++    inherited::callback(action);
++}
++
+ void SoFCColorBar::GLRenderBelowPath(SoGLRenderAction* action)
+ {
+     prepareViewport(action->getViewportRegion().getWindowSize());
+--- a/src/Gui/SoFCColorBar.h
++++ b/src/Gui/SoFCColorBar.h
+@@ -70,6 +70,7 @@
+     const ColorScaleOverlay& getColorScale() const;
+ 
+     void GLRenderBelowPath(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void handleEvent(SoHandleEventAction* action) override;
+ 
+     /** Sets the range from the maximum \a fMax to the minimum \a fMin. */
+--- a/src/Gui/SoFCInteractiveElement.cpp
++++ b/src/Gui/SoFCInteractiveElement.cpp
+@@ -22,6 +22,7 @@
+ 
+ 
+ #include <Inventor/elements/SoOverrideElement.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ 
+ 
+ #include "SoFCInteractiveElement.h"
+@@ -34,6 +35,7 @@
+ {
+     SO_ELEMENT_INIT_CLASS(SoFCInteractiveElement, inherited);
+     SO_ENABLE(SoGLRenderAction, SoFCInteractiveElement);
++    SO_ENABLE(SoCallbackAction, SoFCInteractiveElement);
+ }
+ 
+ void SoFCInteractiveElement::init(SoState* /*state*/)
+--- a/src/Gui/SoLabelNodes.cpp
++++ b/src/Gui/SoLabelNodes.cpp
+@@ -40,6 +40,10 @@
+ #include <QPen>
+ #include <QStringList>
+ #include <Inventor/actions/SoAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/elements/SoLazyElement.h>
+ #include <Inventor/SbVec2f.h>
+@@ -59,6 +63,7 @@
+ 
+ #include "Inventor/SoFCScreenSpaceGroup.h"
+ #include "SoLabelNodes.h"
++#include "Inventor/CoinRenderGeneratedImage.h"
+ #include "SoFCInteractiveElement.h"
+ #include "Tools.h"
+ 
+@@ -108,6 +113,17 @@
+     SO_NODE_CONSTRUCTOR(SoColorBarLabel);
+ }
+ 
++void SoColorBarLabel::callback(SoCallbackAction* action)
++{
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action->isOfType(CoinRenderAction::getClassTypeId())) {
++        static_cast<CoinRenderAction*>(action)->captureScreenContent(this);
++        return;
++    }
++#endif
++    inherited::callback(action);
++}
++
+ void SoColorBarLabel::computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center)
+ {
+     computeText2BBoxWithCoinWorkaround(action, this, box, center, [&](SbBox3f& textBox, SbVec3f& textCenter) {
+@@ -168,6 +184,20 @@
+ /**
+  * Render the retained viewport-space text quad in the legacy renderer.
+  */
++void SoStringLabel::callback(SoCallbackAction* action)
++{
++    if (!action || !textRoot || !textSwitch) return;
++    SoState* state = action->getState();
++    state->push();
++    ensureTextGeometry(state);
++    if (textSwitch->whichChild.getValue() != SO_SWITCH_NONE) {
++        SoShapeStyleElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++        SoLazyElement::setTransparencyType(state, SoGLRenderAction::BLEND);
++        textRoot->callback(action);
++    }
++    state->pop();
++}
++
+ void SoStringLabel::GLRender(SoGLRenderAction* action)
+ {
+     renderRetained(action);
+@@ -314,7 +344,9 @@
+ 
+     SoSFImage sfImage;
+     Gui::BitmapFactory().convert(image, sfImage);
+-    textTexture->image = sfImage;
++    SbVec2s payloadSize; int components;
++    const unsigned char* payload = sfImage.getValue(payloadSize, components);
++    Gui::setGeneratedTextureImage(textTexture->image, payloadSize, components, payload);
+ 
+     cachedImageWidth = maxWidth;
+     cachedImageHeight = textHeight;
+@@ -504,3 +536,16 @@
+     prepareImage(action ? action->getState() : nullptr);
+     inherited::GLRender(action);
+ }
++
++void SoFrameLabel::callback(SoCallbackAction* action)
++{
++    // Cold preparation belongs to the host, before common raster capture.
++    prepareImage(action ? action->getState() : nullptr);
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action && action->isOfType(CoinRenderAction::getClassTypeId())) {
++        static_cast<CoinRenderAction*>(action)->captureScreenContent(this);
++        return;
++    }
++#endif
++    inherited::callback(action);
++}
+--- a/src/Gui/SoLabelNodes.h
++++ b/src/Gui/SoLabelNodes.h
+@@ -69,6 +69,7 @@
+     SoColorBarLabel();
+ 
+ protected:
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+ };
+ 
+@@ -90,6 +91,7 @@
+ protected:
+     ~SoStringLabel() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void notify(SoNotList* list) override;
+ 
+ private:
+@@ -147,6 +149,7 @@
+     ~SoFrameLabel() override = default;
+     void notify(SoNotList* list) override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+ 
+ private:
+     void prepareImage(SoState* state);
+--- a/src/Gui/View3DInventorViewer.cpp
++++ b/src/Gui/View3DInventorViewer.cpp
+@@ -92,6 +92,7 @@
+ #include <Inventor/nodes/SoDepthBuffer.h>
+ #include <Inventor/nodes/SoFaceSet.h>
+ #include <Inventor/nodes/SoTexture2.h>
++#include "Inventor/CoinRenderGeneratedImage.h"
+ #include <Inventor/nodes/SoTextureCoordinate2.h>
+ #include <Inventor/nodes/SoVertexProperty.h>
+ #include <QBitmap>
+@@ -442,8 +443,8 @@
+ 
+     QImage rgba = image.convertToFormat(QImage::Format_RGBA8888);
+     overlay.pixelStorage.assign(rgba.constBits(), rgba.constBits() + qImageByteCount(rgba));
+-    overlay.texture->image
+-        .setValue(SbVec2s(rgba.width(), rgba.height()), 4, overlay.pixelStorage.data());
++    Gui::setGeneratedTextureImage(overlay.texture->image,
++        SbVec2s(rgba.width(), rgba.height()), 4, overlay.pixelStorage.data());
+ 
+     const float baseX = -0.5f * static_cast<float>(viewportWidth);
+     const float baseY = -0.5f * static_cast<float>(viewportHeight);
+@@ -3286,6 +3287,13 @@
+ 
+ #ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
+ namespace {
++void setWgpuInteractionState(void* data, SoAction* action)
++{
++    if (!action->isOfType(SoWgpuRenderAction::getClassTypeId())) return;
++    auto* viewer = static_cast<View3DInventorViewer*>(data);
++    SoFCInteractiveElement::set(action->getState(), action->getCurPathTail(),
++                                viewer->getInteractiveCount() > 0);
++}
+ void beginWgpuForeground(void*, SoAction* action)
+ {
+     if (action->isOfType(SoWgpuRenderAction::getClassTypeId()))
+@@ -3343,10 +3351,13 @@
+         wgpuGraphicsRoot->removeAllChildren();
+         for (auto* scene : itemScenes) wgpuGraphicsRoot->addChild(scene);
+     }
+-    const int children = 2 + (live ? 3 : 0) + (axes ? 1 : 0);
++    const int children = 3 + (live ? 3 : 0) + (axes ? 1 : 0);
+     if (mainScene && (wgpuSceneRoot->getNumChildren() != children
+-                      || wgpuSceneRoot->getChild(0) != mainScene)) {
++                      || wgpuSceneRoot->getChild(1) != mainScene)) {
+         wgpuSceneRoot->removeAllChildren();
++        auto* interaction = new SoCallback;
++        interaction->setCallback(setWgpuInteractionState, viewer);
++        wgpuSceneRoot->addChild(interaction);
+         wgpuSceneRoot->addChild(mainScene);
+         wgpuSceneRoot->addChild(wgpuForeground(foregroundroot));
+         if (live) {
+@@ -5498,9 +5509,9 @@
+     placeLetter(overlay.yLetter, yLetterProjected);
+     placeLetter(overlay.zLetter, zLetterProjected);
+ 
+-    overlay.xLetter.texture->image.setValue(SbVec2s(XPM_WIDTH, XPM_HEIGHT), 4, XPM_pixel_data);
+-    overlay.yLetter.texture->image.setValue(SbVec2s(YPM_WIDTH, YPM_HEIGHT), 4, YPM_pixel_data);
+-    overlay.zLetter.texture->image.setValue(SbVec2s(ZPM_WIDTH, ZPM_HEIGHT), 4, ZPM_pixel_data);
++    Gui::setGeneratedTextureImage(overlay.xLetter.texture->image, SbVec2s(XPM_WIDTH, XPM_HEIGHT), 4, XPM_pixel_data);
++    Gui::setGeneratedTextureImage(overlay.yLetter.texture->image, SbVec2s(YPM_WIDTH, YPM_HEIGHT), 4, YPM_pixel_data);
++    Gui::setGeneratedTextureImage(overlay.zLetter.texture->image, SbVec2s(ZPM_WIDTH, ZPM_HEIGHT), 4, ZPM_pixel_data);
+ 
+     SbViewportRegion vp = this->getSoRenderManager()->getViewportRegion();
+     vp.setViewportPixels(origin[0], origin[1], pixelarea, pixelarea);
+--- a/src/Mod/Mesh/Gui/CMakeLists.txt
++++ b/src/Mod/Mesh/Gui/CMakeLists.txt
+@@ -156,6 +156,11 @@
+         PROPERTIES COMPILE_FLAGS ${EIGEN3_NO_DEPRECATED_COPY})
+ endif ()
+ 
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    find_package(CoinRender CONFIG REQUIRED)
++    set_source_files_properties(SoFCIndexedFaceSet.cpp SoFCMeshObject.cpp SoPolygon.cpp PROPERTIES COMPILE_DEFINITIONS FREECAD_COIN_WGPU_EXPERIMENTAL)
++endif()
++
+ add_library(MeshGui SHARED ${MeshGui_SRCS} ${MeshGuiIcon_SVG})
+ 
+ if(FREECAD_USE_PCH)
+@@ -170,6 +175,9 @@
+     ${CMAKE_CURRENT_BINARY_DIR}
+ )
+ target_link_libraries(MeshGui ${MeshGui_LIBS})
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    target_link_libraries(MeshGui CoinRender::CoinRender)
++endif()
+ 
+ if (MSVC)
+     target_compile_options(MeshGui PRIVATE /wd4251 /wd4273 /wd4275)
+--- a/src/Mod/Mesh/Gui/SoFCIndexedFaceSet.cpp
++++ b/src/Mod/Mesh/Gui/SoFCIndexedFaceSet.cpp
+@@ -44,6 +44,16 @@
+ # include <GL/glu.h>
+ #endif
+ #include <Inventor/actions/SoGLRenderAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#include <cstdint>
++#include <Inventor/SoPrimitiveVertex.h>
++#include <Inventor/caches/SoNormalCache.h>
++#include <Inventor/details/SoPointDetail.h>
++#include <Inventor/elements/SoNormalElement.h>
++#include <Inventor/elements/SoPointSizeElement.h>
++#include <Inventor/elements/SoLazyElement.h>
++#endif
+ #include <Inventor/actions/SoSearchAction.h>
+ #include <Inventor/bundles/SoMaterialBundle.h>
+ #include <Inventor/bundles/SoTextureCoordinateBundle.h>
+@@ -484,6 +494,141 @@
+ /**
+  * Either renders the complete mesh or only a subset of the points.
+  */
++void SoFCIndexedFaceSet::callback(SoCallbackAction* action)
++{
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action->isOfType(CoinRenderAction::getClassTypeId())
++        && Gui::SoFCInteractiveElement::get(action->getState())
++        && static_cast<unsigned>(coordIndex.getNum() / 4) > renderTriangleLimit) {
++        if (!renderTriangleLimit) {
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported(
++                "SoFCIndexedFaceSet: interactive triangle limit must be positive");
++            return;
++        }
++        // Use 64 bits: the public unsigned limit can overflow 4 * limit.
++        const auto step = uint64_t(coordIndex.getNum()) / (4ULL * renderTriangleLimit) + 1;
++        auto* state = action->getState();
++        state->push();
++        SoPointSizeElement::set(state, this, float(std::min<uint64_t>(step, 3)));
++        inherited::callback(action);
++        state->pop();
++        return;
++    }
++#endif
++    inherited::callback(action);
++}
++
++void SoFCIndexedFaceSet::generatePrimitives(SoAction* action)
++{
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action->isOfType(CoinRenderAction::getClassTypeId())
++        && Gui::SoFCInteractiveElement::get(action->getState())
++        && static_cast<unsigned>(coordIndex.getNum() / 4) > renderTriangleLimit) {
++        auto* renderAction = static_cast<CoinRenderAction*>(action);
++        auto* state = action->getState();
++        state->push();
++        struct StateScope { SoState* state; ~StateScope() { state->pop(); } } scope {state};
++        if (vertexProperty.getValue()) vertexProperty.getValue()->doAction(action);
++        const auto* coordinates = SoCoordinateElement::getInstance(state);
++        const int count = coordIndex.getNum();
++        const auto fail = [&](const char* reason) { renderAction->rejectUnsupported(reason); };
++        if (!renderTriangleLimit || count % 4 != 0) {
++            fail("SoFCIndexedFaceSet: interactive reduction requires a positive limit and triangle records");
++            return;
++        }
++        // Validate before getVertexData can generate normals from these indices.
++        for (int i = 0; i < count; ++i) {
++            const int index = coordIndex[i];
++            if ((i % 4 == 3 && index != -1)
++                || (i % 4 != 3 && (index < 0 || index >= coordinates->getNum()))) {
++                fail("SoFCIndexedFaceSet: invalid triangle coordinates for interactive reduction");
++                return;
++            }
++        }
++        const SoCoordinateElement* coords = nullptr;
++        const SbVec3f* normals = nullptr;
++        const int32_t *indices = nullptr, *normalIndices = nullptr;
++        const int32_t *textureIndices = nullptr, *materialIndices = nullptr;
++        int numIndices = 0;
++        SbBool normalCacheUsed = FALSE;
++        getVertexData(state, coords, normals, indices, normalIndices, textureIndices,
++                      materialIndices, numIndices, TRUE, normalCacheUsed);
++        struct NormalScope {
++            SoFCIndexedFaceSet* node; SbBool locked;
++            ~NormalScope() { if (locked) node->readUnlockNormalCache(); }
++        } normalScope {this, normalCacheUsed};
++        auto normalBinding = SoNormalBindingElement::get(state);
++        if (normalCacheUsed && normalBinding == SoNormalBindingElement::PER_VERTEX)
++            normalBinding = SoNormalBindingElement::PER_VERTEX_INDEXED;
++        if (normalCacheUsed && normalBinding == SoNormalBindingElement::PER_FACE_INDEXED)
++            normalBinding = SoNormalBindingElement::PER_FACE;
++        const auto materialBinding = SoMaterialBindingElement::get(state);
++        const int normalCount = normalCacheUsed ? getNormalCache()->getNum()
++                                                : SoNormalElement::getInstance(state)->getNum();
++        const int normalIndexCount = normalCacheUsed ? getNormalCache()->getNumIndices()
++                                                     : normalIndex.getNum();
++        const int materialCount = SoLazyElement::getInstance(state)->getNumDiffuse();
++        const uint64_t step = uint64_t(count) / (4ULL * renderTriangleLimit) + 1;
++        // Mesh's legacy reduced pass emits three points for every step-th face.
++        // Keep the original coordinate/normal/material identity for observers.
++        struct Point { int coordinate; int normal; int material; };
++        std::vector<Point> points;
++        for (int face = 0; face < count / 4; ++face) {
++            if (uint64_t(face) % step) continue;
++            for (int corner = 0; corner < 3; ++corner) {
++                const int slot = face * 4 + corner;
++                const int coordinate = indices[slot];
++                int normal = 0;
++                switch (normalBinding) {
++                case SoNormalBindingElement::PER_PART:
++                case SoNormalBindingElement::PER_FACE: normal = face; break;
++                case SoNormalBindingElement::PER_PART_INDEXED:
++                case SoNormalBindingElement::PER_FACE_INDEXED:
++                    if (normalIndices && face >= normalIndexCount) {
++                        fail("SoFCIndexedFaceSet: short face normal indices"); return;
++                    }
++                    normal = normalIndices ? normalIndices[face] : face; break;
++                case SoNormalBindingElement::PER_VERTEX: normal = coordinate; break;
++                case SoNormalBindingElement::PER_VERTEX_INDEXED:
++                    if (normalIndices && slot >= normalIndexCount) {
++                        fail("SoFCIndexedFaceSet: short vertex normal indices"); return;
++                    }
++                    normal = normalIndices ? normalIndices[slot] : coordinate; break;
++                default: break;
++                }
++                // drawCoords uses the coordinate index for PER_VERTEX, the
++                // triangle ordinal for PER_FACE and material zero otherwise.
++                int material = 0;
++                if (materialBinding == SoMaterialBindingElement::PER_VERTEX) material = coordinate;
++                else if (materialBinding == SoMaterialBindingElement::PER_FACE) material = face;
++                if ((normals && (normal < 0 || normal >= normalCount))
++                    || material < 0 || material >= materialCount) {
++                    fail("SoFCIndexedFaceSet: invalid reduced normal or material index"); return;
++                }
++                points.push_back({coordinate, normal, material});
++            }
++        }
++        SoPrimitiveVertex vertex;
++        SoPointDetail detail;
++        vertex.setDetail(&detail);
++        vertex.setTextureCoords(0.0F, 0.0F);
++        beginShape(action, POINTS);
++        for (const auto& point : points) {
++            vertex.setPoint(coords->get3(point.coordinate));
++            vertex.setNormal(normals ? normals[point.normal] : SbVec3f(0, 0, 1));
++            vertex.setMaterialIndex(point.material);
++            detail.setCoordinateIndex(point.coordinate);
++            detail.setNormalIndex(point.normal);
++            detail.setMaterialIndex(point.material);
++            shapeVertex(&vertex);
++        }
++        endShape();
++        return;
++    }
++#endif
++    inherited::generatePrimitives(action);
++}
++
+ void SoFCIndexedFaceSet::GLRender(SoGLRenderAction* action)
+ {
+     if (this->coordIndex.getNum() < 3) {
+--- a/src/Mod/Mesh/Gui/SoFCIndexedFaceSet.h
++++ b/src/Mod/Mesh/Gui/SoFCIndexedFaceSet.h
+@@ -117,6 +117,8 @@
+     // Force using the reference count mechanism.
+     ~SoFCIndexedFaceSet() override = default;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
++    void generatePrimitives(SoAction* action) override;
+     void drawFaces(SoGLRenderAction* action);
+     void drawCoords(
+         const SoGLCoordinateElement* const vertexlist,
+--- a/src/Mod/Mesh/Gui/SoFCMeshObject.cpp
++++ b/src/Mod/Mesh/Gui/SoFCMeshObject.cpp
+@@ -40,6 +40,14 @@
+ #include <Inventor/SoPickedPoint.h>
+ #include <Inventor/SoPrimitiveVertex.h>
+ #include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/nodes/SoBaseColor.h>
++#include <Inventor/nodes/SoLightModel.h>
++#include <Inventor/nodes/SoLineSet.h>
++#include <Inventor/nodes/SoCoordinate3.h>
++#include <Inventor/nodes/SoSeparator.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGetPrimitiveCountAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
+@@ -440,6 +448,43 @@
+ void SoFCMeshGridNode::initClass()
+ {
+     SO_NODE_INIT_CLASS(SoFCMeshGridNode, SoNode, "Node");
++}
++
++void SoFCMeshGridNode::callback(SoCallbackAction* action)
++{
++    const SbVec3s dimensions = lenGrid.getValue();
++    if (dimensions == SbVec3s(0,0,0)) return; // Unconfigured grid.
++    for (int axis=0; axis<3; ++axis) {
++        if (dimensions[axis] < 1 || dimensions[axis] > 128) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++            if (action->isOfType(CoinRenderAction::getClassTypeId()))
++                static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCMeshGridNode: divisions must be 1..128");
++#endif
++            return;
++        }
++    }
++    auto* scene = new SoSeparator; scene->ref();
++    auto* lighting = new SoLightModel; lighting->model = SoLightModel::BASE_COLOR; scene->addChild(lighting);
++    auto* color = new SoBaseColor; color->rgb.setValue(0,1,0); scene->addChild(color);
++    auto* coordinates = new SoCoordinate3; scene->addChild(coordinates);
++    std::vector<SbVec3f> points;
++    const auto minimum=minGrid.getValue(), maximum=maxGrid.getValue();
++    for (int axis=0; axis<3; ++axis) {
++        const int a=(axis+1)%3, b=(axis+2)%3;
++        for(int i=0;i<=dimensions[a];++i) for(int j=0;j<=dimensions[b];++j) {
++            SbVec3f start=minimum, end;
++            start[a] += (maximum[a]-minimum[a])*float(i)/dimensions[a];
++            start[b] += (maximum[b]-minimum[b])*float(j)/dimensions[b];
++            end=start; end[axis]=maximum[axis];
++            points.push_back(start); points.push_back(end);
++        }
++    }
++    coordinates->point.setValues(0,static_cast<int>(points.size()),points.data());
++    auto* lines = new SoLineSet; scene->addChild(lines);
++    std::vector<int32_t> counts(points.size()/2,2);
++    lines->numVertices.setValues(0,static_cast<int>(counts.size()),counts.data());
++    scene->callback(action);
++    scene->unref();
+ }
+ 
+ void SoFCMeshGridNode::GLRender(SoGLRenderAction* /*action*/)
+--- a/src/Mod/Mesh/Gui/SoFCMeshObject.h
++++ b/src/Mod/Mesh/Gui/SoFCMeshObject.h
+@@ -123,6 +123,7 @@
+     static void initClass();
+     SoFCMeshGridNode();
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+ 
+     SoSFVec3f minGrid;
+     SoSFVec3f maxGrid;
+--- a/src/Mod/Mesh/Gui/SoPolygon.cpp
++++ b/src/Mod/Mesh/Gui/SoPolygon.cpp
+@@ -37,6 +37,12 @@
+ #include <algorithm>
+ 
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
++#include <Inventor/SoPrimitiveVertex.h>
++#include <Inventor/elements/SoLineWidthElement.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
+ #include <Inventor/bundles/SoMaterialBundle.h>
+ #include <Inventor/bundles/SoTextureCoordinateBundle.h>
+ #include <Inventor/elements/SoCoordinateElement.h>
+@@ -130,8 +136,35 @@
+     inherited::rayPick(action);
+ }
+ 
+-void SoPolygon::generatePrimitives(SoAction* /*action*/)
+-{}
++void SoPolygon::generatePrimitives(SoAction* action)
++{
++    if (!render.getValue()) return;
++    SoState* state = action->getState();
++    const auto* coordinates = SoCoordinateElement::getInstance(state);
++    const int32_t first = startIndex.getValue(), count = numVertices.getValue();
++    if (first < 0 || count < 0 || count > 65536 || first > coordinates->getNum()
++        || count > coordinates->getNum() - first) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoPolygon: invalid coordinate range or 65536-point budget");
++#endif
++        return;
++    }
++    if (count < 2) return;
++    state->push();
++    SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
++    SoLineWidthElement::set(state, 3.0F);
++    SoPrimitiveVertex vertex;
++    vertex.setNormal(SbVec3f(0,0,1));
++    vertex.setMaterialIndex(0);
++    beginShape(action, SoShape::LINES);
++    for (int32_t i = 0; i < count; ++i) {
++        vertex.setPoint(coordinates->get3(first+i)); shapeVertex(&vertex);
++        vertex.setPoint(coordinates->get3(first+(i+1)%count)); shapeVertex(&vertex);
++    }
++    endShape();
++    state->pop();
++}
+ 
+ /**
+  * Sets the bounding box of the mesh to \a box and its center to \a center.
+--- a/src/Mod/Part/Gui/CMakeLists.txt
++++ b/src/Mod/Part/Gui/CMakeLists.txt
+@@ -265,6 +265,11 @@
+     Resources/icons/PartWorkbench.svg
+ )
+ 
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    find_package(CoinRender CONFIG REQUIRED)
++    set_source_files_properties(SoFCShapeObject.cpp PROPERTIES COMPILE_DEFINITIONS FREECAD_COIN_WGPU_EXPERIMENTAL)
++endif()
++
+ add_library(PartGui SHARED ${PartGui_SRCS} ${PartGuiIcon_SVG})
+ 
+ if(FREECAD_USE_PCH)
+@@ -289,6 +294,9 @@
+     ${QtConcurrent_INCLUDE_DIRS}
+ )
+ target_link_libraries(PartGui ${PartGui_LIBS})
++if(FREECAD_COIN_WGPU_EXPERIMENTAL)
++    target_link_libraries(PartGui CoinRender::CoinRender)
++endif()
+ 
+ if (MSVC)
+     target_compile_options(PartGui PRIVATE /wd4251 /wd4273)
+--- a/src/Mod/Part/Gui/SoBrepEdgeSet.cpp
++++ b/src/Mod/Part/Gui/SoBrepEdgeSet.cpp
+@@ -29,6 +29,7 @@
+ #include <Inventor/SoPrimitiveVertex.h>
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/details/SoLineDetail.h>
+ #include <Inventor/elements/SoCoordinateElement.h>
+ #include <Inventor/elements/SoDepthBufferElement.h>
+@@ -106,7 +107,7 @@
+ }
+ 
+ static void renderOverlayLines(
+-    SoGLRenderAction* action,
++    SoAction* action,
+     SoIndexedLineSet* lineSet,
+     const int32_t* indices,
+     int numIndices,
+@@ -166,13 +167,18 @@
+     int32_t* coordIndex = lineSet->coordIndex.startEditing();
+     std::copy(lineIndices.begin(), lineIndices.end(), coordIndex);
+     lineSet->coordIndex.finishEditing();
+-    lineSet->GLRender(action);
++    if (action->isOfType(SoCallbackAction::getClassTypeId())) {
++        lineSet->callback(static_cast<SoCallbackAction*>(action));
++    }
++    else {
++        lineSet->GLRender(static_cast<SoGLRenderAction*>(action));
++    }
+ 
+     state->pop();
+ }
+ 
+ static void renderOverlayLines(
+-    SoGLRenderAction* action,
++    SoAction* action,
+     SoIndexedLineSet* lineSet,
+     const int32_t* indices,
+     int numIndices,
+@@ -191,7 +197,7 @@
+ }
+ 
+ static void renderColorOverrides(
+-    SoGLRenderAction* action,
++    SoAction* action,
+     SoIndexedLineSet* lineSet,
+     const int32_t* indices,
+     int numIndices,
+@@ -282,6 +288,36 @@
+         overlayLineSet->unref();
+         overlayLineSet = nullptr;
+     }
++}
++
++
++void SoBrepEdgeSet::callback(SoCallbackAction* action)
++{
++    SelContextPtr ctx = Gui::SoFCSelectionRoot::getActionContext(
++        action, this, selContext, false);
++    SelContextPtr ctx2 = Gui::SoFCSelectionRoot::getSecondaryActionContext<SelContext>(action, this);
++    if (ctx2 && ctx2->selectionIndex.empty() && ctx2->colors.empty()) {
++        return;
++    }
++    if (selContext2->checkGlobal(ctx)) {
++        if (selContext2->isSelectAll()) {
++            selContext2->sl = {-1};
++        }
++        else if (ctx) {
++            selContext2->sl = ctx->sl;
++        }
++        if (selContext2->isHighlightAll()) {
++            selContext2->hl = {-1};
++        }
++        else if (ctx) {
++            selContext2->hl = ctx->hl;
++        }
++        ctx = selContext2;
++    }
++    inherited::callback(action);
++    // Preserve committed selection occlusion; hover is deliberately on top.
++    renderSelection(action, ctx2 ? ctx2 : ctx);
++    renderHighlight(action, ctx);
+ }
+ 
+ void SoBrepEdgeSet::GLRender(SoGLRenderAction* action)
+@@ -493,7 +529,7 @@
+     }
+ }
+ 
+-void SoBrepEdgeSet::renderHighlight(SoGLRenderAction* action, SelContextPtr ctx)
++void SoBrepEdgeSet::renderHighlight(SoAction* action, SelContextPtr ctx)
+ {
+     if (!ctx || ctx->highlightIndex < 0) {
+         return;
+@@ -537,7 +573,7 @@
+     }
+ }
+ 
+-void SoBrepEdgeSet::renderSelection(SoGLRenderAction* action, SelContextPtr ctx, bool /*push*/)
++void SoBrepEdgeSet::renderSelection(SoAction* action, SelContextPtr ctx, bool /*push*/)
+ {
+     if (!ctx) {
+         return;
+--- a/src/Mod/Part/Gui/SoBrepEdgeSet.h
++++ b/src/Mod/Part/Gui/SoBrepEdgeSet.h
+@@ -62,6 +62,7 @@
+ 
+ protected:
+     ~SoBrepEdgeSet() override;
++    void callback(SoCallbackAction* action) override;
+     void GLRender(SoGLRenderAction* action) override;
+     void GLRenderBelowPath(SoGLRenderAction* action) override;
+     void doAction(SoAction* action) override;
+@@ -78,8 +79,8 @@
+     struct SelContext;
+     using SelContextPtr = std::shared_ptr<SelContext>;
+ 
+-    void renderHighlight(SoGLRenderAction* action, SelContextPtr);
+-    void renderSelection(SoGLRenderAction* action, SelContextPtr, bool push = true);
++    void renderHighlight(SoAction* action, SelContextPtr);
++    void renderSelection(SoAction* action, SelContextPtr, bool push = true);
+     bool validIndexes(const SoCoordinateElement*, const std::vector<int32_t>&) const;
+ 
+ 
+--- a/src/Mod/Part/Gui/SoBrepPointSet.cpp
++++ b/src/Mod/Part/Gui/SoBrepPointSet.cpp
+@@ -27,6 +27,7 @@
+ #include <limits>
+ #include <Inventor/actions/SoGetBoundingBoxAction.h>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/details/SoPointDetail.h>
+ #include <Inventor/elements/SoCoordinateElement.h>
+ #include <Inventor/elements/SoDepthBufferElement.h>
+@@ -96,7 +97,7 @@
+ }
+ 
+ static void renderOverlayPoints(
+-    SoGLRenderAction* action,
++    SoAction* action,
+     SoIndexedPointSet* pointSet,
+     const int32_t* indices,
+     int numIndices,
+@@ -144,7 +145,12 @@
+     int32_t* coordIndex = pointSet->coordIndex.startEditing();
+     std::copy(pointIndices.begin(), pointIndices.end(), coordIndex);
+     pointSet->coordIndex.finishEditing();
+-    pointSet->GLRender(action);
++    if (action->isOfType(SoCallbackAction::getClassTypeId())) {
++        pointSet->callback(static_cast<SoCallbackAction*>(action));
++    }
++    else {
++        pointSet->GLRender(static_cast<SoGLRenderAction*>(action));
++    }
+ 
+     state->pop();
+ }
+@@ -176,6 +182,24 @@
+         overlayPointSet->unref();
+         overlayPointSet = nullptr;
+     }
++}
++
++
++void SoBrepPointSet::callback(SoCallbackAction* action)
++{
++    SelContextPtr ctx = Gui::SoFCSelectionRoot::getActionContext(
++        action, this, selContext, false);
++    SelContextPtr ctx2 = Gui::SoFCSelectionRoot::getSecondaryActionContext<SelContext>(action, this);
++    if (ctx2 && ctx2->selectionIndex.empty()) {
++        return;
++    }
++    if (selContext2->checkGlobal(ctx)) {
++        ctx = selContext2;
++    }
++    inherited::callback(action);
++    // Preserve committed selection occlusion; hover is deliberately on top.
++    renderSelection(action, ctx2 ? ctx2 : ctx);
++    renderHighlight(action, ctx);
+ }
+ 
+ void SoBrepPointSet::GLRender(SoGLRenderAction* action)
+@@ -352,7 +376,7 @@
+     }
+ }
+ 
+-void SoBrepPointSet::renderHighlight(SoGLRenderAction* action, SelContextPtr ctx)
++void SoBrepPointSet::renderHighlight(SoAction* action, SelContextPtr ctx)
+ {
+     if (!ctx || ctx->highlightIndex < 0) {
+         return;
+@@ -396,7 +420,7 @@
+     );
+ }
+ 
+-void SoBrepPointSet::renderSelection(SoGLRenderAction* action, SelContextPtr ctx, bool /*push*/)
++void SoBrepPointSet::renderSelection(SoAction* action, SelContextPtr ctx, bool /*push*/)
+ {
+     if (!ctx) {
+         return;
+--- a/src/Mod/Part/Gui/SoBrepPointSet.h
++++ b/src/Mod/Part/Gui/SoBrepPointSet.h
+@@ -62,6 +62,7 @@
+ 
+ protected:
+     ~SoBrepPointSet() override;
++    void callback(SoCallbackAction* action) override;
+     void GLRender(SoGLRenderAction* action) override;
+     void GLRenderBelowPath(SoGLRenderAction* action) override;
+     void doAction(SoAction* action) override;
+@@ -71,8 +72,8 @@
+ private:
+     using SelContext = Gui::SoFCSelectionContext;
+     using SelContextPtr = Gui::SoFCSelectionContextPtr;
+-    void renderHighlight(SoGLRenderAction* action, SelContextPtr);
+-    void renderSelection(SoGLRenderAction* action, SelContextPtr, bool push = true);
++    void renderHighlight(SoAction* action, SelContextPtr);
++    void renderSelection(SoAction* action, SelContextPtr, bool push = true);
+ 
+ private:
+     SelContextPtr selContext;
+--- a/src/Mod/Part/Gui/SoFCShapeObject.cpp
++++ b/src/Mod/Part/Gui/SoFCShapeObject.cpp
+@@ -27,6 +27,10 @@
+ #include <limits>
+ #include <vector>
+ #include <Inventor/actions/SoGLRenderAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/CoinRenderAction.h>
++#endif
++#include <Inventor/actions/SoCallbackAction.h>
+ #include <Inventor/elements/SoCoordinateElement.h>
+ #include <Inventor/errors/SoReadError.h>
+ #include <Inventor/misc/SoState.h>
+@@ -238,6 +242,34 @@
+     return true;
+ }
+ 
++void SoFCControlPoints::callback(SoCallbackAction* action)
++{
++    if (!action || !renderRoot) return;
++    if (numPolesU.getValue()==0 && numPolesV.getValue()==0
++        && numKnotsU.getValue()==0 && numKnotsV.getValue()==0) return;
++    const uint64_t polesU=numPolesU.getValue(), polesV=numPolesV.getValue();
++    const uint64_t knotsU=numKnotsU.getValue(), knotsV=numKnotsV.getValue();
++    const uint64_t poles=polesU*polesV, knots=knotsU*knotsV;
++    const auto* coordinates=SoCoordinateElement::getInstance(action->getState());
++    if ((polesU==0)!=(polesV==0) || (knotsU==0)!=(knotsV==0)
++        || poles>65536 || knots>65536 || poles+knots>65536
++        || poles+knots>static_cast<uint64_t>(coordinates->getNum())) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCControlPoints: invalid dimensions, coordinate range or 65536-point budget");
++#endif
++        return;
++    }
++    if (!syncRenderGeometry(action->getState())) {
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        if (action->isOfType(CoinRenderAction::getClassTypeId()))
++            static_cast<CoinRenderAction*>(action)->rejectUnsupported("SoFCControlPoints: coordinates do not cover poles/knots");
++#endif
++        return;
++    }
++    renderRoot->callback(action);
++}
++
+ void SoFCControlPoints::GLRender(SoGLRenderAction* action)
+ {
+     if (!action || !renderRoot || !shouldGLRender(action)) {
+--- a/src/Mod/Part/Gui/SoFCShapeObject.h
++++ b/src/Mod/Part/Gui/SoFCShapeObject.h
+@@ -100,6 +100,7 @@
+ protected:
+     ~SoFCControlPoints() override;
+     void GLRender(SoGLRenderAction* action) override;
++    void callback(SoCallbackAction* action) override;
+     void computeBBox(SoAction* action, SbBox3f& box, SbVec3f& center) override;
+     void generatePrimitives(SoAction* action) override;
+ 
+--- /dev/null
++++ b/src/Gui/Inventor/CoinRenderGeneratedImage.h
+@@ -0,0 +1,37 @@
++// Generated GUI RGBA images have an explicit portable texture payload.
++// The logical drawing quad is unchanged; GL and CoinRender see identical bytes.
++#ifndef FREECAD_COIN_RENDER_GENERATED_IMAGE_H
++#define FREECAD_COIN_RENDER_GENERATED_IMAGE_H
++#include <Inventor/fields/SoSFImage.h>
++#include <QImage>
++#include <cstddef>
++namespace Gui {
++inline void setGeneratedTextureImage(SoSFImage& output, const SbVec2s& size,
++                                     int components, const unsigned char* pixels)
++{
++    SbVec2s textureSize = size;
++    QImage resampled;
++    auto nextPowerOfTwo = [](int value) {
++        int result = 1;
++        while (result < value) result *= 2;
++        return result;
++    };
++    const int width = nextPowerOfTwo(size[0]);
++    const int height = nextPowerOfTwo(size[1]);
++    if (pixels && size[0] > 0 && size[1] > 0 && components == 4
++        && width <= 8192 && height <= 8192
++        && static_cast<size_t>(width) * height * 4 <= 16 * 1024 * 1024
++        && (width != size[0] || height != size[1])) {
++        QImage source(pixels, size[0], size[1], size[0]*4, QImage::Format_RGBA8888);
++        resampled = source.convertToFormat(QImage::Format_RGBA8888_Premultiplied)
++                        .scaled(width,height,Qt::IgnoreAspectRatio,Qt::SmoothTransformation)
++                        .convertToFormat(QImage::Format_RGBA8888);
++        if (!resampled.isNull()) {
++            textureSize.setValue(width,height);
++            pixels = resampled.constBits();
++        }
++    }
++    output.setValue(textureSize,components,pixels,SoSFImage::COPY);
++}
++}
++#endif
+--- a/src/Gui/Selection/SoFCSelection.cpp
++++ b/src/Gui/Selection/SoFCSelection.cpp
+@@ -26,6 +26,9 @@
+ #include <Inventor/SoFullPath.h>
+ #include <Inventor/SoPickedPoint.h>
+ #include <Inventor/actions/SoCallbackAction.h>
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++#include <Inventor/actions/SoWgpuRenderAction.h>
++#endif
+ #include <Inventor/actions/SoGLRenderAction.h>
+ #include <Inventor/actions/SoHandleEventAction.h>
+ #include <Inventor/details/SoFaceDetail.h>
+@@ -779,6 +782,13 @@
+                 preselected ? ctx->highlightColor : ctx->selectionColor
+             );
+         }
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++        else if (ctx && action->isOfType(SoWgpuRenderAction::getClassTypeId())) {
++            SoFCSelectionRoot::renderBBox(
++                static_cast<SoCallbackAction*>(action), this,
++                preselected ? ctx->highlightColor : ctx->selectionColor);
++        }
++#endif
+         this->uniqueId = oldId;
+         return false;
+     }
+--- a/src/Gui/Selection/SoFCUnifiedSelection.cpp
++++ b/src/Gui/Selection/SoFCUnifiedSelection.cpp
+@@ -995,6 +995,7 @@
+ 
+     auto preselectionMode = static_cast<SelectionModes>(this->preselectionMode.getValue());
+     const SoEvent* event = action->getEvent();
++    bool childrenVisited = false;
+ 
+     //
+     // If this is a mouseMotion event, then check for preselected entities.
+@@ -1028,6 +1029,13 @@
+     ) {
+         const auto e = static_cast<const SoMouseButtonEvent*>(event);
+         if (SoMouseButtonEvent::isButtonReleaseEvent(e, SoMouseButtonEvent::BUTTON1)) {
++            // A dragger becomes active on press but may not grab until its first
++            // motion. Deliver release before selection can terminate traversal,
++            // so a plain click also finishes that interaction. A child that
++            // consumes release owns it; otherwise ordinary click selection runs.
++            inherited::handleEvent(action);
++            childrenVisited = true;
++            if (action->isHandled()) return;
+             // check to see if the mouse is over a geometry...
+             auto infos = this->getPickedList(action, !Selection().needPickedList());
+             bool greedySel = Gui::Selection().getSelectionStyle()
+@@ -1039,7 +1047,7 @@
+         }  // mouse release
+     }
+ 
+-    inherited::handleEvent(action);
++    if (!childrenVisited) inherited::handleEvent(action);
+ }
+ 
+ static thread_local bool _ShowBoundBox;
+@@ -1834,6 +1842,12 @@
+     SoDepthBufferElement::DepthWriteFunction depthFunction;
+     SbVec2f depthRange;
+     SoDepthBufferElement::get(state, depthTest, depthWrite, depthFunction, depthRange);
++    if (action->isOfType(SoWgpuRenderAction::getClassTypeId())
++        && !static_cast<SoWgpuRenderAction*>(action)->isRenderingDelayedPaths()) {
++        // Match the legacy bbox's FCDepthFunc guard without touching GL.
++        SoDepthBufferElement::set(state, depthTest, depthWrite,
++                                  SoDepthBufferElement::LEQUAL, depthRange);
++    }
+     if (!depthTest && !depthWrite) {
+         SbMatrix projection = SoProjectionMatrixElement::get(state);
+         for (int row = 0; row < 4; ++row) projection[row][2] = 0.0f;
+@@ -2173,7 +2187,140 @@
+ void SoFCSelectionRoot::callback(SoCallbackAction* action)
+ {
+     BEGIN_ACTION;
+-    inherited::callback(action);
++#ifdef FREECAD_COIN_WGPU_EXPERIMENTAL
++    if (action->isOfType(SoWgpuRenderAction::getClassTypeId())) {
++        // The root owns whole-object highlighting even when its descendants
++        // are ordinary Coin/Pivy geometry. Keep the GL policy in callback state.
++        const auto capture = [&]() -> bool {
++
++            // OFF_PATH separators contribute state, never their selection geometry.
++            if (action->getCurPathCode() == SoAction::OFF_PATH) {
++                inherited::callback(action);
++                return false;
++            }
++            auto ctx2 = std::static_pointer_cast<SelContext>(
++                getNodeContext2(stack, this, SelContext::merge)
++            );
++            if (ctx2 && ctx2->hideAll) {
++                return false;
++            }
++
++            auto state = action->getState();
++            SelContextPtr ctx = getActionContext(action, this, SelContextPtr(), false);
++            int style = selectionStyle.getValue();
++            if ((style == SoFCSelectionRoot::Box || SoFCUnifiedSelection::getShowSelectionBoundingBox())
++                && ctx && !ctx->hideAll && (ctx->selAll || ctx->hlAll)) {
++                if (style == SoFCSelectionRoot::PassThrough) {
++                    style = SoFCSelectionRoot::Box;
++                }
++                else {
++                    const SbColor& color = (ctx->hlAll && !ctx->selAll) ? ctx->hlColor : ctx->selColor;
++                    if (SoFCUnifiedSelection::getShowSelectionBoundingBox()) {
++                        SoCacheElement::invalidate(state);
++                        if (ViewParams::instance()->getUseTightBoundingBox() && viewProvider) {
++                            Base::Matrix4D mat;
++                            bool project = ViewParams::instance()->getRenderProjectedBBox();
++                            if (project) {
++                                mat = ViewProvider::convert(SoModelMatrixElement::get(state));
++                            }
++                            auto fcbox = viewProvider->getBoundingBox(nullptr, &mat, project);
++                            SbBox3f bbox(fcbox.MinX, fcbox.MinY, fcbox.MinZ, fcbox.MaxX, fcbox.MaxY, fcbox.MaxZ);
++                            renderBBox(action, this, bbox, color);
++                        }
++                        else {
++                            renderBBox(action, this, color);
++                        }
++                    }
++                    else {
++                        renderBBox(action, this, color);
++                    }
++                    return true;
++                }
++            }
++
++            // Here, we are not setting (pre)selection color override here.
++            // Instead, we are checking and setting up for any secondary context
++            // color override.
++            //
++            // When the current selection style is full highlight, we should ignore any
++            // secondary override. If the style is bounding box, however, we should
++            // honour the secondary color override.
++
++            bool colorPushed = false;
++            if (!ShapeColorNode && overrideColor && !SoOverrideElement::getDiffuseColorOverride(state)
++                && (style == SoFCSelectionRoot::Box || !ctx || (!ctx->selAll && !ctx->hideAll))) {
++                ShapeColorNode = this;
++                colorPushed = true;
++                state->push();
++                auto& packer = ShapeColorNode->shapeColorPacker;
++                auto& trans = ShapeColorNode->transOverride;
++                auto& color = ShapeColorNode->colorOverride;
++                if (!SoOverrideElement::getTransparencyOverride(state)) {
++                    SoLazyElement::setTransparency(state, ShapeColorNode, 1, &trans, &packer);
++                    SoOverrideElement::setTransparencyOverride(state, ShapeColorNode, true);
++                }
++                SoLazyElement::setDiffuse(state, ShapeColorNode, 1, &color, &packer);
++                SoOverrideElement::setDiffuseColorOverride(state, ShapeColorNode, true);
++                SoMaterialBindingElement::set(state, ShapeColorNode, SoMaterialBindingElement::OVERALL);
++                SoOverrideElement::setMaterialBindingOverride(state, ShapeColorNode, true);
++
++                SoTextureEnabledElement::set(state, ShapeColorNode, false);
++            }
++
++            if (!ctx) {
++                inherited::callback(action);
++            }
++            else {
++                bool selPushed;
++                bool hlPushed;
++                if ((selPushed = ctx->selAll)) {
++                    SelColorStack.push_back(ctx->selColor);
++
++                    if (style != SoFCSelectionRoot::Box) {
++                        state->push();
++                        auto& color = SelColorStack.back();
++                        SoLazyElement::setEmissive(state, &color);
++                        SoOverrideElement::setEmissiveColorOverride(state, this, true);
++                        if (SoLazyElement::getLightModel(state) == SoLazyElement::BASE_COLOR) {
++                            auto& packer = shapeColorPacker;
++                            SoLazyElement::setDiffuse(state, this, 1, &color, &packer);
++                            SoOverrideElement::setDiffuseColorOverride(state, this, true);
++                            SoMaterialBindingElement::set(state, this, SoMaterialBindingElement::OVERALL);
++                            SoOverrideElement::setMaterialBindingOverride(state, this, true);
++                        }
++                    }
++                }
++
++                if ((hlPushed = ctx->hlAll)) {
++                    HlColorStack.push_back(ctx->hlColor);
++                }
++
++                inherited::callback(action);
++
++                if (selPushed) {
++                    SelColorStack.pop_back();
++
++                    if (style != SoFCSelectionRoot::Box) {
++                        state->pop();
++                    }
++                }
++                if (hlPushed) {
++                    HlColorStack.pop_back();
++                }
++            }
++
++            if (colorPushed) {
++                ShapeColorNode = nullptr;
++                state->pop();
++            }
++
++            return false;
++        };
++        if (capture()) inherited::callback(action);
++    }
++    else
++#endif
++        inherited::callback(action);
+     END_ACTION;
+ }
+ 
+--- a/src/Gui/NaviCube.cpp
++++ b/src/Gui/NaviCube.cpp
+@@ -42,6 +42,7 @@
+ #include <Inventor/events/SoEvent.h>
+ #include <Inventor/events/SoLocation2Event.h>
+ #include <Inventor/events/SoMouseButtonEvent.h>
++#include <Inventor/misc/SoState.h>
+ #include <Inventor/nodes/SoCallback.h>
+ #include <Inventor/nodes/SoOrthographicCamera.h>
+ #include <Inventor/nodes/SoSeparator.h>
+@@ -441,7 +442,10 @@
+     }
+ 
+     SoState* state = action->getState();
+-    if (!state) {
++    // SoCallback is also traversed by search/write actions, which do not
++    // provide a viewport element. Only actions carrying that state can sync
++    // the overlay; render, callback, bounds and input actions retain it.
++    if (!state || !state->isElementEnabled(SoViewportRegionElement::getClassStackIndex())) {
+         return;
+     }
+ 

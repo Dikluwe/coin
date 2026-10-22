@@ -4961,20 +4961,34 @@ fn resolved_polygon_bias(st: &CoinWgpuRenderState, draw: &CoinWgpuDraw,
     if st.polygon_offset_factor != 0.0 {
         return Err("Resolved polygon slope bias requires zero GPU slope factor".to_string());
     }
+    let resolved_maximum = if st.polygon_offset_max_depth_bits != 0 {
+        let depth = f32::from_bits(st.polygon_offset_max_depth_bits - 1);
+        if !(0.0..=1.0).contains(&depth) {
+            return Err("Invalid original polygon depth".to_string());
+        }
+        Some(depth)
+    } else { None };
     let mut max_depth = 0.0f32;
     for index in &indices[draw.first_index as usize..(draw.first_index + draw.index_count) as usize] {
         let p = vertices[*index as usize].position;
         let m = &st.model_view_projection;
         let z = m[2]*p[0] + m[6]*p[1] + m[10]*p[2] + m[14];
         let w = m[3]*p[0] + m[7]*p[1] + m[11]*p[2] + m[15];
-        if !z.is_finite() || !w.is_finite() || w <= 0.0 {
+        if !z.is_finite() || !w.is_finite() {
+            return Err("Invalid clip depth for resolved polygon bias".to_string());
+        }
+        // Core measures the clipped original face. Its retained triangle can
+        // still have raw corners at or behind the eye: raster clipping handles
+        // them, and they must not replace that visible-face depth metric.
+        if resolved_maximum.is_some() { continue; }
+        if w <= 0.0 {
             return Err("Invalid clip depth for resolved polygon bias".to_string());
         }
         let depth = st.depth_range[0] + (z/w) * (st.depth_range[1]-st.depth_range[0]);
         max_depth = max_depth.max(depth.clamp(0.0, 1.0));
     }
-    if st.polygon_offset_max_depth_bits != 0 {
-        max_depth = f32::from_bits(st.polygon_offset_max_depth_bits - 1);
+    if let Some(depth) = resolved_maximum {
+        max_depth = depth;
     }
     let bias = st.polygon_offset_slope_bias + st.polygon_offset_units * d32_depth_quantum(max_depth);
     if !bias.is_finite() { return Err("Invalid resolved polygon depth bias".to_string()); }
@@ -11976,9 +11990,9 @@ fn coin_wgpu_submit_internal(
                         _ => "other",
                     };
                     // Emit only after checked GPU completion and publication.
-                    eprintln!("COIN_RENDER_PHASE wgpu_offscreen renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} serial={} size={}x{}",
+                    eprintln!("COIN_RENDER_PHASE wgpu_offscreen renderer={} vendor_id={:#x} device_id={:#x} device_type={:?} serial={} size={}x{} adapter_name={:?}",
                         renderer, info.vendor, info.device, info.device_type,
-                        sub_serial, width, height);
+                        sub_serial, width, height, info.name);
                     trace_owned_resources(ctx, "offscreen", width, height, staging_size,
                         if depth_requested { depth_staging_size } else { 0 });
                     eprintln!("COIN_RENDER_PHASE rust validation_ms={:.6} prepare_encode_ms={:.6} submit_ms={:.6} gpu_wait_ms={:.6} readback_publish_ms={:.6} staging_color_reused={} attachments_reused={} camera_bindings_created={} camera_bindings_reused={}",

@@ -299,7 +299,7 @@ CoinRenderFramePlanBuilder::reset()
   this->coordinateFunctionsCaptured = false;
   this->savedAnnotationLayer = 0;
   this->savedAnnotationClear = false;
-  this->foregroundLayer = 0;
+  this->foregroundLayers.clear();
   this->annotationDepth = 0;
   this->currentAnnotationLayer = 0;
   this->nextAnnotationLayer = 1;
@@ -1013,11 +1013,13 @@ CoinRenderFramePlanBuilder::endAuthoredScene()
 }
 
 void
-CoinRenderFramePlanBuilder::beginForeground()
+CoinRenderFramePlanBuilder::beginForeground(bool clearDepth)
 {
-  this->foregroundLayer = this->currentAnnotationLayer;
+  this->foregroundLayers.push_back({this->currentAnnotationLayer,
+                                    this->annotationDepthClearPending,
+                                    this->deferredDepthClear});
   this->currentAnnotationLayer = this->nextAnnotationLayer++;
-  this->annotationDepthClearPending = this->deferredDepthClear;
+  this->annotationDepthClearPending = clearDepth || this->deferredDepthClear;
   this->deferredDepthClear = false;
   this->hasActiveDraw = false;
 }
@@ -1025,9 +1027,21 @@ CoinRenderFramePlanBuilder::beginForeground()
 void
 CoinRenderFramePlanBuilder::endForeground()
 {
-  this->deferredDepthClear = this->deferredDepthClear || this->annotationDepthClearPending;
-  this->currentAnnotationLayer = this->foregroundLayer;
-  this->annotationDepthClearPending = false;
+  if (this->foregroundLayers.empty()) return;
+  const auto enclosing = this->foregroundLayers.back();
+  this->foregroundLayers.pop_back();
+  // An explicit viewport clear belongs to this scope's first draw. An empty
+  // overlay has no viewport to clear and must not pass that request outward.
+  // Preserve only a previously deferred clear that this scope inherited.
+  this->deferredDepthClear = this->deferredDepthClear ||
+    (this->annotationDepthClearPending && enclosing.inheritedClear);
+  // Layers are ordered before their draws are composed. A resumed overlay
+  // needs a continuation after its child, otherwise its later draws would be
+  // sorted ahead of the child. Returning to the authored scene keeps that
+  // scene's original layer, preserving the foreground-over-scene policy.
+  this->currentAnnotationLayer = !this->foregroundLayers.empty() || this->annotationDepth > 0
+    ? this->nextAnnotationLayer++ : enclosing.layer;
+  this->annotationDepthClearPending = enclosing.parentClearPending;
   this->hasActiveDraw = false;
 }
 

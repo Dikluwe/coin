@@ -87,7 +87,7 @@ public:
   void beginAuthoredScene(bool clearDepth);
   void endAuthoredScene();
   void beginDelayedAnnotations(uint32_t layer = 1, bool clearDepth = true);
-  void beginForeground();
+  void beginForeground(bool clearDepth = false);
   void endForeground();
   void endAnnotation();
 
@@ -257,7 +257,12 @@ private:
   bool coordinateFunctionsCaptured = false;
   uint32_t savedAnnotationLayer = 0;
   bool savedAnnotationClear = false;
-  uint32_t foregroundLayer = 0;
+  struct ForegroundScope {
+    uint32_t layer;
+    bool parentClearPending;
+    bool inheritedClear;
+  };
+  std::vector<ForegroundScope> foregroundLayers;
   uint32_t annotationDepth;
   uint32_t currentAnnotationLayer;
   uint32_t nextAnnotationLayer;
