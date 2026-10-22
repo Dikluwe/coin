@@ -603,13 +603,10 @@ bool rejectionCase(const CoinRenderCapabilities &caps,uint32_t samples){
   auto *image=new SoImage;const uint8_t pixel[]={255,255,255,255};
   image->image.setValue(SbVec2s(1,1),4,pixel);
   imageGroup->addChild(image);scene.root->addChild(imageGroup);
-  if(caps.backend==COIN_RENDER_EXPERIMENTAL_BGFX_EVALUATION){
-    ok &= refused(A::BLEND,"BGFX raster bitmap outside the MSAA profile");
-    scene.root->removeChild(imageGroup);
-  } else {
+  {
     Frame withImage,withoutImage;
     const bool appeared=run.render(scene.root,A::BLEND,withImage,
-      "wgpu opaque SoImage over translucent geometry");
+      "opaque SoImage over translucent geometry");
     size_t white=0,changed=0;bool exterior=true;
     if(appeared && withImage.rgba.size()==stable.rgba.size() &&
        withImage.depth.size()==stable.depth.size()){
@@ -622,23 +619,23 @@ bool rejectionCase(const CoinRenderCapabilities &caps,uint32_t samples){
         if(!different)exterior &= withImage.depth[p]==stable.depth[p];
       }
     }
-    std::cout<<"msaa_transparency wgpu_image white="<<white
+    std::cout<<"msaa_transparency image white="<<white
              <<" changed="<<changed<<" exterior_depth="<<exterior<<'\n';
     const uint64_t expectedImageSerial=caps.backend==COIN_RENDER_EXPERIMENTAL_RUST?
       latestDeviceSerial+1:stable.serial+1;
-    std::cout<<"msaa_transparency wgpu_image_serial="<<withImage.serial
+    std::cout<<"msaa_transparency image_serial="<<withImage.serial
              <<" expected="<<expectedImageSerial
              <<" original_target_anchor="<<stable.serial<<'\n';
     ok &= check(appeared && white==1 && changed==1 && exterior &&
       withImage.serial==expectedImageSerial,
-      "wgpu opaque raster pixel appears once over BLEND and leaves exterior intact");
+      "opaque raster pixel appears once over BLEND and leaves exterior intact");
     scene.root->removeChild(imageGroup);
     if(run.render(scene.root,A::BLEND,withoutImage,
-                  "wgpu raster removed exactly")){
+                  "raster removed exactly")){
       ok &= check(withoutImage.rgba==stable.rgba &&
         withoutImage.depth==stable.depth &&
         withoutImage.serial==withImage.serial+1,
-        "wgpu raster removal restores RGBA/depth and publishes once");
+        "raster removal restores RGBA/depth and publishes once");
       stable=withoutImage;
     } else ok=false;
   }

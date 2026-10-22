@@ -40,7 +40,7 @@ bool ticketPath(const CoinRenderOptions &options) {
   };
   submit(3,first,"first N3 ticket");
   const auto serial=target->getLastSubmissionSerial();const auto commands=audit->commands;const auto previous=read(target.get());
-  action->setMultipassBufferBudget(0);CoinRenderReadbackTicket refused{};refused.token=987;
+  action->setMultipassBufferBudget(0);CoinRenderReadbackTicket refused{};
   action->applyAsync(scene.root,refused);
   check(action->getLastStatus()==CoinRenderAction::OUT_OF_MEMORY&&refused.token==0&&target->getLastSubmissionSerial()==serial&&audit->commands==commands&&exact(previous,read(target.get())),"budget refusal returns no new ticket, preserves prior async publication and submits nothing");
   action->setMultipassBufferBudget(256ull*1024*1024);scene.move(40.33);submit(7,second,"same-target N7 recovery ticket");

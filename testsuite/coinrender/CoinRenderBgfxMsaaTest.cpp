@@ -328,7 +328,15 @@ bool rejections() {
       "BLEND publishes material-alpha color with one new serial");
   stable=blended;
   action.setTransparencyType(CoinRenderAction::SORTED_LAYERS_BLEND);
-  ok &= rejected("peeling unsupported at 4x");
+  Frame peeled;
+  ok &= capture(action,*target,scene.root,peeled,"peeling supported at 4x") &&
+    check(peeled.serial==stable.serial+1 &&
+      std::abs(int(peeled.rgba[4*(size_t(24)*side+8)])-128)<=3 &&
+      std::abs(int(peeled.rgba[4*(size_t(24)*side+8)+3])-128)<=3 &&
+      peeled.rgba[4*(size_t(24)*side+8)+1]==0 &&
+      peeled.rgba[4*(size_t(24)*side+8)+2]==0,
+      "peeling publishes one half-alpha red layer over transparent black exactly once");
+  stable=peeled;
   action.setTransparencyType(CoinRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND);
   Frame sorted;
   ok &= capture(action,*target,scene.root,sorted,"sorted triangle supported at 4x") &&
@@ -346,15 +354,35 @@ bool rejections() {
       restoredOpaque.serial==sorted.serial+1,
       "opaque A/B/A restores exact image/depth with one publication");
   stable=restoredOpaque;
-  auto * image=new SoImage;const uint8_t pixel[]={255,0,0,255};
+  auto * image=new SoImage;const uint8_t pixel[]={255,255,255,255};
   image->image.setValue(SbVec2s(1,1),4,pixel);scene.root->addChild(image);
-  ok &= rejected("SoImage unsupported at 4x");
+  Frame raster;
+  const bool rasterAppeared=capture(action,*target,scene.root,raster,"SoImage supported at 4x");
+  size_t white=0,changed=0;bool exterior=true,imageDepth=true;
+  if(rasterAppeared && raster.rgba.size()==stable.rgba.size() && raster.depth.size()==stable.depth.size()) {
+    for(size_t p=0;p<raster.depth.size();++p) {
+      const bool different=!std::equal(raster.rgba.begin()+4*p,raster.rgba.begin()+4*p+4,
+        stable.rgba.begin()+4*p);
+      const bool whitePixel=raster.rgba[4*p]==255 && raster.rgba[4*p+1]==255 &&
+        raster.rgba[4*p+2]==255 && raster.rgba[4*p+3]==255;
+      white+=whitePixel;changed+=different;
+      if(whitePixel)imageDepth &= std::abs(raster.depth[p]-.5f)<=1e-6f;
+      if(!different)exterior &= raster.depth[p]==stable.depth[p];
+    }
+  }
+  ok &= check(rasterAppeared && raster.serial==stable.serial+1 && white==1 && changed==1 &&
+    exterior && imageDepth,"opaque white raster pixel publishes once with geometric depth and intact exterior");
   scene.root->removeChild(image);
+  Frame rasterRemoved;
+  ok &= capture(action,*target,scene.root,rasterRemoved,"opaque anchor restored after raster removal") &&
+    check(rasterRemoved.rgba==opaqueAnchor.rgba && rasterRemoved.depth==opaqueAnchor.depth &&
+      rasterRemoved.serial==raster.serial+1,"raster A/B/A restores exact RGBA/depth with one publication");
+  stable=rasterRemoved;
   auto * bump=new SoBumpMap;
   const uint8_t normal[]={128,128,255};
   bump->image.setValue(SbVec2s(1,1),3,normal);
   scene.root->insertChild(bump,scene.root->getNumChildren()-1);
-  ok &= rejected("active bump unsupported at 4x");
+  ok &= rejected("active bump invalid in BASE_COLOR fixture at 4x");
   scene.root->removeChild(bump);
   // Valid active shadow maps are exercised by CoinRenderMsaaShadowTest.
   // This legacy BASE_COLOR cube fixture has no qualified shadow receiver.
@@ -363,10 +391,27 @@ bool rejections() {
   Frame ticketAfter;target->readbackRGBA(ticketAfter.rgba);
   target->readbackDepth(ticketAfter.depth);
   ticketAfter.serial=target->getLastSubmissionSerial();
-  ok &= check(action.getLastStatus()!=CoinRenderAction::SUCCESS &&
-    ticket.token==0 && ticketAfter.rgba==stable.rgba &&
-    ticketAfter.depth==stable.depth && ticketAfter.serial==stable.serial,
-    "MSAA async ticket rejected without publication");
+  ok &= check(action.getLastStatus()==CoinRenderAction::SUCCESS && ticket.token!=0 &&
+    ticketAfter.rgba.empty() && ticketAfter.depth.empty() && ticketAfter.serial>stable.serial,
+    "MSAA async ticket accepted without synchronous publication");
+  Frame ticketFrame;SbString ticketDiagnostic;
+  auto ticketStatus=CoinRenderTarget::READBACK_NOT_READY;
+  const auto ticketStarted=std::chrono::steady_clock::now();
+  unsigned ticketPoll=0;
+  while(ticketStatus==CoinRenderTarget::READBACK_NOT_READY) {
+    const auto before=std::chrono::steady_clock::now();
+    std::cerr<<"msaa_anchor poll_begin token="<<ticket.token<<" attempt="<<ticketPoll
+      <<" elapsed_ms="<<std::chrono::duration<double,std::milli>(before-ticketStarted).count()<<'\n';
+    ticketStatus=CoinRenderTarget::pollReadback(ticket,ticketFrame.rgba,ticketFrame.depth,&ticketDiagnostic);
+    const auto after=std::chrono::steady_clock::now();
+    std::cerr<<"msaa_anchor poll_end token="<<ticket.token<<" attempt="<<ticketPoll++
+      <<" status="<<int(ticketStatus)<<" poll_ms="<<std::chrono::duration<double,std::milli>(after-before).count()
+      <<" elapsed_ms="<<std::chrono::duration<double,std::milli>(after-ticketStarted).count()
+      <<" diagnostic="<<ticketDiagnostic.getString()<<'\n';
+    if(ticketStatus==CoinRenderTarget::READBACK_NOT_READY)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  ok &= check(ticketStatus==CoinRenderTarget::READBACK_READY && ticketFrame.rgba==stable.rgba &&
+    ticketFrame.depth==stable.depth,"MSAA async ticket resolves the synchronous anchor");
   Frame recovered;
   ok &= capture(action,*target,scene.root,recovered,"rejection recovery") &&
     check(recovered.rgba==stable.rgba && recovered.depth==stable.depth &&

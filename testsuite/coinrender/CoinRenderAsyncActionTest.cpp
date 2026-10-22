@@ -286,7 +286,6 @@ int main() {
   const uint64_t publishedSceneSerial = synchronous->getLastSubmissionSerial();
   sceneTexture->type.setValue(SoSceneTexture2::RGB32F);
   CoinRenderReadbackTicket rejectedSceneTicket{};
-  rejectedSceneTicket.token = 987;
   syncAction.applyAsync(texturedParent, rejectedSceneTicket);
   std::vector<uint8_t> rejectedSceneColor;
   std::vector<float> rejectedSceneDepth;

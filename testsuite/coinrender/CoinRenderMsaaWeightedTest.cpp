@@ -30,6 +30,8 @@
 #include <Inventor/rendering/CoinRenderSceneManager.h>
 #include "CoinRenderMsaaShadowFixture.h"
 #include <algorithm>
+#include <chrono>
+#include <thread>
 #include <array>
 #include <cmath>
 #include <cstdint>
@@ -245,10 +247,28 @@ bool budget(const CoinRenderCapabilities &caps){
   recover.target->readbackRGBA(asynchronous.rgba);
   recover.target->readbackDepth(asynchronous.depth);
   asynchronous.serial=recover.target->getLastSubmissionSerial();
-  ok&=gate(recover.action.getLastStatus()!=A::SUCCESS&&ticket.token==0&&
-    asynchronous.rgba==anchor.rgba&&asynchronous.depth==anchor.depth&&
-    asynchronous.serial==anchor.serial,
-    "weighted MSAA async ticket remains unsupported and atomic");
+  ok&=gate(recover.action.getLastStatus()==A::SUCCESS&&ticket.token!=0&&
+    asynchronous.rgba.empty()&&asynchronous.depth.empty()&&asynchronous.serial>anchor.serial,
+    "weighted MSAA async ticket accepted without synchronous publication");
+  Frame ticketFrame;SbString ticketDiagnostic;
+  auto ticketStatus=CoinRenderTarget::READBACK_NOT_READY;
+  const auto ticketStarted=std::chrono::steady_clock::now();
+  unsigned ticketPoll=0;
+  while(ticketStatus==CoinRenderTarget::READBACK_NOT_READY) {
+    const auto before=std::chrono::steady_clock::now();
+    std::cerr<<"msaa_anchor poll_begin token="<<ticket.token<<" attempt="<<ticketPoll
+      <<" elapsed_ms="<<std::chrono::duration<double,std::milli>(before-ticketStarted).count()<<'\n';
+    ticketStatus=CoinRenderTarget::pollReadback(ticket,ticketFrame.rgba,ticketFrame.depth,&ticketDiagnostic);
+    const auto after=std::chrono::steady_clock::now();
+    std::cerr<<"msaa_anchor poll_end token="<<ticket.token<<" attempt="<<ticketPoll++
+      <<" status="<<int(ticketStatus)<<" poll_ms="<<std::chrono::duration<double,std::milli>(after-before).count()
+      <<" elapsed_ms="<<std::chrono::duration<double,std::milli>(after-ticketStarted).count()
+      <<" diagnostic="<<ticketDiagnostic.getString()<<'\n';
+    if(ticketStatus==CoinRenderTarget::READBACK_NOT_READY)std::this_thread::sleep_for(std::chrono::milliseconds(1));
+  }
+  ok&=gate(ticketStatus==CoinRenderTarget::READBACK_READY&&ticketFrame.rgba==anchor.rgba&&
+    ticketFrame.depth==anchor.depth,"weighted MSAA async matches synchronous anchor");
+  ok&=recover.capture(s.root,anchor,"synchronous anchor restored after async ticket");
   s.cyan=shape(-.25f,SbColor(0,1,1),.25f);s.root->addChild(s.cyan);
   recover.action.setTransparencyBufferBudget(1);
   Frame previous;recover.target->readbackRGBA(previous.rgba);recover.target->readbackDepth(previous.depth);
