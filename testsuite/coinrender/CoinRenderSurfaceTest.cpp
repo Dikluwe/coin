@@ -37,6 +37,8 @@
 #include <cstdlib>
 #include <cstring>
 #include <iostream>
+#include <algorithm>
+#include <memory>
 #include <vector>
 
 #define TEST_ASSERT(cond, msg) do { \
@@ -47,6 +49,173 @@
 } while (0)
 
 #if defined(HAVE_X11) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+// Fault 108 crosses preparation and exercises the normal acquisition-error
+// branch. Fault 101 remains the separate early-return fault.
+static int acquireTimeoutBoundary(Display * dpy, bool legacyTimeout)
+{
+  const unsigned side = 96;
+  Window win = XCreateSimpleWindow(dpy,DefaultRootWindow(dpy),10,10,side,side,0,0,0);
+  XSetWindowAttributes attrs{}; attrs.override_redirect = True;
+  XChangeWindowAttributes(dpy,win,CWOverrideRedirect,&attrs);
+  XMapRaised(dpy,win); XSync(dpy,False);
+  auto physical = [&]() {
+    XSync(dpy,False);
+    std::vector<unsigned long> pixels;
+    XImage * image = XGetImage(dpy,win,0,0,side,side,AllPlanes,ZPixmap);
+    if (image) {
+      for (unsigned y=0;y<side;++y) for (unsigned x=0;x<side;++x)
+        pixels.push_back(XGetPixel(image,x,y));
+      XDestroyImage(image);
+    }
+    return pixels;
+  };
+  CoinRenderNativeSurfaceDescriptor desc{};
+  desc.abiVersion=COIN_RENDER_NATIVE_SURFACE_ABI_VERSION; desc.structSize=sizeof(desc);
+  desc.type=COIN_RENDER_SURFACE_XLIB; desc.native.xlib.display=dpy; desc.native.xlib.window=win;
+  CoinRenderOptions options; options.renderer=COIN_RENDER_RENDERER_VULKAN;
+  std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createWindow(desc,SbVec2i32(side,side),options));
+  TEST_ASSERT(target, "Boundary timeout fixture creates a Vulkan window target");
+  CoinRenderAction action{SbViewportRegion(side,side)}; action.setRenderTarget(target.get());
+  SoSeparator * root = new SoSeparator; root->ref();
+  XImage * maskImage=XGetImage(dpy,win,0,0,1,1,AllPlanes,ZPixmap);
+  const unsigned long redPixel=maskImage?maskImage->red_mask:0;
+  const unsigned long greenPixel=maskImage?maskImage->green_mask:0;
+  const unsigned long bluePixel=maskImage?maskImage->blue_mask:0;
+  if (maskImage) XDestroyImage(maskImage);
+  // Each anchor differs from all older anchors and all green recoveries.
+  // Observing this exact color cannot mistake a pending older FIFO frame
+  // for the publication immediately preceding the failed candidate.
+  const unsigned anchorColors[6][3]={{1,0,0},{0,0,1},{1,1,0},{1,0,1},{0,1,1},{1,1,1}};
+  for (int attempt=0;attempt<6;++attempt) {
+  const auto & color=anchorColors[attempt];
+  action.setBackgroundColor(SbColor4f(float(color[0]),float(color[1]),float(color[2]),1));
+  TEST_ASSERT(target->requestWindowReadbackRGBA(), "Initial capture request accepted");
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus()==CoinRenderAction::SUCCESS, "First apply publishes the anchor");
+  std::vector<uint8_t> anchor; target->readbackRGBA(anchor);
+  size_t borrowedSize=0; const uint8_t * borrowed=target->borrowRGBA(borrowedSize);
+  const uint64_t serial=target->getLastSubmissionSerial();
+  const auto shown=physical();
+  const unsigned long anchorPixel=(color[0]?redPixel:0)|(color[1]?greenPixel:0)|(color[2]?bluePixel:0);
+  const bool anchorObserved=redPixel && greenPixel && bluePixel && std::all_of(shown.begin(),shown.end(),[&](unsigned long p){return p==anchorPixel;});
+  std::cout << "acquire_timeout attempt=" << attempt << " anchor_physically_observed=" << anchorObserved
+            << " anchor_rgb=" << color[0]*255 << ',' << color[1]*255 << ',' << color[2]*255 << '\n';
+  TEST_ASSERT(anchor.size()==side*side*4 && !borrowed && borrowedSize==0 && serial>0 && shown.size()==side*side,
+              "Window anchor publishes complete readback and preserves the offscreen-only borrow policy");
+  for(size_t p=0;p<anchor.size();p+=4)
+    TEST_ASSERT(anchor[p]==color[0]*255 && anchor[p+1]==color[1]*255 && anchor[p+2]==color[2]*255 && anchor[p+3]==255,
+                "Each cycle captures its distinct authored anchor");
+  action.setBackgroundColor(SbColor4f(0,1,0,1));
+    TEST_ASSERT(target->requestWindowReadbackRGBA(), "Timeout capture request accepted");
+    uint64_t jobsBefore=0,bytesBefore=0,jobsAfter=0,bytesAfter=0;
+    TEST_ASSERT(coin_wgpu_readback_resource_load(&jobsBefore,&bytesBefore), "Readback load observable before timeout");
+    const bool fenceTimeout=!legacyTimeout && attempt>=3;
+    if (fenceTimeout) {
+      setenv("COIN_RENDER_TRACE_PHASES","1",1);
+      setenv("COIN_WGPU_TEST_ACQUIRE_FENCE_TIMEOUT","1",1);
+    } else coin_wgpu_inject_fault(legacyTimeout?101:108);
+    action.apply(root);
+    coin_wgpu_inject_fault(0);
+    if (fenceTimeout) unsetenv("COIN_WGPU_TEST_ACQUIRE_FENCE_TIMEOUT");
+    std::vector<uint8_t> retained; target->readbackRGBA(retained);
+    size_t retainedSize=0; const uint8_t * retainedBorrow=target->borrowRGBA(retainedSize);
+    TEST_ASSERT(coin_wgpu_readback_resource_load(&jobsAfter,&bytesAfter), "Readback load observable after timeout");
+    std::cout << "acquire_timeout attempt=" << attempt << " stage=" << (legacyTimeout?"early_timeout":(fenceTimeout?"fence":"get_current_texture")) << " status=" << action.getLastStatus()
+              << " serial=" << target->getLastSubmissionSerial() << " error=" << action.getLastError().getString() << '\n';
+    TEST_ASSERT(action.getLastStatus()==CoinRenderAction::NOT_READY && action.getLastError().getLength()>0,
+                "Acquire-boundary timeout is NOT_READY with diagnostic; no concealed retry");
+    TEST_ASSERT(target->getLastSubmissionSerial()==serial && retained==anchor && retainedBorrow==borrowed && retainedSize==borrowedSize,
+                "Acquire-boundary timeout preserves serial, RGBA and the window's null/zero borrow policy");
+    const auto afterShown=physical();
+    TEST_ASSERT((!anchorObserved || afterShown==shown) && jobsBefore==jobsAfter && bytesBefore==bytesAfter,
+                "Acquire-boundary timeout retains an observed physical anchor and leaks no readback job/ticket");
+    TEST_ASSERT(target->getStatus()==CoinRenderTarget::TARGET_NOT_READY && !target->requestWindowReadbackRGBA(),
+                "Unready window refuses a new capture until an explicit apply prepares it");
+  // A failed requested capture is consumed. A plain recovery must publish the
+  // green candidate once, and must not silently inherit the old request.
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus()==CoinRenderAction::SUCCESS && target->getLastSubmissionSerial()>serial,
+              "Single explicit apply after clearing timeout recovers");
+  std::vector<uint8_t> plain; target->readbackRGBA(plain);
+  TEST_ASSERT(plain.empty(), "Failed capture remains one-shot after recovery");
+  TEST_ASSERT(target->requestWindowReadbackRGBA(), "Fresh recovery capture accepted");
+  action.apply(root); std::vector<uint8_t> green; target->readbackRGBA(green);
+  TEST_ASSERT(action.getLastStatus()==CoinRenderAction::SUCCESS && green.size()==anchor.size() && green!=anchor,
+              "Fresh capture returns the new candidate");
+  for (size_t p=0;p<green.size();p+=4)
+    TEST_ASSERT(green[p]==0 && green[p+1]==255 && green[p+2]==0 && green[p+3]==255,
+                "Recovered capture contains the authored green frame");
+  }
+  // The transient-acquisition recovery gate must not reopen a deliberately
+  // suspended target or invoke host callbacks before rejecting it. Resize
+  // itself invalidates readback/serial; the refused apply preserves that state.
+  unsigned preRenderCalls=0;
+  void (*const preRender)(void *,CoinRenderAction *)=[](void * data,CoinRenderAction *) {
+    ++*static_cast<unsigned *>(data);
+  };
+  action.addPreRenderCallback(preRender,&preRenderCalls);
+  TEST_ASSERT(target->resize(SbVec2i32(0,0)), "Explicit suspension accepted");
+  std::vector<uint8_t> suspendedPixels;target->readbackRGBA(suspendedPixels);
+  const uint64_t suspendedSerial=target->getLastSubmissionSerial();
+  size_t suspendedBorrowSize=91;const auto suspendedBorrow=target->borrowRGBA(suspendedBorrowSize);
+  uint64_t suspendedJobs=0,suspendedBytes=0,afterSuspendedJobs=0,afterSuspendedBytes=0;
+  TEST_ASSERT(coin_wgpu_readback_resource_load(&suspendedJobs,&suspendedBytes), "Suspension readback load observable");
+  action.apply(root);
+  std::vector<uint8_t> afterSuspendedPixels;target->readbackRGBA(afterSuspendedPixels);
+  size_t afterSuspendedBorrowSize=93;const auto afterSuspendedBorrow=target->borrowRGBA(afterSuspendedBorrowSize);
+  TEST_ASSERT(coin_wgpu_readback_resource_load(&afterSuspendedJobs,&afterSuspendedBytes), "Suspended apply readback load observable");
+  TEST_ASSERT(action.getLastStatus()==CoinRenderAction::NOT_READY && preRenderCalls==0 &&
+              target->getStatus()==CoinRenderTarget::TARGET_NOT_READY &&
+              target->getLastSubmissionSerial()==suspendedSerial && afterSuspendedPixels==suspendedPixels &&
+              suspendedBorrow==afterSuspendedBorrow && suspendedBorrowSize==afterSuspendedBorrowSize &&
+              suspendedJobs==afterSuspendedJobs && suspendedBytes==afterSuspendedBytes,
+              "Zero-size suspension rejects before pre-render callbacks and preserves publication/readback resources");
+  TEST_ASSERT(target->resize(SbVec2i32(side,side)), "Explicit positive extent resumes target");
+  action.apply(root);
+  TEST_ASSERT(action.getLastStatus()==CoinRenderAction::SUCCESS && preRenderCalls==1 &&
+              target->getLastSubmissionSerial()>0,
+              "First explicit apply after positive resize recovers and calls pre-render exactly once");
+  action.removePreRenderCallback(preRender,&preRenderCalls);
+  action.setRenderTarget(nullptr); target.reset(); root->unref();
+
+  // A new drawable has no prior red Vulkan frame that could be confused with
+  // the direct FFI anchor by an asynchronous physical observation.
+  XDestroyWindow(dpy,win);
+  win=XCreateSimpleWindow(dpy,DefaultRootWindow(dpy),10,10,side,side,0,0,0);
+  XChangeWindowAttributes(dpy,win,CWOverrideRedirect,&attrs);
+  XMapRaised(dpy,win); XSync(dpy,False);
+
+  CoinWgpuSurfaceCreateInfo info{}; info.abi_version=COIN_WGPU_ABI_VERSION; info.struct_size=sizeof(info);
+  info.native.abi_version=COIN_WGPU_ABI_VERSION; info.native.struct_size=sizeof(info.native);
+  info.native.type=COIN_WGPU_NATIVE_XLIB; info.native.handle_a=reinterpret_cast<uintptr_t>(dpy); info.native.handle_b=win;
+  info.width=info.height=side; info.renderer=COIN_RENDER_RENDERER_VULKAN;
+  CoinWgpuSurfaceId surface=0; char error[512]={};
+  TEST_ASSERT(coin_wgpu_surface_create(&info,&surface,error,sizeof(error))==COIN_WGPU_OK, "Direct FFI surface creation");
+  CoinWgpuFrameView frame{}; frame.abi_version=COIN_WGPU_ABI_VERSION; frame.struct_size=sizeof(frame);
+  frame.width=frame.height=side; frame.frame_revision=93401; frame.clear_color[0]=frame.clear_color[3]=1;
+  frame.multipass_count=1; frame.multipass_budget_bytes=uint64_t(256)*1024*1024;
+  std::vector<uint8_t> pixels(side*side*4,37);
+  TEST_ASSERT(coin_wgpu_surface_submit_readback(surface,&frame,pixels.data(),pixels.size(),error,sizeof(error))==COIN_WGPU_OK,
+              "Direct FFI anchor publishes");
+  const uint64_t ffiSerial=coin_wgpu_surface_submission_serial(surface);
+  const auto ffiShown=physical();
+  const bool ffiAnchorObserved=redPixel && std::all_of(ffiShown.begin(),ffiShown.end(),[&](unsigned long p){return p==redPixel;});
+  frame.clear_color[0]=0; frame.clear_color[2]=1; ++frame.frame_revision;
+  std::fill(pixels.begin(),pixels.end(),37);
+  coin_wgpu_inject_fault(legacyTimeout?101:108);
+  const auto failed=coin_wgpu_surface_submit_readback(surface,&frame,pixels.data(),pixels.size(),error,sizeof(error));
+  coin_wgpu_inject_fault(0);
+  TEST_ASSERT(failed==COIN_WGPU_NOT_READY && error[0] && coin_wgpu_surface_submission_serial(surface)==ffiSerial &&
+              pixels==std::vector<uint8_t>(pixels.size(),37) && (!ffiAnchorObserved || physical()==ffiShown),
+              "Direct boundary timeout commits neither caller buffer, serial nor presentation");
+  TEST_ASSERT(coin_wgpu_surface_submit_readback(surface,&frame,pixels.data(),pixels.size(),error,sizeof(error))==COIN_WGPU_OK &&
+              coin_wgpu_surface_submission_serial(surface)>ffiSerial && pixels!=std::vector<uint8_t>(pixels.size(),37),
+              "Direct FFI next explicit submission recovers");
+  TEST_ASSERT(coin_wgpu_surface_destroy(surface,error,sizeof(error))==COIN_WGPU_OK, "Direct FFI surface destruction");
+  XDestroyWindow(dpy,win);
+  return 0;
+}
+
 // Executed with --camera-only in a fresh process to isolate the native
 // ownership and camera readmission contract.
 static int nativePhongCamera(Display * dpy, bool requireVulkan)
@@ -144,6 +313,17 @@ static int nativePhongCamera(Display * dpy, bool requireVulkan)
   const uint64_t firstPublished = coin_wgpu_surface_submission_serial(patchSurface);
   TEST_ASSERT(firstPublished > 0 && coin_wgpu_surface_submission_serial(0) == 0,
               "Surface publication serial belongs to the live surface");
+  // This is a new full-frame revision with caller draws, rather than an
+  // already-qualified camera patch. Pass 1 is outside multipass_count=1.
+  const uint32_t validCompositionFlags=draw.composition_flags;
+  draw.composition_flags=validCompositionFlags|(uint32_t(1)<<16);
+  patchFrame.frame_revision=referenceRevision;
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,actual.data(),actual.size(),
+                patchError,sizeof(patchError)),"full frame with out-of-range multipass mask",COIN_WGPU_INVALID_ARGUMENT) &&
+              actual==std::vector<uint8_t>(actual.size(),37) &&
+              coin_wgpu_surface_submission_serial(patchSurface)==firstPublished,
+              "Out-of-range full-frame multipass mask rejects without writing pixels or advancing serial");
+  draw.composition_flags=validCompositionFlags;
   // A new full revision without a camera hint suspends owned snapshots.
   // Capture the reference through this full path, then explicitly readmit
   // the original camera using complete buffers before testing a null-payload patch.
@@ -164,6 +344,17 @@ static int nativePhongCamera(Display * dpy, bool requireVulkan)
   patchFrame.frame_revision = patchRevision; patchFrame.camera_base_revision = readmittedRevision;
   patchFrame.vertices = nullptr; patchFrame.indices = nullptr;
   patchFrame.draws = nullptr; patchFrame.materials = nullptr;
+  // A qualified owned snapshot licenses geometry omission, while multipass
+  // metadata remains subject to validation. Rejecting this candidate must
+  // leave the exact same snapshot usable by the valid patch immediately below.
+  const uint64_t serialBeforeInvalidMetadata=coin_wgpu_surface_submission_serial(patchSurface);
+  patchFrame.multipass_reserved=1;
+  TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,actual.data(),actual.size(),
+                patchError,sizeof(patchError)),"qualified patch with invalid multipass metadata",COIN_WGPU_INVALID_ARGUMENT) &&
+              actual==std::vector<uint8_t>(actual.size(),37) &&
+              coin_wgpu_surface_submission_serial(patchSurface)==serialBeforeInvalidMetadata,
+              "Qualified null-geometry camera patch cannot bypass multipass metadata validation or publish on rejection");
+  patchFrame.multipass_reserved=0;
   TEST_ASSERT(patchStatus(coin_wgpu_surface_submit_readback(patchSurface,&patchFrame,actual.data(),actual.size(),
                 patchError,sizeof(patchError)),"camera patch") && actual == expected && actual != basePixels,
               "Native PHONG patch must use owned geometry and resolved light coordinates");
@@ -194,8 +385,16 @@ int main(int argc, char ** argv) {
   bool requireDisplay = false;
   bool requireVulkan = false;
   bool cameraOnly = false;
+  bool acquireTimeoutOnly = false;
+  bool legacyTimeoutOnly = false;
   for (int i = 1; i < argc; ++i) {
-    if (std::strcmp(argv[i], "--camera-only") == 0) {
+    if (std::strcmp(argv[i], "--legacy-timeout-recovery-only") == 0) {
+      legacyTimeoutOnly = true;
+      requireDisplay = true;
+    } else if (std::strcmp(argv[i], "--acquire-timeout-only") == 0) {
+      acquireTimeoutOnly = true;
+      requireDisplay = true;
+    } else if (std::strcmp(argv[i], "--camera-only") == 0) {
       cameraOnly = true;
       requireDisplay = true;
     } else if (std::strcmp(argv[i], "--require-display") == 0) {
@@ -214,6 +413,18 @@ int main(int argc, char ** argv) {
   SoDB::init();
   CoinRenderAction::initClass();
   std::cout << "Running CoinRenderSurfaceTest..." << std::endl;
+
+  if (acquireTimeoutOnly || legacyTimeoutOnly) {
+#if defined(HAVE_X11) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+    Display * display = XOpenDisplay(nullptr);
+    TEST_ASSERT(display, "Timeout recovery checks require X11");
+    const int status=acquireTimeoutBoundary(display,legacyTimeoutOnly);
+    XCloseDisplay(display);
+    return status;
+#else
+    TEST_ASSERT(false, "Timeout recovery checks require X11 and Rust Bridge");
+#endif
+  }
 
   if (cameraOnly) {
 #if defined(HAVE_X11) && defined(HAVE_COIN_WGPU_RUST_BRIDGE)

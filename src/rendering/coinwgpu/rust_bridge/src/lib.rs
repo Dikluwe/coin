@@ -1894,6 +1894,7 @@ mod bump_abi_tests {
         state.model_view_projection = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
                                        0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0];
         state.normal_matrix = state.model_view_projection;
+        state.light_model = 1; // Consumed bump uses the PHONG contract.
         state.light_count = 1;
         state.lights[0].position_type = [0.0,0.0,0.0,0.0];
         state.lights[0].direction_cutoff = [0.0,0.0,-1.0,0.0];
@@ -2557,6 +2558,7 @@ mod bump_abi_tests {
         state.model_view_projection = [1.0,0.0,0.0,0.0, 0.0,1.0,0.0,0.0,
                                        0.0,0.0,1.0,0.0, 0.0,0.0,0.0,1.0];
         state.normal_matrix = state.model_view_projection;
+        state.light_model = 1; // Consumed bump uses the PHONG contract.
         state.light_count = 1;
         state.lights[0].position_type = [0.0,0.0,0.0,0.0];
         state.lights[0].direction_cutoff = [0.0,0.0,-1.0,0.0];
@@ -2578,6 +2580,7 @@ mod bump_abi_tests {
         let image = CoinWgpuBumpImage { width: 1, height: 1, clamp_s: 0,
             clamp_t: 0, rgb: rgb.as_ptr(), rgb_len: 3 };
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.multipass_count = 1; // ABI 69 requires an explicit single pass.
         frame.abi_version = COIN_WGPU_ABI_VERSION;
         frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
         frame.vertices = vertices.as_ptr(); frame.vertex_count = 3;
@@ -2597,6 +2600,17 @@ mod bump_abi_tests {
             depth_buffer: depth.as_mut_ptr(), depth_buffer_len: depth.len() as u64,
             submission_serial: 0, device_id: 0, sample_count: 1 };
         let mut error = [0i8; 512];
+        // BASE_COLOR with consumed bump remains unsupported; correcting the
+        // positive PHONG fixture must not erase this negative contract.
+        state.light_model = 0;
+        pixels.fill(0x65);
+        depth.fill(-17.0);
+        let rejected = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
+        assert_eq!(rejected, CoinWgpuStatus::Unsupported);
+        assert_eq!(target.submission_serial, 0);
+        assert!(pixels.iter().all(|&value| value == 0x65));
+        assert!(depth.iter().all(|&value| value == -17.0));
+        state.light_model = 1;
         let status = coin_wgpu_submit(&mut target, &frame, error.as_mut_ptr(), error.len());
         let message = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy();
         assert_eq!(status, CoinWgpuStatus::Ok, "{message}");
@@ -2664,6 +2678,7 @@ mod bump_abi_tests {
         material.diffuse = [1.0, 0.0, 0.0, 1.0];
         material.emission = [1.0, 0.0, 0.0, 1.0];
         let mut frame: CoinWgpuFrameView = unsafe { std::mem::zeroed() };
+        frame.multipass_count = 1; // ABI 69 requires an explicit single pass.
         frame.abi_version = COIN_WGPU_ABI_VERSION;
         frame.struct_size = std::mem::size_of::<CoinWgpuFrameView>() as u32;
         frame.vertices = vertices.as_ptr(); frame.vertex_count = 3;
