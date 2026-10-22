@@ -12,7 +12,7 @@ Consolidação em **16/10/2026**. Código de referência: `codex/coin-render`, `
 | --- | --- |
 | Correções e perfis da fila local | B90/C05.2, B91/C07.12 e B92/C08.6 integrados, com código, testes e baselines separados em Git. Sampling herdado C08.3e e câmera autoral C21.15 qualificados nos perfis registrados. B10.7 conclui a medição delimitada de frame completo/primeiro frame/p95, sem promessa geral de desempenho. As demais qualificações conservam seus escopos e revisões nas linhas individuais. |
 | Cinco registros históricos | B03.2, B34.1, B34.2, C21.12 e B87 revalidados em **18 processos alvo novos**, sem falhas, skips ou timeouts, sobre a revisão de código `03288cdd5c`. Permanecem históricos não reproduzidos nessa campanha, sem correção causal comprovada e sem apagar ocorrências anteriores. O controle temporal B03.2 e os limites de independência estão discriminados abaixo. |
-| B34 | **Externo, reproduzido e aberto.** Reprodutor sem Coin/BGFX: 4/4 perfis aprovados na NVIDIA como único provider em X dedicado sem PRIME; 4/4 no controle AMD; 0/4 no offload NVIDIA, com três SIGSEGV e uma falha RGB. Houve novo SIGSEGV após encerrar o X dedicado. A pilha nativa e o acesso XCB após encerramento da conexão sustentam a classificação externa a Coin/BGFX, sem isolar driver NVIDIA de PRIME/GLVND/X11. |
+| B34 | **Externo, reproduzido e aberto; revalidado em 22/10.** Mesmo reprodutor sem Coin/BGFX: AMD 4/4 e NVIDIA principal sem PRIME 4/4 aprovados; NVIDIA offload 0/4, com dois SIGSEGV, um timeout de 180 s e uma falha RGB. Auditoria separada confirma acesso NVIDIA a uma geração XCB já encerrada durante `eglMakeCurrent`, apesar de uma conexão nova válida. [Diagnóstico atual e reprodução](#b34--revalidação-e-diagnóstico-de-chamadas-egl--22102026). |
 | Diagnóstico de recorrência | Watchdog B87 publicado e registrado no CTest de encerramento, mantendo o cenário original e capturando pilhas em timeout. Instrumentação dos demais casos e comandos de reprodução publicados. Não há monitor permanente; a coleta depende de executar os testes. |
 
 A qualificação cobre os **perfis efetivamente exercitados** nas sete células Linux disponíveis: BGFX AMD/NVIDIA × Vulkan/OpenGL; wgpu AMD/NVIDIA × Vulkan e AMD/OpenGL. Não é uma qualificação irrestrita dessas células, de todos os recursos ou das demais plataformas. Campanhas de escopos diferentes não são somadas como um único gate global. O build da revalidação usou bibliotecas incrementais cuja fonte e identidade foram conferidas, não uma reconstrução integral de clone vazio.
@@ -219,6 +219,117 @@ Qualificação final: referência CPU **60/60**; suíte Rust **59 aprovados e 4 
 O crash tardio wgpu/NVIDIA/Vulkan foi localizado no descarte do runtime. A tentativa intermediária de transferir o descarte para um worker foi rejeitada por reproduzir corrupção no driver. A solução integrada descarta na thread do hook e inclui `wgpu-core` 24.0.5 vendorizado com tolerância apenas para o rastreamento diagnóstico TLS já destruído; os locks reais e as verificações normais permanecem. Não há espera, retry ou exceção por fabricante. Uma rodada de regressão registrou 51/52 por timeout inicial de Product BGFX/NVIDIA/Vulkan; o controle frio baseline/candidato com as mesmas entradas passou em 9,33/9,28 s, sem causa atribuída ou alteração de gate.
 
 O perfil não encerra os demais itens da etapa 3 nem R34, outras plataformas ou produtos cartesianos não exercitados. A etapa 2 permanece encerrada com B34 externo aberto; a etapa 4 permanece suspensa.
+
+## B34 — revalidação e diagnóstico de chamadas EGL — 22/10/2026
+
+**B34 continua externo, reproduzido e aberto. Nenhuma implementação de produção
+foi alterada.** A recriação NVIDIA/OpenGL no caminho híbrido afetado continua
+não qualificada. A revisão de produção é `1d542dbd25308bd9590550f750b2f0d0577fe0d4`;
+os diagnósticos/testes desta continuação estão em `3f5e300ac2a141e46f428dafa5cfa5f17a163a93`.
+R29, R30 e R35 permanecem adiados; B34.1/B34.2/B94 conservam seus próprios IDs.
+
+### Comparação atual do controle independente
+
+Os quatro perfis abaixo usam **o mesmo executável baseline**, recompilado dessa
+revisão sem Coin/BGFX com `-std=c++20 -O0 -g1 -pthread`, e um processo novo por
+perfil. São 12 ciclos, pbuffer e janela, dois frames por recurso, um swap por
+frame; RGB físico mantém tolerância 3 e prazo de observação de cinco segundos.
+
+| Perfil, sempre worker e conexão privada do renderer | AMD principal | NVIDIA principal, sem PRIME | NVIDIA offload |
+| --- | --- | --- | --- |
+| Contexto simples, EGL legado | PASS | PASS | TIMEOUT 180 s |
+| Contexto simples, platform-X11 | PASS | PASS | SIGSEGV, 139 |
+| Pbuffer primário + janela compartilhada, EGL legado | PASS | PASS | SIGSEGV, 139 |
+| Pbuffer primário + janela compartilhada, platform-X11 | PASS | PASS | FAIL RGB, 1 |
+
+O comando original, recompilado também com `-std=c++11`, voltou a terminar com
+SIGSEGV. Manter o caller Display aberto não eliminou falhas: houve dois SIGSEGV,
+um timeout e um passe nos quatro controles com renderer ainda recriado.
+Usar uma única worker para todos os ciclos também deu SIGSEGV; executar na main
+falhou por RGB. Um controle com conexão nativa única passou, mas altera justamente
+o lifecycle que precisa funcionar e não é correção do contrato original.
+Esses processos não são ensaios estatisticamente independentes do estado do driver.
+
+### Chamada e conexão identificadas
+
+Na execução com `--trace-api`, `eglCreateContext` e
+`eglCreatePlatformWindowSurface` retornaram sucesso; houve `eglMakeCurrent begin`
+sem retorno, seguido de SIGSEGV. Em **outro processo**, com o observador XCB:
+
+1. O ciclo anterior completou unbind, destroy de contexto/superfície,
+   `eglTerminate` e `eglReleaseThread`, todos com sucesso, antes de fechar o X11.
+2. O observador registrou `xcb_disconnect_return` da conexão antiga e sua geração.
+3. O ciclo seguinte abriu uma conexão nova válida, confirmada por
+   `XGetXCBConnection`, reutilizando endereços de Display/EGLDisplay.
+4. Dentro de `eglMakeCurrent`, a pilha NVIDIA voltou a chamar `xcb_generate_id`
+   e `xcb_present_select_input` com **a conexão antiga, da geração já encerrada**,
+   sem reconexão intermediária observada; o processo terminou em 139.
+
+Isso demonstra acesso posterior à desconexão no caminho NVIDIA/EGL/XCB. Qual
+cache interno reteve o ponteiro é hipótese; esta instrumentação não o identifica.
+A pilha do timeout não instrumentado também passa de NVIDIA/EGL para um mutex em
+`xcb_generate_id`, mas a conexão encerrada não foi comprovada naquela ocorrência.
+O main apenas esperava a worker em `join`. O watchdog conservou 124 apesar de o
+GDB do diagnóstico retornar zero.
+
+Coin fecha sua conexão privada depois de `bgfx::shutdown`; o SDK termina EGL na
+worker e aguarda seu encerramento. Não foi encontrada inversão local de ownership.
+Essa ordem foi conferida com o [contrato EGL 1.5, seções 3.2/3.12](https://registry.khronos.org/EGL/specs/eglspec.1.5.pdf).
+Não se incorporou retenção permanente de conexão/runtime, retry, fallback,
+reaplicação da cena ou exceção por fabricante.
+
+### Diagnóstico permanente e reprodução
+
+`--trace-api` registra antes/depois das APIs EGL, identidades de display/contexto/
+surface, fd capturado com o Display vivo, threads, fechamento X11, join e descarga
+de libEGL. `complete result=0` é emitido somente após finalizar esses donos; o
+veredito continua dependendo também do exit real, não apenas do texto.
+
+O controle adicional `--worker --isolated-runtime-display --host-egl` conserva
+um pbuffer EGL do aplicativo em outra conexão e na main. Após cada worker,
+confere binding, pixels originais e unbind/rebind, sem repintar o host nem aquecer
+a conexão privada do renderer. É um cenário separado; não substitui o teste sem
+owner ancorando EGL. Passou na AMD e na NVIDIA principal, e sofreu SIGSEGV no
+offload. Os quatro perfis originais do diagnóstico também passaram na AMD e na
+NVIDIA principal: cinco processos por ambiente, incluindo esse controle do host.
+
+Os comandos da seção histórica abaixo continuam válidos. Para o diagnóstico
+atual, compile as fontes desta branch com as flags publicadas e acrescente:
+
+```sh
+# b34_ram e o observador são preparados pelos comandos da seção seguinte.
+env -u LD_PRELOAD -u LD_AUDIT -u LD_LIBRARY_PATH DISPLAY=:0 \
+  __NV_PRIME_RENDER_OFFLOAD=1 __GLX_VENDOR_LIBRARY_NAME=nvidia \
+  __EGL_VENDOR_LIBRARY_FILENAMES=/usr/share/glvnd/egl_vendor.d/10_nvidia.json \
+  python3 scripts/coinrender/run_with_timeout.py \
+  --timeout 180 --diagnostic-timeout 10 --diagnostic-dir "$b34_ram/diagnostic" -- \
+  "$b34_ram/native" --worker --isolated-runtime-display --platform-x11 --trace-api
+
+# Auditoria em outro processo: após o -- do watchdog, substituir o comando por:
+# env LD_AUDIT="$b34_ram/connection_audit.so" "$b34_ram/native" \
+#   --worker --isolated-runtime-display --trace-api
+# Coexistência do host: acrescentar --host-egl ao cenário worker/isolated.
+```
+
+Para reconstruir o baseline em outra pasta na RAM, extraia pelo Git dessa revisão
+`CoinRenderNativeEglLifetimeTest.cpp` e `CoinRenderEglLifetimeFixture.h` de
+`testsuite/coinrender`; compile-os juntos com os mesmos includes e bibliotecas.
+O controle comparado na tabela usa C++20; a repetição do comando antigo usa C++11.
+Os novos testes compilaram também em C++11. A compatibilidade do header compartilhado com
+`CoinRenderBgfxOpenGLLifetimeTest.cpp` foi verificada por compilação sintática;
+a campanha GPU desta continuação usa o reprodutor nativo independente.
+Os 15 testes do watchdog passaram,
+incluindo SIGABRT/SIGSEGV após uma mensagem falsa de conclusão bem-sucedida.
+
+O hardware/driver é o mesmo da seção histórica: Renoir/Mesa 25.2.8 e RTX 3060
+Laptop/NVIDIA 615.71.09. NVIDIA principal foi novamente um Xorg privado sem saída
+física/compositor, com provider único NVIDIA-0, encerrado ao terminar. Depois de
+fechá-lo, o reprodutor novo sem observador e sem trace voltou a abortar no offload
+com assert de `xcb_generate_id`, exit 134. Não houve alteração de driver, VT ou
+configuração pessoal. Outro driver e scanout físico NVIDIA continuam sem
+qualificação. O fechamento de B34 depende de solução externa validada ou de um
+contorno com contrato próprio; esta continuação melhora a reprodução, não marca
+a falha como corrigida.
 
 ## B34 — comparação NVIDIA principal e falha externa — 21/10/2026
 
@@ -940,7 +1051,7 @@ A campanha Windows clean executou principalmente `2620d12da6064cbfc773ac8acfa05a
 | B31 | POINTS × recorte côncavo desconectado — corrigido e qualificado no perfil Linux | O clip conectado deixava vértices residuais ao retornar falha e o fallback os reutilizava. A deduplicação considerava cantos originais já emitidos e não gerava índices: sobravam apenas interseções na linha de corte. O fallback agora limpa o resultado abandonado antes da reconstrução. Oráculos geométricos independentes reproduzem no baseline 28/28 e passam no candidato 28/28, nas sete células × quatro políticas; CPU passa nos dois builds. Recuperação exata, alpha por ocorrência e interpolação de clip têm controles próprios | Fechado no domínio C05.1; comparações CoinGL opacas seguem B01/B17 com falhas estritas idênticas antes/depois. [Preparação](../src/rendering/coinrender/CoinRenderPolygonStyleCore.cpp), [teste](../testsuite/coinrender/CoinRenderConcaveAlphaTest.cpp) |
 | B32 | Identidade de API nos fixtures com opções explícitas — corrigida e perfis Linux requalificados | UNKNOWN escolhia o default Vulkan no BGFX apesar da consulta OpenGL. Os fixtures agora resolvem o renderer antes dos alvos GPU, preservam demais opções e verificam a identidade solicitada; o trace dos submits confirma a API real. ImageInheritedRtt, PeelingDepthState, Peeling/OIT/sombras, ProjectiveUv, BumpRejection/Window e RttMatrix: 129/129 entradas finais nas sete células, após repetir os controles corrigidos. Quatro controles CPU sem submissão GPU e quatro consumidores CPU com produtores RTT GPU passam. Os controles UV não afins declaram triângulos comuns e restauram o campo quad completo; gates CoinGL preservados. BGFX conserva recusa B12 e o positivo R26 continua restrito ao wgpu. Requalificação de sombras herdadas OpenGL está em C08.3c | Fechado para os fixtures/perfis Linux descritos; demais combinações C e plataformas V mantêm seus próprios critérios. A consulta de capabilities isolada continua sem provar a API de um target. A falha real de RTT descoberta nesta auditoria foi corrigida em B33 |
 | B33 | SoImage × textura herdada RTT DIRECT × BGFX/OpenGL — corrigido no perfil Linux | O produtor deixava framebuffer/clear persistentes na view reutilizada pelo compute. OpenGL aplicava o clear ao entrar na view e apagava a textura antes da leitura, retornando SUCCESS com centros pretos em AMD e NVIDIA. encodeRasterImages agora reseta a view antes do dispatch, sem reaplicar cena, frame adicional ou fallback CPU. Baseline nas duas GPUs reproduz o preto; candidato passa STAGED/DIRECT nas sete células (14/14), RGB central exato, primeira publicação, mutação, Q0/recuperação e produtor A/B/A exato. Regressões: 62/62, incluindo 48 variantes de sombras OpenGL, controles Vulkan, raster herdado, AlphaTest e produto | Fechado em C08.3a nas células Linux disponíveis; demais formatos/combinações/plataformas conservam seus próprios gates. [Backend](../src/rendering/coinbgfx/CoinBgfxBackend.cpp), [teste](../testsuite/coinrender/CoinRenderImageInheritedRttTest.cpp) |
-| B34 | Recriação NVIDIA/EGL/X11 — falha externa reproduzida no perfil híbrido, aberta | NVIDIA RTX 3060 Laptop/615.71.09: na criação de uma nova superfície, `libnvidia-glsi`/`libnvidia-eglcore` chama `xcb_generate_id`/`xcb_present_select_input` em uma conexão já desconectada. O observador passivo registra criação, uso, `eglTerminate`, desconexão e acesso posterior ao mesmo ponteiro sem reconexão. A auditoria não encontrou handles EGL/swapchains antigos retidos em Coin/BGFX. Isso localiza o acesso inválido no caminho vendor observado, sem atribuir todo timeout B34.1/B34.2 à mesma causa Continuação de 21/10: o controle original sem observador voltou a passar na AMD e sofreu SIGSEGV na NVIDIA em 4,577 s; GDB localizou XCB → libnvidia-glsi → eglcore → libEGL_nvidia, sem Coin/BGFX. O par independente com caller Display estável, uma thread por ciclo versus uma por runtime, passa nas duas entradas AMD e falha nas duas NVIDIA. O observador foi tornado inequívoco: registra `xcb_disconnect_return` antes do acesso da mesma conexão/geração; socket aposentado e Window do chamador viva são confirmados antes da nova criação. A saída real da thread por runtime não corrige. Duas contraprovas detectam conexão retida e unbind omitido. Os novos controles estão congelados em RAM, sem nova correção de produção. | Controle independente sem Coin/BGFX, conexão nova por runtime e janela do chamador: AMD Renoir/Mesa 25.2.8 passa 4/4 perfis; NVIDIA falha 4/4 com observação, todos com uso XCB após desconexão, e 3/4 sem observador (aborto XCB, SIGSEGV e RGB físico). Perfis legado/X11 explícito, contexto único/primário pbuffer + secundário compartilhado. O passe restante não elimina a intermitência. O teste Coin também preserva FAIL físico/SIGSEGV, inclusive após B61, que corrige apenas o EGL do aplicativo. Retenção da DSO, glFinish e troca para APIs explícitas X11 não qualificaram correção; nenhum desses experimentos foi incorporado ao produto. Manter aberto até solução/versão de dependência validada, sem retenção permanente, novo apply ou exceção por fabricante. [Teste público](../testsuite/coinrender/CoinRenderBgfxOpenGLLifetimeTest.cpp), [controle nativo](../testsuite/coinrender/CoinRenderNativeEglLifetimeTest.cpp)  **Comparação atual:** NVIDIA principal sem PRIME 4/4 perfis PASS; AMD 4/4 PASS; NVIDIA offload 0/4 PASS (3 SIGSEGV e 1 FAIL RGB). [Controle externo e comandos](#b34--comparação-nvidia-principal-e-falha-externa--21102026). |
+| B34 | Recriação NVIDIA/EGL/X11 — falha externa reproduzida no perfil híbrido, aberta | NVIDIA RTX 3060 Laptop/615.71.09: na criação de uma nova superfície, `libnvidia-glsi`/`libnvidia-eglcore` chama `xcb_generate_id`/`xcb_present_select_input` em uma conexão já desconectada. O observador passivo registra criação, uso, `eglTerminate`, desconexão e acesso posterior ao mesmo ponteiro sem reconexão. A auditoria não encontrou handles EGL/swapchains antigos retidos em Coin/BGFX. Isso localiza o acesso inválido no caminho vendor observado, sem atribuir todo timeout B34.1/B34.2 à mesma causa Continuação de 21/10: o controle original sem observador voltou a passar na AMD e sofreu SIGSEGV na NVIDIA em 4,577 s; GDB localizou XCB → libnvidia-glsi → eglcore → libEGL_nvidia, sem Coin/BGFX. O par independente com caller Display estável, uma thread por ciclo versus uma por runtime, passa nas duas entradas AMD e falha nas duas NVIDIA. O observador foi tornado inequívoco: registra `xcb_disconnect_return` antes do acesso da mesma conexão/geração; socket aposentado e Window do chamador viva são confirmados antes da nova criação. A saída real da thread por runtime não corrige. Duas contraprovas detectam conexão retida e unbind omitido. Os novos controles estão congelados em RAM, sem nova correção de produção. | Controle independente sem Coin/BGFX, conexão nova por runtime e janela do chamador: AMD Renoir/Mesa 25.2.8 passa 4/4 perfis; NVIDIA falha 4/4 com observação, todos com uso XCB após desconexão, e 3/4 sem observador (aborto XCB, SIGSEGV e RGB físico). Perfis legado/X11 explícito, contexto único/primário pbuffer + secundário compartilhado. O passe restante não elimina a intermitência. O teste Coin também preserva FAIL físico/SIGSEGV, inclusive após B61, que corrige apenas o EGL do aplicativo. Retenção da DSO, glFinish e troca para APIs explícitas X11 não qualificaram correção; nenhum desses experimentos foi incorporado ao produto. Manter aberto até solução/versão de dependência validada, sem retenção permanente, novo apply ou exceção por fabricante. [Teste público](../testsuite/coinrender/CoinRenderBgfxOpenGLLifetimeTest.cpp), [controle nativo](../testsuite/coinrender/CoinRenderNativeEglLifetimeTest.cpp)  **Comparação de 21/10:** NVIDIA principal sem PRIME 4/4 perfis PASS; AMD 4/4 PASS; NVIDIA offload 0/4 PASS (3 SIGSEGV e 1 FAIL RGB). [Controle externo e comandos](#b34--comparação-nvidia-principal-e-falha-externa--21102026). **Revalidação de 22/10:** mantém a falha externa aberta, com chamada EGL exata e conexão XCB antiga/nova discriminadas. [Atualização](#b34--revalidação-e-diagnóstico-de-chamadas-egl--22102026). |
 | B34.1 | Histórico de highlight após recriação NVIDIA/OpenGL — revalidação atual aprovada, causa antiga não discriminada | Também ocorreu timeout de 5 s do stamp X11 inicial LINE após quatro frames BOX exatos, sem novo render; eventos separados dos abortos de B34. Intermitente: controles posteriores passam nas quatro células BGFX, incluindo NVIDIA/OpenGL; ver [discriminação dos bloqueios](#discriminação-dos-bloqueios--21102026). Passes subsequentes não encerram a falha | Diagnóstico de tamanho/RGB/stamp/serial no teste de janela; não confundir com B03.2 wgpu/Mesa nem atribuir automaticamente à mesma causa de B34  **Revalidação atual:** 3/3 processos aprovados; [resultados e revisão](#revalidação-atual-dos-cinco-históricos--21102026). |
 | B34.2 | Histórico de primeiro frame MSAA4× após recriação BGFX/NVIDIA/OpenGL — revalidação atual aprovada | Mesmo Display/Window: após destruir os alvos 2× e criar 4×, a imagem física fica exatamente igual ao último frame 2× por 5 s, embora submit retorne SUCCESS; RGB máximo 30, primeira divergência em (28,1). Cold 4× isolado passa três frames de resize, e runtime mantido vivo passa seis frames 2×/4× com RGB exato. Controle com sombras desativadas também aborta na recriação em xcb_generate_id | Uma repetição posterior passou; a falha reproduzida é intermitente e permanece aberta. Controles posteriores passam nas quatro células BGFX, incluindo NVIDIA/OpenGL; ver [discriminação dos bloqueios](#discriminação-dos-bloqueios--21102026). Preservar o teste sem âncora e seu FAIL, separado de --window-live-runtime. Delimita aposentadoria/recriação, sem provar a causa abaixo da integração EGL nem corrigir B34/B34.1. Não há retenção permanente de runtime ou exceção por fabricante no produto. [Teste físico](../testsuite/coinrender/CoinRenderMsaaShadowWindowTest.cpp). O recorte independente mesma janela 2×→4×, sem âncora, reproduz no candidato B61 o aborto `xcb_generate_id: c->xid.last == c->xid.max` ao publicar 4× após a fase offscreen.  **Revalidação atual:** 3/3 processos aprovados; [resultados e revisão](#revalidação-atual-dos-cinco-históricos--21102026). |
 | B35 | LINE × replay integral de cena — callbacks extra e custo por seleção corrigidos | R35.1 percorria todos os ramos por seleção; o filtro só impedia shapes e deixava callbacks de irmãos executarem de novo. R35.2 usa travessia real de paths e elimina a recusa genérica de Switch. Baseline reprova os novos controles; candidato passa sete células GPU/CPU e segue o CoinGL nos casos de Switch/ordem | Fechado no perfil R35.2/C25.2. Ganho CPU medido acima; desempenho geral B10, outros nós/callbacks e B34/B34.1 seguem abertos |
