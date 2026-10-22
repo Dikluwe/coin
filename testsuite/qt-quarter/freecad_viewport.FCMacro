@@ -91,6 +91,32 @@ def require_change(a, b):
         raise RuntimeError('presented pixels did not change: ' + a + '->' + b)
 
 
+def navicube_metadata_search(view, document_name):
+    import ctypes
+    from shiboken6 import getCppPointer
+    global navicube_search_viewer_keepalive
+    host_viewer = view.getViewer()
+    host_viewer.setEnabledNaviCube(True)
+    # The public C++ API exposes the actual overlay root including actionSync;
+    # the ordinary render-manager root omits this graph.
+    helper = ctypes.CDLL(os.environ['COIN_TEST_HOST_HELPER'])
+    helper.host_consumer_navicube_metadata_search.argtypes = [ctypes.c_void_p]
+    helper.host_consumer_navicube_metadata_search.restype = ctypes.c_char_p
+    # This public accessor returns the QGraphicsView for this exact document
+    # view, including while the survivor and its former owner coexist.
+    navicube_search_viewer_keepalive = view.graphicsView()
+    state = json.loads(helper.host_consumer_navicube_metadata_search(
+        getCppPointer(navicube_search_viewer_keepalive)[0]).decode())
+    state.update(document=document_name, before_render_observation=True)
+    report.setdefault('navicube_metadata_search', []).append(state)
+    if (not state['viewer_present'] or not state['overlay_root_present'] or
+            state.get('overlay_root_name') != 'naviCubeRoot' or
+            state.get('navicubes', 0) < 1 or state.get('callbacks', 0) < 1):
+        raise RuntimeError('metadata search did not traverse the real viewer NaviCube and callback')
+    if not state.get('state_unchanged'):
+        raise RuntimeError('NaviCube metadata search changed scene or camera state')
+
+
 def prepare_document(name):
     doc = App.newDocument(name)
     assembly = doc.addObject('App::Part', 'Assembly')
@@ -118,6 +144,7 @@ def prepare_document(name):
     array.ViewObject.Visibility = True
     doc.recompute()
     view = Gui.activeDocument().activeView()
+    navicube_metadata_search(view, name)
     view.viewAxonometric(); view.fitAll()
     from pivy import coin
     snapshot = {'document': name, 'shape_null': part.Shape.isNull(),

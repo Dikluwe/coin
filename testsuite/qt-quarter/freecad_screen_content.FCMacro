@@ -12,6 +12,72 @@ report['reference_gl'] = not native
 if not native:
     report['status'] = 'REFERENCE_PASS'
 
+legacy_retained_publication_sync = (native and retained and
+    not os.environ.get('COIN_TEST_HOST_CONSUMER') and
+    os.environ.get('COIN_TEST_SPLINE_CONSUMER') != '1')
+legacy_retained_probe = None
+if legacy_retained_publication_sync:
+    import ctypes
+    import sys
+    import time
+    from shiboken6 import getCppPointer
+    sys.dont_write_bytecode = True
+    sys.path.insert(0, os.environ['COIN_TEST_MACRO_DIR'])
+    from host_consumer_oracles import NativePublicationQuietWindow
+
+
+def legacy_retained_publication():
+    global legacy_retained_probe, legacy_retained_helper
+    if legacy_retained_probe is None:
+        legacy_retained_helper = ctypes.CDLL(os.environ['COIN_TEST_HOST_HELPER'])
+        legacy_retained_helper.host_consumer_input_probe_create.argtypes = [ctypes.c_void_p, ctypes.c_int]
+        legacy_retained_helper.host_consumer_input_probe_create.restype = ctypes.c_void_p
+        legacy_retained_helper.host_consumer_input_probe_publication.argtypes = [ctypes.c_void_p]
+        legacy_retained_helper.host_consumer_input_probe_publication.restype = ctypes.c_char_p
+        legacy_retained_helper.host_consumer_input_probe_destroy.argtypes = [ctypes.c_void_p]
+        legacy_retained_helper.host_consumer_input_probe_destroy.restype = None
+        legacy_retained_probe = legacy_retained_helper.host_consumer_input_probe_create(
+            getCppPointer(viewer_widget())[0], 0)
+        if not legacy_retained_probe:
+            raise RuntimeError('retained profile cannot observe the real native viewer')
+    state = json.loads(legacy_retained_helper.host_consumer_input_probe_publication(
+        legacy_retained_probe).decode())
+    if state.get('counter_properties_present') is not True:
+        raise RuntimeError('retained profile requires real frame count, serial and status properties')
+    state['frames'], state['serial'] = int(state['frames']), int(state['serial'])
+    return state
+
+
+def legacy_retained_before_change(label):
+    if not legacy_retained_publication_sync:
+        return None
+    proof = {'action': label, 'resized': bool(report.get('resize_retested')),
+             'before': legacy_retained_publication(), 'before_monotonic_ms': time.monotonic_ns()/1e6,
+             'quiet_ms': 600, 'checks': 0, 'changes': []}
+    report.setdefault('retained_publication_waits', []).append(proof)
+    return proof
+
+
+def legacy_retained_after_change(function, proof):
+    if proof is None:
+        step(function)
+        return
+    quiet = NativePublicationQuietWindow(proof['before'])
+    def observe():
+        state, now_ms = legacy_retained_publication(), time.monotonic_ns()/1e6
+        ready = quiet.observe(state, now_ms)
+        proof['checks'] += 1
+        if not proof['changes'] or proof['changes'][-1]['publication'] != state:
+            proof['changes'].append({'monotonic_ms': now_ms, 'publication': state})
+        proof.update(latest=state, observed_monotonic_ms=now_ms,
+                     quiet_started_monotonic_ms=quiet.quiet_started_ms, ready=ready)
+        if ready:
+            function()
+        else:
+            step(observe, 50)
+    # Only publication metadata is observed; the process watchdog remains 120s.
+    step(observe, 0)
+
 def rgb_array(image):
     rgba = image.convertToFormat(QtGui.QImage.Format_RGBA8888)
     rows = np.frombuffer(rgba.constBits(), dtype=np.uint8).reshape(rgba.height(),rgba.bytesPerLine())
@@ -32,6 +98,8 @@ def finish(error=None):
         report['status'] = 'PASS' if native else 'REFERENCE_PASS'
     (artifacts / 'result.json').write_text(json.dumps(report, indent=2))
     os.write(1, ('RESULT ' + json.dumps(report) + '\n').encode())
+    if legacy_retained_probe is not None:
+        legacy_retained_helper.host_consumer_input_probe_destroy(legacy_retained_probe)
     os._exit(0 if report['status'] in ('PASS','REFERENCE_PASS') else 1)
 
 def axes_baseline():
@@ -141,8 +209,9 @@ def axes_baseline():
 def baseline_ready():
     global bare
     bare = capture('screen-bare')
+    publication = legacy_retained_before_change('show:' + stages[stage_index][0])
     stages[stage_index][1].whichChild = coin.SO_SWITCH_ALL
-    step(content_visible)
+    legacy_retained_after_change(content_visible, publication)
 
 def content_visible():
     global last_visible
@@ -195,6 +264,7 @@ def content_visible():
     elif not picked:
         raise RuntimeError('document picking lost with '+name)
     last_visible = image
+    publication = legacy_retained_before_change('mutate:' + name)
     if name != 'projective-uv':
         anchor.translation = (3,6,5) if report.get('resize_retested') else (7,6,5)
     if retained:
@@ -214,7 +284,7 @@ def content_visible():
     elif name in ('colorbar-label','frame-label'):
         node.set('string "'+('Resized host label' if report.get('resize_retested') else 'Updated host label')+'"')
     else: node.markerIndex.setValues(0,[coin.SoMarkerSet.CIRCLE_FILLED_9_9]*3 if report.get('resize_retested') else [coin.SoMarkerSet.DIAMOND_FILLED_9_9]*3)
-    step(content_updated)
+    legacy_retained_after_change(content_updated, publication)
 
 def content_updated():
     name,switch,node,anchor = stages[stage_index]
@@ -225,8 +295,9 @@ def content_updated():
     if count < 30: raise RuntimeError(name+' mutation did not reach viewport')
     if name == 'alpha-test' and not report.get('resize_retested') and changes(bare,image,rect) > 30:
         raise RuntimeError('alpha comparison did not discard rejected fragments')
+    publication = legacy_retained_before_change('remove:' + name)
     switch.whichChild = coin.SO_SWITCH_NONE
-    step(content_removed)
+    legacy_retained_after_change(content_removed, publication)
 
 def content_removed():
     global stage_index
@@ -238,13 +309,15 @@ def content_removed():
     if count > 30: raise RuntimeError(name+' removal left pixels')
     stage_index += 1
     if stage_index < len(stages):
+        publication = legacy_retained_before_change('show:' + stages[stage_index][0])
         stages[stage_index][1].whichChild = coin.SO_SWITCH_ALL
-        step(content_visible)
+        legacy_retained_after_change(content_visible, publication)
     else:
         # Repeat cold raster placement at a new viewport size and camera.
+        publication = legacy_retained_before_change('resize-and-camera') if not report.get('resize_retested') else None
         viewer_widget().window().resize(1000,700)
         view.viewAxonometric()
-        step(resized_baseline)
+        legacy_retained_after_change(resized_baseline, publication)
 
 def resized_baseline():
     global stage_index, bare
@@ -255,10 +328,11 @@ def resized_baseline():
     report['resize_retested'] = True
     stage_index = 0
     bare = capture('screen-resized-bare')
+    publication = legacy_retained_before_change('show:' + stages[0][0])
     for name,switch,node,anchor in stages:
         if name == 'alpha-test': node.value = .5
     stages[0][1].whichChild = coin.SO_SWITCH_ALL
-    step(content_visible)
+    legacy_retained_after_change(content_visible, publication)
 
 def content_idle_baseline():
     # Removal can queue a final sensor update; measure only after it settles.
@@ -343,3 +417,8 @@ if os.environ.get('COIN_TEST_SPLINE_CONSUMER') == '1':
         App.ActiveDocument.removeObject(spline.Name); App.ActiveDocument.recompute()
         step(content_idle_baseline,600)
     axes_baseline=spline_setup
+
+# Real consumers have their own objects/input/lifecycle oracle. A node-only
+# retained fixture never qualifies the workbench that happens to use that node.
+if os.environ.get('COIN_TEST_HOST_CONSUMER'):
+    exec((Path(os.environ['COIN_TEST_MACRO_DIR']) / 'freecad_host_consumers.FCMacro').read_text())

@@ -10,13 +10,13 @@ import signal
 import subprocess
 import sys
 
-CASES = ('rtt-window', 'first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
+CASES = ('rtt-window', 'native-admission', 'first-expose', 'frame-coalescing', 'idle', 'resize', 'maximize',
          'minimize', 'panel', 'dpr', 'recreate', 'wheel-rotation',
          'two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-legacy-polyline', 'freecad-flags', 'freecad-delayed-overlays', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu', 'retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
-         'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
+         'foregroundroot', 'foreground-scope', 'decorationroot', 'axis-cross', 'rubber-band')
 EXIT = {'PASS': 0, 'REFERENCE_PASS': 0, 'SKIP': 77, 'UNSUPPORTED': 78, 'FAIL': 1}
 OFFSCREEN_CASES = ('retained-rejection', 'colorbar', 'navicube', 'depth', 'polygon-offset', 'annotation',
-                   'foregroundroot', 'decorationroot', 'axis-cross', 'rubber-band')
+                   'foregroundroot', 'foreground-scope', 'decorationroot', 'axis-cross', 'rubber-band')
 
 def bgfx_gl_adapter_evidence(output):
     adapters = re.findall(r'^COIN_RENDER_PHASE bgfx_gl_adapter vendor=(.*?) renderer=(.*?) version=(.*)$',
@@ -29,19 +29,33 @@ def bgfx_gl_adapter_evidence(output):
             word in text for word in ('nvidia geforce','nvidia quadro','nvidia rtx','amd radeon','mesa intel','intel(r)'))
     return adapters, hardware
 
-def wgpu_gl_adapter_evidence(output):
+def wgpu_gl_adapter_evidence(output, offscreen=False):
     # wgpu's GLES adapter can report Other/device 0 for physical GPUs. Require
     # the submitted context's renderer name and known vendor, never Qt inventory.
-    records = re.findall(r'COIN_RENDER_PHASE wgpu_surface renderer=opengl '
+    phase = 'wgpu_offscreen' if offscreen else 'wgpu_surface'
+    surface = '' if offscreen else r'surface=[1-9][0-9]* '
+    records = re.findall(r'COIN_RENDER_PHASE ' + phase + r' renderer=opengl '
                          r'vendor_id=(0x[0-9a-f]+) device_id=0x[0-9a-f]+ '
-                         r'device_type=(\w+) .*?adapter_name="([^"\n]+)"', output)
-    physical = bool(records)
+                         r'device_type=(\w+) ' + surface +
+                         r'serial=[1-9][0-9]* size=[1-9][0-9]*x[1-9][0-9]* '
+                         r'adapter_name="([^"\n]+)"', output)
+    submitted_contexts = re.findall(r'COIN_RENDER_PHASE ' + phase + r' renderer=opengl ', output)
+    physical = bool(records) and len(records) == len(submitted_contexts)
     for vendor, kind, name in records:
         lower = name.lower()
         physical = physical and vendor in ('0x1002', '0x10de', '0x8086') and kind in ('Other', 'IntegratedGpu', 'DiscreteGpu') and not any(
             word in lower for word in ('llvmpipe', 'lavapipe', 'softpipe', 'software', 'virgl', 'cpu')) and any(
             word in lower for word in ('amd radeon', 'nvidia geforce', 'nvidia quadro', 'nvidia rtx', 'intel'))
     return records, physical
+
+
+def backend_environment(backend, renderer):
+    if backend == 'wgpu':
+        # Both spellings are understood by installed wgpu generations. Select
+        # the requested executor explicitly instead of inheriting ambient Vulkan.
+        selection = 'gl' if renderer == 'opengl' else 'vulkan'
+        return {'WGPU_BACKEND': selection, 'WGPU_BACKENDS': selection}
+    return {}
 
 def execute(command, env, timeout):
     # FreeCAD may launch helper processes which otherwise retain stdout and
@@ -56,7 +70,35 @@ def execute(command, env, timeout):
             output, _ = proc.communicate()
             return -signal.SIGKILL, output + '\nHARNESS_TIMEOUT\n'
 
-def classify(code, output, require_bgfx=True, backend="bgfx", offscreen=False):
+def native_admission_evidence(result):
+    """A recovered frame alone cannot qualify transactional native admission."""
+    try:
+        proof = result['native_admission']
+        cold, first, late, recovered = (proof[key] for key in ('cold', 'first', 'late', 'recovered'))
+        def count(record, key):
+            value = record[key]
+            if type(value) is not int or value < 0:
+                raise ValueError('invalid native admission observation')
+            return value
+        return (result['test'] == 'native-admission' and
+                cold['status'] == late['status'] == 'UNSUPPORTED' and
+                first['status'] == recovered['status'] == 'SUCCESS' and
+                count(cold, 'frames') == count(cold, 'serial') == 0 and
+                count(cold, 'callbacks') > 0 and
+                count(cold, 'gl_calls') == count(late, 'gl_calls') == count(recovered, 'gl_calls') == 0 and
+                count(first, 'frames') > 0 and count(first, 'serial') > 0 and
+                count(late, 'frames') == count(first, 'frames') and
+                count(late, 'serial') == count(first, 'serial') and
+                late['unchanged_pixels'] is True and
+                count(recovered, 'frames') > count(late, 'frames') and
+                count(recovered, 'serial') > count(late, 'serial') and
+                count(recovered, 'changed_pixels') >= 100 and
+                count(proof, 'idle_frames') == 0)
+    except (KeyError, TypeError, ValueError):
+        return False
+
+
+def classify(code, output, require_bgfx=True, backend="bgfx", offscreen=False, expected_case=None):
     """Exit and structured result must agree; initialization is not submission."""
     matches = re.findall(r'^RESULT (.+)$', output, re.MULTILINE)
     try:
@@ -65,6 +107,13 @@ def classify(code, output, require_bgfx=True, backend="bgfx", offscreen=False):
         result = {}
     if result.get('status') not in EXIT or EXIT.get(result.get('status')) != code:
         return dict(status='FAIL', reason=f'missing/inconsistent RESULT; process exit {code}')
+    if result.get('test') == 'freecad-host-consumer' and result.get('status') in ('PASS', 'REFERENCE_PASS'):
+        shutdown = result.get('shutdown', {})
+        if (shutdown.get('mode') != 'normal-host-close' or
+                type(shutdown.get('saved_documents')) is not int or shutdown['saved_documents'] < 1 or
+                any(shutdown.get(key) is not True for key in
+                    ('documents_closed', 'probes_removed', 'filters_removed'))):
+            return dict(status='FAIL', reason='host consumer lacks normal teardown observations')
     if require_bgfx and (result.get('reference_gl') is True or result['status'] == 'REFERENCE_PASS'):
         return dict(status='FAIL', reason='Coin/GL reference cannot count as GPU backend validation')
     if require_bgfx and result['status'] == 'PASS':
@@ -72,6 +121,8 @@ def classify(code, output, require_bgfx=True, backend="bgfx", offscreen=False):
             return dict(status='FAIL', reason='native viewport fell back to Coin/GL')
         if not submission_evidence(output, backend, offscreen):
             return dict(status='FAIL', reason=f'no {backend} submission evidence (GL fallback is not a pass)')
+        if (expected_case == 'native-admission' or result.get('test') == 'native-admission') and not native_admission_evidence(result):
+            return dict(status='FAIL', reason='missing/inconsistent native rejection and recovery observations')
     return result
 
 def submission_evidence(output, backend, offscreen=False):
@@ -182,9 +233,8 @@ def main():
     parser.add_argument('--reference-gl', action='store_true',
                         help='Coin/GL-only document baseline; never reports native backend PASS')
     args = parser.parse_args()
-    if args.backend == 'wgpu' and (args.reference_gl or (args.renderer not in (None, ['vulkan']) and
-            not (args.case == ['freecad-sampling-policy'] and args.renderer == ['opengl']))):
-        parser.error('the current wgpu native profile requires --renderer vulkan and no --reference-gl')
+    if args.backend == 'wgpu' and args.reference_gl:
+        parser.error('Coin/GL reference is not a native wgpu execution')
     if args.reference_gl and (args.case not in (['freecad-mouse-links'], ['freecad-mouse-link-topology'], ['freecad-viewport'], ['freecad-multi'], ['freecad-grid'], ['freecad-path-selection'], ['freecad-mouse-elements'], ['freecad-screen-content'], ['freecad-sampling-policy']) or
                               args.renderer != ['opengl'] or args.require_hardware or
                               args.mode not in (None, ['object'])):
@@ -223,12 +273,12 @@ def main():
         for case in cases:
             variants = [(mode, alpha, scale) for mode in ('object', 'weighted_oit')
                         for alpha in ('opaque', 'translucent') for scale in (1,)] if case == 'navicube' else [('object', 'opaque', s) for s in ((1, 2) if case == 'dpr' else (1,))]
-            if case in ('two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-legacy-polyline', 'freecad-delayed-overlays'):
+            if case in ('two-viewports', 'freecad-multi', 'freecad-viewport', 'freecad-legacy-polyline', 'freecad-delayed-overlays', 'foreground-scope'):
                 variants = [(mode, 'opaque', 1) for mode in ('object', 'weighted_oit')]
             if case in ('freecad-screen-content', 'freecad-sampling-policy', 'freecad-overlays', 'freecad-flags', 'freecad-grid', 'freecad-path-selection', 'freecad-mouse-picking', 'freecad-mouse-elements', 'freecad-mouse-links', 'freecad-mouse-link-topology', 'freecad-selection-menu'):
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
                             for scale in (1, 2)]
-            if case == 'rtt-window':
+            if case in ('rtt-window', 'native-admission'):
                 variants=[(mode,'opaque',scale) for mode in ('object','weighted_oit') for scale in (1,2)]
             if case == 'freecad-viewport':
                 variants = [(mode, 'opaque', scale) for mode in ('object', 'weighted_oit')
@@ -249,6 +299,7 @@ def main():
                            COIN_BGFX_TRANSPARENCY=mode, COIN_RENDER_TRANSPARENCY=mode, COIN_TEST_ALPHA=alpha,
                            QT_SCALE_FACTOR=str(scale), COIN_TEST_ARTIFACTS=str(directory),
                            COIN_TEST_MACRO_DIR=str(Path(__file__).resolve().parent))
+                env.update(backend_environment(args.backend, renderer))
                 if case=='rtt-window':env['COIN_RENDER_RTT_GPU_DIRECT']='1'
                 if args.backend == 'bgfx' and renderer == 'opengl' and sys.platform.startswith('linux'):
                     env['COIN_BGFX_TRACE_GL_ADAPTER'] = '1'
@@ -315,7 +366,8 @@ def main():
                     try:
                         code, output = execute(command, env, args.timeout)
                         result = classify(code, output, require_bgfx=not args.reference_gl,
-                                          backend=args.backend, offscreen=case in OFFSCREEN_CASES)
+                                          backend=args.backend, offscreen=case in OFFSCREEN_CASES,
+                                          expected_case=case)
                         if args.reference_gl and result['status'] == 'PASS':
                             if result.get('reference_gl') is True:
                                 result['status'] = 'REFERENCE_PASS'
@@ -353,7 +405,7 @@ def main():
                     types = re.findall(r'COIN_RENDER_PHASE ' + phase + r' .*?device_type=(\w+)', output)
                     hardware = bool(types) and all(t in ('IntegratedGpu', 'DiscreteGpu') for t in types)
                     if renderer == 'opengl':
-                        names, hardware = wgpu_gl_adapter_evidence(output)
+                        names, hardware = wgpu_gl_adapter_evidence(output, offscreen)
                         result['backend_gl_contexts'] = names
                 submitted = submission_evidence(output, args.backend, offscreen)
                 result.update(test=case, backend=args.backend, renderer=renderer, mode=mode, alpha=alpha,

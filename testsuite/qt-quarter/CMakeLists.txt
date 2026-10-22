@@ -33,10 +33,24 @@ target_include_directories(QtQuarterRegression PRIVATE
 target_link_libraries(QtQuarterRegression PRIVATE
   "${FREECAD_GUI_LIBRARY}" "${PART_GUI_LIBRARY}" "${MESH_GUI_LIBRARY}" "${RENDER_LIBRARY}" "${COIN_LIBRARY}"
   Qt6::Widgets Qt6::OpenGLWidgets Qt6::Test "${X11_LIBRARIES}")
+add_library(FreeCADHostConsumerProbe SHARED FreeCADHostConsumerProbe.cpp)
+target_include_directories(FreeCADHostConsumerProbe PRIVATE
+  "${COIN_SOURCE_DIR}/include" "${COIN_BUILD_DIR}/include"
+  "${FREECAD_SOURCE_DIR}/src" "${FREECAD_SOURCE_DIR}/src/Gui" "${FREECAD_BUILD_DIR}/src"
+  "${FREECAD_SOURCE_DIR}/src/3rdParty/PyCXX" "${FREECAD_DEP__Python3_INCLUDE_DIR}"
+  "${FREECAD_SOURCE_DIR}/src/3rdParty/FastSignals/libfastsignals/include"
+  "${FREECAD_SOURCE_DIR}/src/3rdParty/WildMagic4" "${FREECAD_SOURCE_DIR}/src/3rdParty")
+target_link_libraries(FreeCADHostConsumerProbe PRIVATE "${COIN_LIBRARY}" "${FREECAD_GUI_LIBRARY}" Qt6::Widgets)
 enable_testing()
 find_package(Python3 REQUIRED COMPONENTS Interpreter)
 add_test(NAME QtQuarterResultGate COMMAND "${Python3_EXECUTABLE}" -m unittest discover
   -s "${CMAKE_CURRENT_SOURCE_DIR}" -p test_runner.py)
+add_test(NAME QtQuarterNativeAdmissionGate COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+  -s "${CMAKE_CURRENT_SOURCE_DIR}" -p test_native_admission.py)
+add_test(NAME QtQuarterHostConsumerOracleGate COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+  -s "${CMAKE_CURRENT_SOURCE_DIR}" -p test_host_consumer_oracles.py)
+add_test(NAME QtQuarterWgpuOpenGLRunnerGate COMMAND "${Python3_EXECUTABLE}" -m unittest discover
+  -s "${CMAKE_CURRENT_SOURCE_DIR}" -p test_wgpu_opengl_runner.py)
 add_test(NAME QtQuarterMatrix COMMAND "${Python3_EXECUTABLE}"
   "${CMAKE_CURRENT_SOURCE_DIR}/run.py" --harness "$<TARGET_FILE:QtQuarterRegression>"
   --artifacts "${CMAKE_BINARY_DIR}/artifacts")
