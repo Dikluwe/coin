@@ -29,8 +29,8 @@ void main()
         abs(float(i) - u_shadowLightIndicesExtra.z) < 0.5 ||
         abs(float(i) - u_shadowLightIndicesExtra.w) < 0.5) continue;
     if (u_shadowQuality.z > 0.5)
-      color += coinGroupLightContribution(i, a_color0, a_color2, a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
-    else color += coinLightContribution(i, a_color0, a_color2, a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
+      color += coinGroupLightContribution(i, a_color0, a_color1, a_color2, a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
+    else color += coinLightContribution(i, a_color0, a_color1, a_color2, a_texcoord1.xyz, a_texcoord2.xyz, a_texcoord3.x);
   }
   v_color0 = vec4(clamp(color, 0.0, 1.0), a_color0.a);
   v_specular = a_color2;

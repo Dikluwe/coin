@@ -231,7 +231,7 @@ fn quality_source(mut source: String, eight: bool, multitexture: bool) -> String
         }
         source.replace_range(fragment.., &body);
     }
-    source += "\nfn shadow_specular(light:GpuLight,material:GpuMaterial,position:vec3<f32>,normal:vec3<f32>)->vec3<f32> { var spec=material; spec.diffuse=vec4<f32>(0.0); return light_contribution(light,spec,position,normal); }\n";
+    source += "\nfn shadow_specular(light:GpuLight,material:GpuMaterial,position:vec3<f32>,normal:vec3<f32>)->vec3<f32> { var spec=material; spec.diffuse=vec4<f32>(0.0); spec.ambient=vec4<f32>(0.0); return light_contribution(light,spec,position,normal); }\n";
     source
 }
 

@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 67
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 68
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -155,6 +155,7 @@ typedef struct CoinWgpuLight {
   float direction_cutoff[4];    /* xyz view-space direction, w: cos(cutOffAngle) */
   float color_intensity[4];     /* rgb and intensity */
   float attenuation_exponent[4]; /* quadratic, linear, constant, dropOffRate * 128 */
+  float ambient_color[4];       /* protocol68: color.rgb * ambientIntensity, reserved w = 0 */
 } CoinWgpuLight;
 
 typedef struct CoinWgpuTextureUnit {

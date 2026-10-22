@@ -681,9 +681,10 @@ SoVRMLElevationGrid::generatePrimitives(SoAction * action)
   const int zdim = this->zDimension.getValue();
   if (xdim < 2 || zdim < 2) return;
 
-  if (this->height.getNum() != xdim*zdim) {
+  // GLRender consumes the first xdim*zdim entries; trailing heights are idle.
+  if (this->height.getNum() < xdim*zdim) {
     SoDebugError::postWarning("SoVRMLElevationGrid::generatePrimitives",
-                              "Wrong number of height values.");
+                              "Too few height values.");
     return;
   }
 

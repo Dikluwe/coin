@@ -50,8 +50,21 @@ struct CoinRenderReadbackTicket;
  * Experimental Open Inventor action that renders a Coin scene through the selected backend.
  *
  * The action preserves the SoAction traversal model and captures SoState into
- * a private frame plan consumed by CoinRender. It does not add
- * symbols to libCoin. A render target must be assigned before apply().
+ * a private frame plan consumed by CoinRender. Its private VRML background
+ * bridge is compiled into libCoin when CoinRender is enabled; rebuild libCoin
+ * and CoinRender together when changing this internal bridge. A render target
+ * must be assigned before apply().
+ *
+ * VRML97 capture follows native Coin's static raster semantics: Shape and
+ * Appearance state, local decoded ImageTexture/PixelTexture images, texture
+ * transforms, native lights, fog, and background sky/ground/local faces.
+ * Captures read current VRML state and image bytes on every apply; mutable
+ * image storage and background generation are not proved fresh by node IDs.
+ * MovieTexture has no native visual implementation. Viewpoint and
+ * NavigationInfo leave the application camera/viewer unchanged, as in native
+ * GLRender. Audio, sensors, interpolators, Script and metadata can supply
+ * snapshots through the existing library but have no direct raster output;
+ * this action does not introduce a viewer event or audio runtime.
  *
  * \ingroup coin_actions
  * \see coin_render_experimental

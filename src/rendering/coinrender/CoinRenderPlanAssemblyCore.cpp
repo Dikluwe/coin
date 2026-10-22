@@ -101,7 +101,7 @@ uint32_t CoinRenderPlanAssemblyCore::lighting(CoinRenderFramePlan & plan, const 
             a.hasAuthoredSource != b.hasAuthoredSource ||
             std::memcmp(a.authoredDirection, b.authoredDirection, sizeof(a.authoredDirection)) != 0 ||
             std::memcmp(a.authoredPosition, b.authoredPosition, sizeof(a.authoredPosition)) != 0 ||
-            a.type != b.type || a.intensity != b.intensity ||
+            a.type != b.type || a.intensity != b.intensity || a.ambientIntensity != b.ambientIntensity ||
             a.cutOffAngle != b.cutOffAngle || a.dropOffRate != b.dropOffRate ||
             std::memcmp(a.color, b.color, sizeof(a.color)) != 0 ||
             std::memcmp(a.direction, b.direction, sizeof(a.direction)) != 0 ||

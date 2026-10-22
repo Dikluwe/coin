@@ -825,6 +825,8 @@ bool sameLightingState(const CoinBgfxDraw & lhs,
                 sizeof(lhs.lightDirectionCutoff)) == 0 &&
     std::memcmp(lhs.lightColorIntensity, rhs.lightColorIntensity,
                 sizeof(lhs.lightColorIntensity)) == 0 &&
+    std::memcmp(lhs.lightAmbientColor, rhs.lightAmbientColor,
+                sizeof(lhs.lightAmbientColor)) == 0 &&
     std::memcmp(lhs.lightAttenuationDrop, rhs.lightAttenuationDrop,
                 sizeof(lhs.lightAttenuationDrop)) == 0;
 }
@@ -1433,6 +1435,7 @@ CoinBgfxBackend::CoinBgfxBackend()
     lightPositionTypeUniform(BGFX_INVALID_HANDLE),
     lightDirectionCutoffUniform(BGFX_INVALID_HANDLE),
     lightColorIntensityUniform(BGFX_INVALID_HANDLE),
+    lightAmbientColorUniform(BGFX_INVALID_HANDLE),
     instancedCameraUniform(BGFX_INVALID_HANDLE),
     lightAttenuationDropUniform(BGFX_INVALID_HANDLE),
     fullscreenVertexBuffer(BGFX_INVALID_HANDLE),
@@ -2055,6 +2058,7 @@ CoinBgfxBackend::destroyResources()
   if (bgfx::isValid(this->lightPositionTypeUniform)) bgfx::destroy(this->lightPositionTypeUniform);
   if (bgfx::isValid(this->lightDirectionCutoffUniform)) bgfx::destroy(this->lightDirectionCutoffUniform);
   if (bgfx::isValid(this->lightColorIntensityUniform)) bgfx::destroy(this->lightColorIntensityUniform);
+  if (bgfx::isValid(this->lightAmbientColorUniform)) bgfx::destroy(this->lightAmbientColorUniform);
   if (bgfx::isValid(this->instancedCameraUniform)) bgfx::destroy(this->instancedCameraUniform);
   if (bgfx::isValid(this->lightAttenuationDropUniform)) bgfx::destroy(this->lightAttenuationDropUniform);
   if (bgfx::isValid(this->defaultTexture)) bgfx::destroy(this->defaultTexture);
@@ -2601,6 +2605,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   this->lightPositionTypeUniform = bgfx::createUniform("u_lightPositionType", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   this->lightDirectionCutoffUniform = bgfx::createUniform("u_lightDirectionCutoff", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   this->lightColorIntensityUniform = bgfx::createUniform("u_lightColorIntensity", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
+  this->lightAmbientColorUniform = bgfx::createUniform("u_lightAmbientColor", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   this->instancedCameraUniform = bgfx::createUniform("u_instancedCamera", bgfx::UniformType::Vec4, 6);
   this->lightAttenuationDropUniform = bgfx::createUniform("u_lightAttenuationDrop", bgfx::UniformType::Vec4, COIN_RENDER_MAX_LIGHTS);
   const uint32_t whitePixel = UINT32_C(0xffffffff);
@@ -2622,6 +2627,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
       !bgfx::isValid(this->lightPositionTypeUniform) ||
       !bgfx::isValid(this->lightDirectionCutoffUniform) ||
       !bgfx::isValid(this->lightColorIntensityUniform) ||
+      !bgfx::isValid(this->lightAmbientColorUniform) ||
       !bgfx::isValid(this->instancedCameraUniform) ||
       !bgfx::isValid(this->lightAttenuationDropUniform) ||
       !bgfx::isValid(this->defaultTexture)) {
@@ -4367,6 +4373,7 @@ CoinBgfxBackend::bindDrawLighting(const CoinBgfxDraw & draw, int targetHeight, i
   bgfx::setUniform(this->lightPositionTypeUniform, draw.lightPositionType, COIN_RENDER_MAX_LIGHTS);
   bgfx::setUniform(this->lightDirectionCutoffUniform, draw.lightDirectionCutoff, COIN_RENDER_MAX_LIGHTS);
   bgfx::setUniform(this->lightColorIntensityUniform, draw.lightColorIntensity, COIN_RENDER_MAX_LIGHTS);
+  bgfx::setUniform(this->lightAmbientColorUniform, draw.lightAmbientColor, COIN_RENDER_MAX_LIGHTS);
   bgfx::setUniform(this->lightAttenuationDropUniform, draw.lightAttenuationDrop, COIN_RENDER_MAX_LIGHTS);
   if (draw.instanceCount)
     bgfx::setUniform(this->instancedCameraUniform, draw.instanceCamera, 6);

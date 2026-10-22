@@ -158,6 +158,7 @@ void copyLighting(const CoinRenderLightingSnapshot & lighting, CoinBgfxDraw & dr
   std::memset(draw.lightPositionType, 0, sizeof(draw.lightPositionType));
   std::memset(draw.lightDirectionCutoff, 0, sizeof(draw.lightDirectionCutoff));
   std::memset(draw.lightColorIntensity, 0, sizeof(draw.lightColorIntensity));
+  std::memset(draw.lightAmbientColor, 0, sizeof(draw.lightAmbientColor));
   std::memset(draw.lightAttenuationDrop, 0, sizeof(draw.lightAttenuationDrop));
   draw.lightCount[0] = static_cast<float>(lighting.lights.size());
   for (size_t i = 0; i < lighting.lights.size(); ++i) {
@@ -166,6 +167,7 @@ void copyLighting(const CoinRenderLightingSnapshot & lighting, CoinBgfxDraw & dr
       draw.lightPositionType[i][channel] = light.position[channel];
       draw.lightDirectionCutoff[i][channel] = light.direction[channel];
       draw.lightColorIntensity[i][channel] = light.color[channel];
+      draw.lightAmbientColor[i][channel] = light.color[channel] * light.ambientIntensity;
       draw.lightAttenuationDrop[i][channel] = light.attenuation[channel];
     }
     draw.lightPositionType[i][3] = static_cast<float>(light.type);
@@ -244,6 +246,8 @@ int compareDrawGroupingKey(const CoinBgfxDraw & lhs,
     rhs.lightDirectionCutoff, sizeof(lhs.lightDirectionCutoff));
   if (result == 0) result = compareBytes(lhs.lightColorIntensity,
     rhs.lightColorIntensity, sizeof(lhs.lightColorIntensity));
+  if (result == 0) result = compareBytes(lhs.lightAmbientColor,
+    rhs.lightAmbientColor, sizeof(lhs.lightAmbientColor));
   if (result == 0) result = compareBytes(lhs.lightAttenuationDrop,
     rhs.lightAttenuationDrop, sizeof(lhs.lightAttenuationDrop));
   return result;
@@ -1119,6 +1123,7 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
         lowered.lightPositionType[lightIndex][channel] = light.position[channel];
         lowered.lightDirectionCutoff[lightIndex][channel] = light.direction[channel];
         lowered.lightColorIntensity[lightIndex][channel] = light.color[channel];
+        lowered.lightAmbientColor[lightIndex][channel] = light.color[channel] * light.ambientIntensity;
         lowered.lightAttenuationDrop[lightIndex][channel] = light.attenuation[channel];
       }
       lowered.lightPositionType[lightIndex][3] = static_cast<float>(light.type);

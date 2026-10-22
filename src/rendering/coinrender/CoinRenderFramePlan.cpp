@@ -569,7 +569,8 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
           *outDiagnostic = "Unsupported light type";
         return false;
       }
-      if (!isFiniteF(light.intensity) || light.intensity < 0.0f || !isFiniteF(light.cutOffAngle) ||
+      if (!isFiniteF(light.intensity) || light.intensity < 0.0f ||
+          !isFiniteF(light.ambientIntensity) || light.ambientIntensity < 0.0f || light.ambientIntensity > 1.0f || !isFiniteF(light.cutOffAngle) ||
           !isFiniteF(light.dropOffRate)) {
         if (outDiagnostic)
           *outDiagnostic = "Invalid light intensity or cone";
@@ -625,7 +626,8 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
         *outDiagnostic = "Shadow light references an invalid group";
       return false;
     }
-    if (!isFiniteF(light.intensity) || light.intensity < 0.0f || !isFiniteF(light.cutOffAngle) ||
+    if (!isFiniteF(light.intensity) || light.intensity < 0.0f ||
+        !isFiniteF(light.cutOffAngle) ||
         !isFiniteF(light.dropOffRate)) {
       if (outDiagnostic)
         *outDiagnostic = "Invalid captured shadow light intensity or cone";

@@ -145,6 +145,7 @@ struct CoinBgfxDraw {
   float lightPositionType[COIN_RENDER_MAX_LIGHTS][4] = {};
   float lightDirectionCutoff[COIN_RENDER_MAX_LIGHTS][4] = {};
   float lightColorIntensity[COIN_RENDER_MAX_LIGHTS][4] = {};
+  float lightAmbientColor[COIN_RENDER_MAX_LIGHTS][4] = {};
   float lightAttenuationDrop[COIN_RENDER_MAX_LIGHTS][4] = {};
   // Stable signature of every material referenced by this draw. Materials
   // remain vertex data; this key is only used to cluster opaque submissions.

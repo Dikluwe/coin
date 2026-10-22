@@ -5,6 +5,7 @@ struct GpuLight {
     direction_cutoff: vec4<f32>,
     color_intensity: vec4<f32>,
     attenuation_exponent: vec4<f32>,
+    ambient_color: vec4<f32>,
 };
 
 struct Uniforms {
@@ -160,8 +161,9 @@ fn light_contribution(light: GpuLight, mat: GpuMaterial,
             attenuation *= pow(max(cone_cos, 0.0), a.w);
         }
     }
+    let ambient_contribution = mat.ambient.rgb * light.ambient_color.rgb * attenuation;
     let diffuse_factor = max(dot(n, to_light), 0.0);
-    if (diffuse_factor <= 0.0) { return vec3<f32>(0.0); }
+    if (diffuse_factor <= 0.0) { return ambient_contribution; }
     let h = normalize(to_light + v);
     let shininess_exp = mat.params.x * 128.0;
     var specular_factor = 1.0;
@@ -170,7 +172,7 @@ fn light_contribution(light: GpuLight, mat: GpuMaterial,
     }
     let light_rgb = light.color_intensity.rgb *
                     light.color_intensity.w * attenuation;
-    return (mat.diffuse.rgb * diffuse_factor +
+    return ambient_contribution + (mat.diffuse.rgb * diffuse_factor +
             mat.specular.rgb * specular_factor) * light_rgb;
 }
 

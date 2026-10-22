@@ -5,6 +5,7 @@ struct GpuLight {
     direction_cutoff: vec4<f32>,
     color_intensity: vec4<f32>,
     attenuation_exponent: vec4<f32>,
+    ambient_color: vec4<f32>,
 };
 
 struct Uniforms {
@@ -146,6 +147,7 @@ fn shade_vertex(mat: GpuMaterial, position_view: vec3<f32>, normal_view: vec3<f3
                     attenuation *= pow(max(cone_cos, 0.0), a.w);
                 }
             }
+            rgb += mat.ambient.rgb * light.ambient_color.rgb * attenuation;
             let diffuse_factor = max(dot(n, to_light), 0.0);
             if (diffuse_factor <= 0.0) { continue; }
             let h = normalize(to_light + v);

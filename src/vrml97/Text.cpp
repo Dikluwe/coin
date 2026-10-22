@@ -839,7 +839,12 @@ SoVRMLText::generatePrimitives(SoAction * action)
       case SoAsciiText::LEFT:
         break;
       case SoAsciiText::CENTER:
-        ypos = (i * spacing) + ((n-1) * spacing) * 0.5f;
+        {
+          // Match GLRender's minor-axis origin, including a single line.
+          const float verticalsize = spacing * n;
+          const float firstlinepos = -(verticalsize / 2);
+          ypos = firstlinepos + (i * spacing);
+        }
         break;
       case SoAsciiText::RIGHT:
         ypos = (i * spacing) + ((n-1) * spacing);
@@ -915,7 +920,7 @@ SoVRMLText::generatePrimitives(SoAction * action)
 
       if (PRIVATE(this)->horizontaltext) {
         if (!PRIVATE(this)->lefttorighttext)
-          xpos -= (advancex + stretchfactor) * PRIVATE(this)->textsize * compressfactor;
+          xpos -= (advancex + stretchfactor) * compressfactor * PRIVATE(this)->textsize;
       }             
       
       if (strcharidx > 0) {       
@@ -964,7 +969,7 @@ SoVRMLText::generatePrimitives(SoAction * action)
         else 
           ypos += PRIVATE(this)->textsize;       
       } else if (PRIVATE(this)->lefttorighttext)
-        xpos += (advancex + stretchfactor) * PRIVATE(this)->textsize * compressfactor; 
+        xpos += (advancex + stretchfactor) * compressfactor * PRIVATE(this)->textsize;
     }
     
     if (PRIVATE(this)->horizontaltext) {

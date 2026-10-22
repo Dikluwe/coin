@@ -5,9 +5,10 @@ uniform vec4 u_lightCount;
 uniform vec4 u_lightPositionType[8];
 uniform vec4 u_lightDirectionCutoff[8];
 uniform vec4 u_lightColorIntensity[8];
+uniform vec4 u_lightAmbientColor[8];
 uniform vec4 u_lightAttenuationDrop[8];
 
-vec3 coinLightContributionWithEye(int i, vec4 diffuse, vec4 specular,
+vec3 coinLightContributionWithEye(int i, vec4 diffuse, vec4 ambient, vec4 specular,
                            vec3 viewPosition, vec3 viewNormal, float shininess, vec3 viewDirection)
 {
   vec3 normal = normalize(viewNormal);
@@ -34,28 +35,29 @@ vec3 coinLightContributionWithEye(int i, vec4 diffuse, vec4 specular,
       attenuation *= pow(max(coneCos, 0.0), attenuationDrop.w * 128.0);
     }
   }
+  vec3 ambientContribution = ambient.rgb * u_lightAmbientColor[i].rgb * attenuation;
   float diffuseFactor = max(dot(normal, toLight), 0.0);
-  if (diffuseFactor <= 0.0) return vec3_splat(0.0);
+  if (diffuseFactor <= 0.0) return ambientContribution;
   vec3 halfVector = normalize(toLight + viewDirection);
   float exponent = shininess * 128.0;
   float specularFactor = exponent > 0.0 ?
     pow(max(dot(normal, halfVector), 0.0), exponent) : 1.0;
   float strength = lightColorIntensity.a * attenuation;
-  return (diffuse.rgb * diffuseFactor + specular.rgb * specularFactor) *
+  return ambientContribution + (diffuse.rgb * diffuseFactor + specular.rgb * specularFactor) *
     lightColorIntensity.rgb * strength;
 }
 
-vec3 coinLightContribution(int i, vec4 diffuse, vec4 specular,
+vec3 coinLightContribution(int i, vec4 diffuse, vec4 ambient, vec4 specular,
                            vec3 viewPosition, vec3 viewNormal, float shininess)
 {
-  return coinLightContributionWithEye(i, diffuse, specular, viewPosition,
+  return coinLightContributionWithEye(i, diffuse, ambient, specular, viewPosition,
     viewNormal, shininess, vec3(0.0, 0.0, 1.0));
 }
-vec3 coinGroupLightContribution(int i, vec4 diffuse, vec4 specular,
+vec3 coinGroupLightContribution(int i, vec4 diffuse, vec4 ambient, vec4 specular,
                            vec3 viewPosition, vec3 viewNormal, float shininess)
 {
   vec3 eye = u_lightPositionType[i].w < 0.5 ? vec3(0.0, 0.0, 1.0) : normalize(-viewPosition);
-  return coinLightContributionWithEye(i, diffuse, specular, viewPosition, viewNormal, shininess, eye);
+  return coinLightContributionWithEye(i, diffuse, ambient, specular, viewPosition, viewNormal, shininess, eye);
 }
 
 vec4 coinMaterialColor(vec4 diffuse, vec4 ambient, vec4 specular, vec4 emission,
@@ -65,8 +67,20 @@ vec4 coinMaterialColor(vec4 diffuse, vec4 ambient, vec4 specular, vec4 emission,
   vec3 color = ambient.rgb * u_ambientLight.rgb * u_ambientLight.a + emission.rgb;
   for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_lightCount.x) break;
-    color += coinLightContribution(i, diffuse, specular, viewPosition,
+    color += coinLightContribution(i, diffuse, ambient, specular, viewPosition,
                                    viewNormal, material.x);
   }
   return vec4(clamp(color, 0.0, 1.0), diffuse.a);
+}
+
+// Existing shadow-light paths carry no VRML ambient component.
+vec3 coinLightContribution(int i, vec4 diffuse, vec4 specular,
+                           vec3 position, vec3 normal, float shininess)
+{
+  return coinLightContribution(i, diffuse, vec4_splat(0.0), specular, position, normal, shininess);
+}
+vec3 coinGroupLightContribution(int i, vec4 diffuse, vec4 specular,
+                           vec3 position, vec3 normal, float shininess)
+{
+  return coinGroupLightContribution(i, diffuse, vec4_splat(0.0), specular, position, normal, shininess);
 }

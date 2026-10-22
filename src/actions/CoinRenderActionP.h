@@ -38,6 +38,7 @@ public:
   std::unordered_map<SoShaderProgram *, std::shared_ptr<const CoinRenderShaderRegistration>> portableShaderModules;
   void initCallbacks();
   static void shapeContentMethod(SoAction *, SoNode *);
+  static void vrmlStateMethod(SoAction *, SoNode *);
   static SoCallbackAction::Response rttMutationPreCB(void *, SoCallbackAction *, const SoNode *);
   bool captureBoundingBox(SoCallbackAction *, SoNode *);
   void observeBoundingBox(SoCallbackAction *, SoNode *);

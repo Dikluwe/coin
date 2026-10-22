@@ -56,6 +56,9 @@ coin_render_shade_vertex(const CoinRenderMaterialSnapshot &material, const SbVec
           attenuation *= std::pow(std::max(coneCos, 0.0f), light.dropOffRate * 128.0f);
         }
       }
+      finalR += amb[0] * light.color[0] * light.ambientIntensity * attenuation;
+      finalG += amb[1] * light.color[1] * light.ambientIntensity * attenuation;
+      finalB += amb[2] * light.color[2] * light.ambientIntensity * attenuation;
       const float diffuseFactor = std::max(0.0f, n.dot(toLight));
       if (diffuseFactor <= 0.0f)
         continue;

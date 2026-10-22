@@ -12,6 +12,7 @@ coin_wgpu_pack_light(const CoinRenderLightSourceSnapshot &light)
     packed.position_type[c] = light.position[c];
     packed.direction_cutoff[c] = light.direction[c];
     packed.color_intensity[c] = light.color[c];
+    packed.ambient_color[c] = light.color[c] * light.ambientIntensity;
   }
   packed.position_type[3] = static_cast<float>(light.type);
   packed.direction_cutoff[3] = std::cos(light.cutOffAngle);

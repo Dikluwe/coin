@@ -76,21 +76,23 @@ static_assert(offsetof(CoinWgpuFrameView, transparency_budget_bytes) == 168,
               "Transparency budget ABI offset changed");
 static_assert(sizeof(CoinWgpuTextureUnit) == 96, "Texture unit ABI size changed");
 static_assert(offsetof(CoinWgpuVertex, extra_texcoords) == 52, "Extra UV ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1096, "Extra textures ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, texture_combines) == 1768, "Combine ABI offset changed");
-static_assert(sizeof(CoinWgpuRenderState) == 2436, "CoinWgpuRenderState ABI size changed");
-static_assert(offsetof(CoinWgpuRenderState, raster_texture_source_slot) == 2300, "Raster source ABI tail mismatch");
-static_assert(offsetof(CoinWgpuRenderState, raster_texture_coordinates) == 2304, "Raster coordinate ABI tail mismatch");
-static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2280, "Alpha function ABI tail changed");
-static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2284, "Alpha reference ABI tail changed");
-static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection ABI tail changed");
-static_assert(offsetof(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092, "Maximum depth ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088, "Slope bias ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 936, "Polygon offset ABI tail changed");
-static_assert(offsetof(CoinWgpuRenderState, depth_test) == 916, "depth_test ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, depth_write) == 920, "depth_write ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_function ABI offset changed");
-static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, extra_textures) == 1224, "Extra textures ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, texture_combines) == 1896, "Combine ABI offset changed");
+static_assert(sizeof(CoinWgpuLight) == 80, "Protocol68 light size mismatch");
+static_assert(offsetof(CoinWgpuLight, ambient_color) == 64, "Protocol68 ambient color offset mismatch");
+static_assert(sizeof(CoinWgpuRenderState) == 2564, "CoinWgpuRenderState ABI size changed");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_source_slot) == 2428, "Raster source ABI tail mismatch");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_coordinates) == 2432, "Raster coordinate ABI tail mismatch");
+static_assert(offsetof(CoinWgpuRenderState, alpha_test_function) == 2408, "Alpha function ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, alpha_test_reference) == 2412, "Alpha reference ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2416, "Texture projection ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1220, "Maximum depth ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, polygon_offset_slope_bias) == 1216, "Slope bias ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, polygon_offset_enabled) == 1064, "Polygon offset ABI tail changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_test) == 1044, "depth_test ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_write) == 1048, "depth_write ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_function) == 1052, "depth_function ABI offset changed");
+static_assert(offsetof(CoinWgpuRenderState, depth_range) == 1056, "depth_range ABI offset changed");
 
 namespace {
 // Use the same declaration encoding for cache admission and transport. In

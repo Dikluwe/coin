@@ -79,6 +79,12 @@
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoLight.h>
+#ifdef HAVE_VRML97
+#include <Inventor/VRMLnodes/SoVRMLLight.h>
+#include <Inventor/VRMLnodes/SoVRMLDirectionalLight.h>
+#include <Inventor/VRMLnodes/SoVRMLPointLight.h>
+#include <Inventor/VRMLnodes/SoVRMLSpotLight.h>
+#endif
 #include <Inventor/nodes/SoDirectionalLight.h>
 #include <Inventor/nodes/SoPointLight.h>
 #include <Inventor/nodes/SoSpotLight.h>
@@ -177,6 +183,7 @@ CoinRenderFramePlanBuilder::CoinRenderFramePlanBuilder()
 
 CoinRenderFramePlanBuilder::~CoinRenderFramePlanBuilder()
 {
+  for (auto * light : this->vrmlLightProxies) light->unref();
 }
 
 void
@@ -217,6 +224,9 @@ CoinRenderFramePlanBuilder::reserveCaptureStorage(size_t estimate)
 void
 CoinRenderFramePlanBuilder::reset()
 {
+  for (auto * light : this->vrmlLightProxies) light->unref();
+  this->vrmlLightProxies.clear();
+  this->vrmlLightSources.clear();
   this->endShape();
   this->rasterGenerators.clear();
   this->rasterNormalNeedsOrder = false;
@@ -1134,6 +1144,57 @@ CoinRenderFramePlanBuilder::recordLightAttenuation(SoCallbackAction * action)
   this->lightModelByIndex[slot] = action->getModelMatrix();
 }
 
+void
+CoinRenderFramePlanBuilder::recordVRMLLight(SoCallbackAction * action, const SoNode * node)
+{
+#ifdef HAVE_VRML97
+  const auto * light = static_cast<const SoVRMLLight *>(node);
+  if (!light->on.getValue()) return;
+  SoLight * proxy = nullptr;
+  SbVec3f attenuation(0, 0, 1);
+  if (node->isOfType(SoVRMLDirectionalLight::getClassTypeId())) {
+    auto * target = new SoDirectionalLight;
+    target->direction = static_cast<const SoVRMLDirectionalLight *>(node)->direction.getValue();
+    proxy = target;
+  } else if (node->isOfType(SoVRMLPointLight::getClassTypeId())) {
+    const auto * source = static_cast<const SoVRMLPointLight *>(node);
+    auto * target = new SoPointLight;
+    target->location = source->location.getValue();
+    const SbVec3f & a = source->attenuation.getValue();
+    attenuation.setValue(a[2], a[1], a[0]);
+    proxy = target;
+  } else if (node->isOfType(SoVRMLSpotLight::getClassTypeId())) {
+    const auto * source = static_cast<const SoVRMLSpotLight *>(node);
+    auto * target = new SoSpotLight;
+    target->location = source->location.getValue();
+    target->direction = source->direction.getValue();
+    target->cutOffAngle = source->cutOffAngle.getValue();
+    // Native VRML GL ignores beamWidth and radius, and uses exponent zero.
+    target->dropOffRate = 0.0f;
+    const SbVec3f & a = source->attenuation.getValue();
+    attenuation.setValue(a[2], a[1], a[0]);
+    proxy = target;
+  } else {
+    this->isUnsupported = true;
+    this->builderError = "Unsupported VRML light subtype";
+    return;
+  }
+  proxy->ref();
+  this->vrmlLightProxies.push_back(proxy);
+  proxy->on = TRUE;
+  proxy->color = light->color.getValue();
+  proxy->intensity = light->intensity.getValue();
+  this->vrmlLightSources[proxy] = {node->getNodeId(), light->ambientIntensity.getValue()};
+  this->recordLightAttenuation(action);
+  const size_t slot = size_t(SoLightElement::getLights(action->getState()).getLength());
+  this->lightAttenuationByIndex[slot] = attenuation;
+  // Proxies allow SoLightElement to retain its public SoLight-only contract;
+  // its normal push/pop supplies VRML occurrence and group scoping.
+  SoLightElement::add(action->getState(), proxy,
+    action->getModelMatrix() * action->getViewingMatrix());
+#endif
+}
+
 uint32_t
 CoinRenderFramePlanBuilder::internMaterial(const CoinRenderMaterialSnapshot & material)
 {
@@ -1999,6 +2060,11 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
       if (l && l->on.getValue()) {
         CoinRenderLightSourceSnapshot src;
         src.sourceRevision = l->getNodeId();
+        const auto vrml = this->vrmlLightSources.find(l);
+        if (vrml != this->vrmlLightSources.end()) {
+          src.sourceRevision = vrml->second.first;
+          src.ambientIntensity = vrml->second.second;
+        }
         const SbVec3f & attenuation =
           static_cast<size_t>(i) < this->lightAttenuationByIndex.size()
             ? this->lightAttenuationByIndex[static_cast<size_t>(i)]

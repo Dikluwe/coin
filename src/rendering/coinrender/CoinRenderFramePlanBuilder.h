@@ -15,6 +15,7 @@ class SoCamera;
 class SoPrimitiveVertex;
 class SoNode;
 class SoTexture2;
+class SoLight;
 class SoTexture3;
 class SoTextureCubeMap;
 class CoinRenderFramePreflight;
@@ -61,6 +62,7 @@ public:
   static int polygonDrawStyle(SoCallbackAction * action);
   static CoinRenderCameraSnapshot captureCamera(SoCallbackAction * action);
   void recordLightAttenuation(SoCallbackAction * action);
+  void recordVRMLLight(SoCallbackAction *, const SoNode *);
   void beginShadowGroup(const CoinRenderShadowGroupSnapshot & group);
   void endShadowGroup();
   bool hasActiveShadowGroup() const { return !this->shadowGroupStack.empty(); }
@@ -131,6 +133,8 @@ public:
 
 private:
   friend struct CoinRenderFramePlanBuilderTestAccess;
+  std::vector<SoLight *> vrmlLightProxies;
+  std::unordered_map<const SoLight *, std::pair<SbUniqueId, float>> vrmlLightSources;
   const SoNode * lastBumpSource = nullptr;
   SbUniqueId lastBumpRevision = 0;
   uint32_t lastBumpSlot = 0;

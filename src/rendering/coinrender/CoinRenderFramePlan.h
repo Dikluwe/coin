@@ -165,6 +165,7 @@ struct CoinRenderLightSourceSnapshot {
   CoinRenderLightType type = CoinRenderLightType::DIRECTIONAL;
   float color[3] = {1.0f, 1.0f, 1.0f};
   float intensity = 1.0f;
+  float ambientIntensity = 0.0f; // VRML per-light ambient, independent of diffuse intensity
   float direction[3] = {0.0f, 0.0f, -1.0f}; // View space direction
   float position[3] = {0.0f, 0.0f, 0.0f};   // View space position
   float cutOffAngle = 0.785398163f;

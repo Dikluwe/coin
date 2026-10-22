@@ -180,6 +180,7 @@
 #include <Inventor/VRMLnodes/SoVRMLImageTexture.h>
 #include <Inventor/VRMLnodes/SoVRMLMacros.h>
 #include <Inventor/actions/SoGLRenderAction.h>
+#include <Inventor/actions/SoCallbackAction.h>
 #include <Inventor/actions/SoGetBoundingBoxAction.h>
 #include <Inventor/actions/SoGetMatrixAction.h>
 #include <Inventor/actions/SoSearchAction.h>
@@ -601,6 +602,71 @@ SoVRMLBackground::GLRender(SoGLRenderAction * action)
   state->pop();
 }
 
+
+#ifdef HAVE_COIN_RENDER
+// Capture the same sphere strips and six local-image faces as GLRender.
+// Build from live fields into an occurrence-local graph: the GL cache and its
+// deferred field sensors cannot establish snapshot freshness after A/B/A edits.
+void
+SoVRMLBackground::coinRender(SoCallbackAction * action)
+{
+  SoSeparator * owner = new SoSeparator;
+  owner->ref();
+  SoVRMLBackgroundP snapshot(this);
+  snapshot.rootnode = nullptr;
+  snapshot.camera = nullptr;
+  snapshot.geometrybuilt = FALSE;
+  snapshot.frontface = snapshot.backface = snapshot.leftface = nullptr;
+  snapshot.rightface = snapshot.bottomface = snapshot.topface = nullptr;
+  snapshot.children = new SoChildList(owner);
+  snapshot.directoryList = PRIVATE(this)->directoryList;
+  snapshot.buildGeometry();
+  SoSeparator * root = snapshot.rootnode;
+  // createCubeFace owns one extra reference in native GL's cached graph.
+  // Our graph is transient, so balance it before releasing the parent.
+  SoSeparator * cube = static_cast<SoSeparator *>(root->getChild(root->getNumChildren() - 1));
+  for (int i = 4; i < cube->getNumChildren(); ++i) {
+    auto * face = static_cast<SoSeparator *>(cube->getChild(i));
+    auto * texture = static_cast<SoVRMLImageTexture *>(face->getChild(0));
+    // Use only the library's existing local-image decoder and search path.
+    // This also makes generated faces independent of the sensor queue.
+    SbImage image;
+    for (int u = 0; u < texture->url.getNum(); ++u)
+      if (image.readFile(texture->url[u], snapshot.directoryList.getArrayPtr(),
+                         snapshot.directoryList.getLength())) {
+        texture->setImage(image);
+        break;
+      }
+    face->unref();
+  }
+  SoState * state = action->getState();
+  SbRotation rotation(SoViewingMatrixElement::get(state));
+  if (vrmlbackground_viewup_set) {
+    SbRotation up(SbVec3f(0, 1, 0), SbVec3f(vrmlbackground_viewup));
+    rotation = up * rotation;
+  } else {
+    SbVec3f translation, scale;
+    SbRotation ancestor, scaleOrientation;
+    SoModelMatrixElement::get(state).getTransform(translation, ancestor, scale, scaleOrientation);
+    rotation = ancestor * rotation;
+  }
+  snapshot.camera->orientation = rotation.inverse();
+  state->push();
+  SoModelMatrixElement::makeIdentity(state, this);
+  SbBool test, write;
+  SoDepthBufferElement::DepthWriteFunction function;
+  SbVec2f range;
+  SoDepthBufferElement::get(state, test, write, function, range);
+  // Far-plane depth preserves both previously drawn geometry and the scene's
+  // depth buffer. In the default LEQUAL state successive sky/ground faces win.
+  SoDepthBufferElement::set(state, test, write, function, SbVec2f(1, 1));
+  root->callback(action);
+  state->pop();
+  delete snapshot.children;
+  root->unref();
+  owner->unref();
+}
+#endif
 
 void
 SoVRMLBackgroundP::buildGeometry(void)

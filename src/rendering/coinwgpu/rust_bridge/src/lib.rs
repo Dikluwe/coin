@@ -39,10 +39,13 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 67;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 68;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
+    assert!(std::mem::size_of::<CoinWgpuLight>() == 80);
+    assert!(std::mem::align_of::<CoinWgpuLight>() == 4);
+    assert!(std::mem::offset_of!(CoinWgpuLight, ambient_color) == 64);
     assert!(std::mem::size_of::<CoinWgpuFrameView>() == 544);
     assert!(std::mem::size_of::<CoinWgpuPortableNode>() == 40);
     assert!(std::mem::size_of::<CoinWgpuPortableModule>() == 56);
@@ -252,6 +255,7 @@ pub struct CoinWgpuLight {
     pub direction_cutoff: [f32; 4],
     pub color_intensity: [f32; 4],
     pub attenuation_exponent: [f32; 4],
+    pub ambient_color: [f32; 4], // protocol68: RGB light ambient, W reserved zero
 }
 
 #[repr(C)]
@@ -504,25 +508,25 @@ const _: () = {
     assert!(std::mem::offset_of!(CoinWgpuVertex, screen_space_w) == 44);
     assert!(std::mem::offset_of!(CoinWgpuVertex, fog_eye_depth_plus_one) == 48);
     assert!(std::mem::offset_of!(CoinWgpuVertex, extra_texcoords) == 52);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1096);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1768);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, extra_textures) == 1224);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_combines) == 1896);
     assert!(std::mem::size_of::<CoinWgpuVertex>() == 164);
-    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2436);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, raster_texture_source_slot) == 2300);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, raster_texture_coordinates) == 2304);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_function) == 2280);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_reference) == 2284);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_projection) == 2288);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, color_write) == 2292);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1092);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1088);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 956);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_planes) == 960);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_enabled) == 936);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_test) == 916);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_write) == 920);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_function) == 924);
-    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_range) == 928);
+    assert!(std::mem::size_of::<CoinWgpuRenderState>() == 2564);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, raster_texture_source_slot) == 2428);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, raster_texture_coordinates) == 2432);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_function) == 2408);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, alpha_test_reference) == 2412);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, texture_projection) == 2416);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, color_write) == 2420);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_max_depth_bits) == 1220);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_slope_bias) == 1216);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_plane_count) == 1084);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, clip_planes) == 1088);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, polygon_offset_enabled) == 1064);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_test) == 1044);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_write) == 1048);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_function) == 1052);
+    assert!(std::mem::offset_of!(CoinWgpuRenderState, depth_range) == 1056);
 };
 
 #[repr(C)]
@@ -3120,6 +3124,7 @@ fn same_camera_independent_state(a: &CoinWgpuRenderState, b: &CoinWgpuRenderStat
             x.position_type == y.position_type && x.direction_cutoff == y.direction_cutoff
                 && x.color_intensity == y.color_intensity
                 && x.attenuation_exponent == y.attenuation_exponent
+                && x.ambient_color == y.ambient_color
         })
 }
 
@@ -7079,11 +7084,12 @@ fn encode_frame_impl(
         for (light_index, light) in state.lights[..state.light_count as usize].iter().enumerate() {
             let finite = light.position_type.iter().chain(light.direction_cutoff.iter())
                 .chain(light.color_intensity.iter()).chain(light.attenuation_exponent.iter())
-                .all(|v| v.is_finite());
+                .chain(light.ambient_color.iter()).all(|v| v.is_finite());
             let kind = light.position_type[3];
             let attenuation = light.attenuation_exponent;
             if !finite || (kind != 0.0 && kind != 1.0 && kind != 2.0)
-                || light.color_intensity[3] < 0.0
+                || light.color_intensity[3] < 0.0 || light.ambient_color[3] != 0.0
+                || attenuation[3] < 0.0
                 || attenuation[..3].iter().any(|v| *v < 0.0)
                 || (kind != 0.0 && attenuation[..3].iter().all(|v| *v == 0.0)) {
                 return Err((CoinWgpuStatus::InvalidArgument,

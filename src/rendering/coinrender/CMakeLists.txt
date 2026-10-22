@@ -339,6 +339,9 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 endif()
 
 add_library(CoinRender SHARED ${COIN_RENDER_SOURCES})
+# Implementation-only requirement: public headers and installed consumers keep
+# Coin's existing minimum language level and ABI.
+target_compile_features(CoinRender PRIVATE cxx_std_17)
 if(WIN32)
 	target_compile_definitions(CoinRender PUBLIC NOMINMAX)
 	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")

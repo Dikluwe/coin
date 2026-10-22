@@ -11,6 +11,31 @@
 #include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/actions/SoSubAction.h>
 #include <Inventor/nodes/SoShape.h>
+#ifdef HAVE_VRML97
+#include <Inventor/VRMLnodes/SoVRMLShape.h>
+#include <Inventor/VRMLnodes/SoVRMLAppearance.h>
+#include <Inventor/VRMLnodes/SoVRMLMaterial.h>
+#include <Inventor/VRMLnodes/SoVRMLLight.h>
+#include <Inventor/VRMLnodes/SoVRMLFog.h>
+#include <Inventor/VRMLnodes/SoVRMLBackground.h>
+#include <Inventor/VRMLnodes/SoVRMLPixelTexture.h>
+#include <Inventor/VRMLnodes/SoVRMLImageTexture.h>
+#include <Inventor/VRMLnodes/SoVRMLBox.h>
+#include <Inventor/VRMLnodes/SoVRMLCone.h>
+#include <Inventor/VRMLnodes/SoVRMLCylinder.h>
+#include <Inventor/VRMLnodes/SoVRMLSphere.h>
+#include <Inventor/VRMLnodes/SoVRMLIndexedFaceSet.h>
+#include <Inventor/VRMLnodes/SoVRMLIndexedLineSet.h>
+#include <Inventor/VRMLnodes/SoVRMLPointSet.h>
+#include <Inventor/VRMLnodes/SoVRMLElevationGrid.h>
+#include <Inventor/VRMLnodes/SoVRMLExtrusion.h>
+#include <Inventor/VRMLnodes/SoVRMLCoordinate.h>
+#include <Inventor/VRMLnodes/SoVRMLNormal.h>
+#include <Inventor/VRMLnodes/SoVRMLColor.h>
+#include <Inventor/VRMLnodes/SoVRMLTextureCoordinate.h>
+#include <Inventor/VRMLnodes/SoVRMLText.h>
+#include <Inventor/VRMLnodes/SoVRMLFontStyle.h>
+#endif
 #include <Inventor/nodes/SoCallback.h>
 #include <Inventor/nodes/SoTextureCoordinateFunction.h>
 #include <Inventor/fields/SoSFNode.h>
@@ -582,6 +607,32 @@ static bool rttNodeHasEffects(const SoNode * node)
   return false;
 }
 
+static bool containsVRMLSnapshot(const SoNode * root)
+{
+#ifdef HAVE_VRML97
+  std::vector<const SoNode *> pending(1, root);
+  std::unordered_set<const SoNode *> seen;
+  while (!pending.empty()) {
+    const SoNode * node = pending.back(); pending.pop_back();
+    if (!node || !seen.insert(node).second) continue;
+    if (node->getNodeType() == SoNode::VRML2) return true;
+    const SoFieldData * fields = node->getFieldData();
+    for (int i = 0; fields && i < fields->getNumFields(); ++i) {
+      const SoField * field = fields->getField(node, i);
+      if (field->isOfType(SoSFNode::getClassTypeId()))
+        pending.push_back(static_cast<const SoSFNode *>(field)->getValue());
+      else if (field->isOfType(SoMFNode::getClassTypeId())) {
+        const auto * nodes = static_cast<const SoMFNode *>(field);
+        for (int j = 0; j < nodes->getNum(); ++j) pending.push_back((*nodes)[j]);
+      }
+    }
+    const SoChildList * children = node->getChildren();
+    for (int i = 0; children && i < children->getLength(); ++i) pending.push_back((*children)[i]);
+  }
+#endif
+  return false;
+}
+
 static bool rttSceneHasEffects(const SoNode * root, CoinRenderRttCaptureMemo::Baseline * baseline=NULL)
 {
   std::vector<const SoNode *> pending(1,root);
@@ -657,6 +708,15 @@ CoinRenderAction::initClass(void)
   SO_ACTION_ADD_METHOD(SoMarkerSet, CoinRenderActionP::markerContentMethod);
   SO_ACTION_ADD_METHOD(SoIndexedMarkerSet, CoinRenderActionP::markerContentMethod);
   SO_ACTION_ADD_METHOD(SoAlphaTest, CoinRenderActionP::alphaTestMethod);
+#ifdef HAVE_VRML97
+  SO_ACTION_ADD_METHOD(SoVRMLShape, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLMaterial, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLLight, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLFog, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLBackground, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLPixelTexture, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLImageTexture, CoinRenderActionP::vrmlStateMethod);
+#endif
 }
 
 SbBool
@@ -2170,7 +2230,8 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   // External callbacks can change capture or have observable side effects.
   // Registration after construction permanently requires their traversal.
   bool planCacheAllowed = this->portableShaderModules.empty() &&
-    this->master->callbackRegistrationRevision() == this->captureCallbackRevision;
+    this->master->callbackRegistrationRevision() == this->captureCallbackRevision &&
+    !containsVRMLSnapshot(cacheRoot);
   if (planCacheAllowed && cacheRoot && cacheRoot == this->cachedRoot &&
       cacheRoot->getNodeId() == this->cachedRootId) {
     // SoCamera's stereo setters are not fields and do not touch the node.
@@ -3039,6 +3100,166 @@ void normalizeIndexedBindings(const SoNode * node, CoinRenderDirectGeometryView 
   }
 }
 
+#ifdef HAVE_VRML97
+// Validate only arrays dereferenced by native primitive generation. In
+// particular unused index streams and light radius/beamWidth are not inputs.
+bool validateVRMLGeometry(SoCallbackAction * action, SoNode * node, std::string & error)
+{
+  auto fail = [&]() { error = "Invalid consumed VRML geometry array, index or numeric value"; return false; };
+  auto finite3 = [](const SbVec3f & v) {
+    return std::isfinite(v[0]) && std::isfinite(v[1]) && std::isfinite(v[2]);
+  };
+  auto vectorNode = [&](const SoSFNode & field, SoType type) {
+    return !field.getValue() || field.getValue()->isOfType(type);
+  };
+  auto indices = [&](const SoMFInt32 & stream, const SoVRMLCoordinate * coord) {
+    for (int i = 0; i < stream.getNum(); ++i) {
+      const int index = stream[i];
+      if (index < -1 || (index >= 0 && (!coord || index >= coord->point.getNum() ||
+                                      !finite3(coord->point[index])))) return false;
+    }
+    return true;
+  };
+  auto attribute = [&](const SoMFInt32 & coordinates, const SoMFInt32 & explicitIndices,
+                       int count, bool perVertex, bool explicitUsed, auto finiteAt) {
+    int part = 0;
+    bool inPart = false;
+    for (int i = 0; i < coordinates.getNum(); ++i) {
+      if (coordinates[i] == -1) { if (inPart) ++part; inPart = false; continue; }
+      int index = perVertex ? coordinates[i] : part;
+      const int offset = perVertex ? i : part;
+      if (explicitUsed) {
+        if (offset >= explicitIndices.getNum()) return false;
+        index = explicitIndices[offset];
+      }
+      if (index < 0 || index >= count || !finiteAt(index)) return false;
+      inPart = true;
+    }
+    return true;
+  };
+  if (node->isOfType(SoVRMLBox::getClassTypeId())) {
+    if (!finite3(static_cast<const SoVRMLBox *>(node)->size.getValue())) return fail();
+  } else if (node->isOfType(SoVRMLSphere::getClassTypeId())) {
+    if (!std::isfinite(static_cast<const SoVRMLSphere *>(node)->radius.getValue())) return fail();
+  } else if (node->isOfType(SoVRMLCone::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLCone *>(node);
+    if ((shape->side.getValue() || shape->bottom.getValue()) &&
+        (!std::isfinite(shape->bottomRadius.getValue()) || !std::isfinite(shape->height.getValue()))) return fail();
+  } else if (node->isOfType(SoVRMLCylinder::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLCylinder *>(node);
+    if ((shape->side.getValue() || shape->bottom.getValue() || shape->top.getValue()) &&
+        (!std::isfinite(shape->radius.getValue()) || !std::isfinite(shape->height.getValue()))) return fail();
+  } else if (node->isOfType(SoVRMLText::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLText *>(node);
+    if (!shape->string.getNum()) return true;
+    if (!std::isfinite(shape->maxExtent.getValue())) return fail();
+    for (int i = 0; i < shape->length.getNum() && i < shape->string.getNum(); ++i)
+      if (!std::isfinite(shape->length[i])) return fail();
+    if (!vectorNode(shape->fontStyle, SoVRMLFontStyle::getClassTypeId())) return fail();
+    if (const auto * font = static_cast<const SoVRMLFontStyle *>(shape->fontStyle.getValue()))
+      if (!std::isfinite(font->size.getValue()) || !std::isfinite(font->spacing.getValue())) return fail();
+  } else if (node->isOfType(SoVRMLIndexedFaceSet::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLIndexedFaceSet *>(node);
+    if (shape->coordIndex.getNum() < 3) return true;
+    if (!vectorNode(shape->coord, SoVRMLCoordinate::getClassTypeId()) ||
+        !vectorNode(shape->color, SoVRMLColor::getClassTypeId()) ||
+        !vectorNode(shape->normal, SoVRMLNormal::getClassTypeId()) ||
+        !vectorNode(shape->texCoord, SoVRMLTextureCoordinate::getClassTypeId())) return fail();
+    const auto * coord = static_cast<const SoVRMLCoordinate *>(shape->coord.getValue());
+    if (!coord) return true;
+    if (!indices(shape->coordIndex, coord)) return fail();
+    if (const auto * color = static_cast<const SoVRMLColor *>(shape->color.getValue())) {
+      const bool explicitUsed = shape->colorIndex.getNum() && shape->colorIndex[0] >= 0;
+      if (!attribute(shape->coordIndex, shape->colorIndex, color->color.getNum(),
+          shape->colorPerVertex.getValue(), explicitUsed,
+          [&](int i) { return finite3(color->color[i]); })) return fail();
+    }
+    if (const auto * normal = static_cast<const SoVRMLNormal *>(shape->normal.getValue())) {
+      if (normal->vector.getNum()) {
+        const bool explicitUsed = shape->normalIndex.getNum() && shape->normalIndex[0] >= 0;
+        if (!attribute(shape->coordIndex, shape->normalIndex, normal->vector.getNum(),
+            shape->normalPerVertex.getValue(), explicitUsed,
+            [&](int i) { return finite3(normal->vector[i]); })) return fail();
+      }
+    }
+    if (SoMultiTextureEnabledElement::get(action->getState(), 0))
+      if (const auto * texture = static_cast<const SoVRMLTextureCoordinate *>(shape->texCoord.getValue())) {
+        const bool explicitUsed = shape->texCoordIndex.getNum() && shape->texCoordIndex[0] >= 0;
+        if (!attribute(shape->coordIndex, shape->texCoordIndex, texture->point.getNum(), true,
+            explicitUsed, [&](int i) { return std::isfinite(texture->point[i][0]) &&
+                                            std::isfinite(texture->point[i][1]); })) return fail();
+      }
+    if (!std::isfinite(shape->creaseAngle.getValue())) return fail();
+  } else if (node->isOfType(SoVRMLIndexedLineSet::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLIndexedLineSet *>(node);
+    if (shape->coordIndex.getNum() < 2) return true;
+    if (!vectorNode(shape->coord, SoVRMLCoordinate::getClassTypeId()) ||
+        !vectorNode(shape->color, SoVRMLColor::getClassTypeId())) return fail();
+    const auto * coord = static_cast<const SoVRMLCoordinate *>(shape->coord.getValue());
+    if (!coord) return true;
+    if (!indices(shape->coordIndex, coord)) return fail();
+    // Empty sections are legal for faces but native VRML line callbacks assert
+    // when their first index is negative. Do not pass malformed strips through.
+    for (int i = 0; i + 1 < shape->coordIndex.getNum(); ++i)
+      if (shape->coordIndex[i] < 0 && (i == 0 || shape->coordIndex[i - 1] < 0)) return fail();
+    if (const auto * color = static_cast<const SoVRMLColor *>(shape->color.getValue()))
+      if (!attribute(shape->coordIndex, shape->colorIndex, color->color.getNum(),
+          shape->colorPerVertex.getValue(), shape->colorIndex.getNum() != 0,
+          [&](int i) { return finite3(color->color[i]); })) return fail();
+  } else if (node->isOfType(SoVRMLPointSet::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLPointSet *>(node);
+    if (!vectorNode(shape->coord, SoVRMLCoordinate::getClassTypeId()) ||
+        !vectorNode(shape->color, SoVRMLColor::getClassTypeId())) return fail();
+    const auto * coord = static_cast<const SoVRMLCoordinate *>(shape->coord.getValue());
+    if (!coord) return true;
+    const auto * color = static_cast<const SoVRMLColor *>(shape->color.getValue());
+    for (int i = 0; i < coord->point.getNum(); ++i)
+      if (!finite3(coord->point[i]) || (color && (i >= color->color.getNum() ||
+                                               !finite3(color->color[i])))) return fail();
+  } else if (node->isOfType(SoVRMLElevationGrid::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLElevationGrid *>(node);
+    const int64_t x = shape->xDimension.getValue(), z = shape->zDimension.getValue();
+    if (x < 2 || z < 2) return true;
+    const int64_t points = x * z, faces = (x - 1) * (z - 1);
+    if (points > INT32_MAX || points > shape->height.getNum() ||
+        !std::isfinite(shape->xSpacing.getValue()) || !std::isfinite(shape->zSpacing.getValue())) return fail();
+    for (int i = 0; i < points; ++i) if (!std::isfinite(shape->height[i])) return fail();
+    if (!vectorNode(shape->color, SoVRMLColor::getClassTypeId()) ||
+        !vectorNode(shape->normal, SoVRMLNormal::getClassTypeId()) ||
+        !vectorNode(shape->texCoord, SoVRMLTextureCoordinate::getClassTypeId())) return fail();
+    if (const auto * colors = static_cast<const SoVRMLColor *>(shape->color.getValue())) {
+      const int64_t count = shape->colorPerVertex.getValue() ? points : faces;
+      if (colors->color.getNum() < count) return fail();
+      for (int i = 0; i < count; ++i) if (!finite3(colors->color[i])) return fail();
+    }
+    if (SoLazyElement::getLightModel(action->getState()) != SoLazyElement::BASE_COLOR)
+      if (const auto * normals = static_cast<const SoVRMLNormal *>(shape->normal.getValue())) {
+        const int64_t count = shape->normalPerVertex.getValue() ? points : faces;
+        if (normals->vector.getNum() < count) return fail();
+        for (int i = 0; i < count; ++i) if (!finite3(normals->vector[i])) return fail();
+      }
+    if (const auto * texture = static_cast<const SoVRMLTextureCoordinate *>(shape->texCoord.getValue())) {
+      if (texture->point.getNum() < points) return fail();
+      for (int i = 0; i < points; ++i)
+        if (!std::isfinite(texture->point[i][0]) || !std::isfinite(texture->point[i][1])) return fail();
+    }
+  } else if (node->isOfType(SoVRMLExtrusion::getClassTypeId())) {
+    const auto * shape = static_cast<const SoVRMLExtrusion *>(node);
+    if (!shape->spine.getNum() || !shape->crossSection.getNum()) return true;
+    if (shape->spine.getNum() < 2) return fail();
+    for (int i = 0; i < shape->spine.getNum(); ++i) if (!finite3(shape->spine[i])) return fail();
+    for (int i = 0; i < shape->crossSection.getNum(); ++i)
+      if (!std::isfinite(shape->crossSection[i][0]) || !std::isfinite(shape->crossSection[i][1])) return fail();
+    for (int i = 0; i < shape->scale.getNum() && i < shape->spine.getNum(); ++i)
+      if (!std::isfinite(shape->scale[i][0]) || !std::isfinite(shape->scale[i][1])) return fail();
+    for (int i = 0; i < shape->orientation.getNum() && i < shape->spine.getNum(); ++i)
+      for (int c = 0; c < 4; ++c) if (!std::isfinite(shape->orientation[i].getValue()[c])) return fail();
+    if (!std::isfinite(shape->creaseAngle.getValue())) return fail();
+  }
+  return true;
+}
+#endif
+
 bool validateIndexedShapeNormals(SoCallbackAction * action, SoNode * node,
                                 std::string & diagnostic)
 {
@@ -3075,6 +3296,25 @@ CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
   render->setCurrentNode(node);
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+#ifdef HAVE_VRML97
+    if (node->getNodeType() == SoNode::VRML2 && !CoinRenderFramePlanBuilder::isShapeInvisible(render)) {
+      std::string error;
+      if (!validateVRMLGeometry(render, node, error)) {
+        render->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(error.c_str())));
+        render->setTerminated(TRUE);
+        render->invokePostCallbacks(node);
+        return;
+      }
+    }
+#endif
+#ifdef HAVE_VRML97
+    const bool emptyVRMLFace = node->isOfType(SoVRMLIndexedFaceSet::getClassTypeId()) &&
+      !static_cast<SoVRMLIndexedFaceSet *>(node)->coord.getValue();
+    const bool emptyVRMLLine = node->isOfType(SoVRMLIndexedLineSet::getClassTypeId()) &&
+      !static_cast<SoVRMLIndexedLineSet *>(node)->coord.getValue();
+    if (emptyVRMLFace || emptyVRMLLine) { render->invokePostCallbacks(node); return; }
+#endif
     const bool box = render->pimpl->captureBoundingBox(render, node);
     // All pre-callbacks have now run. Guard the native fallback as well as
     // subclasses and LINE replay, which intentionally bypass direct capture.
@@ -3085,10 +3325,179 @@ CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
         CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
         SbString(diagnostic.c_str())));
       render->setTerminated(TRUE);
-    } else if (!box) node->callback(render);
-    else render->pimpl->observeBoundingBox(render, node);
+    } else if (!box) {
+#ifdef HAVE_VRML97
+      SoState * state = render->getState();
+      const bool vrml = node->getNodeType() == SoNode::VRML2;
+      uint32_t packed = 0;
+      if (vrml) {
+        state->push();
+        SbBool ccw = TRUE, solid = TRUE;
+        bool installHints = false;
+        if (node->isOfType(SoVRMLIndexedFaceSet::getClassTypeId())) {
+          installHints = true;
+          auto * shape = static_cast<SoVRMLIndexedFaceSet *>(node);
+          ccw = shape->ccw.getValue(); solid = shape->solid.getValue();
+        } else if (node->isOfType(SoVRMLElevationGrid::getClassTypeId())) {
+          installHints = true;
+          auto * shape = static_cast<SoVRMLElevationGrid *>(node);
+          ccw = shape->ccw.getValue(); solid = shape->solid.getValue();
+          if (shape->color.getValue()) shape->color.getValue()->doAction(render);
+        } else if (node->isOfType(SoVRMLExtrusion::getClassTypeId())) {
+          installHints = true;
+          auto * shape = static_cast<SoVRMLExtrusion *>(node);
+          ccw = shape->ccw.getValue(); solid = shape->solid.getValue();
+        }
+        if (installHints && !(SoOverrideElement::getFlags(state) & SoOverrideElement::SHAPE_HINTS))
+          SoShapeHintsElement::set(state, node,
+            ccw ? SoShapeHintsElement::COUNTERCLOCKWISE : SoShapeHintsElement::CLOCKWISE,
+            solid ? SoShapeHintsElement::SOLID : SoShapeHintsElement::UNKNOWN_SHAPE_TYPE,
+            SoShapeHintsElement::FACE_TYPE_AS_IS);
+        const bool line = node->isOfType(SoVRMLIndexedLineSet::getClassTypeId());
+        const bool point = node->isOfType(SoVRMLPointSet::getClassTypeId());
+        if (line || point) {
+          SoLazyElement::setLightModel(state, SoLazyElement::BASE_COLOR);
+          SoMultiTextureEnabledElement::disableAll(state);
+          SoNode * colors = line ? static_cast<SoVRMLIndexedLineSet *>(node)->color.getValue()
+                                 : static_cast<SoVRMLPointSet *>(node)->color.getValue();
+          if (!colors) {
+            SbColor color = SoLazyElement::getEmissive(state);
+            if (line) color += SoLazyElement::getDiffuse(state, 0);
+            for (int c = 0; c < 3; ++c) color[c] = SbClamp(color[c], 0.0f, 1.0f);
+            packed = color.getPackedValue();
+            SoLazyElement::setPacked(state, node, 1, &packed, FALSE);
+          } else if (point) colors->doAction(render);
+        }
+      }
+      node->callback(render);
+      if (vrml) state->pop();
+#else
+      node->callback(render);
+#endif
+    } else render->pimpl->observeBoundingBox(render, node);
   }
   render->invokePostCallbacks(node);
+}
+
+// VRML lights and fog have GL-only implementations in native Coin. Keep
+// their interpretation here, scoped by the same Coin state stack as geometry.
+void
+CoinRenderActionP::vrmlStateMethod(SoAction * base, SoNode * node)
+{
+#ifdef HAVE_VRML97
+  auto * action = static_cast<CoinRenderAction *>(base);
+  if (action->hasTerminated()) return;
+  action->setCurrentNode(node);
+  action->invokePreCallbacks(node);
+  if (action->getCurrentResponse() == SoCallbackAction::CONTINUE) {
+    SoState * state = action->getState();
+    if (node->isOfType(SoVRMLMaterial::getClassTypeId())) {
+      const auto * material = static_cast<const SoVRMLMaterial *>(node);
+      bool finite = true;
+      const uint32_t flags = SoOverrideElement::getFlags(state);
+      const auto colorFinite = [&](const SoSFColor & field, uint32_t mask) {
+        if (field.isIgnored() || (flags & mask)) return true;
+        const SbColor & value = field.getValue();
+        return std::isfinite(value[0]) && std::isfinite(value[1]) && std::isfinite(value[2]);
+      };
+      finite = colorFinite(material->diffuseColor, SoOverrideElement::DIFFUSE_COLOR) &&
+        colorFinite(material->emissiveColor, SoOverrideElement::EMISSIVE_COLOR) &&
+        colorFinite(material->specularColor, SoOverrideElement::SPECULAR_COLOR);
+      if (!material->diffuseColor.isIgnored() && !material->ambientIntensity.isIgnored() &&
+          !(flags & SoOverrideElement::AMBIENT_COLOR))
+        finite = finite && std::isfinite(material->ambientIntensity.getValue());
+      if (!material->transparency.isIgnored() && !(flags & SoOverrideElement::TRANSPARENCY))
+        finite = finite && std::isfinite(material->transparency.getValue());
+      if (!material->shininess.isIgnored() && !(flags & SoOverrideElement::SHININESS))
+        finite = finite && std::isfinite(material->shininess.getValue());
+      if (!finite) {
+        action->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Non-finite consumed VRML material")));
+        action->setTerminated(TRUE);
+      } else node->callback(action);
+    } else if (node->isOfType(SoVRMLLight::getClassTypeId())) {
+      action->pimpl->builder.recordVRMLLight(action, node);
+    } else if (node->isOfType(SoVRMLPixelTexture::getClassTypeId()) ||
+               node->isOfType(SoVRMLImageTexture::getClassTypeId())) {
+      node->callback(action);
+      const int unit = SoTextureUnitElement::get(state);
+      if (unit >= 0 && unit < int(COIN_RENDER_MAX_TEXTURE_UNITS) &&
+          SoMultiTextureEnabledElement::get(state, unit)) {
+        SbVec2s size;
+        int components;
+        SoMultiTextureImageElement::Wrap s, t;
+        SoMultiTextureImageElement::Model model;
+        SbColor blend;
+        const unsigned char * bytes = SoMultiTextureImageElement::get(
+          state, unit, size, components, s, t, model, blend);
+        const auto * texture = static_cast<const SoVRMLTexture *>(node);
+        // Native VRML GL uses CLAMP_TO_EDGE for repeat=false; generic VRML
+        // callbacks instead install CLAMP_TO_BORDER, which is not the GL model.
+        SoMultiTextureImageElement::set(state, node, unit, size, components, bytes,
+          texture->repeatS.getValue() ? SoMultiTextureImageElement::REPEAT : SoMultiTextureImageElement::CLAMP,
+          texture->repeatT.getValue() ? SoMultiTextureImageElement::REPEAT : SoMultiTextureImageElement::CLAMP,
+          model, blend);
+        bool authored = node->isOfType(SoVRMLPixelTexture::getClassTypeId());
+        if (!authored) {
+          const auto * image = static_cast<const SoVRMLImageTexture *>(node)->getImage();
+          authored = image && image->hasData();
+        }
+        if (authored) action->pimpl->builder.registerAuthoredTextureImage(bytes, false, nullptr, 0);
+      }
+    } else if (node->isOfType(SoVRMLBackground::getClassTypeId())) {
+      auto * background = static_cast<SoVRMLBackground *>(node);
+      bool finite = true;
+      for (const auto * colors : {&background->skyColor, &background->groundColor})
+        for (int i = 0; i < colors->getNum(); ++i)
+          for (int c = 0; c < 3; ++c) finite = finite && std::isfinite((*colors)[i][c]);
+      for (const auto * angles : {&background->skyAngle, &background->groundAngle})
+        for (int i = 0; i < angles->getNum(); ++i) finite = finite && std::isfinite((*angles)[i]);
+      if (!finite || (background->skyAngle.getNum() && !background->skyColor.getNum()) ||
+          (background->groundAngle.getNum() && !background->groundColor.getNum())) {
+        action->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("Invalid VRML background colors or angles")));
+        action->setTerminated(TRUE);
+      } else {
+        const size_t stereoCount = action->pimpl->frameStereoStates.size();
+        background->coinRender(action);
+        // The occurrence-local background camera is gone after capture.
+        action->pimpl->frameStereoStates.resize(stereoCount);
+      }
+    } else if (node->isOfType(SoVRMLFog::getClassTypeId())) {
+      const auto * fog = static_cast<const SoVRMLFog *>(node);
+      const float visibility = fog->visibilityRange.getValue();
+      const SbString & type = fog->fogType.getValue();
+      // Native Coin uses its camera far plane when visibilityRange <= 0.
+      // EXPONENTIAL maps to SMOKE (GL_EXP2), rather than Inventor's FOG.
+      const int mode = type == "EXPONENTIAL" ? SoEnvironmentElement::SMOKE : SoEnvironmentElement::HAZE;
+      SoEnvironmentElement::set(state, node,
+        SoEnvironmentElement::getAmbientIntensity(state),
+        SoEnvironmentElement::getAmbientColor(state),
+        SoEnvironmentElement::getLightAttenuation(state), mode,
+        fog->color.getValue(), visibility);
+    } else {
+      // The generic VRMLShape callback sets BASE_COLOR before its own push.
+      // Enclose that callback so the setting cannot escape this occurrence.
+      const auto * shape = static_cast<const SoVRMLShape *>(node);
+      if (shape->appearance.getValue() &&
+          !shape->appearance.getValue()->isOfType(SoVRMLAppearance::getClassTypeId())) {
+        action->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+          CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
+          SbString("VRML Shape appearance must be an Appearance node")));
+        action->setTerminated(TRUE);
+      } else {
+        state->push();
+        node->callback(action);
+        state->pop();
+      }
+    }
+  }
+  action->invokePostCallbacks(node);
+#else
+  node->callback(static_cast<SoCallbackAction *>(base));
+#endif
 }
 
 void

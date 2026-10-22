@@ -72,6 +72,8 @@ protected:
   SoSFBool isBound;  // eventOut
 
 private:
+  friend class CoinRenderActionP;
+  void coinRender(SoCallbackAction * action);
   SoVRMLBackgroundP * pimpl;
 
 };

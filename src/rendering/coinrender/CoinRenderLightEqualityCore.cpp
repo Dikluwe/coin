@@ -16,6 +16,7 @@ coin_render_same_lights(const std::vector<CoinRenderLightSourceSnapshot> &a,
     const auto &y = b[i];
     if (x.sourceRevision != y.sourceRevision || x.type != y.type ||
         x.hasAuthoredSource != y.hasAuthoredSource || x.intensity != y.intensity ||
+        x.ambientIntensity != y.ambientIntensity ||
         x.cutOffAngle != y.cutOffAngle || x.dropOffRate != y.dropOffRate ||
         std::memcmp(x.sourceModel.getValue(), y.sourceModel.getValue(), sizeof(float) * 16) != 0 ||
         std::memcmp(x.sourceWorldModel.getValue(), y.sourceWorldModel.getValue(),
