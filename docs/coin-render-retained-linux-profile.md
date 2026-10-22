@@ -1,5 +1,7 @@
 # Nós retidos no FreeCAD — perfil Linux de 2026-10-06
 
+Este é o registro histórico de 06/10. A [continuação R20/R21 de 22/10](coin-render-freecad-viewport.md#r20r21--freecadquarter-no-linux-continuação-de-22102026) amplia os consumidores reais, o arraste, a redução interativa de Mesh e o encerramento normal. A indicação de protocolo 49 abaixo descreve apenas aquele build; a integração atual usa 69/FrameView 560. Não se infere suporte geral de workbench.
+
 Continuação de P03/P15/P16 sobre a [entrega de recursos](coin-render-p03-p24-p28-profile.md).
 O patch incremental [freecad_linux_retained_callbacks.patch](../examples/coinrender/freecad_linux_retained_callbacks.patch)
 é aplicado depois dos patches anteriores e da integração experimental P16 do
