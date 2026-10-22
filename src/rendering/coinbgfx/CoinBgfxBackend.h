@@ -82,6 +82,7 @@ private:
     std::vector<uint8_t> pixels;
     uint32_t readyFrame = 0;
     uint64_t sequence = 0;
+    bool depthRequested = false;
     bool pending = false;
   };
   struct DirectTextureResource {
@@ -132,7 +133,7 @@ private:
   CoinRenderSubmitResult encodeRasterImages(const CoinRenderFramePlan & frame,
     const std::vector<bgfx::TextureHandle> & textures,
     std::vector<bgfx::TextureHandle> & owned);
-  bool prepareDepthReadbackResources();
+  bool prepareDepthReadbackResources(bool staging = true);
   CoinRenderSubmitResult msaaProfile(const CoinRenderFramePlan & frame) const;
   CoinRenderSubmitResult prepareMsaa(int width, int height);
   void encodeMsaaResolve(bgfx::ViewId view, bgfx::FrameBufferHandle output,

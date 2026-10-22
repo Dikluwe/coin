@@ -5,6 +5,25 @@
 #include <exception>
 
 namespace {
+CoinWgpuStatus validateTicketIdentity(const CoinRenderReadbackTicket & ticket,
+    char * error, size_t errorSize) {
+  CoinWgpuReadbackTicket bridge{};
+  bridge.abi_version = COIN_WGPU_ABI_VERSION;
+  bridge.struct_size = sizeof(bridge);
+  bridge.token = ticket.token;
+  bridge.generation = ticket.generation;
+  bridge.submission_serial = ticket.submissionSerial;
+  bridge.width = ticket.width;
+  bridge.height = ticket.height;
+  bridge.color_format = ticket.colorFormat;
+  bridge.depth_format = ticket.depthFormat;
+  bridge.color_row_pitch = ticket.colorRowPitch;
+  bridge.depth_row_pitch = ticket.depthRowPitch;
+  bridge.color_bytes = ticket.colorBytes;
+  bridge.depth_bytes = ticket.depthBytes;
+  return coin_wgpu_readback_validate(&bridge, error, errorSize);
+}
+
 class CoinWgpuRuntime : public CoinRenderBackendRuntime {
 public:
   bool supportsWindowTargets() const override { return true; }
@@ -65,6 +84,12 @@ public:
     }
 
     char error[512] = {0};
+    const CoinWgpuStatus identity = validateTicketIdentity(ticket, error, sizeof(error));
+    if (identity != COIN_WGPU_OK) {
+      if (diagnostic && error[0]) *diagnostic = error;
+      return identity == COIN_WGPU_INVALID_ARGUMENT
+        ? CoinRenderTarget::READBACK_INVALID_TICKET : CoinRenderTarget::READBACK_ERROR;
+    }
     const CoinWgpuStatus readiness =
       coin_wgpu_readback_query(ticket.token, error, sizeof(error));
     if (readiness != COIN_WGPU_OK) {
@@ -108,7 +133,8 @@ public:
     }
   }
   bool cancelReadback(const CoinRenderReadbackTicket & ticket) override {
-    return ticket.token && coin_wgpu_readback_cancel(ticket.token) == COIN_WGPU_OK;
+    return validateTicketIdentity(ticket, NULL, 0) == COIN_WGPU_OK &&
+      coin_wgpu_readback_cancel(ticket.token) == COIN_WGPU_OK;
   }
   bool cacheTelemetry(CoinRenderCacheTelemetry & outTelemetry) const override {
     CoinWgpuCacheStats stats;

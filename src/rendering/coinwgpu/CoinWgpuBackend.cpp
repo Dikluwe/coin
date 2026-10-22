@@ -498,8 +498,7 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightMultipass(const CoinRenderFrame
                                                          const SbVec2i32 & extent) const {
   if (frame.numPasses == 1) return {};
   uint64_t required = 0;
-  uint64_t jobs = 0, ticketBytes = 0;
-  this->readbackLoad(jobs, ticketBytes);
+  const uint64_t ticketBytes = coin_wgpu_readback_staging_bytes();
 
   if (!CoinRenderMultipassCore::requiredBytes(frame, extent, this->sampleCount, required) ||
       required > frame.multipassBufferBudget)

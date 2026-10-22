@@ -2706,7 +2706,7 @@ pub struct CoinWgpuTarget {
 const _: () = assert!(std::mem::size_of::<CoinWgpuTarget>() == 64);
 
 #[repr(C)]
-#[derive(Copy, Clone, Debug)]
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct CoinWgpuReadbackTicket {
     pub abi_version: u32,
     pub struct_size: u32,
@@ -3810,7 +3810,7 @@ struct RuntimeContext {
     retired_readbacks: Vec<PendingReadback>,
     extra_devices: HashMap<u64, DeviceState>,
     extra_generations: HashMap<u64, u64>,
-    dead_readbacks: HashMap<u64, CoinWgpuStatus>,
+    dead_readbacks: HashMap<u64, (CoinWgpuReadbackTicket, CoinWgpuStatus)>,
 }
 
 fn update_readback_mapping(job: &mut PendingReadback) {
@@ -4606,7 +4606,7 @@ fn make_extra_device(runtime: &RuntimeContext, id: CoinWgpuDeviceId, generation:
 fn invalidate_extra_readbacks(runtime: &mut RuntimeContext, id: CoinWgpuDeviceId) {
     runtime.pending_readbacks.retain(|token, job| {
         if job.device_id == id {
-            runtime.dead_readbacks.insert(*token, CoinWgpuStatus::DeviceLost);
+            runtime.dead_readbacks.insert(*token, (job.ticket, CoinWgpuStatus::DeviceLost));
             false
         } else { true }
     });
@@ -10661,7 +10661,6 @@ fn coin_wgpu_submit_internal(
                 set_error(error_buf, error_buf_len, "Readback ticket ABI version or size mismatch");
                 return CoinWgpuStatus::InvalidArgument;
             }
-            ticket.token = 0;
         }
         if !out_texture.is_null() {
             if !out_ticket.is_null() || (out_texture as usize) % std::mem::align_of::<u64>() != 0 {
@@ -10761,11 +10760,6 @@ fn coin_wgpu_submit_internal(
         if !matches!(sample_count, 1 | 2 | 4) {
             set_error(error_buf, error_buf_len, "MSAA sample count must be 1, 2 or 4");
             return CoinWgpuStatus::InvalidArgument;
-        }
-        if sample_count > 1 && !out_ticket.is_null() {
-            set_error(error_buf, error_buf_len,
-                "MSAA currently supports synchronous offscreen or direct RTT output");
-            return CoinWgpuStatus::Unsupported;
         }
 
         // 4. Dimensions and buffer boundary validation
@@ -11187,8 +11181,19 @@ fn coin_wgpu_submit_internal(
         let runtime = guard.as_mut().unwrap();
         if !out_ticket.is_null() {
             reap_cancelled_readbacks(runtime);
-            if runtime.pending_readbacks.len() + runtime.retired_readbacks.len() >= 16 {
-                set_error(error_buf, error_buf_len, "Too many pending readbacks");
+            // Tickets reserve their packed public payload, independently of
+            // sample attachments and the backend's aligned staging rows.
+            // This is the same finite reservation used by C++ before RTT
+            // producers run, and also protects direct FFI submissions.
+            let depth = tgt.depth_buffer_len >= u64::from(width) * u64::from(height);
+            let requested = required_target_len.checked_mul(if depth { 2 } else { 1 });
+            let pending = runtime.pending_readbacks.values()
+                .chain(runtime.retired_readbacks.iter()).try_fold(0u64, |bytes, job|
+                    bytes.checked_add(job.ticket.color_bytes)?.checked_add(job.ticket.depth_bytes));
+            if runtime.pending_readbacks.len() + runtime.retired_readbacks.len() >= 16
+                || requested.zip(pending).is_none_or(|(requested, pending)|
+                    requested > 128 * 1024 * 1024 || pending > 128 * 1024 * 1024 - requested) {
+                set_error(error_buf, error_buf_len, "Readback budget exhausted: sixteen tickets or 128 MiB of pending output");
                 return CoinWgpuStatus::NotReady;
             }
         }
@@ -12137,7 +12142,7 @@ pub extern "C" fn coin_wgpu_readback_resource_load(jobs: *mut u64, bytes: *mut u
                 .pending_readbacks
                 .values()
                 .chain(runtime.retired_readbacks.iter())
-                .map(|job| job.color.size() + job.depth.as_ref().map_or(0,|depth|depth.size()))
+                .map(|job| job.ticket.color_bytes + job.ticket.depth_bytes)
                 .sum::<u64>();
             (count as u64, payload)
         } else {
@@ -12150,6 +12155,19 @@ pub extern "C" fn coin_wgpu_readback_resource_load(jobs: *mut u64, bytes: *mut u
         1
     }))
     .unwrap_or(0)
+}
+
+// Physical staging remains a separate charge for the multipass resource
+// budget; the public queue limit above counts packed ticket payloads.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_readback_staging_bytes() -> u64 {
+    std::panic::catch_unwind(|| {
+        let mut guard = RUNTIME_CTX.lock().ok()?;
+        if let Some(runtime) = guard.as_mut() {
+            reap_cancelled_readbacks(runtime);
+        }
+        multipass_pending_bytes(guard.as_ref())
+    }).ok().flatten().unwrap_or(u64::MAX)
 }
 
 fn rtt_remaining_capacity(active: usize) -> u32 {
@@ -12230,7 +12248,7 @@ fn check_readback_ready(
         return CoinWgpuStatus::InvalidArgument;
     }
     reap_cancelled_readbacks(runtime);
-    if let Some(status) = runtime.dead_readbacks.remove(&token) {
+    if let Some((_, status)) = runtime.dead_readbacks.remove(&token) {
         set_error(error_buf, error_buf_len, "Readback device was destroyed or lost");
         return status;
     }
@@ -12303,6 +12321,39 @@ fn check_readback_ready(
         return CoinWgpuStatus::BackendError;
     }
     CoinWgpuStatus::Ok
+}
+
+// Read-only identity admission precedes query/poll/cancel in the public C++
+// runtime. A forged descriptor must not advance mapping, consume injected
+// errors, cancel staging, or remove a device-loss tombstone.
+#[no_mangle]
+pub extern "C" fn coin_wgpu_readback_validate(
+    ticket: *const CoinWgpuReadbackTicket,
+    error_buf: *mut std::os::raw::c_char,
+    error_buf_len: usize,
+) -> CoinWgpuStatus {
+    std::panic::catch_unwind(|| {
+        if ticket.is_null() || (ticket as usize) % std::mem::align_of::<CoinWgpuReadbackTicket>() != 0 {
+            set_error(error_buf, error_buf_len, "Missing or misaligned readback ticket");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        let supplied = unsafe { &*ticket };
+        let guard = match RUNTIME_CTX.lock() {
+            Ok(guard) => guard,
+            Err(_) => return CoinWgpuStatus::BackendError,
+        };
+        let stored = guard.as_ref().and_then(|runtime|
+            runtime.pending_readbacks.get(&supplied.token).map(|job| &job.ticket)
+                .or_else(|| runtime.dead_readbacks.get(&supplied.token).map(|(ticket, _)| ticket)));
+        if supplied.token == 0 || stored != Some(supplied) {
+            set_error(error_buf, error_buf_len, "Invalid or consumed asynchronous readback ticket identity");
+            return CoinWgpuStatus::InvalidArgument;
+        }
+        CoinWgpuStatus::Ok
+    }).unwrap_or_else(|_| {
+        set_error(error_buf, error_buf_len, "Panic during readback identity validation");
+        CoinWgpuStatus::BackendError
+    })
 }
 
 #[no_mangle]

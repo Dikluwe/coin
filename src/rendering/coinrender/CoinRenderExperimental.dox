@@ -99,7 +99,11 @@
   This is not a replacement for the Open Inventor traversal model. With phase
   tracing enabled, <tt>plan_reuse</tt> and <tt>pack_mode</tt> expose the path.
 
-  Offscreen targets return color and depth by default. The experimental
+  Single-sample offscreen targets return color and depth by default;
+  multisample targets require explicit depth readback opt-in. Supported
+  MSAA offscreen profiles resolve color by averaging samples and optional
+  depth by their minimum, for synchronous output and asynchronous tickets.
+  The experimental
   CoinRenderTarget::setDepthReadbackEnabled() output policy can request color
   only while retaining GPU depth testing. The Rust connector then omits depth
   staging and mapping; the target's depth accessor is empty and asynchronous
@@ -116,6 +120,8 @@
   from polling, but does not by itself guarantee a lower total elapsed time.
   CoinRenderReadbackTicket remains valid independently of the originating action
   and target; successful polling consumes it.
+  BGFX polling advances one renderer frame and may wait for worker execution,
+  including cold preparation; polling is not guaranteed to be strictly nonblocking.
 
   A window does not read pixels by default. A one-shot
   CoinRenderTarget::requestWindowReadbackRGBA() before the next window

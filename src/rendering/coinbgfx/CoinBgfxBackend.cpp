@@ -3577,7 +3577,7 @@ CoinBgfxBackend::prepareMsaa(int width, int height)
 }
 
 bool
-CoinBgfxBackend::prepareDepthReadbackResources()
+CoinBgfxBackend::prepareDepthReadbackResources(bool staging)
 {
   if (!this->prepareFullscreenResources()) return false;
   if (!bgfx::isValid(this->depthReadProgram))
@@ -3597,6 +3597,9 @@ CoinBgfxBackend::prepareDepthReadbackResources()
     return false;
   }
   for (ReadbackSlot & slot : this->readbackSlots) {
+    // Async tickets own their staging. In particular they must not resize a
+    // pending ring slot's CPU destination while BGFX still writes into it.
+    if (!staging || slot.pending) continue;
     if (!bgfx::isValid(slot.depthTexture))
       slot.depthTexture = bgfx::createTexture2D(this->width, this->height, false, 1,
         bgfx::TextureFormat::R32F, BGFX_TEXTURE_BLIT_DST | BGFX_TEXTURE_READ_BACK);
@@ -5182,10 +5185,6 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
               bgfxFrameProgramNeeds(frame).ordinary))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   }
-  if (outTicket && this->sampleCount > 1)
-    return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX MSAA readback tickets are not supported"};
-  if (this->sampleCount > 1 && !this->presentToWindow && this->readbackPipelineDepth != 1)
-    return {CoinRenderBackendStatus::UNSUPPORTED, "BGFX MSAA offscreen output requires synchronous readback"};
   if (outTicket) {
     auto & runtime = sharedRuntime();
     std::lock_guard<std::mutex> guard(runtime.mutex);
@@ -5395,7 +5394,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       CoinRenderBackendStatus::OUT_OF_MEMORY : this->status;
     return CoinRenderSubmitResult(resizeStatus, this->lastError);
   }
-  if (!this->presentToWindow && target.depthReadbackEnabled && !this->prepareDepthReadbackResources())
+  if (!this->presentToWindow && target.depthReadbackEnabled && !this->prepareDepthReadbackResources(!outTicket))
     return CoinRenderSubmitResult(this->status, this->lastError);
   const auto msaaPreparation = this->prepareMsaa(this->width, this->height);
   if (msaaPreparation.status != CoinRenderBackendStatus::SUCCESS) return msaaPreparation;
@@ -6113,11 +6112,12 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       this->lastError = "BGFX OpenGL returned an invalid pipelined readback size";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
     }
-    if (target.depthReadbackEnabled && bgfx::getCaps()->originBottomLeft)
+    if (oldest->depthRequested && bgfx::getCaps()->originBottomLeft)
       for (int y = 0; y < this->height / 2; ++y)
         std::swap_ranges(oldest->depth.begin() + y * this->width, oldest->depth.begin() + (y + 1) * this->width,
                          oldest->depth.begin() + (this->height - y - 1) * this->width);
-    this->lastPublishedDepth = oldest->depth;
+    if (oldest->depthRequested) this->lastPublishedDepth = oldest->depth;
+    else this->lastPublishedDepth.clear();
     this->lastPublishedReadback = oldest->pixels;
     this->lastPublishedSequence = oldest->sequence;
     oldest->pending = false;
@@ -6160,6 +6160,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   // A synchronous publication exchanges this storage with the target's
   // previous image. Reestablish its size before handing the pointer to BGFX.
   writeSlot->pixels.resize(bytes);
+  writeSlot->depthRequested = target.depthReadbackEnabled;
+  if (writeSlot->depthRequested)
+    writeSlot->depth.resize(static_cast<size_t>(this->width) * this->height);
   bgfx::TextureRegion readRegion;
   readRegion.handle = writeSlot->texture;
   writeSlot->sequence = ++this->readbackSequence;
@@ -6255,7 +6258,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       this->lastError = "BGFX OpenGL returned an invalid RGBA readback size";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
     }
-    if (target.depthReadbackEnabled && bgfx::getCaps()->originBottomLeft)
+    if (publishSlot->depthRequested && bgfx::getCaps()->originBottomLeft)
       for (int y = 0; y < this->height / 2; ++y)
         std::swap_ranges(publishSlot->depth.begin() + y * this->width, publishSlot->depth.begin() + (y + 1) * this->width,
                          publishSlot->depth.begin() + (this->height - y - 1) * this->width);
@@ -6263,9 +6266,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       // The synchronous contract publishes this frame before returning. Its
       // target storage can be recycled without maintaining a duplicate image.
       target.colorBuffer.swap(publishSlot->pixels);
-      if (target.depthReadbackEnabled) target.depthBuffer.swap(publishSlot->depth);
+      if (publishSlot->depthRequested) target.depthBuffer.swap(publishSlot->depth);
     } else {
-      this->lastPublishedDepth = publishSlot->depth;
+      if (publishSlot->depthRequested) this->lastPublishedDepth = publishSlot->depth;
+      else this->lastPublishedDepth.clear();
       this->lastPublishedReadback = publishSlot->pixels;
     }
     this->lastPublishedSequence = publishSlot->sequence;
@@ -7267,6 +7271,13 @@ CoinBgfxBackend::pollReadback(const CoinRenderReadbackTicket & ticket,
     return cb->deviceLost() ? CoinRenderTarget::READBACK_DEVICE_LOST : CoinRenderTarget::READBACK_ERROR;
   }
   const uint32_t completed = bgfx::frame();
+  // The render worker may report a fatal while frame() waits for it. Do not
+  // publish (or normalize) staging after that failure, even if its frame ID
+  // would otherwise look complete.
+  if (cb->failed()) {
+    if (diagnostic) *diagnostic = cb->diagnostic().c_str();
+    return cb->deviceLost() ? CoinRenderTarget::READBACK_DEVICE_LOST : CoinRenderTarget::READBACK_ERROR;
+  }
   auto & entry = *found->second;
   if (static_cast<int32_t>(completed - entry.slot.readyFrame) < 0)
     return CoinRenderTarget::READBACK_NOT_READY;
@@ -7304,8 +7315,15 @@ CoinBgfxBackend::cancelReadback(const CoinRenderReadbackTicket & ticket)
     return true;
   }
   uint32_t completed = bgfx::frame();
-  for (int attempts = 0; static_cast<int32_t>(completed - found->second->slot.readyFrame) < 0 && attempts < 16; ++attempts)
+  for (int attempts = 0; !cb->failed() &&
+       static_cast<int32_t>(completed - found->second->slot.readyFrame) < 0 && attempts < 16; ++attempts)
     completed = bgfx::frame();
+  if (cb->failed()) {
+    // Keep CPU destinations alive until the existing shutdown retirement
+    // fence; another frame cannot establish completion after a fatal.
+    releaseAsync(ticket.token, true);
+    return true;
+  }
   if (static_cast<int32_t>(completed - found->second->slot.readyFrame) < 0) return false;
   releaseAsync(ticket.token);
   return true;

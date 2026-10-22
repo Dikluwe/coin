@@ -516,6 +516,14 @@ CoinWgpuStatus coin_wgpu_submit_async(
   size_t error_buf_len
 );
 
+/* Compare every descriptor field with the retained job/tombstone without
+   advancing mapping, consuming errors or changing its lifetime. */
+CoinWgpuStatus coin_wgpu_readback_validate(
+  const CoinWgpuReadbackTicket * ticket,
+  char * error_buf,
+  size_t error_buf_len
+);
+
 /* Nonblocking readiness check; OK means mapping is complete but does not
    consume the token or publish output. */
 CoinWgpuStatus coin_wgpu_readback_query(
@@ -582,6 +590,7 @@ void coin_wgpu_get_cache_stats(CoinWgpuCacheStats * stats);
 void coin_wgpu_get_performance_stats(CoinWgpuPerformanceStats * stats);
 
 int coin_wgpu_readback_resource_load(uint64_t* jobs, uint64_t* bytes);
+uint64_t coin_wgpu_readback_staging_bytes(void);
 void coin_wgpu_poll_device(void);
 
 void coin_wgpu_set_cache_budget(uint64_t max_bytes, uint64_t max_stale_serials);

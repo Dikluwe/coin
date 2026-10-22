@@ -688,9 +688,6 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     if (this->kind != KIND_OFFSCREEN && this->kind != KIND_WINDOW)
       return {CoinRenderBackendStatus::UNSUPPORTED,
               "MSAA currently requires an offscreen or window target"};
-    if (outTicket)
-      return {CoinRenderBackendStatus::UNSUPPORTED,
-              "MSAA depth readback currently requires synchronous offscreen output"};
   }
   if (frame.rasterizationPolicy != this->options.rasterizationPolicy)
     return {CoinRenderBackendStatus::UNSUPPORTED, "Frame rasterization policy differs from the immutable target policy"};

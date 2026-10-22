@@ -154,6 +154,8 @@ public:
   /**
    * Request a depth readback on offscreen renders. Enabled by default for
    * single-sample targets; multisample targets require an explicit opt-in.
+   * Supported MSAA offscreen profiles resolve color by averaging samples
+   * and optional depth by their minimum, for synchronous output and tickets.
    * Disabling it leaves depth testing intact, but readbackDepth() returns
    * an empty vector and async tickets omit depth. Changing the mode
    * invalidates synchronous readback until the next successful render.
