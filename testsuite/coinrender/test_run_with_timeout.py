@@ -224,6 +224,21 @@ sys.exit(7)
         killed = self.script("target", 'record("target")\nos.kill(os.getpid(), signal.SIGTERM)\n')
         self.assertEqual(self.run_target(killed, timeout=3)[0], 128 + signal.SIGTERM)
 
+    def test_15_completion_text_and_available_debugger_do_not_hide_a_crash(self):
+        self.debugger(mode="ok")  # A debugger exit zero is never target success.
+        for signum in (signal.SIGABRT, signal.SIGSEGV):
+            target = self.script("target", '''record("target")
+import resource
+resource.setrlimit(resource.RLIMIT_CORE, (0, 0))
+print("native_egl_lifetime complete result=0", flush=True)
+os.kill(os.getpid(), %d)
+''' % signum)
+            with self.subTest(signum=signum):
+                code, out, _, _ = self.run_target(target, timeout=3)
+                self.assertIn("native_egl_lifetime complete result=0", out)
+                self.assertEqual(code, 128 + signum)
+                self.assertFalse((self.root / "debugger-event.json").exists())
+
     def test_03_invalid_deadlines_never_start_target(self):
         target = self.script("target", 'record("target")\n')
         for field in ("timeout", "diagnostic_timeout"):

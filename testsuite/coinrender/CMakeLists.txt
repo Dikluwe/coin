@@ -2128,10 +2128,13 @@ if(COIN_BUILD_RENDER)
 			COMMAND CoinRenderNativeEglLifetimeTest --worker --isolated-runtime-display --shared-window-context)
 		add_test(NAME CoinRenderNativeEglPlatformX11SharedWindowIsolatedRuntimeDisplayTest
 			COMMAND CoinRenderNativeEglLifetimeTest --worker --isolated-runtime-display --shared-window-context --platform-x11)
+		add_test(NAME CoinRenderNativeEglHostOwnerWorkerTest
+			COMMAND CoinRenderNativeEglLifetimeTest --worker --isolated-runtime-display --host-egl)
 		set_tests_properties(CoinRenderNativeEglLifetimeTest CoinRenderNativeEglSameDisplayTest
 			CoinRenderNativeEglIsolatedRuntimeDisplayTest CoinRenderNativeEglPlatformX11IsolatedRuntimeDisplayTest
 			CoinRenderNativeEglSharedWindowIsolatedRuntimeDisplayTest
-			CoinRenderNativeEglPlatformX11SharedWindowIsolatedRuntimeDisplayTest PROPERTIES
+			CoinRenderNativeEglPlatformX11SharedWindowIsolatedRuntimeDisplayTest
+			CoinRenderNativeEglHostOwnerWorkerTest PROPERTIES
 			TIMEOUT 300 RESOURCE_LOCK coinrender_gpu)
 
 		set_target_properties(CoinRenderManagerHighlightTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")

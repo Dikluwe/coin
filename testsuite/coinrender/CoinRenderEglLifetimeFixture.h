@@ -7,6 +7,11 @@
 #include <cstdint>
 #include <iostream>
 #include <string>
+#include <thread>
+#if defined(__linux__)
+#include <sys/syscall.h>
+#include <unistd.h>
+#endif
 namespace egl_lifetime {
 using Handle=void*;
 using Int=int;
@@ -20,6 +25,7 @@ constexpr unsigned OPENGL_API=0x30a2;
 constexpr unsigned PLATFORM_X11_KHR=0x31d5;
 constexpr Int EXTENSIONS=0x3055;
 struct Api {
+  bool diagnostics=false;
   void *library=dlopen("libEGL.so.1",RTLD_NOW|RTLD_LOCAL);
 #define EGL_ENTRY(result,name,args) using name##Type=result(*)args; name##Type name=library?reinterpret_cast<name##Type>(dlsym(library,"egl" #name)):nullptr
   EGL_ENTRY(Handle,GetDisplay,(void*));
@@ -71,24 +77,44 @@ struct Api {
     readPixels=reinterpret_cast<ReadPixelsType>(GetProcAddress("glReadPixels"));
     return clearColor&&clear&&readPixels;
   }
-  ~Api(){if(library)dlclose(library);}
+  ~Api(){if(library) {
+    if(diagnostics)std::cout<<"native_egl_lifetime phase=libEGL-close state=begin"<<std::endl;
+    const int result=dlclose(library);
+    if(diagnostics)std::cout<<"native_egl_lifetime phase=libEGL-close state=end result="<<result<<std::endl;
+  }}
 };
 struct Context {
   Api &api;
   Display *native;
+  const int nativeFd;
   Handle display=nullptr, config=nullptr, context=nullptr, surface=nullptr;
-  bool initialized=false,platformX11=false;
-  explicit Context(Api&a,Display*d):api(a),native(d){}
+  bool initialized=false,platformX11=false,diagnostics=false;
+  explicit Context(Api&a,Display*d,bool trace=false):api(a),native(d),nativeFd(d?ConnectionNumber(d):-1),diagnostics(trace){}
   Context(const Context&)=delete;
   Context& operator=(const Context&)=delete;
+  template<typename Call> auto observed(const char *stage,Call call)->decltype(call()) {
+    if(diagnostics) {
+      std::cout<<"egl_lifetime_api stage="<<stage<<" state=begin native="<<native
+        <<" native_fd="<<nativeFd<<" egl="<<display
+        <<" context="<<context<<" surface="<<surface<<" thread="<<std::this_thread::get_id();
+#if defined(__linux__)
+      std::cout<<" tid="<<syscall(SYS_gettid);
+#endif
+      std::cout<<std::endl;
+    }
+    auto result=call();
+    if(diagnostics)std::cout<<"egl_lifetime_api stage="<<stage
+      <<" state=end result="<<result<<" thread="<<std::this_thread::get_id()<<std::endl;
+    return result;
+  }
   bool initialize(bool window,bool explicitX11=false,bool pbufferAndWindow=false) {
     platformX11=explicitX11;
-    if(platformX11&&!api.platformX11Ready())return false;
+    if(platformX11&&!observed("platformX11Ready",[&]{return api.platformX11Ready();}))return false;
     const Attrib platformAttrs[]={NONE};
-    display=platformX11?api.GetPlatformDisplay(PLATFORM_X11_KHR,native,platformAttrs):
-      api.GetDisplay(native);
+    display=platformX11?observed("eglGetPlatformDisplay",[&]{return api.GetPlatformDisplay(PLATFORM_X11_KHR,native,platformAttrs);}):
+      observed("eglGetDisplay",[&]{return api.GetDisplay(native);});
     Int major=0,minor=0;
-    if(!display||!api.Initialize(display,&major,&minor))return false;
+    if(!display||!observed("eglInitialize",[&]{return api.Initialize(display,&major,&minor);}))return false;
     initialized=true;
     if(platformX11&&(major<1||(major==1&&minor<5))) {
       std::cerr<<"native_egl_lifetime FAIL --platform-x11 requires EGL 1.5; got "
@@ -98,22 +124,24 @@ struct Context {
     const Int attrs[]={SURFACE_TYPE,pbufferAndWindow?(PBUFFER_BIT|WINDOW_BIT):(window?WINDOW_BIT:PBUFFER_BIT),
       RENDERABLE_TYPE,OPENGL_BIT,RED_SIZE,8,GREEN_SIZE,8,BLUE_SIZE,8,NONE};
     Int count=0;
-    return api.BindAPI(OPENGL_API)&&api.ChooseConfig(display,attrs,&config,1,&count)&&count==1;
+    return observed("eglBindAPI",[&]{return api.BindAPI(OPENGL_API);})&&
+      observed("eglChooseConfig",[&]{return api.ChooseConfig(display,attrs,&config,1,&count);})&&count==1;
   }
   Handle windowSurface(Window window) {
     const Int attrs[]={NONE};
     const Attrib platformAttrs[]={NONE};
     // KHR_platform_x11 requires a pointer to the Xlib Window value here.
     return platformX11?
-      api.CreatePlatformWindowSurface(display,config,&window,platformAttrs):
-      api.CreateWindowSurface(display,config,window,attrs);
+      observed("eglCreatePlatformWindowSurface",[&]{return api.CreatePlatformWindowSurface(display,config,&window,platformAttrs);}):
+      observed("eglCreateWindowSurface",[&]{return api.CreateWindowSurface(display,config,window,attrs);});
   }
   bool makeCurrent(Window window=0) {
     const Int attrs[]={NONE};
     const Int size[]={WIDTH,64,HEIGHT,64,NONE};
-    context=api.CreateContext(display,config,nullptr,attrs);
-    surface=window?windowSurface(window):api.CreatePbufferSurface(display,config,size);
-    return context&&surface&&api.MakeCurrent(display,surface,surface,context)&&api.loadGl();
+    context=observed("eglCreateContext",[&]{return api.CreateContext(display,config,nullptr,attrs);});
+    surface=window?windowSurface(window):observed("eglCreatePbufferSurface",[&]{return api.CreatePbufferSurface(display,config,size);});
+    return context&&surface&&observed("eglMakeCurrent",[&]{return api.MakeCurrent(display,surface,surface,context);})&&
+      observed("loadGl",[&]{return api.loadGl();});
   }
   bool unchanged() const {
     return api.QueryAPI()==OPENGL_API&&api.GetCurrentDisplay()==display&&
@@ -131,11 +159,11 @@ struct Context {
   }
   bool close() {
     bool ok=true;
-    if(context&&api.GetCurrentContext()==context)
-      ok=api.MakeCurrent(display,nullptr,nullptr,nullptr)&&ok;
-    if(context){ok=api.DestroyContext(display,context)&&ok;context=nullptr;}
-    if(surface){ok=api.DestroySurface(display,surface)&&ok;surface=nullptr;}
-    if(initialized){ok=api.Terminate(display)&&ok;initialized=false;}
+    if(context&&observed("eglGetCurrentContext-before-close",[&]{return api.GetCurrentContext();})==context)
+      ok=observed("eglMakeCurrent-unbind",[&]{return api.MakeCurrent(display,nullptr,nullptr,nullptr);})&&ok;
+    if(context){ok=observed("eglDestroyContext",[&]{return api.DestroyContext(display,context);})&&ok;context=nullptr;}
+    if(surface){ok=observed("eglDestroySurface",[&]{return api.DestroySurface(display,surface);})&&ok;surface=nullptr;}
+    if(initialized){ok=observed("eglTerminate",[&]{return api.Terminate(display);})&&ok;initialized=false;}
     return ok;
   }
   ~Context(){close();}
