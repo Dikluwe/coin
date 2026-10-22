@@ -170,6 +170,20 @@ O perfil CPU integral de RTT usa a configuração pública `COIN_RENDER_BACKEND=
 
 A falha nativa na sexta face também é qualificada: o hook interno, isolado por thread e compartilhado entre instâncias CPU, permite cinco submissões reais completas e falha na sexta antes de alocar ou publicar. A raiz mantém RGBA/depth/serial e permanece pronta; desarmar o hook permite publicar B imediatamente, seguido da restauração exata de A. Uma dependência já concluída não torna publicável o atlas parcial do produtor seguinte. A admissão percorre todas as faces antes de qualquer produtor; entradas inválidas e capacidades CPU recusadas, inclusive apenas na última face, não consomem a falha armada. DIRECT, MSAA 2×/4×, janela, async, sombras e bump mantêm as recusas anteriores desse conector, sem serem apresentados como recursos CPU implementados.
 
+## Bump legado opaco — R26
+
+O perfil GPU Linux renderiza triângulos opacos em RGBA8 linear com uma a oito luzes consumidas. Sem grupo de sombras, aceita qualquer mistura de direcionais, pontuais e `SoSpotLight`. Neste caminho legado, spot usa a posição como point, sem cone ou atenuação, conforme `soshape_bumprender::initLight`. Com sombras ativas, conserva somente luzes/mapas direcionais, até oito mapas e um grupo. Não há truncamento para a primeira luz nem substituição por Phong comum.
+
+Cada vértice transforma luz e olho para o espaço do objeto e a base S/T/N, seguindo a ordem de normalização do Coin; o fragmento interpola esses vetores, calcula DOT3 e o termo especular com expoente `shininess*64`. As contribuições são somadas; a base modula a parcela difusa separadamente do especular. Ocorrências sem bump conservam seu próprio light model. CPU oferece captura, admissão e referência matemática; não implementa este rasterizador bump.
+
+As bases opacas usam as famílias RGBA8 existentes: 2D armazenada, volume 1..256 por eixo, cubemap armazenado de seis faces POT 1..2048 e RTT 2D/cubo STAGED ou DIRECT. Modelos, combinações e unidades 0..7 seguem a admissão comum do receiver. RGB da base sRGB é decodificado por texel antes do filtro/combine. RGB do mapa normal é dado linear codificado, sem decodificação sRGB; seu alpha é ignorado. A conversão de altura preserva Sobel e componentes nativos. RTT resolve faces/atlas/mips em RGBA8 linear e não anuncia sRGB no bit 9 do token privado. A ABI continua 67, sem novos campos de transporte.
+
+Alpha efetivo da base ou material requer o contrato de transparência e é recusado neste perfil opaco; a política declarada de RTT permanece explícita. A opacidade considera todos os mips amostráveis e faces, sem tratar padding do atlas como texel. Limites de imagem, atlas, sampler, wrap e P07/Q permanecem os das famílias de origem, inclusive a qualidade associada ao upload de `SoTexture2` e a divergência nativa B29. Imagens bump têm eixos 1..32767, até 48 MiB por imagem e 256 MiB de RGB transportado por frame.
+
+Revisão, digest e ponteiro são indícios de reuso, não substituem os recursos atuais. A admissão antecede o cache e a submissão dos produtores, inclusive para entradas bump inativas malformadas, últimos índices/luzes/imagens e sexta face. Uma recusa preserva pixels, depth, serial e o ticket anterior válido; o transporte FFI publica o candidato completo somente após sucesso. Dados inativos válidos não impõem iluminação a outro draw.
+
+A qualificação é a seleção de casos e células registrada na matriz, com MSAA 1×/2×/4×, Native/Portable, offscreen, janela/readback/resize, sombras direcionais e RTT. Apresentação física é observada dentro do prazo original de cinco segundos após uma aplicação, sem reaplicar a cena ou aguardar artificialmente para obter outro frame. Não promete visibilidade instantânea no primeiro `XGetImage`. Transparência/OIT, módulos arbitrários com bump no mesmo draw, PBR, HDR/depth/compressão, seamless e outras plataformas conservam contratos próprios. B34 externo permanece aberto; a recriação NVIDIA/OpenGL no caminho afetado continua não qualificada.
+
 ## MSAA/resolve, cor e multipass — P24
 
 Configuração futura tipada do target: formato de cor, espaço de cor e número
