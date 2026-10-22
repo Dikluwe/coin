@@ -383,7 +383,7 @@ bool shadowModuleDelivery(const CoinRenderFramePlan &frame,
     return false;
   const auto &v = ffi.getView();
   shadowModuleDumpFfi(v, "shadowModuleDelivery");
-  ok &= check(v.abi_version == 67 &&
+  ok &= check(v.abi_version == COIN_WGPU_ABI_VERSION &&
                   v.texture_sampling_policy ==
                       uint32_t(frame.textureSamplingPolicy) &&
                   v.shadow_map_size == 256 && v.shadow_caster_count > 0,

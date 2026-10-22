@@ -1996,7 +1996,7 @@ bool delivery(Scene &scene, Harness &h) {
     return false;
   const auto &view = ffi.getView();
   ok &=
-      check(view.abi_version == 67 && view.bump_vertex_count == stream.size() &&
+      check(view.abi_version == COIN_WGPU_ABI_VERSION && view.bump_vertex_count == stream.size() &&
                 view.bump_image_count == 1 && view.texture_count >= 8 &&
                 view.shadow_receiver_count > 0,
             "ABI67 simultaneously owns all texture, bump and shadow packets");

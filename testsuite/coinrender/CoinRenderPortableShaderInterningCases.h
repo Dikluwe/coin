@@ -131,7 +131,7 @@ bool interningDelivery(Run &run, const Module &module,
   size_t packedLogical = 0;
   for (uint64_t i = 0; i < v.portable_module_count; ++i)
     packedLogical += v.portable_modules[i].parameter_count;
-  ok &= check(v.abi_version == 67 && v.portable_module_count == unique &&
+  ok &= check(v.abi_version == COIN_WGPU_ABI_VERSION && v.portable_module_count == unique &&
                   packedSlots.size() == unique &&
                   packedLogical == size_t(unique) * 1024,
               "ABI67 delivers only unique logical 4KiB payloads, never one "

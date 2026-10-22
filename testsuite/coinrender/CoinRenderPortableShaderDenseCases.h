@@ -56,7 +56,7 @@ bool denseDelivery(Run &run, const Module &module,
   for (unsigned i = 0; i < 4; ++i)
     corners[i] = {
         {run.scene.positions->point[i][0], run.scene.positions->point[i][1]}};
-  ok &= check(v.abi_version == 67 && v.portable_module_count == 1 &&
+  ok &= check(v.abi_version == COIN_WGPU_ABI_VERSION && v.portable_module_count == 1 &&
                   v.portable_modules[0].parameter_count == 1024 &&
                   portableFfiQuad(v, packed, corners),
               "ABI67 preserves dense payload and complete authored geometry");

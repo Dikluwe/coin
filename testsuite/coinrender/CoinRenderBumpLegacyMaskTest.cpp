@@ -197,7 +197,7 @@ bool transport(const Source &source, const CoinRenderFramePlan &frame,
     return false;
   const auto &view = ffi.getView();
   unsigned witnesses = 0;
-  bool ok = check(view.abi_version == 67 && frame.shadowGroups.empty() &&
+  bool ok = check(view.abi_version == COIN_WGPU_ABI_VERSION && frame.shadowGroups.empty() &&
                       view.shadow_map_size == 0 && view.bump_image_count == 1 &&
                       view.bump_vertex_count == frame.vertices.size(),
                   "ABI67 legacy bump stream is complete without shadow or "

@@ -6,6 +6,7 @@
 #endif
 
 #include "rendering/coinwgpu/CoinWgpuFfiFrame.h"
+
 #include "rendering/coinwgpu/CoinWgpuBackend.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
@@ -16,6 +17,15 @@
 
 #include <cstdint>
 #include <cstddef>
+
+#if COIN_WGPU_ABI_VERSION == 69
+static_assert(sizeof(CoinWgpuFrameView) == 560, "Protocol 69 measured frame layout");
+static_assert(alignof(CoinWgpuFrameView) == 8, "Protocol 69 measured frame alignment");
+static_assert(offsetof(CoinWgpuFrameView, multipass_clear_colors) == 544,
+              "Protocol 69 per-pass clear color pointer offset");
+static_assert(offsetof(CoinWgpuFrameView, multipass_clear_color_count) == 552,
+              "Protocol 69 per-pass clear color count offset");
+#endif
 #include <array>
 #include <cmath>
 #include <cfenv>
@@ -24,6 +34,7 @@
 #include <functional>
 #include <limits>
 #include <memory>
+#include <utility>
 #include <Inventor/SbRotation.h>
 #include <Inventor/SbVec4f.h>
 #include <Inventor/SbViewVolume.h>
@@ -91,6 +102,15 @@ CoinRenderFramePlan opaqueFrame(bool shared)
 
 bool activeBumpBoundary() {
   auto frame = opaqueFrame(false);
+  CoinRenderViewportSnapshot viewport;
+  viewport.width = viewport.height = 64;
+  frame.viewports.push_back(viewport);
+  CoinRenderCameraSnapshot camera;
+  camera.viewMatrix = frame.renderStates.front().view;
+  camera.projectionMatrixCoin = frame.renderStates.front().projectionCoin;
+  camera.isPerspective = false; // Identity view/projection matrices in this local fixture.
+  frame.cameras.push_back(camera);
+  frame.lightingStates.resize(1);
   CoinWgpuFfiFrame packed;
   std::string error;
   if (!check(packed.prepare(frame, 64, 64, error),
@@ -131,11 +151,36 @@ bool activeBumpBoundary() {
              error == "Bump source mapping does not match packed wgpu frame" &&
              packed.getView().bump_vertex_count == payload.bump_vertex_count,
              "bump FFI packet must match the emitted vertex count")) return false;
+  std::array<uint8_t, sizeof(CoinWgpuFrameView)> retainedHeader;
+  std::memcpy(retainedHeader.data(), &payload, retainedHeader.size());
+  std::vector<std::pair<const void *, std::vector<uint8_t>>> retainedPayloads;
+  const auto retain = [&](const void *address, std::size_t bytes) {
+    if (!bytes) return;
+    const auto *begin = static_cast<const uint8_t *>(address);
+    retainedPayloads.emplace_back(address, std::vector<uint8_t>(begin, begin + bytes));
+  };
+  retain(payload.vertices, payload.vertex_count * sizeof(*payload.vertices));
+  retain(payload.indices, payload.index_count * sizeof(*payload.indices));
+  retain(payload.draws, payload.draw_count * sizeof(*payload.draws));
+  retain(payload.materials, payload.material_count * sizeof(*payload.materials));
+  retain(payload.states, payload.state_count * sizeof(*payload.states));
+  retain(payload.bump_vertices, payload.bump_vertex_count * sizeof(*payload.bump_vertices));
+  retain(payload.bump_images, payload.bump_image_count * sizeof(*payload.bump_images));
+  for (uint64_t i = 0; i < payload.bump_image_count; ++i)
+    retain(payload.bump_images[i].rgb, payload.bump_images[i].rgb_len);
   frame.bumpImages[0].rgb.pop_back();
-  if (!check(!packed.prepareBumpPayload(frame, emittedSources, error) &&
-             error == "Invalid bump image at wgpu transport boundary" &&
-             packed.getView().bump_images[0].rgb_len == 3,
-             "invalid bump image must preserve the previous FFI packet")) return false;
+  error.clear();
+  const bool invalidImageAccepted = packed.prepareBumpPayload(frame, emittedSources, error);
+  bool invalidImagePreserved = std::memcmp(&packed.getView(), retainedHeader.data(), retainedHeader.size()) == 0;
+  if (invalidImagePreserved) for (const auto &retained : retainedPayloads)
+    invalidImagePreserved &= std::memcmp(retained.first, retained.second.data(), retained.second.size()) == 0;
+  if (!check(!invalidImageAccepted && !error.empty() && invalidImagePreserved,
+             "invalid bump image must reject and preserve every prior packet byte and pointer")) {
+    std::cerr << "invalid_bump_image accepted=" << invalidImageAccepted
+              << " packet_preserved=" << invalidImagePreserved
+              << " diagnostic=" << error << '\n';
+    return false;
+  }
   frame.bumpImages[0].rgb.push_back(255);
   emittedSources[0] = static_cast<uint32_t>(frame.vertices.size());
   if (!check(!packed.prepareBumpPayload(frame, emittedSources, error) &&
@@ -147,12 +192,12 @@ bool activeBumpBoundary() {
   // directly executable frame instead requires one consistent slot per draw,
   // PHONG and qualified light input for every consumed bump corner.
   auto directFrame = frame;
-  directFrame.lightingStates.resize(1);
   CoinRenderLightSourceSnapshot light;
   light.type = CoinRenderLightType::DIRECTIONAL; light.direction[2] = -1;
   directFrame.lightingStates[0].lights.push_back(light);
   for (auto &state : directFrame.renderStates) {
     state.lightModel = CoinRenderLightModel::PHONG; state.lightingSlot = 0;
+    state.cameraSlot = state.viewportSlot = 0;
   }
   directFrame.bumpCoords.clear(); directFrame.bumpTangents.clear();
   for (uint32_t i = 0; i < directFrame.vertices.size(); ++i) {
@@ -165,7 +210,8 @@ bool activeBumpBoundary() {
     directFrame.bumpTangents.push_back(basis);
   }
   CoinWgpuFfiFrame directBump;
-  if (!check(directBump.prepareBumpFrame(directFrame, 64, 64, error) &&
+  const bool directPrepared = directBump.prepareBumpFrame(directFrame, 64, 64, error);
+  if (!check(directPrepared &&
              directBump.getView().vertex_count == directFrame.vertices.size() &&
              directBump.getView().bump_vertex_count == directFrame.vertices.size() &&
              directBump.getView().bump_image_count == 1 &&
@@ -174,7 +220,17 @@ bool activeBumpBoundary() {
              directBump.getView().instance_count == 0 &&
              directBump.getView().draw_count == directFrame.draws.size() &&
              directBump.getView().index_count == directFrame.indices.size(),
-             "R26 direct pack must preserve source vertex order and attach bump packet")) return false;
+             "R26 direct pack must preserve source vertex order and attach bump packet")) {
+    const auto &actual = directBump.getView();
+    std::cerr << "direct_bump_boundary prepared=" << directPrepared << " diagnostic=" << error
+              << " vertex=" << actual.vertex_count << '/' << directFrame.vertices.size()
+              << " bump_vertex=" << actual.bump_vertex_count << '/' << directFrame.vertices.size()
+              << " image=" << actual.bump_image_count << "/1"
+              << " instance=" << actual.instance_count << "/0"
+              << " draw=" << actual.draw_count << '/' << directFrame.draws.size()
+              << " index=" << actual.index_count << '/' << directFrame.indices.size() << '\n';
+    return false;
+  }
   for (size_t i = 0; i < directFrame.vertices.size(); ++i) {
     if (!check(std::memcmp(directBump.getView().vertices[i].position,
                            directFrame.vertices[i].position, sizeof(directFrame.vertices[i].position)) == 0,
@@ -192,12 +248,16 @@ bool activeBumpBoundary() {
   // a separate consumed-draw admission boundary; do not confuse these APIs.
   auto partial = directFrame;
   partial.bumpCoords.erase(partial.bumpCoords.begin() + 1);
+  partial.bumpTangents.erase(partial.bumpTangents.begin() + 1);
   CoinWgpuFfiFrame partialPacket;
   if (!check(partialPacket.prepareBumpFrame(partial,64,64,error) &&
              partialPacket.getView().bump_vertices[0].image_slot==1 &&
              partialPacket.getView().bump_vertices[1].image_slot==0 &&
              partialPacket.getView().bump_vertices[2].image_slot==1,
-             "legacy direct transport retains an explicit slot-zero corner without guessing its bump")) return false;
+             "legacy direct transport retains an explicit slot-zero corner without guessing its bump")) {
+    std::cerr << "partial_bump_transport diagnostic=" << error << '\n';
+    return false;
+  }
   const auto retained = directBump.getView();
   const std::vector<CoinWgpuBumpVertex> retainedBump(retained.bump_vertices,
                                                   retained.bump_vertices + retained.bump_vertex_count);
@@ -371,7 +431,7 @@ bool volumeMetadataPacking() {
   std::string diagnostic;
   if (!check(packed.prepare(frame,64,64,diagnostic),"volume ABI packing failed")) return false;
   const auto & view=packed.getView();
-  if (!check(view.abi_version==67 && view.textures[0].format==11 &&
+  if (!check(view.abi_version==COIN_WGPU_ABI_VERSION && view.textures[0].format==11 &&
              view.textures[0].width==4 && view.textures[0].height==2 &&
              view.textures[0].reserved==0x010101 &&
              view.textures[0].pixel_bytes_len==32 &&
@@ -407,7 +467,7 @@ bool npotVolumeMetadataPacking() {
     if(!check(CoinRenderTextureSamplingCore::packVolumeAtlas(pixels,dims[0],dims[1],dims[2],4,mips,image),"NPOT FFI authored atlas"))return false;
     frame.textures.push_back(image);if(!check(packed.prepare(frame,64,64,diagnostic),"NPOT FFI prepare"))return false;
     const uint32_t expected=(dims[0]-1)|((dims[1]-1)<<8)|((dims[2]-1)<<16)|(mips?1u<<24:0);
-    const auto& t=packed.getView().textures[0];ok &= check(packed.getView().abi_version==67&&t.reserved==expected&&t.format==11&&t.width==image.width&&t.height==image.height&&t.pixel_bytes_len==image.pixelsRgba.size(),"NPOT exact XYZ/mip metadata bits");
+    const auto& t=packed.getView().textures[0];ok &= check(packed.getView().abi_version==COIN_WGPU_ABI_VERSION&&t.reserved==expected&&t.format==11&&t.width==image.width&&t.height==image.height&&t.pixel_bytes_len==image.pixelsRgba.size(),"NPOT exact XYZ/mip metadata bits");
     // Revision is only a reuse hint. A valid changed resource must never
     // borrow an older volume packet under an unchanged frame revision.
     const auto currentPacket=[&](const CoinRenderFramePlan& input,const char* gate) {
@@ -415,7 +475,7 @@ bool npotVolumeMetadataPacking() {
       if(!check(cold.prepare(input,64,64,coldError)&&packed.prepare(input,64,64,diagnostic),gate))return false;
       const auto& warm=packed.getView();const auto& fresh=cold.getView();const auto& image=input.textures[0];
       const uint32_t bits=(image.volumeWidth-1)|((image.volumeHeight-1)<<8)|((image.volumeDepth-1)<<16)|(image.volumeMipmapped?1u<<24:0);
-      if(!check(warm.abi_version==67&&warm.texture_count==1&&fresh.texture_count==1,gate))return false;
+      if(!check(warm.abi_version==COIN_WGPU_ABI_VERSION&&warm.texture_count==1&&fresh.texture_count==1,gate))return false;
       const auto& a=warm.textures[0];const auto& b=fresh.textures[0];
       const bool exact=a.width==image.width&&a.height==image.height&&a.format==11&&a.reserved==bits&&
         a.pixel_bytes_len==image.pixelsRgba.size()&&a.pixels&&
@@ -1057,7 +1117,7 @@ bool cubeAtlasPreflightBeforeReuse() {
   }
   const auto preserved=[&]() {
     const auto & a=packed.getView(),& b=independent.getView();
-    if(a.abi_version!=67 || a.texture_count!=1 ||
+    if(a.abi_version!=COIN_WGPU_ABI_VERSION || a.texture_count!=1 ||
        a.textures[0].format!=12 || a.textures[0].reserved!=0x41 ||
        a.textures[0].width!=4 || a.textures[0].height!=6 ||
        a.textures[0].pixel_bytes_len!=96 ||
@@ -2512,7 +2572,7 @@ main(int argc, char ** argv)
                "canonical rasterization policy must cross the private ABI")) return 1;
   }
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == 67 && sizeof(CoinWgpuFrameView) == 544 &&
+  if (!check(first.abi_version == COIN_WGPU_ABI_VERSION && sizeof(CoinWgpuFrameView) == (COIN_WGPU_ABI_VERSION == 69 ? 560 : 544) &&
              offsetof(CoinWgpuFrameView, multipass_count) == 512 &&
              offsetof(CoinWgpuFrameView, multipass_reserved) == 516 &&
              offsetof(CoinWgpuFrameView, multipass_budget_bytes) == 520 &&
@@ -2524,7 +2584,7 @@ main(int argc, char ** argv)
              sizeof(CoinWgpuShadowDraw) == 160 &&
              offsetof(CoinWgpuShadowDraw, viewport) == 144 &&
              first.texture_sampling_policy == 0 && first.rasterization_policy == 0 && sizeof(CoinWgpuVertex) == 164 &&
-             sizeof(CoinWgpuRenderState) == 2436 && first.states[0].texture_projection == 1 && first.states[0].color_write == 1 &&
+             sizeof(CoinWgpuRenderState) == (COIN_WGPU_ABI_VERSION == 67 ? 2436 : 2564) && first.states[0].texture_projection == 1 && first.states[0].color_write == 1 &&
              first.bump_vertices == NULL && first.bump_vertex_count == 0 &&
              first.bump_images == NULL && first.bump_image_count == 0,
              "sampling/projective private protocol and frame/vertex layout")) return 1;
@@ -2552,12 +2612,12 @@ main(int argc, char ** argv)
              "packed texture does not own its storage"))
     return 1;
 
+  const CoinRenderFramePlan resourceBaseline = frame;
   frame.vertices[0].position[0] = 9.0f;
   frame.renderStates[0].textureProjection = CoinRenderTextureProjection::PROJECTIVE;
   frame.vertices[0].textureR[7] = 99.0f;
   frame.vertices[0].textureQ[7] = 100.0f;
   frame.indices[0] = 7;
-  frame.textures[0].pixelsRgba[0] = 99;
   if (!check(packed.prepare(frame, 128, 16, diagnostic), "cached packing failed") ||
       !check(packed.reusedLastPrepare(), "same non-zero revision was not reused")) return 1;
   const CoinWgpuFrameView & reused = packed.getView();
@@ -2569,8 +2629,26 @@ main(int argc, char ** argv)
                  reused.vertices[0].extra_texcoords[6][3] == 8.25f,
              "reuse observed mutated source homogeneous texture coordinates") ||
       !check(reused.indices[0] == 0, "reuse observed mutated source indices") ||
-      !check(reused.textures[0].pixels[0] == 10, "reuse observed mutated texture bytes")) return 1;
+      !check(reused.textures[0].pixels[0] == 10, "geometry reuse changed untouched texture bytes")) return 1;
 
+  auto changedResource = resourceBaseline;
+  changedResource.textures[0].pixelsRgba[0] = 99;
+  if (!check(packed.prepare(changedResource, 128, 16, diagnostic), "same-revision current texture packing failed") ||
+      !check(!packed.reusedLastPrepare(), "changed current texture must invalidate full-packet reuse") ||
+      !check(packed.getView().frame_revision == resourceBaseline.revision &&
+                 packed.getView().textures[0].pixels[0] == 99,
+             "same-revision current texture bytes must replace stale packed bytes") ||
+      !check(packed.getView().textures[0].pixels != changedResource.textures[0].pixelsRgba.data(),
+             "refreshed current texture must own its copied storage")) {
+    std::cerr << "same_revision_texture diagnostic=" << diagnostic
+              << " reused=" << packed.reusedLastPrepare() << '\n';
+    return 1;
+  }
+  changedResource.textures[0].pixelsRgba[0] = 37;
+  if (!check(packed.getView().textures[0].pixels[0] == 99,
+             "current texture packet must outlive later source byte changes")) return 1;
+
+  frame.textures[0].pixelsRgba[0] = 99;
   frame.revision = 42;
   if (!check(packed.prepare(frame, 128, 16, diagnostic), "new revision packing failed") ||
       !check(!packed.reusedLastPrepare(), "new revision incorrectly reused packing") ||

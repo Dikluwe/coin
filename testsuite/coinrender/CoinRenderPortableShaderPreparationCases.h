@@ -120,7 +120,7 @@ bool preparationDelivery(Run &run, SoIndexedFaceSet *mesh,
     ok &= check(portableFfiQuad(v, packed[lane], corners),
                 "FFI geometry coverage and occurrence transform remain exact");
   }
-  return check(v.abi_version == 67 && v.portable_module_count == instances,
+  return check(v.abi_version == COIN_WGPU_ABI_VERSION && v.portable_module_count == instances,
                "ABI67 transports only the actual consumed module payloads") &&
          ok;
 }

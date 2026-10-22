@@ -23,7 +23,7 @@ bool raw63(Run &run) {
   if (!packed)
     return false;
   auto view = ffi.getView();
-  if (!check(view.abi_version == 67 && view.portable_module_count == 1 &&
+  if (!check(view.abi_version == COIN_WGPU_ABI_VERSION && view.portable_module_count == 1 &&
                  view.portable_modules &&
                  view.portable_modules[0].node_count == 1 &&
                  view.portable_modules[0].parameter_count == 4 &&

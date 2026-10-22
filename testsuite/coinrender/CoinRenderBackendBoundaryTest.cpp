@@ -76,7 +76,9 @@ int main() {
   CHECK(!target->supportsOffscreenShadows(false));
   target->directTextureOutput = false;
   target->kind = CoinRenderTargetP::KIND_WINDOW;
-  CHECK(!target->supportsOffscreenShadows(false));
+  CHECK(target->supportsOffscreenShadows(false));
+  CHECK(!target->supportsOffscreenShadows(true));
+  CHECK(executor->prepared == 0 && executor->submitted == 0 && executor->asyncSubmitted == 0);
   target->kind = CoinRenderTargetP::KIND_OFFSCREEN;
 
   auto * scene = new SoSeparator;

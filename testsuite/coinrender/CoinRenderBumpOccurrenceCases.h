@@ -284,7 +284,7 @@ bool occurrenceDelivery(const OccurrenceScene &s, const CoinRenderFramePlan &f,
   if (!packed)
     return false;
   const auto &v = ffi.getView();
-  ok &= check(v.abi_version == 67 && v.bump_image_count == 1 &&
+  ok &= check(v.abi_version == COIN_WGPU_ABI_VERSION && v.bump_image_count == 1 &&
                   v.bump_vertex_count == stream.size() &&
                   v.portable_module_count == (s.adapted ? 1u : 0u),
               "ABI67 owns exact consumed normalmap and module resources");
@@ -654,7 +654,7 @@ bool occurrenceRaw(Run &run, const OccurrenceScene &scene) {
                       "neighbor"))
       return false;
   }
-  if (!check(original.abi_version == 67 && consumedDraw != UINT32_MAX &&
+  if (!check(original.abi_version == COIN_WGPU_ABI_VERSION && consumedDraw != UINT32_MAX &&
                  !consumedVertices.empty() && bumpCorners == 6 &&
                  neighborCorners == 6,
              "raw mixed packet has complete independent consumed/unconsumed "

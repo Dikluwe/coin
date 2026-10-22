@@ -35,7 +35,8 @@
 #include <vector>
 
 static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 67 ||
-              COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 68,
+              COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 68 ||
+              COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 69,
               "Known raster-attribute or per-light ambient bridge protocol");
 static_assert(alignof(CoinWgpuLight) == 4, "Bridge light alignment");
 static_assert(alignof(CoinWgpuRenderState) == 4, "Bridge render-state alignment");
@@ -44,7 +45,7 @@ static_assert(sizeof(CoinWgpuLight) == 64, "Protocol 67 light layout");
 static_assert(sizeof(CoinWgpuRenderState) == 2436, "Protocol 67 render-state layout");
 static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Protocol 67 texture projection offset");
 static_assert(offsetof(CoinWgpuRenderState, flat_shadow_primary) == 2296, "Protocol 67 flat shadow primary offset");
-#elif COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 68
+#elif COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 68 || COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 69
 static_assert(sizeof(CoinWgpuLight) == 80, "Protocol 68 per-light ambient layout");
 static_assert(offsetof(CoinWgpuLight, position_type) == 0, "Protocol 68 light position offset");
 static_assert(offsetof(CoinWgpuLight, direction_cutoff) == 16, "Protocol 68 light direction offset");

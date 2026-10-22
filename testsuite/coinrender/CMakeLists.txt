@@ -5495,3 +5495,7 @@ include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderBumpCompletionTests.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderMsaaAsyncCompletionTests.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderVrmlVisualTests.cmake)
+
+include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderPortableApiTests.cmake)
+
+include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderPortableContinuationTests.cmake)

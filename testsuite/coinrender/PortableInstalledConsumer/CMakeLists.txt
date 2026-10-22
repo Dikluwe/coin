@@ -1,0 +1,11 @@
+cmake_minimum_required(VERSION 3.16)
+project(CoinRenderPortableInstalledConsumer LANGUAGES CXX)
+find_package(Coin CONFIG REQUIRED)
+find_package(CoinRender CONFIG REQUIRED)
+add_executable(CoinRenderPortableInstalledConsumer main.cpp)
+set_target_properties(CoinRenderPortableInstalledConsumer PROPERTIES
+  CXX_STANDARD 11 CXX_STANDARD_REQUIRED YES CXX_EXTENSIONS NO)
+target_link_libraries(CoinRenderPortableInstalledConsumer PRIVATE CoinRender::CoinRender Coin::Coin)
+enable_testing()
+add_test(NAME CoinRenderPortableInstalledConsumer COMMAND CoinRenderPortableInstalledConsumer)
+set_tests_properties(CoinRenderPortableInstalledConsumer PROPERTIES TIMEOUT 180 SKIP_RETURN_CODE 77)

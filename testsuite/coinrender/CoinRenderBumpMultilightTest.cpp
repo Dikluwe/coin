@@ -494,7 +494,7 @@ bool delivery(const Scene &s, const CoinRenderFramePlan &frame,
     return false;
   const auto &view = ffi.getView();
   bool ok =
-      check(view.abi_version == 67, "baseline private version67 is explicit");
+      check(view.abi_version == COIN_WGPU_ABI_VERSION, "baseline private current version is explicit");
   std::set<uint64_t> authored;
   for (size_t i = 0; i < s.lamps.size(); ++i)
     if (s.used(i))

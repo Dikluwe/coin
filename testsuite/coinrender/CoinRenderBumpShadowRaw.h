@@ -17,7 +17,7 @@ inline bool raw(Scene &scene, Harness &h, unsigned samples) {
     return false;
   const auto original = owner.getView();
   bool ok =
-      check(original.abi_version == 67 && original.bump_image_count == 1 &&
+      check(original.abi_version == COIN_WGPU_ABI_VERSION && original.bump_image_count == 1 &&
                 original.shadow_map_size && original.shadow_receiver_count,
             "raw positive contains actual simultaneous packets");
   const uint32_t policy =
