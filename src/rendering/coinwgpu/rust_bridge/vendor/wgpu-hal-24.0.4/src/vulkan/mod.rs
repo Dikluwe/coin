@@ -45,6 +45,21 @@ use ash::{ext, khr, vk};
 use parking_lot::{Mutex, RwLock};
 use wgt::InternalCounter;
 
+// Cache the process setting so normal rendering pays only a predictable branch.
+fn wsi_trace_enabled() -> bool {
+    static ENABLED: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+    *ENABLED.get_or_init(|| {
+        std::env::var_os("COIN_WGPU_TRACE_WSI").is_some()
+            || std::env::var_os("COIN_RENDER_TRACE_PHASES").is_some()
+            || std::env::var_os("COIN_WGPU_TRACE_PHASES").is_some()
+    })
+}
+
+fn wsi_trace(args: fmt::Arguments<'_>) {
+    eprintln!("COIN_WGPU_WSI pid={} thread={:?} {}",
+        std::process::id(), std::thread::current().id(), args);
+}
+
 const MILLIS_TO_NANOS: u64 = 1_000_000;
 const MAX_TOTAL_ATTACHMENTS: usize = crate::MAX_COLOR_ATTACHMENTS * 2 + 1;
 
@@ -1270,12 +1285,22 @@ impl crate::Queue for Queue {
         }
 
         profiling::scope!("vkQueueSubmit");
-        unsafe {
-            self.device
-                .raw
-                .queue_submit(self.raw, &[vk_info], fence_raw)
-                .map_err(map_host_device_oom_and_lost_err)?
+        let trace = wsi_trace_enabled() && !surface_textures.is_empty();
+        if trace {
+            wsi_trace(format_args!("stage=vkQueueSubmit event=begin source=actual queue={:?} fence={:?} signal_value={} surface_images={:?} wait_semaphores={:?} signal_semaphores={:?}",
+                self.raw, fence_raw, signal_value,
+                surface_textures.iter().map(|st| (st.index, st.texture.raw)).collect::<Vec<_>>(),
+                wait_semaphores, signal_semaphores));
+        }
+        let started = trace.then(std::time::Instant::now);
+        let result = unsafe {
+            self.device.raw.queue_submit(self.raw, &[vk_info], fence_raw)
         };
+        if let Some(started) = started {
+            wsi_trace(format_args!("stage=vkQueueSubmit event=end source=actual queue={:?} result={:?} elapsed_ms={:.6}",
+                self.raw, result, started.elapsed().as_secs_f64() * 1000.0));
+        }
+        result.map_err(map_host_device_oom_and_lost_err)?;
         Ok(())
     }
 
@@ -1290,10 +1315,11 @@ impl crate::Queue for Queue {
 
         let swapchains = [ssc.raw];
         let image_indices = [texture.index];
+        let present_wait_semaphores = swapchain_semaphores.get_present_wait_semaphores();
         let vk_info = vk::PresentInfoKHR::default()
             .swapchains(&swapchains)
             .image_indices(&image_indices)
-            .wait_semaphores(swapchain_semaphores.get_present_wait_semaphores());
+            .wait_semaphores(present_wait_semaphores);
 
         let mut display_timing;
         let present_times;
@@ -1312,9 +1338,22 @@ impl crate::Queue for Queue {
             vk_info
         };
 
+        let trace = wsi_trace_enabled();
+        if trace {
+            wsi_trace(format_args!("stage=vkQueuePresentKHR event=begin source=actual surface={:?} swapchain={:?} queue={:?} image_index={} image={:?} wait_semaphores={:?} semaphore_refs={}",
+                surface.raw, ssc.raw, self.raw, texture.index, texture.texture.raw,
+                present_wait_semaphores,
+                Arc::strong_count(&texture.surface_semaphores)));
+        }
+        let started = trace.then(std::time::Instant::now);
         let suboptimal = {
             profiling::scope!("vkQueuePresentKHR");
-            unsafe { self.swapchain_fn.queue_present(self.raw, &vk_info) }.map_err(|error| {
+            let result = unsafe { self.swapchain_fn.queue_present(self.raw, &vk_info) };
+            if let Some(started) = started {
+                wsi_trace(format_args!("stage=vkQueuePresentKHR event=end source=actual surface={:?} swapchain={:?} image_index={} result={:?} elapsed_ms={:.6} display_completion=unknown",
+                    surface.raw, ssc.raw, texture.index, result, started.elapsed().as_secs_f64() * 1000.0));
+            }
+            result.map_err(|error| {
                 match error {
                     vk::Result::ERROR_OUT_OF_DATE_KHR => crate::SurfaceError::Outdated,
                     vk::Result::ERROR_SURFACE_LOST_KHR => crate::SurfaceError::Lost,

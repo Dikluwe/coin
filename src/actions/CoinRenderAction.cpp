@@ -201,6 +201,7 @@
 #include "rendering/coinrender/CoinRenderRttExecution.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderNativeSurfaceCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderManagerLayerPurpose.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
@@ -2566,8 +2567,21 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     }
     if (this->target && this->target->getStatus() != CoinRenderTarget::TARGET_READY &&
         this->target->getStatus() != CoinRenderTarget::TARGET_LOST) {
-      this->setDiagnostic(CoinRenderDiagnosticShell::fromTarget(this->target->getStatus(), this->target->getLastError()));
-      return false;
+      const CoinRenderTargetP * targetState = &this->target->getPimpl().get();
+      // A transient timeout or lost surface leaves the target recoverable.
+      // Let the next explicit apply reach executeFrame's prepareBackend
+      // path; suspended/invalid targets must still stop before callbacks.
+      const bool recoverableTarget =
+        (this->target->getStatus() == CoinRenderTarget::TARGET_NOT_READY ||
+         this->target->getStatus() == CoinRenderTarget::TARGET_SURFACE_LOST) &&
+        !targetState->suspended && targetState->size[0] > 0 && targetState->size[1] > 0 &&
+        (targetState->kind != CoinRenderTargetP::KIND_WINDOW ||
+          (coin_render_surface_header_diagnostic(targetState->nativeDesc).empty() &&
+           coin_render_surface_handles_diagnostic(targetState->nativeDesc).empty()));
+      if (!recoverableTarget) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::fromTarget(this->target->getStatus(), this->target->getLastError()));
+        return false;
+      }
     }
     if (this->target) this->executionOptions = this->target->getOptions();
     std::string error;

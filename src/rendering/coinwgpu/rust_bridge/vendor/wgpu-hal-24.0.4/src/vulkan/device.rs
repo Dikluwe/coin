@@ -592,13 +592,27 @@ impl super::Device {
             info = info.push_next(&mut format_list_info);
         }
 
+        let trace = super::wsi_trace_enabled();
+        if trace {
+            super::wsi_trace(format_args!("stage=vkCreateSwapchainKHR event=begin source=actual surface={:?} old_swapchain={:?} size={}x{} min_images={} present_mode={:?}",
+                surface.raw, old_swapchain, info.image_extent.width, info.image_extent.height,
+                info.min_image_count, info.present_mode));
+        }
+        let started = trace.then(std::time::Instant::now);
         let result = {
             profiling::scope!("vkCreateSwapchainKHR");
             unsafe { functor.create_swapchain(&info, None) }
         };
+        if let Some(started) = started {
+            super::wsi_trace(format_args!("stage=vkCreateSwapchainKHR event=end source=actual surface={:?} old_swapchain={:?} result={:?} elapsed_ms={:.6}",
+                surface.raw, old_swapchain, result, started.elapsed().as_secs_f64() * 1000.0));
+        }
 
         // doing this before bailing out with error
         if old_swapchain != vk::SwapchainKHR::null() {
+            if trace {
+                super::wsi_trace(format_args!("stage=vkDestroySwapchainKHR event=begin source=actual surface={:?} swapchain={:?}", surface.raw, old_swapchain));
+            }
             unsafe { functor.destroy_swapchain(old_swapchain, None) }
         }
 
@@ -2596,6 +2610,7 @@ impl super::DeviceShared {
         timeout_ns: u64,
     ) -> Result<bool, crate::DeviceError> {
         profiling::scope!("Device::wait");
+        let trace = super::wsi_trace_enabled();
         match *fence {
             super::Fence::TimelineSemaphore(raw) => {
                 let semaphores = [raw];
@@ -2603,6 +2618,10 @@ impl super::DeviceShared {
                 let vk_info = vk::SemaphoreWaitInfo::default()
                     .semaphores(&semaphores)
                     .values(&values);
+                if trace {
+                    super::wsi_trace(format_args!("stage=vkWaitSemaphores event=begin source=actual semaphore={:?} value={} timeout_ns={}", raw, wait_value, timeout_ns));
+                }
+                let started = trace.then(std::time::Instant::now);
                 let result = match self.extension_fns.timeline_semaphore {
                     Some(super::ExtensionFn::Extension(ref ext)) => unsafe {
                         ext.wait_semaphores(&vk_info, timeout_ns)
@@ -2612,6 +2631,10 @@ impl super::DeviceShared {
                     },
                     None => unreachable!(),
                 };
+                if let Some(started) = started {
+                    super::wsi_trace(format_args!("stage=vkWaitSemaphores event=end source=actual semaphore={:?} value={} result={:?} elapsed_ms={:.6}",
+                        raw, wait_value, result, started.elapsed().as_secs_f64() * 1000.0));
+                }
                 match result {
                     Ok(()) => Ok(true),
                     Err(vk::Result::TIMEOUT) => Ok(false),
@@ -2624,11 +2647,23 @@ impl super::DeviceShared {
                 free: _,
             } => {
                 if wait_value <= last_completed {
+                    if trace {
+                        super::wsi_trace(format_args!("stage=wait_for_fence event=already_completed source=actual value={} last_completed={} vulkan_wait_called=0", wait_value, last_completed));
+                    }
                     Ok(true)
                 } else {
                     match active.iter().find(|&&(value, _)| value >= wait_value) {
                         Some(&(_, raw)) => {
-                            match unsafe { self.raw.wait_for_fences(&[raw], true, timeout_ns) } {
+                            if trace {
+                                super::wsi_trace(format_args!("stage=vkWaitForFences event=begin source=actual fence={:?} value={} timeout_ns={}", raw, wait_value, timeout_ns));
+                            }
+                            let started = trace.then(std::time::Instant::now);
+                            let result = unsafe { self.raw.wait_for_fences(&[raw], true, timeout_ns) };
+                            if let Some(started) = started {
+                                super::wsi_trace(format_args!("stage=vkWaitForFences event=end source=actual fence={:?} value={} result={:?} elapsed_ms={:.6}",
+                                    raw, wait_value, result, started.elapsed().as_secs_f64() * 1000.0));
+                            }
+                            match result {
                                 Ok(()) => Ok(true),
                                 Err(vk::Result::TIMEOUT) => Ok(false),
                                 Err(other) => Err(super::map_host_device_oom_and_lost_err(other)),

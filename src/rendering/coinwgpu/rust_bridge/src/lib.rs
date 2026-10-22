@@ -3746,6 +3746,50 @@ struct SurfaceRecord {
     presentation: Option<surface_present::Presentation>,
 }
 
+fn surface_wsi_tracing_enabled() -> bool {
+    static ENABLED: OnceLock<bool> = OnceLock::new();
+    *ENABLED.get_or_init(|| {
+        std::env::var_os("COIN_WGPU_TRACE_WSI").is_some()
+            || std::env::var_os("COIN_RENDER_TRACE_PHASES").is_some()
+            || std::env::var_os("COIN_WGPU_TRACE_PHASES").is_some()
+    })
+}
+
+// Keep the Coin publication context adjacent to the HAL's actual WSI calls.
+// An injected result never claims that vkAcquireNextImageKHR was called.
+fn acquire_surface_texture(record: &SurfaceRecord, surface_id: CoinWgpuSurfaceId,
+    attempt: u32, injected: Option<wgpu::SurfaceError>, trace: bool)
+    -> Result<wgpu::SurfaceTexture, wgpu::SurfaceError>
+{
+    let source = if injected.is_some() { "injected" } else { "actual" };
+    if trace {
+        eprintln!("COIN_WGPU_WSI stage=get_current_texture event=begin source={} pid={} thread={:?} surface={} generation={} device_generation={} published_serial={} last_submitted_serial={} attempt={} native_type={} handle_a={:#x} handle_b={:#x}",
+            source, std::process::id(), std::thread::current().id(), surface_id,
+            record.surface_generation, record.configured_device_generation,
+            record.published_serial, LAST_SUBMITTED_SERIAL.load(Ordering::SeqCst), attempt,
+            record.native_desc.r#type, record.native_desc.handle_a, record.native_desc.handle_b);
+    }
+    let start = trace.then(std::time::Instant::now);
+    let result = match injected {
+        Some(error) => Err(error),
+        None => record.surface.get_current_texture(),
+    };
+    if let Some(start) = start {
+        let status = match &result {
+            Ok(_) => "Ok",
+            Err(wgpu::SurfaceError::Timeout) => "Timeout",
+            Err(wgpu::SurfaceError::Outdated) => "Outdated",
+            Err(wgpu::SurfaceError::Lost) => "Lost",
+            Err(wgpu::SurfaceError::OutOfMemory) => "OutOfMemory",
+            Err(wgpu::SurfaceError::Other) => "Other",
+        };
+        eprintln!("COIN_WGPU_WSI stage=get_current_texture event=end source={} pid={} thread={:?} surface={} generation={} attempt={} result={} elapsed_ms={:.6}",
+            source, std::process::id(), std::thread::current().id(), surface_id,
+            record.surface_generation, attempt, status, start.elapsed().as_secs_f64() * 1000.0);
+    }
+    result
+}
+
 type ReadbackMapResult = Result<(), wgpu::BufferAsyncError>;
 
 // Only unmapped, completed buffers may enter this device-owned pool. Keeping
@@ -3957,6 +4001,8 @@ pub const FAULT_SURFACE_LOST_PERSISTENT: i32 = 104;
 pub const FAULT_SURFACE_OUT_OF_MEMORY: i32 = 105;
 pub const FAULT_SURFACE_OTHER: i32 = 106;
 pub const FAULT_CONFIGURE_FAILURE: i32 = 107;
+// Unlike 101, this reaches normal acquisition after frame validation/preparation.
+pub const FAULT_SURFACE_TIMEOUT_AT_ACQUIRE: i32 = 108;
 pub const FAULT_CACHE_ALLOC_FAIL: i32 = 201;
 pub const FAULT_RTT_COLOR_ALLOC: i32 = 301;
 pub const FAULT_RTT_COLOR_VIEW: i32 = 302;
@@ -4856,6 +4902,13 @@ fn configure_surface_record(
     record.needs_reconfigure = false;
     record.configured_device_generation = device_generation;
     record.surface_generation += 1;
+
+    if surface_wsi_tracing_enabled() {
+        eprintln!("COIN_WGPU_WSI stage=coin_configure event=end source=actual native_type={} handle_a={:#x} handle_b={:#x} generation={} device_generation={} size={}x{} present_mode={:?} maximum_frame_latency={}",
+            record.native_desc.r#type, record.native_desc.handle_a, record.native_desc.handle_b,
+            record.surface_generation, device_generation, width, height, chosen_present,
+            record.config.as_ref().unwrap().desired_maximum_frame_latency);
+    }
 
     Ok(())
 }
@@ -6581,20 +6634,32 @@ fn validate_multipass_metadata(frame:&CoinWgpuFrameView,
             "snapshot clears",error,error_len)?;
         if values.iter().any(|value|!value.is_finite()) { return Err(invalid("Non-finite snapshot clear color")); }
     }
-    let draws=validate_slice(frame.draws,frame.draw_count,"multipass draws",error,error_len)?;
-    for draw in draws {
-        let mask=(draw.composition_flags>>15)&0xffff;
-        if mask>>frame.multipass_count!=0 || (frame.multipass_count>1 &&
-            draw.composition_flags&0x80000000!=0 && frame.multipass_matrix_count==0) {
-            return Err(invalid("Invalid multipass draw mask or missing raster matrices"));
-        }
-    }
+
     if frame.multipass_count>1 {
         let minimum=multipass::bytes(frame.width,frame.height)
             .and_then(|n|frame.multipass_matrix_count.checked_mul(4).and_then(|m|n.checked_add(m)));
         if minimum.is_none_or(|bytes|bytes>frame.multipass_budget_bytes) {
             set_error(error,error_len,"Multipass accumulation and projection payload exceed budget");
             return Err(CoinWgpuStatus::OutOfMemory);
+        }
+    }
+    Ok(())
+}
+
+// Validate the resolved draw source: either structurally checked caller slices
+// or the immutable snapshot proven by camera_base. Camera patches intentionally
+// omit caller geometry while retaining the snapshot's counts and draw masks.
+fn validate_multipass_draws(frame:&CoinWgpuFrameView, draws:&[CoinWgpuDraw],
+    error:*mut std::os::raw::c_char, error_len:usize) -> Result<(),CoinWgpuStatus> {
+    let invalid=|message:&str| {set_error(error,error_len,message);CoinWgpuStatus::InvalidArgument};
+    if !(1..=16).contains(&frame.multipass_count) || draws.len() as u64!=frame.draw_count {
+        return Err(invalid("Invalid multipass draw count"));
+    }
+    for draw in draws {
+        let mask=(draw.composition_flags>>15)&0xffff;
+        if mask>>frame.multipass_count!=0 || (frame.multipass_count>1 &&
+            draw.composition_flags&0x80000000!=0 && frame.multipass_matrix_count==0) {
+            return Err(invalid("Invalid multipass draw mask or missing raster matrices"));
         }
     }
     Ok(())
@@ -9800,6 +9865,7 @@ fn coin_wgpu_surface_submit_internal(
                 Ok(s) => s,
                 Err(st) => return st,
             } };
+        if let Err(status)=validate_multipass_draws(f,draws_slice,error_buf,error_buf_len) {return status;}
         let materials_slice = if let Some(scene) = owned_patch.as_ref() {
             scene.geometry.materials.as_slice()
         } else { match validate_slice(
@@ -10199,19 +10265,24 @@ fn coin_wgpu_surface_submit_internal(
         }
 
         // 8. Acquire texture with strictly 1 recovery attempt
-        let mut acquire_result = if fault == FAULT_SURFACE_OUTDATED_ONCE
+        let injected_acquire = if fault == FAULT_SURFACE_TIMEOUT_AT_ACQUIRE {
+            Some(wgpu::SurfaceError::Timeout)
+        } else if fault == FAULT_SURFACE_OUTDATED_ONCE
             && FAULT_SURFACE_OUTDATED_COUNT.fetch_add(1, Ordering::SeqCst) == 0
         {
-            Err(wgpu::SurfaceError::Outdated)
+            Some(wgpu::SurfaceError::Outdated)
         } else if fault == FAULT_SURFACE_LOST_ONCE
             && FAULT_SURFACE_LOST_COUNT.fetch_add(1, Ordering::SeqCst) == 0
         {
-            Err(wgpu::SurfaceError::Lost)
+            Some(wgpu::SurfaceError::Lost)
         } else if fault == FAULT_SURFACE_LOST_PERSISTENT {
-            Err(wgpu::SurfaceError::Lost)
+            Some(wgpu::SurfaceError::Lost)
         } else {
-            record.surface.get_current_texture()
+            None
         };
+        let trace_wsi = trace_phases || surface_wsi_tracing_enabled();
+        let mut acquire_result = acquire_surface_texture(record, surface_id, 1,
+            injected_acquire, trace_wsi);
 
         if let Err(err) = &acquire_result {
             match err {
@@ -10239,11 +10310,9 @@ fn coin_wgpu_surface_submit_internal(
                         set_error(error_buf, error_buf_len, &e);
                         return CoinWgpuStatus::SurfaceLost;
                     }
-                    acquire_result = if fault == FAULT_SURFACE_LOST_PERSISTENT {
-                        Err(wgpu::SurfaceError::Lost)
-                    } else {
-                        record.surface.get_current_texture()
-                    };
+                    acquire_result = acquire_surface_texture(record, surface_id, 2,
+                        (fault == FAULT_SURFACE_LOST_PERSISTENT).then_some(wgpu::SurfaceError::Lost),
+                        trace_wsi);
                 }
                 wgpu::SurfaceError::Lost => {
                     // Recreate surface 1x and reacquire
@@ -10262,11 +10331,9 @@ fn coin_wgpu_surface_submit_internal(
                                 set_error(error_buf, error_buf_len, &e);
                                 return CoinWgpuStatus::SurfaceLost;
                             }
-                            acquire_result = if fault == FAULT_SURFACE_LOST_PERSISTENT {
-                                Err(wgpu::SurfaceError::Lost)
-                            } else {
-                                record.surface.get_current_texture()
-                            };
+                            acquire_result = acquire_surface_texture(record, surface_id, 2,
+                                (fault == FAULT_SURFACE_LOST_PERSISTENT).then_some(wgpu::SurfaceError::Lost),
+                                trace_wsi);
                         }
                         Err(e) => {
                             set_error(error_buf, error_buf_len, &e);
@@ -10437,6 +10504,10 @@ fn coin_wgpu_surface_submit_internal(
             commands.push(resolve.finish());
         }
         let command_buffers_count=commands.len();
+        if trace_wsi {
+            eprintln!("COIN_WGPU_WSI stage=coin_submit event=begin source=actual surface={} generation={} serial={} local_serial={} previous_published_serial={}",
+                surface_id, record.surface_generation, sub_serial, local_serial, record.published_serial);
+        }
         dev.queue.submit(commands);
         let profile_submitted = trace_phases.then(std::time::Instant::now);
         let completed = dev.completed_serial.clone();
@@ -10491,7 +10562,16 @@ fn coin_wgpu_surface_submit_internal(
             } else {eprintln!("COIN_SAMPLING_AUDIT_GPU status=map_failed");}
         }
         let profile_present_begin = trace_phases.then(std::time::Instant::now);
+        if trace_wsi {
+            eprintln!("COIN_WGPU_WSI stage=coin_present event=begin source=actual surface={} generation={} serial={}",
+                surface_id, record.surface_generation, sub_serial);
+        }
         surface_texture.present();
+        if trace_wsi {
+            // This is a return from wgpu, not evidence of scanout/display completion.
+            eprintln!("COIN_WGPU_WSI stage=coin_present event=returned source=actual surface={} generation={} serial={} display_completion=unknown",
+                surface_id, record.surface_generation, sub_serial);
+        }
         let profile_presented = trace_phases.then(std::time::Instant::now);
 
         // Check if device lost or async errors occurred during submit/present
@@ -10920,6 +11000,7 @@ fn coin_wgpu_submit_internal(
                 Ok(s) => s, Err(st) => return st,
             }
         };
+        if let Err(status)=validate_multipass_draws(f,draws_slice,error_buf,error_buf_len) {return status;}
         let materials_slice = if let Some(scene) = owned_patch.as_ref() {
             scene.geometry.materials.as_slice()
         } else {

@@ -161,15 +161,22 @@ impl super::Swapchain {
     /// - The device must have been made idle before calling this function.
     unsafe fn release_resources(mut self, device: &ash::Device) -> Self {
         profiling::scope!("Swapchain::release_resources");
+        let trace = super::wsi_trace_enabled();
+        if trace {
+            super::wsi_trace(format_args!("stage=release_swapchain event=begin source=actual swapchain={:?} semaphore_refs={:?}",
+                self.raw, self.surface_semaphores.iter().map(Arc::strong_count).collect::<Vec<_>>()));
+        }
         {
             profiling::scope!("vkDeviceWaitIdle");
             // We need to also wait until all presentation work is done. Because there is no way to portably wait until
             // the presentation work is done, we are forced to wait until the device is idle.
-            let _ = unsafe {
-                device
-                    .device_wait_idle()
-                    .map_err(super::map_host_device_oom_and_lost_err)
-            };
+            let started = trace.then(std::time::Instant::now);
+            let result = unsafe { device.device_wait_idle() };
+            if let Some(started) = started {
+                super::wsi_trace(format_args!("stage=vkDeviceWaitIdle event=end source=actual swapchain={:?} result={:?} elapsed_ms={:.6}",
+                    self.raw, result, started.elapsed().as_secs_f64() * 1000.0));
+            }
+            let _ = result.map_err(super::map_host_device_oom_and_lost_err);
         };
 
         // We cannot take this by value, as the function returns `self`.
@@ -180,6 +187,10 @@ impl super::Swapchain {
             let mutex_removed = arc_removed.into_inner();
 
             unsafe { mutex_removed.destroy(device) };
+        }
+
+        if trace {
+            super::wsi_trace(format_args!("stage=release_swapchain event=end source=actual swapchain={:?} semaphore_slots=0", self.raw));
         }
 
         self
@@ -414,6 +425,10 @@ impl super::Instance {
                 .expect("XlibSurface::create_xlib_surface() failed")
         };
 
+        if super::wsi_trace_enabled() {
+            super::wsi_trace(format_args!("stage=vkCreateXlibSurfaceKHR event=end source=actual display={:?} window={:#x} surface={:?}",
+                dpy, window, surface));
+        }
         Ok(self.create_surface_from_vk_surface_khr(surface))
     }
 
@@ -963,6 +978,10 @@ impl crate::Instance for super::Instance {
 
 impl Drop for super::Surface {
     fn drop(&mut self) {
+        if super::wsi_trace_enabled() {
+            super::wsi_trace(format_args!("stage=vkDestroySurfaceKHR event=begin source=actual surface={:?} swapchain_present={}",
+                self.raw, self.swapchain.read().is_some()));
+        }
         unsafe { self.functor.destroy_surface(self.raw, None) };
     }
 }
@@ -982,6 +1001,13 @@ impl crate::Surface for super::Surface {
             .map(|sc| unsafe { sc.release_resources(&device.shared.raw) });
 
         let swapchain = unsafe { device.create_swapchain(self, config, old)? };
+        if super::wsi_trace_enabled() {
+            super::wsi_trace(format_args!("stage=configure event=end source=actual surface={:?} swapchain={:?} images={:?} acquire_semaphores={:?} semaphore_slots={} size={}x{} present_mode={:?} maximum_frame_latency={}",
+                self.raw, swapchain.raw, swapchain.images,
+                swapchain.surface_semaphores.iter().map(|s| s.lock().acquire).collect::<Vec<_>>(),
+                swapchain.surface_semaphores.len(), config.extent.width, config.extent.height,
+                config.present_mode, config.maximum_frame_latency));
+        }
         *swap_chain = Some(swapchain);
 
         Ok(())
@@ -991,6 +1017,9 @@ impl crate::Surface for super::Surface {
         if let Some(sc) = self.swapchain.write().take() {
             // SAFETY: `unconfigure`'s contract guarantees there are no resources derived from the swapchain in use.
             let swapchain = unsafe { sc.release_resources(&device.shared.raw) };
+            if super::wsi_trace_enabled() {
+                super::wsi_trace(format_args!("stage=vkDestroySwapchainKHR event=begin source=actual surface={:?} swapchain={:?}", self.raw, swapchain.raw));
+            }
             unsafe { swapchain.functor.destroy_swapchain(swapchain.raw, None) };
         }
     }
@@ -1040,14 +1069,51 @@ impl crate::Surface for super::Surface {
         // thus waited for `locked_swapchain_semaphores.acquire`, wait for all
         // of them to finish, thus ensuring that it's okay to pass `acquire` to
         // `vkAcquireNextImageKHR` again.
-        swapchain.device.wait_for_fence(
+        let trace = super::wsi_trace_enabled();
+        if trace {
+            super::wsi_trace(format_args!("stage=acquire_fence_wait event=begin source=actual surface={:?} swapchain={:?} semaphore_slot={} acquire_semaphore={:?} semaphore_refs={} previous_submission={} fence={:?} timeout_ns={} images={} should_wait_for_acquire={} pending_present_semaphores={}",
+                self.raw, swapchain.raw, swapchain.next_semaphore_index,
+                locked_swapchain_semaphores.acquire, Arc::strong_count(&swapchain_semaphores_arc),
+                locked_swapchain_semaphores.previously_used_submission_index, fence, timeout_ns,
+                swapchain.images.len(), locked_swapchain_semaphores.should_wait_for_acquire,
+                locked_swapchain_semaphores.present_index));
+        }
+        let wait_started = trace.then(std::time::Instant::now);
+        let wait_result = swapchain.device.wait_for_fence(
             fence,
             locked_swapchain_semaphores.previously_used_submission_index,
             timeout_ns,
-        )?;
+        );
+        if let Some(started) = wait_started {
+            super::wsi_trace(format_args!("stage=acquire_fence_wait event=end source=actual surface={:?} swapchain={:?} result={:?} elapsed_ms={:.6}",
+                self.raw, swapchain.raw, wait_result, started.elapsed().as_secs_f64() * 1000.0));
+        }
+        let actual_completed = wait_result?;
+        // Force an incomplete result only after a successful real wait. A guard
+        // mutation can then call acquire safely during the adversarial test.
+        let injected = trace && actual_completed
+            && std::env::var("COIN_WGPU_TEST_ACQUIRE_FENCE_TIMEOUT").as_deref() == Ok("1");
+        let completed = actual_completed && !injected;
+        if !completed {
+            if trace {
+                super::wsi_trace(format_args!("stage=acquire_texture event=return source={} surface={:?} swapchain={:?} result=Timeout fence_completed={} wsi_called=0 semaphore_slot={} acquire_semaphore={:?}",
+                    if injected { "injected" } else { "actual" }, self.raw, swapchain.raw,
+                    actual_completed, swapchain.next_semaphore_index, locked_swapchain_semaphores.acquire));
+            }
+            // A pending submission may still wait on `acquire`. Reusing it in
+            // vkAcquireNextImageKHR violates VUID-semaphore-01779. Neither call
+            // WSI nor advance this semaphore slot until the wait completes.
+            return Ok(None);
+        }
 
         // will block if no image is available
-        let (index, suboptimal) = match unsafe {
+        if trace {
+            super::wsi_trace(format_args!("stage=vkAcquireNextImageKHR event=begin source=actual surface={:?} swapchain={:?} semaphore_slot={} acquire_semaphore={:?} timeout_ns={} wsi_called=1",
+                self.raw, swapchain.raw, swapchain.next_semaphore_index,
+                locked_swapchain_semaphores.acquire, timeout_ns));
+        }
+        let acquire_started = trace.then(std::time::Instant::now);
+        let raw_result = unsafe {
             profiling::scope!("vkAcquireNextImageKHR");
             swapchain.functor.acquire_next_image(
                 swapchain.raw,
@@ -1055,7 +1121,13 @@ impl crate::Surface for super::Surface {
                 locked_swapchain_semaphores.acquire,
                 vk::Fence::null(),
             )
-        } {
+        };
+        if let Some(started) = acquire_started {
+            super::wsi_trace(format_args!("stage=vkAcquireNextImageKHR event=end source=actual surface={:?} swapchain={:?} semaphore_slot={} result={:?} elapsed_ms={:.6} wsi_called=1",
+                self.raw, swapchain.raw, swapchain.next_semaphore_index, raw_result,
+                started.elapsed().as_secs_f64() * 1000.0));
+        }
+        let (index, suboptimal) = match raw_result {
             // We treat `VK_SUBOPTIMAL_KHR` as `VK_SUCCESS` on Android.
             // See the comment in `Queue::present`.
             #[cfg(target_os = "android")]
@@ -1084,6 +1156,11 @@ impl crate::Surface for super::Surface {
         // special case for Intel Vulkan returning bizarre values (ugh)
         if swapchain.device.vendor_id == crate::auxil::db::intel::VENDOR && index > 0x100 {
             return Err(crate::SurfaceError::Outdated);
+        }
+        if trace {
+            super::wsi_trace(format_args!("stage=acquire_texture event=return source=actual surface={:?} swapchain={:?} result=Ok image_index={} image={:?} next_semaphore_slot={} suboptimal={}",
+                self.raw, swapchain.raw, index, swapchain.images[index as usize],
+                swapchain.next_semaphore_index, suboptimal));
         }
 
         // https://registry.khronos.org/vulkan/specs/1.3-extensions/man/html/VkRenderPassBeginInfo.html#VUID-VkRenderPassBeginInfo-framebuffer-03209
@@ -1121,5 +1198,10 @@ impl crate::Surface for super::Surface {
         }))
     }
 
-    unsafe fn discard_texture(&self, _texture: super::SurfaceTexture) {}
+    unsafe fn discard_texture(&self, texture: super::SurfaceTexture) {
+        if super::wsi_trace_enabled() {
+            super::wsi_trace(format_args!("stage=discard_texture event=drop source=actual surface={:?} image_index={} image={:?} semaphore_refs={}",
+                self.raw, texture.index, texture.texture.raw, Arc::strong_count(&texture.surface_semaphores)));
+        }
+    }
 }
