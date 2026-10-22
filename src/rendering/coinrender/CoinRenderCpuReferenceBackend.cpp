@@ -949,7 +949,8 @@ CoinRenderCpuReferenceBackend::renderSingle(const CoinRenderFramePlan & frame,
     if (!coin_render_transparency_budget(width, height, frame.transparency, needsPeeling,
                                          requiredBytes, compositionError))
       return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, compositionError);
-    target.clear(frame.clearColor[0], frame.clearColor[1], frame.clearColor[2], frame.clearColor[3], 1.0f);
+    const auto & clear = frame.passClearColors.empty() ? frame.clearColor : frame.passClearColors[sample];
+    target.clear(clear[0], clear[1], clear[2], clear[3], 1.0f);
 
     CpuPeelBuffer peeled;
     if (std::any_of(order.begin(), order.end(), [](const CoinRenderCompositionItem& item) {

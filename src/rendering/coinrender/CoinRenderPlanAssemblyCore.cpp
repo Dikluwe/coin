@@ -197,7 +197,7 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
         existing.rasterTextureProvenance == rs.rasterTextureProvenance &&
         existing.lightingSlot == rs.lightingSlot && existing.lightModel == rs.lightModel &&
         existing.transparencyType == rs.transparencyType && existing.cameraSlot == rs.cameraSlot &&
-        existing.viewportSlot == rs.viewportSlot && existing.cullMode == rs.cullMode &&
+        existing.viewportSlot == rs.viewportSlot && existing.solidShape == rs.solidShape && existing.cullMode == rs.cullMode &&
         existing.frontFace == rs.frontFace && existing.depthTest == rs.depthTest &&
         existing.depthWrite == rs.depthWrite && existing.colorWrite == rs.colorWrite &&
         existing.colorWriteMask == rs.colorWriteMask &&

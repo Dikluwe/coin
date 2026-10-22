@@ -8,6 +8,66 @@
 #include <cmath>
 #include <cstring>
 
+namespace {
+struct CoveragePoint { double x, y; };
+double rectangleCoverage(std::vector<CoveragePoint> polygon, double x, double y)
+{
+  for (int edge = 0; edge < 4; ++edge) {
+    const int axis = edge / 2;
+    const double boundary = (axis ? y : x) + (edge % 2);
+    auto coordinate = [=](const CoveragePoint & point) { return axis ? point.y : point.x; };
+    auto inside = [&](const CoveragePoint & point) {
+      return edge % 2 ? coordinate(point) <= boundary : coordinate(point) >= boundary;
+    };
+    std::vector<CoveragePoint> clipped;
+    if (polygon.empty()) return 0;
+    CoveragePoint previous = polygon.back();
+    for (const auto & current : polygon) {
+      if (inside(previous) != inside(current)) {
+        const double t = (boundary - coordinate(previous)) / (coordinate(current) - coordinate(previous));
+        clipped.push_back({previous.x + (current.x - previous.x) * t,
+                           previous.y + (current.y - previous.y) * t});
+      }
+      if (inside(current)) clipped.push_back(current);
+      previous = current;
+    }
+    polygon.swap(clipped);
+  }
+  double area = 0;
+  for (size_t i = 0; i < polygon.size(); ++i) {
+    const auto & a = polygon[i]; const auto & b = polygon[(i + 1) % polygon.size()];
+    area += a.x * b.y - a.y * b.x;
+  }
+  return std::min(1.0, std::abs(area) * .5);
+}
+double discCoverage(double x0, double y0, double x1, double y1, double radius)
+{
+  x0 = std::max(x0, -radius); x1 = std::min(x1, radius);
+  if (x0 >= x1 || y0 >= radius || y1 <= -radius) return 0;
+  std::vector<double> breaks{x0, x1};
+  for (double y : {y0, y1}) if (std::abs(y) < radius) {
+    const double root = std::sqrt(std::max(0.0, radius * radius - y * y));
+    for (double x : {-root, root}) if (x > x0 && x < x1) breaks.push_back(x);
+  }
+  std::sort(breaks.begin(), breaks.end());
+  auto primitive = [=](double x) {
+    return .5 * (x * std::sqrt(std::max(0.0, radius * radius - x * x)) +
+      radius * radius * std::asin(std::max(-1.0, std::min(1.0, x / radius))));
+  };
+  double area = 0;
+  for (size_t i = 1; i < breaks.size(); ++i) {
+    const double a = breaks[i - 1], b = breaks[i], middle = (a + b) * .5;
+    const double h = std::sqrt(std::max(0.0, radius * radius - middle * middle));
+    if (std::min(y1, h) <= std::max(y0, -h)) continue;
+    const double arc = primitive(b) - primitive(a);
+    const double upper = y1 < h ? y1 * (b - a) : arc;
+    const double lower = y0 > -h ? y0 * (b - a) : -arc;
+    area += upper - lower;
+  }
+  return std::max(0.0, std::min(1.0, area));
+}
+}
+
 bool
 coin_render_expand_strokes(CoinRenderFramePlan &plan, std::string &diagnostic)
 {
@@ -97,7 +157,18 @@ coin_render_expand_strokes(CoinRenderFramePlan &plan, std::string &diagnostic)
       return fail("Styled primitive index range is invalid");
     }
 
+    if (plan.smoothing && (sourceState.lightModel != CoinRenderLightModel::BASE_COLOR ||
+        sourceState.hasTexture || sourceState.portableShaderSlot || sourceState.shadowGroupSlot ||
+        !sourceState.clipPlanesWorld.empty() || sourceState.fogMode != CoinRenderFogMode::NONE ||
+        sourceState.linePattern != 0xffffu || sourceState.polygonLinePattern ||
+        plan.numPasses != 1 || plan.transparency.mode != COIN_RENDER_TRANSPARENCY_COIN))
+      return fail("Smoothing supports unlit untextured ordinary strokes without fog, stipple, shadow or multipass");
     CoinRenderRenderStateSnapshot state = sourceState;
+    if (plan.smoothing) {
+      state.rasterPixels = true;
+      state.rasterTransparent = sourceState.transparentMaterial || sourceState.transparentTexture;
+      state.rasterForceBlend = true;
+    }
     state.polygonOffsetPrimitiveStyle =
         original.topology == CoinRenderPrimitiveTopology::LINE_LIST ? 2u : 4u;
     state.clipPlanesWorld.clear(); // Original strokes are clipped before expansion.
@@ -167,7 +238,84 @@ coin_render_expand_strokes(CoinRenderFramePlan &plan, std::string &diagnostic)
       return out;
     };
 
-    if (original.topology == CoinRenderPrimitiveTopology::LINE_LIST) {
+    if (plan.smoothing) {
+      auto emitPixel = [&](int x, int y, float z, double coverage, CoinRenderVertexSnapshot attributes) -> bool {
+        if (coverage <= 1e-12) return true;
+        const uint64_t bytes = uint64_t(plan.vertices.size() + 4) * sizeof(CoinRenderVertexSnapshot) +
+          uint64_t(plan.indices.size() + 6) * sizeof(uint32_t) +
+          uint64_t(plan.materials.size() + 1) * sizeof(CoinRenderMaterialSnapshot);
+        if (bytes > UINT64_C(128) * 1024 * 1024 || plan.vertices.size() > UINT32_MAX - 4 ||
+            plan.indices.size() > UINT32_MAX - 6) return false;
+        auto material = plan.materials[attributes.materialSlot];
+        material.diffuse[3] *= static_cast<float>(coverage);
+        material.transparency = 1.0f - material.diffuse[3];
+        attributes.materialSlot = CoinRenderPlanAssemblyCore::material(plan, material);
+        const uint32_t base = static_cast<uint32_t>(plan.vertices.size());
+        const float left = float((double(x) - viewport.x) * 2.0 / viewport.width - 1.0);
+        const float bottom = float((double(y) - viewport.y) * 2.0 / viewport.height - 1.0);
+        const float right = float((double(x + 1) - viewport.x) * 2.0 / viewport.width - 1.0);
+        const float top = float((double(y + 1) - viewport.y) * 2.0 / viewport.height - 1.0);
+        appendVertex(left, bottom, z, attributes.materialSlot, attributes);
+        appendVertex(right, bottom, z, attributes.materialSlot, attributes);
+        appendVertex(left, top, z, attributes.materialSlot, attributes);
+        appendVertex(right, top, z, attributes.materialSlot, attributes);
+        const uint32_t indices[] = {base, base + 1, base + 2, base + 2, base + 1, base + 3};
+        plan.indices.insert(plan.indices.end(), indices, indices + 6);
+        return true;
+      };
+      const bool line = original.topology == CoinRenderPrimitiveTopology::LINE_LIST;
+      for (size_t offset = 0; offset < original.geometry.indexCount; offset += line ? 2 : 1) {
+        if (line && offset + 1 >= original.geometry.indexCount) return fail("Incomplete smoothed line");
+        const uint32_t ai = plan.indices[original.geometry.firstIndex + offset];
+        const uint32_t bi = line ? plan.indices[original.geometry.firstIndex + offset + 1] : ai;
+        if (ai >= plan.vertices.size() || bi >= plan.vertices.size()) return fail("Invalid smooth vertex");
+        auto a = plan.vertices[ai], b = plan.vertices[bi];
+        if (a.materialSlot >= plan.materials.size() || b.materialSlot >= plan.materials.size()) return fail("Invalid smooth material");
+        if (line) {
+          float first, last;
+          if (!coin_render_clip_segment(sourceState, a, b, first, last)) continue;
+          const auto originalA = a, originalB = b;
+          a = coin_render_clip_interpolate(originalA, originalB, first, materialAt(originalA.materialSlot, originalB.materialSlot, first));
+          b = coin_render_clip_interpolate(originalA, originalB, last, materialAt(originalA.materialSlot, originalB.materialSlot, last));
+        } else if (!coin_render_clip_point(sourceState, a)) continue;
+        SbVec3f pa, pb; float wa, wb;
+        if (!project(a, pa, wa) || !project(b, pb, wb)) continue;
+        const double ax = viewport.x + (double(pa[0]) + 1) * .5 * viewport.width;
+        const double ay = viewport.y + (double(pa[1]) + 1) * .5 * viewport.height;
+        const double bx = viewport.x + (double(pb[0]) + 1) * .5 * viewport.width;
+        const double by = viewport.y + (double(pb[1]) + 1) * .5 * viewport.height;
+        const double dx = bx - ax, dy = by - ay, length = std::sqrt(dx * dx + dy * dy);
+        const double radius = .5 * (line ? sourceState.lineWidth : sourceState.pointSize);
+        if (!(radius > 0) || !std::isfinite(radius)) return fail("Invalid continuous stroke width");
+        if (line && !(length > 0)) continue;
+        const double nx = line ? -dy / length * radius : radius;
+        const double ny = line ? dx / length * radius : radius;
+        const std::vector<CoveragePoint> rectangle{{ax + nx, ay + ny}, {bx + nx, by + ny},
+          {bx - nx, by - ny}, {ax - nx, ay - ny}};
+        const double minX = line ? std::min(ax, bx) - std::abs(nx) : ax - radius;
+        const double maxX = line ? std::max(ax, bx) + std::abs(nx) : ax + radius;
+        const double minY = line ? std::min(ay, by) - std::abs(ny) : ay - radius;
+        const double maxY = line ? std::max(ay, by) + std::abs(ny) : ay + radius;
+        const int left = int(std::max(double(viewport.x), std::floor(minX)));
+        const int right = int(std::min(double(viewport.x) + viewport.width, std::ceil(maxX)));
+        const int bottom = int(std::max(double(viewport.y), std::floor(minY)));
+        const int top = int(std::min(double(viewport.y) + viewport.height, std::ceil(maxY)));
+        if (int64_t(right - left) * int64_t(top - bottom) > 65536)
+          return fail("Continuous stroke coverage exceeds the Core raster budget");
+        for (int y = bottom; y < top; ++y) for (int x = left; x < right; ++x) {
+          const double coverage = line ? rectangleCoverage(rectangle, x, y) :
+            discCoverage(x - ax, y - ay, x + 1 - ax, y + 1 - ay, radius);
+          if (coverage <= 1e-12) continue;
+          const float t = line ? float(std::max(0.0, std::min(1.0,
+            ((x + .5 - ax) * dx + (y + .5 - ay) * dy) / (length * length)))) : 0;
+          auto attributes = line ? attributesAt(a, b, wa, wb, t) : a;
+          attributes.screenSpaceW = 1;
+          attributes.fogEyeDepth = -1;
+          if (!emitPixel(x, y, pa[2] + (pb[2] - pa[2]) * t, coverage, attributes))
+            return fail("Continuous stroke exceeds the 128 MiB geometry budget");
+        }
+      }
+    } else if (original.topology == CoinRenderPrimitiveTopology::LINE_LIST) {
       const float width = std::max(sourceState.lineWidth, 1.0f);
       const uint32_t pattern = sourceState.linePattern & 0xffffu;
       bool polygonArea = false;
@@ -342,7 +490,7 @@ coin_render_expand_strokes(CoinRenderFramePlan &plan, std::string &diagnostic)
     // Resolve samples exactly on a quad boundary with the reference's top/left
     // ownership. One subpixel step makes that choice unambiguous across APIs;
     // native bounding-box contours retain their separately qualified ownership.
-    if (!sourceState.preservePolygonEdgeDirection) {
+    if (!plan.smoothing && !sourceState.preservePolygonEdgeDirection) {
       const float dx = 2.0f / (256.0f * viewport.width);
       const float dy = 2.0f / (256.0f * viewport.height);
       for (uint32_t i = 0; i < expanded.geometry.vertexCount; ++i) {

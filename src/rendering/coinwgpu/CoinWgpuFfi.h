@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 68
+#define COIN_WGPU_BRIDGE_PROTOCOL_REVISION 69
 #define COIN_WGPU_FFI_MAX_LIGHTS 8
 #define COIN_WGPU_ABI_VERSION COIN_WGPU_BRIDGE_PROTOCOL_REVISION
 
@@ -373,6 +373,8 @@ typedef struct CoinWgpuFrameView {
   uint64_t multipass_budget_bytes;
   const float * multipass_matrices; /* optional sample-major/state-major MVPs; 16 floats each */
   uint64_t multipass_matrix_count; /* float count, exactly N*state_count*16 when nonzero */
+  const float * multipass_clear_colors; /* optional sample-major RGBA clears */
+  uint64_t multipass_clear_color_count; /* float count: zero or N*4 */
 } CoinWgpuFrameView;
 
 /* Compile consumed modules/pipelines on the prepared default device, without

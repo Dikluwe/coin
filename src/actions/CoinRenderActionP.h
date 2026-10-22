@@ -37,6 +37,8 @@ public:
 
   std::unordered_map<SoShaderProgram *, std::shared_ptr<const CoinRenderShaderRegistration>> portableShaderModules;
   void initCallbacks();
+  bool acceptNode(SoNode *);
+  static void portableNodeMethod(SoAction *, SoNode *);
   static void shapeContentMethod(SoAction *, SoNode *);
   static void vrmlStateMethod(SoAction *, SoNode *);
   static SoCallbackAction::Response rttMutationPreCB(void *, SoCallbackAction *, const SoNode *);
@@ -61,6 +63,9 @@ public:
   void qualifyObjectPayloads(const std::unordered_map<const SoNode *, size_t> & materialVisits);
   void commitTranslationOverlay();
   static SoCallbackAction::Response translationPreCB(void *, SoCallbackAction *, const SoNode *);
+
+  template <typename F>
+  void executePassSnapshots(F traversalFn, SoNode * cacheRoot);
 
   template <typename F>
   void executeApply(F traversalFn, SoNode * cacheRoot = NULL);
@@ -133,8 +138,31 @@ public:
   CoinRenderAction::DrawMode drawMode = CoinRenderAction::DrawMode::SCENE;
   SbColor4f overlayColor = SbColor4f(1.0f, 0.0f, 0.0f, 1.0f);
   SbBool texturesEnabled = TRUE;
+  CoinRenderAction::CoinRenderAbortCB * abortCallback = nullptr;
+  void * abortUserdata = nullptr;
+  CoinRenderAction::AbortCode abortResponse = CoinRenderAction::CONTINUE;
+  bool candidateAborted = false;
+  bool invalidAbortCode = false;
+  bool stateInvalidationPending = false;
+  bool invalidatedDuringApply = false;
+  struct PreRenderCallback { CoinRenderAction::CoinRenderPreRenderCB * callback; void * userdata; };
+  std::vector<PreRenderCallback> preRenderCallbacks;
+  SbVec2f updateOrigin = SbVec2f(0, 0), updateSize = SbVec2f(1, 1);
+  CoinRenderAction::SortedObjectOrderStrategy sortingStrategy = CoinRenderAction::BBOX_CENTER;
+  CoinRenderAction::CoinRenderSortedObjectOrderCB * sortingCallback = nullptr;
+  void * sortingUserdata = nullptr;
+  SbBool delayedObjDepthWrite = FALSE;
+  SbBool smoothing = FALSE;
+  CoinRenderAction::TransparentDelayedObjectRenderType delayedRenderType = CoinRenderAction::ONE_PASS;
   CoinRenderTransparencyOptions transparencyOptions;
   int numPasses = 1;
+  CoinRenderAction::CoinRenderPassCB * passCallback = nullptr;
+  void * passUserdata = nullptr;
+  int currentPass = 0;
+  int requestedExternalPass = 0;
+  bool externalPass = false;
+  bool capturingPassSnapshots = false;
+  bool skipSnapshotPreRender = false;
   uint64_t multipassBufferBudget = UINT64_C(256) * 1024 * 1024;
   CoinRenderOptions executionOptions;
   CoinRenderAction::Status lastStatus;

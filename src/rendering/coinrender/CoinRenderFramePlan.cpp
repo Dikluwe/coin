@@ -196,6 +196,9 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan &other) const
       this->rasterizationPolicy != other.rasterizationPolicy ||
       this->textureSamplingPolicy != other.textureSamplingPolicy ||
       this->legacyBlendAlpha != other.legacyBlendAlpha ||
+      this->delayedObjDepthWrite != other.delayedObjDepthWrite ||
+      this->smoothing != other.smoothing ||
+      this->passClearColors != other.passClearColors ||
       !coin_render_same_transparency_options(this->transparency, other.transparency))
     return false;
   for (int i = 0; i < 4; ++i) {
@@ -319,6 +322,17 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
   if (!CoinRenderCubeTextureCore::validate(*this, cubeDiagnostic)) {
     if (outDiagnostic) *outDiagnostic = cubeDiagnostic;
     return false;
+  }
+  if (!passClearColors.empty()) {
+    if (passClearColors.size() != static_cast<size_t>(numPasses)) {
+      if (outDiagnostic) *outDiagnostic = "Snapshot clear count differs from pass count";
+      return false;
+    }
+    for (const auto & color : passClearColors) for (int channel = 0; channel < 4; ++channel)
+      if (!std::isfinite(color[channel])) {
+        if (outDiagnostic) *outDiagnostic = "Non-finite snapshot clear color";
+        return false;
+      }
   }
   if (numPasses < 1 || numPasses > 16) {
     if (outDiagnostic) *outDiagnostic = "Invalid multipass count (expected 1..16)";
@@ -898,6 +912,10 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
       return false;
     }
 
+    if (draw.hasSortingDistance && !isFiniteF(draw.sortingDistance)) {
+      if (outDiagnostic) *outDiagnostic = "Non-finite object sorting distance";
+      return false;
+    }
     if (draw.hasSortingCenter &&
         (!isFiniteF(draw.sortingCenterWorld[0]) || !isFiniteF(draw.sortingCenterWorld[1]) ||
          !isFiniteF(draw.sortingCenterWorld[2]))) {

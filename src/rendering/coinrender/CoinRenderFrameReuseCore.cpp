@@ -193,6 +193,8 @@ sameDrawStructure(const CoinRenderDrawPacket & a, const CoinRenderDrawPacket & b
     a.sourceNodeId == b.sourceNodeId &&
     a.stableNodeId == b.stableNodeId &&
     a.drawOrdinal == b.drawOrdinal &&
+    a.sourceOccurrence == b.sourceOccurrence && a.transparentFacePass == b.transparentFacePass &&
+         a.hasSortingDistance == b.hasSortingDistance && a.sortingDistance == b.sortingDistance &&
     a.hasSortingCenter == b.hasSortingCenter &&
     (!a.hasSortingCenter || std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) == 0) &&
     a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene &&

@@ -63,6 +63,9 @@ public:
   std::vector<float> spareDepthBuffer;
   void detachedFromAction();
   bool synchronousReadbackValid{true};
+  mutable std::vector<uint8_t> legacyBorrowBuffer;
+  mutable CoinRenderLegacyComponents legacyBorrowLayout = CoinRenderLegacyComponents::RGB_TRANSPARENCY;
+  mutable bool legacyBorrowValid = false;
   bool borrowedReadbackValid{false}; // Only after a successful synchronous frame.
 
   // Window surface specific members
@@ -86,6 +89,8 @@ public:
                                                         const SbVec2i32& targetSize,
                                                         bool deferUnresolvedAlpha = false);
   static bool validateProfile(const CoinRenderFramePlan & frame, std::string & outDiagnostic);
+
+  CoinRenderFrameExecutionResult executePartialFrame(const CoinRenderFramePlan &, const int rectangle[4]);
 
   // Render execution for target (offscreen or window)
   CoinRenderFrameExecutionResult executeFrame(const CoinRenderFramePlan & frame);

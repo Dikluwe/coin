@@ -702,6 +702,7 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
   CoinRenderShaderModuleElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderShaderModuleElement);
+  SO_ACTION_ADD_METHOD(SoNode, CoinRenderActionP::portableNodeMethod);
   SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::shapeContentMethod);
   SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
   SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
@@ -760,6 +761,99 @@ CoinRenderAction::getViewportRegion(void) const
 {
   return this->pimpl->viewport;
 }
+
+void CoinRenderAction::setAbortCallback(CoinRenderAbortCB * callback, void * userdata)
+{
+  this->pimpl->abortCallback = callback; this->pimpl->abortUserdata = userdata;
+  this->pimpl->abortResponse = CONTINUE;
+  this->pimpl->cachedRoot = nullptr;
+  this->pimpl->clearTranslationProof();
+}
+void CoinRenderAction::getAbortCallback(CoinRenderAbortCB * & callback, void * & userdata) const
+{ callback = this->pimpl->abortCallback; userdata = this->pimpl->abortUserdata; }
+SbBool CoinRenderAction::abortNow()
+{
+  auto & p = this->pimpl.get();
+  if (!p.isApplying || !p.abortCallback) return FALSE;
+  p.abortResponse = p.abortCallback(p.abortUserdata);
+  if (p.abortResponse < CONTINUE || p.abortResponse > DELAY) {
+    p.invalidAbortCode = true;
+    p.setDiagnostic(CoinRenderDiagnosticShell::action(INVALID_SCENE,
+      CoinRenderDiagnosticDomain::ACTION, SbString("Abort callback returned an invalid code")));
+    this->setTerminated(TRUE);
+    return TRUE;
+  }
+  if (p.abortResponse == DELAY && p.replayingAnnotations) p.abortResponse = CONTINUE;
+  if (p.abortResponse == ABORT) {
+    p.candidateAborted = true;
+    this->setTerminated(TRUE);
+  } else if (p.abortResponse == DELAY) {
+    if (!this->addDelayedPath(const_cast<SoPath *>(this->getCurPath()))) p.abortResponse = PRUNE;
+  }
+  return p.abortResponse == CONTINUE ? FALSE : TRUE;
+}
+SbBool CoinRenderAction::addDelayedPath(SoPath * path)
+{ return path ? this->deferOverlayPath(path) : FALSE; }
+SbBool CoinRenderAction::isRenderingDelayedPaths() const
+{ return this->pimpl->isApplying && this->pimpl->replayingAnnotations ? TRUE : FALSE; }
+void CoinRenderAction::addPreRenderCallback(CoinRenderPreRenderCB * callback, void * userdata)
+{ if (callback) this->pimpl->preRenderCallbacks.push_back({callback, userdata}); }
+void CoinRenderAction::removePreRenderCallback(CoinRenderPreRenderCB * callback, void * userdata)
+{
+  auto & list = this->pimpl->preRenderCallbacks;
+  list.erase(std::remove_if(list.begin(), list.end(),
+    [=](const CoinRenderActionP::PreRenderCallback & entry) {
+      return entry.callback == callback && entry.userdata == userdata;
+    }), list.end());
+}
+void CoinRenderAction::invalidateState()
+{
+  auto & p = this->pimpl.get();
+  p.cachedRoot = nullptr;
+  p.invalidatedDuringApply = true;
+  if (p.isApplying) { p.stateInvalidationPending = true; return; }
+  p.stateInvalidationPending = false;
+  this->inherited::invalidateState();
+  p.cameraSensor.detach(); p.cachedCamera = p.candidateCamera = nullptr;
+  p.cameraOverlayBasis = CoinRenderCameraOverlayBasis();
+  p.cameraPatchInvalidated = true; p.cameraRecaptureRequired = true;
+  p.clearTranslationProof();
+  CoinRenderFramePlanBuilder cleanBuilder;
+  std::swap(p.builder, cleanBuilder);
+}
+void CoinRenderAction::setUpdateArea(const SbVec2f & origin, const SbVec2f & size)
+{ this->pimpl->updateOrigin = origin; this->pimpl->updateSize = size; }
+void CoinRenderAction::getUpdateArea(SbVec2f & origin, SbVec2f & size) const
+{ origin = this->pimpl->updateOrigin; size = this->pimpl->updateSize; }
+void CoinRenderAction::setSortedObjectOrderStrategy(SortedObjectOrderStrategy strategy,
+  CoinRenderSortedObjectOrderCB * callback, void * userdata)
+{
+  this->pimpl->sortingStrategy = strategy; this->pimpl->sortingCallback = callback;
+  this->pimpl->sortingUserdata = userdata; this->pimpl->cachedRoot = nullptr;
+  this->pimpl->clearTranslationProof();
+}
+void CoinRenderAction::setTransparentDelayedObjectRenderType(TransparentDelayedObjectRenderType type)
+{
+  this->pimpl->delayedRenderType = type;
+  this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
+}
+CoinRenderAction::TransparentDelayedObjectRenderType
+CoinRenderAction::getTransparentDelayedObjectRenderType() const { return this->pimpl->delayedRenderType; }
+void CoinRenderAction::setSmoothing(SbBool enabled)
+{
+  this->pimpl->smoothing = enabled != FALSE;
+  this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
+}
+SbBool CoinRenderAction::isSmoothing() const { return this->pimpl->smoothing; }
+void CoinRenderAction::setDelayedObjDepthWrite(SbBool enabled)
+{
+  if (this->pimpl->delayedObjDepthWrite != (enabled != FALSE)) {
+    this->pimpl->delayedObjDepthWrite = enabled != FALSE;
+    this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
+  }
+}
+SbBool CoinRenderAction::getDelayedObjDepthWrite() const
+{ return this->pimpl->delayedObjDepthWrite; }
 
 void
 CoinRenderAction::setRenderTarget(CoinRenderTarget * target)
@@ -849,7 +943,20 @@ CoinRenderAction::isTexturesEnabled(void) const
   return this->pimpl->texturesEnabled;
 }
 
+void CoinRenderAction::setPassCallback(CoinRenderPassCB * callback, void * userdata)
+{
+  this->pimpl->passCallback = callback; this->pimpl->passUserdata = userdata;
+  this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
+}
+int CoinRenderAction::getCurPass() const { return this->pimpl->currentPass; }
+void CoinRenderAction::setCurPass(int pass, int total)
+{
+  this->pimpl->externalPass = true; this->pimpl->requestedExternalPass = pass;
+  this->pimpl->currentPass = pass; this->pimpl->numPasses = total;
+  this->pimpl->cachedRoot = nullptr; this->pimpl->clearTranslationProof();
+}
 void CoinRenderAction::setNumPasses(int passes) {
+  this->pimpl->externalPass = false; this->pimpl->currentPass = 0;
   if (this->pimpl->numPasses != passes) {
     this->pimpl->numPasses = passes;
     this->pimpl->cachedRoot = NULL;
@@ -2163,10 +2270,188 @@ CoinRenderActionP::prepareCameraOverlay(SoNode * root,
     CoinRenderFramePlanBuilder::nextRevision(), undo, this->cameraOverlayBasis);
 }
 
+namespace {
+bool appendPassSnapshot(CoinRenderFramePlan & output, const CoinRenderFramePlan & snapshot,
+                        unsigned pass, std::string & diagnostic)
+{
+  if (!snapshot.shadowGroups.empty() || !snapshot.shadowLights.empty() || !snapshot.bumpImages.empty() ||
+      !snapshot.rasterOccurrences.empty() || snapshot.hasPortableShaderDraws() || snapshot.smoothing) {
+    diagnostic = "Snapshot passes exclude shadow, bump, raster, portable shaders and smoothing"; return false;
+  }
+  for (const auto & texture : snapshot.textures)
+    if (texture.producerId || texture.gpuToken || texture.volumeDepth || texture.cubeFaceSize ||
+        (texture.format != CoinRenderTextureFormat::RGBA8_LINEAR && texture.format != CoinRenderTextureFormat::RGBA8_SRGB)) {
+      diagnostic = "Snapshot passes support local RGBA2D textures without RTT"; return false;
+    }
+  std::vector<CoinRenderCompositionItem> order;
+  if (!coin_render_composition_order(snapshot, order, diagnostic)) return false;
+  for (const auto & item : order)
+    if (item.blend || item.deferred || item.screenDoorLevel || item.transparencyStrategy != CoinRenderCompositionItem::OBJECT) {
+      diagnostic = "Snapshot passes require opaque ordinary geometry"; return false;
+    }
+  for (const auto & state : snapshot.renderStates)
+    if (state.rasterPixels || state.shadowGroupSlot) {
+      diagnostic = "Snapshot passes exclude raster and spatial shader states"; return false;
+    }
+  uint64_t bytes = uint64_t(output.vertices.size() + snapshot.vertices.size()) * sizeof(CoinRenderVertexSnapshot) +
+    uint64_t(output.indices.size() + snapshot.indices.size()) * sizeof(uint32_t) +
+    uint64_t(output.renderStates.size() + snapshot.renderStates.size()) * sizeof(CoinRenderRenderStateSnapshot);
+  bytes += uint64_t(output.materials.size() + snapshot.materials.size()) * sizeof(CoinRenderMaterialSnapshot) +
+    uint64_t(output.cameras.size() + snapshot.cameras.size()) * sizeof(CoinRenderCameraSnapshot) +
+    uint64_t(output.viewports.size() + snapshot.viewports.size()) * sizeof(CoinRenderViewportSnapshot) +
+    uint64_t(output.samplers.size() + snapshot.samplers.size()) * sizeof(CoinRenderSamplerSnapshot);
+  for (const CoinRenderFramePlan * frame : {static_cast<const CoinRenderFramePlan *>(&output), &snapshot}) {
+    for (const auto & texture : frame->textures) bytes += texture.pixelsRgba.size() + texture.mipmapsRgba.size();
+    for (const auto & lighting : frame->lightingStates) bytes += lighting.lights.size() * sizeof(CoinRenderLightSourceSnapshot);
+  }
+  if (bytes > output.multipassBufferBudget) { diagnostic = "Snapshot payload exceeds multipass buffer budget"; return false; }
+  const uint32_t vertexBase = static_cast<uint32_t>(output.vertices.size());
+  const uint32_t indexBase = static_cast<uint32_t>(output.indices.size());
+  const uint32_t materialBase = static_cast<uint32_t>(output.materials.size());
+  const uint32_t lightingBase = static_cast<uint32_t>(output.lightingStates.size());
+  const uint32_t cameraBase = static_cast<uint32_t>(output.cameras.size());
+  const uint32_t viewportBase = static_cast<uint32_t>(output.viewports.size());
+  const uint32_t textureBase = static_cast<uint32_t>(output.textures.size());
+  const uint32_t samplerBase = static_cast<uint32_t>(output.samplers.size());
+  const uint32_t stateBase = static_cast<uint32_t>(output.renderStates.size());
+  output.passClearColors.push_back(snapshot.clearColor);
+  output.materials.insert(output.materials.end(), snapshot.materials.begin(), snapshot.materials.end());
+  output.lightingStates.insert(output.lightingStates.end(), snapshot.lightingStates.begin(), snapshot.lightingStates.end());
+  output.cameras.insert(output.cameras.end(), snapshot.cameras.begin(), snapshot.cameras.end());
+  output.viewports.insert(output.viewports.end(), snapshot.viewports.begin(), snapshot.viewports.end());
+  output.textures.insert(output.textures.end(), snapshot.textures.begin(), snapshot.textures.end());
+  output.samplers.insert(output.samplers.end(), snapshot.samplers.begin(), snapshot.samplers.end());
+  for (auto vertex : snapshot.vertices) { vertex.materialSlot += materialBase; output.vertices.push_back(vertex); }
+  for (uint32_t index : snapshot.indices) output.indices.push_back(index + vertexBase);
+  for (auto state : snapshot.renderStates) {
+    state.materialSlot += materialBase; state.lightingSlot += lightingBase;
+    state.cameraSlot += cameraBase; state.viewportSlot += viewportBase;
+    if (state.hasTexture) { state.textureImageSlot += textureBase; state.samplerSlot += samplerBase; }
+    for (size_t slot = 0; slot < state.extraTextures.size(); ++slot) {
+      auto & unit = state.extraTextures[slot];
+      if (unit.enabled) { unit.imageSlot += textureBase; unit.samplerSlot += samplerBase; }
+    }
+    output.renderStates.push_back(std::move(state));
+  }
+  for (auto draw : snapshot.draws) {
+    draw.geometry.firstVertex += vertexBase; draw.geometry.firstIndex += indexBase;
+    draw.renderStateSlot += stateBase; draw.multipassMask = uint16_t(1u << pass);
+    draw.stableNodeId = 0; // Snapshot-owned payload; never alias a previous mutable mesh.
+    output.draws.push_back(draw);
+  }
+  return true;
+}
+}
+
+template <typename F>
+void CoinRenderActionP::executePassSnapshots(F traversalFn, SoNode * cacheRoot)
+{
+  const int count = this->numPasses;
+  CoinRenderTarget * const destination = this->target;
+  if (count < 1 || count > 16 || !destination || this->asyncTicket || this->planOnly ||
+      destination->getOptions().sampleCount != 1 ||
+      destination->getPimpl()->kind != CoinRenderTargetP::KIND_OFFSCREEN ||
+      this->updateOrigin != SbVec2f(0, 0) || this->updateSize != SbVec2f(1, 1) || this->smoothing ||
+      destination->getOptions().transparency != COIN_RENDER_TRANSPARENCY_COIN) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      count < 1 || count > 16 ? CoinRenderAction::INVALID_SCENE : !destination && this->asyncTicket ? CoinRenderAction::NO_TARGET : CoinRenderAction::UNSUPPORTED,
+      CoinRenderDiagnosticDomain::ACTION, SbString("Snapshot callbacks require mono synchronous RGBA8 offscreen, one sample and a full update")));
+    return;
+  }
+  auto saved = std::move(this->lastValidPlan);
+  const bool hadSaved = this->hasLastValidPlan;
+  const bool oldPlanOnly = this->planOnly;
+  const auto callback = this->passCallback; void * const userdata = this->passUserdata;
+  struct SnapshotScope {
+    CoinRenderActionP * owner; CoinRenderFramePlan & saved; bool hadSaved, oldPlanOnly, committed = false;
+    ~SnapshotScope() {
+      if (!committed) { owner->lastValidPlan = std::move(saved); owner->hasLastValidPlan = hadSaved; }
+      owner->planOnly = oldPlanOnly; owner->capturingPassSnapshots = owner->skipSnapshotPreRender = false;
+      owner->currentPass = 0; owner->isApplying = false; owner->cachedRoot = nullptr;
+      owner->clearTranslationProof();
+    }
+  } scope{this, saved, hadSaved, oldPlanOnly};
+  this->capturingPassSnapshots = true;
+  this->hasLastValidPlan = false; this->cachedRoot = nullptr;
+  this->planOnly = true;
+  try {
+    CoinRenderFramePlan combined;
+    combined.numPasses = count; combined.multipassBufferBudget = this->multipassBufferBudget;
+    combined.textureSamplingPolicy = destination->getOptions().textureSamplingPolicy;
+    combined.rasterizationPolicy = destination->getOptions().rasterizationPolicy;
+    combined.transparency = this->transparencyOptions;
+    combined.transparency.mode = destination->getOptions().transparency;
+    combined.delayedObjDepthWrite = this->delayedObjDepthWrite != FALSE;
+    for (int pass = 0; pass < count; ++pass) {
+      if (pass) {
+        this->currentPass = pass - 1;
+        this->isApplying = true;
+        callback(userdata, this->master);
+        this->isApplying = false;
+        if (this->hasReentrancyError || this->candidateAborted || this->invalidAbortCode) {
+          this->setDiagnostic(CoinRenderDiagnosticShell::action(this->candidateAborted ? CoinRenderAction::ABORTED : CoinRenderAction::INVALID_SCENE,
+            CoinRenderDiagnosticDomain::ACTION, SbString(this->invalidAbortCode ? "Abort callback returned an invalid code" : "Snapshot callback aborted or attempted nested apply")));
+          return;
+        }
+      }
+      if (this->numPasses != count || this->externalPass || this->target != destination) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+          CoinRenderDiagnosticDomain::ACTION, SbString("Snapshot callback changed target or sample mode"))); return;
+      }
+      this->currentPass = pass; this->skipSnapshotPreRender = pass != 0;
+      if (pass) { CoinRenderFramePlanBuilder fresh; std::swap(this->builder, fresh); }
+      this->executeApply(traversalFn, cacheRoot);
+      if (this->lastStatus != CoinRenderAction::SUCCESS) return;
+      if (this->numPasses != count || this->externalPass || this->target != destination) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+          CoinRenderDiagnosticDomain::ACTION, SbString("Snapshot capture changed target or sample mode"))); return;
+      }
+      for (const auto & camera : this->frameStereoStates)
+        if (camera.mode != static_cast<int>(SoCamera::MONOSCOPIC)) {
+          this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+            CoinRenderDiagnosticDomain::ACTION, SbString("Snapshot callbacks require a mono camera"))); return;
+        }
+      std::string diagnostic;
+      if (!appendPassSnapshot(combined, this->lastValidPlan, unsigned(pass), diagnostic)) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(diagnostic.find("budget") != std::string::npos ? CoinRenderAction::OUT_OF_MEMORY : CoinRenderAction::UNSUPPORTED,
+          CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(diagnostic.c_str()))); return;
+      }
+    }
+    combined.clearColor = combined.passClearColors.front();
+    combined.revision = CoinRenderFramePlanBuilder::nextRevision();
+    std::string diagnostic;
+    if (!combined.isValid(&diagnostic)) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(diagnostic.c_str()))); return;
+    }
+    const auto result = destination->getPimpl()->executeFrame(combined);
+    if (result.status != CoinRenderBackendStatus::SUCCESS) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(result)); return;
+    }
+    this->lastValidPlan = std::move(combined); this->hasLastValidPlan = true;
+    this->recordingLogValid = false;
+    scope.committed = true;
+    this->setDiagnostic(CoinRenderDiagnosticShell::success());
+  } catch (const std::bad_alloc &) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::OUT_OF_MEMORY,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Cannot allocate pass snapshots")));
+  }
+}
+
 template <typename F>
 void
 CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
 {
+  if (this->isApplying) {
+    this->hasReentrancyError = true;
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(
+      CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::ACTION,
+      SbString("Nested apply() calls are not permitted on CoinRenderAction")));
+    return;
+  }
+  if (!this->capturingPassSnapshots && !this->planOnly && !this->externalPass && this->passCallback && this->numPasses > 1) {
+    this->executePassSnapshots(traversalFn, cacheRoot); return;
+  }
   // Nested apply must not erase the outer capture's diagnostic counters.
   if (!this->isApplying) {
     this->captureCameraBasisCalls = this->captureCameraBasisPrepares = this->captureCameraBasisReuses = 0;
@@ -2192,7 +2477,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       CoinRenderDiagnosticDomain::ACTION, SbString("Multipass AA requires a requested count in 1..16")));
     return;
   }
-  if (this->numPasses > 1 && this->multipassBufferBudget == 0) {
+  if (!this->externalPass && this->numPasses > 1 && this->multipassBufferBudget == 0) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::OUT_OF_MEMORY,
       CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Multipass AA buffer budget is zero")));
     return;
@@ -2215,10 +2500,120 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       action->delayedOverlays.clear();
       action->replayingAnnotations = false;
       action->isApplying = false;
+      if (!action->externalPass && !action->capturingPassSnapshots) action->currentPass = 0;
+      if (action->stateInvalidationPending) action->master->invalidateState();
     }
   } annotationScope{this};
   this->isApplying = true;
   this->hasReentrancyError = false;
+  this->candidateAborted = false;
+  this->invalidAbortCode = false;
+  this->invalidatedDuringApply = false;
+  auto validateRequest = [&]() -> bool {
+    for (int axis = 0; axis < 2; ++axis) {
+      const float origin = this->updateOrigin[axis], size = this->updateSize[axis];
+      if (!std::isfinite(origin) || !std::isfinite(size) || origin < 0 || size < 0 ||
+          origin > 1 || size > 1 || origin + size > 1.0f) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+          CoinRenderDiagnosticDomain::ACTION, SbString("Invalid normalized update area")));
+        return false;
+      }
+    }
+    if (this->externalPass && (this->requestedExternalPass < 0 ||
+        this->requestedExternalPass >= this->numPasses || this->numPasses > 16)) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::ACTION, SbString("Invalid external pass index/count"))); return false;
+    }
+    if (this->externalPass && (this->asyncTicket || (this->target &&
+        (this->target->getPimpl()->kind != CoinRenderTargetP::KIND_OFFSCREEN || this->target->getOptions().sampleCount != 1 ||
+          this->target->getOptions().transparency != COIN_RENDER_TRANSPARENCY_COIN)))) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+        CoinRenderDiagnosticDomain::ACTION, SbString("External samples require synchronous offscreen one-sample targets"))); return false;
+    }
+    if (this->delayedRenderType != CoinRenderAction::ONE_PASS &&
+        this->delayedRenderType != CoinRenderAction::NONSOLID_SEPARATE_BACKFACE_PASS) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::ACTION, SbString("Invalid delayed-object render type")));
+      return false;
+    }
+    if (this->sortingStrategy < CoinRenderAction::BBOX_CENTER ||
+        this->sortingStrategy > CoinRenderAction::CUSTOM_CALLBACK ||
+        (this->sortingStrategy == CoinRenderAction::CUSTOM_CALLBACK && !this->sortingCallback)) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::ACTION, SbString("Invalid object sorting strategy or missing callback")));
+      return false;
+    }
+    if (this->smoothing && (this->asyncTicket || this->numPasses != 1 ||
+        (this->target && (this->target->pimpl->kind != CoinRenderTargetP::KIND_OFFSCREEN ||
+          this->target->getOptions().sampleCount != 1)))) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+        CoinRenderDiagnosticDomain::ACTION, SbString("Smoothing requires mono synchronous RGBA8 with one sample/pass")));
+      return false;
+    }
+    const bool partial = this->updateOrigin != SbVec2f(0, 0) || this->updateSize != SbVec2f(1, 1);
+    if (partial && (!this->target || this->asyncTicket || this->planOnly ||
+        this->target->pimpl->kind != CoinRenderTargetP::KIND_OFFSCREEN ||
+        this->target->pimpl->directTextureOutput || this->target->getOptions().sampleCount != 1 ||
+        this->numPasses != 1 || this->executionOptions.transparency != COIN_RENDER_TRANSPARENCY_COIN)) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+        CoinRenderDiagnosticDomain::ACTION, SbString("Partial updates require synchronous offscreen RGBA8, one sample/pass and Coin transparency")));
+      return false;
+    }
+    if (this->asyncTicket && (!this->target || this->target->pimpl->kind != CoinRenderTargetP::KIND_OFFSCREEN)) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(this->target ? CoinRenderAction::UNSUPPORTED : CoinRenderAction::NO_TARGET,
+        CoinRenderDiagnosticDomain::ACTION, SbString("applyAsync requires an offscreen target")));
+      return false;
+    }
+    if (this->target && this->target->getStatus() != CoinRenderTarget::TARGET_READY &&
+        this->target->getStatus() != CoinRenderTarget::TARGET_LOST) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::fromTarget(this->target->getStatus(), this->target->getLastError()));
+      return false;
+    }
+    if (this->target) this->executionOptions = this->target->getOptions();
+    std::string error;
+    if (!coin_render_valid_options(this->executionOptions, error) || this->numPasses < 1 || this->numPasses > 16) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::ACTION, SbString("Invalid current render configuration")));
+      return false;
+    }
+    return true;
+  };
+  if (!validateRequest()) return;
+  const auto callbacks = this->skipSnapshotPreRender ? std::vector<PreRenderCallback>() : this->preRenderCallbacks;
+  for (const auto & entry : callbacks) {
+    entry.callback(entry.userdata, this->master);
+    if (this->hasReentrancyError || this->candidateAborted || this->invalidAbortCode) break;
+  }
+  if (this->hasReentrancyError || this->invalidAbortCode) return;
+  if (this->candidateAborted) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::ABORTED,
+      CoinRenderDiagnosticDomain::ACTION, SbString("Render aborted by callback")));
+    return;
+  }
+  if (!validateRequest()) return;
+  if (this->stateInvalidationPending) {
+    this->isApplying = false;
+    this->master->invalidateState();
+    this->isApplying = true;
+  }
+  const bool partialUpdate = this->updateOrigin != SbVec2f(0, 0) || this->updateSize != SbVec2f(1, 1);
+  int updateRect[4] = {0, 0, 0, 0};
+  if (partialUpdate) {
+    const auto canvas = this->target->getSize();
+    const auto viewport = this->master->getViewportRegion();
+    const auto vpOrigin = viewport.getViewportOriginPixels(), vpSize = viewport.getViewportSizePixels();
+    for (int axis = 0; axis < 2; ++axis) {
+      const int first = std::max(0, std::max(int(vpOrigin[axis]), int(this->updateOrigin[axis] * canvas[axis])));
+      const int last = std::min(int(canvas[axis]), std::min(int(vpOrigin[axis]) + int(vpSize[axis]),
+        int(this->updateOrigin[axis] * canvas[axis]) + int(this->updateSize[axis] * canvas[axis])));
+      updateRect[axis] = first;
+      updateRect[axis + 2] = this->updateSize[axis] == 0 ? 0 : std::max(0, last - first);
+    }
+    if (!updateRect[2] || !updateRect[3]) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::success()); return;
+    }
+  }
+  this->setDiagnostic(CoinRenderDiagnosticShell::success());
   struct RasterHistoryScope {
     CoinRenderFramePlanBuilder & builder;
     CoinRenderFramePlanBuilder::RasterHistory saved;
@@ -2229,7 +2624,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   } rasterHistoryScope(this->builder);
   // External callbacks can change capture or have observable side effects.
   // Registration after construction permanently requires their traversal.
-  bool planCacheAllowed = this->portableShaderModules.empty() &&
+  bool planCacheAllowed = !this->externalPass && !this->capturingPassSnapshots && !partialUpdate && !this->abortCallback &&
+    this->preRenderCallbacks.empty() && this->sortingStrategy == CoinRenderAction::BBOX_CENTER &&
+    this->portableShaderModules.empty() &&
     this->master->callbackRegistrationRevision() == this->captureCallbackRevision &&
     !containsVRMLSnapshot(cacheRoot);
   if (planCacheAllowed && cacheRoot && cacheRoot == this->cachedRoot &&
@@ -2324,7 +2721,16 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->frameStereoStates.clear();
     this->beginTranslationCapture(planCacheAllowed && cacheRoot &&
       (qualifyCapturedCamera || this->translationInputDirty || this->cameraRecaptureRequired));
-    this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion(), this->numPasses);
+    this->builder.smoothing = this->smoothing != FALSE;
+    this->builder.separateBackfaces = this->delayedRenderType == CoinRenderAction::NONSOLID_SEPARATE_BACKFACE_PASS;
+    this->builder.delayedObjDepthWrite = this->delayedObjDepthWrite != FALSE;
+    this->builder.beginFrame(this->backgroundColor, this->master->getViewportRegion(), this->externalPass ? 1 : this->numPasses);
+    this->builder.sortingStrategy = static_cast<int>(this->sortingStrategy);
+    this->builder.objectSortingEnabled = this->executionOptions.transparency == COIN_RENDER_TRANSPARENCY_COIN ||
+      this->executionOptions.transparency == COIN_RENDER_TRANSPARENCY_OBJECT;
+    this->builder.customSortingDistance = [this](SoCallbackAction *) {
+      return this->sortingCallback(this->sortingUserdata, this->master);
+    };
     this->managerCapturedLayers.clear();
     this->builder.configureTextures(this->executionOptions);
     this->builder.reserveCaptureStorage(captureStorageEstimate(cacheRoot));
@@ -2358,10 +2764,14 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
   // A node can register an observer while it traverses. Never retain a plan
   // or object proof based on the registration checked before that traversal.
-  planCacheAllowed = planCacheAllowed &&
+  planCacheAllowed = planCacheAllowed && !this->invalidatedDuringApply &&
     this->master->callbackRegistrationRevision() == this->captureCallbackRevision;
 
-  this->isApplying = false;
+  if (this->candidateAborted) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::ABORTED,
+      CoinRenderDiagnosticDomain::ACTION, SbString("Render aborted by callback")));
+    return;
+  }
 
   if (this->hasReentrancyError) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(
@@ -2398,7 +2808,27 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       status, CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(err.c_str())));
     return;
   }
-  plan.numPasses = this->numPasses;
+  plan.numPasses = this->externalPass ? 1 : this->numPasses;
+  if (this->externalPass) {
+    if (!plan.shadowGroups.empty() || !plan.bumpImages.empty() || !plan.rasterOccurrences.empty() || plan.hasPortableShaderDraws()) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("External sample profile excludes spatial shaders and raster"))); return;
+    }
+    for (const auto & texture : plan.textures) if (texture.producerId || texture.gpuToken) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("External sample profile excludes RTT"))); return;
+    }
+    for (auto & state : plan.renderStates) {
+      SbMatrix shifted;
+      if (!CoinRenderMultipassCore::projection(state.projectionCoin, this->numPasses, this->requestedExternalPass,
+          plan.viewports[state.viewportSlot], shifted)) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+          CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Invalid external sample projection"))); return;
+      }
+      state.projectionCoin = shifted;
+    }
+    capturedPreflight.invalidate();
+  }
   plan.multipassBufferBudget = this->multipassBufferBudget;
   if (!CoinRenderMultipassCore::projectionsFinite(plan)) {
     this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
@@ -2787,6 +3217,33 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       return;
     }
   }
+  if (this->smoothing && std::any_of(this->frameStereoStates.begin(), this->frameStereoStates.end(),
+      [](const CameraStereoState & state) { return state.mode != static_cast<int>(SoCamera::MONOSCOPIC); })) {
+    this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Smoothing stereo camera is outside the mono profile")));
+    return;
+  }
+  if (partialUpdate) {
+    if (!capturedPlan.shadowGroups.empty() || !capturedPlan.bumpImages.empty() ||
+        capturedPlan.hasPortableShaderDraws()) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Partial update with spatial shaders is not qualified")));
+      return;
+    }
+    std::vector<CoinRenderCompositionItem> partialOrder;
+    std::string diagnostic;
+    if (!coin_render_composition_order(capturedPlan, partialOrder, diagnostic)) {
+      this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(diagnostic.c_str())));
+      return;
+    }
+    for (const auto & item : partialOrder)
+      if (item.screenDoorLevel || item.transparencyStrategy != CoinRenderCompositionItem::OBJECT) {
+        this->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::UNSUPPORTED,
+          CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Stippled and OIT partial updates need a canvas-origin profile")));
+        return;
+      }
+  }
   CoinRenderRttExecution rttExecution(this->target ? &this->target->getPimpl().get() : nullptr,
                                       this->executionOptions);
   CoinRenderFramePlan resolvedPlan;
@@ -2834,7 +3291,9 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       this->asyncTicket
           ? this->target->pimpl->executeFrameAsync(executionPlan, *this->asyncTicket, reuseDecision,
                                                   submissionPreflight)
-          : this->target->pimpl->executeFrame(executionPlan, reuseDecision, submissionPreflight);
+          : partialUpdate
+              ? this->target->pimpl->executePartialFrame(executionPlan, updateRect)
+              : this->target->pimpl->executeFrame(executionPlan, reuseDecision, submissionPreflight);
   if (execRes.status != CoinRenderBackendStatus::SUCCESS) {
     this->setDiagnostic(CoinRenderDiagnosticShell::fromBackend(execRes));
     return;
@@ -3288,12 +3747,26 @@ bool validateIndexedShapeNormals(SoCallbackAction * action, SoNode * node,
 }
 }
 
+bool CoinRenderActionP::acceptNode(SoNode * node)
+{
+  if (this->master->hasTerminated()) return false;
+  this->master->setCurrentNode(node);
+  if (this->master->abortNow()) return false;
+  if (node->isOfType(SoShape::getClassTypeId())) this->builder.beginSortingOccurrence();
+  return true;
+}
+void CoinRenderActionP::portableNodeMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (!render->pimpl->acceptNode(node)) return;
+  SoNode::callbackS(action, node);
+}
+
 void
 CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
 {
   auto * render = static_cast<CoinRenderAction *>(action);
-  if (render->hasTerminated()) return;
-  render->setCurrentNode(node);
+  if (!render->pimpl->acceptNode(node)) return;
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
 #ifdef HAVE_VRML97
@@ -3386,8 +3859,7 @@ CoinRenderActionP::vrmlStateMethod(SoAction * base, SoNode * node)
 {
 #ifdef HAVE_VRML97
   auto * action = static_cast<CoinRenderAction *>(base);
-  if (action->hasTerminated()) return;
-  action->setCurrentNode(node);
+  if (!action->pimpl->acceptNode(node)) return;
   action->invokePreCallbacks(node);
   if (action->getCurrentResponse() == SoCallbackAction::CONTINUE) {
     SoState * state = action->getState();
@@ -3510,8 +3982,7 @@ CoinRenderActionP::markerContentMethod(SoAction * action, SoNode * node)
     return;
   }
   auto * render = static_cast<CoinRenderAction *>(action);
-  if (render->hasTerminated()) return;
-  render->setCurrentNode(node);
+  if (!render->pimpl->acceptNode(node)) return;
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
     if (render->pimpl->captureBoundingBox(render, node)) {
@@ -3545,8 +4016,7 @@ CoinRenderActionP::screenContentMethod(SoAction * action, SoNode * node)
     return;
   }
   auto * render = static_cast<CoinRenderAction *>(action);
-  if (render->hasTerminated()) return;
-  render->setCurrentNode(node);
+  if (!render->pimpl->acceptNode(node)) return;
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
     if (render->pimpl->captureBoundingBox(render, node)) {
@@ -3607,8 +4077,7 @@ void
 CoinRenderActionP::alphaTestMethod(SoAction * action, SoNode * node)
 {
   auto * render = static_cast<CoinRenderAction *>(action);
-  if (render->hasTerminated()) return;
-  render->setCurrentNode(node);
+  if (!render->pimpl->acceptNode(node)) return;
   render->invokePreCallbacks(node);
   if (render->getCurrentResponse() == SoCallbackAction::CONTINUE) {
     if (!coin_render_capture_alpha_node(*static_cast<const SoAlphaTest *>(node), render->getState())) {

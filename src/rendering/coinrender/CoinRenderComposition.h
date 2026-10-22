@@ -117,6 +117,8 @@ COIN_RENDER_DLL_API bool coin_render_composition_order(const CoinRenderFramePlan
                                           bool deferUnresolvedAlpha = false,
                                           bool * opaqueIdentity = nullptr);
 
+COIN_RENDER_DLL_API bool coin_render_materialize_backfaces(CoinRenderFramePlan &, std::string &);
+
 // Coin's 32x32 Bayer matrix, built from {0,2,3,1}; framebuffer origin is bottom-left.
 COIN_RENDER_DLL_API uint32_t coin_render_screen_door_rank(uint32_t x, uint32_t y);
 

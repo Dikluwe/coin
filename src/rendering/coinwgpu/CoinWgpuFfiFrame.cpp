@@ -38,7 +38,7 @@
 static_assert(sizeof(CoinWgpuPortableNode) == 40, "Portable IR statement ABI size changed");
 static_assert(sizeof(CoinWgpuPortableModule) == 56, "Portable module ABI size changed");
 static_assert(sizeof(CoinWgpuPortableRange) == 64, "Portable range ABI size changed");
-static_assert(sizeof(CoinWgpuFrameView) == 544, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 560, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuBumpVertex) == 44, "Bump vertex ABI size changed");
 static_assert(sizeof(CoinWgpuBumpImage) == 32, "Bump image ABI size changed");
 static_assert(offsetof(CoinWgpuFrameView, bump_vertices) == 464, "Bump ABI tail offset changed");
@@ -2144,6 +2144,11 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view = CoinWgpuFrameView{};
   this->view.portable_modules = this->portableViews.empty() ? nullptr : this->portableViews.data();
   this->view.portable_module_count = this->portableViews.size();
+  this->multipassClearColors.clear();
+  for (const auto & color : frame.passClearColors)
+    for (int channel = 0; channel < 4; ++channel) this->multipassClearColors.push_back(color[channel]);
+  this->view.multipass_clear_colors = this->multipassClearColors.empty() ? nullptr : this->multipassClearColors.data();
+  this->view.multipass_clear_color_count = this->multipassClearColors.size();
   this->view.multipass_count = static_cast<uint32_t>(frame.numPasses);
   this->view.multipass_reserved = 0;
   this->view.multipass_budget_bytes = frame.multipassBufferBudget;

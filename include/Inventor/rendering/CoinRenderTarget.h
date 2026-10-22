@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_TARGET_H
 #define COIN_RENDER_TARGET_H
+#define COIN_RENDER_LEGACY_IO_VERSION 1
 #include <Inventor/CoinRenderExport.h>
 
 /**************************************************************************\
@@ -38,6 +39,7 @@
 #include <vector>
 #include <cstdint>
 #include <cstddef>
+#include <cstdio>
 #include <Inventor/SbVec2i32.h>
 #include <Inventor/SbVec2f.h>
 #include <Inventor/SbString.h>
@@ -198,6 +200,30 @@ public:
   SbBool writeLegacyImageFile(const SbString & filename,
                               const SbString & extension,
                               CoinRenderLegacyComponents components) const;
+  /** Enumerate the image savers actually supplied by the optional simage library.
+   * Extensions are case-insensitive bare aliases. Invalid queries clear outputs.
+   */
+  static SbBool isLegacyImageFileSupported(const SbString & extension);
+  static int getNumLegacyImageFileTypes();
+  static SbBool getLegacyImageFileTypeInfo(int index,
+    std::vector<SbString> & extensions, SbString & fullname, SbString & description);
+  /** Borrow converted, bottom-up legacy pixels. Repeated queries of the same
+   * layout/publication keep the pointer stable. Changing layout or a successful
+   * render, resize or output-policy change invalidates it. Failed exports and
+   * submissions preserve the previous publication and its borrowed storage.
+   */
+  const uint8_t * borrowLegacyComponents(CoinRenderLegacyComponents components,
+                                         std::size_t & byteCount) const;
+  /** Encode before touching the destination. FILE* is borrowed and stays open;
+   * filename overloads own and close their stream, including on I/O failure.
+   * An I/O error may leave partial output; it never changes target publication.
+   */
+  SbBool writeLegacyRGB(FILE * stream, CoinRenderLegacyComponents components) const;
+  SbBool writeLegacyRGB(const char * filename, CoinRenderLegacyComponents components) const;
+  SbBool writeLegacyPostScript(FILE * stream, CoinRenderLegacyComponents components,
+                                const SbVec2f & printSize, float dpi) const;
+  SbBool writeLegacyPostScript(const char * filename, CoinRenderLegacyComponents components,
+                                const SbVec2f & printSize, float dpi) const;
   /**
    * Read the center pixel of each odd-sized block from a CPU-readable
    * offscreen target. Render at size (logical width * scale, logical height *
@@ -231,7 +257,9 @@ public:
                                      std::vector<float> & outDepth,
                                      SbString * diagnostic = nullptr);
   static SbBool cancelReadback(const CoinRenderReadbackTicket & ticket);
-  /** Last successful submission, not a native window presentation fence.
+  /** Target-scoped increasing publication identity, not a native window presentation fence.
+   * Backend/cache counters and asynchronous tickets retain their own submission
+   * domain; their numeric serial need not equal this publication identity.
    * X11/compositor observation can still contain an earlier frame after this
    * serial advances. Window RGBA readback, when supported and requested,
    * captures the submitted render image rather than physical display timing.

@@ -415,6 +415,7 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
                                                             center);
       item.eyeDepth = -center[2];
     }
+    if (draw.hasSortingDistance) item.eyeDepth = draw.sortingDistance;
     if (!coin_render_is_finite(item.eyeDepth)) {
       diagnostic = "Invalid non-finite average eye depth in composition order";
       return false;
@@ -517,7 +518,8 @@ coin_render_composition_order(const CoinRenderFramePlan &frame,
     if (item.deferred) {
       if (!(rs.explicitDepthMask & 1))
         item.depthTest = true;
-      if (!(rs.explicitDepthMask & 2))
+      if (!(rs.explicitDepthMask & 2) &&
+          (!frame.delayedObjDepthWrite || item.transparencyStrategy != CoinRenderCompositionItem::OBJECT))
         item.depthWrite = false;
       if (!(rs.explicitDepthMask & 4))
         item.depthFunction = CoinRenderDepthFunction::LEQUAL;
@@ -591,6 +593,57 @@ coin_render_screen_door_rank(uint32_t x, uint32_t y)
 }
 
 bool
+coin_render_materialize_backfaces(CoinRenderFramePlan & frame, std::string & diagnostic)
+{
+  std::vector<CoinRenderCompositionItem> order;
+  if (!coin_render_composition_order(frame, order, diagnostic)) return false;
+  const auto original = frame.draws;
+  std::vector<CoinRenderDrawPacket> draws;
+  draws.reserve(original.size() * 2);
+  auto eligible = [&](const CoinRenderCompositionItem & item) {
+    const auto & draw = original[item.drawIndex];
+    const auto & state = frame.renderStates[draw.renderStateSlot];
+    return item.blend && item.deferred && item.transparencyStrategy == CoinRenderCompositionItem::OBJECT &&
+      draw.topology == CoinRenderPrimitiveTopology::TRIANGLE_LIST && !draw.shadowLightSlot &&
+      !state.rasterPixels && state.polygonOffsetPrimitiveStyle == 1;
+  };
+  auto append = [&](const CoinRenderCompositionItem & item, uint8_t pass) {
+    auto draw = original[item.drawIndex];
+    if (pass) {
+      auto state = frame.renderStates[draw.renderStateSlot];
+      state.cullMode = pass == 1 ? CoinRenderCullMode::FRONT : CoinRenderCullMode::BACK;
+      draw.renderStateSlot = static_cast<uint32_t>(frame.renderStates.size());
+      draw.transparentFacePass = pass;
+      frame.renderStates.push_back(std::move(state));
+    }
+    draws.push_back(draw);
+  };
+  for (size_t begin = 0; begin < order.size();) {
+    if (!eligible(order[begin])) { append(order[begin++], 0); continue; }
+    const auto & first = order[begin];
+    const auto & source = original[first.drawIndex];
+    size_t end = begin + 1;
+    if (first.sortObject) {
+      while (end < order.size() && eligible(order[end]) && order[end].sortObject &&
+             original[order[end].drawIndex].sourceOccurrence == source.sourceOccurrence &&
+             original[order[end].drawIndex].sourceNodeId == source.sourceNodeId &&
+             original[order[end].drawIndex].renderLayer == source.renderLayer) ++end;
+    } else {
+      while (end < order.size() && eligible(order[end]) && !order[end].sortObject &&
+             original[order[end].drawIndex].renderLayer == source.renderLayer) ++end;
+    }
+    for (size_t index = begin; index < end; ++index)
+      if (!frame.renderStates[original[order[index].drawIndex].renderStateSlot].solidShape)
+        append(order[index], 1);
+    for (size_t index = begin; index < end; ++index) append(order[index], 2);
+    begin = end;
+  }
+  frame.draws.swap(draws);
+  diagnostic.clear();
+  return true;
+}
+
+bool
 coin_render_composition_schedule(const CoinRenderFramePlan &frame,
                                  std::vector<CoinRenderCompositionItem> &schedule,
                                  std::string &diagnostic, const CoinRenderFramePreflight *preflight)
@@ -617,7 +670,8 @@ coin_render_composition_schedule(const CoinRenderFramePlan &frame,
         const auto &a = frame.renderStates[source.renderStateSlot];
         const auto &b = frame.renderStates[draw.renderStateSlot];
         if (!next.blend || !next.sortTriangles || draw.sourceNodeId != source.sourceNodeId ||
-            draw.renderLayer != source.renderLayer || a.model != b.model || a.view != b.view)
+            draw.renderLayer != source.renderLayer || draw.transparentFacePass != source.transparentFacePass ||
+            a.model != b.model || a.view != b.view)
           break;
         ++end;
       }

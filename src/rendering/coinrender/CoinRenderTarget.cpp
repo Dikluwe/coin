@@ -13,6 +13,7 @@
 
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderReadbackCore.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include "rendering/coinrender/CoinRenderFramePlan.h"
@@ -28,6 +29,7 @@
 #include <Inventor/SbVec3f.h>
 #include <Inventor/SbVec4f.h>
 #include <Inventor/SbColor.h>
+#include <Inventor/actions/SoGLRenderAction.h>
 
 #include <vector>
 #include <cmath>
@@ -171,6 +173,7 @@ CoinRenderTargetP::resize(const SbVec2i32 & newSize)
       !this->suspended && newSize == this->size) return true;
   ++this->resourceGeneration;
   this->lastSubmissionSerial = 0;
+  this->legacyBorrowValid = false;
   this->borrowedReadbackValid = false;
   this->windowReadbackRequested = false;
   this->synchronousReadbackValid = false;
@@ -588,6 +591,80 @@ private:
 } // namespace
 
 CoinRenderFrameExecutionResult
+CoinRenderTargetP::executePartialFrame(const CoinRenderFramePlan & frame, const int rectangle[4])
+{
+  // A bounded render attachment is the scissor: backends clear and rasterize
+  // only this patch. Original viewport dimensions and projections stay intact;
+  // shifting the viewport origin translates window coordinates into the patch.
+  // This reuses each connector's existing out-of-target viewport compensation.
+  if (this->kind != KIND_OFFSCREEN || this->directTextureOutput || this->options.sampleCount != 1 ||
+      frame.numPasses != 1 || frame.outputColorFormat != CoinRenderTextureFormat::RGBA8_LINEAR ||
+      frame.outputMipmaps || rectangle[0] < 0 || rectangle[1] < 0 || rectangle[2] <= 0 || rectangle[3] <= 0 ||
+      int64_t(rectangle[0]) + rectangle[2] > this->size[0] ||
+      int64_t(rectangle[1]) + rectangle[3] > this->size[1])
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Unsupported partial-update target or rectangle"};
+  // Spatial passes use full-canvas pixel coordinates and separate attachments.
+  // They need their own explicit partial-update profile before being admitted.
+  if (!frame.shadowGroups.empty() || !frame.bumpImages.empty() || frame.hasPortableShaderDraws())
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Partial update with shadows, bump or portable shaders is not qualified"};
+  std::vector<CoinRenderCompositionItem> partialOrder;
+  std::string diagnostic;
+  if (!coin_render_composition_order(frame, partialOrder, diagnostic))
+    return {CoinRenderBackendStatus::BACKEND_ERROR, diagnostic};
+  for (const auto & item : partialOrder)
+    if (item.screenDoorLevel || item.transparencyStrategy != CoinRenderCompositionItem::OBJECT)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "Partial updates with stipple or OIT need a canvas-origin profile"};
+  try {
+    CoinRenderFramePlan patch = frame;
+    for (auto & viewport : patch.viewports) {
+      viewport.x -= rectangle[0]; viewport.y -= rectangle[1];
+    }
+    // Allocate the eventual publication before submitting any GPU work.
+    const size_t pixels = size_t(this->size[0]) * size_t(this->size[1]);
+    const bool previous = this->synchronousReadbackValid && this->borrowedReadbackValid;
+    std::vector<uint8_t> color(pixels * 4);
+    std::vector<float> depth(this->depthReadbackEnabled ? pixels : 0, 1.0f);
+    if (previous && this->colorBuffer.size() == color.size()) color = this->colorBuffer;
+    else for (size_t pixel = 0; pixel < pixels; ++pixel)
+      for (int channel = 0; channel < 4; ++channel)
+        color[pixel * 4 + channel] = static_cast<uint8_t>(std::max(0.0f,
+          std::min(255.0f, frame.clearColor[channel] * 255.0f)));
+    if (previous && this->depthBuffer.size() == depth.size()) depth = this->depthBuffer;
+    std::unique_ptr<CoinRenderTarget> patchTarget(CoinRenderTarget::createOffscreen(
+      SbVec2i32(rectangle[2], rectangle[3]), this->options));
+    if (!patchTarget || patchTarget->getStatus() != CoinRenderTarget::TARGET_READY)
+      return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Cannot allocate partial-update attachment"};
+    auto & attachment = patchTarget->pimpl.get();
+    // Honor an explicitly injected CPU reference executor in a GPU build.
+    // Selecting the compiled factory here could cross device/serial domains.
+    if (dynamic_cast<CoinRenderCpuReferenceBackend *>(this->backend.get()))
+      attachment.backend.reset(new CoinRenderCpuReferenceBackend());
+    else if (this->backend && !this->backend->isGpuBackend())
+      return {CoinRenderBackendStatus::UNSUPPORTED, "Partial updates cannot replace the selected non-GPU executor"};
+    attachment.depthReadbackEnabled = this->depthReadbackEnabled;
+    const auto result = attachment.executeFrame(patch);
+    if (result.status != CoinRenderBackendStatus::SUCCESS) return result;
+    const int top = this->size[1] - rectangle[1] - rectangle[3];
+    for (int row = 0; row < rectangle[3]; ++row) {
+      const size_t from = size_t(row) * rectangle[2];
+      const size_t to = size_t(top + row) * this->size[0] + rectangle[0];
+      std::copy_n(attachment.colorBuffer.data() + from * 4, size_t(rectangle[2]) * 4, color.data() + to * 4);
+      if (!depth.empty()) std::copy_n(attachment.depthBuffer.data() + from,
+        size_t(rectangle[2]), depth.data() + to);
+    }
+    this->colorBuffer.swap(color); this->depthBuffer.swap(depth);
+    this->lastSubmissionSerial = std::max(result.submissionSerial, this->lastSubmissionSerial + 1);
+    this->lastValidatedPlanRevision = 0;
+    this->synchronousReadbackValid = this->borrowedReadbackValid = true;
+    this->legacyBorrowValid = false;
+    this->status = CoinRenderTarget::TARGET_READY; this->lastError.clear();
+    return result;
+  } catch (const std::bad_alloc &) {
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Cannot allocate partial-update publication"};
+  }
+}
+
+CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrame(const CoinRenderFramePlan & frame)
 {
   return this->executeFrameInternal(frame, NULL,
@@ -865,6 +942,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     this->depthBuffer.clear();
   }
   publication.commit();
+  this->legacyBorrowValid = false;
   if (CoinRenderDiagnosticShell::phaseTracingEnabled()) {
     const auto now = PhaseClock::now();
     const auto ms = [](PhaseClock::time_point a, PhaseClock::time_point b) {
@@ -876,7 +954,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   if (outTicket)
     *outTicket = candidateTicket;
   this->lastValidatedPlanRevision = frame.revision;
-  this->lastSubmissionSerial = res.submissionSerial;
+  this->lastSubmissionSerial = std::max(res.submissionSerial, this->lastSubmissionSerial + 1);
   this->synchronousReadbackValid = (outTicket == NULL &&
     (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput);
   this->borrowedReadbackValid = this->synchronousReadbackValid &&
@@ -1061,6 +1139,127 @@ CoinRenderTarget::writeLegacyImageFile(const SbString & filename,
     size[0], size[1], static_cast<int>(components), extension.getString()) ? TRUE : FALSE;
 }
 
+namespace {
+std::string legacyExtension(const SbString & extension)
+{
+  std::string value = extension.getString();
+  if (value.empty()) return {};
+  for (unsigned char c : value)
+    if (!std::isalnum(c) && c != '_' && c != '-') return {};
+  std::transform(value.begin(), value.end(), value.begin(),
+    [](unsigned char c) { return static_cast<char>(std::tolower(c)); });
+  return value;
+}
+const simage_wrapper_t * legacySavers()
+{
+  const auto * codec = simage_wrapper();
+  return codec && codec->available && codec->versionMatchesAtLeast(1, 1, 0) &&
+    codec->simage_get_num_savers && codec->simage_get_saver_handle &&
+    codec->simage_get_saver_extensions && codec->simage_get_saver_fullname &&
+    codec->simage_get_saver_description && codec->simage_check_save_supported &&
+    codec->simage_save_image ? codec : nullptr;
+}
+bool writeLegacyBytes(FILE * stream, const std::vector<uint8_t> & bytes)
+{
+  return stream && !std::ferror(stream) &&
+    std::fwrite(bytes.data(), 1, bytes.size(), stream) == bytes.size() &&
+    !std::ferror(stream) && std::fflush(stream) == 0 && !std::ferror(stream);
+}
+bool writeLegacyBytes(const char * filename, const std::vector<uint8_t> & bytes)
+{
+  if (!filename || !*filename) return false;
+  FILE * stream = std::fopen(filename, "wb");
+  if (!stream) return false;
+  const bool written = writeLegacyBytes(stream, bytes);
+  const bool closed = std::fclose(stream) == 0;
+  return written && closed;
+}
+}
+
+SbBool CoinRenderTarget::isLegacyImageFileSupported(const SbString & extension)
+{
+  const std::string value = legacyExtension(extension);
+  const auto * codec = legacySavers();
+  return codec && !value.empty() && codec->simage_check_save_supported(value.c_str()) ? TRUE : FALSE;
+}
+
+int CoinRenderTarget::getNumLegacyImageFileTypes()
+{
+  const auto * codec = legacySavers();
+  return codec ? std::max(0, codec->simage_get_num_savers()) : 0;
+}
+
+SbBool CoinRenderTarget::getLegacyImageFileTypeInfo(int index,
+  std::vector<SbString> & extensions, SbString & fullname, SbString & description)
+{
+  extensions.clear(); fullname = ""; description = "";
+  const auto * codec = legacySavers();
+  if (!codec || index < 0 || index >= codec->simage_get_num_savers()) return FALSE;
+  void * handle = codec->simage_get_saver_handle(index);
+  if (!handle) return FALSE;
+  const char * aliases = codec->simage_get_saver_extensions(handle);
+  if (!aliases) return FALSE;
+  std::string value(aliases);
+  size_t begin = 0;
+  while (begin < value.size()) {
+    const size_t end = value.find_first_of(",; \t\r\n", begin);
+    const auto alias = legacyExtension(SbString(value.substr(begin,
+      end == std::string::npos ? end : end - begin).c_str()));
+    if (!alias.empty() && codec->simage_check_save_supported(alias.c_str()))
+      extensions.push_back(SbString(alias.c_str()));
+    if (end == std::string::npos) break;
+    begin = end + 1;
+  }
+  if (extensions.empty()) return FALSE;
+  const char * name = codec->simage_get_saver_fullname(handle);
+  const char * detail = codec->simage_get_saver_description(handle);
+  fullname = name ? name : ""; description = detail ? detail : "";
+  return TRUE;
+}
+
+const uint8_t * CoinRenderTarget::borrowLegacyComponents(
+  CoinRenderLegacyComponents components, std::size_t & byteCount) const
+{
+  byteCount = 0;
+  auto & target = this->pimpl.get();
+  const int channels = static_cast<int>(components);
+  if (channels < 1 || channels > 4 || target.kind != CoinRenderTargetP::KIND_OFFSCREEN ||
+      !target.synchronousReadbackValid || !target.borrowedReadbackValid || target.directTextureOutput)
+    return nullptr;
+  if (!target.legacyBorrowValid || target.legacyBorrowLayout != components) {
+    std::vector<uint8_t> candidate;
+    if (!this->readbackLegacyComponents(components, candidate)) return nullptr;
+    target.legacyBorrowBuffer.swap(candidate);
+    target.legacyBorrowLayout = components;
+    target.legacyBorrowValid = true;
+  }
+  byteCount = target.legacyBorrowBuffer.size();
+  return byteCount ? target.legacyBorrowBuffer.data() : nullptr;
+}
+
+SbBool CoinRenderTarget::writeLegacyRGB(FILE * stream, CoinRenderLegacyComponents components) const
+{
+  std::vector<uint8_t> bytes;
+  return stream && this->encodeLegacyRGB(components, bytes) && writeLegacyBytes(stream, bytes) ? TRUE : FALSE;
+}
+SbBool CoinRenderTarget::writeLegacyRGB(const char * filename, CoinRenderLegacyComponents components) const
+{
+  std::vector<uint8_t> bytes;
+  return filename && *filename && this->encodeLegacyRGB(components, bytes) && writeLegacyBytes(filename, bytes) ? TRUE : FALSE;
+}
+SbBool CoinRenderTarget::writeLegacyPostScript(FILE * stream, CoinRenderLegacyComponents components,
+  const SbVec2f & printSize, float dpi) const
+{
+  std::vector<uint8_t> bytes;
+  return stream && this->encodeLegacyPostScript(components, printSize, dpi, bytes) && writeLegacyBytes(stream, bytes) ? TRUE : FALSE;
+}
+SbBool CoinRenderTarget::writeLegacyPostScript(const char * filename, CoinRenderLegacyComponents components,
+  const SbVec2f & printSize, float dpi) const
+{
+  std::vector<uint8_t> bytes;
+  return filename && *filename && this->encodeLegacyPostScript(components, printSize, dpi, bytes) && writeLegacyBytes(filename, bytes) ? TRUE : FALSE;
+}
+
 SbBool
 CoinRenderTarget::readbackCenterSampledRGBA(unsigned int scale,
                                              std::vector<uint8_t> & outPixels) const
@@ -1118,6 +1317,7 @@ CoinRenderTarget::setDepthReadbackEnabled(SbBool enabled)
   if (this->pimpl->depthReadbackEnabled != requested) {
     this->pimpl->depthReadbackEnabled = requested;
     this->pimpl->synchronousReadbackValid = false;
+    this->pimpl->legacyBorrowValid = false;
     this->pimpl->borrowedReadbackValid = false;
   }
   this->pimpl->lastError.clear();

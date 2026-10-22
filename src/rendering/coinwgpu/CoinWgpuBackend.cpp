@@ -82,7 +82,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 1036, "CoinWgpuRenderS
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 1040, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 64, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 544, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 560, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");

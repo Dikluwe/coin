@@ -83,6 +83,10 @@ struct CoinRenderDrawPacket {
   uint64_t stableNodeId = 0;
   uint32_t drawOrdinal = 0;
   uint64_t sourceRevision = 0;
+  uint64_t sourceOccurrence = 0;
+  uint8_t transparentFacePass = 0; // 0=ordinary, 1=back, 2=front
+  bool hasSortingDistance = false;
+  float sortingDistance = 0;
   bool hasSortingCenter = false;
   float sortingCenterWorld[3] = {0, 0, 0};
   uint32_t renderLayer = 0;
@@ -405,6 +409,7 @@ struct CoinRenderRenderStateSnapshot {
   uint32_t lightingSlot = 0;
   uint32_t cameraSlot = 0;
   uint32_t viewportSlot = 0;
+  bool solidShape = false;
   CoinRenderCullMode cullMode = CoinRenderCullMode::BACK;
   CoinRenderFrontFace frontFace = CoinRenderFrontFace::CCW;
   bool depthTest = true;
@@ -495,6 +500,9 @@ struct CoinRenderFramePlan {
   bool outputMipmaps = false; // Execution-owned RTT request, never an implicit root fallback.
   // CoinGL conventional producer blend applies SRC_ALPHA to alpha as well.
   bool legacyBlendAlpha = false;
+  bool delayedObjDepthWrite = false;
+  bool smoothing = false;
+  std::vector<SbColor4f> passClearColors; // Empty: capture-once multipass. Otherwise one clear per snapshot.
   CoinRenderTransparencyOptions transparency;
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<CoinRenderVertexSnapshot> vertices;

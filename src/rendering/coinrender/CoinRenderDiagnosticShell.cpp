@@ -95,6 +95,7 @@ CoinRenderDiagnosticShell::statusName(CoinRenderAction::Status status)
     case CoinRenderAction::OUT_OF_MEMORY: return "OUT_OF_MEMORY";
     case CoinRenderAction::DEVICE_LOST: return "DEVICE_LOST";
     case CoinRenderAction::SURFACE_LOST: return "SURFACE_LOST";
+    case CoinRenderAction::ABORTED: return "ABORTED";
     case CoinRenderAction::BACKEND_ERROR:
     default: return "BACKEND_ERROR";
   }

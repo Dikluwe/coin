@@ -1,5 +1,6 @@
 #ifndef COIN_RENDER_ACTION_H
 #define COIN_RENDER_ACTION_H
+#define COIN_RENDER_ACTION_OPTIONS_VERSION 1
 
 /**************************************************************************\
  * Copyright (c) Kongsberg Oil & Gas Technologies AS
@@ -52,8 +53,9 @@ struct CoinRenderReadbackTicket;
  * The action preserves the SoAction traversal model and captures SoState into
  * a private frame plan consumed by CoinRender. Its private VRML background
  * bridge is compiled into libCoin when CoinRender is enabled; rebuild libCoin
- * and CoinRender together when changing this internal bridge. A render target
- * must be assigned before apply().
+ * and CoinRender together when changing this internal bridge. Synchronous
+ * apply() without a target records the captured frame. Asynchronous apply
+ * requires an offscreen target.
  *
  * VRML97 capture follows native Coin's static raster semantics: Shape and
  * Appearance state, local decoded ImageTexture/PixelTexture images, texture
@@ -84,7 +86,8 @@ public:
     OUT_OF_MEMORY,
     DEVICE_LOST,
     BACKEND_ERROR,
-    SURFACE_LOST
+    SURFACE_LOST,
+    ABORTED
   };
 
   enum TransparencyType {
@@ -102,6 +105,21 @@ public:
     NONE = SoGLRenderAction::NONE,
     SORTED_LAYERS_BLEND = SoGLRenderAction::SORTED_LAYERS_BLEND
   };
+
+  enum TransparentDelayedObjectRenderType { ONE_PASS, NONSOLID_SEPARATE_BACKFACE_PASS };
+  /** Two-sided object transparency: backs before fronts for each sorted object;
+   * unsorted delayed lists render all backs before all fronts. SOLID objects
+   * retain one front pass. Opaque, immediate and OIT rendering are unchanged.
+   */
+  void setTransparentDelayedObjectRenderType(TransparentDelayedObjectRenderType type);
+  TransparentDelayedObjectRenderType getTransparentDelayedObjectRenderType() const;
+  enum AbortCode { CONTINUE, ABORT, PRUNE, DELAY };
+  typedef AbortCode CoinRenderAbortCB(void * userdata);
+  typedef void CoinRenderPreRenderCB(void * userdata, CoinRenderAction * action);
+  enum SortedObjectOrderStrategy {
+    BBOX_CENTER, BBOX_CLOSEST_CORNER, BBOX_FARTHEST_CORNER, CUSTOM_CALLBACK
+  };
+  typedef float CoinRenderSortedObjectOrderCB(void * userdata, CoinRenderAction * action);
 
   enum class DrawMode { SCENE, WIREFRAME, POINTS, BOUNDING_BOX, WIREFRAME_OVERLAY, HIDDEN_LINE, SHADED_HIDDEN_LINES };
 
@@ -148,6 +166,62 @@ public:
   void setViewportRegion(const SbViewportRegion & region);
   const SbViewportRegion & getViewportRegion(void) const;
 
+  /** Check each traversed node with its current path. PRUNE skips the subtree;
+   * DELAY copies its path and replays it once as an overlay. During replay,
+   * DELAY continues normally. ABORT discards the candidate before submission.
+   * abortNow() is inert outside apply and returns TRUE for PRUNE/DELAY/ABORT.
+   */
+  void setAbortCallback(CoinRenderAbortCB * callback, void * userdata);
+  void getAbortCallback(CoinRenderAbortCB * & callback, void * & userdata) const;
+  SbBool abortNow();
+  SbBool addDelayedPath(SoPath * path);
+  SbBool isRenderingDelayedPaths() const;
+  /** Run once before capture for each valid outer apply, including cache hits.
+   * A registration snapshot is used: list edits take effect next apply.
+   * Removal erases matching callback/userdata pairs; NULL callbacks are ignored.
+   */
+  void addPreRenderCallback(CoinRenderPreRenderCB * callback, void * userdata);
+  void removePreRenderCallback(CoinRenderPreRenderCB * callback, void * userdata);
+  /** Normalized bottom-left canvas update rectangle, default (0,0)/(1,1).
+   * Validated at apply: finite coordinates in [0,1], origin+size <= 1.
+   * A partial update clips clear and rendering to its viewport intersection,
+   * preserving previous exterior color/depth (initially background/depth 1).
+   * Pixels follow native truncation: int(origin*canvas), int(size*canvas),
+   * independently, followed by viewport intersection. Initial profile:
+   * synchronous offscreen RGBA8, one sample/pass, ordinary object rendering.
+   * Spatial shaders, peeling and stippled transparent partial updates are
+   * rejected before producer execution; use a full update for these profiles.
+   * Empty intersections succeed without traversal, producers or publication.
+   */
+  void setUpdateArea(const SbVec2f & origin, const SbVec2f & size);
+  /** Recreate traversal state and revoke capture proofs on the next apply.
+   * Target pixels, readback tickets and backend resources remain published.
+   * During traversal the reset is deferred until that apply unwinds safely.
+   */
+  void invalidateState() override;
+  void getUpdateArea(SbVec2f & origin, SbVec2f & size) const;
+  /** Object transparency sorting uses native camera-plane distance, descending,
+   * with stable occurrence ties. Custom callbacks run once per sorted transparent
+   * occurrence with its current path and must return a finite distance.
+   * Other transparency algorithms do not consume this strategy.
+   */
+  void setSortedObjectOrderStrategy(SortedObjectOrderStrategy strategy,
+    CoinRenderSortedObjectOrderCB * callback = nullptr, void * userdata = nullptr);
+  /** Portable area coverage for unlit, untextured lines and points. Lines use
+   * continuous-width rectangles and points continuous-diameter discs; coverage
+   * multiplies alpha before blending. This is independent of MSAA/multipass.
+   * Initial profile is mono synchronous offscreen RGBA8 at one sample/pass.
+   * Triangles keep their normal coverage; FALSE restores native stroke rules.
+   */
+  void setSmoothing(SbBool enabled);
+  SbBool isSmoothing() const;
+  /** Default FALSE: transparent delayed/sorted objects suppress depth writes
+   * unless an authored SoDepthBuffer overrides them, as in native Coin.
+   * TRUE keeps the normal captured depth-write default; depth tests are unchanged.
+   */
+  void setDelayedObjDepthWrite(SbBool enabled);
+  SbBool getDelayedObjDepthWrite() const;
+
   /** Borrow a render target. Before destroying a target that will be replaced,
    * detach it with setRenderTarget(NULL) while the old target is still alive.
    */
@@ -163,6 +237,21 @@ public:
   DrawMode getDrawMode(void) const;
   void setOverlayColor(const SbColor4f & color);
   const SbColor4f & getOverlayColor(void) const;
+  typedef void CoinRenderPassCB(void * userdata, CoinRenderAction * action);
+  /** A callback requests distinct scene snapshots per sample. It runs N-1 times
+   * between captures, seeing the previous sample index. Nodes see their current
+   * index. All snapshots validate before submission; GPU output is their mean,
+   * with the last sample's depth. Readback during callbacks is the previous
+   * publication; this callback never exposes an implicit GL context or presents
+   * intermediate images. Initial profile: opaque geometry and local RGBA2D,
+   * mono synchronous offscreen RGBA8, one hardware sample.
+   */
+  void setPassCallback(CoinRenderPassCB * callback, void * userdata);
+  int getCurPass() const;
+  /** Select one external jitter sample without averaging or pass callbacks.
+   * Requires 0 <= pass < total <= 16. setNumPasses restores internal sampling.
+   */
+  void setCurPass(int pass, int total);
   // Requested multipass count: 1..16, default 1. Validation occurs at render/apply.
   void setNumPasses(int passes);
   int getNumPasses() const;

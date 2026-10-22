@@ -129,6 +129,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <new>
+#include <limits>
 
 
 CoinRenderCameraSnapshot
@@ -200,6 +201,9 @@ CoinRenderFramePlanBuilder::beginFrame(const SbColor4f & clearColor, const SbVie
   this->linePatternOverride = false;
   this->currentPlan.clearColor = clearColor;
   this->currentPlan.numPasses = numPasses;
+  this->currentPlan.delayedObjDepthWrite = this->delayedObjDepthWrite;
+  this->currentPlan.smoothing = this->smoothing;
+  this->occurrenceSerial = 0;
   this->currentMultipassMask = 0;
   this->currentMultipassRasterFixed = false;
   this->inFrame = true;
@@ -2198,6 +2202,7 @@ CoinRenderFramePlanBuilder::captureRenderState(SoCallbackAction * action, int ma
   rs.lightingSlot = lightingSlot;
   rs.cameraSlot = cameraSlot;
   rs.viewportSlot = viewportSlot;
+  rs.solidShape = !boundingBox && st == SoShapeHintsElement::SOLID;
   rs.cullMode = boundingBox ? CoinRenderCullMode::NONE : cullMode;
   rs.frontFace = boundingBox ? CoinRenderFrontFace::CCW : frontFace;
   SbBool depthTest = TRUE;
@@ -2675,6 +2680,7 @@ CoinRenderFramePlanBuilder::captureMarkerContent(SoCallbackAction * action, cons
           auto & draw = this->currentPlan.draws[this->currentDrawIndex];
           if (draw.geometry.indexCount == 0 && needsSortingCenter && sortingOccurrences)
             CoinRenderPlanAssemblyCore::sortingCenter(draw, source.model, sortingCenter);
+          if (this->sortingStrategy != 0) this->captureSortingCenter(action);
           const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
           for (auto vertex : quad.vertices) {
             vertex.fogEyeDepth = CoinRenderScreenRasterCore::planarRasterFogDepth(projected[2]);
@@ -2947,6 +2953,7 @@ CoinRenderFramePlanBuilder::captureScreenContent(SoCallbackAction * action, cons
     // Sorting uses the original camera, while the raster's vertex transform is I.
     if (draw.geometry.indexCount == 0)
       CoinRenderPlanAssemblyCore::sortingCenter(draw, source.model, SbVec3f(0,0,0));
+    if (this->sortingStrategy != 0) this->captureSortingCenter(action);
     const uint32_t first = static_cast<uint32_t>(this->currentPlan.vertices.size());
     for (auto vertex : quad.vertices) {
       vertex.materialSlot = this->currentPlan.renderStates[stateSlot].materialSlot;
@@ -3446,6 +3453,7 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
   dp.multipassRasterFixed = this->currentMultipassRasterFixed;
   dp.frameNodeOrdinal = ++this->nodeCounter;
   dp.sourceNodeId = nodeId;
+  dp.sourceOccurrence = this->occurrenceSerial;
   dp.renderLayer = this->currentAnnotationLayer;
   dp.authoredScene = dp.renderLayer != 0 && dp.renderLayer == this->authoredSceneLayer;
   dp.clearDepthBefore = dp.renderLayer != 0 && this->annotationDepthClearPending;
@@ -3464,17 +3472,57 @@ void
 CoinRenderFramePlanBuilder::captureSortingCenter(SoCallbackAction * action)
 {
   auto & draw = this->currentPlan.draws[this->currentDrawIndex];
-  if (draw.geometry.indexCount != 0 || draw.renderLayer != 0) return;
+  if (draw.geometry.indexCount != 0 || !draw.isSceneLayer()) return;
+  this->currentPlan.delayedObjDepthWrite = this->delayedObjDepthWrite;
   const auto & state = this->currentPlan.renderStates[draw.renderStateSlot];
   const int type = state.transparencyType;
+  const bool additive = type == SoGLRenderAction::SORTED_OBJECT_ADD ||
+    type == SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD;
   if (type != SoGLRenderAction::SORTED_OBJECT_ADD && type != SoGLRenderAction::SORTED_OBJECT_BLEND &&
       type != SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_ADD &&
       type != SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND) return;
   SoNode * node = action->getCurPathTail();
   if (!node || !node->isOfType(SoShape::getClassTypeId())) return;
+  const bool transparent = state.rasterPixels ? state.rasterTransparent :
+    (state.transparentMaterial || state.transparentTexture);
+  const bool sorted = transparent && (this->objectSortingEnabled || additive);
+  if (this->sortingStrategy == 3 && sorted) {
+    if (!this->occurrenceSortingComputed) {
+      this->occurrenceSortingDistance = this->customSortingDistance ?
+        this->customSortingDistance(action) : std::numeric_limits<float>::quiet_NaN();
+      this->occurrenceSortingComputed = true;
+    }
+    if (!std::isfinite(this->occurrenceSortingDistance)) {
+      this->hasError = true;
+      this->builderError = "Custom sorting distance must be finite";
+      return;
+    }
+    draw.hasSortingDistance = true;
+    draw.sortingDistance = this->occurrenceSortingDistance;
+    return;
+  }
   SbBox3f box; SbVec3f center;
   static_cast<SoShape *>(node)->computeBBox(action, box, center);
   if (box.isEmpty()) return;
+  if (sorted && (this->sortingStrategy == 1 || this->sortingStrategy == 2)) {
+    const auto plane = action->getViewVolume().getPlane(0.0f);
+    float distance = 0;
+    for (int corner = 0; corner < 8; ++corner) {
+      const auto low = box.getMin(), high = box.getMax();
+      SbVec3f point(corner & 1 ? high[0] : low[0], corner & 2 ? high[1] : low[1], corner & 4 ? high[2] : low[2]);
+      action->getModelMatrix().multVecMatrix(point, point);
+      const float value = -plane.getDistance(point);
+      if (!std::isfinite(value)) {
+        this->hasError = true; this->builderError = "Object sorting distance must be finite";
+        return;
+      }
+      if (!corner || (this->sortingStrategy == 1 ? value < distance : value > distance)) {
+        distance = value;
+      }
+    }
+    draw.hasSortingDistance = true; draw.sortingDistance = distance;
+    return;
+  }
   CoinRenderPlanAssemblyCore::sortingCenter(draw, action->getModelMatrix(), center);
 }
 
@@ -4218,6 +4266,11 @@ CoinRenderFramePlanBuilder::build(CoinRenderFramePlan & outPlan, std::string * o
     return false;
   }
   timer.mark("validation");
+  if (this->separateBackfaces && !coin_render_materialize_backfaces(this->currentPlan, this->builderError)) {
+    this->isUnsupported = true;
+    if (outError) *outError = this->builderError;
+    return false;
+  }
   std::vector<CoinRenderCompositionItem> order;
   std::string compositionError;
   bool opaqueIdentity = false;

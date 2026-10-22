@@ -9,6 +9,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
+#include <functional>
 
 class SoCallbackAction;
 class SoCamera;
@@ -35,6 +36,15 @@ public:
   void beginFrame(const SbColor4f & clearColor, const SbViewportRegion & viewport, int numPasses);
   // Allocation hint only. Captured values and deduplication stay unchanged.
   void reserveCaptureStorage(size_t estimate);
+  // Action capture controls, copied into the immutable frame where consumed.
+  bool delayedObjDepthWrite = false;
+  bool separateBackfaces = false;
+  bool smoothing = false;
+  int sortingStrategy = 0;
+  bool objectSortingEnabled = true;
+  std::function<float(SoCallbackAction *)> customSortingDistance;
+  void beginSortingOccurrence() { this->occurrenceSortingComputed = false; ++this->occurrenceSerial; }
+
   void reset();
   // Render-state reuse is scoped to one occurrence; geometry replay is frame-local.
   void beginShape(SoCallbackAction * action, const SoNode * node);
@@ -232,6 +242,10 @@ private:
   std::unordered_map<std::string, uint32_t> portableShaderSlots;
   size_t captureReserveEstimate = 0;
   uint32_t currentDrawIndex;
+  uint64_t occurrenceSerial = 0;
+  bool occurrenceSortingComputed = false;
+  float occurrenceSortingDistance = 0;
+
   uint32_t currentMultipassMask = 0;
   bool currentMultipassRasterFixed = false;
   uint32_t nodeCounter;

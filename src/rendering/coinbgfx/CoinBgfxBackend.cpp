@@ -5820,8 +5820,10 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
   // The packed clear API quantizes Coin's float color before the GL clear.
   // Keep the float until the renderer converts it to its target format.
-  bgfx::setPaletteColor(0, plan->clearColor);
-  bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
+  const uint8_t clearIndex = frame.passClearColors.empty() ? 0 : uint8_t(pass);
+  const float * sampleClear = frame.passClearColors.empty() ? plan->clearColor : frame.passClearColors[pass].getValue();
+  bgfx::setPaletteColor(clearIndex, sampleClear);
+  bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, clearIndex);
   bgfx::setViewTransform(opaqueView, nullptr, nullptr);
   bgfx::touch(opaqueView);
   if (std::any_of(draws.begin(), draws.end(), [](const CoinBgfxDraw & draw) { return draw.authoredScene; })) {
@@ -6829,13 +6831,15 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
           !draw.clearDepthBefore && !draw.authoredScene; }), jitteredDraws.end());
     }
     const auto & sampleDraws = frame.numPasses > 1 ? jitteredDraws : plan.draws;
-  bgfx::setPaletteColor(0, plan.clearColor);
+  const uint8_t clearIndex = frame.passClearColors.empty() ? 0 : uint8_t(pass);
+  const float * sampleClear = frame.passClearColors.empty() ? plan.clearColor : frame.passClearColors[pass].getValue();
+  bgfx::setPaletteColor(clearIndex, sampleClear);
   bgfx::setViewName(opaqueView, "rtt_opaque");
   bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
   bgfx::setViewRect(opaqueView, 0, 0, static_cast<uint16_t>(size[0]),
                     static_cast<uint16_t>(size[1]));
   bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
-  bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, 0);
+  bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, clearIndex);
   bgfx::touch(opaqueView);
   const bgfx::TextureHandle surfaceSampleDepth = strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS && this->sampleCount > 1 ?
     bgfx::getTexture(transparency.layers[0], 2) : bgfx::TextureHandle BGFX_INVALID_HANDLE;

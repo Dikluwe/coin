@@ -149,6 +149,7 @@ private:
   std::vector<CoinWgpuRenderState> states;
   std::vector<uint32_t> sourceStateSlots;
   std::vector<float> multipassMatrices;
+  std::vector<float> multipassClearColors;
   std::vector<CoinWgpuInstance> instances;
   std::vector<CoinWgpuInstanceRange> instanceRanges;
   std::vector<CoinWgpuTexture> textures;

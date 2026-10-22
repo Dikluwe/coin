@@ -39,14 +39,14 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 68;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 69;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuLight>() == 80);
     assert!(std::mem::align_of::<CoinWgpuLight>() == 4);
     assert!(std::mem::offset_of!(CoinWgpuLight, ambient_color) == 64);
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 544);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 560);
     assert!(std::mem::size_of::<CoinWgpuPortableNode>() == 40);
     assert!(std::mem::size_of::<CoinWgpuPortableModule>() == 56);
     assert!(std::mem::size_of::<CoinWgpuPortableRange>() == 64);
@@ -704,6 +704,8 @@ pub struct CoinWgpuFrameView {
     pub multipass_budget_bytes: u64,
     pub multipass_matrices: *const f32,
     pub multipass_matrix_count: u64,
+    pub multipass_clear_colors: *const f32,
+    pub multipass_clear_color_count: u64,
 }
 
 fn bump_payload_present(frame: &CoinWgpuFrameView) -> bool {
@@ -6569,6 +6571,16 @@ fn validate_multipass_metadata(frame:&CoinWgpuFrameView,
         let values=validate_slice(frame.multipass_matrices,frame.multipass_matrix_count,"multipass matrices",error,error_len)?;
         if values.iter().any(|value|!value.is_finite()) {return Err(invalid("Non-finite multipass matrix payload"));}
     }
+    if frame.multipass_clear_color_count==0 {
+        if !frame.multipass_clear_colors.is_null() { return Err(invalid("Unexpected snapshot clear pointer")); }
+    } else {
+        if frame.multipass_clear_color_count!=u64::from(frame.multipass_count)*4 {
+            return Err(invalid("Invalid snapshot clear payload count"));
+        }
+        let values=validate_slice(frame.multipass_clear_colors,frame.multipass_clear_color_count,
+            "snapshot clears",error,error_len)?;
+        if values.iter().any(|value|!value.is_finite()) { return Err(invalid("Non-finite snapshot clear color")); }
+    }
     let draws=validate_slice(frame.draws,frame.draw_count,"multipass draws",error,error_len)?;
     for draw in draws {
         let mask=(draw.composition_flags>>15)&0xffff;
@@ -6699,6 +6711,22 @@ fn encode_scene_samples(
         ((draw.composition_flags>>15)&0xffff)>>count != 0) {
         return Err((CoinWgpuStatus::InvalidArgument,"Invalid multipass matrices or sample mask".into()));
     }
+    let clear_colors = if frame.multipass_clear_color_count == 0 {
+        if !frame.multipass_clear_colors.is_null() {
+            return Err((CoinWgpuStatus::InvalidArgument,"Unexpected snapshot clear pointer".into()));
+        }
+        &[][..]
+    } else {
+        if frame.multipass_clear_color_count != u64::from(count)*4 {
+            return Err((CoinWgpuStatus::InvalidArgument,"Invalid snapshot clear count".into()));
+        }
+        validate_slice(frame.multipass_clear_colors,frame.multipass_clear_color_count,
+            "snapshot clears",std::ptr::null_mut(),0)
+            .map_err(|status|(status,"Invalid snapshot clear pointer/count/alignment".into()))?
+    };
+    if clear_colors.iter().any(|value|!value.is_finite()) {
+        return Err((CoinWgpuStatus::InvalidArgument,"Non-finite snapshot clear color".into()));
+    }
     let sample_states = |sample:u32| {
         if matrices.is_empty() { multipass::jitter_states(states,count,sample) }
         else {
@@ -6711,15 +6739,15 @@ fn encode_scene_samples(
         }
     };
     let encode = |sample_states:&[CoinWgpuRenderState], sample_draws:&[CoinWgpuDraw],
-                  sample_order:&[composition::CompositionItem], shared, single:bool| {
+                  sample_order:&[composition::CompositionItem], shared, single:bool, sample_clear:[f32;4]| {
         if let Some(payload)=bump {
             encode_mixed_bump_frame(ctx,Some(&ctx.bump_pipelines),
                 Some((&ctx.bump_base_cache,ctx.last_submitted_serial.load(Ordering::SeqCst)+1,
                     ctx.completed_serial.load(Ordering::SeqCst))),vertices,indices,sample_draws,sample_states,
                 modules,materials,textures,samplers,payload,shadow,color,resolved,format,depth,
-                size,frame.clear_color,samples,depth_texture,frame.texture_sampling_policy,shared)
+                size,sample_clear,samples,depth_texture,frame.texture_sampling_policy,shared)
         } else {
-            encode_frame_impl(ctx,if single{frame.frame_revision}else{0},frame.clear_color,
+            encode_frame_impl(ctx,if single{frame.frame_revision}else{0},sample_clear,
                 size[0],size[1],vertices,indices,sample_draws,sample_order,materials,sample_states,modules,textures,
                 samplers,shadow,if single{camera_geometry}else{None},instances,instance_ranges,
                 if single{timestamp}else{None},color,resolved,format,depth,depth_texture,samples,
@@ -6727,7 +6755,7 @@ fn encode_scene_samples(
                 true,None,shared).map(|(command,instances)|(vec![command],instances))
         }
     };
-    if count==1 {return encode(states,draws,order,None,true);}
+    if count==1 {return encode(states,draws,order,None,true,frame.clear_color);}
     let required=multipass::bytes(size[0],size[1])
         .ok_or((CoinWgpuStatus::OutOfMemory,"Multipass accumulation extent overflows".into()))?;
     if required>frame.multipass_budget_bytes {
@@ -6782,7 +6810,11 @@ fn encode_scene_samples(
             } else {None}
         }).collect();
         let selected_order=composition::order(vertices,indices,&selected_draws,materials,&states_for_sample,textures)?;
-        let (mut commands,_)=encode(&states_for_sample,&selected_draws,&selected_order,shared_shadow.as_ref(),false)?;
+        let sample_clear=if clear_colors.is_empty(){frame.clear_color}else{
+            let index=sample as usize*4;
+            [clear_colors[index],clear_colors[index+1],clear_colors[index+2],clear_colors[index+3]]
+        };
+        let (mut commands,_)=encode(&states_for_sample,&selected_draws,&selected_order,shared_shadow.as_ref(),false,sample_clear)?;
         commands.push(accumulator.accumulate(&ctx.device,sample_view,sample));
         // A later encoder may update retained uniform buffers. Ordered private
         // submits make those writes follow this sample's draw commands; none
