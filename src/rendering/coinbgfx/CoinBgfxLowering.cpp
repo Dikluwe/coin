@@ -728,11 +728,11 @@ CoinBgfxLowering::validateBump(const CoinRenderFramePlan & frame, std::string & 
     const auto & lights=frame.lightingStates[state.lightingSlot].lights;
     const bool lightingQualified = !drawBumpSlot ||
       (state.lightModel == CoinRenderLightModel::PHONG && !lights.empty() && lights.size() <= 8 &&
-       (lights.size() == 1 ?
-         (lights[0].type == CoinRenderLightType::POINT || lights[0].type == CoinRenderLightType::DIRECTIONAL) :
-         std::all_of(lights.begin(), lights.end(), [](const CoinRenderLightSourceSnapshot &light) {
-           return light.type == CoinRenderLightType::DIRECTIONAL;
-         })));
+       std::all_of(lights.begin(), lights.end(), [&](const CoinRenderLightSourceSnapshot &light) {
+         return light.type == CoinRenderLightType::DIRECTIONAL ||
+           (frame.shadowGroups.empty() &&
+            (light.type == CoinRenderLightType::POINT || light.type == CoinRenderLightType::SPOT));
+       }));
     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST || draw.clearDepthBefore ||
         state.rasterPixels || state.rasterTextureSourceSlot != UINT32_MAX ||
         state.fogMode != CoinRenderFogMode::NONE || !state.depthTest || !state.depthWrite ||
@@ -757,12 +757,10 @@ CoinBgfxLowering::validateBump(const CoinRenderFramePlan & frame, std::string & 
     const auto & light=lights[0];
     const SbVec3f translation(modelView[3][0],modelView[3][1],modelView[3][2]);
     SbVec3f objectLight,objectEye;
-    inverseDirection.multDirMatrix(light.type==CoinRenderLightType::POINT ? SbVec3f(light.position)-translation : -SbVec3f(light.direction),objectLight);
+    inverseDirection.multDirMatrix(light.type!=CoinRenderLightType::DIRECTIONAL ? SbVec3f(light.position)-translation : -SbVec3f(light.direction),objectLight);
     inverseDirection.multDirMatrix(-translation,objectEye);
     for(int c=0;c<3;++c)if(!std::isfinite(material.diffuse[c]*light.color[c]*light.intensity) ||
         !std::isfinite(material.specular[c]))return fail("Invalid BGFX bump material/light product");
-    if (extended && lights[0].type != CoinRenderLightType::DIRECTIONAL)
-      return fail("Extended bump requires one to eight directional lights");
     if (state.hasTexture && drawBumpSlot && !extended) {
       const auto & image=frame.textures[state.textureImageSlot];
       const auto & sampler=frame.samplers[state.samplerSlot];
@@ -789,7 +787,7 @@ CoinBgfxLowering::validateBump(const CoinRenderFramePlan & frame, std::string & 
       std::copy_n(bump.tangentS,3,tangents.s);std::copy_n(bump.tangentT,3,tangents.t);
       float lightVector[3],eyeVector[3];
       if(!coin_render_legacy_bump_light_vector(tangents,vertex.normal,vertex.position,objectLight.getValue(),
-           light.type==CoinRenderLightType::POINT,lightVector) ||
+           light.type!=CoinRenderLightType::DIRECTIONAL,lightVector) ||
          !coin_render_legacy_bump_eye_vector(tangents,vertex.normal,vertex.position,objectEye.getValue(),eyeVector))
         return fail("Invalid BGFX bump object light/eye vector");
       if(std::abs(bump.coord[3])<std::numeric_limits<float>::min() ||
@@ -1294,13 +1292,13 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
         const auto inverseDirection=normalMatrix.transpose();
         SbVec3f objectLight,objectEye;
         const SbVec3f translation(modelView[3][0],modelView[3][1],modelView[3][2]);
-        inverseDirection.multDirMatrix(light.type==CoinRenderLightType::POINT ? SbVec3f(light.position)-translation : -SbVec3f(light.direction),objectLight);
+        inverseDirection.multDirMatrix(light.type!=CoinRenderLightType::DIRECTIONAL ? SbVec3f(light.position)-translation : -SbVec3f(light.direction),objectLight);
         inverseDirection.multDirMatrix(-translation,objectEye);
         CoinRenderBumpTangents tangents;
         std::copy_n(bump.tangentS,3,tangents.s);std::copy_n(bump.tangentT,3,tangents.t);
         if (!coin_render_legacy_bump_light_vector(
                 tangents, source.normal, source.position, objectLight.getValue(),
-                light.type == CoinRenderLightType::POINT,
+                light.type != CoinRenderLightType::DIRECTIONAL,
                 lowered.bumpExtended ? vertex.ambient : vertex.viewPosition) ||
             !coin_render_legacy_bump_eye_vector(
                 tangents, source.normal, source.position, objectEye.getValue(),

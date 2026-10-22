@@ -952,7 +952,7 @@ const _: () = assert!(std::mem::size_of::<BumpBaseUniforms>() == 64);
 fn bump_uniforms_from_state(state: &CoinWgpuRenderState,
                             material: &CoinWgpuMaterial) -> Result<BumpUniforms, String> {
     if state.light_count != 1 ||
-        !matches!(state.lights[0].position_type[3], 0.0 | 1.0) ||
+        !matches!(state.lights[0].position_type[3], 0.0 | 1.0 | 2.0) ||
         state.model_view[3] != 0.0 || state.model_view[7] != 0.0 ||
         state.model_view[11] != 0.0 || state.model_view[15] != 1.0 ||
         material.transparency != 0.0 || material.diffuse[3] != 1.0 {
@@ -5824,8 +5824,8 @@ fn validate_bump_lighting_occurrences(payload: &ValidatedBumpPayload,
         let material = materials.get(state.material_slot as usize)
             .ok_or((CoinWgpuStatus::InvalidArgument, "Invalid bump lighting material slot".into()))?;
         for light in &state.lights[..state.light_count as usize] {
-            if extended && light.position_type[3] != 0.0 {
-                return Err((CoinWgpuStatus::Unsupported, "Extended bump requires directional lights".into()));
+            if shadow.is_some() && light.position_type[3] != 0.0 {
+                return Err((CoinWgpuStatus::Unsupported, "Bump shadows require directional lights".into()));
             }
             let mut one = *state;
             one.light_count = 1;
@@ -5864,24 +5864,36 @@ fn bump_receiver_texture_opaque(
     let pixels =
         unsafe { std::slice::from_raw_parts(image.pixels, image.pixel_bytes_len as usize) };
     let alpha = |pixel: usize| pixels.get(pixel * 4 + 3).is_some_and(|value| *value == 255);
-    if let Some((n, _, _)) = cube_atlas_metadata(image)? {
-        return Ok(declared_opaque || (0..6 * n as usize * n as usize).all(alpha));
+    if let Some((mut n, _, mips)) = cube_atlas_metadata(image)? {
+        let mut texels = 0usize;
+        loop {
+            texels += 6 * n as usize * n as usize;
+            if !mips || n == 1 { break; }
+            n /= 2;
+        }
+        return Ok(declared_opaque || (0..texels).all(alpha));
     }
-    if let Some((width, height, depth, _)) = spatial_atlas_metadata(image)? {
+    if let Some((mut width, mut height, mut depth, mips)) = spatial_atlas_metadata(image)? {
         if declared_opaque {
             return Ok(true);
         }
         let columns = image.width / width;
-        for z in 0..depth {
-            for y in 0..height {
-                for x in 0..width {
-                    let pixel = ((z / columns * height + y) * image.width + z % columns * width + x)
-                        as usize;
-                    if !alpha(pixel) {
-                        return Ok(false);
+        let mut base = 0;
+        loop {
+            for z in 0..depth {
+                for y in 0..height {
+                    for x in 0..width {
+                        let pixel = (((base + z / columns * height + y) * image.width) +
+                            z % columns * width + x) as usize;
+                        if !alpha(pixel) { return Ok(false); }
                     }
                 }
             }
+            base += height * depth.div_ceil(columns);
+            if !mips || (width == 1 && height == 1 && depth == 1) { break; }
+            width = (width / 2).max(1);
+            height = (height / 2).max(1);
+            depth = (depth / 2).max(1);
         }
         return Ok(true);
     }
@@ -5903,7 +5915,7 @@ fn bump_receiver_texture_opaque(
         return Ok(true);
     }
     match image.format {
-        0 | 2 | 3 | 4 => Ok((0..image.width as usize * image.height as usize).all(alpha)),
+        0 | 2 | 3 | 4 => Ok((0..pixels.len() / 4).all(alpha)),
         5 | 6 => Ok(pixels
             .chunks_exact(8)
             .take(image.width as usize * image.height as usize)
@@ -6046,7 +6058,8 @@ fn validate_extended_bump_profile(
             || draw.clear_depth_before != 0
             || (active && (state.light_model != 1 || state.light_count == 0 || state.light_count > 8
                 || state.lights[..state.light_count.min(8) as usize].iter()
-                    .any(|light|light.position_type[3]!=0.0)))
+                    .any(|light| !matches!(light.position_type[3],0.0|1.0|2.0) ||
+                        (shadow.is_some() && light.position_type[3]!=0.0))))
             || state.fog_mode != 0
             || state.depth_test != 1
             || state.depth_write != 1
@@ -6127,8 +6140,9 @@ fn validate_extended_bump_profile(
             let image = textures
                 .get(layer.texture_slot as usize)
                 .ok_or_else(|| unsupported("Bump receiver texture slot out of bounds"))?;
-            if state.light_count>1 && matches!(image.format,1|11|12) {
-                return Err(unsupported("Multilight bump supports stored 2D receiver textures"));
+            if active && (!matches!(image.format, 0 | 1 | 2 | 3 | 4 | 11 | 12) ||
+                (image.format == 1 && texture_metadata(image) >> 2 != 0)) {
+                return Err(unsupported("Bump receiver bases require RGBA8 linear/sRGB sources"));
             }
             if !bump_receiver_texture_opaque(ctx, image)? {
                 return Err(unsupported("Bump receiver textures must be opaque"));
@@ -6142,7 +6156,7 @@ fn validate_extended_bump_profile(
 // GPU material storage is indexed per corner only in the dedicated receiver.
 // Its five vec4s preserve the original single-light packing. Multi-DIR packs
 // coord, per-corner diffuse/specular/shininess and S/T/N in the same 80 bytes.
-// The VS projects each directional L and E before interpolation. All thirteen
+// The VS projects each legacy L and E before interpolation. All thirteen
 // geometry attributes and the private STRQ transport remain intact.
 fn encode_extended_bump_draw(
     ctx: &DeviceState,
@@ -6202,11 +6216,10 @@ fn encode_extended_bump_draw(
         let corner_material=materials[vertex.material_slot as usize];
         vertex.material_slot = gpu_materials.len() as u32;
         let corner = &payload.vertices[index as usize];
-        let light = normalize([
-            uniform.light_position_type[0],
-            uniform.light_position_type[1],
-            uniform.light_position_type[2],
-        ]);
+        let light = normalize(std::array::from_fn(|axis| {
+            uniform.light_position_type[axis] -
+              if uniform.light_position_type[3] != 0.0 { vertex.position[axis] } else { 0.0 }
+        }));
         let eye = normalize(std::array::from_fn(|axis| {
             uniform.eye_position[axis] - vertex.position[axis]
         }));

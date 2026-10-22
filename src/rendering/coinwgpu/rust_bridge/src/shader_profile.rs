@@ -69,7 +69,8 @@ pub(super) fn sample_depth_profile(source: &str, enabled: bool) -> String {
     // (unit seven Q), while model-position W is unused. Preserve Q's ordinary
     // perspective interpolation there and reuse location 19 for sample clip Z/W.
     // This keeps the established 80-component admission for the combined profile.
-    if source.contains("@location(19) shadow_uv5:vec4<f32>,") {
+    if source.contains("@location(19) shadow_uv5:vec4<f32>,") &&
+        !source.contains("coin_bump_coord:") {
         source = source.replace("@location(19) shadow_uv5:vec4<f32>,", "")
             .replace("output.shadow_uv5=vec4<f32>(shadow_uv7.w,0.0,0.0,0.0);",
                 "output.position_model.w=shadow_uv7.w;")

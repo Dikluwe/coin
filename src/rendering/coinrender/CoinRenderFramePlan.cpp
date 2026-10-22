@@ -374,8 +374,15 @@ CoinRenderFramePlan::isValid(std::string *outDiagnostic) const
       if (outDiagnostic) *outDiagnostic = "Invalid bump transform snapshot";
       return false;
     }
+  uint64_t bumpBytes = 0;
+  if (this->bumpImages.size() > 4096) {
+    if (outDiagnostic) *outDiagnostic = "Too many bump images";
+    return false;
+  }
   for (const auto & image : this->bumpImages) {
-    if (!image.width || !image.height ||
+    bumpBytes += image.rgb.size();
+    if (!image.width || !image.height || image.width > 32767 || image.height > 32767 ||
+        image.rgb.size() > 48u * 1024u * 1024u || bumpBytes > 256u * 1024u * 1024u ||
         uint64_t(image.width) * image.height * 3u != image.rgb.size()) {
       if (outDiagnostic) *outDiagnostic = "Invalid bump image snapshot";
       return false;

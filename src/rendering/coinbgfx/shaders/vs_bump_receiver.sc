@@ -38,7 +38,7 @@ void main()
   v_shadowUV4 = vec4(a_texcoord6.w, a_bitangent.y, a_texcoord7.x, a_texcoord7.y);
   v_shadowUV5 = vec4(a_bitangent.z, a_color1.w, a_color2.w, a_color3.w);
   v_shadowR = vec4(a_texcoord1.w, a_texcoord2.w, a_bitangent.w, a_texcoord0.w);
-  // Multi-DIR input reuses the RGB lanes of S/T/N; every texture W/R/Q
+  // Multi-light input reuses the RGB lanes of S/T/N; every texture W/R/Q
   // lane keeps its existing packing. Project each L and E before interpolation.
   if (u_coinBumpLightMeta.x>1.5) {
     vec3 basisS=a_color1.xyz,basisT=a_color3.xyz,basisN=a_texcoord1.xyz;
@@ -48,6 +48,8 @@ void main()
     vec3 l[8];
     for(int i=0;i<8;++i) {
       vec3 direction=u_coinBumpLightVectors[i].xyz;
+      if(u_coinBumpLightVectors[i].w>0.5)
+        direction=coinBumpNormalize(direction-a_position);
       l[i]=vec3(dot(basisS,direction),dot(basisT,direction),dot(basisN,direction));
     }
     v_ambient=vec4(l[0],l[6].x);

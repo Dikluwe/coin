@@ -3,6 +3,7 @@
 #include "rendering/coinrender/CoinRenderSamplingCore.h"
 #include "rendering/coinrender/CoinRenderTextureSamplingCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
+#include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #include <utility>
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -318,6 +319,8 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
     CoinRenderCompositionTransferTrace * transfers) {
   std::string volumeDiagnostic;
+  if (!coin_render_validate_extended_bump(frame, volumeDiagnostic))
+    return {CoinRenderBackendStatus::UNSUPPORTED, volumeDiagnostic};
   if (!CoinRenderCubeTextureCore::validate(frame, volumeDiagnostic) ||
       !CoinRenderTextureSamplingCore::validVolumeFrame(frame, volumeDiagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, volumeDiagnostic};
@@ -610,7 +613,6 @@ CoinRenderFrameExecutionResult
 CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
                                        CoinRenderReadbackTicket & outTicket)
 {
-  outTicket = CoinRenderReadbackTicket{};
   return this->executeFrameInternal(frame, &outTicket,
     CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0));
 }
@@ -620,7 +622,6 @@ CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
                                        CoinRenderReadbackTicket & outTicket,
                                        const CoinRenderFrameReuseDecision & reuse)
 {
-  outTicket = CoinRenderReadbackTicket{};
   return this->executeFrameInternal(frame, &outTicket, reuse);
 }
 
@@ -630,7 +631,6 @@ CoinRenderTargetP::executeFrameAsync(const CoinRenderFramePlan & frame,
                                        const CoinRenderFrameReuseDecision & reuse,
                                        const CoinRenderFramePreflight * capturedPreflight)
 {
-  outTicket = CoinRenderReadbackTicket{};
   return this->executeFrameInternal(frame, &outTicket, reuse, capturedPreflight);
 }
 
@@ -727,7 +727,8 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   // submission checks still run, and a mismatched receipt validates in full.
   // Texture declarations and their sampler/matrix bindings remain untrusted
   // across private revision reuse, including ordinary stored 2D sources.
-  if (capturedPreflight || !frame.textures.empty() || (!validatedCameraPatch &&
+  if (capturedPreflight || !frame.textures.empty() || !frame.bumpImages.empty() ||
+      !frame.bumpCoords.empty() || !frame.bumpTransforms.empty() || !frame.bumpTangents.empty() || (!validatedCameraPatch &&
       (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision))) {
     CoinRenderFrameExecutionResult val =
       validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight, true, &compositionTransfers);

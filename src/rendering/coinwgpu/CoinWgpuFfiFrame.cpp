@@ -27,6 +27,7 @@
 #include <limits>
 #include <new>
 #include <unordered_map>
+#include <utility>
 
 #if (defined(__GNUC__) || defined(__clang__)) && defined(__SSE_MATH__) && defined(__SSE2_MATH__) && \
     (defined(__x86_64__) || defined(__i386__))
@@ -382,6 +383,18 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
                         const CoinRenderFramePreflight * preflight,
                         bool allowInstancing)
 {
+  if (this->view.bump_vertex_count || this->view.bump_image_count) {
+    // Removing bump changes the transported geometry/lighting contract even
+    // when revision and base textures are unchanged. Rebuild transactionally;
+    // ordinary revision/camera shortcuts must never return the old bump tail.
+    if (!frame.isValid(&outDiagnostic)) return false;
+    CoinWgpuFfiFrame candidate;
+    if (!candidate.prepareImpl(frame, width, height,
+          CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
+          outDiagnostic, preflight, allowInstancing, false)) return false;
+    *this = std::move(candidate);
+    return true;
+  }
   return this->prepareImpl(frame, width, height, reuse, outDiagnostic,
                            preflight, allowInstancing, false);
 }
@@ -393,9 +406,12 @@ CoinWgpuFfiFrame::prepareBumpFrame(const CoinRenderFramePlan & frame,
 {
   if (!coin_render_validate_extended_bump(frame, diagnostic))
     return false;
-  return this->prepareImpl(frame, width, height,
-    CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
-    diagnostic, nullptr, false, true);
+  CoinWgpuFfiFrame candidate;
+  if (!candidate.prepareImpl(frame, width, height,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
+        diagnostic, nullptr, false, true)) return false;
+  *this = std::move(candidate);
+  return true;
 }
 
 bool
@@ -410,9 +426,12 @@ CoinWgpuFfiFrame::preparePortablePreflight(const CoinRenderFramePlan & frame,
       !coin_render_validate_extended_bump(frame, diagnostic)) return false;
   const bool bump = std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
       [](const CoinRenderBumpCoordOverride &coordinate) { return coordinate.imageSlot != 0; });
-  return this->prepareImpl(frame, width, height,
-      CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
-      diagnostic, nullptr, false, bump, true);
+  CoinWgpuFfiFrame candidate;
+  if (!candidate.prepareImpl(frame, width, height,
+        CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
+        diagnostic, nullptr, false, bump, true)) return false;
+  *this = std::move(candidate);
+  return true;
 }
 
 bool
@@ -439,6 +458,13 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
   }
 
   if (!frame.hasFiniteNormalizedInputs(&outDiagnostic)) return false;
+  if (!frame.bumpImages.empty() || !frame.bumpCoords.empty() ||
+      !frame.bumpTangents.empty() || !frame.bumpTransforms.empty()) {
+    // Even inactive/default bump data must be checked before ordinary reuse.
+    if (!frame.isValid(&outDiagnostic)) return false;
+    std::vector<CoinRenderBumpGpuVertex> checkedBump;
+    if (!coin_render_build_bump_gpu_stream(frame, checkedBump, outDiagnostic)) return false;
+  }
   if (!frame.portableShaders.empty()) {
     // The new typed ingress shares the Core resource and finite-operation proof.
     // Keep failures ahead of vector mutation, fast paths and GPU commands.

@@ -1003,7 +1003,6 @@ CoinRenderAction::apply(SoNode * root)
 void
 CoinRenderAction::applyAsync(SoNode * root, CoinRenderReadbackTicket & outTicket)
 {
-  outTicket = CoinRenderReadbackTicket{};
   if (this->pimpl->isApplying) {
     this->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
       INVALID_SCENE, CoinRenderDiagnosticDomain::ACTION,

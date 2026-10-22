@@ -435,6 +435,61 @@ bool coin_render_build_bump_gpu_stream(
   const CoinRenderFramePlan & frame, std::vector<CoinRenderBumpGpuVertex> & output,
   std::string & diagnostic)
 {
+  // The inactive stream is still untrusted data. Validate every declaration
+  // before deciding that no draw consumes it; failures leave output intact.
+  uint64_t imageBytes = 0;
+  if (frame.bumpImages.size() > 4096) {
+    diagnostic = "Too many bump images";
+    return false;
+  }
+  for (const auto & image : frame.bumpImages) {
+    imageBytes += image.rgb.size();
+    if (!image.width || !image.height || image.width > 32767 || image.height > 32767 ||
+        uint64_t(image.width) * image.height * 3u != image.rgb.size() ||
+        image.rgb.size() > 48u * 1024u * 1024u || imageBytes > 256u * 1024u * 1024u) {
+      diagnostic = "Invalid bump image snapshot";
+      return false;
+    }
+  }
+  for (const auto & matrix : frame.bumpTransforms)
+    if (!CoinRenderTransformCore::finiteMatrix(matrix)) {
+      diagnostic = "Nonfinite bump transform";
+      return false;
+    }
+  uint32_t lastCoord = 0;
+  bool firstCoord = true;
+  for (const auto & coord : frame.bumpCoords) {
+    if (coord.vertexIndex >= frame.vertices.size() || (!firstCoord && coord.vertexIndex <= lastCoord) ||
+        coord.imageSlot > frame.bumpImages.size() || coord.transformSlot > frame.bumpTransforms.size() ||
+        (coord.transformSlot && !coord.imageSlot) ||
+        !std::isfinite(coord.coord[0]) || !std::isfinite(coord.coord[1])) {
+      diagnostic = "Invalid sparse bump coordinates";
+      return false;
+    }
+    firstCoord = false;
+    lastCoord = coord.vertexIndex;
+  }
+  size_t coordCursor = 0;
+  uint32_t lastTangent = 0;
+  bool firstTangent = true;
+  for (const auto & tangent : frame.bumpTangents) {
+    while (coordCursor < frame.bumpCoords.size() &&
+           frame.bumpCoords[coordCursor].vertexIndex < tangent.vertexIndex) ++coordCursor;
+    if ((!firstTangent && tangent.vertexIndex <= lastTangent) ||
+        coordCursor >= frame.bumpCoords.size() ||
+        frame.bumpCoords[coordCursor].vertexIndex != tangent.vertexIndex ||
+        !frame.bumpCoords[coordCursor].imageSlot) {
+      diagnostic = "Invalid sparse bump tangent source";
+      return false;
+    }
+    for (unsigned int axis = 0; axis < 3; ++axis)
+      if (!std::isfinite(tangent.tangent.s[axis]) || !std::isfinite(tangent.tangent.t[axis])) {
+        diagnostic = "Nonfinite bump tangent";
+        return false;
+      }
+    firstTangent = false;
+    lastTangent = tangent.vertexIndex;
+  }
   const bool active = std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
     [](const CoinRenderBumpCoordOverride & coord) { return coord.imageSlot != 0; });
   if (!active) {
@@ -636,6 +691,10 @@ bool coin_render_uses_extended_bump(const CoinRenderFramePlan &frame)
 // the original point/directional, single-base bump validators.
 bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::string &diagnostic)
 {
+  if (frame.bumpImages.empty() && frame.bumpCoords.empty() &&
+      frame.bumpTransforms.empty() && frame.bumpTangents.empty()) return true;
+  // Validate current payloads, including inactive images, before any shortcut.
+  if (!frame.isValid(&diagnostic)) return false;
   // Preserve the ordinary-frame fast path. Common validation still owns
   // inactive payloads; no bump stream or indexed occurrence scan is needed.
   if (std::none_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
@@ -658,14 +717,13 @@ bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::s
     const auto &lights = frame.lightingStates[state.lightingSlot].lights;
     if (state.lightModel != CoinRenderLightModel::PHONG || lights.empty() ||
         lights.size() > (extended ? 8u : 1u) ||
-        std::any_of(lights.begin(), lights.end(), [extended](const CoinRenderLightSourceSnapshot &light) {
-          return extended ? light.type != CoinRenderLightType::DIRECTIONAL :
-            (light.type != CoinRenderLightType::DIRECTIONAL && light.type != CoinRenderLightType::POINT);
-        })) return fail("Consumed bump requires PHONG and the qualified point/directional lighting profile");
+        std::any_of(lights.begin(), lights.end(), [&](const CoinRenderLightSourceSnapshot &light) {
+          return light.type != CoinRenderLightType::DIRECTIONAL &&
+            (!frame.shadowGroups.empty() ||
+             (light.type != CoinRenderLightType::POINT && light.type != CoinRenderLightType::SPOT));
+        })) return fail("Consumed bump requires PHONG, one to eight legacy lights, and directional-only shadows");
   }
   if (!extended) return true;
-  if (!frame.isValid(&diagnostic))
-    return false;
   if (frame.rasterizationPolicy != COIN_RENDER_RASTER_NATIVE ||
       frame.outputColorFormat != CoinRenderTextureFormat::RGBA8_LINEAR)
     return fail("Extended bump requires native RGBA8 output");
@@ -703,7 +761,7 @@ bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::s
         state.screenDoorTransparency || state.transparentMaterial || state.transparentTexture ||
         material.transparency != 0 || material.diffuse[3] != 1)
       return fail(
-          "Extended bump requires opaque one-to-eight-directional-light triangles and default depth");
+          "Extended bump requires opaque one-to-eight legacy-light triangles and default depth");
     if (!std::isfinite(material.shininess) || material.shininess < 0 || material.shininess > 1)
       return fail("Invalid extended bump shininess");
     for (const auto &light : lights)
@@ -748,9 +806,12 @@ bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::s
       std::copy_n(corner.tangentT, 3, tangents.t);
       float l[3], e[3];
       for (const auto &sourceLight : lights) {
-        inverseDirection.multDirMatrix(-SbVec3f(sourceLight.direction), light);
+        const bool positional = sourceLight.type != CoinRenderLightType::DIRECTIONAL;
+        inverseDirection.multDirMatrix(positional ? SbVec3f(sourceLight.position) -
+          SbVec3f(modelView[3][0], modelView[3][1], modelView[3][2]) :
+          -SbVec3f(sourceLight.direction), light);
         if (!coin_render_legacy_bump_light_vector(tangents, vertex.normal, vertex.position,
-                                                  light.getValue(), false, l))
+                                                  light.getValue(), positional, l))
           return fail("Extended bump light exceeds finite precision");
       }
       if (!coin_render_legacy_bump_eye_vector(tangents, vertex.normal, vertex.position,
@@ -775,10 +836,9 @@ bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::s
         continue;
       if (layer.imageSlot >= frame.textures.size() || layer.samplerSlot >= frame.samplers.size())
         return fail("Extended bump texture or sampler slot is invalid");
-      if (lights.size()>1 && (frame.textures[layer.imageSlot].cubeFaceSize ||
-          frame.textures[layer.imageSlot].volumeDepth || frame.textures[layer.imageSlot].producerId ||
-          frame.textures[layer.imageSlot].gpuToken))
-        return fail("Multilight bump requires stored 2D receiver textures");
+      if (drawBumpSlot && frame.textures[layer.imageSlot].format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+          frame.textures[layer.imageSlot].format != CoinRenderTextureFormat::RGBA8_SRGB)
+        return fail("Bump receiver bases require RGBA8 linear/sRGB sources");
       if (coin_render_texture_has_transparency(frame.textures[layer.imageSlot]))
         return fail("Extended bump textures must be opaque");
     }

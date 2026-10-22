@@ -4144,8 +4144,11 @@ CoinBgfxBackend::submitSurfaceDraw(bgfx::ViewId view, const CoinBgfxDraw & draw,
     float directions[8][4]={},colors[8][4]={};
     for (size_t i=0;i<lights.size();++i) {
       SbVec3f direction;
-      inverseDirection.multDirMatrix(-SbVec3f(lights[i].direction),direction);
-      direction.normalize();
+      const bool positional = lights[i].type != CoinRenderLightType::DIRECTIONAL;
+      inverseDirection.multDirMatrix(positional ? SbVec3f(lights[i].position) -
+        SbVec3f(modelView[3][0],modelView[3][1],modelView[3][2]) : -SbVec3f(lights[i].direction),direction);
+      if (!positional) direction.normalize();
+      directions[i][3] = positional ? 1.0f : 0.0f;
       direction.getValue(directions[i][0],directions[i][1],directions[i][2]);
       std::copy_n(lights[i].color,3,colors[i]);
       colors[i][3]=lights[i].intensity;

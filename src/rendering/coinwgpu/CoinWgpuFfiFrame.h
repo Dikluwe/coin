@@ -78,6 +78,7 @@ private:
   };
   CoinWgpuFfiFrame(const CoinWgpuFfiFrame &);
   CoinWgpuFfiFrame & operator=(const CoinWgpuFfiFrame &);
+  CoinWgpuFfiFrame & operator=(CoinWgpuFfiFrame &&) = default;
   bool prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
                    uint32_t height, const CoinRenderFrameReuseDecision & reuse,
                    std::string & diagnostic,

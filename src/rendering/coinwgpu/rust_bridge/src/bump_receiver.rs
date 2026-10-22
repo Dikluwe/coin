@@ -1,10 +1,9 @@
 // Internal specialization of the established eight-unit/VSM receiver.
 // Single-light retains its existing packing, including spatial R coordinates.
-// Multi-DIR uses shadow_vertex[0..7].xyz for eight projected L vectors. Its
-// 2D-only profile reclaims W lanes: [0]=bump T, [1..3]=E, [7]=bump S.
-// position_model.w stays reserved for canonical/sample-depth specialization.
-// diffuse_color.w carries bump Q, normal_view carries per-corner
-// specular/shininess. No varying locations or private wire fields are added.
+// Multiple lights preserve all eight spatial R lanes. A two-component private
+// varying carries bump ST; the spare shadow_uv5 YZW carries projected eye.
+// Together with sample clip ZW the interface remains within 80 components.
+// The public/private wire layout remains unchanged.
 pub(super) fn source() -> String { profile(false) }
 pub(super) fn eight_source() -> String { profile(true) }
 fn profile(eight: bool) -> String {
@@ -12,12 +11,14 @@ fn profile(eight: bool) -> String {
                 else { super::shadow_receiver::four_map_multitexture_source() };
     s= format!("@group(0) @binding(25) var coin_bump_image:texture_2d<f32>;\n@group(0) @binding(26) var coin_bump_sampler:sampler;\n{s}");
     s=s.replace("output.material_slot = select(input.material_slot, u.flat_shadow_primary.x, u.flat_shadow_primary.y != 0u);", "output.material_slot = input.material_slot;");
+    s=s.replacen("struct VertexOutput {", "struct VertexOutput {\n@location(20) coin_bump_coord:vec2<f32>,",1);
     let vs = s.find("fn vs_main(").unwrap();
     let end = vs + s[vs..].find("return output;").unwrap();
     s.insert_str(
         end,
         r#"
     let bm=materials[input.material_slot];
+    output.coin_bump_coord=bm.ambient.xy;
     output.diffuse_color=vec4<f32>(bm.diffuse.rgb,1.0);
     output.shadow_vertex0=vec4<f32>(bm.emission.xyz,output.shadow_vertex0.w);
     output.shadow_vertex1=vec4<f32>(bm.params.yzw,output.shadow_vertex1.w);
@@ -35,57 +36,93 @@ fn profile(eight: bool) -> String {
       output.normal_view=vec4<f32>(bm.specular.rgb,bm.diffuse.w);
       var l0=vec3<f32>(0.0);
       if (u.light_meta.x>0.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[0].direction_cutoff.xyz));
+        let source=u.lights[0];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l0=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex0=vec4<f32>(l0,0.0);
+      output.shadow_vertex0=vec4<f32>(l0,output.shadow_vertex0.w);
       var l1=vec3<f32>(0.0);
       if (u.light_meta.x>1.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[1].direction_cutoff.xyz));
+        let source=u.lights[1];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l1=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex1=vec4<f32>(l1,0.0);
+      output.shadow_vertex1=vec4<f32>(l1,output.shadow_vertex1.w);
       var l2=vec3<f32>(0.0);
       if (u.light_meta.x>2.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[2].direction_cutoff.xyz));
+        let source=u.lights[2];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l2=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex2=vec4<f32>(l2,0.0);
+      output.shadow_vertex2=vec4<f32>(l2,output.shadow_vertex2.w);
       var l3=vec3<f32>(0.0);
       if (u.light_meta.x>3.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[3].direction_cutoff.xyz));
+        let source=u.lights[3];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l3=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex3=vec4<f32>(l3,0.0);
+      output.shadow_vertex3=vec4<f32>(l3,output.shadow_vertex3.w);
       var l4=vec3<f32>(0.0);
       if (u.light_meta.x>4.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[4].direction_cutoff.xyz));
+        let source=u.lights[4];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l4=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex4=vec4<f32>(l4,0.0);
+      output.shadow_vertex4=vec4<f32>(l4,output.shadow_vertex4.w);
       var l5=vec3<f32>(0.0);
       if (u.light_meta.x>5.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[5].direction_cutoff.xyz));
+        let source=u.lights[5];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l5=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex5=vec4<f32>(l5,0.0);
+      output.shadow_vertex5=vec4<f32>(l5,output.shadow_vertex5.w);
       var l6=vec3<f32>(0.0);
       if (u.light_meta.x>6.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[6].direction_cutoff.xyz));
+        let source=u.lights[6];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l6=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex6=vec4<f32>(l6,0.0);
+      output.shadow_vertex6=vec4<f32>(l6,output.shadow_vertex6.w);
       var l7=vec3<f32>(0.0);
       if (u.light_meta.x>7.5) {
-        let direction=coin_bump_normalize(inverse_direction*(-u.lights[7].direction_cutoff.xyz));
+        let source=u.lights[7];
+        var object_light=inverse_direction*(-source.direction_cutoff.xyz);
+        if(source.position_type.w>0.5) {
+          object_light=inverse_direction*(source.position_type.xyz-u.model_view[3].xyz)-input.position;
+        }
+        let direction=coin_bump_normalize(object_light);
         l7=vec3<f32>(dot(basis_s,direction),dot(basis_t,direction),dot(basis_n,direction));
       }
-      output.shadow_vertex7=vec4<f32>(l7,0.0);
-      output.shadow_vertex0.w=bm.ambient.y;
-      output.shadow_vertex1.w=e.x;
-      output.shadow_vertex2.w=e.y;
-      output.shadow_vertex3.w=e.z;
-      output.shadow_vertex7.w=bm.ambient.x;
+      output.shadow_vertex7=vec4<f32>(l7,output.shadow_vertex7.w);
+      output.shadow_uv5=vec4<f32>(output.shadow_uv5.x,e);
     }
 "#,
     );
@@ -110,8 +147,8 @@ fn profile(eight: bool) -> String {
     specularColor=visibility*bm.specular.rgb*pow(clamp(dot(n,h),0.0,1.0),64.0*bm.params.x);
     } else {
       let n=textureSample(coin_bump_image,coin_bump_sampler,
-        vec2<f32>(input.shadow_vertex7.w,input.shadow_vertex0.w)/input.diffuse_color.w).rgb*2.0-vec3<f32>(1.0);
-      let e=vec3<f32>(input.shadow_vertex1.w,input.shadow_vertex2.w,input.shadow_vertex3.w);
+        input.coin_bump_coord/input.diffuse_color.w).rgb*2.0-vec3<f32>(1.0);
+      let e=input.shadow_uv5.yzw;
       var diffuse=vec3<f32>(0.0);
       for (var i=0u;i<8u;i+=1u) {
         if (f32(i)>=u.light_meta.x) {break;}
