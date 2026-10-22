@@ -203,7 +203,7 @@ bool transportMatrices(const CoinRenderFramePlan &frame,int n,uint64_t budget){
   CoinWgpuFfiFrame ffi;std::string error;
   if(!check(ffi.prepare(frame,side,side,error,false),"actual AA private transport: "+error))return false;
   const auto &v=ffi.getView();
-  bool ok=check(v.abi_version==67&&v.struct_size==544&&v.multipass_count==unsigned(n)&&v.multipass_reserved==0&&v.multipass_budget_bytes==budget,"exact AA count, full budget and reserved-zero ABI67 header");
+  bool ok=check(v.abi_version==COIN_WGPU_ABI_VERSION&&v.struct_size==544&&v.multipass_count==unsigned(n)&&v.multipass_reserved==0&&v.multipass_budget_bytes==budget,"exact AA count, full budget and reserved-zero current ABI header");
   if(n==1)return check(v.multipass_matrices==nullptr&&v.multipass_matrix_count==0,"one-pass FFI has no jitter table")&&ok;
   const uint64_t floats=uint64_t(n)*v.state_count*16;
   if(!check(v.state_count>0&&v.states&&v.multipass_matrices&&v.multipass_matrix_count==floats,"exact sample-major/state-major owned matrix float count"))return false;

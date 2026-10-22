@@ -5493,3 +5493,5 @@ include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderCubeRttCompletionTests.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderBumpCompletionTests.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderMsaaAsyncCompletionTests.cmake)
+
+include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderVrmlVisualTests.cmake)

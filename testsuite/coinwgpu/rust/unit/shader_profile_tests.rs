@@ -1,6 +1,14 @@
     use super::*;
     use naga::valid::{Capabilities, ValidationFlags, Validator};
 
+    fn uniform_span_for_protocol() -> u32 {
+        match crate::COIN_WGPU_BRIDGE_PROTOCOL_REVISION {
+            67 => 3200,
+            68 => 3328,
+            revision => panic!("unknown uniform layout for bridge protocol {revision}"),
+        }
+    }
+
     pub(crate) fn assert_glsl(source: &str, entry: &str) {
         let module = naga::front::wgsl::parse_str(source).expect("parse GLSL profile");
         let info = Validator::new(ValidationFlags::all(), Capabilities::all())
@@ -53,7 +61,7 @@
                         .validate(&module).expect("sampling uniform contract");
                     let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
                     if let naga::TypeInner::Struct {span,..}=uniform.inner {
-                        assert_eq!(span, 3200);
+                        assert_eq!(span, uniform_span_for_protocol());
                     } else {panic!("uniform is not a struct");}
                 }
             }
@@ -72,7 +80,7 @@
             Validator::new(ValidationFlags::all(), Capabilities::all()).validate(&module).expect("native profile validate");
             let uniform = module.types.iter().find(|(_,ty)|ty.name.as_deref()==Some("Uniforms")).unwrap().1;
             if let naga::TypeInner::Struct {span,..}=uniform.inner {
-                assert_eq!(span,3200);
+                assert_eq!(span, uniform_span_for_protocol());
             } else {panic!("uniform is not a struct");}
             // Naga's standalone GLSL writer needs resolved overrides, as wgpu
             // supplies them during pipeline compilation. Qualify both profiles.

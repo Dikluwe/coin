@@ -34,12 +34,32 @@
 #include <string>
 #include <vector>
 
-static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 57,
-              "Shadow, opaque-instance, alpha-test, projective-UV and sampling-policy bridge protocol");
-static_assert(sizeof(CoinWgpuLight) == 64, "3C light layout");
-static_assert(sizeof(CoinWgpuRenderState) == 2300, "Flat shadow primary bridge layout");
-static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Texture projection policy bridge tail");
-static_assert(offsetof(CoinWgpuRenderState, flat_shadow_primary) == 2296, "Flat shadow primary bridge tail");
+static_assert(COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 67 ||
+              COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 68,
+              "Known raster-attribute or per-light ambient bridge protocol");
+static_assert(alignof(CoinWgpuLight) == 4, "Bridge light alignment");
+static_assert(alignof(CoinWgpuRenderState) == 4, "Bridge render-state alignment");
+#if COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 67
+static_assert(sizeof(CoinWgpuLight) == 64, "Protocol 67 light layout");
+static_assert(sizeof(CoinWgpuRenderState) == 2436, "Protocol 67 render-state layout");
+static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2288, "Protocol 67 texture projection offset");
+static_assert(offsetof(CoinWgpuRenderState, flat_shadow_primary) == 2296, "Protocol 67 flat shadow primary offset");
+#elif COIN_WGPU_BRIDGE_PROTOCOL_REVISION == 68
+static_assert(sizeof(CoinWgpuLight) == 80, "Protocol 68 per-light ambient layout");
+static_assert(offsetof(CoinWgpuLight, position_type) == 0, "Protocol 68 light position offset");
+static_assert(offsetof(CoinWgpuLight, direction_cutoff) == 16, "Protocol 68 light direction offset");
+static_assert(offsetof(CoinWgpuLight, color_intensity) == 32, "Protocol 68 light color offset");
+static_assert(offsetof(CoinWgpuLight, attenuation_exponent) == 48, "Protocol 68 light attenuation offset");
+static_assert(offsetof(CoinWgpuLight, ambient_color) == 64, "Protocol 68 light ambient offset");
+static_assert(sizeof(CoinWgpuRenderState) == 2564, "Protocol 68 render-state layout");
+static_assert(offsetof(CoinWgpuRenderState, lights) == 380, "Protocol 68 lights offset");
+static_assert(offsetof(CoinWgpuRenderState, fog_mode) == 1020, "Protocol 68 fog offset");
+static_assert(offsetof(CoinWgpuRenderState, texture_projection) == 2416, "Protocol 68 texture projection offset");
+static_assert(offsetof(CoinWgpuRenderState, flat_shadow_primary) == 2424, "Protocol 68 flat shadow primary offset");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_source_slot) == 2428, "Protocol 68 raster source offset");
+static_assert(offsetof(CoinWgpuRenderState, raster_texture_coordinates) == 2432, "Protocol 68 raster coordinates offset");
+static_assert(offsetof(CoinWgpuRenderState, portable_shader_slot) == 2560, "Protocol 68 portable shader offset");
+#endif
 
 namespace {
 enum SceneLight { DIRECTIONAL, POINT, SPOT_INSIDE, SPOT_OUTSIDE };
