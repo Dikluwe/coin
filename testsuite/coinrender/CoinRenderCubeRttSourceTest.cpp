@@ -1,0 +1,41 @@
+#include "CoinRenderCubeRttSourceFixture.h"
+#include "CoinRenderCubeRttCurrentResourceCases.h"
+#include "CoinRenderCubeRttDirectFaultCases.h"
+using namespace cube_rtt_test;
+using namespace cube_rtt_source;
+namespace {
+void constants(Scene&scene){for(unsigned cell=0;cell<54;++cell)for(unsigned v=0;v<4;++v)scene.coordinates[cell]->point.set1Value(v,panelDirection(cell));}
+bool renderSized(Harness&h,Scene&scene,Frame&frame,unsigned extent,const std::string&phase){const auto before=h.target->getLastSubmissionSerial();const auto submits=h.proxy->submits;h.action.apply(scene.root);h.target->readbackRGBA(frame.rgba);h.target->readbackDepth(frame.depth);frame.serial=h.target->getLastSubmissionSerial();return check(h.action.getLastStatus()==CoinRenderAction::SUCCESS&&frame.serial>before&&h.proxy->submits==submits+1&&frame.rgba.size()==size_t(extent)*extent*4&&frame.depth.size()==size_t(extent)*extent,phase+" one current-sized root publication");}
+bool crossing(unsigned family,unsigned unit,unsigned samples,bool cpu,bool direct,bool blending){bool ok=true;
+ for(bool encoded:{false,true}){storedSrgbMode=encoded;Walls source(family,unit,encoded,blending);Scene scene(unit);scene.cube->scene=source.root;scene.cube->size.setValue(16,16);scene.enabled->whichChild=SO_SWITCH_ALL;
+  const auto cameraId=source.camera->getNodeId(),matrixId=source.matrix->getNodeId();const auto cameraPosition=source.camera->position.getValue();const auto cameraOrientation=source.camera->orientation.getValue();const auto sourceMatrix=source.matrix->matrix.getValue();
+  Harness h(samples,cpu,direct?COIN_RENDER_SCENE_TEXTURE_DIRECT:COIN_RENDER_SCENE_TEXTURE_STAGED);if(!h.target)return false;Frame a,b,back;scene.quality->textureQuality=.8f;Oracle original(source,16);
+  if(!h.render(scene.root,a,"stored source into linear cube A"))return false;
+  ok &=panels(a,scene,original,side,3)&&atlas(h.proxy->submitted,original,true,direct);
+  source.paint(1);Oracle changed(source,16);ok &=h.render(scene.root,b,"stored source payload B")&&panels(b,scene,changed,side,3)&&atlas(h.proxy->submitted,changed,true,direct)&&check(a.rgba!=b.rgba,"valid source mutation changes consumers of every canonical face");
+  source.paint(0);ok &=h.render(scene.root,back,"stored source exact A restoration")&&panels(back,scene,original,side,3)&&exact(a,back);
+  for(unsigned filter=0;filter<4;++filter){scene.quality->textureQuality=std::array<float,4>{{.1f,.3f,.6f,.8f}}[filter];constants(scene);ok &=h.render(scene.root,b,"source crossing filter")&&panels(b,scene,original,side,filter)&&atlas(h.proxy->submitted,original,filter>=2,direct);if(filter>=2){lodCoordinates(scene,side,16,1.5);ok &=h.render(scene.root,b,"source crossing fractional LOD")&&panels(b,scene,original,side,filter,1.5,true);}}
+  constants(scene);scene.quality->textureQuality=.8f;scene.cube->size.setValue(8,8);Oracle resized(source,8);ok &=h.render(scene.root,b,"source cube resized")&&panels(b,scene,resized,side,3)&&atlas(h.proxy->submitted,resized,true,direct);
+  scene.cube->size.setValue(16,16);ok &=h.render(scene.root,back,"source cube size restored")&&exact(a,back);
+  ok &=check(h.target->resize(SbVec2i32(160,160)),"source crossing public root resize");h.action.setViewportRegion(SbViewportRegion(160,160));ok &=renderSized(h,scene,b,160,"source root resized")&&panels(b,scene,original,160,3);
+  ok &=check(h.target->resize(SbVec2i32(side,side)),"source crossing public root size restored");h.action.setViewportRegion(SbViewportRegion(side,side));ok &=h.render(scene.root,back,"source root original size")&&exact(a,back);
+  ok &=check(source.camera->getNodeId()==cameraId&&source.camera->position.getValue()==cameraPosition&&source.camera->orientation.getValue()==cameraOrientation&&source.matrix->getNodeId()==matrixId&&source.matrix->matrix.getValue()==sourceMatrix,"source camera and texture matrix identity/fields are never mutated by six-face capture");
+ }
+ return ok;
+}
+bool preflight(unsigned family,bool cpu,bool direct){storedSrgbMode=true;Walls source(family,0,true,false);Scene scene;scene.cube->scene=source.root;scene.cube->size.setValue(16,16);scene.enabled->whichChild=SO_SWITCH_ALL;scene.quality->textureQuality=.8f;Harness h(1,cpu,direct?COIN_RENDER_SCENE_TEXTURE_DIRECT:COIN_RENDER_SCENE_TEXTURE_STAGED);Frame stable,back;if(!h.render(scene.root,stable,"sixth face preflight stable"))return false;
+ const auto graph=h.proxy->graph;const auto root=h.proxy->captured;if(!check(graph.producers.size()==1&&graph.producers[0].cube,"captured actual one-cube graph"))return false;
+ bool ok=true;for(unsigned fault=0;fault<10;++fault){auto malformed=graph;auto current=root;auto&p=malformed.producers[0];auto&sixth=p.face(5);const auto revision=sixth.revision;const auto sourceRevision=p.sourceRevision;
+  switch(fault){case 0:sixth.textures.front().pixelsRgba.pop_back();break;case 1:sixth.textures.front().width++;break;case 2:sixth.samplers.front().filter=static_cast<CoinRenderTextureFilter>(999);break;case 3:sixth.renderStates.front().textureMatrix[0][0]=std::numeric_limits<float>::quiet_NaN();break;case 4:p.sourceRevision=0;break;case 5:p.capturedCubeFaces=5;break;case 6:p.format=CoinRenderTextureFormat::RGBA8_SRGB;break;case 7:for(auto&i:current.textures)if(i.producerId){i.width++;break;}break;case 8:for(auto&i:current.textures)if(i.producerId){i.cubeFaceSize=8;break;}break;case 9:sixth.outputColorFormat=CoinRenderTextureFormat::RGBA8_SRGB;break;}
+  std::string diagnostic;const auto roots=h.proxy->submits,producers=h.proxy->producerCalls;const bool valid=malformed.validate(current,diagnostic);auto result=CoinRenderTargetP::validateProfile(sixth,p.size);
+  // Legal generic frame formats still must be refused by actual producer
+  // admission when they contradict the resolved cube declaration.
+  if(fault<=3||fault==9)ok &=check(result.status!=CoinRenderBackendStatus::SUCCESS&&!result.diagnostic.empty(),"shared target profile admission refuses malformed sixth-face before allocation fault="+std::to_string(fault));
+  ok &=check(!valid&&!diagnostic.empty(),"graph validates every sixth face and current resource descriptor fault="+std::to_string(fault));
+  ok &=check(sixth.revision==revision&&(fault==4||p.sourceRevision==sourceRevision)&&h.proxy->submits==roots&&h.proxy->producerCalls==producers,"same revision/digest is not proof of identity; preflight submits no producer/root");
+  Frame retained;h.target->readbackRGBA(retained.rgba);h.target->readbackDepth(retained.depth);ok &=check(h.target->getLastSubmissionSerial()==stable.serial&&retained.rgba==stable.rgba&&retained.depth==stable.depth,"malformed sixth-face preflight retains publication exactly");
+ }
+ ok &=h.render(scene.root,back,"sixth-face malformed graph public recovery")&&exact(stable,back);return ok;
+}
+}
+int main(int argc,char**argv){SoDB::init();CoinRenderAction::initClass();configureSamplingTest(argc,argv);unsigned family=0,unit=0,samples=1;bool cpu=false,direct=false,blending=false,invalid=false,currentResources=false,directFaults=false;for(int i=1;i<argc;++i){std::string arg=argv[i];if(arg=="--family"&&i+1<argc){if(!unsignedOption(argv[++i],family))return 2;}else if(arg=="--unit"&&i+1<argc){if(!unsignedOption(argv[++i],unit))return 2;}else if(arg=="--samples"&&i+1<argc){if(!unsignedOption(argv[++i],samples))return 2;}else if(arg=="--recording")cpu=true;else if(arg=="--direct")direct=true;else if(arg=="--alpha")blending=true;else if(arg=="--preflight")invalid=true;else if(arg=="--same-revision")currentResources=true;else if(arg=="--direct-faults"){directFaults=true;direct=true;}else if(arg!="--portable-sampling"&&arg!="--staged")return 2;}if(family>2||(unit!=0&&unit!=7)||(samples!=1&&samples!=2&&samples!=4)||cpu&&(samples!=1||direct))return 2;CoinRenderCapabilities caps{};if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_OFFSCREEN,&caps,sizeof(caps)))return 1;if(cpu){if(!check(caps.backend==COIN_RENDER_EXPERIMENTAL_RECORDING&&!caps.gpu_available,"source CPU uses actual public RECORDING factory only"))return 1;recordingFactoryMode=true;}else if(!caps.gpu_available)return 77;return (directFaults?directAliasFaults():currentResources?sameRevisionResources(family,cpu,direct):invalid?preflight(family,cpu,direct):crossing(family,unit,samples,cpu,direct,blending))?0:1;}

@@ -5486,3 +5486,5 @@ if(TARGET CoinRender)
     endif()
   endif()
 endif()
+
+include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderCubeRttCompletionTests.cmake)

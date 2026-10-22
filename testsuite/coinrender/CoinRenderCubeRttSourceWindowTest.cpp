@@ -1,0 +1,19 @@
+#define main coin_cube_rtt_existing_window_main
+#include "CoinRenderCubeRttWindowTest.cpp"
+#undef main
+#include "CoinRenderCubeRttSourceFixture.h"
+int main(int argc,char**argv){
+ configureSamplingTest(argc,argv);unsigned family=2,unit=7,samples=1;bool direct=false;
+ for(int i=1;i<argc;++i){std::string arg=argv[i];if(arg=="--family"&&i+1<argc){if(!unsignedOption(argv[++i],family))return 2;}else if(arg=="--unit"&&i+1<argc){if(!unsignedOption(argv[++i],unit))return 2;}else if(arg=="--samples"&&i+1<argc){if(!unsignedOption(argv[++i],samples))return 2;}else if(arg=="--direct")direct=true;else if(arg!="--staged"&&arg!="--portable-sampling")return 2;}
+ if(family>2||(unit!=0&&unit!=7)||(samples!=1&&samples!=2&&samples!=4))return 2;if(!XInitThreads())return 1;SoDB::init();CoinRenderAction::initClass();CoinRenderCapabilities caps{};if(coin_render_query_capabilities(COIN_RENDER_EXPERIMENTAL_XLIB_WINDOW,&caps,sizeof(caps)))return 1;if(!caps.gpu_available)return 77;Display*d=XOpenDisplay(nullptr);if(!d)return 77;
+ unsigned extent=side;Window window=XCreateSimpleWindow(d,DefaultRootWindow(d),16,16,extent,extent,0,0,0);XSetWindowAttributes attributes{};attributes.override_redirect=True;XChangeWindowAttributes(d,window,CWOverrideRedirect,&attributes);XMapRaised(d,window);XSync(d,False);
+ CoinRenderNativeSurfaceDescriptor native{};native.abiVersion=COIN_RENDER_NATIVE_SURFACE_ABI_VERSION;native.structSize=sizeof(native);native.type=COIN_RENDER_SURFACE_XLIB;native.native.xlib.display=d;native.native.xlib.window=window;
+ auto options=samplingTestOptions();options.renderer=static_cast<CoinRenderRenderer>(caps.renderer);options.sampleCount=samples;options.sceneTexture=direct?COIN_RENDER_SCENE_TEXTURE_DIRECT:COIN_RENDER_SCENE_TEXTURE_STAGED;options.storedTextureColorSpace=COIN_RENDER_TEXTURE_SRGB;
+ std::unique_ptr<CoinRenderTarget>target(CoinRenderTarget::createWindow(native,SbVec2i32(extent,extent),options));if(!target)return 1;
+ CoinRenderAction action{SbViewportRegion(extent,extent)};action.setRenderTarget(target.get());action.setTransparencyType(CoinRenderAction::NONE);action.setBackgroundColor(SbColor4f(0,0,0,1));
+ cube_rtt_source::Walls source(family,unit,true,false);Scene scene(unit);scene.cube->scene=source.root;scene.cube->size.setValue(16,16);scene.enabled->whichChild=SO_SWITCH_ALL;scene.quality->textureQuality=.8f;
+ auto draw=[&](Frame&frame,Frame&shown,const char*phase){const auto serial=target->getLastSubmissionSerial();const bool request=target->requestWindowReadbackRGBA();action.apply(scene.root);target->readbackRGBA(frame.rgba);frame.serial=target->getLastSubmissionSerial();Frame opaque=frame;for(size_t pixel=3;pixel<opaque.rgba.size();pixel+=4)opaque.rgba[pixel]=255;return check(request&&action.getLastStatus()==CoinRenderAction::SUCCESS&&frame.serial>serial,"source crossing one public window apply/readback")&&cube_rtt_source::panels(frame,scene,cube_rtt_source::Oracle(source,16),extent,3,0,false,false)&&presented(d,window,extent,opaque,shown,phase)&&cube_rtt_source::panels(shown,scene,cube_rtt_source::Oracle(source,16),extent,3,0,false,true);};
+ Frame a,aShown,b,shown;bool ok=draw(a,aShown,"stored source window A");source.paint(1);ok &=draw(b,shown,"stored source window B")&&check(a.rgba!=b.rgba,"source window B visibly changes");source.paint(0);ok &=draw(b,shown,"stored source window restored A")&&check(a.rgba==b.rgba&&aShown.rgba==shown.rgba,"source window A/B/A exact readback and physical pixels");
+ for(unsigned size:{97u,192u}){extent=size;XResizeWindow(d,window,size,size);XSync(d,False);ok &=check(target->resize(SbVec2i32(size,size)),"source window public resize");action.setViewportRegion(SbViewportRegion(size,size));ok &=draw(b,shown,"stored source window resize");}
+ action.setRenderTarget(nullptr);target.reset();XDestroyWindow(d,window);XCloseDisplay(d);return ok?0:1;
+}
