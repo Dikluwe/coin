@@ -378,10 +378,16 @@ CoinRenderRttResources::bind(uint64_t id, uint64_t producer, const CoinRenderRes
   if (id != entries.size() + 1 || !producer || !stamp.owner || texture.producerId ||
       !texture.width || !texture.height || texture.width > 8192 ||
       texture.height > 8192 || texture.components != 4 ||
+      (texture.format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+       texture.format != CoinRenderTextureFormat::RGBA16_FLOAT) ||
+      texture.volumeWidth || texture.volumeHeight || texture.volumeDepth || texture.volumeColumns ||
+      texture.volumeSourceComponents || texture.volumeMipmapped ||
+      !CoinRenderTextureSamplingCore::validMipImage(texture) ||
       (texture.gpuToken && (!stamp.device || !stamp.deviceGeneration)) ||
       (texture.gpuToken && !texture.pixelsRgba.empty()) ||
       (texture.cubeFaceSize && !CoinRenderCubeTextureCore::valid(texture)) ||
-      (!texture.gpuToken && texture.pixelsRgba.size() != uint64_t(texture.width) * texture.height * 4)) {
+      (!texture.gpuToken && texture.pixelsRgba.size() !=
+        CoinRenderTextureFormatCore::levelBytes(texture.width, texture.height, texture.format))) {
     diagnostic = "Invalid or unordered scene texture resource binding";
     return false;
   }
@@ -408,7 +414,24 @@ CoinRenderRttResources::resolve(const CoinRenderFramePlan &captured,
       return false;
     }
     const Entry &entry = entries[size_t(texture.producerId - 1)];
-    if (!(entry.stamp == current) || entry.id != texture.producerId ||
+    // A matching stamp/revision cannot authenticate mutable descriptors. Check
+    // both the captured declaration and retained layout before copying bytes.
+    // A base-only cube declaration may resolve to the shared complete mip atlas;
+    // validMipImage checks its own canonical height before that promotion.
+    if (!entry.producer || !entry.texture.width || !entry.texture.height ||
+        entry.texture.width > 8192 || entry.texture.height > 8192 ||
+        entry.texture.components != 4 || entry.texture.producerId ||
+        (entry.texture.format != CoinRenderTextureFormat::RGBA8_LINEAR &&
+         entry.texture.format != CoinRenderTextureFormat::RGBA16_FLOAT) ||
+        entry.texture.volumeWidth || entry.texture.volumeHeight || entry.texture.volumeDepth ||
+        entry.texture.volumeColumns || entry.texture.volumeSourceComponents || entry.texture.volumeMipmapped ||
+        (entry.texture.gpuToken && (!current.device || !current.deviceGeneration ||
+                                   !entry.texture.pixelsRgba.empty())) ||
+        (!entry.texture.gpuToken && entry.texture.pixelsRgba.size() !=
+          CoinRenderTextureFormatCore::levelBytes(entry.texture.width, entry.texture.height, entry.texture.format)) ||
+        !CoinRenderTextureSamplingCore::validMipImage(texture) ||
+        !CoinRenderTextureSamplingCore::validMipImage(entry.texture) ||
+        !(entry.stamp == current) || entry.id != texture.producerId ||
         texture.width != entry.texture.width || (!texture.cubeFaceSize && texture.height != entry.texture.height) ||
         texture.format != entry.texture.format || texture.cubeFaceSize!=entry.texture.cubeFaceSize ||
         texture.cubeSourceComponents!=entry.texture.cubeSourceComponents ||

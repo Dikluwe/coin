@@ -725,7 +725,9 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   CoinRenderCompositionTransferTrace compositionTransfers("target_composition_copy", "target");
   // A capture receipt skips only the two common passes. Target profile and
   // submission checks still run, and a mismatched receipt validates in full.
-  if (capturedPreflight || (!validatedCameraPatch &&
+  // Texture declarations and their sampler/matrix bindings remain untrusted
+  // across private revision reuse, including ordinary stored 2D sources.
+  if (capturedPreflight || !frame.textures.empty() || (!validatedCameraPatch &&
       (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision))) {
     CoinRenderFrameExecutionResult val =
       validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight, true, &compositionTransfers);

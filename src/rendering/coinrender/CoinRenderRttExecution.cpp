@@ -168,11 +168,12 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
         if(directBackend) {
           uint64_t token=0;
           const auto result=directBackend->submitRtt(frame,producer.size,producer.sourceRevision,*target,token);
-          if(token)tokens.push_back(token);
+          const bool uniqueToken=token && std::find(tokens.begin(),tokens.end(),token)==tokens.end();
+          if(uniqueToken)tokens.push_back(token);
           if(result.status!=CoinRenderBackendStatus::SUCCESS) {
             if(result.status==CoinRenderBackendStatus::DEVICE_LOST)target->deviceLost();return result;
           }
-          if(!token)return {CoinRenderBackendStatus::BACKEND_ERROR,"Cube RTT face returned no token"};
+          if(!uniqueToken)return {CoinRenderBackendStatus::BACKEND_ERROR,"Cube RTT face returned no token or an aliased token"};
           faceTokens[face]=token;
         } else {
           std::unique_ptr<CoinRenderTarget> child(CoinRenderTarget::createOffscreen(producer.size,options));
@@ -190,11 +191,12 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
       if(directBackend) {
         uint64_t token=0;
         const auto result=directBackend->assembleCubeRtt(faceTokens,uint32_t(producer.size[0]),mips,*target,token);
-        if(token)tokens.push_back(token);
+        const bool uniqueToken=token && std::find(tokens.begin(),tokens.end(),token)==tokens.end();
+        if(uniqueToken)tokens.push_back(token);
         if(result.status!=CoinRenderBackendStatus::SUCCESS) {
           if(result.status==CoinRenderBackendStatus::DEVICE_LOST)target->deviceLost();return result;
         }
-        if(!token)return {CoinRenderBackendStatus::BACKEND_ERROR,"Cube RTT assembly returned no token"};
+        if(!uniqueToken)return {CoinRenderBackendStatus::BACKEND_ERROR,"Cube RTT assembly returned no token or an aliased token"};
         if(!(stamp()==capturedStamp))return {CoinRenderBackendStatus::DEVICE_LOST,"Cube RTT assembly changed generation"};
         // The atlas owns independent storage. Retire only our six temporary
         // faces after their last assembly use has been submitted. Backends keep
@@ -238,16 +240,17 @@ CoinRenderSubmitResult CoinRenderRttExecution::prepare(const CoinRenderRttPlan& 
       auto result =
           directBackend->submitRtt(frame, producer.size, producer.sourceRevision, *target, token);
       // Own any returned allocation even on failure; never leak partial outputs.
-      if (token)
+      const bool uniqueToken = token && std::find(tokens.begin(),tokens.end(),token)==tokens.end();
+      if (uniqueToken)
         tokens.push_back(token);
       if (result.status != CoinRenderBackendStatus::SUCCESS) {
         if (result.status == CoinRenderBackendStatus::DEVICE_LOST)
           target->deviceLost();
         return result;
       }
-      if (!token)
+      if (!uniqueToken)
         return {CoinRenderBackendStatus::BACKEND_ERROR,
-                "Planned SoSceneTexture2 pass returned no GPU texture"};
+                "Planned SoSceneTexture2 pass returned no GPU texture or an aliased token"};
       if (!(stamp() == capturedStamp))
         return {CoinRenderBackendStatus::DEVICE_LOST,
                 "Scene texture device generation changed during execution"};

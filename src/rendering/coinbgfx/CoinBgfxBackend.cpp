@@ -5050,17 +5050,13 @@ static bool bgfxBumpSnapshotFits(const CoinRenderFramePlan & frame)
 }
 
 // Original image slots retain their order in the lowered plan. GL may append
-// base-only views for 2D images, but cube atlases never acquire those views.
-// A private revision does not establish the identity of transported cube bytes.
-static bool bgfxSameCubeTextures(const CoinRenderFramePlan & frame,
-                                const CoinBgfxPlan & plan)
+// base-only views and bump images after them. Revisions/digests do not prove
+// the identity of a transported source; compare every original image and mip.
+static bool bgfxSameSourceTextures(const CoinRenderFramePlan & frame,
+                                  const CoinBgfxPlan & plan)
 {
-  const size_t count = std::max(frame.textures.size(), plan.textures.size());
-  for (size_t i = 0; i < count; ++i) {
-    const bool sourceCube = i < frame.textures.size() && frame.textures[i].cubeFaceSize;
-    const bool cachedCube = i < plan.textures.size() && plan.textures[i].cubeFaceSize;
-    if (!sourceCube && !cachedCube) continue;
-    if (!sourceCube || !cachedCube) return false;
+  if (frame.textures.size() > plan.textures.size()) return false;
+  for (size_t i = 0; i < frame.textures.size(); ++i) {
     const auto & source = frame.textures[i];
     const auto & cached = plan.textures[i];
     if (source.producerId || source.format != cached.format ||
@@ -5068,7 +5064,15 @@ static bool bgfxSameCubeTextures(const CoinRenderFramePlan & frame,
         source.cubeFaceSize != cached.cubeFaceSize ||
         source.cubeSourceComponents != cached.cubeSourceComponents ||
         source.cubeMipmapped != cached.cubeMipmapped ||
-        source.gpuToken != cached.gpuToken || source.pixelsRgba != cached.pixelsRgba)
+        source.volumeWidth != cached.volumeWidth || source.volumeHeight != cached.volumeHeight ||
+        source.volumeDepth != cached.volumeDepth || source.volumeColumns != cached.volumeColumns ||
+        source.volumeSourceComponents != cached.volumeSourceComponents ||
+        source.volumeMipmapped != cached.volumeMipmapped || source.mipmapped != cached.mipmapped ||
+        source.gpuToken != cached.gpuToken ||
+        source.pixelsRgba.size() + source.mipmapsRgba.size() != cached.pixelsRgba.size() ||
+        !std::equal(source.pixelsRgba.begin(),source.pixelsRgba.end(),cached.pixelsRgba.begin()) ||
+        !std::equal(source.mipmapsRgba.begin(),source.mipmapsRgba.end(),
+                    cached.pixelsRgba.begin()+source.pixelsRgba.size()))
       return false;
   }
   return true;
@@ -5236,9 +5240,14 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::isValid(this->cachedIndexBuffer);
   const bool portableFrame = !frame.portableShaders.empty() || std::any_of(this->cachedPlan.draws.begin(), this->cachedPlan.draws.end(),
     [](const CoinBgfxDraw &draw) { return draw.portableShaderSlot != 0; });
-  const bool cubeTexturesMatch = bgfxSameCubeTextures(frame, this->cachedPlan);
+  const bool sourceTexturesMatch = bgfxSameSourceTextures(frame, this->cachedPlan);
+  // Public Wiring supplies a Core payload comparison. Raw private ingress
+  // with only a repeated revision must repack textured vertex/sampler state.
+  const bool texturedReuse = bumpPayloadHit ||
+    (frame.textures.empty() && this->cachedPlan.textures.empty()) ||
+    (reuse.kind == CoinRenderFrameReuseKind::REUSE && reuse.baseRevision == this->cachedRevision);
   const bool cacheHit = frame.numPasses == 1 && !portableFrame && !hasShadows && cacheDimensionsMatch &&
-    cubeTexturesMatch &&
+    sourceTexturesMatch && texturedReuse &&
     (bumpPayloadHit || (!activeBump && !cachedBump && frame.revision!=0 && frame.revision==this->cachedRevision)) &&
     (!this->cachedPlan.usesInstancing ||
       (instancingEnabled && bgfx::isValid(this->cachedInstanceBuffer)));
@@ -5258,7 +5267,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::isValid(this->cachedInstanceBuffer);
   const bool cameraPatchEligible = frame.numPasses == 1 &&
     !portableFrame && !activeBump && !cachedBump && !hasShadows && this->cameraPatchEnabled &&
-    cubeTexturesMatch &&
+    sourceTexturesMatch &&
     (!this->cachedPlan.usesInstancing || instancedCameraPatchEnabled) &&
     reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
     reuse.baseRevision != 0 && reuse.baseRevision == this->cachedRevision &&

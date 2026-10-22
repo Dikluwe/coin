@@ -92,6 +92,33 @@ static_assert(offsetof(CoinWgpuRenderState, depth_function) == 924, "depth_funct
 static_assert(offsetof(CoinWgpuRenderState, depth_range) == 928, "depth_range ABI offset changed");
 
 namespace {
+// Use the same declaration encoding for cache admission and transport. In
+// particular, ordinary 2D source bytes/formats are not authenticated by a
+// repeated private revision or content digest.
+CoinWgpuTexture describeTexture(const CoinRenderTextureImageSnapshot & src)
+{
+  CoinWgpuTexture dst{};
+  dst.width = src.width;
+  dst.height = src.height;
+  dst.format = src.cubeFaceSize ? 12 : src.volumeDepth ? 11 : src.gpuToken ? 1 :
+    src.format == CoinRenderTextureFormat::RGBA8_LINEAR ? (src.mipmapped ? 2 : 0) :
+    3 + (uint32_t(src.format) - 1) * 2 + (src.mipmapped ? 1 : 0);
+  uint32_t exponent = 0;
+  for (uint32_t n = src.cubeFaceSize; n > 1; n >>= 1) ++exponent;
+  dst.reserved = src.cubeFaceSize ?
+    (exponent | (src.cubeSourceComponents << 4) | (src.cubeMipmapped ? 128u : 0u) | (src.gpuToken ? 256u : 0u) |
+     (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_CUBE_SRGB : 0u)) : src.volumeDepth ?
+    ((src.volumeWidth - 1) | ((src.volumeHeight - 1) << 8) |
+     ((src.volumeDepth - 1) << 16) | (src.volumeMipmapped ? 1u << 24 : 0u) |
+     (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
+    src.gpuToken ? ((src.gpuOpaque ? 1u : 0u) | (src.mipmapped ? 2u : 0u) | (uint32_t(src.format) << 2)) : 0u;
+  if (src.sceneTransparencyFunction == SoSceneTexture2::NONE)
+    dst.reserved |= COIN_WGPU_TEXTURE_DECLARED_OPAQUE;
+  dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
+  dst.pixel_bytes_len = uint64_t(src.pixelsRgba.size()) + src.mipmapsRgba.size();
+  return dst;
+}
+
 // Validate new reference-bearing state before revision reuse or vector/cache
 // mutation. This does not inspect vertices and leaves old packed bytes intact.
 inline bool validRasterTextureStateReferences(const CoinRenderFramePlan & frame, std::string & diagnostic) {
@@ -524,40 +551,43 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
       outDiagnostic = "Unresolved scene texture producer at wgpu execution boundary";
       return false;
     }
-    if ((texture.volumeDepth || texture.volumeWidth || texture.volumeHeight ||
-         texture.volumeColumns || texture.volumeSourceComponents || texture.volumeMipmapped) &&
-        !CoinRenderTextureSamplingCore::validMipImage(texture)) {
-      outDiagnostic = "Invalid SoTexture3 atlas metadata at wgpu execution boundary";
+    if (!texture.width || !texture.height || texture.width > 8192 || texture.height > 8192 ||
+        texture.components != 4 || (texture.producerId && texture.gpuToken) ||
+        !CoinRenderTextureSamplingCore::validMipImage(texture) ||
+        ((texture.producerId || texture.gpuToken) ? !texture.pixelsRgba.empty() :
+          texture.pixelsRgba.size() != CoinRenderTextureFormatCore::levelBytes(
+            texture.width, texture.height, texture.format)) ||
+        (texture.sceneTransparencyFunction != -1 &&
+         !coin_render_scene_texture_policy_supported(texture.sceneTransparencyFunction))) {
+      outDiagnostic = "Invalid source texture format, dimensions, payload or mip metadata at wgpu execution boundary";
       return false;
     }
   }
-  bool sameAtlasTextures = true;
-  for (size_t i = frame.textures.size(); i < this->textures.size(); ++i)
-    if (this->textures[i].format == 11 || this->textures[i].format == 12) sameAtlasTextures = false;
-  for (size_t i = 0; i < frame.textures.size(); ++i) {
-    const auto & image = frame.textures[i];
-    const uint32_t declaration = image.sceneTransparencyFunction == SoSceneTexture2::NONE ?
-      COIN_WGPU_TEXTURE_DECLARED_OPAQUE : 0u;
-    if (i >= this->textures.size() ||
-        (this->textures[i].reserved & COIN_WGPU_TEXTURE_DECLARED_OPAQUE) != declaration) {
-      sameAtlasTextures = false;
+  bool sameSourceTextures = frame.textures.size() == this->textures.size() &&
+    frame.textures.size() == this->texturePixels.size();
+  if (sameSourceTextures) for (size_t i = 0; i < frame.textures.size(); ++i) {
+    const auto & source = frame.textures[i];
+    const auto description = describeTexture(source);
+    const auto & cached = this->textures[i];
+    const auto & bytes = this->texturePixels[i];
+    if (description.format != cached.format || description.width != cached.width ||
+        description.height != cached.height || description.reserved != cached.reserved ||
+        description.content_digest != cached.content_digest || description.pixel_bytes_len != bytes.size() ||
+        !std::equal(source.pixelsRgba.begin(),source.pixelsRgba.end(),bytes.begin()) ||
+        !std::equal(source.mipmapsRgba.begin(),source.mipmapsRgba.end(),bytes.begin()+source.pixelsRgba.size())) {
+      sameSourceTextures = false;
       break;
     }
-    if (!image.cubeFaceSize && !image.volumeDepth &&
-        !(i < this->textures.size() && (this->textures[i].format == 11 || this->textures[i].format == 12))) continue;
-    uint32_t exponent = 0; for (uint32_t n = image.cubeFaceSize; n > 1; n >>= 1) ++exponent;
-    const uint32_t metadata = (image.sceneTransparencyFunction == SoSceneTexture2::NONE ?
-      COIN_WGPU_TEXTURE_DECLARED_OPAQUE : 0u) | (image.volumeDepth ?
-      ((image.volumeWidth - 1) | ((image.volumeHeight - 1) << 8) |
-       ((image.volumeDepth - 1) << 16) | (image.volumeMipmapped ? 1u << 24 : 0u) |
-       (image.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
-      (exponent | (image.cubeSourceComponents << 4) | (image.cubeMipmapped ? 128u : 0u) | (image.gpuToken ? 256u : 0u) |
-       (image.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_CUBE_SRGB : 0u)));
-    if (i >= this->textures.size() || i >= this->texturePixels.size() ||
-        this->textures[i].format != (image.volumeDepth ? 11u : 12u) || this->textures[i].width != image.width ||
-        this->textures[i].height != image.height || this->textures[i].reserved != metadata ||
-        this->textures[i].content_digest != (image.gpuToken ? image.gpuToken : image.contentDigest) || this->texturePixels[i] != image.pixelsRgba) {
-      sameAtlasTextures = false; break;
+  }
+  bool sameSamplers = frame.samplers.size() == this->samplers.size();
+  if (sameSamplers) for (size_t i = 0; i < frame.samplers.size(); ++i) {
+    const auto & source = frame.samplers[i];
+    const auto & cached = this->samplers[i];
+    if (cached.wrap_s != uint32_t(source.wrapS) || cached.wrap_t != uint32_t(source.wrapT) ||
+        cached.filter != uint32_t(source.filter) ||
+        cached.reserved != ((source.maxAnisotropy - 1) | (uint32_t(source.wrapR) << 4))) {
+      sameSamplers = false;
+      break;
     }
   }
   const auto layerIdentity = [](const CoinRenderDrawPacket & draw) {
@@ -572,7 +602,7 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
     for (size_t i = 0; i < frame.draws.size(); ++i)
       this->packedLayerIdentity[i] = layerIdentity(frame.draws[i]);
   };
-  if (!portableFrame && !allowBump && sameLayerIdentity && sameAtlasTextures && frame.revision != 0 && frame.revision == this->packedRevision &&
+  if (!portableFrame && !allowBump && sameLayerIdentity && sameSourceTextures && sameSamplers && frame.revision != 0 && frame.revision == this->packedRevision &&
       (allowInstancing || !this->opaqueInstanced) && (loweringAllowed || !this->opaqueDiagonalLowered)) {
     uint64_t requiredBytes = 0;
     const bool needsPeeling =
@@ -617,6 +647,7 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
   // The Rust camera patch owns only the standard immutable payload; shadow
   // casters/receivers must be transported through the full validated path.
   if (!allowBump && !this->opaqueBatched && frame.shadowGroups.empty() &&
+      sameSourceTextures && sameSamplers &&
       reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
       frame.revision != 0 && frame.revision != reuse.baseRevision &&
       reuse.baseRevision != 0 && reuse.baseRevision == this->packedRevision) {
@@ -692,21 +723,7 @@ CoinWgpuFfiFrame::prepareImpl(const CoinRenderFramePlan & frame, uint32_t width,
     CoinWgpuTexture & dst = this->textures[i];
     this->texturePixels[i] = src.pixelsRgba;
     this->texturePixels[i].insert(this->texturePixels[i].end(),src.mipmapsRgba.begin(),src.mipmapsRgba.end());
-    dst.width = src.width;
-    dst.height = src.height;
-    dst.format = src.cubeFaceSize ? 12 : src.volumeDepth ? 11 : src.gpuToken?1:src.format==CoinRenderTextureFormat::RGBA8_LINEAR?(src.mipmapped?2:0):
-      3+(uint32_t(src.format)-1)*2+(src.mipmapped?1:0);
-    auto exponent = [](uint32_t v) { uint32_t bits=0; while (v>1) {v>>=1;++bits;} return bits; };
-    dst.reserved = src.cubeFaceSize ?
-      (exponent(src.cubeFaceSize) | (src.cubeSourceComponents << 4) | (src.cubeMipmapped ? 128u : 0u) | (src.gpuToken ? 256u : 0u) |
-       (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_CUBE_SRGB : 0u)) : src.volumeDepth ?
-      ((src.volumeWidth - 1) | ((src.volumeHeight - 1)<<8) |
-       ((src.volumeDepth - 1)<<16) | (src.volumeMipmapped ? 1u<<24 : 0u) |
-       (src.format == CoinRenderTextureFormat::RGBA8_SRGB ? COIN_WGPU_TEXTURE_VOLUME_SRGB : 0u)) :
-      src.gpuToken?((src.gpuOpaque?1:0)|(src.mipmapped?2:0)|(uint32_t(src.format)<<2)):0;
-    if (src.sceneTransparencyFunction == SoSceneTexture2::NONE)
-      dst.reserved |= COIN_WGPU_TEXTURE_DECLARED_OPAQUE;
-    dst.content_digest = src.gpuToken ? src.gpuToken : src.contentDigest;
+    dst = describeTexture(src);
     dst.pixels = src.gpuToken ? NULL : this->texturePixels[i].data();
     dst.pixel_bytes_len = static_cast<uint64_t>(this->texturePixels[i].size());
   }

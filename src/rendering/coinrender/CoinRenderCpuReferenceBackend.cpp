@@ -1,4 +1,5 @@
 #include "rendering/coinrender/CoinRenderMultipassCore.h"
+#include "rendering/coinrender/CoinRenderRttCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #include "rendering/coinrender/CoinRenderTextureCombineCore.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
@@ -23,6 +24,30 @@
 #include <new>
 
 namespace {
+
+struct CpuSubmissionFault {
+  int64_t remaining = -1;
+  uint64_t successes = 0;
+};
+// Producers use new public factory targets per face, so an instance-local hook
+// cannot observe the sixth submission. Never share an armed fault across threads.
+thread_local CpuSubmissionFault cpuSubmissionFault;
+
+CoinRenderSubmitResult cpuFrameCapabilities(const CoinRenderFramePlan & frame)
+{
+  if (frame.hasPortableShaderDraws())
+    return {CoinRenderBackendStatus::UNSUPPORTED, "CPU reference backend does not execute portable shader modules"};
+  if (!frame.shadowGroups.empty() || !frame.shadowLights.empty() ||
+      std::any_of(frame.renderStates.begin(), frame.renderStates.end(),
+                  [](const CoinRenderRenderStateSnapshot & state) { return state.flatShadowPrimary; }))
+    return {CoinRenderBackendStatus::UNSUPPORTED, "CPU reference backend has no shadow-map receiver path"};
+  if (frame.outputColorFormat != CoinRenderTextureFormat::RGBA8_LINEAR || frame.outputMipmaps)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "CPU output supports RGBA8 base only; HDR/mip RTT requires a direct GPU route"};
+  if (std::any_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
+                  [](const CoinRenderBumpCoordOverride & coord) { return coord.imageSlot != 0; }))
+    return {CoinRenderBackendStatus::UNSUPPORTED, "CPU reference backend has no bump-map path"};
+  return {};
+}
 
 struct ShadedVertex {
   SbVec4f clipPos;
@@ -694,6 +719,19 @@ static void rasterizeTriangle(const ShadedVertex& sv0, const ShadedVertex& sv1,
 
 } // namespace
 
+void
+CoinRenderCpuReferenceBackend::setSubmissionFaultCountdown(int64_t successfulBeforeFailure)
+{
+  cpuSubmissionFault.remaining = successfulBeforeFailure < 0 ? -1 : successfulBeforeFailure;
+  if (successfulBeforeFailure >= 0) cpuSubmissionFault.successes = 0;
+}
+
+uint64_t
+CoinRenderCpuReferenceBackend::submissionFaultSuccessCount()
+{
+  return cpuSubmissionFault.successes;
+}
+
 CoinRenderCpuReferenceBackend::CoinRenderCpuReferenceBackend()
   : status(CoinRenderBackendStatus::SUCCESS)
 {
@@ -742,6 +780,26 @@ CoinRenderCpuReferenceBackend::preflightMultipass(const CoinRenderFramePlan & fr
 }
 
 CoinRenderSubmitResult
+CoinRenderCpuReferenceBackend::preflightRtt(const CoinRenderRttPlan & graph,
+    const CoinRenderFramePlan & root, const SbVec2i32 & extent) const
+{
+  if (graph.mode != COIN_RENDER_SCENE_TEXTURE_STAGED)
+    return {CoinRenderBackendStatus::UNSUPPORTED, "CPU reference backend requires STAGED scene textures"};
+  auto result = cpuFrameCapabilities(root);
+  if (result.status != CoinRenderBackendStatus::SUCCESS) return result;
+  result = this->preflightMultipass(root, extent);
+  if (result.status != CoinRenderBackendStatus::SUCCESS) return result;
+  for (const auto & producer : graph.producers)
+    for (size_t face = 0; face < producer.faceCount(); ++face) {
+      result = cpuFrameCapabilities(producer.face(face));
+      if (result.status != CoinRenderBackendStatus::SUCCESS) return result;
+      result = this->preflightMultipass(producer.face(face), producer.size);
+      if (result.status != CoinRenderBackendStatus::SUCCESS) return result;
+    }
+  return {};
+}
+
+CoinRenderSubmitResult
 CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRenderTargetP & target)
 {
   static std::atomic<uint64_t> globalCpuSerial(1);
@@ -750,10 +808,50 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   CoinRenderSubmitResult admission = this->preflightMultipass(frame, target.size);
   if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  // Revisions are cache hints, including at direct private backend ingress.
+  // All invalid input and CPU capability refusals precede the injected fault.
+  admission = CoinRenderTargetP::validateProfile(frame, target.size);
+  if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  admission = cpuFrameCapabilities(frame);
+  if (admission.status != CoinRenderBackendStatus::SUCCESS) return admission;
+  if (!rasterTextureStatesValid(frame, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  for (const auto & texture : frame.textures)
+    if (texture.producerId || texture.gpuToken)
+      return {CoinRenderBackendStatus::UNSUPPORTED, "CPU execution requires resolved scene texture pixels"};
+  if (target.size[0] <= 0 || target.size[1] <= 0)
+    return {CoinRenderBackendStatus::NOT_READY, "Target size is zero or negative"};
+  std::vector<CoinRenderCompositionItem> order;
+  if (!coin_render_composition_schedule(frame, order, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  for (const auto & item : order)
+    if (item.transparencyStrategy == CoinRenderCompositionItem::WEIGHTED_OIT)
+      return {CoinRenderBackendStatus::UNSUPPORTED,
+              coin_render_selection_diagnostic(COIN_RENDER_SELECTION_NOT_IMPLEMENTED)};
+  const bool needsPeeling = std::any_of(order.begin(), order.end(),
+    [](const CoinRenderCompositionItem & item) {
+      return item.blend && item.deferred && item.transparencyStrategy == CoinRenderCompositionItem::SORTED_LAYERS;
+    });
+  uint64_t requiredBytes = 0;
+  if (!coin_render_transparency_budget(target.size[0], target.size[1], frame.transparency,
+                                      needsPeeling, requiredBytes, this->lastError))
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  if (cpuSubmissionFault.remaining == 0) {
+    this->lastError = "Injected CPU submission failure before allocation and publication";
+    return {CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError};
+  }
+  const auto completedSubmission = []() {
+    if (cpuSubmissionFault.remaining >= 0) {
+      --cpuSubmissionFault.remaining;
+      ++cpuSubmissionFault.successes;
+    }
+  };
   if (frame.numPasses == 1) {
     CoinRenderSubmitResult result = this->renderSingle(frame, frame.renderStates, target, 0);
-    if (result.status == CoinRenderBackendStatus::SUCCESS)
+    if (result.status == CoinRenderBackendStatus::SUCCESS) {
       result.submissionSerial = globalCpuSerial.fetch_add(1);
+      completedSubmission();
+    }
     return result;
   }
   try {
@@ -782,6 +880,7 @@ CoinRenderCpuReferenceBackend::submit(const CoinRenderFramePlan & frame, CoinRen
     target.colorBuffer.swap(sample.colorBuffer);
     target.depthBuffer.swap(sample.depthBuffer); // exactly the last sample
     target.status = CoinRenderTarget::TARGET_READY;
+    completedSubmission();
     return {CoinRenderBackendStatus::SUCCESS, "", globalCpuSerial.fetch_add(1)};
   } catch (const std::bad_alloc &) {
     return {CoinRenderBackendStatus::OUT_OF_MEMORY, "CPU multipass allocation failed"};
