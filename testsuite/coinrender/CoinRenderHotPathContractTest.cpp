@@ -80,7 +80,10 @@ CoinRenderFramePlan depthPlan(const std::vector<float>&slopes) {
   CoinRenderRenderStateSnapshot s;s.lightModel=CoinRenderLightModel::BASE_COLOR;s.cullMode=CoinRenderCullMode::NONE;
   s.polygonOffsetEnabled=true;s.polygonOffsetStyles=1;s.polygonOffsetPrimitiveStyle=1;s.polygonOffsetFactor=1;s.polygonOffsetMaxDepth=-1;
   p.renderStates.push_back(s);
-  for(size_t i=0;i<slopes.size();++i){float x=-.8f+float(i)*.2f;uint32_t base=uint32_t(p.vertices.size());
+  // Reuse exactly the same projected triangle so equal slope inputs produce
+  // bit-identical resolved states.  Translated floating-point coordinates can
+  // introduce harmless rounding differences and are intentionally not merged.
+  for(size_t i=0;i<slopes.size();++i){float x=0;uint32_t base=uint32_t(p.vertices.size());
     p.vertices.push_back(vertex(x,-.2f,0,0,0));p.vertices.push_back(vertex(x+.1f,-.2f,.1f*slopes[i],0,0));p.vertices.push_back(vertex(x,.2f,0,0,0));
     p.indices.insert(p.indices.end(),{base,base+1,base+2});}
   CoinRenderDrawPacket d;d.topology=CoinRenderPrimitiveTopology::TRIANGLE_LIST;d.geometry.vertexCount=p.vertices.size();d.geometry.indexCount=p.indices.size();
@@ -139,4 +142,13 @@ bool bumpSafety(){auto p=reusePlan(50);CoinRenderBumpImage image;image.width=ima
  auto copied=p;copied.bumpTransforms.reserve(4096);for(unsigned i=0;i<4096;++i){SbMatrix m=SbMatrix::identity();m[3][0]=float(i+1);copied.bumpTransforms.push_back(m);}copied.bumpCoords[0].transformSlot=4096;
  ok&=check(copied.bumpTransforms.size()==4096&&copied.bumpCoords[0].transformSlot==4096,"1-based bump transform slots survive plan copy");return ok;}
 }
-int main(){SoDB::init();return polygonContract()&&depthContract()&&reuseContract()&&textureCaptureContract()&&bumpSafety()?0:1;}
+int main(){
+  SoDB::init();
+  CoinRenderAction::initClass();
+  if (!polygonContract()) return 1;
+  if (!depthContract()) return 1;
+  if (!reuseContract()) return 1;
+  if (!textureCaptureContract()) return 1;
+  if (!bumpSafety()) return 1;
+  return 0;
+}

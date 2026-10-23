@@ -527,18 +527,19 @@ bool triangleDepthMetric() {
     state.depthRange[0] = reversed ? .8f : .2f;
     state.depthRange[1] = reversed ? .2f : .8f;
     ok &= check(coin_render_resolve_triangle_depth(frame, diagnostic), "triangle depth resolution");
-    unsigned resolved = 0;
+    unsigned resolvedTriangles = 0;
     for (const auto &draw : frame.draws) {
       const auto &rs = frame.renderStates[draw.renderStateSlot];
       if (!rs.polygonOffsetEnabled)
         continue;
-      ++resolved;
+      resolvedTriangles += draw.geometry.indexCount / 3;
       ok &= check(rs.polygonOffsetFactor == 0 &&
                       std::abs(rs.polygonOffsetSlopeBias - .0075f) < 1e-6f &&
                       rs.polygonOffsetMaxDepth >= .451f && rs.polygonOffsetMaxDepth <= .549f,
                   "original triangle slope = abs(.2/2 * .6 /16), independent of range order");
     }
-    ok &= check(resolved == 2, "each filled triangle preserves its original depth metric");
+    ok &= check(resolvedTriangles == 2,
+                "all filled triangles preserve their original depth metric");
     const auto before = frame;
     ok &=
         check(coin_render_resolve_triangle_depth(frame, diagnostic) && frame.hasSamePayload(before),
