@@ -4260,10 +4260,15 @@ impl<'a, W: Write> Writer<'a, W> {
             }
             // GLSL has no multisampled shadow sampler, but a depth attachment
             // is readable through sampler2DMS and texelFetch returns its value
-            // in the first channel. Restrict keeps sample/coordinate bounds
-            // valid without the vector-valued ReadZeroSkipWrite fallback.
-            crate::ImageClass::Depth { multi: true } =>
-                ("texelFetch", proc::BoundsCheckPolicy::Restrict),
+            // in the first channel. Preserve the backend's unchecked policy
+            // on GLES, where textureSamples is unavailable before GLSL ES 3.20.
+            // Checked profiles use Restrict to avoid a vector-valued
+            // ReadZeroSkipWrite fallback for this scalar depth result.
+            crate::ImageClass::Depth { multi: true } => ("texelFetch",
+                match self.policies.image_load {
+                    proc::BoundsCheckPolicy::Unchecked => proc::BoundsCheckPolicy::Unchecked,
+                    _ => proc::BoundsCheckPolicy::Restrict,
+                }),
             crate::ImageClass::Depth { multi: false } => {
                 return Err(Error::Custom(
                     "WGSL `textureLoad` from depth textures is not supported in GLSL".to_string(),

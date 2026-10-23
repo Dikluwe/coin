@@ -1523,7 +1523,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
       rs.hasTexture=true;return true;
     }
     const auto * element = static_cast<const SoMultiTextureImageElement *>(
-      SoElement::getConstElement(state, SoMultiTextureImageElement::getClassStackIndex()));
+      SoMultiTextureImageElement::getConstElement(state, SoMultiTextureImageElement::getClassStackIndex()));
     const auto source = this->cubeSources.find(element->getUnitData(unit).nodeid);
     if (source == this->cubeSources.end()) return fail("Unrecorded cube texture source");
     const auto * node = source->second;

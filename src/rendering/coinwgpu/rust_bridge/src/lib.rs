@@ -11590,7 +11590,9 @@ fn coin_wgpu_submit_internal(
             let color = ctx.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("Coin MSAA color"), size: extent, mip_level_count: 1,
                 sample_count, dimension: wgpu::TextureDimension::D2,
-                format: output_format, usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
+                // This attachment is only rendered and resolved. Consumers
+                // sample the single-sample output, as for window MSAA color.
+                format: output_format, usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
                 view_formats: &[],
             });
             let depth = if let Some((texture, _)) = prior_depth.as_ref() { texture.clone() }

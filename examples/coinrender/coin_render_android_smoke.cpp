@@ -42,7 +42,8 @@ const char * const tag = "CoinRenderP23";
 // Goldfish reports no Vulkan conformance version. This opt-in is exclusively
 // for emulator diagnostics, never enabled for normal APK launches/hardware.
 bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
-                       bool & city, bool & continuous, bool & trace, bool & million) {
+                       bool & city, bool & continuous, bool & trace, bool & million,
+                       uint32_t & samples) {
   char qemu[PROP_VALUE_MAX] = {};
   __system_property_get("ro.kernel.qemu", qemu);
   const bool isEmulator = std::strcmp(qemu, "1") == 0;
@@ -61,6 +62,10 @@ bool readLaunchOptions(android_app * app, CoinRenderRenderer & renderer,
     if (getInt) renderer = static_cast<CoinRenderRenderer>(
         env->CallIntMethod(intent, getInt, rendererKey, jint(COIN_ANDROID_SMOKE_RENDERER)));
     env->DeleteLocalRef(rendererKey);
+    jstring samplesKey = env->NewStringUTF("coinrender_samples");
+    if (getInt) samples = static_cast<uint32_t>(
+        env->CallIntMethod(intent, getInt, samplesKey, jint(1)));
+    env->DeleteLocalRef(samplesKey);
 
     jmethodID getBool = env->GetMethodID(type, "getBooleanExtra", "(Ljava/lang/String;Z)Z");
     jstring name = env->NewStringUTF("coinrender_allow_noncompliant_vulkan");
@@ -108,6 +113,7 @@ struct Host {
   std::unique_ptr<CoinRenderAction> captureAction;
   uint64_t surfaceGeneration = 0;
   CoinRenderRenderer renderer = COIN_ANDROID_SMOKE_RENDERER;
+  uint32_t samples = 1;
   SoPerspectiveCamera * cityCamera = nullptr;
   bool cityCameraFramed = false;
   bool city = false;
@@ -136,11 +142,16 @@ struct Host {
       target->resize(SbVec2i32(0, 0));
       return;
     }
-    if (size != target->getSize() && !target->resize(size)) {
+    const bool resized = size != target->getSize();
+    if (resized && !target->resize(size)) {
       failed = true;
       __android_log_print(ANDROID_LOG_ERROR, tag, "resize failed: %s", target->getLastError());
       return;
     }
+    // Android can publish the new native size after its layout callback.
+    // If a continuous frame observes it first, qualify the new dimensions
+    // there too; the million-city callback deliberately skips unchanged sizes.
+    qualify = qualify || resized;
     const SbViewportRegion viewport(size[0], size[1]);
     if (million && qualify) {
       // Requalification cannot reuse the old plan. Drop it before recapture
@@ -205,6 +216,7 @@ struct Host {
       if (!captureTarget) {
         CoinRenderOptions options;
         options.renderer = renderer;
+        options.sampleCount = samples;
         captureTarget.reset(CoinRenderTarget::createOffscreen(captureSize, options));
       }
       if (!captureAction) {
@@ -242,7 +254,10 @@ struct Host {
     if ((city && colored < 32) || (!city &&
         (rgba[center] < rgba[center + 1] + 50 || rgba[center] < rgba[center + 2] + 50))) {
       failed = true;
-      __android_log_print(ANDROID_LOG_ERROR, tag, "scene capture content check failed");
+      __android_log_print(ANDROID_LOG_ERROR, tag,
+          "scene capture content check failed: samples=%u center=%u,%u,%u,%u colored=%zu",
+          samples, unsigned(rgba[center]), unsigned(rgba[center + 1]),
+          unsigned(rgba[center + 2]), unsigned(rgba[center + 3]), colored);
       return;
     }
     const uint64_t capturedSerial = target->getLastSubmissionSerial();
@@ -279,6 +294,7 @@ struct Host {
     native.native.android.nativeWindow = app->window;
     CoinRenderOptions options;
     options.renderer = renderer;
+    options.sampleCount = samples;
     const SbVec2i32 size(ANativeWindow_getWidth(app->window),
                          ANativeWindow_getHeight(app->window));
     target.reset(CoinRenderTarget::createWindow(native, size, options));
@@ -418,13 +434,19 @@ extern "C" void android_main(android_app * app) {
   setenv("COIN_WGPU_LOG", "debug", 0);
   CoinRenderRenderer requestedRenderer = COIN_ANDROID_SMOKE_RENDERER;
   bool city = true, continuous = true, trace = false, million = false;
+  uint32_t samples = 1;
   const std::string selectionPath = std::string(app->activity->internalDataPath) + "/coinrender-city-selection.txt";
   if (FILE * file = std::fopen(selectionPath.c_str(), "r")) {
     int grid = 0;
     if (std::fscanf(file, "%d", &grid) == 1) million = grid == 1000;
     std::fclose(file);
   }
-  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous, trace, million);
+  const bool emulatedVulkan = readLaunchOptions(app, requestedRenderer, city, continuous, trace, million, samples);
+  if (samples != 1 && samples != 2 && samples != 4) {
+    __android_log_print(ANDROID_LOG_ERROR, tag, "unsupported sample count=%u", samples);
+    ANativeActivity_finish(app->activity);
+    return;
+  }
   if (trace) {
     const std::string file = std::string(app->activity->internalDataPath) + "/coinrender-phases.log";
     if (!std::freopen(file.c_str(), "w", stderr)) {
@@ -442,10 +464,12 @@ extern "C" void android_main(android_app * app) {
   Host host;
   host.app = app;
   host.renderer = requestedRenderer;
+  host.samples = samples;
   host.city = city;
   host.million = million;
   host.continuous = continuous;
   __android_log_print(ANDROID_LOG_INFO, tag, "requested_renderer=%u", unsigned(host.renderer));
+  __android_log_print(ANDROID_LOG_INFO, tag, "requested_samples=%u", samples);
   host.action.reset(new CoinRenderAction);
   host.scene = new SoSeparator;
   host.scene->ref();
