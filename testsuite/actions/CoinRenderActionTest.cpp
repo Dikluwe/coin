@@ -2684,6 +2684,8 @@ int testCaptureStorageReserve() {
   return 0;
 }
 
+#include "CoinRenderVRMLRevisionTests.h"
+
 int main() {
 
   SoDB::init();
@@ -2692,6 +2694,10 @@ int main() {
   std::cout << "Running CoinRenderActionTest..." << std::endl;
 
   int failed = 0;
+  if (testVRMLRevisionQualification()) { std::cerr << "testVRMLRevisionQualification failed" << std::endl; failed++; }
+#ifdef HAVE_VRML97
+  if (testVRMLRevisionInvalidation()) { std::cerr << "testVRMLRevisionInvalidation failed" << std::endl; failed++; }
+#endif
   if (testCaptureStorageReserve()) { std::cerr << "testCaptureStorageReserve failed" << std::endl; failed++; }
   if (testCapturedCompositionBorrow()) { std::cerr << "testCapturedCompositionBorrow failed" << std::endl; failed++; }
   if (testCapturedCompositionPolicy()) { std::cerr << "testCapturedCompositionPolicy failed" << std::endl; failed++; }
