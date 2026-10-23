@@ -6,7 +6,7 @@ estão em `experimental/include`. Desde a Onda 6, esses headers e a biblioteca
 podem ser instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`, mas continuam
 experimentais, fora da API e ABI públicas estáveis de `libCoin` no Coin 4.
 A ponte C++/Rust é privada e versionada
-(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=48` nesta revisão). Não promova esses
+(`COIN_WGPU_BRIDGE_PROTOCOL_REVISION=69` nesta revisão). Não promova esses
 headers a consumidores externos como se fossem estáveis.
 
 O guia de produto, a matriz de capacidades, o manager, os exemplos instaláveis,
@@ -87,7 +87,10 @@ de attachments RGBA8/depth por device e dimensões, até 32 MiB estimados.
 Ele só é devolvido ao cache após o readback terminar; tickets assíncronos e
 RTT direto mantêm attachments próprios. Resize, troca de tamanho e perda de
 device impedem reuso de recursos incompatíveis. O trace expõe
-`attachments_reused`. O cache permanece opt-in por enquanto.
+`attachments_reused`. O cache permanece opt-in por enquanto. No manager mono,
+o histórico de depth é exclusivo do target; o cache pode reciclar sua cor,
+mas não empresta esse depth a outro target. Resize e destruição liberam o
+histórico, inclusive suas amostras MSAA.
 
 Se o pitch de staging é exatamente `width * 4`, a cor usa uma única cópia
 contígua; com padding, a cópia continua linha a linha. A variável de
@@ -421,7 +424,7 @@ wgpu passou a ser convertido no Core em P04; ver o
 A publicação comum protege cor, depth, serial, revisão validada e borrowed RGBA
 contra falhas tardias, usando buffers candidatos reutilizáveis. Tickets só são
 expostos após validar seus metadados completos; erro preserva o último resultado
-e retorna ticket vazio. A consulta escalar de capacidade wgpu é aditiva, mantendo
+e o descritor de entrada do chamador (um descritor inicialmente vazio continua vazio). A consulta escalar de capacidade wgpu é aditiva, mantendo
 protocolo 28 e layouts FFI. Escopo, custos de memória e evidência:
 [contrato P13](coin-render-rtt-publication-contract.md).
 

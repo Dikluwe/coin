@@ -74,8 +74,8 @@ A submissão async escreve primeiro em um ticket privado. O contrato comum confe
 token, serial, tamanho, formato RGBA8, pitches e bytes de cor/depth antes de
 entregá-lo ao chamador. Pitches descrevem staging e podem ter padding; bytes
 publicados descrevem vetores compactos. O Core confere linhas suficientes e
-alinhadas aos componentes; cada conector confere seu layout exato no polling. Em falha o ticket público permanece vazio; uma alocação
-retornada junto com erro é cancelada. BGFX faz sua última checagem de runtime
+alinhadas aos componentes; cada conector confere seu layout exato no polling. Em falha, o descritor do chamador permanece inalterado; se entrou vazio, continua vazio. Uma alocação privada
+retornada junto com erro é cancelada e não substitui um ticket já entregue ao chamador. BGFX faz sua última checagem de runtime
 antes de publicar o readback interno, e retorna ao dono comum um ticket parcial
 que precise ser aposentado.
 
@@ -112,7 +112,7 @@ pixels, sua preservação na resolução e os limites específicos sem GPU inici
 dependências e recuperação em staged/direto. No BGFX também compara pixels de
 RTT async/sync e injeta perda depois da criação do ticket, exigindo aposentadoria
 e recuperação sem vazamento de referência do runtime. `CoinRenderAsyncActionTest` inclui
-rejeição de formato que preserva cor/depth/serial/borrow e deixa o ticket vazio;
+rejeição de formato que preserva cor/depth/serial/borrow e o descritor de entrada;
 continua cobrindo tickets sobrepostos, cancelamento, lifetime e perda de geração.
 
 Validação local em Linux/X11/Xvfb:

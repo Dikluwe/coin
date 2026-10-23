@@ -45,6 +45,52 @@ sorting, estratégia, screen door e profundidade efetiva. O lowering BGFX apenas
 adapta esses valores. A CPU aplica função, range e escrita de depth, inclusive
 para transparência imediata; peeling e mecanismos GPU têm o [perfil P09](coin-render-transparency-contract.md).
 
+## Manager mono RGB e camadas autorais
+
+`CoinRenderManagerAdapter` delimita a cena base e cada superimposition como
+travessias autorais distintas. Backgrounds precedem a base; foregrounds a
+seguem na ordem de inserção. Os seis modos técnicos e `setTexturesEnabled`
+afetam somente a base. Flags, transparência e recursos das camadas conservam
+seu estado próprio, inclusive em ocorrências repetidas do mesmo subtree.
+`ZBUFFERON` controla o teste; não inventa uma máscara de escrita de depth.
+`CLEARZBUFFER` limpa a viewport da camada mesmo quando ela não emite geometria.
+Uma base ausente não inventa clear em `AS_IS`; `HIDDEN_LINE` conserva seu clear
+próprio de cor/depth após a travessia dos backgrounds. O primeiro background registrado consome a decisão de clear do CoinGL, mesmo
+quando desativado. Sem dono efetivo de clear, compor exigiria preservar a cor
+anterior: estes targets não oferecem color LOAD persistente e recusam com
+`UNSUPPORTED` antes de captura/GPU. Isso inclui base nula sem background e
+primeiro background desativado, mesmo com base ou outro background ativo.
+`HIDDEN_LINE` conserva seu clear próprio, inclusive com base nula e foreground;
+manager inteiramente vazio conserva `INVALID_SCENE`. Reativar/remover o
+background inicial ou restaurar a base, conforme o caso, recupera no mesmo target.
+
+O depth de backgrounds sem clear pertence ao target e pode depender do frame
+anterior. Targets distintos, resize, produtores RTT e o cache opcional de
+attachments não compartilham esse histórico. MSAA preserva as amostras de
+depth, sem reconstruí-las a partir do readback resolvido. A troca de
+`doubleBuffer` em MONO não muda o resultado: a apresentação pertence ao target.
+O adaptador não cria contexto GL, chama a action GL do host ou acrescenta um
+render para atualizar a janela.
+
+Passes técnicos sintéticos da mesma ocorrência base reutilizam a captura de
+RTT. Ocorrências autorais distintas preservam seus efeitos de captura;
+produtores com payload e revisão idênticos podem compartilhar execução GPU
+após essa captura. Recusas de admissão conservam RGBA, depth e serial publicados, antes de
+executar produtores ou submeter a raiz, e admitem recuperação no mesmo target.
+
+Este perfil é mono RGB no Linux. Color-index e overlays de framebuffer sem
+correspondência RGBA continuam recusados. Limites reais de formato, alpha-test,
+sombras e prova de opacidade de RTT na base técnica não são removidos por
+haver uma superimposition. Amostragem e derivadas do cascade de texturas
+precedem o descarte por clip/stipple, para preservar o LOD nos quads com
+SCREEN_DOOR; a máscara e o alpha-test continuam sendo aplicados antes da
+publicação da cor. A chegada física do frame em NVIDIA/Vulkan, nos perfis BGFX com
+duas imagens IMMEDIATE e wgpu FIFO, conserva a limitação externa
+[B95](coin-render-feature-matrix.md#b95--imagem-antiga-após-present-bem-sucedido--22102026);
+present bem-sucedido não comprova visibilidade. R29 e R35 mantêm seus escopos próprios; a comparação
+de junções de linhas/pontos com CoinGL conserva os limites do
+[perfil de geometria](coin-render-geometry-viewport-contract.md).
+
 ## Transporte wgpu
 
 A revisão privada 21 introduziu esse transporte com draw de 56 bytes e estado
