@@ -6,10 +6,12 @@ from pivy import coin
 report['test'] = 'freecad-grid'
 App.ParamGet('User parameter:BaseApp/Preferences/View').SetBool('EnablePreselection', False)
 
+# Count all pixels: a one-pixel grid can fall entirely between stride-two samples
+# after resize or DPR changes. Thresholds retain the former sampled-area density.
 def dark(image):
     return sum(max(c.red(), c.green(), c.blue()) < 20
-               for y in range(0, image.height(), 2)
-               for x in range(0, image.width(), 2)
+               for y in range(image.height())
+               for x in range(image.width())
                for c in (image.pixelColor(x, y),))
 
 def axes_baseline():
@@ -25,7 +27,7 @@ def axes_baseline():
 def grid_on():
     image = capture('grid-on')
     report['grid_pixels'] = dark(image) - dark(images['grid-off'])
-    if report['grid_pixels'] < 1000:
+    if report['grid_pixels'] < 4000:
         raise RuntimeError('grid missing over real native viewport')
     view.viewFront()
     step(grid_rotated)
@@ -41,7 +43,7 @@ def grid_rotated():
 
 def grid_resized():
     image = capture('grid-resized')
-    if image.size() == images['grid-on'].size() or dark(image) < 1000:
+    if image.size() == images['grid-on'].size() or dark(image) < 4000:
         raise RuntimeError('grid failed during native resize')
     Gui.getMainWindow().resize(original_size)
     view.viewAxonometric()
