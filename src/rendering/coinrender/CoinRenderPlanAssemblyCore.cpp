@@ -8,6 +8,8 @@
 #include <new>
 
 namespace {
+const size_t INTERN_INDEX_THRESHOLD = 32;
+
 struct InternCandidates {
   InternCandidates() : first(UINT32_MAX) {}
   explicit InternCandidates(uint32_t slot) : first(slot) {}
@@ -309,6 +311,22 @@ uint32_t appendValue(std::vector<Value> & values, InternIndex * index,
   if (index && synchronize(*index, values, hash, equal)) index->lastSlot = slot;
   return slot;
 }
+
+template <typename Value, typename Equal>
+bool appendSmallValue(std::vector<Value> & values, const Value & value,
+                      Equal equal, uint32_t & slot)
+{
+  if (values.size() >= INTERN_INDEX_THRESHOLD) return false;
+  for (size_t i = 0; i < values.size(); ++i) {
+    if (equal(values[i], value)) {
+      slot = static_cast<uint32_t>(i);
+      return true;
+    }
+  }
+  slot = static_cast<uint32_t>(values.size());
+  values.push_back(value);
+  return true;
+}
 }
 
 void CoinRenderPlanAssemblyCore::normalizeCamera(CoinRenderCameraSnapshot & camera) {
@@ -357,24 +375,32 @@ void CoinRenderPlanAssemblyCore::sortingCenter(CoinRenderDrawPacket & draw,
 }
 
 uint32_t CoinRenderPlanAssemblyCore::material(CoinRenderFramePlan & plan, const CoinRenderMaterialSnapshot & matSnap) {
+  uint32_t slot;
+  if (appendSmallValue(plan.materials, matSnap, sameMaterial, slot)) return slot;
   CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
   return appendValue(plan.materials, indexes ? &indexes->materials : nullptr, matSnap,
                      hashMaterial64, sameMaterial);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::lighting(CoinRenderFramePlan & plan, const CoinRenderLightingSnapshot & lightSnap) {
+  uint32_t slot;
+  if (appendSmallValue(plan.lightingStates, lightSnap, sameLighting, slot)) return slot;
   CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
   return appendValue(plan.lightingStates, indexes ? &indexes->lighting : nullptr, lightSnap,
                      hashLighting64, sameLighting);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::camera(CoinRenderFramePlan & plan, const CoinRenderCameraSnapshot & camSnap) {
+  uint32_t slot;
+  if (appendSmallValue(plan.cameras, camSnap, sameCamera, slot)) return slot;
   CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
   return appendValue(plan.cameras, indexes ? &indexes->cameras : nullptr, camSnap,
                      hashCamera64, sameCamera);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::viewport(CoinRenderFramePlan & plan, const CoinRenderViewportSnapshot & vpSnap) {
+  uint32_t slot;
+  if (appendSmallValue(plan.viewports, vpSnap, sameViewport, slot)) return slot;
   CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
   return appendValue(plan.viewports, indexes ? &indexes->viewports : nullptr, vpSnap,
                      hashViewport64, sameViewport);
@@ -408,6 +434,13 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
 }
 
 uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRenderTextureImageSnapshot && image) {
+  if (plan.textures.size() < INTERN_INDEX_THRESHOLD) {
+    for (size_t i = 0; i < plan.textures.size(); ++i)
+      if (sameTexture(plan.textures[i], image)) return static_cast<uint32_t>(i);
+    const uint32_t slot = static_cast<uint32_t>(plan.textures.size());
+    plan.textures.push_back(std::move(image));
+    return slot;
+  }
   CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
   InternIndex * index = indexes ? &indexes->textures : nullptr;
   const uint32_t existing = findValue(plan.textures, index, image, hashTexture64, sameTexture);
@@ -420,6 +453,8 @@ uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRen
 }
 
 uint32_t CoinRenderPlanAssemblyCore::sampler(CoinRenderFramePlan & plan, const CoinRenderSamplerSnapshot & sampSnap) {
+  uint32_t slot;
+  if (appendSmallValue(plan.samplers, sampSnap, sameSampler, slot)) return slot;
   CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
   return appendValue(plan.samplers, indexes ? &indexes->samplers : nullptr, sampSnap,
                      hashSampler64, sameSampler);
