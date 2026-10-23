@@ -153,10 +153,11 @@ option(COIN_BUILD_LEGACY_GL_RENDERER
   "Build Coin's legacy fixed-function OpenGL renderer."
   ON)
 set(COIN_HAVE_LEGACY_GL_RENDERER ${COIN_BUILD_LEGACY_GL_RENDERER})
-# Android keeps Coin's scene/type ABI, but has no desktop GL implementation.
+# Android and the WebAssembly capture profile keep Coin's scene/type ABI,
+# but have no desktop GL implementation.
 # This boundary makes old GL APIs unavailable rather than emulating them.
 set(COIN_ANDROID_CPU_ONLY OFF)
-if(ANDROID AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
+if((ANDROID OR EMSCRIPTEN) AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
   set(COIN_ANDROID_CPU_ONLY ON)
 endif()
 
@@ -439,7 +440,7 @@ else()
   endif()
   # Android Vulkan/wgpu does not use a desktop OpenGL system library. Other
   # Coin sources still include desktop GL headers; see the P23 build status.
-  if(NOT ANDROID OR COIN_BUILD_LEGACY_GL_RENDERER)
+  if((NOT ANDROID AND NOT EMSCRIPTEN) OR COIN_BUILD_LEGACY_GL_RENDERER)
     find_package(OpenGL REQUIRED)
   endif()
   if(OPENGL_FOUND)

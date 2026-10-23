@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CoinRender · WebGPU</title>
+<style>
+:root{color-scheme:dark;font:17px system-ui,sans-serif;background:#080e1b;color:#e6f0ff}
+body{max-width:1100px;margin:0 auto;padding:24px}h1{font-size:2rem;margin-bottom:8px}
+p{line-height:1.55;color:#abbdd5}canvas{display:block;width:100%;height:62vh;min-height:260px;background:#080e1b;border:1px solid #344760;border-radius:16px}
+button{background:#203f66;color:white;padding:12px 18px;border:1px solid #4b719f;border-radius:8px;font:inherit}
+#status{font-weight:600}#status[data-state=error]{color:#ff9999}#status[data-state=rendering]{color:#78e5b9}
+#stats{font-variant-numeric:tabular-nums}small{color:#a8b9ce}
+</style></head><body>
+<h1>CoinRender no navegador</h1>
+<p>Perfil de demonstração: cubo opaco, câmera perspectiva e material capturados por C++ Coin/CoinRender em WebAssembly; desenho no canvas por Rust wgpu em WebAssembly, API WebGPU.</p>
+<p id="status" role="status">Inicializando…</p>
+<canvas id="render-canvas" aria-label="Cubo capturado por CoinRender e renderizado com WebGPU"></canvas>
+<p id="adapter-info">Adapter efetivo: aguardando consulta do wgpu</p>
+<p id="stats">0 frames confirmados</p>
+<button id="pause" type="button">Pausar movimento</button>
+<p><small>Sem fallback. Este perfil pequeno não representa o suporte completo do backend nativo. Requer navegador com WebGPU e HTTPS confiável.</small></p>
+<script>
+window.coinRenderWebGPU = {
+  status: 'initializing', backend: null, fallback: false, sceneSource: 'coinrender-wasm', adapter: null,
+  stats: {vertices: 0, indices: 0, frames: 0}, error: ''
+};
+window.coinRenderWebGPUFail = function(error) {
+  const state = window.coinRenderWebGPU;
+  state.status = 'error'; state.backend = null;
+  state.error = error instanceof Error ? error.message : String(error);
+  const status = document.querySelector('#status');
+  status.textContent = 'Erro: ' + state.error; status.dataset.state = 'error';
+};
+window.addEventListener('unhandledrejection', event => window.coinRenderWebGPUFail(event.reason));
+window.addEventListener('error', event => window.coinRenderWebGPUFail(event.error || event.message || 'Falha ao carregar módulo WebAssembly'), true);
+</script>
+<script type="module" src="./app.js" onerror="coinRenderWebGPUFail('Falha ao carregar módulo WebAssembly')"></script>
+</body></html>

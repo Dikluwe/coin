@@ -338,7 +338,13 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxBackend.cpp)
 endif()
 
-add_library(CoinRender SHARED ${COIN_RENDER_SOURCES})
+# WebAssembly capture is statically linked into the isolated demonstration.
+# Native installations retain the existing shared module and ABI.
+if(EMSCRIPTEN)
+  add_library(CoinRender STATIC ${COIN_RENDER_SOURCES})
+else()
+  add_library(CoinRender SHARED ${COIN_RENDER_SOURCES})
+endif()
 # Implementation-only requirement: public headers and installed consumers keep
 # Coin's existing minimum language level and ABI.
 target_compile_features(CoinRender PRIVATE cxx_std_17)
