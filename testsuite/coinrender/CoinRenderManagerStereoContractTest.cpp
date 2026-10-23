@@ -868,7 +868,7 @@ bool refusal(Run&r){
     SoGLRenderAction *highlight=box?static_cast<SoGLRenderAction*>(new SoBoxHighlightRenderAction):static_cast<SoGLRenderAction*>(new SoLineHighlightRenderAction);
     auto *selection=new SoSelection;selection->ref();selection->addChild(r.scene.base.root);selection->select(r.scene.base.root);
     r.scene.manager.setSceneGraph(selection);r.scene.manager.setGLRenderAction(highlight);
-    if(!r.reject(CoinRenderAction::UNSUPPORTED,box?"R35-active-BOX":"R35-active-LINE"))return false;
+    if(!r.draw(box?"R35-active-BOX":"R35-active-LINE",false))return false;
     r.scene.manager.setStereoMode(SoRenderManager::MONO);
     if(!r.draw("mono-highlight-recovery",false))return false;
     r.scene.manager.setGLRenderAction(&r.spy);r.scene.manager.setSceneGraph(r.scene.base.root);selection->unref();delete highlight;

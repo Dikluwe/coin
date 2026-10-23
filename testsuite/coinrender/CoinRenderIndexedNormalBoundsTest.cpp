@@ -338,8 +338,8 @@ bool pathReplay() {
   const auto valid=adapter.render();bool ok=check(valid==CoinRenderAction::UNSUPPORTED&&inspection->roots==1&&highlight.applies==0,
     "selected public LINE path reaches capture without GL or GPU");
   unsigned base=0,stroke=0;for(const auto &draw:inspection->frame.draws) {
-    if(draw.sourceNodeId==scene.subject->getNodeId()&&draw.renderLayer==0)base+=draw.geometry.indexCount;
-    if(draw.renderLayer)stroke+=draw.geometry.indexCount;
+    if(draw.sourceNodeId==scene.subject->getNodeId()&&draw.isSceneLayer())base+=draw.geometry.indexCount;
+    if(draw.sourceNodeId==scene.subject->getNodeId()&&!draw.isSceneLayer())stroke+=draw.geometry.indexCount;
   }
   ok &= check(base==3&&stroke>0,"real selected path retains base and replay geometry");
   scene.normal->vector.setNum(1);scene.subject->suppressNative=true;scene.subject->nativeEntries=0;

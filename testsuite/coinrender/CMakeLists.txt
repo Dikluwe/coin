@@ -5510,3 +5510,5 @@ include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderPortableContinuationTests.cmake)
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderManagerMonoTests.cmake)
 
 include(CoinRenderManagerStereoTests.cmake)
+
+include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderHighlightCompletionTests.cmake)
