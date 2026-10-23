@@ -7,25 +7,6 @@
 #include <cstring>
 #include <new>
 
-namespace {
-uint64_t modelMatrixKey(const SbMatrix & matrix)
-{
-  uint64_t key = UINT64_C(14695981039346656037);
-  const auto & values = matrix.getValue();
-  for (int row = 0; row < 4; ++row) {
-    for (int column = 0; column < 4; ++column) {
-      const float value = values[row][column];
-      uint32_t bits = 0;
-      // SbMatrix equality treats positive and negative zero as equal.
-      if (value != 0.0f) std::memcpy(&bits, &value, sizeof(bits));
-      key = (key ^ bits) * UINT64_C(1099511628211);
-    }
-  }
-  return key;
-}
-}
-
-
 void CoinRenderPlanAssemblyCore::normalizeCamera(CoinRenderCameraSnapshot & camera) {
   // Preserve non-finite source values for validation instead of repairing them.
   if (camera.isPerspective && std::isfinite(camera.nearDistance) && camera.nearDistance <= 0)
@@ -169,71 +150,17 @@ uint32_t CoinRenderPlanAssemblyCore::viewport(CoinRenderFramePlan & plan, const 
 }
 
 uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateIndex & byModel, const CoinRenderRenderStateSnapshot & rs) {
+  if (byModel.lastSlot < plan.renderStates.size() &&
+      coin_render_same_state(plan.renderStates[byModel.lastSlot], rs))
+    return byModel.lastSlot;
   uint32_t rsSlot = 0;
   bool rsFound = false;
-  const uint64_t modelKey = modelMatrixKey(rs.model);
-  const auto candidates = byModel.find(modelKey);
-  const size_t count = candidates == byModel.end() ? 0 : 1 + candidates->second.additional.size();
+  const unsigned long stateKey = coin_render_state_hash(rs);
+  StateCandidates & candidates = byModel[stateKey];
+  const size_t count = candidates.first == UINT32_MAX ? 0 : 1 + candidates.additional.size();
   for (size_t candidate = 0; candidate < count; ++candidate) {
-    const uint32_t i = candidate == 0 ? candidates->second.first : candidates->second.additional[candidate - 1];
-    const auto & existing = plan.renderStates[i];
-    if (existing.portableShaderSlot == rs.portableShaderSlot &&
-        existing.clipPlanesWorld == rs.clipPlanesWorld &&
-        existing.materialSlot == rs.materialSlot &&
-        existing.shadowGroupSlot == rs.shadowGroupSlot && existing.shadowStyle == rs.shadowStyle &&
-        existing.shadowMapSize == rs.shadowMapSize &&
-        existing.shadowMapCameraOverride == rs.shadowMapCameraOverride &&
-        existing.flatShadowPrimary == rs.flatShadowPrimary &&
-        existing.transparentMaterial == rs.transparentMaterial &&
-        existing.transparentTexture == rs.transparentTexture &&
-        existing.rasterPixels == rs.rasterPixels &&
-        existing.rasterTransparent == rs.rasterTransparent &&
-        existing.rasterForceBlend == rs.rasterForceBlend &&
-        existing.rasterShadowAnchorValid == rs.rasterShadowAnchorValid &&
-        existing.rasterShadowAnchorWorld == rs.rasterShadowAnchorWorld &&
-        existing.rasterShadowImagePhong == rs.rasterShadowImagePhong &&
-        existing.rasterTextureSourceSlot == rs.rasterTextureSourceSlot &&
-        existing.rasterTextureCoordinates == rs.rasterTextureCoordinates &&
-        existing.rasterTextureProvenance == rs.rasterTextureProvenance &&
-        existing.lightingSlot == rs.lightingSlot && existing.lightModel == rs.lightModel &&
-        existing.transparencyType == rs.transparencyType && existing.cameraSlot == rs.cameraSlot &&
-        existing.viewportSlot == rs.viewportSlot && existing.solidShape == rs.solidShape && existing.cullMode == rs.cullMode &&
-        existing.frontFace == rs.frontFace && existing.depthTest == rs.depthTest &&
-        existing.depthWrite == rs.depthWrite && existing.colorWrite == rs.colorWrite &&
-        existing.colorWriteMask == rs.colorWriteMask &&
-        existing.textureProjection == rs.textureProjection &&
-        existing.depthFunction == rs.depthFunction &&
-        existing.alphaTestFunction == rs.alphaTestFunction &&
-        existing.alphaTestReference == rs.alphaTestReference &&
-        existing.explicitDepthMask == rs.explicitDepthMask &&
-        existing.screenDoorTransparency == rs.screenDoorTransparency &&
-        existing.depthRange[0] == rs.depthRange[0] && existing.depthRange[1] == rs.depthRange[1] &&
-        existing.polygonOffsetEnabled == rs.polygonOffsetEnabled &&
-        existing.polygonOffsetFactor == rs.polygonOffsetFactor &&
-        existing.polygonOffsetUnits == rs.polygonOffsetUnits &&
-        existing.polygonOffsetSlopeBias == rs.polygonOffsetSlopeBias &&
-        existing.polygonOffsetMaxDepth == rs.polygonOffsetMaxDepth &&
-        existing.polygonOffsetPrimitiveStyle == rs.polygonOffsetPrimitiveStyle &&
-        existing.polygonOffsetStyles == rs.polygonOffsetStyles && existing.fogMode == rs.fogMode &&
-        existing.fogStart == rs.fogStart && existing.fogEnd == rs.fogEnd &&
-        std::memcmp(existing.fogColor, rs.fogColor, sizeof(rs.fogColor)) == 0 &&
-        existing.lineWidth == rs.lineWidth && existing.pointSize == rs.pointSize &&
-        coin_render_same_texture_units(existing.extraTextures, rs.extraTextures) &&
-        std::memcmp(existing.textureCombines.data(), rs.textureCombines.data(),
-                    sizeof(CoinRenderTextureCombineSnapshot) * COIN_RENDER_MAX_TEXTURE_UNITS) ==
-            0 &&
-        existing.hasTexture == rs.hasTexture && existing.linePattern == rs.linePattern &&
-        existing.linePatternScaleFactor == rs.linePatternScaleFactor &&
-        existing.polygonLinePattern == rs.polygonLinePattern &&
-        existing.preservePolygonEdgeDirection == rs.preservePolygonEdgeDirection &&
-        (!rs.hasTexture ||
-         (existing.textureImageSlot == rs.textureImageSlot &&
-          existing.samplerSlot == rs.samplerSlot && existing.textureModel == rs.textureModel &&
-          std::memcmp(existing.textureBlendColor, rs.textureBlendColor,
-                      sizeof(rs.textureBlendColor)) == 0 &&
-          existing.textureMatrix == rs.textureMatrix)) &&
-        existing.model == rs.model && existing.view == rs.view &&
-        existing.projectionCoin == rs.projectionCoin) {
+    const uint32_t i = candidate == 0 ? candidates.first : candidates.additional[candidate - 1];
+    if (coin_render_same_state(plan.renderStates[i], rs)) {
       rsSlot = static_cast<uint32_t>(i);
       rsFound = true;
       break;
@@ -242,9 +169,10 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
   if (!rsFound) {
     rsSlot = static_cast<uint32_t>(plan.renderStates.size());
     plan.renderStates.push_back(rs);
-    if (candidates == byModel.end()) byModel.emplace(modelKey, StateCandidates(rsSlot));
-    else candidates->second.additional.push_back(rsSlot);
+    if (candidates.first == UINT32_MAX) candidates.first = rsSlot;
+    else candidates.additional.push_back(rsSlot);
   }
+  byModel.lastSlot = rsSlot;
   return rsSlot;
 }
 

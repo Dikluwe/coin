@@ -36,4 +36,13 @@ inline bool coin_render_same_texture_units(const CoinRenderTextureUnitSnapshot (
 COIN_RENDER_DLL_API bool
 coin_render_same_state_except_camera(const CoinRenderRenderStateSnapshot & a,
                             const CoinRenderRenderStateSnapshot & b);
+
+COIN_RENDER_DLL_API bool
+coin_render_same_state(const CoinRenderRenderStateSnapshot & a,
+                       const CoinRenderRenderStateSnapshot & b);
+
+// Padding-independent hash over the fields consumed by state interning.
+// Exact equality still decides whether two captured states share a slot.
+COIN_RENDER_DLL_API unsigned long
+coin_render_state_hash(const CoinRenderRenderStateSnapshot & state);
 #endif

@@ -3,20 +3,45 @@
 #include <Inventor/CoinRenderExport.h>
 #include "rendering/coinrender/CoinRenderFramePlan.h"
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
-#include <unordered_map>
+#include "misc/SbHash.h"
+#include <climits>
 struct CoinRenderPolygonStyleResult;
 
 // Mechanical assembly over captured values; never reads an action, node or state.
 class COIN_RENDER_DLL_API CoinRenderPlanAssemblyCore {
 public:
-  // Unique model transforms need one candidate without a second allocation.
-  // Shared transforms retain the contiguous scan of additional candidates.
+  // Exact state hashes normally need one candidate without a second
+  // allocation. Hash collisions retain a short contiguous fallback list.
   struct StateCandidates {
+    StateCandidates() : first(UINT32_MAX) {}
     explicit StateCandidates(uint32_t slot) : first(slot) {}
     uint32_t first;
     std::vector<uint32_t> additional;
   };
-  using StateIndex = std::unordered_map<uint64_t, StateCandidates>;
+  // Frame-local state interning follows Coin's private hash-table pattern.
+  // The hash narrows the candidates; exact captured-value equality remains
+  // authoritative so collisions cannot merge distinct render states.
+  class StateIndex : public SbHash<unsigned long, StateCandidates> {
+  public:
+    StateIndex() : SbHash<unsigned long, StateCandidates>(256), lastSlot(UINT32_MAX) {}
+    void clear() {
+      SbHash<unsigned long, StateCandidates>::clear();
+      this->lastSlot = UINT32_MAX;
+    }
+    void reserve(size_t count) {
+      const unsigned int buckets = count >= (UINT_MAX - 1u) / 2u
+        ? UINT_MAX : static_cast<unsigned int>(count * 2u + 1u);
+      // SbHash allocates lazily, while its protected resize() expects the
+      // bucket array to exist. Prime the private table without retaining a
+      // synthetic state entry before honoring the capture-size hint.
+      if (!this->hasAllocatedStorage()) {
+        this->put(0ul, StateCandidates());
+        this->erase(0ul);
+      }
+      this->resize(buckets);
+    }
+    uint32_t lastSlot;
+  };
   static void normalizeCamera(CoinRenderCameraSnapshot &);
   static void transformLight(CoinRenderLightSourceSnapshot &);
   static void normalizeState(CoinRenderRenderStateSnapshot &, const CoinRenderCameraSnapshot &);

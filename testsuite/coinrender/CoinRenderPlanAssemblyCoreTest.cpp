@@ -180,6 +180,44 @@ int main() {
   state.extraTextures[2].enabled = true;
   CHECK(CoinRenderPlanAssemblyCore::state(plan, lookup, state) != slot);
   {
+    CoinRenderFramePlan inactiveTexturePlan;
+    CoinRenderPlanAssemblyCore::StateIndex inactiveTextureIndex;
+    CoinRenderRenderStateSnapshot a, b;
+    b.textureImageSlot = 91;
+    b.samplerSlot = 17;
+    b.textureModel = CoinRenderTextureModel::BLEND;
+    b.textureBlendColor[0] = .75f;
+    b.textureMatrix[1][2] = 4.0f;
+    CHECK(!a.hasTexture && !b.hasTexture);
+    const uint32_t inactiveSlot = CoinRenderPlanAssemblyCore::state(
+      inactiveTexturePlan, inactiveTextureIndex, a);
+    CHECK(CoinRenderPlanAssemblyCore::state(
+      inactiveTexturePlan, inactiveTextureIndex, b) == inactiveSlot);
+    CHECK(inactiveTexturePlan.renderStates.size() == 1);
+  }
+  {
+    CoinRenderFramePlan depthStates;
+    CoinRenderPlanAssemblyCore::StateIndex depthIndex;
+    constexpr uint32_t count = 4096;
+    for (uint32_t i = 0; i < count; ++i) {
+      CoinRenderRenderStateSnapshot captured;
+      captured.polygonOffsetEnabled = true;
+      captured.polygonOffsetSlopeBias = float(i + 1) / float(count + 1);
+      captured.polygonOffsetMaxDepth = float(count - i) / float(count + 1);
+      CHECK(CoinRenderPlanAssemblyCore::state(depthStates, depthIndex, captured) == i);
+    }
+    CHECK(depthStates.renderStates.size() == count);
+    CHECK(depthIndex.getNumElements() == count);
+    for (uint32_t i = count; i-- > 0;) {
+      CoinRenderRenderStateSnapshot captured;
+      captured.polygonOffsetEnabled = true;
+      captured.polygonOffsetSlopeBias = float(i + 1) / float(count + 1);
+      captured.polygonOffsetMaxDepth = float(count - i) / float(count + 1);
+      CHECK(CoinRenderPlanAssemblyCore::state(depthStates, depthIndex, captured) == i);
+    }
+    CHECK(depthStates.renderStates.size() == count);
+  }
+  {
     CoinRenderFramePlan repeated;
     CoinRenderPlanAssemblyCore::StateIndex index;
     // Many transforms, each with multiple appearances, exercise both common
