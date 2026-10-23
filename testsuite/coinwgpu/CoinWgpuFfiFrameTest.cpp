@@ -19,12 +19,26 @@
 #include <cstddef>
 
 #if COIN_WGPU_ABI_VERSION == 69
-static_assert(sizeof(CoinWgpuFrameView) == 560, "Protocol 69 measured frame layout");
-static_assert(alignof(CoinWgpuFrameView) == 8, "Protocol 69 measured frame alignment");
+static_assert(sizeof(CoinWgpuFrameView) == 560, "Protocol 69 frame layout");
+#elif COIN_WGPU_ABI_VERSION == 70
+static_assert(sizeof(CoinWgpuFrameView) == 600, "Protocol 70 stereo frame layout");
+static_assert(offsetof(CoinWgpuFrameView, stereo_tokens) == 560,
+              "Protocol 70 private left/right token array offset");
+static_assert(sizeof(((CoinWgpuFrameView *)nullptr)->stereo_tokens) == 16,
+              "Protocol 70 owns two 64-bit stereo tokens");
+static_assert(offsetof(CoinWgpuFrameView, stereo_mode) == 576,
+              "Protocol 70 stereo mode offset");
+static_assert(offsetof(CoinWgpuFrameView, stereo_origin) == 580,
+              "Protocol 70 manager viewport origin offset");
+static_assert(offsetof(CoinWgpuFrameView, stereo_extent) == 588,
+              "Protocol 70 manager viewport extent offset");
+#endif
+#if COIN_WGPU_ABI_VERSION == 69 || COIN_WGPU_ABI_VERSION == 70
+static_assert(alignof(CoinWgpuFrameView) == 8, "Protocols 69/70 frame alignment");
 static_assert(offsetof(CoinWgpuFrameView, multipass_clear_colors) == 544,
-              "Protocol 69 per-pass clear color pointer offset");
+              "Protocols 69/70 preserve the per-pass clear color pointer offset");
 static_assert(offsetof(CoinWgpuFrameView, multipass_clear_color_count) == 552,
-              "Protocol 69 per-pass clear color count offset");
+              "Protocols 69/70 preserve the per-pass clear color count offset");
 #endif
 #include <array>
 #include <cmath>
@@ -2572,7 +2586,14 @@ main(int argc, char ** argv)
                "canonical rasterization policy must cross the private ABI")) return 1;
   }
   const CoinWgpuFrameView & first = packed.getView();
-  if (!check(first.abi_version == COIN_WGPU_ABI_VERSION && sizeof(CoinWgpuFrameView) == (COIN_WGPU_ABI_VERSION == 69 ? 560 : 544) &&
+#if COIN_WGPU_ABI_VERSION == 70
+  if (!check(first.stereo_tokens[0] == 0 && first.stereo_tokens[1] == 0 &&
+             first.stereo_mode == 0 &&
+             first.stereo_origin[0] == 0 && first.stereo_origin[1] == 0 &&
+             first.stereo_extent[0] == 0 && first.stereo_extent[1] == 0,
+             "ordinary mono packing preserves an inactive zero stereo tail")) return 1;
+#endif
+  if (!check(first.abi_version == COIN_WGPU_ABI_VERSION && sizeof(CoinWgpuFrameView) == (COIN_WGPU_ABI_VERSION == 70 ? 600 : COIN_WGPU_ABI_VERSION == 69 ? 560 : 544) &&
              offsetof(CoinWgpuFrameView, multipass_count) == 512 &&
              offsetof(CoinWgpuFrameView, multipass_reserved) == 516 &&
              offsetof(CoinWgpuFrameView, multipass_budget_bytes) == 520 &&

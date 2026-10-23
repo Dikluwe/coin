@@ -102,7 +102,7 @@ bool graphDelivery(const Combined &scene,const Config &c,const CoinRenderRttPlan
     unsigned casters=0,receivers=0;
     for(unsigned drawIndex:pass.casterDraws) {
       if(drawIndex>=p.plan.draws.size()){ok=false;continue;}const auto &d=p.plan.draws[drawIndex];casters+=d.geometry.indexCount;
-      ok &= check(d.sourceNodeId==scene.producer.casters[slot]->getNodeId()&&d.shadowLightSlot==slot+1&&!d.renderLayer,"producer map owns only its actual caster, no highlight");
+      ok &= check(d.sourceNodeId==scene.producer.casters[slot]->getNodeId()&&d.shadowLightSlot==slot+1&&d.isSceneLayer(),"producer map owns only its actual caster, no highlight");
       if(d.renderStateSlot>=p.plan.renderStates.size()){ok=false;continue;}
       const auto &state=p.plan.renderStates[d.renderStateSlot];
       if(state.cameraSlot>=p.plan.cameras.size()||state.viewportSlot>=p.plan.viewports.size()){ok=false;continue;}
@@ -115,7 +115,7 @@ bool graphDelivery(const Combined &scene,const Config &c,const CoinRenderRttPlan
     for(unsigned drawIndex:pass.receiverDraws) {
       if(drawIndex>=p.plan.draws.size()){ok=false;continue;}const auto &d=p.plan.draws[drawIndex];receivers+=d.geometry.indexCount;
       bool source=false;for(auto *shape:scene.producer.shapes)source |= shape->getNodeId()==d.sourceNodeId;
-      ok &= check(source&&!d.shadowLightSlot&&!d.renderLayer,"producer receiver is an authored quadrant");
+      ok &= check(source&&!d.shadowLightSlot&&d.isSceneLayer(),"producer receiver is an authored quadrant");
       if(d.renderStateSlot>=p.plan.renderStates.size()||d.renderStateSlot>=pass.lightingIndexByState.size()){ok=false;continue;}
       const auto &state=p.plan.renderStates[d.renderStateSlot];const int index=pass.lightingIndexByState[d.renderStateSlot];
       if(state.lightingSlot>=p.plan.lightingStates.size()||index<0||size_t(index)>=p.plan.lightingStates[state.lightingSlot].lights.size()){ok=false;continue;}
@@ -133,7 +133,7 @@ bool graphDelivery(const Combined &scene,const Config &c,const CoinRenderRttPlan
       "producer source/camera/light association is independent of the consumer map");
   }
   std::set<uint64_t> resources;
-  for(const auto &d:frame.draws)if(!d.renderLayer&&!d.shadowLightSlot&&d.sourceNodeId==scene.receiver.mesh->getNodeId()) {
+  for(const auto &d:frame.draws)if(d.isSceneLayer()&&!d.shadowLightSlot&&d.sourceNodeId==scene.receiver.mesh->getNodeId()) {
     if(d.renderStateSlot>=frame.renderStates.size()){ok=false;continue;}const auto &state=frame.renderStates[d.renderStateSlot];
     if(!state.hasTexture||state.textureImageSlot>=frame.textures.size()){ok=false;continue;}const auto &image=frame.textures[state.textureImageSlot];
     if(state.samplerSlot>=frame.samplers.size()){ok=false;continue;}

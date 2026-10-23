@@ -4,7 +4,7 @@
     fn uniform_span_for_protocol() -> u32 {
         match crate::COIN_WGPU_BRIDGE_PROTOCOL_REVISION {
             67 => 3200,
-            68 | 69 => 3328,
+            68 | 69 | 70 => 3328,
             revision => panic!("unknown uniform layout for bridge protocol {revision}"),
         }
     }

@@ -253,7 +253,7 @@ bool graphDelivery(const Scene &scene,const Config &config,const CoinRenderRttPl
     sourceIds.insert(draw.sourceNodeId); sourceIndices+=draw.geometry.indexCount;
     if(draw.renderStateSlot>=producer.plan.renderStates.size()){ok=false;continue;}
     const auto &state=producer.plan.renderStates[draw.renderStateSlot];
-    ok &= check(draw.renderLayer==0 && !state.hasTexture,
+    ok &= check(draw.isSceneLayer() && !state.hasTexture,
                 "producer has original geometry and no highlight or recursive texture");
   }
   std::set<SbUniqueId> expectedIds;
@@ -265,7 +265,8 @@ bool graphDelivery(const Scene &scene,const Config &config,const CoinRenderRttPl
   for(const auto &draw:frame.draws) {
     if(draw.renderStateSlot>=frame.renderStates.size()){ok=false;continue;}
     const auto &state=frame.renderStates[draw.renderStateSlot];
-    if(draw.renderLayer) {
+    // Authored base occurrences can have a nonzero ordering layer.
+    if(!draw.isSceneLayer()) {
       ++strokes;
       bool textured=false;
       for(unsigned unit=0;unit<8;++unit)textured |= coin_render_texture_unit_enabled(state,unit);
@@ -710,7 +711,7 @@ bool directProducerControl(Config config) {
     }
     unsigned consumedIndices=0;std::set<uint64_t> tokens;
     for(const auto &draw:audit->plan.draws) {
-      delivery &= draw.sourceNodeId==quad->getNodeId() && draw.renderLayer==0;
+      delivery &= draw.sourceNodeId==quad->getNodeId() && draw.isSceneLayer();
       consumedIndices+=draw.geometry.indexCount;
       if(draw.renderStateSlot>=audit->plan.renderStates.size()){delivery=false;continue;}
       const auto &state=audit->plan.renderStates[draw.renderStateSlot];

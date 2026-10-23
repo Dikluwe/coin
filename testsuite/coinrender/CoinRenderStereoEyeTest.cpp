@@ -174,19 +174,80 @@ int main()
          camera->getStereoMode() == SoCamera::MONOSCOPIC;
     if (ok) {
       material->transparency = 0.5f;
+      action.setTransparencyType(CoinRenderAction::DELAYED_BLEND);
       manager.getGLRenderAction()->setTransparencyType(SoGLRenderAction::DELAYED_BLEND);
-      std::vector<uint8_t> retained;
-      const bool rejected = adapter.render() == CoinRenderAction::UNSUPPORTED;
-      adapter.getSceneManager()->getRenderTarget()->readbackRGBA(retained);
+      // R29 admits delayed transparency in each complete eye before the
+      // anaglyph channel mask. Independent ordinary eyes retain the same
+      // exact per-channel oracle as the other transparency profiles below.
+      std::vector<uint8_t> delayedLeft, delayedRight, delayedAnaglyph;
+      const bool expectedReady = render(SoCamera::LEFT_VIEW, delayedLeft) &&
+                                 render(SoCamera::RIGHT_VIEW, delayedRight);
+      camera->setStereoMode(SoCamera::MONOSCOPIC);
+      const float savedAdjustment = camera->getStereoAdjustment();
+      const float savedBalance = camera->getBalanceAdjustment();
+      CoinRenderTarget * managerTarget = adapter.getSceneManager()->getRenderTarget();
+      const auto previousSerial = managerTarget->getLastSubmissionSerial();
+      const bool supported = expectedReady && adapter.render() == CoinRenderAction::SUCCESS;
+      if (supported) managerTarget->readbackRGBA(delayedAnaglyph);
+      const bool restoredCamera = camera->getStereoMode() == SoCamera::MONOSCOPIC &&
+        camera->getStereoAdjustment() == savedAdjustment &&
+        camera->getBalanceAdjustment() == savedBalance;
+      bool channels = supported && delayedAnaglyph.size() == delayedLeft.size() &&
+        delayedRight.size() == delayedLeft.size() && managerTarget->getLastSubmissionSerial() == previousSerial + 1;
+      unsigned channelError = 0, glMaxError = 0;
+      size_t delayedLeftOnly = 0, delayedRightOnly = 0;
+      if (channels) for (size_t i = 0; i < delayedAnaglyph.size(); i += 4) {
+        channelError = std::max(channelError,
+          unsigned(std::abs(int(delayedAnaglyph[i]) - int(delayedLeft[i]))));
+        channelError = std::max(channelError,
+          unsigned(std::abs(int(delayedAnaglyph[i + 1]) - int(delayedRight[i + 1]))));
+        channelError = std::max(channelError,
+          unsigned(std::abs(int(delayedAnaglyph[i + 2]) - int(delayedRight[i + 2]))));
+        delayedLeftOnly += delayedLeft[i] > 120 && delayedRight[i] < 40;
+        delayedRightOnly += delayedRight[i] > 120 && delayedLeft[i] < 40;
+      }
+      if (channels && std::getenv("COIN_RENDER_REQUIRE_GL_REFERENCE")) {
+        SoOffscreenRenderer reference(SbViewportRegion(96, 96));
+        reference.setComponents(SoOffscreenRenderer::RGB);
+        reference.setBackgroundColor(SbColor(0, 0, 0));
+        reference.getGLRenderAction()->setTransparencyType(SoGLRenderAction::DELAYED_BLEND);
+        // Stereo setters do not notify: this GL oracle must evaluate each
+        // authored camera rather than replay a prior-eye display list.
+        const int savedCaching = scene->renderCaching.getValue();
+        scene->renderCaching = SoSeparator::OFF;
+        for (int eye = 0; eye < 2 && channels; ++eye) {
+          camera->setStereoMode(eye == 0 ? SoCamera::LEFT_VIEW : SoCamera::RIGHT_VIEW);
+          channels = reference.render(scene);
+          const unsigned char * gl = channels ? reference.getBuffer() : nullptr;
+          channels = channels && gl;
+          if (channels) for (size_t pixel = 0; pixel < 96u * 96u; ++pixel)
+            for (size_t c = 0; c < 3; ++c) {
+              const auto & direct = eye == 0 ? delayedLeft : delayedRight;
+              const size_t glPixel = (95u - pixel / 96u) * 96u + pixel % 96u;
+              glMaxError = std::max(glMaxError,
+                unsigned(std::abs(int(direct[pixel * 4 + c]) - int(gl[glPixel * 3 + c]))));
+            }
+        }
+        camera->setStereoMode(SoCamera::MONOSCOPIC);
+        scene->renderCaching.setValue(savedCaching);
+      }
+      channels = channels && channelError <= 1 && glMaxError <= 1 &&
+        delayedLeftOnly > 50 && delayedRightOnly > 50 && delayedAnaglyph != anaglyph;
       material->transparency = 0.0f;
+      action.setTransparencyType(CoinRenderAction::BLEND);
       manager.getGLRenderAction()->setTransparencyType(SoGLRenderAction::BLEND);
+      const auto delayedSerial = managerTarget->getLastSubmissionSerial();
       const bool recovered = adapter.render() == CoinRenderAction::SUCCESS;
       std::vector<uint8_t> restored;
-      if (recovered) adapter.getSceneManager()->getRenderTarget()->readbackRGBA(restored);
-      ok = rejected && retained == anaglyph && recovered && restored == anaglyph;
-      std::printf("manager_anaglyph_delayed_blend rollback=%s recovery=%s\n",
-                  rejected && retained == anaglyph ? "PASS" : "FAIL",
-                  recovered && restored == anaglyph ? "PASS" : "FAIL");
+      if (recovered) managerTarget->readbackRGBA(restored);
+      const bool recovery = recovered && restored == anaglyph &&
+        managerTarget->getLastSubmissionSerial() == delayedSerial + 1 &&
+        camera->getStereoMode() == SoCamera::MONOSCOPIC;
+      ok = supported && channels && restoredCamera && recovery;
+      std::printf("manager_anaglyph_delayed_blend support=%s channels=%s channel_max=%u CoinGL_max=%u left_only=%zu right_only=%zu recovery=%s\n",
+                  supported ? "PASS" : "FAIL", channels ? "PASS" : "FAIL",
+                  channelError, glMaxError, delayedLeftOnly, delayedRightOnly,
+                  recovery ? "PASS" : "FAIL");
     }
     std::printf("manager_anaglyph channels=%s left_only=%zu right_only=%zu\n",
                 ok ? "PASS" : "FAIL", leftOnly, rightOnly);

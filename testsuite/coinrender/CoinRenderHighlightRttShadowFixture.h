@@ -210,7 +210,9 @@ bool delivery(const Scene &scene,const Config &c,const CoinRenderFramePlan &fram
     const auto &draw=frame.draws[i];
     if(draw.renderStateSlot>=frame.renderStates.size()){ok=false;continue;}
     const auto &state=frame.renderStates[draw.renderStateSlot];
-    if(draw.renderLayer) {
+    // Layer numbers order authored occurrences; generated purpose identifies
+    // highlight geometry even when the authored base has a nonzero layer.
+    if(!draw.isSceneLayer()) {
       strokeIndices+=draw.geometry.indexCount;strokeDraws.insert(i);
       bool textured=false;for(unsigned unit=0;unit<8;++unit)textured |= coin_render_texture_unit_enabled(state,unit);
       ok &= check(!draw.shadowLightSlot && !textured && state.lightModel==CoinRenderLightModel::BASE_COLOR,
@@ -242,7 +244,7 @@ bool delivery(const Scene &scene,const Config &c,const CoinRenderFramePlan &fram
     for(unsigned index:pass.casterDraws) {
       if(index>=frame.draws.size()){ok=false;continue;}
       const auto &draw=frame.draws[index];casterIndices+=draw.geometry.indexCount;
-      ok &= check(draw.sourceNodeId==scene.casters[slot]->getNodeId() && draw.shadowLightSlot==slot+1 && !strokeDraws.count(index),
+      ok &= check(draw.isSceneLayer() && draw.sourceNodeId==scene.casters[slot]->getNodeId() && draw.shadowLightSlot==slot+1 && !strokeDraws.count(index),
                   "map caster belongs only to its authored light/source");
       if(draw.renderStateSlot<frame.renderStates.size()) {
         const auto &state=frame.renderStates[draw.renderStateSlot];
@@ -257,7 +259,7 @@ bool delivery(const Scene &scene,const Config &c,const CoinRenderFramePlan &fram
     for(unsigned index:pass.receiverDraws) {
       if(index>=frame.draws.size()){ok=false;continue;}
       const auto &draw=frame.draws[index];receiverIndices+=draw.geometry.indexCount;
-      ok &= check(draw.sourceNodeId==scene.mesh->getNodeId() && !draw.shadowLightSlot && !strokeDraws.count(index),
+      ok &= check(draw.isSceneLayer() && draw.sourceNodeId==scene.mesh->getNodeId() && !draw.shadowLightSlot && !strokeDraws.count(index),
                   "only original base occurrences receive the map");
       if(draw.renderStateSlot>=pass.lightingIndexByState.size() || draw.renderStateSlot>=frame.renderStates.size()){ok=false;continue;}
       const auto &state=frame.renderStates[draw.renderStateSlot];const auto lightIndex=pass.lightingIndexByState[draw.renderStateSlot];

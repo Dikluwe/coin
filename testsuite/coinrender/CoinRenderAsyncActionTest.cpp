@@ -44,6 +44,38 @@ bool check(bool condition, const char * message) {
   return condition;
 }
 
+// Public target publication is independent of native queue/ticket serials.
+// Keep exact public progress and real native ordering as separate assertions.
+struct SerialChecks {
+  const CoinRenderTarget * owner = nullptr;
+  CoinRenderReadbackTicket lastIssued{};
+  bool publication(const CoinRenderAction & action, const CoinRenderTarget & target,
+                   uint64_t before) {
+    return check(target.getLastSubmissionSerial() == before +
+                   (action.getLastStatus() == CoinRenderAction::SUCCESS ? 1u : 0u),
+                 "a successful public frame publishes exactly once; failure preserves its serial");
+  }
+  bool apply(CoinRenderAction & action, CoinRenderTarget & target, SoNode * root) {
+    const uint64_t before = target.getLastSubmissionSerial();
+    action.apply(root);
+    return publication(action, target, before);
+  }
+  bool applyAsync(CoinRenderAction & action, CoinRenderTarget & target, SoNode * root,
+                  CoinRenderReadbackTicket & ticket) {
+    if (owner != &target) { owner = &target; lastIssued = CoinRenderReadbackTicket{}; }
+    const uint64_t before = target.getLastSubmissionSerial();
+    action.applyAsync(root, ticket);
+    if (!publication(action, target, before)) return false;
+    if (action.getLastStatus() != CoinRenderAction::SUCCESS) return true;
+    if (!check(ticket.token != 0 && ticket.submissionSerial != 0 &&
+               (!lastIssued.token || lastIssued.generation != ticket.generation ||
+                ticket.submissionSerial > lastIssued.submissionSerial),
+               "accepted tickets retain nonzero native identity and strict queue order within their generation")) return false;
+    lastIssued = ticket;
+    return true;
+  }
+};
+
 CoinRenderTarget::ReadbackStatus pollUntilReady(
   const CoinRenderReadbackTicket & ticket,
   std::vector<uint8_t> & color,
@@ -99,12 +131,14 @@ int main() {
   action->setRenderTarget(target);
   action->setBackgroundColor(SbColor4f(0.05f, 0.05f, 0.1f, 1.0f));
   CoinRenderReadbackTicket ticket{};
+  const uint64_t initialPublication = target->getLastSubmissionSerial();
   action->applyAsync(root, ticket);
   if (!check(action->getLastStatus() == CoinRenderAction::SUCCESS &&
              ticket.token != 0 && ticket.width == 64 && ticket.height == 64 &&
              ticket.colorBytes == 64u * 64u * 4u &&
              ticket.depthBytes == 64u * 64u * 4u &&
-             ticket.submissionSerial == target->getLastSubmissionSerial(),
+             ticket.submissionSerial != 0 &&
+             target->getLastSubmissionSerial() == initialPublication + 1,
              "async action must return a complete ticket")) return 1;
 
   std::vector<uint8_t> oldColor(1, 17);
@@ -121,13 +155,18 @@ int main() {
   std::vector<uint8_t> color(1, 17);
   std::vector<float> depth(1, -1.0f);
   SbString diagnostic;
-  CoinRenderReadbackTicket malformed = ticket;
-  malformed.colorRowPitch = 0;
-  if (!check(CoinRenderTarget::pollReadback(malformed, color, depth, &diagnostic) ==
-               CoinRenderTarget::READBACK_INVALID_TICKET &&
-             color.size() == 1 && color[0] == 17 &&
-             depth.size() == 1 && depth[0] == -1.0f,
-             "invalid ticket metadata must not consume or publish output")) return 1;
+  for (unsigned field = 0; field < 3; ++field) {
+    CoinRenderReadbackTicket malformed = ticket;
+    if (field == 0) malformed.colorRowPitch = 0;
+    else if (field == 1) ++malformed.submissionSerial;
+    else ++malformed.generation;
+    if (!check(CoinRenderTarget::pollReadback(malformed, color, depth, &diagnostic) ==
+                 CoinRenderTarget::READBACK_INVALID_TICKET &&
+               color.size() == 1 && color[0] == 17 &&
+               depth.size() == 1 && depth[0] == -1.0f &&
+               !CoinRenderTarget::cancelReadback(malformed),
+               "forged pitch/native serial/generation cannot consume the real ticket or publish output")) return 1;
+  }
   if (!check(pollUntilReady(ticket, color, depth, diagnostic) ==
              CoinRenderTarget::READBACK_READY &&
              color.size() == 64u * 64u * 4u && depth.size() == 64u * 64u,
@@ -139,8 +178,9 @@ int main() {
   CoinRenderTarget * synchronous = makeSelectedTarget(SbVec2i32(64, 64));
   CoinRenderAction syncAction(SbViewportRegion(64, 64));
   syncAction.setRenderTarget(synchronous);
+  SerialChecks serials;
   syncAction.setBackgroundColor(SbColor4f(0.05f, 0.05f, 0.1f, 1.0f));
-  syncAction.apply(root);
+  if (!serials.apply(syncAction, *synchronous, root)) return 1;
   std::vector<uint8_t> expectedColor;
   std::vector<float> expectedDepth;
   synchronous->readbackRGBA(expectedColor);
@@ -155,7 +195,7 @@ int main() {
   if (!check(synchronous->setDepthReadbackEnabled(FALSE),
              "disable depth for async color-only readback")) return 1;
   CoinRenderReadbackTicket colorOnlyTicket{};
-  syncAction.applyAsync(root, colorOnlyTicket);
+  if (!serials.applyAsync(syncAction, *synchronous, root, colorOnlyTicket)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
              colorOnlyTicket.token != 0 && colorOnlyTicket.depthFormat == 0 &&
              colorOnlyTicket.depthBytes == 0 && colorOnlyTicket.depthRowPitch == 0,
@@ -170,7 +210,7 @@ int main() {
              "color-only ticket must preserve color and omit depth after mode change")) return 1;
 
   CoinRenderReadbackTicket cancelled{};
-  syncAction.applyAsync(root, cancelled);
+  if (!serials.applyAsync(syncAction, *synchronous, root, cancelled)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
              CoinRenderTarget::cancelReadback(cancelled) &&
              CoinRenderTarget::pollReadback(cancelled, oldColor, oldDepth) ==
@@ -178,10 +218,10 @@ int main() {
              "cancelled ticket must not publish output")) return 1;
 
   CoinRenderReadbackTicket parallelA{}, parallelB{};
-  syncAction.applyAsync(root, parallelA);
+  if (!serials.applyAsync(syncAction, *synchronous, root, parallelA)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS,
              "first concurrent readback submission")) return 1;
-  syncAction.applyAsync(root, parallelB);
+  if (!serials.applyAsync(syncAction, *synchronous, root, parallelB)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
              parallelA.token != parallelB.token,
              "second concurrent readback submission")) return 1;
@@ -211,12 +251,12 @@ int main() {
   // Existing tickets remain independently consumable after backpressure.
   std::vector<CoinRenderReadbackTicket> pending(16);
   for (size_t i = 0; i < pending.size(); ++i) {
-    syncAction.applyAsync(root, pending[i]);
+    if (!serials.applyAsync(syncAction, *synchronous, root, pending[i])) return 1;
     if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
                pending[i].token != 0, "async queue rejected a ticket below its limit")) return 1;
   }
   CoinRenderReadbackTicket excess{};
-  syncAction.applyAsync(root, excess);
+  if (!serials.applyAsync(syncAction, *synchronous, root, excess)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::NOT_READY &&
              excess.token == 0, "async queue must apply backpressure without a ticket")) return 1;
   for (const CoinRenderReadbackTicket & queued : pending) {
@@ -265,7 +305,7 @@ int main() {
   face->textureCoordIndex.setValues(0, 5, faceIndices);
   texturedParent->addChild(face);
 
-  syncAction.apply(texturedParent);
+  if (!serials.apply(syncAction, *synchronous, texturedParent)) return 1;
   std::vector<uint8_t> sceneExpectedColor;
   std::vector<float> sceneExpectedDepth;
   synchronous->readbackRGBA(sceneExpectedColor);
@@ -286,7 +326,7 @@ int main() {
   const uint64_t publishedSceneSerial = synchronous->getLastSubmissionSerial();
   sceneTexture->type.setValue(SoSceneTexture2::RGB32F);
   CoinRenderReadbackTicket rejectedSceneTicket{};
-  syncAction.applyAsync(texturedParent, rejectedSceneTicket);
+  if (!serials.applyAsync(syncAction, *synchronous, texturedParent, rejectedSceneTicket)) return 1;
   std::vector<uint8_t> rejectedSceneColor;
   std::vector<float> rejectedSceneDepth;
   synchronous->readbackRGBA(rejectedSceneColor);
@@ -301,7 +341,7 @@ int main() {
   sceneTexture->type.setValue(SoSceneTexture2::RGBA8);
 
   CoinRenderReadbackTicket sceneTicket{};
-  syncAction.applyAsync(texturedParent, sceneTicket);
+  if (!serials.applyAsync(syncAction, *synchronous, texturedParent, sceneTicket)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
              sceneTicket.token != 0,
              "async scene-texture submission")) return 1;
@@ -335,15 +375,15 @@ int main() {
 
   // Two RTT frames overlap in flight while the producer scene mutates.
   CoinRenderReadbackTicket redTicket{}, greenTicket{};
-  syncAction.applyAsync(texturedParent, redTicket);
+  if (!serials.applyAsync(syncAction, *synchronous, texturedParent, redTicket)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS && redTicket.token != 0,
              "first overlapping RTT ticket")) return 1;
   material->diffuseColor.setValue(0.1f, 0.8f, 0.2f);
-  syncAction.applyAsync(texturedParent, greenTicket);
+  if (!serials.applyAsync(syncAction, *synchronous, texturedParent, greenTicket)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
              greenTicket.token != 0 && greenTicket.token != redTicket.token,
              "second overlapping RTT ticket")) return 1;
-  syncAction.apply(texturedParent);
+  if (!serials.apply(syncAction, *synchronous, texturedParent)) return 1;
   std::vector<uint8_t> expectedGreenColor;
   std::vector<float> expectedGreenDepth;
   synchronous->readbackRGBA(expectedGreenColor);
@@ -364,7 +404,7 @@ int main() {
     uint64_t previousGeneration = 0;
     for (int loss = 0; loss < 2; ++loss) {
       CoinRenderReadbackTicket pendingLoss{};
-      syncAction.applyAsync(texturedParent, pendingLoss);
+      if (!serials.applyAsync(syncAction, *synchronous, texturedParent, pendingLoss)) return 1;
       if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
                  pendingLoss.token != 0 &&
                  (loss == 0 || pendingLoss.generation > previousGeneration),
@@ -384,7 +424,7 @@ int main() {
       coin_wgpu_rtt_resource_counts(&activeRtt, &retiredRtt);
       if (!check(activeRtt == 0 && retiredRtt == 0,
                  "device loss retained an RTT resource from the old generation")) return 1;
-      syncAction.apply(texturedParent);
+      if (!serials.apply(syncAction, *synchronous, texturedParent)) return 1;
       std::vector<uint8_t> recoveredColor;
       std::vector<float> recoveredDepth;
       synchronous->readbackRGBA(recoveredColor);
@@ -405,7 +445,7 @@ int main() {
   const uint64_t publishedSerial = synchronous->getLastSubmissionSerial();
   sceneTexture->type.setValue(SoSceneTexture2::DEPTH);
   CoinRenderReadbackTicket rejectedScene{};
-  syncAction.applyAsync(texturedParent, rejectedScene);
+  if (!serials.applyAsync(syncAction, *synchronous, texturedParent, rejectedScene)) return 1;
   if (!check(syncAction.getLastStatus() == CoinRenderAction::UNSUPPORTED &&
              rejectedScene.token == 0 &&
              synchronous->getLastSubmissionSerial() == publishedSerial,
@@ -420,7 +460,7 @@ int main() {
       for (int j = 0; j < 8; ++j) {
         material->diffuseColor.setValue((j & 1) ? 0.1f : 0.8f,
                                         (j & 1) ? 0.8f : 0.2f, 0.2f);
-        syncAction.applyAsync(texturedParent, inFlight[j]);
+        if (!serials.applyAsync(syncAction, *synchronous, texturedParent, inFlight[j])) return 1;
         if (!check(syncAction.getLastStatus() == CoinRenderAction::SUCCESS &&
                    inFlight[j].token != 0, "RTT stress submit")) return 1;
       }

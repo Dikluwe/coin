@@ -306,7 +306,8 @@ bool windowCase(Display * display,Window window,
     std::vector<uint8_t> reference;offTarget->readbackRGBA(reference);
     const uint64_t serial=windowTarget->getLastSubmissionSerial();
     if(a!=CoinRenderAction::SUCCESS || b!=CoinRenderAction::SUCCESS ||
-       reference.size()!=size_t(size)*size*4 || serial<=previousSerial) {
+       reference.size()!=size_t(size)*size*4 || serial<=previousSerial ||
+       (previousSerial==0&&(serial!=1||offTarget->getLastSubmissionSerial()!=1))) {
       std::cerr << "manager_highlight_window " << label << " status=" << int(a)
                 << ',' << int(b) << " error=" << presented.getLastError().getString()
                 << " serial=" << serial << " previous=" << previousSerial << '\n';
@@ -383,11 +384,20 @@ bool windowCase(Display * display,Window window,
     }
     return check(highlight.calls==0,"window adapter never applies host GL action");
   };
+  auto resizedDomain=[&](){
+    std::vector<uint8_t> offPixels,windowPixels;std::vector<float> offDepth;
+    offTarget->readbackRGBA(offPixels);offTarget->readbackDepth(offDepth);windowTarget->readbackRGBA(windowPixels);
+    const bool reset=offTarget->getLastSubmissionSerial()==0&&windowTarget->getLastSubmissionSerial()==0&&
+      offPixels.empty()&&offDepth.empty()&&windowPixels.empty();
+    if(!check(reset,"resize invalidates both publication images and target-scoped serials"))return false;
+    previousSerial=0;return true;
+  };
   bool ok=phase(side,initialStamp,"initial",true);
   XResizeWindow(display,window,128,128);XSync(display,False);
   manager.setViewportRegion(SbViewportRegion(128,128));
   ok &= check(offscreen.resize(SbVec2i32(128,128)) &&
               presented.resize(SbVec2i32(128,128)),"highlight window resize 128");
+  if(ok)ok &= resizedDomain();
   if(ok)ok &= phase(128,67,"resized",false);
   highlight.setColor(SbColor(0,1,1));highlight.setLinePattern(0x00ff);
   if(ok)ok &= phase(128,103,"style-mutated",false);
@@ -396,6 +406,7 @@ bool windowCase(Display * display,Window window,
   manager.setViewportRegion(SbViewportRegion(side,side));
   ok &= check(offscreen.resize(SbVec2i32(side,side)) &&
               presented.resize(SbVec2i32(side,side)),"highlight window resize back");
+  if(ok)ok &= resizedDomain();
   if(ok)ok &= phase(side,initialStamp,"restored",true);
   manager.setGLRenderAction(nullptr);manager.setSceneGraph(nullptr);
   return ok;

@@ -71,7 +71,7 @@ inline CoinRenderOptions options(unsigned samples,bool direct=false) {
   if(renderer&&std::string(renderer)=="opengl")o.renderer=COIN_RENDER_RENDERER_OPENGL;return o;
 }
 struct Harness {
-  std::unique_ptr<Target> target;Action action;
+  std::unique_ptr<Target> target;Action action;Ticket lastIssued;
   Harness(const CoinRenderOptions&o,int width=side,int height=side)
     :target(Target::createOffscreen(SbVec2i32(width,height),o)),action(SbViewportRegion(width,height)) {
     require(bool(target),"create public offscreen target");
@@ -82,16 +82,28 @@ struct Harness {
   ~Harness(){action.setRenderTarget(nullptr);}
   void depth(bool yes){require(target->setDepthReadbackEnabled(yes?TRUE:FALSE),"depth policy");}
   Frame sync(SoNode*root) {
+    const uint64_t priorPublication=target->getLastSubmissionSerial();
     action.apply(root);require(action.getLastStatus()==Action::SUCCESS,
       std::string("sync failed: ")+action.getLastError().getString());
+    require(target->getLastSubmissionSerial()==priorPublication+1,
+      "one target-scoped publication per successful synchronous frame, including RTT producer graphs");
     Frame f=read(*target);require(f.rgba.size()==size_t(target->getSize()[0])*target->getSize()[1]*4,
       "complete synchronous color");return f;
   }
   Ticket submit(SoNode*root) {
+    const uint64_t priorPublication=target->getLastSubmissionSerial();
     Ticket t;action.applyAsync(root,t);
     require(action.getLastStatus()==Action::SUCCESS&&t.token!=0,
       std::string("async failed: ")+action.getLastError().getString());
-    require(t.submissionSerial==target->getLastSubmissionSerial(),"ticket submission serial");
+    // Target publication and native queue/ticket identity are different
+    // domains. Producer work can advance the queue several times while one
+    // accepted public frame advances this target's publication exactly once.
+    require(target->getLastSubmissionSerial()==priorPublication+1,
+      "one target-scoped publication per accepted asynchronous frame");
+    require(t.submissionSerial!=0,"ticket retains a real nonzero native submission serial");
+    if(lastIssued.token&&lastIssued.generation==t.generation)
+      require(t.submissionSerial>lastIssued.submissionSerial,
+        "native ticket serials are strictly ordered within the same generation, independent of public publication numbers");
     require(t.width==uint32_t(target->getSize()[0])&&t.height==uint32_t(target->getSize()[1])&&
       t.colorFormat==0&&t.colorRowPitch>=t.width*4&&t.colorBytes==uint64_t(t.width)*t.height*4,
       "ticket color metadata");
@@ -99,7 +111,7 @@ struct Harness {
       t.depthFormat==1&&t.depthRowPitch>=t.width*4&&t.depthBytes==uint64_t(t.width)*t.height*4:
       t.depthFormat==0&&t.depthRowPitch==0&&t.depthBytes==0,"ticket depth metadata");
     const Frame hidden=read(*target);require(hidden.rgba.empty()&&hidden.depth.empty(),"async hides synchronous output");
-    return t;
+    lastIssued=t;return t;
   }
 };
 inline Frame poll(const Ticket&ticket) {
