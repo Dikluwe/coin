@@ -84,8 +84,8 @@ public:
   void beginAnnotation(bool clearDepth = true);
   uint32_t activeAnnotationLayer() const { return this->currentAnnotationLayer; }
   uint32_t reserveDelayedLayers(uint32_t count);
-  void beginManagerLayer(bool clearDepth);
-  void endManagerLayer();
+  void beginManagerLayer(bool clearDepth, bool highlight = false);
+  void endManagerLayer(bool highlight = false);
   void capturePendingDepthClear(SoCallbackAction * action, bool sceneBoundary = false);
   void discardDrawOutput();
   void beginAuthoredScene(bool clearDepth);
@@ -268,6 +268,7 @@ private:
   };
   std::vector<ForegroundScope> foregroundLayers;
   uint32_t managerLayerDepth = 0;
+  uint32_t managerHighlightDepth = 0;
   uint32_t annotationDepth;
   uint32_t currentAnnotationLayer;
   uint32_t nextAnnotationLayer;

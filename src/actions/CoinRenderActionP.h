@@ -208,7 +208,8 @@ public:
   unsigned int managerHighlightDepth = 0;
   bool replayingAnnotations = false;
   bool planOnly = false;
-  // -1=ordinary; 0=authored background; 1=per-eye base; 2=post-stereo foreground.
+  // -1=ordinary; 0=authored background; 1=per-eye base + generated highlight;
+  // 2=post-stereo monoscopic authored foreground.
   int managerCaptureSection = -1;
   bool sceneTextureBumpProducer = false;
   bool inheritedTransparencyOverride = false;

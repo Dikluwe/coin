@@ -25,12 +25,15 @@
 #include <Inventor/nodes/SoNormal.h>
 #include <Inventor/nodes/SoPolygonOffset.h>
 #include "rendering/coinrender/CoinRenderManagerLayerPurpose.h"
+#include "rendering/coinrender/CoinRenderGuardedTraversal.h"
 #include <Inventor/nodes/SoCallback.h>
 #include <Inventor/SoPath.h>
 #include <Inventor/lists/SoPathList.h>
 #include <Inventor/misc/SoChildList.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <cmath>
+#include <exception>
+#include <new>
 #include <algorithm>
 #include <unordered_map>
 #include <Inventor/nodes/SoNode.h>
@@ -72,10 +75,16 @@ struct CoinRenderManagerAdapter::P {
   CoinRenderAction::Status status = CoinRenderAction::SUCCESS;
   SbString error;
   SoPathList highlightPaths;
-  std::unordered_map<const SoNode *, const SoPath *> highlightReplays;
+  struct HighlightReplay {
+    const SoPath * path;
+    std::vector<SoNode *> nodes;
+    std::vector<int> indices;
+  };
+  std::unordered_map<const SoNode *, HighlightReplay> highlightReplays;
 
   SoCallback * highlightTrampoline = nullptr;
   SoPath * activeReplayPath = nullptr;
+  bool boxHighlight = false;
 
   P() {
     this->highlightTrampoline = new SoCallback;
@@ -85,7 +94,7 @@ struct CoinRenderManagerAdapter::P {
   ~P() { this->highlightTrampoline->unref(); }
   static void replayPath(void * data, SoAction * action);
   bool prepareHighlight(SoNode * root, SoGLRenderAction * sourceAction,
-                        const SbViewportRegion & viewport, SoSeparator * & graph);
+                        SoSeparator * & graph);
 };
 
 void
@@ -109,7 +118,68 @@ CoinRenderManagerAdapter::P::replayPath(void * data, SoAction * action)
     static_cast<CoinRenderAction *>(action)->rejectUnsupported("Missing manager highlight replay path");
     return;
   }
-  p->activeReplayPath = const_cast<SoPath *>(found->second);
+  const auto & replay = found->second;
+  SoPath * path = const_cast<SoPath *>(replay.path);
+  const auto full = path->fullPath();
+  if (full.getLength() != static_cast<int>(replay.nodes.size())) {
+    static_cast<CoinRenderAction *>(action)->rejectInvalidScene("Selection path changed during capture");
+    return;
+  }
+  for (int i = 0; i < full.getLength(); ++i) {
+    if (highlightNodeFromHead(full, i) != replay.nodes[i] ||
+        (i && highlightIndexFromHead(full, i) != replay.indices[i])) {
+      static_cast<CoinRenderAction *>(action)->rejectInvalidScene("Selection path changed during capture");
+      return;
+    }
+    if (!i) continue;
+    const SoChildList * children = highlightNodeFromHead(full, i - 1)->getChildren();
+    const int index = highlightIndexFromHead(full, i);
+    if (!children || index < 0 || index >= children->getLength() ||
+        (*children)[index] != highlightNodeFromHead(full, i)) {
+      static_cast<CoinRenderAction *>(action)->rejectInvalidScene("Stale selection path cannot be replayed");
+      return;
+    }
+  }
+  if (p->boxHighlight) {
+    // Bounds may depend on the active stereo camera, viewport or authored
+    // callback state. Compute them in this eye's capture, after its base,
+    // instead of baking them into the adapter's synchronization graph.
+    CoinRenderGuardedTraversal<SoSearchAction> camera;
+    camera.setType(SoCamera::getClassTypeId());
+    camera.setInterest(SoSearchAction::FIRST);
+    camera.apply(path);
+    CoinRenderGuardedTraversal<SoGetBoundingBoxAction> bounds(static_cast<CoinRenderAction *>(action)->getViewportRegion());
+    bounds.apply(path);
+    const SbXfBox3f boundsBox = bounds.getXfBoundingBox();
+    if (boundsBox.isEmpty()) return;
+    float x, y, z;
+    boundsBox.getSize(x, y, z);
+    SbMatrix transform = boundsBox.getTransform();
+    SbMatrix center;
+    center.setTranslate(boundsBox.SbBox3f::getCenter());
+    transform.multLeft(center);
+    bool finite = std::isfinite(x) && std::isfinite(y) && std::isfinite(z);
+    for (int row = 0; row < 4; ++row)
+      for (int column = 0; column < 4; ++column)
+        finite = finite && std::isfinite(transform[row][column]);
+    if (!finite) {
+      static_cast<CoinRenderAction *>(action)->rejectInvalidScene("Selection bounding box must be finite");
+      return;
+    }
+    auto * box = new SoSeparator;
+    box->ref();
+    struct BoxScope { SoSeparator * root; ~BoxScope() { root->unref(); } } scope{box};
+    if (camera.getPath()) box->addChild(camera.getPath()->getTail());
+    auto * matrix = new SoMatrixTransform;
+    matrix->matrix = transform;
+    box->addChild(matrix);
+    auto * cube = new SoCube;
+    cube->width = x; cube->height = y; cube->depth = z;
+    box->addChild(cube);
+    action->switchToNodeTraversal(box);
+    return;
+  }
+  p->activeReplayPath = path;
   struct ReplayScope {
     P * owner;
     ~ReplayScope() { owner->activeReplayPath = nullptr; }
@@ -122,8 +192,7 @@ CoinRenderManagerAdapter::P::replayPath(void * data, SoAction * action)
 
 bool
 CoinRenderManagerAdapter::P::prepareHighlight(SoNode * root, SoGLRenderAction * sourceAction,
-                                              const SbViewportRegion & viewport,
-                                              SoSeparator * & graph)
+                                             SoSeparator * & graph)
 {
   graph = nullptr;
   this->highlightReplays.clear();
@@ -135,11 +204,12 @@ CoinRenderManagerAdapter::P::prepareHighlight(SoNode * root, SoGLRenderAction * 
   const SoType lineType = SoLineHighlightRenderAction::getClassTypeId();
   const bool box = !boxType.isBad() && sourceAction->isOfType(boxType);
   const bool line = !lineType.isBad() && sourceAction->isOfType(lineType);
+  this->boxHighlight = box;
   if (!box && !line) return true;
   auto * boxAction = box ? static_cast<SoBoxHighlightRenderAction *>(sourceAction) : nullptr;
   auto * lineAction = line ? static_cast<SoLineHighlightRenderAction *>(sourceAction) : nullptr;
   if (!(box ? boxAction->isVisible() : lineAction->isVisible())) return true;
-  SoSearchAction search;
+  CoinRenderGuardedTraversal<SoSearchAction> search;
   search.setType(SoSelection::getClassTypeId());
   search.setInterest(SoSearchAction::FIRST);
   search.apply(root);
@@ -153,16 +223,6 @@ CoinRenderManagerAdapter::P::prepareHighlight(SoNode * root, SoGLRenderAction * 
   // Instrumented C++ subclasses retaining the native runtime type are valid.
   if (sourceAction->getTypeId() != (box ? boxType : lineType))
     return fail(CoinRenderAction::UNSUPPORTED, "Custom GL highlight actions require explicit delegation");
-  if (this->source->getStereoMode() != SoRenderManager::MONO ||
-      this->source->getRenderMode() != SoRenderManager::AS_IS)
-    return fail(CoinRenderAction::UNSUPPORTED, "Selection highlighting requires mono AS_IS manager rendering");
-  if (this->renderer && this->renderer->getRenderTarget() &&
-      this->renderer->getRenderTarget()->getOptions().sampleCount > 1 &&
-      (this->renderer->getRenderTarget()->getOptions().transparency == COIN_RENDER_TRANSPARENCY_WEIGHTED_OIT ||
-       this->renderer->getRenderTarget()->getOptions().transparency == COIN_RENDER_TRANSPARENCY_PEELING ||
-       sourceAction->getTransparencyType() == SoGLRenderAction::SORTED_LAYERS_BLEND))
-    return fail(CoinRenderAction::UNSUPPORTED,
-      "MSAA selection highlighting with OIT/peeling needs a separate composition contract");
   const SbColor color = box ? boxAction->getColor() : lineAction->getColor();
   float width = box ? boxAction->getLineWidth() : lineAction->getLineWidth();
   const uint16_t pattern = box ? boxAction->getLinePattern() : lineAction->getLinePattern();
@@ -208,7 +268,8 @@ CoinRenderManagerAdapter::P::prepareHighlight(SoNode * root, SoGLRenderAction * 
   // LINE replays the authored path inside this same frame. The quality
   // override disables inherited textures and lets sceneTexturePreCB take its
   // disabled branch, so only the base traversal captures RTT producers.
-  // BOX adds bounds geometry instead of replaying the selected subtree.
+  // BOX computes bounds geometry in each current view instead of replaying
+  // the selected subtree.
   quality->textureQuality = 0.0f;
   if (box) quality->type = SoComplexity::BOUNDING_BOX;
   else quality->type.setIgnored(TRUE);
@@ -227,36 +288,17 @@ CoinRenderManagerAdapter::P::prepareHighlight(SoNode * root, SoGLRenderAction * 
     SoPath * path = this->highlightPaths[i];
     SoSeparator * occurrence = new SoSeparator;
     graph->addChild(occurrence);
-    if (line) {
-      SoCallback * replay = new SoCallback;
-      replay->setCallback(P::replayPath, this);
-      occurrence->addChild(replay);
-      this->highlightReplays.emplace(replay, path);
-    } else {
-      SoSearchAction camera;
-      camera.setType(SoCamera::getClassTypeId()); camera.setInterest(SoSearchAction::FIRST);
-      camera.apply(path);
-      if (camera.getPath()) occurrence->addChild(camera.getPath()->getTail());
-      SoGetBoundingBoxAction bounds(viewport);
-      bounds.apply(path);
-      SbXfBox3f boundsBox = bounds.getXfBoundingBox();
-      if (boundsBox.isEmpty()) continue;
-      float x, y, z; boundsBox.getSize(x, y, z);
-      SbMatrix transform = boundsBox.getTransform();
-      SbMatrix center; center.setTranslate(boundsBox.SbBox3f::getCenter());
-      transform.multLeft(center);
-      bool finite = std::isfinite(x) && std::isfinite(y) && std::isfinite(z);
-      for (int row = 0; row < 4; ++row) for (int column = 0; column < 4; ++column)
-        finite = finite && std::isfinite(transform[row][column]);
-      if (!finite) {
-        graph->unref(); graph = nullptr;
-        return fail(CoinRenderAction::INVALID_SCENE, "Selection bounding box must be finite");
-      }
-      SoMatrixTransform * matrix = new SoMatrixTransform;
-      matrix->matrix = transform; occurrence->addChild(matrix);
-      SoCube * cube = new SoCube;
-      cube->width = x; cube->height = y; cube->depth = z; occurrence->addChild(cube);
+    SoCallback * replay = new SoCallback;
+    replay->setCallback(P::replayPath, this);
+    occurrence->addChild(replay);
+    HighlightReplay captured;
+    captured.path = path;
+    const auto full = path->fullPath();
+    for (int j = 0; j < full.getLength(); ++j) {
+      captured.nodes.push_back(highlightNodeFromHead(full, j));
+      captured.indices.push_back(j ? highlightIndexFromHead(full, j) : -1);
     }
+    this->highlightReplays.emplace(replay, std::move(captured));
   }
   return true;
 }
@@ -398,7 +440,7 @@ CoinRenderManagerAdapter::syncFromRenderManager()
   }
   SoSeparator * highlight = nullptr;
   if (!this->pimpl->prepareHighlight(mainRoot, this->pimpl->source->getGLRenderAction(),
-                                    this->pimpl->source->getViewportRegion(), highlight)) return FALSE;
+                                    highlight)) return FALSE;
   SoSeparator * composed = nullptr;
   std::vector<std::tuple<SoNode *, bool, int>> managerBoundaries;
   if (!mono || highlight || !activeLayers.empty() ||
@@ -516,13 +558,24 @@ CoinRenderManagerAdapter::render()
     SbBool rendered;
     ~FrameScope() { manager->finishFrame(rendered); }
   } scope(this->pimpl->source);
-  if (!this->syncFromRenderManager()) return this->pimpl->status;
-  this->pimpl->status = this->pimpl->source->getStereoMode() != SoRenderManager::MONO
-    ? this->pimpl->renderer->renderStereo(this->pimpl->source->getCamera(),
-                                         this->pimpl->source->getStereoOffset(),
-                                         this->pimpl->source->getStereoMode())
-    : this->pimpl->renderer->render();
-  this->pimpl->error = this->pimpl->renderer->getLastError();
+  try {
+    if (!this->syncFromRenderManager()) return this->pimpl->status;
+    this->pimpl->status = this->pimpl->source->getStereoMode() != SoRenderManager::MONO
+      ? this->pimpl->renderer->renderStereo(this->pimpl->source->getCamera(),
+                                           this->pimpl->source->getStereoOffset(),
+                                           this->pimpl->source->getStereoMode())
+      : this->pimpl->renderer->render();
+    this->pimpl->error = this->pimpl->renderer->getLastError();
+  } catch (const std::bad_alloc &) {
+    this->pimpl->status = CoinRenderAction::OUT_OF_MEMORY;
+    this->pimpl->error = "Manager frame allocation failed";
+  } catch (const std::exception & error) {
+    this->pimpl->status = CoinRenderAction::BACKEND_ERROR;
+    this->pimpl->error = error.what();
+  } catch (...) {
+    this->pimpl->status = CoinRenderAction::BACKEND_ERROR;
+    this->pimpl->error = "Manager authored traversal threw an exception";
+  }
   scope.rendered = this->pimpl->status == CoinRenderAction::SUCCESS;
   return this->pimpl->status;
 }

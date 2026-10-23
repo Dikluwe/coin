@@ -205,6 +205,7 @@
 #include "rendering/coinrender/CoinRenderNativeSurfaceCore.h"
 #include "rendering/coinrender/CoinRenderComposition.h"
 #include "rendering/coinrender/CoinRenderManagerLayerPurpose.h"
+#include "rendering/coinrender/CoinRenderGuardedTraversal.h"
 #include "rendering/coinrender/CoinRenderSelectionCore.h"
 #include "rendering/coinrender/CoinRenderAlphaTestCapture.h"
 #include "rendering/coinrender/CoinRenderPhaseTimer.h"
@@ -1099,6 +1100,16 @@ CoinRenderAction::rejectUnsupported(const SbString & reason)
 }
 
 SbBool
+CoinRenderAction::rejectInvalidScene(const SbString & reason)
+{
+  if (!this->pimpl->isApplying || this->hasTerminated()) return FALSE;
+  this->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
+    INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN, reason));
+  this->setTerminated(TRUE);
+  return TRUE;
+}
+
+SbBool
 CoinRenderAction::captureScreenContent(SoNode * node)
 {
   if (!this->pimpl->isApplying || this->hasTerminated()) return FALSE;
@@ -1260,7 +1271,13 @@ CoinRenderAction::beginTraversal(SoNode * root)
       if (baseIndex >= 0) {
         for (int i = 0; i < group->getNumChildren() && !this->hasTerminated(); ++i) {
           SoNode * child = group->getChild(i);
-          const int section = i < baseIndex ? 0 : i == baseIndex ? 1 : 2;
+          const bool highlight = std::any_of(this->pimpl->managerLayerBoundaries.begin(),
+            this->pimpl->managerLayerBoundaries.end(),
+            [child](const std::tuple<const SoNode *, bool, int> & boundary) {
+              return std::get<0>(boundary) == child &&
+                std::get<2>(boundary) == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER;
+            });
+          const int section = i < baseIndex ? 0 : (i == baseIndex || highlight) ? 1 : 2;
           if (this->pimpl->managerCaptureSection >= 0 &&
               this->pimpl->managerCaptureSection != section) continue;
           this->pushCurPath(i, child);
@@ -2989,7 +3006,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
            (state.transparentMaterial || state.transparentTexture || textureAlpha ||
             state.screenDoorTransparency > 0 ||
             (!draw.isSceneLayer() && (draw.renderLayer || draw.clearDepthBefore)))) ||
-          coin_render_alpha_test_active(state.alphaTestFunction) || state.shadowGroupSlot) {
+          (!draw.generatedHighlight && coin_render_alpha_test_active(state.alphaTestFunction)) || state.shadowGroupSlot) {
         this->setDiagnostic(CoinRenderDiagnosticShell::action(
           CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
           SbString("hidden-line modes require opaque base geometry and no shadows or alpha test")));
@@ -3001,7 +3018,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
       !this->managerCapturedLayers.empty() &&
       !traversalSkipped && !cameraOverlay && !translationOverlay) {
     for (const auto & draw : plan.draws) {
-      if (!draw.managerSuperimposition) continue;
+      if (!draw.managerSuperimposition || draw.generatedHighlight) continue;
       const auto & state = plan.renderStates[draw.renderStateSlot];
       if (coin_render_alpha_test_active(state.alphaTestFunction) ||
           state.shadowGroupSlot || draw.shadowLightSlot) {
@@ -3730,18 +3747,48 @@ bool validateVRMLGeometry(SoCallbackAction * action, SoNode * node, std::string 
 }
 #endif
 
-bool validateIndexedShapeNormals(SoCallbackAction * action, SoNode * node,
-                                std::string & diagnostic)
+bool validateIndexedShapeGeometry(SoCallbackAction * action, SoNode * node,
+                                 std::string & diagnostic)
 {
-  const bool faces = node->isOfType(SoIndexedFaceSet::getClassTypeId());
-  if (!faces && !node->isOfType(SoIndexedLineSet::getClassTypeId())) return true;
+  if (!node->isOfType(SoIndexedShape::getClassTypeId())) return true;
   const auto * shape = static_cast<const SoIndexedShape *>(node);
+  const bool faces = node->isOfType(SoIndexedFaceSet::getClassTypeId());
+  const bool lines = node->isOfType(SoIndexedLineSet::getClassTypeId());
   SoState * state = action->getState();
   state->push();
   struct StateScope { SoState * state; ~StateScope() { state->pop(); } } scope{state};
   // Match generatePrimitives: vertexProperty is applied before its arrays and
   // binding are read, including inherited override rules.
   if (shape->vertexProperty.getValue()) shape->vertexProperty.getValue()->doAction(action);
+  const auto * coordinates = SoCoordinateElement::getInstance(state);
+  const int count = coordinates ? coordinates->getNum() : 0;
+  // Native primitive generation dereferences these indices before the builder
+  // can validate emitted vertices. Validate the current fields after every
+  // pre-callback, including the selected LINE replay and native fallbacks.
+  for (int i = 0; i < shape->coordIndex.getNum(); ++i) {
+    const int32_t index = shape->coordIndex[i];
+    if (index < -1 || (index >= 0 && index >= count)) {
+      diagnostic = "Indexed shape coordinate index out of bounds or invalid";
+      return false;
+    }
+    if (index < 0) continue;
+    if (coordinates->is3D()) {
+      const SbVec3f & value = coordinates->get3(index);
+      for (int component = 0; component < 3; ++component)
+        if (!std::isfinite(value[component])) {
+          diagnostic = "Non-finite consumed indexed shape coordinate";
+          return false;
+        }
+    } else {
+      const SbVec4f & value = coordinates->get4(index);
+      for (int component = 0; component < 4; ++component)
+        if (!std::isfinite(value[component])) {
+          diagnostic = "Non-finite consumed indexed shape coordinate";
+          return false;
+        }
+    }
+  }
+  if (!faces && !lines) return true;
   const auto * normals = SoNormalElement::getInstance(state);
   if (!normals || normals->getNum() == 0) return true;
   CoinRenderDirectGeometryView view;
@@ -3805,7 +3852,7 @@ CoinRenderActionP::shapeContentMethod(SoAction * action, SoNode * node)
     // subclasses and LINE replay, which intentionally bypass direct capture.
     const bool generatesPrimitives = !box || !render->hasSingleShapeCallbacks(node->getTypeId());
     std::string diagnostic;
-    if (generatesPrimitives && !validateIndexedShapeNormals(render, node, diagnostic)) {
+    if (generatesPrimitives && !validateIndexedShapeGeometry(render, node, diagnostic)) {
       render->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(
         CoinRenderAction::INVALID_SCENE, CoinRenderDiagnosticDomain::FRAME_PLAN,
         SbString(diagnostic.c_str())));
@@ -4659,7 +4706,7 @@ CoinRenderActionP::sceneCubeTexturePreCB(void * userdata,SoCallbackAction * acti
     // Search/copy can invoke callbacks too. Release previous proofs before it,
     // so a callback's removals/destructors observe the original ownership.
     if (hasEffects && p->sceneTextureCaptureMemo) p->sceneTextureCaptureMemo->invalidate();
-    SoSearchAction search;search.setType(SoCamera::getClassTypeId());search.setInterest(SoSearchAction::FIRST);search.apply(scene);
+    CoinRenderGuardedTraversal<SoSearchAction> search;search.setType(SoCamera::getClassTypeId());search.setInterest(SoSearchAction::FIRST);search.apply(scene);
     const SoCamera * original=search.getPath()?static_cast<const SoCamera *>(search.getPath()->getTail()):NULL;
     SoCamera * camera=original?static_cast<SoCamera *>(original->copy(FALSE)):new SoPerspectiveCamera;
     camera->ref();
@@ -4984,7 +5031,7 @@ CoinRenderActionP::managerLayerPreCB(void * userdata, SoCallbackAction * action,
     SoLazyElement::setTransparencyType(action->getState(), effectiveType);
     SoOverrideElement::setTransparencyTypeOverride(action->getState(),
       const_cast<SoNode *>(node), effectiveType == SoGLRenderAction::SORTED_LAYERS_BLEND);
-    p->builder.beginManagerLayer(std::get<1>(*found));
+    p->builder.beginManagerLayer(std::get<1>(*found), type == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER);
     p->managerCapturedLayers.push_back(p->builder.activeAnnotationLayer());
   }
   return SoCallbackAction::CONTINUE;
@@ -5002,7 +5049,7 @@ CoinRenderActionP::managerLayerPostCB(void * userdata, SoCallbackAction * action
     });
   if (found != p->managerLayerBoundaries.end()) {
     p->builder.capturePendingDepthClear(action);
-    p->builder.endManagerLayer();
+    p->builder.endManagerLayer(std::get<2>(*found) == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER);
     if (std::get<2>(*found) == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER &&
         p->managerHighlightDepth) --p->managerHighlightDepth;
     action->getState()->pop();
@@ -5019,7 +5066,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
   // only the authored base contributes shadow groups, lights and map scenes.
   if (p->managerHighlightDepth || p->capturingShadowScene || !group->isActive.getValue())
     return SoCallbackAction::CONTINUE;
-  SoSearchAction mapLightSearch;
+  CoinRenderGuardedTraversal<SoSearchAction> mapLightSearch;
   mapLightSearch.setType(SoLight::getClassTypeId());
   mapLightSearch.setInterest(SoSearchAction::ALL);
   mapLightSearch.apply(const_cast<SoShadowGroup *>(group));
@@ -5067,7 +5114,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     p->master->callbackRegistrationRevision() != p->captureCallbackRevision ||
     (SoShapeStyleElement::get(action->getState())->getFlags() & SoShapeStyleElement::BBOXCMPLX) ||
     action->getPathCode(pathIndexCount,pathIndices) == SoAction::IN_PATH;
-  SoSearchAction structure;
+  CoinRenderGuardedTraversal<SoSearchAction> structure;
   structure.setType(SoComplexity::getClassTypeId());
   structure.setInterest(SoSearchAction::FIRST);
   structure.apply(const_cast<SoShadowGroup *>(group));
@@ -5085,7 +5132,7 @@ CoinRenderActionP::shadowGroupPreCB(void * userdata, SoCallbackAction * action, 
     const auto * child = static_cast<const SoShadowGroup *>(structure.getPaths()[i]->getTail());
     separateMap = separateMap || (child != group && child->isActive.getValue());
   }
-  SoSearchAction search;
+  CoinRenderGuardedTraversal<SoSearchAction> search;
   search.setType(SoLight::getClassTypeId());
   search.setInterest(SoSearchAction::ALL);
   search.apply(const_cast<SoShadowGroup *>(group));

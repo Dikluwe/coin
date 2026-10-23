@@ -23,7 +23,9 @@ coin_render_same_draw(const CoinRenderDrawPacket &a, const CoinRenderDrawPacket 
          a.hasSortingCenter == b.hasSortingCenter &&
          std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) ==
              0 &&
-         a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene && a.clearDepthBefore == b.clearDepthBefore &&
+         a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene &&
+         a.managerSuperimposition == b.managerSuperimposition &&
+         a.generatedHighlight == b.generatedHighlight && a.clearDepthBefore == b.clearDepthBefore &&
          a.lineStripId == b.lineStripId;
 }
 

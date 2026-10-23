@@ -94,6 +94,8 @@ struct CoinRenderDrawPacket {
   bool authoredScene = false;
   // Capture identity: manager layers retain authored policy in technical modes.
   bool managerSuperimposition = false;
+  // Explicit generated selection replay; never inferred from a layer number.
+  bool generatedHighlight = false;
   bool isSceneLayer() const { return renderLayer == 0 || authoredScene; }
   bool clearDepthBefore = false;
   // Capture-only strip identity; consumed and cleared by StrokeCore before GPU submission.

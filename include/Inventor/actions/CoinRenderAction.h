@@ -138,6 +138,8 @@ public:
    * portable profile. Inert outside apply; preserves the previous publication.
    */
   SbBool rejectUnsupported(const SbString & reason);
+  /** Reject malformed authored state during capture without publishing it. */
+  SbBool rejectInvalidScene(const SbString & reason);
 
   /**
    * Defer the current callback path to the shared depth-tested annotation pass.

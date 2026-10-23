@@ -305,6 +305,7 @@ CoinRenderFramePlanBuilder::reset()
   this->nextAnnotationLayer = 1;
   this->authoredSceneLayer = UINT32_MAX;
   this->managerLayerDepth = 0;
+  this->managerHighlightDepth = 0;
   this->authoredSceneParentLayer = 0;
   this->authoredSceneParentClear = false;
   this->annotationDepthClearPending = false;
@@ -990,17 +991,19 @@ CoinRenderFramePlanBuilder::beginAnnotation(bool clearDepth)
 }
 
 void
-CoinRenderFramePlanBuilder::beginManagerLayer(bool clearDepth)
+CoinRenderFramePlanBuilder::beginManagerLayer(bool clearDepth, bool highlight)
 {
   ++this->managerLayerDepth;
+  if (highlight) ++this->managerHighlightDepth;
   this->beginAnnotation(clearDepth);
 }
 
 void
-CoinRenderFramePlanBuilder::endManagerLayer()
+CoinRenderFramePlanBuilder::endManagerLayer(bool highlight)
 {
   this->endAnnotation();
   if (this->managerLayerDepth) --this->managerLayerDepth;
+  if (highlight && this->managerHighlightDepth) --this->managerHighlightDepth;
 }
 
 void
@@ -3521,6 +3524,7 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
   dp.renderLayer = this->currentAnnotationLayer;
   dp.authoredScene = dp.renderLayer != 0 && dp.renderLayer == this->authoredSceneLayer;
   dp.managerSuperimposition = this->managerLayerDepth != 0;
+  dp.generatedHighlight = this->managerHighlightDepth != 0;
   dp.clearDepthBefore = dp.renderLayer != 0 && this->annotationDepthClearPending;
   if (dp.clearDepthBefore) this->annotationDepthClearPending = false;
   dp.geometry.firstVertex = static_cast<uint32_t>(this->currentPlan.vertices.size());
