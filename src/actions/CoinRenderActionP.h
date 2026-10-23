@@ -50,6 +50,8 @@ public:
   static void markerContentMethod(SoAction *, SoNode *);
   void setDiagnostic(const CoinRenderActionDiagnostic & diagnostic);
   static void cameraSensorCB(void * data, SoSensor * sensor);
+  static void vrmlSnapshotSensorCB(void * data, SoSensor * sensor);
+  bool containsVRMLSnapshot(SoNode * root);
   static SoCallbackAction::Response cameraStereoPostCB(void *, SoCallbackAction *, const SoNode *);
   void rememberFrameRoot(SoNode * root, bool qualifyCamera);
   bool prepareCameraOverlay(SoNode * root, CoinRenderCameraOverlayUndo & undo);
@@ -240,6 +242,14 @@ public:
   };
   std::vector<CameraStereoState> capturedStereoStates;
   std::vector<CameraStereoState> frameStereoStates;
+  // This is a negative-presence proof, independent of a successful frame or
+  // the narrower camera-overlay qualification. One root auditor covers child
+  // lists and SFNode/MFNode references; it neither retains nor walks the root.
+  SoNodeSensor vrmlSnapshotSensor;
+  SbUniqueId vrmlSnapshotRootId = 0;
+  bool vrmlSnapshotValid = false;
+  bool vrmlSnapshotPresent = false;
+  bool vrmlSnapshotCameraIndependent = false;
   SoNodeSensor cameraSensor;
   SoCamera * candidateCamera = NULL;
   SoCamera * cachedCamera = NULL;

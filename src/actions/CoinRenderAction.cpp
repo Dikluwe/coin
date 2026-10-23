@@ -610,9 +610,9 @@ static bool rttNodeHasEffects(const SoNode * node)
   return false;
 }
 
-static bool containsVRMLSnapshot(const SoNode * root)
-{
 #ifdef HAVE_VRML97
+static bool scanVRMLSnapshot(const SoNode * root, bool & cameraIndependent)
+{
   std::vector<const SoNode *> pending(1, root);
   std::unordered_set<const SoNode *> seen;
   while (!pending.empty()) {
@@ -622,6 +622,9 @@ static bool containsVRMLSnapshot(const SoNode * root)
     const SoFieldData * fields = node->getFieldData();
     for (int i = 0; fields && i < fields->getNumFields(); ++i) {
       const SoField * field = fields->getField(node, i);
+      // An engine/field connection can propagate a camera update into a node
+      // reference, including through nodes reached only by SFNode/MFNode.
+      if (field->isConnected()) cameraIndependent = false;
       if (field->isOfType(SoSFNode::getClassTypeId()))
         pending.push_back(static_cast<const SoSFNode *>(field)->getValue());
       else if (field->isOfType(SoMFNode::getClassTypeId())) {
@@ -632,9 +635,9 @@ static bool containsVRMLSnapshot(const SoNode * root)
     const SoChildList * children = node->getChildren();
     for (int i = 0; children && i < children->getLength(); ++i) pending.push_back((*children)[i]);
   }
-#endif
   return false;
 }
+#endif
 
 static bool rttSceneHasEffects(const SoNode * root, CoinRenderRttCaptureMemo::Baseline * baseline=NULL)
 {
@@ -1454,8 +1457,10 @@ CoinRenderActionP::CoinRenderActionP(CoinRenderAction * m)
     isApplying(false),
     hasReentrancyError(false),
     fastPathEnabled(true),
+    vrmlSnapshotSensor(CoinRenderActionP::vrmlSnapshotSensorCB, this),
     cameraSensor(CoinRenderActionP::cameraSensorCB, this)
 {
+  this->vrmlSnapshotSensor.setPriority(0);
   this->cameraSensor.setPriority(0);
 }
 
@@ -1570,6 +1575,65 @@ cameraStableScene(SoNode * root, SoCamera * camera, bool translationProfile = fa
 }
 bool translationFieldsStable(const SoNode *);
 bool objectOverlayEnabled(const char *);
+}
+
+void
+CoinRenderActionP::vrmlSnapshotSensorCB(void * data, SoSensor * sensor)
+{
+  auto * self = static_cast<CoinRenderActionP *>(data);
+  auto * observer = static_cast<SoNodeSensor *>(sensor);
+  SoNode * root = observer->getAttachedNode();
+  SoNode * trigger = observer->getTriggerNode();
+  SoField * field = observer->getTriggerField();
+  // Only exact builtin camera fields have known, non-structural semantics.
+  // In particular, inherited fields on application camera subclasses, node
+  // references, propagated connection updates, touch(), and group edits must
+  // not carry the proof forward. Their next apply scans the graph again.
+  const bool cameraField = trigger && field && field->getContainer() == trigger &&
+    (typeid(*trigger) == typeid(SoPerspectiveCamera) ||
+     typeid(*trigger) == typeid(SoOrthographicCamera)) &&
+    !field->isOfType(SoSFNode::getClassTypeId()) &&
+    !field->isOfType(SoMFNode::getClassTypeId()) &&
+    observer->getTriggerOperationType() == SoNotRec::FIELD_UPDATE;
+  // Reuse the existing whole-scene camera qualification, and additionally
+  // exclude connections on referenced nodes which that child-list proof does
+  // not inspect. Duplicate notifications can be suppressed at an ancestor,
+  // so a camera origin alone is not proof against connected topology changes.
+  if (self->vrmlSnapshotValid && !self->vrmlSnapshotPresent && root && cameraField &&
+      self->vrmlSnapshotCameraIndependent && self->cachedCamera == trigger &&
+      self->cameraSensor.getAttachedNode() == root && !self->cameraPatchInvalidated)
+    self->vrmlSnapshotRootId = root->getNodeId();
+  else self->vrmlSnapshotValid = false;
+}
+
+bool
+CoinRenderActionP::containsVRMLSnapshot(SoNode * root)
+{
+#ifdef HAVE_VRML97
+  if (this->vrmlSnapshotSensor.getAttachedNode() != root) {
+    this->vrmlSnapshotSensor.detach();
+    this->vrmlSnapshotValid = false;
+    if (root) this->vrmlSnapshotSensor.attach(root);
+  }
+  if (!root) return false;
+  const SbUniqueId revision = root->getNodeId();
+  if (this->vrmlSnapshotValid && !this->vrmlSnapshotPresent &&
+      this->vrmlSnapshotRootId == revision) return false;
+  // Keep scanning positive scenes: VRML capture observes mutable state which
+  // does not necessarily notify. Only a stable negative result is reusable.
+  // Install the auditor before reading fields, since evaluating a connection
+  // can itself notify. Such a scan cannot qualify cache reuse this apply.
+  this->vrmlSnapshotValid = false;
+  bool cameraIndependent = true;
+  const bool present = scanVRMLSnapshot(root, cameraIndependent);
+  this->vrmlSnapshotCameraIndependent = cameraIndependent;
+  this->vrmlSnapshotPresent = present;
+  this->vrmlSnapshotRootId = root->getNodeId();
+  this->vrmlSnapshotValid = this->vrmlSnapshotRootId == revision;
+  return present || !this->vrmlSnapshotValid;
+#else
+  return false;
+#endif
 }
 
 void
@@ -2704,7 +2768,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     this->preRenderCallbacks.empty() && this->sortingStrategy == CoinRenderAction::BBOX_CENTER &&
     this->portableShaderModules.empty() &&
     this->master->callbackRegistrationRevision() == this->captureCallbackRevision &&
-    !containsVRMLSnapshot(cacheRoot);
+    !this->containsVRMLSnapshot(cacheRoot);
   if (planCacheAllowed && cacheRoot && cacheRoot == this->cachedRoot &&
       cacheRoot->getNodeId() == this->cachedRootId) {
     // SoCamera's stereo setters are not fields and do not touch the node.

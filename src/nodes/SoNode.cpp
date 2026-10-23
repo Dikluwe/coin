@@ -797,10 +797,14 @@ SoNode::setNodeType(const NodeType type)
 {
   // make sure we have enough bits to store this type
   assert((uint32_t) type <= FLAG_TYPEMASK);
+  if (this->getNodeType() == type) return;
   // clear old type
   this->clearStateFlags(FLAG_TYPEMASK);
   // set new type
   this->setStateFlags((uint32_t) type);
+  // Node type affects traversal/capture policy just as fields do. Keep node
+  // revisions and ancestor auditors coherent when it changes after insertion.
+  this->touch();
 }
 
 /*!
