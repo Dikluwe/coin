@@ -59,6 +59,7 @@ public:
                                          CoinRenderTargetP&, uint64_t&) override;
   void finishRtt(const std::vector<uint64_t>&) override;
   void retireRtt(const std::vector<uint64_t>&) override;
+  CoinRenderSubmitResult preflightStereo(const CoinRenderFramePlan &, const CoinRenderTargetP &, size_t) const override;
   virtual void poll() override;
   virtual const std::string & getLastError() const override;
 

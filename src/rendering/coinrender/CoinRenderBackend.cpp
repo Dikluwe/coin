@@ -88,3 +88,8 @@ CoinRenderSubmitResult CoinRenderBackend::preflightMultipassOutput(const CoinRen
   return graph ? this->preflightMultipassGraph(*graph, admitted, target.size) :
     this->preflightMultipass(admitted, target.size);
 }
+
+CoinRenderSubmitResult CoinRenderBackend::preflightStereo(const CoinRenderFramePlan &,
+    const CoinRenderTargetP &, size_t) const {
+  return {CoinRenderBackendStatus::UNSUPPORTED, "Completed stereo views require a GPU compositor"};
+}

@@ -9,6 +9,7 @@ mod texture_profile;
 mod texture_mips;
 mod surface_present;
 mod multipass;
+mod stereo;
 use bytemuck::{Pod, Zeroable};
 use pollster::block_on;
 use raw_window_handle::{RawDisplayHandle, RawWindowHandle};
@@ -39,14 +40,14 @@ mod instancing;
 #[cfg(target_os = "android")]
 mod android_log;
 
-pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 69;
+pub const COIN_WGPU_BRIDGE_PROTOCOL_REVISION: u32 = 70;
 pub const COIN_WGPU_ABI_VERSION: u32 = COIN_WGPU_BRIDGE_PROTOCOL_REVISION;
 
 const _: () = {
     assert!(std::mem::size_of::<CoinWgpuLight>() == 80);
     assert!(std::mem::align_of::<CoinWgpuLight>() == 4);
     assert!(std::mem::offset_of!(CoinWgpuLight, ambient_color) == 64);
-    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 560);
+    assert!(std::mem::size_of::<CoinWgpuFrameView>() == 600);
     assert!(std::mem::size_of::<CoinWgpuPortableNode>() == 40);
     assert!(std::mem::size_of::<CoinWgpuPortableModule>() == 56);
     assert!(std::mem::size_of::<CoinWgpuPortableRange>() == 64);
@@ -706,6 +707,10 @@ pub struct CoinWgpuFrameView {
     pub multipass_matrix_count: u64,
     pub multipass_clear_colors: *const f32,
     pub multipass_clear_color_count: u64,
+    pub stereo_tokens: [u64;2],
+    pub stereo_mode: u32,
+    pub stereo_origin: [i32;2],
+    pub stereo_extent: [i32;2],
 }
 
 fn bump_payload_present(frame: &CoinWgpuFrameView) -> bool {
@@ -2948,6 +2953,8 @@ struct RttTexture {
     mip_count: u32,
     cube_face_size: u32,
     cube_mipmapped: bool,
+    // View-owned attachments retain the exact samples until final composition.
+    completed_view: Option<(wgpu::TextureView,wgpu::TextureView,u32)>,
 }
 struct RetiredRttTexture {
     #[allow(dead_code)] // Retirement keeps the view alive until the submission fence.
@@ -6880,7 +6887,14 @@ fn encode_scene_samples(
                 samplers,shadow,if single{camera_geometry}else{None},instances,instance_ranges,
                 if single{timestamp}else{None},color,resolved,format,depth,depth_texture,samples,
                 frame.sorted_layers_passes,frame.texture_sampling_policy,frame.rasterization_policy,
-                true,None,shared).map(|(command,instances)|(vec![command],instances))
+                frame.stereo_mode==0,None,shared).and_then(|(command,instances)| {
+                    let mut commands=Vec::new();
+                    if frame.stereo_mode!=0 {
+                        commands.push(stereo::encode(ctx,frame,size,color,format,depth,samples)?);
+                    }
+                    commands.push(command);
+                    Ok((commands,instances))
+                })
         }
     };
     if count==1 {return encode(states,draws,order,None,true,frame.clear_color);}
@@ -8880,7 +8894,7 @@ fn encode_frame_impl(
             color_attachments: &[Some(wgpu::RenderPassColorAttachment {
                 view: color_view,
                 resolve_target: Some(resolve_view),
-                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Discard },
+                ops: wgpu::Operations { load: wgpu::LoadOp::Load, store: wgpu::StoreOp::Store },
             })],
             depth_stencil_attachment: None,
             timestamp_writes: None,
@@ -11443,7 +11457,7 @@ fn coin_wgpu_submit_internal(
             set_error(error_buf, error_buf_len, "Too many active RTT textures");
             return CoinWgpuStatus::OutOfMemory;
         }
-        if f.texture_sampling_policy>1 || f.texture_output_flags&!3!=0 ||
+        if f.texture_sampling_policy>1 || f.texture_output_flags&!7!=0 ||
            (f.texture_output_flags!=0 && out_texture.is_null()) {
             set_error(error_buf,error_buf_len,"Advanced output flags require a direct RTT destination");
             return CoinWgpuStatus::InvalidArgument;
@@ -11576,7 +11590,7 @@ fn coin_wgpu_submit_internal(
             let color = ctx.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("Coin MSAA color"), size: extent, mip_level_count: 1,
                 sample_count, dimension: wgpu::TextureDimension::D2,
-                format: output_format, usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
+                format: output_format, usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
                 view_formats: &[],
             });
             let depth = if let Some((texture, _)) = prior_depth.as_ref() { texture.clone() }
@@ -11671,6 +11685,9 @@ fn coin_wgpu_submit_internal(
                 height,
                 format: if f.texture_output_flags&1!=0 {2} else {0},
                 mip_count:output_mips, cube_face_size:0, cube_mipmapped:false,
+                completed_view: (f.texture_output_flags&4!=0).then(|| (
+                    msaa_attachments.as_ref().map_or_else(||color_view.clone(),|a|a.1.clone()),
+                    msaa_attachments.as_ref().map_or_else(||depth_view.clone(),|a|a.3.clone()),sample_count)),
             });
             tgt.submission_serial = serial;
             unsafe { *out_texture = token; }
@@ -12324,7 +12341,7 @@ pub extern "C" fn coin_wgpu_assemble_cube_rtt(faces:*const u64,n:u32,mips:u32,ge
         ctx.queue.submit([encoder.finish()]);
         let completed=ctx.completed_serial.clone();
         ctx.queue.on_submitted_work_done(move||{completed.fetch_max(local_serial,Ordering::SeqCst);GLOBAL_COMPLETED_SERIAL.fetch_max(serial,Ordering::SeqCst);});
-        registry.active.insert(token,RttTexture{texture,view,width,height,opaque:false,format:0,mip_count:1,cube_face_size:n,cube_mipmapped:mips!=0});
+        registry.active.insert(token,RttTexture{texture,view,width,height,opaque:false,format:0,mip_count:1,cube_face_size:n,cube_mipmapped:mips!=0,completed_view:None});
         unsafe{*out_token=token;}CoinWgpuStatus::Ok
     }).unwrap_or_else(|_|{set_error(error_buf,error_buf_len,"Cube RTT assembly panicked");CoinWgpuStatus::BackendError})
 }

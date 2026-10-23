@@ -506,7 +506,14 @@ struct CoinRenderFramePlan {
   bool smoothing = false;
   std::vector<SbColor4f> passClearColors; // Empty: capture-once multipass. Otherwise one clear per snapshot.
   CoinRenderTransparencyOptions transparency;
-  bool managerFrame = false; // Target depth ownership for mono SoRenderManager.
+  bool managerFrame = false; // Target depth ownership for SoRenderManager.
+  // Private completed-view composition. Authored resources stay inside their
+  // view plans; only execution-owned GPU tokens cross this final boundary.
+  bool viewOutput = false; // Retain sampleable color and depth, without CPU staging.
+  uint64_t stereoTokens[2] = {0, 0};
+  uint32_t stereoMode = 0; // 0=none, 1=anaglyph, 2=rows, 3=columns, 4=private alpha initialization.
+  int32_t stereoOrigin[2] = {0, 0};
+  int32_t stereoExtent[2] = {0, 0};
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<CoinRenderVertexSnapshot> vertices;
   // Sparse because authored bump UVs are rare and GPU vertex strides stay fixed.

@@ -70,6 +70,7 @@ public:
   static CoinRenderTarget::ReadbackStatus pollReadback(const CoinRenderReadbackTicket & ticket,
     std::vector<uint8_t> & color, std::vector<float> & depth, SbString * diagnostic);
   static bool cancelReadback(const CoinRenderReadbackTicket & ticket);
+  CoinRenderSubmitResult preflightStereo(const CoinRenderFramePlan &, const CoinRenderTargetP &, size_t) const override;
   void poll() override;
   const std::string & getLastError() const override { return lastError; }
 
@@ -96,6 +97,7 @@ private:
     uint32_t cubeFaceSize=0;
     bool cubeMipmapped=false;
     bool depthSampleable=false;
+    bgfx::FrameBufferHandle viewSamples = BGFX_INVALID_HANDLE;
     bool inUse = false;
   };
 
@@ -128,6 +130,13 @@ private:
   std::map<std::pair<std::string, PortableFamily>, std::string> portableProgramRoutes;
   bool prepareFullscreenResources();
   bool prepareMultipassPrograms();
+  bool prepareStereoPrograms();
+  bool encodeStereoViews(const CoinRenderFramePlan &, bgfx::FrameBufferHandle, bgfx::ViewId, int, int);
+  bgfx::ProgramHandle stereoProgram = BGFX_INVALID_HANDLE;
+  bgfx::ProgramHandle stereoMsaaProgram = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle stereoSamplers[4] = {BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE};
+  bgfx::UniformHandle stereoInfo = BGFX_INVALID_HANDLE;
+  bgfx::UniformHandle stereoViewport = BGFX_INVALID_HANDLE;
   bool prepareNpotMipProgram();
   bool prepareRasterImageResources();
   CoinRenderSubmitResult encodeRasterImages(const CoinRenderFramePlan & frame,

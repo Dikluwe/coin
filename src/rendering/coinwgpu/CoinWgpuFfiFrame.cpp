@@ -38,7 +38,7 @@
 static_assert(sizeof(CoinWgpuPortableNode) == 40, "Portable IR statement ABI size changed");
 static_assert(sizeof(CoinWgpuPortableModule) == 56, "Portable module ABI size changed");
 static_assert(sizeof(CoinWgpuPortableRange) == 64, "Portable range ABI size changed");
-static_assert(sizeof(CoinWgpuFrameView) == 560, "Frame view ABI size changed");
+static_assert(sizeof(CoinWgpuFrameView) == 600, "Frame view ABI size changed");
 static_assert(sizeof(CoinWgpuBumpVertex) == 44, "Bump vertex ABI size changed");
 static_assert(sizeof(CoinWgpuBumpImage) == 32, "Bump image ABI size changed");
 static_assert(offsetof(CoinWgpuFrameView, bump_vertices) == 464, "Bump ABI tail offset changed");
@@ -2174,7 +2174,13 @@ CoinWgpuFfiFrame::bindView(const CoinRenderFramePlan & frame, uint32_t width, ui
   this->view.instance_count = static_cast<uint64_t>(this->instances.size());
   this->view.instance_ranges = this->instanceRanges.empty() ? NULL : this->instanceRanges.data();
   this->view.instance_range_count = static_cast<uint64_t>(this->instanceRanges.size());
-  this->view.texture_output_flags=(frame.outputColorFormat==CoinRenderTextureFormat::RGBA16_FLOAT?1u:0u)|(frame.outputMipmaps?2u:0u);
+  this->view.texture_output_flags=(frame.outputColorFormat==CoinRenderTextureFormat::RGBA16_FLOAT?1u:0u)|(frame.outputMipmaps?2u:0u)|(frame.viewOutput?4u:0u);
+  this->view.stereo_mode = frame.stereoMode;
+  for (int i=0; i<2; ++i) {
+    this->view.stereo_tokens[i] = frame.stereoTokens[i];
+    this->view.stereo_origin[i] = frame.stereoOrigin[i];
+    this->view.stereo_extent[i] = frame.stereoExtent[i];
+  }
   this->view.textures = this->textures.empty() ? NULL : this->textures.data();
   this->view.texture_count = static_cast<uint64_t>(this->textures.size());
   this->view.samplers = this->samplers.empty() ? NULL : this->samplers.data();

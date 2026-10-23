@@ -115,6 +115,10 @@
 #include "coin_bgfx_fs_shadow_peel_msaa_portable_spirv.h"
 #include "coin_bgfx_fs_peel_next_glsl.h"
 #include "coin_bgfx_fs_peel_next_spirv.h"
+#include "coin_bgfx_fs_stereo_glsl.h"
+#include "coin_bgfx_fs_stereo_spirv.h"
+#include "coin_bgfx_fs_stereo_msaa_glsl.h"
+#include "coin_bgfx_fs_stereo_msaa_spirv.h"
 #include "coin_bgfx_fs_composite_glsl.h"
 #include "coin_bgfx_fs_composite_spirv.h"
 #include "coin_bgfx_fs_multipass_sum_glsl.h"
@@ -304,6 +308,8 @@
 #include "coin_bgfx_vs_instanced_color_dx11.h"
 #include "coin_bgfx_fs_instanced_color_dx11.h"
 #include "coin_bgfx_fs_peel_next_dx11.h"
+#include "coin_bgfx_fs_stereo_dx11.h"
+#include "coin_bgfx_fs_stereo_msaa_dx11.h"
 #include "coin_bgfx_fs_composite_dx11.h"
 #include "coin_bgfx_fs_multipass_sum_dx11.h"
 #include "coin_bgfx_fs_multipass_mean_dx11.h"
@@ -2023,8 +2029,15 @@ CoinBgfxBackend::destroyResources()
     return;
   }
   this->destroyFrameBuffers();
-  for (DirectTextureResource & resource : this->directTextures)
+  for (DirectTextureResource & resource : this->directTextures) {
     if (bgfx::isValid(resource.frameBuffer)) bgfx::destroy(resource.frameBuffer);
+    if (bgfx::isValid(resource.viewSamples)) bgfx::destroy(resource.viewSamples);
+  }
+  for (auto handle : {this->stereoProgram, this->stereoMsaaProgram})
+    if (bgfx::isValid(handle)) bgfx::destroy(handle);
+  for (auto handle : this->stereoSamplers) if (bgfx::isValid(handle)) bgfx::destroy(handle);
+  if (bgfx::isValid(this->stereoInfo)) bgfx::destroy(this->stereoInfo);
+  if (bgfx::isValid(this->stereoViewport)) bgfx::destroy(this->stereoViewport);
   if (bgfx::isValid(this->fullscreenVertexBuffer)) bgfx::destroy(this->fullscreenVertexBuffer);
   if (bgfx::isValid(this->fullscreenIndexBuffer)) bgfx::destroy(this->fullscreenIndexBuffer);
   if (bgfx::isValid(this->previousDepthSampler)) bgfx::destroy(this->previousDepthSampler);
@@ -3167,6 +3180,74 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightMultipass(const CoinRenderFrame
   if (this->initialized && !const_cast<CoinBgfxBackend *>(this)->prepareMultipassPrograms())
     return {CoinRenderBackendStatus::BACKEND_ERROR,this->lastError};
   return {};
+}
+
+bool CoinBgfxBackend::prepareStereoPrograms()
+{
+  if (!this->prepareFullscreenResources()) return false;
+  if (!bgfx::isValid(this->stereoProgram))
+    this->stereoProgram = createLayerProgram(COIN_BGFX_SHADER_DATA(coin_bgfx_vs), COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+      COIN_BGFX_SHADER_DATA(coin_bgfx_fs_stereo), COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_stereo));
+  if (this->sampleCount > 1 && !bgfx::isValid(this->stereoMsaaProgram))
+    this->stereoMsaaProgram = createLayerProgram(COIN_BGFX_SHADER_DATA(coin_bgfx_vs), COIN_BGFX_SHADER_SIZE(coin_bgfx_vs),
+      COIN_BGFX_SHADER_DATA(coin_bgfx_fs_stereo_msaa), COIN_BGFX_SHADER_SIZE(coin_bgfx_fs_stereo_msaa));
+  const char * names[] = {"s_stereoLeft", "s_stereoRight", "s_stereoLeftDepth", "s_stereoRightDepth"};
+  for (int i=0; i<4; ++i) if (!bgfx::isValid(this->stereoSamplers[i]))
+    this->stereoSamplers[i] = bgfx::createUniform(names[i], bgfx::UniformType::Sampler);
+  if (!bgfx::isValid(this->stereoInfo)) this->stereoInfo = bgfx::createUniform("u_stereoInfo", bgfx::UniformType::Vec4);
+  if (!bgfx::isValid(this->stereoViewport)) this->stereoViewport = bgfx::createUniform("u_stereoViewport", bgfx::UniformType::Vec4);
+  bool valid = bgfx::isValid(this->stereoProgram) && (this->sampleCount == 1 || bgfx::isValid(this->stereoMsaaProgram)) &&
+    bgfx::isValid(this->stereoInfo) && bgfx::isValid(this->stereoViewport);
+  for (auto sampler : this->stereoSamplers) valid = valid && bgfx::isValid(sampler);
+  if (!valid) this->lastError = "BGFX completed-view composition resources unavailable";
+  return valid;
+}
+
+bool CoinBgfxBackend::encodeStereoViews(const CoinRenderFramePlan & frame, bgfx::FrameBufferHandle output,
+    bgfx::ViewId view, int width, int height)
+{
+  if (frame.stereoMode < 1 || frame.stereoMode > 4 || !frame.stereoTokens[0] ||
+      (frame.stereoMode != 4 && (frame.stereoTokens[0] == frame.stereoTokens[1] || frame.stereoExtent[0] <= 0 || frame.stereoExtent[1] <= 0))) {
+    this->lastError = "Invalid stereo completed-view composition";
+    return false;
+  }
+  bgfx::TextureHandle textures[4] = {BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE, BGFX_INVALID_HANDLE};
+  for (int eye=0; eye<2; ++eye) for (const auto & resource : this->directTextures)
+    if (resource.token == frame.stereoTokens[eye] && resource.inUse && resource.width == width && resource.height == height) {
+      const auto source = this->sampleCount > 1 ? resource.viewSamples : resource.frameBuffer;
+      if (!bgfx::isValid(source)) break;
+      textures[eye] = bgfx::getTexture(source, 0);
+      textures[eye+2] = bgfx::getTexture(source, 1);
+    }
+  for (auto texture : textures) if (!bgfx::isValid(texture)) {
+    this->lastError = "Stereo view token is stale, mismatched or belongs to another owner";
+    return false;
+  }
+  bgfx::setViewName(view, "stereo_completed_views");
+  bgfx::setViewMode(view, bgfx::ViewMode::Sequential);
+  bgfx::setViewFrameBuffer(view, output);
+  bgfx::setViewRect(view, 0, 0, uint16_t(width), uint16_t(height));
+  bgfx::setViewTransform(view, nullptr, nullptr);
+  const float identity[16] = {1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1};
+  const float info[4] = {1.0f/width, 1.0f/height, float(frame.stereoMode), bgfx::getCaps()->originBottomLeft ? 1.0f : 0.0f};
+  const float viewport[4] = {float(frame.stereoOrigin[0]), float(frame.stereoOrigin[1]),
+    float(frame.stereoExtent[0]), float(frame.stereoExtent[1])};
+  for (uint32_t sample=0; sample<this->sampleCount; ++sample) {
+    const float sampleInfo[4] = {frame.clearColor[0],frame.clearColor[1],frame.clearColor[2],float(sample)};
+    bgfx::setTransform(identity);
+    bgfx::setVertexBuffer(0, this->fullscreenVertexBuffer);
+    bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
+    bgfx::setUniform(this->stereoInfo, info);
+    bgfx::setUniform(this->stereoViewport, viewport);
+    bgfx::setUniform(this->depthInfoUniform, sampleInfo);
+    for (int i=0; i<4; ++i) bgfx::setTexture(uint8_t(i), this->stereoSamplers[i], textures[i],
+      BGFX_SAMPLER_U_CLAMP | BGFX_SAMPLER_V_CLAMP | BGFX_SAMPLER_MIN_POINT | BGFX_SAMPLER_MAG_POINT);
+    bgfx::setSampleMask(1u << sample);
+    bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A | BGFX_STATE_WRITE_Z |
+      BGFX_STATE_DEPTH_TEST_ALWAYS | (this->sampleCount > 1 ? BGFX_STATE_MSAA : 0));
+    bgfx::submit(view, this->sampleCount > 1 ? this->stereoMsaaProgram : this->stereoProgram);
+  }
+  return true;
 }
 
 bool CoinBgfxBackend::prepareMultipassPrograms() {
@@ -4885,7 +4966,7 @@ static bool bgfxCompositionViewBudget(const CoinRenderFramePlan & frame,
     if (layer.second && CoinBgfxLowering::clipViewport(layer.second->viewport, width, height, clipped))
       ++views;
   }
-  views += (multisampled ? 1 : 0);
+  views += (multisampled ? 1 : 0) + (frame.stereoMode ? 1 : 0);
   if (frame.numPasses > 1)
     views = fixedViews + (views - fixedViews + 1) * uint64_t(frame.numPasses) + 1;
   views += outputViews;
@@ -4979,7 +5060,7 @@ static bool bgfxMsaaFrameViewBudget(const CoinRenderFramePlan & frame,
       peeling ? frame.transparency.layers + 1 : 2,
       [&](const CoinRenderCompositionItem & item) { return frame.draws[item.drawIndex].isSceneLayer() && item.blend && item.deferred; },
       [](const CoinRenderCompositionItem & item) { return item.additive; }) +
-    (samples > 1 ? 1 : 0) + outputViews;
+    (samples > 1 ? 1 : 0) + (frame.stereoMode ? 1 : 0) + outputViews;
   for (const auto & layer : layers) {
     ++views;
     if (layer.second) {
@@ -5159,6 +5240,8 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   }
   const auto multipassAdmission = this->preflightMultipass(frame,target.size);
   if (multipassAdmission.status != CoinRenderBackendStatus::SUCCESS) return multipassAdmission;
+  if (frame.stereoMode && !this->prepareStereoPrograms())
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   this->managerDepthMode = this->managerDepthMode || frame.managerFrame;
   const bool needPrivateWindow = frame.numPasses > 1 || this->managerDepthMode;
   const bool releaseMultipassWindow = this->presentToWindow && this->multipassSceneRequired && !needPrivateWindow;
@@ -5847,6 +5930,19 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | (backgroundDepthHistory ? 0 : BGFX_CLEAR_DEPTH), 1.0f, 0, clearIndex);
   bgfx::setViewTransform(opaqueView, nullptr, nullptr);
   bgfx::touch(opaqueView);
+  if (frame.stereoMode) {
+    if (!this->encodeStereoViews(frame, sceneOutput, opaqueView, this->width, this->height)) {
+      destroyTextures();
+      return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+    }
+    ++opaqueView;
+    bgfx::setViewName(opaqueView, "post_stereo_foreground");
+    bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(opaqueView, 0, 0, this->width, this->height);
+    bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
+    bgfx::setViewClear(opaqueView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(opaqueView, nullptr, nullptr);
+  }
   if (std::any_of(draws.begin(), draws.end(), [](const CoinBgfxDraw & draw) { return draw.authoredScene; })) {
     // The original view clears the frame once; backgrounds execute before the
     // authored scene and its depth barrier without clearing their color.
@@ -6248,18 +6344,23 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     captureGpuPasses(submittedFrame, gpuSample);
   };
   captureGpuFrame();
+  // A reusable STAGED producer must read its own execution even if the
+  // ordinary target policy allows a pipelined predecessor. Keep the actual
+  // configured slot count and the existing bounded completion wait unchanged.
+  const bool currentReadback = this->readbackPipelineDepth == 1 || target.requiresCurrentReadback;
   ReadbackSlot * publishSlot = NULL;
   const auto selectReady = [&]() {
     ReadbackSlot * selected = static_cast<ReadbackSlot *>(NULL);
     for (ReadbackSlot & slot : this->readbackSlots) {
-      if (slot.pending && slot.readyFrame <= completedFrame &&
+      if (slot.pending && (!target.requiresCurrentReadback || slot.sequence == writeSlot->sequence) &&
+          slot.readyFrame <= completedFrame &&
           (!selected || slot.sequence < selected->sequence)) selected = &slot;
     }
     return selected;
   };
   publishSlot = selectReady();
   bool readbackBootstrap = false;
-  if (!publishSlot && (this->readbackPipelineDepth == 1 ||
+  if (!publishSlot && (currentReadback ||
                        this->lastPublishedReadback.empty())) {
     readbackBootstrap = true;
     for (int attempts = 0;
@@ -6273,7 +6374,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     if (runtimeStatus != CoinRenderBackendStatus::SUCCESS)
       return CoinRenderSubmitResult(runtimeStatus, this->lastError);
   }
-  if (!publishSlot && (this->readbackPipelineDepth == 1 || this->lastPublishedReadback.empty())) {
+  if (!publishSlot && (currentReadback || this->lastPublishedReadback.empty())) {
     this->lastError = "BGFX readback did not complete within sixteen frames";
     return CoinRenderSubmitResult(CoinRenderBackendStatus::BACKEND_ERROR, this->lastError);
   }
@@ -6304,7 +6405,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       for (int y = 0; y < this->height / 2; ++y)
         std::swap_ranges(publishSlot->depth.begin() + y * this->width, publishSlot->depth.begin() + (y + 1) * this->width,
                          publishSlot->depth.begin() + (this->height - y - 1) * this->width);
-    if (this->readbackPipelineDepth == 1) {
+    if (currentReadback) {
       // The synchronous contract publishes this frame before returning. Its
       // target storage can be recycled without maintaining a duplicate image.
       target.colorBuffer.swap(publishSlot->pixels);
@@ -6317,7 +6418,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastPublishedSequence = publishSlot->sequence;
     publishSlot->pending = false;
   }
-  if (this->readbackPipelineDepth != 1) target.colorBuffer = this->lastPublishedReadback;
+  if (!currentReadback) target.colorBuffer = this->lastPublishedReadback;
   readbackLatencyFrames = static_cast<uint32_t>(
     this->readbackSequence - this->lastPublishedSequence);
   const Clock::time_point readbackNormalized = Clock::now();
@@ -6327,7 +6428,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       this->cachedPlan.instances.swap(cameraInstances);
     this->cachedRevision = frame.revision;
   }
-  if (target.depthReadbackEnabled && this->readbackPipelineDepth != 1)
+  if (target.depthReadbackEnabled && !currentReadback)
     target.depthBuffer = this->lastPublishedDepth;
   else if (!target.depthReadbackEnabled) target.depthBuffer.clear();
   if (tracePhases) {
@@ -6427,7 +6528,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
 
   if (!this->initialized || !this->onApiThread() ||
       producerKey == 0 || size[0] <= 0 || size[1] <= 0 ||
-      size[0] > CoinRenderRttPlan::maxExtent || size[1] > CoinRenderRttPlan::maxExtent) {
+      (!frame.viewOutput && (size[0] > CoinRenderRttPlan::maxExtent || size[1] > CoinRenderRttPlan::maxExtent))) {
     return CoinRenderSubmitResult(CoinRenderBackendStatus::NOT_READY,
                         "BGFX direct RTT requires a prepared backend and valid extent");
   }
@@ -6523,9 +6624,9 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::FrameBufferHandle buffer;
     int width, height;
     bool active;
-    explicit RootMsaaScope(CoinBgfxBackend * backend) : owner(backend),
+    explicit RootMsaaScope(CoinBgfxBackend * backend, bool viewOutput) : owner(backend),
       buffer(backend->msaaFrameBuffer), width(backend->msaaWidth), height(backend->msaaHeight),
-      active(backend->managerDepthMode && backend->sampleCount > 1) {
+      active((viewOutput || backend->managerDepthMode) && backend->sampleCount > 1) {
       if (active) {
         owner->msaaFrameBuffer = BGFX_INVALID_HANDLE;
         owner->msaaWidth = owner->msaaHeight = 0;
@@ -6539,7 +6640,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         owner->msaaHeight = height;
       }
     }
-  } rootMsaaScope(this);
+  } rootMsaaScope(this, frame.viewOutput);
   const auto msaaPreparation = this->prepareMsaa(size[0], size[1]);
   if (msaaPreparation.status != CoinRenderBackendStatus::SUCCESS) return msaaPreparation;
   auto allocationOptions = frame.transparency;
@@ -6616,7 +6717,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   if (newOutput) {
     const bgfx::Caps * caps = bgfx::getCaps();
     const bgfx::TextureFormat::Enum depthFormat =
-      strategy != CoinBgfxTransparencyStrategy::SORTED_LAYERS &&
+      !frame.viewOutput && strategy != CoinBgfxTransparencyStrategy::SORTED_LAYERS &&
       (caps->formats[bgfx::TextureFormat::D24S8] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER)
         ? bgfx::TextureFormat::D24S8 : bgfx::TextureFormat::D32F;
     bgfx::TextureHandle color = bgfx::createTexture2D(
@@ -6624,7 +6725,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       coinBgfxTextureFormat(frame.outputColorFormat), peelTextureFlags);
     bgfx::TextureHandle depth = bgfx::createTexture2D(
       static_cast<uint16_t>(size[0]), static_cast<uint16_t>(size[1]), false, 1,
-      depthFormat, strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS
+      depthFormat, (frame.viewOutput || strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS)
                        ? peelTextureFlags : BGFX_TEXTURE_RT_WRITE_ONLY);
     if (bgfx::isValid(color) && bgfx::isValid(depth)) {
       if (manualMips) {
@@ -6899,6 +7000,19 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
   bgfx::setViewClear(opaqueView, BGFX_CLEAR_COLOR | BGFX_CLEAR_DEPTH, 1.0f, 0, clearIndex);
   bgfx::touch(opaqueView);
+  if (frame.stereoMode) {
+    if (!this->encodeStereoViews(frame, sceneOutput, opaqueView, size[0], size[1])) {
+      cleanupDirect();
+      return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+    }
+    ++opaqueView;
+    bgfx::setViewName(opaqueView, "stereo_view_base");
+    bgfx::setViewMode(opaqueView, bgfx::ViewMode::Sequential);
+    bgfx::setViewRect(opaqueView, 0, 0, size[0], size[1]);
+    bgfx::setViewFrameBuffer(opaqueView, sceneOutput);
+    bgfx::setViewClear(opaqueView, BGFX_CLEAR_NONE);
+    bgfx::setViewTransform(opaqueView, nullptr, nullptr);
+  }
   const bgfx::TextureHandle surfaceSampleDepth = strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS && this->sampleCount > 1 ?
     bgfx::getTexture(transparency.layers[0], 2) : bgfx::TextureHandle BGFX_INVALID_HANDLE;
   if (std::any_of(sampleDraws.begin(), sampleDraws.end(), [](const CoinBgfxDraw & draw) { return draw.authoredScene; })) {
@@ -6982,7 +7096,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
     bgfx::submit(meanView, this->multipassMeanProgram);
   }
-  bgfx::frame();
+  bgfx::frame(BGFX_FRAME_FLUSH);
   if (manualMips) {
     auto runtimeStatus = this->checkRuntimeFailure("BGFX direct RTT base render failed");
     if (runtimeStatus != CoinRenderBackendStatus::SUCCESS) {
@@ -7020,7 +7134,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       // Isolate timer queries from the base scene and its shadow/OIT views.
       for (unsigned settle = 0; settle < 8; ++settle) {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        bgfx::frame();
+        bgfx::frame(BGFX_FRAME_FLUSH);
       }
     }
     while (sourceWidth > 1 || sourceHeight > 1) {
@@ -7081,7 +7195,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       bgfx::setIndexBuffer(this->fullscreenIndexBuffer);
       bgfx::setState(BGFX_STATE_WRITE_RGB | BGFX_STATE_WRITE_A);
       bgfx::submit(reduceView, this->npotMipProgram);
-      const uint32_t mipFrame = bgfx::frame();
+      const uint32_t mipFrame = bgfx::frame(BGFX_FRAME_FLUSH);
       if (traceNpotGpu) {
         mipFrames.emplace(mipFrame, unsigned(level));
         std::fprintf(stderr, "COIN_RENDER_PHASE rtt_npot_mip_frame level=%u frame=%u reduce_view=%u\n",
@@ -7101,7 +7215,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
           bgfx::setViewRect(reduceView, 0, 0, 1, 1);
           bgfx::setViewClear(reduceView, BGFX_CLEAR_NONE);
           bgfx::touch(reduceView);
-          bgfx::frame();
+          bgfx::frame(BGFX_FRAME_FLUSH);
           captureMipGpu();
         }
       }
@@ -7128,7 +7242,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       bgfx::setViewRect(this->viewBase + 1, 0, 0, 1, 1);
       bgfx::setViewClear(this->viewBase + 1, BGFX_CLEAR_NONE);
       bgfx::touch(this->viewBase + 1);
-      bgfx::frame();
+      bgfx::frame(BGFX_FRAME_FLUSH);
       captureMipGpu();
       runtimeStatus = this->checkRuntimeFailure("BGFX NPOT mip GPU timestamp drain failed");
       if (runtimeStatus != CoinRenderBackendStatus::SUCCESS) {
@@ -7172,7 +7286,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     resource.height = size[1];
     resource.format=frame.outputColorFormat; resource.mipmapped=frame.outputMipmaps;
     resource.frameBuffer = output;
-    resource.depthSampleable = strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
+    resource.depthSampleable = frame.viewOutput || strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
     resource.inUse = true;
     this->directTextures.push_back(resource);
     token = resource.token;
@@ -7186,9 +7300,17 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     cachedResource->frameBuffer = output;
     if (newOutput)
       cachedResource->depthSampleable =
-        strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
+        frame.viewOutput || strategy == CoinBgfxTransparencyStrategy::SORTED_LAYERS;
     cachedResource->inUse = true;
     token = cachedResource->token;
+  }
+  if (frame.viewOutput && this->sampleCount > 1) {
+    for (auto & view : this->directTextures) if (view.token == token) {
+      if (bgfx::isValid(view.viewSamples)) bgfx::destroy(view.viewSamples);
+      view.viewSamples = this->msaaFrameBuffer;
+      this->msaaFrameBuffer = BGFX_INVALID_HANDLE;
+      this->msaaWidth = this->msaaHeight = 0;
+    }
   }
   logicalSubmitSucceeded();
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
@@ -7229,7 +7351,7 @@ CoinRenderSubmitResult CoinBgfxBackend::assembleCubeRtt(const std::array<uint64_
   // draws/clear of a view, so a same-view clear would erase copied face data.
   bgfx::resetView(this->viewBase);bgfx::setViewFrameBuffer(this->viewBase,output);
   bgfx::setViewRect(this->viewBase,0,0,uint16_t(description.width),uint16_t(description.height));
-  bgfx::setViewClear(this->viewBase,BGFX_CLEAR_COLOR,0);bgfx::touch(this->viewBase);bgfx::frame();
+  bgfx::setViewClear(this->viewBase,BGFX_CLEAR_COLOR,0);bgfx::touch(this->viewBase);bgfx::frame(BGFX_FRAME_FLUSH);
   bgfx::resetView(this->viewBase);
   uint64_t levelOffset=0;uint32_t extent=n,level=0,blits=0;
   for(;;) {
@@ -7247,13 +7369,13 @@ CoinRenderSubmitResult CoinBgfxBackend::assembleCubeRtt(const std::array<uint64_
         source.mip=uint8_t(level);source.depth=1;
         bgfx::blit(this->viewBase,destination,source);
         x+=count;
-        if(++blits==caps->limits.maxBlits){bgfx::frame();blits=0;}
+        if(++blits==caps->limits.maxBlits){bgfx::frame(BGFX_FRAME_FLUSH);blits=0;}
       }
     }
     levelOffset+=6*uint64_t(extent)*extent;
     if(!mips||extent==1)break;extent/=2;++level;
   }
-  if(blits)bgfx::frame();
+  if(blits)bgfx::frame(BGFX_FRAME_FLUSH);
   bgfx::frame(BGFX_FRAME_FLUSH);
   const auto status=this->checkRuntimeFailure("BGFX cube atlas assembly failed");
   if(status!=CoinRenderBackendStatus::SUCCESS){bgfx::destroy(output);return {status,this->lastError};}
@@ -7275,6 +7397,7 @@ CoinBgfxBackend::retireRtt(const std::vector<uint64_t> & tokens)
     // bgfx::destroy queues ordered destruction and defers handle reuse. The
     // framebuffer owns its attachments; no wait/frame or other token changes.
     if (bgfx::isValid(it->frameBuffer)) bgfx::destroy(it->frameBuffer);
+    if (bgfx::isValid(it->viewSamples)) bgfx::destroy(it->viewSamples);
     it=this->directTextures.erase(it);
   }
 }
@@ -7303,6 +7426,7 @@ CoinBgfxBackend::finishDirectTextures(const std::vector<uint64_t> & usedTokens)
        it != this->directTextures.end();) {
     if (std::find(usedTokens.begin(), usedTokens.end(), it->token) == usedTokens.end()) {
       if (bgfx::isValid(it->frameBuffer)) bgfx::destroy(it->frameBuffer);
+    if (bgfx::isValid(it->viewSamples)) bgfx::destroy(it->viewSamples);
       it = this->directTextures.erase(it);
     } else {
       it->inUse = false;
@@ -7700,7 +7824,7 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
                                       colorFormat)) return false;
       return backend->preparePortablePrograms(frame, plan.draws, shadows, strategy, window && frame.numPasses == 1, colorFormat, true);
     };
-    if (!prepareModules(root, size, this->presentToWindow, coinBgfxTextureFormat(root.outputColorFormat)))
+    if (!prepareModules(root, size, this->presentToWindow && !root.viewOutput, coinBgfxTextureFormat(root.outputColorFormat)))
       return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
     for (const auto &producer : graph.producers)
       if (!prepareModules(producer.plan, producer.size, false, coinBgfxTextureFormat(producer.format)))
@@ -7709,4 +7833,17 @@ CoinRenderSubmitResult CoinBgfxBackend::preflightRtt(const CoinRenderRttPlan& gr
   }
 
   return {};
+}
+
+CoinRenderSubmitResult CoinBgfxBackend::preflightStereo(const CoinRenderFramePlan & frame,
+    const CoinRenderTargetP & target, size_t) const {
+  if (!this->initialized) return {};
+  const auto * caps = bgfx::getCaps();
+  if (!caps || target.size[0] > caps->limits.maxTextureSize || target.size[1] > caps->limits.maxTextureSize ||
+      !(caps->formats[bgfx::TextureFormat::D32F] & BGFX_CAPS_FORMAT_TEXTURE_FRAMEBUFFER) ||
+      !bgfx::isTextureValid(1, false, 1, bgfx::TextureFormat::D32F, peelTextureFlags))
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Completed stereo view color/depth attachments exceed adapter capabilities"};
+  if (!const_cast<CoinBgfxBackend *>(this)->prepareStereoPrograms())
+    return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
+  return this->preflightMultipass(frame, target.size);
 }

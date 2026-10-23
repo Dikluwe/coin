@@ -1,3 +1,4 @@
+#include <exception>
 #include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderBumpMapCore.h"
 #include "rendering/coinrender/CoinRenderIndexedGeometryCore.h"
@@ -692,6 +693,31 @@ CoinRenderActionP::rttMutationPreCB(void * data, SoCallbackAction *, const SoNod
 
 SO_ACTION_SOURCE(CoinRenderAction);
 
+// Contain authored C++ exceptions before they unwind through legacy
+// SoAction::apply, whose read lock/root reference and path bookkeeping are
+// released on normal return. Each dispatch restores its own traversal depth;
+// the enclosing action then observes termination and rejects the whole frame.
+template <void (*Method)(SoAction *, SoNode *)>
+void CoinRenderActionP::guardedNodeMethod(SoAction * action, SoNode * node)
+{
+  auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->hasTerminated()) return;
+  SoState * state = render->getState();
+  const int depth = state->getDepth();
+  const int pathLength = render->getCurPath()->fullPath().getLength();
+  const auto reject = [&](CoinRenderAction::Status status, const char * message) {
+    while (state->getDepth() > depth) state->pop();
+    while (render->getCurPath()->fullPath().getLength() > pathLength) render->popCurPath();
+    render->pimpl->setDiagnostic(CoinRenderDiagnosticShell::action(status,
+      CoinRenderDiagnosticDomain::ACTION, SbString(message)));
+    render->setTerminated(TRUE);
+  };
+  try { Method(action, node); }
+  catch (const std::bad_alloc &) { reject(CoinRenderAction::OUT_OF_MEMORY, "Authored render traversal allocation failed"); }
+  catch (const std::exception & error) { reject(CoinRenderAction::BACKEND_ERROR, error.what()); }
+  catch (...) { reject(CoinRenderAction::BACKEND_ERROR, "Authored render traversal threw an exception"); }
+}
+
 void
 CoinRenderAction::initClass(void)
 {
@@ -703,21 +729,21 @@ CoinRenderAction::initClass(void)
   SO_ENABLE(CoinRenderAction, CoinRenderDepthPolicyElement);
   CoinRenderShaderModuleElement::initClass();
   SO_ENABLE(CoinRenderAction, CoinRenderShaderModuleElement);
-  SO_ACTION_ADD_METHOD(SoNode, CoinRenderActionP::portableNodeMethod);
-  SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::shapeContentMethod);
-  SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::screenContentMethod);
-  SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::screenContentMethod);
-  SO_ACTION_ADD_METHOD(SoMarkerSet, CoinRenderActionP::markerContentMethod);
-  SO_ACTION_ADD_METHOD(SoIndexedMarkerSet, CoinRenderActionP::markerContentMethod);
-  SO_ACTION_ADD_METHOD(SoAlphaTest, CoinRenderActionP::alphaTestMethod);
+  SO_ACTION_ADD_METHOD(SoNode, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::portableNodeMethod>);
+  SO_ACTION_ADD_METHOD(SoShape, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::shapeContentMethod>);
+  SO_ACTION_ADD_METHOD(SoImage, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::screenContentMethod>);
+  SO_ACTION_ADD_METHOD(SoText2, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::screenContentMethod>);
+  SO_ACTION_ADD_METHOD(SoMarkerSet, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::markerContentMethod>);
+  SO_ACTION_ADD_METHOD(SoIndexedMarkerSet, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::markerContentMethod>);
+  SO_ACTION_ADD_METHOD(SoAlphaTest, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::alphaTestMethod>);
 #ifdef HAVE_VRML97
-  SO_ACTION_ADD_METHOD(SoVRMLShape, CoinRenderActionP::vrmlStateMethod);
-  SO_ACTION_ADD_METHOD(SoVRMLMaterial, CoinRenderActionP::vrmlStateMethod);
-  SO_ACTION_ADD_METHOD(SoVRMLLight, CoinRenderActionP::vrmlStateMethod);
-  SO_ACTION_ADD_METHOD(SoVRMLFog, CoinRenderActionP::vrmlStateMethod);
-  SO_ACTION_ADD_METHOD(SoVRMLBackground, CoinRenderActionP::vrmlStateMethod);
-  SO_ACTION_ADD_METHOD(SoVRMLPixelTexture, CoinRenderActionP::vrmlStateMethod);
-  SO_ACTION_ADD_METHOD(SoVRMLImageTexture, CoinRenderActionP::vrmlStateMethod);
+  SO_ACTION_ADD_METHOD(SoVRMLShape, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
+  SO_ACTION_ADD_METHOD(SoVRMLMaterial, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
+  SO_ACTION_ADD_METHOD(SoVRMLLight, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
+  SO_ACTION_ADD_METHOD(SoVRMLFog, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
+  SO_ACTION_ADD_METHOD(SoVRMLBackground, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
+  SO_ACTION_ADD_METHOD(SoVRMLPixelTexture, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
+  SO_ACTION_ADD_METHOD(SoVRMLImageTexture, CoinRenderActionP::guardedNodeMethod<CoinRenderActionP::vrmlStateMethod>);
 #endif
 }
 
@@ -1234,6 +1260,9 @@ CoinRenderAction::beginTraversal(SoNode * root)
       if (baseIndex >= 0) {
         for (int i = 0; i < group->getNumChildren() && !this->hasTerminated(); ++i) {
           SoNode * child = group->getChild(i);
+          const int section = i < baseIndex ? 0 : i == baseIndex ? 1 : 2;
+          if (this->pimpl->managerCaptureSection >= 0 &&
+              this->pimpl->managerCaptureSection != section) continue;
           this->pushCurPath(i, child);
           if (i == baseIndex) {
             // CoinGL HIDDEN_LINE clears both buffers even after backgrounds.
@@ -2654,7 +2683,7 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   } rasterHistoryScope(this->builder);
   // External callbacks can change capture or have observable side effects.
   // Registration after construction permanently requires their traversal.
-  bool planCacheAllowed = !this->externalPass && !this->capturingPassSnapshots && !partialUpdate && !this->abortCallback &&
+  bool planCacheAllowed = this->managerCaptureSection < 0 && !this->externalPass && !this->capturingPassSnapshots && !partialUpdate && !this->abortCallback &&
     this->preRenderCallbacks.empty() && this->sortingStrategy == CoinRenderAction::BBOX_CENTER &&
     this->portableShaderModules.empty() &&
     this->master->callbackRegistrationRevision() == this->captureCallbackRevision &&
@@ -3740,6 +3769,7 @@ bool CoinRenderActionP::acceptNode(SoNode * node)
 void CoinRenderActionP::portableNodeMethod(SoAction * action, SoNode * node)
 {
   auto * render = static_cast<CoinRenderAction *>(action);
+  if (render->getPimpl()->technicalRttReplay && node->isOfType(SoCallback::getClassTypeId())) return;
   if (!render->pimpl->acceptNode(node)) return;
   SoNode::callbackS(action, node);
 }
@@ -4138,6 +4168,40 @@ static bool shadowStereoCamera(const SoCamera &camera, const SbViewportRegion &v
 }
 
 SoCallbackAction::Response
+CoinRenderActionP::cameraStereoPreCB(void * data, SoCallbackAction * action, const SoNode * node)
+{
+  auto * owner = static_cast<CoinRenderActionP *>(data);
+  owner->stereoCameraViewport = SoViewportRegionElement::get(action->getState());
+  const auto * camera = static_cast<const SoCamera *>(node);
+  if (camera->getStereoMode() == SoCamera::MONOSCOPIC || owner->capturingShadowScene)
+    return SoCallbackAction::CONTINUE;
+  const int mapping = camera->viewportMapping.getValue();
+  bool valid = mapping >= SoCamera::CROP_VIEWPORT_FILL_FRAME && mapping <= SoCamera::LEAVE_ALONE;
+  valid = valid && (camera->getStereoMode() == SoCamera::LEFT_VIEW || camera->getStereoMode() == SoCamera::RIGHT_VIEW) &&
+    std::isfinite(camera->nearDistance.getValue()) && camera->nearDistance.getValue() > 0 &&
+    std::isfinite(camera->farDistance.getValue()) && camera->farDistance.getValue() > camera->nearDistance.getValue() &&
+    std::isfinite(camera->aspectRatio.getValue()) && camera->aspectRatio.getValue() > 0 &&
+    std::isfinite(camera->focalDistance.getValue()) && std::isfinite(camera->getStereoAdjustment()) &&
+    std::isfinite(camera->getBalanceAdjustment());
+  for (int i=0; i<3; ++i) valid = valid && std::isfinite(camera->position.getValue()[i]);
+  const SbRotation rotation = camera->orientation.getValue();
+  for (int i=0; i<4; ++i) valid = valid && std::isfinite(rotation.getValue()[i]);
+  if (camera->isOfType(SoPerspectiveCamera::getClassTypeId())) {
+    const float angle = static_cast<const SoPerspectiveCamera *>(camera)->heightAngle.getValue();
+    valid = valid && std::isfinite(angle) && angle > 0 && angle < 3.14159265358979323846f;
+  } else if (camera->isOfType(SoOrthographicCamera::getClassTypeId())) {
+    const float height = static_cast<const SoOrthographicCamera *>(camera)->height.getValue();
+    valid = valid && std::isfinite(height) && height > 0;
+  }
+  if (!valid) {
+    owner->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Active stereo camera has invalid fields or settings")));
+    return SoCallbackAction::ABORT;
+  }
+  return SoCallbackAction::CONTINUE;
+}
+
+SoCallbackAction::Response
 CoinRenderActionP::cameraStereoPostCB(void * userdata, SoCallbackAction * action,
                                       const SoNode * node)
 {
@@ -4188,51 +4252,25 @@ CoinRenderActionP::cameraStereoPostCB(void * userdata, SoCallbackAction * action
     owner->builder.registerShadowMapCameraPose(camera, model, view);
     return SoCallbackAction::CONTINUE;
   }
-  const SbViewportRegion & viewport = owner->master->getViewportRegion();
-  SbViewportRegion adjusted;
-  SbViewVolume volume = camera->getViewVolume(viewport, adjusted, SbMatrix::identity());
-  const float nearDistance = volume.getNearDist();
-  const float farDistance = nearDistance + volume.getDepth();
-  const float focalDistance = camera->focalDistance.getValue() * camera->getBalanceAdjustment();
-  if (adjusted != viewport || !std::isfinite(nearDistance) || nearDistance <= 0.0f ||
-      !std::isfinite(farDistance) || farDistance <= nearDistance ||
-      !std::isfinite(focalDistance) || focalDistance <= 0.0f ||
-      !std::isfinite(camera->getStereoAdjustment()) ||
-      volume.getWidth() <= 0.0f || volume.getHeight() <= 0.0f) {
-    owner->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("Stereo camera requires a finite frustum and an uncropped viewport")));
-    return SoCallbackAction::ABORT;
-  }
+  SbViewVolume volume;
   SbMatrix view, projection;
-  volume.getMatrices(view, projection);
-  const SbMatrix cameraTransform = view.inverse();
-  float eyeOffset = camera->getStereoAdjustment() * 0.5f;
-  if (camera->getStereoMode() == SoCamera::LEFT_VIEW) eyeOffset = -eyeOffset;
-  SbVec3f right = volume.getProjectionDirection().cross(volume.getViewUp());
-  if (right.normalize() == 0.0f) {
-    owner->setDiagnostic(CoinRenderDiagnosticShell::action(
-      CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-      SbString("Stereo camera has no eye-separation axis")));
+  std::string diagnostic;
+  if (!shadowStereoCamera(*camera, owner->stereoCameraViewport, volume, view, projection, diagnostic)) {
+    owner->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+      CoinRenderDiagnosticDomain::FRAME_PLAN, SbString(diagnostic.c_str())));
     return SoCallbackAction::ABORT;
   }
-  const float halfWidth = volume.getWidth() * 0.5f;
-  const float halfHeight = volume.getHeight() * 0.5f;
-  const float shift = eyeOffset * nearDistance / std::max(focalDistance, nearDistance);
-  // Match SoCamera::GLRender: skew the near plane, restore the camera pose,
-  // then translate the eye along the camera's right vector.
-  volume.frustum(-halfWidth - shift, halfWidth - shift,
-                 -halfHeight, halfHeight, nearDistance, farDistance);
-  volume.transform(cameraTransform);
-  SbMatrix eyeTransform;
-  eyeTransform.setTranslate(right * eyeOffset);
-  volume.transform(eyeTransform);
-  volume.getMatrices(view, projection);
   SoState * state = action->getState();
   SbBool identity;
   const SbMatrix & model = SoModelMatrixElement::get(state, identity);
   if (!identity) {
-    view.multRight(model.inverse());
+    SbMatrix inverseModel;
+    if (!coin_render_shadow_camera_math::inverse(model, inverseModel)) {
+      owner->setDiagnostic(CoinRenderDiagnosticShell::action(CoinRenderAction::INVALID_SCENE,
+        CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("Stereo camera has a non-invertible model transform")));
+      return SoCallbackAction::ABORT;
+    }
+    view.multRight(inverseModel);
     volume.transform(model);
   }
   SoNode * mutableCamera = const_cast<SoCamera *>(camera);
@@ -4391,6 +4429,7 @@ CoinRenderActionP::initCallbacks()
   this->master->addLineSegmentCallback(SoShape::getClassTypeId(), lineCB, this);
   this->master->addPointCallback(SoShape::getClassTypeId(), pointCB, this);
 
+  this->master->addPreCallback(SoCamera::getClassTypeId(), cameraStereoPreCB, this);
   this->master->addPreCallback(SoCamera::getClassTypeId(), unsupportedEffectPreCB, this);
   this->master->addPostCallback(SoCamera::getClassTypeId(), cameraStereoPostCB, this);
   this->master->addPreCallback(SoTexture2::getClassTypeId(), textureImagePreCB, this);

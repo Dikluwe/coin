@@ -99,6 +99,9 @@ CoinRenderTargetP::CoinRenderTargetP(const SbVec2i32 & sz)
 
 CoinRenderTargetP::~CoinRenderTargetP()
 {
+  // Children are registered targets too. Retire them before taking the target
+  // registry lock, and while the parent's backend still owns its runtime.
+  this->stagedTargets.clear();
 #if defined(__ANDROID__)
   // Serialize the idle transition with new target registration. The offscreen
   // peer keeps this registry nonempty during window TERM/INIT cycles.
@@ -171,6 +174,7 @@ CoinRenderTargetP::resize(const SbVec2i32 & newSize)
   // window publication and its resource generation on these no-op requests.
   if (this->kind == KIND_WINDOW && this->status == CoinRenderTarget::TARGET_READY &&
       !this->suspended && newSize == this->size) return true;
+  this->stagedTargets.clear();
   ++this->resourceGeneration;
   this->lastSubmissionSerial = 0;
   this->legacyBorrowValid = false;
@@ -653,7 +657,7 @@ CoinRenderTargetP::executePartialFrame(const CoinRenderFramePlan & frame, const 
         size_t(rectangle[2]), depth.data() + to);
     }
     this->colorBuffer.swap(color); this->depthBuffer.swap(depth);
-    this->lastSubmissionSerial = std::max(result.submissionSerial, this->lastSubmissionSerial + 1);
+    ++this->lastSubmissionSerial;
     this->lastValidatedPlanRevision = 0;
     this->synchronousReadbackValid = this->borrowedReadbackValid = true;
     this->legacyBorrowValid = false;
@@ -954,7 +958,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   if (outTicket)
     *outTicket = candidateTicket;
   this->lastValidatedPlanRevision = frame.revision;
-  this->lastSubmissionSerial = std::max(res.submissionSerial, this->lastSubmissionSerial + 1);
+  // Public serials count committed target publications. Backend serials name
+  // actual queue work (including private views/producers and peer targets),
+  // and async tickets retain those queue identities independently.
+  ++this->lastSubmissionSerial;
   this->synchronousReadbackValid = (outTicket == NULL &&
     (this->kind == KIND_OFFSCREEN || captureWindow) && !this->directTextureOutput);
   this->borrowedReadbackValid = this->synchronousReadbackValid &&

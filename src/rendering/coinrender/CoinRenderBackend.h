@@ -75,6 +75,8 @@ public:
                                            CoinRenderTargetP&, uint64_t&);
   virtual void finishRtt(const std::vector<uint64_t>&) {}
   virtual bool stagedRttRequiresPreparedParent() const { return false; }
+  // Admit the full private view set before any authored producer executes.
+  virtual CoinRenderSubmitResult preflightStereo(const CoinRenderFramePlan &, const CoinRenderTargetP &, size_t) const;
   virtual void poll() = 0;
   virtual const std::string & getLastError() const = 0;
   virtual CoinRenderSubmitResult assembleCubeRtt(const std::array<uint64_t,6>&, uint32_t,

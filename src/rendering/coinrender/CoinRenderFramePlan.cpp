@@ -199,6 +199,11 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan &other) const
       this->delayedObjDepthWrite != other.delayedObjDepthWrite ||
       this->smoothing != other.smoothing ||
       this->managerFrame != other.managerFrame ||
+      this->viewOutput != other.viewOutput ||
+      this->stereoMode != other.stereoMode ||
+      this->stereoTokens[0] != other.stereoTokens[0] || this->stereoTokens[1] != other.stereoTokens[1] ||
+      this->stereoOrigin[0] != other.stereoOrigin[0] || this->stereoOrigin[1] != other.stereoOrigin[1] ||
+      this->stereoExtent[0] != other.stereoExtent[0] || this->stereoExtent[1] != other.stereoExtent[1] ||
       this->passClearColors != other.passClearColors ||
       !coin_render_same_transparency_options(this->transparency, other.transparency))
     return false;

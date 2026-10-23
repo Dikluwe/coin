@@ -82,7 +82,7 @@ static_assert(offsetof(CoinWgpuRenderState, fog_start) == 1036, "CoinWgpuRenderS
 static_assert(offsetof(CoinWgpuRenderState, fog_end) == 1040, "CoinWgpuRenderState fog_end offset mismatch");
 
 static_assert(sizeof(CoinWgpuTarget) == 64, "CoinWgpuTarget size mismatch");
-static_assert(sizeof(CoinWgpuFrameView) == 560, "CoinWgpuFrameView size mismatch");
+static_assert(sizeof(CoinWgpuFrameView) == 600, "CoinWgpuFrameView size mismatch");
 static_assert(sizeof(CoinWgpuInstance) == 144, "CoinWgpuInstance size mismatch");
 static_assert(sizeof(CoinWgpuInstanceRange) == 16, "CoinWgpuInstanceRange size mismatch");
 static_assert(offsetof(CoinWgpuFrameView, instances) == 416, "CoinWgpuFrameView instance offset mismatch");
@@ -779,4 +779,11 @@ CoinRenderSubmitResult CoinWgpuBackend::preflightRttImpl(const CoinRenderRttPlan
 
 bool CoinWgpuBackend::readbackLoad(uint64_t& jobs, uint64_t& bytes) const {
   return coin_wgpu_readback_resource_load(&jobs, &bytes) != 0;
+}
+
+CoinRenderSubmitResult CoinWgpuBackend::preflightStereo(const CoinRenderFramePlan & frame,
+    const CoinRenderTargetP & target, size_t tokens) const {
+  if (tokens > coin_wgpu_default_rtt_capacity())
+    return {CoinRenderBackendStatus::UNSUPPORTED, "Complete stereo views and authored producers exceed retained GPU texture capacity"};
+  return this->preflightMultipass(frame, target.size);
 }

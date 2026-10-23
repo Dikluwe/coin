@@ -16,6 +16,7 @@ public:
   ~CoinRenderRttExecution();
   CoinRenderRttExecution(const CoinRenderRttExecution&) = delete;
   CoinRenderRttExecution& operator=(const CoinRenderRttExecution&) = delete;
+  CoinRenderSubmitResult preflight(const CoinRenderRttPlan&, const CoinRenderFramePlan&);
   CoinRenderSubmitResult prepare(const CoinRenderRttPlan&, const CoinRenderFramePlan&,
                                  CoinRenderFramePlan& resolvedRoot);
 

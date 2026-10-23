@@ -327,9 +327,11 @@ SbBool
 CoinRenderManagerAdapter::syncFromRenderManager()
 {
   if (this->pimpl->source->getStereoMode() != SoRenderManager::MONO &&
-      this->pimpl->source->getStereoMode() != SoRenderManager::ANAGLYPH) {
+      this->pimpl->source->getStereoMode() != SoRenderManager::ANAGLYPH &&
+      this->pimpl->source->getStereoMode() != SoRenderManager::INTERLEAVED_ROWS &&
+      this->pimpl->source->getStereoMode() != SoRenderManager::INTERLEAVED_COLUMNS) {
     this->pimpl->status = CoinRenderAction::UNSUPPORTED;
-    this->pimpl->error = "CoinRender manager stereo mode is not implemented";
+    this->pimpl->error = "Hardware SEPARATE_OUTPUT/QUAD_BUFFER requires native left/right buffers; this single RGBA target has no hardware stereo capability";
     return FALSE;
   }
   if (!this->pimpl->source->isRGBMode()) {
@@ -363,12 +365,10 @@ CoinRenderManagerAdapter::syncFromRenderManager()
     ? this->pimpl->sceneGraphOverride : this->pimpl->source->getSceneGraph();
   const int layerCount = this->pimpl->source->getNumSuperimpositions();
   const SoRenderManager::Superimposition * firstBackground = nullptr;
-  bool hasActiveBackground = false;
   for (int i = 0; i < layerCount; ++i) {
     const auto * layer = this->pimpl->source->getSuperimposition(i);
     if (!layer || !(layer->getStateFlags() & SoRenderManager::Superimposition::BACKGROUND)) continue;
     if (!firstBackground) firstBackground = layer;
-    if (layer->isEnabled() && layer->getSceneGraph()) hasActiveBackground = true;
   }
   std::vector<std::tuple<SoNode *, int, int>> activeLayers;
   for (int i = 0; i < this->pimpl->source->getNumSuperimpositions(); ++i) {
@@ -401,7 +401,7 @@ CoinRenderManagerAdapter::syncFromRenderManager()
                                     this->pimpl->source->getViewportRegion(), highlight)) return FALSE;
   SoSeparator * composed = nullptr;
   std::vector<std::tuple<SoNode *, bool, int>> managerBoundaries;
-  if (highlight || !activeLayers.empty() ||
+  if (!mono || highlight || !activeLayers.empty() ||
       (mono && !mainRoot && layerCount && hiddenLineClear)) {
     // Highlight paths and style are rebuilt at each sync, including changes
     // that do not notify the scene graph (selection and GL-action setters).
@@ -434,15 +434,14 @@ CoinRenderManagerAdapter::syncFromRenderManager()
         if (std::get<1>(layer) & SoRenderManager::Superimposition::BACKGROUND) {
           appendLayer(layer);
         }
-      // MONO has an explicit base boundary. Preserve the existing ANAGLYPH
-      // foreground layout: its eye compositor owns the per-eye layer mapping.
-      if (mono || hasActiveBackground) {
+      // The base has an explicit authored occurrence in every view. BG and FG
+      // remain separate authored traversals around the stereo composition.
+      {
         SoSeparator * basePass = new SoSeparator;
         if (mainRoot) basePass->addChild(mainRoot);
         composed->addChild(basePass);
         managerBoundaries.emplace_back(basePass, true, COIN_RENDER_MANAGER_BASE_LAYER);
       }
-      else if (mainRoot) composed->addChild(mainRoot);
       if (highlight) {
         composed->addChild(highlight);
         managerBoundaries.emplace_back(highlight, false, COIN_RENDER_MANAGER_HIGHLIGHT_LAYER);
@@ -465,7 +464,7 @@ CoinRenderManagerAdapter::syncFromRenderManager()
     this->pimpl->managerBoundaries = std::move(managerBoundaries);
   }
   this->pimpl->renderer->clearManagerLayerBoundaries();
-  if (mono) this->pimpl->renderer->addManagerLayerBoundary(nullptr, FALSE, COIN_RENDER_MANAGER_OWNER);
+  this->pimpl->renderer->addManagerLayerBoundary(nullptr, FALSE, COIN_RENDER_MANAGER_OWNER);
   for (const auto & layer : this->pimpl->managerBoundaries)
     this->pimpl->renderer->addManagerLayerBoundary(
       std::get<0>(layer), std::get<1>(layer), std::get<2>(layer));
@@ -479,9 +478,17 @@ CoinRenderManagerAdapter::syncFromRenderManager()
   this->pimpl->renderer->setDrawMode(drawMode);
   this->pimpl->renderer->setOverlayColor(this->pimpl->source->getOverlayColor());
   this->pimpl->renderer->setTexturesEnabled(this->pimpl->source->isTexturesEnabled());
-  this->pimpl->status = this->pimpl->renderer->getLastStatus();
-  this->pimpl->error = this->pimpl->renderer->getLastError();
-  return this->pimpl->status != CoinRenderAction::BACKEND_ERROR;
+  // Synchronization reports this configuration, not a previous traversal's
+  // diagnostic. A rejected/throwing authored frame leaves a READY target
+  // available for a fresh capture on the next public render.
+  if (this->pimpl->renderer->getRenderTarget()->getStatus() == CoinRenderTarget::TARGET_ERROR) {
+    this->pimpl->status = this->pimpl->renderer->getLastStatus();
+    this->pimpl->error = this->pimpl->renderer->getLastError();
+    return FALSE;
+  }
+  this->pimpl->status = CoinRenderAction::SUCCESS;
+  this->pimpl->error = "";
+  return TRUE;
 }
 
 SbBool
@@ -510,9 +517,10 @@ CoinRenderManagerAdapter::render()
     ~FrameScope() { manager->finishFrame(rendered); }
   } scope(this->pimpl->source);
   if (!this->syncFromRenderManager()) return this->pimpl->status;
-  this->pimpl->status = this->pimpl->source->getStereoMode() == SoRenderManager::ANAGLYPH
-    ? this->pimpl->renderer->renderAnaglyph(this->pimpl->source->getCamera(),
-                                           this->pimpl->source->getStereoOffset())
+  this->pimpl->status = this->pimpl->source->getStereoMode() != SoRenderManager::MONO
+    ? this->pimpl->renderer->renderStereo(this->pimpl->source->getCamera(),
+                                         this->pimpl->source->getStereoOffset(),
+                                         this->pimpl->source->getStereoMode())
     : this->pimpl->renderer->render();
   this->pimpl->error = this->pimpl->renderer->getLastError();
   scope.rendered = this->pimpl->status == CoinRenderAction::SUCCESS;

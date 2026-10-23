@@ -37,6 +37,8 @@ public:
 
   std::unordered_map<SoShaderProgram *, std::shared_ptr<const CoinRenderShaderRegistration>> portableShaderModules;
   void initCallbacks();
+  template <void (*Method)(SoAction *, SoNode *)>
+  static void guardedNodeMethod(SoAction *, SoNode *);
   bool acceptNode(SoNode *);
   static void portableNodeMethod(SoAction *, SoNode *);
   static void shapeContentMethod(SoAction *, SoNode *);
@@ -103,6 +105,8 @@ public:
   static SoCallbackAction::Response annotationPostCB(void * userdata,
                                                      SoCallbackAction * action,
                                                      const SoNode * node);
+  static SoCallbackAction::Response cameraStereoPreCB(void *, SoCallbackAction *, const SoNode *);
+  SbViewportRegion stereoCameraViewport;
   static SoCallbackAction::Response managerLayerPreCB(void *, SoCallbackAction *, const SoNode *);
   static SoCallbackAction::Response managerLayerPostCB(void *, SoCallbackAction *, const SoNode *);
 
@@ -204,6 +208,8 @@ public:
   unsigned int managerHighlightDepth = 0;
   bool replayingAnnotations = false;
   bool planOnly = false;
+  // -1=ordinary; 0=authored background; 1=per-eye base; 2=post-stereo foreground.
+  int managerCaptureSection = -1;
   bool sceneTextureBumpProducer = false;
   bool inheritedTransparencyOverride = false;
   // Technical base passes replay a single logical RTT capture. This cache is

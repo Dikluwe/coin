@@ -62,6 +62,7 @@ public:
   CoinRenderAction::Status render();
   // Manager stereo: capture both eyes and submit one composed frame.
   CoinRenderAction::Status renderAnaglyph(SoCamera * camera, float stereoOffset);
+  CoinRenderAction::Status renderStereo(SoCamera * camera, float stereoOffset, int stereoMode);
   CoinRenderAction::Status renderAsync(CoinRenderReadbackTicket & ticket);
   CoinRenderAction::Status getLastStatus() const;
   const SbString & getLastError() const;

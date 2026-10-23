@@ -16,6 +16,17 @@
 class CoinRenderFramePreflight;
 struct CoinRenderCompositionTransferTrace;
 
+// Descriptor of reusable STAGED execution scratch. Captured content/revisions
+// are never cache keys here: each authored producer still executes afresh.
+struct CoinRenderStagedTargetKey {
+  SbVec2i32 size{0, 0};
+  CoinRenderOptions options;
+  CoinRenderTextureFormat format = CoinRenderTextureFormat::RGBA8_LINEAR;
+  bool mipmaps = false;
+  uint64_t owner = 0, generation = 0;
+  CoinRenderDeviceDomain domain;
+};
+
 class COIN_RENDER_DLL_API CoinRenderTargetP {
 public:
   enum TargetKind {
@@ -39,12 +50,24 @@ public:
   std::vector<uint8_t> colorBuffer; // RGBA8 (offscreen)
   bool depthReadbackEnabled{true}; // Output policy; depth testing remains enabled.
   bool directTextureOutput{false}; // Private child pass: no CPU readback.
+  bool requiresCurrentReadback{false}; // STAGED consumers need this producer occurrence, never a pipelined predecessor.
   uint64_t directTextureToken{0};
   std::vector<float> depthBuffer;   // Depth [0, 1] (offscreen software / CPU fallback)
   uint32_t generation{0};
   static uint64_t allocateResourceOwnerId();
   uint64_t resourceOwnerId{0};
   uint64_t resourceGeneration{0};
+  // At most four idle scratch targets per owner, evicted by last return.
+  // This bounds retention only: missing/busy keys always allocate a candidate.
+  // A lease removes its target; no GPU handle/borrowed pixels escape readback.
+  struct StagedTargetEntry {
+    CoinRenderStagedTargetKey key;
+    uint64_t used = 0;
+    std::unique_ptr<CoinRenderTarget> target;
+  };
+  static constexpr size_t stagedIdleTargetLimit = 4;
+  std::vector<StagedTargetEntry> stagedTargets;
+  uint64_t stagedTargetUse = 0;
   static std::unique_ptr<CoinRenderBackend> createBackend();
   static bool isGpuBackendAvailable();
   // Admission uses implementation facts without preparing a GPU/device.
@@ -81,7 +104,7 @@ public:
   void clear(float r, float g, float b, float a, float depthVal = 1.0f);
   void readbackRGBA(std::vector<uint8_t> & outRgba) const;
   void readbackDepth(std::vector<float> & outDepth) const;
-  uint64_t lastSubmissionSerial{0};
+  uint64_t lastSubmissionSerial{0}; // Per-target public commits, independent of backend queue/ticket serials.
   uint64_t lastValidatedPlanRevision{0};
 
   // Preflight validation according to Onda 1 profile (Section 4.6)

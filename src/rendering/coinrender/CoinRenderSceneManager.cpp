@@ -9,6 +9,8 @@
 #include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include <Inventor/nodes/SoCamera.h>
 #include <Inventor/nodes/SoNode.h>
+#include <Inventor/nodes/SoSeparator.h>
+#include "rendering/coinrender/CoinRenderManagerLayerPurpose.h"
 #include <Inventor/actions/SoGLRenderAction.h>
 #include <Inventor/SbViewportRegion.h>
 #include "actions/CoinRenderActionP.h"
@@ -17,112 +19,11 @@
 #include <algorithm>
 #include <limits>
 #include <new>
+#include <cmath>
+#include <exception>
+#include <Inventor/SoRenderManager.h>
+#include "rendering/coinrender/CoinRenderRttExecution.h"
 
-namespace {
-bool anaglyphEyeSupported(const CoinRenderFramePlan & frame, std::string & diagnostic)
-{
-  if (!frame.shadowGroups.empty() || !frame.shadowLights.empty()) {
-    diagnostic = "ANAGLYPH shadow maps require two-eye qualification";
-    return false;
-  }
-  for (const auto & texture : frame.textures)
-    if (texture.producerId || texture.gpuToken) {
-      diagnostic = "ANAGLYPH scene textures require two-eye producer mapping";
-      return false;
-    }
-  for (const auto & state : frame.renderStates) {
-    if (state.rasterTransparent || state.rasterForceBlend ||
-        (state.transparentTexture && state.transparencyType != SoGLRenderAction::BLEND)) {
-      diagnostic = "ANAGLYPH transparency requires per-eye composition";
-      return false;
-    }
-    const bool hasMaterialTransparency = state.materialSlot < frame.materials.size() &&
-      frame.materials[state.materialSlot].transparency > 0.0f;
-    if ((state.transparentMaterial || hasMaterialTransparency ||
-         state.screenDoorTransparency > 0.0f) &&
-        state.transparencyType != SoGLRenderAction::SCREEN_DOOR &&
-        state.transparencyType != SoGLRenderAction::BLEND) {
-      diagnostic = "ANAGLYPH transparency requires per-eye composition";
-      return false;
-    }
-  }
-  return true;
-}
-
-bool appendAnaglyphEye(CoinRenderFramePlan & output, const CoinRenderFramePlan & eye,
-                       uint8_t mask, uint32_t layerOffset, bool clearDepth,
-                       std::string & diagnostic)
-{
-  const auto fits = [](size_t a, size_t b) {
-    return b <= std::numeric_limits<uint32_t>::max() &&
-           a <= std::numeric_limits<uint32_t>::max() - b;
-  };
-  if (!fits(output.vertices.size(), eye.vertices.size()) ||
-      !fits(output.indices.size(), eye.indices.size()) ||
-      !fits(output.materials.size(), eye.materials.size()) ||
-      !fits(output.renderStates.size(), eye.renderStates.size()) ||
-      !fits(output.lightingStates.size(), eye.lightingStates.size()) ||
-      !fits(output.cameras.size(), eye.cameras.size()) ||
-      !fits(output.viewports.size(), eye.viewports.size()) ||
-      !fits(output.textures.size(), eye.textures.size()) ||
-      !fits(output.samplers.size(), eye.samplers.size())) {
-    diagnostic = "ANAGLYPH frame exceeds uint32 indexing";
-    return false;
-  }
-  const uint32_t vertexBase = static_cast<uint32_t>(output.vertices.size());
-  const uint32_t indexBase = static_cast<uint32_t>(output.indices.size());
-  const uint32_t materialBase = static_cast<uint32_t>(output.materials.size());
-  const uint32_t stateBase = static_cast<uint32_t>(output.renderStates.size());
-  const uint32_t lightingBase = static_cast<uint32_t>(output.lightingStates.size());
-  const uint32_t cameraBase = static_cast<uint32_t>(output.cameras.size());
-  const uint32_t viewportBase = static_cast<uint32_t>(output.viewports.size());
-  const uint32_t textureBase = static_cast<uint32_t>(output.textures.size());
-  const uint32_t samplerBase = static_cast<uint32_t>(output.samplers.size());
-  output.materials.insert(output.materials.end(), eye.materials.begin(), eye.materials.end());
-  output.lightingStates.insert(output.lightingStates.end(), eye.lightingStates.begin(), eye.lightingStates.end());
-  output.cameras.insert(output.cameras.end(), eye.cameras.begin(), eye.cameras.end());
-  output.viewports.insert(output.viewports.end(), eye.viewports.begin(), eye.viewports.end());
-  output.textures.insert(output.textures.end(), eye.textures.begin(), eye.textures.end());
-  output.samplers.insert(output.samplers.end(), eye.samplers.begin(), eye.samplers.end());
-  for (auto vertex : eye.vertices) {
-    vertex.materialSlot += materialBase;
-    output.vertices.push_back(std::move(vertex));
-  }
-  for (uint32_t index : eye.indices) output.indices.push_back(index + vertexBase);
-  for (auto state : eye.renderStates) {
-    state.materialSlot += materialBase;
-    state.lightingSlot += lightingBase;
-    state.cameraSlot += cameraBase;
-    state.viewportSlot += viewportBase;
-    if (state.hasTexture) {
-      state.textureImageSlot += textureBase;
-      state.samplerSlot += samplerBase;
-    }
-    for (size_t unit = 0; unit < COIN_RENDER_MAX_TEXTURE_UNITS - 1; ++unit)
-      if (static_cast<const CoinRenderRenderStateSnapshot &>(state).extraTextures[unit].enabled) {
-        state.extraTextures[unit].imageSlot += textureBase;
-        state.extraTextures[unit].samplerSlot += samplerBase;
-      }
-    state.colorWriteMask &= mask;
-    output.renderStates.push_back(std::move(state));
-  }
-  bool firstDraw = true;
-  for (auto draw : eye.draws) {
-    if (draw.renderLayer > std::numeric_limits<uint32_t>::max() - layerOffset) {
-      diagnostic = "ANAGLYPH layer index overflow";
-      return false;
-    }
-    draw.geometry.firstVertex += vertexBase;
-    draw.geometry.firstIndex += indexBase;
-    draw.renderStateSlot += stateBase;
-    draw.renderLayer += layerOffset;
-    if (clearDepth && firstDraw) draw.clearDepthBefore = true;
-    firstDraw = false;
-    output.draws.push_back(std::move(draw));
-  }
-  return true;
-}
-}
 
 struct CoinRenderSceneManager::P {
   CoinRenderTarget * target = nullptr;
@@ -340,71 +241,176 @@ CoinRenderSceneManager::render()
 CoinRenderAction::Status
 CoinRenderSceneManager::renderAnaglyph(SoCamera * camera, float stereoOffset)
 {
-  auto fail = [&](CoinRenderAction::Status status, const std::string & reason) {
+  return this->renderStereo(camera, stereoOffset, SoRenderManager::ANAGLYPH);
+}
+
+CoinRenderAction::Status
+CoinRenderSceneManager::renderStereo(SoCamera * camera, float stereoOffset, int stereoMode)
+{
+  const auto fail = [&](CoinRenderAction::Status status, const std::string & reason) {
     this->pimpl->status = status;
     this->pimpl->error = reason.c_str();
     return status;
   };
+  uint32_t mode = 0;
+  switch (stereoMode) {
+  case SoRenderManager::ANAGLYPH: mode = 1; break;
+  case SoRenderManager::INTERLEAVED_ROWS: mode = 2; break;
+  case SoRenderManager::INTERLEAVED_COLUMNS: mode = 3; break;
+  default: return fail(CoinRenderAction::UNSUPPORTED,
+    "Hardware stereo requires native left/right buffers unavailable on a single RGBA target");
+  }
   if (!this->pimpl->scene) return fail(CoinRenderAction::INVALID_SCENE, "No scene graph is set");
-  if (!camera) return fail(CoinRenderAction::UNSUPPORTED, "ANAGLYPH requires a manager camera");
-  const SoCamera::StereoMode savedMode = camera->getStereoMode();
-  const float savedAdjustment = camera->getStereoAdjustment();
+  if (!camera) return fail(CoinRenderAction::UNSUPPORTED, "Stereo requires a manager camera");
+  if (!std::isfinite(stereoOffset))
+    return fail(CoinRenderAction::INVALID_SCENE, "Active manager stereo offset must be finite");
   auto * action = this->pimpl->action;
-  const bool savedPlanOnly = action->getPimpl()->planOnly;
+  auto & capture = action->getPimpl().get();
+  auto & target = this->pimpl->target->getPimpl().get();
+  const auto savedMode = camera->getStereoMode();
+  const float savedAdjustment = camera->getStereoAdjustment();
   struct Restore {
     SoCamera * camera;
     SoCamera::StereoMode mode;
     float adjustment;
-    CoinRenderActionP * action;
+    CoinRenderActionP & action;
     bool planOnly;
+    int section;
+    std::shared_ptr<CoinRenderRttPlan> resources;
+    std::shared_ptr<CoinRenderRttCaptureMemo> memo;
     ~Restore() {
       camera->setStereoMode(mode);
       camera->setStereoAdjustment(adjustment);
-      action->planOnly = planOnly;
+      action.planOnly = planOnly;
+      action.managerCaptureSection = section;
+      action.sceneTexturePlan = std::move(resources);
+      action.sceneTextureCaptureMemo = std::move(memo);
+      // planOnly snapshots replace lastValidPlan; none can become an ordinary
+      // mono cache anchor after a no-touch camera restoration or exception.
+      action.master->invalidateState();
     }
-  } restore{camera, savedMode, savedAdjustment, &action->getPimpl().get(), savedPlanOnly};
+  } restore{camera, savedMode, savedAdjustment, capture, capture.planOnly,
+            capture.managerCaptureSection, capture.sceneTexturePlan, capture.sceneTextureCaptureMemo};
   try {
-    action->getPimpl()->planOnly = true;
-    camera->setStereoAdjustment(stereoOffset);
-    camera->setStereoMode(SoCamera::LEFT_VIEW);
-    action->apply(this->pimpl->scene);
-    if (action->getLastStatus() != CoinRenderAction::SUCCESS)
-      return fail(action->getLastStatus(), action->getLastError().getString());
-    CoinRenderFramePlan left = action->getPimpl()->lastValidPlan;
-    camera->setStereoMode(SoCamera::RIGHT_VIEW);
-    action->apply(this->pimpl->scene);
-    if (action->getLastStatus() != CoinRenderAction::SUCCESS)
-      return fail(action->getLastStatus(), action->getLastError().getString());
-    CoinRenderFramePlan right = action->getPimpl()->lastValidPlan;
-    std::string diagnostic;
-    if (!anaglyphEyeSupported(left, diagnostic) ||
-        !anaglyphEyeSupported(right, diagnostic))
-      return fail(CoinRenderAction::UNSUPPORTED, diagnostic);
-    CoinRenderFramePlan combined;
-    // Revisions are process-global cache keys. Reserve one from the same
-    // allocator as ordinary captures; max(eyes)+1 can collide with the next
-    // independently captured frame and reuse an unrelated Rust draw order.
-    combined.revision = CoinRenderFramePlanBuilder::nextRevision();
-    combined.textureSamplingPolicy = left.textureSamplingPolicy;
-    combined.rasterizationPolicy = left.rasterizationPolicy;
-    combined.outputColorFormat = left.outputColorFormat;
-    combined.transparency = left.transparency;
-    combined.clearColor = left.clearColor;
-    if (!appendAnaglyphEye(combined, left, 0x09, 0, false, diagnostic))
-      return fail(CoinRenderAction::UNSUPPORTED, diagnostic);
-    uint32_t rightLayer = 1;
-    for (const auto & draw : left.draws) {
-      if (draw.renderLayer == std::numeric_limits<uint32_t>::max())
-        return fail(CoinRenderAction::UNSUPPORTED, "ANAGLYPH layer index overflow");
-      rightLayer = std::max(rightLayer, draw.renderLayer + 1);
+    struct View {
+      CoinRenderFramePlan frame;
+      CoinRenderRttPlan resources;
+      std::unique_ptr<CoinRenderRttExecution> execution;
+    } views[4]; // Authored BG, LEFT base, RIGHT base, monoscopic FG.
+    capture.planOnly = true;
+    const bool hasManagerBase = std::any_of(capture.managerLayerBoundaries.begin(), capture.managerLayerBoundaries.end(),
+      [](const std::tuple<const SoNode *, bool, int> & boundary) { return std::get<2>(boundary) == COIN_RENDER_MANAGER_BASE_LAYER; });
+    auto * empty = new SoSeparator;
+    empty->ref();
+    struct EmptyScene { SoSeparator * root; ~EmptyScene() { root->unref(); } } emptyScene{empty};
+    for (int view = 0; view < 4; ++view) {
+      capture.managerCaptureSection = view == 0 ? 0 : view == 3 ? 2 : 1;
+      if (view == 1 || view == 2) {
+        camera->setStereoAdjustment(stereoOffset);
+        camera->setStereoMode(view == 1 ? SoCamera::LEFT_VIEW : SoCamera::RIGHT_VIEW);
+      } else if (view == 3) {
+        camera->setStereoMode(SoCamera::MONOSCOPIC);
+      }
+      // Supply an externally owned graph so executeApply leaves the capture
+      // alive for the view transaction instead of releasing it on return.
+      capture.sceneTexturePlan = std::make_shared<CoinRenderRttPlan>(target.options.sceneTexture);
+      capture.sceneTextureCaptureMemo.reset();
+      action->apply(!hasManagerBase && (view == 0 || view == 3) ? static_cast<SoNode *>(empty) : this->pimpl->scene);
+      if (action->getLastStatus() != CoinRenderAction::SUCCESS)
+        return fail(action->getLastStatus(), action->getLastError().getString());
+      views[view].frame = capture.lastValidPlan;
+      views[view].frame.legacyBlendAlpha = true;
+      views[view].frame.viewOutput = view != 3;
+      if (view == 2 && mode == 1) views[view].frame.stereoMode = 4;
+      if (view == 3) views[view].frame.stereoMode = mode;
+      views[view].resources = *capture.sceneTexturePlan;
+      views[view].execution.reset(new CoinRenderRttExecution(&target, target.options));
     }
-    if (!appendAnaglyphEye(combined, right, 0x0e, rightLayer, true, diagnostic) ||
-        !combined.isValid(&diagnostic))
-      return fail(CoinRenderAction::UNSUPPORTED, diagnostic);
-    const auto result = this->pimpl->target->getPimpl()->executeFrame(combined);
+    // Admit the whole graph, including input only observable in RIGHT_VIEW,
+    // before executing any authored producer or private GPU view.
+    auto result = target.preflightSubmission(false);
+    if (result.status != CoinRenderBackendStatus::SUCCESS)
+      return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
+    for (auto & view : views) {
+      result = target.preflightMultipass(view.frame, false, &view.resources);
+      if (result.status == CoinRenderBackendStatus::SUCCESS)
+        result = view.execution->preflight(view.resources, view.frame);
+      if (result.status != CoinRenderBackendStatus::SUCCESS)
+        return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
+    }
+    const auto ready = target.prepareBackend();
+    if (ready != CoinRenderBackendStatus::SUCCESS)
+      return fail(CoinRenderDiagnosticShell::actionStatus(ready), target.backend->getLastError());
+    size_t retainedTokens = 0, liveTokens = 0;
+    for (int i=0; i<4; ++i) {
+      const auto & view = views[i];
+      if (view.resources.mode == COIN_RENDER_SCENE_TEXTURE_DIRECT) {
+        retainedTokens = std::max(retainedTokens, liveTokens + view.resources.tokenCount());
+        liveTokens += view.resources.producers.size();
+      }
+      if (i == 1 || i == 2 || (i == 0 && !view.frame.draws.empty())) ++liveTokens;
+      retainedTokens = std::max(retainedTokens, liveTokens);
+    }
+    result = target.backend->preflightStereo(views[3].frame, target, retainedTokens);
+    if (result.status != CoinRenderBackendStatus::SUCCESS)
+      return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
+    // Selected-adapter checks are also made for every view before execution.
+    for (auto & view : views) {
+      result = view.execution->preflight(view.resources, view.frame);
+      if (result.status != CoinRenderBackendStatus::SUCCESS)
+        return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
+    }
+    std::vector<uint64_t> tokens;
+    struct ReleaseViews {
+      CoinRenderTargetP & target;
+      std::vector<uint64_t> & tokens;
+      ~ReleaseViews() { if (target.backend) target.backend->retireRtt(tokens); }
+    } release{target, tokens};
+    CoinRenderFramePlan foreground;
+    uint64_t eyes[2] = {0, 0};
+    for (int view = 0; view < 4; ++view) {
+      CoinRenderFramePlan resolved;
+      result = views[view].execution->prepare(views[view].resources, views[view].frame, resolved);
+      if (result.status != CoinRenderBackendStatus::SUCCESS)
+        return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
+      if (view == 3) { foreground = std::move(resolved); break; }
+      // Native renderStereo clears over BG, but its authored traversal and
+      // captured resources are still real occurrences with an execution owner.
+      if (view == 0 && resolved.draws.empty()) continue;
+      resolved.viewOutput = true;
+      resolved.managerFrame = false;
+      if (view == 2 && mode == 1) {
+        resolved.stereoMode = 4; // RGB/depth clear independently; alpha follows native channel state.
+        resolved.stereoTokens[0] = resolved.stereoTokens[1] = eyes[0];
+      }
+      uint64_t token = 0;
+      result = target.backend->submitRtt(resolved, target.size,
+        CoinRenderFramePlanBuilder::nextRevision(), target, token);
+      if (token) tokens.push_back(token);
+      if (result.status != CoinRenderBackendStatus::SUCCESS)
+        return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
+      if (!token) return fail(CoinRenderAction::BACKEND_ERROR, "Private stereo view returned no GPU attachment");
+      if (view) eyes[view - 1] = token;
+    }
+    foreground.revision = CoinRenderFramePlanBuilder::nextRevision();
+    foreground.stereoMode = mode;
+    foreground.stereoTokens[0] = eyes[0];
+    foreground.stereoTokens[1] = eyes[1];
+    const auto & viewport = action->getViewportRegion();
+    const auto origin = viewport.getViewportOriginPixels();
+    const auto extent = viewport.getViewportSizePixels();
+    for (int i = 0; i < 2; ++i) {
+      foreground.stereoOrigin[i] = origin[i];
+      foreground.stereoExtent[i] = extent[i];
+    }
+    result = target.executeFrame(foreground);
     return fail(CoinRenderDiagnosticShell::actionStatus(result.status), result.diagnostic);
   } catch (const std::bad_alloc &) {
-    return fail(CoinRenderAction::BACKEND_ERROR, "ANAGLYPH frame allocation failed");
+    return fail(CoinRenderAction::OUT_OF_MEMORY, "Stereo view allocation failed");
+  } catch (const std::exception & error) {
+    return fail(CoinRenderAction::BACKEND_ERROR, error.what());
+  } catch (...) {
+    return fail(CoinRenderAction::BACKEND_ERROR, "Stereo authored traversal threw an exception");
   }
 }
 
