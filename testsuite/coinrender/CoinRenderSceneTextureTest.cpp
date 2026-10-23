@@ -604,16 +604,29 @@ int main() {
   coinRenderTestSetEnvironment("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE", "1");
   CoinRenderReadbackTicket failedAsync{};
   failedAsync.token = 999;
+  const CoinRenderReadbackTicket callerTicket = failedAsync;
   action.applyAsync(parent, failedAsync);
   std::vector<uint8_t> afterAsyncFault;
   target->readbackRGBA(afterAsyncFault);
   std::size_t afterAsyncBytes = 0;
-  if (!check(action.getLastStatus() == CoinRenderAction::DEVICE_LOST && !failedAsync.token &&
+  const bool callerTicketPreserved =
+    failedAsync.token == callerTicket.token &&
+    failedAsync.generation == callerTicket.generation &&
+    failedAsync.submissionSerial == callerTicket.submissionSerial &&
+    failedAsync.width == callerTicket.width &&
+    failedAsync.height == callerTicket.height &&
+    failedAsync.colorFormat == callerTicket.colorFormat &&
+    failedAsync.depthFormat == callerTicket.depthFormat &&
+    failedAsync.colorRowPitch == callerTicket.colorRowPitch &&
+    failedAsync.depthRowPitch == callerTicket.depthRowPitch &&
+    failedAsync.colorBytes == callerTicket.colorBytes &&
+    failedAsync.depthBytes == callerTicket.depthBytes;
+  if (!check(action.getLastStatus() == CoinRenderAction::DEVICE_LOST && callerTicketPreserved &&
                  afterAsyncFault == beforeAsyncFault &&
                  target->getLastSubmissionSerial() == beforeAsyncSerial &&
                  target->borrowRGBA(afterAsyncBytes) == beforeAsyncPointer &&
                  afterAsyncBytes == beforeAsyncBytes,
-             "late BGFX async failure must retire candidate ticket and preserve publication",
+             "late BGFX async failure must preserve complete caller descriptor/publication and retire private candidate",
              action))
     return 1;
   // Recovery requires retirement of the failed ticket's runtime reference.

@@ -657,23 +657,34 @@ int main() {
       SoRenderManager::Superimposition::BACKGROUND |
       SoRenderManager::Superimposition::ZBUFFERON);
     source.setRenderMode(SoRenderManager::WIREFRAME);
+    const auto layerSerial = adapter.getSceneManager()->getRenderTarget()->getLastSubmissionSerial();
     if (!check(source.hasEnabledSuperimpositions() &&
-               adapter.render() == CoinRenderAction::UNSUPPORTED &&
-               adapter.getLastError().getLength() > 0,
-               "superimposition in WIREFRAME mode was silently accepted")) return 1;
+               adapter.render() == CoinRenderAction::SUCCESS &&
+               adapter.getSceneManager()->getRenderTarget()->getLastSubmissionSerial() > layerSerial,
+               "authored background did not render with technical WIREFRAME base")) return 1;
     adapter.getSceneManager()->getRenderTarget()->readbackRGBA(retained);
-    if (!check(retained == restored,
-               "superimposition rejection changed the last published frame")) return 1;
+    if (!check(retained != restored,
+               "authored background/technical base did not change published content")) return 1;
+    const auto backgroundPublication = retained;
+    const auto backgroundSerial = adapter.getSceneManager()->getRenderTarget()->getLastSubmissionSerial();
     source.setRenderMode(SoRenderManager::AS_IS);
     layer->setEnabled(FALSE);
     if (!check(!source.hasEnabledSuperimpositions() &&
-               adapter.render() == CoinRenderAction::SUCCESS,
-               "disabled superimposition blocked ordinary rendering")) return 1;
+               adapter.render() == CoinRenderAction::UNSUPPORTED &&
+               adapter.getLastError().getLength() > 0 &&
+               adapter.getSceneManager()->getRenderTarget()->getLastSubmissionSerial() == backgroundSerial,
+               "disabled first background must reject unavailable color LOAD without publication")) return 1;
     adapter.getSceneManager()->getRenderTarget()->readbackRGBA(retained);
-    if (!check(retained == restored,
-               "disabled superimposition changed ordinary rendering")) return 1;
+    if (!check(retained == backgroundPublication,
+               "missing clear-owner rejection changed the previous publication")) return 1;
     source.removeSuperimposition(layer);
     layerScene->unref();
+    if (!check(adapter.render() == CoinRenderAction::SUCCESS &&
+               adapter.getSceneManager()->getRenderTarget()->getLastSubmissionSerial() > backgroundSerial,
+               "removing disabled background did not restore base clear ownership")) return 1;
+    adapter.getSceneManager()->getRenderTarget()->readbackRGBA(retained);
+    if (!check(retained == restored,
+               "base clear-owner recovery changed the ordinary scene")) return 1;
     SoSeparator * foreground = new SoSeparator;
     foreground->ref();
     SoOrthographicCamera * foregroundCamera = new SoOrthographicCamera;

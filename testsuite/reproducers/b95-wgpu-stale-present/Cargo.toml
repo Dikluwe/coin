@@ -1,0 +1,18 @@
+[package]
+name = "b95-wgpu-stale-present"
+version = "0.1.0"
+edition = "2021"
+publish = false
+build = "build.rs"
+
+[[bin]]
+name = "B95WgpuStalePresent"
+path = "src/main.rs"
+
+[dependencies]
+wgpu = { version = "=24.0.5", default-features = false, features = ["wgsl"] }
+raw-window-handle = "=0.6.2"
+pollster = "=0.4.0"
+log = "=0.4.29"
+
+# No patches, Coin bridge, vendor paths or automatic test-suite registration.
