@@ -91,11 +91,81 @@ present bem-sucedido não comprova visibilidade. R29 e R35 mantêm seus escopos 
 de junções de linhas/pontos com CoinGL conserva os limites do
 [perfil de geometria](coin-render-geometry-viewport-contract.md).
 
+## Manager estéreo em um target RGBA
+
+`CoinRenderManagerAdapter` admite ANAGLYPH, INTERLEAVED_ROWS e
+INTERLEAVED_COLUMNS no perfil Linux descrito na [matriz R29](coin-render-feature-matrix.md#r29--manager-estéreo-no-linux--23102026).
+BG é uma ocorrência autoral antes do par; a base tem uma ocorrência por olho;
+FG é uma ocorrência monoscópica depois da composição, com todos os canais
+habilitados. Modos técnicos e `texturesEnabled` continuam restritos à base.
+O clear estéreo nativo pode apagar pixels de BG, mas não elimina sua travessia
+ou seus recursos. Passes técnicos não repetem callbacks ou produtores autorais.
+
+Cada olho conclui sua composição, incluindo os recursos admitidos no mesmo
+perfil mono, em attachments GPU privados. Só depois são escolhidos os canais
+ou pixels de saída. ANAGLYPH usa R de LEFT, G/B e depth de RIGHT. Seu alpha
+segue as duas escritas nativas: LEFT inicializa o alpha que RIGHT recebe,
+sem transportar RGB ou depth entre os olhos. Essa dependência conserva cada
+amostra MSAA até a composição final e a aplicação de FG. As modalidades
+intercaladas escolhem RGBA/depth completos por pixel; a fase é relativa à
+viewport lógica do manager, inclusive com viewport aninhada e tamanho ímpar.
+Não há readback/reupload CPU para compor as vistas ou apresentar a janela normal.
+
+A admissão cobre ambos os olhos e todos os produtores antes de trabalho GPU.
+Recusa de autoria ativa apenas em RIGHT preserva RGBA, depth, armazenamento
+emprestado, serial e câmera, e permite nova tentativa no mesmo target.
+Exceções autorais são contidas antes de sair da travessia legada para permitir
+sua limpeza normal. A câmera temporária conserva modo e ajuste anteriores;
+setters sem notificação não autorizam reutilizar uma captura de outro olho.
+Prepare/finish, sensores e hooks pertencem ao frame público. Seu serial avança
+uma vez por publicação; seriais de fila e tickets assíncronos pertencem a outro
+domínio. Nenhuma action GL do host executa a produção.
+
+Os produtores STAGED continuam executando por ocorrência. Um lease exclusivo
+reutiliza somente o target de execução, depois de copiar os pixels para a imagem
+própria dessa ocorrência. O dono retém até quatro targets ociosos por LRU,
+com chave completa de tamanho, formato/mips, opções e domínio/geração. Resize,
+perda e destruição invalidam o reuso sem destruir filhos sob o lock do registro.
+Não é cache de conteúdo: revisões novas continuam sendo renderizadas. Descritores
+adicionais podem causar eviction e nova compilação; o limite não recusa recursos.
+A retenção inclui os backends, attachments e buffers desses quatro alvos.
+O scratch exige o readback da sua execução atual mesmo com pipeline opcional
+2/3, usando os slots e o limite de espera existentes; a política pública do
+consumidor permanece própria.
+
+Os tokens privados pertencem ao backend/dispositivo e têm duração limitada à
+transação. Recursos de olhos, ocorrências autorais, produtores e peers não
+compartilham slots por coincidência numérica. A ABI privada C++/Rust 70 usa
+`CoinWgpuFrameView` de 600 bytes, com tokens, modalidade, origem e extensão
+estéreo na cauda. As duas partes devem ser reconstruídas juntas; isso não
+altera a ABI legada do Coin.
+
+SEPARATE_OUTPUT e QUAD_BUFFER são aliases de um pedido de buffers nativos
+LEFT/RIGHT. Um target RGBA único não fornece esses buffers: a recusa explícita
+continua `UNSUPPORTED`, sem emulação silenciosa. Limites reais do perfil mono,
+formatos e plataformas permanecem próprios. Highlight BOX/LINE ativo com
+estéreo ou modos técnicos continua sob R35, com recusa e recuperação mono.
+A separação de vistas permite inserir futuramente o replay gerado em cada
+olho, antes da escolha dos canais e antes do FG autoral, preservando os
+propósitos BASE/HIGHLIGHT e a identidade dos recursos.
+
+A referência GL tem limites explícitos. Ela desativa display lists que não
+acompanham setters estéreo sem notificação e normaliza a representação do
+upload de stencil, a origem das imagens e a fase Bayer quando alinha o
+raster MSAA em UPPER_LEFT. O produtor RTT opaco da fixture
+é independente da máscara cromática externa. Esses controles não corrigem
+nem qualificam as APIs legadas alteradas pela referência. HIDDEN_LINE é
+comparado por olhos completos: seu clear global e a restauração de
+`glColorMask` no manager GL legado não definem a composição desejada. A
+comparação numérica de strokes e bordas conserva o perfil P02/P07 do mono;
+a composição dos olhos tem adicionalmente um oráculo independente em todos
+os pixels. Present bem-sucedido conserva o limite de visibilidade B95.
+
 ## Transporte wgpu
 
 A revisão privada 21 introduziu esse transporte com draw de 56 bytes e estado
 de 956. A revisão 22 conservou o draw e ampliou o estado para 1088 bytes
-com equações de clipping. A revisão atual 28 acrescenta opções ao frame view
+com equações de clipping. A revisão 28 acrescentou opções ao frame view
 de 176 bytes e conserva o draw de 56 bytes, o vértice de 100 e o estado de 2280
 da revisão 26 de multitextura. O campo no offset 36 é
 `composition_flags`: blend no bit 0, aditivo no 1, screen door no 2, peeling no
@@ -142,7 +212,7 @@ calculados; esses bytes não representam capacidade do vetor ou tráfego do
 alocador. O tempo `composition_identity.qualify_ms` inclui a classificação
 existente e não mede o custo incremental da prova.
 
-Esta mudança conserva a ABI privada atual 43. As revisões 21–28 na seção de
+Esta entrega histórica conservou a ABI privada 43. As revisões 21–28 na seção de
 transporte acima registram etapas anteriores da sua evolução.
 
 [Medições e validação local](coin-render-composition-copy-linux.md).
