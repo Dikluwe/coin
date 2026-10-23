@@ -9,6 +9,7 @@
 #include <Inventor/nodes/SoOrthographicCamera.h>
 #include <Inventor/nodes/SoLightModel.h>
 #include <Inventor/nodes/SoMaterial.h>
+#include <Inventor/nodes/SoCube.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoTextureCoordinate2.h>
 #include <Inventor/nodes/SoIndexedFaceSet.h>
@@ -50,6 +51,87 @@ static CoinRenderTarget::ReadbackStatus poll(const CoinRenderReadbackTicket& tic
   }
   return CoinRenderTarget::READBACK_NOT_READY;
 }
+#if defined(HAVE_COIN_BGFX) || defined(HAVE_COIN_WGPU_RUST_BRIDGE)
+static SoSeparator * instancedOpaqueScene(bool green) {
+  auto * root = new SoSeparator;
+  root->ref();
+  auto * camera = new SoOrthographicCamera;
+  camera->position.setValue(0,0,4);
+  camera->nearDistance = 1;
+  camera->farDistance = 10;
+  camera->height = 3;
+  root->addChild(camera);
+  auto * lighting = new SoLightModel;
+  lighting->model = SoLightModel::BASE_COLOR;
+  root->addChild(lighting);
+  auto * material = new SoMaterial;
+  material->diffuseColor.setValue(green ? 0.0f : 1.0f,green ? 1.0f : 0.0f,0);
+  root->addChild(material);
+  // Distinct occurrences qualify the real opaque instance path. Their equal
+  // coverage keeps the readback oracle independent of ordering and batching.
+  for (unsigned i=0;i<256;++i) root->addChild(new SoCube);
+  return root;
+}
+
+static bool opaquePeerReuseReturnsToOriginalTarget() {
+  const auto release = [](SoSeparator * root) { root->unref(); };
+  std::unique_ptr<SoSeparator,decltype(release)> redScene(instancedOpaqueScene(false),release);
+  std::unique_ptr<SoSeparator,decltype(release)> greenScene(instancedOpaqueScene(true),release);
+  const unsigned aw=32, ah=24, bw=24, bh=32;
+  std::unique_ptr<CoinRenderTarget> a(CoinRenderTarget::createOffscreen(SbVec2i32(aw,ah)));
+  std::unique_ptr<CoinRenderTarget> b(CoinRenderTarget::createOffscreen(SbVec2i32(bw,bh)));
+  if (!check(a && b,"opaque peer targets must exist")) return false;
+  a->setDepthReadbackEnabled(FALSE); b->setDepthReadbackEnabled(FALSE);
+  CoinRenderAction aa(SbViewportRegion(aw,ah)), ab(SbViewportRegion(bw,bh));
+  aa.setRenderTarget(a.get()); ab.setRenderTarget(b.get());
+  const auto colorMatches = [](const std::vector<uint8_t> & pixels,unsigned w,unsigned h,bool green) {
+    if (pixels.size()!=size_t(w)*h*4) return false;
+    const size_t center=(size_t(h/2)*w+w/2)*4;
+    return pixels[center+(green ? 1 : 0)]>240 &&
+      pixels[center+(green ? 0 : 1)]<10 && pixels[center+2]<10;
+  };
+  const auto submit = [&](bool green) {
+    auto & target=green ? *b : *a;
+    auto & peer=green ? *a : *b;
+    auto & action=green ? ab : aa;
+    const auto serial=target.getLastSubmissionSerial();
+    const auto peerSerial=peer.getLastSubmissionSerial();
+    std::vector<uint8_t> peerBefore,peerAfter,pixels;
+    peer.readbackRGBA(peerBefore);
+    if (!render(action,green ? greenScene.get() : redScene.get())) return false;
+    target.readbackRGBA(pixels); peer.readbackRGBA(peerAfter);
+    return check(target.getLastSubmissionSerial()==serial+1 &&
+      peer.getLastSubmissionSerial()==peerSerial && peerBefore==peerAfter &&
+      colorMatches(pixels,green ? bw : aw,green ? bh : ah,green),
+      "returning an opaque action publishes its own current color exactly once and preserves its peer");
+  };
+  // Warm each action independently before a peer displaces the backend's
+  // retained scene. Later returns must remain correct on real REUSE frames.
+  for (unsigned i=0;i<3;++i) if (!submit(false)) return false;
+  for (unsigned i=0;i<3;++i) if (!submit(true)) return false;
+  for (unsigned i=0;i<4;++i)
+    if (!submit(false) || !submit(false) || !submit(true) || !submit(true)) return false;
+  if (!submit(false)) return false;
+  const auto prior=a->getLastSubmissionSerial(), peer=b->getLastSubmissionSerial();
+  CoinRenderReadbackTicket ticket{};
+  aa.applyAsync(redScene.get(),ticket);
+  if (!check(aa.getLastStatus()==CoinRenderAction::SUCCESS && ticket.token &&
+      a->getLastSubmissionSerial()==prior+1 && b->getLastSubmissionSerial()==peer,
+      "async opaque return owns one ticket and exactly one target publication")) return false;
+  // Force another retained-scene replacement while the red ticket owns work.
+  if (!submit(true)) return false;
+  std::vector<uint8_t> pixels;
+  std::vector<float> depth;
+  if (!check(poll(ticket,pixels,depth)==CoinRenderTarget::READBACK_READY &&
+      colorMatches(pixels,aw,ah,false) && depth.empty() &&
+      a->getLastSubmissionSerial()==prior+1 && b->getLastSubmissionSerial()==peer+1,
+      "opaque async output retains original target dimensions and scene across peer reuse")) return false;
+  if (!submit(false)) return false;
+  aa.setRenderTarget(nullptr); ab.setRenderTarget(nullptr);
+  return true;
+}
+#endif
+
 int main() {
   SoDB::init();
   CoinRenderAction::initClass();
@@ -63,6 +145,7 @@ int main() {
 #if !defined(HAVE_COIN_BGFX) && !defined(HAVE_COIN_WGPU_RUST_BRIDGE)
   return 0;
 #else
+  if (!opaquePeerReuseReturnsToOriginalTarget()) return 1;
   SoSeparator* root = new SoSeparator;
   root->ref();
   auto* camera = new SoOrthographicCamera;

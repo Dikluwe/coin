@@ -42,6 +42,34 @@ bool refuse(CoinRenderFramePlan &f, const std::string &label) {
   const bool accepted=coin_render_shader_resource_bytes(f,bytes,error);
   return check(!accepted && bytes==sentinel && !error.empty(), label + " rejects transactionally: " + error);
 }
+bool mutablePortableDrawClassification() {
+  CoinRenderFramePlan frame;
+  frame.revision = 88001;
+  frame.renderStates.resize(2);
+  frame.draws.resize(257);
+  for (auto & draw : frame.draws) draw.geometry.indexCount = 3;
+  bool ok = check(!frame.hasPortableShaderDraws(),"ordinary draw set has no portable execution");
+  frame.renderStates.back().portableShaderSlot = 1;
+  frame.draws.back().renderStateSlot = 1;
+  ok &= check(frame.hasPortableShaderDraws(),
+    "late consumed portable slot is detected even when declaration table is missing");
+  frame.draws.front().renderStateSlot = UINT32_MAX;
+  ok &= check(frame.hasPortableShaderDraws(),
+    "invalid earlier state cannot hide a later portable draw");
+  frame.draws.back().geometry.indexCount = 0;
+  ok &= check(!frame.hasPortableShaderDraws(),"empty portable draw is not consumed");
+  frame.draws.back().geometry.indexCount = 3;
+  frame.renderStates.back().portableShaderSlot = 0;
+  frame.portableShaders.push_back(named(23));
+  ok &= check(!frame.hasPortableShaderDraws(),"unused declaration does not require execution");
+  frame.renderStates.front().portableShaderSlot = 2; // Deliberately outside the table.
+  frame.draws.front().renderStateSlot = 0;
+  ok &= check(frame.hasPortableShaderDraws(),
+    "same-owner same-revision state mutation cannot leave a false-negative classifier cache");
+  frame.renderStates.front().portableShaderSlot = 0;
+  ok &= check(!frame.hasPortableShaderDraws(),"same-owner recovery clears consumed portable state");
+  return ok;
+}
 bool resources() {
   CoinRenderFramePlan f;
   bool ok=count(f,0,"ordinary frame costs zero");
@@ -111,5 +139,5 @@ bool resources() {
 int main(int argc,char **) {
   if(argc!=1)return 2;
   SoDB::init(); CoinRenderAction::initClass();
-  return resources()?0:1;
+  return mutablePortableDrawClassification() && resources()?0:1;
 }

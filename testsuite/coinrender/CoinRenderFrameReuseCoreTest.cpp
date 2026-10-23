@@ -10,6 +10,7 @@
 #include "rendering/coinrender/CoinRenderTransformCore.h"
 #include <Inventor/SbRotation.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
+#include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
 #include "CoinRenderTestEnvironment.h"
 
 #include <Inventor/SoDB.h>
@@ -54,6 +55,56 @@ makePlan(uint64_t revision)
   draw.sourceRevision = 11;
   plan.draws.push_back(draw);
   return plan;
+}
+
+// These are direct internal API callers, with no action-owned notification proof.
+// A caller's reuse hint cannot turn its mutable vectors into an immutable capture.
+class ReuseAdmissionBackend : public CoinRenderCpuReferenceBackend {
+public:
+  unsigned submissions = 0;
+  CoinRenderSubmitResult submit(const CoinRenderFramePlan &, CoinRenderTargetP &) override {
+    ++submissions;
+    return {};
+  }
+};
+
+bool testUntrustedReuseAdmission() {
+  bool ok = true;
+  for (int hint = 0; hint < 3; ++hint) {
+    for (int mutation = 0; mutation < 5; ++mutation) {
+      auto frame = makePlan(87001);
+      frame.viewports[0].width = frame.viewports[0].height = 32;
+      CoinRenderTargetP target(SbVec2i32(32,32));
+      auto * backend = new ReuseAdmissionBackend;
+      target.backend.reset(backend);
+      target.depthReadbackEnabled = false;
+      if (!check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
+                 backend->submissions == 1, "untrusted reuse primer")) return false;
+      const auto acceptedRevision = frame.revision;
+      // Keep the very same owner, allocations and vector lengths.
+      if (mutation == 0) frame.draws.back().renderStateSlot = uint32_t(frame.renderStates.size());
+      if (mutation == 1) frame.indices.back() = uint32_t(frame.vertices.size());
+      if (mutation == 2) frame.renderStates.back().materialSlot = uint32_t(frame.materials.size());
+      if (mutation == 3) frame.cameras[0].farDistance = frame.cameras[0].nearDistance;
+      if (mutation == 4) frame.draws.back().geometry.indexCount += 3;
+      CoinRenderFrameReuseDecision reuse;
+      if (hint == 1) reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::REUSE,acceptedRevision);
+      if (hint == 2) {
+        ++frame.revision;
+        reuse = CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,acceptedRevision);
+      }
+      const auto result = target.executeFrame(frame,reuse);
+      ok &= check(result.status != CoinRenderBackendStatus::SUCCESS && !result.diagnostic.empty() &&
+                  backend->submissions == 1 && target.lastValidatedPlanRevision == acceptedRevision,
+                  "mutable internal frame must reject invalid payload before submission despite matching revision/base hint");
+      auto repaired = makePlan(frame.revision);
+      repaired.viewports[0].width = repaired.viewports[0].height = 32;
+      ok &= check(target.executeFrame(repaired,reuse).status == CoinRenderBackendStatus::SUCCESS &&
+                  backend->submissions == 2 && target.lastValidatedPlanRevision == repaired.revision,
+                  "same-revision repair must recover after untrusted reuse refusal");
+    }
+  }
+  return ok;
 }
 
 bool testDrawPadding() {
@@ -868,7 +919,7 @@ main()
 {
   SoDB::init();
   const bool paddingOk = testDrawPadding() && testFlatShadowPrimaryIdentity();
-  bool ok = testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
+  bool ok = testUntrustedReuseAdmission() && testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
     testExactAuthoredLightOverlay() && testCompactCameraUndo() &&
     testTranslationOverlay() && testObjectPayloadTransaction() &&
     testCompactCubeOverlay() && testGeometryIntervalValidation();

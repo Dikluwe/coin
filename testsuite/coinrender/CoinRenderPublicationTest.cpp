@@ -121,11 +121,14 @@ int main() {
                   target.lastSubmissionSerial == serial,
               "a successful but incomplete backend result must not publish");
   witness->incomplete = false;
+  const auto beforeRecoverySerial = target.lastSubmissionSerial;
+  const auto beforeRecoverySubmits = witness->submits;
   ++frame.revision;
   ok &= check(target.executeFrame(frame).status == CoinRenderBackendStatus::SUCCESS &&
                   target.colorBuffer != color && target.depthBuffer != depth &&
                   target.lastValidatedPlanRevision == frame.revision &&
-                  target.lastSubmissionSerial == witness->submits,
+                  target.lastSubmissionSerial == beforeRecoverySerial + 1 &&
+                  witness->submits == beforeRecoverySubmits + 1,
               "successful recovery commits all result fields together");
   const auto recovered = target.colorBuffer;
   const auto recoveredPointer = target.colorBuffer.data();

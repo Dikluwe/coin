@@ -225,3 +225,52 @@
             assert!(source.contains("materials[instance.material_slot]"));
         }
     }
+
+    #[test]
+    fn nonnull_same_revision_payload_never_inherits_owned_reuse_authority() {
+        let (mut frame, mut vertices, mut draws, mut materials, states, mut instances, mut ranges) = fixture();
+        let mut indices = [0_u32, 1, 2];
+        frame.vertices = vertices.as_ptr(); frame.indices = indices.as_ptr();
+        frame.draws = draws.as_ptr(); frame.materials = materials.as_ptr();
+        frame.instances = instances.as_ptr(); frame.instance_ranges = ranges.as_ptr();
+        let order = [composition::CompositionItem { draw_index: 0, blend: false, additive: false,
+            legacy_blend_alpha: false, screen_door: false, screen_door_level: 0, peel: false, weighted: false }];
+        let base = camera_scene(7, &frame, &vertices, &indices, &draws, &materials,
+            &states, &order, &[], &[], &instances, &ranges, None).unwrap();
+        let original_vertices = vertices;
+        let original_draws = draws;
+        let original_materials = materials;
+        let original_instances = instances;
+        let original_ranges = ranges;
+        for mutation in 0..8 {
+            assert!(owned_payload_matches(&base.geometry, &frame));
+            assert!(owned_camera_base(&base, 7, &frame, &states).is_some());
+            match mutation {
+                0 => vertices[2].position[0] = 0.125,
+                1 => indices[2] = 1,
+                2 => draws[0].draw_ordinal = 19,
+                3 => materials[0].diffuse[2] = 0.25,
+                4 => instances[1].model_view[12] = 0.5,
+                5 => instances[1].normal_matrix[10] = 0.5,
+                6 => instances[1].material_slot = 1,
+                _ => ranges[0].instance_count = 1,
+            }
+            assert!(!owned_payload_matches(&base.geometry, &frame),
+                "non-null caller data must compare complete bytes, mutation {mutation}");
+            assert!(owned_camera_base(&base, 7, &frame, &states).is_none(),
+                "revision, counts and pointers cannot authorize changed raw payload, mutation {mutation}");
+            if mutation >= 6 {
+                assert!(validate_payload(&frame, &vertices, &indices, &draws, &materials,
+                    &states, &instances, &ranges).is_err(), "invalid raw payload still requires admission");
+            }
+            vertices = original_vertices; indices = [0, 1, 2]; draws = original_draws;
+            materials = original_materials; instances = original_instances; ranges = original_ranges;
+            assert!(owned_payload_matches(&base.geometry, &frame), "repair restores owned equality");
+        }
+        frame.camera_base_revision = frame.frame_revision;
+        frame.frame_revision += 1;
+        assert!(owned_camera_base(&base, 8, &frame, &states).is_none(),
+            "a camera hint cannot move owned resources across device generations");
+        assert!(owned_camera_base(&base, 7, &frame, &states).is_some(),
+            "failed untrusted comparisons do not mutate the last successful owned scene");
+    }

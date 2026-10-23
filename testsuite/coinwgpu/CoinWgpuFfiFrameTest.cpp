@@ -429,6 +429,60 @@ bool mipPayloadPacking() {
                "lower-level mutation cannot reuse stale base-digest payload");
 }
 
+bool mutableResourceReuseBoundary() {
+  CoinRenderFramePlan frame;
+  frame.revision = 88002;
+  CoinRenderTextureImageSnapshot image;
+  image.width = image.height = 2;
+  image.pixelsRgba = {10,20,30,255,40,50,60,255,70,80,90,255,100,110,120,255};
+  if (!CoinRenderTextureSamplingCore::generate(image)) return false;
+  frame.textures.push_back(image);
+  frame.samplers.resize(1);
+  frame.samplers[0].filter = CoinRenderTextureFilter::NEAREST_MIPMAP_LINEAR;
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  const CoinRenderFrameReuseDecision hint(CoinRenderFrameReuseKind::REUSE,frame.revision);
+  const auto prepare = [&]() { return packed.prepare(frame,32,32,hint,diagnostic); };
+  if (!check(prepare(),"mutable-resource REUSE primer")) return false;
+  const auto * source = frame.textures[0].pixelsRgba.data();
+  const auto * mipSource = frame.textures[0].mipmapsRgba.data();
+  const auto compareFresh = [&]() {
+    CoinWgpuFfiFrame fresh;
+    std::string error;
+    if (!check(fresh.prepare(frame,32,32,error) && prepare(),
+               "mutable same-revision resources remain admissible")) return false;
+    const auto & a = packed.getView(); const auto & b = fresh.getView();
+    return check(a.texture_count == 1 && b.texture_count == 1 &&
+      a.textures[0].pixel_bytes_len == b.textures[0].pixel_bytes_len &&
+      a.textures[0].width == b.textures[0].width && a.textures[0].height == b.textures[0].height &&
+      !std::memcmp(a.textures[0].pixels,b.textures[0].pixels,a.textures[0].pixel_bytes_len) &&
+      a.sampler_count == 1 && !std::memcmp(a.samplers,b.samplers,sizeof(CoinWgpuSampler)),
+      "same owner/revision/hint must transport current base bytes, mip bytes and sampler exactly");
+  };
+  frame.textures[0].pixelsRgba.back() = 239;
+  if (!compareFresh()) return false;
+  frame.textures[0].mipmapsRgba.back() = 211;
+  if (!compareFresh()) return false;
+  frame.samplers[0].wrapS = CoinRenderTextureWrap::CLAMP;
+  if (!compareFresh()) return false;
+  if (!check(source == frame.textures[0].pixelsRgba.data() &&
+             mipSource == frame.textures[0].mipmapsRgba.data(),
+             "resource mutations deliberately retain addresses and byte counts")) return false;
+  const auto previous = packed.getView();
+  std::vector<uint8_t> owned(previous.textures[0].pixels,
+    previous.textures[0].pixels + previous.textures[0].pixel_bytes_len);
+  frame.textures[0].mipmapsRgba.pop_back();
+  if (!check(!prepare() && !diagnostic.empty() &&
+      !std::memcmp(&previous,&packed.getView(),sizeof(previous)) &&
+      !std::memcmp(packed.getView().textures[0].pixels,owned.data(),owned.size()),
+      "same-revision truncated mip rejects transactionally before returning cached packet")) return false;
+  frame.textures[0].mipmapsRgba.push_back(211);
+  if (!compareFresh()) return false;
+  frame.textures[0].pixelsRgba.back() = 19;
+  return check(packed.getView().textures[0].pixels[15] == 239,
+               "recovered packet retains ownership after later source mutation");
+}
+
 bool volumeMetadataPacking() {
   CoinRenderFramePlan frame;
   frame.revision=992;
@@ -2523,6 +2577,50 @@ bool zeroScreenDoorOpaqueProfiles()
       fast.getView().instance_count == 256, "same-revision repair must recover without stale proofs");
 }
 
+bool exactReuseWorkAndInvalidIngress() {
+  InstancingSwitch instancing; instancing.disable(false);
+  auto frame = opaqueFrame(true);
+  frame.lightingStates.resize(1);
+  for (auto & state : frame.renderStates) state.lightModel = CoinRenderLightModel::BASE_COLOR;
+  CoinWgpuFfiFrame packed;
+  std::string diagnostic;
+  const CoinRenderFrameReuseDecision hint(CoinRenderFrameReuseKind::REUSE,frame.revision);
+  if (!check(packed.prepare(frame,64,64,diagnostic) && packed.getView().instance_count == 256,
+             "reuse ingress fixture must exercise real instanced storage")) return false;
+  const auto previous = packed.getView();
+  const std::vector<CoinWgpuInstance> instances(previous.instances,previous.instances+previous.instance_count);
+  for (int i=0;i<3;++i) {
+    if (!check(packed.prepare(frame,64,64,hint,diagnostic) && packed.reusedLastPrepare() &&
+        packed.getView().instances == previous.instances && packed.getView().vertices == previous.vertices &&
+        packed.opaqueHashedRangesLastPrepare() == 0 && packed.opaqueRangesRebakedLastPrepare() == 0 &&
+        packed.opaqueVerticesRebakedLastPrepare() == 0 && packed.opaqueMatricesCalculatedLastPrepare() == 0 &&
+        packed.opaqueMatrixCacheAllocationsLastPrepare() == 0,
+        "steady exact reuse retains arrays without geometry hashes, rebakes or matrix work")) return false;
+  }
+  const auto reject = [&](const char * label) {
+    return check(!packed.prepare(frame,64,64,hint,diagnostic) && !diagnostic.empty() &&
+      !std::memcmp(&previous,&packed.getView(),sizeof(previous)) &&
+      !std::memcmp(previous.instances,instances.data(),instances.size()*sizeof(CoinWgpuInstance)),label);
+  };
+  frame.renderStates.back().colorWriteMask = 0x80;
+  if (!reject("same-revision late invalid state must reject without replacing retained instances")) return false;
+  frame.renderStates.back().colorWriteMask = 0x0f;
+  if (!check(packed.prepare(frame,64,64,hint,diagnostic),"valid same-revision state repairs after failure")) return false;
+  // Establish a new header snapshot after recovery before the next transaction.
+  const auto repaired = packed.getView();
+  frame.draws.back().multipassMask = 2;
+  if (!check(!packed.prepare(frame,64,64,hint,diagnostic) && !diagnostic.empty() &&
+      !std::memcmp(&repaired,&packed.getView(),sizeof(repaired)),
+      "same-revision invalid final draw mask must not hide behind a caller REUSE hint")) return false;
+  frame.draws.back().multipassMask = 0;
+  if (!check(packed.prepare(frame,96,48,hint,diagnostic) &&
+      packed.getView().width == 96 && packed.getView().height == 48,
+      "size change after rejection must produce current transport dimensions")) return false;
+  return check(packed.prepare(frame,96,48,hint,diagnostic,nullptr,false) &&
+      !packed.getView().instance_count && !packed.getView().instance_range_count,
+      "destination option change revokes same-revision instance reuse");
+}
+
 int
 main(int argc, char ** argv)
 {
@@ -2536,12 +2634,12 @@ main(int argc, char ** argv)
       !cubeAtlasPreflightBeforeReuse()) return 1;
   InstancingSwitch instancing;
   instancing.disable(true); // These controls specifically exercise baked storage.
-  if (!activeBumpBoundary() || !mipPayloadPacking() || !volumeMetadataPacking() || !npotVolumeMetadataPacking() || !externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
+  if (!mutableResourceReuseBoundary() || !activeBumpBoundary() || !mipPayloadPacking() || !volumeMetadataPacking() || !npotVolumeMetadataPacking() || !externalViewportPacking() || !opaqueBatching(false) || !opaqueBatching(true) || !anchoredPhongCamera() ||
       !earlyBatchEquivalence(false) || !earlyBatchEquivalence(true) ||
       !incrementalBatchEquivalence(false) || !incrementalBatchEquivalence(true) ||
       !boundedIncrementalBatch()) return 1;
   instancing.disable(false);
-  if (!zeroScreenDoorOpaqueProfiles() || !compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
+  if (!exactReuseWorkAndInvalidIngress() || !zeroScreenDoorOpaqueProfiles() || !compositionBorrowPacking() || !opaqueInstancingEquivalence(false) || !opaqueInstancingEquivalence(true) ||
       !consecutiveInstancingGroups() || !diagonalMeshEquivalence() ||
       !diagonalMeshOrderAndFallback() || !boundedInstancingMetadata() ||
       !instanceCommonStateEquivalence() || !instanceMatrixCacheEquivalence()) return 1;
