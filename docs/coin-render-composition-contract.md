@@ -143,11 +143,41 @@ altera a ABI legada do Coin.
 SEPARATE_OUTPUT e QUAD_BUFFER são aliases de um pedido de buffers nativos
 LEFT/RIGHT. Um target RGBA único não fornece esses buffers: a recusa explícita
 continua `UNSUPPORTED`, sem emulação silenciosa. Limites reais do perfil mono,
-formatos e plataformas permanecem próprios. Highlight BOX/LINE ativo com
-estéreo ou modos técnicos continua sob R35, com recusa e recuperação mono.
-A separação de vistas permite inserir futuramente o replay gerado em cada
-olho, antes da escolha dos canais e antes do FG autoral, preservando os
-propósitos BASE/HIGHLIGHT e a identidade dos recursos.
+formatos e plataformas permanecem próprios.
+
+## Highlight nativo no manager
+
+O perfil Linux RGBA8 síncrono de R35 admite BOX/LINE nativos em MONO,
+ANAGLYPH, INTERLEAVED_ROWS e INTERLEAVED_COLUMNS. Cada olho conclui sua
+base técnica e seu destaque antes do seletor estéreo; o FG autoral continua
+monoscópico, posterior e com todos os canais habilitados. A aparência do
+highlight conserva cor, largura, padrão, visibilidade, alpha, clipping e depth
+próprios. Os modos técnicos e `texturesEnabled` afetam somente a base.
+
+BOX calcula bounds na câmera e viewport atuais de cada olho. LINE percorre
+os paths selecionados na ordem nativa, incluindo ancestrais e subtree
+selecionados, sem repetir os Separators fora do path. A primeira SoSelection
+continua sendo a fonte da seleção; ocorrências compartilhadas e Switch
+conservam sua identidade. O replay gerado não cria produtores RTT nem
+mapas/casters/receivers extras. Seu propósito permanece distinto de uma
+camada autoral com aparência semelhante, inclusive na reutilização de planos.
+
+A admissão inclui o destaque, os dois olhos e seus recursos antes de trabalho
+GPU. Estilo ativo não finito, path alterado durante a captura, índice inválido
+somente no replay e exceção autoral preservam a publicação anterior e permitem
+recuperação no mesmo alvo. Isso inclui ações internas de busca e bounds:
+a limpeza da travessia legada precisa terminar antes de propagar a falha.
+Estilo inválido invisível ou sem seleção permanece inerte. Hooks e serial
+pertencem a um único frame público; nenhuma action GL do host executa a produção.
+
+A combinação com highlight conserva os limites reais do renderer base:
+por exemplo, BOUNDING_BOX com texturas adicionais sem coordenadas GL persistentes
+continua recusado. Classes GL com tipo de runtime próprio, buffers estéreo
+nativos, managers assíncronos genéricos, HDR e outras plataformas conservam
+seu escopo. A [matriz R35](coin-render-feature-matrix.md#r35--highlight-nativo-no-manager-linux--23102026)
+delimita as combinações exercitadas; não qualifica todo produto cartesiano.
+B34, B94 e B95 continuam externos abertos, com as respectivas operações
+reprovadas e sem retry ou aumento do prazo de observação física.
 
 A referência GL tem limites explícitos. Ela desativa display lists que não
 acompanham setters estéreo sem notificação e normaliza a representação do
