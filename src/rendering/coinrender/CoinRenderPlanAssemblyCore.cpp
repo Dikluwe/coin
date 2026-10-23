@@ -17,18 +17,22 @@ struct InternCandidates {
 
 class InternIndex : public SbHash<unsigned long, InternCandidates> {
 public:
-  InternIndex() : SbHash<unsigned long, InternCandidates>(256), indexed(0), disabled(false) {}
+  InternIndex() : SbHash<unsigned long, InternCandidates>(256), indexed(0),
+                  lastSlot(UINT32_MAX), disabled(false) {}
   void reset() {
     this->clear();
     this->indexed = 0;
+    this->lastSlot = UINT32_MAX;
     this->disabled = false;
   }
   void abandon() {
     this->clear();
     this->indexed = 0;
+    this->lastSlot = UINT32_MAX;
     this->disabled = true;
   }
   size_t indexed;
+  uint32_t lastSlot;
   bool disabled;
 };
 
@@ -251,13 +255,21 @@ uint32_t findValue(const std::vector<Value> & values, InternIndex * index,
                    const Value & value, Hash hash, Equal equal)
 {
   if (index && synchronize(*index, values, hash, equal)) {
+    if (index->lastSlot < values.size() && equal(values[index->lastSlot], value))
+      return index->lastSlot;
     const auto found = index->find(narrowHash(hash(value)));
     if (found != index->const_end()) {
       const InternCandidates & candidates = found->obj;
-      if (candidates.first != UINT32_MAX && equal(values[candidates.first], value))
+      if (candidates.first != UINT32_MAX && equal(values[candidates.first], value)) {
+        index->lastSlot = candidates.first;
         return candidates.first;
-      for (uint32_t slot : candidates.additional)
-        if (equal(values[slot], value)) return slot;
+      }
+      for (uint32_t slot : candidates.additional) {
+        if (equal(values[slot], value)) {
+          index->lastSlot = slot;
+          return slot;
+        }
+      }
     }
     return UINT32_MAX;
   }
@@ -294,7 +306,7 @@ uint32_t appendValue(std::vector<Value> & values, InternIndex * index,
   if (existing != UINT32_MAX) return existing;
   const uint32_t slot = static_cast<uint32_t>(values.size());
   values.push_back(value);
-  if (index) synchronize(*index, values, hash, equal);
+  if (index && synchronize(*index, values, hash, equal)) index->lastSlot = slot;
   return slot;
 }
 }
@@ -402,7 +414,8 @@ uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRen
   if (existing != UINT32_MAX) return existing;
   const uint32_t slot = static_cast<uint32_t>(plan.textures.size());
   plan.textures.push_back(std::move(image));
-  if (index) synchronize(*index, plan.textures, hashTexture64, sameTexture);
+  if (index && synchronize(*index, plan.textures, hashTexture64, sameTexture))
+    index->lastSlot = slot;
   return slot;
 }
 
