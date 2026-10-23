@@ -7,6 +7,298 @@
 #include <cstring>
 #include <new>
 
+namespace {
+struct InternCandidates {
+  InternCandidates() : first(UINT32_MAX) {}
+  explicit InternCandidates(uint32_t slot) : first(slot) {}
+  uint32_t first;
+  std::vector<uint32_t> additional;
+};
+
+class InternIndex : public SbHash<unsigned long, InternCandidates> {
+public:
+  InternIndex() : SbHash<unsigned long, InternCandidates>(256), indexed(0), disabled(false) {}
+  void reset() {
+    this->clear();
+    this->indexed = 0;
+    this->disabled = false;
+  }
+  void abandon() {
+    this->clear();
+    this->indexed = 0;
+    this->disabled = true;
+  }
+  size_t indexed;
+  bool disabled;
+};
+
+uint64_t hashBytes(uint64_t hash, const void * data, size_t size)
+{
+  const unsigned char * bytes = static_cast<const unsigned char *>(data);
+  for (size_t i = 0; i < size; ++i)
+    hash = (hash ^ bytes[i]) * UINT64_C(1099511628211);
+  return hash;
+}
+
+template <typename T>
+uint64_t hashValue(uint64_t hash, const T & value)
+{
+  return hashBytes(hash, &value, sizeof(value));
+}
+
+uint64_t hashFloat(uint64_t hash, float value)
+{
+  // SbMatrix and scalar equality treat the two zero representations alike.
+  if (value == 0.0f) value = 0.0f;
+  return hashValue(hash, value);
+}
+
+uint64_t hashMatrix(uint64_t hash, const SbMatrix & matrix)
+{
+  for (int row = 0; row < 4; ++row)
+    for (int column = 0; column < 4; ++column)
+      hash = hashFloat(hash, matrix[row][column]);
+  return hash;
+}
+
+unsigned long narrowHash(uint64_t hash)
+{
+#if ULONG_MAX == 0xffffffffUL
+  hash ^= hash >> 32;
+#endif
+  return static_cast<unsigned long>(hash);
+}
+
+uint64_t hashMaterial64(const CoinRenderMaterialSnapshot & material)
+{
+  return hashBytes(UINT64_C(14695981039346656037), &material, sizeof(material));
+}
+
+bool sameMaterial(const CoinRenderMaterialSnapshot & a, const CoinRenderMaterialSnapshot & b)
+{
+  return std::memcmp(&a, &b, sizeof(a)) == 0;
+}
+
+uint64_t hashLight64(uint64_t hash, const CoinRenderLightSourceSnapshot & light)
+{
+  hash = hashValue(hash, light.sourceRevision);
+  hash = hashMatrix(hash, light.sourceModel);
+  hash = hashMatrix(hash, light.sourceWorldModel);
+  hash = hashValue(hash, light.hasAuthoredSource);
+  hash = hashBytes(hash, light.authoredDirection, sizeof(light.authoredDirection));
+  hash = hashBytes(hash, light.authoredPosition, sizeof(light.authoredPosition));
+  hash = hashValue(hash, light.type);
+  hash = hashFloat(hash, light.intensity);
+  hash = hashFloat(hash, light.ambientIntensity);
+  hash = hashFloat(hash, light.cutOffAngle);
+  hash = hashFloat(hash, light.dropOffRate);
+  hash = hashBytes(hash, light.color, sizeof(light.color));
+  hash = hashBytes(hash, light.direction, sizeof(light.direction));
+  hash = hashBytes(hash, light.position, sizeof(light.position));
+  return hashBytes(hash, light.attenuation, sizeof(light.attenuation));
+}
+
+bool sameLight(const CoinRenderLightSourceSnapshot & a, const CoinRenderLightSourceSnapshot & b)
+{
+  return a.sourceRevision == b.sourceRevision && a.sourceModel == b.sourceModel &&
+    a.sourceWorldModel == b.sourceWorldModel && a.hasAuthoredSource == b.hasAuthoredSource &&
+    std::memcmp(a.authoredDirection, b.authoredDirection, sizeof(a.authoredDirection)) == 0 &&
+    std::memcmp(a.authoredPosition, b.authoredPosition, sizeof(a.authoredPosition)) == 0 &&
+    a.type == b.type && a.intensity == b.intensity &&
+    a.ambientIntensity == b.ambientIntensity && a.cutOffAngle == b.cutOffAngle &&
+    a.dropOffRate == b.dropOffRate &&
+    std::memcmp(a.color, b.color, sizeof(a.color)) == 0 &&
+    std::memcmp(a.direction, b.direction, sizeof(a.direction)) == 0 &&
+    std::memcmp(a.position, b.position, sizeof(a.position)) == 0 &&
+    std::memcmp(a.attenuation, b.attenuation, sizeof(a.attenuation)) == 0;
+}
+
+uint64_t hashLighting64(const CoinRenderLightingSnapshot & lighting)
+{
+  uint64_t hash = UINT64_C(14695981039346656037);
+  hash = hashFloat(hash, lighting.ambientIntensity);
+  hash = hashBytes(hash, lighting.ambientColor, sizeof(lighting.ambientColor));
+  hash = hashValue(hash, lighting.lights.size());
+  for (const auto & light : lighting.lights) hash = hashLight64(hash, light);
+  return hash;
+}
+
+bool sameLighting(const CoinRenderLightingSnapshot & a, const CoinRenderLightingSnapshot & b)
+{
+  if (a.ambientIntensity != b.ambientIntensity ||
+      std::memcmp(a.ambientColor, b.ambientColor, sizeof(a.ambientColor)) != 0 ||
+      a.lights.size() != b.lights.size()) return false;
+  for (size_t i = 0; i < a.lights.size(); ++i)
+    if (!sameLight(a.lights[i], b.lights[i])) return false;
+  return true;
+}
+
+uint64_t hashCamera64(const CoinRenderCameraSnapshot & camera)
+{
+  uint64_t hash = hashMatrix(UINT64_C(14695981039346656037), camera.viewMatrix);
+  hash = hashMatrix(hash, camera.projectionMatrixCoin);
+  hash = hashValue(hash, camera.isPerspective);
+  hash = hashFloat(hash, camera.nearDistance);
+  hash = hashFloat(hash, camera.farDistance);
+  hash = hashFloat(hash, camera.focalDistance);
+  return hashFloat(hash, camera.aspectRatio);
+}
+
+bool sameCamera(const CoinRenderCameraSnapshot & a, const CoinRenderCameraSnapshot & b)
+{
+  return a.viewMatrix == b.viewMatrix && a.projectionMatrixCoin == b.projectionMatrixCoin &&
+    a.isPerspective == b.isPerspective && a.nearDistance == b.nearDistance &&
+    a.farDistance == b.farDistance && a.focalDistance == b.focalDistance &&
+    a.aspectRatio == b.aspectRatio;
+}
+
+uint64_t hashViewport64(const CoinRenderViewportSnapshot & viewport)
+{
+  uint64_t hash = hashValue(UINT64_C(14695981039346656037), viewport.x);
+  hash = hashValue(hash, viewport.y);
+  hash = hashValue(hash, viewport.width);
+  return hashValue(hash, viewport.height);
+}
+
+bool sameViewport(const CoinRenderViewportSnapshot & a, const CoinRenderViewportSnapshot & b)
+{
+  return a.x == b.x && a.y == b.y && a.width == b.width && a.height == b.height;
+}
+
+uint64_t hashTexture64(const CoinRenderTextureImageSnapshot & texture)
+{
+  uint64_t hash = UINT64_C(14695981039346656037);
+  hash = hashValue(hash, texture.format);
+  hash = hashValue(hash, texture.cubeFaceSize);
+  hash = hashValue(hash, texture.cubeSourceComponents);
+  hash = hashValue(hash, texture.cubeMipmapped);
+  hash = hashValue(hash, texture.volumeWidth);
+  hash = hashValue(hash, texture.volumeHeight);
+  hash = hashValue(hash, texture.volumeDepth);
+  hash = hashValue(hash, texture.volumeColumns);
+  hash = hashValue(hash, texture.volumeSourceComponents);
+  hash = hashValue(hash, texture.volumeMipmapped);
+  hash = hashValue(hash, texture.width);
+  hash = hashValue(hash, texture.height);
+  hash = hashValue(hash, texture.components);
+  hash = hashValue(hash, texture.contentDigest);
+  hash = hashValue(hash, texture.producerId);
+  hash = hashValue(hash, texture.gpuToken);
+  hash = hashValue(hash, texture.sceneTransparencyFunction);
+  hash = hashValue(hash, texture.gpuOpaque);
+  hash = hashValue(hash, texture.mipmapped);
+  hash = hashValue(hash, texture.mipmapsRgba.size());
+  if (!texture.mipmapsRgba.empty())
+    hash = hashBytes(hash, texture.mipmapsRgba.data(), texture.mipmapsRgba.size());
+  hash = hashValue(hash, texture.pixelsRgba.size());
+  if (!texture.pixelsRgba.empty())
+    hash = hashBytes(hash, texture.pixelsRgba.data(), texture.pixelsRgba.size());
+  return hash;
+}
+
+bool sameTexture(const CoinRenderTextureImageSnapshot & a, const CoinRenderTextureImageSnapshot & b)
+{
+  return a.format == b.format && a.cubeFaceSize == b.cubeFaceSize &&
+    a.cubeSourceComponents == b.cubeSourceComponents && a.cubeMipmapped == b.cubeMipmapped &&
+    a.volumeWidth == b.volumeWidth && a.volumeHeight == b.volumeHeight &&
+    a.volumeDepth == b.volumeDepth && a.volumeColumns == b.volumeColumns &&
+    a.volumeSourceComponents == b.volumeSourceComponents && a.volumeMipmapped == b.volumeMipmapped &&
+    a.width == b.width && a.height == b.height && a.components == b.components &&
+    a.contentDigest == b.contentDigest && a.producerId == b.producerId &&
+    a.gpuToken == b.gpuToken && a.sceneTransparencyFunction == b.sceneTransparencyFunction &&
+    a.gpuOpaque == b.gpuOpaque && a.mipmapped == b.mipmapped &&
+    a.mipmapsRgba == b.mipmapsRgba && a.pixelsRgba == b.pixelsRgba;
+}
+
+uint64_t hashSampler64(const CoinRenderSamplerSnapshot & sampler)
+{
+  uint64_t hash = hashValue(UINT64_C(14695981039346656037), sampler.wrapS);
+  hash = hashValue(hash, sampler.wrapT);
+  hash = hashValue(hash, sampler.wrapR);
+  hash = hashValue(hash, sampler.filter);
+  return hashValue(hash, sampler.maxAnisotropy);
+}
+
+bool sameSampler(const CoinRenderSamplerSnapshot & a, const CoinRenderSamplerSnapshot & b)
+{
+  return a.wrapS == b.wrapS && a.wrapT == b.wrapT && a.wrapR == b.wrapR &&
+    a.filter == b.filter && a.maxAnisotropy == b.maxAnisotropy;
+}
+
+template <typename Value, typename Hash, typename Equal>
+bool synchronize(InternIndex & index, const std::vector<Value> & values, Hash hash, Equal equal)
+{
+  (void) equal;
+  if (index.disabled) return false;
+  try {
+    if (index.indexed > values.size()) index.reset();
+    while (index.indexed < values.size()) {
+      const uint32_t slot = static_cast<uint32_t>(index.indexed);
+      InternCandidates & candidates = index[narrowHash(hash(values[slot]))];
+      if (candidates.first == UINT32_MAX) candidates.first = slot;
+      else candidates.additional.push_back(slot);
+      ++index.indexed;
+    }
+  } catch (const std::bad_alloc &) {
+    index.abandon();
+    return false;
+  }
+  return true;
+}
+
+template <typename Value, typename Hash, typename Equal>
+uint32_t findValue(const std::vector<Value> & values, InternIndex * index,
+                   const Value & value, Hash hash, Equal equal)
+{
+  if (index && synchronize(*index, values, hash, equal)) {
+    const auto found = index->find(narrowHash(hash(value)));
+    if (found != index->const_end()) {
+      const InternCandidates & candidates = found->obj;
+      if (candidates.first != UINT32_MAX && equal(values[candidates.first], value))
+        return candidates.first;
+      for (uint32_t slot : candidates.additional)
+        if (equal(values[slot], value)) return slot;
+    }
+    return UINT32_MAX;
+  }
+  for (size_t i = 0; i < values.size(); ++i)
+    if (equal(values[i], value)) return static_cast<uint32_t>(i);
+  return UINT32_MAX;
+}
+}
+
+struct CoinRenderFrameInternIndexes {
+  explicit CoinRenderFrameInternIndexes(const CoinRenderFramePlan * frame) : owner(frame) {}
+  const CoinRenderFramePlan * owner;
+  InternIndex materials, lighting, cameras, viewports, textures, samplers;
+};
+
+namespace {
+CoinRenderFrameInternIndexes * frameIndexes(CoinRenderFramePlan & plan)
+{
+  try {
+    if (!plan.internIndexes || plan.internIndexes->owner != &plan)
+      plan.internIndexes = std::make_shared<CoinRenderFrameInternIndexes>(&plan);
+    return plan.internIndexes.get();
+  } catch (const std::bad_alloc &) {
+    plan.internIndexes.reset();
+    return nullptr;
+  }
+}
+
+template <typename Value, typename Hash, typename Equal>
+uint32_t appendValue(std::vector<Value> & values, InternIndex * index,
+                     const Value & value, Hash hash, Equal equal)
+{
+  const uint32_t existing = findValue(values, index, value, hash, equal);
+  if (existing != UINT32_MAX) return existing;
+  const uint32_t slot = static_cast<uint32_t>(values.size());
+  values.push_back(value);
+  if (index) synchronize(*index, values, hash, equal);
+  return slot;
+}
+}
+
 void CoinRenderPlanAssemblyCore::normalizeCamera(CoinRenderCameraSnapshot & camera) {
   // Preserve non-finite source values for validation instead of repairing them.
   if (camera.isPerspective && std::isfinite(camera.nearDistance) && camera.nearDistance <= 0)
@@ -53,100 +345,27 @@ void CoinRenderPlanAssemblyCore::sortingCenter(CoinRenderDrawPacket & draw,
 }
 
 uint32_t CoinRenderPlanAssemblyCore::material(CoinRenderFramePlan & plan, const CoinRenderMaterialSnapshot & matSnap) {
-  for (size_t i = 0; i < plan.materials.size(); ++i) {
-    const auto & m = plan.materials[i];
-    if (std::memcmp(&m, &matSnap, sizeof(CoinRenderMaterialSnapshot)) == 0) {
-      return static_cast<uint32_t>(i);
-    }
-  }
-  uint32_t materialSlot = static_cast<uint32_t>(plan.materials.size());
-  plan.materials.push_back(matSnap);
-  return materialSlot;
+  CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
+  return appendValue(plan.materials, indexes ? &indexes->materials : nullptr, matSnap,
+                     hashMaterial64, sameMaterial);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::lighting(CoinRenderFramePlan & plan, const CoinRenderLightingSnapshot & lightSnap) {
-  uint32_t lightingSlot = 0;
-  bool lightFound = false;
-  for (size_t i = 0; i < plan.lightingStates.size(); ++i) {
-    const auto & ls = plan.lightingStates[i];
-    if (ls.lights.size() == lightSnap.lights.size()) {
-      if (ls.ambientIntensity != lightSnap.ambientIntensity ||
-          std::memcmp(ls.ambientColor, lightSnap.ambientColor, sizeof(ls.ambientColor)) != 0) continue;
-      bool allMatch = true;
-      for (size_t k = 0; k < ls.lights.size(); ++k) {
-        const CoinRenderLightSourceSnapshot & a = ls.lights[k];
-        const CoinRenderLightSourceSnapshot & b = lightSnap.lights[k];
-        if (a.sourceRevision != b.sourceRevision ||
-            a.sourceModel != b.sourceModel ||
-            a.sourceWorldModel != b.sourceWorldModel ||
-            a.hasAuthoredSource != b.hasAuthoredSource ||
-            std::memcmp(a.authoredDirection, b.authoredDirection, sizeof(a.authoredDirection)) != 0 ||
-            std::memcmp(a.authoredPosition, b.authoredPosition, sizeof(a.authoredPosition)) != 0 ||
-            a.type != b.type || a.intensity != b.intensity || a.ambientIntensity != b.ambientIntensity ||
-            a.cutOffAngle != b.cutOffAngle || a.dropOffRate != b.dropOffRate ||
-            std::memcmp(a.color, b.color, sizeof(a.color)) != 0 ||
-            std::memcmp(a.direction, b.direction, sizeof(a.direction)) != 0 ||
-            std::memcmp(a.position, b.position, sizeof(a.position)) != 0 ||
-            std::memcmp(a.attenuation, b.attenuation, sizeof(a.attenuation)) != 0) {
-          allMatch = false;
-          break;
-        }
-      }
-      if (allMatch) {
-        lightingSlot = static_cast<uint32_t>(i);
-        lightFound = true;
-        break;
-      }
-    }
-  }
-  if (!lightFound) {
-    lightingSlot = static_cast<uint32_t>(plan.lightingStates.size());
-    plan.lightingStates.push_back(lightSnap);
-  }
-
-  return lightingSlot;
+  CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
+  return appendValue(plan.lightingStates, indexes ? &indexes->lighting : nullptr, lightSnap,
+                     hashLighting64, sameLighting);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::camera(CoinRenderFramePlan & plan, const CoinRenderCameraSnapshot & camSnap) {
-  uint32_t cameraSlot = 0;
-  bool camFound = false;
-  for (size_t i = 0; i < plan.cameras.size(); ++i) {
-    const auto & c = plan.cameras[i];
-    if (c.viewMatrix == camSnap.viewMatrix &&
-        c.projectionMatrixCoin == camSnap.projectionMatrixCoin &&
-        c.isPerspective == camSnap.isPerspective &&
-        std::abs(c.nearDistance - camSnap.nearDistance) < 1e-5f &&
-        std::abs(c.farDistance - camSnap.farDistance) < 1e-5f) {
-      cameraSlot = static_cast<uint32_t>(i);
-      camFound = true;
-      break;
-    }
-  }
-  if (!camFound) {
-    cameraSlot = static_cast<uint32_t>(plan.cameras.size());
-    plan.cameras.push_back(camSnap);
-  }
-
-  return cameraSlot;
+  CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
+  return appendValue(plan.cameras, indexes ? &indexes->cameras : nullptr, camSnap,
+                     hashCamera64, sameCamera);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::viewport(CoinRenderFramePlan & plan, const CoinRenderViewportSnapshot & vpSnap) {
-  uint32_t viewportSlot = 0;
-  bool vpFound = false;
-  for (size_t i = 0; i < plan.viewports.size(); ++i) {
-    const auto & v = plan.viewports[i];
-    if (v.x == vpSnap.x && v.y == vpSnap.y && v.width == vpSnap.width && v.height == vpSnap.height) {
-      viewportSlot = static_cast<uint32_t>(i);
-      vpFound = true;
-      break;
-    }
-  }
-  if (!vpFound) {
-    viewportSlot = static_cast<uint32_t>(plan.viewports.size());
-    plan.viewports.push_back(vpSnap);
-  }
-
-  return viewportSlot;
+  CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
+  return appendValue(plan.viewports, indexes ? &indexes->viewports : nullptr, vpSnap,
+                     hashViewport64, sameViewport);
 }
 
 uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateIndex & byModel, const CoinRenderRenderStateSnapshot & rs) {
@@ -177,40 +396,20 @@ uint32_t CoinRenderPlanAssemblyCore::state(CoinRenderFramePlan & plan, StateInde
 }
 
 uint32_t CoinRenderPlanAssemblyCore::texture(CoinRenderFramePlan & plan, CoinRenderTextureImageSnapshot && image) {
-  for (size_t i = 0; i < plan.textures.size(); ++i) {
-    const auto & existing = plan.textures[i];
-    if (existing.format == image.format && existing.width == image.width && existing.height == image.height &&
-        existing.cubeFaceSize == image.cubeFaceSize &&
-        existing.cubeSourceComponents == image.cubeSourceComponents &&
-        existing.cubeMipmapped == image.cubeMipmapped && existing.volumeWidth == image.volumeWidth && existing.volumeHeight == image.volumeHeight &&
-        existing.volumeDepth == image.volumeDepth && existing.volumeColumns == image.volumeColumns &&
-        existing.volumeSourceComponents == image.volumeSourceComponents &&
-        existing.volumeMipmapped == image.volumeMipmapped &&
-        existing.contentDigest == image.contentDigest && existing.producerId == image.producerId &&
-        existing.sceneTransparencyFunction == image.sceneTransparencyFunction && existing.pixelsRgba == image.pixelsRgba && existing.mipmapped == image.mipmapped && existing.mipmapsRgba == image.mipmapsRgba)
-      return static_cast<uint32_t>(i);
-  }
-  const auto slot = static_cast<uint32_t>(plan.textures.size());
-  plan.textures.push_back(std::move(image)); return slot;
+  CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
+  InternIndex * index = indexes ? &indexes->textures : nullptr;
+  const uint32_t existing = findValue(plan.textures, index, image, hashTexture64, sameTexture);
+  if (existing != UINT32_MAX) return existing;
+  const uint32_t slot = static_cast<uint32_t>(plan.textures.size());
+  plan.textures.push_back(std::move(image));
+  if (index) synchronize(*index, plan.textures, hashTexture64, sameTexture);
+  return slot;
 }
 
 uint32_t CoinRenderPlanAssemblyCore::sampler(CoinRenderFramePlan & plan, const CoinRenderSamplerSnapshot & sampSnap) {
-  uint32_t sampSlot = UINT32_MAX;
-  for (size_t i = 0; i < plan.samplers.size(); ++i) {
-    const auto & s = plan.samplers[i];
-    if (s.wrapS == sampSnap.wrapS &&
-        s.wrapT == sampSnap.wrapT && s.wrapR == sampSnap.wrapR &&
-        s.filter == sampSnap.filter && s.maxAnisotropy == sampSnap.maxAnisotropy) {
-      sampSlot = static_cast<uint32_t>(i);
-      break;
-    }
-  }
-  if (sampSlot == UINT32_MAX) {
-    sampSlot = static_cast<uint32_t>(plan.samplers.size());
-    plan.samplers.push_back(sampSnap);
-  }
-
-  return sampSlot;
+  CoinRenderFrameInternIndexes * indexes = frameIndexes(plan);
+  return appendValue(plan.samplers, indexes ? &indexes->samplers : nullptr, sampSnap,
+                     hashSampler64, sameSampler);
 }
 
 void CoinRenderPlanAssemblyCore::makeIndicesAppendable(CoinRenderFramePlan & plan, CoinRenderGeometryRange & range) {

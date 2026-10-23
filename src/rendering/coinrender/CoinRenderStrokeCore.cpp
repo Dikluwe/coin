@@ -103,14 +103,7 @@ coin_render_expand_strokes(CoinRenderFramePlan &plan, std::string &diagnostic)
     }
     material.shininess = first.shininess + (second.shininess - first.shininess) * t;
     material.transparency = first.transparency + (second.transparency - first.transparency) * t;
-    for (size_t i = 0; i < plan.materials.size(); ++i) {
-      if (std::memcmp(&plan.materials[i], &material, sizeof(CoinRenderMaterialSnapshot)) == 0) {
-        return static_cast<uint32_t>(i);
-      }
-    }
-    const uint32_t slot = static_cast<uint32_t>(plan.materials.size());
-    plan.materials.push_back(material);
-    return slot;
+    return CoinRenderPlanAssemblyCore::material(plan, material);
   };
 
   auto appendVertex = [&](float x, float y, float z, uint32_t materialSlot,

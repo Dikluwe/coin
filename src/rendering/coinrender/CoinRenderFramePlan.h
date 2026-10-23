@@ -24,6 +24,10 @@
 
 static const size_t COIN_RENDER_MAX_TEXTURE_UNITS = 8;
 
+// Opaque frame-local acceleration metadata. It is deliberately absent from
+// the captured payload contract and rebuilt lazily after a plan is copied.
+struct CoinRenderFrameInternIndexes;
+
 // Mechanical alpha classification over a captured Coin image payload.
 COIN_RENDER_DLL_API bool coin_render_image_has_transparency(const unsigned char * pixels,
                                               size_t count, int components);
@@ -537,6 +541,11 @@ struct CoinRenderFramePlan {
   std::vector<CoinRenderSamplerSnapshot> samplers;
   std::vector<CoinRenderDrawPacket> draws;
   std::vector<CoinRenderRasterOccurrence> rasterOccurrences;
+
+  // All captured-value interners share this append-aware Core-owned index.
+  // Keeping the implementation opaque avoids exposing Coin's private hash
+  // table in the frame payload header.
+  mutable std::shared_ptr<CoinRenderFrameInternIndexes> internIndexes;
 
   COIN_RENDER_DLL_API bool hasPortableShaderDraws() const;
 
