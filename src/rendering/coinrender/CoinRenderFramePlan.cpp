@@ -1,3 +1,4 @@
+#include "rendering/coinrender/CoinRenderFrameReuseCore.h"
 #include "rendering/coinrender/CoinRenderMultipassCore.h"
 #include "rendering/coinrender/CoinRenderCubeTextureCore.h"
 #ifdef HAVE_CONFIG_H
@@ -1151,6 +1152,18 @@ coin_render_texture_unit(const CoinRenderRenderStateSnapshot &state, size_t unit
 // An unused registration/table entry does not require an executor.
 bool CoinRenderFramePlan::hasPortableShaderDraws() const
 {
+  bool portable;
+  if (CoinRenderFrameBorrow::portableFor(*this, portable)) return portable;
+  // A small state table is a complete negative proof, including frames whose
+  // declaration table and draw references disagree. Do not infer this from
+  // portableShaders.empty(): a dangling positive slot still requires ingress
+  // validation. Unused registrations continue to require no executor.
+  if (this->renderStates.size() < this->draws.size()) {
+    bool stateUsesPortable = false;
+    for (const auto & state : this->renderStates)
+      if (state.portableShaderSlot) { stateUsesPortable = true; break; }
+    if (!stateUsesPortable) return false;
+  }
   for (const auto &draw : this->draws)
     if (draw.geometry.indexCount && draw.renderStateSlot < this->renderStates.size() &&
         this->renderStates[draw.renderStateSlot].portableShaderSlot) return true;

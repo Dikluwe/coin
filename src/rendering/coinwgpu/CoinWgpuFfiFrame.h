@@ -104,6 +104,8 @@ private:
   bool patchOpaqueCamera(const CoinRenderFramePlan & frame, uint32_t width, uint32_t height,
                          const CoinRenderFrameReuseDecision & reuse);
 
+  CoinRenderFrameBorrow::Identity packedBorrowIdentity;
+  uint64_t packedBorrowConfiguration = 0;
   uint64_t packedRevision;
   bool reused;
   bool opaqueBatched;

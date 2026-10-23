@@ -22,7 +22,9 @@
 #include <cassert>
 #include <chrono>
 #include <cstdlib>
+#include <cstring>
 #include <iostream>
+#include <utility>
 
 // Static assertions ensuring ABI compatibility with Rust bridge
 static_assert(sizeof(CoinWgpuVertex) == 164, "CoinWgpuVertex size mismatch");
@@ -268,6 +270,7 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
                                   CoinRenderReadbackTicket * outTicket,
                                   const CoinRenderFrameReuseDecision & reuse)
 {
+  const auto previousSubmittedIdentity = std::move(this->submittedBorrowIdentity);
   typedef std::chrono::steady_clock ProfileClock;
   const ProfileClock::time_point profileBegin = ProfileClock::now();
   const bool tracePhases = CoinRenderDiagnosticShell::phaseTracingEnabled();
@@ -306,7 +309,7 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->status = CoinRenderBackendStatus::UNSUPPORTED;
     return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, this->lastError);
   }
-  const CoinWgpuFrameView & fView = this->ffiFrame->getView();
+  CoinWgpuFrameView fView = this->ffiFrame->getView();
   const bool packCacheHit = this->ffiFrame->reusedLastPrepare();
   const ProfileClock::time_point profilePacked = ProfileClock::now();
 
@@ -314,71 +317,107 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   CoinWgpuStatus st = COIN_WGPU_OK;
   uint64_t serial = 0;
 
-  if (target.kind == CoinRenderTargetP::KIND_WINDOW) {
-    st = target.windowReadbackRequested
-      ? coin_wgpu_surface_submit_readback(target.surfaceId, &fView,
-          target.colorBuffer.data(), target.colorBuffer.size(), errBuf, sizeof(errBuf))
-      : coin_wgpu_surface_submit(target.surfaceId, &fView, errBuf, sizeof(errBuf));
-    if (st == COIN_WGPU_OK) serial = coin_wgpu_surface_submission_serial(target.surfaceId);
-  } else {
-    // 6. Build target pod for offscreen
-    CoinWgpuTarget tPod{};
-    tPod.width = static_cast<uint32_t>(target.size[0]);
-    tPod.height = static_cast<uint32_t>(target.size[1]);
-    tPod.color_buffer = target.colorBuffer.data();
-    tPod.color_buffer_len = static_cast<uint64_t>(target.colorBuffer.size());
-    tPod.depth_buffer = target.depthReadbackEnabled ? target.depthBuffer.data() : NULL;
-    tPod.depth_buffer_len = target.depthReadbackEnabled
-      ? static_cast<uint64_t>(target.depthBuffer.size()) : 0;
-    tPod.submission_serial = 0;
-
-    tPod.device_id = 0;
-    tPod.sample_count = target.options.sampleCount;
-    // 7. Submit to WebGPU via FFI
-    target.directTextureToken = 0;
-    if (target.directTextureOutput) {
-      if (outTicket) return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "GPU-only RTT cannot request a readback ticket");
-      st = coin_wgpu_submit_texture(&tPod, &fView, &target.directTextureToken, errBuf, sizeof(errBuf));
-    } else if (outTicket) {
-      CoinWgpuReadbackTicket bridgeTicket{};
-      bridgeTicket.abi_version = COIN_WGPU_ABI_VERSION;
-      bridgeTicket.struct_size = sizeof(bridgeTicket);
-      st = coin_wgpu_submit_async(&tPod, &fView, &bridgeTicket, errBuf, sizeof(errBuf));
-      if (st == COIN_WGPU_OK) {
-        outTicket->token = bridgeTicket.token;
-        outTicket->generation = bridgeTicket.generation;
-        outTicket->submissionSerial = bridgeTicket.submission_serial;
-        outTicket->width = bridgeTicket.width;
-        outTicket->height = bridgeTicket.height;
-        outTicket->colorFormat = bridgeTicket.color_format;
-        outTicket->depthFormat = bridgeTicket.depth_format;
-        outTicket->colorRowPitch = bridgeTicket.color_row_pitch;
-        outTicket->depthRowPitch = bridgeTicket.depth_row_pitch;
-        outTicket->colorBytes = bridgeTicket.color_bytes;
-        outTicket->depthBytes = bridgeTicket.depth_bytes;
-      }
-    } else if (frame.managerFrame) {
-      st = coin_wgpu_submit_with_depth_history(&tPod, &fView, &this->depthHistory, errBuf, sizeof(errBuf));
-    } else {
-      st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
-      if (st == COIN_WGPU_OK && this->depthHistory) {
-        coin_wgpu_release_depth_history(this->depthHistory);
-        this->depthHistory = 0;
-      }
-    }
-    const ProfileClock::time_point profileBridgeDone = ProfileClock::now();
-    serial = tPod.submission_serial;
-    if (tracePhases) {
-      CoinWgpuBridgePhaseSample sample;
-      sample.packMs = std::chrono::duration<double, std::milli>(
-        profilePacked - profileBegin).count();
-      sample.ffiMs = std::chrono::duration<double, std::milli>(
-        profileBridgeDone - profilePacked).count();
-      sample.packCacheHit = packCacheHit;
-      sample.packKind = this->ffiFrame->lastPrepareKind();
-      std::cerr << CoinRenderDiagnosticShell::formatBridgePhase(sample) << '\n';
-    }
+  const auto borrowIdentity = CoinRenderFrameBorrow::identityFor(frame);
+  const uint64_t generation = coin_wgpu_default_device_generation();
+  const bool ownedSubmit = borrowIdentity && borrowIdentity == previousSubmittedIdentity &&
+    packCacheHit && generation && generation == this->submittedBorrowGeneration &&
+    fView.frame_revision == this->submittedBorrowRevision && fView.instance_count != 0 &&
+    !fView.texture_count && !fView.sampler_count && !fView.portable_module_count &&
+    !fView.bump_vertex_count && !fView.bump_image_count && fView.multipass_count == 1 &&
+    !target.directTextureOutput;
+  if (ownedSubmit) {
+    // The existing raw ABI explicitly accepts null immutable payloads only
+    // when Rust owns a matching validated scene. Our lexical pack+submission
+    // receipts authorize asking for that ownership instead of comparing a
+    // million unchanged instance/material bytes. States remain explicit.
+    fView.vertices = nullptr; fView.indices = nullptr; fView.draws = nullptr;
+    fView.materials = nullptr; fView.instances = nullptr; fView.instance_ranges = nullptr;
   }
+  bool ownedFallback = false;
+  for (unsigned attempt = 0; attempt < 2; ++attempt) {
+    if (target.kind == CoinRenderTargetP::KIND_WINDOW) {
+      st = target.windowReadbackRequested
+        ? coin_wgpu_surface_submit_readback(target.surfaceId, &fView,
+            target.colorBuffer.data(), target.colorBuffer.size(), errBuf, sizeof(errBuf))
+        : coin_wgpu_surface_submit(target.surfaceId, &fView, errBuf, sizeof(errBuf));
+      if (st == COIN_WGPU_OK) serial = coin_wgpu_surface_submission_serial(target.surfaceId);
+    } else {
+      // 6. Build target pod for offscreen
+      CoinWgpuTarget tPod{};
+      tPod.width = static_cast<uint32_t>(target.size[0]);
+      tPod.height = static_cast<uint32_t>(target.size[1]);
+      tPod.color_buffer = target.colorBuffer.data();
+      tPod.color_buffer_len = static_cast<uint64_t>(target.colorBuffer.size());
+      tPod.depth_buffer = target.depthReadbackEnabled ? target.depthBuffer.data() : NULL;
+      tPod.depth_buffer_len = target.depthReadbackEnabled
+        ? static_cast<uint64_t>(target.depthBuffer.size()) : 0;
+      tPod.submission_serial = 0;
+
+      tPod.device_id = 0;
+      tPod.sample_count = target.options.sampleCount;
+      // 7. Submit to WebGPU via FFI
+      target.directTextureToken = 0;
+      if (target.directTextureOutput) {
+        if (outTicket) return CoinRenderSubmitResult(CoinRenderBackendStatus::UNSUPPORTED, "GPU-only RTT cannot request a readback ticket");
+        st = coin_wgpu_submit_texture(&tPod, &fView, &target.directTextureToken, errBuf, sizeof(errBuf));
+      } else if (outTicket) {
+        CoinWgpuReadbackTicket bridgeTicket{};
+        bridgeTicket.abi_version = COIN_WGPU_ABI_VERSION;
+        bridgeTicket.struct_size = sizeof(bridgeTicket);
+        st = coin_wgpu_submit_async(&tPod, &fView, &bridgeTicket, errBuf, sizeof(errBuf));
+        if (st == COIN_WGPU_OK) {
+          outTicket->token = bridgeTicket.token;
+          outTicket->generation = bridgeTicket.generation;
+          outTicket->submissionSerial = bridgeTicket.submission_serial;
+          outTicket->width = bridgeTicket.width;
+          outTicket->height = bridgeTicket.height;
+          outTicket->colorFormat = bridgeTicket.color_format;
+          outTicket->depthFormat = bridgeTicket.depth_format;
+          outTicket->colorRowPitch = bridgeTicket.color_row_pitch;
+          outTicket->depthRowPitch = bridgeTicket.depth_row_pitch;
+          outTicket->colorBytes = bridgeTicket.color_bytes;
+          outTicket->depthBytes = bridgeTicket.depth_bytes;
+        }
+      } else if (frame.managerFrame) {
+        st = coin_wgpu_submit_with_depth_history(&tPod, &fView, &this->depthHistory, errBuf, sizeof(errBuf));
+      } else {
+        st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
+        if (st == COIN_WGPU_OK && this->depthHistory) {
+          coin_wgpu_release_depth_history(this->depthHistory);
+          this->depthHistory = 0;
+        }
+      }
+      const ProfileClock::time_point profileBridgeDone = ProfileClock::now();
+      serial = tPod.submission_serial;
+      if (tracePhases) {
+        CoinWgpuBridgePhaseSample sample;
+        sample.packMs = std::chrono::duration<double, std::milli>(
+          profilePacked - profileBegin).count();
+        sample.ffiMs = std::chrono::duration<double, std::milli>(
+          profileBridgeDone - profilePacked).count();
+        sample.packCacheHit = packCacheHit;
+        sample.packKind = this->ffiFrame->lastPrepareKind();
+        std::cerr << CoinRenderDiagnosticShell::formatBridgePhase(sample) << '\n';
+      }
+    }
+
+    // A peer target, failed snapshot allocation or device recovery may have
+    // retired the owned scene. Null-vertex rejection happens before acquire,
+    // queue work or ticket publication, so retry the complete owned C++ view.
+    // Never retry a submission which may already have produced GPU work.
+    if (attempt == 0 && ownedSubmit && st == COIN_WGPU_INVALID_ARGUMENT &&
+        std::strcmp(errBuf, "Null vertices pointer with non-zero count") == 0) {
+      ownedFallback = true;
+      fView = this->ffiFrame->getView();
+      errBuf[0] = 0;
+      continue;
+    }
+    break;
+  }
+
+  if (tracePhases)
+    std::cerr << "COIN_RENDER_PHASE wgpu_owned_payload requested=" << unsigned(ownedSubmit)
+              << " fallback=" << unsigned(ownedFallback) << '\n';
 
   if (st != COIN_WGPU_OK) {
     this->lastError = errBuf[0] ? errBuf : "WebGPU bridge execution failed";
@@ -400,6 +439,9 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
   }
 
+  this->submittedBorrowIdentity = borrowIdentity;
+  this->submittedBorrowGeneration = coin_wgpu_default_device_generation();
+  this->submittedBorrowRevision = fView.frame_revision;
   this->lastError.clear();
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", serial);
 }

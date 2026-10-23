@@ -138,6 +138,11 @@ public:
 
 private:
   const CoinRenderFramePreflight * activePreflight = nullptr;
+  CoinRenderFrameBorrow::Identity validatedBorrowIdentity;
+  SbVec2i32 validatedBorrowSize{0, 0};
+  CoinRenderOptions validatedBorrowOptions;
+  uint64_t validatedBorrowResourceGeneration = 0;
+  const CoinRenderBackend * validatedBorrowBackend = nullptr;
   static CoinRenderFrameExecutionResult validateProfileInternal(const CoinRenderFramePlan & frame,
       const SbVec2i32 & targetSize, bool deferUnresolvedAlpha,
       CoinRenderFramePreflight * preflight,

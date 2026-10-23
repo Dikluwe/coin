@@ -385,20 +385,72 @@ CoinWgpuFfiFrame::prepare(const CoinRenderFramePlan & frame, uint32_t width, uin
                         const CoinRenderFramePreflight * preflight,
                         bool allowInstancing)
 {
-  if (this->view.bump_vertex_count || this->view.bump_image_count) {
-    // Removing bump changes the transported geometry/lighting contract even
-    // when revision and base textures are unchanged. Rebuild transactionally;
-    // ordinary revision/camera shortcuts must never return the old bump tail.
-    if (!frame.isValid(&outDiagnostic)) return false;
-    CoinWgpuFfiFrame candidate;
-    if (!candidate.prepareImpl(frame, width, height,
-          CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
-          outDiagnostic, preflight, allowInstancing, false)) return false;
-    *this = std::move(candidate);
+  const auto identity = CoinRenderFrameBorrow::identityFor(frame);
+  const auto disabled = [](const char * name) {
+    const char * value = std::getenv(name);
+    return value && std::strcmp(value, "1") == 0;
+  };
+  uint32_t fpControl = 0;
+  const bool knownFp = instanceMatrixFpControl(fpControl);
+  const uint64_t configuration = (uint64_t(fpControl) << 16) |
+    (allowInstancing ? 1u : 0u) | (knownFp ? 2u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_DIAGONAL_MESH_LOWERING") ? 4u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_INSTANCE_MATRIX_CACHE") ? 8u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_INSTANCE_COMMON_STATE") ? 16u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_OPAQUE_INSTANCING") ? 32u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_OPAQUE_BATCHING") ? 64u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_EARLY_OPAQUE_BATCHING") ? 128u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_INCREMENTAL_OPAQUE_BATCH") ? 256u : 0u) |
+    (disabled("COIN_WGPU_DISABLE_OPAQUE_CAMERA_PATCH") ? 512u : 0u);
+  if (identity && identity == this->packedBorrowIdentity && frame.revision &&
+      frame.revision == this->packedRevision && configuration == this->packedBorrowConfiguration &&
+      width == this->view.width && height == this->view.height) {
+    // The owner lends an immutable snapshot for this synchronous call. Our
+    // successful pack receipt covers every validation and transported byte;
+    // retaining it requires no per-draw/per-state scan or texture comparison.
+    outDiagnostic.clear();
+    this->reused = true;
+    this->prepareKind = CoinRenderFrameReuseKind::REUSE;
+    this->view.camera_base_revision = 0;
+    this->opaqueIncrementalUsed = false;
+    this->opaqueHashedRanges = this->opaqueCommonStatesPacked = this->opaqueCameraProofReused = 0;
+    this->opaqueRebakedRanges = this->opaqueRebakedVertices = 0;
+    this->opaqueMatrixCacheHits = this->opaqueMatricesCalculated = this->opaqueMatrixCacheAllocations = 0;
+    if (std::getenv("COIN_RENDER_TRACE_PHASES") || std::getenv("COIN_WGPU_TRACE_PHASES"))
+      std::fprintf(stderr, "COIN_RENDER_PHASE wgpu_immutable_prepare receipt_hit=1 validated_states=0 validated_draws=0 compared_texture_bytes=0\n");
     return true;
   }
-  return this->prepareImpl(frame, width, height, reuse, outDiagnostic,
-                           preflight, allowInstancing, false);
+  if (identity && identity == this->packedBorrowIdentity &&
+      (configuration != this->packedBorrowConfiguration ||
+       width != this->view.width || height != this->view.height)) {
+    // A changed packing configuration or viewport needs a fresh pack, even
+    // though the captured source remains immutable under the same revision.
+    this->packedRevision = 0;
+  }
+  // Revoke before entering any fallible or mutating path. No revision hint
+  // outside the lexical borrow can mint or retain this receipt.
+  this->packedBorrowIdentity.reset();
+  const bool success = [&]() {
+    if (this->view.bump_vertex_count || this->view.bump_image_count) {
+      // Removing bump changes the transported geometry/lighting contract even
+      // when revision and base textures are unchanged. Rebuild transactionally;
+      // ordinary revision/camera shortcuts must never return the old bump tail.
+      if (!frame.isValid(&outDiagnostic)) return false;
+      CoinWgpuFfiFrame candidate;
+      if (!candidate.prepareImpl(frame, width, height,
+            CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::FULL_REBUILD, 0),
+            outDiagnostic, preflight, allowInstancing, false)) return false;
+      *this = std::move(candidate);
+      return true;
+    }
+    return this->prepareImpl(frame, width, height, reuse, outDiagnostic,
+                             preflight, allowInstancing, false);
+  }();
+  if (success && identity) {
+    this->packedBorrowIdentity = identity;
+    this->packedBorrowConfiguration = configuration;
+  }
+  return success;
 }
 
 bool

@@ -737,6 +737,7 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
                                           const CoinRenderFrameReuseDecision & reuse,
                                           const CoinRenderFramePreflight * capturedPreflight)
 {
+  const auto previousBorrowIdentity = std::move(this->validatedBorrowIdentity);
   using PhaseClock = std::chrono::steady_clock;
   const auto phaseBegin = PhaseClock::now();
   const bool captureWindow = this->kind == KIND_WINDOW && this->windowReadbackRequested;
@@ -749,13 +750,29 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
     return CoinRenderFrameExecutionResult(
         CoinRenderBackendStatus::UNSUPPORTED,
         this->optionsDiagnostic.empty() ? this->lastError : this->optionsDiagnostic);
+  const auto borrowIdentity = CoinRenderFrameBorrow::identityFor(frame);
+  const auto & oldOptions = this->validatedBorrowOptions;
+  const bool borrowedRepeat = borrowIdentity && borrowIdentity == previousBorrowIdentity &&
+    frame.revision && frame.revision == this->lastValidatedPlanRevision &&
+    this->size == this->validatedBorrowSize &&
+    this->resourceGeneration == this->validatedBorrowResourceGeneration &&
+    this->backend.get() == this->validatedBorrowBackend &&
+    this->options.renderer == oldOptions.renderer && this->options.transparency == oldOptions.transparency &&
+    this->options.sceneTexture == oldOptions.sceneTexture &&
+    this->options.storedTextureColorSpace == oldOptions.storedTextureColorSpace &&
+    this->options.maxTextureAnisotropy == oldOptions.maxTextureAnisotropy &&
+    this->options.textureSamplingPolicy == oldOptions.textureSamplingPolicy &&
+    this->options.rasterizationPolicy == oldOptions.rasterizationPolicy &&
+    this->options.sampleCount == oldOptions.sampleCount;
+  // A failed execution revokes the receipt; only target publication below
+  // can renew it. Resource/device admission still executes on every frame.
   // Private revisions are hints, not proof that a transported atlas is intact.
-  if (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
-      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError))
+  if (!borrowedRepeat && (!CoinRenderCubeTextureCore::validate(frame, this->lastError) ||
+      !CoinRenderTextureSamplingCore::validVolumeFrame(frame, this->lastError)))
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
   const auto outputAdmission = this->preflightMultipass(frame, outTicket != nullptr);
   if (outputAdmission.status != CoinRenderBackendStatus::SUCCESS) return outputAdmission;
-  if (!CoinRenderMultipassCore::projectionsFinite(frame))
+  if (!borrowedRepeat && !CoinRenderMultipassCore::projectionsFinite(frame))
     return {CoinRenderBackendStatus::UNSUPPORTED, "Multipass translated projection is non-finite or invalid"};
   if (frame.numPasses > 1 && frame.multipassBufferBudget == 0)
     return {CoinRenderBackendStatus::OUT_OF_MEMORY, "Multipass attachment budget is zero"};
@@ -777,10 +794,10 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   }
   if (frame.rasterizationPolicy != this->options.rasterizationPolicy)
     return {CoinRenderBackendStatus::UNSUPPORTED, "Frame rasterization policy differs from the immutable target policy"};
-  if (const char * diagnostic = canonicalCoverageDiagnostic(frame))
+  if (const char * diagnostic = borrowedRepeat ? nullptr : canonicalCoverageDiagnostic(frame))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
   if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy ||
-      !coin_render_valid_sampling(frame, this->lastError)) {
+      (!borrowedRepeat && !coin_render_valid_sampling(frame, this->lastError))) {
     if (frame.textureSamplingPolicy != this->options.textureSamplingPolicy)
       this->lastError = "Frame sampling policy differs from the immutable target policy";
     return {CoinRenderBackendStatus::UNSUPPORTED, this->lastError};
@@ -799,20 +816,20 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   // draw structure and target viewport. A different base (including resize,
   // which clears lastValidatedPlanRevision) takes the full validation path.
   const bool validatedCameraPatch =
-    reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
+    borrowIdentity && reuse.kind == CoinRenderFrameReuseKind::CAMERA_PATCH &&
     reuse.baseRevision != 0 &&
     reuse.baseRevision == this->lastValidatedPlanRevision &&
     frame.revision != 0 &&
     frame.revision != reuse.baseRevision;
   CoinRenderFramePreflight preflight;
   CoinRenderCompositionTransferTrace compositionTransfers("target_composition_copy", "target");
-  // A capture receipt skips only the two common passes. Target profile and
-  // submission checks still run, and a mismatched receipt validates in full.
-  // Texture declarations and their sampler/matrix bindings remain untrusted
-  // across private revision reuse, including ordinary stored 2D sources.
-  if (capturedPreflight || !frame.textures.empty() || !frame.bumpImages.empty() ||
-      !frame.bumpCoords.empty() || !frame.bumpTransforms.empty() || !frame.bumpTangents.empty() || (!validatedCameraPatch &&
-      (frame.revision == 0 || frame.revision != this->lastValidatedPlanRevision))) {
+  // Without Wiring's lexical authority a revision or camera hint is only a
+  // hint: mutable Core callers must revalidate even under the same revision.
+  // A capture receipt may still lend the common passes inside full profile
+  // admission. Textures and bump keep their independent ingress checks.
+  if (!borrowedRepeat && (capturedPreflight || !frame.textures.empty() || !frame.bumpImages.empty() ||
+      !frame.bumpCoords.empty() || !frame.bumpTransforms.empty() || !frame.bumpTangents.empty() ||
+      !validatedCameraPatch)) {
     CoinRenderFrameExecutionResult val =
       validateProfileInternal(frame, this->size, false, &preflight, capturedPreflight, true, &compositionTransfers);
     if (val.status != CoinRenderBackendStatus::SUCCESS) {
@@ -963,6 +980,11 @@ CoinRenderTargetP::executeFrameInternal(const CoinRenderFramePlan & frame,
   if (outTicket)
     *outTicket = candidateTicket;
   this->lastValidatedPlanRevision = frame.revision;
+  this->validatedBorrowIdentity = borrowIdentity;
+  this->validatedBorrowSize = this->size;
+  this->validatedBorrowOptions = this->options;
+  this->validatedBorrowResourceGeneration = this->resourceGeneration;
+  this->validatedBorrowBackend = this->backend.get();
   // Public serials count committed target publications. Backend serials name
   // actual queue work (including private views/producers and peer targets),
   // and async tickets retain those queue identities independently.

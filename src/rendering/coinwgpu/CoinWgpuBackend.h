@@ -72,6 +72,9 @@ private:
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               CoinRenderReadbackTicket * outTicket,
                               const CoinRenderFrameReuseDecision & reuse);
+  CoinRenderFrameBorrow::Identity submittedBorrowIdentity;
+  uint64_t submittedBorrowGeneration = 0;
+  uint64_t submittedBorrowRevision = 0;
   uint32_t sampleCount = 1;
   uint64_t depthHistory = 0;
   uint64_t depthHistoryGeneration = 0;

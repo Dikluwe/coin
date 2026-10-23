@@ -7,6 +7,35 @@
 
 #include <cstdint>
 
+// A lexical immutable borrow, issued only by Wiring after its notification
+// proof. Neither a caller-supplied revision nor a reuse decision can create it.
+// Nothing is attached to the mutable plan or propagated by copying a plan.
+class CoinRenderActionP;
+class CoinRenderFrameBorrowIdentity {
+  friend class CoinRenderFrameBorrow;
+  bool portable;
+  uint64_t revision;
+  CoinRenderFrameBorrowIdentity(bool value, uint64_t capturedRevision)
+    : portable(value), revision(capturedRevision) {}
+};
+class COIN_RENDER_DLL_API CoinRenderFrameBorrow {
+public:
+  using Identity = std::shared_ptr<const CoinRenderFrameBorrowIdentity>;
+  static const Identity & identityFor(const CoinRenderFramePlan &);
+  static bool portableFor(const CoinRenderFramePlan &, bool &);
+  ~CoinRenderFrameBorrow();
+private:
+  friend class CoinRenderActionP;
+  CoinRenderFrameBorrow(const CoinRenderFramePlan &, Identity &, bool renew, bool enabled);
+  CoinRenderFrameBorrow(const CoinRenderFrameBorrow &) = delete;
+  CoinRenderFrameBorrow & operator=(const CoinRenderFrameBorrow &) = delete;
+  static thread_local const CoinRenderFrameBorrow * active;
+  const CoinRenderFrameBorrow * previous;
+  const CoinRenderFramePlan * frame;
+  uint64_t revision;
+  Identity identity;
+};
+
 /** Mechanical relationship between two private CoinRenderFramePlan revisions. */
 enum class CoinRenderFrameReuseKind {
   REUSE = 0,

@@ -32,6 +32,7 @@ class SoMaterial;
 
 class COIN_RENDER_DLL_API CoinRenderActionP {
 public:
+  CoinRenderFrameBorrow::Identity executionBorrowIdentity;
   CoinRenderActionP(CoinRenderAction * master = nullptr);
   ~CoinRenderActionP();
 

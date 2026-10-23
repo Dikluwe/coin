@@ -25,6 +25,36 @@
 #include <utility>
 #include <unordered_set>
 
+thread_local const CoinRenderFrameBorrow * CoinRenderFrameBorrow::active = nullptr;
+
+CoinRenderFrameBorrow::CoinRenderFrameBorrow(const CoinRenderFramePlan & plan,
+    Identity & retained, bool renew, bool enabled)
+  : previous(active), frame(&plan), revision(plan.revision)
+{
+  // Compute before installing the scope: an old borrow must not authenticate
+  // a freshly captured plan, including one allocated at the same address.
+  if (!enabled) retained.reset();
+  else if (renew || !retained || retained->revision != plan.revision)
+    retained = Identity(new CoinRenderFrameBorrowIdentity(plan.hasPortableShaderDraws(), plan.revision));
+  this->identity = retained;
+  active = this;
+}
+CoinRenderFrameBorrow::~CoinRenderFrameBorrow() { active = previous; }
+const CoinRenderFrameBorrow::Identity &
+CoinRenderFrameBorrow::identityFor(const CoinRenderFramePlan & plan)
+{
+  static const Identity empty;
+  return active && active->frame == &plan && active->revision == plan.revision
+    ? active->identity : empty;
+}
+bool CoinRenderFrameBorrow::portableFor(const CoinRenderFramePlan & plan, bool & result)
+{
+  const auto & key = identityFor(plan);
+  if (!key) return false;
+  result = key->portable;
+  return true;
+}
+
 namespace {
 template <typename T>
 bool

@@ -3248,6 +3248,12 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     return;
   }
 
+  // From here to submission there are no application callbacks or mutable
+  // aliases to this private snapshot. The existing sensors/stereo checks
+  // authorize retaining its identity only for an unchanged cached apply.
+  CoinRenderFrameBorrow executionBorrow(capturedPlan, this->executionBorrowIdentity,
+    !traversalSkipped, planCacheAllowed && this->sceneTexturePlan->producers.empty());
+
   // The typed capture/transport increment is independently usable by Core
   // consumers. GPU execution is enabled only with the matching executor.
   bool portableExecution = capturedPlan.hasPortableShaderDraws();
