@@ -1,0 +1,60 @@
+--------- beginning of main
+10-23 14:21:12.199  4813  4829 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-23 14:21:12.201  4813  4829 I CoinRenderP23: requested_renderer=2
+10-23 14:21:12.201  4813  4829 E CoinRenderP23: city asset unavailable
+10-23 14:21:48.679  4929  4955 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-23 14:21:48.682  4929  4955 I CoinRenderP23: requested_renderer=2
+10-23 14:21:48.683  4929  4955 I CoinRenderP23: legacy_gl_unavailable=1
+10-23 14:21:48.683  4929  4955 I CoinRenderP23: lifecycle command=10 generation=0
+10-23 14:21:48.694  4929  4955 I CoinRenderP23: lifecycle command=11 generation=0
+10-23 14:21:48.704  4929  4955 I CoinRenderP23: lifecycle command=0 generation=0
+10-23 14:21:48.728  4929  4955 I CoinRenderP23: lifecycle command=1 generation=0
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: offscreen capture failed: WebGPU uncaptured error: Validation Error
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: 
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: Caused by:
+10-23 14:21:49.615  4929  4955 E CoinRenderP23:   In Device::create_render_pipeline, label = 'Coin multisample depth resolve'
+10-23 14:21:49.615  4929  4955 E CoinRenderP23:     Internal error in ShaderStages(FRAGMENT) shader: 0:38(145): error: no function with name 'textureSamples'
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: 0:38(145): error: operands to arithmetic operators must be numeric
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: 0:38(130): error: no matching function for call to `clamp(int, int, error)'; candidates are:
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: 0:38(130): error:    float clamp(float, float, float)
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: 0:38(130): error:    vec2 clamp(vec2, float, float)
+10-23 14:21:49.615  4929  4955 E CoinRenderP23: 0:3
+10-23 14:21:49.615  4929  4955 I CoinRenderP23: renderer=2 vendor=1002 device=0000 adapter=Android Emulator OpenGL ES Translator (AMD Radeon Graphics (radeonsi, renoir, ACO, DRM 3.64, 6.17.0-42-generic)) (Gl)
+10-23 14:21:49.615  4929  4955 I CoinRenderP23: lifecycle command=3 generation=1
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: offscreen capture failed: WebGPU uncaptured error: Validation Error
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: 
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: Caused by:
+10-23 14:21:49.628  4929  4955 E CoinRenderP23:   In Device::create_render_pipeline, label = 'Coin multisample depth resolve'
+10-23 14:21:49.628  4929  4955 E CoinRenderP23:     Internal error in ShaderStages(FRAGMENT) shader: 0:38(145): error: no function with name 'textureSamples'
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: 0:38(145): error: operands to arithmetic operators must be numeric
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: 0:38(130): error: no matching function for call to `clamp(int, int, error)'; candidates are:
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: 0:38(130): error:    float clamp(float, float, float)
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: 0:38(130): error:    vec2 clamp(vec2, float, float)
+10-23 14:21:49.628  4929  4955 E CoinRenderP23: 0:3
+10-23 14:21:49.628  4929  4955 I CoinRenderP23: lifecycle command=5 generation=1
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: offscreen capture failed: WebGPU uncaptured error: Validation Error
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: 
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: Caused by:
+10-23 14:21:49.636  4929  4955 E CoinRenderP23:   In Device::create_render_pipeline, label = 'Coin multisample depth resolve'
+10-23 14:21:49.636  4929  4955 E CoinRenderP23:     Internal error in ShaderStages(FRAGMENT) shader: 0:38(145): error: no function with name 'textureSamples'
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: 0:38(145): error: operands to arithmetic operators must be numeric
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: 0:38(130): error: no matching function for call to `clamp(int, int, error)'; candidates are:
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: 0:38(130): error:    float clamp(float, float, float)
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: 0:38(130): error:    vec2 clamp(vec2, float, float)
+10-23 14:21:49.636  4929  4955 E CoinRenderP23: 0:3
+10-23 14:21:49.636  4929  4955 I CoinRenderP23: lifecycle command=4 generation=1
+10-23 14:21:49.636  4929  4955 I CoinRenderP23: lifecycle command=6 generation=1
+10-23 14:22:31.300  5082  5098 I CoinRenderP23: emulator_noncompliant_vulkan_opt_in=0
+10-23 14:22:31.302  5082  5098 I CoinRenderP23: requested_renderer=1
+10-23 14:22:31.302  5082  5098 I CoinRenderP23: legacy_gl_unavailable=1
+10-23 14:22:31.302  5082  5098 I CoinRenderP23: lifecycle command=10 generation=0
+10-23 14:22:31.311  5082  5098 I CoinRenderP23: lifecycle command=11 generation=0
+10-23 14:22:31.320  5082  5098 I CoinRenderP23: lifecycle command=0 generation=0
+10-23 14:22:31.336  5082  5098 I CoinRenderP23: lifecycle command=1 generation=0
+10-23 14:22:31.408  5082  5098 E CoinRenderP23: render failed: No physical adapter for the requested renderer and surface
+10-23 14:22:31.408  5082  5098 I CoinRenderP23: lifecycle command=3 generation=1
+10-23 14:22:31.408  5082  5098 E CoinRenderP23: capture request failed
+10-23 14:22:31.408  5082  5098 I CoinRenderP23: lifecycle command=5 generation=1
+10-23 14:22:31.408  5082  5098 E CoinRenderP23: capture request failed
+10-23 14:22:31.408  5082  5098 I CoinRenderP23: lifecycle command=4 generation=1
+10-23 14:22:31.408  5082  5098 I CoinRenderP23: lifecycle command=6 generation=1
