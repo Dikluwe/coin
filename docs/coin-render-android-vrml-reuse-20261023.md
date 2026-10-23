@@ -100,3 +100,5 @@ restaurar `adb shell wm user-rotation free`.
 Os contratos CPU estão em `CoinRenderActionTest`, incluindo aplicações
 estáveis e várias alterações silenciosas consecutivas com VRML presente,
 para detectar um cache incorreto que só se arma após a primeira captura.
+
+A diferença restante foi tratada na [comparação posterior da bridge](coin-render-android-bridge-reuse-20261023.md), com nova rodada intercalada das três variantes.
