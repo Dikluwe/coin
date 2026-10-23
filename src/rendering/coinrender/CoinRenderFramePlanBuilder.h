@@ -232,6 +232,7 @@ private:
   std::vector<CoinRenderVertexSnapshot> polygonVertices;
   std::vector<CoinRenderVertexSnapshot> polygonTriangleVertices;
   std::vector<SbVec3f> polygonPositions;
+  std::unordered_multimap<uint64_t, size_t> polygonPositionSlots;
   std::vector<bool> polygonCaptured;
   uint32_t polygonState = 0;
   int polygonStyle = 0;

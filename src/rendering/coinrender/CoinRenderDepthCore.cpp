@@ -38,15 +38,16 @@ coin_render_resolve_triangle_depth(CoinRenderFramePlan &plan, std::string &diagn
       continue;
     }
     const auto &viewport = plan.viewports[source.viewportSlot];
+    auto clipState = source;
+    clipState.lightModel = CoinRenderLightModel::BASE_COLOR;
+    clipState.cullMode = CoinRenderCullMode::NONE;
+    const SbMatrix mvp = source.model * source.view * source.projectionCoin;
     bool pendingClear = draw.clearDepthBefore;
     size_t lastResolvedDraw = size_t(-1);
     for (uint32_t offset = 0; offset < draw.geometry.indexCount; offset += 3) {
       ring.clear();
       for (uint32_t i = 0; i < 3; ++i)
         ring.push_back(plan.vertices[plan.indices[draw.geometry.firstIndex + offset + i]]);
-      auto clipState = source;
-      clipState.lightModel = CoinRenderLightModel::BASE_COLOR;
-      clipState.cullMode = CoinRenderCullMode::NONE;
       clipped.clear();
       if (!coin_render_resolve_polygon_style(ring, clipState, plan.materials,
                                              plan.lightingStates[source.lightingSlot], clipped,
@@ -55,7 +56,6 @@ coin_render_resolve_triangle_depth(CoinRenderFramePlan &plan, std::string &diagn
       if (clipped.size() < 3)
         continue;
       auto resolved = source;
-      const SbMatrix mvp = source.model * source.view * source.projectionCoin;
       window.clear();
       double maximum = 0;
       for (const auto &point : clipped) {

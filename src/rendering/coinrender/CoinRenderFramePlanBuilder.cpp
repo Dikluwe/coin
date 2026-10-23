@@ -131,6 +131,18 @@
 #include <new>
 #include <limits>
 
+namespace {
+uint64_t
+coin_render_position_hash(const SbVec3f & position)
+{
+  uint64_t hash = 1469598103934665603ull;
+  const auto * bytes = reinterpret_cast<const unsigned char *>(position.getValue());
+  for (size_t i = 0; i < sizeof(float) * 3; ++i)
+    hash = (hash ^ bytes[i]) * 1099511628211ull;
+  return hash;
+}
+}
+
 
 CoinRenderCameraSnapshot
 CoinRenderFramePlanBuilder::captureCamera(SoCallbackAction * action)
@@ -245,6 +257,7 @@ CoinRenderFramePlanBuilder::reset()
   this->polygonVertices.clear();
   this->polygonTriangleVertices.clear();
   this->polygonPositions.clear();
+  this->polygonPositionSlots.clear();
   this->polygonCaptured.clear();
   this->polygonTriangles = 0;
   this->shadowMapCameras.clear();
@@ -4109,6 +4122,12 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
       if (quad)
         this->polygonPositions.push_back(SbVec3f(0, 0, 0)); // Filled by the second callback.
     }
+    const size_t indexed = quad ? 3 : this->polygonPositions.size();
+    this->polygonPositionSlots.clear();
+    this->polygonPositionSlots.reserve(indexed);
+    for (size_t i = 0; i < indexed; ++i)
+      this->polygonPositionSlots.emplace(
+        coin_render_position_hash(this->polygonPositions[i]), i);
   }
   // Recheck immediately before publication. Re-reading an n-point face for
   // every one of its n-2 callbacks made styled polygons quadratic; the final
@@ -4142,6 +4161,8 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
       return;
     }
     this->polygonPositions[3] = v2->getPoint();
+    this->polygonPositionSlots.emplace(
+      coin_render_position_hash(this->polygonPositions[3]), size_t(3));
   }
   const auto state = this->currentPlan.renderStates[this->polygonState];
   for (int i = 0; i < 3; ++i) {
@@ -4157,14 +4178,18 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
     const size_t available =
         quad && this->polygonTriangles == 0 ? 3 : this->polygonPositions.size();
     if (slot == this->polygonPositions.size()) {
-      for (size_t j = 0; j < available; ++j)
-        if (vertices[i]->getPoint() == this->polygonPositions[j]) {
+      const auto candidates = this->polygonPositionSlots.equal_range(
+        coin_render_position_hash(vertices[i]->getPoint()));
+      for (auto candidate = candidates.first; candidate != candidates.second; ++candidate) {
+        const size_t j = candidate->second;
+        if (j < available && vertices[i]->getPoint() == this->polygonPositions[j]) {
           if (slot != this->polygonPositions.size()) {
             reject("Ambiguous polygon occurrence without a point-detail index");
             return;
           }
           slot = j;
         }
+      }
     }
     if (slot == this->polygonPositions.size()) {
       reject("Triangle callback lost the original face contour");
@@ -4200,6 +4225,7 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
     this->emitStyledPolygon(action);
     this->polygonNode = nullptr;
     this->polygonPositions.clear();
+    this->polygonPositionSlots.clear();
     this->polygonVertices.clear();
     this->polygonTriangleVertices.clear();
     this->polygonCaptured.clear();
