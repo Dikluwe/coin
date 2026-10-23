@@ -405,9 +405,12 @@ fn apply_fog(color: vec4<f32>, eye_depth: f32) -> vec4<f32> {
 }
 
 fn fragment_color(input: VertexOutput) -> vec4<f32> {
+    // Keep texture results out of the coverage loops' live ranges without
+    // terminating any lanes before sampling.
+    var reject_coverage = false;
     for (var i = 0u; i < 8u; i += 1u) {
         if (f32(i) >= u.clip_meta.x) { break; }
-        if (dot(u.clip_planes[i], vec4<f32>(input.position_view, 1.0)) < 0.0) { discard; }
+        if (dot(u.clip_planes[i], vec4<f32>(input.position_view, 1.0)) < 0.0) { reject_coverage = true; }
     }
     if (u.composition_meta.x > 0.5) {
         var x=u32(input.clip_position.x); var y=u32(u.composition_meta.z-input.clip_position.y);
@@ -417,7 +420,7 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
             rank+=select(2u*bx,3u-2u*bx,by!=0u)*weight;
             x>>=1u;y>>=1u;weight>>=2u;
         }
-        if(rank<u32(u.composition_meta.x)*16u){discard;}
+        if(rank<u32(u.composition_meta.x)*16u){reject_coverage = true;}
     }
     var primary=input.diffuse_color;
     if(u.composition_meta.y>0.5){primary.a=1.0;}
@@ -462,6 +465,8 @@ fn fragment_color(input: VertexOutput) -> vec4<f32> {
         let tex = coin_line_sample(t_texture7,s_texture7,input.uv7,params,u.sampling_texture_sizes[7]);
         base_color = texture_layer(primary, base_color, tex, params, u.extra_texture_blends[6], 7u);
     }
+    // Implicit LOD and portable derivatives run before the coverage kill.
+    if (reject_coverage) { discard; }
     if (!alpha_test_accepts(base_color.a)) { discard; }
     return apply_fog(base_color, -input.position_view.z);
 }

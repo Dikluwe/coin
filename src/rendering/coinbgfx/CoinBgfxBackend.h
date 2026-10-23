@@ -101,7 +101,7 @@ private:
 
   CoinRenderSubmitResult submitInternal(const CoinRenderFramePlan & frame, CoinRenderTargetP & target,
                               const CoinRenderFrameReuseDecision & reuse, CoinRenderReadbackTicket * ticket);
-  bool resize(int width, int height);
+  bool resize(int width, int height, bool multipassFrame = false);
   bool prepareBaseProgram(const std::vector<CoinBgfxDraw> & draws,
                           bool hasShadows,
                           CoinBgfxTransparencyStrategy strategy,
@@ -139,6 +139,8 @@ private:
   void encodeMsaaResolve(bgfx::ViewId view, bgfx::FrameBufferHandle output,
                          int width, int height, float mode);
   uint32_t sampleCount = 1;
+  bool managerDepthMode = false;
+  bool sceneDepthInitialized = false;
   bgfx::FrameBufferHandle msaaFrameBuffer = BGFX_INVALID_HANDLE;
   int msaaWidth = 0, msaaHeight = 0;
   bgfx::ProgramHandle msaaProgram = BGFX_INVALID_HANDLE;
@@ -162,7 +164,7 @@ private:
   CoinRenderBackendStatus checkRuntimeFailure(const char * operation);
   void destroyResources();
   void shutdownRuntime();
-  void destroyFrameBuffers();
+  void destroyFrameBuffers(bool keepOutput = false);
   void encodeSortedLayers(const std::vector<CoinBgfxDraw> & draws,
                           bgfx::DynamicVertexBufferHandle vertices,
                           bgfx::DynamicIndexBufferHandle indices,

@@ -939,6 +939,22 @@ CoinBgfxLowering::lowerImpl(const CoinRenderFramePlan & frame, int width, int he
         return false;
       }
     }
+    if (!draw.geometry.indexCount && !draw.geometry.vertexCount && (draw.clearDepthBefore || draw.authoredScene)) {
+      CoinBgfxDraw barrier{};
+      barrier.sourceDrawSlot = item.drawIndex;
+      barrier.renderStateSlot = draw.renderStateSlot;
+      barrier.renderLayer = draw.renderLayer;
+      barrier.authoredScene = draw.authoredScene;
+      barrier.clearDepthBefore = draw.clearDepthBefore;
+      barrier.multipassMask = draw.multipassMask;
+      barrier.viewport[0] = viewport.x;
+      barrier.viewport[1] = viewport.y;
+      barrier.viewport[2] = viewport.width;
+      barrier.viewport[3] = viewport.height;
+      candidate.draws.push_back(barrier);
+      previousBatchable = false;
+      continue;
+    }
     if (draw.geometry.indexCount == 0 || draw.geometry.vertexCount == 0) {
       diagnostic = "BGFX evaluation requires nonempty indexed triangles";
       return false;

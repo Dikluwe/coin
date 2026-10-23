@@ -304,6 +304,7 @@ CoinRenderFramePlanBuilder::reset()
   this->currentAnnotationLayer = 0;
   this->nextAnnotationLayer = 1;
   this->authoredSceneLayer = UINT32_MAX;
+  this->managerLayerDepth = 0;
   this->authoredSceneParentLayer = 0;
   this->authoredSceneParentClear = false;
   this->annotationDepthClearPending = false;
@@ -986,6 +987,55 @@ CoinRenderFramePlanBuilder::beginAnnotation(bool clearDepth)
     this->deferredDepthClear = false;
     this->hasActiveDraw = false;
   }
+}
+
+void
+CoinRenderFramePlanBuilder::beginManagerLayer(bool clearDepth)
+{
+  ++this->managerLayerDepth;
+  this->beginAnnotation(clearDepth);
+}
+
+void
+CoinRenderFramePlanBuilder::endManagerLayer()
+{
+  this->endAnnotation();
+  if (this->managerLayerDepth) --this->managerLayerDepth;
+}
+
+void
+CoinRenderFramePlanBuilder::capturePendingDepthClear(SoCallbackAction * action, bool sceneBoundary)
+{
+  if (!this->annotationDepthClearPending && !sceneBoundary) return;
+  // Empty-scene boundaries and clears use the existing transport. No geometry
+  // or producer is invented for an empty layer, including a final empty layer.
+  const uint32_t slot = this->captureRenderState(action, 0, false);
+  this->ensureDrawPacket(CoinRenderPrimitiveTopology::TRIANGLE_LIST, slot, nullptr, true);
+  this->hasActiveDraw = false;
+}
+
+void
+CoinRenderFramePlanBuilder::discardDrawOutput()
+{
+  // HIDDEN_LINE's color/depth clear erases every preceding background.
+  // Retain their geometry and resources for ordinary capability validation,
+  // but prevent any attachment writes. New base states keep their originals.
+  std::unordered_map<uint32_t, uint32_t> discarded;
+  for (auto & draw : this->currentPlan.draws) {
+    auto found = discarded.find(draw.renderStateSlot);
+    if (found == discarded.end()) {
+      auto state = this->currentPlan.renderStates[draw.renderStateSlot];
+      state.colorWrite = false;
+      state.colorWriteMask = 0;
+      state.depthWrite = false;
+      state.explicitDepthMask |= 2;
+      const uint32_t slot = static_cast<uint32_t>(this->currentPlan.renderStates.size());
+      this->currentPlan.renderStates.push_back(std::move(state));
+      found = discarded.emplace(draw.renderStateSlot, slot).first;
+    }
+    draw.renderStateSlot = found->second;
+  }
+  this->hasActiveDraw = false;
 }
 
 void
@@ -3470,6 +3520,7 @@ CoinRenderFramePlanBuilder::ensureDrawPacket(CoinRenderPrimitiveTopology topolog
   dp.sourceOccurrence = this->occurrenceSerial;
   dp.renderLayer = this->currentAnnotationLayer;
   dp.authoredScene = dp.renderLayer != 0 && dp.renderLayer == this->authoredSceneLayer;
+  dp.managerSuperimposition = this->managerLayerDepth != 0;
   dp.clearDepthBefore = dp.renderLayer != 0 && this->annotationDepthClearPending;
   if (dp.clearDepthBefore) this->annotationDepthClearPending = false;
   dp.geometry.firstVertex = static_cast<uint32_t>(this->currentPlan.vertices.size());

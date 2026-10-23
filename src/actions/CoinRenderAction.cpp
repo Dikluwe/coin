@@ -1137,7 +1137,7 @@ void
 CoinRenderAction::addManagerLayerBoundary(SoNode * separator, SbBool clearDepth,
                                           int transparencyType)
 {
-  if (separator)
+  if (separator || transparencyType == COIN_RENDER_MANAGER_OWNER)
     this->pimpl->managerLayerBoundaries.emplace_back(
       separator, clearDepth != FALSE, transparencyType);
 }
@@ -1213,31 +1213,6 @@ CoinRenderAction::beginTraversal(SoNode * root)
   if (this->pimpl->isApplying) {
     SoState * state = this->getState();
     state->push();
-    // A manager's technical mode applies to its base scene. Foreground
-    // superimpositions follow those passes once, in manager order, with their
-    // own depth policy rather than inheriting the hidden-line overrides.
-    SoNode * technicalBase = root;
-    const SoGroup * managerRoot = nullptr;
-    if (root && !this->pimpl->managerLayerBoundaries.empty() &&
-        this->pimpl->drawMode != DrawMode::SCENE &&
-        root->isOfType(SoSeparator::getClassTypeId())) {
-      const auto * group = static_cast<const SoGroup *>(root);
-      if (group->getNumChildren() == int(this->pimpl->managerLayerBoundaries.size()) + 1) {
-        bool matches = true;
-        for (int i = 1; i < group->getNumChildren(); ++i)
-          matches = matches && group->getChild(i) ==
-            std::get<0>(this->pimpl->managerLayerBoundaries[size_t(i - 1)]);
-        if (matches) {
-          managerRoot = group;
-          technicalBase = group->getChild(0);
-        }
-      }
-    }
-    const auto appendManagerForeground = [&]() {
-      if (managerRoot)
-        for (int i = 1; i < managerRoot->getNumChildren(); ++i)
-          this->inherited::beginTraversal(managerRoot->getChild(i));
-    };
     SoShapeStyleElement::setTransparencyType(
       state, static_cast<int32_t>(this->pimpl->transparencyType));
     SoLazyElement::setTransparencyType(
@@ -1246,6 +1221,62 @@ CoinRenderAction::beginTraversal(SoNode * root)
                  this->pimpl->inheritedTransparencyOverride)) {
       SoOverrideElement::setTransparencyTypeOverride(state, root, TRUE);
     }
+    // The adapter marks its base explicitly. Each superimposition is an
+    // independent authored traversal; only the base receives technical and
+    // texture-quality overrides. Keep every traversal in this same builder.
+    if (root && root->isOfType(SoSeparator::getClassTypeId())) {
+      const auto * group = static_cast<const SoGroup *>(root);
+      int baseIndex = -1;
+      for (int i = 0; i < group->getNumChildren(); ++i)
+        for (const auto & boundary : this->pimpl->managerLayerBoundaries)
+          if (std::get<0>(boundary) == group->getChild(i) &&
+              std::get<2>(boundary) == COIN_RENDER_MANAGER_BASE_LAYER) baseIndex = i;
+      if (baseIndex >= 0) {
+        for (int i = 0; i < group->getNumChildren() && !this->hasTerminated(); ++i) {
+          SoNode * child = group->getChild(i);
+          this->pushCurPath(i, child);
+          if (i == baseIndex) {
+            // CoinGL HIDDEN_LINE clears both buffers even after backgrounds.
+            // Their traversal/RTT captures still occur, but their draws no
+            // longer contribute to this frame's attachments.
+            if (this->pimpl->drawMode == DrawMode::HIDDEN_LINE)
+              this->pimpl->builder.discardDrawOutput();
+            const auto * base = static_cast<const SoGroup *>(child);
+            const bool hasBase = base->getNumChildren() != 0;
+            this->pimpl->builder.beginAuthoredScene(hasBase ||
+              this->pimpl->drawMode == DrawMode::HIDDEN_LINE);
+            if (base->getNumChildren()) {
+              this->pushCurPath(0, base->getChild(0));
+              this->beginTraversal(base->getChild(0));
+              this->popCurPath();
+            }
+            this->pimpl->builder.capturePendingDepthClear(this, !hasBase);
+            this->pimpl->builder.endAuthoredScene();
+          }
+          else this->inherited::beginTraversal(child);
+          this->popCurPath();
+        }
+        state->pop();
+        return;
+      }
+    }
+    struct TechnicalCaptureScope {
+      CoinRenderActionP * p;
+      explicit TechnicalCaptureScope(CoinRenderActionP * owner) : p(owner) {
+        p->technicalRttCaptures.clear();
+        p->technicalRttReplay = false;
+        p->technicalRttCapture = p->drawMode == DrawMode::HIDDEN_LINE ||
+          p->drawMode == DrawMode::SHADED_HIDDEN_LINES || p->drawMode == DrawMode::WIREFRAME_OVERLAY;
+      }
+      ~TechnicalCaptureScope() {
+        p->technicalRttCaptures.clear();
+        p->technicalRttCapture = p->technicalRttReplay = false;
+      }
+    } technicalScope(&this->pimpl.get());
+    const auto traverseBase = [&]() {
+      this->inherited::beginTraversal(root);
+      if (this->pimpl->technicalRttCapture) this->pimpl->technicalRttReplay = true;
+    };
     if (root && !this->pimpl->texturesEnabled) {
       SoTextureQualityElement::set(state, 0.0f);
       SoTextureOverrideElement::setQualityOverride(state, TRUE);
@@ -1260,7 +1291,7 @@ CoinRenderAction::beginTraversal(SoNode * root)
       SoOverrideElement::setLightModelOverride(state, root, TRUE);
       SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
       this->pimpl->builder.setColorWriteEnabled(false);
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
       this->pimpl->builder.setColorWriteEnabled(true);
       state->pop();
 
@@ -1273,9 +1304,8 @@ CoinRenderAction::beginTraversal(SoNode * root)
       SoOverrideElement::setLightModelOverride(state, root, TRUE);
       SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
       SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
       state->pop();
-      appendManagerForeground();
       state->pop();
       return;
     }
@@ -1288,7 +1318,7 @@ CoinRenderAction::beginTraversal(SoNode * root)
       SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
       SoOverrideElement::setLightModelOverride(state, root, TRUE);
       SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
 
       SoPolygonOffsetElement::set(state, root, 0.0f, 0.0f,
                                   SoPolygonOffsetElement::FILLED, FALSE);
@@ -1297,7 +1327,7 @@ CoinRenderAction::beginTraversal(SoNode * root)
       SoOverrideElement::setLinePatternOverride(state, root, TRUE);
       SoDepthBufferElement::set(state, TRUE, FALSE, SoDepthBufferElement::LEQUAL,
                                 SoDepthBufferElement::getRange(state));
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
 
       SoLineWidthElement::set(state, root, 1.0f);
       SoOverrideElement::setLineWidthOverride(state, root, TRUE);
@@ -1305,10 +1335,9 @@ CoinRenderAction::beginTraversal(SoNode * root)
       this->pimpl->builder.setLinePatternOverride(true, 0xf0f0u, 2);
       SoDepthBufferElement::set(state, TRUE, FALSE, SoDepthBufferElement::GREATER,
                                 SoDepthBufferElement::getRange(state));
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
       this->pimpl->builder.setLinePatternOverride(false);
       state->pop();
-      appendManagerForeground();
       state->pop();
       return;
     }
@@ -1317,7 +1346,7 @@ CoinRenderAction::beginTraversal(SoNode * root)
       SoPolygonOffsetElement::set(state, root, 1.0f, 1.0f,
                                   SoPolygonOffsetElement::FILLED, TRUE);
       SoOverrideElement::setPolygonOffsetOverride(state, root, TRUE);
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
       state->pop();
 
       state->push();
@@ -1333,27 +1362,8 @@ CoinRenderAction::beginTraversal(SoNode * root)
       SoOverrideElement::setDiffuseColorOverride(state, root, TRUE);
       SoOverrideElement::setMaterialBindingOverride(state, root, TRUE);
       SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
-      this->inherited::beginTraversal(technicalBase);
+      traverseBase();
       state->pop();
-      appendManagerForeground();
-      state->pop();
-      return;
-    }
-    if (root && managerRoot && this->pimpl->drawMode != DrawMode::SCENE) {
-      state->push();
-      SoDrawStyleElement::set(state, root,
-        this->pimpl->drawMode == DrawMode::POINTS
-          ? SoDrawStyleElement::POINTS : SoDrawStyleElement::LINES);
-      SoLightModelElement::set(state, root, SoLightModelElement::BASE_COLOR);
-      SoOverrideElement::setDrawStyleOverride(state, root, TRUE);
-      SoOverrideElement::setLightModelOverride(state, root, TRUE);
-      if (this->pimpl->drawMode == DrawMode::BOUNDING_BOX) {
-        SoComplexityTypeElement::set(state, root, SoComplexityTypeElement::BOUNDING_BOX);
-        SoOverrideElement::setComplexityTypeOverride(state, root, TRUE);
-      }
-      this->inherited::beginTraversal(technicalBase);
-      state->pop();
-      appendManagerForeground();
       state->pop();
       return;
     }
@@ -1370,7 +1380,7 @@ CoinRenderAction::beginTraversal(SoNode * root)
       }
     }
     if (root) {
-      this->inherited::beginTraversal(root);
+      traverseBase();
     }
     state->pop();
     return;
@@ -2857,6 +2867,10 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   }
 
 
+  plan.managerFrame = std::any_of(this->managerLayerBoundaries.begin(), this->managerLayerBoundaries.end(),
+    [](const std::tuple<const SoNode *, bool, int> & boundary) {
+      return std::get<2>(boundary) == COIN_RENDER_MANAGER_OWNER;
+    });
   // Visiting a bump declaration is not consumption: a later empty map may
   // neutralize it before every shape. The builder captures and validates each
   // effective map while emitting its vertices; failed capture is still handled
@@ -2924,25 +2938,6 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     }
     planCacheAllowed = false;
   }
-  // The qualified technical foreground texture is a stored single-unit RGBA
-  // image with the fixed-function MODULATE alpha product. Other texture
-  // sources and combine policies need a separate CoinGL comparison before
-  // they can be admitted in a technical manager layer.
-  const auto qualifiedTechnicalForegroundTexture = [&plan](
-    const CoinRenderRenderStateSnapshot & state) {
-    if (!state.hasTexture || state.textureModel != CoinRenderTextureModel::MODULATE ||
-        state.textureImageSlot >= plan.textures.size() ||
-        state.textureCombines[0].instructions[0][0] > .5f) return false;
-    for (const auto & unit : state.extraTextures)
-      if (unit.enabled) return false;
-    const auto & texture = plan.textures[state.textureImageSlot];
-    return (texture.format == CoinRenderTextureFormat::RGBA8_LINEAR ||
-            texture.format == CoinRenderTextureFormat::RGBA8_SRGB) &&
-      texture.width > 0 && texture.width <= 8192 &&
-      texture.height > 0 && texture.height <= 8192 && texture.components == 4 &&
-      texture.pixelsRgba.size() == size_t(texture.width) * texture.height * 4 &&
-      !texture.producerId && !texture.gpuToken;
-  };
   if ((this->drawMode == CoinRenderAction::DrawMode::HIDDEN_LINE ||
        this->drawMode == CoinRenderAction::DrawMode::SHADED_HIDDEN_LINES) &&
       !traversalSkipped && !cameraOverlay && !translationOverlay) {
@@ -2956,29 +2951,19 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
     };
     for (const auto & draw : plan.draws) {
       const auto & state = plan.renderStates[draw.renderStateSlot];
-      const bool managerForeground = std::find(this->managerCapturedLayers.begin(),
-        this->managerCapturedLayers.end(), draw.renderLayer) !=
-        this->managerCapturedLayers.end();
+      const bool managerForeground = draw.managerSuperimposition;
       bool textureAlpha = state.hasTexture && textureHasUnqualifiedAlpha(state.textureImageSlot);
       for (const auto & texture : state.extraTextures) {
         if (texture.enabled && textureHasUnqualifiedAlpha(texture.imageSlot)) textureAlpha = true;
       }
-      const bool foregroundMaterial = managerForeground &&
-        (state.transparencyType == SoGLRenderAction::BLEND ||
-         (state.transparencyType == SoGLRenderAction::SCREEN_DOOR && !state.hasTexture));
-      const bool foregroundTexture = managerForeground &&
-        state.transparencyType == SoGLRenderAction::BLEND &&
-        qualifiedTechnicalForegroundTexture(state);
-      if ((state.transparentMaterial && !foregroundMaterial) ||
-          (state.transparentTexture && !foregroundTexture) ||
-          (textureAlpha && !foregroundTexture) ||
-          (state.screenDoorTransparency > 0 && !foregroundMaterial) ||
-          coin_render_alpha_test_active(state.alphaTestFunction) ||
-          state.shadowGroupSlot ||
-          ((draw.renderLayer || draw.clearDepthBefore) && !managerForeground)) {
+      if ((!managerForeground &&
+           (state.transparentMaterial || state.transparentTexture || textureAlpha ||
+            state.screenDoorTransparency > 0 ||
+            (!draw.isSceneLayer() && (draw.renderLayer || draw.clearDepthBefore)))) ||
+          coin_render_alpha_test_active(state.alphaTestFunction) || state.shadowGroupSlot) {
         this->setDiagnostic(CoinRenderDiagnosticShell::action(
           CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-          SbString("hidden-line modes require opaque base geometry or a qualified manager foreground without shadows or alpha test")));
+          SbString("hidden-line modes require opaque base geometry and no shadows or alpha test")));
         return;
       }
     }
@@ -2986,37 +2971,14 @@ CoinRenderActionP::executeApply(F traversalFn, SoNode * cacheRoot)
   if (this->drawMode != CoinRenderAction::DrawMode::SCENE &&
       !this->managerCapturedLayers.empty() &&
       !traversalSkipped && !cameraOverlay && !translationOverlay) {
-    const auto textureHasAlpha = [&plan](uint32_t slot) {
-      if (slot >= plan.textures.size()) return true;
-      const auto & texture = plan.textures[slot];
-      if (texture.producerId || texture.gpuToken) return true;
-      if (texture.pixelsRgba.empty()) return !texture.gpuOpaque;
-      return coin_render_image_has_transparency(texture.pixelsRgba.data(),
-                                                texture.pixelsRgba.size() / 4, 4);
-    };
     for (const auto & draw : plan.draws) {
-      if (std::find(this->managerCapturedLayers.begin(), this->managerCapturedLayers.end(),
-                    draw.renderLayer) == this->managerCapturedLayers.end()) continue;
+      if (!draw.managerSuperimposition) continue;
       const auto & state = plan.renderStates[draw.renderStateSlot];
-      bool textureAlpha = state.hasTexture && textureHasAlpha(state.textureImageSlot);
-      for (const auto & texture : state.extraTextures)
-        if (texture.enabled && textureHasAlpha(texture.imageSlot)) textureAlpha = true;
-      const bool foregroundMaterial = state.transparencyType == SoGLRenderAction::BLEND ||
-        (state.transparencyType == SoGLRenderAction::SCREEN_DOOR && !state.hasTexture);
-      const bool foregroundTexture = state.transparencyType == SoGLRenderAction::BLEND &&
-        qualifiedTechnicalForegroundTexture(state);
-      if ((state.transparentMaterial && !foregroundMaterial) ||
-          (state.transparentTexture && !foregroundTexture) ||
-          (textureAlpha && !foregroundTexture) ||
-          (state.screenDoorTransparency > 0 && !foregroundMaterial) ||
-          coin_render_alpha_test_active(state.alphaTestFunction) ||
-          !state.depthTest || !state.depthWrite ||
-          (state.depthFunction != CoinRenderDepthFunction::LESS &&
-           state.depthFunction != CoinRenderDepthFunction::LEQUAL) ||
+      if (coin_render_alpha_test_active(state.alphaTestFunction) ||
           state.shadowGroupSlot || draw.shadowLightSlot) {
         this->setDiagnostic(CoinRenderDiagnosticShell::action(
           CoinRenderAction::UNSUPPORTED, CoinRenderDiagnosticDomain::FRAME_PLAN,
-          SbString("Manager technical foreground needs qualified SCREEN_DOOR or BLEND Z-buffer rendering")));
+          SbString("Manager technical layers do not support shadows or alpha test")));
         return;
       }
     }
@@ -4792,6 +4754,19 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
     : SoShapeStyleElement::getTransparencyType(state);
   const auto context = rttCaptureContext(*p, state, producerTransparency, bumpProducer);
   uint64_t producerId = 0;
+  std::vector<int> occurrencePath;
+  if (p->technicalRttCapture) {
+    const auto path = action->getCurPath()->fullPath();
+    for (int i = 1; i < path.getLength(); ++i)
+      occurrencePath.push_back(path.getIndexFromTail(path.getLength() - 1 - i));
+  }
+  if (p->technicalRttReplay)
+    for (const auto & capture : p->technicalRttCaptures)
+      if (capture.source == texture && capture.revision == texture->getNodeId() &&
+          capture.context == context && capture.occurrencePath == occurrencePath) {
+        producerId = capture.producer;
+        break;
+      }
   bool dependencyCycle = p->sceneTexturePlan &&
     CoinRenderRttCaptureMemo::activeSource(*p->sceneTexturePlan, sourceRevision);
   if (dependencyCycle) {
@@ -4799,7 +4774,7 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
       CoinRenderDiagnosticDomain::FRAME_PLAN, SbString("SoSceneTexture2 dependency cycle")));
     return SoCallbackAction::ABORT;
   }
-  if (p->sceneTexturePlan && p->sceneTextureCaptureMemo &&
+  if (!producerId && p->sceneTexturePlan && p->sceneTextureCaptureMemo &&
       !p->sceneTextureCaptureMemo->find(texture, context, *p->sceneTexturePlan, producerId, diagnostic, dependencyCycle)) {
     p->setDiagnostic(CoinRenderDiagnosticShell::action(
       dependencyCycle ? CoinRenderAction::INVALID_SCENE : CoinRenderAction::UNSUPPORTED,
@@ -4871,6 +4846,8 @@ CoinRenderActionP::sceneTexturePreCB(void * userdata,
                                           p->sceneTexturePlan->chargedBytes-chargeBefore,
                                           !childAction.pimpl->builder.hasCoordinateFunctions());
   }
+  if (p->technicalRttCapture && !p->technicalRttReplay)
+    p->technicalRttCaptures.push_back({texture, texture->getNodeId(), context, occurrencePath, producerId});
   p->sceneTexturePixels.emplace_back(4, 0);
   auto& marker = p->sceneTexturePixels.back();
   for (unsigned int i = 0; i < 4; ++i)
@@ -4962,13 +4939,13 @@ CoinRenderActionP::managerLayerPreCB(void * userdata, SoCallbackAction * action,
     // This purpose belongs to a generated composition boundary, never to an
     // inferred combination of authored material, style or texture state.
     if (type == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER) ++p->managerHighlightDepth;
-    if (type >= 0) {
-      action->getState()->push();
-      SoShapeStyleElement::setTransparencyType(action->getState(), type);
-      SoLazyElement::setTransparencyType(action->getState(), type);
-    }
-    if (type == -2) p->builder.beginAuthoredScene(std::get<1>(*found));
-    else p->builder.beginAnnotation(std::get<1>(*found));
+    action->getState()->push();
+    const int effectiveType = type >= 0 ? type : static_cast<int>(p->transparencyType);
+    SoShapeStyleElement::setTransparencyType(action->getState(), effectiveType);
+    SoLazyElement::setTransparencyType(action->getState(), effectiveType);
+    SoOverrideElement::setTransparencyTypeOverride(action->getState(),
+      const_cast<SoNode *>(node), effectiveType == SoGLRenderAction::SORTED_LAYERS_BLEND);
+    p->builder.beginManagerLayer(std::get<1>(*found));
     p->managerCapturedLayers.push_back(p->builder.activeAnnotationLayer());
   }
   return SoCallbackAction::CONTINUE;
@@ -4985,11 +4962,11 @@ CoinRenderActionP::managerLayerPostCB(void * userdata, SoCallbackAction * action
       return std::get<0>(layer) == node;
     });
   if (found != p->managerLayerBoundaries.end()) {
-    if (std::get<2>(*found) == -2) p->builder.endAuthoredScene();
-    else p->builder.endAnnotation();
+    p->builder.capturePendingDepthClear(action);
+    p->builder.endManagerLayer();
     if (std::get<2>(*found) == COIN_RENDER_MANAGER_HIGHLIGHT_LAYER &&
         p->managerHighlightDepth) --p->managerHighlightDepth;
-    if (std::get<2>(*found) >= 0) action->getState()->pop();
+    action->getState()->pop();
   }
   return SoCallbackAction::CONTINUE;
 }

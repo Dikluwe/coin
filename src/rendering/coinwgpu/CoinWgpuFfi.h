@@ -484,6 +484,12 @@ CoinWgpuStatus coin_wgpu_submit(
   size_t error_buf_len
 );
 
+/* Target-owned synchronous depth history. The token is released on target
+   resize/destruction; no connection or runtime lifetime is extended. */
+CoinWgpuStatus coin_wgpu_submit_with_depth_history(CoinWgpuTarget *, const CoinWgpuFrameView *,
+  uint64_t * history, char * error_buf, size_t error_buf_len);
+void coin_wgpu_release_depth_history(uint64_t history);
+
 /* Render an offscreen pass to a sampleable texture without CPU readback.
    The token belongs to one device generation and must be released after
    its consumers are submitted. */

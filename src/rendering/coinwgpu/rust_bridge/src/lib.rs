@@ -3096,13 +3096,45 @@ impl GpuTimestampProbe {
 
 // One completed synchronous offscreen target per device. Async readbacks and
 // direct RTT keep their own attachments so no texture is reused in flight.
+// The synchronous connector owns one token per target. Keep exact depth
+// samples across frames, independently of the optional device scratch cache.
+struct TargetDepthHistory {
+    width: u32, height: u32, samples: u32,
+    texture: wgpu::Texture,
+    view: wgpu::TextureView,
+}
+static NEXT_DEPTH_HISTORY: AtomicU64 = AtomicU64::new(1);
+
+fn manager_backgrounds(draws: &[CoinWgpuDraw]) -> bool {
+    draws.iter().find(|draw| draw.composition_flags & 64 != 0)
+        .is_some_and(|scene| draws.iter().any(|draw| draw.render_layer < scene.render_layer))
+}
+
+fn initialize_target_depth(device: &wgpu::Device, view: &wgpu::TextureView) -> wgpu::CommandBuffer {
+    let mut encoder = device.create_command_encoder(&wgpu::CommandEncoderDescriptor {
+        label: Some("Coin target initial depth"),
+    });
+    {
+        let _pass = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+            label: Some("Coin target initial depth"), color_attachments: &[],
+            depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+                view, depth_ops: Some(wgpu::Operations {
+                    load: wgpu::LoadOp::Clear(1.0), store: wgpu::StoreOp::Store,
+                }), stencil_ops: None,
+            }), timestamp_writes: None, occlusion_query_set: None,
+        });
+    }
+    encoder.finish()
+}
+
 struct CachedOffscreenAttachments {
     width: u32,
     height: u32,
     color_texture: wgpu::Texture,
     color_view: wgpu::TextureView,
-    depth_texture: wgpu::Texture,
-    depth_view: wgpu::TextureView,
+    // A target-owned depth attachment must never be lent to another target.
+    // Color remains eligible for the same device scratch policy.
+    depth: Option<(wgpu::Texture, wgpu::TextureView)>,
 }
 
 impl CachedOffscreenAttachments {
@@ -3675,6 +3707,7 @@ struct DeviceState {
     camera_snapshot_policy: CameraSnapshotPolicy,
     readback_pool: Arc<Mutex<ReadbackPool>>,
     cached_offscreen_attachments: Option<CachedOffscreenAttachments>,
+    target_depth_histories: HashMap<u64, TargetDepthHistory>,
     rtt_textures: Mutex<RttRegistry>,
     device_id: CoinWgpuDeviceId,
     generation: u64,
@@ -4626,6 +4659,7 @@ fn get_or_init_device_impl<'a>(
         camera_snapshot_policy: CameraSnapshotPolicy::default(),
         readback_pool: Arc::new(Mutex::new(ReadbackPool::default())),
         cached_offscreen_attachments: None,
+        target_depth_histories: HashMap::new(),
         rtt_textures: Mutex::new(RttRegistry::default()),
         device_id: 0,
         generation: runtime.device_generation,
@@ -7935,6 +7969,7 @@ fn encode_frame_impl(
         Some(shadow::encode_array(&ctx.device, &mut encoder, &maps)
             .map_err(|message| (CoinWgpuStatus::Unsupported, message))?)
     } else { None };
+    let load_initial_depth = manager_backgrounds(draws_slice);
     if clear_attachments {
         let _clear = encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
             label: Some("Coin initial attachments clear"),
@@ -7954,7 +7989,7 @@ fn encode_frame_impl(
             depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                 view: depth_view,
                 depth_ops: Some(wgpu::Operations {
-                    load: wgpu::LoadOp::Clear(1.0),
+                    load: if load_initial_depth { wgpu::LoadOp::Load } else { wgpu::LoadOp::Clear(1.0) },
                     store: wgpu::StoreOp::Store,
                 }),
                 stencil_ops: None,
@@ -8152,7 +8187,7 @@ fn encode_frame_impl(
                 depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
                     view: selected_depth,
                     depth_ops: Some(wgpu::Operations {
-                        load: if is_peel || (sample_count > 1 && pass_index == 0 && clear_attachments) {
+                        load: if is_peel || (sample_count > 1 && pass_index == 0 && clear_attachments && !load_initial_depth) {
                             wgpu::LoadOp::Clear(1.0)
                         } else {
                             wgpu::LoadOp::Load
@@ -10484,6 +10519,9 @@ fn coin_wgpu_surface_submit_internal(
 
         let mut capture_buffer = None;
         let mut commands = cmd_buffers;
+        if record.published_serial == 0 && manager_backgrounds(draws_slice) {
+            commands.insert(0, initialize_target_depth(&dev.device, depth_view));
+        }
         if let Some(presentation) = presentation {
             let target = surface_texture.texture.create_view(&wgpu::TextureViewDescriptor {
                 format: Some(presentation.format), ..Default::default()
@@ -10729,6 +10767,7 @@ fn coin_wgpu_submit_internal(
     frame: *const CoinWgpuFrameView,
     out_ticket: *mut CoinWgpuReadbackTicket,
     out_texture: *mut u64,
+    depth_history: *mut u64,
     error_buf: *mut std::os::raw::c_char,
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
@@ -11470,9 +11509,14 @@ fn coin_wgpu_submit_internal(
                 .filter(|entry| attachment_cache_enabled
                     && entry.width == width && entry.height == height)
         } else { None };
+        let prior_depth = if depth_history.is_null() { None } else {
+            ctx.target_depth_histories.get(unsafe { &*depth_history })
+                .filter(|entry| entry.width == width && entry.height == height && entry.samples == sample_count)
+                .map(|entry| (entry.texture.clone(), entry.view.clone()))
+        };
         let attachments_reused = cached.is_some();
-        let (color_texture, color_view, depth_texture, depth_view) = if let Some(entry) = cached {
-            (entry.color_texture, entry.color_view, entry.depth_texture, entry.depth_view)
+        let (color_texture, color_view, cached_depth) = if let Some(entry) = cached {
+            (entry.color_texture, entry.color_view, entry.depth)
         } else {
             let texture_desc = wgpu::TextureDescriptor {
                 label: Some("Offscreen Color Texture"),
@@ -11495,6 +11539,14 @@ fn coin_wgpu_submit_internal(
             }
             let color_view = color_texture.create_view(&wgpu::TextureViewDescriptor{mip_level_count:Some(1),..Default::default()});
 
+            (color_texture, color_view, None)
+        };
+        let (depth_texture, depth_view) = if sample_count == 1 && prior_depth.is_some() {
+            let (texture, view) = prior_depth.as_ref().unwrap();
+            (texture.clone(), view.clone())
+        } else if let Some(depth) = cached_depth {
+            depth
+        } else {
             let depth_desc = wgpu::TextureDescriptor {
                 label: Some("Offscreen Depth Texture"),
                 size: wgpu::Extent3d { width, height, depth_or_array_layers: 1 },
@@ -11517,7 +11569,7 @@ fn coin_wgpu_submit_internal(
                 return CoinWgpuStatus::OutOfMemory;
             }
             let depth_view = depth_texture.create_view(&wgpu::TextureViewDescriptor::default());
-            (color_texture, color_view, depth_texture, depth_view)
+            (depth_texture, depth_view)
         };
         let msaa_attachments = if sample_count > 1 {
             let extent = wgpu::Extent3d { width, height, depth_or_array_layers: 1 };
@@ -11527,7 +11579,8 @@ fn coin_wgpu_submit_internal(
                 format: output_format, usage: wgpu::TextureUsages::RENDER_ATTACHMENT,
                 view_formats: &[],
             });
-            let depth = ctx.device.create_texture(&wgpu::TextureDescriptor {
+            let depth = if let Some((texture, _)) = prior_depth.as_ref() { texture.clone() }
+              else { ctx.device.create_texture(&wgpu::TextureDescriptor {
                 label: Some("Coin MSAA depth"), size: extent, mip_level_count: 1,
                 sample_count, dimension: wgpu::TextureDimension::D2,
                 format: wgpu::TextureFormat::Depth32Float,
@@ -11535,7 +11588,7 @@ fn coin_wgpu_submit_internal(
                 // targets that do not request synchronous depth readback.
                 usage: wgpu::TextureUsages::RENDER_ATTACHMENT | wgpu::TextureUsages::TEXTURE_BINDING,
                 view_formats: &[],
-            });
+            }) };
             let color_view = color.create_view(&wgpu::TextureViewDescriptor::default());
             let depth_view = depth.create_view(&wgpu::TextureViewDescriptor::default());
             Some((color, color_view, depth, depth_view))
@@ -11562,13 +11615,17 @@ fn coin_wgpu_submit_internal(
             bump_payload.as_ref(), shadow_frame.as_ref(), next_scene.as_ref().map(|s| &s.geometry),
             instances_slice, instance_ranges, gpu_probe.as_ref().map(|p| &p.queries),
             msaa_attachments.as_ref().map_or(&color_view, |a| &a.1), msaa_attachments.as_ref().map(|_| &color_view), output_format, msaa_attachments.as_ref().map_or(&depth_view, |a| &a.3), msaa_attachments.as_ref().map_or(&depth_texture, |a| &a.2), sample_count);
-        let (cmd_buffers, pending_instances) = match encoded {
+        let (mut cmd_buffers, pending_instances) = match encoded {
             Ok(cmd) => cmd,
             Err((status, msg)) => {
                 set_error(error_buf, error_buf_len, &msg);
                 return status;
             }
         };
+        if prior_depth.is_none() && manager_backgrounds(draws_slice) {
+            cmd_buffers.insert(0, initialize_target_depth(&ctx.device,
+                msaa_attachments.as_ref().map_or(&depth_view, |a| &a.3)));
+        }
         if sample_count > 1 && fault == 307 {
             set_error(error_buf, error_buf_len, "Injected MSAA failure after encoding, before queue submission");
             return CoinWgpuStatus::OutOfMemory;
@@ -11971,12 +12028,22 @@ fn coin_wgpu_submit_internal(
                         pool.recycle(buffer.clone());
                     }
                 }
+                if !depth_history.is_null() {
+                    let token = unsafe { &mut *depth_history };
+                    if *token == 0 { *token = NEXT_DEPTH_HISTORY.fetch_add(1, Ordering::Relaxed); }
+                    let (texture, view) = msaa_attachments.as_ref()
+                        .map_or((&depth_texture, &depth_view), |a| (&a.2, &a.3));
+                    ctx.target_depth_histories.insert(*token, TargetDepthHistory {
+                        width, height, samples: sample_count, texture: texture.clone(), view: view.clone(),
+                    });
+                }
                 tgt.submission_serial = sub_serial;
                 commit_camera_scene(ctx, next_scene, commit_scene, f.frame_revision, owned_patch.is_some(), capture_scene,
                     !instances_slice.is_empty(), pending_instances);
                 if attachment_cache_enabled {
                     ctx.cached_offscreen_attachments = Some(CachedOffscreenAttachments {
-                        width, height, color_texture, color_view, depth_texture, depth_view,
+                        width, height, color_texture, color_view,
+                        depth: depth_history.is_null().then_some((depth_texture, depth_view)),
                     });
                 }
                 if trace_phases {
@@ -12098,9 +12165,36 @@ pub extern "C" fn coin_wgpu_submit(
     error_buf: *mut std::os::raw::c_char,
     error_buf_len: usize,
 ) -> CoinWgpuStatus {
-    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), std::ptr::null_mut(), error_buf, error_buf_len)
+    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), std::ptr::null_mut(), std::ptr::null_mut(), error_buf, error_buf_len)
 }
 
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_submit_with_depth_history(
+    target: *mut CoinWgpuTarget, frame: *const CoinWgpuFrameView, history: *mut u64,
+    error_buf: *mut std::os::raw::c_char, error_buf_len: usize,
+) -> CoinWgpuStatus {
+    if history.is_null() || (history as usize) % std::mem::align_of::<u64>() != 0 {
+        set_error(error_buf, error_buf_len, "Null or misaligned target depth history token");
+        return CoinWgpuStatus::InvalidArgument;
+    }
+    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), std::ptr::null_mut(),
+        history, error_buf, error_buf_len)
+}
+
+#[no_mangle]
+pub extern "C" fn coin_wgpu_release_depth_history(history: u64) {
+    if let Ok(mut guard) = RUNTIME_CTX.lock() {
+        if let Some(runtime) = guard.as_mut() {
+            if let Some(device) = runtime.device_state.as_mut() {
+                device.target_depth_histories.remove(&history);
+            }
+            for device in runtime.extra_devices.values_mut() {
+                device.target_depth_histories.remove(&history);
+            }
+        }
+    }
+}
 
 #[no_mangle]
 pub extern "C" fn coin_wgpu_submit_texture(
@@ -12115,7 +12209,7 @@ pub extern "C" fn coin_wgpu_submit_texture(
         return CoinWgpuStatus::InvalidArgument;
     }
     unsafe { *out_token = 0; }
-    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), out_token, error_buf, error_buf_len)
+    coin_wgpu_submit_internal(target, frame, std::ptr::null_mut(), out_token, std::ptr::null_mut(), error_buf, error_buf_len)
 }
 
 fn cube_rtt_layout(n:u32,mips:bool)->Result<(u32,u32),(CoinWgpuStatus,String)> {
@@ -12382,7 +12476,7 @@ pub extern "C" fn coin_wgpu_submit_async(
         set_error(error_buf, error_buf_len, "Null async readback ticket pointer");
         return CoinWgpuStatus::InvalidArgument;
     }
-    coin_wgpu_submit_internal(target, frame, out_ticket, std::ptr::null_mut(), error_buf, error_buf_len)
+    coin_wgpu_submit_internal(target, frame, out_ticket, std::ptr::null_mut(), std::ptr::null_mut(), error_buf, error_buf_len)
 }
 
 fn check_readback_ready(

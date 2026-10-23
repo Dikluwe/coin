@@ -198,6 +198,7 @@ CoinRenderFramePlan::hasSamePayload(const CoinRenderFramePlan &other) const
       this->legacyBlendAlpha != other.legacyBlendAlpha ||
       this->delayedObjDepthWrite != other.delayedObjDepthWrite ||
       this->smoothing != other.smoothing ||
+      this->managerFrame != other.managerFrame ||
       this->passClearColors != other.passClearColors ||
       !coin_render_same_transparency_options(this->transparency, other.transparency))
     return false;

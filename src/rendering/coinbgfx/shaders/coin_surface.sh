@@ -208,9 +208,12 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec4 v_texcoord0, vec3 v_v
                       vec4 v_texcoords4, vec4 v_texcoords5, vec4 v_texcoords6, vec4 v_texcoords7,
                       vec4 textureQ0, vec4 textureQ1, vec4 textureR0, vec4 textureR1)
 {
+  // Compute coverage without terminating lanes. Keep these small loops out
+  // of the texture result's live range and use one coverage kill afterwards.
+  bool rejectCoverage = false;
   for (int i = 0; i < 8; ++i) {
     if (float(i) >= u_clipMeta.x) break;
-    if (dot(u_clipPlanes[i], vec4(v_viewPosition, 1.0)) < 0.0) discard;
+    if (dot(u_clipPlanes[i], vec4(v_viewPosition, 1.0)) < 0.0) rejectCoverage = true;
   }
   // Coin's 32x32 polygon stipple, quantized into its 65 transparency levels.
   // Texture alpha is not a stipple source. Polygon LINE/POINT and native
@@ -227,7 +230,7 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec4 v_texcoord0, vec3 v_v
       rank += digit * weight;
       x = floor(x * 0.5); y = floor(y * 0.5); weight *= 0.25;
     }
-    if (rank <= u_screenDoor.x * 16.0 - 1.0) discard;
+    if (rank <= u_screenDoor.x * 16.0 - 1.0) rejectCoverage = true;
   }
   vec4 color = v_color0;
   if (u_screenDoor.w > 0.5) color.a = 1.0;
@@ -287,6 +290,8 @@ vec4 coinSurfaceColor(vec2 pixelCoord, vec4 v_color0, vec4 v_texcoord0, vec3 v_v
     color = coinTextureProgram(primary, color, coinSurfaceSample(s_texColor7, vec3(v_texcoords7.xy,textureR1.z), textureQ1.z, u_texParams[7], 7), u_texParams[7], u_texBlend[7], 7);
 #endif
 #endif // COIN_PORTABLE_MODULE
+  // Coverage is applied only after all implicit LOD/portable derivatives.
+  if (rejectCoverage) discard;
   coinAlphaTest(color.a);
   float mode = u_fogColorMode.w;
   if (mode < 0.5) return color;

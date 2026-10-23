@@ -72,6 +72,8 @@ private:
                               CoinRenderReadbackTicket * outTicket,
                               const CoinRenderFrameReuseDecision & reuse);
   uint32_t sampleCount = 1;
+  uint64_t depthHistory = 0;
+  uint64_t depthHistoryGeneration = 0;
   uint64_t preparedSurfaceId = 0;
   bool multipassDevicePrepared = false;
   CoinRenderBackendStatus status;

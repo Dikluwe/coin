@@ -107,6 +107,7 @@ CoinWgpuBackend::getStatus() const
 
 CoinWgpuBackend::~CoinWgpuBackend()
 {
+  if (this->depthHistory) coin_wgpu_release_depth_history(this->depthHistory);
 }
 
 bool
@@ -210,6 +211,11 @@ CoinWgpuBackend::prepare(CoinRenderTargetP & target)
     return CoinRenderBackendStatus::SUCCESS;
   }
 
+  if (!target.directTextureOutput && this->depthHistoryGeneration != target.resourceGeneration) {
+    if (this->depthHistory) coin_wgpu_release_depth_history(this->depthHistory);
+    this->depthHistory = 0;
+    this->depthHistoryGeneration = target.resourceGeneration;
+  }
   // Offscreen target
   if (!this->isAvailable()) {
     this->lastError = "No compatible WebGPU adapter or device available";
@@ -351,8 +357,14 @@ CoinWgpuBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         outTicket->colorBytes = bridgeTicket.color_bytes;
         outTicket->depthBytes = bridgeTicket.depth_bytes;
       }
+    } else if (frame.managerFrame) {
+      st = coin_wgpu_submit_with_depth_history(&tPod, &fView, &this->depthHistory, errBuf, sizeof(errBuf));
     } else {
       st = coin_wgpu_submit(&tPod, &fView, errBuf, sizeof(errBuf));
+      if (st == COIN_WGPU_OK && this->depthHistory) {
+        coin_wgpu_release_depth_history(this->depthHistory);
+        this->depthHistory = 0;
+      }
     }
     const ProfileClock::time_point profileBridgeDone = ProfileClock::now();
     serial = tPod.submission_serial;

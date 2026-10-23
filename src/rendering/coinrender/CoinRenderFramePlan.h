@@ -92,6 +92,8 @@ struct CoinRenderDrawPacket {
   uint32_t renderLayer = 0;
   // Explicit identity of the authored scene when manager backgrounds precede it.
   bool authoredScene = false;
+  // Capture identity: manager layers retain authored policy in technical modes.
+  bool managerSuperimposition = false;
   bool isSceneLayer() const { return renderLayer == 0 || authoredScene; }
   bool clearDepthBefore = false;
   // Capture-only strip identity; consumed and cleared by StrokeCore before GPU submission.
@@ -504,6 +506,7 @@ struct CoinRenderFramePlan {
   bool smoothing = false;
   std::vector<SbColor4f> passClearColors; // Empty: capture-once multipass. Otherwise one clear per snapshot.
   CoinRenderTransparencyOptions transparency;
+  bool managerFrame = false; // Target depth ownership for mono SoRenderManager.
   SbColor4f clearColor = SbColor4f(0.0f, 0.0f, 0.0f, 1.0f);
   std::vector<CoinRenderVertexSnapshot> vertices;
   // Sparse because authored bump UVs are rare and GPU vertex strides stay fixed.

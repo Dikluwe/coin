@@ -553,7 +553,10 @@ coin_render_expand_strokes(CoinRenderFramePlan &plan, std::string &diagnostic)
       }
       expanded.sourceRevision = digest ? digest : 1;
     }
-    if (expanded.geometry.indexCount != 0)
+    // Clipping/stippling may remove every primitive, but the layer's clear
+    // still executes. Preserve its viewport and authored-scene identity in
+    // the same clear-only transport used by an empty manager layer.
+    if (expanded.geometry.indexCount != 0 || expanded.clearDepthBefore)
       expandedDraws.push_back(expanded);
   }
 

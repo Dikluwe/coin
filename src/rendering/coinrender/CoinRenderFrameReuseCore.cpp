@@ -198,6 +198,7 @@ sameDrawStructure(const CoinRenderDrawPacket & a, const CoinRenderDrawPacket & b
     a.hasSortingCenter == b.hasSortingCenter &&
     (!a.hasSortingCenter || std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) == 0) &&
     a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene &&
+    a.managerSuperimposition == b.managerSuperimposition &&
     a.clearDepthBefore == b.clearDepthBefore;
 }
 

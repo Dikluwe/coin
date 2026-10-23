@@ -206,6 +206,17 @@ public:
   bool planOnly = false;
   bool sceneTextureBumpProducer = false;
   bool inheritedTransparencyOverride = false;
+  // Technical base passes replay a single logical RTT capture. This cache is
+  // scoped to those passes, never shared across authored layer occurrences.
+  struct TechnicalRttCapture {
+    const SoNode * source;
+    uint64_t revision;
+    std::vector<uint64_t> context;
+    std::vector<int> occurrencePath;
+    uint64_t producer;
+  };
+  bool technicalRttCapture = false, technicalRttReplay = false;
+  std::vector<TechnicalRttCapture> technicalRttCaptures;
   bool hasLastValidPlan;
   mutable bool recordingLogValid;
   bool isApplying;

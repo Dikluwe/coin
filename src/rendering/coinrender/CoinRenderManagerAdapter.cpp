@@ -31,6 +31,7 @@
 #include <Inventor/misc/SoChildList.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <cmath>
+#include <algorithm>
 #include <unordered_map>
 #include <Inventor/nodes/SoNode.h>
 #include <Inventor/nodes/SoSeparator.h>
@@ -64,6 +65,7 @@ struct CoinRenderManagerAdapter::P {
   SoNode * composedRoot = nullptr;
   SoNode * composedMain = nullptr;
   bool composedHighlight = false;
+  bool composedMono = true;
   std::vector<std::tuple<SoNode *, int, int>> composedLayers;
   std::vector<std::tuple<SoNode *, bool, int>> managerBoundaries;
   CoinRenderSceneManager * renderer = nullptr;
@@ -356,46 +358,57 @@ CoinRenderManagerAdapter::syncFromRenderManager()
     this->pimpl->error = "CoinRender manager render mode is not implemented";
     return FALSE;
   }
+  const bool mono = this->pimpl->source->getStereoMode() == SoRenderManager::MONO;
   SoNode * mainRoot = this->pimpl->sceneGraphOverride
     ? this->pimpl->sceneGraphOverride : this->pimpl->source->getSceneGraph();
+  const int layerCount = this->pimpl->source->getNumSuperimpositions();
+  const SoRenderManager::Superimposition * firstBackground = nullptr;
+  bool hasActiveBackground = false;
+  for (int i = 0; i < layerCount; ++i) {
+    const auto * layer = this->pimpl->source->getSuperimposition(i);
+    if (!layer || !(layer->getStateFlags() & SoRenderManager::Superimposition::BACKGROUND)) continue;
+    if (!firstBackground) firstBackground = layer;
+    if (layer->isEnabled() && layer->getSceneGraph()) hasActiveBackground = true;
+  }
   std::vector<std::tuple<SoNode *, int, int>> activeLayers;
   for (int i = 0; i < this->pimpl->source->getNumSuperimpositions(); ++i) {
     const auto * layer = this->pimpl->source->getSuperimposition(i);
     if (!layer || !layer->isEnabled()) continue;
     const int flags = layer->getStateFlags();
-    const bool technicalForeground =
-      (drawMode == CoinRenderAction::DrawMode::HIDDEN_LINE ||
-       drawMode == CoinRenderAction::DrawMode::SHADED_HIDDEN_LINES ||
-       drawMode == CoinRenderAction::DrawMode::WIREFRAME ||
-       drawMode == CoinRenderAction::DrawMode::POINTS ||
-       drawMode == CoinRenderAction::DrawMode::BOUNDING_BOX ||
-       drawMode == CoinRenderAction::DrawMode::WIREFRAME_OVERLAY) &&
-      (flags & SoRenderManager::Superimposition::ZBUFFERON) &&
-      !(flags & SoRenderManager::Superimposition::BACKGROUND) &&
-      !(flags & ~(SoRenderManager::Superimposition::ZBUFFERON |
-                  SoRenderManager::Superimposition::CLEARZBUFFER |
-                  SoRenderManager::Superimposition::AUTOREDRAW));
-    if ((drawMode != CoinRenderAction::DrawMode::SCENE && !technicalForeground) ||
-        !layer->getSceneGraph() || !mainRoot) {
-      this->pimpl->status = CoinRenderAction::UNSUPPORTED;
-      this->pimpl->error = "CoinRender manager superimposition cannot use this draw mode or an empty scene";
+    if (!layer->getSceneGraph()) {
+      this->pimpl->status = CoinRenderAction::INVALID_SCENE;
+      this->pimpl->error = "CoinRender manager superimposition has no scene";
       return FALSE;
     }
     const int transparency = layer->inheritsTransparencyType()
       ? -1 : static_cast<int>(layer->getTransparencyType());
     activeLayers.emplace_back(layer->getSceneGraph(), flags, transparency);
   }
+  // The first registered background consumes the legacy clearwindow flag
+  // even if disabled; a later background or the base cannot reclaim it.
+  // HIDDEN_LINE clears both buffers itself, including with a null base.
+  const bool hiddenLineClear = drawMode == CoinRenderAction::DrawMode::HIDDEN_LINE;
+  const bool hasColorClearOwner = hiddenLineClear || (firstBackground
+    ? firstBackground->isEnabled() && firstBackground->getSceneGraph()
+    : mainRoot != nullptr);
+  if (mono && layerCount && !hasColorClearOwner) {
+    this->pimpl->status = CoinRenderAction::UNSUPPORTED;
+    this->pimpl->error = "CoinRender manager has no color-clear owner: persistent color LOAD is unavailable";
+    return FALSE;
+  }
   SoSeparator * highlight = nullptr;
   if (!this->pimpl->prepareHighlight(mainRoot, this->pimpl->source->getGLRenderAction(),
                                     this->pimpl->source->getViewportRegion(), highlight)) return FALSE;
   SoSeparator * composed = nullptr;
   std::vector<std::tuple<SoNode *, bool, int>> managerBoundaries;
-  if (highlight || !activeLayers.empty()) {
+  if (highlight || !activeLayers.empty() ||
+      (mono && !mainRoot && layerCount && hiddenLineClear)) {
     // Highlight paths and style are rebuilt at each sync, including changes
     // that do not notify the scene graph (selection and GL-action setters).
     if (!highlight && this->pimpl->highlightReplays.empty() &&
         this->pimpl->composedRoot && this->pimpl->composedMain == mainRoot &&
-        this->pimpl->composedLayers == activeLayers && !this->pimpl->composedHighlight) {
+        this->pimpl->composedLayers == activeLayers && !this->pimpl->composedHighlight &&
+        this->pimpl->composedMono == mono) {
       composed = static_cast<SoSeparator *>(this->pimpl->composedRoot);
     }
     else {
@@ -407,7 +420,9 @@ CoinRenderManagerAdapter::syncFromRenderManager()
         const SbBool depthEnabled =
           (std::get<1>(layer) & SoRenderManager::Superimposition::ZBUFFERON) != 0;
         depth->test = depthEnabled;
-        depth->write = depthEnabled;
+        // Disabling GL_DEPTH_TEST suppresses writes without changing its
+        // write mask. A child may reenable testing with write left ignored.
+        depth->write.setIgnored(TRUE);
         overlay->addChild(depth);
         overlay->addChild(std::get<0>(layer));
         composed->addChild(overlay);
@@ -415,19 +430,19 @@ CoinRenderManagerAdapter::syncFromRenderManager()
           (std::get<1>(layer) & SoRenderManager::Superimposition::CLEARZBUFFER) != 0,
           std::get<2>(layer));
       };
-      bool hasBackground = false;
       for (const auto & layer : activeLayers)
         if (std::get<1>(layer) & SoRenderManager::Superimposition::BACKGROUND) {
-          hasBackground = true;
           appendLayer(layer);
         }
-      if (hasBackground || highlight) {
+      // MONO has an explicit base boundary. Preserve the existing ANAGLYPH
+      // foreground layout: its eye compositor owns the per-eye layer mapping.
+      if (mono || hasActiveBackground) {
         SoSeparator * basePass = new SoSeparator;
-        basePass->addChild(mainRoot);
+        if (mainRoot) basePass->addChild(mainRoot);
         composed->addChild(basePass);
-        if (hasBackground) managerBoundaries.emplace_back(basePass, true, -2);
+        managerBoundaries.emplace_back(basePass, true, COIN_RENDER_MANAGER_BASE_LAYER);
       }
-      else composed->addChild(mainRoot);
+      else if (mainRoot) composed->addChild(mainRoot);
       if (highlight) {
         composed->addChild(highlight);
         managerBoundaries.emplace_back(highlight, false, COIN_RENDER_MANAGER_HIGHLIGHT_LAYER);
@@ -445,10 +460,12 @@ CoinRenderManagerAdapter::syncFromRenderManager()
     this->pimpl->composedRoot = composed;
     this->pimpl->composedMain = composed ? mainRoot : nullptr;
     this->pimpl->composedHighlight = highlight != nullptr;
+    this->pimpl->composedMono = mono;
     this->pimpl->composedLayers = std::move(activeLayers);
     this->pimpl->managerBoundaries = std::move(managerBoundaries);
   }
   this->pimpl->renderer->clearManagerLayerBoundaries();
+  if (mono) this->pimpl->renderer->addManagerLayerBoundary(nullptr, FALSE, COIN_RENDER_MANAGER_OWNER);
   for (const auto & layer : this->pimpl->managerBoundaries)
     this->pimpl->renderer->addManagerLayerBoundary(
       std::get<0>(layer), std::get<1>(layer), std::get<2>(layer));
