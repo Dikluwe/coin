@@ -8,6 +8,30 @@
     }
 
     #[test]
+    fn multisample_depth_glsl_honors_backend_bounds_policy() {
+        use naga::{back::glsl, proc::{BoundsCheckPolicies, BoundsCheckPolicy},
+            valid::{Capabilities, ValidationFlags, Validator}};
+        let module = naga::front::wgsl::parse_str(MSAA_DEPTH_SHADER).unwrap();
+        let info = Validator::new(ValidationFlags::all(), Capabilities::all())
+            .validate(&module).unwrap();
+        for (version, policy, query_expected) in [
+            (glsl::Version::Embedded { version: 310, is_webgl: false }, BoundsCheckPolicy::Unchecked, false),
+            (glsl::Version::Desktop(430), BoundsCheckPolicy::ReadZeroSkipWrite, true),
+        ] {
+            let options = glsl::Options { version, ..Default::default() };
+            let pipeline = glsl::PipelineOptions { shader_stage: naga::ShaderStage::Fragment,
+                entry_point: "fs_main".into(), multiview: None };
+            let mut output = String::new();
+            glsl::Writer::new(&mut output, &module, &info, &options, &pipeline,
+                BoundsCheckPolicies { image_load: policy, ..Default::default() })
+                .unwrap().write().unwrap();
+            assert!(output.contains("texelFetch("));
+            assert_eq!(output.contains("textureSamples("), query_expected,
+                "MSAA depth loads must respect the backend image policy: {output}");
+        }
+    }
+
+    #[test]
     fn multisample_depth_resolves_nearest_sample_vulkan() {
         multisample_depth_resolves_nearest_sample(wgpu::Backends::VULKAN, wgpu::Backend::Vulkan);
     }
