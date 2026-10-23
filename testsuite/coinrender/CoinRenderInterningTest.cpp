@@ -212,6 +212,7 @@ bool textureIdentity()
   changed = base; changed.volumeMipmapped = true; add(changed);
   changed = base; changed.contentDigest = 18; add(changed);
   changed = base; changed.producerId = 23; add(changed);
+  changed = base; changed.gpuToken = 29; add(changed);
   changed = base; changed.sceneTransparencyFunction = 0; add(changed);
   changed = base; changed.gpuOpaque = true; add(changed);
   changed = base; changed.mipmapped = true; add(changed);
@@ -312,6 +313,7 @@ bool strokeSuffixSynchronization()
   state.viewportSlot = 0;
   state.lineWidth = 1;
   state.linePattern = 0xffffu;
+  state.clipPlanesWorld.push_back(SbPlane(SbVec3f(1, 0, 0), 0));
   plan.renderStates.push_back(state);
   CoinRenderVertexSnapshot a, b;
   a.position[0] = -.75f; a.position[2] = 0; a.materialSlot = 0;

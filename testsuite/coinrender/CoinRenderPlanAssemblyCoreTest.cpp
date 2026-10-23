@@ -261,9 +261,9 @@ int main() {
   CHECK(camera.nearDistance == 0.1f && camera.farDistance == 100.1f);
   CHECK(CoinRenderPlanAssemblyCore::camera(plan, camera) == 0);
   camera.nearDistance += 1e-6f;
-  CHECK(CoinRenderPlanAssemblyCore::camera(plan, camera) == 0);
-  camera.nearDistance += 1;
   CHECK(CoinRenderPlanAssemblyCore::camera(plan, camera) == 1);
+  camera.nearDistance += 1;
+  CHECK(CoinRenderPlanAssemblyCore::camera(plan, camera) == 2);
   state.fogEnd = 0; state.lineWidth = -1; state.pointSize = 0;
   state.linePatternScaleFactor = -1; state.screenDoorTransparency = 2;
   CoinRenderPlanAssemblyCore::normalizeState(state, camera);

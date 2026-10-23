@@ -44,12 +44,7 @@ struct CoinRenderFramePlanBuilderTestAccess {
   static std::vector<CoinRenderMaterialSnapshot> & materials(CoinRenderFramePlanBuilder & builder) {
     return builder.currentPlan.materials;
   }
-  static size_t indexed(const CoinRenderFramePlanBuilder & builder) { return builder.materialNext.size(); }
   static bool disabled(const CoinRenderFramePlanBuilder & builder) { return builder.materialIndexDisabled; }
-  static size_t limit() { return CoinRenderFramePlanBuilder::MATERIAL_INDEX_LIMIT; }
-  static void collision(CoinRenderFramePlanBuilder & builder, const CoinRenderMaterialSnapshot & value, uint32_t otherSlot) {
-    builder.materialHeads[builder.materialBytesKey(value)] = otherSlot;
-  }
   static void polygonMaterial(CoinRenderFramePlanBuilder & builder, const CoinRenderMaterialSnapshot & value) {
     CoinRenderPolygonStyleResult polygon;
     polygon.vertices.resize(1); polygon.vertices[0].material = value;
@@ -243,7 +238,8 @@ bool materialInterning() {
   for (size_t i = values.size(); i-- > 0;)
     ok &= check(Access::material(builder, values[i]) == CoinRenderPlanAssemblyCore::material(oracle, values[i]),
                 "reverse repeated material capture must equal the independent linear interner");
-  ok &= check(Access::indexed(builder) == values.size(), "many materials must activate the optional index");
+  ok &= check(Access::materials(builder).size() == values.size(),
+              "many materials must retain one slot per distinct value");
   const auto tableMatches = [&]() {
     const auto & table = Access::materials(builder);
     return table.size() == oracle.materials.size() &&
@@ -251,7 +247,6 @@ bool materialInterning() {
   };
   ok &= check(tableMatches(), "material table bytes must equal the linear oracle");
   CoinRenderMaterialSnapshot collision; collision.emission[1] = .91f;
-  Access::collision(builder, collision, 5);
   const auto collidedSlot = CoinRenderPlanAssemblyCore::material(oracle, collision);
   ok &= check(Access::material(builder, collision) == collidedSlot &&
               Access::material(builder, collision) == collidedSlot && tableMatches(),
@@ -280,11 +275,11 @@ bool materialInterning() {
   for (size_t i = 0; i < 40; ++i) Access::material(nested, values[values.size() - 1 - i]);
   std::swap(builder, nested);
   ok &= check(Access::material(builder, values[511]) == 0 &&
-              Access::material(nested, values[0]) == 0 && Access::indexed(nested) == oracle.materials.size(),
+              Access::material(nested, values[0]) == 0 && Access::materials(nested).size() == oracle.materials.size(),
               "suspending capture must move material metadata with its own source table");
   std::swap(builder, nested);
   ok &= check(builder.build(transferred, &diagnostic, true) &&
-              Access::indexed(builder) == 0 && Access::materials(builder).empty() &&
+              Access::materials(builder).empty() &&
               transferred.materials.size() == oracle.materials.size(),
               "ownership transfer must clear the builder index without altering the transferred table");
   builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
@@ -327,22 +322,24 @@ bool materialInterning() {
               repeated.hasSamePayload(copied),
               "failed builds must retain a synchronizable append suffix without mutating prior copied snapshots");
 
-  // The metadata limit bounds only acceleration: the full material table and
-  // independently callable core may continue past it with exact linear lookup.
+  // The shared frame-local index continues beyond the former builder-only
+  // metadata boundary without changing slot order or disabling acceleration.
   builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
-  auto & boundary = Access::materials(builder); boundary.resize(Access::limit());
+  const size_t boundaryCount = 65537;
+  auto & boundary = Access::materials(builder); boundary.resize(boundaryCount);
   for (size_t i = 0; i < boundary.size(); ++i) boundary[i].diffuse[0] = float(i) / float(boundary.size());
   const auto first = boundary[0], last = boundary.back();
-  ok &= check(Access::material(builder, last) == Access::limit() - 1 && Access::indexed(builder) == Access::limit(),
-              "the inclusive material metadata cap must admit its complete table");
+  ok &= check(Access::material(builder, last) == boundaryCount - 1 &&
+              Access::material(builder, first) == 0 && !Access::disabled(builder),
+              "large externally seeded tables must remain indexed with first-occurrence slots");
   CoinRenderMaterialSnapshot overflow; overflow.emission[0] = .83f;
-  ok &= check(Access::material(builder, overflow) == Access::limit() && Access::disabled(builder) &&
-              Access::indexed(builder) == 0 && Access::material(builder, first) == 0 &&
-              Access::material(builder, overflow) == Access::limit(),
-              "over-cap capture must retain every material and fall back linearly until reset");
+  ok &= check(Access::material(builder, overflow) == boundaryCount &&
+              Access::material(builder, first) == 0 &&
+              Access::material(builder, overflow) == boundaryCount,
+              "large table insertion and repeated lookup must remain stable");
   builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
   for (size_t i = 0; i < 40; ++i) Access::material(builder, values[i]);
-  ok &= check(!Access::disabled(builder) && Access::indexed(builder) == 40,
+  ok &= check(!Access::disabled(builder) && Access::materials(builder).size() == 40,
               "a later frame must readmit bounded interning after metadata fallback");
   coinRenderTestSetEnvironment("COIN_RENDER_DISABLE_MATERIAL_INTERNING", "1");
   builder.beginFrame(SbColor4f(0, 0, 0, 1), SbViewportRegion(32, 32));
@@ -350,7 +347,7 @@ bool materialInterning() {
   for (const auto & value : values)
     ok &= check(Access::material(builder, value) == CoinRenderPlanAssemblyCore::material(oracle, value),
                 "material interning optout must preserve the ordinary assembly slots");
-  ok &= check(Access::indexed(builder) == 0 && tableMatches(), "optout must keep the bounded index disabled");
+  ok &= check(Access::disabled(builder) && tableMatches(), "optout must keep builder material indexing disabled");
   return ok;
 }
 bool stateInterning() {
