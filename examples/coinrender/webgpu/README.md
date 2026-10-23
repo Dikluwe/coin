@@ -11,6 +11,13 @@ Movement changes the Coin rotation node and recaptures the frame; resizing updat
 the Coin viewport and the wgpu surface. This is a small demonstration profile,
 not a claim of complete parity with the native backend or full Coin scene support.
 
+The complete presentation, including canvas, diagnostics and controls, fits a
+centered 16:9 stage that uses the largest size contained in the viewport. Other
+screen proportions show letterboxing or pillarboxing. Long status/adapter text
+and profile details scroll inside their own panels, leaving the stage and pause
+control in place. Keyboard users can focus these panels to scroll their contents.
+The canvas keeps its actual viewport proportions for Coin's camera capture.
+
 Build with Python 3.9+, CMake, Ninja, Emscripten, Rust's
 `wasm32-unknown-unknown` target and `wasm-bindgen-cli 0.2.125`. The Emscripten
 SDK must be activated in the environment. Toolchain provisioning may need network
@@ -26,30 +33,45 @@ python3 .github/scripts/build-coin-render-webgpu.py \
 Use `--emcmake`, `--cargo` and `--wasm-bindgen` for explicit tool paths.
 The build reports artifact creation, not successful browser rendering.
 
-Serve only the artifact directory using a TLS certificate and key stored outside
-it. For development, generate a short-lived certificate in RAM with a subject
-alternative name matching the actual LAN IP or DNS name:
+Serve only the artifact directory using a trusted TLS certificate. For a LAN
+with private IP addresses, use a local development CA and install its public
+certificate in each client device. HTTPS encryption alone or bypassing a browser
+warning does not establish trusted HTTPS. A public CA cannot issue for a private
+RFC1918 address; a public domain with DNS validation is a separate option.
+
+For Chrome/Chromium on Linux, mkcert can install a development CA in the user's
+NSS trust store without changing the system-wide store. Restart the browser after
+installing trust. Keep CA and server private keys in a permission-protected user
+folder on a filesystem that enforces permissions, outside Git and outside the
+published artifact directory. Do not keep private keys on a shared NTFS volume.
+For example, with mkcert and certutil installed:
 
 ```sh
-mkdir -p /dev/shm/coin-webgpu-demo/tls
-openssl req -x509 -newkey rsa:2048 -nodes -days 2 \
-  -keyout /dev/shm/coin-webgpu-demo/tls/key.pem \
-  -out /dev/shm/coin-webgpu-demo/tls/cert.pem \
-  -subj /CN=coinrender.local \
-  -addext 'subjectAltName=DNS:localhost,IP:127.0.0.1,IP:192.168.1.20'
+umask 077
+export CAROOT="$HOME/.local/share/coinrender-webgpu/tls/authority"
+mkdir -p "$CAROOT"
+TRUST_STORES=nss mkcert -install
+mkcert \
+  -cert-file "$HOME/.local/share/coinrender-webgpu/tls/server.pem" \
+  -key-file "$HOME/.local/share/coinrender-webgpu/tls/server.key" \
+  localhost 127.0.0.1 ::1 192.168.0.16
 python3 examples/coinrender/webgpu/serve.py \
-  --directory /dev/shm/coin-webgpu-demo/site \
-  --cert /dev/shm/coin-webgpu-demo/tls/cert.pem \
-  --key /dev/shm/coin-webgpu-demo/tls/key.pem \
+  --directory /path/to/built/site \
+  --cert "$HOME/.local/share/coinrender-webgpu/tls/server.pem" \
+  --key "$HOME/.local/share/coinrender-webgpu/tls/server.key" \
   --bind 0.0.0.0 --port 8443
 ```
 
-Replace `192.168.1.20` with the server's reachable LAN address. Open
-`https://192.168.1.20:8443/` on the other device. Configure certificate trust on
-that device or use a certificate from a CA it trusts; bypassing a warning alone
-may not establish the secure context WebGPU requires. The server exposes only
-six artifact filenames, refuses symlinks and never lists directories. Keep TLS
-keys, certificates and server logs out of Git and outside the site directory.
+Replace `192.168.0.16` with the server's LAN address before issuing the certificate.
+Open `https://192.168.0.16:8443/` remotely or `https://localhost:8443/` on the PC.
+The server exposes only six artifact filenames, refuses symlinks and never lists
+directories. Keep keys, certificates and server logs out of Git and outside the
+site directory. Transfer only the **public** `rootCA.pem` to a second device,
+optionally named `CoinRender-Local-CA.crt`; never transfer `rootCA-key.pem`.
+Android/Google TV certificate installation depends on its firmware and browser.
+The client must explicitly trust the CA for websites; TV trust is not implied by
+installation on the PC. If using ADB to transfer the public certificate, finish
+installation through the TV's credential settings and disable debugging afterward.
 
 A TV browser must itself implement WebGPU, expose `navigator.gpu` in a secure
 context, and provide a usable adapter/device. HTTPS does not add WebGPU to an
