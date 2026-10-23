@@ -285,6 +285,7 @@
 #include <mutex>
 #include <map>
 #include <new>
+#include <unordered_set>
 #ifndef _WIN32
 #include <X11/Xlib.h>
 #include "rendering/coinrender/CoinRenderX11Wsi.h"
@@ -5818,9 +5819,9 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         pass.projectionCoin * clipConversion;
       const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
         frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
+      std::unordered_set<uint32_t> casterSlots(pass.casterDraws.begin(), pass.casterDraws.end());
       for (const CoinBgfxDraw & draw : plan->shadowDraws) {
-        if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
-                      draw.sourceDrawSlot) == pass.casterDraws.end()) continue;
+        if (!casterSlots.count(draw.sourceDrawSlot)) continue;
         const auto & state = frame.renderStates[draw.renderStateSlot];
         const SbMatrix modelView = state.model *
           (state.shadowMapCameraOverride ? state.view : pass.view);
@@ -6893,9 +6894,9 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
         pass.projectionCoin * clipConversion;
       const float depthParams[4] = {pass.nearDistance, pass.vsmFarDistance,
         frame.shadowLights[pass.lightSlot].type == CoinRenderLightType::SPOT ? 1.0f : 0.0f, 0.0f};
+      std::unordered_set<uint32_t> casterSlots(pass.casterDraws.begin(), pass.casterDraws.end());
       for (const CoinBgfxDraw & draw : plan.shadowDraws) {
-        if (std::find(pass.casterDraws.begin(), pass.casterDraws.end(),
-                      draw.sourceDrawSlot) == pass.casterDraws.end()) continue;
+        if (!casterSlots.count(draw.sourceDrawSlot)) continue;
         const auto & state = frame.renderStates[draw.renderStateSlot];
         const SbMatrix modelView = state.model *
           (state.shadowMapCameraOverride ? state.view : pass.view);

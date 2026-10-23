@@ -689,12 +689,11 @@ bool coin_render_uses_extended_bump(const CoinRenderFramePlan &frame)
 // This predicate runs before graph execution, including every captured producer.
 // It admits only the actual intersection, without changing ordinary shadow or
 // the original point/directional, single-base bump validators.
-bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::string &diagnostic)
+bool coin_render_validate_extended_bump_after_frame_validation(
+  const CoinRenderFramePlan &frame, std::string &diagnostic)
 {
   if (frame.bumpImages.empty() && frame.bumpCoords.empty() &&
       frame.bumpTransforms.empty() && frame.bumpTangents.empty()) return true;
-  // Validate current payloads, including inactive images, before any shortcut.
-  if (!frame.isValid(&diagnostic)) return false;
   // Preserve the ordinary-frame fast path. Common validation still owns
   // inactive payloads; no bump stream or indexed occurrence scan is needed.
   if (std::none_of(frame.bumpCoords.begin(), frame.bumpCoords.end(),
@@ -844,4 +843,13 @@ bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame, std::s
     }
   }
   return true;
+}
+
+bool coin_render_validate_extended_bump(const CoinRenderFramePlan &frame,
+                                        std::string &diagnostic)
+{
+  if (frame.bumpImages.empty() && frame.bumpCoords.empty() &&
+      frame.bumpTransforms.empty() && frame.bumpTangents.empty()) return true;
+  if (!frame.isValid(&diagnostic)) return false;
+  return coin_render_validate_extended_bump_after_frame_validation(frame, diagnostic);
 }

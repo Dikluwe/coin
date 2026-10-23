@@ -86,6 +86,23 @@ sameMatrix(const SbMatrix & a, const SbMatrix & b)
   return std::memcmp(a.getValue(), b.getValue(), sizeof(float) * 16) == 0;
 }
 
+bool
+sameCameraSnapshots(const std::vector<CoinRenderCameraSnapshot> & a,
+                    const std::vector<CoinRenderCameraSnapshot> & b)
+{
+  if (a.size() != b.size()) return false;
+  for (size_t i = 0; i < a.size(); ++i) {
+    if (!sameMatrix(a[i].viewMatrix, b[i].viewMatrix) ||
+        !sameMatrix(a[i].projectionMatrixCoin, b[i].projectionMatrixCoin) ||
+        a[i].isPerspective != b[i].isPerspective ||
+        a[i].nearDistance != b[i].nearDistance ||
+        a[i].farDistance != b[i].farDistance ||
+        a[i].focalDistance != b[i].focalDistance ||
+        a[i].aspectRatio != b[i].aspectRatio) return false;
+  }
+  return true;
+}
+
 
 bool finiteLight(const CoinRenderLightSourceSnapshot & light)
 {
@@ -142,45 +159,6 @@ hasOpaqueConnectorResource(const CoinRenderFramePlan & plan)
 }
 
 bool
-sameCameraIndependentPayload(const CoinRenderFramePlan & previous,
-                             const CoinRenderFramePlan & current)
-{
-  if (previous.numPasses != current.numPasses ||
-      previous.multipassBufferBudget != current.multipassBufferBudget ||
-      !sameColor(previous.clearColor, current.clearColor) ||
-      !samePlainSnapshots(previous.vertices, current.vertices) ||
-      previous.indices != current.indices ||
-      !samePlainSnapshots(previous.materials, current.materials) ||
-      !samePlainSnapshots(previous.shadowGroups, current.shadowGroups) ||
-      !samePlainSnapshots(previous.shadowLights, current.shadowLights) ||
-      !sameLighting(previous.lightingStates, current.lightingStates) ||
-      !samePlainSnapshots(previous.viewports, current.viewports) ||
-      previous.outputColorFormat != current.outputColorFormat || previous.outputMipmaps != current.outputMipmaps ||
-      !sameTextures(previous.textures, current.textures) ||
-      !samePlainSnapshots(previous.samplers, current.samplers) ||
-      !coin_render_same_draws(previous.draws, current.draws) ||
-      previous.cameras.size() != current.cameras.size() ||
-      previous.cameras.empty() ||
-      previous.renderStates.size() != current.renderStates.size()) return false;
-
-  for (size_t i = 0; i < previous.renderStates.size(); ++i) {
-    const CoinRenderRenderStateSnapshot & a = previous.renderStates[i];
-    const CoinRenderRenderStateSnapshot & b = current.renderStates[i];
-    if (!coin_render_same_state_except_camera(a, b) ||
-        a.cameraSlot >= previous.cameras.size() ||
-        b.cameraSlot >= current.cameras.size()) return false;
-
-    const CoinRenderCameraSnapshot & oldCamera = previous.cameras[a.cameraSlot];
-    const CoinRenderCameraSnapshot & newCamera = current.cameras[b.cameraSlot];
-    if (!sameMatrix(a.view, oldCamera.viewMatrix) ||
-        !sameMatrix(a.projectionCoin, oldCamera.projectionMatrixCoin) ||
-        !sameMatrix(b.view, newCamera.viewMatrix) ||
-        !sameMatrix(b.projectionCoin, newCamera.projectionMatrixCoin)) return false;
-  }
-  return true;
-}
-
-bool
 sameDrawStructure(const CoinRenderDrawPacket & a, const CoinRenderDrawPacket & b)
 {
   return a.topology == b.topology &&
@@ -194,34 +172,93 @@ sameDrawStructure(const CoinRenderDrawPacket & a, const CoinRenderDrawPacket & b
     a.stableNodeId == b.stableNodeId &&
     a.drawOrdinal == b.drawOrdinal &&
     a.sourceOccurrence == b.sourceOccurrence && a.transparentFacePass == b.transparentFacePass &&
-         a.hasSortingDistance == b.hasSortingDistance && a.sortingDistance == b.sortingDistance &&
+    a.hasSortingDistance == b.hasSortingDistance && a.sortingDistance == b.sortingDistance &&
     a.hasSortingCenter == b.hasSortingCenter &&
-    (!a.hasSortingCenter || std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld, sizeof(a.sortingCenterWorld)) == 0) &&
+    (!a.hasSortingCenter || std::memcmp(a.sortingCenterWorld, b.sortingCenterWorld,
+                                        sizeof(a.sortingCenterWorld)) == 0) &&
     a.renderLayer == b.renderLayer && a.authoredScene == b.authoredScene &&
     a.managerSuperimposition == b.managerSuperimposition &&
     a.generatedHighlight == b.generatedHighlight &&
     a.clearDepthBefore == b.clearDepthBefore;
 }
 
-bool
-sameExecutionStructure(const CoinRenderFramePlan & previous, const CoinRenderFramePlan & current)
+struct ReuseComparison {
+  bool cameraIndependentPayload;
+  bool executionStructure;
+};
+
+ReuseComparison
+compareReusePayload(const CoinRenderFramePlan & previous,
+                    const CoinRenderFramePlan & current)
 {
-  if (previous.vertices.size() != current.vertices.size() ||
-      previous.indices.size() != current.indices.size() ||
-      previous.materials.size() != current.materials.size() ||
-      !samePlainSnapshots(previous.shadowGroups, current.shadowGroups) ||
-      !samePlainSnapshots(previous.shadowLights, current.shadowLights) ||
-      previous.lightingStates.size() != current.lightingStates.size() ||
-      previous.cameras.size() != current.cameras.size() ||
-      previous.viewports.size() != current.viewports.size() ||
-      previous.renderStates.size() != current.renderStates.size() ||
-      previous.textures.size() != current.textures.size() ||
-      previous.samplers.size() != current.samplers.size() ||
-      previous.draws.size() != current.draws.size()) return false;
-  for (size_t i = 0; i < previous.draws.size(); ++i) {
-    if (!sameDrawStructure(previous.draws[i], current.draws[i])) return false;
+  ReuseComparison result;
+  result.executionStructure =
+    previous.vertices.size() == current.vertices.size() &&
+    previous.indices.size() == current.indices.size() &&
+    previous.materials.size() == current.materials.size() &&
+    samePlainSnapshots(previous.shadowGroups, current.shadowGroups) &&
+    samePlainSnapshots(previous.shadowLights, current.shadowLights) &&
+    previous.lightingStates.size() == current.lightingStates.size() &&
+    previous.cameras.size() == current.cameras.size() &&
+    previous.viewports.size() == current.viewports.size() &&
+    previous.renderStates.size() == current.renderStates.size() &&
+    previous.textures.size() == current.textures.size() &&
+    previous.samplers.size() == current.samplers.size() &&
+    previous.draws.size() == current.draws.size();
+
+  result.cameraIndependentPayload =
+    previous.numPasses == current.numPasses &&
+    previous.multipassBufferBudget == current.multipassBufferBudget &&
+    sameColor(previous.clearColor, current.clearColor) &&
+    samePlainSnapshots(previous.vertices, current.vertices) &&
+    previous.indices == current.indices &&
+    samePlainSnapshots(previous.materials, current.materials) &&
+    samePlainSnapshots(previous.shadowGroups, current.shadowGroups) &&
+    samePlainSnapshots(previous.shadowLights, current.shadowLights) &&
+    sameLighting(previous.lightingStates, current.lightingStates) &&
+    samePlainSnapshots(previous.viewports, current.viewports) &&
+    previous.outputColorFormat == current.outputColorFormat &&
+    previous.outputMipmaps == current.outputMipmaps &&
+    sameTextures(previous.textures, current.textures) &&
+    samePlainSnapshots(previous.samplers, current.samplers) &&
+    previous.cameras.size() == current.cameras.size() &&
+    !previous.cameras.empty() &&
+    previous.renderStates.size() == current.renderStates.size() &&
+    previous.draws.size() == current.draws.size();
+
+  // One walk establishes both exact draw payload and reusable execution shape.
+  if (previous.draws.size() == current.draws.size()) {
+    for (size_t i = 0; i < previous.draws.size(); ++i) {
+      if (!coin_render_same_draw(previous.draws[i], current.draws[i]))
+        result.cameraIndependentPayload = false;
+      if (!sameDrawStructure(previous.draws[i], current.draws[i]))
+        result.executionStructure = false;
+      if (!result.cameraIndependentPayload && !result.executionStructure) break;
+    }
   }
-  return true;
+
+  if (result.cameraIndependentPayload) {
+    for (size_t i = 0; i < previous.renderStates.size(); ++i) {
+      const CoinRenderRenderStateSnapshot & a = previous.renderStates[i];
+      const CoinRenderRenderStateSnapshot & b = current.renderStates[i];
+      if (!coin_render_same_state_except_camera(a, b) ||
+          a.cameraSlot >= previous.cameras.size() ||
+          b.cameraSlot >= current.cameras.size()) {
+        result.cameraIndependentPayload = false;
+        break;
+      }
+      const CoinRenderCameraSnapshot & oldCamera = previous.cameras[a.cameraSlot];
+      const CoinRenderCameraSnapshot & newCamera = current.cameras[b.cameraSlot];
+      if (!sameMatrix(a.view, oldCamera.viewMatrix) ||
+          !sameMatrix(a.projectionCoin, oldCamera.projectionMatrixCoin) ||
+          !sameMatrix(b.view, newCamera.viewMatrix) ||
+          !sameMatrix(b.projectionCoin, newCamera.projectionMatrixCoin)) {
+        result.cameraIndependentPayload = false;
+        break;
+      }
+    }
+  }
+  return result;
 }
 }
 
@@ -238,15 +275,19 @@ CoinRenderFrameReuseCore::classify(const CoinRenderFramePlan & previous,
       hasOpaqueConnectorResource(current)) {
     return CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::UNKNOWN, 0);
   }
-  if (previous.hasSamePayload(current)) {
+  // Changed cameras make exact payload equality impossible. Avoid reading the
+  // large immutable payload once here and again in the camera-only predicate.
+  const bool sameCameras = sameCameraSnapshots(previous.cameras, current.cameras);
+  if (sameCameras && previous.hasSamePayload(current)) {
     return CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::REUSE,
                                     previous.revision);
   }
-  if (sameCameraIndependentPayload(previous, current)) {
+  const ReuseComparison comparison = compareReusePayload(previous, current);
+  if (comparison.cameraIndependentPayload) {
     return CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::CAMERA_PATCH,
                                     previous.revision);
   }
-  if (sameExecutionStructure(previous, current)) {
+  if (comparison.executionStructure) {
     return CoinRenderFrameReuseDecision(CoinRenderFrameReuseKind::RESOURCE_REBUILD,
                                     previous.revision);
   }

@@ -22,6 +22,12 @@ coin_render_resolve_triangle_depth(CoinRenderFramePlan &plan, std::string &diagn
   std::vector<CoinRenderDrawPacket> draws;
   draws.reserve(plan.draws.capacity());
   CoinRenderPlanAssemblyCore::StateIndex states;
+  std::vector<CoinRenderVertexSnapshot> ring;
+  std::vector<CoinRenderPolygonStyleVertex> clipped;
+  std::vector<SbVec3d> window;
+  ring.reserve(3);
+  clipped.reserve(8);
+  window.reserve(8);
   for (const auto &draw : plan.draws) {
     const auto source = plan.renderStates[draw.renderStateSlot];
     if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
@@ -33,14 +39,15 @@ coin_render_resolve_triangle_depth(CoinRenderFramePlan &plan, std::string &diagn
     }
     const auto &viewport = plan.viewports[source.viewportSlot];
     bool pendingClear = draw.clearDepthBefore;
+    size_t lastResolvedDraw = size_t(-1);
     for (uint32_t offset = 0; offset < draw.geometry.indexCount; offset += 3) {
-      std::vector<CoinRenderVertexSnapshot> ring;
+      ring.clear();
       for (uint32_t i = 0; i < 3; ++i)
         ring.push_back(plan.vertices[plan.indices[draw.geometry.firstIndex + offset + i]]);
       auto clipState = source;
       clipState.lightModel = CoinRenderLightModel::BASE_COLOR;
       clipState.cullMode = CoinRenderCullMode::NONE;
-      std::vector<CoinRenderPolygonStyleVertex> clipped;
+      clipped.clear();
       if (!coin_render_resolve_polygon_style(ring, clipState, plan.materials,
                                              plan.lightingStates[source.lightingSlot], clipped,
                                              diagnostic))
@@ -49,7 +56,7 @@ coin_render_resolve_triangle_depth(CoinRenderFramePlan &plan, std::string &diagn
         continue;
       auto resolved = source;
       const SbMatrix mvp = source.model * source.view * source.projectionCoin;
-      std::vector<SbVec3d> window;
+      window.clear();
       double maximum = 0;
       for (const auto &point : clipped) {
         SbVec4f clip;
@@ -99,7 +106,19 @@ coin_render_resolve_triangle_depth(CoinRenderFramePlan &plan, std::string &diagn
       item.renderStateSlot = CoinRenderPlanAssemblyCore::state(plan, states, resolved);
       item.clearDepthBefore = pendingClear;
       pendingClear = false;
-      draws.push_back(item);
+      // Adjacent coplanar triangles resolve to the same state. Keep their
+      // original contiguous index range in one packet; all remaining packet
+      // metadata comes from the same source draw.
+      if (lastResolvedDraw != size_t(-1) &&
+          draws[lastResolvedDraw].renderStateSlot == item.renderStateSlot &&
+          !item.clearDepthBefore &&
+          draws[lastResolvedDraw].geometry.firstIndex +
+            draws[lastResolvedDraw].geometry.indexCount == item.geometry.firstIndex) {
+        draws[lastResolvedDraw].geometry.indexCount += 3;
+      } else {
+        draws.push_back(item);
+        lastResolvedDraw = draws.size() - 1;
+      }
     }
     if (pendingClear) {
       auto empty = draw;

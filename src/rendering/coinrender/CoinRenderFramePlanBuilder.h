@@ -153,6 +153,8 @@ private:
   SbUniqueId lastBumpRevision = 0;
   uint32_t lastBumpSlot = 0;
   std::unordered_map<const SoNode *, std::pair<SbUniqueId, uint32_t>> bumpImageSlots;
+  std::unordered_multimap<uint64_t, uint32_t> bumpTransformSlots;
+  size_t bumpTransformIndexed = 0;
   std::vector<CoinRenderBumpLegacyCorner> bumpShapeCorners;
   std::vector<uint32_t> bumpShapeVertices;
   std::vector<uint32_t> bumpShapeTriangleIndices;
@@ -336,6 +338,19 @@ private:
   // Frame-local: a field revision and source pointer identify immutable bytes.
   // The plan owns the packed atlas, so no duplicate 90 MiB cache allocation.
   std::unordered_map<const unsigned char*, CapturedVolumeImage> capturedVolumeImages;
+  struct CapturedTextureImage {
+    const SoTexture2 * node;
+    SbUniqueId revision;
+    uint64_t sourceDigest;
+    uint32_t width, height, components;
+    CoinRenderTextureFormat format;
+    CoinRenderTextureFilter filter;
+    bool compressed;
+    uint32_t imageSlot;
+  };
+  // Pointer identity is only a lookup hint.  Hits are authorized by the node
+  // revision and current source bytes, so unnotified edits cannot go stale.
+  std::unordered_map<const unsigned char *, CapturedTextureImage> capturedTextureImages;
   struct LegacyPotImage {
     SbUniqueId revision;
     uint32_t width, height;

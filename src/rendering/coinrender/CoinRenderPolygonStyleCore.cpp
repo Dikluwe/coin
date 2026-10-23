@@ -7,6 +7,7 @@
 #include <cmath>
 #include <cstring>
 #include <limits>
+#include <map>
 #include <utility>
 
 CoinRenderMaterialSnapshot
@@ -254,7 +255,7 @@ coin_render_resolve_styled_triangle_boundaries(
          const CoinRenderPolygonStyleVertex &b, float slope, float maximum)
         : first(a), second(b), slopeBias(slope), maximumDepth(maximum) {}
   };
-  std::vector<Edge> boundary;
+  std::vector<Edge> rawBoundary;
   auto samePoint = [](const CoinRenderPolygonStyleVertex &a,
                       const CoinRenderPolygonStyleVertex &b) {
     const SbVec3f pa(a.vertex.position), pb(b.vertex.position);
@@ -333,15 +334,45 @@ coin_render_resolve_styled_triangle_boundaries(
                 maximumDepth};
       if (samePoint(edge.first, edge.second))
         continue;
-      auto reverse = std::find_if(boundary.begin(), boundary.end(),
-          [&](const Edge &other) {
-            return samePoint(edge.first, other.second) &&
-                   samePoint(edge.second, other.first);
-          });
-      if (reverse == boundary.end())
-        boundary.push_back(edge);
-      else
-        boundary.erase(reverse);
+      rawBoundary.push_back(edge);
+    }
+  }
+  // Use a conservative global x window only to find candidates.  The original
+  // scale-relative predicate remains authoritative, including collisions and
+  // nearly coincident geometry.  Choosing the lowest active index preserves
+  // std::find_if's first-match behavior.
+  float boundaryScale = 1.0f;
+  for (const Edge & edge : rawBoundary) {
+    boundaryScale = std::max(boundaryScale,
+      std::max(SbVec3f(edge.first.vertex.position).length(),
+               SbVec3f(edge.second.vertex.position).length()));
+  }
+  const float boundaryTolerance = 2e-6f * boundaryScale;
+  std::vector<Edge> boundary;
+  boundary.reserve(rawBoundary.size());
+  std::vector<bool> boundaryActive;
+  typedef std::multimap<float, size_t> EdgeIndex;
+  EdgeIndex reverseByEnd;
+  std::vector<EdgeIndex::iterator> reverseEntries;
+  for (const Edge & edge : rawBoundary) {
+    const float x = edge.first.vertex.position[0];
+    size_t reverseSlot = size_t(-1);
+    for (auto candidate = reverseByEnd.lower_bound(x - boundaryTolerance);
+         candidate != reverseByEnd.end() && candidate->first <= x + boundaryTolerance;
+         ++candidate) {
+      const size_t slot = candidate->second;
+      if (boundaryActive[slot] && samePoint(edge.first, boundary[slot].second) &&
+          samePoint(edge.second, boundary[slot].first) && slot < reverseSlot)
+        reverseSlot = slot;
+    }
+    if (reverseSlot != size_t(-1)) {
+      boundaryActive[reverseSlot] = false;
+      reverseByEnd.erase(reverseEntries[reverseSlot]);
+    } else {
+      const size_t slot = boundary.size();
+      boundary.push_back(edge);
+      boundaryActive.push_back(true);
+      reverseEntries.push_back(reverseByEnd.emplace(edge.second.vertex.position[0], slot));
     }
   }
   // The tessellator may return triangles in arbitrary order. Trace each
@@ -349,21 +380,42 @@ coin_render_resolve_styled_triangle_boundaries(
   // a contour and never jumps between disconnected clipped components.
   std::vector<Edge> ordered;
   ordered.reserve(boundary.size());
-  while (!boundary.empty()) {
-    ordered.push_back(boundary.back());
-    boundary.pop_back();
+  EdgeIndex forwardByStart;
+  std::vector<EdgeIndex::iterator> forwardEntries(boundary.size());
+  size_t activeEdges = 0;
+  for (size_t i = 0; i < boundary.size(); ++i) if (boundaryActive[i]) {
+    forwardEntries[i] = forwardByStart.emplace(boundary[i].first.vertex.position[0], i);
+    ++activeEdges;
+  }
+  while (activeEdges) {
+    size_t slot = boundary.size();
+    while (slot && !boundaryActive[slot - 1]) --slot;
+    if (!slot) break;
+    --slot;
+    ordered.push_back(boundary[slot]);
+    boundaryActive[slot] = false;
+    forwardByStart.erase(forwardEntries[slot]);
+    --activeEdges;
     const auto start = ordered.back().first;
     while (!samePoint(ordered.back().second, start)) {
-      auto next = std::find_if(boundary.begin(), boundary.end(),
-          [&](const Edge &edge) {
-            return samePoint(ordered.back().second, edge.first);
-          });
-      if (next == boundary.end()) {
+      const float x = ordered.back().second.vertex.position[0];
+      size_t nextSlot = size_t(-1);
+      for (auto candidate = forwardByStart.lower_bound(x - boundaryTolerance);
+           candidate != forwardByStart.end() && candidate->first <= x + boundaryTolerance;
+           ++candidate) {
+        const size_t candidateSlot = candidate->second;
+        if (boundaryActive[candidateSlot] &&
+            samePoint(ordered.back().second, boundary[candidateSlot].first) &&
+            candidateSlot < nextSlot) nextSlot = candidateSlot;
+      }
+      if (nextSlot == size_t(-1)) {
         diagnostic = "UNSUPPORTED: clipped polygon boundary is not closed";
         return false;
       }
-      ordered.push_back(*next);
-      boundary.erase(next);
+      ordered.push_back(boundary[nextSlot]);
+      boundaryActive[nextSlot] = false;
+      forwardByStart.erase(forwardEntries[nextSlot]);
+      --activeEdges;
     }
   }
   for (const Edge &edge : ordered) {

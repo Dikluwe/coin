@@ -694,13 +694,16 @@ CoinBgfxLowering::lowerInstanced(const CoinRenderFramePlan & frame, int width, i
 bool
 CoinBgfxLowering::validateBump(const CoinRenderFramePlan & frame, std::string & diagnostic)
 {
-  if (!coin_render_validate_extended_bump(frame, diagnostic))
+  if (frame.bumpImages.empty() && frame.bumpCoords.empty() &&
+      frame.bumpTransforms.empty() && frame.bumpTangents.empty()) return true;
+  if (!frame.isValid(&diagnostic))
+    return false;
+  if (!coin_render_validate_extended_bump_after_frame_validation(frame, diagnostic))
     return false;
   const bool active=std::any_of(frame.bumpCoords.begin(),frame.bumpCoords.end(),
     [](const CoinRenderBumpCoordOverride & coord){return coord.imageSlot!=0;});
   if (!active) return true;
   const auto fail=[&](const char * message){diagnostic=message;return false;};
-  if (!frame.isValid(&diagnostic)) return false;
   std::vector<CoinRenderBumpGpuVertex> stream;
   if (!coin_render_build_bump_gpu_stream(frame, stream, diagnostic))
     return false;

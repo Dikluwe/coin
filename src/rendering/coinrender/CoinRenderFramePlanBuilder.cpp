@@ -256,6 +256,8 @@ CoinRenderFramePlanBuilder::reset()
   this->currentPlan.portableShaders.clear();
   this->portableShaderSlots.clear();
   this->currentPlan.bumpTransforms.clear();
+  this->bumpTransformSlots.clear();
+  this->bumpTransformIndexed = 0;
   this->lastBumpSource = nullptr;
   this->lastBumpRevision = 0;
   this->lastBumpSlot = 0;
@@ -317,6 +319,7 @@ CoinRenderFramePlanBuilder::reset()
   this->authoredTextureSources.clear();
   this->authoredVolumeSources.clear();
   this->capturedVolumeImages.clear();
+  this->capturedTextureImages.clear();
   this->cubeSources.clear();
   this->capturedCubeImages.clear();
   this->nodeOccurrenceCount.clear();
@@ -1869,6 +1872,44 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     return false;
   }
 
+  const CoinRenderTextureFormat sourceFormat =
+    !isSceneTexture && this->storedTextureColorSpace == COIN_RENDER_TEXTURE_SRGB
+      ? CoinRenderTextureFormat::RGBA8_SRGB : CoinRenderTextureFormat::RGBA8_LINEAR;
+  const bool requestedCompression =
+    !isSceneTexture && this->compressedTextureImages.count(rawBytes);
+  uint64_t sourceDigest = 0;
+  const bool cacheableSource = sourceNode && !isSceneTexture && !legacyPotOverride &&
+    numComponents >= 1 && numComponents <= 4;
+  if (cacheableSource) {
+    sourceDigest = 1469598103934665603ull;
+    const size_t sourceBytes = size_t(w) * h * size_t(numComponents);
+    for (size_t i = 0; i < sourceBytes; ++i)
+      sourceDigest = (sourceDigest ^ rawBytes[i]) * 1099511628211ull;
+    const auto cached = this->capturedTextureImages.find(rawBytes);
+    if (cached != this->capturedTextureImages.end()) {
+      const auto & item = cached->second;
+      if (item.node == sourceNode && item.revision == sourceRevision &&
+          item.sourceDigest == sourceDigest && item.width == w && item.height == h &&
+          item.components == uint32_t(numComponents) && item.format == sourceFormat &&
+          item.filter == filter && item.compressed == requestedCompression &&
+          item.imageSlot < this->currentPlan.textures.size()) {
+        CoinRenderSamplerSnapshot sampler;
+        sampler.wrapS = snapWrapS;
+        sampler.wrapT = snapWrapT;
+        sampler.filter = filter;
+        if (quality > .85f) {
+          sampler.filter = CoinRenderTextureFilter::LINEAR_MIPMAP_LINEAR;
+          sampler.maxAnisotropy = this->maxTextureAnisotropy;
+        }
+        rs.textureImageSlot = item.imageSlot;
+        rs.samplerSlot = CoinRenderPlanAssemblyCore::sampler(this->currentPlan, sampler);
+        rs.textureMatrix = SoMultiTextureMatrixElement::get(state, unit);
+        rs.hasTexture = true;
+        return true;
+      }
+    }
+  }
+
   std::vector<uint8_t> rgba;
   if (!isSceneTexture) {
     if (!CoinRenderImageCore::convertToRgba8(rawBytes, size_t(w) * h, numComponents, rgba)) {
@@ -1881,8 +1922,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
 
   CoinRenderTextureImageSnapshot tSnap;
   tSnap.width = w; tSnap.height = h; tSnap.components = 4;
-  tSnap.format=!isSceneTexture && this->storedTextureColorSpace==COIN_RENDER_TEXTURE_SRGB?
-    CoinRenderTextureFormat::RGBA8_SRGB:CoinRenderTextureFormat::RGBA8_LINEAR;
+  tSnap.format = sourceFormat;
   if(isSceneTexture)tSnap.format=sceneTexture->second.format;
   tSnap.sceneTransparencyFunction = isSceneTexture ? sceneTexture->second.transparencyFunction : -1;
   tSnap.gpuOpaque = isSceneTexture && sceneTexture->second.opaque;
@@ -1890,7 +1930,7 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
   tSnap.pixelsRgba = std::move(rgba);
   // The legacy GL override makes POT resizing observable even on NPOT hardware.
   // Match its nearest, simage and GLU fallback paths.
-  bool useCompressedTexture = !isSceneTexture && this->compressedTextureImages.count(rawBytes);
+  bool useCompressedTexture = requestedCompression;
   const SoTexture2 * pendingPotNode = nullptr;
   LegacyPotImage pendingPotImage{};
   if (!isSceneTexture && legacyPotOverride) {
@@ -2017,6 +2057,11 @@ CoinRenderFramePlanBuilder::captureTextureUnit(SoCallbackAction * action, int un
     if(outError)*outError=this->builderError;return false;
   }
   const uint32_t texSlot = CoinRenderPlanAssemblyCore::texture(this->currentPlan, std::move(tSnap));
+  if (cacheableSource) {
+    this->capturedTextureImages[rawBytes] = {sourceNode, sourceRevision, sourceDigest,
+      w, h, uint32_t(numComponents), sourceFormat, filter, requestedCompression,
+      texSlot};
+  }
   if (pendingPotNode) {
     this->legacyPotBytes += pendingPotImage.pixels.size();
     this->legacyPotImages.emplace(pendingPotNode, std::move(pendingPotImage));
@@ -3355,15 +3400,37 @@ CoinRenderFramePlanBuilder::addVertex(SoCallbackAction * action, const SoPrimiti
     const SbMatrix & matrix = SoBumpMapMatrixElement::get(action->getState());
     const SbMatrix identity = SbMatrix::identity();
     if (std::memcmp(matrix.getValue(), identity.getValue(), sizeof(float) * 16) != 0) {
-      for (size_t i = 0; i < this->currentPlan.bumpTransforms.size(); ++i)
-        if (std::memcmp(matrix.getValue(), this->currentPlan.bumpTransforms[i].getValue(),
+      // Synchronize any transforms appended by a capture helper before this
+      // vertex.  Exact comparison below remains authoritative on collisions.
+      while (this->bumpTransformIndexed < this->currentPlan.bumpTransforms.size()) {
+        const auto & prior = this->currentPlan.bumpTransforms[this->bumpTransformIndexed];
+        uint64_t priorHash = 1469598103934665603ull;
+        const auto * priorBytes = reinterpret_cast<const unsigned char *>(prior.getValue());
+        for (size_t byte = 0; byte < sizeof(float) * 16; ++byte)
+          priorHash = (priorHash ^ priorBytes[byte]) * 1099511628211ull;
+        this->bumpTransformSlots.emplace(priorHash,
+          static_cast<uint32_t>(this->bumpTransformIndexed + 1));
+        ++this->bumpTransformIndexed;
+      }
+      uint64_t hash = 1469598103934665603ull;
+      const auto * bytes = reinterpret_cast<const unsigned char *>(matrix.getValue());
+      for (size_t i = 0; i < sizeof(float) * 16; ++i)
+        hash = (hash ^ bytes[i]) * 1099511628211ull;
+      const auto matches = this->bumpTransformSlots.equal_range(hash);
+      for (auto candidate = matches.first; candidate != matches.second; ++candidate) {
+        const uint32_t slot = candidate->second;
+        if (slot && slot <= this->currentPlan.bumpTransforms.size() &&
+            std::memcmp(matrix.getValue(), this->currentPlan.bumpTransforms[slot - 1].getValue(),
                         sizeof(float) * 16) == 0) {
-          bumpTransformSlot = static_cast<uint32_t>(i + 1);
+          bumpTransformSlot = slot;
           break;
         }
+      }
       if (!bumpTransformSlot) {
         this->currentPlan.bumpTransforms.push_back(matrix);
         bumpTransformSlot = static_cast<uint32_t>(this->currentPlan.bumpTransforms.size());
+        this->bumpTransformSlots.emplace(hash, bumpTransformSlot);
+        this->bumpTransformIndexed = this->currentPlan.bumpTransforms.size();
       }
     }
   }
@@ -4043,7 +4110,11 @@ void CoinRenderFramePlanBuilder::addStyledTriangle(SoCallbackAction* action,
         this->polygonPositions.push_back(SbVec3f(0, 0, 0)); // Filled by the second callback.
     }
   }
-  if (face && this->polygonTriangles > 0) {
+  // Recheck immediately before publication. Re-reading an n-point face for
+  // every one of its n-2 callbacks made styled polygons quadratic; the final
+  // check still observes any mid-callback mutation before output.
+  if (face && this->polygonTriangles > 0 &&
+      this->polygonTriangles + 1 == static_cast<int>(this->polygonPositions.size()) - 2) {
     if (face->getNumPoints() != static_cast<int>(this->polygonPositions.size()) ||
         face->getFaceIndex() != this->polygonFaceIndex ||
         face->getPartIndex() != this->polygonPartIndex) {

@@ -326,7 +326,18 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
     const CoinRenderFramePreflight * capturedPreflight, bool allowCompositionBorrow,
     CoinRenderCompositionTransferTrace * transfers) {
   std::string volumeDiagnostic;
-  if (!coin_render_validate_extended_bump(frame, volumeDiagnostic))
+  std::string planDiag;
+  const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
+    ? capturedPreflight->compositionFor(frame) : nullptr;
+  if (!capturedOrder && !frame.isValid(&planDiag)) {
+    const bool hasBumpPayload = !frame.bumpImages.empty() || !frame.bumpCoords.empty() ||
+      !frame.bumpTransforms.empty() || !frame.bumpTangents.empty();
+    if (hasBumpPayload)
+      return {CoinRenderBackendStatus::UNSUPPORTED, planDiag};
+    return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR,
+                                           "Invalid CoinRenderFramePlan: " + planDiag};
+  }
+  if (!coin_render_validate_extended_bump_after_frame_validation(frame, volumeDiagnostic))
     return {CoinRenderBackendStatus::UNSUPPORTED, volumeDiagnostic};
   if (!CoinRenderCubeTextureCore::validate(frame, volumeDiagnostic) ||
       !CoinRenderTextureSamplingCore::validVolumeFrame(frame, volumeDiagnostic))
@@ -338,12 +349,6 @@ CoinRenderFrameExecutionResult CoinRenderTargetP::validateProfileInternal(
   // The same admission applies to root targets and direct RTT producers.
   if (const char * diagnostic = canonicalCoverageDiagnostic(frame))
     return {CoinRenderBackendStatus::UNSUPPORTED, diagnostic};
-  std::string planDiag;
-  const auto * capturedOrder = !deferUnresolvedAlpha && capturedPreflight
-    ? capturedPreflight->compositionFor(frame) : nullptr;
-  if (!capturedOrder && !frame.isValid(&planDiag)) {
-    return CoinRenderFrameExecutionResult{CoinRenderBackendStatus::BACKEND_ERROR, "Invalid CoinRenderFramePlan: " + planDiag};
-  }
   std::vector<CoinRenderCompositionItem> compositionOrder;
   bool opaqueIdentity = false;
   if (!capturedOrder &&

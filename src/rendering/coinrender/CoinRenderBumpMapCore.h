@@ -14,6 +14,8 @@ struct CoinRenderDrawPacket;
 COIN_RENDER_DLL_API bool coin_render_uses_extended_bump(const CoinRenderFramePlan &);
 COIN_RENDER_DLL_API bool coin_render_validate_extended_bump(const CoinRenderFramePlan &,
                                                             std::string &);
+bool coin_render_validate_extended_bump_after_frame_validation(const CoinRenderFramePlan &,
+                                                               std::string &);
 
 struct CoinRenderBumpImage {
   uint32_t width = 0;
