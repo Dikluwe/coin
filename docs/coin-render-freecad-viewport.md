@@ -191,11 +191,57 @@ P16 fecha este perfil utilizável. Expandir outros casos exige resolver e testar
 suas dependências F19/F20, sem transformar o inventário em certificado de suporte.
 
 
+## Branch integrada e comprovação de Vulkan — 23/10/2026
+
+A branch [`codex/coin-render-freecad`](https://github.com/Dikluwe/coin/tree/codex/coin-render-freecad) reúne o CoinRender até R35, incluindo os 59 commits posteriores à base `codex/coin-render` (`24ddf557af`). A fonte de produção recompilada foi `733362b107a0d617c7c342799d239e8913f3ae63`, ancestral desta branch; ambos os backends permanecem no código. Esta campanha testa **BGFX/Vulkan no FreeCAD Linux AMD**, sem estender sua qualificação a todas as GPUs, APIs ou workbenches.
+
+Coin/CoinRender foram reconstruídos com C++20, Debug `-O0 -g0`, SDK BGFX API161 e os patches Vulkan versionados já descritos em R35. FreeCAD `228c679d78`, com o incremento gráfico R20/R21 abaixo e as adaptações locais não gráficas já discriminadas, foi reconstruído com C++20/Release `-O0 -g0 -DNDEBUG`, Qt6/Python3.12 e Part/Mesh/Sketcher. Não se misturou o antigo `libCoinWgpuExperimental` com o `libCoinRender` atual. As bibliotecas carregadas foram verificadas no mapa do próprio processo.
+
+**22 perfis distintos aprovados**, com API Vulkan/GPU física verificadas em todos: viewport (quatro), múltiplos documentos (dois), grade (quatro), seleção por path (quatro), picking de faces/arestas/vértices (quatro) e admissão de frames (quatro). Os cruzamentos registrados usam object/weighted OIT e DPR 1/2 quando aplicáveis. GPU em série, processos novos e watchdog de 120 s, com dez segundos reservados ao diagnóstico; sem skips ou aumento de prazo. Os 111 testes Python do runner passaram.
+
+A rodada identificou uma subamostragem incorreta no teste de grade: depois de resize em DPR 2, linhas pretas de um pixel coincidiam com a paridade omitida pela varredura de dois em dois. O PNG reprovado tinha 48.192 pixels escuros, dos quais a amostra contava somente 733. O teste agora conta todos os pixels e aumenta os limiares de 1.000 para 4.000, conservando a densidade mínima exigida. As quatro variantes passaram; uma contraprova que remove a grade antes do resize continua reprovando exatamente nesse gate. Os demais critérios de câmera, remoção, imagem atual e idle permanecem. Não houve alteração de produção para encobrir essa reprovação de fixture.
+
+O pacote inicial incompleto foi recusado: primeiro por catálogos de materiais ausentes e depois por FreeCAD sem suporte SWIG. Recursos de materiais e a ponte SWIG/Pivy fazem parte do pacote revalidado. Neste host, `SetupSwig` só descobre SWIG com `BUILD_SKETCHER=ON`; SWIG 4.2.0 e o Pivy instalado confirmaram a mesma API runtime 4. Habilitar `FREECAD_USE_EXTERNAL_COIN_PIVY=ON`, manter uma única imagem Coin (inclusive o alias privado `libCoin.so.80c`) e inicializar os submódulos GSL/Pivy necessários antes de configurar. `git archive` sozinho não inclui submódulos.
+
+Além dos alvos anteriores, compilar os recursos reais do host:
+
+```sh
+cmake --build "$FREECAD_BUILD" --parallel 6 --target \
+  FreeCADMain PartGui MeshGui SketcherGui SketcherScripts PartScripts MaterialScripts \
+  MaterialLib MaterialModelLib AppearanceLib PatternLib FluidMaterialLib MachiningLib \
+  MaterialToolsLib MaterialsAPILib FreeCADGui_Resources Stylesheets_data \
+  PreferencePacks_data PreferencePackTemplates_data
+```
+
+Repetir a seleção de API/GPU, prefixos privados e sessão isolada descritos abaixo, com o harness recompilado contra esses mesmos headers/bibliotecas. Executar o runner com `--backend bgfx --renderer vulkan --require-hardware --timeout 120`, os seis valores `--case freecad-viewport --case freecad-multi --case freecad-grid --case freecad-path-selection --case freecad-mouse-elements --case native-admission` e `COIN_TEST_HOST_HELPER` apontando para o novo `libFreeCADHostConsumerProbe.so`. Incluir lib/Mod/Part/Mod/Material/Mod/Mesh/Mod/Sketcher do mesmo host em `LD_LIBRARY_PATH`.
+
+### O que comprova a API em uso
+
+`COIN_BGFX_RENDERER=vulkan` solicita a API. Com `COIN_RENDER_TRACE_PHASES=1`, a identificação vem de `bgfx::getRendererType()`/capacidades do dispositivo efetivamente criado, e não do texto da variável:
+
+```text
+COIN_RENDER_PHASE bgfx_device renderer=Vulkan vendor_id=0x1002 device_id=0x1638 homogeneous_depth=0
+```
+
+O runner exige também submissão e imagem atual, rejeita fallback e API diferente da solicitada. A demonstração interativa do pacote recompilado confirmou quatro vistas nativas, seriais públicos positivos, `wgpuOpenGLViewport=false`, status SUCCESS e nenhuma razão de fallback. Os nomes `FREECAD_COIN_WGPU`/`wgpu*` são históricos do opt-in e das propriedades; a API ativa é a do dispositivo acima.
+
+Uma observação independente no GDB acompanhou os endereços devolvidos pela resolução de funções Vulkan, sem alterar o código do renderer. As duas chamadas chegaram a `libvulkan_radeon.so`, a partir de `bgfx::vk::CommandQueueVK::kick` e `bgfx::vk::SwapChainVK::present` da **libCoinRender atual**, e retornaram:
+
+```text
+VULKAN_API_RESULT name=vkQueueSubmit VkResult=0
+VULKAN_API_RESULT name=vkQueuePresentKHR VkResult=0
+```
+
+Zero é `VK_SUCCESS`. O debugger foi desconectado após a observação e a janela continuou interativa. Isso comprova uso real de Vulkan nesse processo; sucesso de present isoladamente não garante visibilidade, por isso os gates de captura e mudança de imagem continuam necessários. Carregar `libvulkan`, executar `vulkaninfo` ou exibir “Vulkan” no título não substitui essa verificação. Qt e outros componentes podem carregar GL sem que a viewport renderize por GL.
+
+O runtime local atual fica em `/mnt/Laranja/Git/externos/coin/build-freecad-current-20261023`, separado das instalações anteriores. `open-vulkan.sh` reabre a demonstração; `demo/vulkan-calls.log` conserva as chamadas e suas pilhas, e `demo/current-package.json` identifica as bibliotecas e os seriais observados. Os artefatos operacionais ficam fora do Git; a branch contém fontes, testes e reprodução. **B34, B94 e B95 continuam externos abertos**, com as operações reprovadas não qualificadas.
+
 ## R20/R21 — FreeCAD/Quarter no Linux, continuação de 22/10/2026
 
 Esta continuação integra adaptações do host e delimita consumidores reais;
 não certifica todos os workbenches ou a tradução de GLRender arbitrário.
-R29, R30 e R35 ficam para depois. B34 e B94 permanecem falhas externas abertas,
+Na entrega de 22/10, R29, R30 e R35 ficaram para depois; tiveram continuação
+posterior na matriz e na revalidação integrada acima. B34 e B94 permanecem falhas externas abertas,
 com operações afetadas fora da qualificação.
 
 ### Alterações de comportamento
