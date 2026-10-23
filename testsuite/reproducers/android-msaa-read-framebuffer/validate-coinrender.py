@@ -7,6 +7,8 @@ parser.add_argument('scene', choices=('cube', 'city', 'million'))
 parser.add_argument('--artifacts', type=Path, required=True)
 parser.add_argument('--sdk', type=Path, required=True)
 parser.add_argument('--serial', default='emulator-5554')
+parser.add_argument('--startup-frames', type=int, choices=(0, 10), default=10,
+                    help='million-scene normal frames before HOME; 0 tests immediate pause after first capture')
 args = parser.parse_args()
 root = args.artifacts.resolve()
 samples = args.samples
@@ -21,7 +23,8 @@ commands = []
 pid = ''
 old_rotation = None
 deadline_seconds = 180 if scene == 'million' else 60
-result = {'scene': scene, 'samples': samples, 'status': 'FAIL'}
+result = {'scene': scene, 'samples': samples, 'status': 'FAIL',
+          'startup_frames': args.startup_frames if scene == 'million' else 0}
 
 def run(*args, binary=False):
     argv = [adb, '-s', serial, *args]
@@ -63,7 +66,7 @@ try:
     assert '(Gl)' in text
     if scene != 'cube':
         assert 'buildings=%d' % (1000000 if scene == 'million' else 40000) in text
-    if scene == 'million':
+    if scene == 'million' and args.startup_frames:
         # Initial capture precedes queued window/layout commands. Wait until
         # normal frames demonstrate that startup finished before sending HOME.
         text, frames = observe(lambda t, f: 'frames=10 ' in t)

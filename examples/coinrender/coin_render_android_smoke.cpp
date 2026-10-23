@@ -420,9 +420,10 @@ void onCommand(android_app * app, int32_t command) {
       }
       // A layout can repeat unchanged dimensions. Recapture the million-city
       // diagnostic once per actual resize, preserving normal cached frames.
-      host.render(!host.million || !host.target || !app->window ||
-        host.target->getSize() != SbVec2i32(ANativeWindow_getWidth(app->window),
-                                           ANativeWindow_getHeight(app->window)));
+      if (!host.million || !host.target || !app->window ||
+          host.target->getSize() != SbVec2i32(ANativeWindow_getWidth(app->window),
+                                            ANativeWindow_getHeight(app->window)))
+        host.render();
       break;
     default:
       break;
@@ -549,7 +550,13 @@ extern "C" void android_main(android_app * app) {
     const int timeout = host.resumed && host.target ? (host.continuous ? 0 : 50) : -1;
     const int id = ALooper_pollOnce(timeout, nullptr, &events,
                                    reinterpret_cast<void **>(&source));
-    if (id >= 0 && source) source->process(app, source);
+    if (id >= 0 && source) {
+      source->process(app, source);
+      // A large frame must not separate each queued layout/input command.
+      // Drain ready events first so focus loss, pause and BACK are serviced
+      // promptly; callbacks still qualify actual surface changes.
+      if (host.continuous) continue;
+    }
     if (!app->destroyRequested && !host.failed && host.continuous) host.render(false);
   }
   host.releaseSurface();
