@@ -56,6 +56,28 @@ if(COIN_BUILD_RENDER)
 	add_test(NAME CoinRenderInterningTest COMMAND CoinRenderInterningTest)
 	set_tests_properties(CoinRenderInterningTest PROPERTIES TIMEOUT 30)
 
+	add_executable(CoinRenderHotPathContractTest CoinRenderHotPathContractTest.cpp)
+	set_target_properties(CoinRenderHotPathContractTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderHotPathContractTest CoinRender Coin)
+	target_include_directories(CoinRenderHotPathContractTest PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+	add_test(NAME CoinRenderHotPathContractTest COMMAND CoinRenderHotPathContractTest)
+	set_tests_properties(CoinRenderHotPathContractTest PROPERTIES TIMEOUT 60)
+
+	find_package(Python3 3.7 REQUIRED COMPONENTS Interpreter)
+	add_test(NAME CoinRenderHotPathSourceGuards
+		COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/test_hotpath_source_guards.py)
+	set_tests_properties(CoinRenderHotPathSourceGuards PROPERTIES TIMEOUT 30)
+
+	# Informational only: timings are reported for review and never gate CTest.
+	add_executable(CoinRenderHotPathBenchmark CoinRenderHotPathBenchmark.cpp)
+	set_target_properties(CoinRenderHotPathBenchmark PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
+	target_link_libraries(CoinRenderHotPathBenchmark CoinRender Coin)
+	target_include_directories(CoinRenderHotPathBenchmark PRIVATE
+		${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/src
+		${PROJECT_BINARY_DIR}/include ${PROJECT_BINARY_DIR}/src ${COIN_TARGET_INCLUDE_DIRECTORIES})
+
 	add_executable(CoinRenderTransformCoreTest CoinRenderTransformCoreTest.cpp)
 	set_target_properties(CoinRenderTransformCoreTest PROPERTIES COMPILE_DEFINITIONS "COIN_INTERNAL;HAVE_CONFIG_H")
 	target_link_libraries(CoinRenderTransformCoreTest CoinRender Coin)
