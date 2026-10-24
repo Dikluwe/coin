@@ -72,6 +72,8 @@ def main():
         shutil.copy2(build / 'cpp' / name, output / name)
     for name in ('index.html', 'app.js'):
         shutil.copy2(source / name, output / name)
+    for name, grid in [('city-million.bin', 1000), ('city-40000.bin', 200)]:
+        run([sys.executable, source / 'generate_city_asset.py', output / name, '--grid', grid, '--seed', 136])
     print(f'Artifacts built in {output}. Serve this directory with examples/coinrender/webgpu/serve.py over HTTPS.')
 
 

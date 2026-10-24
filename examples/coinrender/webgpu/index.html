@@ -75,7 +75,7 @@ button{
 <script>
 window.coinRenderWebGPU = {
   status: 'initializing', phase: 'profile', profile: null, backend: null, fallback: false,
-  sceneSource: 'coinrender-wasm', adapter: null,
+  sceneSource: 'coinrender-wasm', adapter: null, scene: null, progress: null,
   stats: {vertices: 0, indices: 0, frames: 0}, error: ''
 };
 (function() {
@@ -138,6 +138,13 @@ window.coinRenderWebGPU = {
       throw new Error('Perfil WebGPU inválido: use profile=core ou profile=compatibility.');
     }
     state.profile = requestedProfile;
+    const scenes = new URLSearchParams(window.location.search).getAll('scene');
+    if (scenes.length > 1) throw new Error('Parâmetro scene repetido; informe uma cena.');
+    const sceneName = scenes.length === 0 ? 'cube' : scenes[0];
+    if (!['cube', 'million', 'city-40000'].includes(sceneName)) throw new Error('Cena inválida: use cube, million ou city-40000.');
+    const buildings = sceneName === 'million' ? 1000000 : sceneName === 'city-40000' ? 40000 : 0;
+    state.scene = {name: sceneName, buildings, ground: buildings ? 1 : 0,
+      logicalTriangles: buildings ? 12*(buildings+1) : 12, submittedInstances: 0};
     document.querySelector('#adapter-info').textContent = `Perfil WebGPU solicitado: ${requestedProfile} · Adapter efetivo: aguardando consulta do wgpu`;
     window.coinRenderWebGPUPhase('modules', 'carregamento dos módulos ES · perfil ' + requestedProfile);
   } catch (error) {
