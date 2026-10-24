@@ -52,15 +52,20 @@ async function createVerifiedRenderer(canvas) {
       identity.isFallbackAdapter = fallbackFlags.includes(true) ? true
         : fallbackFlags.includes(false) ? false : null;
       state.adapter = identity;
-      const details = Object.entries(identity).map(([key, value]) => `${key}: ${value === '' || value === null ? 'não informado' : value}`).join(' · ');
+      const hasIdentity = ['vendor', 'device', 'architecture', 'description']
+        .some(field => identity[field].trim());
+      const fields = Object.entries(identity).map(([key, value]) => `${key}: ${value === '' || value === null ? 'não informado' : value}`).join(' · ');
+      const details = hasIdentity ? fields
+        : `identidade não informada/oculta pelo navegador · ${fields}`;
       document.querySelector('#adapter-info').textContent = `Adapter efetivo: ${details}`;
       const software = /swiftshader|llvmpipe|lavapipe|softpipe|software|swrast|microsoft basic render|warp renderer/i
         .test(Object.values(identity).join(' '));
       if (identity.isFallbackAdapter === true || software) {
         throw new Error(`Adapter WebGPU fallback/software recusado: ${details}`);
       }
-      if (identity.isFallbackAdapter !== false ||
-          !['vendor', 'device', 'architecture', 'description'].some(field => identity[field].trim())) {
+      // Privacy may hide the identity. A real explicit false flag is sufficient
+      // to establish non-fallback status without inventing hardware identity.
+      if (identity.isFallbackAdapter !== false) {
         throw new Error(`O navegador não forneceu informação suficiente para confirmar um adapter WebGPU sem fallback: ${details}`);
       }
       const requestDevice = adapter.requestDevice;

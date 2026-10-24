@@ -81,8 +81,12 @@ before counting a frame. During Rust initialization a temporary JavaScript hook
 checks the **same GPUAdapter returned to wgpu**, without requesting an extra
 adapter. It publishes vendor/device/architecture/description and the real
 `isFallbackAdapter` property (old and current WebGPU locations), rejects fallback
-adapters and known software identities such as SwiftShader/llvmpipe, and reports
-an error if the browser withholds enough information to prevent verification.
+adapters and known software identities such as SwiftShader/llvmpipe. A real
+explicit `isFallbackAdapter: false` is accepted even when the browser hides all
+identity fields; the page reports that the identity is not provided/hidden by
+the browser, and the observable adapter fields remain empty. This does not infer
+a hardware manufacturer or model. Any contradictory `true` flag is rejected,
+and absence of an explicit non-fallback flag remains an error.
 The same hook retains the exact device returned to wgpu. Rust encodes, submits,
 presents and validates each frame; JavaScript then awaits that device's native
 `queue.onSubmittedWorkDone()` before publishing success, since wgpu 24's web
@@ -92,3 +96,20 @@ after initialization. `window.coinRenderWebGPU` exposes status, actual backend,
 `fallback: false`, `sceneSource: 'coinrender-wasm'`, real captured vertex/index
 counts, confirmed frame count and error text. A successful build alone does not
 prove that a particular TV supports WebGPU.
+
+## Browser configuration and qualified scope
+
+On the Linux host, Firefox 158.0.1 did not expose `navigator.gpu` in its default
+configuration. A separate temporary profile with `dom.webgpu.enabled=true`
+rendered the captured cube over the LAN HTTPS address, with certificate checks
+enabled, confirmed queue completion and `isFallbackAdapter=false`. Firefox
+redacted all adapter identity strings; the page reports that absence without
+inventing a manufacturer. This does not qualify the default Firefox profile.
+To opt in manually, open `about:config`, set `dom.webgpu.enabled` to `true`,
+and reload the demonstration. Enabling an experimental API is a browser choice,
+not something a website can perform. No ordinary browser profile is modified
+by the example.
+
+The embedded Codex browser opened HTTPS but returned no WebGPU adapter in this
+campaign. A WebGL checker can still render there through WebGL 2. A result for
+WebGL 2 is not a WebGPU result; this demonstration never switches to WebGL.
