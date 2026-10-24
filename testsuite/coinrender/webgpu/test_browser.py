@@ -66,6 +66,18 @@ GPU_OBSERVER = r"""
     } else if (mode === 'adapter-unverifiable') {
       injectedInfo = {vendor: '', architecture: '', device: '', description: ''};
       injectedLegacy = undefined;
+    } else if (mode.startsWith('hidden-')) {
+      injectedInfo = {vendor: '', architecture: '', device: '', description: ''};
+      if (mode === 'hidden-legacy') injectedLegacy = false;
+      if (mode === 'hidden-modern') injectedInfo.isFallbackAdapter = false;
+      if (mode === 'hidden-legacy-true') {
+        injectedLegacy = true;
+        injectedInfo.isFallbackAdapter = false;
+      }
+      if (mode === 'hidden-modern-true') {
+        injectedLegacy = false;
+        injectedInfo.isFallbackAdapter = true;
+      }
     }
     if (injectedInfo) {
       Object.defineProperty(adapter, 'info', {get: () => injectedInfo});
@@ -77,7 +89,8 @@ GPU_OBSERVER = r"""
     const info = adapter.info || (adapter.requestAdapterInfo ? await adapter.requestAdapterInfo() : {});
     record.adapterInfo.push({vendor: info.vendor, architecture: info.architecture,
       device: info.device, description: info.description,
-      isFallbackAdapter: info.isFallbackAdapter});
+      isFallbackAdapter: info.isFallbackAdapter,
+      legacyIsFallbackAdapter: adapter.isFallbackAdapter});
     record.fallbackAdapter ||= adapter.isFallbackAdapter === true || info.isFallbackAdapter === true;
     const requestDevice = adapter.requestDevice.bind(adapter);
     adapter.requestDevice = async descriptor => {
@@ -99,7 +112,7 @@ GPU_OBSERVER = r"""
       }
       const submit = device.queue.submit.bind(device.queue);
       const done = device.queue.onSubmittedWorkDone.bind(device.queue);
-      if (mode === 'completion-gate') {
+      if (['completion-gate', 'hidden-legacy', 'hidden-modern'].includes(mode)) {
         const releases = [];
         window.__gpuReleaseCompletion = () => {
           record.completionReleased = true;
@@ -192,8 +205,7 @@ class BrowserContract(unittest.TestCase):
         cls.driver.stop()
 
     def setUp(self):
-        self.context = self.browser.new_context(ignore_https_errors=True,
-                                                viewport={'width': 1000, 'height': 750})
+        self.context = self.browser.new_context(viewport={'width': 1000, 'height': 750})
         self.page = self.context.new_page()
 
     def tearDown(self):
@@ -258,13 +270,19 @@ class BrowserContract(unittest.TestCase):
                       for info in observed['adapterInfo']
                       for field in ('vendor', 'architecture', 'device', 'description')]
         identities = [identity for identity in identities if identity]
-        self.assertTrue(identities, 'Actual adapter identity could not be verified')
         actual_info = json.dumps(observed['adapterInfo']).lower()
         for software in ('swiftshader', 'llvmpipe', 'lavapipe'):
             self.assertNotIn(software, actual_info, observed)
         public_info = json.dumps(first['adapter']).lower()
-        self.assertTrue(any(identity.lower() in public_info for identity in identities),
-                        'Published adapter has no identity matching the actual GPU adapter')
+        if identities:
+            self.assertTrue(any(identity.lower() in public_info for identity in identities),
+                            'Published adapter has no identity matching the actual GPU adapter')
+        else:
+            flags = [info.get(field) for info in observed['adapterInfo']
+                     for field in ('isFallbackAdapter', 'legacyIsFallbackAdapter')]
+            self.assertTrue(any(flag is False for flag in flags), observed)
+            self.assertFalse(any(flag is True for flag in flags), observed)
+            self.assert_hidden_adapter(first)
         self.assertIn('webgpu', observed['contexts'], observed)
         self.assertFalse(any(name in ('webgl', 'webgl2', 'experimental-webgl', '2d')
                              for name in observed['contexts']), observed)
@@ -317,6 +335,10 @@ class BrowserContract(unittest.TestCase):
 
     def test_rendering_waits_for_gpu_completion(self):
         self.open('completion-gate')
+        self.release_completion_after_check()
+        self.assert_success(self.terminal())
+
+    def release_completion_after_check(self):
         self.page.wait_for_function('() => { const o=window.__gpuObserved; '
                                     'return o.submits>0 && o.completionRequests>0 && '
                                     'o.nativeCompletions>0; }', timeout=15000)
@@ -329,7 +351,61 @@ class BrowserContract(unittest.TestCase):
         self.assertFalse(observed['completionReleased'], observed)
         self.assertGreater(observed['completed'], 0, observed)
         self.page.evaluate('window.__gpuReleaseCompletion()')
-        self.assert_success(self.terminal())
+
+    def assert_hidden_adapter(self, value):
+        fields = []
+
+        def collect(node):
+            if isinstance(node, dict):
+                for key, item in node.items():
+                    fields.append((key, item))
+                    collect(item)
+            elif isinstance(node, list):
+                for item in node:
+                    collect(item)
+
+        collect(value['adapter'])
+        for identity in ('vendor', 'device', 'architecture', 'description'):
+            entries = [item for key, item in fields if key == identity]
+            self.assertTrue(entries, f'Missing real redacted field {identity}: {value}')
+            self.assertTrue(all(item == '' for item in entries), value)
+        flags = [item for key, item in fields if key == 'isFallbackAdapter']
+        self.assertTrue(any(flag is False for flag in flags), value)
+        self.assertFalse(any(flag is True for flag in flags), value)
+        text = self.page.locator('#adapter-info').inner_text().casefold()
+        self.assertIn('identidade', text)
+        self.assertTrue('não informada' in text or 'oculta' in text, text)
+        self.assertNotRegex(text, r'\b(?:amd|nvidia|intel|apple)\b')
+
+    def accept_hidden_adapter(self, mode):
+        self.open(mode)
+        self.release_completion_after_check()
+        value = self.terminal()
+        self.assert_success(value)
+        self.assert_hidden_adapter(value)
+        observed = self.page.evaluate('window.__gpuObserved')
+        self.assertTrue(observed['injectionApplied'], observed)
+        self.assertFalse(observed['fallbackAdapter'], observed)
+        self.assertGreater(observed['submits'], 0, observed)
+        self.assertGreater(observed['completed'], 0, observed)
+        self.assertEqual(observed['errors'], [], observed)
+        self.page.wait_for_function('(n) => window.coinRenderWebGPU.stats.frames > n',
+                                    arg=value['stats']['frames'], timeout=15000)
+
+    def test_hidden_identity_with_legacy_false(self):
+        self.accept_hidden_adapter('hidden-legacy')
+
+    def test_hidden_identity_with_modern_false(self):
+        self.accept_hidden_adapter('hidden-modern')
+
+    def test_hidden_identity_legacy_true_overrides_modern_false(self):
+        self.reject_adapter('hidden-legacy-true')
+
+    def test_hidden_identity_modern_true_overrides_legacy_false(self):
+        self.reject_adapter('hidden-modern-true')
+
+    def test_hidden_identity_without_fallback_flags(self):
+        self.reject_adapter('hidden-no-flags')
 
     def reject_adapter(self, mode):
         self.failure(mode)
@@ -383,7 +459,7 @@ class ArtifactBoundary(unittest.TestCase):
         paths = ('.git/config', 'CMakeLists.txt', '.env', 'server.key', 'key.pem',
                  '../.git/config', '%2e%2e/.git/config', '%2e%2e%2f.git%2fconfig',
                  '..%2f..%2fetc%2fpasswd', '%2e%2e/%2e%2e/etc/passwd')
-        context = ssl._create_unverified_context()
+        context = ssl.create_default_context()
         for path in paths:
             with self.subTest(path=path):
                 request = urllib.request.Request(origin + path)
