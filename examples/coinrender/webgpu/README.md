@@ -216,3 +216,20 @@ with `?profile=compatibility`, ARM `isFallbackAdapter=false`, and advancing GPU
 completion counts. Core was unavailable there. A different CA was rejected.
 The renderer requests render-only limits rather than unused compute capabilities;
 the original 256-invocation compute requirement exceeded this adapter's 128 limit.
+
+## Direct TCL browser verification
+
+The same six site artifacts also rendered directly in the TCL BrowseHere browser
+on the tested Android 11 TV, using trusted public HTTPS and the explicit
+`?profile=compatibility` URL. The captured cube showed 24 vertices, 36 indices
+and advancing confirmed GPU frames with ARM `isFallbackAdapter=false`. The
+foreground activity was `com.tcl.browser`; rendering continued after removing
+the diagnostic viewer. The viewer and its app-specific CA trust are therefore
+not required for this browser path. No WebGL or software fallback was used.
+
+A temporary public HTTPS tunnel can provide the browser-trusted certificate when
+the TV firmware cannot install a local CA. This exposes the demonstration
+publicly and is a separate hosting choice from LAN-only access. Keep the existing
+artifact-only server boundary; the tested tunnel verified the local HTTPS origin
+against its CA as well. Open the issued public address with
+`?profile=compatibility`; its lifetime depends on the tunnel and local server.
