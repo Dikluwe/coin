@@ -18,6 +18,22 @@ and profile details scroll inside their own panels, leaving the stage and pause
 control in place. Keyboard users can focus these panels to scroll their contents.
 The canvas keeps its actual viewport proportions for Coin's camera capture.
 
+Select the WebGPU feature profile explicitly through the page URL:
+`?profile=core` (also the default when absent) or `?profile=compatibility`.
+For example, `https://192.168.0.16:8443/?profile=compatibility` requests only that
+profile. Empty, invalid or repeated `profile` parameters fail before GPU/WASM
+initialization. `window.coinRenderWebGPU.profile` and the adapter panel report
+the requested profile. The same adapter request made by Rust wgpu receives that
+exact `featureLevel` and `forceFallbackAdapter: false`; the page never retries
+core as compatibility or switches profile automatically.
+
+WebGPU compatibility is a WebGPU API profile that may be implemented over
+hardware GLES. It is not evidence of a Vulkan driver and does not mean the page
+uses a WebGL fallback. Rendering still uses the Coin WASM capture and Rust wgpu
+WebGPU pipeline, with the same real adapter checks and GPU completion requirement.
+Requesting compatibility alone does not prove that all required device/pipeline
+operations will work on a particular browser or TV; actual errors remain visible.
+
 Build with Python 3.9+, CMake, Ninja, Emscripten, Rust's
 `wasm32-unknown-unknown` target and `wasm-bindgen-cli 0.2.125`. The Emscripten
 SDK must be activated in the environment. Toolchain provisioning may need network
@@ -182,3 +198,21 @@ in the console. The tested Linux profile required `dom.webgpu.enabled=true`;
 keep certificate validation enabled. Compare graphics preferences deliberately
 in that temporary profile and stop the server afterward. The production site
 build and server access rules do not need to change for this reproduction.
+
+The demonstration requests render-only resource limits, since its vertex/index
+and single color/depth pipeline uses no compute or storage resources. Rust uses
+`Limits::downlevel_webgl2_defaults().using_resolution(adapter.limits())` to avoid
+requiring unused compute capabilities while retaining the adapter's texture
+resolution limits. The preset name describes numbers only: the actual backend
+remains `BROWSER_WEBGPU`, with no WebGL renderer or fallback.
+
+## Android TV HTTPS viewer
+
+The [scoped HTTPS viewer](android_viewer/README.md) loads this same WASM site
+using the TV's installed WebView. It trusts the supplied public CA only for the
+configured host, without changing system/browser trust or bypassing TLS. The
+tested TCL Android 11 / Mali-G52 / WebView 155 configuration rendered the cube
+with `?profile=compatibility`, ARM `isFallbackAdapter=false`, and advancing GPU
+completion counts. Core was unavailable there. A different CA was rejected.
+The renderer requests render-only limits rather than unused compute capabilities;
+the original 256-invocation compute requirement exceeded this adapter's 128 limit.
