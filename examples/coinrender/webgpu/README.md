@@ -233,3 +233,81 @@ publicly and is a separate hosting choice from LAN-only access. Keep the existin
 artifact-only server boundary; the tested tunnel verified the local HTTPS origin
 against its CA as well. Open the issued public address with
 `?profile=compatibility`; its lifetime depends on the tunnel and local server.
+
+## Instanced city benchmark
+
+Use `?profile=compatibility&scene=million` for exactly 1,000,000 buildings plus
+one ground cube (12,000,012 submitted logical triangles), or `scene=city-40000`
+for the explicit 40,000-building control. The default remains the original cube.
+Unknown or repeated scene selectors fail before initialization. Nothing switches
+scene/profile or reduces the instance count automatically.
+
+The build generates `city-million.bin` and `city-40000.bin` directly from the same
+seed-136, eight-color authored decimal records used by `generate_large_scene.py`;
+its IV output semantics stay the same. The browser receives compact transforms
+and palette indices rather than a million-node IV file. C++ creates at most 1024
+Coin instances per batch and captures their transforms/materials through a real
+targetless `CoinRenderAction`. Each captured cube's positions, normals and indices
+must match the captured canonical `SoCube` before that batch is uploaded. The
+scene graph and expanded frame plan are released per batch. Rust wgpu retains
+one captured mesh and all 1,000,001 captured instance records in an 80,000,080-byte
+GPU vertex buffer and draws every instance with indexed instancing. Oversized
+allocations fail against the actual adapter/device `maxBufferSize`; no sampling,
+LOD or proxy-only drawing is used. Nonuniform-scaled normals use cofactors for
+the inverse transpose. Geometry, instance and depth buffers persist while the
+scene/extent is unchanged; only captured camera/light uniforms are sent per frame.
+
+The fixed camera uses Coin's perspective camera, pi/4 height angle, orientation
+from `(0,0,-1)` to `(-.5,-.35,-1)`, and `viewAll` factor 1 over the exact authored
+city bounds and current viewport. The bounding cube is used only to fit that
+camera, never as the rendered city. The default city stays static during steady
+measurement; resizing refits the camera and starts a separate warmup/measurement.
+
+The page reports capture progress and `state.scene` counts, canonical mesh counts,
+actual canvas extent and GPU-completed frames. `submittedInstances` stays zero
+until the full draw has completed on the actual native WebGPU queue. After exactly
+10 completed warmup frames, `state.benchmark.groups` contains groups of 10 frames:
+`frameMs` is elapsed wall time / 10 (including scheduling/RAF), `fpsWall` is
+`1000/frameMs`, and `renderMs`/`completionMs` are mean wall intervals spent in
+wgpu encode/submit/validation and the native completion await. These are not GPU
+timestamps. Histories are bounded to 120 groups, with FPS p50/p95 over those
+groups. Startup asset load, Coin capture and GPU upload are reported separately;
+startup `totalMs` is navigation-to-ready wall time. No memory-use estimate or
+extrapolated throughput is reported.
+
+For the TV's ordinary BrowseHere browser without changing its certificate store,
+serve only on PC loopback and use the authorized ADB reverse connection:
+
+```sh
+python3 examples/coinrender/webgpu/serve.py --directory /dev/shm/coin-city/site \
+  --loopback-http --bind 127.0.0.1 --port 8089 --benchmark-reports
+adb -s 192.168.0.18:5555 reverse tcp:8090 tcp:8089
+```
+
+Open `http://127.0.0.1:8090/?profile=compatibility&scene=million&report=1` in
+BrowseHere (its address bar may search for the hostname `localhost`). Loopback
+provides the browser secure context; this mode does not
+ignore TLS failures or create a public HTTP listener. HTTPS remains the server's
+default and requires its certificate/key outside the served directory.
+`--loopback-http` rejects non-127.0.0.1 binding. No public tunnel is required.
+
+`report=1` explicitly POSTs a bounded own-page measurement snapshot to
+`/benchmark-report` after completed groups. This endpoint exists only with
+`--benchmark-reports` on the loopback HTTP server, validates matching Origin/Host
+and a JSON object of at most 64 KiB, and prints `BENCHMARK_REPORT` JSON to stdout.
+It accepts no client filesystem paths and exposes no report/log files. Export
+failure appears in `state.reportError` and never changes real GPU success. Omit
+`report=1` to disable exports; the normal HTTPS server has no telemetry endpoint.
+
+Historical native Android emulator measurements (~45.80–48.73 FPS, ~20.676 ms,
+1080×2400) traversed the native scene/rendering path. This browser benchmark uses
+captured instancing on different TV hardware/runtime and reports its actual canvas
+resolution. Those methods and extents must be stated together; they do not support
+a hardware speedup ratio. The G7 million-scene startup/memory failure has no valid
+FPS and must not be treated as zero FPS or extrapolated from the 40k control.
+
+The TCL million trial is **not qualified**: preparation took about six minutes and
+completed full submissions produced a uniform clear image. The explicitly selected
+40k control did render visible geometry. Use that control for the TV demonstration;
+see [the measured scope and comparison](../../../docs/coin-render-webgpu-city-tv-20261023.md).
+The temporary public tunnel used for the earlier cube trial has been stopped.
