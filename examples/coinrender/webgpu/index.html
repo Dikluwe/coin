@@ -74,18 +74,64 @@ button{
 </main>
 <script>
 window.coinRenderWebGPU = {
-  status: 'initializing', backend: null, fallback: false, sceneSource: 'coinrender-wasm', adapter: null,
+  status: 'initializing', phase: 'modules', backend: null, fallback: false,
+  sceneSource: 'coinrender-wasm', adapter: null,
   stats: {vertices: 0, indices: 0, frames: 0}, error: ''
 };
-window.coinRenderWebGPUFail = function(error) {
+(function() {
   const state = window.coinRenderWebGPU;
-  state.status = 'error'; state.backend = null;
-  state.error = error instanceof Error ? error.message : String(error);
   const status = document.querySelector('#status');
-  status.textContent = 'Erro: ' + state.error; status.dataset.state = 'error';
-};
-window.addEventListener('unhandledrejection', event => window.coinRenderWebGPUFail(event.reason));
-window.addEventListener('error', event => window.coinRenderWebGPUFail(event.error || event.message || 'Falha ao carregar módulo WebAssembly'), true);
+  let watchdog = null;
+  // Keep only active waits, rather than retaining a rejection handler for
+  // every previously completed animation frame on one never-settled promise.
+  const pendingWaiters = new Set();
+  function assertActive() {
+    if (state.status === 'error') throw new Error(state.error);
+  }
+  window.coinRenderWebGPUFail = function(error) {
+    if (state.status === 'error') return;
+    clearTimeout(watchdog);
+    const message = error instanceof Error ? error.message : String(error);
+    state.status = 'error'; state.backend = null;
+    state.error = `Etapa ${state.phase}: ${message}`;
+    status.textContent = 'Erro: ' + state.error; status.dataset.state = 'error';
+    for (const reject of pendingWaiters) reject(new Error(state.error));
+    pendingWaiters.clear();
+  };
+  window.coinRenderWebGPUPhase = function(phase, label) {
+    assertActive();
+    clearTimeout(watchdog);
+    state.phase = phase;
+    status.textContent = (state.status === 'rendering' ? 'Renderizando' : 'Inicializando') + ' · ' + label;
+    // A confirmed frame has no outstanding GPU wait. A hidden tab may suspend
+    // its next animation callback; the next submission arms its own watchdog.
+    if (phase !== 'rendering') {
+      watchdog = setTimeout(() => window.coinRenderWebGPUFail(
+        new Error('Tempo limite de 30 s aguardando ' + label)), 30000);
+    }
+  };
+  window.coinRenderWebGPUWait = async function(phase, label, operation) {
+    window.coinRenderWebGPUPhase(phase, label);
+    let rejectTerminal;
+    const terminal = new Promise((_resolve, reject) => { rejectTerminal = reject; });
+    pendingWaiters.add(rejectTerminal);
+    try {
+      const value = await Promise.race([
+        Promise.resolve().then(() => { assertActive(); return operation(); }), terminal
+      ]);
+      assertActive();
+      return value;
+    } catch (error) {
+      window.coinRenderWebGPUFail(error);
+      throw new Error(state.error);
+    } finally {
+      pendingWaiters.delete(rejectTerminal);
+    }
+  };
+  window.addEventListener('unhandledrejection', event => window.coinRenderWebGPUFail(event.reason));
+  window.addEventListener('error', event => window.coinRenderWebGPUFail(event.error || event.message || 'Falha ao carregar módulo ES/WebAssembly'), true);
+  window.coinRenderWebGPUPhase('modules', 'carregamento dos módulos ES');
+})();
 </script>
 <script type="module" src="./app.js" onerror="coinRenderWebGPUFail('Falha ao carregar módulo WebAssembly')"></script>
 </body></html>

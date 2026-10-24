@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Native WebGPU triangle and depth diagnostic</title>
+</head>
+<body>
+<canvas width="1321" height="853"></canvas>
+<script>
+// Standalone native WebGPU control: no Coin, Rust, WASM or external scripts.
+// Keep the canvas extent, shader, depth allocation and submission path fixed
+// when comparing this control with the observed Firefox/Mesa crash.
+window.probe = {phase: 'adapter', frames: 0};
+(async () => {
+  const adapter = await navigator.gpu.requestAdapter({powerPreference: 'high-performance'});
+  probe.adapter = !!adapter;
+  if (!adapter) throw Error('no adapter');
+  const device = await adapter.requestDevice();
+  const canvas = document.querySelector('canvas');
+  const context = canvas.getContext('webgpu');
+  const format = navigator.gpu.getPreferredCanvasFormat();
+  context.configure({device, format, alphaMode: 'opaque'});
+  const shader = device.createShaderModule({code: `
+    @vertex fn vs(@builtin(vertex_index) i:u32) -> @builtin(position) vec4f {
+      var p = array<vec2f,3>(vec2f(0.,.7), vec2f(-.7,-.7), vec2f(.7,-.7));
+      return vec4f(p[i],0.,1.);
+    }
+    @fragment fn fs() -> @location(0) vec4f {
+      return vec4f(.1,.6,.9,1.);
+    }
+  `});
+  const pipeline = device.createRenderPipeline({
+    layout: 'auto',
+    vertex: {module: shader, entryPoint: 'vs'},
+    fragment: {module: shader, entryPoint: 'fs', targets: [{format}]},
+    primitive: {topology: 'triangle-list'},
+    depthStencil: {format: 'depth24plus', depthWriteEnabled: true, depthCompare: 'less'},
+  });
+  probe.phase = 'rendering';
+  async function draw() {
+    try {
+      const depth = device.createTexture({
+        size: [1321,853], format: 'depth24plus', usage: GPUTextureUsage.RENDER_ATTACHMENT,
+      });
+      const encoder = device.createCommandEncoder();
+      const pass = encoder.beginRenderPass({
+        colorAttachments: [{
+          view: context.getCurrentTexture().createView(),
+          clearValue: {r: .1, g: .3, b: .7, a: 1},
+          loadOp: 'clear', storeOp: 'store',
+        }],
+        depthStencilAttachment: {
+          view: depth.createView(), depthClearValue: 1,
+          depthLoadOp: 'clear', depthStoreOp: 'store',
+        },
+      });
+      pass.setPipeline(pipeline);
+      pass.draw(3);
+      pass.end();
+      device.queue.submit([encoder.finish()]);
+      await device.queue.onSubmittedWorkDone();
+      probe.frames++;
+      requestAnimationFrame(draw);
+    } catch (error) {
+      probe.error = String(error);
+    }
+  }
+  draw();
+})().catch(error => { probe.error = String(error); });
+</script>
+</body>
+</html>

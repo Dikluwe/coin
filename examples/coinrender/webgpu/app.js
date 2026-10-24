@@ -6,6 +6,11 @@ const status = document.querySelector('#status');
 const stats = document.querySelector('#stats');
 const canvas = document.querySelector('#render-canvas');
 const fail = window.coinRenderWebGPUFail;
+const phase = window.coinRenderWebGPUPhase;
+const wait = window.coinRenderWebGPUWait;
+function assertActive() {
+  if (state.status === 'error') throw new Error(state.error);
+}
 let paused = false;
 document.querySelector('#pause').addEventListener('click', event => {
   paused = !paused;
@@ -31,16 +36,17 @@ async function createVerifiedRenderer(canvas) {
   let restoreDeviceRequest = null;
   let deviceRequests = 0;
   async function checkedRequest(options) {
+    assertActive();
     requests += 1;
     if (requests !== 1) {
       validationError = new Error('Inicialização requisitou mais de um adapter WebGPU.');
       throw validationError;
     }
-    const adapter = await original.call(gpu, options);
+    const adapter = await wait('adapter', 'seleção do adapter WebGPU', () => original.call(gpu, options));
     if (!adapter) return null;
     try {
       const info = adapter.info || (typeof adapter.requestAdapterInfo === 'function'
-        ? await adapter.requestAdapterInfo() : null);
+        ? await wait('adapter-info', 'informações do adapter WebGPU', () => adapter.requestAdapterInfo()) : null);
       const identity = {};
       for (const field of ['vendor', 'device', 'architecture', 'description']) {
         identity[field] = typeof info?.[field] === 'string' ? info[field] : '';
@@ -76,9 +82,10 @@ async function createVerifiedRenderer(canvas) {
       Object.defineProperty(adapter, 'requestDevice', {
         configurable: true, writable: true,
         value: async function(descriptor) {
+          assertActive();
           deviceRequests += 1;
           if (deviceRequests !== 1) throw new Error('Mais de um device WebGPU foi requisitado.');
-          const device = await requestDevice.call(adapter, descriptor);
+          const device = await wait('device', 'criação do device WebGPU', () => requestDevice.call(adapter, descriptor));
           if (typeof device.queue?.onSubmittedWorkDone !== 'function') {
             device.destroy();
             throw new Error('O device WebGPU não fornece confirmação de submissão.');
@@ -92,6 +99,7 @@ async function createVerifiedRenderer(canvas) {
             deviceFailure = new Error(`Erro WebGPU: ${event.error?.message || 'erro de device não capturado'}`);
             fail(deviceFailure);
           });
+          phase('pipeline', 'pipeline e configuração do canvas');
           return device;
         },
       });
@@ -99,6 +107,7 @@ async function createVerifiedRenderer(canvas) {
         if (deviceDescriptor) Object.defineProperty(adapter, 'requestDevice', deviceDescriptor);
         else delete adapter.requestDevice;
       };
+      phase('device', 'criação do device WebGPU');
       return adapter;
     } catch (error) {
       validationError = error;
@@ -107,16 +116,17 @@ async function createVerifiedRenderer(canvas) {
   }
   Object.defineProperty(gpu, 'requestAdapter', {value: checkedRequest, configurable: true, writable: true});
   try {
-    const renderer = await Renderer.create(canvas);
+    const renderer = await wait('adapter', 'seleção do adapter WebGPU', () => Renderer.create(canvas));
     if (validationError) throw validationError;
     if (requests !== 1 || !state.adapter) throw new Error('O adapter efetivo do wgpu não pôde ser verificado.');
     if (deviceRequests !== 1 || !nativeDevice) throw new Error('O device efetivo do wgpu não pôde ser verificado.');
     if (deviceFailure) throw deviceFailure;
     return {
       async render(...args) {
+        assertActive();
         if (deviceFailure) throw deviceFailure;
-        await renderer.render(...args);
-        await nativeDevice.queue.onSubmittedWorkDone();
+        await wait('submission', 'submissão e validação do frame wgpu', () => renderer.render(...args));
+        await wait('completion', 'confirmação de conclusão da GPU', () => nativeDevice.queue.onSubmittedWorkDone());
         if (deviceFailure) throw deviceFailure;
         // Device loss can resolve queue completion; never publish such a frame.
         if (state.status === 'error') throw new Error(state.error);
@@ -131,10 +141,12 @@ async function createVerifiedRenderer(canvas) {
   }
 }
 async function start() {
+  assertActive();
+  phase('environment', 'verificação de contexto seguro e WebGPU');
   if (!window.isSecureContext) throw new Error('WebGPU exige contexto seguro: use HTTPS com certificado confiável ou localhost.');
   if (!navigator.gpu) throw new Error('navigator.gpu indisponível: este navegador/dispositivo não oferece WebGPU.');
-  const coin = await createCoinCapture();
-  await initRenderer();
+  const coin = await wait('coin-wasm', 'módulo Coin WebAssembly', () => createCoinCapture());
+  await wait('renderer-wasm', 'módulo renderer WebAssembly', () => initRenderer());
   [canvas.width, canvas.height] = extent();
   const renderer = await createVerifiedRenderer(canvas);
   let angle = 0;
@@ -159,11 +171,13 @@ async function start() {
       if (state.status === 'error') return;
       state.stats.vertices = vertices; state.stats.indices = indices; state.stats.frames += 1;
       state.backend = 'webgpu'; state.status = 'rendering';
+      phase('rendering', 'Rust wgpu / WebGPU · frame confirmado');
       status.textContent = 'Renderizando · Rust wgpu / WebGPU'; status.dataset.state = 'rendering';
       stats.textContent = `${vertices} vértices · ${indices} índices · ${state.stats.frames} frames confirmados · ${width} × ${height}`;
       requestAnimationFrame(frame);
     } catch (error) { fail(error); }
   }
+  phase('first-frame', 'primeiro frame e captura da cena Coin');
   requestAnimationFrame(frame);
 }
 start().catch(fail);

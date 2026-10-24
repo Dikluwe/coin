@@ -113,3 +113,72 @@ by the example.
 The embedded Codex browser opened HTTPS but returned no WebGPU adapter in this
 campaign. A WebGL checker can still render there through WebGL 2. A result for
 WebGL 2 is not a WebGPU result; this demonstration never switches to WebGL.
+
+Initialization reports its current stage in the status panel and
+`window.coinRenderWebGPU.phase`: ES modules, Coin WASM, renderer WASM, adapter,
+device, pipeline/canvas configuration, first frame, submission and GPU completion.
+Each asynchronous stage has a 30-second watchdog, including static ES imports
+before the application module runs. A timeout produces a terminal error naming
+the stage. Late promises cannot resume rendering or turn that error into success;
+reload the page to retry. These diagnostics do not enable fallback or bypass TLS.
+
+## Local Firefox Linux troubleshooting
+
+The local Firefox 158.0.1 / Mesa 25.2.8 investigation observed a main-thread
+`SIGSEGV` at address `0x18` in `libgallium` while running this demonstration.
+The CoinRender crash reproduced in a fresh temporary Firefox profile. A minimal
+WebGPU clear-only control survived a 35-second observation; a triangle with a
+depth attachment did not reach queue completion in the default graphics
+environment, but completed with the AMD ICD selected. These controls distinguish
+local rendering paths; they do not establish a Coin or browser fix.
+
+A further native WebGPU control, with no Coin, Rust or WASM, rendered a triangle
+with a depth attachment on a **1321 × 853 canvas** and also crashed Firefox
+158.0.1 at `SIGSEGV 0x18`. Its seven `libgallium` frame offsets and first
+`libxul` frame offset (`0x4cb243f`) matched the demonstration's observed crashes.
+Reproduction outside Coin strengthens the evidence for a shared browser/graphics
+path problem in this local environment; it does not identify the underlying bug
+or establish behavior on other versions or machines. The standalone source is
+[`firefox_native_repro.html`](firefox_native_repro.html).
+
+In a separate temporary profile, setting `widget.dmabuf.enabled` to `false` in
+`about:config` and **restarting Firefox** allowed the same demonstration to confirm
+337 frames with `isFallbackAdapter=false`. Firefox logged:
+
+```text
+WebGPU: disabling SharedTexture swapchain: missing GBM_FORMAT_ARGB8888 dmabuf format
+```
+
+This is a local diagnostic workaround for that observed environment, not a
+recommended global setting or a correction to Coin, Firefox or Mesa. If
+investigating the same symptom, use a separate temporary profile, record the
+original preference, and restart Firefox after changing or restoring it. The
+demonstration does not change the normal Firefox profile automatically. The
+observation does not guarantee longer-term stability or results on other hosts.
+The tested Linux profile also required `dom.webgpu.enabled=true` and a trusted
+HTTPS certificate; disabling dmabuf does not replace either requirement and does
+not bypass certificate validation.
+
+### Run the native control manually
+
+`firefox_native_repro.html` is a standalone diagnostic control excluded from the
+application site build and production server allowlist. It uses native WebGPU
+and exposes `window.probe` (`phase`, `adapter`, confirmed `frames`, and caught
+`error`). A native crash or stalled completion can prevent further updates; the
+control preserves that behavior and does not qualify an adapter as hardware.
+
+Copy only this HTML into a separate static-server directory, for example:
+
+```sh
+mkdir -p /dev/shm/coin-firefox-native-repro/site
+cp examples/coinrender/webgpu/firefox_native_repro.html \
+  /dev/shm/coin-firefox-native-repro/site/index.html
+```
+
+Serve that isolated directory with a separate HTTPS server and the trusted
+localhost certificate described above, keeping keys outside the served tree.
+Open its HTTPS address in a temporary Firefox profile and inspect `window.probe`
+in the console. The tested Linux profile required `dom.webgpu.enabled=true`;
+keep certificate validation enabled. Compare graphics preferences deliberately
+in that temporary profile and stop the server afterward. The production site
+build and server access rules do not need to change for this reproduction.
