@@ -36,7 +36,11 @@ impl Renderer {
         let (device, queue) = adapter.request_device(&wgpu::DeviceDescriptor {
             label: Some("CoinRender demonstration WebGPU device"),
             required_features: wgpu::Features::empty(),
-            required_limits: wgpu::Limits::downlevel_defaults(),
+            // This demonstration uses vertex/index buffers and one color/depth
+            // attachment, with no compute or storage resources. This preset is
+            // only a set of resource limits; the backend remains WebGPU-only.
+            required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+                .using_resolution(adapter.limits()),
             memory_hints: wgpu::MemoryHints::MemoryUsage,
         }, None).await.map_err(|e| failure(format!("WebGPU device request failed: {e}")))?;
         let fault = Arc::new(Mutex::new(None));

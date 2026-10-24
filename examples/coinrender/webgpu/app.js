@@ -42,7 +42,11 @@ async function createVerifiedRenderer(canvas) {
       validationError = new Error('Inicialização requisitou mais de um adapter WebGPU.');
       throw validationError;
     }
-    const adapter = await wait('adapter', 'seleção do adapter WebGPU', () => original.call(gpu, options));
+    // Explicit selection on the very request made by wgpu, never an extra
+    // probe or automatic retry with a different WebGPU feature level.
+    const requestedOptions = {...options, featureLevel: state.profile, forceFallbackAdapter: false};
+    const adapter = await wait('adapter', 'seleção do adapter WebGPU · perfil ' + state.profile,
+      () => original.call(gpu, requestedOptions));
     if (!adapter) return null;
     try {
       const info = adapter.info || (typeof adapter.requestAdapterInfo === 'function'
@@ -63,7 +67,7 @@ async function createVerifiedRenderer(canvas) {
       const fields = Object.entries(identity).map(([key, value]) => `${key}: ${value === '' || value === null ? 'não informado' : value}`).join(' · ');
       const details = hasIdentity ? fields
         : `identidade não informada/oculta pelo navegador · ${fields}`;
-      document.querySelector('#adapter-info').textContent = `Adapter efetivo: ${details}`;
+      document.querySelector('#adapter-info').textContent = `Perfil WebGPU solicitado: ${state.profile} · Adapter efetivo: ${details}`;
       const software = /swiftshader|llvmpipe|lavapipe|softpipe|software|swrast|microsoft basic render|warp renderer/i
         .test(Object.values(identity).join(' '));
       if (identity.isFallbackAdapter === true || software) {
@@ -142,7 +146,10 @@ async function createVerifiedRenderer(canvas) {
 }
 async function start() {
   assertActive();
-  phase('environment', 'verificação de contexto seguro e WebGPU');
+  if (state.profile !== 'core' && state.profile !== 'compatibility') {
+    throw new Error('Perfil WebGPU não validado antes da inicialização.');
+  }
+  phase('environment', 'verificação de contexto seguro e WebGPU · perfil ' + state.profile);
   if (!window.isSecureContext) throw new Error('WebGPU exige contexto seguro: use HTTPS com certificado confiável ou localhost.');
   if (!navigator.gpu) throw new Error('navigator.gpu indisponível: este navegador/dispositivo não oferece WebGPU.');
   const coin = await wait('coin-wasm', 'módulo Coin WebAssembly', () => createCoinCapture());
@@ -172,7 +179,7 @@ async function start() {
       state.stats.vertices = vertices; state.stats.indices = indices; state.stats.frames += 1;
       state.backend = 'webgpu'; state.status = 'rendering';
       phase('rendering', 'Rust wgpu / WebGPU · frame confirmado');
-      status.textContent = 'Renderizando · Rust wgpu / WebGPU'; status.dataset.state = 'rendering';
+      status.textContent = 'Renderizando · Rust wgpu / WebGPU · perfil ' + state.profile; status.dataset.state = 'rendering';
       stats.textContent = `${vertices} vértices · ${indices} índices · ${state.stats.frames} frames confirmados · ${width} × ${height}`;
       requestAnimationFrame(frame);
     } catch (error) { fail(error); }

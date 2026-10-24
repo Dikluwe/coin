@@ -74,7 +74,7 @@ button{
 </main>
 <script>
 window.coinRenderWebGPU = {
-  status: 'initializing', phase: 'modules', backend: null, fallback: false,
+  status: 'initializing', phase: 'profile', profile: null, backend: null, fallback: false,
   sceneSource: 'coinrender-wasm', adapter: null,
   stats: {vertices: 0, indices: 0, frames: 0}, error: ''
 };
@@ -130,7 +130,19 @@ window.coinRenderWebGPU = {
   };
   window.addEventListener('unhandledrejection', event => window.coinRenderWebGPUFail(event.reason));
   window.addEventListener('error', event => window.coinRenderWebGPUFail(event.error || event.message || 'Falha ao carregar módulo ES/WebAssembly'), true);
-  window.coinRenderWebGPUPhase('modules', 'carregamento dos módulos ES');
+  try {
+    const profiles = new URLSearchParams(window.location.search).getAll('profile');
+    if (profiles.length > 1) throw new Error('Parâmetro profile repetido; informe somente um perfil WebGPU.');
+    const requestedProfile = profiles.length === 0 ? 'core' : profiles[0];
+    if (requestedProfile !== 'core' && requestedProfile !== 'compatibility') {
+      throw new Error('Perfil WebGPU inválido: use profile=core ou profile=compatibility.');
+    }
+    state.profile = requestedProfile;
+    document.querySelector('#adapter-info').textContent = `Perfil WebGPU solicitado: ${requestedProfile} · Adapter efetivo: aguardando consulta do wgpu`;
+    window.coinRenderWebGPUPhase('modules', 'carregamento dos módulos ES · perfil ' + requestedProfile);
+  } catch (error) {
+    window.coinRenderWebGPUFail(error);
+  }
 })();
 </script>
 <script type="module" src="./app.js" onerror="coinRenderWebGPUFail('Falha ao carregar módulo WebAssembly')"></script>
