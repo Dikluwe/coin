@@ -70,6 +70,24 @@ SDK directory, build and run `cmake --install`. Build
 Coin build with CoinRender OFF and verify its SDK does not expose CoinRender
 experimental headers. Installing the opt-in SDK does not stabilize its ABI.
 
+Do not distribute test-build binaries. Configure the production SDK with
+`COIN_BUILD_TESTS=OFF`; the Rust crate has no default features, and its private
+`test-hooks` feature is enabled by CMake only for test builds. BGFX test controls
+are also excluded by compilation, including their names in Debug binaries.
+
+The independent offline contract runner checks Rust features, private C++
+declarations, production/test symbol sets, native linking and CMake selection:
+
+```sh
+python3 testsuite/coinwgpu/test_bridge_test_hooks.py --source-root .
+# Linux BGFX binary check; use an unstripped production library.
+python3 testsuite/coinwgpu/test_bridge_test_hooks.py --source-root . \
+  --checks bgfx --production-bgfx-library build-bgfx/lib/libCoinRender.so
+```
+
+Its disposable builds use RAM. Already-built Rust archives may be supplied with
+`--production-archive` and `--hooks-archive` to avoid rebuilding dependencies.
+
 GPU tests require the actual requested API/device and, where specified, a valid
 CoinGL reference context. Xvfb alone does not guarantee one. Historical NVIDIA
 reference runs used `COIN_GLX_PIXMAP_DIRECT_RENDERING=1` and the appropriate PRIME

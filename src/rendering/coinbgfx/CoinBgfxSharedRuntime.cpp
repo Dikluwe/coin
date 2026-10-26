@@ -83,9 +83,9 @@ SharedBgfxRuntime & sharedRuntime()
   return *runtime;
 }
 
+#ifdef COIN_WGPU_TEST_HOOKS
 bool consumeTestFault(const char * name)
 {
-#ifdef COIN_WGPU_TEST_HOOKS
   const char * value = std::getenv(name);
   if (value == nullptr || std::strcmp(value, "1") != 0) return false;
   // Consuming the flag makes recovery
@@ -96,20 +96,13 @@ bool consumeTestFault(const char * name)
   unsetenv(name);
 #endif
   return true;
-#else
-  (void)name;
-  return false;
-#endif
 }
 
-#ifdef COIN_WGPU_TEST_HOOKS
 SubmitCountdownFault & submitCountdownFault() {
   static SubmitCountdownFault fault;return fault;
 }
-#endif
 
 bool injectOutOfMemoryAfterSubmits() {
-#ifdef COIN_WGPU_TEST_HOOKS
   auto & fault=submitCountdownFault();std::lock_guard<std::mutex> guard(fault.mutex);
   const char * name="COIN_BGFX_TEST_OUT_OF_MEMORY_AFTER_SUBMITS";
   const char * value=std::getenv(name);
@@ -132,17 +125,14 @@ bool injectOutOfMemoryAfterSubmits() {
   }
   if(!fault.armed || fault.remaining)return false;
   fault.armed=false;return true;
-#else
-  return false;
-#endif
 }
 
 void logicalSubmitSucceeded() {
-#ifdef COIN_WGPU_TEST_HOOKS
   auto & fault=submitCountdownFault();std::lock_guard<std::mutex> guard(fault.mutex);
   if(fault.armed && fault.remaining)--fault.remaining;
-#endif
 }
+
+#endif
 
 uint64_t drawState(const CoinBgfxDraw & draw)
 {

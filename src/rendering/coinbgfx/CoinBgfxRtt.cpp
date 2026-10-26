@@ -51,7 +51,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before direct RTT");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
-  if(injectOutOfMemoryAfterSubmits()) {
+  if(COIN_BGFX_TEST_OUT_OF_MEMORY()) {
     this->lastError="Injected BGFX out of memory after successful logical submissions";
     return {CoinRenderBackendStatus::OUT_OF_MEMORY,this->lastError};
   }
@@ -354,7 +354,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
     }
   } shadowMaps{static_cast<CoinBgfxCallback *>(this->callback.get()), {}};
   if (hasShadows) {
-    if (consumeTestFault("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
+    if (COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
       cleanupDirect();
       this->lastError = "Injected BGFX shadow-map allocation failure";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
@@ -652,7 +652,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       // A one-level chain instead fails before its only allocation.
       if ((level == 2 || (level == 1 && destinationWidth == 1 &&
                           destinationHeight == 1)) &&
-          consumeTestFault("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE")) {
+          COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_NPOT_MIP_ALLOC_ONCE")) {
         cleanupDirect();
         return {CoinRenderBackendStatus::OUT_OF_MEMORY,
                 "Injected BGFX NPOT mip allocation failure"};
@@ -819,7 +819,7 @@ CoinBgfxBackend::submitDirectTexture(const CoinRenderFramePlan & frame,
       this->msaaWidth = this->msaaHeight = 0;
     }
   }
-  logicalSubmitSucceeded();
+  COIN_BGFX_TEST_SUBMIT_SUCCEEDED();
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
 }
 

@@ -99,6 +99,22 @@ def preprocess(flags):
 
 
 class BridgeContract(unittest.TestCase):
+    def test_bgfx_production_binary_hides_fault_controls(self):
+        library = OPTIONS.production_bgfx_library
+        self.assertIsNotNone(library,
+                             '--checks bgfx requires --production-bgfx-library')
+        self.assertTrue(library.is_file(), 'BGFX library does not exist: ' + str(library))
+        # Inspect the shipped bytes, including Debug/-O0 strings that optimizer
+        # dead-code removal could otherwise conceal in a release-only check.
+        names = set(re.findall(rb'COIN_BGFX_TEST_[A-Za-z0-9_]+', library.read_bytes()))
+        self.assertFalse(names, 'BGFX fault environment controls leaked: ' +
+                         repr(sorted(name.decode('ascii') for name in names)))
+        symbols = run([OPTIONS.nm, '-a', '-C', '--defined-only', library])
+        self.assertTrue(symbols.strip(),
+                        'symbol inspection requires an unstripped BGFX library')
+        self.assertNotRegex(symbols, r'consumeTestFault|SubmitCountdownFault',
+                            'BGFX failure injection implementation remains in production')
+
     def test_cargo_feature_contract(self):
         package_data = json.loads(run([
             OPTIONS.cargo, 'metadata', '--offline', '--locked', '--no-deps',
@@ -212,6 +228,7 @@ def main():
     parser.add_argument('--production-archive', type=Path)
     parser.add_argument('--hooks-archive', type=Path)
     parser.add_argument('--baseline-archive', type=Path)
+    parser.add_argument('--production-bgfx-library', type=Path)
     parser.add_argument('--test-cppflag', action='append', default=None)
     parser.add_argument('--native-lib', action='append', default=None)
     parser.add_argument('--elf-loader', type=Path)
@@ -219,13 +236,14 @@ def main():
         parser.add_argument('--' + tool, default='c++' if tool == 'cxx' else tool)
     parser.add_argument('--cmake-arg', action='append', default=[])
     parser.add_argument('--checks', nargs='+',
-                        choices=['metadata', 'headers', 'symbols', 'link', 'unit', 'cmake'],
+                        choices=['metadata', 'headers', 'symbols', 'link', 'unit', 'cmake', 'bgfx'],
                         default=['metadata', 'headers', 'symbols', 'link', 'unit', 'cmake'])
     OPTIONS = parser.parse_args()
     OPTIONS.source_root = OPTIONS.source_root.resolve()
     OPTIONS.test_cppflag = OPTIONS.test_cppflag or ['-DCOIN_WGPU_TEST_HOOKS=1']
     OPTIONS.native_lib = OPTIONS.native_lib or ['-ldl', '-lpthread', '-lm']
     names = {
+        'bgfx': ['test_bgfx_production_binary_hides_fault_controls'],
         'metadata': ['test_cargo_feature_contract'],
         'headers': ['test_production_header_hides_controls', 'test_test_header_declares_controls'],
         'symbols': ['test_archive_symbol_partition'],

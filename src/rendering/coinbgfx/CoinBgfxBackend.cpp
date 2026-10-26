@@ -110,7 +110,7 @@ CoinBgfxBackend::checkRuntimeFailure(const char * operation)
 #if defined(_WIN32) && defined(COIN_WGPU_TEST_HOOKS)
   if (this->initialized && this->onApiThread() && cb && !cb->failed() &&
       bgfx::getRendererType() == bgfx::RendererType::Direct3D12 &&
-      consumeTestFault("COIN_BGFX_TEST_REMOVE_NATIVE_DEVICE_ONCE")) {
+      COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_REMOVE_NATIVE_DEVICE_ONCE")) {
     // A controlled runtime removal of this process's real D3D12 device.
     // It does not disable/reset the display adapter or emulate a driver TDR.
     auto * device = static_cast<ID3D12Device *>(bgfx::getInternalData()->context);
@@ -644,7 +644,7 @@ CoinBgfxBackend::prepare(CoinRenderTargetP & target)
   runtimeGuard.unlock();
   this->initialized = true;
   this->apiThread = std::this_thread::get_id();
-  if (consumeTestFault("COIN_BGFX_TEST_FAIL_PREPARE_ONCE")) {
+  if (COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_FAIL_PREPARE_ONCE")) {
     this->lastError = "Injected BGFX failure after runtime initialization";
     this->status = CoinRenderBackendStatus::BACKEND_ERROR;
     return this->status;

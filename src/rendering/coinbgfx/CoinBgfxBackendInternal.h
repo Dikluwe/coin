@@ -419,12 +419,20 @@ bool bgfxShadowBatchSupported(const CoinRenderFramePlan & frame,
                               const CoinRenderShadowPlan & plan,
                               std::string & diagnostic);
 SharedBgfxRuntime & sharedRuntime();
-bool consumeTestFault(const char * name);
 #ifdef COIN_WGPU_TEST_HOOKS
+bool consumeTestFault(const char * name);
 SubmitCountdownFault & submitCountdownFault();
-#endif
 bool injectOutOfMemoryAfterSubmits();
 void logicalSubmitSucceeded();
+#define COIN_BGFX_CONSUME_TEST_FAULT(name) (::coin_bgfx_internal::consumeTestFault(name))
+#define COIN_BGFX_TEST_OUT_OF_MEMORY() (::coin_bgfx_internal::injectOutOfMemoryAfterSubmits())
+#define COIN_BGFX_TEST_SUBMIT_SUCCEEDED() (::coin_bgfx_internal::logicalSubmitSucceeded())
+#else
+// Discard fault arguments as well as helper calls, including in Debug builds.
+#define COIN_BGFX_CONSUME_TEST_FAULT(name) false
+#define COIN_BGFX_TEST_OUT_OF_MEMORY() false
+#define COIN_BGFX_TEST_SUBMIT_SUCCEEDED() ((void)0)
+#endif
 uint64_t drawState(const CoinBgfxDraw & draw);
 bool samePipelineState(const CoinBgfxDraw & lhs,
                        const CoinBgfxDraw & rhs);

@@ -48,7 +48,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   const CoinRenderBackendStatus initialRuntimeStatus = this->checkRuntimeFailure("BGFX shared renderer failed before submission");
   if (initialRuntimeStatus != CoinRenderBackendStatus::SUCCESS)
     return CoinRenderSubmitResult(initialRuntimeStatus, this->lastError);
-  if(injectOutOfMemoryAfterSubmits()) {
+  if(COIN_BGFX_TEST_OUT_OF_MEMORY()) {
     this->lastError="Injected BGFX out of memory after successful logical submissions";
     return {CoinRenderBackendStatus::OUT_OF_MEMORY,this->lastError};
   }
@@ -591,7 +591,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     }
   } shadowMaps{static_cast<CoinBgfxCallback *>(this->callback.get()), {}};
   if (hasShadows) {
-    if (consumeTestFault("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
+    if (COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_SHADOW_MAP_ALLOC_ONCE")) {
       destroyTextures();
       this->lastError = "Injected BGFX shadow-map allocation failure";
       return CoinRenderSubmitResult(CoinRenderBackendStatus::OUT_OF_MEMORY, this->lastError);
@@ -885,7 +885,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
         static_cast<unsigned int>(nextView), this->viewCount, requiredViews);
   }
   const Clock::time_point drawsEncoded = Clock::now();
-  if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE")) {
+  if (COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_DEVICE_LOST_ON_SUBMIT_ONCE")) {
 #ifdef COIN_WGPU_TEST_HOOKS
     static_cast<CoinBgfxCallback *>(this->callback.get())->inject(
       bgfx::Fatal::DeviceLost, "injected device loss during submission");
@@ -983,7 +983,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     this->lastError.clear();
     rememberBump();
     this->sceneDepthInitialized = true;
-    logicalSubmitSucceeded();
+    COIN_BGFX_TEST_SUBMIT_SUCCEEDED();
     return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
   }
   if (this->readbackSlots.empty()) {
@@ -1136,7 +1136,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
     bgfx::frame(); // Submit only; polling advances completion without a wait loop.
     destroyTextures();
 #ifdef COIN_WGPU_TEST_HOOKS
-    if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE"))
+    if (COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_DEVICE_LOST_AFTER_ASYNC_ONCE"))
       static_cast<CoinBgfxCallback*>(this->callback.get())
           ->inject(bgfx::Fatal::DeviceLost, "injected device loss after async ticket allocation");
 #endif
@@ -1148,7 +1148,7 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
       target.depthBuffer.clear();
       target.needsReconfigure = false;
     }
-    if(asyncStatus==CoinRenderBackendStatus::SUCCESS) {this->sceneDepthInitialized = true;rememberBump();logicalSubmitSucceeded();}
+    if(asyncStatus==CoinRenderBackendStatus::SUCCESS) {this->sceneDepthInitialized = true;rememberBump();COIN_BGFX_TEST_SUBMIT_SUCCEEDED();}
     return CoinRenderSubmitResult(asyncStatus, this->lastError, ticket.submissionSerial);
   }
   const Clock::time_point readRequested = Clock::now();
@@ -1305,6 +1305,6 @@ CoinBgfxBackend::submitInternal(const CoinRenderFramePlan & frame, CoinRenderTar
   this->lastError.clear();
   rememberBump();
   this->sceneDepthInitialized = true;
-  logicalSubmitSucceeded();
+  COIN_BGFX_TEST_SUBMIT_SUCCEEDED();
   return CoinRenderSubmitResult(CoinRenderBackendStatus::SUCCESS, "", ++this->serial);
 }

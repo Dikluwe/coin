@@ -451,7 +451,7 @@ CoinBgfxBackend::resize(int newWidth, int newHeight, bool multipassFrame)
     this->lastError = "Invalid BGFX target dimensions";
     return false;
   }
-  if (consumeTestFault("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE")) {
+  if (COIN_BGFX_CONSUME_TEST_FAULT("COIN_BGFX_TEST_DEVICE_LOST_ON_RESIZE_ONCE")) {
 #ifdef COIN_WGPU_TEST_HOOKS
     static_cast<CoinBgfxCallback *>(this->callback.get())->inject(
       bgfx::Fatal::DeviceLost, "injected device loss during resize");
