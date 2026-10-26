@@ -2,7 +2,7 @@
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include <Inventor/SoDB.h>
 #include <Inventor/actions/SoGLRenderAction.h>
-#include <Inventor/actions/CoinBgfxAction.h>
+#include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoCube.h>
 #include <Inventor/SoOffscreenRenderer.h>
@@ -117,7 +117,7 @@ static void compareGl(const int * modes, size_t count)
     check(gl.render(root),"Coin/GL transparency reference could not render");
     std::vector<uint8_t> reference(gl.getBuffer(),gl.getBuffer()+32*32*3);
     auto target=CoinRenderTarget::createOffscreen(SbVec2i32(32,32));
-    CoinBgfxAction action(SbViewportRegion(32,32)); action.setRenderTarget(target);
+    CoinRenderAction action(SbViewportRegion(32,32)); action.setRenderTarget(target);
     action.setTransparencyType(static_cast<CoinRenderAction::TransparencyType>(mode)); action.apply(root);
     std::vector<uint8_t> color; target->readbackRGBA(color);
     check(color.size()==4096,"BGFX action did not render GL reference scene");
@@ -136,7 +136,7 @@ int main()
 {
   try {
     SoDB::init();
-    CoinBgfxAction::initClass();
+    CoinRenderAction::initClass();
     auto target = std::unique_ptr<CoinRenderTargetP>(new CoinRenderTargetP(SbVec2i32(32,32)));
     const int modes[] = {SoGLRenderAction::NONE, SoGLRenderAction::SCREEN_DOOR,
       SoGLRenderAction::ADD, SoGLRenderAction::BLEND, SoGLRenderAction::DELAYED_ADD,
@@ -230,8 +230,8 @@ int main()
     auto camera=new SoOrthographicCamera; camera->position=SbVec3f(0,0,4); root->addChild(camera); root->addChild(new SoCube);
     auto publicTarget=CoinRenderTarget::createOffscreen(SbVec2i32(32,32));
     CoinRenderReadbackTicket publicTicket;
-    { CoinBgfxAction action(SbViewportRegion(32,32)); action.setRenderTarget(publicTarget); action.applyAsync(root,publicTicket); }
-    check(publicTicket.token!=0, "Public CoinBgfxAction::applyAsync failed");
+    { CoinRenderAction action(SbViewportRegion(32,32)); action.setRenderTarget(publicTarget); action.applyAsync(root,publicTicket); }
+    check(publicTicket.token!=0, "Public CoinRenderAction::applyAsync failed");
     delete publicTarget; root->unref(); poll(publicTicket,color,depth);
     check(color.size()==4096 && depth.size()==1024 && depth[pixel]<1, "Public color/depth async outputs missing");
     target.reset(new CoinRenderTargetP(SbVec2i32(32,32)));

@@ -134,12 +134,7 @@ if(COIN_BUILD_LEGACY_GL_RENDERER)
 		${PROJECT_SOURCE_DIR}/include
 		${PROJECT_BINARY_DIR}/include
 		${COIN_TARGET_INCLUDE_DIRECTORIES})
-	add_executable(coin_render_freecad_compare coin_render_freecad_compare.cpp)
-	target_link_libraries(coin_render_freecad_compare PRIVATE CoinRender Coin)
-	target_include_directories(coin_render_freecad_compare PRIVATE
-		${PROJECT_SOURCE_DIR}/include
-		${PROJECT_BINARY_DIR}/include
-		${COIN_TARGET_INCLUDE_DIRECTORIES})
+
 endif()
 
 if(COIN_INSTALL_RENDER_EXPERIMENTAL)
@@ -177,12 +172,12 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
 	if(TARGET coin_render_gl_benchmark)
-		set_target_properties(coin_render_gl_benchmark coin_render_freecad_compare PROPERTIES
+		set_target_properties(coin_render_gl_benchmark PROPERTIES
 			INSTALL_RPATH "$ORIGIN/../${CMAKE_INSTALL_LIBDIR}")
-		install(TARGETS coin_render_gl_benchmark coin_render_freecad_compare
+		install(TARGETS coin_render_gl_benchmark
 			RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT runtime)
 	endif()
 	install(FILES AndroidManifest-p23.xml coin_render_android_smoke.cpp coin_render_appkit_smoke.mm coin_render_wayland_smoke.cpp coin_render_win32_smoke.cpp coin_render_window_cone.cpp coin_render_viewer.cpp coin_render_window_benchmark.cpp coin_render_gl_benchmark.cpp
-		coin_render_freecad_compare.cpp CoinRenderBenchmarkAnimation.h freecad_export_iv.py generate_large_scene.py
+		CoinRenderBenchmarkAnimation.h generate_large_scene.py
 		DESTINATION ${CMAKE_INSTALL_DOCDIR}/examples/coinrender COMPONENT development)
 endif()

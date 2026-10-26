@@ -67,7 +67,7 @@ def main():
     if args.rasterization_policy == 'canonical' and args.cpu_reference_dir is None:
         parser.error('canonical qualification requires --cpu-reference-dir')
     if args.session == 'isolated' and not os.getenv('COIN_TEST_ISOLATED_X11'):
-        parser.error('run inside testsuite/qt-quarter/run_isolated.py')
+        parser.error('run inside scripts/coinrender/run_isolated.py')
     if args.session == 'physical' and not os.getenv('DISPLAY'):
         parser.error('physical session requires an explicit DISPLAY')
     device = DEVICES[args.device]

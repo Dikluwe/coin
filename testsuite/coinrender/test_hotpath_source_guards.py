@@ -47,7 +47,9 @@ class CoinRenderHotPathSourceGuards(unittest.TestCase):
         self.assertNotRegex(text, r"boundary\.erase\s*\(")
 
     def test_bgfx_shadow_pass_does_not_search_caster_vector_per_draw(self):
-        text = source("src/rendering/coinbgfx/CoinBgfxBackend.cpp")
+        text = "\n".join(p.read_text(encoding="utf-8") for p in
+                         sorted((ROOT / "src/rendering/coinbgfx").glob("CoinBgfx*.cpp")))
+        self.assertIn("pass.casterDraws", text, "shadow submission sources were not inspected")
         offenders = re.findall(
             r"std::find\s*\(\s*pass\.casterDraws\.begin\(\)\s*,\s*"
             r"pass\.casterDraws\.end\(\)\s*,\s*draw\.sourceDrawSlot\s*\)",

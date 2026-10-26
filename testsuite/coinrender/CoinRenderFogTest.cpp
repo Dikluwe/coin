@@ -7,12 +7,6 @@
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
 #include <Inventor/actions/CoinRenderAction.h>
-#ifdef HAVE_COIN_BGFX
-#include <Inventor/actions/CoinBgfxAction.h>
-#define FogRenderAction CoinBgfxAction
-#else
-#define FogRenderAction CoinRenderAction
-#endif
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoCoordinate3.h>
 #include <Inventor/nodes/SoEnvironment.h>
@@ -138,7 +132,7 @@ bool renderAt(SoSeparator * scene, bool cpu, int x, int y, Sample & out) {
   if (!check(target != NULL, "createOffscreen failed")) return false;
   if (cpu) target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
   if (!cpu) target->setDepthReadbackEnabled(FALSE);
-  FogRenderAction action(SbViewportRegion(64, 64));
+  CoinRenderAction action(SbViewportRegion(64, 64));
   action.setRenderTarget(target);
   action.apply(scene);
   const bool success = action.getLastStatus() == CoinRenderAction::SUCCESS;
@@ -189,7 +183,7 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
              bool glAvailable, int tolerance = 18) {
   if (!renderAt(scene, true, x, y, cpu)) return false;
   Sample gpu;
-  const bool hasGpu = FogRenderAction::isGpuBackendAvailable();
+  const bool hasGpu = CoinRenderAction::isGpuBackendAvailable();
   if (hasGpu) {
     if (!renderAt(scene, false, x, y, gpu)) return false;
     for (int c = 0; c < 4; ++c) {
@@ -223,7 +217,7 @@ bool compare(SoSeparator * scene, int x, int y, Sample & cpu,
 
 bool checkInvalidBridgeFog() {
 #if defined(HAVE_COIN_WGPU_RUST_BRIDGE)
-  if (!FogRenderAction::isGpuBackendAvailable()) return true;
+  if (!CoinRenderAction::isGpuBackendAvailable()) return true;
   CoinWgpuRenderState state{};
   state.color_write = 1;
   state.fog_mode = 4;
@@ -263,9 +257,9 @@ bool checkInvalidBridgeFog() {
 int main() {
   const bool requireGl = std::getenv("COIN_WGPU_REQUIRE_GL_REFERENCE") != NULL;
   SoDB::init();
-  FogRenderAction::initClass();
+  CoinRenderAction::initClass();
   if (requireGl &&
-      !check(FogRenderAction::isGpuBackendAvailable(), "required GPU unavailable")) return 1;
+      !check(CoinRenderAction::isGpuBackendAvailable(), "required GPU unavailable")) return 1;
   if (!checkInvalidBridgeFog()) return 1;
 
   SoSeparator * none = makeScene(SoEnvironment::NONE, true);

@@ -66,7 +66,7 @@ def main():
     parser.add_argument('--repetitions', type=int, default=2)
     args = parser.parse_args()
     if not os.getenv('COIN_TEST_ISOLATED_X11'):
-        parser.error('run in testsuite/qt-quarter/run_isolated.py --server xwayland')
+        parser.error('run in scripts/coinrender/run_isolated.py --server xwayland')
     if os.getenv('VK_DRIVER_FILES') != '/usr/share/vulkan/icd.d/radeon_icd.json':
         parser.error('pin the Radeon ICD with VK_DRIVER_FILES')
     glx = subprocess.run(['glxinfo', '-B'], text=True, capture_output=True, check=True).stdout

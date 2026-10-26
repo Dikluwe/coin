@@ -361,12 +361,13 @@ CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
         (state.lightModel != CoinRenderLightModel::BASE_COLOR && state.lightModel != CoinRenderLightModel::PHONG) ||
         !sameMatrix(state.view, camera.viewMatrix) ||
         !sameMatrix(state.projectionCoin, camera.projectionMatrixCoin)) return false;
-    // The PHONG extension qualifies an opaque surface only. Keep the older
-    // BASE_COLOR overlay's admission unchanged, including mixed-state plans.
+    // Object-sorted alpha retains immutable geometry and world-space centers.
+    // Composition recalculates eye depths/order from the patched camera.
     if (phong) {
       if (state.materialSlot >= plan.materials.size() || state.lightingSlot >= plan.lightingStates.size() ||
-          state.transparentMaterial || state.transparentTexture || state.hasTexture ||
-          state.screenDoorTransparency > 0.0f || !state.clipPlanesWorld.empty() ||
+          state.transparentTexture || state.hasTexture ||
+          (state.screenDoorTransparency > 0.0f &&
+           state.transparencyType != SoGLRenderAction::SORTED_OBJECT_BLEND) || !state.clipPlanesWorld.empty() ||
           state.shadowGroupSlot || state.polygonOffsetEnabled || state.polygonLinePattern) return false;
       if (state.transparencyType != SoGLRenderAction::SCREEN_DOOR &&
           state.transparencyType != SoGLRenderAction::BLEND &&
@@ -375,14 +376,24 @@ CoinRenderFrameReuseCore::prepareCameraOverlayBasis(
           state.transparencyType != SoGLRenderAction::NONE &&
           state.transparencyType != SoGLRenderAction::SORTED_LAYERS_BLEND) return false;
       const auto & material = plan.materials[state.materialSlot];
-      if (material.transparency != 0.0f || material.diffuse[3] < 1.0f) return false;
+      const bool alpha = state.transparentMaterial || material.transparency != 0.0f ||
+                         material.diffuse[3] < 1.0f;
+      if (alpha && (state.transparencyType != SoGLRenderAction::SORTED_OBJECT_BLEND ||
+          !std::isfinite(material.transparency) || material.transparency < 0 || material.transparency > 1 ||
+          !std::isfinite(material.diffuse[3]) || material.diffuse[3] < 0 || material.diffuse[3] > 1)) return false;
       for (const auto & texture : state.extraTextures) if (texture.enabled) return false;
     }
   }
   if (phong) {
-    for (const auto & draw : plan.draws)
+    for (const auto & draw : plan.draws) {
       if (draw.topology != CoinRenderPrimitiveTopology::TRIANGLE_LIST ||
           draw.renderLayer || draw.clearDepthBefore || draw.shadowLightSlot || draw.lineStripId) return false;
+      if (draw.renderStateSlot >= plan.renderStates.size()) return false;
+      const auto & state = plan.renderStates[draw.renderStateSlot];
+      const auto & material = plan.materials[state.materialSlot];
+      if ((state.transparentMaterial || material.transparency != 0 || material.diffuse[3] < 1) &&
+          (!draw.hasSortingCenter || draw.hasSortingDistance)) return false;
+    }
   }
   CoinRenderCameraOverlayBasis prepared;
   prepared.owner = &plan;

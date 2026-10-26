@@ -451,7 +451,9 @@ CoinWgpuStatus coin_wgpu_assemble_cube_rtt(const uint64_t * faces, uint32_t face
 CoinWgpuStatus coin_wgpu_device_create(CoinWgpuDeviceId * out_id,
   char * error_buf, size_t error_buf_len);
 CoinWgpuStatus coin_wgpu_device_destroy(CoinWgpuDeviceId id);
+#ifdef COIN_WGPU_TEST_HOOKS
 void coin_wgpu_inject_device_fault(CoinWgpuDeviceId id, int32_t code);
+#endif
 
 void coin_wgpu_get_adapter_info(char * buffer, size_t buffer_len);
 
@@ -606,17 +608,27 @@ int coin_wgpu_readback_resource_load(uint64_t* jobs, uint64_t* bytes);
 uint64_t coin_wgpu_readback_staging_bytes(void);
 void coin_wgpu_poll_device(void);
 
+#ifdef COIN_WGPU_TEST_HOOKS
 void coin_wgpu_set_cache_budget(uint64_t max_bytes, uint64_t max_stale_serials);
+#endif
 
 void coin_wgpu_trim_cache(void);
 
+#ifdef COIN_WGPU_TEST_HOOKS
 void coin_wgpu_inject_fault(int32_t fault_code);
+#endif
 /* Test-only deterministic fault on an offscreen submit after skipped submits. */
+#ifdef COIN_WGPU_TEST_HOOKS
 void coin_wgpu_inject_fault_after_submits(int32_t fault_code, uint32_t skipped_submits);
+#endif
 
+#ifdef COIN_WGPU_TEST_HOOKS
 void coin_wgpu_inject_async_fault(int32_t fault_code);
+#endif
 
+#ifdef COIN_WGPU_TEST_HOOKS
 void coin_wgpu_reset_context(void);
+#endif
 
 #ifdef __cplusplus
 }

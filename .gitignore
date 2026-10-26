@@ -4,3 +4,10 @@ tmp/
 
 # Rust artifacts
 **/rust_bridge/target/
+
+# Historical evidence is distributed as a separate companion archive.
+/coinrender-evidence.tar.gz
+
+# Python bytecode is generated locally.
+**/__pycache__/
+*.py[cod]

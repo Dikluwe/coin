@@ -27,7 +27,7 @@
         ] {
             state.alpha_test_function = function;
             state.alpha_test_reference = reference;
-            let mut error = [0i8; 256];
+            let mut error = [0 as std::os::raw::c_char; 256];
             let status = coin_wgpu_surface_submit(
                 surface_id, &frame, error.as_mut_ptr(), error.len());
             let diagnostic = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }
@@ -39,7 +39,7 @@
         }
         state.alpha_test_function = 7;
         state.alpha_test_reference = 0.25;
-        let mut error = [0i8; 256];
+        let mut error = [0 as std::os::raw::c_char; 256];
         let _ = coin_wgpu_surface_submit(
             surface_id, &frame, error.as_mut_ptr(), error.len());
         let diagnostic = unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }
@@ -54,7 +54,7 @@
         // Exercise the Rust submit boundary itself: the C++ frame packer is not
         // involved, and every adversarial submit reuses the published revision.
         let mut device = 0u64;
-        let mut error = [0i8; 512];
+        let mut error = [0 as std::os::raw::c_char; 512];
         assert_eq!(coin_wgpu_device_create(&mut device, error.as_mut_ptr(), error.len()),
             CoinWgpuStatus::Ok);
         assert_ne!(device, 0);
@@ -129,7 +129,7 @@
         frame.textures = &texture; frame.texture_count = 1;
         frame.samplers = &sampler; frame.sampler_count = 1;
         let submit = |target: &mut CoinWgpuTarget, frame: &CoinWgpuFrameView| {
-            let mut message = [0i8; 512];
+            let mut message = [0 as std::os::raw::c_char; 512];
             let status = coin_wgpu_submit(target, frame, message.as_mut_ptr(), message.len());
             let diagnostic = unsafe { std::ffi::CStr::from_ptr(message.as_ptr()) }
                 .to_string_lossy().into_owned();
@@ -270,7 +270,7 @@
         for viewport in [[0, 0, 64, 64], [7, 11, 31, 29], [0, 0, 0, 0],
                          [64, 64, 0, 0], [64, 0, 0, 64], [0, 64, 64, 0]] {
             caster.viewport = viewport;
-            let mut error = [0i8; 256];
+            let mut error = [0 as std::os::raw::c_char; 256];
             assert!(validate_shadow_frame(&frame, 1, false, error.as_mut_ptr(), error.len()).is_ok(),
                     "legal full/subrect/empty scissor {viewport:?}");
         }
@@ -279,7 +279,7 @@
                          [65, 0, 0, 0], [0, 65, 0, 0],
                          [i32::MAX, 0, i32::MAX, 1], [0, i32::MAX, 1, i32::MAX]] {
             caster.viewport = viewport;
-            let mut error = [0i8; 256];
+            let mut error = [0 as std::os::raw::c_char; 256];
             assert!(matches!(validate_shadow_frame(&frame, 1, false, error.as_mut_ptr(), error.len()),
                              Err(CoinWgpuStatus::InvalidArgument)),
                     "invalid/overflow/unclipped scissor {viewport:?}");
@@ -288,13 +288,13 @@
         caster.viewport = [7, 11, 31, 29];
         for reserved in [1u32, 2, 0x80000000, u32::MAX] {
             caster.reserved = reserved;
-            let mut error = [0i8; 256];
+            let mut error = [0 as std::os::raw::c_char; 256];
             assert!(matches!(validate_shadow_frame(&frame, 1, false, error.as_mut_ptr(), error.len()),
                              Err(CoinWgpuStatus::InvalidArgument)),
                     "unknown flags {reserved:x} cannot alias viewport semantics");
         }
         caster.reserved = 0;
-        let mut error = [0i8; 256];
+        let mut error = [0 as std::os::raw::c_char; 256];
         assert!(validate_shadow_frame(&frame, 1, false, error.as_mut_ptr(), error.len()).is_ok(),
                 "valid scissor recovery after malformed metadata");
     }

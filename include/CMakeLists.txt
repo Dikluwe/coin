@@ -22,28 +22,16 @@ file(GLOB_RECURSE COMMON_BIN_HDRS ${CMAKE_CURRENT_BINARY_DIR}/Inventor/*.h)
 # package below.
 set(COIN_RENDER_PUBLIC_HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/CoinRenderExport.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/CoinWgpuExport.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/actions/CoinBgfxAction.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/actions/CoinRenderAction.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/actions/SoBGFXRenderAction.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/actions/SoWgpuRenderAction.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderCapabilities.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderManagerAdapter.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderNativeSurface.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderOptions.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderSceneManager.h
+  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderShaderModule.h
   ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/CoinRenderTarget.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/SoWgpuCapabilities.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/SoWgpuNativeSurface.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/SoWgpuRenderManagerAdapter.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/SoWgpuRenderTarget.h
-  ${CMAKE_CURRENT_SOURCE_DIR}/Inventor/rendering/SoWgpuSceneManager.h
 )
 list(REMOVE_ITEM COMMON_HDRS ${COIN_RENDER_PUBLIC_HEADERS})
-
-if(NOT COIN_BUILD_RENDER)
-  list(FILTER COMMON_HDRS EXCLUDE REGEX ".*/SoWgpu.*")
-endif()
 
 set(COIN_DOCUMENTATION_FILES
   ${COIN_DOCUMENTATION_FILES}

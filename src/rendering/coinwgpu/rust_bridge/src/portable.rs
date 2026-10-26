@@ -60,7 +60,7 @@ const RESOURCE_BYTES: u64 = 32 * 1024 * 1024;
 type Error = (CoinWgpuStatus, String);
 fn invalid(message: &str) -> Error { (CoinWgpuStatus::InvalidArgument, message.into()) }
 fn slice<'a, T>(pointer: *const T, count: u64, label: &str) -> Result<&'a [T], Error> {
-    let mut error = [0i8; 512];
+    let mut error = [0 as c_char; 512];
     validate_slice(pointer, count, label, error.as_mut_ptr(), error.len()).map_err(|status|
         (status, unsafe { std::ffi::CStr::from_ptr(error.as_ptr()) }.to_string_lossy().into_owned()))
 }
@@ -69,7 +69,7 @@ fn call(packet: &CoinWgpuPortableModule, ranges: Option<(&CoinWgpuPortableRange,
 {
     let core = CORE.get().ok_or((CoinWgpuStatus::Unsupported,
         "Portable shader Core lowering callback is unavailable".into()))?;
-    let mut error = [0i8; 512];
+    let mut error = [0 as c_char; 512];
     let mut required = 0u64;
     let (primary, coordinates, samples, projection) = ranges.map_or((std::ptr::null(), std::ptr::null(), std::ptr::null(), 0),
         |(p,c,s,projection)| (p as *const _, c.as_ptr(), s.as_ptr(), projection));
@@ -421,3 +421,7 @@ pub extern "C" fn coin_wgpu_prepare_portable_frame(frame: *const CoinWgpuFrameVi
         Err(_) => {set_error(error_buf,error_len,"Portable shader preparation failed");CoinWgpuStatus::BackendError},
     }
 }
+
+#[cfg(test)]
+#[path = "../../../../../testsuite/coinwgpu/rust/unit/portable_c_char_tests.rs"]
+mod portable_c_char_tests;

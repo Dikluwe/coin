@@ -24,7 +24,7 @@ def main():
     parser.add_argument('--output-dir', type=Path, required=True)
     args = parser.parse_args()
     if not os.getenv('COIN_TEST_ISOLATED_X11'):
-        parser.error('run through testsuite/qt-quarter/run_isolated.py')
+        parser.error('run through scripts/coinrender/run_isolated.py')
     if os.getenv('VK_DRIVER_FILES') != '/usr/share/vulkan/icd.d/radeon_icd.json':
         parser.error('pin RADV on the physical Radeon')
     args.output_dir.mkdir(parents=True, exist_ok=True)

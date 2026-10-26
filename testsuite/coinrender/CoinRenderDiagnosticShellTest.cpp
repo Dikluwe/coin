@@ -4,7 +4,7 @@
 #include "src/config.h"
 #endif
 
-#include <Inventor/rendering/SoWgpuNativeSurface.h>
+#include <Inventor/rendering/CoinRenderNativeSurface.h>
 #include "rendering/coinrender/CoinRenderDiagnosticShell.h"
 #include "CoinRenderTestEnvironment.h"
 

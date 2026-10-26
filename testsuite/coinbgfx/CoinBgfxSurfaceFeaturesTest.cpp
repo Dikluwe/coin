@@ -3,7 +3,7 @@
 #endif
 #include <Inventor/SoDB.h>
 #include <Inventor/SoOffscreenRenderer.h>
-#include <Inventor/actions/CoinBgfxAction.h>
+#include <Inventor/actions/CoinRenderAction.h>
 #include <Inventor/rendering/CoinRenderTarget.h>
 #include <Inventor/nodes/SoSeparator.h>
 #include <Inventor/nodes/SoOrthographicCamera.h>
@@ -111,16 +111,16 @@ bool render(SoSeparator * root, bool cpu, std::vector<uint8_t> & pixels, bool fa
   if (!target) return false;
   target->setDepthReadbackEnabled(FALSE);
   if (cpu) target->getPimpl()->backend.reset(new CoinRenderCpuReferenceBackend);
-  CoinBgfxAction action(SbViewportRegion(64,64));
+  CoinRenderAction action(SbViewportRegion(64,64));
   action.setFastPathEnabled(fast); action.setRenderTarget(target.get());
   // Each sampled fixture has one contributing primitive at this pixel.
   // CPU source-over is its oracle; the GPU exercises its configured mechanism.
-  action.setTransparencyType(cpu ? CoinBgfxAction::BLEND
+  action.setTransparencyType(cpu ? CoinRenderAction::BLEND
                              : target->getOptions().transparency == COIN_RENDER_TRANSPARENCY_OBJECT
-                                 ? CoinBgfxAction::SORTED_OBJECT_BLEND
-                                 : CoinBgfxAction::SORTED_LAYERS_BLEND);
+                                 ? CoinRenderAction::SORTED_OBJECT_BLEND
+                                 : CoinRenderAction::SORTED_LAYERS_BLEND);
   action.apply(root);
-  if (action.getLastStatus() != CoinBgfxAction::SUCCESS) {
+  if (action.getLastStatus() != CoinRenderAction::SUCCESS) {
     std::cerr << action.getLastError().getString() << '\n'; return false;
   }
   target->readbackRGBA(pixels);
@@ -154,10 +154,8 @@ bool compare(SoSeparator * root, int x, int y, Pixel * result = nullptr,
 }
 }
 int main() {
-  SoDB::init(); CoinBgfxAction::initClass();
-  CoinBgfxAction action(SbViewportRegion(64,64));
-  if (!check(action.getTypeId().getName() == SbName("CoinBgfxAction") &&
-             action.isOfType(CoinRenderAction::getClassTypeId()), "registered BGFX action type")) return 1;
+  SoDB::init(); CoinRenderAction::initClass();
+  CoinRenderAction action(SbViewportRegion(64,64));
   for (int topology=0;topology<3;++topology) {
     for (int units : {1,2,8}) for (bool fog : {false,true}) {
       auto * root=scene(topology,units,SoTexture2::MODULATE,255,fog);
@@ -234,14 +232,14 @@ int main() {
     auto * face=static_cast<SoIndexedFaceSet *>(root->getChild(root->getNumChildren()-1));
     face->textureCoordIndex.set1Value(0,9999);
     action.apply(root); root->unref();
-    if (!check(action.getLastStatus()==CoinBgfxAction::INVALID_SCENE,"invalid higher-unit UV index")) return 1;
+    if (!check(action.getLastStatus()==CoinRenderAction::INVALID_SCENE,"invalid higher-unit UV index")) return 1;
   }
   {
     auto * root=scene(0,2,SoTexture2::MODULATE);
     auto * invalid = new SoTextureCombine; invalid->rgbScale = 3;
     root->insertChild(invalid,root->getNumChildren()-1);
     action.apply(root); root->unref();
-    if (!check(action.getLastStatus()==CoinBgfxAction::UNSUPPORTED,"invalid combine scale must be rejected")) return 1;
+    if (!check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED,"invalid combine scale must be rejected")) return 1;
   }
   {
     auto * root=scene(0,2,SoTexture2::REPLACE,255,false,false,true);
@@ -250,7 +248,7 @@ int main() {
     auto * matrix=static_cast<SoTexture2Transform *>(root->getChild(10));
     std::unique_ptr<CoinRenderTarget> target(CoinRenderTarget::createOffscreen(SbVec2i32(64,64)));
     target->setDepthReadbackEnabled(FALSE);
-    CoinBgfxAction cached(SbViewportRegion(64,64)); cached.setRenderTarget(target.get());
+    CoinRenderAction cached(SbViewportRegion(64,64)); cached.setRenderTarget(target.get());
     for (int pass=0;pass<3;++pass) {
       if (pass==1) matrix->translation.setValue(0.75f,0);
       if (pass==2) {
@@ -261,7 +259,7 @@ int main() {
       }
       cached.apply(root);
       std::vector<uint8_t> pixels; target->readbackRGBA(pixels);
-      if (!check(cached.getLastStatus()==CoinBgfxAction::SUCCESS && pixels.size()==64*64*4,"cached multitexture rendering")) return 1;
+      if (!check(cached.getLastStatus()==CoinRenderAction::SUCCESS && pixels.size()==64*64*4,"cached multitexture rendering")) return 1;
       Pixel actual=pixel(pixels,32,32);
       if (!check(pass==1 ? actual[1]>250 && actual[0]<5 : actual[0]>250 && actual[1]<5,
                  "higher-unit UV/matrix/image mutation retained stale resources")) return 1;
@@ -298,6 +296,6 @@ int main() {
   }
   auto * overflow=scene(0,9,SoTexture2::MODULATE);
   action.apply(overflow); overflow->unref();
-  if (!check(action.getLastStatus()==CoinBgfxAction::UNSUPPORTED,"unit limit explicit rejection")) return 1;
+  if (!check(action.getLastStatus()==CoinRenderAction::UNSUPPORTED,"unit limit explicit rejection")) return 1;
   std::cout << "CoinBgfxSurfaceFeaturesTest passed\n";
 }

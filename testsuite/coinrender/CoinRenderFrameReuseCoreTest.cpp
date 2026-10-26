@@ -8,6 +8,7 @@
 #include "rendering/coinrender/CoinRenderTextureAlphaCore.h"
 #include "rendering/coinrender/CoinRenderPlanAssemblyCore.h"
 #include "rendering/coinrender/CoinRenderTransformCore.h"
+#include "rendering/coinrender/CoinRenderComposition.h"
 #include <Inventor/SbRotation.h>
 #include "rendering/coinrender/CoinRenderTargetP.h"
 #include "rendering/coinrender/CoinRenderCpuReferenceBackend.h"
@@ -825,6 +826,56 @@ bool testCameraPrecisionFallback() {
   return ok;
 }
 
+bool testSortedGlassCameraOverlay() {
+  bool ok = true;
+  auto plan = makePlan(1400);
+  plan.renderStates[0].lightModel = CoinRenderLightModel::PHONG;
+  plan.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_BLEND;
+  plan.renderStates[0].transparentMaterial = true;
+  plan.renderStates[0].screenDoorTransparency = .85f;
+  plan.materials[0].transparency = .85f;
+  plan.materials[0].diffuse[3] = .15f;
+  plan.cameras[0].viewMatrix[3][2] = -5;
+  plan.renderStates[0].view = plan.cameras[0].viewMatrix;
+  plan.draws[0].hasSortingCenter = true;
+  plan.draws[0].sortingCenterWorld[2] = -1;
+  plan.draws.push_back(plan.draws[0]);
+  plan.draws[1].sortingCenterWorld[2] = 1;
+  const auto original = plan;
+  const auto * vertices = plan.vertices.data();
+  std::vector<CoinRenderCompositionItem> before, after;
+  std::string diagnostic;
+  ok &= check(coin_render_composition_schedule(plan, before, diagnostic) &&
+              before.size() == 2 && before[0].drawIndex == 0 && before[1].drawIndex == 1 &&
+              before[0].blend && before[0].sortObject,
+              "glass must initially sort far-to-near with blending");
+  CoinRenderCameraOverlayBasis basis;
+  ok &= check(CoinRenderFrameReuseCore::prepareCameraOverlayBasis(plan, basis),
+              "sorted glass with world centers must qualify camera reuse");
+  auto camera = plan.cameras[0];
+  camera.viewMatrix.setRotate(SbRotation(SbVec3f(0,1,0), 3.141592654f));
+  camera.viewMatrix[3][2] = -5;
+  CoinRenderCameraOverlayUndo undo;
+  ok &= check(CoinRenderFrameReuseCore::beginCameraOverlay(plan, camera, 1401, undo, basis) &&
+              plan.vertices.data() == vertices && plan.materials[0].transparency == .85f &&
+              coin_render_composition_schedule(plan, after, diagnostic) && after.size() == 2 &&
+              after[0].drawIndex == 1 && after[1].drawIndex == 0 && after[0].blend,
+              "orbit must reverse glass order without changing alpha or geometry");
+  CoinRenderFrameReuseCore::rollbackCameraOverlay(plan, undo);
+  ok &= check(plan.hasSamePayload(original), "rollback must restore sorted glass exactly");
+  for (int kind = 0; kind < 4; ++kind) {
+    auto invalid = original;
+    if (kind == 0) invalid.draws[0].hasSortingCenter = false;
+    if (kind == 1) invalid.draws[0].hasSortingDistance = true;
+    if (kind == 2) invalid.renderStates[0].transparencyType = SoGLRenderAction::SORTED_OBJECT_SORTED_TRIANGLE_BLEND;
+    if (kind == 3) invalid.renderStates[0].hasTexture = true;
+    CoinRenderCameraOverlayBasis rejected;
+    ok &= check(!CoinRenderFrameReuseCore::prepareCameraOverlayBasis(invalid, rejected),
+                "missing center, captured distance, triangle sorting and texture must fall back");
+  }
+  return ok;
+}
+
 bool testPhongWorldBasis() {
   bool ok=true;
   SbMatrix referenceView;
@@ -919,7 +970,7 @@ main()
 {
   SoDB::init();
   const bool paddingOk = testDrawPadding() && testFlatShadowPrimaryIdentity();
-  bool ok = testUntrustedReuseAdmission() && testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
+  bool ok = testSortedGlassCameraOverlay() && testUntrustedReuseAdmission() && testRigidCameraDelta() && testCameraPrecisionFallback() && testPhongWorldBasis() &&
     testExactAuthoredLightOverlay() && testCompactCameraUndo() &&
     testTranslationOverlay() && testObjectPayloadTransaction() &&
     testCompactCubeOverlay() && testGeometryIntervalValidation();

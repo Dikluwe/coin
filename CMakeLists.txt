@@ -162,26 +162,6 @@ if((ANDROID OR EMSCRIPTEN) AND NOT COIN_BUILD_LEGACY_GL_RENDERER)
 endif()
 
 
-# Transitional source/build compatibility for the former WebGPU-named module.
-# New CoinRender cache options take precedence when both names are supplied.
-foreach(_coin_render_legacy_pair IN ITEMS
-  "COIN_BUILD_WGPU|COIN_BUILD_RENDER"
-  "COIN_BUILD_WGPU_WINDOW_EXAMPLE|COIN_BUILD_RENDER_WINDOW_EXAMPLE"
-  "COIN_BUILD_WGPU_BENCHMARKS|COIN_BUILD_RENDER_BENCHMARKS"
-  "COIN_INSTALL_WGPU_EXPERIMENTAL|COIN_INSTALL_RENDER_EXPERIMENTAL"
-  "COIN_WGPU_BACKEND|COIN_RENDER_BACKEND"
-  "COIN_TEST_WGPU_STRICT_DISPLAY|COIN_TEST_RENDER_STRICT_DISPLAY"
-  "COIN_TEST_WGPU_GL_REFERENCE|COIN_TEST_RENDER_GL_REFERENCE"
-)
-  string(REPLACE "|" ";" _coin_render_names "${_coin_render_legacy_pair}")
-  list(GET _coin_render_names 0 _coin_render_old)
-  list(GET _coin_render_names 1 _coin_render_new)
-  if(DEFINED ${_coin_render_old} AND NOT DEFINED ${_coin_render_new})
-    set(${_coin_render_new} "${${_coin_render_old}}" CACHE STRING
-      "CoinRender option migrated from ${_coin_render_old}")
-  endif()
-endforeach()
-
 option(COIN_BUILD_RENDER "Build the experimental CoinRender module" OFF)
 option(COIN_BUILD_RENDER_WINDOW_EXAMPLE "Build the experimental CoinRender window example" OFF)
 option(COIN_BUILD_RENDER_BENCHMARKS "Build experimental renderer/GL comparison tools" OFF)
@@ -238,6 +218,10 @@ if(COIN_BUILD_RENDER)
       set(RUST_PROFILE_DIR "release")
       set(CARGO_BUILD_FLAGS "--locked" "--release")
     endif()
+    if(COIN_BUILD_TESTS)
+      list(APPEND CARGO_BUILD_FLAGS "--features" "test-hooks")
+    endif()
+    file(GLOB COIN_RENDER_RUST_SOURCES CONFIGURE_DEPENDS "${RUST_BRIDGE_DIR}/src/*.rs")
     if(ANDROID)
       if(CMAKE_ANDROID_ARCH_ABI)
         set(COIN_RENDER_ANDROID_ABI "${CMAKE_ANDROID_ARCH_ABI}")
@@ -270,7 +254,7 @@ if(COIN_BUILD_RENDER)
       OUTPUT "${RUST_LIB_PATH}"
       COMMAND ${CMAKE_COMMAND} -E env CARGO_TARGET_DIR=${RUST_TARGET_DIR} ${COIN_RENDER_CARGO_ENV} ${CARGO_EXECUTABLE} build ${CARGO_BUILD_FLAGS} --manifest-path "${RUST_BRIDGE_DIR}/Cargo.toml"
       WORKING_DIRECTORY "${RUST_BRIDGE_DIR}"
-      DEPENDS "${RUST_BRIDGE_DIR}/vendor/naga-24.0.0/src/back/glsl/mod.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-core-24.0.5/Cargo.toml" "${RUST_BRIDGE_DIR}/vendor/wgpu-core-24.0.5/src/snatch.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-core-24.0.5/src/lock/observing.rs" "${RUST_BRIDGE_DIR}/src/multipass.rs" "${RUST_BRIDGE_DIR}/src/stereo.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/gles/queue.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/gles/mod.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/gles/adapter.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/vulkan/instance.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/vulkan/x11_wsi.rs" "${RUST_BRIDGE_DIR}/src/raster_image.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_raster_image.wgsl" "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/texture_mips.rs" "${RUST_BRIDGE_DIR}/src/surface_present.rs" "${RUST_BRIDGE_DIR}/src/texture_profile.rs" "${RUST_BRIDGE_DIR}/src/instancing.rs" "${RUST_BRIDGE_DIR}/src/depth_transfer.rs" "${RUST_BRIDGE_DIR}/src/uniform_arena.rs" "${RUST_BRIDGE_DIR}/src/shader_profile.rs" "${RUST_BRIDGE_DIR}/src/portable.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/bump_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
+      DEPENDS ${COIN_RENDER_RUST_SOURCES} "${RUST_BRIDGE_DIR}/vendor/naga-24.0.0/src/back/glsl/mod.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-core-24.0.5/Cargo.toml" "${RUST_BRIDGE_DIR}/vendor/wgpu-core-24.0.5/src/snatch.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-core-24.0.5/src/lock/observing.rs" "${RUST_BRIDGE_DIR}/src/multipass.rs" "${RUST_BRIDGE_DIR}/src/stereo.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/gles/queue.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/gles/mod.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/gles/adapter.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/vulkan/instance.rs" "${RUST_BRIDGE_DIR}/vendor/wgpu-hal-24.0.4/src/vulkan/x11_wsi.rs" "${RUST_BRIDGE_DIR}/src/raster_image.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_raster_image.wgsl" "${RUST_BRIDGE_DIR}/src/lib.rs" "${RUST_BRIDGE_DIR}/src/texture_mips.rs" "${RUST_BRIDGE_DIR}/src/surface_present.rs" "${RUST_BRIDGE_DIR}/src/texture_profile.rs" "${RUST_BRIDGE_DIR}/src/instancing.rs" "${RUST_BRIDGE_DIR}/src/depth_transfer.rs" "${RUST_BRIDGE_DIR}/src/uniform_arena.rs" "${RUST_BRIDGE_DIR}/src/shader_profile.rs" "${RUST_BRIDGE_DIR}/src/portable.rs" "${RUST_BRIDGE_DIR}/src/composition.rs" "${RUST_BRIDGE_DIR}/src/peeling.rs" "${RUST_BRIDGE_DIR}/src/shadow.rs" "${RUST_BRIDGE_DIR}/src/shadow_receiver.rs" "${RUST_BRIDGE_DIR}/src/bump_receiver.rs" "${RUST_BRIDGE_DIR}/src/weighted.rs" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_shadow.wgsl" "${RUST_BRIDGE_DIR}/Cargo.toml" "${RUST_BRIDGE_DIR}/Cargo.lock" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_standard.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_line.wgsl" "${CMAKE_CURRENT_SOURCE_DIR}/src/rendering/coinwgpu/shaders/coin_point.wgsl"
       COMMENT "Building Rust WebGPU bridge library (${RUST_PROFILE_DIR})..."
       VERBATIM
     )
@@ -1112,6 +1096,11 @@ unset(COIN_DOCUMENTATION_FILES CACHE)
 # they are put in DOXYGEN_EXCLUDE.
 unset(COIN_INTERNAL_DOCUMENTATION_FILES CACHE)
 
+
+# Private diagnostics are compiled only into explicit test builds.
+if(COIN_BUILD_TESTS AND COIN_BUILD_RENDER)
+  add_compile_definitions(COIN_WGPU_TEST_HOOKS=1)
+endif()
 
 add_subdirectory(include)
 add_subdirectory(data)

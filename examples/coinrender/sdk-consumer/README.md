@@ -1,67 +1,58 @@
-# Consumidor público CoinRender instalado
+# Installed CoinRender SDK consumer
 
-Projeto CMake independente do build Coin, sem headers privados. Requer os
-pacotes Coin e CoinRender instalados com `COIN_INSTALL_RENDER_EXPERIMENTAL=ON`
-e renderer legado ligado para a referência CoinGL. Usa somente targets
-importados públicos e OpenGL do sistema. O SDK compartilhado BGFX não exige
-o pacote/headers BGFX no cliente; no Windows preserva `NOMINMAX`.
+This standalone CMake project uses only public imported targets/headers and system
+OpenGL. Install Coin/CoinRender with `COIN_INSTALL_RENDER_EXPERIMENTAL=ON` and the
+legacy renderer enabled for the CoinGL reference. Shared BGFX SDK consumers do
+not require BGFX headers/package; Windows retains NOMINMAX.
 
 ```sh
 cmake -S examples/coinrender/sdk-consumer -B build/sdk-consumer -DCMAKE_PREFIX_PATH=/path/to/sdk
 cmake --build build/sdk-consumer --config Release
 ```
 
-Executar `coin-render-sdk-consumer vulkan`, `opengl` ou `d3d12`, usando o
-executável/configuração e o caminho de DLLs/bibliotecas da instalação. A opção
-solicita a API explicitamente. Indisponibilidade retorna diagnóstico e código 3;
-nenhuma API alternativa é contada como aprovação.
+Run `coin-render-sdk-consumer vulkan`, `opengl` or `d3d12` with the installed
+configuration/library path. The API is requested explicitly; unavailable API
+returns diagnostic/exit 3, without counting another API as a pass. The client queries
+capabilities, renders a red BASE_COLOR cube in 32×32, checks center texel and compares
+all orientation-normalized RGB pixels against CoinGL (maximum 3 levels). It prints
+API/adapter, GL coordinate/sampler limits and results. This is an offscreen SDK
+smoke, not every feature/native surface/eight-map qualification.
 
-O consumidor consulta capacidades, desenha um cubo BASE_COLOR vermelho em
-32×32 e exige o texel central correto. Compara todos os pixels RGB com CoinGL,
-normalizando a orientação, com máximo de três níveis. Imprime API, adapter,
-limites de coordenadas/samplers GL e resultados. Isso é um smoke de SDK/offscreen;
-não qualifica outros perfis, superfícies nativas ou oito mapas CoinGL.
+Select/record physical GPU in the runner. Functional success alone does not prove
+hardware: reject software adapters for qualification and record executable/library/
+header/prefix hashes. Never mix builds/revisions. Missing reference/API cannot be
+counted as visual equivalence.
 
-Selecionar e registrar a GPU física no runner. Um smoke funcional isolado não
-prova hardware: rejeitar adapter de software na qualificação e registrar hashes
-dos executáveis, bibliotecas carregadas, headers e prefix de instalação. Não
-misturar DLLs/bibliotecas de builds ou revisões diferentes. SDK sem referência
-GL ou API indisponível não pode ser contado como equivalência de pixels.
+## Sampling and C11 API
 
-## Sampling explícito e ABI C11
-
-O segundo argumento opcional é `native` ou `portable`; omiti-lo conserva
-`native`. O terceiro argumento opcional é um prefixo de arquivos PPM. Exemplo:
+Optional second argument `native` (default) or `portable`; optional third is output
+PPM prefix:
 
 ```sh
 coin-render-sdk-consumer d3d12 portable artifacts/sdk-d3d12-portable
 coin-render-sdk-capabilities-c
 ```
 
-Além do cubo e da comparação CoinGL, o consumidor renderiza uma imagem
-128×128 minificada em 64×64. Em `portable`, exige o oracle independente de
-NEAREST_MIPMAP_LINEAR: canais 40/160 nas colunas 30/31, com erro máximo 1.
-Em `native`, exige render e pixels completos sem impor o oracle portátil.
-Os arquivos `*-cube.ppm` e `*-mip.ppm` conservam os pixels efetivos.
+The client also minifies a 128×128 image into 64×64. Portable requires independent
+NEAREST_MIPMAP_LINEAR oracle channels 40/160 in columns 30/31, maximum error 1.
+Native requires complete rendered pixels without imposing portable expected
+sampling. `*-cube.ppm`/`*-mip.ppm` retain actual output.
 
-A disponibilidade da política é consultada sem exigir perfil publicado;
-a consulta estrita é registrada separadamente. Windows permanece
-`UNQUALIFIED_PROFILE` na consulta estrita desta revisão. Aprovar os smokes
-em uma GPU identificada não publica automaticamente um perfil geral Windows.
-No Windows, os caminhos de Coin4.dll/CoinRender4.dll carregados são impressos;
-compare seus hashes com a instalação. A sonda C11 verifica capabilities v4
-com 584 bytes, prefixo v3 com 536 bytes e ordinal nativo zero.
+Availability is queried without requiring published qualification; strict selection
+is logged separately. Historical Windows strict query remains UNQUALIFIED_PROFILE.
+Passing an identified-device smoke does not publish a general Windows profile.
+Windows prints loaded Coin4.dll/CoinRender4.dll paths; compare installation hashes.
+C11 probe checks capability V4 size 584, V3 prefix 536 and native ordinal 0.
 
-## Validação Windows da branch limpa
+## Windows reproduction recipe
 
-Usar Visual Studio 2022 com ferramentas C/C++ e Windows SDK, CMake, Git e
-driver da GPU física com a API solicitada. Para `RUST_BRIDGE`, instalar Rust
-com toolchain MSVC x64 e Cargo; conservar `Cargo.lock`. Para BGFX, preparar o
-SDK e o patch final conforme [as instruções da dependência](../../../cmake/patches/README.md).
-Não misturar os prefixes de BGFX e wgpu. O consumidor C++ requer C++17;
-o consumidor C requer C11. A biblioteca Coin mantém seu mínimo C++11.
+Use Visual Studio 2022 C/C++ tools, Windows SDK, CMake/Git and physical-GPU driver
+for requested API. RUST_BRIDGE requires x64 MSVC Rust/Cargo and preserved Cargo.lock.
+For BGFX prepare [pinned dependency patches](../../../cmake/patches/README.md).
+Use separate BGFX/wgpu install prefixes. This standalone C++ client requires
+C++17 and its C probe C11; Coin public headers retain C++11 compatibility.
 
-Exemplo PowerShell, na raiz do checkout, depois de preparar BGFX:
+PowerShell from checkout root after preparing BGFX:
 
 ```powershell
 $coinSource = (Get-Location).Path
@@ -85,24 +76,19 @@ $env:PATH = "$coinSdk/bin;$env:PATH"
 & ./build/consumer-bgfx/Release/coin-render-sdk-consumer.exe d3d12 portable
 ```
 
-Conferir o código de saída de cada comando antes de continuar. Repetir o
-consumidor nas APIs físicas `vulkan` e `opengl`, com políticas `native` e
-`portable`. Para wgpu, configurar outro diretório de build e outro prefixo,
-selecionando `COIN_RENDER_BACKEND=RUST_BRIDGE`, sem as três opções BGFX;
-repetir build, CTest, instalação e consumidores usando somente esse prefixo.
-Executar builds pesados separadamente e testes GPU com um processo por vez.
+Check each command's exit status. Repeat physical APIs vulkan/opengl with both
+native/portable sampling. For wgpu use another build/install prefix and
+COIN_RENDER_BACKEND=RUST_BRIDGE, omitting the three BGFX-specific options, then
+build/test/install/consume only that prefix. Run heavy builds separately and GPU
+tests one process at a time. These are recipes, not new Windows qualification.
 
-Na reorganização Linux, compilaram as configurações `RECORDING`, `RUST_BRIDGE`,
-`BGFX` e CoinRender desativado, além dos consumidores instalados C/C++.
-Os smokes Vulkan portáteis de wgpu e BGFX passaram. Esses resultados não
-qualificam MSVC, exportação/importação DLL nem os consumidores Windows desta
-branch. Registrar os resultados Windows e os caminhos/hashes das DLLs carregadas.
-O [relatório da organização](../../../docs/coin-render-source-layout.md) conserva
-as contagens, skips e limitações dos testes Linux.
-
-Continuam abertas a discrepância de um pixel do instancing BGFX/OpenGL/NVIDIA
-e a falha no encerramento paralelo dos testes Rust, ambas anteriores à
-reorganização. Os testes Rust passaram serialmente neste host; isso não prova
-correção do encerramento paralelo. A recuperação do patch BGFX não corrige
-essas falhas nem as falhas visuais históricas Windows. PBR em desenvolvimento
-não integra esta entrega para testes.
+Historical Linux extraction built RECORDING/RUST_BRIDGE/BGFX/OFF and installed
+C/C++ clients; Vulkan portable smokes passed. Those runs do not qualify MSVC,
+DLL import/export or current Windows consumers. Record actual Windows results and
+loaded DLL hashes. The original extraction receipt and limitations are available
+through [evidence packaging](../../../docs/coin-render-evidence.md), rather than
+assuming current source layout is a new validation report. Known historical
+BGFX/OpenGL/NVIDIA pixel and Rust parallel-shutdown differences remain diagnosed
+within their own dated profiles; serial success never proves a parallel fix.
+Recovered BGFX patch bytes do not themselves fix GPU/driver failures. PBR is
+outside this contribution.

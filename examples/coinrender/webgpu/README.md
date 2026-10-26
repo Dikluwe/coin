@@ -309,5 +309,9 @@ FPS and must not be treated as zero FPS or extrapolated from the 40k control.
 The TCL million trial is **not qualified**: preparation took about six minutes and
 completed full submissions produced a uniform clear image. The explicitly selected
 40k control did render visible geometry. Use that control for the TV demonstration;
-see [the measured scope and comparison](../../../docs/coin-render-webgpu-city-tv-20261023.md).
+the TCL 40k trial recorded **8.50 FPS median** after **17.02 s of preparation**,
+while the million trial took **365.68 s to prepare** and showed a clear image. These are different qualification
+results, not a performance ratio. The original measured-scope report is preserved
+in [the local companion archive](../../../docs/coin-render-evidence.md) at
+`integrated/docs/coin-render-webgpu-city-tv-20261023.md` or its historical prefix.
 The temporary public tunnel used for the earlier cube trial has been stopped.

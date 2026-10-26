@@ -59,6 +59,10 @@ set(COIN_RENDER_SOURCES
 	CoinRenderRttExecution.cpp
 	CoinRenderTarget.cpp
 	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderAction.cpp
+	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderActionExecution.cpp
+	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderActionReuse.cpp
+	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderActionCapture.cpp
+	${PROJECT_SOURCE_DIR}/src/actions/CoinRenderActionRtt.cpp
 )
 
 if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
@@ -66,7 +70,7 @@ if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
 elseif(COIN_RENDER_BACKEND STREQUAL "DAWN" OR COIN_RENDER_BACKEND STREQUAL "WGPU_NATIVE")
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuNativeBackend.cpp)
 elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
-	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramCache.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramSelection.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxAction.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRuntime.cpp)
+	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxLowering.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramCache.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxProgramSelection.cpp ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRuntime.cpp)
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxShaderCompiler.cpp)
 	configure_file(${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxShaderCompilerConfig.h.in
 	  ${CMAKE_CURRENT_BINARY_DIR}/CoinBgfxShaderCompilerConfig.h @ONLY)
@@ -336,6 +340,19 @@ elseif(COIN_RENDER_BACKEND STREQUAL "BGFX")
 		endforeach()
 	endforeach()
 	list(APPEND COIN_RENDER_SOURCES ${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxBackend.cpp)
+	list(APPEND COIN_RENDER_SOURCES
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxSharedRuntime.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxShadow.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPrograms.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxMultipass.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRaster.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxAttachments.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxDraw.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxSubmit.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxReadback.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxRtt.cpp
+		${PROJECT_SOURCE_DIR}/src/rendering/coinbgfx/CoinBgfxPreflight.cpp
+	)
 endif()
 
 # WebAssembly capture is statically linked into the isolated demonstration.
@@ -351,10 +368,13 @@ target_compile_features(CoinRender PRIVATE cxx_std_17)
 if(WIN32)
 	target_compile_definitions(CoinRender PUBLIC NOMINMAX)
 	if(COIN_RENDER_BACKEND STREQUAL "RUST_BRIDGE")
+		if(COIN_BUILD_TESTS)
+			target_sources(CoinRender PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfiTest.def)
+		else()
 		target_sources(CoinRender PRIVATE ${PROJECT_SOURCE_DIR}/src/rendering/coinwgpu/CoinWgpuFfi.def)
+		endif()
 	endif()
 endif()
-add_library(CoinWgpuExperimental ALIAS CoinRender)
 
 set_target_properties(CoinRender PROPERTIES
 	CXX_VISIBILITY_PRESET hidden
@@ -405,13 +425,9 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR} COMPONENT development)
 	install(FILES
 		${PROJECT_SOURCE_DIR}/include/Inventor/CoinRenderExport.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/CoinWgpuExport.h
 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor COMPONENT development)
 	install(FILES
-		${PROJECT_SOURCE_DIR}/include/Inventor/actions/CoinBgfxAction.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/actions/CoinRenderAction.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/actions/SoBGFXRenderAction.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/actions/SoWgpuRenderAction.h
 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor/actions COMPONENT development)
 	install(FILES
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderCapabilities.h
@@ -421,28 +437,11 @@ if(COIN_INSTALL_RENDER_EXPERIMENTAL)
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderShaderModule.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderSceneManager.h
 		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/CoinRenderTarget.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/SoWgpuCapabilities.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/SoWgpuNativeSurface.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/SoWgpuRenderManagerAdapter.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/SoWgpuRenderTarget.h
-		${PROJECT_SOURCE_DIR}/include/Inventor/rendering/SoWgpuSceneManager.h
 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/Inventor/rendering COMPONENT development)
 	install(FILES
 		${CMAKE_CURRENT_BINARY_DIR}/CoinRenderConfig.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/CoinRenderConfigVersion.cmake
 		DESTINATION ${_coin_render_package_dir} COMPONENT development)
-	set(_coin_render_legacy_package_dir "${CMAKE_INSTALL_LIBDIR}/cmake/CoinWgpuExperimental")
-	configure_package_config_file(
-		${CMAKE_CURRENT_SOURCE_DIR}/coin-render-legacy-config.cmake.in
-		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfig.cmake
-		INSTALL_DESTINATION ${_coin_render_legacy_package_dir})
-	write_basic_package_version_file(
-		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfigVersion.cmake
-		VERSION ${PROJECT_VERSION} COMPATIBILITY SameMajorVersion)
-	install(FILES
-		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfig.cmake
-		${CMAKE_CURRENT_BINARY_DIR}/CoinWgpuExperimentalConfigVersion.cmake
-		DESTINATION ${_coin_render_legacy_package_dir} COMPONENT development)
 	install(EXPORT CoinRenderTargets
 		FILE CoinRenderTargets.cmake
 		NAMESPACE CoinRender::

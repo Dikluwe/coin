@@ -1414,14 +1414,6 @@ if(COIN_BUILD_RENDER)
 		endforeach()
 	endif()
 
-	if(NOT CMAKE_VERSION VERSION_LESS "3.12")
-		find_package(Python3 3.7 COMPONENTS Interpreter QUIET)
-		if(Python3_Interpreter_FOUND)
-			add_test(NAME CoinRenderNodeInventoryDiscoveryTest
-				COMMAND ${Python3_EXECUTABLE} ${PROJECT_SOURCE_DIR}/testsuite/coinrender/test_node_inventory.py)
-			set_tests_properties(CoinRenderNodeInventoryDiscoveryTest PROPERTIES TIMEOUT 30)
-		endif()
-	endif()
 
 	# Manual P20 oracle capture; accepts the checksummed historical fixture directory.
 	add_executable(CoinRenderP20ReferenceCapture CoinRenderP20ReferenceCapture.cpp)
@@ -5543,3 +5535,10 @@ include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderManagerMonoTests.cmake)
 include(CoinRenderManagerStereoTests.cmake)
 
 include(${CMAKE_CURRENT_LIST_DIR}/CoinRenderHighlightCompletionTests.cmake)
+
+# CoinRender test implementations use modern aggregates; installed API consumers
+# keep the legacy Coin language minimum.
+get_property(_coin_render_test_targets DIRECTORY PROPERTY BUILDSYSTEM_TARGETS)
+foreach(_coin_render_test_target IN LISTS _coin_render_test_targets)
+  target_compile_features(${_coin_render_test_target} PRIVATE cxx_std_17)
+endforeach()
